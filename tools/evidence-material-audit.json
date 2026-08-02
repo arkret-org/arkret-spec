@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 90,
+  "audited_occurrence_count": 91,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -49,7 +49,7 @@
     {
       "file": "account-operations.schema.json",
       "key": "authority_evidence",
-      "occurrences": 1,
+      "occurrences": 2,
       "disposition": "polymorphic_container",
       "material_families": ["proof", "attestation"],
       "reason": "Operation field referencing the registered account-status authority evidence object."

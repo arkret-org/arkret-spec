@@ -296,6 +296,10 @@ components:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_register_outcome
     AccountRegisterRequestBody:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_register_request_body
+    AccountStatusAuthoringBasisOutcome:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_outcome
+    AccountStatusAuthoringBasisRequestBody:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_request_body
     AccountStatusPublicationOutcome:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_status_publication_outcome
     AccountStatusPublicationRequestBody:
@@ -1676,6 +1680,10 @@ components:
       $ref: ../schemas/mls-governance-proof-bundle.schema.json
     MlsGovernanceProofRequestBodyBody:
       $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request
+    MlsGroupStateMaterialOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome
+    MlsGroupStateMaterialRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody
     ModerationQueueView:
       type: object
       required:
@@ -4228,6 +4236,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /_arkret/peer/account-status/authoring-basis:
+    post:
+      operationId: ak.peer.account_status.query.authoring_basis
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Obtain PCR-bound authoring frontiers for an account-status Event.
+      description: |
+        Read-only Account Authority query made before signing one
+        `ak.account.status` Event. The receiver verifies the signed authority
+        evidence and current delegation before returning both the exact issuer
+        actor-chain frontier and the exact Principal Control Realm Seal head.
+        Source-Service-ID must equal `issuer_service_id`; both frontier scopes
+        must match the evidence. The operation accepts no Event, advances no
+        frontier, grants no authority, and never synthesizes an empty PCR.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountStatusAuthoringBasisRequestBody'
+      responses:
+        '200':
+          description: Exact actor-chain and Realm Seal authoring frontiers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountStatusAuthoringBasisOutcome'
+        '409':
+          description: The PCR has no current fully verifiable accepted authoring frontier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /_arkret/peer/account-status:
     post:
       operationId: ak.peer.account_status.command.submit
@@ -4280,6 +4326,50 @@ paths:
                 $ref: '#/components/schemas/AccountStatusPublicationOutcome'
         '409':
           description: Idempotency-Key conflict or invalid account-status transition.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /_arkret/peer/mls/group-state-material:
+    post:
+      operationId: ak.peer.mls.query.group_state_material
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Resolve verified MLS epoch-0 public group-state bytes.
+      description: |
+        Resolves one accepted `ak.mls.genesis` Event and returns its exact RFC
+        9420 GroupInfo and ratchet_tree extension bytes. Before disclosure the
+        provider verifies every request selector against the Event, recomputes
+        SHA-256 over both raw byte strings, compares explicit digests and the
+        hashes embedded in the content-addressed refs, and validates
+        GroupInfo/tree consistency. The response is all-or-nothing and never
+        contains private tree material, MLS secrets or inferred leaf DTOs.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MlsGroupStateMaterialRequestBody'
+      responses:
+        '200':
+          description: Digest-verified public MLS GroupInfo and ratchet tree bytes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MlsGroupStateMaterialOutcome'
+        '409':
+          description: Event/object material is unavailable, inconsistent, or not accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '422':
+          description: The complete response exceeds the caller or protocol byte bound.
           content:
             application/json:
               schema:

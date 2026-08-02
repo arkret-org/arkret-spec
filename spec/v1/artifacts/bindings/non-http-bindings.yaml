@@ -199,7 +199,10 @@ grpc:
       Resolve: ak.peer.events.query.resolve
       Submit: ak.peer.events.command.submit
     PeerAccountStatus:
+      AuthoringBasis: ak.peer.account_status.query.authoring_basis
       Submit: ak.peer.account_status.command.submit
+    PeerMls:
+      GroupStateMaterial: ak.peer.mls.query.group_state_material
     PeerInvites:
       Submit: ak.peer.invites.command.submit
     PeerContacts:
@@ -353,6 +356,8 @@ mq:
     peer.events.query.scan.resolve: ak.peer.events.query.resolve
     peer.events.query.scan: ak.peer.events.query.scan
     peer.events.query.scan.frontier: ak.peer.events.query.frontier
+    peer.account_status.query.authoring_basis: ak.peer.account_status.query.authoring_basis
+    peer.mls.query.group_state_material: ak.peer.mls.query.group_state_material
     peer.invites.command.submit: ak.peer.invites.command.submit
     peer.contacts.command.submit: ak.peer.contacts.command.submit
     peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim

@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-30",
+  "version": "2026-08-02",
   "source_of_truth": true,
   "description": "Canonical selector-based normative-clause coverage registry for service operations. A profile conformance claim computes its inherited required_endpoints closure and MUST satisfy every active clause whose selector matches each operation. This registry complements operation-registry shape; it does not create a second operation namespace.",
   "certification_rule": {
@@ -22,7 +22,9 @@
         "ak.self.agent.sidecar.resource.get",
         "ak.find.directory.query.resolve_agent_selector",
         "ak.self.invite_locator.command.rotate",
+        "ak.peer.account_status.query.authoring_basis",
         "ak.peer.events.query.resolve",
+        "ak.peer.mls.query.group_state_material",
         "ak.open.agent_pairing.query.runtime_key_request_status",
         "ak.open.device_pairing.query.resolve",
         "ak.open.device_pairing.query.status"

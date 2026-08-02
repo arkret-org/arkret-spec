@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-02.5",
-  "generated_at": "2026-08-02T17:00:00Z",
+  "version": "2026-08-02.6",
+  "generated_at": "2026-08-02T21:45:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2193,6 +2193,7 @@
         "ak.self.events.query.scan",
         "ak.self.snapshot.query.manifest_head",
         "ak.self.authz.query.check",
+        "ak.peer.account_status.query.authoring_basis",
         "ak.peer.account_status.command.submit"
       ],
       "required_event_kinds": [
@@ -2577,7 +2578,7 @@
         "not_identity_registry_must": "Auth Server MUST NOT claim `ak.profile.identity_registry.v1`; any DID document / key-log surface it exposes MUST be declared on `compat_surfaces[]` as `delegated_resolver` rather than self-claimed canonical authority.",
         "not_principal_server_must": "Auth Server MUST NOT claim `ak.profile.principal_server.v1`; Realm event acceptance is the principal server role and is incompatible with auth-server-only deployments.",
         "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run.",
-        "account_status_publication_must": "An Auth Server acting as Account Authority MUST sign authority_evidence and publish every ak.account.status transition through ak.peer.account_status.command.submit to the bound Principal Server; it MUST NOT impersonate a holder session or use a deployment-private route."
+        "account_status_publication_must": "An Auth Server acting as Account Authority MUST first obtain the PCR-bound issuer actor frontier and accepted Seal frontier through ak.peer.account_status.query.authoring_basis, then sign authority_evidence and publish every ak.account.status transition through ak.peer.account_status.command.submit to the bound Principal Server; it MUST NOT synthesize an empty basis, impersonate a holder session, or use a deployment-private route."
       }
     },
     "ak.profile.public_network_identity.v1": {
@@ -3990,7 +3991,8 @@
         "ak.self.keys.keypackages.command.claim",
         "ak.self.keys.keypackages.command.consume",
         "ak.self.events.query.scan",
-        "ak.self.events.query.mls_governance_proof"
+        "ak.self.events.query.mls_governance_proof",
+        "ak.peer.mls.query.group_state_material"
       ],
       "required_event_kinds": [
         "ak.mls.commit",
@@ -4001,7 +4003,8 @@
       "required_schemas": [
         "ak.schema.encrypted_envelope.v1",
         "ak.schema.snapshot.v1",
-        "ak.schema.mls_governance_proof_bundle.v1"
+        "ak.schema.mls_governance_proof_bundle.v1",
+        "ak.schema.service_operation_dtos.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
@@ -4019,7 +4022,8 @@
           "security_frontier_digest",
           "mls_epoch_cell",
           "governance_binding_profile_required",
-          "mls_governance_proof_bundle"
+          "mls_governance_proof_bundle",
+          "mls_group_state_material"
         ],
         "unsupported_optional": "fail closed on security frontier mismatch"
       },
@@ -4045,6 +4049,8 @@
         "governance_binding.reducer_profile missing or mismatched with the negotiated Realm reducer profile",
         "binding_version, encoding_profile, effective_scope, mls_group_id, previous_epoch, next_epoch, or security_frontier_digest verification mismatch",
         "producer-supplied arbitrary frontier members instead of registry-closed derivation",
+        "epoch-0 GroupInfo or ratchet tree missing a content-addressed ref, explicit digest, or matching retrievable raw bytes",
+        "leaf_index inferred from KeyPackage/database order instead of occupied leaves in the verified RFC 9420 ratchet tree",
         "a key-affecting accepted state change not covered by the winning Commit",
         "an unrelated capability, metadata, moderation, routing, contact or consent-only change incorrectly forcing a Commit"
       ]

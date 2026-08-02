@@ -177,6 +177,26 @@ Account Authority 与客户端 UI MUST 把 service-account 认证凭据（密码
 
 Account Authority 或已委派 issuer 向 Principal Server 发布状态的唯一 HTTP operation 是 `ak.peer.account_status.command.submit`（`POST /_arkret/peer/account-status`），request 为 `account_status_publication_request_body`：
 
+在签名 Event 之前，authoritative issuer MUST 通过标准只读操作
+`ak.peer.account_status.query.authoring_basis`（`POST /_arkret/peer/account-status/authoring-basis`）取得同一 PCR 的
+typed authoring basis。request 必须携带完整、当前有效的 `authority_evidence` 与固定
+`event_kind="ak.account.status"`，并使用 §3 的 service-to-service HTTP Message Signature；Source-Service-ID
+MUST 等于 evidence 的 `issuer_service_id`，Destination-Service-ID MUST 是承载该 PCR accepted state 的 Principal
+Server。receiver 在披露任何 frontier 前 MUST 验证 authority proof、当前 delegation/binding version、account、
+principal、PCR 与 issuer 全字段绑定。响应 `account_status_authoring_basis_outcome` 同时返回：
+
+- `actor_frontier: RealmActorFrontierView`，其 `(realm_id, actor_id)` 必须等于
+  `(principal_control_realm_id, issuer_service_id)`；producer 由 `next_actor_seq` 与完整
+  `frontier_event_ids` 构造 Event 的 `actor_seq` / `prev_refs`；
+- `seal_frontier: RealmSealFrontierView`，其 `realm_id` 必须等于同一 PCR；producer 只取
+  `seal_basis.leaves=[seal_frontier.seal_id]`，并验证返回 Seal、重算 `control_event_set_root` 与 `state_root`。
+
+两种 frontier、account/principal/PCR/issuer 任一不一致、Seal 不可解析、governance health 非健康、authority
+evidence 过期或 hosting service 无 current accepted view 时 MUST fail closed（`frontier_unavailable` / 对应认证
+错误）。该 query 不签发 authority、不接受 Event、不推进 frontier，也不得返回 synthetic empty PCR。仅注册
+bootstrap unit 可按通用 Events 规则本地派生 genesis basis；既有 PCR 的 Account Authority 不得使用空
+`prev_refs`、空 `seal_basis`、peer opaque frontier root 或实现私有 DTO 代替本操作。
+
 - `publication` 只允许一条完整 `ak.account.status` Event。首次 Account Authority publication 只携 `event`；下游 fanout 携同一原始 Event 与此前 receiver 签发的 `account_status_receipts[]`。每份专用 receipt 闭合绑定 `receipt_id`、Event id/digest、account/principal/PCR、`receiver_service_id`、accepted frontier digest 与 `accepted_at`，proof context 固定为 `ak.account_status.ingress_receipt.v1`；proof controller 必须是 `receiver_service_id`，且 receipt 中的绑定字段必须与 Event/authority evidence 逐字一致。它只证明该 receiver 已把 Event accepted 进本地 account-status frontier，不授予发布 authority。两条 publication 分支都禁止 AuthorizationLease，也禁止复用 generic `IngressReceipt`（后者结构上必含 `authorization_lease_id`）：account status 是高风险在线写入，receiver 必须按当前 authority / binding / revocation state admission，不能用旧 lease 延长发布窗口。
 - `authority_evidence` 是 Account Authority 签名、短期、transport-only 的 service-account binding 证明，闭合绑定 `account_authority_id`、Event `issuer_service_id`、`principal_control_realm_id`、`account_id`、`principal_id`、单调 `binding_version`、`authority_ref`、签发/过期时间。Proof context 固定为 `ak.account_status.authority_evidence.v1`，`payload_digest` 是移除 `proof` 后完整对象的 RFC 8785 JCS SHA-256。它不得发布到 Directory、共享 Realm timeline 或 profile，不把部署本地 service-account id 提升为公共身份事实。
 - receiver MUST 逐字段比较 Event `actor_id` / proof controller、Event `realm_id` / `scope_ref`、payload `account_id` / `principal_id` 与 authority evidence；验证 Account Authority proof、Event proof、issuer key 在 `effective_at` 的历史有效性、`authority_ref` 当前覆盖目标 account/kind、binding version 未回滚，以及 PCR CBA closure。任何缺失、stale、fork、过期或不等都 fail closed。首次 receiver 已有依赖时可省略 request-level `cba_proof_bundles`；receipted fanout 对 receiver 缺失的 PCR 依赖必须携带 bundle 或返回 dependency failure，不能信任来源服务的“已验证”布尔值。

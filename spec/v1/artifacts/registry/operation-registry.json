@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.8",
+  "version": "2026-08-02.9",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T20:00:00Z",
+  "generated_at": "2026-08-02T20:30:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -116,7 +116,9 @@
       "operations": [
         "ak.peer.events.query.describe",
         "ak.peer.events.command.submit",
+        "ak.peer.account_status.query.authoring_basis",
         "ak.peer.account_status.command.submit",
+        "ak.peer.mls.query.group_state_material",
         "ak.peer.events.query.resolve",
         "ak.peer.events.query.scan",
         "ak.peer.events.query.scan_body",
@@ -2052,6 +2054,17 @@
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveOutcome"
     },
     {
+      "operation_id": "ak.peer.mls.query.group_state_material",
+      "http": "POST /_arkret/peer/mls/group-state-material",
+      "grpc": "PeerMls/GroupStateMaterial",
+      "mq": "peer.mls.query.group_state_material",
+      "notes": "Read-only service-authenticated retrieval of the exact RFC 9420 GroupInfo and ratchet_tree extension bytes committed by one accepted ak.mls.genesis Event. The provider resolves the Event, verifies every echoed scope/group/epoch/ref/digest selector, hashes raw bytes against both explicit digests and content-addressed refs, and validates GroupInfo/tree consistency before returning an all-or-nothing response. It never returns private tree material, secrets, inferred leaf DTOs or proof-bundle leaves; consumers derive leaf_index only from occupied leaves in the verified RFC tree.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome"
+    },
+    {
       "operation_id": "ak.peer.events.command.submit",
       "http": "POST /_arkret/peer/events",
       "grpc": "PeerEvents/Submit",
@@ -2068,6 +2081,17 @@
         "kind": "event_log",
         "event_kind_source": "$request.events[*].event.kind"
       }
+    },
+    {
+      "operation_id": "ak.peer.account_status.query.authoring_basis",
+      "http": "POST /_arkret/peer/account-status/authoring-basis",
+      "grpc": "PeerAccountStatus/AuthoringBasis",
+      "mq": "peer.account_status.query.authoring_basis",
+      "notes": "Read-only service-authenticated Account Authority query for the exact issuer actor-chain frontier and Principal Control Realm Seal frontier needed to sign one ak.account.status Event. The receiver verifies the signed authority_evidence, current issuer delegation and account/principal/PCR binding before disclosure. The response binds RealmActorFrontierView.actor_id to issuer_service_id and both frontier realm_id values to principal_control_realm_id; it grants no authority, accepts no Event and never synthesizes an empty PCR.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_request_body",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_outcome"
     },
     {
       "operation_id": "ak.peer.account_status.command.submit",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-02.3",
+  "version": "2026-08-02.4",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -840,6 +840,18 @@
       "description": "Exact missing and undisclosable selectors are represented in the successful typed missing sets, not as not_found. limit_exceeded is returned when complete selector accounting cannot fit the negotiated response budget."
     },
     {
+      "operation_id": "ak.peer.mls.query.group_state_material",
+      "http_alias": "POST /_arkret/peer/mls/group-state-material",
+      "operation_specific": [
+        "dependency_missing",
+        "digest_mismatch",
+        "state_mismatch",
+        "limit_exceeded",
+        "stale_peer"
+      ],
+      "description": "dependency_missing covers an accepted genesis whose referenced object bytes are not currently available; digest_mismatch and state_mismatch reject ref/raw-byte or RFC 9420 GroupInfo/tree inconsistency; the operation never returns partial material."
+    },
+    {
       "operation_id": "ak.peer.events.command.submit",
       "http_alias": "POST /_arkret/peer/events",
       "operation_specific": [
@@ -856,6 +868,16 @@
         "delivery_binding_stale",
         "delivery_binding_handed_over"
       ]
+    },
+    {
+      "operation_id": "ak.peer.account_status.query.authoring_basis",
+      "http_alias": "POST /_arkret/peer/account-status/authoring-basis",
+      "operation_specific": [
+        "failed_precondition",
+        "frontier_unavailable",
+        "stale_peer"
+      ],
+      "description": "failed_precondition covers authority-evidence/account/principal/PCR/issuer binding mismatch; frontier_unavailable covers a missing or unverifiable accepted actor/Seal frontier."
     },
     {
       "operation_id": "ak.peer.account_status.command.submit",

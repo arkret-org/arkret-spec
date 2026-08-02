@@ -140,6 +140,12 @@
       "$ref": "#/$defs/ModerationReportOutcome"
     },
     {
+      "$ref": "#/$defs/MlsGroupStateMaterialRequestBody"
+    },
+    {
+      "$ref": "#/$defs/MlsGroupStateMaterialOutcome"
+    },
+    {
       "$ref": "#/$defs/PolicyCheckRequestBody"
     },
     {
@@ -4243,6 +4249,128 @@
           }
         }
       ],
+      "additionalProperties": false
+    },
+    "MlsGroupStateMaterialRequestBody": {
+      "type": "object",
+      "description": "Read-only service request for the exact public MLS epoch-0 GroupInfo and ratchet_tree bytes committed by one accepted ak.mls.genesis Event. Every selector is copied from that Event; the receiver MUST resolve the Event and compare every field before returning bytes.",
+      "required": [
+        "realm_id",
+        "effective_scope",
+        "mls_group_id",
+        "epoch",
+        "group_state_event_id",
+        "group_info_ref",
+        "group_info_digest",
+        "ratchet_tree_ref",
+        "ratchet_tree_digest"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+        },
+        "mls_group_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "epoch": {
+          "const": 0
+        },
+        "group_state_event_id": {
+          "$ref": "#/$defs/EventId"
+        },
+        "group_info_ref": {
+          "type": "string",
+          "pattern": "^ak:blob:sha256:[0-9a-f]{64}$"
+        },
+        "group_info_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "ratchet_tree_ref": {
+          "type": "string",
+          "pattern": "^ak:blob:sha256:[0-9a-f]{64}$"
+        },
+        "ratchet_tree_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "max_response_bytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 8388608,
+          "default": 8388608
+        }
+      },
+      "additionalProperties": false
+    },
+    "MlsGroupStateMaterialOutcome": {
+      "type": "object",
+      "description": "Exact RFC 9420 public group-state material. *_bytes_b64 use unpadded base64url. Consumers MUST decode, hash raw bytes, compare both explicit digests and the hashes embedded in both ak:blob:sha256 refs, verify GroupInfo and ratchet_tree consistency, then derive leaf_index only from occupied leaves in the verified tree.",
+      "required": [
+        "realm_id",
+        "effective_scope",
+        "mls_group_id",
+        "epoch",
+        "group_state_event_id",
+        "group_info_ref",
+        "group_info_digest",
+        "group_info_bytes_b64",
+        "ratchet_tree_ref",
+        "ratchet_tree_digest",
+        "ratchet_tree_bytes_b64"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+        },
+        "mls_group_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "epoch": {
+          "const": 0
+        },
+        "group_state_event_id": {
+          "$ref": "#/$defs/EventId"
+        },
+        "group_info_ref": {
+          "type": "string",
+          "pattern": "^ak:blob:sha256:[0-9a-f]{64}$"
+        },
+        "group_info_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "group_info_bytes_b64": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5592406,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "ratchet_tree_ref": {
+          "type": "string",
+          "pattern": "^ak:blob:sha256:[0-9a-f]{64}$"
+        },
+        "ratchet_tree_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "ratchet_tree_bytes_b64": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5592406,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
       "additionalProperties": false
     },
     "RealmActorFrontierView": {

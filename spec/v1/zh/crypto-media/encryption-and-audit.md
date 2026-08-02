@@ -413,6 +413,10 @@ MLS GroupContext extension type 0xF1C0 继续把确定性 CBOR 编码的完整 m
 
 轻客户端可以请求 mls-governance-proof-bundle 来取得从 trusted anchor 到 accepted Seal 的完整、有界、分块 proof materialization。bundle 的作用是让 verifier 重建 accepted control state，并与 verifier 本地持有的 RFC 9420 current/pending leaf set 一起重算 security_frontier_digest；它不复制候选 `governance_binding`，不让服务替客户端选择 MLS leaf set 或可信 anchor，也不把旧 covered_seals_cell 恢复为协议状态。`proof_request_digest` 将 group、epoch、profile 与 trusted anchor 绑定到 materialization acquisition；verifier 必须将其与 transcript-authenticated binding identity 重算比较。
 
+proof bundle 的所有 chunk 都 MUST NOT 携带 MLS leaves、leaf index、GroupInfo 或 ratchet tree bytes。公开 epoch-0
+GroupInfo/ratchet tree 的获取只走 §5.1.1 的 group-state-material 合同；current/pending leaf set 仍由 verifier 的
+RFC 9420 state 持有。两条材料路径不得合并为服务端选择 leaf set 的私有 proof DTO。
+
 历史向量 id `ak.vector.mls.covered_seals_no_self_reference.v1` 为 registry 稳定性保留，但其当前
 断言是“普通 Seal/`seal_ref` 不进入 security frontier，active leaf revoke 必须进入”，不再测试已删除
 的 covered-seals accumulator。
@@ -945,8 +949,8 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 - `creator_principal_id`
 - `creator_device_id`
 - `cipher_suite`
-- `group_info_ref` 或 `group_info_digest`
-- `ratchet_tree_ref` 或 `ratchet_tree_digest`
+- `group_info_ref` 与 `group_info_digest`
+- `ratchet_tree_ref` 与 `ratchet_tree_digest`
 - `governance_binding`
 - `created_at`
 
@@ -957,6 +961,34 @@ Genesis 接受规则：
 3. 同一 `(effective_scope, mls_group_id)` 的 genesis cell 使用 `cas_register + bottom=reject`。并发重复 genesis 会使该 cell 返回 `⊥`，后续 MLS Commit Control Move 必须 fail closed，直到 recovery Control Move 修复。
 4. Genesis 后即可发送 epoch 0 application message。第一次成员变动或 group context extension 更新必须使用 `ak.mls.commit` Control Move，其 `base_epoch=0`、`base_epoch_ref` 指向 effective `ak.mls.genesis`、`next_epoch=1`。
 5. 新加入成员的 `ak.mls.welcome` MUST 引用 effective genesis 或后续 effective commit 派生出的 epoch state；客户端不得从未被 accepted Seal 覆盖的 welcome / ratchet tree 本地推断 group authority。
+
+#### 5.1.1 Epoch-0 public group-state material
+
+`group_info_ref` 与 `ratchet_tree_ref` MUST 分别是 `ak:blob:sha256:...` content-addressed ref（省略号位置是
+64 个 lowercase hex）；ref 内嵌 digest MUST 分别与同 Event 的
+`group_info_digest`、`ratchet_tree_digest` 逐字对应。producer MUST 在提交 genesis 前把精确 RFC 9420
+GroupInfo bytes 与 `ratchet_tree` extension bytes 放入可由承载该 Realm 的服务解析的 durable object store，
+并对**原始 bytes**计算 SHA-256。ref 只提供检索坐标，不替代 digest 校验；只有 digest、只有 ref、随机 UUID
+object ref、解析后的 leaf DTO 或本地路径都不合规。
+
+服务器、federation peer 或独立公开 MLS group tracker 读取 epoch-0 tree 时 MUST 使用注册操作
+`ak.peer.mls.query.group_state_material`（`POST /_arkret/peer/mls/group-state-material`）或逐字段等价的同进程
+typed binding。request 必须逐字携带 accepted genesis 的 Realm/scope/group/epoch/Event id 和两组 ref/digest；
+响应必须回显同一 binding，并以未填充 base64url 返回两份原始 bytes。provider 在响应前 MUST：
+
+1. resolve `group_state_event_id` 为当前 Realm 可验证、accepted 且未 quarantine 的 `ak.mls.genesis`；
+2. 逐字段比较 Event 中的 scope/group/epoch/ref/digest，不允许 caller 用一个 Event 的授权取另一个对象；
+3. 从 ref 取两份 bytes，对 raw bytes 重算 SHA-256，同时比较显式 digest 与 ref 内嵌 digest；
+4. 按 RFC 9420 验证 GroupInfo、GroupContext、cipher suite、group id、epoch 与 ratchet tree 一致，并确认
+   `governance_binding` 是该 Event transcript-authenticated binding；
+5. 对不可见、不存在、未 accepted、缺对象、digest mismatch、tree/GroupInfo 不一致或超限一律 fail closed，
+   不返回部分材料。
+
+此操作只披露 RFC 9420 public group state，不披露 private tree、path secret、epoch secret 或 application key。
+HTTP caller MUST 使用 §3 的 service-to-service authentication，并且是该 Realm 当前授权的 federation peer 或
+被 Realm policy 显式授权读取 MLS public group state 的服务；同进程 tracker 也必须执行完全相同的 Event acceptance、visibility、digest 与 RFC 9420
+校验。consumer 只能从验证后的 ratchet tree 的实际 occupied leaves 恢复 RFC leaf index；不得枚举 KeyPackage
+记录猜测 tree position、不得按到达顺序编号，也不得从 governance proof bundle 获取 leaves。
 
 ### 5.2 意图与生效的分离
 组员的增删改是两阶段流程：

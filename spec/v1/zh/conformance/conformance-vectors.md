@@ -887,6 +887,14 @@ Verifier mutation matrix MUST 在需要测试语义阶段时重算所有 transpo
 
 Materializer matrix MUST 覆盖精确有效输出，以及 unknown/unreachable anchor、缺失或分叉 Seal material、撤销后的 notary、缺失 covered Event、control-cell Bottom、scope visibility denial 与总界超限；失败时 response count 必须为 0，不能输出 partial manifest。两条 runner 在同一 profile certification job 中还 MUST 执行 companion `ak.vector.scalability.mls_governance_proof_bounds.v1` 的全部 `limit-1 / limit / limit+1` 与 chunk acquisition cases，并记录每 case 的 stage、reason/error、response count、bundle/chunk digests、epoch transition 与 peak buffer bytes。
 
+MLS group tracker 的 companion matrix MUST 另外对 `ak.peer.mls.query.group_state_material` 执行：两组 ref/digest/raw
+bytes 完全匹配的 accepted genesis 正例；Event id、scope、group 或 epoch cross-binding；只有 ref/只有 digest；
+object missing；ref 内嵌 hash mismatch；raw-byte digest mismatch；GroupInfo 与 ratchet tree / GroupContext 不一致；
+未 accepted 或 quarantine genesis；响应总界超限。所有失败必须 response count 0。正例必须从验证后的 RFC 9420
+occupied tree leaves 得到 leaf index；runner 若从 KeyPackage 顺序、数据库 row 顺序或 proof-bundle leaf DTO 得到 index，
+即使数值碰巧相同也必须判 fail。proof bundle shape 中出现 leaves、leaf_index、GroupInfo 或 ratchet-tree bytes
+同样必须判 `schema_violation`。
+
 ### 2.5.3 Vector: MLS Welcome KeyPackage Hash Binding
 
 `vector_id`: `ak.vector.mls.welcome_keypackage_hash.v1`
@@ -6028,7 +6036,7 @@ Runner MUST 加载 [`event-kind-payload-coverage-fixture.json`](../../artifacts/
 - 任一显式 schema ref 不存在、ref fragment 不可解析、Event Envelope 错接到共享 `audit_payload` / `relation_update_payload`、或 cell subject 在所选 payload class 上无可解析标量端点，均 MUST 使本组失败；`generic_standard_payload` 不能替代上述两条 kind-specific 合同。
 ## Account status publication carrier
 
-`ak.vector.account_status.authority_publication.v1` MUST 覆盖：Account Authority 以当前 binding version 签 `authority_evidence`，Event actor/proof、payload account/principal 与 Principal Control Realm 全部一致时进入 `pending_seal -> accepted` 并返回 frontier digest/barrier cursor；相同 Idempotency-Key + byte-identical body 在 pending/accepted 两阶段均不创建第二条 Event且返回最新 operation state；同 key 异 body `duplicate_conflict`。Issuer、account、principal、PCR、authority ref、binding version、proof digest、HTTP Source/Destination 或 trust domain 任一不匹配均零写入失败。Receipted fanout 必须保留原 Event 并携 receiver-signed `account_status_receipts[]` / CBA closure；receipt 必须证明本地 accepted frontier 且不含 AuthorizationLease，generic `IngressReceipt` 必须 schema-invalid；目标 ack 前 outbox 保持 pending，超窗投影 `deactivation_federation_incomplete=true`，最终 ack 后清零 flag 而不改写 Event payload。Holder session、第三方服务与通用 `ak.peer.events.command.submit` 缺 account authority evidence 的尝试都不得成为可接受 carrier。
+`ak.vector.account_status.authority_publication.v1` MUST 覆盖：Account Authority 先以当前 binding version 的 `authority_evidence` 调用 `ak.peer.account_status.query.authoring_basis`，只有 Source-Service-ID 等于 issuer、account/principal/PCR/current delegation 全部匹配且 actor/Seal frontier 可验证时返回 typed basis；返回 actor_id/realm_id 不一致、degraded governance、synthetic empty PCR、stale/unresolved Seal 或过期 evidence 均零披露失败，query 本身零写入。producer 必须由返回 actor frontier 构造 `actor_seq/prev_refs`，由验证后的单一 Seal head 构造 `seal_basis.leaves`，不得使用 opaque peer frontier root 或私有 DTO。随后 Event actor/proof、payload account/principal 与 Principal Control Realm 全部一致时进入 `pending_seal -> accepted` 并返回 frontier digest/barrier cursor；相同 Idempotency-Key + byte-identical body 在 pending/accepted 两阶段均不创建第二条 Event且返回最新 operation state；同 key 异 body `duplicate_conflict`。Issuer、account、principal、PCR、authority ref、binding version、proof digest、HTTP Source/Destination 或 trust domain 任一不匹配均零写入失败。Receipted fanout 必须保留原 Event 并携 receiver-signed `account_status_receipts[]` / CBA closure；receipt 必须证明本地 accepted frontier且不含 AuthorizationLease，generic `IngressReceipt` 必须 schema-invalid；目标 ack 前 outbox 保持 pending，超窗投影 `deactivation_federation_incomplete=true`，最终 ack 后清零 flag 而不改写 Event payload。Holder session、第三方服务与通用 `ak.peer.events.command.submit` 缺 account authority evidence 的尝试都不得成为可接受 carrier。
 
 ## Personal blocklist revision and delivery semantics
 

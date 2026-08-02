@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.8",
+  "version": "2026-08-02.9",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T20:00:00Z",
+  "generated_at": "2026-08-02T20:30:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3496,6 +3496,69 @@
       }
     },
     {
+      "operation_id": "ak.peer.mls.query.group_state_material",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "effective_scope",
+          "mls_group_id",
+          "epoch",
+          "group_state_event_id",
+          "group_info_ref",
+          "group_info_digest",
+          "ratchet_tree_ref",
+          "ratchet_tree_digest"
+        ],
+        "properties": [
+          "realm_id",
+          "effective_scope",
+          "mls_group_id",
+          "epoch",
+          "group_state_event_id",
+          "group_info_ref",
+          "group_info_digest",
+          "ratchet_tree_ref",
+          "ratchet_tree_digest",
+          "max_response_bytes"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "effective_scope",
+          "mls_group_id",
+          "epoch",
+          "group_state_event_id",
+          "group_info_ref",
+          "group_info_digest",
+          "group_info_bytes_b64",
+          "ratchet_tree_ref",
+          "ratchet_tree_digest",
+          "ratchet_tree_bytes_b64"
+        ],
+        "properties": [
+          "realm_id",
+          "effective_scope",
+          "mls_group_id",
+          "epoch",
+          "group_state_event_id",
+          "group_info_ref",
+          "group_info_digest",
+          "group_info_bytes_b64",
+          "ratchet_tree_ref",
+          "ratchet_tree_digest",
+          "ratchet_tree_bytes_b64"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.peer.events.command.submit",
       "success_shape_kind": "typed_response",
       "request": {
@@ -3533,6 +3596,44 @@
           "realm_frontiers",
           "cursor",
           "original_outcome"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.account_status.query.authoring_basis",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_request_body",
+        "schema_kind": "object",
+        "required": [
+          "authority_evidence",
+          "event_kind"
+        ],
+        "properties": [
+          "authority_evidence",
+          "event_kind"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_outcome",
+        "schema_kind": "object",
+        "required": [
+          "account_id",
+          "principal_id",
+          "principal_control_realm_id",
+          "issuer_service_id",
+          "actor_frontier",
+          "seal_frontier"
+        ],
+        "properties": [
+          "account_id",
+          "principal_id",
+          "principal_control_realm_id",
+          "issuer_service_id",
+          "actor_frontier",
+          "seal_frontier"
         ],
         "closed": true
       }

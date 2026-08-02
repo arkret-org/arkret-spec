@@ -51,12 +51,12 @@
       "prose_only": 2,
       "schema_reference": 99,
       "startup_compile": 177,
-      "vectors": 110
+      "vectors": 111
     },
     "without_wire_consumer": 2,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 67,
+    "without_vector_coverage": 66,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -132,7 +132,6 @@
     "ak.schema.sdk_conformance_claim.v1",
     "ak.schema.seal_transparency.v1",
     "ak.schema.security_rotation_local_commit.v1",
-    "ak.schema.service_operation_dtos.v1",
     "ak.schema.signal_presence.v1",
     "ak.schema.signal_typing.v1",
     "ak.schema.time.v1"
@@ -197,6 +196,7 @@
           "ak.gate.account.command.revoke_session",
           "ak.gate.account.exchange.create_handoff",
           "ak.peer.account_status.command.submit",
+          "ak.peer.account_status.query.authoring_basis",
           "ak.self.account.command.update_profile",
           "ak.self.account.query.viewer"
         ],
@@ -2840,62 +2840,13 @@
         "inbound": "fragment",
         "outbound": "fragment",
         "schema_reference": "fragment",
-        "startup_compile": "exact"
+        "startup_compile": "exact",
+        "vectors": "required_schema"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "operation_e2e_owned",
-        "owners": [
-          "ak.find.directory.command.announce",
-          "ak.find.directory.command.takedown_appeal",
-          "ak.find.directory.command.withdraw",
-          "ak.gate.account.command.introspect_session_grant",
-          "ak.gate.account.command.issue_session_grant",
-          "ak.gate.account.command.logout",
-          "ak.gate.account.command.logout_auth_session",
-          "ak.gate.account.command.refresh_session_grant",
-          "ak.gate.account.exchange.complete_oidc",
-          "ak.peer.events.command.submit",
-          "ak.peer.events.query.frontier",
-          "ak.peer.events.query.resolve",
-          "ak.peer.events.query.scan",
-          "ak.peer.events.query.scan_body",
-          "ak.root.identity.command.submit_did_operation",
-          "ak.root.identity.document.resource.get",
-          "ak.root.identity.log.query.list",
-          "ak.root.identity.organization_registration.command.ensure",
-          "ak.root.identity.organization_registration.command.prepare",
-          "ak.root.identity.organization_registration.command.refresh",
-          "ak.root.identity.organization_registration.command.revoke",
-          "ak.root.identity.organization_registration.resource.get",
-          "ak.root.identity.query.resolve",
-          "ak.root.identity.receipts.query.list",
-          "ak.root.identity.service_registration.command.ensure",
-          "ak.root.identity.service_registration.resource.get",
-          "ak.self.account.command.revoke_cursor",
-          "ak.self.authorization_leases.command.issue",
-          "ak.self.authz.grants.query.effective",
-          "ak.self.authz.query.check",
-          "ak.self.blob.command.presign",
-          "ak.self.call.media.exchange.issue_token",
-          "ak.self.device_messages.command.ack",
-          "ak.self.device_messages.command.send",
-          "ak.self.device_messages.query.list",
-          "ak.self.events.command.submit",
-          "ak.self.events.command.submit_seal",
-          "ak.self.events.query.frontier",
-          "ak.self.events.query.resolve",
-          "ak.self.events.query.scan",
-          "ak.self.events.query.scan_body",
-          "ak.self.events.resource.get",
-          "ak.self.moderation.command.report",
-          "ak.self.morph.query.list",
-          "ak.self.policy.query.check",
-          "ak.self.signal.command.send",
-          "ak.self.space.query.list",
-          "ak.self.strand.query.list"
-        ],
-        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+        "disposition": "direct",
+        "evidence": "required_schema"
       }
     },
     {

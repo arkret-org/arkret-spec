@@ -3931,6 +3931,98 @@
           }
         ]
       }
+    },
+    {
+      "name": "account_status_authoring_basis_outcome_valid",
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_outcome",
+      "expect_valid": true,
+      "instance": {
+        "account_id": "acct_123",
+        "principal_id": "did:webvh:z6mkfixture:holder.example",
+        "principal_control_realm_id": "ak:realm:019b5c20-0000-7000-8000-000000000002",
+        "issuer_service_id": "did:webvh:z6mkfixture:authority.example",
+        "actor_frontier": {
+          "kind": "realm_actor",
+          "realm_id": "ak:realm:019b5c20-0000-7000-8000-000000000002",
+          "actor_id": "did:webvh:z6mkfixture:authority.example",
+          "next_actor_seq": 8,
+          "frontier_event_ids": [
+            "ak:event:019b5c20-0000-7000-8000-000000000008"
+          ],
+          "frontier_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "seal_frontier": {
+          "kind": "realm_seal",
+          "realm_id": "ak:realm:019b5c20-0000-7000-8000-000000000002",
+          "seal_id": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "governance_health": {
+            "status": "healthy",
+            "pending_proposals": [],
+            "retained_faults": []
+          }
+        }
+      }
+    },
+    {
+      "name": "mls_group_state_material_request_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody",
+      "expect_valid": true,
+      "instance": {
+        "realm_id": "ak:realm:019b5c20-0000-7000-8000-000000000002",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:019b5c20-0000-7000-8000-000000000002"
+        },
+        "mls_group_id": "Z3JvdXAtMA",
+        "epoch": 0,
+        "group_state_event_id": "ak:event:019b5c20-0000-7000-8000-000000000009",
+        "group_info_ref": "ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "group_info_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "ratchet_tree_ref": "ak:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "ratchet_tree_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "name": "mls_group_state_material_request_without_tree_digest_rejected",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody",
+      "expect_valid": false,
+      "first_expected_error": "$: 'ratchet_tree_digest' is a required property",
+      "instance": {
+        "realm_id": "ak:realm:019b5c20-0000-7000-8000-000000000002",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:019b5c20-0000-7000-8000-000000000002"
+        },
+        "mls_group_id": "Z3JvdXAtMA",
+        "epoch": 0,
+        "group_state_event_id": "ak:event:019b5c20-0000-7000-8000-000000000009",
+        "group_info_ref": "ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "group_info_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "ratchet_tree_ref": "ak:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "name": "mls_group_state_material_outcome_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome",
+      "expect_valid": true,
+      "instance": {
+        "realm_id": "ak:realm:019b5c20-0000-7000-8000-000000000002",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:019b5c20-0000-7000-8000-000000000002"
+        },
+        "mls_group_id": "Z3JvdXAtMA",
+        "epoch": 0,
+        "group_state_event_id": "ak:event:019b5c20-0000-7000-8000-000000000009",
+        "group_info_ref": "ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "group_info_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "group_info_bytes_b64": "AQID",
+        "ratchet_tree_ref": "ak:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "ratchet_tree_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "ratchet_tree_bytes_b64": "BAUG"
+      }
     }
   ]
 }

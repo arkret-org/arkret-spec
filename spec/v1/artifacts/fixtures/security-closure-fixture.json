@@ -1774,6 +1774,54 @@
       "vector_id": "ak.vector.account_status.authority_publication.v1",
       "steps": [
         {
+          "name": "service_authoring_basis_is_pcr_and_issuer_bound",
+          "input": {
+            "authority_evidence_valid": true,
+            "source_service_matches_issuer": true,
+            "actor_frontier_scope_matches": true,
+            "seal_frontier_scope_matches": true,
+            "seal_governance_health": "healthy"
+          },
+          "expected": {
+            "outcome": "accepted",
+            "invariants": [
+              "actor frontier identifies the exact issuer and PCR",
+              "seal frontier identifies the same PCR and one verified accepted Seal",
+              "the query grants no authority and advances no frontier"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.account_status.authority_publication.v1",
+              "preconditions": {
+                "authority_evidence_valid": true,
+                "current_pcr_frontier_available": true
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "service_authoring_basis_is_pcr_and_issuer_bound",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "source_service_matches_issuer": true,
+                "actor_frontier_scope_matches": true,
+                "seal_frontier_scope_matches": true,
+                "seal_governance_health": "healthy"
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "accepted",
+              "shared_effects": "none"
+            },
+            "expected_external_response": {
+              "outcome": "accepted",
+              "actor_frontier_kind": "realm_actor",
+              "seal_frontier_kind": "realm_seal"
+            },
+            "expected_audit_reason": "accepted"
+          }
+        },
+        {
           "name": "matching_authority_evidence_reaches_accepted_frontier",
           "input": {
             "event_kind": "ak.account.status",

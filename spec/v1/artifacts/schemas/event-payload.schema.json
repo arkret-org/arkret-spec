@@ -6625,38 +6625,12 @@
         "creator_principal_id",
         "creator_device_id",
         "cipher_suite",
+        "group_info_ref",
+        "group_info_digest",
+        "ratchet_tree_ref",
+        "ratchet_tree_digest",
         "governance_binding",
         "created_at"
-      ],
-      "allOf": [
-        {
-          "anyOf": [
-            {
-              "required": [
-                "group_info_ref"
-              ]
-            },
-            {
-              "required": [
-                "group_info_digest"
-              ]
-            }
-          ]
-        },
-        {
-          "anyOf": [
-            {
-              "required": [
-                "ratchet_tree_ref"
-              ]
-            },
-            {
-              "required": [
-                "ratchet_tree_digest"
-              ]
-            }
-          ]
-        }
       ],
       "$comment": "Schema requires both effective_scope and governance_binding. Reducers/verifiers must additionally compare effective_scope with governance_binding.effective_scope; JSON Schema cannot express deep cross-field equality.",
       "properties": {
@@ -6681,16 +6655,24 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "group_info_ref": {
-          "$ref": "#/$defs/object_ref"
+          "type": "string",
+          "pattern": "^ak:blob:sha256:[0-9a-f]{64}$",
+          "description": "Content-addressed reference to the exact RFC 9420 GroupInfo bytes. The embedded sha256 value MUST equal group_info_digest without the sha256: prefix."
         },
         "group_info_digest": {
-          "$ref": "#/$defs/hash"
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "SHA-256 of the raw bytes obtained by base64url-decoding group_info_bytes_b64 from the standard group-state-material operation."
         },
         "ratchet_tree_ref": {
-          "$ref": "#/$defs/object_ref"
+          "type": "string",
+          "pattern": "^ak:blob:sha256:[0-9a-f]{64}$",
+          "description": "Content-addressed reference to the exact RFC 9420 ratchet_tree extension bytes for epoch 0. The embedded sha256 value MUST equal ratchet_tree_digest without the sha256: prefix."
         },
         "ratchet_tree_digest": {
-          "$ref": "#/$defs/hash"
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "SHA-256 of the raw bytes obtained by base64url-decoding ratchet_tree_bytes_b64 from the standard group-state-material operation."
         },
         "initial_keypackage_refs": {
           "type": "array",
