@@ -4249,7 +4249,7 @@ Preconditions:
 
 Steps:
 
-1. Alice 调用 `ak.self.agent.participation.resource.replace`，scope=`R`，selection=`{reply:true, accept_third_party_mention:false, act_on_behalf:true}`。
+1. Alice 调用 `ak.self.agent.participation.resource.replace`，`target_scope=R`，selection=`{reply:true, accept_third_party_mention:false, act_on_behalf:true}`。
 2. 服务端从 accepted-at DID binding 验证 digest，并验证 verifier-private controller disclosure 后现场派生 provision ceiling，再求 effective selection = controller selection ∩ provision ceiling ∩ governance ceiling。
 3. 变体 A：之后 Realm ceiling 把 `reply` 收紧为 `false`。
 4. 变体 B：controller selection 来源缺失或 unknown。
@@ -4275,10 +4275,10 @@ Preconditions:
 
 Steps:
 
-1. Controller 调用 `ak.self.agent.participation.resource.replace`，scope=`R`，selection=`{reply:true, accept_third_party_mention:true, act_on_behalf:false}`；虽然 Realm governance 允许第三方 mention，但 provision ceiling 不允许。
+1. Controller 调用 `ak.self.agent.participation.resource.replace`，`target_scope=R`，selection=`{reply:true, accept_third_party_mention:true, act_on_behalf:false}`；虽然 Realm governance 允许第三方 mention，但 provision ceiling 不允许。
 2. 变体 A：调用方不是该 agent 的 controller。
 3. 变体 B：该 Agent lifecycle 非 active(`paused` / `deactivated`)或 readiness 为 `not_ready` 且含 `runtime_key_missing`（从未完成首次配对）。
-4. 变体 C：scope 不可解析，或 controller 非该 Realm active member。
+4. 变体 C：`target_scope` 不可解析，或 controller 非该 Realm active member。
 
 Expected:
 
@@ -4299,7 +4299,7 @@ Steps:
 
 Expected:
 
-- 第 2 步 `scope_details.participation[]` 每个条目 MUST 与 `agent-operations.schema.json#/$defs/agent_participation_entry`(`{participation_scope, selection, ceiling, effective}`)同构，而非扁平三位；承载的是已解析 effective 策略。
+- 第 2 步 `scope_details.participation[]` 每个条目 MUST 与 `agent-operations.schema.json#/$defs/agent_participation_entry`(`{target_scope, selection, ceiling, effective}`)同构，而非扁平三位；承载的是已解析 effective 策略。
 - runtime MUST 把该数组视为本 session 行为契约。但它不是安全边界：第 3 步即使 runtime 越权，reducer 因无对应 `ak.message.create` grant MUST `failed_precondition`；第三方 mention 在 dispatcher gate 已被拦下；`act_on_behalf` 越权被 receiver 的 `executed_by`/`authorization_ref` 校验拒绝。
 
 ### 11.16 Vector: Participation Third-Party Mention Gate (Non-Retroactive)

@@ -22,7 +22,7 @@ Arkret 的访问授权由 **capability + invite** 两条路径承担。但二者
 - 任何 capability grant（能力授权）
 - 任何 invite token（邀请凭证）
 
-它是 invite / direct contact 路径上的**前置 gate**：在"是否给 Alice 发出 invite"之前，先看"Alice 是否同意接收来自 Bob 的 invite"。
+它是invite及其它**非Contact basis**动作路径的holder-private前置gate。Contact request/response、Contact-based create/send与Personal DM明确不读取本模型；它们只读取双方holder-signed directional Contact heads（见[`contact-and-direct-conversation.md`](./contact-and-direct-conversation.md)）。
 
 本规范定义 Arkret 的 consent state，与 capability / invite 正交。模型借鉴自 [`draft-ietf-mimi-protocol-06`](https://datatracker.ietf.org/doc/html/draft-ietf-mimi-protocol-06) 的 consent 概念，并完整落在 Arkret 的 CBA / Lattice 模型之上：consent 是 holder 控制的 Realm 内某个 consent cell（or_set lattice）的当前 join 值，由签名 Control Move 维护并在被 accepted Seal 覆盖后生效。
 
@@ -51,7 +51,7 @@ Consent 表达"我允许某个 peer 发起某类联系动作"，但加入 Realm�
 | 关系 | holder ↔ peer pair | actor ↔ resource action |
 | 持有方 | holder（被联系方） | actor（执行动作方） |
 | 写入位置 | holder principal control Realm | 目标 Realm |
-| 用途 | invite / contact 前置 gate | 执行动作 (read/write/admin/...) 时的权限判断 |
+| 用途 | invite / 非Contact basis动作前置 gate | 执行动作 (read/write/admin/...) 时的权限判断 |
 | 撤销 | `ak.consent.revoke` | `ak.capability.revoke` |
 
 二者可独立存在：peer 持有"对 Alice 的 invite capability"，但 Alice 没 consent → invite 路径仍被 gate；Alice consent 给了 Bob，但 Bob 没 capability → invite 不能执行。
@@ -70,7 +70,7 @@ bottom   = inert  // or_set join never produces ⊥
 
 - `consent_id` 是 consent 槽的 subject。同一 holder 对同一 peer 的不同 consent_scope 用不同 consent_id；同 consent_id 上所有 add / remove tag op 收敛于同一 cell。
 - or_set join 永不产生 ⊥，因此 registry 对 consent cell 明确登记 `bottom=inert`，不构成任何"reject"语义；effective consent 始终由 or_set join 决定。
-- **缺省判定（normative，唯一默认）**：一个 `(consent_id, peer, consent_scope)` 没有任何 active grant dot（`active_dots` 为空，或全部 dot 已被 `observed_dots` 撤销，或当前时间不在 `[not_before, expires_at]` 窗口内）时，**effective consent = no-consent**，invite / contact gate MUST NOT 放行（按 §6.1 profile：`require_explicit_consent` profile 下 MUST `failed_precondition` 拒绝；default profile 下 MAY 进入 holder 的 quarantine inbox 暂存待 review，而非直接拒绝或放行）。"无 active dot ⇒ no-consent ⇒ gate 拒绝"是 consent 的唯一默认判定——默认无授权而非默认放行；这不是来自 cell `bottom`，而是来自 §5 effective consent 的存在性要求（至少一条 active dot 才放行）。
+- **缺省判定（normative，唯一默认）**：一个`(consent_id,peer,consent_scope)`没有active grant dot时，effective consent=`no-consent`，invite/非Contact action gate不得放行（按§6.1 profile拒绝或进入holder quarantine）。该默认不得扩展到Contact/Personal DM，因为那些路径根本不以Consent为authority。
 
 ### 3.2 `ak.consent.grant` Control Move
 
@@ -180,7 +180,7 @@ Reducer projection 的 `observed_dots[]` MUST 逐字等于 payload 的 `observed
 
 **完整撤销 vs 部分撤销**：撤销整个 (consent_id, peer, consent_scope) intent 需要 client 在构造 revoke Control Move 前先查询当前 cell 的 or_set join，列出该 intent 下所有 active dot。Missing 一些 dot 是合法操作，但只构成部分撤销，剩余 dot 仍然 active——admin / UI MUST 把这种状态明确提示为 "partial revoke"。
 
-撤销在该 revoke Control Move 被 accepted Seal 覆盖后立即生效——consent cell 的 or_set join 值不再含被 observed 的 grant dot。该 Seal 之前 peer 凭借 consent 发出的 invite / contact 不会被追溯失效（已经发出的 invite 由 invite revoke 单独处理）。
+撤销在该revoke Control Move被accepted Seal覆盖后立即生效；此前凭Consent发出的invite或其它非Contact action不追溯失效。Contact事实不读取本cell。
 
 ## 4. Scope 枚举
 
@@ -237,10 +237,10 @@ Consent cell 是 or_set lattice（dot-based observed-remove，详见 [`event-aut
 
 - `active_dots(cell) = { (dot, value) ∈ or_set.adds | dot ∉ or_set.observed_dots }`
 - `effective_grants(cell) = group active_dots(cell) by value.intent` —— projection 把同 intent 的多 active dot 折叠成一条 effective consent。
-- 一个 (consent_id, peer, concrete_scope) 的 grant 当前生效（即 invite / contact 路径上 gate 放行）当且仅当：
+- 一个`(consent_id,peer,concrete_scope)`的grant当前生效（即invite/非Contact action gate放行）当且仅当：
   - `active_dots(cell)` 中存在 ≥1 条 `value.intent == (consent_id, peer, concrete_scope)` **或** `value.intent == (consent_id, peer, "any")` 的 dot；
   - 当前时间 ∈ `[not_before, expires_at]`（窗口字段缺省视为 `(-∞, +∞)`）。
-- 不同 consent_id 是独立 cell；查询 `(holder, peer, consent_scope)` 时 invite / contact service 遍历该 holder 全部 consent cell 匹配。
+- 不同consent ID是独立cell；查询`(holder,peer,scope)`时只有invite/非Contact action service遍历holder cells匹配。
 - 同一 CBA basis 内并发 grant 与 revoke 在 or_set join 后唯一确定（add dot 集合与 observed_dots 集合各自取并集，dot 之间没有先后），不产生 ⊥。审计 / admin 视图可暴露并发的 add / remove dot 序列以提示决策不连续，但 invite gate 仍按 `active_dots` 集合判定。
 
 物化 `Consent` 对象由 holder client / admin 从该 cell 当前 join 值生成；它不是协议授权根，而是 UX / 审计辅助视图。Consent cell 的 schema 由本文与 [`identity-handles.md`](./identity-handles.md) 定义，未在 `models/` 提供 canonical-object schema。
@@ -291,13 +291,13 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
 
 **UX 提示（normative for client implementations）**: 撤销 consent 后，客户端 UI MUST 明确披露两点语义：已发出的 invite 不会因 consent revoke 自动失效；如需撤销已发出的 invite，必须单独执行 `ak.invite.revoke`。该提示是非追溯语义的 UX 配套，服务端不强制（consent revoke 不会自动 cascade 到 invite）。
 
-### 6.2 Contact / DM 前置 gate
+### 6.2 非 Contact action gate 与 Contact 排除边界
 
-发起 1:1 message Realm、WebRTC call、presence subscription 时，发起方客户端 **SHOULD** 在发起前 preflight 目标的 consent state（consent_scope = `direct_message` / `voice_call` / `video_call` / `presence`），但该 preflight **不是**接收侧授权根。目标未披露可用的 opaque green-light 或其它可验证 proof 时，客户端 MAY 继续发起，但 MUST 把结果视为 `consent_unverified`；preflight 不可得本身不得被解释为 consent 已授予。目标 holder 的 Principal Server、Sync Service、Call / Media token issuer 与目标客户端在投递、fanout、响铃 UI、presence fanout、media token 签发或入会前 **MUST** 重新执行 consent gate；没有 active 目标 consent（对应 scope 或 `any`）时必须 fail closed / quarantine（按 profile），且不得触发响铃 UI、presence 可见性、typing/receipt 副作用或 call token 签发。接收侧 **MUST NOT** 信任发起方提交的 consent proof 作为唯一依据。
+对不以Contact basis发起的WebRTC call、presence subscription或未来显式注册的一次性动作，发起方可preflight目标Consent，但接收侧仍须在fanout/响铃/presence/media token前重验holder-private current consent。缺active consent时fail closed/quarantine。该规则不授权创建或发送Contact-based DM。
 
 WebRTC `ak.call.signal{signal_kind=invite}` 在服务端投递与目标客户端展示前都 MUST 校验 `voice_call` / `video_call` consent；无 consent 的 invite MUST 被丢弃或进入 profile 声明的 quarantine，且不得产生 VoIP push / ringing UI。Presence subscription / fanout 由 Sync Service 在每次订阅建立和每次 fanout 前校验 holder 对 observer 的 `presence` consent；无 consent 时不得泄露在线、离线、last active bucket 或订阅是否存在。
 
-`ak.self.direct_conversation.command.resolve` 的普通联系人分支 MUST 同时检查 accepted contact projection 与目标 holder 对 requester 的 active `direct_message` / `any` consent。它还允许一个不伪造 contact/consent 的窄化分支：requester 是目标 active Native Personal Agent 的 immutable controller，且 provisioning/controller binding 与 runtime-key authorization 均可验证。任一分支的条件不成立时，对 requester 统一 fail closed（`failed_precondition` / `direct_conversation_unavailable`），响应状态、body 与时序不得泄露究竟是 contact、consent 或 Agent lifecycle/binding 缺失；细分原因只可写 holder-private 审计。其它非联系人但基于 consent 发起的一次性 DM profile 若未来需要，必须另行注册 operation，不得复用该 resolver。
+`ak.self.direct_conversation.command.resolve`不得查询Consent。普通分支只验证双方current directional Contact heads与source freshness；owned-Agent分支验证immutable controller/provision/runtime binding。无权主体统一opaque unavailable。其它基于Consent的一次性通信若未来需要，必须另行注册operation/profile，不得复用resolver或伪造Contact。
 
 `ak.private_contact_discovery.v1` 返回 PSI set-membership 命中位图时，MAY 附带 holder 当前 consent state hash 或最小 invite/consent handoff stub（不暴露具体 consent 内容，只声明 grant/revoke 状态与下一步引导），让发起方在尝试联系前判断是否需要先请求 consent。该响应 MUST NOT 包含 contact request handoff token、reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。
 
@@ -341,4 +341,4 @@ consent 的去重 / 撤销键含 `intent.peer`（counterparty DID 或 pairwise D
 
 ## 9. 与未来 Capability Constraint 的关系
 
-扩展 profile MAY 引入 capability constraint type `consent_required`，使某些 capability grant 在 Control Move 验证时 runtime check holder consent。本规范定义的 consent cell 是该 constraint 的查询源。在引入该 constraint 前，consent gate 由 invite / contact service 在投递前查询 cell join 值实现，不直接出现在 DataEvent 上。
+扩展profile MAY引入`consent_required` capability constraint，使非Contact action在Control Move验证时检查holder consent。本cell是其查询源；Contact/Personal DM不得使用该constraint替代directional Contact authority。

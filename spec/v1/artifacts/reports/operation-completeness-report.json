@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.9",
+  "version": "2026-08-03.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T20:30:00Z",
+  "generated_at": "2026-08-03T02:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 221,
+    "total_operations": 226,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 3,
-      "typed_schema": 208
+      "typed_schema": 213
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -33,14 +33,14 @@
         "typed_schema": 35
       },
       "deployment_local": {
-        "typed_schema": 14
+        "typed_schema": 15
       },
       "extension": {
         "binary_or_redirect": 2,
         "no_request_body": 1,
         "service_describe": 2,
         "streaming_frame_schema": 1,
-        "typed_schema": 140
+        "typed_schema": 144
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -429,6 +429,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/RecoveryDeviceAuthorizationRequestBody",
         "response": "#/components/schemas/RecoveryDeviceAuthorizationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.gate.account.command.cancel_device_bootstrap",
+      "surface_class": "deployment_local",
+      "http": "POST /_arkret/gate/account/device-bootstrap/cancel",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/cancel_device_bootstrap_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/cancel_device_bootstrap_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DeviceBootstrapCancelRequestBody",
+        "response": "#/components/schemas/DeviceBootstrapCancelOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -908,15 +922,43 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
+      "operation_id": "ak.peer.agent.participation.command.replace",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/agents/participation:replace",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_relay_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_receipt",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AgentParticipationReplaceRelayRequestBody",
+        "response": "#/components/schemas/AgentParticipationReplaceReceipt"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.agent.participation.query.prepare_scope_evidence",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/agents/participation/scope-evidence:prepare",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_prepare_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_challenge",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AgentParticipationScopeEvidencePrepareRequestBody",
+        "response": "#/components/schemas/AgentParticipationScopeEvidenceChallenge"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
       "operation_id": "ak.peer.contacts.command.submit",
       "surface_class": "extension",
       "http": "POST /_arkret/peer/contacts",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/peer-contact-delivery-request.schema.json",
-      "response_schema_ref": "schemas/peer-contact-delivery-request.schema.json#/$defs/peer_contact_delivery_outcome",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
       "openapi_component_refs": {
-        "request": "../schemas/peer-contact-delivery-request.schema.json",
-        "response": "../schemas/peer-contact-delivery-request.schema.json#/$defs/peer_contact_delivery_outcome"
+        "request": "../schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_request",
+        "response": "../schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1545,6 +1587,20 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
+      "operation_id": "ak.self.agent.participation.query.prepare_scope_evidence",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/agents/{agent_id}/participation/scope-evidence:prepare",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_prepare_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_challenge",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AgentParticipationScopeEvidencePrepareRequestBody",
+        "response": "#/components/schemas/AgentParticipationScopeEvidenceChallenge"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
       "operation_id": "ak.self.agent.participation.resource.get",
       "surface_class": "extension",
       "http": "GET /_arkret/self/agents/{agent_id}/participation",
@@ -1562,11 +1618,11 @@
       "surface_class": "extension",
       "http": "PUT /_arkret/self/agents/{agent_id}/participation",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_replace_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replacement_batch",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_receipt",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentParticipationReplaceRequestBody",
-        "response": "#/components/schemas/AgentParticipationOutcome"
+        "response": "#/components/schemas/AgentParticipationReplaceReceipt"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1602,7 +1658,7 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/agent-sidecars:ensure",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_request_body",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_request",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentSidecarEnsureRequestBody",
@@ -2020,8 +2076,8 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/request",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/ContactRequestRequestBody",
         "response": "#/components/schemas/ContactRequestOutcome"
@@ -2034,11 +2090,25 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/respond",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_outcome",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/ContactRespondRequestBody",
         "response": "#/components/schemas/ContactRespondOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.contact.command.scope_update",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/contacts/scope-update",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_scope_update_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ContactScopeUpdateRequestBody",
+        "response": "#/components/schemas/ContactScopeUpdateOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2048,8 +2118,8 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/tombstone",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_tombstone_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/ContactTombstoneRequestBody",
         "response": "#/components/schemas/ContactTombstone"
@@ -2130,8 +2200,8 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/direct-conversations/resolve",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/DirectConversationResolveRequestBody",
         "response": "#/components/schemas/DirectConversationResolveOutcome"

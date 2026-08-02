@@ -1,0 +1,41 @@
+{
+  "version": "2026-08-03.1",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.operation_control.pbft.v1"
+  },
+  "description": "Deterministic safety and liveness cases for the fixed v1 direct-conversation operation-control PBFT profile.",
+  "profile": "ak.profile.direct_conversation_operation_control.v1",
+  "fixed_profile": {
+    "replica_count": "N=3f+1",
+    "quorum": "q=2f+1",
+    "minimum_replica_count": 4,
+    "one_vote_per_replica": "one value digest per pair-registry, instance, view and phase"
+  },
+  "vectors": [
+    {
+      "vector_id": "ak.vector.operation_control.pbft_view_change_value_stability.v1",
+      "case": "view_change",
+      "accept": "EffectValueCore excludes view and every certificate, so the value digest remains byte-identical across views; per-view envelopes bind phase, view, value digest and qDA certificate digest.",
+      "reject": "A value core containing view/certificate fields, a cross-view or cross-phase signature, or NEW-VIEW that ignores the highest prepared value."
+    },
+    {
+      "vector_id": "ak.vector.operation_control.qda_qcommit_point_of_no_return.v1",
+      "case": "point_of_no_return",
+      "accept": "A canonical qDA certificate proves durable journal availability and q COMMIT is the sole irreversible effect point; ExecutionBundle is only a validated carrier.",
+      "reject": "Effect execution from a read certificate, fewer than q distinct signers, a bare journal root, self-referential certificate digest, later cancel of a q-committed effect, or a bundle treated as a second commit point."
+    },
+    {
+      "vector_id": "ak.vector.operation_control.partition_recovery.v1",
+      "case": "partition",
+      "accept": "No fresh q-certified current head means pending/fail closed; after synchrony returns, exact q VIEW-CHANGE messages elect the highest prepared value or one deterministic fresh candidate.",
+      "reject": "Execution from a local replica head, split-brain current heads, scanning external candidates, or deleting a post-genesis operation because the journal carrier is temporarily incomplete."
+    },
+    {
+      "vector_id": "ak.vector.operation_control.genesis_and_attempt_uniqueness.v1",
+      "case": "crash_replay",
+      "accept": "Before genesis quorum no canonical operation/effect exists; after q COMMIT the stable operation and coordinates recover. Attempt advance commits before its first claim CAS and binds an unclaimed KeyPackage ref.",
+      "reject": "Two genesis operations for one pair, a second claim in one attempt, attempt advance containing an accepted claim/receipt or MLS generation, or initial host head containing transfer_id."
+    }
+  ]
+}

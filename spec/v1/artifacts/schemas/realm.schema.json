@@ -264,22 +264,11 @@
     },
     "agent_participation": {
       "type": "object",
-      "description": "Realm agent participation ceiling: { native_agent: { reply, accept_third_party_mention, act_on_behalf } } — the maximum native personal agent behavior permitted Realm-wide, written by a holder of ak.realm.admin via Event kind ak.realm.policy_bundle. It is the top of the deployment ⊇ Realm ⊇ Circle ⊇ Strand tighten-only chain (inner ceilings MUST NOT widen it; reducer rejects with agent_participation_ceiling_widen). When absent, inherits the deployment-default ceiling (deny-default under sovereign profiles). native_agent and applet_agent ceilings MUST be declared separately. See zh/models/realm-and-space.md.",
+      "description": "Realm five-bit native Agent participation ceiling. It may only tighten the target-service safety ceiling and is itself the parent of Circle and Strand ceilings.",
+      "required": ["native_agent"],
       "properties": {
         "native_agent": {
-          "type": "object",
-          "properties": {
-            "reply": {
-              "type": "boolean"
-            },
-            "accept_third_party_mention": {
-              "type": "boolean"
-            },
-            "act_on_behalf": {
-              "type": "boolean"
-            }
-          },
-          "additionalProperties": false
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_bits"
         }
       },
       "additionalProperties": false

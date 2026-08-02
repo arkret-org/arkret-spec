@@ -162,7 +162,10 @@ IngressReceipt {
   receipt_id,
   event_digest,
   authorization_lease_id,
+  qualified_ingress_id,
   received_at,
+  ingress_basis,
+  ingress_frontier,
   service_id,
   authority_set_ref,
   proofs
@@ -181,6 +184,19 @@ federation。
 
 receipt 证明“该 digest 在期限内到达一个被 policy 接受的 ingress”，不证明 Event 已通过
 reducer、已进入数据 projection、已被 peer 看见或已获 Seal finality。
+
+`received_at`只用于签收审计与lease deadline，不决定撤销因果。首次offline ingress必须携完整causal
+ingress basis：lease basis、exact Event digest、qualified ingress ID与ingress frontier。receiver按已验证的
+causal order执行四分判定：
+
+1. 已知 revoke/ban frontier `≤ ingress_basis`：拒绝authoring；
+2. `ingress_basis < revoke/ban frontier`：接受历史authoring，后继Control仍按正常Lattice/Seal投影并支配
+   current delivery/display/effect；不得追溯把已接受Event的author改成未授权；
+3. 依赖未知或frontier closure不完整：返回`dependency_pending`并backfill，不得把缺证据当终局；
+4. 依赖补齐后可证明Event与revoke/ban并发：拒绝。
+
+current session/lifecycle/policy gate只能控制当前交付、展示与新副作用，不能覆盖第二分支的历史authoring结论。
+实现不得以`created_at`、`received_at`、本地到达顺序或wall clock替代causal proof。
 
 ### 2.1 提交与重传封装
 

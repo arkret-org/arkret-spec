@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-02.3",
+  "version": "2026-08-03.1",
   "codes": [
     {
       "code": "bad_json",
@@ -1663,6 +1663,42 @@
       "http_status": 415,
       "scope": "both",
       "description": "A canonical non-streaming JSON operation carried a Content-Encoding header. Canonical JSON bindings MUST reject the request before reading or decompressing the body; see zh/conformance/scalability-constraints.md section 2.1.4."
+    },
+    {
+      "code": "bootstrap_idempotency_conflict",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "A device bootstrap enroll, cancel or recovery request reused the durable transaction/idempotency identity with different closed request bytes or a different canonical bootstrap request digest. The first outcome remains authoritative and no Event or credential is replaced."
+    },
+    {
+      "code": "contact_scope_stale",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "An existing Contact binding is discoverable but the source-signed issuer head checkpoint/current lease is stale, unknown or incomplete. Contact-based create/send fails closed while coordinates remain visible to authorized participants."
+    },
+    {
+      "code": "contact_lineage_conflict",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "A Contact fact forks an issuer-local version, skips a version, references a non-current predecessor, reuses a consumed request ref, or attempts to revive a tombstoned generation. The conflicting fact is quarantined."
+    },
+    {
+      "code": "participation_evidence_conflict",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "A participation challenge or accepted target receipt was reused outside its exact agent/scope/commitment/target/verifier/audience binding, expired, or paired with different signed batch bytes. The target Realm authority performs no write."
+    },
+    {
+      "code": "operation_control_quorum_unavailable",
+      "http_status": 503,
+      "scope": "endpoint",
+      "description": "No fresh q=2f+1 certificate proves the current operation-control head or required journal availability. The operation remains pending/fail closed and no external effect, cancel, transfer or attempt advance is inferred from a local replica head."
+    },
+    {
+      "code": "membership_compensation_conflict",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "A compensation delegation/action/executor/admission/incarnation binding is wrong, already consumed or conflicts with the current membership provenance. Newer incarnations are never removed; absent or superseded destinations return their registered signed no-write outcomes."
     }
   ],
   "reason_codes": [
@@ -5230,6 +5266,21 @@
         "federation_transaction"
       ],
       "description": "Confirmed fork/witness evidence: the same event_id resolves to different event_digest values; a validated per-actor sibling set exceeds the registered single-bucket or per-position limit; a profile declares the observed sibling combination non-joinable; or witnesses required to sign the same complete (realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count) attestation payload return inconsistent values. Different event_id/hash values at the same (realm_id, actor_id, actor_seq) are not by themselves disagreement: event-and-patch.md §2.6 permits a bounded legal sibling set, which peers MUST reconcile by validated set union. Raw frontier_root / heads / range-root differences across different replication, disclosure, or attestation scopes also are not disagreement. The verifier MUST quarantine only the affected evidence scope and fail closed; recovery requires raw replay, an aligned same-scope quorum, or operator-approved fork resolution. See zh/sync/operations-sync.md §6.4.2 / §6.4.4 step 7 and zh/sync/federation.md §4.5.1."
+    },
+    {
+      "code": "runtime_key_missing",
+      "applies_to": ["agent_readiness"],
+      "description": "Closed generic Agent readiness blocker: no active accepted runtime key exists. It is durable subject-level readiness state and MUST NOT be inferred from a missing session or target-Realm grant."
+    },
+    {
+      "code": "recovery_stale",
+      "applies_to": ["agent_readiness"],
+      "description": "Closed generic Agent readiness blocker: the controller-owned PCR recovery material no longer satisfies the current recovery policy or active runtime-key state."
+    },
+    {
+      "code": "session_missing",
+      "applies_to": ["direct_conversation_readiness"],
+      "description": "Closed target-specific Direct Conversation readiness blocker: the otherwise authorized Agent has no current session for the requested send path. It MUST NOT appear in generic Agent readiness."
     }
   ]
 }

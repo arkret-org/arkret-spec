@@ -92,7 +92,11 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.peer.events.query.scan` | federation peer 按 Realm / actor / cursor 拉取或回填 Event。 |
 | `ak.peer.events.query.scan_body` | `ak.peer.events.query.scan` 的 HTTP POST/body binding variant。 |
 | `ak.peer.events.query.frontier` | federation peer 查询 Realm frontier 以检测 fork / stale peer。 |
-| `ak.peer.contacts.command.submit` | federation peer 投递原签名 `ak.contact.*` 或 `ak.direct_conversation.bound` principal-scoped fact；不得承载共享 Realm Event。 |
+| `ak.peer.contacts.command.submit` | federation peer以closed XOR投递原签名`ak.contact.*` fact、对应source-signed acceptance receipt与可刷新current proof；不得承载`ak.direct_conversation.bound`、共享Realm Event或unsigned service row。 |
+| `ak.gate.account.command.cancel_device_bootstrap` | 取消同一typed bootstrap transaction；bootstrap bearer+DPoP、closed response、exact replay/conflict。 |
+| `ak.self.contact.command.scope_update` | Contact issuer-local signed full-set scope replacement，固定`phase=prepare|commit`。 |
+| `ak.self.agent.participation.query.prepare_scope_evidence` / `ak.peer.agent.participation.query.prepare_scope_evidence` | 本地入口与远端透明relay取得target-signed single-use scope evidence challenge。 |
+| `ak.peer.agent.participation.command.replace` | 透明转发原始controller-signed participation replacement batch/evidence，并返回destination-signed receipt。 |
 | `ak.peer.snapshot.query.manifest_head` | federation peer 获取 snapshot-assisted bootstrap 的 manifest head。 |
 | `ak.self.account.query.viewer` | 当前 holder 的账号主体自读；响应使用 signed handle claim / ref / digest。 |
 | `ak.self.account.command.update_profile` | 当前账号 profile 更新；`bio` 映射到 `profile_fields.bio`。 |

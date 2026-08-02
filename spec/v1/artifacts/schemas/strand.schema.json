@@ -85,22 +85,11 @@
     },
     "agent_participation": {
       "type": "object",
-      "description": "Optional wrapped agent participation ceiling for this Strand: { native_agent: { reply, accept_third_party_mention, act_on_behalf } }. When omitted, inherits the enclosing Circle ceiling (or Realm-default ceiling when scope_circle_id is unset). Each bit MAY only tighten, never widen, the parent ceiling (reducer rejects a widening write with agent_participation_ceiling_widen). The legacy flat three-bit shape is invalid v1 wire. See zh/models/strand-and-message.md.",
+      "description": "Optional wrapped five-bit Agent ceiling. When present every bit is explicit and may only tighten the enclosing Circle or Realm ceiling.",
+      "required": ["native_agent"],
       "properties": {
         "native_agent": {
-          "type": "object",
-          "properties": {
-            "reply": {
-              "type": "boolean"
-            },
-            "accept_third_party_mention": {
-              "type": "boolean"
-            },
-            "act_on_behalf": {
-              "type": "boolean"
-            }
-          },
-          "additionalProperties": false
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_bits"
         }
       },
       "additionalProperties": false

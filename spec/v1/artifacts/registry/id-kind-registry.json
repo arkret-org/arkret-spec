@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.9",
+  "version": "2026-08-03.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T20:30:00Z",
+  "generated_at": "2026-08-03T02:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -349,6 +349,13 @@
       "status": "active",
       "wire_form": "ak:notification:<uuid>",
       "description": "Notification projection ID"
+    },
+    {
+      "kind": "operation",
+      "category": "security",
+      "status": "active",
+      "wire_form": "ak:operation:<opaque>",
+      "description": "Opaque identifier for a durable or reserved multi-phase protocol operation instance."
     },
     {
       "kind": "read_cursor",

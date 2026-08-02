@@ -172,8 +172,8 @@
       "instance": {
         "state": "not_ready",
         "blockers": [
-          "keypackage_empty",
-          "reply_capability_missing"
+          "runtime_key_missing",
+          "recovery_stale"
         ]
       }
     },

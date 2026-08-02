@@ -1033,11 +1033,18 @@
     "key_packages_consume_request_body": {
       "type": "object",
       "required": [
+        "owner_account_id",
         "key_package_refs",
         "consumer_device_id",
+        "claim_ids",
+        "welcome_ref",
+        "recipient_durable_receipt",
         "signature"
       ],
       "properties": {
+        "owner_account_id": {
+          "$ref": "#/$defs/did"
+        },
         "key_package_refs": {
           "$ref": "#/$defs/keypackage_ref_array"
         },
@@ -1058,6 +1065,10 @@
         },
         "welcome_ref": {
           "$ref": "#/$defs/object_ref"
+        },
+        "recipient_durable_receipt": {
+          "$ref": "#/$defs/hash",
+          "description": "Destination-signed proof that the exact Welcome is durable. Consume MUST NOT run before this proof exists."
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -1096,11 +1107,15 @@
     "key_packages_revoke_request_body": {
       "type": "object",
       "required": [
+        "owner_account_id",
         "key_package_refs",
         "device_id",
         "signature"
       ],
       "properties": {
+        "owner_account_id": {
+          "$ref": "#/$defs/did"
+        },
         "key_package_refs": {
           "$ref": "#/$defs/keypackage_ref_array"
         },

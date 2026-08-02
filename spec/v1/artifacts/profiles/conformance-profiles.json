@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-02.6",
-  "generated_at": "2026-08-02T21:45:00Z",
+  "version": "2026-08-03.1",
+  "generated_at": "2026-08-03T02:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -416,6 +416,9 @@
     "ak.profile.media_service_binding.arkret_native.v1",
     "ak.profile.agent_sidecar.v1",
     "ak.profile.agent_participation_policy.v1",
+    "ak.profile.direct_conversation_operation_control.v1",
+    "ak.profile.direct_conversation_repair.v1",
+    "ak.profile.membership_join_compensation.v1",
     "ak.profile.mimi_interop.v1",
     "ak.profile.sovereign_client.v1",
     "ak.profile.franking.v1",
@@ -594,6 +597,9 @@
     "ak.profile.agent_delegation_policy.v1": "server",
     "ak.profile.agent_sidecar.v1": "server",
     "ak.profile.agent_participation_policy.v1": "server",
+    "ak.profile.direct_conversation_operation_control.v1": "server",
+    "ak.profile.direct_conversation_repair.v1": "server",
+    "ak.profile.membership_join_compensation.v1": "server",
     "ak.profile.mimi_interop.v1": "interop",
     "ak.profile.franking.v1": "server",
     "ak.profile.morph.schema_migration_transformations.v1": "server",
@@ -3222,16 +3228,15 @@
       ],
       "required_event_kinds": [
         "ak.sidecar.create",
-        "ak.circle.create",
-        "ak.circle.member.state",
-        "ak.strand.create",
-        "ak.relation.create",
+        "ak.sidecar.context.attach",
+        "ak.sidecar.access.replace",
         "ak.message.create",
         "ak.agent.sidecar.exchange.control"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.agent_sidecar.v1",
+        "ak.schema.protocol_journey_wire.v1",
         "ak.schema.agent_sidecar_view_state.v1",
         "ak.schema.agent_sidecar_exchange_projection.v1",
         "ak.schema.agent_sidecar_event_exchange_binding.v1",
@@ -3243,7 +3248,8 @@
       "required_fixtures": [
         "capability-fixture.json",
         "privacy-security-fixture.json",
-        "agent-sidecar-fixture.json"
+        "agent-sidecar-fixture.json",
+        "protocol-journey-closure-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -3268,7 +3274,10 @@
           "exchange_coordinator_completion",
           "exchange_projection_local_fold_cache",
           "existence_privacy_invariants",
-          "single_executed_by_on_publish"
+          "single_executed_by_on_publish",
+          "first_ensure_exact_create_then_context_attach",
+          "sidecar_context_excluded_from_control_frontier",
+          "sidecar_access_event_is_authority"
         ],
         "unsupported_optional": "fail closed; do not create multiple Sidecars or backing Circles for one (realm_id, controller_id)"
       }
@@ -3278,7 +3287,10 @@
         "ak.profile.personal_agent_provisioning.v1"
       ],
       "required_endpoints": [
+        "ak.self.agent.participation.query.prepare_scope_evidence",
+        "ak.peer.agent.participation.query.prepare_scope_evidence",
         "ak.self.agent.participation.resource.replace",
+        "ak.peer.agent.participation.command.replace",
         "ak.self.agent.participation.resource.get"
       ],
       "required_event_kinds": [
@@ -3286,10 +3298,11 @@
         "ak.capability.revoke"
       ],
       "rejected_event_kinds": [],
-      "required_schemas": [],
+      "required_schemas": ["ak.schema.protocol_journey_wire.v1"],
       "required_fixtures": [
         "capability-fixture.json",
-        "agent-participation-fixture.json"
+        "agent-participation-fixture.json",
+        "protocol-journey-closure-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -3299,10 +3312,80 @@
           "effective_is_ceiling_meet_selection",
           "third_party_mention_gate",
           "selection_within_ceiling_gate",
-          "session_scope_details_participation"
+          "session_scope_details_participation",
+          "scope_evidence_target_verifier_bound",
+          "scope_evidence_challenge_or_receipt_closed_xor",
+          "peer_relay_byte_identical",
+          "five_bit_ceiling_closed",
+          "deployment_ceiling_fork_fail_closed"
         ],
         "unsupported_optional": "fail closed; deny agent participation when the ceiling is unknown or stale"
       }
+    },
+    "ak.profile.direct_conversation_operation_control.v1": {
+      "inherits": ["ak.profile.direct_conversation_realm.v1"],
+      "required_endpoints": ["ak.self.direct_conversation.command.resolve", "ak.peer.keys.keypackages.command.claim", "ak.peer.keys.keypackages.query.claim", "ak.peer.events.command.submit"],
+      "required_event_kinds": ["ak.realm.create", "ak.member.state", "ak.strand.create", "ak.direct_conversation.bound", "ak.mls.genesis", "ak.mls.commit", "ak.mls.welcome"],
+      "rejected_event_kinds": [],
+      "required_schemas": ["ak.schema.protocol_journey_wire.v1"],
+      "required_fixtures": ["direct-conversation-fixture.json", "operation-control-pbft-fixture.json", "protocol-journey-closure-fixture.json"],
+      "optional_extensions": [],
+      "fixed_pbft": {
+        "replica_rule": "N=3f+1",
+        "quorum_rule": "q=2f+1",
+        "minimum_n": 4,
+        "replica_set": "immutable_for_pair_registry_lifetime",
+        "write_certificate": "q_commit",
+        "current_head_read_certificate": "q_read",
+        "availability_certificate": "q_da",
+        "one_vote_rule": "one_value_digest_per_registry_instance_view_phase",
+        "genesis_rule": "no_canonical_operation_or_effect_before_q_commit"
+      },
+      "value_and_envelope_contract": {
+        "immutable_value": "EffectValueCore excludes view and every certificate",
+        "value_digest": "SHA-256 of exact RFC8785/JCS EffectValueCore bytes",
+        "per_view_envelope": "domain-separated registry/instance/view/phase/value_digest/qda_certificate_digest transcript",
+        "view_change": "exact q VIEW-CHANGE; highest prepared wins; otherwise deterministic proposer supplies exactly one fresh candidate",
+        "point_of_no_return": "q-COMMIT only",
+        "execution_bundle_role": "validated transport carrier only",
+        "partition_rule": "no fresh q-certified current head means pending/fail closed"
+      },
+      "attempt_contract": {
+        "stable_operation": true,
+        "initial_attempt": 1,
+        "attempt_advance_before_claim": true,
+        "one_claim_per_attempt": true,
+        "advance_forbids": ["accepted_claim", "claim_receipt", "membership_draft", "membership_version", "mls_generation"],
+        "initial_host_head_forbids_transfer_id": true
+      },
+      "feature_discovery": {
+        "required": ["fixed_pbft_n_3f_plus_1_q_2f_plus_1", "view_independent_effect_value", "qda_backed_qcommit", "read_certificate_never_authorizes_effect", "attempt_advance_before_claim", "found_exits_operation_control"],
+        "unsupported_optional": "fail closed; do not create or advance a Direct Conversation operation"
+      }
+    },
+    "ak.profile.direct_conversation_repair.v1": {
+      "inherits": ["ak.profile.direct_conversation_realm.v1"],
+      "required_endpoints": ["ak.self.events.command.submit", "ak.self.direct_conversation.command.resolve"],
+      "required_event_kinds": ["ak.member.state", "ak.mls.commit", "ak.mls.welcome"],
+      "rejected_event_kinds": [],
+      "required_schemas": ["ak.schema.protocol_journey_wire.v1"],
+      "required_fixtures": ["direct-conversation-fixture.json", "protocol-journey-closure-fixture.json"],
+      "optional_extensions": [],
+      "authority_source": "ak.authority.direct_conversation_repair.v1",
+      "invariants": ["same_pair_realm_main_strand", "exact_two_participant_mask", "human_self_or_owned_agent_controller_closed_xor", "current_signed_directional_contact_heads", "new_mls_generation_has_no_prejoin_history"],
+      "feature_discovery": {"required":["stable_direct_conversation_exact_pair_repair"],"unsupported_optional":"keep the stable binding suspended and fail closed"}
+    },
+    "ak.profile.membership_join_compensation.v1": {
+      "required_endpoints": ["ak.self.events.command.submit", "ak.self.keys.keypackages.command.revoke", "ak.self.keys.keypackages.command.consume"],
+      "required_event_kinds": ["ak.member.state", "ak.mls.commit"],
+      "rejected_event_kinds": [],
+      "required_schemas": ["ak.schema.protocol_journey_wire.v1"],
+      "required_fixtures": ["protocol-journey-closure-fixture.json", "keypackage-lifecycle-fixture.json"],
+      "optional_extensions": [],
+      "authority_source": "ak.authority.membership_compensation.v1",
+      "actions": {"self_join":"ak.member.compensate.leave","delegated_or_admin_join":"ak.member.compensate.remove"},
+      "single_use_contract": ["actual_join_authoring_signer_signs_delegation_core", "exact_admission_and_membership_incarnation", "executor_did_and_proof_key_exact", "old_j1_provenance_only", "already_absent_and_superseded_are_signed_no_write", "terminal_certificate_excluded_from_event_digest", "old_mls_generation_only"],
+      "feature_discovery": {"required":["accepted_at_membership_compensation_single_use"],"unsupported_optional":"leave the failed join operation pending cleanup; never synthesize authority"}
     },
     "ak.profile.mimi_interop.v1": {
       "required_endpoints": [

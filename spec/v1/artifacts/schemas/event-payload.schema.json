@@ -3268,6 +3268,9 @@
       },
       "additionalProperties": false
     },
+    "contact_scope_update_payload": {
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scope_update_payload"
+    },
     "contact_tombstoned_payload": {
       "type": "object",
       "description": "Principal-scoped holder tombstone for one contact relation view. Issuer is the holder ending their side of the contact. Default revocation scope is contact-managed active consent dots only.",
@@ -10162,6 +10165,116 @@
           "$ref": "./agent-sidecar.schema.json"
         }
       },
+      "additionalProperties": false
+    },
+    "sidecar_context_attach_payload": {
+      "type": "object",
+      "description": "Controller-signed versioned attachment that projects one private Strand and its agent_sidecar_of Relation for an existing Sidecar.",
+      "required": [
+        "sidecar_id",
+        "private_strand",
+        "relation",
+        "version"
+      ],
+      "properties": {
+        "sidecar_id": {
+          "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+        },
+        "private_strand": {
+          "$ref": "./strand.schema.json"
+        },
+        "relation": {
+          "$ref": "./relation.schema.json"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "predecessor_event_ref": {
+          "$ref": "#/$defs/event_ref"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "version": {
+                "const": 1
+              }
+            },
+            "required": [
+              "version"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "predecessor_event_ref"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "predecessor_event_ref"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "sidecar_access_replace_payload": {
+      "type": "object",
+      "description": "Controller-signed full-set Sidecar access replacement. Realm and backing-Circle scope are carried by the Event envelope.",
+      "required": [
+        "sidecar_id",
+        "selected_agent_ids",
+        "version"
+      ],
+      "properties": {
+        "sidecar_id": {
+          "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+        },
+        "selected_agent_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "predecessor_event_ref": {
+          "$ref": "#/$defs/event_ref"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "version": {
+                "const": 1
+              }
+            },
+            "required": [
+              "version"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "predecessor_event_ref"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "predecessor_event_ref"
+            ]
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "sidecar_mls_binding": {

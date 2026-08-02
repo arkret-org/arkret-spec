@@ -1,0 +1,80 @@
+{
+  "version": "2026-08-03.1",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.protocol_journey.closure.v1"
+  },
+  "description": "Static positive, negative, replay, reorder, partition and self-reference guards for the A-J, CJ and PJ protocol-closure contracts. These declarations are conformance inputs, not execution evidence.",
+  "evidence_boundary": {
+    "fixture_presence_is_execution_evidence": false,
+    "legacy_pj_declarations_require_migration": true,
+    "legacy_three_state_coverage_labels_are_authoritative": false,
+    "required_external_evidence": "A non-skipped runner attestation outside arkret-spec binds immutable spec, Cotest and runner revisions to commands, results and artifact digests."
+  },
+  "vectors": [
+    {
+      "vector_id": "ak.vector.protocol_journey.bootstrap_exact_replay.v1",
+      "class": "replay",
+      "given": "A pending founding or sibling bootstrap transaction and a previously accepted canonical request.",
+      "when": "The same transaction and idempotency key are retried with byte-identical closed request bytes after response loss or bearer expiry.",
+      "then": "Return the first outcome and original Event bytes and identifiers; only the credential or outer publication authority may be refreshed.",
+      "reject": "A replacement Event, a second transaction, a fourth terminal state, or the same key with different bytes."
+    },
+    {
+      "vector_id": "ak.vector.protocol_journey.contact_lineage_reorder.v1",
+      "class": "reorder",
+      "given": "An issuer-local Contact basis and a signed monotonic lineage head.",
+      "when": "A successor, fork, stale predecessor, late reverse request, glare evidence or tombstoned-generation fact arrives out of order.",
+      "then": "Accept only the unique version+1 predecessor successor; quarantine forks and late terminal-generation facts without hiding existing binding coordinates.",
+      "reject": "Unsigned peer identity, an open peer shape, a request ref consumed by two bases, Private Consent as Contact authority, or a stale proof used to authorize create/send."
+    },
+    {
+      "vector_id": "ak.vector.protocol_journey.participation_private_evidence.v1",
+      "class": "privacy_replay",
+      "given": "A target-signed single-use challenge or a still-fresh accepted target receipt bound to exact agent, scope, commitment, target, verifier and audience.",
+      "when": "The original signed replacement batch is submitted locally or transparently relayed to the target Realm authority.",
+      "then": "The target validates the closed JCS binding, HPKE AAD/info, five-bit ceilings and expected-version CAS, then returns a destination-signed receipt.",
+      "reject": "Relay decryption or rewriting, bare digest/ref evidence, challenge reuse with different bytes, omitted ceiling bits, forked deployment ceiling, or controller-private defaults used as authority."
+    },
+    {
+      "vector_id": "ak.vector.protocol_journey.membership_compensation_single_use.v1",
+      "class": "crash_recovery",
+      "given": "A content-addressed accepted-at delegation signed by the actual join authoring proof signer and bound to one admission and membership incarnation.",
+      "when": "The join attempt fails after claim or membership acceptance, including a crash before or after MLS Add.",
+      "then": "Before member acceptance revoke only the claim; after acceptance submit exactly one fresh standard leave/remove Event; after Add also remove only the old MLS leaf/generation.",
+      "reject": "Pre-deadline use, a second claim, a different executor, cross-admission reuse, delegation of an unknown action, removal of a new incarnation, or terminal certificate bytes entering the Event digest."
+    },
+    {
+      "vector_id": "ak.vector.protocol_journey.sidecar_staged_atomic.v1",
+      "class": "atomicity",
+      "given": "A first Sidecar ensure reservation with fixed create and context-attach Event bytes.",
+      "when": "The parent-Realm bootstrap exception validates create and the attach references create with role after.",
+      "then": "Atomically accept create plus attach; create projects only Sidecar, backing Circle and controller membership, while attach projects only private Strand and Relation.",
+      "reject": "A five-Event service-authored aggregate, context in the MLS control frontier, access receipt as authority, or tombstoning a principal Sidecar solely because a service account is terminal."
+    },
+    {
+      "vector_id": "ak.vector.protocol_journey.history_causal_ingress.v1",
+      "class": "reorder",
+      "given": "T0 visibility/range, a T1 receiver eligibility basis and an offline ingress receipt with causal ingress basis.",
+      "when": "Revocation, ban or dependencies are earlier, later, unknown or provably concurrent with ingress.",
+      "then": "Earlier revocation rejects, later revocation preserves historical authorship but governs current effects, unknown dependencies wait for backfill, and proven concurrency rejects.",
+      "reject": "Using wall-clock order, T2 policy to revoke already-held decryption capability, preview-only key release, or treating missing proof as final denial."
+    },
+    {
+      "vector_id": "ak.vector.protocol_journey.keypackage_terminal_fanout.v1",
+      "class": "cas_retry",
+      "given": "An account terminal transition and KeyPackages selected by exact owner_account_id.",
+      "when": "CAS conflicts or concurrent claim/consume transitions occur.",
+      "then": "Read and CAS until every package is retired, revoked with its original claim id, or already consumed; stale conflict is never completion.",
+      "reject": "Resurrection, second claim, owner mismatch, or a stale write counted as terminal fanout success."
+    },
+    {
+      "vector_id": "ak.vector.protocol_journey.traceability_no_self_attestation.v1",
+      "class": "self_reference_guard",
+      "given": "The protocol journey traceability registry and release tooling.",
+      "when": "Static registry references and external execution evidence are validated.",
+      "then": "The registry contains only static contract references; execution evidence is an external detached attestation whose artifact digest set excludes itself.",
+      "reject": "Spec/Cotest/runner revisions, execution status, command results, a registry digest of itself, or a self-including attestation artifact digest inside the static registry."
+    }
+  ]
+}

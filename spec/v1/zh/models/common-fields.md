@@ -327,9 +327,18 @@ value category，不会自动触发 DID Document 解析或在线验证。
 
 ### 4.4 `agent_participation` wire 形态（normative）
 
-`agent_participation` ceiling 在 `deployment ⊇ Realm ⊇ Circle ⊇ Strand` 四层统一使用 `{ native_agent: { reply, accept_third_party_mention, act_on_behalf } }`。外层轴名为未来 applet / ghost actor 等参与轴保留；不同 actor family MUST 使用独立 sibling key，不得合并进 `native_agent`。
+`agent_participation`的每个实例在provision private ceiling、target-local deployment safety ceiling、Realm、
+Circle、Strand与controller selection统一使用
+`{native_agent:{reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf}}`。
+五个boolean全部required且object closed；任一位缺失、旧`reply`别名、三位wire或未知位均`schema_violation`，
+不得默认补齐或运行时归一。外层axis为其它actor family保留，不同family使用独立sibling key。
 
-Reducer 逐层比较相同 `native_agent` 子对象的同名 bit：内层为 true MUST 蕴含父层对应位为 true，违反 MUST `failed_precondition`（`reason="agent_participation_ceiling_widen"`）。字段缺失按该位继承父层；整个 object 缺失按全对象继承。最终 participation 仍与 Agent immutable provision-derived ceiling 求交：`effective = provision-derived ceiling ∩ governance ceiling ∩ selection`；详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。旧扁平 Circle/Strand 形态不是 v1 wire，MUST `schema_violation`，不得运行时归一。
+某层policy component整体省略时表示本层不另作声明并继承已验证父级current ceiling；一旦出现则五位必须完整。
+Reducer逐层AND，同名位内层true必须蕴含父层true，放宽返回
+`agent_participation_ceiling_widen`。任一required layer在本次admission应存在却missing/unknown/stale/fork时按
+全deny，不按“无声明=放宽”。最终effective为immutable provision ceiling、target deployment safety、
+Realm/Circle/Strand governance、accepted target slot/grant与controller selection的逐位交集；详见
+[`../authz/capabilities.md` §5.4](../authz/capabilities.md)。
 
 ### 4.5 参数化 membership FSM（normative）
 

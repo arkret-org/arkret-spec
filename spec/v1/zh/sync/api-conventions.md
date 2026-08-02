@@ -251,10 +251,16 @@ Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失�
 - **grant class/binding**：JWT 与内省必须使用
   `service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims` 的 typed
   `credential_class`。`recovery_restricted` 只允许 recovery bootstrap scope，必须携带
-  `recovery_binding` 且不得携带 `device_binding`；已授权设备的 `standard` grant 必须携带
-  `device_binding {device_id, authorization_event_id, model_generation_ref}`。Principal Server
-  在每个 self-path admission 中必须把该 binding 与当前 active authorization Event /
-  generation 比对；scope 内的 device 字符串或数据库旁路字段不能替代 signed binding。
+  `recovery_binding` 且不得携带 `standard.holder_binding`。`standard.holder_binding` 在 JWT 与 introspection
+  共用同一 closed discriminated XOR wire：human 分支恰为
+  `{kind="human_device",device_binding}`，并禁止全部 Agent runtime字段；Agent分支恰为
+  `{kind="agent_runtime",agent_id,device_id,agent_key_authorization_ref,verification_method}`，并禁止
+  `device_binding`。`agent_key_authorization_ref`就是唯一 authorization代次，必须 resolve为 current accepted
+  active authorization，不存在额外 `generation`字段或隐式数据库 generation轴。Principal Server 在每个
+  self-path admission 中必须同时重验 token subject、分支 binding ref、runtime device、current accepted Agent
+  key authorization及 Agent/controller current lifecycle；仅匹配 kind、key digest、scope内 device字符串或
+  service-private row均不得替代 signed binding。持 active authorized Agent key但尚无 session的 runtime可凭 PoP
+  取得 standard Agent session，不能伪装 human device。
 - **audience**:grant 的 audience MUST 等于本 Principal Server 的 service DID。
 - **scope**:grant scope MUST 含 Principal Server 的 session.bind scope 与 device scope。
 - **principal / device 绑定**:grant 绑定的 principal / device MUST 与请求一致。

@@ -272,7 +272,7 @@
           "uniqueItems": true,
           "items": {
             "type": "string",
-            "enum": ["runtime_key_missing", "pairing_open", "recovery_stale", "session_missing", "keypackage_empty", "reply_capability_missing", "mls_rejoin_required"]
+            "enum": ["runtime_key_missing", "pairing_open", "recovery_stale"]
           }
         }
       },
@@ -653,10 +653,22 @@
     "account_device_pair_outcome": {
       "type": "object",
       "required": [
+        "bootstrap_transaction_id",
+        "canonical_request_digest",
+        "idempotency_key",
         "device_id",
         "authorized_event_ref"
       ],
       "properties": {
+        "bootstrap_transaction_id": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/opaque_id"
+        },
+        "canonical_request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "idempotency_key": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/opaque_id"
+        },
         "device_id": {
           "$ref": "#/$defs/device_id"
         },
@@ -727,12 +739,19 @@
       "type": "object",
       "description": "The signed `service_attested` ak.device.authorize Event for the requested device. The account authority does not contact the Principal Server; the caller submits `authorized_event` verbatim to POST /_arkret/self/events.",
       "required": [
+        "bootstrap_transaction_id",
         "principal_id",
         "device_id",
         "authority_did",
-        "authorized_event"
+        "authorized_event",
+        "authorized_event_id",
+        "authorized_event_digest",
+        "outcome_digest"
       ],
       "properties": {
+        "bootstrap_transaction_id": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/opaque_id"
+        },
         "principal_id": {
           "$ref": "#/$defs/did"
         },
@@ -744,13 +763,26 @@
           "description": "Enrollment authority DID (= executed_by / enrollment_authority_binding.authority_did)."
         },
         "authorized_event": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": true,
+          "$ref": "./event-envelope.schema.json",
           "description": "Fully-signed ak.device.authorize Event envelope, carrying enrollment_authority_binding {kind: service_attested}."
+        },
+        "authorized_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "authorized_event_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "outcome_digest": {
+          "$ref": "#/$defs/hash"
         }
       },
       "additionalProperties": false
+    },
+    "account_device_bootstrap_cancel_request_body": {
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/cancel_device_bootstrap_request"
+    },
+    "account_device_bootstrap_cancel_outcome": {
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/cancel_device_bootstrap_outcome"
     },
     "agent_key_pair_request_body": {
       "type": "object",
@@ -1004,8 +1036,11 @@
       "description": "Two-phase controller-authored Agent provisioning. prepare validates prerequisites and allocates the Agent DID and Agent PCR id without publishing durable Agent state. The controller recomputes requested_scope_digest, uses the Arkret SDK to author one ak.agent.provision Event, and returns the same allocation in commit. The service admits that Event before publishing the DID binding and pairing handle. Provisioning never creates an Agent profile, key authorization or Realm capability grant.",
       "required": [
         "phase",
+        "operation_id",
+        "idempotency_key",
         "slug",
-        "requested_scope"
+        "requested_scope",
+        "participation_ceiling"
       ],
       "properties": {
         "phase": {
@@ -1014,6 +1049,12 @@
             "commit"
           ]
         },
+        "operation_id": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/operation_id"
+        },
+        "idempotency_key": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/opaque_id"
+        },
         "agent_id": {
           "$ref": "#/$defs/did"
         },
@@ -1021,18 +1062,18 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
           "description": "Service-allocated Principal Control Realm id for the new Agent. It is distinct from the controller PCR in provision_event."
         },
-        "display_name": {
-          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
-        },
         "slug": {
           "$ref": "#/$defs/agent_slug"
-        },
-        "avatar_blob_ref": {
-          "$ref": "#/$defs/blob_ref"
         },
         "requested_scope": {
           "$ref": "#/$defs/agent_key_scope",
           "description": "Required immutable global Agent key/session ceiling, not a grant. Later key scopes, Realm grants, participation selections and session requests MAY narrow it but MUST NOT exceed its actions, resource selectors or mandatory constraints. An omitted action can never be added later. Provisioning never materializes content grants from this field. Operation/service resources constrain the service surface; explicit content resource selectors only further narrow later grants."
+        },
+        "participation_ceiling": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_bits"
+        },
+        "allocation_handle": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/opaque_id"
         },
         "provision_event": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
@@ -1060,6 +1101,9 @@
               },
               {
                 "required": ["provision_event"]
+              },
+              {
+                "required": ["allocation_handle"]
               }
             ]
           }
@@ -1068,6 +1112,7 @@
           "required": [
             "agent_id",
             "principal_control_realm_id",
+            "allocation_handle",
             "provision_event"
           ],
           "properties": {
@@ -1545,27 +1590,7 @@
       "additionalProperties": false
     },
     "agent_sidecar_ensure_request_body": {
-      "type": "object",
-      "required": [
-        "controller_id",
-        "context_ref"
-      ],
-      "properties": {
-        "controller_id": {
-          "$ref": "#/$defs/did"
-        },
-        "addressed_agent_ids": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/did"
-          },
-          "uniqueItems": true
-        },
-        "context_ref": {
-          "$ref": "#/$defs/agent_sidecar_context_ref"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/sidecar_ensure_request"
     },
     "pending_sidecar_access_reconciliation_item": {
       "type": "object",
@@ -1756,75 +1781,30 @@
       "additionalProperties": false
     },
     "agent_participation": {
-      "type": "object",
-      "description": "Native Agent participation bits. The provision-derived ceiling maps reply to ak.message.create plus ak.reaction.add, accept_third_party_mention to ak.event.read, and act_on_behalf to ak.message.create plus applicable controller-approval/accountability constraints.",
-      "properties": {
-        "reply": {
-          "type": "boolean"
-        },
-        "accept_third_party_mention": {
-          "type": "boolean"
-        },
-        "act_on_behalf": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_bits"
     },
     "agent_participation_scope": {
-      "type": "object",
-      "required": [
-        "kind",
-        "realm_id"
-      ],
-      "properties": {
-        "kind": {
-          "type": "string",
-          "enum": [
-            "realm",
-            "circle",
-            "strand"
-          ]
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "circle_id": {
-          "$ref": "./common-ids.schema.json#/$defs/circle_id"
-        },
-        "strand_id": {
-          "$ref": "#/$defs/strand_id"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_scope"
     },
     "agent_participation_replace_request_body": {
-      "type": "object",
-      "required": [
-        "participation_scope",
-        "selection"
-      ],
-      "properties": {
-        "participation_scope": {
-          "$ref": "#/$defs/agent_participation_scope"
-        },
-        "selection": {
-          "$ref": "#/$defs/agent_participation",
-          "description": "Controller selection. Every true bit MUST be allowed by both the immutable provision-derived ceiling and the deployment/Realm/Circle/Strand governance ceiling."
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_replacement_batch"
+    },
+    "agent_participation_scope_evidence_prepare_request_body": {
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_prepare_request"
+    },
+    "agent_participation_scope_evidence_prepare_outcome": {
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_challenge"
     },
     "agent_participation_entry": {
       "type": "object",
       "required": [
-        "participation_scope",
+        "target_scope",
         "selection",
         "ceiling",
         "effective"
       ],
       "properties": {
-        "participation_scope": {
+        "target_scope": {
           "$ref": "#/$defs/agent_participation_scope"
         },
         "selection": {

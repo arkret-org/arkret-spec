@@ -26,10 +26,10 @@
       "$ref": "#/$defs/contact_tombstone"
     },
     {
-      "$ref": "#/$defs/direct_conversation_resolve_request_body"
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_request"
     },
     {
-      "$ref": "#/$defs/direct_conversation_resolve_outcome"
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_outcome"
     }
   ],
   "$defs": {
@@ -111,6 +111,7 @@
       "required": [
         "realm_id",
         "main_strand_id",
+        "binding_event_ref",
         "state"
       ],
       "properties": {
@@ -167,13 +168,13 @@
       "required": [
         "peer",
         "state",
-        "granted_by_me",
-        "granted_to_me",
+        "granted_to_peer_scopes",
+        "granted_by_peer_scopes",
         "bidirectional_scopes"
       ],
       "properties": {
         "peer": {
-          "$ref": "#/$defs/did"
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_peer"
         },
         "state": {
           "$ref": "#/$defs/contact_state"
@@ -187,22 +188,18 @@
         "tombstone_event_ref": {
           "$ref": "#/$defs/event_id"
         },
-        "granted_by_me": {
-          "$ref": "#/$defs/consent_scope_list"
+        "granted_to_peer_scopes": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scopes"
         },
-        "granted_to_me": {
-          "$ref": "#/$defs/consent_scope_list"
+        "granted_by_peer_scopes": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scopes"
         },
         "bidirectional_scopes": {
-          "$ref": "#/$defs/consent_scope_list"
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scopes"
         },
         "effective_scopes": {
-          "$ref": "#/$defs/consent_scope_list",
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scopes",
           "description": "Optional shorthand. When present, MUST equal bidirectional_scopes."
-        },
-        "invite_consent_grant_ref": {
-          "$ref": "#/$defs/event_id",
-          "description": "Optional. Event ref of the peer-issued ak.consent.grant (scope invite or any) granting the holder the right to send Realm/Strand invites to this peer. Present only when granted_to_me includes invite or any. Used by the holder as consent_grant introduction evidence to invite this contact into a Realm without a locator URL."
         },
         "peer_service_id": {
           "$ref": "#/$defs/did",
@@ -221,134 +218,16 @@
       "additionalProperties": false
     },
     "contact_request_request_body": {
-      "type": "object",
-      "required": [
-        "target",
-        "requested_scopes"
-      ],
-      "properties": {
-        "target": {
-          "$ref": "#/$defs/did"
-        },
-        "requested_scopes": {
-          "$ref": "#/$defs/consent_scopes"
-        },
-        "message": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 2000,
-          "description": "Optional free-text greeting carried into contact_requested_payload.message. NFC-normalized per canonical encoding rules."
-        },
-        "idempotency_key": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "operation_id": {
-          "$ref": "#/$defs/non_empty_string",
-          "description": "Previously returned stable creation operation identifier. Retries after any externally visible effect MUST reuse this identifier."
-        },
-        "recipient_service_id": {
-          "$ref": "#/$defs/did",
-          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When target is hosted on a different Principal Server, the requester MUST supply the target home service DID so the issuer-side server federates the signed ak.contact.requested fact via ak.peer.contacts.command.submit. Omit for same-server requests."
-        },
-        "introduction_evidence": {
-          "$ref": "./peer-contact-delivery-request.schema.json#/$defs/contact_introduction_evidence",
-          "description": "Optional evidence explaining how the requester found the target. Required by the issuer-side Principal Server when it federates a first-contact request to another Principal Server; if omitted, the server MUST derive compliant evidence or treat the request as explicit_address."
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_operation_request"
     },
     "contact_request_outcome": {
-      "type": "object",
-      "required": [
-        "request_event_ref",
-        "requester_consent_refs",
-        "state"
-      ],
-      "properties": {
-        "request_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "requester_consent_refs": {
-          "$ref": "#/$defs/event_refs"
-        },
-        "state": {
-          "const": "pending_outgoing"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_operation_outcome"
     },
     "contact_respond_request_body": {
-      "type": "object",
-      "required": [
-        "request_id",
-        "requester",
-        "action"
-      ],
-      "properties": {
-        "request_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "requester": {
-          "$ref": "#/$defs/did"
-        },
-        "action": {
-          "type": "string",
-          "enum": [
-            "accept",
-            "reject"
-          ]
-        },
-        "granted_scopes": {
-          "$ref": "#/$defs/consent_scopes"
-        },
-        "requester_service_id": {
-          "$ref": "#/$defs/did",
-          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When the original requester is hosted on a different Principal Server, the responder supplies the requester home service DID so the accept / reject fact is federated back via ak.peer.contacts.command.submit. Omit for same-server responses."
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "action": {
-                "const": "accept"
-              }
-            },
-            "required": [
-              "action"
-            ]
-          },
-          "then": {
-            "required": [
-              "granted_scopes"
-            ]
-          }
-        }
-      ],
-      "additionalProperties": false
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_respond_request"
     },
     "contact_respond_outcome": {
-      "type": "object",
-      "required": [
-        "response_event_ref",
-        "state"
-      ],
-      "properties": {
-        "response_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "consent_grant_refs": {
-          "$ref": "#/$defs/event_refs"
-        },
-        "state": {
-          "type": "string",
-          "enum": [
-            "accepted",
-            "rejected"
-          ]
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_operation_outcome"
     },
     "contact_list": {
       "type": "object",
@@ -373,98 +252,19 @@
       "additionalProperties": false
     },
     "contact_tombstone_request_body": {
-      "type": "object",
-      "required": [
-        "contact"
-      ],
-      "properties": {
-        "contact": {
-          "$ref": "#/$defs/did"
-        },
-        "revoke_scopes": {
-          "$ref": "#/$defs/consent_scopes"
-        },
-        "full_peer_revoke": {
-          "type": "boolean",
-          "default": false,
-          "description": "When true, UI/admin explicitly requested revocation beyond contact-managed grant dots."
-        },
-        "block_peer": {
-          "type": "boolean",
-          "default": false,
-          "description": "When true, additionally add the peer DID to the holder invite_receive_policy.denied_subjects, so future invite delivery from this peer is dropped and disclosed opaquely. Models a hard block (\"拉黑\") on top of contact tombstone."
-        },
-        "peer_service_id": {
-          "$ref": "#/$defs/did",
-          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When contact (the peer) is hosted on a different Principal Server, the holder supplies the peer home service DID so the issuer-side server federates the signed ak.contact.tombstoned fact via ak.peer.contacts.command.submit. Omit for same-server tombstones; when absent the issuer falls back to the peer recorded peer_service_id on the stored contact row."
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_tombstone_request"
     },
     "contact_tombstone": {
-      "type": "object",
-      "required": [
-        "tombstone_event_ref",
-        "state"
-      ],
-      "properties": {
-        "tombstone_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "consent_revoke_refs": {
-          "$ref": "#/$defs/event_refs"
-        },
-        "state": {
-          "const": "tombstoned"
-        },
-        "partial_revoke": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_operation_outcome"
+    },
+    "contact_scope_update_request_body": {
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scope_update_request"
+    },
+    "contact_scope_update_outcome": {
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_operation_outcome"
     },
     "direct_conversation_resolve_request_body": {
-      "type": "object",
-      "required": [
-        "peer"
-      ],
-      "properties": {
-        "peer": {
-          "$ref": "#/$defs/did"
-        },
-        "create": {
-          "type": "boolean",
-          "default": false
-        },
-        "idempotency_key": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "peer_claim_request": {
-          "$ref": "./keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body",
-          "description": "Requester-signed peer KeyPackage claim returned from the preceding remote_keypackage_claim authoring step. It is accepted only for create=true and must exactly match the reserved draft."
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "required": [
-              "peer_claim_request"
-            ]
-          },
-          "then": {
-            "required": [
-              "create",
-              "idempotency_key"
-            ],
-            "properties": {
-              "create": {
-                "const": true
-              }
-            }
-          }
-        }
-      ],
-      "additionalProperties": false
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_request"
     },
     "direct_conversation_operation": {
       "type": "object",
@@ -676,7 +476,7 @@
         "payload": { "type": "object" },
         "proofs": { "type": "array", "maxItems": 0 }
       },
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "Shared envelope shape of every unsigned draft Event in a direct_conversation_materialization plan. proofs MUST be empty: the service issues an authoring draft and never signs on behalf of the participant. Each draft slot narrows this base to exactly one kind via its own role-closed definition; the four slots are NOT interchangeable."
     },
     "unsigned_direct_realm_create_event": {

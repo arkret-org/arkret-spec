@@ -600,6 +600,7 @@
               "ak.contact.accepted",
               "ak.contact.rejected",
               "ak.contact.requested",
+              "ak.contact.scope.update",
               "ak.contact.tombstoned",
               "ak.container.move_item",
               "ak.container.rebalance",
@@ -712,6 +713,8 @@
               "ak.self.agent.resume",
               "ak.self.moderation.report",
               "ak.session.grant",
+              "ak.sidecar.access.replace",
+              "ak.sidecar.context.attach",
               "ak.sidecar.create",
               "ak.sovereign.did_policy",
               "ak.space.archive",
@@ -1462,6 +1465,44 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/sidecar_create_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.sidecar.context.attach"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/sidecar_context_attach_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.sidecar.access.replace"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/sidecar_access_replace_payload"
           }
         }
       }
@@ -3386,6 +3427,25 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/contact_tombstoned_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.contact.scope.update"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/contact_scope_update_payload"
           }
         }
       }

@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 91,
+  "audited_occurrence_count": 107,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -69,14 +69,6 @@
       "disposition": "polymorphic_container",
       "material_families": ["proof", "attestation", "commitment"],
       "reason": "Returns the registered composite Agent signer evidence object."
-    },
-    {
-      "file": "contact-operations.schema.json",
-      "key": "introduction_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation"],
-      "reason": "Accepts possession, consent, shared-membership, handle-claim, and authenticated-service introduction material."
     },
     {
       "file": "did-binding-contracts.schema.json",
@@ -374,6 +366,123 @@
       "disposition": "polymorphic_container",
       "material_families": ["proof", "attestation"],
       "reason": "Combines original device authorization Event proofs with source-service active-key attestations."
+    },
+    {
+      "file": "agent-operations.schema.json",
+      "key": "agent_participation_scope_evidence_prepare_outcome",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Names the registered operation outcome alias for the target-signed participation scope-evidence challenge."
+    },
+    {
+      "file": "agent-operations.schema.json",
+      "key": "agent_participation_scope_evidence_prepare_request_body",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Names the registered operation request alias for preparing target-bound participation scope evidence."
+    },
+    {
+      "file": "protocol-journey-traceability.json",
+      "key": "evidence_boundary",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Declares that traceability rows are static specification contracts rather than execution evidence."
+    },
+    {
+      "file": "protocol-journey-traceability.json",
+      "key": "execution_evidence_is_external",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Qualifies execution evidence as external to the static traceability registry."
+    },
+    {
+      "file": "protocol-journey-traceability.json",
+      "key": "runtime_or_release_evidence_fields_forbidden",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Forbids runtime or release evidence fields in the static traceability registry."
+    },
+    {
+      "file": "protocol-journey-traceability.schema.json",
+      "key": "evidence_boundary",
+      "occurrences": 2,
+      "disposition": "registry_contract",
+      "reason": "Defines and references the closed static-versus-execution evidence boundary object."
+    },
+    {
+      "file": "protocol-journey-traceability.schema.json",
+      "key": "execution_evidence_is_external",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Requires the external execution-evidence boundary flag."
+    },
+    {
+      "file": "protocol-journey-traceability.schema.json",
+      "key": "runtime_or_release_evidence_fields_forbidden",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Requires the prohibition on runtime and release evidence fields."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "contact_basis_evidence_bundle",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "receipt", "commitment"],
+      "reason": "Bundles the stable Contact basis, signed acceptance receipts and refreshable current proofs."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "membership_compensation_submission_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "commitment"],
+      "reason": "Carries delegation, accepted-join proof, terminal certificate and single-use CAS material for membership compensation."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "normal_basis_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "receipt", "commitment"],
+      "reason": "Carries the registered Contact basis evidence bundle for a normal response."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "participation_scope_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt", "commitment"],
+      "reason": "Closed XOR between inline encrypted disclosure evidence and a target-signed accepted receipt."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "participation_scope_evidence_challenge",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Defines the target-signed challenge contract binding participation scope evidence to one verifier and audience."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "participation_scope_evidence_prepare_request",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Defines the closed request used to reserve a target-bound participation evidence challenge."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "scope_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt", "commitment"],
+      "reason": "Carries the registered participation scope-evidence XOR within a replacement batch."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "scope_evidence_digest",
+      "occurrences": 1,
+      "disposition": "derived_summary",
+      "reason": "Commits the accepted participation scope evidence in the destination receipt without copying disclosure material."
     }
   ]
 }

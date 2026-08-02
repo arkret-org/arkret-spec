@@ -46,6 +46,27 @@ Reader 的成员时点：
 
 Current read-time member state 只决定服务是否可以继续提供 server-mediated backfill / key share。它不要求客户端删除已合法同步、已验证且未被 redaction / erasure 覆盖的本地历史。
 
+### 2.1 T0 / T1 / T2 三时点合同（normative）
+
+历史授权必须显式区分三个时点，不得把 current gate追溯写回 event-time事实：
+
+- **T0（目标 Event）**只固定该 Event 当时的 effective visibility、history policy、scope与允许的
+  Event/range。wire visibility值恰为 `world_readable|shared|invited|joined|restricted`；T0不得硬编码“必须
+  joined”，也不得放入接收者当前 lifecycle、当前 ban或后来 share结果。
+- **T1（history share acceptance）**固定接收者的 current eligibility与因果 basis。
+  `receiver_eligibility_basis`是closed union：`active_member`、`invited`、`removed_t0_visible`、
+  `world_readable_requester`、`shared_authorized{share_authority_ref}`、
+  `restricted_authorized{policy_authority_ref}`；另须绑定invite/join/remove causal frontiers与source share
+  authority。`removed_t0_visible`必须联合T0 visibility/range、current history policy及current
+  membership/account/device gate机械派生；preview-only永不发key。T1时current ban一律拒绝；合法
+  unban/rejoin后按新current basis重算，不自动恢复旧交付。
+- **T2（接收后）**只治理verified timeline/display、受控cache与后续share。T2的current redaction、erasure、
+  expiry或remove可停止新share、清理受控cache并记录audit，但协议不得声称能阻止recipient使用已经合法持有的
+  key继续本地解密。T2也不得倒推T0/T1从未成立。
+
+history service、key source与客户端必须保留这三个basis的typed证据。缺任一依赖时进入pending/backfill，
+不得以wall clock、到达顺序或current state替代历史因果证明。
+
 ## 3. `history_visibility` 语义表
 
 下表是 v1 的规范语义。每个 Event 使用其 `T0` 下 effective `ak.realm.history_visibility` 值；Circle（[`../models/circle.md`](../models/circle.md)）scope 使用父 Realm **floor** 与 Circle visibility 的更严格者。这里的 **floor** 指父 Realm 在该 `T0` 下 effective `history_visibility` 所确立的**最严格下界**——按本表从宽到严的序 `world_readable > shared > invited > joined > restricted`，Circle effective visibility MUST NOT 宽于该下界；Circle 只能取等于或更严格的值，绝不能借自身设置放宽父 Realm 的历史可见性。

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.9",
+  "version": "2026-08-03.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T20:30:00Z",
+  "generated_at": "2026-08-03T02:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -125,6 +125,8 @@
         "ak.peer.events.query.frontier",
         "ak.peer.invites.command.submit",
         "ak.peer.contacts.command.submit",
+        "ak.peer.agent.participation.query.prepare_scope_evidence",
+        "ak.peer.agent.participation.command.replace",
         "ak.peer.keys.keypackages.command.claim",
         "ak.peer.keys.keypackages.query.claim",
         "ak.peer.snapshot.query.manifest_head",
@@ -159,6 +161,7 @@
       "operations": [
         "ak.self.contact.command.request",
         "ak.self.contact.command.respond",
+        "ak.self.contact.command.scope_update",
         "ak.self.contact.query.list",
         "ak.self.contact.command.tombstone",
         "ak.self.invite_receive_policy.resource.get",
@@ -420,6 +423,7 @@
         "ak.gate.account.command.register",
         "ak.gate.account.command.pair_device",
         "ak.gate.account.command.enroll_device",
+        "ak.gate.account.command.cancel_device_bootstrap",
         "ak.gate.account.command.authorize_recovery_device",
         "ak.gate.account.command.issue_session_grant",
         "ak.gate.account.command.refresh_session_grant",
@@ -448,6 +452,7 @@
         "ak.self.agent.sidecar.command.ensure",
         "ak.self.agent.sidecar.resource.get",
         "ak.self.agent.sidecar.query.list",
+        "ak.self.agent.participation.query.prepare_scope_evidence",
         "ak.self.agent.participation.resource.replace",
         "ak.self.agent.participation.resource.get"
       ],
@@ -545,6 +550,23 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "returns_signed_event_material_without_committing_it"
+      }
+    },
+    {
+      "operation_id": "ak.gate.account.command.cancel_device_bootstrap",
+      "http": "POST /_arkret/gate/account/device-bootstrap/cancel",
+      "grpc": "GateAccount/CancelDeviceBootstrap",
+      "mq": "gate.account.command.cancel_device_bootstrap",
+      "notes": "Cancels exactly one pending founding or sibling bootstrap transaction under its closed device_bootstrap bearer plus DPoP. The durable ledger key is (transaction_id,idempotency_key); byte-identical retries return the first closed outcome, different bytes conflict, explicit accepted cancellation alone yields cancelled, the independent transaction deadline alone yields expired, and every other failure remains pending/retryable. This operation never mints a replacement Event or standard credential.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/cancel_device_bootstrap_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/cancel_device_bootstrap_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "service_local_bootstrap_transaction_terminal_or_replay_only"
       }
     },
     {
@@ -882,20 +904,18 @@
       "http": "POST /_arkret/self/agent-sidecars:ensure",
       "grpc": "SelfAgent/SidecarEnsure",
       "mq": "self.agent.sidecar.command.ensure",
+      "notes": "First ensure uses a private reservation and staged atomic admission of exactly [controller-signed ak.sidecar.create, controller-signed ak.sidecar.context.attach]. Create alone projects the Sidecar, backing Circle and controller membership; attach alone projects the private Strand and Relation and must reference create with EventRef role after. Existing Sidecars admit only a new attach. The parent-Realm bootstrap exception is scoped only to create.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
       "retry_safe": true,
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_request_body",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_request",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
           "ak.sidecar.create",
-          "ak.circle.create",
-          "ak.circle.member.state",
-          "ak.strand.create",
-          "ak.relation.create"
+          "ak.sidecar.context.attach"
         ]
       }
     },
@@ -920,6 +940,21 @@
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_list"
     },
     {
+      "operation_id": "ak.self.agent.participation.query.prepare_scope_evidence",
+      "http": "POST /_arkret/self/agents/{agent_id}/participation/scope-evidence:prepare",
+      "grpc": "SelfAgent/ParticipationScopeEvidencePrepare",
+      "mq": "self.agent.participation.query.prepare_scope_evidence",
+      "notes": "Canonical bearer+DPoP client entry for a target-verifier-bound private requested-scope challenge. Local targets reserve and sign the challenge directly; remote targets are transparently relayed without rewriting. The reservation is private durable state only and creates no Event, cell or participation slot.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_prepare_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_challenge",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "private_target_challenge_reservation_only"
+      }
+    },
+    {
       "operation_id": "ak.self.agent.participation.resource.replace",
       "http": "PUT /_arkret/self/agents/{agent_id}/participation",
       "grpc": "SelfAgent/ParticipationReplace",
@@ -928,8 +963,8 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
       "retry_safe": true,
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_replace_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replacement_batch",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_receipt",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
@@ -1296,22 +1331,17 @@
       "http": "POST /_arkret/self/contacts/request",
       "grpc": "SelfContact/Request",
       "mq": "self.contact.command.request",
-      "notes": "Writes requester-side ak.contact.requested fact and requester-side consent grants for requested scopes; MUST NOT write target consent or accepted fact.",
+      "notes": "Two-phase holder-local acceptance of one holder-signed ak.contact.requested fact. The accepted source receipt, peer closed XOR, full directional scope set and issuer-local slot lineage are durable replay inputs; no Private Consent Event is written or consulted.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "none",
-      "retry_safe": false,
-      "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.self.contact.query.list"
-      },
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
-          "ak.contact.requested",
-          "ak.consent.grant"
+          "ak.contact.requested"
         ]
       }
     },
@@ -1320,23 +1350,18 @@
       "http": "POST /_arkret/self/contacts/respond",
       "grpc": "SelfContact/Respond",
       "mq": "self.contact.command.respond",
-      "notes": "Target-side accept/reject of a contact request. Accept writes target-controlled consent grants; reject writes no consent.",
+      "notes": "Two-phase holder-local normal response or reject. The service accepts only the holder-signed Event bytes reserved for the current request slot, signs the matching normal-response or reject acceptance receipt, and never writes Private Consent. Glare is mechanically derived from two causally concurrent request receipts and forbids this operation.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.self.contact.query.list"
-      },
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_outcome",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
           "ak.contact.accepted",
-          "ak.contact.rejected",
-          "ak.consent.grant"
+          "ak.contact.rejected"
         ]
       }
     },
@@ -1345,32 +1370,46 @@
       "http": "GET /_arkret/self/contacts",
       "grpc": "SelfContact/List",
       "mq": "self.contact.query.list",
-      "notes": "Holder contact projection from contact facts plus consent-derived directional scopes; account-data contact notes are local decoration only.",
+      "notes": "Holder contact projection from source-signed request/response receipts, issuer-local Contact lineages and current signed head leases. Private Consent and account-data notes are never Contact authority.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list"
+    },
+    {
+      "operation_id": "ak.self.contact.command.scope_update",
+      "http": "POST /_arkret/self/contacts/scope-update",
+      "grpc": "SelfContact/ScopeUpdate",
+      "mq": "self.contact.command.scope_update",
+      "notes": "Two-phase prepare/commit carrier for one holder-signed ak.contact.scope.update full-set directional replacement. Genesis uses version 1 with no predecessor; successors are exactly current+1 and reference the exact issuer-local current head. Expansion and narrowing are both explicit signed replacements.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_scope_update_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+      "durable_effect": {
+        "kind": "event_log",
+        "event_kinds": [
+          "ak.contact.scope.update"
+        ]
+      }
     },
     {
       "operation_id": "ak.self.contact.command.tombstone",
       "http": "POST /_arkret/self/contacts/tombstone",
       "grpc": "SelfContact/Tombstone",
       "mq": "self.contact.command.tombstone",
-      "notes": "Holder-side contact tombstone. Default revocation is limited to contact-managed active consent dots.",
+      "notes": "Holder-signed issuer-local lineage terminal. It consumes the Contact basis and generation; it does not carry scope replacement and does not write or revoke Private Consent.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.self.contact.query.list"
-      },
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_tombstone_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
-          "ak.contact.tombstoned",
-          "ak.consent.revoke"
+          "ak.contact.tombstoned"
         ]
       }
     },
@@ -1473,8 +1512,8 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "the_service_persists_only_the_coordinator_operation_record_and_returns_participant_authoring_material_or_an_existing_projection"
@@ -2134,16 +2173,48 @@
       "http": "POST /_arkret/peer/contacts",
       "grpc": "PeerContacts/Submit",
       "mq": "peer.contacts.command.submit",
-      "notes": "Private Principal Server to Principal Server contact and Direct Conversation binding fact delivery. Requires service-to-service authentication, Destination-Service-ID equal to contact_address.recipient_service_id, and an original signed ak.contact.* or ak.direct_conversation.bound envelope that the recipient projects without re-signing.",
+      "notes": "Unique closed XOR delivery carrier for original holder-signed Contact facts plus their exact source acceptance receipts and refreshable current proof, or an original signed Direct Conversation binding. Reject, request, normal response, scope replacement and tombstone branches use byte-identical durable replay; the receiver never re-signs or treats tentative/stale evidence as authority.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
-      "request_schema_ref": "schemas/peer-contact-delivery-request.schema.json",
-      "response_schema_ref": "schemas/peer-contact-delivery-request.schema.json#/$defs/peer_contact_delivery_outcome",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "delivers_existing_signed_fact_without_committing_a_local_event"
+      }
+    },
+    {
+      "operation_id": "ak.peer.agent.participation.query.prepare_scope_evidence",
+      "http": "POST /_arkret/peer/agents/participation/scope-evidence:prepare",
+      "grpc": "PeerAgent/ParticipationScopeEvidencePrepare",
+      "mq": "peer.agent.participation.query.prepare_scope_evidence",
+      "notes": "Peer-authenticated transparent relay to the target Realm authority for one private requested-scope challenge. It forwards the original closed request, cannot decrypt disclosure material, and returns the target-signed outcome unchanged.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_prepare_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_challenge",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "transparent_private_challenge_relay"
+      }
+    },
+    {
+      "operation_id": "ak.peer.agent.participation.command.replace",
+      "http": "POST /_arkret/peer/agents/participation:replace",
+      "grpc": "PeerAgent/ParticipationReplace",
+      "mq": "peer.agent.participation.command.replace",
+      "notes": "Peer-authenticated byte-identical relay of the original controller-signed ParticipationReplacementBatch to its target Realm authority. The relay cannot decrypt, re-sign, rewrite or split the batch and returns the destination-signed accepted receipt unchanged.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_relay_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_receipt",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "transparent_signed_batch_relay"
       }
     },
     {

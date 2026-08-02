@@ -617,10 +617,10 @@ SHOULD 支持：
 `ak.profile.personal_agent_provisioning.v1` 注册 controller-面的 personal native agent management surface,扩展 `ak.profile.agent_runtime.v1`。
 
 MUST 支持:
-- `POST /_arkret/self/agents` (`ak.self.agent.command.provision`) 的 prepare 无副作用分配 managed Agent DID / Agent PCR binding，commit 只接受唯一 controller-signed `ak.agent.provision` Event并在一个 reducer transaction 原子派生 provision/accountability/selector projection；Agent DID accepted inception history 的唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 只固定域分离 `requested_scope_digest`，完整 `requested_scope` 保持 controller-private。不得接受旧两 Event 形态或物化 Realm grant；返回 `pcr_recovery.status=pending` + pairing request后，controller E2EE client 本地生成并提交 Agent PCR MLS/genesis/Profile state，服务端不得生成 MLS private state
+- `POST /_arkret/self/agents` (`ak.self.agent.command.provision`) 的 prepare 必须创建 private durable reservation，保存 caller-generated `operation_id`、`idempotency_key`、canonical request digest、分配的 Agent/PCR/delegation/pairing坐标、expiry与 `state=reserved`，并返回 service-signed opaque `allocation_handle`。相同 operation/key/body返回同 reservation/handle，不同 body conflict；过期只删除未 commit reservation。prepare 不发布 canonical Event/cell。commit携原 operation/handle及恰好一个 controller-signed `ak.agent.provision` EventInitialSubmission；只接受 byte-identical reserved bytes，并在一个 reducer transaction 原子派生三个**分别闭合且最小**的 provision/accountability/selector cells，不得把完整 payload复制三份。Agent DID accepted inception history 的唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 只固定域分离 `requested_scope_digest`，完整 `requested_scope`与 required五位 `participation_ceiling`保持 controller-private并共同纳入 immutable commitment。不得接受旧多 Event形态或物化 Realm grant；返回 `pcr_recovery.status=pending` + pairing request后，controller E2EE client 本地生成并提交 Agent PCR MLS/genesis/Profile state，服务端不得生成 MLS private state
 - controller-owned `backup_kind=mls_history` active series 按 [`../identity/key-management.md` §7.5.6](../identity/key-management.md) 备份 Agent PCR state：managed binding 进入 public index、plaintext keybag 与 AAD，使用 controller `recovery_public_key` / current recovery policy；Agent runtime private key 永不备份，也不为 Agent 生成独立 24 词
 - `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key`) 必须先验证 `pcr_recovery.status=ready`，再校验 `verification_method` 与 `agent_id` 一致性并写入 `ak.agent.key.authorize`；agent 已有 active key 时(runtime replacement re-pairing)以单一 controller-signed authorize Event 的精确 `supersedes[]` 原子替换全部既有 active authorization
-- Agent 通用 list/get projection 恰好暴露 lifecycle、readiness、presence 三轴；`key_state` 只承载 key/handle/authorization/PCR recovery material，不得重复 `status` 或 `runtime_state`。pairing poll 的 closed `runtime_state` 仅是 operation-local diagnostic，不能被 SDK 提升成通用产品状态
+- Agent 通用 list/get projection恰好暴露 lifecycle、readiness、presence三轴；generic readiness只含主体级 durable blockers，例如 `runtime_key_missing`、`pairing_open`、`recovery_stale`，不得出现 `session_missing`、KP库存、target Realm grant/membership或MLS blocker。`key_state`只承载 key/handle/authorization/PCR recovery material，不得重复产品状态。pairing poll的 closed `runtime_state`仅返回该 handle的 pairing mode、expiry和当前步骤所需refs，不披露其它 Agent/handle/requested scope/grant/PCR history/session。SDK必须区分 controller、pairing-handle runtime、authorized-key/no-session runtime、authenticated runtime四种角色；authorized-key/no-session runtime凭 active authorization与PoP申请 session，不依赖 controller在线或 generic list/get
 - Pairing expiry 关闭并省略 open-handle fields、重算 readiness；尚未首次配对的 Agent 保持 `not_ready` + `runtime_key_missing`，replacement handle 过期则清除 `pairing_open` 且不改变既有 key/grant/lifecycle。上述两者均不得创建、撤销或改写 Realm grant
 - `POST /_arkret/self/agents/{agent_id}/renew-pairing` (`ak.self.agent.command.renew_pairing`) 对 bootstrap 状态重开 pairing，或对已持有 active authorized key 且 lifecycle 为 `active | paused` 的 agent 执行 runtime replacement；`active` 无需先 pause，怀疑旧 key 失陷时 SHOULD 先 pause(见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))
 - Agent management surface 中 list/get 是 read-only；renew-pairing 只轮换 profile-local pairing artifact，不写 durable Event；pause/resume/deactivate 各写一个 lifecycle Event，其中 deactivate 的 accepted terminal parent gate 直接使全部 child authority ineffective，不接受客户端 revoke bundle；grant attach/detach 分别写 Realm-scoped capability grant/revoke Event
@@ -630,11 +630,13 @@ MUST 支持:
 - Draft approval 状态机:`proposed → approved → published`,approval nonce atomic consume
 - Event Envelope `executed_by` / `authorization_ref` / reducer-stamped `actor_kind` projection
 - Pause/Resume/Deactivate 语义(见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
+- `display_name`与`avatar_blob_ref`不得进入 provision Event或三个 projection；provision完成后只可用既有 `ak.profile.update` 独立 Event，固定 `actor_id=agent_id`、`executed_by=controller_id`与 accepted controller delegation。该独立 operation失败不得回滚 provision complete
 - Controller deactivate / suspend 时,accountable native agents 的 active sessions revocation 链失效
 - Sidecar exposure 披露：激活新 Agent 前 UI MUST 显式披露其在完成 access/MLS reconciliation 后将获得现有 Sidecar 未来内容访问权（联动 `ak.profile.agent_sidecar.v1`）
 
 MUST NOT:
 - 让 provisioning 接受旧的 accountability / selector 两 Event fan-out、为 `ak.self.agent.command.provision` 另造同名 durable Event，或在唯一 `ak.agent.provision` Event 的原子 projection 外加入 Agent Profile、Agent key authorization、Realm capability grant；服务端也不得代签/合成 provision Event 或暴露部分 projection
+- 在 `accountability_scope` 保留 singleton-array compatibility，或把 UI字段、未知 prepare字段透传进 canonical projection
 - 返回长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token
 - 引入 custom URI scheme(`arkret://` 等)
 - 把 `agent_slug` 当作 grant subject、actor attribution、membership key、delivery key、Directory search key 或 audit attribution source
@@ -685,8 +687,8 @@ MUST 支持:
 - `context_ref` polymorphic descriptor（`relation_id` 或 `strand_id` 的 Strand-level identity）；Track/Message coordinate MUST NOT 进入 private Strand reuse key
 - Closed request schema(reject unknown top-level fields)
 - Fixed reuse：Sidecar `(realm_id, controller_id)`；private Strand `(sidecar_id, normalized_context_ref)`
-- `ak.sidecar.create`、backing Circle、初始 access、private Strand 与 Relation 原子建立；caller 不提供 Circle shape/ID
-- `eligible_sidecar_agent(realm, controller, agent)` 派生 desired access；backing Circle membership/MLS state 只由 reducer/service 主动 fan-out
+- 首次ensure以private reservation固定全部IDs；controller-signed minimal `ak.sidecar.create`使用parent-Realm bootstrap exception且只投影Sidecar/backing Circle/controller初始membership；独立controller-signed `ak.sidecar.context.attach`只投影private Strand/Relation并以`EventRef{role="after"}`引用create。首次staged atomic admission一次提交`[create,context.attach]`，任一失败全回滚；existing Sidecar只attach。caller不提供Circle shape/ID
+- 唯一access authority Event为controller-signed versioned full-set `ak.sidecar.access.replace`；desired access是`{controller} ∪ (current selection ∩ current eligible owned Agents)`，effective access再与policy/lifecycle/participation/backing membership/MLS求交。`control_frontier`只含create、current access selection和current正/负backing membership refs，context attach排除；MLS security digest独立按标准Seal+leaf/proof重算
 - desired access、effective access、backing membership、MLS/device readiness 分离投影；发送只在安全交集 ready 后开放
 - `addressed_agent_ids[]` per-ensure ephemeral(服务端不持久化);MUST NOT 包含 controller 自身
 - 历史 backfill 经由 application-level resend（显式 plaintext 披露）；不得使用 MLS exporter secret / past commit secret
@@ -714,18 +716,66 @@ MUST NOT:
 `ak.profile.agent_participation_policy.v1` 注册 native personal agent 的分层 participation ceiling 与 controller selection 面。它继承 `ak.profile.personal_agent_provisioning.v1`。
 
 MUST 支持:
-- `ak.self.agent.participation.resource.replace`
-- `ak.self.agent.participation.resource.get`
-- deployment ⊇ Realm ⊇ Circle ⊇ Strand 的 tighten-only ceiling 校验
-- effective participation = provision-derived global ceiling ∩ deployment/Realm/Circle/Strand governance ceiling ∩ controller selection；`reply` 要求 provision actions 同时含 `ak.message.create` 与 `ak.reaction.add`，`accept_third_party_mention` 要求 `ak.event.read`，`act_on_behalf` 要求 `ak.message.create` 加适用的 controller approval / accountability constraints
-- provision-derived participation ceiling MUST 从完整 `requested_scope` 现场派生，不得由调用方直接提供预计算三位；缺 `ak.reaction.add` 时 `reply=false`，缺适用于 `ak.message.create` 的 `claim_based{constraint_subkind=approval|accountability}` mandatory constraint 时 `act_on_behalf=false`
+- `ak.self.agent.participation.resource.replace`、`ak.self.agent.participation.resource.get`与远端唯一 relay
+  `ak.peer.agent.participation.command.replace`。self operation只是 client入口：target Realm本地时直接交给该 Realm
+  authority；远端时 relay必须透明传递原 controller-signed batch bytes与 evidence，不得重签、改写、拆批或解密，
+  并原样返回 destination-signed receipt
+- `ParticipationReplacementBatch`的 closed body固定为
+  `{target_scope,selection,scope_evidence,expected_version,basis,grant_events[],revoke_events[],idempotency_key}`。
+  `target_scope`是 `realm{realm_id}|circle{realm_id,circle_id}|strand{realm_id,strand_id}` closed XOR；slot固定为
+  `sha256(JCS({agent_id,target_scope}))`，expected version执行CAS。目标 Realm authority是唯一提交点，验证batch set-exact
+  撤销不再需要的grants、逐字保留未变grants、创建新grants，并通过普通Event admission原子接受完整unit与
+  current slot/receipt，或零写入。服务不得代签/合成Event
+- public provision Event/cell/DID只含 `requested_scope_digest`。controller-private disclosure同时包含完整
+  `requested_scope`与required closed五位 `participation_ceiling`，并共同纳入immutable commitment。五位shape恰为
+  `reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf`，provision ceiling、
+  target-local deployment safety ceiling与Realm/Circle/Strand signed policy ceiling复用同一shape并逐位AND收紧。
+  不得保留旧 `reply`三位shape、缺省继承或bit重命名
+- 产品“全局默认”只可作为controller-private SDK/UI authoring preference，不进入admission、session overlay或
+  service receipt。不得注册participation `deployment` selection分支或GlobalSelectionReceipt。Agent
+  pause/deactivate是全局紧急停机；独立 authority-owned target deployment ceiling仍作为current fail-closed
+  safety ceiling保留
+- `scope_evidence`为closed XOR：
+  `inline_encrypted{challenge,suite_id,recipient_key_ref,enc,ciphertext,plaintext_digest}`或
+  `accepted_target_receipt{receipt_id,disclosure_digest,commitment,agent_id,target_scope,target_service_id,verifier_id,
+  audience,issued_at,expires_at}`。禁止同时出现、全部缺失、裸digest/ref或nonce替代分支。receipt只能来自一次
+  成功inline replace，且仅在exact agent/scope/commitment/target/verifier/audience匹配、未过期时复用
+- canonical evidence入口为 `ak.self.agent.participation.query.prepare_scope_evidence`；target远端时透明调用
+  `ak.peer.agent.participation.query.prepare_scope_evidence`。输入固定
+  `base_batch_digest+agent_id+exact target_scope+target_service_id+verifier_id+audience`，target authority签single-use
+  challenge/expiry。两surface完整登记HTTP/gRPC/MQ、bearer+DPoP或peer Message Signature、closed
+  request/response/error/expiry/exact replay/conflict。prepare不写canonical Event/cell/slot，但必须持久private
+  challenge row `{base_batch_digest,caller,agent,target_scope,target,verifier,audience,expiry,
+  state=issued|consumed,first_outcome_digest}`
+- `base_batch_digest=SHA-256(RFC8785/JCS(batch移除scope_evidence与signature))`。target challenge签名固定覆盖
+  `{domain:"ak.participation.scope-evidence-challenge.v1",challenge_id,base_batch_digest,caller_id,agent_id,
+  target_scope,target_service_id,verifier_id,audience,issued_at,expires_at}`的RFC8785/JCS UTF-8 bytes。evidence binding
+  bytes唯一为closed `{domain:"ak.participation.evidence-binding.v1",batch_digest,evidence_kind,binding_id}`的
+  RFC8785/JCS UTF-8 bytes，binding ID逐字为challenge或receipt ID，digest为其SHA-256。inline HPKE AAD恰为
+  binding bytes；info恰为closed
+  `{domain:"ak.participation.scope-evidence.hpke.v1",suite_id,recipient_key_ref,target_service_id,
+  agent_id,target_scope_digest}`的RFC8785/JCS UTF-8 bytes。不得用字符串拼接、可选算法或自引用摘要
+- target-local deployment ceiling由accepted target service DID/key签发。ordinary successor只引用一个current
+  predecessor并严格version+1；同version每次CAS只接纳一个head，fork/unknown/stale fail closed。fork completeness
+  proof先定义不含自身root/digest的closed core，覆盖slot、issuer/key binding、version/predecessor、全部五位
+  ceiling、policy/basis、时效、head digest及covered-through边界，再从exact core计算root。
+  `DeploymentCeilingForkRepair`引用exact core/root、排序后的完整fork heads和successor；同authority单写CAS
+  接纳后只留唯一current head，covered旧head晚到仅quarantine。root不得覆盖含自身root的tuple
 - 第三方 mention gate：`accept_third_party_mention=false` 时不得向该 agent 派生 mention notification、inbox row、push wakeup 或 agent subscribe 投影；gate 在 message event fanout 时一次性求值，participation 之后翻转不追溯补发或撤销既有派生（[strand-and-message.md §9.4.5](../models/strand-and-message.md)）
-- `scope_details.participation[]` session overlay，形态与 `agent-operations.schema.json#/$defs/agent_participation_entry` 对齐
+- destination receipt绑定batch digest、scope-evidence digest、current deployment ceiling digest/version与accepted
+  version。mention fanout只有fresh accepted batch receipt并重算current ceilings后才能开启；缺失/旧version/stale
+  deny。current admission每次重新求交immutable provision、current policy、active grant、membership及
+  Agent/controller lifecycle
+- `reply_message`只映射`ak.message.create`，reaction add/remove分别映射`ak.reaction.add/remove`。
+  reply-as-Agent固定`actor_id=agent_id`；act-on-behalf固定`actor_id=controller_id,executed_by=agent_id`并携匹配
+  controller approval/accountability authorization ref，二者不可混用
 
 MUST NOT:
 - 允许 Strand / Circle ceiling 放宽父级 ceiling
-- 把 controller selection 当作安全边界；服务端仍必须通过 capability、dispatcher 和 reducer 强制执行
+- 把 controller-private UI projection当作authority或跨服务事务参与者；它只能从accepted batch receipt幂等重建
 - 在 effective ceiling unknown 或 stale 时默认允许 agent participation
+- 把private requested-scope disclosure传播给relay或非target verifier，或用commitment digest代替target-bound
+  encrypted disclosure/accepted receipt
 
 ## 19. Applet Service Family
 

@@ -205,7 +205,15 @@ UTF8("ak.agent-signing-key-binding-v1\n")
 JCS(binding object with controller_proof.jws omitted)
 ```
 
-`controller_proof` MUST 按 `issued_at` 时点的 controller DID/delegation 与 device authorization 验证。`agent_key_id` MUST 等于对应 authorize payload 的 `key_id`；`verification_method` 去除 fragment/query 后 MUST 与 `agent_id` byte-identical；raw key必须解码为恰好32 bytes；`public_key_digest` 必须由 SDK 唯一 `agent_runtime_public_key_digest` helper重算。对应 `ak.agent.key.authorize.payload` MUST 同时携带 required `public_key_digest` 与 `signing_key_binding_digest`；后者是完整 binding 的 JCS SHA-256。Event id、key id、method、controller、expiry 或任一 digest 不一致必须拒绝，service不得替换 disclosure 或代 controller补签。
+`controller_proof` MUST 按 `issued_at` 时点的 controller DID/delegation 与 device authorization 验证。binding 的
+`issued_at`、`expires_at`、agent/key/method/controller必须与 authorize payload逐字相等。`agent_key_id` MUST 等于
+authorize payload 的 `key_id`；`verification_method` 去除 fragment/query 后 MUST 与 `agent_id` byte-identical；
+raw key必须解码为恰好32 bytes。`public_key_digest`只对这32-byte raw Ed25519 key调用 SDK唯一
+`agent_runtime_public_key_digest` helper计算，不得hash multibase/hex文本。`signing_key_binding_digest`只对**包含
+完整 controller proof 的整个 binding object**做RFC8785/JCS后SHA-256；controller proof签名transcript则使用上文
+独立domain tag并省略`controller_proof.jws`。两种digest与proof transcript是三个互斥domain，不得交换、二次
+hash或形成自引用。对应authorize payload必须分别承诺两digest；Event/key/method/controller/time/expiry或任一
+digest不一致必须拒绝，service不得替换disclosure或代controller补签。
 
 `ak.component.agent.key.v1` 的 registered reducer projection 是 portable state witness 的唯一状态来源，不能只把 key Event 写入历史。cell subject MUST 使用 SDK `composite_subject([agent_id, key_id])`，不得用字符串拼接或 diagnostic subject。每个 `ak.agent.key.authorize` 的 reducer MUST 先对 `payload.supersedes[]` 逐项在对应旧 key cell 投影 `remove(tag=authorized_event_ref 对应的 observed canonical Event dot)`，再在当前 key cell 投影 `add(tag=canonical_event_dot(event_id, write_index), value=完整 authorize payload)`；authorization 元素的稳定 tag 是 [`event-and-patch.md` §2.4.2](../models/event-and-patch.md) 定义的 `<event_id>:<write_index>`，绝不是裸 `event_id`。`ak.agent.key.revoke` MUST 在 `seal_basis` 观察到的对应 key cell 中移除全部 active authorize dot，并加入 `add(tag=canonical_event_dot(event_id, write_index), value=完整 revoke payload)` 的 transition marker；marker 只保留可见证的撤销边界，不是 active authorization。Principal Server MUST 在接受前从 `kind + payload` 重建并逐项校验这些 canonical writes；write 缺失、多余、cell/tag/value/顺序不一致均须 `reducer_projection_failed`。这样 authorize、same-key re-authorization、replacement supersede 与 explicit revoke 都能从签名 Seal 的 resolved cell 独立证明，不依赖服务端私有投影。
 
@@ -215,7 +223,15 @@ JCS(binding object with controller_proof.jws omitted)
 
 当 `authorization.status` 为 `revoked` 或 `superseded` 时，evidence MUST 同时携带 `transition_witness`；`authorization.valid_until_frontier`、`authorization.transition_event_id` 与该 witness 的 `accepted_frontier`、`transition_event_id` MUST byte-identical。`transition_witness.cell_ref` MUST 由 `(agent_id, transition_key_id)` 派生，其完整 `cell_value` MUST 包含该 transition Event；receiver MUST 对它执行与起始 `state_witness` 相同的 signed Seal、leaf digest、index/count 与 Merkle inclusion 验证。supersede 的 transition key可以是 replacement authorize 的新 key，因此不得假设 transition cell 与旧 authorization cell相同。缺少第二 witness 时，历史有效区间只是来源服务的声明，不得用于 Verified。
 
-当 key 因 Agent lifecycle=`deactivated` 而派生为 ineffective 时，不伪造 `ak.agent.key.revoke` transition。portable evidence 改携带覆盖 `ak.component.agent.status.v1=deactivated` 的 `parent_lifecycle_witness`；receiver 验证该 witness 后，把其 accepted frontier 作为全部 subordinate authorization 的统一 `valid_until_frontier`。显式 revoke/supersede 仍使用上一段逐 key `transition_witness`。两种 witness 是 closed union，缺失、混用或 lifecycle 非 terminal 均 fail closed。
+当 key 因 Agent lifecycle=`deactivated` 或 controller/account terminal而派生为ineffective时，不伪造
+`ak.agent.key.revoke` transition。`parent_lifecycle_witness`必须是closed typed union，分别承载Agent terminal与
+controller/account terminal witness；两个parent gate都可能同时出现，并与逐key `transition_witness`按closed
+组合规则验证。receiver把最早有效terminal frontier作为subordinate authorization的`valid_until_frontier`。
+current admission必须同时要求key、Agent lifecycle与controller/account lifecycle current active且fresh；
+pause/deactivate/revoke/supersede/expire均拒绝新操作。event-time historical verification只在Event admitted
+frontier验证当时三层均有效，后来terminal只界定valid-until，不追溯抹除历史签名。historical evidence不得用于
+新admission，current evidence也不得因后来状态改变被改写为“历史从未有效”。缺失、未知type、非法混用或
+lifecycle非terminal均fail closed。
 
 `freshness_attestation.source_proof` MUST 是来源 service DID 对固定 transcript `UTF8("ak.agent-evidence-freshness-v1\n") + JCS(freshness_attestation without source_proof.jws)` 的 Ed25519 detached JWS，proof method controller MUST 等于 `source_service_id`。这样同一 attestation 可在 sync、backfill 与 federation bundle 中独立复验；不得把 RFC 9421 HTTP `Signature` header 文本嵌入被该 header 覆盖的响应 body 形成循环摘要。直接 evidence query 与 federation transport MUST 另外用 RFC 9421 HTTP Message Signature 覆盖完整 response/request content digest、operation id及双方 service/session binding。
 
@@ -225,7 +241,11 @@ authorization准入按 Event admission receipt固定的accepted frontier判断�
 - **Sidecar exposure 披露**：pairing approval UI 上，若该 controller 在新 agent 将要 active 的任一 Realm 中已存在独立 Agent Sidecar 对象，实现 MUST 显式披露“该 agent 激活并完成 access/MLS reconciliation 后，将获得这些 Realm 中现有私人 AI 工作区未来内容的访问权”（见 [`../models/sidecar.md` §4](../models/sidecar.md)）。
 - **Lifecycle**: ak.self.agent.command.pause / resume / deactivate 写入唯一 lifecycle 轴。pause/resume/deactivate 都是写入 ak.component.agent.status.v1 的 Control Move，authoring basis 只由 envelope seal_basis 表达。Pause 保留 durable state 但拒绝新 session；Auth Server MUST 在 ≤60 秒的独立 freshness window 内对已签 session fail closed。Deactivate 是 terminal，只提交一个 controller-authorized lifecycle Event；accepted 后 lifecycle=active 成为所有 runtime key、session、open pairing handle、capability grant、KeyPackage、presence 与未来 Event submission 的不可绕过 AND gate。历史 child Event 保留审计，显式 ak.agent.key.revoke / ak.capability.revoke 仅用于 parent 非 terminal 时的定点撤销。服务可异步 cleanup，但不得以 cleanup 成败阻塞 deactivated。所有 open pairing handle 永久不可解析；replacement pairing 与 terminal status 并发时，以 accepted status frontier 为写屏障，terminal 后 pair/renew 均拒绝。portable signer evidence 可用 lifecycle state witness 证明“因 parent terminal 而 ineffective”，无需伪造逐 key transition Event。
 
-Agent projection MUST 分离三轴：`lifecycle=active|paused|deactivated` 是 durable controller intent；`readiness=ready|not_ready` 携带 closed blockers（`runtime_key_missing|pairing_open|recovery_stale|session_missing|keypackage_empty|reply_capability_missing|mls_rejoin_required`）；`presence=online|offline|unknown` 只表示短期可达性。presence 响应必须携带 `expires_at` 与 `refresh_after`，客户端按声明加 jitter 刷新；core 不规定统一“五分钟”定时器。offline 不等于 deactivated、unpaired 或 conversation 不存在。
+Agent projection MUST 分离三轴：`lifecycle=active|paused|deactivated` 是durable controller intent；generic
+`readiness=ready|not_ready`的closed blockers只含主体级durable `runtime_key_missing|pairing_open|recovery_stale`，
+不得含session、KeyPackage、target grant/membership/reply或MLS blocker；`presence=online|offline|unknown`只表示
+短期可达性。target-specific blockers只能出现在对应operation/SDK local plan。presence响应必须携
+`expires_at`与`refresh_after`并由客户端jitter刷新；offline不等于deactivated、unpaired或conversation不存在。
 - **Resume 时 Sidecar exposure 重新披露（normative）**：`ak.self.agent.command.resume` 提交前，实现 MUST 重新执行上一条流程，列出 agent 在 pause 期间因 controller 新建/ensure 或新加入 Realm 而新增的 Sidecar desired-access exposure；若集合非空，resume MUST 在 controller 显式再次同意之前拒绝执行（不得 silent resume），并把确认作为 audit 事件留底。仅当 pause 期间无新增 Sidecar exposure 时可不重复披露。恢复 active 只改变 desired access；实际读取仍须等待 backing scope/MLS reconciliation 完成。
 
 #### 3.6.2 Runtime request binding、审批竞态与账号通知（normative）
@@ -342,6 +362,48 @@ Native Personal Agent 不建立独立的面向用户 Recovery Key，也不得要
 ### 5.0 First-Device Delegated Bootstrap
 
 §5.1 假设已有授权者。principal 首次激活没有已授权 peer，但该死锁不要求把 DID root 与首台 device key 合并：entry 0 的 controller proof 已覆盖 DID Document，文档可以用窄关系把设备入册权委派给独立 enrollment authority。验证者据此验证“这个 DID 授权该权威入册设备”；绑定来自被 root 签名的 delegation，不来自两把 key 相同。
+
+#### 5.0.0 `device_bootstrap` credential 与 transaction（normative）
+
+首设备与 sibling pairing 共用一个 closed credential class `device_bootstrap`，但其 `mode` 是互斥分支，
+allowed operations 不得合并：
+
+- `founding` 恰好允许 `ak.gate.account.command.enroll_device`、
+  `ak.gate.account.command.cancel_device_bootstrap`、`ak.self.events.command.submit`、
+  `ak.self.events.query.resolve`。submit 只可重放同 transaction 的原 `founding_batch_digest`、原 Event IDs 与
+  byte-identical Event bytes；resolve 只可查询这些原 Event IDs。不得增加通用 account/bootstrap status、
+  Realm write、history、backup、普通 sync或 KeyPackage claim。
+- `sibling_pairing` 恰好允许 `ak.gate.account.command.cancel_device_bootstrap`、
+  `ak.self.device_messages.command.send`、`ak.self.device_messages.query.list`、
+  `ak.self.device_messages.command.ack`。三项 device-message 操作必须绑定同一 transaction、source/target
+  device与已登记 `ak.key.verification.*` content kind；list按 transaction过滤且不得返回 secret或普通 message。
+  bootstrap sibling不得 enroll。最终 pair只能由 active sibling持 `standard` credential调用
+  `ak.gate.account.command.pair_device`。
+
+credential 两分支都签入 principal、device key digest、transaction ID、holder JKT、closed allowlist与
+`credential_expires_at`，每次请求都执行 DPoP。transaction另有独立
+`bootstrap_transaction_expires_at`，状态仅为 `pending | accepted | cancelled | expired`。bearer过期只令 token
+失效：transaction仍 pending且 current holder/device proof通过时，issuer可为同 transaction、同 canonical request
+digest续发；不得创建新 transaction、改写 request或替换 Event。只有 founding batch accepted，或 standard
+sibling调用 `pair_device` accepted，才可在再次验证 current proof后另签 `standard` credential。
+
+只有显式 accepted cancel进入 `cancelled`，只有 transaction deadline进入 `expired`；其它失败保持
+`pending/retryable`，不得写第四状态或 failed terminal。`cancelled|expired`只能 exact replay，禁止续 bootstrap和
+standard。
+
+`ak.gate.account.command.cancel_device_bootstrap` 的 closed request固定为
+`{transaction_id,mode,canonical_request_digest,idempotency_key}`，并同时要求 bootstrap bearer + DPoP。
+cancel ledger key仅为 `(transaction_id,idempotency_key)`，row分别保存原 bootstrap request digest与
+`cancel_request_digest`；后者固定为删除任何 derived digest字段后的 exact closed request body做 RFC 8785/JCS，
+再对 UTF-8 bytes计算 SHA-256。same key + same full request bytes回放首次 outcome，different bytes返回
+`bootstrap_idempotency_conflict`。response必须是 closed discriminated union；
+`outcome_digest=SHA-256(RFC8785/JCS(response_without_outcome_digest))`。HTTP/gRPC/MQ逐字段等值，transport不得
+把 retryable failure改写成 cancelled/accepted。
+
+`ak.gate.account.command.enroll_device` 以 `(principal_id,device_id,bootstrap transaction)`与 canonical request
+digest保存 durable outcome。相同 key/body永远回放原 `ak.device.authorize` Event bytes、ID与 outcome；不同 body
+conflict。credential/publication authority过期只允许对原 transaction/outcome/Event签发 fresh外层 evidence，
+不得生成“等价”replacement Event。原 Event按当前固定合同不可接受时必须确定性失败。
 
 #### 5.0.1 标准 delegated 路径（v1 core 默认 `did:webvh` principal）
 

@@ -36,21 +36,8 @@
       "$ref": "./string-profiles.schema.json#/$defs/agent_slug"
     },
     "accountability_scope": {
-      "oneOf": [
-        {
-          "const": "agent_operator"
-        },
-        {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "const": "agent_operator"
-          }
-        }
-      ],
-      "description": "Closed singleton scope. Canonical authors emit the string form; receivers normalize the optional singleton-array form only for compatibility with the shared accountability cell subject derivation."
+      "const": "agent_operator",
+      "description": "Canonical closed accountability scope. The former singleton-array compatibility shape is not valid v1 wire."
     },
     "requested_scope_digest": {
       "$ref": "#/$defs/hash"

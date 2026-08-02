@@ -401,25 +401,19 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
       },
       "ingress_receipts": [
         {
-          "receipt_id": "ak:receipt:0196419b-2200-7000-8000-000000000001",
+          "lease_basis": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-          "authorization_lease_id": "ak:authorization_lease:0196419b-2100-7000-8000-000000000001",
+          "qualified_ingress_id": "ingress:alpha.example:primary",
           "received_at": "2026-04-26T00:00:01.000Z",
-          "service_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alpha.example",
-          "authority_set_ref": {
-            "authority_set_id": "ak.authority_set.realm_admission.v1",
-            "authority_set_digest": "sha256:0ba17251dadb67da885d0acd7d978c3a1c0d7f9396d285d697ebc924e9cacc64"
-          },
-          "proofs": [
-            {
-              "kind": "detached_jws",
-              "alg": "EdDSA",
-              "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alpha.example#ingress-1",
-              "payload_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-              "created_at": "2026-04-26T00:00:01.000Z",
-              "jws": "a..b"
-            }
-          ]
+          "ingress_frontier": [
+            "ak:event:0196419b-2000-7000-8000-000000000001"
+          ],
+          "issuer": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alpha.example",
+          "signature": {
+            "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alpha.example#ingress-1",
+            "created_at": "2026-04-26T00:00:01.000Z",
+            "jws": "YWJj"
+          }
         }
       ]
     }

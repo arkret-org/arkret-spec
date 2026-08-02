@@ -10,6 +10,7 @@
     "agent_id",
     "controller_id",
     "requested_scope",
+    "participation_ceiling",
     "requested_scope_digest",
     "verifier_did",
     "audience",
@@ -37,10 +38,14 @@
       "$ref": "./event-payload.schema.json#/$defs/agent_key_scope",
       "description": "Complete immutable Agent ceiling disclosed only to the bound verifier. It does not grant any action or resource."
     },
+    "participation_ceiling": {
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_bits",
+      "description": "Required immutable five-bit participation ceiling. It is private verifier-bound evidence and never a public projection."
+    },
     "requested_scope_digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$",
-      "description": "MUST equal sha256(canonical_json({agent_id, controller_id, kind:'ak.agent.requested_scope_commitment.v1', requested_scope})) and the digest in the accepted-at Agent DID service binding."
+      "description": "MUST equal sha256(RFC8785/JCS({agent_id, controller_id, kind:'ak.agent.requested_scope_commitment.v1', requested_scope, participation_ceiling})) and the digest in the accepted-at Agent DID service binding."
     },
     "verifier_did": {
       "$ref": "./common-ids.schema.json#/$defs/did",

@@ -130,48 +130,7 @@
       "additionalProperties": false
     },
     "ingress_receipt": {
-      "type": "object",
-      "required": [
-        "receipt_id",
-        "event_digest",
-        "authorization_lease_id",
-        "received_at",
-        "service_id",
-        "authority_set_ref",
-        "proofs"
-      ],
-      "properties": {
-        "receipt_id": {
-          "type": "string",
-          "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "event_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "authorization_lease_id": {
-          "type": "string",
-          "pattern": "^ak:authorization_lease:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "received_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
-        },
-        "authority_set_ref": {
-          "$ref": "#/$defs/authority_set_ref"
-        },
-        "proofs": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 32,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/proof"
-          }
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/causal_ingress_receipt"
     },
     "hash": {
       "type": "string",

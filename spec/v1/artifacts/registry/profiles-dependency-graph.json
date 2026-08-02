@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-07-30",
+  "version": "2026-08-03",
   "kind": "profiles_dependency_graph",
   "source_role": "generated",
-  "generated_at": "2026-07-30T01:00:00Z",
+  "generated_at": "2026-08-03T02:00:00Z",
   "source_of_truth": false,
   "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
   "generated_by": "tools/lint_artifacts.py#check_profile_dependency_graph",
@@ -43,7 +43,9 @@
     "ak.profile.core_event_store.v1",
     "ak.profile.crdt.text.v1",
     "ak.profile.cross_signing.reset.v1",
+    "ak.profile.direct_conversation_operation_control.v1",
     "ak.profile.direct_conversation_realm.v1",
+    "ak.profile.direct_conversation_repair.v1",
     "ak.profile.directory_service.v1",
     "ak.profile.disappearing.v1",
     "ak.profile.disclosed_audit.e2ee.v1",
@@ -72,6 +74,7 @@
     "ak.profile.matrix_compat.v1",
     "ak.profile.media_service_binding.arkret_native.v1",
     "ak.profile.media_service_binding.livekit.v1",
+    "ak.profile.membership_join_compensation.v1",
     "ak.profile.media_service_binding.v1",
     "ak.profile.mimi_interop.v1",
     "ak.profile.minimal_client.v1",
@@ -142,6 +145,16 @@
     {
       "from": "ak.profile.agent_sidecar.v1",
       "to": "ak.profile.personal_agent_provisioning.v1",
+      "kind": "inherits"
+    },
+    {
+      "from": "ak.profile.direct_conversation_operation_control.v1",
+      "to": "ak.profile.direct_conversation_realm.v1",
+      "kind": "inherits"
+    },
+    {
+      "from": "ak.profile.direct_conversation_repair.v1",
+      "to": "ak.profile.direct_conversation_realm.v1",
       "kind": "inherits"
     },
     {

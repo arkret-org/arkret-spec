@@ -117,9 +117,6 @@
           "$ref": "#/$defs/locator_ref_basis"
         },
         {
-          "$ref": "#/$defs/consent_grant_basis"
-        },
-        {
           "$ref": "#/$defs/shared_realm_basis"
         },
         {
@@ -145,28 +142,6 @@
         },
         "principal_locator": {
           "$ref": "./principal-locator.schema.json"
-        }
-      },
-      "additionalProperties": false
-    },
-    "consent_grant_basis": {
-      "type": "object",
-      "required": [
-        "kind",
-        "consent_grant_ref"
-      ],
-      "properties": {
-        "kind": {
-          "const": "consent_grant"
-        },
-        "consent_grant_ref": {
-          "$ref": "#/$defs/event_ref",
-          "description": "Event ref of a target-issued ak.consent.grant whose scope covers the requested contact action, or any."
-        },
-        "consent_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 256
         }
       },
       "additionalProperties": false

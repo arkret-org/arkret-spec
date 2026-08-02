@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-02.5",
+  "version": "2026-08-03.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -279,7 +279,8 @@
       "operation_specific": [
         "agent_participation_exceeds_ceiling",
         "agent_participation_ceiling_unresolved",
-        "agent_requested_scope_commitment_invalid"
+        "agent_requested_scope_commitment_invalid",
+        "participation_evidence_conflict"
       ],
       "description": "The requested selection is bounded by the immutable provision-derived ceiling and the deployment/Realm/Circle/Strand governance ceiling. A true bit outside either ceiling returns failed_precondition with reason=`agent_participation_exceeds_ceiling`; an unreadable provision or governance layer returns `agent_participation_ceiling_unresolved`."
     },
@@ -477,9 +478,10 @@
       "operation_specific": [
         "failed_precondition",
         "duplicate_conflict",
-        "source_refs_unverifiable"
+        "source_refs_unverifiable",
+        "contact_lineage_conflict"
       ],
-      "description": "Contact request writes requester-side contact fact and requester-side consent grants. The requester cannot write target-side consent or accepted state."
+      "description": "Two-phase holder-local Contact request acceptance stores one signed fact and its source receipt. It writes no Private Consent and conflicts on byte drift, slot reuse or an already-consumed request ref."
     },
     {
       "operation_id": "ak.self.contact.command.respond",
@@ -487,9 +489,10 @@
       "operation_specific": [
         "not_found",
         "failed_precondition",
-        "source_refs_unverifiable"
+        "source_refs_unverifiable",
+        "contact_lineage_conflict"
       ],
-      "description": "Only the request target may accept/reject a contact request. Accept writes target-controlled consent grants; reject writes no consent."
+      "description": "Only the request target may sign a normal response or reject. Glare, late reverse requests, slot conflicts and consumed refs fail closed; neither branch writes Private Consent."
     },
     {
       "operation_id": "ak.self.contact.query.list",
@@ -505,9 +508,10 @@
       "http_alias": "POST /_arkret/self/contacts/tombstone",
       "operation_specific": [
         "failed_precondition",
-        "source_refs_unverifiable"
+        "source_refs_unverifiable",
+        "contact_lineage_conflict"
       ],
-      "description": "Holder-side contact tombstone. Default revocation is limited to contact-managed active consent dots."
+      "description": "A holder-signed tombstone ends one issuer-local Contact generation and cannot be replayed as a scope replacement or Private Consent revocation."
     },
     {
       "operation_id": "ak.self.invite_receive_policy.resource.get",
@@ -897,7 +901,9 @@
         "failed_precondition",
         "duplicate_conflict",
         "source_refs_unverifiable",
-        "stale_peer"
+        "stale_peer",
+        "contact_scope_stale",
+        "contact_lineage_conflict"
       ]
     },
     {
@@ -1823,6 +1829,36 @@
       "http_alias": "GET /_arkret/self/read-cursors",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ak.gate.account.command.cancel_device_bootstrap",
+      "http_alias": "POST /_arkret/gate/account/device-bootstrap/cancel",
+      "operation_specific": ["bootstrap_idempotency_conflict"],
+      "description": "Same transaction/idempotency identity with different closed bytes conflicts; retryable failures remain pending and are not mapped to a fabricated terminal error."
+    },
+    {
+      "operation_id": "ak.self.contact.command.scope_update",
+      "http_alias": "POST /_arkret/self/contacts/scope-update",
+      "operation_specific": ["contact_lineage_conflict", "contact_scope_stale"],
+      "description": "Issuer-local version/predecessor conflicts quarantine; stale current proof cannot authorize an update or subsequent Contact-based create/send."
+    },
+    {
+      "operation_id": "ak.self.agent.participation.query.prepare_scope_evidence",
+      "http_alias": "POST /_arkret/self/agents/{agent_id}/participation/scope-evidence:prepare",
+      "operation_specific": ["participation_evidence_conflict"],
+      "description": "Challenge replay, target/verifier/audience mismatch and request-byte conflicts perform no canonical write."
+    },
+    {
+      "operation_id": "ak.peer.agent.participation.query.prepare_scope_evidence",
+      "http_alias": "POST /_arkret/peer/agents/participation/scope-evidence:prepare",
+      "operation_specific": ["participation_evidence_conflict"],
+      "description": "The target authority's signed challenge conflict semantics pass through the opaque peer relay unchanged."
+    },
+    {
+      "operation_id": "ak.peer.agent.participation.command.replace",
+      "http_alias": "POST /_arkret/peer/agents/participation:replace",
+      "operation_specific": ["participation_evidence_conflict", "agent_participation_exceeds_ceiling", "agent_participation_ceiling_unresolved"],
+      "description": "The target Realm authority rejects invalid private evidence, stale/forked ceilings or out-of-ceiling signed batches; the relay does not translate errors."
     }
   ],
   "cross_links": {

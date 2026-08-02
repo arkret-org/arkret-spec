@@ -1,0 +1,659 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/protocol-journey-wire.schema.json",
+  "title": "Arkret Protocol Journey Wire Contracts",
+  "description": "Closed wire carriers shared by bootstrap, Contact, stable Direct Conversation, participation, membership recovery, history, KeyPackage terminal handling and Sidecar staging.",
+  "oneOf": [
+    { "$ref": "#/$defs/device_bootstrap_credential" },
+    { "$ref": "#/$defs/cancel_device_bootstrap_request" },
+    { "$ref": "#/$defs/cancel_device_bootstrap_outcome" },
+    { "$ref": "#/$defs/standard_holder_binding" },
+    { "$ref": "#/$defs/contact_operation_request" },
+    { "$ref": "#/$defs/contact_operation_outcome" },
+    { "$ref": "#/$defs/peer_contact_submit_request" },
+    { "$ref": "#/$defs/effect_value_core" },
+    { "$ref": "#/$defs/consensus_envelope" },
+    { "$ref": "#/$defs/execution_bundle" },
+    { "$ref": "#/$defs/participation_scope_evidence_prepare_request" },
+    { "$ref": "#/$defs/participation_replacement_batch" },
+    { "$ref": "#/$defs/membership_compensation_executor_delegation" },
+    { "$ref": "#/$defs/mls_join_admission_receipt" },
+    { "$ref": "#/$defs/history_share_contract" },
+    { "$ref": "#/$defs/causal_ingress_receipt" },
+    { "$ref": "#/$defs/keypackage_terminal_command" },
+    { "$ref": "#/$defs/sidecar_ensure_request" },
+    { "$ref": "#/$defs/sidecar_access_replace" },
+    { "$ref": "#/$defs/protocol_execution_attestation" }
+  ],
+  "$defs": {
+    "did": { "type": "string", "pattern": "^did:[a-z0-9]+:[^\\s#?]+$" },
+    "did_url": { "$ref": "./common-ids.schema.json#/$defs/did_url" },
+    "timestamp": { "$ref": "./time.schema.json#/$defs/timestamp" },
+    "hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "event_id": { "type": "string", "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
+    "device_id": { "$ref": "./common-ids.schema.json#/$defs/device_id" },
+    "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
+    "circle_id": { "$ref": "./common-ids.schema.json#/$defs/circle_id" },
+    "strand_id": { "$ref": "./common-ids.schema.json#/$defs/strand_id" },
+    "operation_id": { "type": "string", "pattern": "^ak:operation:[A-Za-z0-9._:-]+$" },
+    "opaque_id": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "base64url": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
+    "signature": {
+      "type": "object",
+      "required": ["verification_method", "created_at", "jws"],
+      "properties": {
+        "verification_method": { "$ref": "./common-ids.schema.json#/$defs/did_url" },
+        "created_at": { "$ref": "#/$defs/timestamp" },
+        "jws": { "$ref": "#/$defs/base64url" }
+      },
+      "additionalProperties": false
+    },
+    "signed_event": { "$ref": "./event-envelope.schema.json" },
+
+    "bootstrap_mode": { "type": "string", "enum": ["founding", "sibling_pairing"] },
+    "founding_allowed_operations": {
+      "type": "array",
+      "prefixItems": [
+        { "const": "ak.gate.account.command.enroll_device" },
+        { "const": "ak.gate.account.command.cancel_device_bootstrap" },
+        { "const": "ak.self.events.command.submit" },
+        { "const": "ak.self.events.query.resolve" }
+      ],
+      "items": false,
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "sibling_allowed_operations": {
+      "type": "array",
+      "prefixItems": [
+        { "const": "ak.gate.account.command.cancel_device_bootstrap" },
+        { "const": "ak.self.device_messages.command.send" },
+        { "const": "ak.self.device_messages.query.list" },
+        { "const": "ak.self.device_messages.command.ack" }
+      ],
+      "items": false,
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "device_bootstrap_credential": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["credential_kind", "mode", "principal_id", "device_id", "device_key_digest", "transaction_id", "holder_jkt", "canonical_request_digest", "founding_batch_digest", "founding_event_ids", "allowed_operation_ids", "credential_expires_at", "bootstrap_transaction_expires_at"],
+          "properties": {
+            "credential_kind": { "const": "device_bootstrap" },
+            "mode": { "const": "founding" },
+            "principal_id": { "$ref": "#/$defs/did" },
+            "device_id": { "$ref": "#/$defs/device_id" },
+            "device_key_digest": { "$ref": "#/$defs/hash" },
+            "transaction_id": { "$ref": "#/$defs/opaque_id" },
+            "holder_jkt": { "$ref": "#/$defs/hash" },
+            "canonical_request_digest": { "$ref": "#/$defs/hash" },
+            "founding_batch_digest": { "$ref": "#/$defs/hash" },
+            "founding_event_ids": { "type": "array", "items": { "$ref": "#/$defs/event_id" }, "minItems": 1, "uniqueItems": true },
+            "allowed_operation_ids": { "$ref": "#/$defs/founding_allowed_operations" },
+            "credential_expires_at": { "$ref": "#/$defs/timestamp" },
+            "bootstrap_transaction_expires_at": { "$ref": "#/$defs/timestamp" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["credential_kind", "mode", "principal_id", "device_id", "device_key_digest", "transaction_id", "holder_jkt", "canonical_request_digest", "source_device_id", "target_device_id", "verification_content_kinds", "allowed_operation_ids", "credential_expires_at", "bootstrap_transaction_expires_at"],
+          "properties": {
+            "credential_kind": { "const": "device_bootstrap" },
+            "mode": { "const": "sibling_pairing" },
+            "principal_id": { "$ref": "#/$defs/did" },
+            "device_id": { "$ref": "#/$defs/device_id" },
+            "device_key_digest": { "$ref": "#/$defs/hash" },
+            "transaction_id": { "$ref": "#/$defs/opaque_id" },
+            "holder_jkt": { "$ref": "#/$defs/hash" },
+            "canonical_request_digest": { "$ref": "#/$defs/hash" },
+            "source_device_id": { "$ref": "#/$defs/device_id" },
+            "target_device_id": { "$ref": "#/$defs/device_id" },
+            "verification_content_kinds": { "type": "array", "items": { "type": "string", "pattern": "^ak\\.key\\.verification\\.[a-z0-9_.-]+$" }, "minItems": 1, "uniqueItems": true },
+            "allowed_operation_ids": { "$ref": "#/$defs/sibling_allowed_operations" },
+            "credential_expires_at": { "$ref": "#/$defs/timestamp" },
+            "bootstrap_transaction_expires_at": { "$ref": "#/$defs/timestamp" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "cancel_device_bootstrap_request": {
+      "type": "object",
+      "required": ["transaction_id", "mode", "canonical_request_digest", "idempotency_key"],
+      "properties": {
+        "transaction_id": { "$ref": "#/$defs/opaque_id" },
+        "mode": { "$ref": "#/$defs/bootstrap_mode" },
+        "canonical_request_digest": { "$ref": "#/$defs/hash" },
+        "idempotency_key": { "$ref": "#/$defs/opaque_id" }
+      },
+      "additionalProperties": false
+    },
+    "cancel_device_bootstrap_outcome": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["status", "transaction_id", "outcome_digest"],
+          "properties": { "status": { "const": "cancelled" }, "transaction_id": { "$ref": "#/$defs/opaque_id" }, "outcome_digest": { "$ref": "#/$defs/hash" } },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["status", "transaction_id", "expired_at", "outcome_digest"],
+          "properties": { "status": { "const": "expired" }, "transaction_id": { "$ref": "#/$defs/opaque_id" }, "expired_at": { "$ref": "#/$defs/timestamp" }, "outcome_digest": { "$ref": "#/$defs/hash" } },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["status", "transaction_id", "retryable_error", "outcome_digest"],
+          "properties": { "status": { "const": "pending" }, "transaction_id": { "$ref": "#/$defs/opaque_id" }, "retryable_error": { "type": "string", "enum": ["temporarily_unavailable", "proof_refresh_required", "dependency_pending"] }, "retry_after_ms": { "type": "integer", "minimum": 0 }, "outcome_digest": { "$ref": "#/$defs/hash" } },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["status", "transaction_id", "outcome_digest"],
+          "properties": { "status": { "const": "accepted" }, "transaction_id": { "$ref": "#/$defs/opaque_id" }, "outcome_digest": { "$ref": "#/$defs/hash" } },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "standard_holder_binding": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "device_binding"],
+          "properties": { "kind": { "const": "human_device" }, "device_binding": { "$ref": "#/$defs/opaque_id" } },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "agent_id", "device_id", "agent_key_authorization_ref", "verification_method"],
+          "properties": { "kind": { "const": "agent_runtime" }, "agent_id": { "$ref": "#/$defs/did" }, "device_id": { "$ref": "#/$defs/device_id" }, "agent_key_authorization_ref": { "$ref": "#/$defs/event_id" }, "verification_method": { "$ref": "./common-ids.schema.json#/$defs/did_url" } },
+          "additionalProperties": false
+        }
+      ]
+    },
+
+    "contact_peer": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "principal_id"],
+          "properties": { "kind": { "const": "human" }, "principal_id": { "$ref": "#/$defs/did" } },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "agent_id", "controller_id"],
+          "properties": { "kind": { "const": "agent" }, "agent_id": { "$ref": "#/$defs/did" }, "controller_id": { "$ref": "#/$defs/did" } },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contact_scope": { "type": "string", "enum": ["invite", "direct_message", "voice_call", "video_call", "presence"] },
+    "contact_scopes": { "type": "array", "items": { "$ref": "#/$defs/contact_scope" }, "uniqueItems": true },
+    "request_acceptance_receipt_core": {
+      "type": "object",
+      "required": ["holder", "peer", "slot_version", "request_event_ref", "request_digest", "source_checkpoint", "accepted_at", "issuer"],
+      "properties": {
+        "holder": { "$ref": "#/$defs/contact_peer" },
+        "peer": { "$ref": "#/$defs/contact_peer" },
+        "slot_version": { "type": "integer", "minimum": 1 },
+        "slot_predecessor": { "$ref": "#/$defs/hash" },
+        "request_event_ref": { "$ref": "#/$defs/event_id" },
+        "request_digest": { "$ref": "#/$defs/hash" },
+        "source_checkpoint": { "$ref": "#/$defs/hash" },
+        "accepted_at": { "$ref": "#/$defs/timestamp" },
+        "issuer": { "$ref": "#/$defs/did" }
+      },
+      "allOf": [
+        { "if": { "properties": { "slot_version": { "const": 1 } }, "required": ["slot_version"] }, "then": { "not": { "required": ["slot_predecessor"] } }, "else": { "required": ["slot_predecessor"] } }
+      ],
+      "additionalProperties": false
+    },
+    "request_acceptance_receipt": {
+      "type": "object",
+      "required": ["core", "receipt_digest", "signature"],
+      "properties": { "core": { "$ref": "#/$defs/request_acceptance_receipt_core" }, "receipt_digest": { "$ref": "#/$defs/hash" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false
+    },
+    "contact_basis": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "sorted_pair_members", "request_event_ref", "request_acceptance_receipt_digest"],
+          "properties": { "kind": { "const": "normal" }, "sorted_pair_members": { "type": "array", "items": { "$ref": "#/$defs/did" }, "minItems": 2, "maxItems": 2, "uniqueItems": true }, "request_event_ref": { "$ref": "#/$defs/event_id" }, "request_acceptance_receipt_digest": { "$ref": "#/$defs/hash" } },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "sorted_pair_members", "requests", "causal_concurrency_proof"],
+          "properties": {
+            "kind": { "const": "glare" },
+            "sorted_pair_members": { "type": "array", "items": { "$ref": "#/$defs/did" }, "minItems": 2, "maxItems": 2, "uniqueItems": true },
+            "requests": { "type": "array", "items": { "type": "object", "required": ["request_event_ref", "request_acceptance_receipt_digest"], "properties": { "request_event_ref": { "$ref": "#/$defs/event_id" }, "request_acceptance_receipt_digest": { "$ref": "#/$defs/hash" } }, "additionalProperties": false }, "minItems": 2, "maxItems": 2 },
+            "causal_concurrency_proof": { "$ref": "#/$defs/contact_current_proof" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contact_current_proof": {
+      "type": "object",
+      "required": ["basis_id", "issuer", "head_event_ref", "head_digest", "accepted_frontier", "complete_through", "fresh_until", "signature"],
+      "properties": {
+        "basis_id": { "$ref": "#/$defs/hash" },
+        "issuer": { "$ref": "#/$defs/did" },
+        "head_event_ref": { "$ref": "#/$defs/event_id" },
+        "head_digest": { "$ref": "#/$defs/hash" },
+        "accepted_frontier": { "type": "array", "items": { "$ref": "#/$defs/event_id" }, "minItems": 1, "uniqueItems": true },
+        "complete_through": { "type": "integer", "minimum": 1 },
+        "fresh_until": { "$ref": "#/$defs/timestamp" },
+        "signature": { "$ref": "#/$defs/signature" }
+      },
+      "additionalProperties": false
+    },
+    "normal_response_acceptance_receipt": {
+      "type": "object",
+      "required": ["basis_id", "request_receipt", "response_event_ref", "response_digest", "no_outgoing_slot_proof", "accepted_at", "issuer", "signature"],
+      "properties": { "basis_id": { "$ref": "#/$defs/hash" }, "request_receipt": { "$ref": "#/$defs/request_acceptance_receipt" }, "response_event_ref": { "$ref": "#/$defs/event_id" }, "response_digest": { "$ref": "#/$defs/hash" }, "no_outgoing_slot_proof": { "$ref": "#/$defs/hash" }, "accepted_at": { "$ref": "#/$defs/timestamp" }, "issuer": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false
+    },
+    "reject_acceptance_receipt": {
+      "type": "object",
+      "required": ["request_receipt", "reject_event_ref", "reject_digest", "accepted_at", "issuer", "signature"],
+      "properties": { "request_receipt": { "$ref": "#/$defs/request_acceptance_receipt" }, "reject_event_ref": { "$ref": "#/$defs/event_id" }, "reject_digest": { "$ref": "#/$defs/hash" }, "accepted_at": { "$ref": "#/$defs/timestamp" }, "issuer": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false
+    },
+    "contact_lineage": {
+      "type": "object",
+      "required": ["basis_id", "issuer", "peer", "version", "event_ref", "granted_to_peer_scopes", "signature"],
+      "properties": { "basis_id": { "$ref": "#/$defs/hash" }, "issuer": { "$ref": "#/$defs/contact_peer" }, "peer": { "$ref": "#/$defs/contact_peer" }, "version": { "type": "integer", "minimum": 1 }, "predecessor_event_ref": { "$ref": "#/$defs/event_id" }, "event_ref": { "$ref": "#/$defs/event_id" }, "granted_to_peer_scopes": { "$ref": "#/$defs/contact_scopes" }, "terminal": { "type": "boolean" }, "signature": { "$ref": "#/$defs/signature" } },
+      "allOf": [ { "if": { "properties": { "version": { "const": 1 } }, "required": ["version"] }, "then": { "not": { "required": ["predecessor_event_ref"] } }, "else": { "required": ["predecessor_event_ref"] } } ],
+      "additionalProperties": false
+    },
+    "contact_operation_request": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["phase", "operation_id", "idempotency_key", "peer", "granted_to_peer_scopes"],
+          "properties": { "phase": { "const": "prepare" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "peer": { "$ref": "#/$defs/contact_peer" }, "granted_to_peer_scopes": { "$ref": "#/$defs/contact_scopes" } },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "signed_event"],
+          "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" } },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contact_scope_update_request": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["phase", "operation_id", "idempotency_key", "peer", "basis_id", "version", "predecessor_event_ref", "granted_to_peer_scopes"],
+          "properties": { "phase": { "const": "prepare" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "peer": { "$ref": "#/$defs/contact_peer" }, "basis_id": { "$ref": "#/$defs/hash" }, "version": { "type": "integer", "minimum": 2 }, "predecessor_event_ref": { "$ref": "#/$defs/event_id" }, "granted_to_peer_scopes": { "$ref": "#/$defs/contact_scopes" } },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "signed_event"],
+          "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" } },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contact_respond_request": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["phase", "operation_id", "idempotency_key", "request_receipt", "action"],
+          "properties": { "phase": { "const": "prepare" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "request_receipt": { "$ref": "#/$defs/request_acceptance_receipt" }, "action": { "enum": ["accept", "reject"] }, "granted_to_peer_scopes": { "$ref": "#/$defs/contact_scopes" }, "normal_basis_evidence": { "$ref": "#/$defs/contact_basis_evidence_bundle" } },
+          "allOf": [ { "if": { "properties": { "action": { "const": "accept" } }, "required": ["action"] }, "then": { "required": ["granted_to_peer_scopes", "normal_basis_evidence"] }, "else": { "not": { "anyOf": [ { "required": ["granted_to_peer_scopes"] }, { "required": ["normal_basis_evidence"] } ] } } } ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "signed_event"],
+          "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" } },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contact_tombstone_request": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["phase", "operation_id", "idempotency_key", "peer", "basis_id", "version", "predecessor_event_ref"],
+          "properties": { "phase": { "const": "prepare" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "peer": { "$ref": "#/$defs/contact_peer" }, "basis_id": { "$ref": "#/$defs/hash" }, "version": { "type": "integer", "minimum": 2 }, "predecessor_event_ref": { "$ref": "#/$defs/event_id" } },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "signed_event"],
+          "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" } },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contact_scope_update_payload": {
+      "type": "object",
+      "required": ["schema", "peer", "basis_id", "version", "predecessor_event_ref", "granted_to_peer_scopes"],
+      "properties": {
+        "schema": { "const": "ak.schema.contact_scope_update.v1" },
+        "peer": { "$ref": "#/$defs/contact_peer" },
+        "basis_id": { "$ref": "#/$defs/hash" },
+        "version": { "type": "integer", "minimum": 2 },
+        "predecessor_event_ref": { "$ref": "#/$defs/event_id" },
+        "granted_to_peer_scopes": { "$ref": "#/$defs/contact_scopes" }
+      },
+      "additionalProperties": false
+    },
+    "contact_operation_outcome": {
+      "oneOf": [
+        { "type": "object", "required": ["status", "operation_id", "reservation_handle", "expires_at"], "properties": { "status": { "const": "prepared" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "expires_at": { "$ref": "#/$defs/timestamp" } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "operation_id", "accepted_event_ref", "lineage", "current_proof"], "properties": { "status": { "const": "accepted" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "accepted_event_ref": { "$ref": "#/$defs/event_id" }, "lineage": { "$ref": "#/$defs/contact_lineage" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "operation_id", "reason"], "properties": { "status": { "const": "rejected" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reason": { "type": "string", "enum": ["contact_idempotency_conflict", "contact_basis_conflict", "contact_lineage_conflict", "contact_terminal", "contact_scope_stale"] } }, "additionalProperties": false }
+      ]
+    },
+    "contact_basis_evidence_bundle": {
+      "type": "object",
+      "required": ["basis_id", "basis", "request_receipts", "current_proofs"],
+      "properties": { "basis_id": { "$ref": "#/$defs/hash" }, "basis": { "$ref": "#/$defs/contact_basis" }, "request_receipts": { "type": "array", "items": { "$ref": "#/$defs/request_acceptance_receipt" }, "minItems": 1, "maxItems": 2 }, "normal_response_receipt": { "$ref": "#/$defs/normal_response_acceptance_receipt" }, "current_proofs": { "type": "array", "items": { "$ref": "#/$defs/contact_current_proof" }, "minItems": 1, "maxItems": 2 } },
+      "additionalProperties": false
+    },
+    "peer_contact_submit_request": {
+      "oneOf": [
+        { "type": "object", "required": ["kind", "idempotency_key", "signed_event", "request_receipt", "contact_address"], "properties": { "kind": { "const": "request" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" }, "request_receipt": { "$ref": "#/$defs/request_acceptance_receipt" }, "contact_address": { "$ref": "./peer-contact-delivery-request.schema.json#/$defs/contact_address" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "idempotency_key", "signed_event", "response_receipt", "contact_address"], "properties": { "kind": { "const": "response" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" }, "response_receipt": { "$ref": "#/$defs/normal_response_acceptance_receipt" }, "contact_address": { "$ref": "./peer-contact-delivery-request.schema.json#/$defs/contact_address" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "idempotency_key", "signed_event", "reject_receipt", "contact_address"], "properties": { "kind": { "const": "reject" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" }, "reject_receipt": { "$ref": "#/$defs/reject_acceptance_receipt" }, "contact_address": { "$ref": "./peer-contact-delivery-request.schema.json#/$defs/contact_address" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "idempotency_key", "signed_event", "lineage", "current_proof", "contact_address"], "properties": { "kind": { "enum": ["scope_update", "tombstone"] }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" }, "lineage": { "$ref": "#/$defs/contact_lineage" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" }, "contact_address": { "$ref": "./peer-contact-delivery-request.schema.json#/$defs/contact_address" } }, "additionalProperties": false }
+      ]
+    },
+
+    "participation_bits": {
+      "type": "object",
+      "required": ["reply_message", "reaction_add", "reaction_remove", "accept_third_party_mention", "act_on_behalf"],
+      "properties": { "reply_message": { "type": "boolean" }, "reaction_add": { "type": "boolean" }, "reaction_remove": { "type": "boolean" }, "accept_third_party_mention": { "type": "boolean" }, "act_on_behalf": { "type": "boolean" } },
+      "additionalProperties": false
+    },
+    "participation_scope": {
+      "oneOf": [
+        { "type": "object", "required": ["kind", "realm_id"], "properties": { "kind": { "const": "realm" }, "realm_id": { "$ref": "#/$defs/realm_id" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "realm_id", "circle_id"], "properties": { "kind": { "const": "circle" }, "realm_id": { "$ref": "#/$defs/realm_id" }, "circle_id": { "$ref": "#/$defs/circle_id" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "realm_id", "strand_id"], "properties": { "kind": { "const": "strand" }, "realm_id": { "$ref": "#/$defs/realm_id" }, "strand_id": { "$ref": "#/$defs/strand_id" } }, "additionalProperties": false }
+      ]
+    },
+    "participation_scope_evidence_prepare_request": {
+      "type": "object",
+      "required": ["base_batch_digest", "caller_id", "agent_id", "target_scope", "target_service_id", "verifier_id", "audience", "idempotency_key"],
+      "properties": { "base_batch_digest": { "$ref": "#/$defs/hash" }, "caller_id": { "$ref": "#/$defs/did" }, "agent_id": { "$ref": "#/$defs/did" }, "target_scope": { "$ref": "#/$defs/participation_scope" }, "target_service_id": { "$ref": "#/$defs/did" }, "verifier_id": { "$ref": "#/$defs/did" }, "audience": { "$ref": "#/$defs/opaque_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" } },
+      "additionalProperties": false
+    },
+    "participation_scope_evidence_challenge": {
+      "type": "object",
+      "required": ["domain", "challenge_id", "base_batch_digest", "caller_id", "agent_id", "target_scope", "target_service_id", "verifier_id", "audience", "issued_at", "expires_at", "signature"],
+      "properties": { "domain": { "const": "ak.participation.scope-evidence-challenge.v1" }, "challenge_id": { "$ref": "#/$defs/opaque_id" }, "base_batch_digest": { "$ref": "#/$defs/hash" }, "caller_id": { "$ref": "#/$defs/did" }, "agent_id": { "$ref": "#/$defs/did" }, "target_scope": { "$ref": "#/$defs/participation_scope" }, "target_service_id": { "$ref": "#/$defs/did" }, "verifier_id": { "$ref": "#/$defs/did" }, "audience": { "$ref": "#/$defs/opaque_id" }, "issued_at": { "$ref": "#/$defs/timestamp" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false
+    },
+    "participation_scope_evidence": {
+      "oneOf": [
+        { "type": "object", "required": ["kind", "challenge", "suite_id", "recipient_key_ref", "enc", "ciphertext", "plaintext_digest"], "properties": { "kind": { "const": "inline_encrypted" }, "challenge": { "$ref": "#/$defs/participation_scope_evidence_challenge" }, "suite_id": { "$ref": "#/$defs/opaque_id" }, "recipient_key_ref": { "$ref": "#/$defs/did_url" }, "enc": { "$ref": "#/$defs/base64url" }, "ciphertext": { "$ref": "#/$defs/base64url" }, "plaintext_digest": { "$ref": "#/$defs/hash" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "receipt_id", "disclosure_digest", "commitment", "agent_id", "target_scope", "target_service_id", "verifier_id", "audience", "issued_at", "expires_at", "binding_digest", "signature"], "properties": { "kind": { "const": "accepted_target_receipt" }, "receipt_id": { "$ref": "#/$defs/opaque_id" }, "disclosure_digest": { "$ref": "#/$defs/hash" }, "commitment": { "$ref": "#/$defs/hash" }, "agent_id": { "$ref": "#/$defs/did" }, "target_scope": { "$ref": "#/$defs/participation_scope" }, "target_service_id": { "$ref": "#/$defs/did" }, "verifier_id": { "$ref": "#/$defs/did" }, "audience": { "$ref": "#/$defs/opaque_id" }, "issued_at": { "$ref": "#/$defs/timestamp" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "binding_digest": { "$ref": "#/$defs/hash" }, "signature": { "$ref": "#/$defs/signature" } }, "additionalProperties": false }
+      ]
+    },
+    "participation_replacement_batch": {
+      "type": "object",
+      "required": ["agent_id", "target_scope", "selection", "scope_evidence", "expected_version", "basis", "grant_events", "revoke_events", "idempotency_key", "controller_signature"],
+      "properties": { "agent_id": { "$ref": "#/$defs/did" }, "target_scope": { "$ref": "#/$defs/participation_scope" }, "selection": { "$ref": "#/$defs/participation_bits" }, "scope_evidence": { "$ref": "#/$defs/participation_scope_evidence" }, "expected_version": { "type": "integer", "minimum": 0 }, "basis": { "type": "array", "items": { "$ref": "#/$defs/event_id" }, "minItems": 1, "uniqueItems": true }, "grant_events": { "type": "array", "items": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission" } }, "revoke_events": { "type": "array", "items": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission" } }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "controller_signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false
+    },
+    "participation_replace_relay_request": {
+      "type": "object",
+      "required": ["original_signed_batch_bytes", "target_service_id", "transport_digest", "idempotency_key"],
+      "properties": { "original_signed_batch_bytes": { "$ref": "#/$defs/base64url" }, "target_service_id": { "$ref": "#/$defs/did" }, "transport_digest": { "$ref": "#/$defs/hash" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" } },
+      "additionalProperties": false
+    },
+    "participation_replace_receipt": {
+      "type": "object",
+      "required": ["batch_digest", "scope_evidence_digest", "deployment_ceiling_digest", "deployment_ceiling_version", "accepted_version", "target_service_id", "accepted_at", "signature"],
+      "properties": { "batch_digest": { "$ref": "#/$defs/hash" }, "scope_evidence_digest": { "$ref": "#/$defs/hash" }, "deployment_ceiling_digest": { "$ref": "#/$defs/hash" }, "deployment_ceiling_version": { "type": "integer", "minimum": 1 }, "accepted_version": { "type": "integer", "minimum": 1 }, "target_service_id": { "$ref": "#/$defs/did" }, "accepted_at": { "$ref": "#/$defs/timestamp" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false
+    },
+    "deployment_ceiling_core": {
+      "type": "object",
+      "required": ["slot_id", "issuer", "version", "ceiling", "policy_basis", "issued_at"],
+      "properties": { "slot_id": { "$ref": "#/$defs/opaque_id" }, "issuer": { "$ref": "#/$defs/did" }, "version": { "type": "integer", "minimum": 1 }, "predecessor_digest": { "$ref": "#/$defs/hash" }, "ceiling": { "$ref": "#/$defs/participation_bits" }, "policy_basis": { "$ref": "#/$defs/hash" }, "issued_at": { "$ref": "#/$defs/timestamp" } },
+      "allOf": [ { "if": { "properties": { "version": { "const": 1 } }, "required": ["version"] }, "then": { "not": { "required": ["predecessor_digest"] } }, "else": { "required": ["predecessor_digest"] } } ],
+      "additionalProperties": false
+    },
+    "deployment_ceiling_completeness_core": {
+      "type": "object",
+      "required": ["slot_id", "checkpoint_seq", "covered_through_version", "fork_heads"],
+      "properties": { "slot_id": { "$ref": "#/$defs/opaque_id" }, "checkpoint_seq": { "type": "integer", "minimum": 1 }, "covered_through_version": { "type": "integer", "minimum": 1 }, "fork_heads": { "type": "array", "items": { "type": "object", "required": ["head_digest", "core", "signature"], "properties": { "head_digest": { "$ref": "#/$defs/hash" }, "core": { "$ref": "#/$defs/deployment_ceiling_core" }, "signature": { "$ref": "#/$defs/signature" } }, "additionalProperties": false }, "minItems": 2 } },
+      "additionalProperties": false
+    },
+    "deployment_ceiling_fork_repair": {
+      "type": "object",
+      "required": ["completeness_core", "completeness_root", "successor_version", "predecessor_set", "successor", "signature"],
+      "properties": { "completeness_core": { "$ref": "#/$defs/deployment_ceiling_completeness_core" }, "completeness_root": { "$ref": "#/$defs/hash" }, "successor_version": { "type": "integer", "minimum": 2 }, "predecessor_set": { "type": "array", "items": { "$ref": "#/$defs/hash" }, "minItems": 2, "uniqueItems": true }, "successor": { "$ref": "#/$defs/deployment_ceiling_core" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false
+    },
+
+    "effect_value_core": {
+      "type": "object",
+      "description": "Immutable external-effect business value. It intentionally contains no view or certificate.",
+      "required": ["pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "effect_id", "effect_digest", "destination", "expected_host_epoch", "predecessor_head_digest", "journal_root"],
+      "properties": { "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "effect_digest": { "$ref": "#/$defs/hash" }, "destination": { "$ref": "#/$defs/did" }, "expected_host_epoch": { "type": "integer", "minimum": 0 }, "predecessor_head_digest": { "$ref": "#/$defs/hash" }, "journal_root": { "$ref": "#/$defs/hash" } },
+      "additionalProperties": false
+    },
+    "consensus_phase": { "type": "string", "enum": ["pre_prepare", "prepare", "commit", "view_change", "new_view"] },
+    "consensus_envelope": {
+      "type": "object",
+      "required": ["domain", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "view", "phase", "value_digest", "qda_certificate_digest", "replica_id", "signature"],
+      "properties": { "domain": { "const": "ak.direct-conversation.pbft-envelope.v1" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "view": { "type": "integer", "minimum": 0 }, "phase": { "$ref": "#/$defs/consensus_phase" }, "value_digest": { "$ref": "#/$defs/hash" }, "qda_certificate_digest": { "$ref": "#/$defs/hash" }, "prepared_certificate_digest": { "$ref": "#/$defs/hash" }, "replica_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false
+    },
+    "qda_receipt": {
+      "type": "object",
+      "required": ["domain", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "effect_id", "value_digest", "journal_root", "expected_host_epoch", "replica_id", "signature"],
+      "properties": { "domain": { "const": "ak.direct-conversation.qda-receipt.v1" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "value_digest": { "$ref": "#/$defs/hash" }, "journal_root": { "$ref": "#/$defs/hash" }, "expected_host_epoch": { "type": "integer", "minimum": 0 }, "replica_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false
+    },
+    "qda_certificate": {
+      "type": "object",
+      "required": ["pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "effect_id", "value_digest", "journal_root", "expected_host_epoch", "n", "f", "quorum", "receipts"],
+      "properties": { "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "value_digest": { "$ref": "#/$defs/hash" }, "journal_root": { "$ref": "#/$defs/hash" }, "expected_host_epoch": { "type": "integer", "minimum": 0 }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "receipts": { "type": "array", "items": { "$ref": "#/$defs/qda_receipt" }, "minItems": 3 } },
+      "additionalProperties": false
+    },
+    "qcommit_certificate": {
+      "type": "object",
+      "required": ["pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "view", "value_digest", "qda_certificate_digest", "n", "f", "quorum", "commits"],
+      "properties": { "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "view": { "type": "integer", "minimum": 0 }, "value_digest": { "$ref": "#/$defs/hash" }, "qda_certificate_digest": { "$ref": "#/$defs/hash" }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "commits": { "type": "array", "items": { "$ref": "#/$defs/consensus_envelope" }, "minItems": 3 } },
+      "additionalProperties": false
+    },
+    "execution_bundle": {
+      "type": "object",
+      "required": ["value_core", "qda_certificate", "qcommit_certificate", "authenticated_encrypted_journal_bytes"],
+      "properties": { "value_core": { "$ref": "#/$defs/effect_value_core" }, "qda_certificate": { "$ref": "#/$defs/qda_certificate" }, "qcommit_certificate": { "$ref": "#/$defs/qcommit_certificate" }, "authenticated_encrypted_journal_bytes": { "$ref": "#/$defs/base64url" } },
+      "additionalProperties": false
+    },
+    "operation_control_authorization": {
+      "type": "object",
+      "required": ["domain_policy_digest", "pair_registry_id", "pair_key", "operation_id", "origin_coordinator", "replicas", "n", "f", "quorum", "epoch_policy", "requester_signature"],
+      "properties": { "domain_policy_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "origin_coordinator": { "$ref": "#/$defs/did" }, "replicas": { "type": "array", "items": { "$ref": "#/$defs/did" }, "minItems": 4, "uniqueItems": true }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "epoch_policy": { "$ref": "#/$defs/hash" }, "requester_signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false
+    },
+    "attempt_advance_value": {
+      "type": "object",
+      "required": ["operation_id", "from_attempt", "to_attempt", "cleanup_terminal_proof", "fresh_target_authorization", "unclaimed_keypackage_ref", "claim_request_digest"],
+      "properties": { "operation_id": { "$ref": "#/$defs/operation_id" }, "from_attempt": { "type": "integer", "minimum": 1 }, "to_attempt": { "type": "integer", "minimum": 2 }, "cleanup_terminal_proof": { "$ref": "#/$defs/hash" }, "fresh_target_authorization": { "$ref": "#/$defs/hash" }, "unclaimed_keypackage_ref": { "$ref": "#/$defs/opaque_id" }, "claim_request_digest": { "$ref": "#/$defs/hash" } },
+      "additionalProperties": false
+    },
+
+    "direct_conversation_resolve_request": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["peer", "create"],
+          "properties": { "peer": { "$ref": "#/$defs/contact_peer" }, "create": { "const": false } },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["peer", "create", "operation_id", "idempotency_key", "operation_control_authorization"],
+          "properties": { "peer": { "$ref": "#/$defs/contact_peer" }, "create": { "const": true }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "operation_control_authorization": { "$ref": "#/$defs/operation_control_authorization" }, "peer_claim_request": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body" } },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "direct_conversation_send_blocker": {
+      "type": "string",
+      "enum": ["session_missing", "presence_offline", "keypackage_empty", "grant_missing", "policy_stale", "contact_scope_stale", "mls_reconcile_required", "personal_blocked"]
+    },
+    "direct_conversation_coordinates": {
+      "type": "object",
+      "required": ["pair_key", "realm_id", "main_strand_id", "binding_event_ref"],
+      "properties": { "pair_key": { "$ref": "#/$defs/hash" }, "realm_id": { "$ref": "#/$defs/realm_id" }, "main_strand_id": { "$ref": "#/$defs/strand_id" }, "binding_event_ref": { "$ref": "#/$defs/event_id" } },
+      "additionalProperties": false
+    },
+    "direct_conversation_resolve_outcome": {
+      "oneOf": [
+        { "type": "object", "required": ["state", "coordinates", "send_blockers"], "properties": { "state": { "const": "found" }, "coordinates": { "$ref": "#/$defs/direct_conversation_coordinates" }, "send_blockers": { "type": "array", "items": { "$ref": "#/$defs/direct_conversation_send_blocker" }, "uniqueItems": true } }, "additionalProperties": false },
+        { "type": "object", "required": ["state", "coordinates", "suspension_reason"], "properties": { "state": { "const": "suspended" }, "coordinates": { "$ref": "#/$defs/direct_conversation_coordinates" }, "suspension_reason": { "type": "string", "enum": ["participant_membership_missing", "contact_direction_revoked"] } }, "additionalProperties": false },
+        { "type": "object", "required": ["state", "operation_id", "attempt_sequence", "operation_state"], "properties": { "state": { "const": "materializing" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "operation_state": { "enum": ["reserved", "materializing", "cleanup", "cleanup_complete_retryable"] } }, "additionalProperties": false },
+        { "type": "object", "required": ["state", "reason"], "properties": { "state": { "const": "temporarily_unavailable" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reason": { "enum": ["dependency_pending", "operation_control_stale", "opaque_unavailable"] } }, "additionalProperties": false },
+        { "type": "object", "required": ["state"], "properties": { "state": { "const": "creation_required" } }, "additionalProperties": false }
+      ]
+    },
+
+    "membership_compensation_action": {
+      "oneOf": [
+        { "type": "object", "required": ["kind", "subject_id"], "properties": { "kind": { "const": "ak.member.compensate.leave" }, "subject_id": { "$ref": "#/$defs/did" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "subject_id", "join_actor_id"], "properties": { "kind": { "const": "ak.member.compensate.remove" }, "subject_id": { "$ref": "#/$defs/did" }, "join_actor_id": { "$ref": "#/$defs/did" } }, "additionalProperties": false }
+      ]
+    },
+    "membership_compensation_delegation_core": {
+      "type": "object",
+      "required": ["authority", "delegation_id", "admission_id", "join_event_id", "join_event_digest", "membership_cell_id", "membership_incarnation", "membership_head_at_acceptance", "subject_id", "join_actor_id", "verification_method", "executor_service_id", "executor_proof_key", "resource", "action", "deadline"],
+      "properties": { "authority": { "const": "ak.authority.membership_compensation.v1" }, "delegation_id": { "$ref": "#/$defs/opaque_id" }, "admission_id": { "$ref": "#/$defs/opaque_id" }, "join_event_id": { "$ref": "#/$defs/event_id" }, "join_event_digest": { "$ref": "#/$defs/hash" }, "membership_cell_id": { "$ref": "#/$defs/opaque_id" }, "membership_incarnation": { "$ref": "#/$defs/hash" }, "membership_head_at_acceptance": { "$ref": "#/$defs/event_id" }, "subject_id": { "$ref": "#/$defs/did" }, "join_actor_id": { "$ref": "#/$defs/did" }, "executed_by": { "$ref": "#/$defs/did" }, "authorization_ref": { "$ref": "#/$defs/event_id" }, "verification_method": { "$ref": "./common-ids.schema.json#/$defs/did_url" }, "executor_service_id": { "$ref": "#/$defs/did" }, "executor_proof_key": { "$ref": "#/$defs/did_url" }, "resource": { "$ref": "#/$defs/realm_id" }, "action": { "$ref": "#/$defs/membership_compensation_action" }, "deadline": { "$ref": "#/$defs/timestamp" } },
+      "additionalProperties": false
+    },
+    "membership_compensation_executor_delegation": {
+      "type": "object",
+      "required": ["core", "delegation_digest", "author_signature"],
+      "properties": { "core": { "$ref": "#/$defs/membership_compensation_delegation_core" }, "delegation_digest": { "$ref": "#/$defs/hash" }, "author_signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false
+    },
+    "membership_compensation_submission_evidence": {
+      "type": "object",
+      "required": ["delegation", "join_accepted_proof", "terminal_certificate", "single_use_cas_token"],
+      "properties": { "delegation": { "$ref": "#/$defs/membership_compensation_executor_delegation" }, "join_accepted_proof": { "$ref": "#/$defs/hash" }, "terminal_certificate": { "$ref": "#/$defs/hash" }, "single_use_cas_token": { "$ref": "#/$defs/opaque_id" } },
+      "additionalProperties": false
+    },
+    "mls_join_admission_receipt": {
+      "type": "object",
+      "required": ["reservation_id", "realm_id", "member_id", "device_id", "keypackage_ref", "keypackage_claim_id", "group_id", "mls_generation", "expected_epoch", "security_frontier_digest", "join_authorization_basis", "member_event_draft_digest", "member_event_id", "eligible_committer", "committer_commitment_digest", "ciphersuite", "issuer", "issued_at", "expires_at", "signature"],
+      "properties": { "reservation_id": { "$ref": "#/$defs/opaque_id" }, "realm_id": { "$ref": "#/$defs/realm_id" }, "member_id": { "$ref": "#/$defs/did" }, "device_id": { "$ref": "#/$defs/device_id" }, "keypackage_ref": { "$ref": "#/$defs/opaque_id" }, "keypackage_claim_id": { "$ref": "#/$defs/opaque_id" }, "group_id": { "$ref": "#/$defs/opaque_id" }, "mls_generation": { "type": "integer", "minimum": 1 }, "expected_epoch": { "type": "integer", "minimum": 0 }, "security_frontier_digest": { "$ref": "#/$defs/hash" }, "join_authorization_basis": { "$ref": "#/$defs/hash" }, "member_event_draft_digest": { "$ref": "#/$defs/hash" }, "member_event_id": { "$ref": "#/$defs/event_id" }, "eligible_committer": { "$ref": "#/$defs/did" }, "committer_commitment_digest": { "$ref": "#/$defs/hash" }, "ciphersuite": { "$ref": "#/$defs/opaque_id" }, "issuer": { "$ref": "#/$defs/did" }, "issued_at": { "$ref": "#/$defs/timestamp" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false
+    },
+
+    "history_visibility": { "type": "string", "enum": ["world_readable", "shared", "invited", "joined", "restricted"] },
+    "history_t0": {
+      "type": "object",
+      "required": ["visibility", "history_policy_ref", "scope_ref", "event_range"],
+      "properties": { "visibility": { "$ref": "#/$defs/history_visibility" }, "history_policy_ref": { "$ref": "#/$defs/event_id" }, "scope_ref": { "$ref": "#/$defs/opaque_id" }, "event_range": { "type": "object", "required": ["from", "to"], "properties": { "from": { "type": "integer", "minimum": 0 }, "to": { "type": "integer", "minimum": 0 } }, "additionalProperties": false } },
+      "additionalProperties": false
+    },
+    "receiver_eligibility_basis": {
+      "oneOf": [
+        { "type": "object", "required": ["kind", "member_ref"], "properties": { "kind": { "const": "active_member" }, "member_ref": { "$ref": "#/$defs/event_id" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "invite_ref"], "properties": { "kind": { "const": "invited" }, "invite_ref": { "$ref": "#/$defs/event_id" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "remove_ref"], "properties": { "kind": { "const": "removed_t0_visible" }, "remove_ref": { "$ref": "#/$defs/event_id" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "requester_id"], "properties": { "kind": { "const": "world_readable_requester" }, "requester_id": { "$ref": "#/$defs/did" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "share_authority_ref"], "properties": { "kind": { "const": "shared_authorized" }, "share_authority_ref": { "$ref": "#/$defs/event_id" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "policy_authority_ref"], "properties": { "kind": { "const": "restricted_authorized" }, "policy_authority_ref": { "$ref": "#/$defs/event_id" } }, "additionalProperties": false }
+      ]
+    },
+    "history_t1": {
+      "type": "object",
+      "required": ["receiver_eligibility_basis", "causal_frontiers", "share_authority_ref"],
+      "properties": { "receiver_eligibility_basis": { "$ref": "#/$defs/receiver_eligibility_basis" }, "causal_frontiers": { "type": "object", "required": ["share"], "properties": { "invite": { "$ref": "#/$defs/event_id" }, "join": { "$ref": "#/$defs/event_id" }, "remove": { "$ref": "#/$defs/event_id" }, "share": { "$ref": "#/$defs/event_id" } }, "additionalProperties": false }, "share_authority_ref": { "$ref": "#/$defs/event_id" } },
+      "additionalProperties": false
+    },
+    "history_t2": {
+      "type": "object",
+      "required": ["verified_display_allowed", "controlled_cache_allowed", "subsequent_share_allowed", "current_policy_frontier"],
+      "properties": { "verified_display_allowed": { "type": "boolean" }, "controlled_cache_allowed": { "type": "boolean" }, "subsequent_share_allowed": { "type": "boolean" }, "current_policy_frontier": { "$ref": "#/$defs/event_id" } },
+      "additionalProperties": false
+    },
+    "history_share_contract": {
+      "type": "object",
+      "required": ["t0", "t1", "t2"],
+      "properties": { "t0": { "$ref": "#/$defs/history_t0" }, "t1": { "$ref": "#/$defs/history_t1" }, "t2": { "$ref": "#/$defs/history_t2" } },
+      "additionalProperties": false
+    },
+    "causal_ingress_receipt": {
+      "type": "object",
+      "required": ["lease_basis", "event_digest", "qualified_ingress_id", "received_at", "ingress_frontier", "issuer", "signature"],
+      "properties": { "lease_basis": { "$ref": "#/$defs/hash" }, "event_digest": { "$ref": "#/$defs/hash" }, "qualified_ingress_id": { "$ref": "#/$defs/opaque_id" }, "received_at": { "$ref": "#/$defs/timestamp" }, "ingress_frontier": { "type": "array", "items": { "$ref": "#/$defs/event_id" }, "minItems": 1, "uniqueItems": true }, "issuer": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false
+    },
+    "keypackage_terminal_command": {
+      "oneOf": [
+        { "type": "object", "required": ["owner_account_id", "keypackage_ref", "expected_state", "action", "idempotency_key"], "properties": { "owner_account_id": { "$ref": "#/$defs/did" }, "keypackage_ref": { "$ref": "#/$defs/opaque_id" }, "expected_state": { "const": "published_unused" }, "action": { "const": "retire" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" } }, "additionalProperties": false },
+        { "type": "object", "required": ["owner_account_id", "keypackage_ref", "expected_state", "claim_id", "action", "idempotency_key"], "properties": { "owner_account_id": { "$ref": "#/$defs/did" }, "keypackage_ref": { "$ref": "#/$defs/opaque_id" }, "expected_state": { "const": "claimed_unconsumed" }, "claim_id": { "$ref": "#/$defs/opaque_id" }, "action": { "const": "revoke" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" } }, "additionalProperties": false },
+        { "type": "object", "required": ["owner_account_id", "keypackage_ref", "expected_state", "action"], "properties": { "owner_account_id": { "$ref": "#/$defs/did" }, "keypackage_ref": { "$ref": "#/$defs/opaque_id" }, "expected_state": { "const": "consumed" }, "action": { "const": "no_write" } }, "additionalProperties": false }
+      ]
+    },
+
+    "sidecar_scope_ref": {
+      "type": "object",
+      "required": ["kind", "realm_id", "circle_id"],
+      "properties": { "kind": { "const": "circle" }, "realm_id": { "$ref": "#/$defs/realm_id" }, "circle_id": { "$ref": "#/$defs/circle_id" } },
+      "additionalProperties": false
+    },
+    "sidecar_create_event": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission" },
+    "sidecar_context_attach_event": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission" },
+    "sidecar_ensure_request": {
+      "oneOf": [
+        { "type": "object", "required": ["phase", "operation_id", "idempotency_key", "source_realm_id", "agent_id", "context_ref"], "properties": { "phase": { "const": "prepare" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "source_realm_id": { "$ref": "#/$defs/realm_id" }, "agent_id": { "$ref": "#/$defs/did" }, "context_ref": { "$ref": "#/$defs/opaque_id" } }, "additionalProperties": false },
+        { "type": "object", "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "create_event", "context_attach_event"], "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "create_event": { "$ref": "#/$defs/sidecar_create_event" }, "context_attach_event": { "$ref": "#/$defs/sidecar_context_attach_event" } }, "additionalProperties": false },
+        { "type": "object", "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "sidecar_id", "context_attach_event"], "properties": { "phase": { "const": "attach" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "sidecar_id": { "$ref": "#/$defs/realm_id" }, "context_attach_event": { "$ref": "#/$defs/sidecar_context_attach_event" } }, "additionalProperties": false }
+      ]
+    },
+    "sidecar_access_replace": {
+      "type": "object",
+      "required": ["kind", "realm_id", "scope_ref", "sidecar_id", "selected_agent_ids", "version", "controller_signature"],
+      "properties": { "kind": { "const": "ak.sidecar.access.replace" }, "realm_id": { "$ref": "#/$defs/realm_id" }, "scope_ref": { "$ref": "#/$defs/sidecar_scope_ref" }, "sidecar_id": { "$ref": "#/$defs/realm_id" }, "selected_agent_ids": { "type": "array", "items": { "$ref": "#/$defs/did" }, "uniqueItems": true }, "version": { "type": "integer", "minimum": 1 }, "predecessor_event_ref": { "$ref": "#/$defs/event_id" }, "controller_signature": { "$ref": "#/$defs/signature" } },
+      "allOf": [ { "if": { "properties": { "version": { "const": 1 } }, "required": ["version"] }, "then": { "not": { "required": ["predecessor_event_ref"] } }, "else": { "required": ["predecessor_event_ref"] } } ],
+      "additionalProperties": false
+    },
+    "sidecar_control_frontier": {
+      "type": "object",
+      "required": ["create_event_ref", "access_event_ref", "membership_refs"],
+      "properties": { "create_event_ref": { "$ref": "#/$defs/event_id" }, "access_event_ref": { "$ref": "#/$defs/event_id" }, "membership_refs": { "type": "array", "items": { "type": "object", "required": ["polarity", "event_ref"], "properties": { "polarity": { "enum": ["positive", "negative"] }, "event_ref": { "$ref": "#/$defs/event_id" } }, "additionalProperties": false }, "minItems": 1 } },
+      "additionalProperties": false
+    },
+    "protocol_execution_attestation": {
+      "type": "object",
+      "required": ["spec_sha", "cotest_sha", "runner_sha", "command", "result", "artifact_digests", "issuer", "protected", "signature"],
+      "properties": {
+        "spec_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "cotest_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "runner_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "command": { "type": "string", "minLength": 1 },
+        "result": { "type": "string", "enum": ["passed", "failed"] },
+        "artifact_digests": { "type": "array", "items": { "$ref": "#/$defs/hash" }, "minItems": 1, "uniqueItems": true },
+        "issuer": { "$ref": "#/$defs/did" },
+        "input_manifest_digest": { "$ref": "#/$defs/hash" },
+        "protected": { "$ref": "#/$defs/base64url", "description": "Detached JWS protected header. Decoded JSON is closed to alg and kid; alg is from the CI allowlist and kid resolves under configured issuer trust roots." },
+        "signature": { "$ref": "#/$defs/base64url" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

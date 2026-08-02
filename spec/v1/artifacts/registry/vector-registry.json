@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.5",
+  "version": "2026-08-03.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-02T17:00:00Z",
+  "generated_at": "2026-08-03T02:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1116,7 +1116,6 @@
       "description": "Direct Conversation participant authority is a profile-scoped non-grant source, survives root generation changes, requires the pair's unique immutable binding, and cannot issue child grants.",
       "source_refs": [
         "spec/v1/zh/authz/capabilities.md",
-        "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
     },
@@ -1728,7 +1727,6 @@
       ],
       "description": "Deterministic coordinator selection, one durable reserved/materializing/found operation per pair, pre-effect reservation expiry, non-expiring materialization and same-ID crash/retry recovery.",
       "source_refs": [
-        "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
       ]
     },
@@ -1741,7 +1739,6 @@
       ],
       "description": "Leave, block, contact/consent and terminal gates suspend the immutable conversation; recovery reuses the same Realm and main Strand with a new active MLS generation and never automatically redelivers old epoch keys or history secrets.",
       "source_refs": [
-        "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
       ]
     },
@@ -1754,7 +1751,6 @@
       ],
       "description": "Canonical direct-conversation pair_key KAT over sorted stable subject DIDs and the Realm trust domain, including order-independence and unresolved-pairwise-DID rejection rules.",
       "source_refs": [
-        "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
     },
@@ -1767,7 +1763,6 @@
       ],
       "description": "Direct Conversation Realm profile/discriminator bidirectional schema guard, MLS and closed-join shape, exact-two membership, no-Space policy and main-Strand invariants.",
       "source_refs": [
-        "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
       ]
     },
@@ -5409,6 +5404,102 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/discovery/client-preferences.md"
       ]
+    },
+    {
+      "vector_id": "ak.vector.protocol_journey.bootstrap_exact_replay.v1",
+      "status": "active",
+      "domain": "protocol_journey",
+      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
+      "description": "Founding/sibling bootstrap exact replay, independent bearer and transaction expiry, cancel closed outcome and original Event byte stability.",
+      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.protocol_journey.contact_lineage_reorder.v1",
+      "status": "active",
+      "domain": "protocol_journey",
+      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
+      "description": "Contact peer XOR, signed request/response/reject receipts, causal glare, issuer-local lineage and reorder/fork/tombstone handling.",
+      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.protocol_journey.participation_private_evidence.v1",
+      "status": "active",
+      "domain": "protocol_journey",
+      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
+      "description": "Target-verifier-bound requested-scope challenge/receipt XOR, exact JCS/HPKE binding, transparent relay and five-bit ceiling admission.",
+      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.protocol_journey.membership_compensation_single_use.v1",
+      "status": "active",
+      "domain": "protocol_journey",
+      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
+      "description": "Accepted-at actual-author membership compensation delegation, action XOR, old-incarnation CAS, single use and MLS old-generation removal.",
+      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.protocol_journey.sidecar_staged_atomic.v1",
+      "status": "active",
+      "domain": "protocol_journey",
+      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
+      "description": "Sidecar create/context staged atomic admission, projection split, access Event authority and frontier separation.",
+      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.protocol_journey.history_causal_ingress.v1",
+      "status": "active",
+      "domain": "protocol_journey",
+      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
+      "description": "T0/T1/T2 separation and causal offline ingress behavior under prior, later, unknown and concurrent revocation.",
+      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.protocol_journey.keypackage_terminal_fanout.v1",
+      "status": "active",
+      "domain": "protocol_journey",
+      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
+      "description": "Exact owner account terminal fanout loops through CAS conflicts until KeyPackages are retired, revoked with original claim, or immutable consumed.",
+      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.protocol_journey.traceability_no_self_attestation.v1",
+      "status": "active",
+      "domain": "protocol_journey",
+      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
+      "description": "Static Spec traceability cannot contain revision/execution truth or self-digests; execution proof is external and excludes itself from artifact digests.",
+      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.operation_control.pbft_view_change_value_stability.v1",
+      "status": "active",
+      "domain": "operation_control",
+      "applies_to_fixtures": ["operation-control-pbft-fixture.json"],
+      "description": "View-independent EffectValueCore and phase/view-separated PBFT envelopes preserve one value digest across valid view changes.",
+      "source_refs": ["spec/v1/artifacts/fixtures/operation-control-pbft-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.operation_control.qda_qcommit_point_of_no_return.v1",
+      "status": "active",
+      "domain": "operation_control",
+      "applies_to_fixtures": ["operation-control-pbft-fixture.json"],
+      "description": "Canonical qDA plus q COMMIT is the sole point of no return; ExecutionBundle is a non-authoritative carrier and cannot self-reference.",
+      "source_refs": ["spec/v1/artifacts/fixtures/operation-control-pbft-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.operation_control.partition_recovery.v1",
+      "status": "active",
+      "domain": "operation_control",
+      "applies_to_fixtures": ["operation-control-pbft-fixture.json"],
+      "description": "Partition denies effect without a fresh quorum head and recovers through valid VIEW-CHANGE/NEW-VIEW without weakening prepared locks.",
+      "source_refs": ["spec/v1/artifacts/fixtures/operation-control-pbft-fixture.json"]
+    },
+    {
+      "vector_id": "ak.vector.operation_control.genesis_and_attempt_uniqueness.v1",
+      "status": "active",
+      "domain": "operation_control",
+      "applies_to_fixtures": ["operation-control-pbft-fixture.json"],
+      "description": "Pre-quorum genesis has no canonical effect; committed operation/coordinates recover, attempt advance precedes claim and each attempt has at most one claim.",
+      "source_refs": ["spec/v1/artifacts/fixtures/operation-control-pbft-fixture.json"]
     }
   ]
 }

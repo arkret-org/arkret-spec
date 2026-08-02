@@ -514,10 +514,28 @@
         "recovery_binding": {
           "$ref": "#/$defs/SessionGrantRecoveryBinding"
         },
-        "device_binding": {
-          "$ref": "#/$defs/SessionGrantDeviceBinding"
+        "bootstrap_binding": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/device_bootstrap_credential"
+        },
+        "holder_binding": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/standard_holder_binding",
+          "description": "Required closed human-device versus Agent-runtime holder binding for every standard grant."
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "credential_class": { "const": "standard" } }, "required": ["credential_class"] },
+          "then": { "required": ["holder_binding"], "not": { "anyOf": [ { "required": ["recovery_binding"] }, { "required": ["bootstrap_binding"] } ] } }
+        },
+        {
+          "if": { "properties": { "credential_class": { "const": "device_bootstrap" } }, "required": ["credential_class"] },
+          "then": { "required": ["bootstrap_binding"], "not": { "anyOf": [ { "required": ["recovery_binding"] }, { "required": ["holder_binding"] } ] } }
+        },
+        {
+          "if": { "properties": { "credential_class": { "const": "recovery_restricted" } }, "required": ["credential_class"] },
+          "then": { "required": ["recovery_binding"], "not": { "anyOf": [ { "required": ["bootstrap_binding"] }, { "required": ["holder_binding"] } ] } }
+        }
+      ]
     },
     "AccountLogoutRequestBody": {
       "type": "object",
@@ -3733,6 +3751,7 @@
       "type": "string",
       "enum": [
         "standard",
+        "device_bootstrap",
         "recovery_restricted"
       ]
     },
@@ -3858,8 +3877,11 @@
         "recovery_binding": {
           "$ref": "#/$defs/SessionGrantRecoveryBinding"
         },
-        "device_binding": {
-          "$ref": "#/$defs/SessionGrantDeviceBinding"
+        "bootstrap_binding": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/device_bootstrap_credential"
+        },
+        "holder_binding": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/standard_holder_binding"
         },
         "proof_kind": {
           "type": "string",
@@ -3911,16 +3933,28 @@
               }
             },
             "not": {
-              "required": [
-                "device_binding"
+              "anyOf": [
+                { "required": ["holder_binding"] },
+                { "required": ["bootstrap_binding"] }
               ]
             }
           },
           "else": {
-            "not": {
-              "required": [
-                "recovery_binding"
-              ]
+            "if": {
+              "properties": {
+                "credential_class": {
+                  "const": "device_bootstrap"
+                }
+              },
+              "required": ["credential_class"]
+            },
+            "then": {
+              "required": ["bootstrap_binding"],
+              "not": { "required": ["holder_binding"] }
+            },
+            "else": {
+              "required": ["holder_binding"],
+              "not": { "required": ["bootstrap_binding"] }
             }
           }
         }

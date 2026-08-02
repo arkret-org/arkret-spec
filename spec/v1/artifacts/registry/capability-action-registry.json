@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.9",
+  "version": "2026-08-03.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T20:30:00Z",
+  "generated_at": "2026-08-03T02:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -585,6 +585,40 @@
       "profile": "ak.profile.direct_conversation_realm.v1",
       "event_mapping_kind": "scope_suffix_variant",
       "notes": "Direct Conversation participant self-leave only. It never authorizes leave/ban/remove of the other participant or any join transition."
+    },
+    {
+      "action": "ak.member.compensate.leave",
+      "category": "membership",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "membership_compensation_delegation_exact",
+        "membership_incarnation_is_original_j1",
+        "destination_single_use_cas"
+      ],
+      "target_event_kinds": [
+        "ak.member.state"
+      ],
+      "profile": "ak.profile.membership_join_compensation.v1",
+      "event_mapping_kind": "scope_suffix_variant",
+      "notes": "Accepted-at compensation for a self-authored join only. It authorizes one fresh standard leave transition for the exact admission and old membership incarnation; it cannot be transferred or used as ordinary membership authority."
+    },
+    {
+      "action": "ak.member.compensate.remove",
+      "category": "membership",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "membership_compensation_delegation_exact",
+        "membership_incarnation_is_original_j1",
+        "destination_single_use_cas"
+      ],
+      "target_event_kinds": [
+        "ak.member.state"
+      ],
+      "profile": "ak.profile.membership_join_compensation.v1",
+      "event_mapping_kind": "scope_suffix_variant",
+      "notes": "Accepted-at compensation for a delegated/admin-authored join only. It authorizes one fresh standard remove transition for the exact admission and old membership incarnation; it grants no Realm admin capability."
     },
     {
       "action": "ak.message.create",
@@ -1880,14 +1914,43 @@
       "required_constraints": [],
       "target_event_kinds": [
         "ak.sidecar.create",
-        "ak.circle.create",
-        "ak.circle.member.state",
-        "ak.strand.create",
-        "ak.relation.create"
+        "ak.sidecar.context.attach"
       ],
       "profile": "ak.profile.agent_sidecar.v1",
       "migration_group": "ak._0009_sidecar_ensure",
       "event_mapping_kind": "aggregate_admin"
+    },
+    {
+      "action": "ak.sidecar.access.replace",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "sidecar_controller_exact",
+        "sidecar_parent_realm_and_backing_circle_exact",
+        "sidecar_access_version_cas"
+      ],
+      "target_event_kinds": [
+        "ak.sidecar.access.replace"
+      ],
+      "profile": "ak.profile.agent_sidecar.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.contact.scope.update",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "contact_holder_exact",
+        "contact_basis_current",
+        "contact_lineage_version_cas"
+      ],
+      "target_event_kinds": [
+        "ak.contact.scope.update"
+      ],
+      "profile": "ak.profile.direct_conversation_realm.v1",
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "ak.self.blob.command.presign",

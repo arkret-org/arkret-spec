@@ -14,7 +14,7 @@ updated: 2026-07-20
 
 **Agent Sidecar**（`ak:sidecar:`）是绑定到一个 `(realm_id, controller_id)` 的个人 AI 私有工作区。它是一等协议对象，不是 Circle profile、普通 Circle、Direct Conversation、Strand Track 或某个 Agent 的 1:1 会话。
 
-用户从 Contacts/Direct Messages 产品面点击自己的 Native Personal Agent 时，客户端 MUST 使用 [`ak.self.direct_conversation.command.resolve`](../identity/contact-and-direct-conversation.md#6-direct-conversation-resolver) 建立或复用 `{controller, agent}` 的独立双成员 Direct Conversation Realm。该入口不得调用 Sidecar ensure、不得要求当前 Realm/Strand context，也不得把 backing Circle 暴露成私聊会话。Sidecar 仅用于既有 Realm/Strand 内的 context-routed 私有协作。
+用户从 Contacts/Direct Messages 产品面点击自己的 Native Personal Agent 时，客户端 MUST 使用 [`ak.self.direct_conversation.command.resolve`](../identity/contact-and-direct-conversation.md#5-direct-conversation-resolver) 建立或复用 `{controller, agent}` 的独立双成员 Direct Conversation Realm。该入口不得调用 Sidecar ensure、不得要求当前 Realm/Strand context，也不得把 backing Circle 暴露成私聊会话。Sidecar 仅用于既有 Realm/Strand 内的 context-routed 私有协作。
 
 Sidecar 与 Circle 的职责不同：
 
@@ -55,16 +55,16 @@ ensure MUST：
 
 1. 以 `(context_ref.realm_id, controller_id)` 作为 Sidecar singleton key。
 2. 并发请求幂等收敛到同一 `sidecar_id`。
-3. 在首次需要时按同一原子 batch 建立系统管理的 backing Circle、初始 backing membership、`ak.sidecar.create`、private Strand 与 `agent_sidecar_of` Relation；`ak.sidecar.create` 必须位于 backing Circle 建立之后并以它作为 effective scope。任一步失败，整个 batch 不可见且不得留下可枚举的部分对象。真实 MLS genesis 不属于该服务端 aggregate；它按 §5.1 由 controller 设备在本地持久化 provisional OpenMLS state 后通过标准 Event admission 提交。在 genesis accepted 之前 aggregate 保持 `key_material_pending` 且不可发送。
-4. 以 `(sidecar_id, normalized_context_ref)` 作为 private Strand reuse key；`normalized_context_ref` 只包含 Realm 与 Strand（或 profile 明确允许的 Relation）级身份，MUST NOT 包含 `track_name`、Message id、timeline anchor 或当前 UI route。
-5. 只接受由服务端派生的 backing Circle shape；caller 不得提供 Circle title、display、join rule、membership、encryption profile 或 ID。
-6. 返回 Sidecar、private Strand、private Relation 与 access/readiness 投影；不得把 backing Circle 暴露成普通 Circle 资源。
+3. prepare只创建private durable reservation，锁定Sidecar/backing Circle/private Strand/Relation IDs、operation/body digest与version，不写canonical Event。`ak.sidecar.create`使用注册的**parent-Realm-scoped bootstrap exception**，因为尚不存在backing Circle；它是controller-signed minimal Event，只投影Sidecar、backing Circle与controller初始backing membership，不携context、Agent selection或MLS frontier。
+4. `ak.sidecar.context.attach`是独立controller-signed、versioned CAS/idempotent Event，只投影private Strand与`agent_sidecar_of` Relation。其`attach.refs[]`必须含registered `EventRef{role="after"}`并指向create Event。首次ensure执行staged atomic admission：先用parent-Realm bootstrap exception验证provisional backing scope，再验证attach；两者均通过后一次提交`[ak.sidecar.create,ak.sidecar.context.attach]`，任一失败全部回滚。existing Sidecar的后续ensure只提交新的context attach，不重放create。
+5. 以 `(sidecar_id, normalized_context_ref)` 作为 private Strand reuse key；`normalized_context_ref` 只包含 Realm 与 Strand（或 profile 明确允许的 Relation）级身份，MUST NOT 包含 `track_name`、Message id、timeline anchor 或当前 UI route。
+6. caller不得提供Circle shape/ID/member list、Sidecar participant model或MLS private state；返回Sidecar、private Strand、Relation与access/readiness投影，不把backing Circle暴露成普通Circle资源。真实MLS genesis按§5.1由controller设备本地持久化provisional state后走标准Event admission；accepted前保持`key_material_pending`。
 
 普通 `ak.circle.create`、Circle REST create、Circle member-management capability 或 Circle picker MUST NOT 创建、更新、枚举或改变 Sidecar backing Circle。
 
 **`ak.component.sidecar.create.v1` 的 cell 语义（normative）**：该 cell family 是 `ordered_log`、`cell_subject=null`、`bottom=inert`，语义是**本 Realm 的 Sidecar 创建日志**——cell 由 Event envelope 的 `realm_id` 定位，每确保一个 Sidecar 追加一条 entry。它**不是** per-controller singleton cell：本节第 1 条的 singleton key `(context_ref.realm_id, controller_id)` 是 ensure 的 admission precondition（重复 key MUST fail closed），由 reducer 在准入阶段判定，MUST NOT 被改写成 cell subject。null subject 的 canonical wire 形态见 [`../conformance/encoding.md` §4](../conformance/encoding.md)；`ordered_log` 的 join 数学上不产生 `⊥`，本 family 不定义额外领域冲突语义，因此登记 `bottom=inert`（[`../authz/event-auth-state-resolution.md` §9.1.1](../authz/event-auth-state-resolution.md)），MUST NOT 借 `bottom=reject` 表达 singleton 冲突。
 
-`ak.sidecar.create` 不能通过通用 event submit 独立构造。Admission MUST 证明它属于本节 ensure 的原子 aggregate，`controller_id` 等于 authenticated principal，`backing_circle_id` 与同 batch Circle bit-identical。该 Event 的签名 `scope_ref` MUST 为 `{kind:"circle", realm_id, circle_id=backing_circle_id}`，不得进入 Realm-default delivery。
+`ak.sidecar.create` 不能作为普通Realm write独立构造。Admission MUST证明它属于本节ensure reservation与parent-Realm bootstrap exception，`controller_id`等于authenticated principal，且minimal projections逐字匹配reservation。create的签名`scope_ref`固定为parent Realm；只有create accepted后，context attach与后续Sidecar Event才使用`{kind:"circle",realm_id,circle_id=backing_circle_id}`。该exception不得授权其它Circle/Strand/Relation或普通Realm write。
 
 ### 3.2 专用读取
 
@@ -74,19 +74,19 @@ get 对 nonexistent、foreign-controller 与 unauthorized `sidecar_id` MUST 返�
 
 ### 3.3 生命周期
 
-- controller 仍为 Realm active member且 Sidecar policy gate 允许时，Sidecar 为 `active`。
-- controller 暂时失去 Realm access、account 被临时冻结或密钥恢复尚未 ready 时，Sidecar MUST 转为 `suspended` 并阻止新写入；恢复条件满足后 MAY 回到 `active`。
-- controller 永久离开 Realm、account 被不可逆删除或显式执行合规删除时，Sidecar MUST `tombstoned`；该状态不可逆，并级联停止 private Strand 写入、移除 backing Circle access、完成 MLS remove/rotate 与 retention/tombstone policy。
+- controller仍为Realm active member且Sidecar policy gate允许时，Sidecar为`active`。
+- leave、remove、ban、account service临时/terminal不可用、policy ineligible或密钥恢复未ready一律先投影为`suspended`并阻止新写入；条件合法恢复后MAY回到`active`。托管某个account的service terminal本身不得tombstone另一个principal拥有的Sidecar。
+- 只有controller **principal**、parent Realm或Sidecar自身进入可验证的不可逆terminal，或显式erase Sidecar时，才投影`tombstoned`；该状态不可逆，并级联停止private Strand写入、移除backing access及完成MLS remove/rotate与retention。
 - 用户不得通过普通 Circle archive/restore/tombstone 操作间接改变 Sidecar 生命周期。
 
 **合法 / 非法迁移（normative）**：`state` 由下表封闭定义，全部由派生条件触发，无 actor-authored 迁移入口；表外任何迁移非法，reducer MUST NOT 物化。
 
 | 源 state | 目标 state | 触发派生条件 |
 | --- | --- | --- |
-| `active` | `suspended` | controller 暂时失去 Realm access / account 临时冻结 / 密钥恢复未 ready |
-| `active` | `tombstoned` | controller 永久离开 Realm / account 不可逆删除 / 显式合规删除 |
+| `active` | `suspended` | controller leave/remove/ban、service/account不可用、policy ineligible或密钥恢复未ready |
+| `active` | `tombstoned` | controller principal、parent Realm或Sidecar不可逆terminal，或显式Sidecar erase |
 | `suspended` | `active` | 上述暂时性条件全部解除（controller 重获 Realm active membership 且 policy gate 允许） |
-| `suspended` | `tombstoned` | 暂停期间发生上一行的任一永久性条件 |
+| `suspended` | `tombstoned` | 暂停期间发生上述任一不可逆principal/Realm/Sidecar terminal或erase |
 | `tombstoned` | —（终态） | 不可逆；无出边 |
 
 `active` 与 `suspended` 是非终态，`tombstoned` 是唯一终态。`active -> active` / `suspended -> suspended` 的同态派生不是迁移，reducer MUST NOT 因此更新 `state_changed_at`。因 `state` 是 reducer-derived projection（无 actor-authored state event 可拒绝），"非法迁移拒绝"体现为 reducer MUST NOT 物化任何不在上表的 (源, 目标) 对，而非返回错误码。
@@ -95,13 +95,21 @@ get 对 nonexistent、foreign-controller 与 unauthorized `sidecar_id` MUST 返�
 
 **Backing Circle cascade 的物化边界（normative）**：Sidecar `active → suspended` 时不改写 backing Circle canonical lifecycle cell，只令 Sidecar admission gate 停止该 scope 的新写入。Sidecar 进入 `tombstoned` 时，同一触发 control frontier 必须把 backing Circle 的 **effective lifecycle** 派生为 terminal，并以触发 Sidecar terminal 的 accepted Event digest / covering Seal 作为唯一 cascade 锚点；实现 MUST NOT 合成无 actor 的 `ak.circle.tombstone`，也不得调用普通 Circle lifecycle operation。`ak.component.circle.lifecycle.v1` / tombstone cell 保持原 canonical 值，专用 Sidecar get/list、Circle-scope authorization、MLS reconciliation 与 retention worker在读取 backing Circle 时先应用该 terminal Sidecar cascade；因此即使普通 Circle cell 仍显示 `active`，任何新写入也 MUST 以 Sidecar terminal gate fail closed。相同触发 frontier 必须得到相同 effective terminal 结果；缺少触发 Event / Seal 时保持 dependency-pending，不得靠本地任务完成时间物化。这样 backing Circle 的“终止”是可重放的 reducer-derived cascade，而不是未登记的第二写路径。
 
-## 4. 派生访问集合
+## 4. 签名选择与派生访问集合
 
-Sidecar 没有可编辑 membership。其 desired access set 为：
+Sidecar没有普通Circle membership管理。唯一access authority Event kind是`ak.sidecar.access.replace`，由controller
+签名并固定`realm_id=parent_realm_id`、
+`scope_ref={kind:"circle",realm_id,circle_id=backing_circle_id}`。payload closed为
+`{sidecar_id,selected_agent_ids,version,predecessor_event_ref?}`；`selected_agent_ids`是按已登记UTF-8
+unsigned-byte ordering排序、去重的完整集合。`version=1`禁止predecessor；`version>1`必须逐字引用current head且
+只增一。destination receipt只证明acceptance/delivery，不是authority。controller隐式始终具有access，不能通过
+selection移除。
+
+desired access固定为：
 
 ```text
-desired_sidecar_access(S) = { S.controller_id }
-  ∪ { A | eligible_sidecar_agent(S.realm_id, S.controller_id, A) }
+desired_sidecar_access(S) = {S.controller_id}
+  ∪ {A | A in current_signed_selection(S) AND eligible_sidecar_agent(S,A)}
 ```
 
 `eligible_sidecar_agent(realm, controller, agent)` MUST fail closed，仅当以下条件全部成立时为 true：
@@ -112,7 +120,9 @@ desired_sidecar_access(S) = { S.controller_id }
 4. agent 未 paused/deactivated，pairing 未过期，active `ak.agent.key.authorize` 与 runtime proof 未 revoke。
 5. Realm policy、capability constraints、Sidecar gate 与 controller approval 均允许。
 
-其它 human actor、其他 controller 的 Agent、非 accountable Agent、Applet Ghost Actor 与外部 service principal MUST NOT 进入 desired 或 effective access。
+其它human actor、其他controller的Agent、非accountable Agent、Applet Ghost Actor与外部service principal不得进入
+desired/effective access。effective access还必须与current policy ceiling、Agent lifecycle/runtime authority、
+participation/grants、backing membership与MLS device readiness逐项求交；signed selection不能绕过任一current gate。
 
 ### 4.1 Desired access 与 effective access
 
@@ -132,13 +142,24 @@ desired_sidecar_access(S) = { S.controller_id }
 
 `principal_ids` MUST 等于完整 `desired_sidecar_access(S)`（包含 controller），按 DID UTF-8 byte lexicographic 升序排列且去重；digest 为 `sha256:<lowercase-hex(SHA-256(JCS bytes))>`。任何实现不得使用 UI 顺序、Circle member 顺序、设备 id、display name、到达时间或本地数据库 id 参与该 digest。
 
-`mls_context.control_frontier` 是服务端当前用于物化 Sidecar 与**已落地** backing membership 的 accepted control refs：MUST 包含 effective `ak.sidecar.create` ref、controller backing join ref，以及每个已经完成 backing membership reconciliation 的 desired Agent 当前 backing join ref；尚未落地的 desired Agent 不得伪造 join ref，view 同时以 `backing_scope_membership` pending 明示缺口。按 ref UTF-8 byte lexicographic 升序排列且去重。Sidecar MLS Event admission 还 MUST 要求 backing members 已与 `{controller} ∪ desired agents` 精确相等，并以当前 accepted eligibility/control state 重新计算 desired set；control frontier 与 digest 都匹配也不能绕过 membership reconciliation、freshness、revocation 或 policy 检查。
+`mls_context.control_frontier`是Sidecar binding的唯一control frontier，只能包含：effective
+`ak.sidecar.create` ref、current signed `ak.sidecar.access.replace` ref，以及backing membership current正/负refs。
+controller及每个current member含accepted positive ref；已移除/不再eligible者含使旧membership失效的accepted
+negative ref。`ak.sidecar.context.attach`、Relation、private Strand、diagnostic reconciliation ID与trigger ref明确
+排除。refs按UTF-8 unsigned-byte排序并去重。尚未落地的desired Agent不得伪造join ref，view以typed pending
+obligation明示缺口。该frontier只治理Sidecar binding；MLS `security_frontier_digest`必须独立按标准signed Seal+
+state leaf/inclusion proof重算，禁止从control frontier另造digest。Sidecar MLS admission仍必须重算current
+selection、eligibility与exact backing membership；frontier匹配不能绕过freshness/revocation/policy。
 
 - 新 Agent 进入 desired access 后，在 backing Circle membership、Add Commit accepted、匹配的 `ak.mls.welcome` accepted、目标设备成功 consume 同一 KeyPackage claim 全部完成前不得接收 Sidecar payload。一个 Agent principal 至少有一个仍 active/authorized、未被 remove 的设备满足上述证据时进入 `effective_agent_ids`；其它设备不会因 principal 已 effective 自动获得密钥。
 - controller 当前调用设备只在它是 accepted genesis 的 `creator_device_id`，或已完成同样的 Welcome/consume 证据时视为 device-ready。`access_readiness=ready` 要求当前 controller 设备 ready，且每个 `desired_agent_ids` principal 都已 effective；因此同一 Sidecar 在 controller 的不同设备上 MAY 暂时呈现不同 readiness，但 `desired_agent_ids`/`effective_agent_ids` 必须一致。
 - Agent 离开 desired access 时，服务端 MUST 在同一 control-state apply 中立即停止寻址/投递、移除 backing membership 并产生 durable pending MLS removal obligation。持有该 backing Circle 当前 MLS snapshot 的 controller 设备或 policy-authorized key service MUST 通过普通 `ak.mls.proposal` + `ak.mls.commit` 完成 remove/rotate；普通 Principal Server 不得伪造 Commit。没有 eligible committer 时发送保持 fail closed，obligation 保留并允许 §5.3 takeover。
 
-  专用 Sidecar view MUST 为每个尚未完成的 obligation 返回 `stage="mls_remove"` 的 `pending_access_reconciliations` item；该 item 的 `agent_id` 是已移除的 Agent，且 `membership_frontier` 是触发该 obligation 的 accepted membership/control refs，按 UTF-8 byte lexicographic 升序排列且去重。`membership_frontier` 对 `mls_remove` 必填且非空，对其它 stage 必须省略。这样 controller/key service 无需也不得通过普通 Circle surface 枚举 backing Circle，即可构造带当前 `sidecar_binding` 的 Remove Proposal/Commit。Commit accepted 后服务端清除对应 obligation；客户端仅在 accepted 后持久化 post-commit snapshot。
+  专用Sidecar view必须为每个未完成obligation返回既有`provisioning_phase`与最小current control refs；不得新增
+  `stage`或`membership_frontier` wire。controller/key service从唯一`control_frontier`与标准membership/Seal proof
+  构造Remove Proposal/Commit，不通过普通Circle surface枚举。Commit accepted后清除obligation；客户端仅在
+  accepted后持久化post-commit snapshot。`reconciliation_id`/`trigger_event_ref`若出现仅为view诊断，不参与
+  authority、frontier或hash。
 - reconciliation 期间新消息 MUST 阻塞或仅发给已经证明符合当前 desired/effective access 的安全交集；不得因旧 MLS key 仍存在而继续投递。
 - `pending_access_reconciliations=[]` 本身不证明 controller 设备或 addressed Agent 已 MLS-ready。
 

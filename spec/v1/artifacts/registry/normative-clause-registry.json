@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-02.6",
+  "version": "2026-08-03.1",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -160,7 +160,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:2409964de7d20232df040fbaead6b63d3852cf1a1d50cdb699a408eb4128aa1e",
+      "section_digest": "sha256:1f63ec5019ef9704ab610eab5160afdeca6e7860f528a5acdbcba569cafdc75b",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [

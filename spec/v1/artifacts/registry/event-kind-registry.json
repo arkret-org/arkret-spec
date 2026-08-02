@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.9",
+  "version": "2026-08-03.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T20:30:00Z",
+  "generated_at": "2026-08-03T02:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1433,7 +1433,8 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Full ak.schema.agent_sidecar.v1 object. Accepted only inside the atomic ak.self.agent.sidecar.command.ensure aggregate after its reducer-derived backing Circle exists. The canonical Event materializes backing_circle_id and is stamped into that Circle effective scope; raw ensure callers cannot supply it. See zh/models/sidecar.md §2-§5.",
+      "admission": "self_authored_proof",
+      "payload": "Controller-signed minimal Sidecar creation intent. Under the registered parent-Realm bootstrap authority it projects exactly the Sidecar, backing Circle and controller initial backing membership; context objects are excluded. First ensure admits it atomically with ak.sidecar.context.attach. See zh/models/sidecar.md §2-§5.",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1467,6 +1468,98 @@
       },
       "lattice": "ordered_log",
       "bottom": "inert"
+    },
+    {
+      "event_kind": "ak.sidecar.context.attach",
+      "category": "sidecar",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "admission": "self_authored_proof",
+      "payload": "Controller-signed versioned context attachment. It projects only the private Strand and Relation and contains a required EventRef role=after to the Sidecar create Event. It is excluded from the Sidecar control frontier and MLS security frontier input.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_context_attach_payload",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.sidecar.context.v1",
+          "cell_subject": {
+            "field": "payload.sidecar_id",
+            "kind": "id:sidecar"
+          },
+          "lattice": "ordered_log",
+          "bottom": "inert",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier",
+      "cell_family": "ak.component.sidecar.context.v1",
+      "cell_subject": {
+        "field": "payload.sidecar_id",
+        "kind": "id:sidecar"
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
+      },
+      "lattice": "ordered_log",
+      "bottom": "inert"
+    },
+    {
+      "event_kind": "ak.sidecar.access.replace",
+      "category": "sidecar",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "admission": "self_authored_proof",
+      "payload": "Controller-signed full-set access replacement fixed to the parent Realm and backing Circle scope. Version 1 omits predecessor; each successor increments exactly once and references the current head. Delivery receipts are evidence only and never authority.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_access_replace_payload",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.sidecar.access.v1",
+          "cell_subject": {
+            "field": "payload.sidecar_id",
+            "kind": "id:sidecar"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier",
+      "cell_family": "ak.component.sidecar.access.v1",
+      "cell_subject": {
+        "field": "payload.sidecar_id",
+        "kind": "id:sidecar"
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.circle.update",
@@ -4823,11 +4916,7 @@
             "components": [
               "payload.controller_id",
               "payload.agent_id",
-              {
-                "kind": "string_set_digest",
-                "field": "payload.accountability_scope",
-                "context": "ak.accountability-scope-set-v1"
-              }
+              "payload.accountability_scope"
             ]
           },
           "lattice": "cas_register",
@@ -5510,7 +5599,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Principal-scoped contact tombstone fact. Issuer ends their own side of a contact and may revoke contact-managed consent dots.",
+      "payload": "Holder-signed issuer-local Contact generation terminal. It consumes the stable basis and cannot carry scope replacement or write/revoke Private Consent.",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5538,6 +5627,81 @@
       "cell_subject": {
         "field": "payload.peer",
         "kind": "did"
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
+    },
+    {
+      "event_kind": "ak.contact.scope.update",
+      "category": "contact",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "admission": "self_authored_proof",
+      "payload": "Holder-signed issuer-local full-set granted_to_peer_scopes replacement bound to the closed peer XOR, stable basis, version and predecessor. Expansion and narrowing are both explicit; tombstone remains the only generation terminal.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_scope_update_payload",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.contact.fact_log.v1",
+          "cell_subject": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "select",
+                "selector": "payload.peer.kind",
+                "branches": {
+                  "human": {
+                    "field": "payload.peer.principal_id"
+                  },
+                  "agent": {
+                    "field": "payload.peer.agent_id"
+                  }
+                }
+              }
+            ]
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "merge_safe",
+      "cell_family": "ak.component.contact.fact_log.v1",
+      "cell_subject": {
+        "kind": "composite",
+        "components": [
+          {
+            "kind": "select",
+            "selector": "payload.peer.kind",
+            "branches": {
+              "human": {
+                "field": "payload.peer.principal_id"
+              },
+              "agent": {
+                "field": "payload.peer.agent_id"
+              }
+            }
+          }
+        ]
       },
       "effect_projection": {
         "kind": "append",
