@@ -6548,9 +6548,10 @@
         "mls_group_id",
         "base_epoch",
         "base_epoch_ref",
-        "proposal_refs",
-        "next_epoch",
-        "commit_digest",
+          "proposal_refs",
+          "next_epoch",
+          "commit_bytes_b64",
+          "commit_digest",
         "governance_binding"
       ],
       "not": {
@@ -6578,12 +6579,18 @@
           },
           "uniqueItems": true
         },
-        "next_epoch": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Committed next MLS epoch. MUST equal governance_binding.next_epoch."
-        },
-        "commit_message_ref": {
+          "next_epoch": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Committed next MLS epoch. MUST equal governance_binding.next_epoch."
+          },
+          "commit_bytes_b64": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "description": "Unpadded base64url RFC 9420 MLS Commit message. Receivers verify commit_digest before applying it."
+          },
+          "commit_message_ref": {
           "$ref": "#/$defs/object_ref"
         },
         "commit_digest": {

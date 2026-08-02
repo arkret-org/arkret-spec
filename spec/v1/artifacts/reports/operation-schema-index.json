@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.2",
+  "version": "2026-08-02.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T12:00:00Z",
+  "generated_at": "2026-08-02T13:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -595,12 +595,14 @@
         "schema_kind": "object",
         "required": [
           "ok",
-          "authorized_event_ref",
+          "activation_state",
+          "authorize_event_ref",
           "signing_key_binding"
         ],
         "properties": [
           "ok",
-          "authorized_event_ref",
+          "activation_state",
+          "authorize_event_ref",
           "signing_key_binding"
         ],
         "closed": true

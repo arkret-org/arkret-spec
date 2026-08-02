@@ -2043,13 +2043,14 @@ ak.vector.realm.authority_root_bootstrap.v1
 
 本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` MUST 在同一原子 unit 内物化五条 registered cell write，其中第五条是唯一的 `ak.component.realm.authority_root.v1:null` cell，值恰为 `{controller_id = payload.object.created_by, controller_epoch = 0, authority_generation = 0, capability_action_registry_digest = payload.object.capability_action_registry_digest}`。
 
-正例：五条 registered write 全部落入 genesis `state_root`，创建者在 genesis Seal 下即具有 effective `ak.realm.owner`；该批 accepted 后，创建者凭 accepted-Seal root-cell inclusion proof 可直接 author `ak.strand.create`（该 kind 在 owner operational coverage 内），也可在 owner 的 `grant_authority_actions` 上界内向成员签发 strand grant。
+正例：五条 registered write 全部落入 genesis `state_root`，创建者在 genesis Seal 下即具有 effective `ak.realm.owner`；该批 accepted 后，创建者凭 accepted-Seal root-cell inclusion proof 可直接 author `ak.strand.create`（该 kind 在 owner operational coverage 内），也可在 owner 的 `grant_authority_actions` 上界内向成员签发 strand grant。实现升级 current capability-action registry 后，使用 append-only 归档中一个已发布 predecessor digest 创建的既有 Realm MUST 仍可精确解析该旧 snapshot、重算 digest 并得到与升级前相同的 owner coverage。
 
 负例（每条各自 MUST fail closed，不得留下 Realm / membership 半成品）：
 
 - 缺 authority-root cell → `realm_authority_root_missing`；
 - author 自行提供 `controller_id` / 非零 `controller_epoch` / 非零 `authority_generation` / 与签名 payload 不一致的 registry digest / 四字段之外的额外成员 → `realm_authority_root_conflict`；
 - `capability_action_registry_digest` 对应 snapshot 不可取得或 JCS 重算不一致 → `capability_registry_basis_unavailable`，且 MUST NOT 回退到本机当前 embedded registry；
+- 把未知 digest 指向 current snapshot、按 action 集“近似相同”接受，或删除已发布 predecessor snapshot 后仅保留 current → conformance 失败；
 - 夹带旧四项 / 五项 / 三项 founding-grant shape 的 self grant MUST NOT 被识别为 authority root，仍按 §3.2 普通 issuer 上界判定为 `grant_exceeds_issuer_authority`；
 - staged root proof 在 genesis batch 之外重放，或在 batch 内改用 accepted-Seal inclusion proof（此时尚无 accepted Seal）→ `realm_authority_controller_mismatch`。
 
@@ -5920,7 +5921,10 @@ Runner MUST 覆盖：
 
 runner MUST 执行 `agent-signer-evidence-fixture.json` 的完整 `binding_vector` 与全部 case：重算
 controller proof signing input、binding digest、accepted state / transition witness 与 freshness
-边界，并覆盖 active、revoked、superseded、unresolved 及字段篡改分支。只加载 fixture、只验证来源服务
+边界，并覆盖 active、revoked、superseded、unresolved 及字段篡改分支；state witness 正例 MUST 使用
+`<event_id>:<write_index>` canonical Event dot，裸 Event id、非 canonical write index 与其它 Event dot
+均 MUST 拒绝，revoke 后的 transition witness MUST 来自同一 key cell 中 reducer 写入的 revoke marker。
+只加载 fixture、只验证来源服务
 签名或跳过任一 case 均不构成通过。
 
 ## 29. Actor accountability grant closure vector

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.3",
+  "version": "2026-08-01.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T13:00:00Z",
+  "generated_at": "2026-08-01T05:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -571,22 +571,6 @@
       "notes": "Authorizes only the transaction-bound old-series targets in a fixed SecurityRotationTransaction plan after both replacement active-series pointers are accepted. It never authorizes deleting an active or unplanned backup series."
     },
     {
-      "action": "ak.member.leave.own",
-      "category": "membership",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "required_evaluator_checks": [
-        "membership_transition_is_join_to_leave",
-        "actor_equals_membership_subject"
-      ],
-      "target_event_kinds": [
-        "ak.member.state"
-      ],
-      "profile": "ak.profile.direct_conversation_realm.v1",
-      "event_mapping_kind": "scope_suffix_variant",
-      "notes": "Direct Conversation participant self-leave only. It never authorizes leave/ban/remove of the other participant or any join transition."
-    },
-    {
       "action": "ak.message.create",
       "category": "discussion",
       "risk_tier": "medium",
@@ -744,22 +728,6 @@
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.mls.welcome.own_device",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "required_evaluator_checks": [
-        "welcome_recipient_is_active_device_of_same_participant",
-        "mls_group_matches_active_direct_conversation_binding"
-      ],
-      "target_event_kinds": [
-        "ak.mls.welcome"
-      ],
-      "profile": "ak.profile.direct_conversation_realm.v1",
-      "event_mapping_kind": "scope_suffix_variant",
-      "notes": "Narrow Direct Conversation participant authority for welcoming another currently authorized device of the same stable participant. It cannot add a third principal or a device of the other participant."
     },
     {
       "action": "ak.moderation.appeal.review",

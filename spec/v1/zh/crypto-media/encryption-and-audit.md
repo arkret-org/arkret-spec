@@ -1190,7 +1190,9 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 - `base_epoch`：Commit 构造时读取的当前 epoch。
 - `base_epoch_ref`：本地认为当前 effective 的 `ak.mls.commit` Control Move 或 `ak.mls.genesis` Control Move / genesis group state ref；epoch 由 effective commit 机械派生，协议不定义独立的 `ak.mls.epoch` seal event。
 - `proposal_refs`：被该 Commit 消费的 `ak.mls.proposal` events；即使只有一个 proposal，也 MUST 使用长度为 1 的数组，生产者不得使用单数 `proposal_ref`。
-- `commit_message_ref` / `commit_digest`：MLS Commit 消息或其 content-addressed blob。
+- `commit_bytes_b64`：未填充 base64url 编码的完整 RFC 9420 MLS Commit 消息，MUST 内联携带，使离线成员仅依赖 durable Event history 即可按序追上 epoch；只携带摘要不能满足 §6 的离线恢复义务。
+- `commit_digest`：`commit_bytes_b64` 解码后字节的 SHA-256 摘要；接收方 MUST 在处理 Commit 前校验。
+- `commit_message_ref`：可选的 content-addressed blob 引用，只用于归档、去重或传输优化；不得替代 `commit_bytes_b64`，也不得成为应用 winning Commit 的额外可用性依赖。
 - `next_epoch`：必须等于 `base_epoch + 1`。
 - `governance_binding`：见第 2.5 节。
 
@@ -1239,7 +1241,7 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 - 自保 commit 是普通 `ak.mls.commit`：`governance_binding`、capability 校验、§2.4.1 send-pause 语义一概不变；它不是新的 event kind，也不引入新的服务端协调要求。
 
 ## 6. 离线支持与消息延迟到达
-- 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `ak.mls.commit` 操作跟上 Epoch 的演进，并解密积压在 Sync Service 中的加密事件。
+- 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `ak.mls.commit` 操作中强制内联的 `commit_bytes_b64` 按 accepted Seal 顺序跟上 Epoch 的演进，并解密积压在 Sync Service 中的加密事件。实现不得假设发送者仍在线，也不得把可选 `commit_message_ref` 对应 blob 的可用性作为恢复前提。
 - 对于极端网络分区情况，客户端 SHOULD 保存尚未完全确认的前驱 Epoch 密钥状态，直到所有相关的历史 `encrypted_payload` 都已被成功拉取与解密。
 - 这种前驱 Epoch 保留是有界的恢复缓存，不是为后加入成员历史共享而无限期保存先前 secret。客户端 MUST 对本地先前 epoch key 使用设备保护存储或明确授权的 key backup，并在 retention / legal hold / erasure policy 不再要求保留时销毁。
 
