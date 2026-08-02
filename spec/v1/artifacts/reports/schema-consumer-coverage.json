@@ -16,6 +16,8 @@
     "outbound": "bound as an operation response body.",
     "schema_reference": "referenced by another schema, so it is a structural component.",
     "event_kind": "bound by the Event kind registry, so a durable Event selects it by kind.",
+    "declared_wire": "explicit machine-readable runtime, dynamic, nested-value or alias binding declared by the canonical schema registry.",
+    "prose_only": "explicitly declared as having no whole-object v1 wire admission surface.",
     "vectors": "required by a conformance profile or vector group, or referenced by a fixture.",
     "prose": "named by the normative text, which is where a runtime-dispatched contract is defined.",
     "startup_compile": "a schema registry row, compiled by the startup catalog gate."
@@ -26,35 +28,34 @@
     "registered": "the schema ID appears in the Event kind registry.",
     "required_schema": "listed in a conformance profile or vector group required_schemas.",
     "fixture": "the schema ID appears in a conformance fixture.",
-    "normative_text": "the schema ID appears in the normative prose."
+    "normative_text": "the schema ID appears in the normative prose.",
+    "declared": "the canonical schema registry carries an explicit disposition."
   },
   "summary": {
     "total_schemas": 177,
     "by_consumer": {
+      "declared_wire": 10,
       "event_kind": 12,
       "inbound": 41,
       "outbound": 44,
       "prose": 109,
+      "prose_only": 1,
       "schema_reference": 159,
       "startup_compile": 177,
       "vectors": 110
     },
-    "without_wire_consumer": 11,
+    "without_wire_consumer": 1,
+    "explicit_prose_only": 1,
+    "unresolved_consumer_coverage": 0,
     "without_vector_coverage": 67
   },
   "without_wire_consumer": [
-    "ak.schema.account_data_encrypted_value.v1",
-    "ak.schema.applet.v1",
-    "ak.schema.authority_set_policy.v1",
-    "ak.schema.call_signal_plaintext.v1",
-    "ak.schema.draft_sync.v1",
-    "ak.schema.morph.customer_risk.ext.v1",
-    "ak.schema.morph.customer_risk.v1",
-    "ak.schema.read_receipt.v1",
-    "ak.schema.signal_presence.v1",
-    "ak.schema.signal_typing.v1",
-    "ak.schema.transport_binding.v1"
+    "ak.schema.applet.v1"
   ],
+  "explicit_prose_only": [
+    "ak.schema.applet.v1"
+  ],
+  "unresolved_consumer_coverage": [],
   "without_vector_coverage": [
     "ak.schema.account_data_encrypted_value.v1",
     "ak.schema.account_data_operations.v1",
@@ -129,10 +130,16 @@
       "schema_id": "ak.schema.account_data_encrypted_value.v1",
       "file": "schemas/account-data-encrypted-value.schema.json",
       "consumers": {
+        "declared_wire": "account_data_storage",
         "prose": "normative_text",
         "startup_compile": "exact"
       },
-      "wire_covered": false
+      "wire_covered": true,
+      "consumer_binding": {
+        "kind": "account_data_storage",
+        "selector": "account-data-key-registry.json#/keys[storage=encrypted_account_data]",
+        "normative_ref": "zh/models/account-data.md#2"
+      }
     },
     {
       "schema_id": "ak.schema.account_data_operations.v1",
@@ -360,9 +367,14 @@
       "schema_id": "ak.schema.applet.v1",
       "file": "schemas/applet.schema.json",
       "consumers": {
+        "prose_only": "declared",
         "startup_compile": "exact"
       },
-      "wire_covered": false
+      "wire_covered": false,
+      "consumer_binding": {
+        "kind": "prose_only",
+        "rationale": "No v1 operation or Event admits this whole object; ak.applet.* Events use event-payload.schema.json definitions."
+      }
     },
     {
       "schema_id": "ak.schema.applet_edge_operations.v1",
@@ -465,11 +477,17 @@
       "schema_id": "ak.schema.authority_set_policy.v1",
       "file": "schemas/authority-set-policy.schema.json",
       "consumers": {
+        "declared_wire": "standalone_schema_alias",
         "prose": "normative_text",
         "startup_compile": "exact",
         "vectors": "fixture"
       },
-      "wire_covered": false
+      "wire_covered": true,
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "schemas/offline-publication.schema.json#/$defs/authority_set_policy",
+        "normative_ref": "zh/authz/offline-publication.md#3"
+      }
     },
     {
       "schema_id": "ak.schema.authz_operations.v1",
@@ -560,10 +578,16 @@
       "schema_id": "ak.schema.call_signal_plaintext.v1",
       "file": "schemas/call-signal-plaintext.schema.json",
       "consumers": {
+        "declared_wire": "signal_plaintext_dispatch",
         "prose": "normative_text",
         "startup_compile": "exact"
       },
-      "wire_covered": false
+      "wire_covered": true,
+      "consumer_binding": {
+        "kind": "signal_plaintext_dispatch",
+        "selector": "ak.call.signal",
+        "normative_ref": "zh/sync/signal.md#1.1"
+      }
     },
     {
       "schema_id": "ak.schema.capability.v1",
@@ -804,10 +828,16 @@
       "schema_id": "ak.schema.draft_sync.v1",
       "file": "schemas/draft-sync.schema.json",
       "consumers": {
+        "declared_wire": "account_data_plaintext",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
-      "wire_covered": false
+      "wire_covered": true,
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "ak.profile.draft_sync.v1",
+        "normative_ref": "zh/models/personal-productivity.md#7"
+      }
     },
     {
       "schema_id": "ak.schema.encrypted_envelope.v1",
@@ -1255,20 +1285,32 @@
       "schema_id": "ak.schema.morph.customer_risk.ext.v1",
       "file": "schemas/morph-customer-risk-ext.schema.json",
       "consumers": {
+        "declared_wire": "dynamic_schema_ref",
         "startup_compile": "exact",
         "vectors": "fixture"
       },
-      "wire_covered": false
+      "wire_covered": true,
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "ak.schema.morph.v1#/schema_refs[]",
+        "normative_ref": "zh/models/morph.md#4"
+      }
     },
     {
       "schema_id": "ak.schema.morph.customer_risk.v1",
       "file": "schemas/morph-customer-risk.schema.json",
       "consumers": {
+        "declared_wire": "dynamic_schema_ref",
         "prose": "normative_text",
         "startup_compile": "exact",
         "vectors": "fixture"
       },
-      "wire_covered": false
+      "wire_covered": true,
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "ak.schema.morph.v1#/schema_refs[]",
+        "normative_ref": "zh/models/morph.md#4"
+      }
     },
     {
       "schema_id": "ak.schema.morph.v1",
@@ -1443,11 +1485,17 @@
       "schema_id": "ak.schema.read_receipt.v1",
       "file": "schemas/read-receipt.schema.json",
       "consumers": {
+        "declared_wire": "signal_plaintext_dispatch",
         "prose": "normative_text",
         "startup_compile": "exact",
         "vectors": "fixture"
       },
-      "wire_covered": false
+      "wire_covered": true,
+      "consumer_binding": {
+        "kind": "signal_plaintext_dispatch",
+        "selector": "ak.receipt.read",
+        "normative_ref": "zh/sync/signal.md#1.1"
+      }
     },
     {
       "schema_id": "ak.schema.realm.v1",
@@ -1718,10 +1766,16 @@
       "schema_id": "ak.schema.signal_presence.v1",
       "file": "schemas/signal-presence.schema.json",
       "consumers": {
+        "declared_wire": "signal_plaintext_dispatch",
         "prose": "normative_text",
         "startup_compile": "exact"
       },
-      "wire_covered": false
+      "wire_covered": true,
+      "consumer_binding": {
+        "kind": "signal_plaintext_dispatch",
+        "selector": "ak.presence",
+        "normative_ref": "zh/sync/signal.md#1.1"
+      }
     },
     {
       "schema_id": "ak.schema.signal_relay.v1",
@@ -1749,10 +1803,16 @@
       "schema_id": "ak.schema.signal_typing.v1",
       "file": "schemas/signal-typing.schema.json",
       "consumers": {
+        "declared_wire": "signal_plaintext_dispatch",
         "prose": "normative_text",
         "startup_compile": "exact"
       },
-      "wire_covered": false
+      "wire_covered": true,
+      "consumer_binding": {
+        "kind": "signal_plaintext_dispatch",
+        "selector": "ak.typing",
+        "normative_ref": "zh/sync/signal.md#1.1"
+      }
     },
     {
       "schema_id": "ak.schema.snapshot.v1",
@@ -1811,10 +1871,16 @@
       "schema_id": "ak.schema.transport_binding.v1",
       "file": "schemas/transport-binding.schema.json",
       "consumers": {
+        "declared_wire": "standalone_schema_alias",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
-      "wire_covered": false
+      "wire_covered": true,
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "schemas/service-describe.schema.json#/$defs/transport_binding",
+        "normative_ref": "zh/sync/transport-bindings.md#7"
+      }
     },
     {
       "schema_id": "ak.schema.view.v1",

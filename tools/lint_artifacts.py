@@ -2739,12 +2739,20 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     schema_rows = schema_registry.get("schemas", [])
     schema_ids = unique_values(lint, schema_path, schema_rows, "schema_id")
     schema_refs_by_file: dict[str, set[str]] = {}
+    declared_wire_binding_kinds = {
+        "account_data_plaintext",
+        "account_data_storage",
+        "dynamic_schema_ref",
+        "signal_plaintext_dispatch",
+        "standalone_schema_alias",
+    }
     for row in schema_rows if isinstance(schema_rows, list) else []:
         if not isinstance(row, dict):
             continue
         schema_id = row.get("schema_id")
         file_ref = row.get("file")
         fragment = row.get("fragment")
+        consumer_binding = row.get("consumer_binding")
         if isinstance(schema_id, str) and not SCHEMA_ID_RE.fullmatch(schema_id):
             lint.fail(schema_path, f"schema_id has invalid format: {schema_id}")
         if not isinstance(file_ref, str) or not file_ref:
@@ -2778,6 +2786,31 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     f"{schema_id} duplicates effective schema reference {file_ref}{effective_fragment}",
                 )
             seen_fragments.add(effective_fragment)
+        if consumer_binding is not None:
+            if not isinstance(consumer_binding, dict):
+                lint.fail(schema_path, f"{schema_id} consumer_binding must be an object")
+            else:
+                binding_kind = consumer_binding.get("kind")
+                if binding_kind == "prose_only":
+                    if not isinstance(consumer_binding.get("rationale"), str) or not consumer_binding[
+                        "rationale"
+                    ]:
+                        lint.fail(
+                            schema_path,
+                            f"{schema_id} prose_only consumer_binding must state a rationale",
+                        )
+                elif binding_kind in declared_wire_binding_kinds:
+                    for field in ("selector", "normative_ref"):
+                        if not isinstance(consumer_binding.get(field), str) or not consumer_binding[field]:
+                            lint.fail(
+                                schema_path,
+                                f"{schema_id} {binding_kind} consumer_binding must declare {field}",
+                            )
+                else:
+                    lint.fail(
+                        schema_path,
+                        f"{schema_id} has unknown consumer_binding kind {binding_kind!r}",
+                    )
 
     id_rows = id_registry.get("id_kinds", [])
     id_kinds = unique_values(lint, id_path, id_rows, "kind")

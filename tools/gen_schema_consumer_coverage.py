@@ -51,6 +51,13 @@ REFERENCE_RE = re.compile(
     r"([A-Za-z0-9._-]+\.json)(#.*)?$"
 )
 REF_TOKEN_RE = re.compile(r'"\$ref"\s*:\s*"([^"]+)"')
+DECLARED_WIRE_BINDING_KINDS = {
+    "account_data_plaintext",
+    "account_data_storage",
+    "dynamic_schema_ref",
+    "signal_plaintext_dispatch",
+    "standalone_schema_alias",
+}
 
 
 def dump_json(data: Any) -> str:
@@ -172,6 +179,34 @@ def build_report() -> dict[str, Any]:
             consumers["vectors"] = "fixture"
         if schema_id in prose_text:
             consumers["prose"] = "normative_text"
+
+        declared_binding = registry_row.get("consumer_binding")
+        if declared_binding is not None:
+            if not isinstance(declared_binding, dict):
+                raise SystemExit(f"{schema_id} consumer_binding must be an object")
+            declared_kind = declared_binding.get("kind")
+            if declared_kind == "prose_only":
+                rationale = declared_binding.get("rationale")
+                if not isinstance(rationale, str) or not rationale:
+                    raise SystemExit(
+                        f"{schema_id} prose_only consumer_binding must state a rationale"
+                    )
+                consumers["prose_only"] = "declared"
+            elif declared_kind in DECLARED_WIRE_BINDING_KINDS:
+                if not all(
+                    isinstance(declared_binding.get(field), str)
+                    and declared_binding[field]
+                    for field in ("selector", "normative_ref")
+                ):
+                    raise SystemExit(
+                        f"{schema_id} {declared_kind} consumer_binding must declare "
+                        "selector and normative_ref"
+                    )
+                consumers["declared_wire"] = declared_kind
+            else:
+                raise SystemExit(
+                    f"{schema_id} has unknown consumer_binding kind {declared_kind!r}"
+                )
         consumers["startup_compile"] = "exact"
 
         row = {
@@ -180,15 +215,31 @@ def build_report() -> dict[str, Any]:
             "consumers": dict(sorted(consumers.items())),
             "wire_covered": any(
                 key in consumers
-                for key in ("inbound", "outbound", "schema_reference", "event_kind")
+                for key in (
+                    "inbound",
+                    "outbound",
+                    "schema_reference",
+                    "event_kind",
+                    "declared_wire",
+                )
             ),
         }
+        if declared_binding is not None:
+            row["consumer_binding"] = declared_binding
         if isinstance(registry_row.get("fragment"), str):
             row["fragment"] = registry_row["fragment"]
         rows.append(row)
 
     rows.sort(key=lambda row: row["schema_id"])
     uncovered = [row["schema_id"] for row in rows if not row["wire_covered"]]
+    unresolved = [
+        row["schema_id"]
+        for row in rows
+        if not row["wire_covered"] and "prose_only" not in row["consumers"]
+    ]
+    prose_only = [
+        row["schema_id"] for row in rows if "prose_only" in row["consumers"]
+    ]
     vectorless = [row["schema_id"] for row in rows if "vectors" not in row["consumers"]]
 
     consumer_counts: dict[str, int] = {}
@@ -219,6 +270,8 @@ def build_report() -> dict[str, Any]:
             "outbound": "bound as an operation response body.",
             "schema_reference": "referenced by another schema, so it is a structural component.",
             "event_kind": "bound by the Event kind registry, so a durable Event selects it by kind.",
+            "declared_wire": "explicit machine-readable runtime, dynamic, nested-value or alias binding declared by the canonical schema registry.",
+            "prose_only": "explicitly declared as having no whole-object v1 wire admission surface.",
             "vectors": "required by a conformance profile or vector group, or referenced by a fixture.",
             "prose": "named by the normative text, which is where a runtime-dispatched contract is defined.",
             "startup_compile": "a schema registry row, compiled by the startup catalog gate.",
@@ -230,14 +283,19 @@ def build_report() -> dict[str, Any]:
             "required_schema": "listed in a conformance profile or vector group required_schemas.",
             "fixture": "the schema ID appears in a conformance fixture.",
             "normative_text": "the schema ID appears in the normative prose.",
+            "declared": "the canonical schema registry carries an explicit disposition.",
         },
         "summary": {
             "total_schemas": len(rows),
             "by_consumer": dict(sorted(consumer_counts.items())),
             "without_wire_consumer": len(uncovered),
+            "explicit_prose_only": len(prose_only),
+            "unresolved_consumer_coverage": len(unresolved),
             "without_vector_coverage": len(vectorless),
         },
         "without_wire_consumer": uncovered,
+        "explicit_prose_only": prose_only,
+        "unresolved_consumer_coverage": unresolved,
         "without_vector_coverage": vectorless,
         "schemas": rows,
     }

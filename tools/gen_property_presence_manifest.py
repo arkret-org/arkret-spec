@@ -235,7 +235,13 @@ def presence_class(required: bool, nullable: bool, has_default: bool) -> str:
 def collect_rows(documents: dict[str, Any]) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
 
-    def walk(document_name: str, node: Any, pointer: str) -> None:
+    def walk(
+        document_name: str,
+        node: Any,
+        pointer: str,
+        shape: str,
+        instance_path: str,
+    ) -> None:
         if not isinstance(node, dict):
             return
         properties = node.get("properties")
@@ -250,30 +256,69 @@ def collect_rows(documents: dict[str, Any]) -> list[dict[str, Any]]:
                     {
                         "schema_file": document_name,
                         "pointer": child_pointer,
+                        "shape": shape,
+                        "instance_path": f"{instance_path}/{name}",
                         "conditionally_required": name in conditional,
                         "presence_class": presence_class(is_required, nullable, has_default),
                     }
                 )
-                walk(document_name, child, child_pointer)
+                walk(
+                    document_name,
+                    child,
+                    child_pointer,
+                    shape,
+                    f"{instance_path}/{name}",
+                )
         for keyword in ("oneOf", "anyOf", "allOf", "prefixItems"):
             for index, branch in enumerate(node.get(keyword, []) or []):
-                walk(document_name, branch, f"{pointer}/{keyword}/{index}")
+                walk(
+                    document_name,
+                    branch,
+                    f"{pointer}/{keyword}/{index}",
+                    shape,
+                    instance_path,
+                )
         for keyword in ("if", "then", "else", "items", "contains", "not"):
             branch = node.get(keyword)
             if isinstance(branch, dict):
-                walk(document_name, branch, f"{pointer}/{keyword}")
+                nested_instance = (
+                    f"{instance_path}/*" if keyword in {"items", "contains"} else instance_path
+                )
+                walk(
+                    document_name,
+                    branch,
+                    f"{pointer}/{keyword}",
+                    shape,
+                    nested_instance,
+                )
         for container in ("$defs", "patternProperties", "additionalProperties"):
             branch = node.get(container)
             if container == "additionalProperties":
                 if isinstance(branch, dict):
-                    walk(document_name, branch, f"{pointer}/{container}")
+                    walk(
+                        document_name,
+                        branch,
+                        f"{pointer}/{container}",
+                        shape,
+                        f"{instance_path}/*",
+                    )
                 continue
             if isinstance(branch, dict):
                 for name, child in branch.items():
-                    walk(document_name, child, f"{pointer}/{container}/{name}")
+                    child_pointer = f"{pointer}/{container}/{name}"
+                    if container == "$defs":
+                        walk(document_name, child, child_pointer, child_pointer, "")
+                    else:
+                        walk(
+                            document_name,
+                            child,
+                            child_pointer,
+                            shape,
+                            f"{instance_path}/{{{name}}}",
+                        )
 
     for document_name, document in documents.items():
-        walk(document_name, document, "")
+        walk(document_name, document, "", "#", "")
     rows.sort(key=lambda row: (row["schema_file"], row["pointer"]))
     return rows
 
@@ -291,6 +336,23 @@ def build_manifest() -> dict[str, Any]:
         f"{row['schema_file']}{row['pointer']}"
         for row in rows
         if row["presence_class"] == "tristate"
+    ]
+    tristate_targets: dict[tuple[str, str, str], list[str]] = {}
+    for row in rows:
+        if row["presence_class"] != "tristate":
+            continue
+        key = (row["schema_file"], row["shape"], row["instance_path"])
+        tristate_targets.setdefault(key, []).append(row["pointer"])
+    tristate_audit_targets = [
+        {
+            "schema_file": schema_file,
+            "shape": shape,
+            "instance_path": instance_path,
+            "occurrences": sorted(occurrences),
+        }
+        for (schema_file, shape, instance_path), occurrences in sorted(
+            tristate_targets.items()
+        )
     ]
 
     by_document: dict[str, dict[str, Any]] = {}
@@ -319,7 +381,9 @@ def build_manifest() -> dict[str, Any]:
             "required, nullable and default are independent axes; presence_class is "
             "their normative combination. An SDK MUST reproduce the class exactly: a "
             "tristate property needs a Missing / Null / Value representation, because "
-            "a two-state optional collapses explicit null into absent."
+            "a two-state optional collapses explicit null into absent. Repeated conditional "
+            "schema occurrences are also grouped into semantic audit targets by shape and "
+            "instance path so SDK audits do not count the same DTO field multiple times."
         ),
         "presence_class_definitions": {
             "required": "must be present and never null.",
@@ -332,8 +396,11 @@ def build_manifest() -> dict[str, Any]:
             "total_properties": len(rows),
             "total_schema_documents": len(documents),
             "by_presence_class": dict(sorted(class_counts.items())),
+            "tristate_occurrences": len(tristate),
+            "tristate_audit_targets": len(tristate_audit_targets),
         },
         "tristate_properties": tristate,
+        "tristate_audit_targets": tristate_audit_targets,
         "documents": by_document,
     }
 

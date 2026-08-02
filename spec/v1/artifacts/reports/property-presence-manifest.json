@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/schema-registry.json"
   ],
-  "description": "Per-property wire presence contract derived from the schema documents. required, nullable and default are independent axes; presence_class is their normative combination. An SDK MUST reproduce the class exactly: a tristate property needs a Missing / Null / Value representation, because a two-state optional collapses explicit null into absent.",
+  "description": "Per-property wire presence contract derived from the schema documents. required, nullable and default are independent axes; presence_class is their normative combination. An SDK MUST reproduce the class exactly: a tristate property needs a Missing / Null / Value representation, because a two-state optional collapses explicit null into absent. Repeated conditional schema occurrences are also grouped into semantic audit targets by shape and instance path so SDK audits do not count the same DTO field multiple times.",
   "presence_class_definitions": {
     "required": "must be present and never null.",
     "required_nullable": "must be present and may be null; absent and null are different wire facts.",
@@ -23,7 +23,9 @@
       "required": 5170,
       "required_nullable": 90,
       "tristate": 259
-    }
+    },
+    "tristate_occurrences": 259,
+    "tristate_audit_targets": 159
   },
   "tristate_properties": [
     "account-subscribe-frame.schema.json/$defs/device_message_container/allOf/0/if/properties/messages",
@@ -285,6 +287,1380 @@
     "view.schema.json/$defs/collection_projection_group/properties/next_cursor",
     "view.schema.json/$defs/collection_projection_view/properties/next_cursor",
     "view.schema.json/$defs/query/properties/relation"
+  ],
+  "tristate_audit_targets": [
+    {
+      "schema_file": "account-subscribe-frame.schema.json",
+      "shape": "/$defs/device_message_container",
+      "instance_path": "/messages",
+      "occurrences": [
+        "/$defs/device_message_container/allOf/0/if/properties/messages"
+      ]
+    },
+    {
+      "schema_file": "agent-operations.schema.json",
+      "shape": "/$defs/agent_readiness",
+      "instance_path": "/blockers",
+      "occurrences": [
+        "/$defs/agent_readiness/allOf/0/then/properties/blockers",
+        "/$defs/agent_readiness/allOf/1/then/properties/blockers"
+      ]
+    },
+    {
+      "schema_file": "agent-sidecar-exchange-projection.schema.json",
+      "shape": "#",
+      "instance_path": "/user_facing_response_event_ids",
+      "occurrences": [
+        "/allOf/0/then/properties/user_facing_response_event_ids",
+        "/allOf/1/then/properties/user_facing_response_event_ids",
+        "/allOf/3/then/properties/user_facing_response_event_ids"
+      ]
+    },
+    {
+      "schema_file": "agent-signer-evidence.schema.json",
+      "shape": "#",
+      "instance_path": "/authorization",
+      "occurrences": [
+        "/allOf/0/if/properties/authorization",
+        "/allOf/1/if/properties/authorization"
+      ]
+    },
+    {
+      "schema_file": "applet-install-plan.schema.json",
+      "shape": "/$defs/widget_effect",
+      "instance_path": "/policy_event_ref",
+      "occurrences": [
+        "/$defs/widget_effect/properties/policy_event_ref"
+      ]
+    },
+    {
+      "schema_file": "audit-ryw-receipt.schema.json",
+      "shape": "#",
+      "instance_path": "/witness_attestation",
+      "occurrences": [
+        "/allOf/0/then/properties/witness_attestation",
+        "/allOf/1/then/properties/witness_attestation"
+      ]
+    },
+    {
+      "schema_file": "audit-ryw-receipt.schema.json",
+      "shape": "#",
+      "instance_path": "/witness_attestation/witnesses",
+      "occurrences": [
+        "/allOf/0/then/properties/witness_attestation/properties/witnesses",
+        "/allOf/1/then/properties/witness_attestation/properties/witnesses"
+      ]
+    },
+    {
+      "schema_file": "blob.schema.json",
+      "shape": "#",
+      "instance_path": "/encryption",
+      "occurrences": [
+        "/properties/encryption"
+      ]
+    },
+    {
+      "schema_file": "calendar-event.schema.json",
+      "shape": "#",
+      "instance_path": "/recurrence",
+      "occurrences": [
+        "/allOf/0/then/properties/recurrence",
+        "/allOf/1/then/properties/recurrence"
+      ]
+    },
+    {
+      "schema_file": "calendar-event.schema.json",
+      "shape": "/$defs/recurrence",
+      "instance_path": "/by_day",
+      "occurrences": [
+        "/$defs/recurrence/allOf/1/then/properties/by_day"
+      ]
+    },
+    {
+      "schema_file": "device-message.schema.json",
+      "shape": "#",
+      "instance_path": "/content",
+      "occurrences": [
+        "/allOf/1/then/properties/content",
+        "/allOf/2/then/properties/content",
+        "/allOf/3/then/properties/content",
+        "/allOf/4/then/properties/content",
+        "/allOf/5/then/properties/content",
+        "/allOf/6/then/properties/content",
+        "/allOf/7/then/properties/content"
+      ]
+    },
+    {
+      "schema_file": "did-continuity-proof.schema.json",
+      "shape": "#",
+      "instance_path": "/signature_chain",
+      "occurrences": [
+        "/allOf/0/then/properties/signature_chain"
+      ]
+    },
+    {
+      "schema_file": "encrypted-envelope.schema.json",
+      "shape": "#",
+      "instance_path": "/key_ref",
+      "occurrences": [
+        "/allOf/0/then/properties/key_ref",
+        "/allOf/1/then/properties/key_ref"
+      ]
+    },
+    {
+      "schema_file": "erasure-receipt.schema.json",
+      "shape": "#",
+      "instance_path": "/legal_hold_ref",
+      "occurrences": [
+        "/properties/legal_hold_ref"
+      ]
+    },
+    {
+      "schema_file": "erasure-receipt.schema.json",
+      "shape": "/$defs/verification_stub",
+      "instance_path": "/legal_hold_ref",
+      "occurrences": [
+        "/$defs/verification_stub/properties/legal_hold_ref"
+      ]
+    },
+    {
+      "schema_file": "erasure-verification-stub.schema.json",
+      "shape": "#",
+      "instance_path": "/legal_hold_ref",
+      "occurrences": [
+        "/properties/legal_hold_ref"
+      ]
+    },
+    {
+      "schema_file": "event-envelope.schema.json",
+      "shape": "#",
+      "instance_path": "/payload",
+      "occurrences": [
+        "/allOf/112/then/properties/payload",
+        "/allOf/5/then/properties/payload",
+        "/allOf/6/then/properties/payload"
+      ]
+    },
+    {
+      "schema_file": "event-envelope.schema.json",
+      "shape": "#",
+      "instance_path": "/refs",
+      "occurrences": [
+        "/allOf/114/then/properties/refs"
+      ]
+    },
+    {
+      "schema_file": "event-envelope.schema.json",
+      "shape": "/$defs/predicate",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/predicate/properties/value"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/account_blocklist_payload",
+      "instance_path": "/entries/*/expires_at",
+      "occurrences": [
+        "/$defs/account_blocklist_payload/properties/entries/items/properties/expires_at"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/account_data_set_payload",
+      "instance_path": "/body",
+      "occurrences": [
+        "/$defs/account_data_set_payload/properties/body"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/account_status_payload",
+      "instance_path": "/expires_at",
+      "occurrences": [
+        "/$defs/account_status_payload/properties/expires_at"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/audit_accessed_payload",
+      "instance_path": "/cell_head_after",
+      "occurrences": [
+        "/$defs/audit_accessed_payload/properties/cell_head_after"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/audit_accessed_payload",
+      "instance_path": "/cell_head_before",
+      "occurrences": [
+        "/$defs/audit_accessed_payload/properties/cell_head_before"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/audit_applet_binding_payload",
+      "instance_path": "/expires_at",
+      "occurrences": [
+        "/$defs/audit_applet_binding_payload/properties/expires_at"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/call_summary_payload",
+      "instance_path": "/duration_ms",
+      "occurrences": [
+        "/$defs/call_summary_payload/properties/duration_ms"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/call_summary_payload",
+      "instance_path": "/ended_at",
+      "occurrences": [
+        "/$defs/call_summary_payload/properties/ended_at"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/call_summary_payload",
+      "instance_path": "/started_at",
+      "occurrences": [
+        "/$defs/call_summary_payload/properties/started_at"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/circle_member_state_payload",
+      "instance_path": "/expected_membership",
+      "occurrences": [
+        "/$defs/circle_member_state_payload/properties/expected_membership"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/content_block",
+      "instance_path": "/body",
+      "occurrences": [
+        "/$defs/content_block/allOf/2/then/properties/body"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/content_block_long_text",
+      "instance_path": "/attachment",
+      "occurrences": [
+        "/$defs/content_block_long_text/oneOf/1/allOf/0/properties/attachment",
+        "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment",
+        "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment",
+        "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/device_authorize_payload",
+      "instance_path": "/expires_at",
+      "occurrences": [
+        "/$defs/device_authorize_payload/properties/expires_at"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/device_push_route_payload",
+      "instance_path": "/expires_at",
+      "occurrences": [
+        "/$defs/device_push_route_payload/properties/expires_at"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/did_proof_state_payload",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/did_proof_state_payload/properties/value"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/direct_conversation_authorization_basis",
+      "instance_path": "/event_refs",
+      "occurrences": [
+        "/$defs/direct_conversation_authorization_basis/allOf/0/then/properties/event_refs",
+        "/$defs/direct_conversation_authorization_basis/allOf/1/then/properties/event_refs"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/identity_disclosure_policy_state_payload",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/identity_disclosure_policy_state_payload/properties/value"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/identity_disclosure_receipt_state_payload",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/identity_disclosure_receipt_state_payload/properties/value"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/identity_presentation_request_state_payload",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/identity_presentation_request_state_payload/properties/value"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/join_policy_payload",
+      "instance_path": "/gates",
+      "occurrences": [
+        "/$defs/join_policy_payload/allOf/0/if/properties/gates"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/mls_governance_binding",
+      "instance_path": "/effective_scope",
+      "occurrences": [
+        "/$defs/mls_governance_binding/allOf/0/then/properties/effective_scope"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/moderation_decision_payload",
+      "instance_path": "/expires_at",
+      "occurrences": [
+        "/$defs/moderation_decision_payload/properties/expires_at"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/organization_discovery_state_payload",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/organization_discovery_state_payload/properties/value"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/organization_moderation_policy_state_payload",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/organization_moderation_policy_state_payload/properties/value"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/policy_action_state_payload",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/policy_action_state_payload/properties/value"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/policy_rule_state_payload",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/policy_rule_state_payload/properties/value"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/policy_set_state_payload",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/policy_set_state_payload/properties/value"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/realm_delivery_binding_policy_payload",
+      "instance_path": "/expires_after_seconds",
+      "occurrences": [
+        "/$defs/realm_delivery_binding_policy_payload/properties/expires_after_seconds"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/realm_organization_payload",
+      "instance_path": "/expires_at",
+      "occurrences": [
+        "/$defs/realm_organization_payload/properties/expires_at"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/realm_set_default_strand_payload",
+      "instance_path": "/expected_default_strand_id",
+      "occurrences": [
+        "/$defs/realm_set_default_strand_payload/properties/expected_default_strand_id"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/realm_upgrade_state_payload",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/realm_upgrade_state_payload/properties/value"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/resource_discovery_state_payload",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/resource_discovery_state_payload/properties/value"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/schema_define_state_payload",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/schema_define_state_payload/properties/value"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/sovereign_did_policy_state_payload",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/sovereign_did_policy_state_payload/properties/value"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/space_parent_payload",
+      "instance_path": "/parent_space_id",
+      "occurrences": [
+        "/$defs/space_parent_payload/properties/parent_space_id"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/state_payload",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/state_payload/properties/value"
+      ]
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/strand_watch_set_payload",
+      "instance_path": "/expected_value",
+      "occurrences": [
+        "/$defs/strand_watch_set_payload/properties/expected_value"
+      ]
+    },
+    {
+      "schema_file": "file-transfer.schema.json",
+      "shape": "#",
+      "instance_path": "/access",
+      "occurrences": [
+        "/allOf/0/then/properties/access"
+      ]
+    },
+    {
+      "schema_file": "file-transfer.schema.json",
+      "shape": "#",
+      "instance_path": "/encryption",
+      "occurrences": [
+        "/allOf/0/then/properties/encryption",
+        "/allOf/1/then/properties/encryption"
+      ]
+    },
+    {
+      "schema_file": "file-transfer.schema.json",
+      "shape": "#",
+      "instance_path": "/encryption/key_delivery",
+      "occurrences": [
+        "/allOf/0/then/properties/encryption/properties/key_delivery",
+        "/allOf/1/then/properties/encryption/properties/key_delivery"
+      ]
+    },
+    {
+      "schema_file": "grant-constraint.schema.json",
+      "shape": "#",
+      "instance_path": "/period",
+      "occurrences": [
+        "/allOf/8/then/properties/period"
+      ]
+    },
+    {
+      "schema_file": "handle-claim.schema.json",
+      "shape": "#",
+      "instance_path": "/proofs",
+      "occurrences": [
+        "/allOf/0/then/properties/proofs"
+      ]
+    },
+    {
+      "schema_file": "key-backup-active-series.schema.json",
+      "shape": "#",
+      "instance_path": "/frontier_ref",
+      "occurrences": [
+        "/allOf/0/else/properties/frontier_ref",
+        "/allOf/0/then/properties/frontier_ref"
+      ]
+    },
+    {
+      "schema_file": "key-backup.schema.json",
+      "shape": "#",
+      "instance_path": "/auth_data",
+      "occurrences": [
+        "/allOf/3/then/properties/auth_data",
+        "/allOf/4/then/properties/auth_data",
+        "/allOf/7/then/properties/auth_data",
+        "/allOf/8/then/properties/auth_data",
+        "/allOf/9/then/properties/auth_data"
+      ]
+    },
+    {
+      "schema_file": "key-backup.schema.json",
+      "shape": "#",
+      "instance_path": "/auth_data/signed_fields",
+      "occurrences": [
+        "/allOf/3/then/properties/auth_data/properties/signed_fields",
+        "/allOf/4/then/properties/auth_data/properties/signed_fields",
+        "/allOf/7/then/properties/auth_data/properties/signed_fields",
+        "/allOf/8/then/properties/auth_data/properties/signed_fields",
+        "/allOf/9/then/properties/auth_data/properties/signed_fields"
+      ]
+    },
+    {
+      "schema_file": "key-backup.schema.json",
+      "shape": "#",
+      "instance_path": "/contents",
+      "occurrences": [
+        "/allOf/0/then/properties/contents"
+      ]
+    },
+    {
+      "schema_file": "key-backup.schema.json",
+      "shape": "#",
+      "instance_path": "/domain_separation",
+      "occurrences": [
+        "/allOf/0/then/properties/domain_separation",
+        "/allOf/1/then/properties/domain_separation"
+      ]
+    },
+    {
+      "schema_file": "key-backup.schema.json",
+      "shape": "#",
+      "instance_path": "/domain_separation/aead_aad",
+      "occurrences": [
+        "/allOf/0/then/properties/domain_separation/properties/aead_aad"
+      ]
+    },
+    {
+      "schema_file": "key-backup.schema.json",
+      "shape": "#",
+      "instance_path": "/encryption",
+      "occurrences": [
+        "/allOf/0/then/properties/encryption",
+        "/allOf/2/then/properties/encryption",
+        "/allOf/4/then/properties/encryption",
+        "/allOf/5/then/properties/encryption"
+      ]
+    },
+    {
+      "schema_file": "key-backup.schema.json",
+      "shape": "#",
+      "instance_path": "/encryption/aead",
+      "occurrences": [
+        "/properties/encryption/allOf/0/then/properties/aead",
+        "/properties/encryption/allOf/1/then/properties/aead",
+        "/properties/encryption/allOf/2/then/properties/aead"
+      ]
+    },
+    {
+      "schema_file": "key-backup.schema.json",
+      "shape": "#",
+      "instance_path": "/encryption/kdf",
+      "occurrences": [
+        "/allOf/5/then/properties/encryption/properties/kdf"
+      ]
+    },
+    {
+      "schema_file": "key-backup.schema.json",
+      "shape": "#",
+      "instance_path": "/expires_at",
+      "occurrences": [
+        "/properties/expires_at"
+      ]
+    },
+    {
+      "schema_file": "key-backup.schema.json",
+      "shape": "#",
+      "instance_path": "/frontier_ref",
+      "occurrences": [
+        "/allOf/10/else/then/properties/frontier_ref",
+        "/allOf/10/then/properties/frontier_ref"
+      ]
+    },
+    {
+      "schema_file": "key-backup.schema.json",
+      "shape": "#",
+      "instance_path": "/retention/delete_after",
+      "occurrences": [
+        "/properties/retention/properties/delete_after"
+      ]
+    },
+    {
+      "schema_file": "key-backup.schema.json",
+      "shape": "#",
+      "instance_path": "/supersedes",
+      "occurrences": [
+        "/properties/supersedes"
+      ]
+    },
+    {
+      "schema_file": "keys-operations.schema.json",
+      "shape": "/$defs/backup_metadata",
+      "instance_path": "/expires_at",
+      "occurrences": [
+        "/$defs/backup_metadata/properties/expires_at"
+      ]
+    },
+    {
+      "schema_file": "keys-operations.schema.json",
+      "shape": "/$defs/backup_metadata",
+      "instance_path": "/supersedes",
+      "occurrences": [
+        "/$defs/backup_metadata/properties/supersedes"
+      ]
+    },
+    {
+      "schema_file": "message.schema.json",
+      "shape": "/$defs/content_block",
+      "instance_path": "/body",
+      "occurrences": [
+        "/$defs/content_block/allOf/2/then/properties/body"
+      ]
+    },
+    {
+      "schema_file": "message.schema.json",
+      "shape": "/$defs/content_block_long_text",
+      "instance_path": "/attachment",
+      "occurrences": [
+        "/$defs/content_block_long_text/oneOf/1/allOf/0/properties/attachment",
+        "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment",
+        "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment",
+        "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment"
+      ]
+    },
+    {
+      "schema_file": "morph.schema.json",
+      "shape": "/$defs/content_block",
+      "instance_path": "/body",
+      "occurrences": [
+        "/$defs/content_block/allOf/2/then/properties/body"
+      ]
+    },
+    {
+      "schema_file": "morph.schema.json",
+      "shape": "/$defs/content_block_long_text",
+      "instance_path": "/attachment",
+      "occurrences": [
+        "/$defs/content_block_long_text/oneOf/1/allOf/0/properties/attachment",
+        "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment",
+        "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment",
+        "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment"
+      ]
+    },
+    {
+      "schema_file": "object-addressing.schema.json",
+      "shape": "/$defs/signed_address_link_token_claims",
+      "instance_path": "/target_descriptor",
+      "occurrences": [
+        "/$defs/signed_address_link_token_claims/allOf/1/properties/target_descriptor"
+      ]
+    },
+    {
+      "schema_file": "patch.schema.json",
+      "shape": "#",
+      "instance_path": "/*/value",
+      "occurrences": [
+        "/additionalProperties/oneOf/1/properties/value"
+      ]
+    },
+    {
+      "schema_file": "principal-locator.schema.json",
+      "shape": "/$defs/invite_locator_rotate_request_body",
+      "instance_path": "/display_hint",
+      "occurrences": [
+        "/$defs/invite_locator_rotate_request_body/properties/display_hint"
+      ]
+    },
+    {
+      "schema_file": "query.schema.json",
+      "shape": "/$defs/field_filter",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/field_filter/properties/value"
+      ]
+    },
+    {
+      "schema_file": "query.schema.json",
+      "shape": "/$defs/query_request_body",
+      "instance_path": "/cursor",
+      "occurrences": [
+        "/$defs/query_request_body/properties/cursor"
+      ]
+    },
+    {
+      "schema_file": "query.schema.json",
+      "shape": "/$defs/query_request_body",
+      "instance_path": "/relation",
+      "occurrences": [
+        "/$defs/query_request_body/properties/relation"
+      ]
+    },
+    {
+      "schema_file": "read-cursor.schema.json",
+      "shape": "/$defs/read_scope",
+      "instance_path": "/container_ref",
+      "occurrences": [
+        "/$defs/read_scope/allOf/1/then/properties/container_ref",
+        "/$defs/read_scope/allOf/2/then/properties/container_ref",
+        "/$defs/read_scope/allOf/3/then/properties/container_ref",
+        "/$defs/read_scope/allOf/4/then/properties/container_ref"
+      ]
+    },
+    {
+      "schema_file": "read-receipt.schema.json",
+      "shape": "#",
+      "instance_path": "/read_scope/object_ref",
+      "occurrences": [
+        "/properties/read_scope/allOf/1/then/properties/object_ref",
+        "/properties/read_scope/allOf/2/then/properties/object_ref",
+        "/properties/read_scope/allOf/3/then/properties/object_ref",
+        "/properties/read_scope/allOf/4/then/properties/object_ref",
+        "/properties/read_scope/allOf/5/then/properties/object_ref"
+      ]
+    },
+    {
+      "schema_file": "realm-organization-operations.schema.json",
+      "shape": "/$defs/realm_organization_relationship_row",
+      "instance_path": "/expires_at",
+      "occurrences": [
+        "/$defs/realm_organization_relationship_row/properties/expires_at"
+      ]
+    },
+    {
+      "schema_file": "realm-read-operations.schema.json",
+      "shape": "/$defs/realm_effective_moderation_policy",
+      "instance_path": "/realm_policy",
+      "occurrences": [
+        "/$defs/realm_effective_moderation_policy/properties/realm_policy"
+      ]
+    },
+    {
+      "schema_file": "realm.schema.json",
+      "shape": "#",
+      "instance_path": "/default_strand_id",
+      "occurrences": [
+        "/properties/default_strand_id"
+      ]
+    },
+    {
+      "schema_file": "realm.schema.json",
+      "shape": "#",
+      "instance_path": "/notary",
+      "occurrences": [
+        "/allOf/1/then/properties/notary",
+        "/allOf/2/then/properties/notary"
+      ]
+    },
+    {
+      "schema_file": "realm.schema.json",
+      "shape": "#",
+      "instance_path": "/schema_refs",
+      "occurrences": [
+        "/allOf/3/then/properties/schema_refs",
+        "/allOf/5/then/properties/schema_refs"
+      ]
+    },
+    {
+      "schema_file": "realm.schema.json",
+      "shape": "/$defs/cell_lattice",
+      "instance_path": "/initial_value",
+      "occurrences": [
+        "/$defs/cell_lattice/properties/initial_value"
+      ]
+    },
+    {
+      "schema_file": "recovery-policy.schema.json",
+      "shape": "#",
+      "instance_path": "/auth_data",
+      "occurrences": [
+        "/allOf/10/then/properties/auth_data",
+        "/allOf/11/then/properties/auth_data",
+        "/allOf/3/then/properties/auth_data",
+        "/allOf/4/then/properties/auth_data",
+        "/allOf/5/then/properties/auth_data",
+        "/allOf/6/then/properties/auth_data",
+        "/allOf/7/then/properties/auth_data",
+        "/allOf/8/then/properties/auth_data",
+        "/allOf/9/then/properties/auth_data"
+      ]
+    },
+    {
+      "schema_file": "recovery-policy.schema.json",
+      "shape": "#",
+      "instance_path": "/auth_data/signed_fields",
+      "occurrences": [
+        "/allOf/10/then/properties/auth_data/properties/signed_fields",
+        "/allOf/11/then/properties/auth_data/properties/signed_fields",
+        "/allOf/3/then/properties/auth_data/properties/signed_fields",
+        "/allOf/4/then/properties/auth_data/properties/signed_fields",
+        "/allOf/5/then/properties/auth_data/properties/signed_fields",
+        "/allOf/6/then/properties/auth_data/properties/signed_fields",
+        "/allOf/7/then/properties/auth_data/properties/signed_fields",
+        "/allOf/8/then/properties/auth_data/properties/signed_fields",
+        "/allOf/9/then/properties/auth_data/properties/signed_fields"
+      ]
+    },
+    {
+      "schema_file": "recovery-policy.schema.json",
+      "shape": "#",
+      "instance_path": "/expires_at",
+      "occurrences": [
+        "/properties/expires_at"
+      ]
+    },
+    {
+      "schema_file": "recovery-policy.schema.json",
+      "shape": "#",
+      "instance_path": "/supersedes",
+      "occurrences": [
+        "/allOf/0/then/properties/supersedes"
+      ]
+    },
+    {
+      "schema_file": "recovery-policy.schema.json",
+      "shape": "/$defs/recovery_key_agreement_entry",
+      "instance_path": "/revoked_at",
+      "occurrences": [
+        "/$defs/recovery_key_agreement_entry/properties/revoked_at"
+      ]
+    },
+    {
+      "schema_file": "recovery-policy.schema.json",
+      "shape": "/$defs/recovery_key_entry",
+      "instance_path": "/revoked_at",
+      "occurrences": [
+        "/$defs/recovery_key_entry/properties/revoked_at"
+      ]
+    },
+    {
+      "schema_file": "recovery-policy.schema.json",
+      "shape": "/$defs/recovery_policy_publish_request",
+      "instance_path": "/event",
+      "occurrences": [
+        "/$defs/recovery_policy_publish_request/allOf/1/properties/event"
+      ]
+    },
+    {
+      "schema_file": "recovery-policy.schema.json",
+      "shape": "/$defs/recovery_policy_summary",
+      "instance_path": "/expires_at",
+      "occurrences": [
+        "/$defs/recovery_policy_summary/properties/expires_at"
+      ]
+    },
+    {
+      "schema_file": "recovery-policy.schema.json",
+      "shape": "/$defs/recovery_policy_summary",
+      "instance_path": "/supersedes",
+      "occurrences": [
+        "/$defs/recovery_policy_summary/properties/supersedes"
+      ]
+    },
+    {
+      "schema_file": "recovery-policy.schema.json",
+      "shape": "/$defs/share",
+      "instance_path": "/expires_at",
+      "occurrences": [
+        "/$defs/share/properties/expires_at"
+      ]
+    },
+    {
+      "schema_file": "recovery-policy.schema.json",
+      "shape": "/$defs/share",
+      "instance_path": "/revoked_at",
+      "occurrences": [
+        "/$defs/share/properties/revoked_at"
+      ]
+    },
+    {
+      "schema_file": "recovery-receipt.schema.json",
+      "shape": "#",
+      "instance_path": "/auth_data",
+      "occurrences": [
+        "/allOf/2/then/properties/auth_data",
+        "/allOf/3/then/properties/auth_data",
+        "/allOf/4/else/properties/auth_data",
+        "/allOf/4/then/properties/auth_data"
+      ]
+    },
+    {
+      "schema_file": "recovery-receipt.schema.json",
+      "shape": "#",
+      "instance_path": "/auth_data/signed_fields",
+      "occurrences": [
+        "/allOf/2/then/properties/auth_data/properties/signed_fields",
+        "/allOf/3/then/properties/auth_data/properties/signed_fields",
+        "/allOf/4/else/properties/auth_data/properties/signed_fields",
+        "/allOf/4/then/properties/auth_data/properties/signed_fields"
+      ]
+    },
+    {
+      "schema_file": "recovery-receipt.schema.json",
+      "shape": "#",
+      "instance_path": "/proof_summary",
+      "occurrences": [
+        "/allOf/0/then/properties/proof_summary",
+        "/allOf/1/then/properties/proof_summary"
+      ]
+    },
+    {
+      "schema_file": "recovery-session.schema.json",
+      "shape": "/$defs/recovery_session_state",
+      "instance_path": "/accepted_seal_frontier",
+      "occurrences": [
+        "/$defs/recovery_session_state/properties/accepted_seal_frontier"
+      ]
+    },
+    {
+      "schema_file": "sdk-conformance-claim.schema.json",
+      "shape": "/$defs/clause_claim",
+      "instance_path": "/evidence",
+      "occurrences": [
+        "/$defs/clause_claim/allOf/0/else/properties/evidence"
+      ]
+    },
+    {
+      "schema_file": "security-transaction.schema.json",
+      "shape": "#",
+      "instance_path": "/binding",
+      "occurrences": [
+        "/allOf/0/then/allOf/0/if/properties/binding"
+      ]
+    },
+    {
+      "schema_file": "security-transaction.schema.json",
+      "shape": "#",
+      "instance_path": "/next_required_step",
+      "occurrences": [
+        "/allOf/0/else/properties/next_required_step",
+        "/allOf/0/then/allOf/0/else/properties/next_required_step",
+        "/allOf/0/then/allOf/0/then/properties/next_required_step",
+        "/allOf/1/then/properties/next_required_step"
+      ]
+    },
+    {
+      "schema_file": "security-transaction.schema.json",
+      "shape": "#",
+      "instance_path": "/terminal_result",
+      "occurrences": [
+        "/allOf/2/then/properties/terminal_result",
+        "/allOf/3/then/properties/terminal_result",
+        "/allOf/4/then/properties/terminal_result",
+        "/allOf/5/then/properties/terminal_result"
+      ]
+    },
+    {
+      "schema_file": "security-transaction.schema.json",
+      "shape": "/$defs/cross_signing_progress_contract",
+      "instance_path": "/accepted_steps",
+      "occurrences": [
+        "/$defs/cross_signing_progress_contract/allOf/0/then/oneOf/0/properties/accepted_steps",
+        "/$defs/cross_signing_progress_contract/allOf/0/then/oneOf/1/properties/accepted_steps",
+        "/$defs/cross_signing_progress_contract/allOf/1/then/properties/accepted_steps"
+      ]
+    },
+    {
+      "schema_file": "security-transaction.schema.json",
+      "shape": "/$defs/enrollment_authority_progress_contract",
+      "instance_path": "/accepted_steps",
+      "occurrences": [
+        "/$defs/enrollment_authority_progress_contract/allOf/0/then/oneOf/0/properties/accepted_steps",
+        "/$defs/enrollment_authority_progress_contract/allOf/0/then/oneOf/1/properties/accepted_steps",
+        "/$defs/enrollment_authority_progress_contract/allOf/0/then/oneOf/2/properties/accepted_steps",
+        "/$defs/enrollment_authority_progress_contract/allOf/0/then/oneOf/3/properties/accepted_steps",
+        "/$defs/enrollment_authority_progress_contract/allOf/0/then/oneOf/4/properties/accepted_steps",
+        "/$defs/enrollment_authority_progress_contract/allOf/1/then/properties/accepted_steps"
+      ]
+    },
+    {
+      "schema_file": "security-transaction.schema.json",
+      "shape": "/$defs/recovery_create_request",
+      "instance_path": "/binding",
+      "occurrences": [
+        "/$defs/recovery_create_request/allOf/0/if/properties/binding"
+      ]
+    },
+    {
+      "schema_file": "security-transaction.schema.json",
+      "shape": "/$defs/security_rotation_progress_contract",
+      "instance_path": "/accepted_steps",
+      "occurrences": [
+        "/$defs/security_rotation_progress_contract/allOf/0/then/oneOf/0/properties/accepted_steps",
+        "/$defs/security_rotation_progress_contract/allOf/0/then/oneOf/1/properties/accepted_steps",
+        "/$defs/security_rotation_progress_contract/allOf/0/then/oneOf/2/properties/accepted_steps",
+        "/$defs/security_rotation_progress_contract/allOf/0/then/oneOf/3/properties/accepted_steps",
+        "/$defs/security_rotation_progress_contract/allOf/0/then/oneOf/4/properties/accepted_steps",
+        "/$defs/security_rotation_progress_contract/allOf/1/then/properties/accepted_steps"
+      ]
+    },
+    {
+      "schema_file": "service-describe.schema.json",
+      "shape": "#",
+      "instance_path": "/auth_metadata",
+      "occurrences": [
+        "/allOf/5/then/properties/auth_metadata"
+      ]
+    },
+    {
+      "schema_file": "service-describe.schema.json",
+      "shape": "#",
+      "instance_path": "/discovery_profiles",
+      "occurrences": [
+        "/allOf/1/then/properties/discovery_profiles"
+      ]
+    },
+    {
+      "schema_file": "service-describe.schema.json",
+      "shape": "#",
+      "instance_path": "/limits",
+      "occurrences": [
+        "/allOf/2/then/properties/limits"
+      ]
+    },
+    {
+      "schema_file": "service-describe.schema.json",
+      "shape": "#",
+      "instance_path": "/supported_profiles",
+      "occurrences": [
+        "/allOf/3/then/properties/supported_profiles"
+      ]
+    },
+    {
+      "schema_file": "service-describe.schema.json",
+      "shape": "#",
+      "instance_path": "/verified_profiles",
+      "occurrences": [
+        "/allOf/0/then/properties/verified_profiles"
+      ]
+    },
+    {
+      "schema_file": "service-describe.schema.json",
+      "shape": "/$defs/auth_method",
+      "instance_path": "/grant_exchange",
+      "occurrences": [
+        "/$defs/auth_method/allOf/0/then/properties/grant_exchange",
+        "/$defs/auth_method/allOf/1/then/properties/grant_exchange"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/DeviceMessagesGetOutcome",
+      "instance_path": "/messages",
+      "occurrences": [
+        "/$defs/DeviceMessagesGetOutcome/allOf/0/if/properties/messages"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/EventsDependencyMissingProblem",
+      "instance_path": "/missing_event_digests",
+      "occurrences": [
+        "/$defs/EventsDependencyMissingProblem/anyOf/1/properties/missing_event_digests"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/EventsDependencyMissingProblem",
+      "instance_path": "/missing_event_ids",
+      "occurrences": [
+        "/$defs/EventsDependencyMissingProblem/anyOf/0/properties/missing_event_ids"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/EventsDependencyMissingProblem",
+      "instance_path": "/missing_seal_refs",
+      "occurrences": [
+        "/$defs/EventsDependencyMissingProblem/anyOf/2/properties/missing_seal_refs"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionMorphRow",
+      "instance_path": "/created_at",
+      "occurrences": [
+        "/$defs/ProjectionMorphRow/properties/created_at"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionMorphRow",
+      "instance_path": "/created_by",
+      "occurrences": [
+        "/$defs/ProjectionMorphRow/properties/created_by"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionMorphRow",
+      "instance_path": "/state_changed_at",
+      "occurrences": [
+        "/$defs/ProjectionMorphRow/properties/state_changed_at"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionMorphRow",
+      "instance_path": "/title",
+      "occurrences": [
+        "/$defs/ProjectionMorphRow/properties/title"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionMorphRow",
+      "instance_path": "/updated_at",
+      "occurrences": [
+        "/$defs/ProjectionMorphRow/properties/updated_at"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionSpaceRow",
+      "instance_path": "/created_at",
+      "occurrences": [
+        "/$defs/ProjectionSpaceRow/properties/created_at"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionSpaceRow",
+      "instance_path": "/created_by",
+      "occurrences": [
+        "/$defs/ProjectionSpaceRow/properties/created_by"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionSpaceRow",
+      "instance_path": "/parent_space_id",
+      "occurrences": [
+        "/$defs/ProjectionSpaceRow/properties/parent_space_id"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionSpaceRow",
+      "instance_path": "/rank",
+      "occurrences": [
+        "/$defs/ProjectionSpaceRow/properties/rank"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionSpaceRow",
+      "instance_path": "/state_changed_at",
+      "occurrences": [
+        "/$defs/ProjectionSpaceRow/properties/state_changed_at"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionSpaceRow",
+      "instance_path": "/updated_at",
+      "occurrences": [
+        "/$defs/ProjectionSpaceRow/properties/updated_at"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionStrandRow",
+      "instance_path": "/board_space_id",
+      "occurrences": [
+        "/$defs/ProjectionStrandRow/properties/board_space_id"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionStrandRow",
+      "instance_path": "/created_at",
+      "occurrences": [
+        "/$defs/ProjectionStrandRow/properties/created_at"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionStrandRow",
+      "instance_path": "/created_by",
+      "occurrences": [
+        "/$defs/ProjectionStrandRow/properties/created_by"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionStrandRow",
+      "instance_path": "/list_space_id",
+      "occurrences": [
+        "/$defs/ProjectionStrandRow/properties/list_space_id"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionStrandRow",
+      "instance_path": "/rank",
+      "occurrences": [
+        "/$defs/ProjectionStrandRow/properties/rank"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionStrandRow",
+      "instance_path": "/state_changed_at",
+      "occurrences": [
+        "/$defs/ProjectionStrandRow/properties/state_changed_at"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionStrandRow",
+      "instance_path": "/summary",
+      "occurrences": [
+        "/$defs/ProjectionStrandRow/properties/summary"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionStrandRow",
+      "instance_path": "/title",
+      "occurrences": [
+        "/$defs/ProjectionStrandRow/properties/title"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionStrandRow",
+      "instance_path": "/updated_at",
+      "occurrences": [
+        "/$defs/ProjectionStrandRow/properties/updated_at"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ProjectionStrandRow",
+      "instance_path": "/updated_by",
+      "occurrences": [
+        "/$defs/ProjectionStrandRow/properties/updated_by"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/RealmActorFrontierView",
+      "instance_path": "/frontier_event_ids",
+      "occurrences": [
+        "/$defs/RealmActorFrontierView/allOf/0/else/properties/frontier_event_ids",
+        "/$defs/RealmActorFrontierView/allOf/0/then/properties/frontier_event_ids"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/ServiceRegistrationEnsureRequestBody",
+      "instance_path": "/previous_receipt",
+      "occurrences": [
+        "/$defs/ServiceRegistrationEnsureRequestBody/properties/previous_receipt"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/SessionGrantRequestBody",
+      "instance_path": "/proof",
+      "occurrences": [
+        "/$defs/SessionGrantRequestBody/allOf/0/then/properties/proof",
+        "/$defs/SessionGrantRequestBody/allOf/1/then/properties/proof"
+      ]
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/SignedSessionGrantClaims",
+      "instance_path": "/scopes",
+      "occurrences": [
+        "/$defs/SignedSessionGrantClaims/allOf/0/then/properties/scopes"
+      ]
+    },
+    {
+      "schema_file": "strand.schema.json",
+      "shape": "#",
+      "instance_path": "/metadata",
+      "occurrences": [
+        "/allOf/1/then/properties/metadata"
+      ]
+    },
+    {
+      "schema_file": "strand.schema.json",
+      "shape": "/$defs/content_block",
+      "instance_path": "/body",
+      "occurrences": [
+        "/$defs/content_block/allOf/2/then/properties/body"
+      ]
+    },
+    {
+      "schema_file": "strand.schema.json",
+      "shape": "/$defs/content_block_long_text",
+      "instance_path": "/attachment",
+      "occurrences": [
+        "/$defs/content_block_long_text/oneOf/1/allOf/0/properties/attachment",
+        "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment",
+        "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment",
+        "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment"
+      ]
+    },
+    {
+      "schema_file": "view.schema.json",
+      "shape": "/$defs/collection_position",
+      "instance_path": "/end",
+      "occurrences": [
+        "/$defs/collection_position/oneOf/2/properties/end"
+      ]
+    },
+    {
+      "schema_file": "view.schema.json",
+      "shape": "/$defs/collection_projection_group",
+      "instance_path": "/next_cursor",
+      "occurrences": [
+        "/$defs/collection_projection_group/properties/next_cursor"
+      ]
+    },
+    {
+      "schema_file": "view.schema.json",
+      "shape": "/$defs/collection_projection_view",
+      "instance_path": "/next_cursor",
+      "occurrences": [
+        "/$defs/collection_projection_view/properties/next_cursor"
+      ]
+    },
+    {
+      "schema_file": "view.schema.json",
+      "shape": "/$defs/query",
+      "instance_path": "/relation",
+      "occurrences": [
+        "/$defs/query/properties/relation"
+      ]
+    }
   ],
   "documents": {
     "account-data-encrypted-value.schema.json": {

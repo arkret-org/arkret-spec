@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.5",
+  "version": "2026-08-02.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-02T15:00:00Z",
+  "generated_at": "2026-08-02T16:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -7751,6 +7751,7 @@
     "registry_rules": [
       "A schema row with omitted status defaults to active. New or edited rows MUST spell status explicitly.",
       "Allowed status values are active and deprecated. Deprecated rows remain resolvable for historical data but MUST NOT be produced by new writes.",
+      "consumer_binding, when present, is the machine-readable disposition for a logical schema that is not directly named by an operation, Event kind, or another schema. Runtime and dynamic wire bindings MUST declare kind, selector, and normative_ref. A prose_only binding MUST instead declare a non-empty rationale and MUST NOT be counted as wire coverage.",
       "The effective schema reference of a row is the literal concatenation (file + optional fragment): fragment already includes its leading '#', so consumers MUST NOT insert another separator. For example file='schemas/agent-operations.schema.json' plus fragment='#/$defs/agent_pairing_bootstrap' resolves to exactly 'schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap'. Consumers MUST resolve that URI-fragment JSON Pointer and MUST NOT bind schema_id to the top-level document of file. When fragment is absent, the effective reference is the top-level document of file. Two schema_id rows mapping to the same file MUST be distinguished by fragment (or one MUST omit fragment to denote the whole document); a consumer that ignores fragment and loads the top-level document for a fragment-bearing row is non-conforming.",
       "fragment, when present, MUST be a non-empty RFC 6901 JSON Pointer in URI-fragment representation starting with '#/'. If the pointer does not resolve within file, or a row that shares a file with another row omits fragment while that other row also omits fragment (ambiguous whole-document mapping), consumers MUST fail closed rather than silently pick a schema."
     ],
@@ -7889,7 +7890,12 @@
         "schema_id": "ak.schema.draft_sync.v1",
         "file": "schemas/draft-sync.schema.json",
         "status": "active",
-        "description": "Encrypted account-data plaintext shape for cross-device draft sync."
+        "description": "Encrypted account-data plaintext shape for cross-device draft sync.",
+        "consumer_binding": {
+          "kind": "account_data_plaintext",
+          "selector": "ak.profile.draft_sync.v1",
+          "normative_ref": "zh/models/personal-productivity.md#7"
+        }
       },
       {
         "schema_id": "ak.schema.file_transfer.v1",
@@ -7934,12 +7940,22 @@
       {
         "schema_id": "ak.schema.morph.customer_risk.v1",
         "file": "schemas/morph-customer-risk.schema.json",
-        "description": "Reference business-field schema used by the Morph type-system example. It validates the customer_risk fields.status / fields.severity payload carried inside ak.schema.morph.v1 containers."
+        "description": "Reference business-field schema used by the Morph type-system example. It validates the customer_risk fields.status / fields.severity payload carried inside ak.schema.morph.v1 containers.",
+        "consumer_binding": {
+          "kind": "dynamic_schema_ref",
+          "selector": "ak.schema.morph.v1#/schema_refs[]",
+          "normative_ref": "zh/models/morph.md#4"
+        }
       },
       {
         "schema_id": "ak.schema.morph.customer_risk.ext.v1",
         "file": "schemas/morph-customer-risk-ext.schema.json",
-        "description": "Reference additive extension business-field schema for the customer_risk example, used by the ak.morph.schema_migrate transformation conformance vectors (ak.vector.morph.transformation_*). Declares the optional renamed score / backfilled priority fields a transformation migration introduces on top of ak.schema.morph.customer_risk.v1."
+        "description": "Reference additive extension business-field schema for the customer_risk example, used by the ak.morph.schema_migrate transformation conformance vectors (ak.vector.morph.transformation_*). Declares the optional renamed score / backfilled priority fields a transformation migration introduces on top of ak.schema.morph.customer_risk.v1.",
+        "consumer_binding": {
+          "kind": "dynamic_schema_ref",
+          "selector": "ak.schema.morph.v1#/schema_refs[]",
+          "normative_ref": "zh/models/morph.md#4"
+        }
       },
       {
         "schema_id": "ak.schema.relation.v1",
@@ -8126,13 +8142,23 @@
         "schema_id": "ak.schema.signal_presence.v1",
         "file": "schemas/signal-presence.schema.json",
         "status": "active",
-        "description": "Closed decrypted Signal payload profile for ak.presence state, status message and activity bucket."
+        "description": "Closed decrypted Signal payload profile for ak.presence state, status message and activity bucket.",
+        "consumer_binding": {
+          "kind": "signal_plaintext_dispatch",
+          "selector": "ak.presence",
+          "normative_ref": "zh/sync/signal.md#1.1"
+        }
       },
       {
         "schema_id": "ak.schema.signal_typing.v1",
         "file": "schemas/signal-typing.schema.json",
         "status": "active",
-        "description": "Closed decrypted Signal payload profile for ak.typing Strand composition indicators."
+        "description": "Closed decrypted Signal payload profile for ak.typing Strand composition indicators.",
+        "consumer_binding": {
+          "kind": "signal_plaintext_dispatch",
+          "selector": "ak.typing",
+          "normative_ref": "zh/sync/signal.md#1.1"
+        }
       },
       {
         "schema_id": "ak.schema.signal_relay.v1",
@@ -8156,7 +8182,12 @@
         "schema_id": "ak.schema.authority_set_policy.v1",
         "file": "schemas/authority-set-policy.schema.json",
         "status": "active",
-        "description": "Canonical concrete authority policy rederived from accepted CBA control state and bound by AuthoritySetRef."
+        "description": "Canonical concrete authority policy rederived from accepted CBA control state and bound by AuthoritySetRef.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "schemas/offline-publication.schema.json#/$defs/authority_set_policy",
+          "normative_ref": "zh/authz/offline-publication.md#3"
+        }
       },
       {
         "schema_id": "ak.schema.offline_publication.v1",
@@ -8227,7 +8258,12 @@
         "schema_id": "ak.schema.call_signal_plaintext.v1",
         "file": "schemas/call-signal-plaintext.schema.json",
         "status": "active",
-        "description": "Closed top-level E2EE plaintext for ak.call.signal, with signal_kind-specific data validation defined by the WebRTC signaling profile."
+        "description": "Closed top-level E2EE plaintext for ak.call.signal, with signal_kind-specific data validation defined by the WebRTC signaling profile.",
+        "consumer_binding": {
+          "kind": "signal_plaintext_dispatch",
+          "selector": "ak.call.signal",
+          "normative_ref": "zh/sync/signal.md#1.1"
+        }
       },
       {
         "schema_id": "ak.schema.encrypted_envelope.v1",
@@ -8237,7 +8273,12 @@
         "schema_id": "ak.schema.account_data_encrypted_value.v1",
         "file": "schemas/account-data-encrypted-value.schema.json",
         "status": "active",
-        "description": "Closed XChaCha20-Poly1305 envelope for principal-private encrypted Account Data values."
+        "description": "Closed XChaCha20-Poly1305 envelope for principal-private encrypted Account Data values.",
+        "consumer_binding": {
+          "kind": "account_data_storage",
+          "selector": "account-data-key-registry.json#/keys[storage=encrypted_account_data]",
+          "normative_ref": "zh/models/account-data.md#2"
+        }
       },
       {
         "schema_id": "ak.schema.key_backup.v1",
@@ -8303,7 +8344,12 @@
         "schema_id": "ak.schema.read_receipt.v1",
         "file": "schemas/read-receipt.schema.json",
         "status": "active",
-        "description": "Closed decrypted Signal payload profile for ak.receipt.read timeline read hints."
+        "description": "Closed decrypted Signal payload profile for ak.receipt.read timeline read hints.",
+        "consumer_binding": {
+          "kind": "signal_plaintext_dispatch",
+          "selector": "ak.receipt.read",
+          "normative_ref": "zh/sync/signal.md#1.1"
+        }
       },
       {
         "schema_id": "ak.schema.did_key_log_entry.v1",
@@ -8403,7 +8449,11 @@
         "schema_id": "ak.schema.applet.v1",
         "file": "schemas/applet.schema.json",
         "status": "active",
-        "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for ak.applet.* use typed payload definitions in event-payload.schema.json."
+        "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for ak.applet.* use typed payload definitions in event-payload.schema.json.",
+        "consumer_binding": {
+          "kind": "prose_only",
+          "rationale": "No v1 operation or Event admits this whole object; ak.applet.* Events use event-payload.schema.json definitions."
+        }
       },
       {
         "schema_id": "ak.schema.applet_package.v1",
@@ -8571,7 +8621,12 @@
         "schema_id": "ak.schema.transport_binding.v1",
         "file": "schemas/transport-binding.schema.json",
         "status": "active",
-        "description": "Closed ServiceDescribe supported_bindings union for registered HTTP companion and extension transports."
+        "description": "Closed ServiceDescribe supported_bindings union for registered HTTP companion and extension transports.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "schemas/service-describe.schema.json#/$defs/transport_binding",
+          "normative_ref": "zh/sync/transport-bindings.md#7"
+        }
       },
       {
         "schema_id": "ak.schema.websocket_frame.v1",
