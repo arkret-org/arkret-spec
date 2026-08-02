@@ -282,7 +282,6 @@
           "ak.self.agent.participation.resource.get",
           "ak.self.agent.query.list",
           "ak.self.agent.resource.get",
-          "ak.self.agent.sidecar.command.ensure",
           "ak.self.agent.sidecar.query.list",
           "ak.self.agent.sidecar.resource.get"
         ],

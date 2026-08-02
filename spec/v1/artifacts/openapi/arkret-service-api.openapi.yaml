@@ -375,7 +375,7 @@ components:
     AgentRuntimeApprovalStatusRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body
     AgentSidecarEnsureOutcome:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_outcome
+      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_outcome
     AgentSidecarEnsureRequestBody:
       $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_request
     AgentSidecarList:
@@ -886,6 +886,10 @@ components:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_update_request_body
     ContactList:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_list
+    ContactRejectOutcome:
+      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome
+    ContactRejectRequestBody:
+      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_request
     ContactRequestOutcome:
       $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome
     ContactRequestRequestBody:
@@ -4667,16 +4671,15 @@ paths:
         sourceTrustDomain: []
         destinationTrustDomain: []
         contentDigest: []
-      summary: Private Principal Server contact and Direct Conversation binding fact delivery.
+      summary: Private Principal Server Contact fact delivery.
       description: |
-        Delivers a signed ak.contact.* fact or ak.direct_conversation.bound fact
-        from the issuer-side Principal Server to the target holder's Principal
-        Server. The recipient validates the signed fact event, the
+        Delivers a signed ak.contact.* fact from the issuer-side Principal
+        Server to the target holder's Principal Server. Direct Conversation
+        bindings and Realm Events are forbidden. The recipient validates the signed fact event, the
         explicit contact_address, the destination service DID, and the holder's
         receive policy, then projects the original signed envelope into the
-        target holder's contact or Direct Conversation binding projection
-        without re-signing it. This is the federation delivery path for the
-        principal-scoped contact/binding fact log
+        target holder's Contact projection without re-signing it. This is the
+        federation delivery path for the principal-scoped Contact fact log
         (contact-and-direct-conversation.md §2), distinct from the Realm invite
         delivery on /_arkret/peer/invites.
       requestBody:
@@ -4691,7 +4694,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome
+                $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_outcome
   /_arkret/peer/keys/keypackages/claim:
     post:
       operationId: ak.peer.keys.keypackages.command.claim
@@ -5113,11 +5116,12 @@ paths:
       security:
       - bearerAuth: []
         dpopProof: []
-      summary: Accept or reject an incoming contact request.
+      summary: Accept an incoming contact request.
       description: |
-        Only the request target may respond. Normal acceptance and rejection
-        use source-signed acceptance receipts; glare is mechanically derived
-        and does not accept a synthetic response Event.
+        Only the request target may normally accept. The operation uses a
+        source-signed normal-response acceptance receipt; rejection uses the
+        separate /_arkret/self/contacts/reject operation. Glare is mechanically
+        derived and does not accept a synthetic response Event.
       requestBody:
         required: true
         content:
@@ -5131,6 +5135,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContactRespondOutcome'
+  /_arkret/self/contacts/reject:
+    post:
+      operationId: ak.self.contact.command.reject
+      security:
+      - bearerAuth: []
+        dpopProof: []
+      summary: Reject an incoming contact request.
+      description: |
+        Only the request target may submit the proposal-terminal rejection.
+        The exact reserved holder-signed Event and rejection acceptance receipt
+        are durably replayed; glare forbids this operation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactRejectRequestBody'
+      responses:
+        '200':
+          description: Contact rejection fact accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactRejectOutcome'
   /_arkret/self/contacts:
     get:
       operationId: ak.self.contact.query.list
@@ -9307,7 +9335,9 @@ paths:
         exactly the controller-signed ak.sidecar.create and
         ak.sidecar.context.attach Events: create projects the Sidecar, backing Circle
         and controller membership; attach projects the private Strand and Relation.
-        An existing Sidecar uses the attach branch only. Context is never part of the
+        An existing Sidecar uses the attach branch only. The closed prepared/accepted
+        outcome maps all three request phases without inventing another state.
+        Context is never part of the
         MLS control frontier or security-frontier digest.
       security:
       - bearerAuth: []

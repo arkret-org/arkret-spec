@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.1",
+  "version": "2026-08-03.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-03T02:00:00Z",
+  "generated_at": "2026-08-03T04:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -161,6 +161,7 @@
       "operations": [
         "ak.self.contact.command.request",
         "ak.self.contact.command.respond",
+        "ak.self.contact.command.reject",
         "ak.self.contact.command.scope_update",
         "ak.self.contact.query.list",
         "ak.self.contact.command.tombstone",
@@ -910,7 +911,7 @@
       "idempotency_mechanism": "object_id",
       "retry_safe": true,
       "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_request",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_outcome",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
@@ -1350,7 +1351,7 @@
       "http": "POST /_arkret/self/contacts/respond",
       "grpc": "SelfContact/Respond",
       "mq": "self.contact.command.respond",
-      "notes": "Two-phase holder-local normal response or reject. The service accepts only the holder-signed Event bytes reserved for the current request slot, signs the matching normal-response or reject acceptance receipt, and never writes Private Consent. Glare is mechanically derived from two causally concurrent request receipts and forbids this operation.",
+      "notes": "Two-phase holder-local normal accept response. The service accepts only the holder-signed response Event bytes reserved for the current request slot, signs the matching normal-response acceptance receipt, and never writes Private Consent. Reject uses the separate ak.self.contact.command.reject operation. Glare is mechanically derived from two causally concurrent request receipts and forbids this operation.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
@@ -1360,7 +1361,25 @@
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
-          "ak.contact.accepted",
+          "ak.contact.accepted"
+        ]
+      }
+    },
+    {
+      "operation_id": "ak.self.contact.command.reject",
+      "http": "POST /_arkret/self/contacts/reject",
+      "grpc": "SelfContact/Reject",
+      "mq": "self.contact.command.reject",
+      "notes": "Two-phase holder-local terminal reject. The service accepts only the holder-signed ak.contact.rejected Event bytes reserved for the exact current request slot, signs the matching rejection acceptance receipt, and provides durable exact replay/conflict semantics independently from normal accept responses.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+      "durable_effect": {
+        "kind": "event_log",
+        "event_kinds": [
           "ak.contact.rejected"
         ]
       }
@@ -1380,7 +1399,7 @@
       "http": "POST /_arkret/self/contacts/scope-update",
       "grpc": "SelfContact/ScopeUpdate",
       "mq": "self.contact.command.scope_update",
-      "notes": "Two-phase prepare/commit carrier for one holder-signed ak.contact.scope.update full-set directional replacement. Genesis uses version 1 with no predecessor; successors are exactly current+1 and reference the exact issuer-local current head. Expansion and narrowing are both explicit signed replacements.",
+      "notes": "Two-phase prepare/commit carrier for one holder-signed ak.contact.scope.update full-set directional replacement. Request/response establishes the issuer-local version 1 genesis; every scope replacement is version >= 2, exactly current+1, and references the exact issuer-local current head. Expansion and narrowing are both explicit signed replacements.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -2173,13 +2192,13 @@
       "http": "POST /_arkret/peer/contacts",
       "grpc": "PeerContacts/Submit",
       "mq": "peer.contacts.command.submit",
-      "notes": "Unique closed XOR delivery carrier for original holder-signed Contact facts plus their exact source acceptance receipts and refreshable current proof, or an original signed Direct Conversation binding. Reject, request, normal response, scope replacement and tombstone branches use byte-identical durable replay; the receiver never re-signs or treats tentative/stale evidence as authority.",
+      "notes": "Unique closed XOR delivery carrier for original holder-signed Contact request, normal response, reject, scope replacement, or tombstone facts plus their exact source acceptance receipts and refreshable current proof. It never carries Direct Conversation binding or Realm Events. Branches use byte-identical durable replay; the receiver never re-signs or treats tentative/stale evidence as authority.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
       "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "delivers_existing_signed_fact_without_committing_a_local_event"

@@ -58,6 +58,9 @@
         },
         {
           "$ref": "#/$defs/direct_conversation_participant_authority_ref"
+        },
+        {
+          "$ref": "#/$defs/membership_compensation_delegation_ref"
         }
       ],
       "description": "Optional. Required when executed_by is present. Prefer a materialized ak:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization; a DID-document delegation URL (did_delegation_ref) is allowed when the delegation is expressed in the principal DID document; realm_authority_root_ref designates this Realm's registered authority-root cell. The sole non-grant profile source admitted here is the exact direct_conversation_participant_authority_ref constant, paired with one critical refs[] role=direct_conversation_binding Event reference and the registered profile evaluator. An arbitrary Event/cell MUST NOT be treated as participant authority. When executed_by is present, authorization_ref binds the executor delegation instead and the DM participant source is evaluated as an independent conjunctive profile gate."
@@ -4528,6 +4531,11 @@
       "type": "string",
       "const": "ak.authority.direct_conversation_participant.v1",
       "description": "The only profile-scoped non-grant authorization source accepted by Event.authorization_ref. It is meaningful solely in ak.profile.direct_conversation_realm.v1 and requires one critical refs[] role=direct_conversation_binding Event reference. The evaluator rederives the pair's unique immutable binding, exact-two participant membership, Realm/Strand/MLS cross-binding, lifecycle, consent and action-specific gates; this constant never authorizes arbitrary Realm or third-party writes."
+    },
+    "membership_compensation_delegation_ref": {
+      "type": "string",
+      "pattern": "^ak:membership-compensation-delegation:sha256:[0-9a-f]{64}$",
+      "description": "Content-addressed accepted-at membership compensation delegation. It is valid only for ak.member.state leave/remove submitted with the matching closed membership_compensation_evidence sidecar and registered single-use evaluator."
     },
     "seal_ref": {
       "type": "string",

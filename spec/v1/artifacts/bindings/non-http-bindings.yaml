@@ -105,6 +105,7 @@ grpc:
     SelfContact:
       Request: ak.self.contact.command.request
       Respond: ak.self.contact.command.respond
+      Reject: ak.self.contact.command.reject
       List: ak.self.contact.query.list
       Tombstone: ak.self.contact.command.tombstone
       ScopeUpdate: ak.self.contact.command.scope_update
@@ -400,6 +401,7 @@ mq:
     self.agent.participation.query.prepare_scope_evidence: ak.self.agent.participation.query.prepare_scope_evidence
     self.contact.command.request: ak.self.contact.command.request
     self.contact.command.respond: ak.self.contact.command.respond
+    self.contact.command.reject: ak.self.contact.command.reject
     self.contact.query.list: ak.self.contact.query.list
     self.contact.command.tombstone: ak.self.contact.command.tombstone
     self.contact.command.scope_update: ak.self.contact.command.scope_update

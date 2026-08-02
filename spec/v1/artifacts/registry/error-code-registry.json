@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-03.1",
+  "version": "2026-08-03.2",
   "codes": [
     {
       "code": "bad_json",
@@ -1045,13 +1045,13 @@
       "code": "contact_request_not_pending",
       "http_status": 409,
       "scope": "both",
-      "description": "Sub-reason for failed_precondition when ak.self.contact.command.respond attempts to accept or reject a request that has already been accepted, rejected, tombstoned, withdrawn, or otherwise left the pending state."
+      "description": "Sub-reason for failed_precondition when ak.self.contact.command.respond or ak.self.contact.command.reject targets a request that has already been accepted, rejected, tombstoned, withdrawn, or otherwise left the pending state."
     },
     {
       "code": "contact_request_expired",
       "http_status": 409,
       "scope": "both",
-      "description": "Sub-reason for failed_precondition when ak.self.contact.command.respond targets a contact request older than contact_request_pending_ttl. The request projection is expired and requester-side contact-managed consent must be revoked."
+      "description": "Sub-reason for failed_precondition when ak.self.contact.command.respond or ak.self.contact.command.reject targets a contact request older than contact_request_pending_ttl. The request projection is expired and no terminal response may be authored from it."
     },
     {
       "code": "unsupported_digest_algorithm",

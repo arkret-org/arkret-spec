@@ -4228,8 +4228,28 @@
         "control_proposal_receipt": {
           "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt",
           "description": "Required external-authority receipt set when a Control Move is submitted to a receiver that cannot itself produce the complete current authority quorum. Forbidden for DataEvents."
+        },
+        "membership_compensation_evidence": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/membership_compensation_submission_evidence",
+          "description": "Transport-only accepted-at compensation authority. Allowed only when event.kind is ak.member.state, event.executed_by is present, and event.authorization_ref equals delegation.core.delegation_id. The destination evaluator also requires exact admission/incarnation/action/executor bindings and consumes (admission_id,delegation_digest) by single-write CAS. It is excluded from Event canonical bytes and event_digest."
         }
       },
+      "allOf": [
+        {
+          "if": { "required": ["membership_compensation_evidence"] },
+          "then": {
+            "properties": {
+              "event": {
+                "properties": {
+                  "kind": { "const": "ak.member.state" },
+                  "authorization_ref": { "$ref": "./event-envelope.schema.json#/$defs/membership_compensation_delegation_ref" }
+                },
+                "required": ["kind", "executed_by", "authorization_ref"]
+              }
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "EventFederationSubmission": {

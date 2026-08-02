@@ -1631,40 +1631,7 @@
       ]
     },
     "agent_sidecar_ensure_outcome": {
-      "type": "object",
-      "required": [
-        "ok",
-        "sidecar_id",
-        "private_strand_id",
-        "private_relation_id",
-        "access_readiness",
-        "pending_access_reconciliations"
-      ],
-      "properties": {
-        "ok": {
-          "type": "boolean",
-          "const": true
-        },
-        "sidecar_id": {
-          "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
-        },
-        "private_strand_id": {
-          "$ref": "#/$defs/strand_id"
-        },
-        "private_relation_id": {
-          "$ref": "#/$defs/relation_id"
-        },
-        "access_readiness": {
-          "$ref": "#/$defs/agent_sidecar_access_readiness"
-        },
-        "pending_access_reconciliations": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/pending_sidecar_access_reconciliation_item"
-          }
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/sidecar_ensure_outcome"
     },
     "agent_sidecar_mls_context": {
       "type": "object",

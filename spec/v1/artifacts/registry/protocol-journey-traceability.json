@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-03.1",
+  "version": "2026-08-03.2",
   "source_of_truth": true,
   "description": "Closed static traceability map for Personal A-J, cross-journey CJ01-CJ22 and product journey PJ01-PJ18. It is not an authority source and contains no revision, execution or release evidence.",
   "closed_world": true,
@@ -12,7 +12,7 @@
   "resolution_rule": "Each journey row resolves exactly one contract_family. Every nonempty grid field in that family is required static coverage for that row; no runtime state is inferred.",
   "contract_families": {
     "bootstrap_and_holder_binding": {
-      "prose_refs": ["spec/v1/zh/identity/device-lifecycle.md", "spec/v1/zh/identity/key-management.md", "spec/v1/zh/sync/service-api-schema.mdx"],
+      "prose_refs": ["spec/v1/zh/crypto-media/device-lifecycle.md", "spec/v1/zh/identity/key-management.md", "spec/v1/zh/sync/service-api-schema.mdx"],
       "schema_pointers": ["spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/device_bootstrap_credential", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/cancel_device_bootstrap_request", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/standard_holder_binding"],
       "operation_ids": ["ak.gate.account.command.enroll_device", "ak.gate.account.command.cancel_device_bootstrap", "ak.gate.account.command.pair_device", "ak.self.events.command.submit", "ak.self.events.query.resolve"],
       "event_kinds": ["ak.device.authorize"],
@@ -24,9 +24,9 @@
       "consumers": ["arkret-rust-sdk", "starid", "garth", "coauth", "cotest"]
     },
     "contact_and_resolver": {
-      "prose_refs": ["spec/v1/zh/models/contact.md", "spec/v1/zh/sync/service-api-schema.mdx", "spec/v1/zh/profiles/direct-conversation.md"],
-      "schema_pointers": ["spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/contact_peer", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/contact_basis_evidence_bundle", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/contact_scope_update_request", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_request"],
-      "operation_ids": ["ak.self.contact.command.request", "ak.self.contact.command.respond", "ak.self.contact.command.scope_update", "ak.self.contact.command.tombstone", "ak.peer.contacts.command.submit", "ak.self.direct_conversation.command.resolve"],
+      "prose_refs": ["spec/v1/zh/identity/contact-and-direct-conversation.md", "spec/v1/zh/sync/service-api-schema.mdx", "spec/v1/zh/sync/service-http-binding.md"],
+      "schema_pointers": ["spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/contact_peer", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/contact_basis_evidence_bundle", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_request", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/contact_scope_update_request", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_request", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_outcome"],
+      "operation_ids": ["ak.self.contact.command.request", "ak.self.contact.command.respond", "ak.self.contact.command.reject", "ak.self.contact.command.scope_update", "ak.self.contact.command.tombstone", "ak.peer.contacts.command.submit", "ak.self.direct_conversation.command.resolve"],
       "event_kinds": ["ak.contact.requested", "ak.contact.accepted", "ak.contact.rejected", "ak.contact.scope.update", "ak.contact.tombstoned", "ak.direct_conversation.bound"],
       "action_ids": ["ak.contact.scope.update"],
       "profile_ids": ["ak.profile.direct_conversation_realm.v1", "ak.profile.direct_conversation_repair.v1"],
@@ -36,7 +36,7 @@
       "consumers": ["arkret-rust-sdk", "garth", "soland", "inkson", "starid", "cotest"]
     },
     "personal_agent_lifecycle": {
-      "prose_refs": ["spec/v1/zh/profiles/personal-agent-provisioning.md", "spec/v1/zh/models/agent.md"],
+      "prose_refs": ["spec/v1/zh/identity/account-lifecycle.md", "spec/v1/zh/models/actor.md"],
       "schema_pointers": ["spec/v1/artifacts/schemas/agent-operations.schema.json#/$defs/agent_provision_prepare_request_body", "spec/v1/artifacts/schemas/agent-operations.schema.json#/$defs/agent_runtime_status"],
       "operation_ids": ["ak.self.agent.command.provision", "ak.self.agent.command.deactivate", "ak.open.agent_pairing.query.runtime_key_request_status"],
       "event_kinds": ["ak.agent.provision", "ak.agent.key.authorize", "ak.profile.update"],
@@ -48,7 +48,7 @@
       "consumers": ["arkret-rust-sdk", "garth", "soland", "coauth", "sodmin", "inkson", "cotest"]
     },
     "participation_and_attribution": {
-      "prose_refs": ["spec/v1/zh/profiles/personal-agent-provisioning.md", "spec/v1/zh/sync/service-api-schema.mdx"],
+      "prose_refs": ["spec/v1/zh/identity/account-lifecycle.md", "spec/v1/zh/sync/service-api-schema.mdx"],
       "schema_pointers": ["spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_prepare_request", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/participation_replacement_batch", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/deployment_ceiling_fork_repair"],
       "operation_ids": ["ak.self.agent.participation.query.prepare_scope_evidence", "ak.peer.agent.participation.query.prepare_scope_evidence", "ak.self.agent.participation.resource.replace", "ak.peer.agent.participation.command.replace"],
       "event_kinds": ["ak.capability.grant", "ak.capability.revoke", "ak.message.create", "ak.reaction.add", "ak.reaction.remove"],
@@ -60,8 +60,8 @@
       "consumers": ["arkret-rust-sdk", "soland", "soland-contracts", "chime", "yoface", "inkson", "sodmin", "cotest"]
     },
     "stable_dm_operation_control": {
-      "prose_refs": ["spec/v1/zh/profiles/direct-conversation.md", "spec/v1/zh/sync/service-api-schema.mdx"],
-      "schema_pointers": ["spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_request", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/effect_value_core", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle"],
+      "prose_refs": ["spec/v1/zh/identity/contact-and-direct-conversation.md", "spec/v1/zh/sync/service-api-schema.mdx"],
+      "schema_pointers": ["spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_request", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/effect_value_core", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/prepared_certificate", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/view_change_certificate", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/new_view_certificate"],
       "operation_ids": ["ak.self.direct_conversation.command.resolve", "ak.peer.keys.keypackages.command.claim", "ak.peer.events.command.submit"],
       "event_kinds": ["ak.realm.create", "ak.member.state", "ak.strand.create", "ak.direct_conversation.bound", "ak.mls.genesis", "ak.mls.commit", "ak.mls.welcome"],
       "action_ids": ["ak.member.leave.own", "ak.mls.commit", "ak.mls.welcome.own_device"],
@@ -72,8 +72,8 @@
       "consumers": ["arkret-rust-sdk", "soland", "soland-contracts", "garth", "inkson", "cotest"]
     },
     "membership_join_compensation": {
-      "prose_refs": ["spec/v1/zh/governance/join-policy.md", "spec/v1/zh/encryption/mls.md"],
-      "schema_pointers": ["spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/membership_compensation_executor_delegation", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/mls_join_admission_receipt"],
+      "prose_refs": ["spec/v1/zh/governance/join-policy.md", "spec/v1/zh/crypto-media/device-lifecycle.md"],
+      "schema_pointers": ["spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/membership_compensation_executor_delegation", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/membership_compensation_submission_evidence", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/mls_join_admission_receipt"],
       "operation_ids": ["ak.peer.keys.keypackages.command.claim", "ak.self.keys.keypackages.command.consume", "ak.self.keys.keypackages.command.revoke", "ak.self.events.command.submit"],
       "event_kinds": ["ak.member.state", "ak.mls.commit", "ak.mls.welcome"],
       "action_ids": ["ak.member.compensate.leave", "ak.member.compensate.remove", "ak.mls.commit"],
@@ -96,8 +96,8 @@
       "consumers": ["arkret-rust-sdk", "soland", "garth", "floria", "cotest"]
     },
     "sidecar": {
-      "prose_refs": ["spec/v1/zh/models/sidecar.md", "spec/v1/zh/profiles/personal-agent-provisioning.md"],
-      "schema_pointers": ["spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_request", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/sidecar_access_replace"],
+      "prose_refs": ["spec/v1/zh/models/sidecar.md", "spec/v1/zh/identity/account-lifecycle.md"],
+      "schema_pointers": ["spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_request", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_outcome", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/sidecar_access_replace"],
       "operation_ids": ["ak.self.agent.sidecar.command.ensure", "ak.self.agent.sidecar.resource.get", "ak.self.agent.sidecar.query.list"],
       "event_kinds": ["ak.sidecar.create", "ak.sidecar.context.attach", "ak.sidecar.access.replace", "ak.circle.member.state"],
       "action_ids": ["ak.self.agent.sidecar.command.ensure", "ak.sidecar.access.replace"],
@@ -108,7 +108,7 @@
       "consumers": ["arkret-rust-sdk", "garth", "bridges", "savfox", "cotest"]
     },
     "signer_and_planner": {
-      "prose_refs": ["spec/v1/zh/profiles/personal-agent-provisioning.md", "spec/v1/zh/identity/key-management.md"],
+      "prose_refs": ["spec/v1/zh/identity/account-lifecycle.md", "spec/v1/zh/identity/key-management.md"],
       "schema_pointers": ["spec/v1/artifacts/schemas/agent-signer-evidence.schema.json#", "spec/v1/artifacts/schemas/agent-operations.schema.json#/$defs/agent_runtime_status"],
       "operation_ids": ["ak.open.agent_pairing.query.runtime_key_request_status", "ak.self.agent.resource.get", "ak.self.agent.query.list"],
       "event_kinds": ["ak.agent.key.authorize", "ak.agent.key.revoke", "ak.agent.provision"],

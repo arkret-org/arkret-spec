@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.1",
+  "version": "2026-08-03.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-03T02:00:00Z",
+  "generated_at": "2026-08-03T04:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -334,21 +334,6 @@
               "transaction_id",
               "retryable_error",
               "retry_after_ms",
-              "outcome_digest"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/cancel_device_bootstrap_outcome",
-            "schema_kind": "object",
-            "required": [
-              "status",
-              "transaction_id",
-              "outcome_digest"
-            ],
-            "properties": [
-              "status",
-              "transaction_id",
               "outcome_digest"
             ],
             "closed": true
@@ -1025,12 +1010,12 @@
           "operation_id",
           "idempotency_key",
           "source_realm_id",
-          "agent_id",
+          "controller_id",
           "context_ref",
           "reservation_handle",
+          "sidecar_id",
           "create_event",
-          "context_attach_event",
-          "sidecar_id"
+          "context_attach_event"
         ],
         "closed": true,
         "variants": [
@@ -1042,7 +1027,7 @@
               "operation_id",
               "idempotency_key",
               "source_realm_id",
-              "agent_id",
+              "controller_id",
               "context_ref"
             ],
             "properties": [
@@ -1050,7 +1035,7 @@
               "operation_id",
               "idempotency_key",
               "source_realm_id",
-              "agent_id",
+              "controller_id",
               "context_ref"
             ],
             "closed": true
@@ -1063,6 +1048,7 @@
               "operation_id",
               "idempotency_key",
               "reservation_handle",
+              "sidecar_id",
               "create_event",
               "context_attach_event"
             ],
@@ -1071,6 +1057,7 @@
               "operation_id",
               "idempotency_key",
               "reservation_handle",
+              "sidecar_id",
               "create_event",
               "context_attach_event"
             ],
@@ -1100,25 +1087,78 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_outcome",
-        "schema_kind": "object",
+        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_outcome",
+        "schema_kind": "oneOf",
         "required": [
-          "ok",
+          "status",
           "sidecar_id",
           "private_strand_id",
-          "private_relation_id",
-          "access_readiness",
-          "pending_access_reconciliations"
+          "private_relation_id"
         ],
         "properties": [
-          "ok",
+          "status",
+          "operation_id",
+          "reservation_handle",
+          "expires_at",
           "sidecar_id",
           "private_strand_id",
           "private_relation_id",
+          "accepted_phase",
+          "ok",
           "access_readiness",
           "pending_access_reconciliations"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_outcome",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "operation_id",
+              "reservation_handle",
+              "expires_at",
+              "sidecar_id",
+              "private_strand_id",
+              "private_relation_id"
+            ],
+            "properties": [
+              "status",
+              "operation_id",
+              "reservation_handle",
+              "expires_at",
+              "sidecar_id",
+              "private_strand_id",
+              "private_relation_id"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_outcome",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "accepted_phase",
+              "ok",
+              "sidecar_id",
+              "private_strand_id",
+              "private_relation_id",
+              "access_readiness",
+              "pending_access_reconciliations"
+            ],
+            "properties": [
+              "status",
+              "accepted_phase",
+              "ok",
+              "sidecar_id",
+              "private_strand_id",
+              "private_relation_id",
+              "access_readiness",
+              "pending_access_reconciliations"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {
@@ -2040,7 +2080,7 @@
       "operation_id": "ak.self.contact.command.respond",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_request",
+        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_accept_request",
         "schema_kind": "oneOf",
         "required": [
           "phase",
@@ -2061,14 +2101,16 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_request",
+            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_accept_request",
             "schema_kind": "object",
             "required": [
               "phase",
               "operation_id",
               "idempotency_key",
               "request_receipt",
-              "action"
+              "action",
+              "granted_to_peer_scopes",
+              "normal_basis_evidence"
             ],
             "properties": [
               "phase",
@@ -2082,7 +2124,142 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_request",
+            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_accept_request",
+            "schema_kind": "object",
+            "required": [
+              "phase",
+              "operation_id",
+              "idempotency_key",
+              "reservation_handle",
+              "signed_event"
+            ],
+            "properties": [
+              "phase",
+              "operation_id",
+              "idempotency_key",
+              "reservation_handle",
+              "signed_event"
+            ],
+            "closed": true
+          }
+        ]
+      },
+      "response": {
+        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+        "schema_kind": "oneOf",
+        "required": [
+          "status",
+          "operation_id"
+        ],
+        "properties": [
+          "status",
+          "operation_id",
+          "reservation_handle",
+          "expires_at",
+          "accepted_event_ref",
+          "lineage",
+          "current_proof",
+          "reason"
+        ],
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "operation_id",
+              "reservation_handle",
+              "expires_at"
+            ],
+            "properties": [
+              "status",
+              "operation_id",
+              "reservation_handle",
+              "expires_at"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "operation_id",
+              "accepted_event_ref",
+              "lineage",
+              "current_proof"
+            ],
+            "properties": [
+              "status",
+              "operation_id",
+              "accepted_event_ref",
+              "lineage",
+              "current_proof"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "operation_id",
+              "reason"
+            ],
+            "properties": [
+              "status",
+              "operation_id",
+              "reason"
+            ],
+            "closed": true
+          }
+        ]
+      }
+    },
+    {
+      "operation_id": "ak.self.contact.command.reject",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_request",
+        "schema_kind": "oneOf",
+        "required": [
+          "phase",
+          "operation_id",
+          "idempotency_key"
+        ],
+        "properties": [
+          "phase",
+          "operation_id",
+          "idempotency_key",
+          "request_receipt",
+          "action",
+          "reservation_handle",
+          "signed_event"
+        ],
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_request",
+            "schema_kind": "object",
+            "required": [
+              "phase",
+              "operation_id",
+              "idempotency_key",
+              "request_receipt",
+              "action"
+            ],
+            "properties": [
+              "phase",
+              "operation_id",
+              "idempotency_key",
+              "request_receipt",
+              "action"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_request",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -4104,6 +4281,7 @@
           "authorization_lease",
           "cba_proof_bundles",
           "control_proposal_receipt",
+          "membership_compensation_evidence",
           "events"
         ],
         "closed": true,
@@ -4118,7 +4296,8 @@
               "event",
               "authorization_lease",
               "cba_proof_bundles",
-              "control_proposal_receipt"
+              "control_proposal_receipt",
+              "membership_compensation_evidence"
             ],
             "closed": true
           },
@@ -4670,72 +4849,59 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_outcome",
         "schema_kind": "oneOf",
         "required": [
           "status",
-          "operation_id"
+          "mirror_receipt"
         ],
         "properties": [
           "status",
-          "operation_id",
-          "reservation_handle",
-          "expires_at",
-          "accepted_event_ref",
-          "lineage",
+          "mirror_receipt",
           "current_proof",
-          "reason"
+          "retry_after_ms"
         ],
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_outcome",
             "schema_kind": "object",
             "required": [
               "status",
-              "operation_id",
-              "reservation_handle",
-              "expires_at"
+              "mirror_receipt"
             ],
             "properties": [
               "status",
-              "operation_id",
-              "reservation_handle",
-              "expires_at"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
-            "schema_kind": "object",
-            "required": [
-              "status",
-              "operation_id",
-              "accepted_event_ref",
-              "lineage",
-              "current_proof"
-            ],
-            "properties": [
-              "status",
-              "operation_id",
-              "accepted_event_ref",
-              "lineage",
+              "mirror_receipt",
               "current_proof"
             ],
             "closed": true
           },
           {
-            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_outcome",
             "schema_kind": "object",
             "required": [
               "status",
-              "operation_id",
-              "reason"
+              "mirror_receipt"
             ],
             "properties": [
               "status",
-              "operation_id",
-              "reason"
+              "mirror_receipt",
+              "current_proof"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_outcome",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "mirror_receipt"
+            ],
+            "properties": [
+              "status",
+              "mirror_receipt",
+              "retry_after_ms"
             ],
             "closed": true
           }

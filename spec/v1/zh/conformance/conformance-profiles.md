@@ -682,15 +682,24 @@ MUST NOT:
 `ak.profile.agent_sidecar.v1` 注册独立 `ak.schema.agent_sidecar.v1` 对象及其 controller-owned private AI workspace 行为。它依赖 Circle backing-scope、MLS、personal agent provisioning 与 auth profiles，但 Sidecar 本身不是 Circle profile。
 
 MUST 支持:
-- `POST /_arkret/self/agent-sidecars:ensure`（`ak.self.agent.sidecar.command.ensure`）幂等返回 `{ok, sidecar_id, private_strand_id, private_relation_id, access_readiness, pending_access_reconciliations}`；pending 数组始终存在
+- `POST /_arkret/self/agent-sidecars:ensure`（`ak.self.agent.sidecar.command.ensure`）是 closed 三阶段 surface。
+  `prepare{phase="prepare",operation_id,idempotency_key,source_realm_id,agent_id,context_ref}` 只建立 private durable reservation，
+  返回 `prepared{operation_id,reservation_handle,expires_at,sidecar_id,private_strand_id,private_relation_id}`；首次创建使用
+  `commit{phase="commit",operation_id,idempotency_key,reservation_handle,create_event,context_attach_event}`，existing
+  Sidecar只使用`attach{phase="attach",operation_id,idempotency_key,reservation_handle,sidecar_id,
+  context_attach_event}`。`commit|attach` 成功才返回 accepted outcome；其closed字段为`operation_id`、
+  `accepted_phase=commit|attach`、`ok`、三个预分配ID、`access_readiness`与`pending_access_reconciliations`，其中 pending
+  数组始终存在。三阶段的同 operation/key/exact bytes必须回放原 outcome；handle过期、branch错配或 bytes变化必须
+  fail closed，prepare不得提前写 canonical Sidecar/Strand/Relation
 - `GET /_arkret/self/agent-sidecars/{sidecar_id}` 与 list query 作为唯一 canonical read surface，返回强类型 Sidecar + desired/effective access；普通 Circle API 不得代替
 - `context_ref` polymorphic descriptor（`relation_id` 或 `strand_id` 的 Strand-level identity）；Track/Message coordinate MUST NOT 进入 private Strand reuse key
 - Closed request schema(reject unknown top-level fields)
 - Fixed reuse：Sidecar `(realm_id, controller_id)`；private Strand `(sidecar_id, normalized_context_ref)`
-- 首次ensure以private reservation固定全部IDs；controller-signed minimal `ak.sidecar.create`使用parent-Realm bootstrap exception且只投影Sidecar/backing Circle/controller初始membership；独立controller-signed `ak.sidecar.context.attach`只投影private Strand/Relation并以`EventRef{role="after"}`引用create。首次staged atomic admission一次提交`[create,context.attach]`，任一失败全回滚；existing Sidecar只attach。caller不提供Circle shape/ID
+- prepare 返回的 `reservation_handle` 固定全部IDs与 `new|existing` branch；首次ensure的controller-signed minimal `ak.sidecar.create`使用parent-Realm bootstrap exception且只投影Sidecar/backing Circle/controller初始membership；独立controller-signed `ak.sidecar.context.attach`只投影private Strand/Relation并以`EventRef{role="after"}`引用create。首次`commit` staged atomic admission一次提交`[create,context.attach]`，任一失败全回滚；existing Sidecar的`attach`不得携create Event。caller不提供Circle shape/ID，commit/attach也不得绕过或替换prepare固定的ID、context与branch
 - 唯一access authority Event为controller-signed versioned full-set `ak.sidecar.access.replace`；desired access是`{controller} ∪ (current selection ∩ current eligible owned Agents)`，effective access再与policy/lifecycle/participation/backing membership/MLS求交。`control_frontier`只含create、current access selection和current正/负backing membership refs，context attach排除；MLS security digest独立按标准Seal+leaf/proof重算
 - desired access、effective access、backing membership、MLS/device readiness 分离投影；发送只在安全交集 ready 后开放
-- `addressed_agent_ids[]` per-ensure ephemeral(服务端不持久化);MUST NOT 包含 controller 自身
+- ensure不得接受未登记的`addressed_agent_ids[]`兼容字段；desired Agent full-set只能由
+  `ak.sidecar.access.replace`表达，单次exchange寻址走Sidecar private Event binding，不进入ensure reservation
 - 历史 backfill 经由 application-level resend（显式 plaintext 披露）；不得使用 MLS exporter secret / past commit secret
 - Cross-Realm fan-out：Agent deactivate 只影响该 Agent 实际进入 desired access 的 Sidecars 及其 backing scopes
 - `agent_sidecar_of` relation kind(weak-semantic、non-structural、non-cascading);`fields` 不含 `target_realm_id`
@@ -755,12 +764,31 @@ MUST 支持:
   binding bytes；info恰为closed
   `{domain:"ak.participation.scope-evidence.hpke.v1",suite_id,recipient_key_ref,target_service_id,
   agent_id,target_scope_digest}`的RFC8785/JCS UTF-8 bytes。不得用字符串拼接、可选算法或自引用摘要
-- target-local deployment ceiling由accepted target service DID/key签发。ordinary successor只引用一个current
-  predecessor并严格version+1；同version每次CAS只接纳一个head，fork/unknown/stale fail closed。fork completeness
-  proof先定义不含自身root/digest的closed core，覆盖slot、issuer/key binding、version/predecessor、全部五位
-  ceiling、policy/basis、时效、head digest及covered-through边界，再从exact core计算root。
-  `DeploymentCeilingForkRepair`引用exact core/root、排序后的完整fork heads和successor；同authority单写CAS
-  接纳后只留唯一current head，covered旧head晚到仅quarantine。root不得覆盖含自身root的tuple
+- target-local deployment ceiling由accepted target service DID/key签发。ordinary unsigned/digest-free
+  `DeploymentCeilingCore`的closed字段恰为`domain,slot_id,target_service_id,issuer,
+  issuer_verification_method,version,predecessor_digest?,ceiling,policy_basis,issued_at,expires_at`；domain固定
+  `ak.participation.deployment-ceiling.v1`。`version=1`时predecessor缺省，后续successor只引用一个current
+  predecessor并严格version+1。外层`DeploymentCeilingSignedHead={head_digest,core,signature}`保存canonical digest与
+  service签名；verification method必须逐字等于core字段，并解析为issuer在签发时有效且属于target service的key。
+  同version每次CAS只接纳一个head，fork/unknown/stale/expired fail closed
+- fork completeness使用无自身root/digest的closed
+  `DeploymentCeilingCompletenessCore={domain,slot_id,target_service_id,checkpoint_issuer,
+  checkpoint_verification_method,checkpoint_seq,covered_through_version,covered_through_head_digest,fork_heads[],
+  issued_at,expires_at}`；domain固定`ak.participation.deployment-ceiling-completeness.v1`。每个fork head是完整
+  `DeploymentCeilingSignedHead`。`fork_heads[]`按`head_digest` UTF-8 unsigned-byte排序且去重，至少两项；verifier
+  重算每个head digest，并验证同slot/target、issuer/key、predecessor、五位ceiling、policy basis、时效、version不
+  超过covered-through、covered-through head及checkpoint单调性。`completeness_root=SHA-256(RFC8785/JCS(
+  completeness_core))`，root不得覆盖含自身root的tuple
+- `DeploymentCeilingForkRepair`的closed字段恰为`domain,completeness_core,completeness_root,predecessor_set,
+  successor,successor_digest,target_authority,target_verification_method,signature`，domain固定
+  `ak.participation.deployment-ceiling-fork-repair.v1`。`predecessor_set`必须逐字等于排序去重后的全部fork head
+  digests；`successor`是同slot/target/authority的`DeploymentCeilingCore`，verifier重算`successor_digest`；repair
+  successor固定`version=completeness_core.covered_through_version+1`且
+  `predecessor_digest=completeness_root`，以该root作为唯一synthetic merge predecessor；
+  外层signature覆盖删除`signature`字段后的closed repair对象，且verification method必须逐字等于
+  `target_verification_method`并属于`target_authority`。
+  单写CAS接纳后只留唯一current head，covered旧head晚到仅quarantine；不得用core不存在的自定义字段或第二份
+  completeness摘要建立兼容分支
 - 第三方 mention gate：`accept_third_party_mention=false` 时不得向该 agent 派生 mention notification、inbox row、push wakeup 或 agent subscribe 投影；gate 在 message event fanout 时一次性求值，participation 之后翻转不追溯补发或撤销既有派生（[strand-and-message.md §9.4.5](../models/strand-and-message.md)）
 - destination receipt绑定batch digest、scope-evidence digest、current deployment ceiling digest/version与accepted
   version。mention fanout只有fresh accepted batch receipt并重算current ceilings后才能开启；缺失/旧version/stale

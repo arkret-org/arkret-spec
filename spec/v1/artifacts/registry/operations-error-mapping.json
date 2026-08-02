@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-03.1",
+  "version": "2026-08-03.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -492,7 +492,18 @@
         "source_refs_unverifiable",
         "contact_lineage_conflict"
       ],
-      "description": "Only the request target may sign a normal response or reject. Glare, late reverse requests, slot conflicts and consumed refs fail closed; neither branch writes Private Consent."
+      "description": "Only the request target may sign a normal acceptance. Glare, late reverse requests, slot conflicts and consumed refs fail closed; rejection uses the separate reject operation."
+    },
+    {
+      "operation_id": "ak.self.contact.command.reject",
+      "http_alias": "POST /_arkret/self/contacts/reject",
+      "operation_specific": [
+        "not_found",
+        "failed_precondition",
+        "source_refs_unverifiable",
+        "contact_lineage_conflict"
+      ],
+      "description": "Only the request target may sign the proposal-terminal rejection. Glare, late reverse requests, slot conflicts and consumed refs fail closed; no Private Consent is written."
     },
     {
       "operation_id": "ak.self.contact.query.list",

@@ -24,7 +24,7 @@ Spec机器层只允许一份顶层`artifacts/registry/protocol-journey-traceabil
 | CJ02 | [`key-management.md §5.0.0/§5.1`](../identity/key-management.md)：sibling pairing allowlist、transaction-filtered verification message与standard sibling final pair。 |
 | CJ03 | [`api-conventions.md §3.3`](../sync/api-conventions.md)：`standard.holder_binding` human/Agent closed XOR及current lifecycle admission。 |
 | CJ04 | [`contact-and-direct-conversation.md §1–§2`](../identity/contact-and-direct-conversation.md)：Contact peer closed XOR、holder signer、private reservation与source receipt。 |
-| CJ05 | [同文 §2](../identity/contact-and-direct-conversation.md)：normal/glare/reject的request-ref消费互斥与causal completeness。 |
+| CJ05 | [同文 §2–§4](../identity/contact-and-direct-conversation.md)：normal/glare/reject的request-ref消费互斥、causal completeness与独立`ak.self.contact.command.reject`终态面。 |
 | CJ06 | [同文 §3](../identity/contact-and-direct-conversation.md)：issuer-local lineage、full-set scope replacement、tombstone/recontact。 |
 | CJ07 | [同文 §2–§4](../identity/contact-and-direct-conversation.md)：`ak.peer.contacts.command.submit` closed XOR carrier、mirror current lease与exact replay。 |
 | CJ08 | [`api-conventions.md §3.2–§3.3`](../sync/api-conventions.md)：全部non-public `ak.self.*` bearer+DPoP AND。 |

@@ -89,8 +89,12 @@ evidence。刷新 current proof 不改变 `basis_id`。unknown/stale/incomplete 
 不能授权 successor、Contact create/send 或 DM authority。
 
 `ak.peer.contacts.command.submit` 是唯一 peer carrier，其 closed XOR 分支分别携原始 signed request/response/
-reject/scope/tombstone Event、该分支 exact acceptance receipt与可刷新的 current proof。carrier 必须使用 peer
-Message Signature，并逐字保留内层 bytes；relay 不得重签、改写、拆批或把 tentative 提升为 accepted。
+reject/scope/tombstone Event、该分支 exact acceptance receipt与可刷新的 current proof。carrier 只承载
+`ak.contact.*`，不得承载 `ak.direct_conversation.bound` 或 Realm Event；Direct Conversation binding 只能走
+§6–§8 的 materialization admission。carrier 必须使用 peer Message Signature，并逐字保留内层 bytes；relay
+不得重签、改写、拆批或把 tentative 提升为 accepted。其 response 是独立 closed union
+`accepted | duplicate | deferred`，并携该分支允许的 current mirror receipt；它不得复用 self contact
+prepare/commit 的 `ContactOperationOutcome`，也不得把 holder-private receive state编码进状态值。
 
 ## 3. Directional scope、current head 与终态
 
@@ -120,8 +124,8 @@ Message Signature只能额外叠加，不能替代其中任一项。实现 **MUS
 | operation | 语义 |
 | --- | --- |
 | `ak.self.contact.command.request` | prepare/commit 原始 signed request与 request acceptance receipt |
-| `ak.self.contact.command.respond` | normal accept；要求 responder slot 无 outgoing |
-| `ak.self.contact.command.reject` | proposal terminal reject与 rejection receipt |
+| `ak.self.contact.command.respond` | 只执行 normal accept；要求 responder slot 无 outgoing，不接受 reject action |
+| `ak.self.contact.command.reject` | 独立 proposal terminal reject与 rejection receipt；不得复用 respond body |
 | `ak.self.contact.command.scope_update` | issuer-local full-set replacement |
 | `ak.self.contact.command.tombstone` | accepted basis terminal，旧 refs永久消费 |
 | `ak.self.contact.query.list` | 从 verified basis与双方 directional current heads投影 |
@@ -160,8 +164,10 @@ policy，并在 reservation pin policy digest。requester不能缩小 replicas/q
 
 同一 pair 永久只有一个 stable `operation_id`和单调递增的 certified `attempt_sequence`，初始为 1。首个
 q-certified genesis固定 Realm、main Strand与未来 binding坐标。一旦发生 claim、accepted Event或任一 external
-effect，slot不得删除或重分配，只能沿
-`materializing → cleanup → cleanup_complete_retryable`前进；permanent cancel也保留 tombstoned slot与坐标。
+effect，slot不得删除或重分配。成功分支从 `materializing` 单调进入 `found`；失败分支才沿
+`materializing → cleanup → cleanup_complete_retryable`前进。`cleanup_complete_retryable` 只能经 §6 所述
+q-certified `attempt_advance` 打开下一 attempt并回到 `materializing`，不得直接变成 `found`。permanent cancel
+进入独立 tombstoned terminal，但仍保留 slot与已固定坐标。
 
 每个 attempt 使用独立 `(operation_id, attempt_sequence)` journal，并最终绑定 fresh target authorization、
 KP claim、membership Event/version、MLS generation及所有 effects。新 attempt只能由同 operation-control log 的
@@ -213,11 +219,26 @@ root、registry/operation/attempt/effect/destination/epoch、distinct signer ide
 其 digest从不含自身 digest的 exact certificate core计算。
 
 每个 per-view phase envelope分别以 domain-separated transcript绑定 registry、view、phase、value digest、qDA
-certificate digest与该 phase的 predecessor/lock facts；签名禁止跨 phase/view/registry/context复用。q份 PREPARE
-形成 prepared certificate，q份 COMMIT形成唯一 point-of-no-return。closed
-`ExecutionBundle={exact_effect_value_core,exact_qda_certificate,per_view_certificates,
-authenticated_encrypted_journal_bytes}`只是传输载体，不创造第二个 PONR。receiver从 immutable registry解析
-distinct signers，重算 value/certificate/journal root与 canonical ancestor；缺 bundle只允许补传同 effect ID。
+certificate digest与该 phase的 predecessor/lock facts；签名禁止跨 phase/view/registry/context复用。q份同 view、
+同 value 的 PREPARE envelope形成 `prepared_certificate`，q份同 view、同 value 的 COMMIT envelope形成唯一
+point-of-no-return；certificate verifier必须重验 `N=3f+1`、`q=2f+1`、replica membership、distinct signer与
+envelope逐字段一致，不能只信其声明的 `n/f/quorum`。
+
+`per_view_certificates[]` 是 `per_view_certificate` closed union的有序数组；每个元素恰为
+`prepared_certificate | view_change_certificate | new_view_certificate`之一，合起来形成从该 instance genesis 到
+最终 q-COMMIT view 的canonical ancestor chain。发生 view change时，先由每个replica产生closed
+`view_change_message`，再由exact q份、目标view一致且signer distinct的messages形成`view_change_certificate`，
+最后由新proposer签closed `new_view_certificate`。每个`view_change_message`使用`prepared_state=none|prepared`
+closed XOR；prepared分支逐字携本replica的最高`prepared_certificate`，none分支不得携伪造的prepared字段。
+`new_view_certificate`逐字包含exact `view_change_certificate`和proposer的PRE-PREPARE proposal，并选择集合中最高
+view的prepared value；只有q份全部为none时才能提出一个fresh合法完整value。数组按view及该view内
+prepared→view-change→new-view的因果顺序排列，不能跳过影响最终选择的证据，COMMIT只能引用链尾view。
+
+closed `ExecutionBundle={value_core,qda_certificate,per_view_certificates,qcommit_certificate,
+authenticated_encrypted_journal_bytes}` 逐字携带上述 chain与最终 q-COMMIT certificate，
+只是传输载体，不创造第二个 PONR。receiver从 immutable registry解析 distinct signers，重算 value/qDA/每轮
+certificate/journal root与 canonical ancestor；`per_view_certificates`缺失、断链或与 q-COMMIT view/value不一致
+均 fail closed。缺 bundle只允许补传同 effect ID。
 
 每次 current-head read都需要 fresh q-certified read certificate；它只证明读取，不授权 effect。无 fresh proof或
 不完整 authenticated journal时保持 pending/fail closed。transfer是同 PBFT profile上的 effect successor，绑定
