@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.7",
+  "version": "2026-08-02.8",
   "source_of_truth": true,
-  "generated_at": "2026-08-02T18:30:00Z",
+  "generated_at": "2026-08-02T20:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {

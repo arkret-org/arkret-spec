@@ -49,7 +49,7 @@
       "outbound": 44,
       "prose": 109,
       "prose_only": 2,
-      "schema_reference": 98,
+      "schema_reference": 99,
       "startup_compile": 177,
       "vectors": 110
     },
@@ -196,6 +196,7 @@
           "ak.gate.account.command.register",
           "ak.gate.account.command.revoke_session",
           "ak.gate.account.exchange.create_handoff",
+          "ak.peer.account_status.command.submit",
           "ak.self.account.command.update_profile",
           "ak.self.account.query.viewer"
         ],
@@ -1165,6 +1166,7 @@
       "consumers": {
         "declared_wire": "standalone_schema_alias",
         "prose": "normative_text",
+        "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
