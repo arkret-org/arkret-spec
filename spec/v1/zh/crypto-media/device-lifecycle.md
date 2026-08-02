@@ -1149,11 +1149,12 @@ frontier/Commit facts。takeover必须签 predecessor、current epoch与相同 e
 `revoked`，不得第二次claim；只有recipient durable后才能consume。
 
 注册唯一 authority source `ak.authority.membership_compensation.v1`。补偿 delegation由实际 accepted join
-Event的authoring proof signer产生；其无签名、无自身digest的closed core逐字绑定 delegation/admission/join
-identity、member Event ID/digest、membership cell/incarnation与J1 provenance、subject、真实
+Event的authoring proof signer产生；其无签名、无自身digest、无`delegation_id`的closed core逐字绑定
+admission/join identity、member Event ID/digest、membership cell/incarnation与J1 provenance、subject、真实
 `actor_id/executed_by?/authorization_ref?/verification_method`分支、executor service DID+proof key、resource、
-deadline及唯一action，再从exact RFC8785/JCS core计算stable delegation digest。不可转授，也不得用普通
-grant/source代替。
+deadline及唯一action。先从exact RFC8785/JCS core计算stable `delegation_digest`，再机械派生外层
+`delegation_id=ak:membership-compensation-delegation:sha256:<lowercase_hex>`；ID后缀必须逐字等于该digest，
+外层author signature覆盖ID、core与digest。不可转授，也不得用普通grant/source代替。
 
 action是closed XOR：self join仅 `ak.member.compensate.leave`，delegated/admin join仅
 `ak.member.compensate.remove`；未知action fail closed。executor author fresh标准 `ak.member.state`减权 Event，

@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-08-03.2",
-      "generated_at": "2026-08-03T04:00:00Z",
-      "content_digest": "sha256:b24b9f7f956410014c2a01ff423e079f7a954624ef94293d1dc8b639765baaa5"
+      "version": "2026-08-03.3",
+      "generated_at": "2026-08-03T06:00:00Z",
+      "content_digest": "sha256:138a6e783e7ea32280da407aba5f5713b979f30bb2564a07a621b439fc018b16"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
