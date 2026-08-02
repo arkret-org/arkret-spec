@@ -547,7 +547,8 @@
           "pattern": "^ak:cursor:.+$"
         },
         "reason_code": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
         },
         "revoke_scope": {
           "type": "string",
@@ -716,6 +717,7 @@
         },
         "reason_code": {
           "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
           "description": "Registered reason code. High-risk stale or unknown revocation freshness returns revocation_freshness_unknown."
         },
         "retry_after_ms": {
@@ -2634,7 +2636,8 @@
           "type": "string"
         },
         "reason_code": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
         },
         "detail": {
           "type": "string"
@@ -3197,7 +3200,8 @@
           ]
         },
         "reason_code": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
         },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

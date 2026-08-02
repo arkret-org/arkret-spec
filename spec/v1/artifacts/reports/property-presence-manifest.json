@@ -6,26 +6,36 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/schema-registry.json"
   ],
-  "description": "Per-property wire presence contract derived from the schema documents. required, nullable and default are independent axes; presence_class is their normative combination. An SDK MUST reproduce the class exactly: a tristate property needs a Missing / Null / Value representation, because a two-state optional collapses explicit null into absent. Repeated conditional schema occurrences are also grouped into semantic audit targets by shape and instance path so SDK audits do not count the same DTO field multiple times.",
+  "description": "Per-property wire presence contract derived from the schema documents. required, nullable and default are independent axes; presence_class is their normative combination. An SDK MUST reproduce the class exactly: a tristate property needs an explicit SDK disposition: the protocol-wide default normalizes absent/null, conditional requiredness is enforced by the Draft runtime, and only x-arkret-presence-semantics=distinct requires Missing / Null / Value. Repeated conditional schema occurrences are also grouped into semantic audit targets by shape and instance path so SDK audits do not count the same DTO field multiple times.",
   "presence_class_definitions": {
     "required": "must be present and never null.",
     "required_nullable": "must be present and may be null; absent and null are different wire facts.",
-    "tristate": "optional, nullable, no default; absent, explicit null and a value are three distinguishable wire states.",
+    "tristate": "optional, nullable, no default; absent, explicit null and a value are three accepted wire spellings whose semantics require a disposition.",
     "optional_defaulted": "optional with a schema default; omission means the default.",
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8423,
+    "total_properties": 8422,
     "total_schema_documents": 154,
     "by_presence_class": {
       "optional": 2825,
       "optional_defaulted": 79,
-      "required": 5170,
+      "required": 5169,
       "required_nullable": 90,
       "tristate": 259
     },
     "tristate_occurrences": 259,
-    "tristate_audit_targets": 159
+    "tristate_audit_targets": 159,
+    "tristate_sdk_dispositions": {
+      "absent_null_equivalent": 149,
+      "condition_guarded": 9,
+      "distinct": 1
+    }
+  },
+  "sdk_disposition_definitions": {
+    "distinct": "business semantics distinguish Missing / Null / Value; SDK must preserve all three.",
+    "condition_guarded": "missing is invalid in an applicable conditional branch and is enforced before typed decoding.",
+    "absent_null_equivalent": "v1 default normalization; SDK uses an optional value and canonical output omits None."
   },
   "tristate_properties": [
     "account-subscribe-frame.schema.json/$defs/device_message_container/allOf/0/if/properties/messages",
@@ -295,7 +305,9 @@
       "instance_path": "/messages",
       "occurrences": [
         "/$defs/device_message_container/allOf/0/if/properties/messages"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "agent-operations.schema.json",
@@ -304,7 +316,9 @@
       "occurrences": [
         "/$defs/agent_readiness/allOf/0/then/properties/blockers",
         "/$defs/agent_readiness/allOf/1/then/properties/blockers"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "agent-sidecar-exchange-projection.schema.json",
@@ -314,7 +328,9 @@
         "/allOf/0/then/properties/user_facing_response_event_ids",
         "/allOf/1/then/properties/user_facing_response_event_ids",
         "/allOf/3/then/properties/user_facing_response_event_ids"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "agent-signer-evidence.schema.json",
@@ -323,7 +339,9 @@
       "occurrences": [
         "/allOf/0/if/properties/authorization",
         "/allOf/1/if/properties/authorization"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "applet-install-plan.schema.json",
@@ -331,7 +349,9 @@
       "instance_path": "/policy_event_ref",
       "occurrences": [
         "/$defs/widget_effect/properties/policy_event_ref"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "audit-ryw-receipt.schema.json",
@@ -340,7 +360,9 @@
       "occurrences": [
         "/allOf/0/then/properties/witness_attestation",
         "/allOf/1/then/properties/witness_attestation"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "audit-ryw-receipt.schema.json",
@@ -349,7 +371,9 @@
       "occurrences": [
         "/allOf/0/then/properties/witness_attestation/properties/witnesses",
         "/allOf/1/then/properties/witness_attestation/properties/witnesses"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "blob.schema.json",
@@ -357,7 +381,9 @@
       "instance_path": "/encryption",
       "occurrences": [
         "/properties/encryption"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "calendar-event.schema.json",
@@ -366,7 +392,9 @@
       "occurrences": [
         "/allOf/0/then/properties/recurrence",
         "/allOf/1/then/properties/recurrence"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "calendar-event.schema.json",
@@ -374,7 +402,9 @@
       "instance_path": "/by_day",
       "occurrences": [
         "/$defs/recurrence/allOf/1/then/properties/by_day"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "device-message.schema.json",
@@ -388,7 +418,9 @@
         "/allOf/5/then/properties/content",
         "/allOf/6/then/properties/content",
         "/allOf/7/then/properties/content"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "did-continuity-proof.schema.json",
@@ -396,7 +428,9 @@
       "instance_path": "/signature_chain",
       "occurrences": [
         "/allOf/0/then/properties/signature_chain"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "encrypted-envelope.schema.json",
@@ -405,7 +439,9 @@
       "occurrences": [
         "/allOf/0/then/properties/key_ref",
         "/allOf/1/then/properties/key_ref"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "erasure-receipt.schema.json",
@@ -413,7 +449,9 @@
       "instance_path": "/legal_hold_ref",
       "occurrences": [
         "/properties/legal_hold_ref"
-      ]
+      ],
+      "sdk_disposition": "condition_guarded",
+      "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
     },
     {
       "schema_file": "erasure-receipt.schema.json",
@@ -421,7 +459,9 @@
       "instance_path": "/legal_hold_ref",
       "occurrences": [
         "/$defs/verification_stub/properties/legal_hold_ref"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "erasure-verification-stub.schema.json",
@@ -429,7 +469,9 @@
       "instance_path": "/legal_hold_ref",
       "occurrences": [
         "/properties/legal_hold_ref"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-envelope.schema.json",
@@ -439,7 +481,9 @@
         "/allOf/112/then/properties/payload",
         "/allOf/5/then/properties/payload",
         "/allOf/6/then/properties/payload"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-envelope.schema.json",
@@ -447,7 +491,9 @@
       "instance_path": "/refs",
       "occurrences": [
         "/allOf/114/then/properties/refs"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-envelope.schema.json",
@@ -455,7 +501,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/predicate/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -463,7 +511,9 @@
       "instance_path": "/entries/*/expires_at",
       "occurrences": [
         "/$defs/account_blocklist_payload/properties/entries/items/properties/expires_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -471,7 +521,9 @@
       "instance_path": "/body",
       "occurrences": [
         "/$defs/account_data_set_payload/properties/body"
-      ]
+      ],
+      "sdk_disposition": "condition_guarded",
+      "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -479,7 +531,9 @@
       "instance_path": "/expires_at",
       "occurrences": [
         "/$defs/account_status_payload/properties/expires_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -487,7 +541,9 @@
       "instance_path": "/cell_head_after",
       "occurrences": [
         "/$defs/audit_accessed_payload/properties/cell_head_after"
-      ]
+      ],
+      "sdk_disposition": "condition_guarded",
+      "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -495,7 +551,9 @@
       "instance_path": "/cell_head_before",
       "occurrences": [
         "/$defs/audit_accessed_payload/properties/cell_head_before"
-      ]
+      ],
+      "sdk_disposition": "condition_guarded",
+      "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -503,7 +561,9 @@
       "instance_path": "/expires_at",
       "occurrences": [
         "/$defs/audit_applet_binding_payload/properties/expires_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -511,7 +571,9 @@
       "instance_path": "/duration_ms",
       "occurrences": [
         "/$defs/call_summary_payload/properties/duration_ms"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -519,7 +581,9 @@
       "instance_path": "/ended_at",
       "occurrences": [
         "/$defs/call_summary_payload/properties/ended_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -527,7 +591,9 @@
       "instance_path": "/started_at",
       "occurrences": [
         "/$defs/call_summary_payload/properties/started_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -535,7 +601,9 @@
       "instance_path": "/expected_membership",
       "occurrences": [
         "/$defs/circle_member_state_payload/properties/expected_membership"
-      ]
+      ],
+      "sdk_disposition": "distinct",
+      "rationale": "The schema explicitly declares x-arkret-presence-semantics=distinct; the SDK must preserve Missing / Null / Value."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -543,7 +611,9 @@
       "instance_path": "/body",
       "occurrences": [
         "/$defs/content_block/allOf/2/then/properties/body"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -554,7 +624,9 @@
         "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment",
         "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment",
         "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -562,7 +634,9 @@
       "instance_path": "/expires_at",
       "occurrences": [
         "/$defs/device_authorize_payload/properties/expires_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -570,7 +644,9 @@
       "instance_path": "/expires_at",
       "occurrences": [
         "/$defs/device_push_route_payload/properties/expires_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -578,7 +654,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/did_proof_state_payload/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -587,7 +665,9 @@
       "occurrences": [
         "/$defs/direct_conversation_authorization_basis/allOf/0/then/properties/event_refs",
         "/$defs/direct_conversation_authorization_basis/allOf/1/then/properties/event_refs"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -595,7 +675,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/identity_disclosure_policy_state_payload/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -603,7 +685,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/identity_disclosure_receipt_state_payload/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -611,7 +695,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/identity_presentation_request_state_payload/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -619,7 +705,9 @@
       "instance_path": "/gates",
       "occurrences": [
         "/$defs/join_policy_payload/allOf/0/if/properties/gates"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -627,7 +715,9 @@
       "instance_path": "/effective_scope",
       "occurrences": [
         "/$defs/mls_governance_binding/allOf/0/then/properties/effective_scope"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -635,7 +725,9 @@
       "instance_path": "/expires_at",
       "occurrences": [
         "/$defs/moderation_decision_payload/properties/expires_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -643,7 +735,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/organization_discovery_state_payload/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -651,7 +745,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/organization_moderation_policy_state_payload/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -659,7 +755,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/policy_action_state_payload/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -667,7 +765,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/policy_rule_state_payload/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -675,7 +775,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/policy_set_state_payload/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -683,7 +785,9 @@
       "instance_path": "/expires_after_seconds",
       "occurrences": [
         "/$defs/realm_delivery_binding_policy_payload/properties/expires_after_seconds"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -691,7 +795,9 @@
       "instance_path": "/expires_at",
       "occurrences": [
         "/$defs/realm_organization_payload/properties/expires_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -699,7 +805,9 @@
       "instance_path": "/expected_default_strand_id",
       "occurrences": [
         "/$defs/realm_set_default_strand_payload/properties/expected_default_strand_id"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -707,7 +815,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/realm_upgrade_state_payload/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -715,7 +825,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/resource_discovery_state_payload/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -723,7 +835,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/schema_define_state_payload/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -731,7 +845,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/sovereign_did_policy_state_payload/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -739,7 +855,9 @@
       "instance_path": "/parent_space_id",
       "occurrences": [
         "/$defs/space_parent_payload/properties/parent_space_id"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -747,7 +865,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/state_payload/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -755,7 +875,9 @@
       "instance_path": "/expected_value",
       "occurrences": [
         "/$defs/strand_watch_set_payload/properties/expected_value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "file-transfer.schema.json",
@@ -763,7 +885,9 @@
       "instance_path": "/access",
       "occurrences": [
         "/allOf/0/then/properties/access"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "file-transfer.schema.json",
@@ -772,7 +896,9 @@
       "occurrences": [
         "/allOf/0/then/properties/encryption",
         "/allOf/1/then/properties/encryption"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "file-transfer.schema.json",
@@ -781,7 +907,9 @@
       "occurrences": [
         "/allOf/0/then/properties/encryption/properties/key_delivery",
         "/allOf/1/then/properties/encryption/properties/key_delivery"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "grant-constraint.schema.json",
@@ -789,7 +917,9 @@
       "instance_path": "/period",
       "occurrences": [
         "/allOf/8/then/properties/period"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "handle-claim.schema.json",
@@ -797,7 +927,9 @@
       "instance_path": "/proofs",
       "occurrences": [
         "/allOf/0/then/properties/proofs"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "key-backup-active-series.schema.json",
@@ -806,7 +938,9 @@
       "occurrences": [
         "/allOf/0/else/properties/frontier_ref",
         "/allOf/0/then/properties/frontier_ref"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "key-backup.schema.json",
@@ -818,7 +952,9 @@
         "/allOf/7/then/properties/auth_data",
         "/allOf/8/then/properties/auth_data",
         "/allOf/9/then/properties/auth_data"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "key-backup.schema.json",
@@ -830,7 +966,9 @@
         "/allOf/7/then/properties/auth_data/properties/signed_fields",
         "/allOf/8/then/properties/auth_data/properties/signed_fields",
         "/allOf/9/then/properties/auth_data/properties/signed_fields"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "key-backup.schema.json",
@@ -838,7 +976,9 @@
       "instance_path": "/contents",
       "occurrences": [
         "/allOf/0/then/properties/contents"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "key-backup.schema.json",
@@ -847,7 +987,9 @@
       "occurrences": [
         "/allOf/0/then/properties/domain_separation",
         "/allOf/1/then/properties/domain_separation"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "key-backup.schema.json",
@@ -855,7 +997,9 @@
       "instance_path": "/domain_separation/aead_aad",
       "occurrences": [
         "/allOf/0/then/properties/domain_separation/properties/aead_aad"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "key-backup.schema.json",
@@ -866,7 +1010,9 @@
         "/allOf/2/then/properties/encryption",
         "/allOf/4/then/properties/encryption",
         "/allOf/5/then/properties/encryption"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "key-backup.schema.json",
@@ -876,7 +1022,9 @@
         "/properties/encryption/allOf/0/then/properties/aead",
         "/properties/encryption/allOf/1/then/properties/aead",
         "/properties/encryption/allOf/2/then/properties/aead"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "key-backup.schema.json",
@@ -884,7 +1032,9 @@
       "instance_path": "/encryption/kdf",
       "occurrences": [
         "/allOf/5/then/properties/encryption/properties/kdf"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "key-backup.schema.json",
@@ -892,7 +1042,9 @@
       "instance_path": "/expires_at",
       "occurrences": [
         "/properties/expires_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "key-backup.schema.json",
@@ -901,7 +1053,9 @@
       "occurrences": [
         "/allOf/10/else/then/properties/frontier_ref",
         "/allOf/10/then/properties/frontier_ref"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "key-backup.schema.json",
@@ -909,7 +1063,9 @@
       "instance_path": "/retention/delete_after",
       "occurrences": [
         "/properties/retention/properties/delete_after"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "key-backup.schema.json",
@@ -917,7 +1073,9 @@
       "instance_path": "/supersedes",
       "occurrences": [
         "/properties/supersedes"
-      ]
+      ],
+      "sdk_disposition": "condition_guarded",
+      "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
     },
     {
       "schema_file": "keys-operations.schema.json",
@@ -925,7 +1083,9 @@
       "instance_path": "/expires_at",
       "occurrences": [
         "/$defs/backup_metadata/properties/expires_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "keys-operations.schema.json",
@@ -933,7 +1093,9 @@
       "instance_path": "/supersedes",
       "occurrences": [
         "/$defs/backup_metadata/properties/supersedes"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "message.schema.json",
@@ -941,7 +1103,9 @@
       "instance_path": "/body",
       "occurrences": [
         "/$defs/content_block/allOf/2/then/properties/body"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "message.schema.json",
@@ -952,7 +1116,9 @@
         "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment",
         "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment",
         "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "morph.schema.json",
@@ -960,7 +1126,9 @@
       "instance_path": "/body",
       "occurrences": [
         "/$defs/content_block/allOf/2/then/properties/body"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "morph.schema.json",
@@ -971,7 +1139,9 @@
         "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment",
         "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment",
         "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "object-addressing.schema.json",
@@ -979,7 +1149,9 @@
       "instance_path": "/target_descriptor",
       "occurrences": [
         "/$defs/signed_address_link_token_claims/allOf/1/properties/target_descriptor"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "patch.schema.json",
@@ -987,7 +1159,9 @@
       "instance_path": "/*/value",
       "occurrences": [
         "/additionalProperties/oneOf/1/properties/value"
-      ]
+      ],
+      "sdk_disposition": "condition_guarded",
+      "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
     },
     {
       "schema_file": "principal-locator.schema.json",
@@ -995,7 +1169,9 @@
       "instance_path": "/display_hint",
       "occurrences": [
         "/$defs/invite_locator_rotate_request_body/properties/display_hint"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "query.schema.json",
@@ -1003,7 +1179,9 @@
       "instance_path": "/value",
       "occurrences": [
         "/$defs/field_filter/properties/value"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "query.schema.json",
@@ -1011,7 +1189,9 @@
       "instance_path": "/cursor",
       "occurrences": [
         "/$defs/query_request_body/properties/cursor"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "query.schema.json",
@@ -1019,7 +1199,9 @@
       "instance_path": "/relation",
       "occurrences": [
         "/$defs/query_request_body/properties/relation"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "read-cursor.schema.json",
@@ -1030,7 +1212,9 @@
         "/$defs/read_scope/allOf/2/then/properties/container_ref",
         "/$defs/read_scope/allOf/3/then/properties/container_ref",
         "/$defs/read_scope/allOf/4/then/properties/container_ref"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "read-receipt.schema.json",
@@ -1042,7 +1226,9 @@
         "/properties/read_scope/allOf/3/then/properties/object_ref",
         "/properties/read_scope/allOf/4/then/properties/object_ref",
         "/properties/read_scope/allOf/5/then/properties/object_ref"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "realm-organization-operations.schema.json",
@@ -1050,7 +1236,9 @@
       "instance_path": "/expires_at",
       "occurrences": [
         "/$defs/realm_organization_relationship_row/properties/expires_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "realm-read-operations.schema.json",
@@ -1058,7 +1246,9 @@
       "instance_path": "/realm_policy",
       "occurrences": [
         "/$defs/realm_effective_moderation_policy/properties/realm_policy"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "realm.schema.json",
@@ -1066,7 +1256,9 @@
       "instance_path": "/default_strand_id",
       "occurrences": [
         "/properties/default_strand_id"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "realm.schema.json",
@@ -1075,7 +1267,9 @@
       "occurrences": [
         "/allOf/1/then/properties/notary",
         "/allOf/2/then/properties/notary"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "realm.schema.json",
@@ -1084,7 +1278,9 @@
       "occurrences": [
         "/allOf/3/then/properties/schema_refs",
         "/allOf/5/then/properties/schema_refs"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "realm.schema.json",
@@ -1092,7 +1288,9 @@
       "instance_path": "/initial_value",
       "occurrences": [
         "/$defs/cell_lattice/properties/initial_value"
-      ]
+      ],
+      "sdk_disposition": "condition_guarded",
+      "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
     },
     {
       "schema_file": "recovery-policy.schema.json",
@@ -1108,7 +1306,9 @@
         "/allOf/7/then/properties/auth_data",
         "/allOf/8/then/properties/auth_data",
         "/allOf/9/then/properties/auth_data"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "recovery-policy.schema.json",
@@ -1124,7 +1324,9 @@
         "/allOf/7/then/properties/auth_data/properties/signed_fields",
         "/allOf/8/then/properties/auth_data/properties/signed_fields",
         "/allOf/9/then/properties/auth_data/properties/signed_fields"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "recovery-policy.schema.json",
@@ -1132,7 +1334,9 @@
       "instance_path": "/expires_at",
       "occurrences": [
         "/properties/expires_at"
-      ]
+      ],
+      "sdk_disposition": "condition_guarded",
+      "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
     },
     {
       "schema_file": "recovery-policy.schema.json",
@@ -1140,7 +1344,9 @@
       "instance_path": "/supersedes",
       "occurrences": [
         "/allOf/0/then/properties/supersedes"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "recovery-policy.schema.json",
@@ -1148,7 +1354,9 @@
       "instance_path": "/revoked_at",
       "occurrences": [
         "/$defs/recovery_key_agreement_entry/properties/revoked_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "recovery-policy.schema.json",
@@ -1156,7 +1364,9 @@
       "instance_path": "/revoked_at",
       "occurrences": [
         "/$defs/recovery_key_entry/properties/revoked_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "recovery-policy.schema.json",
@@ -1164,7 +1374,9 @@
       "instance_path": "/event",
       "occurrences": [
         "/$defs/recovery_policy_publish_request/allOf/1/properties/event"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "recovery-policy.schema.json",
@@ -1172,7 +1384,9 @@
       "instance_path": "/expires_at",
       "occurrences": [
         "/$defs/recovery_policy_summary/properties/expires_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "recovery-policy.schema.json",
@@ -1180,7 +1394,9 @@
       "instance_path": "/supersedes",
       "occurrences": [
         "/$defs/recovery_policy_summary/properties/supersedes"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "recovery-policy.schema.json",
@@ -1188,7 +1404,9 @@
       "instance_path": "/expires_at",
       "occurrences": [
         "/$defs/share/properties/expires_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "recovery-policy.schema.json",
@@ -1196,7 +1414,9 @@
       "instance_path": "/revoked_at",
       "occurrences": [
         "/$defs/share/properties/revoked_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "recovery-receipt.schema.json",
@@ -1207,7 +1427,9 @@
         "/allOf/3/then/properties/auth_data",
         "/allOf/4/else/properties/auth_data",
         "/allOf/4/then/properties/auth_data"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "recovery-receipt.schema.json",
@@ -1218,7 +1440,9 @@
         "/allOf/3/then/properties/auth_data/properties/signed_fields",
         "/allOf/4/else/properties/auth_data/properties/signed_fields",
         "/allOf/4/then/properties/auth_data/properties/signed_fields"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "recovery-receipt.schema.json",
@@ -1227,7 +1451,9 @@
       "occurrences": [
         "/allOf/0/then/properties/proof_summary",
         "/allOf/1/then/properties/proof_summary"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "recovery-session.schema.json",
@@ -1235,7 +1461,9 @@
       "instance_path": "/accepted_seal_frontier",
       "occurrences": [
         "/$defs/recovery_session_state/properties/accepted_seal_frontier"
-      ]
+      ],
+      "sdk_disposition": "condition_guarded",
+      "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
     },
     {
       "schema_file": "sdk-conformance-claim.schema.json",
@@ -1243,7 +1471,9 @@
       "instance_path": "/evidence",
       "occurrences": [
         "/$defs/clause_claim/allOf/0/else/properties/evidence"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "security-transaction.schema.json",
@@ -1251,7 +1481,9 @@
       "instance_path": "/binding",
       "occurrences": [
         "/allOf/0/then/allOf/0/if/properties/binding"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "security-transaction.schema.json",
@@ -1262,7 +1494,9 @@
         "/allOf/0/then/allOf/0/else/properties/next_required_step",
         "/allOf/0/then/allOf/0/then/properties/next_required_step",
         "/allOf/1/then/properties/next_required_step"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "security-transaction.schema.json",
@@ -1273,7 +1507,9 @@
         "/allOf/3/then/properties/terminal_result",
         "/allOf/4/then/properties/terminal_result",
         "/allOf/5/then/properties/terminal_result"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "security-transaction.schema.json",
@@ -1283,7 +1519,9 @@
         "/$defs/cross_signing_progress_contract/allOf/0/then/oneOf/0/properties/accepted_steps",
         "/$defs/cross_signing_progress_contract/allOf/0/then/oneOf/1/properties/accepted_steps",
         "/$defs/cross_signing_progress_contract/allOf/1/then/properties/accepted_steps"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "security-transaction.schema.json",
@@ -1296,7 +1534,9 @@
         "/$defs/enrollment_authority_progress_contract/allOf/0/then/oneOf/3/properties/accepted_steps",
         "/$defs/enrollment_authority_progress_contract/allOf/0/then/oneOf/4/properties/accepted_steps",
         "/$defs/enrollment_authority_progress_contract/allOf/1/then/properties/accepted_steps"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "security-transaction.schema.json",
@@ -1304,7 +1544,9 @@
       "instance_path": "/binding",
       "occurrences": [
         "/$defs/recovery_create_request/allOf/0/if/properties/binding"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "security-transaction.schema.json",
@@ -1317,7 +1559,9 @@
         "/$defs/security_rotation_progress_contract/allOf/0/then/oneOf/3/properties/accepted_steps",
         "/$defs/security_rotation_progress_contract/allOf/0/then/oneOf/4/properties/accepted_steps",
         "/$defs/security_rotation_progress_contract/allOf/1/then/properties/accepted_steps"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-describe.schema.json",
@@ -1325,7 +1569,9 @@
       "instance_path": "/auth_metadata",
       "occurrences": [
         "/allOf/5/then/properties/auth_metadata"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-describe.schema.json",
@@ -1333,7 +1579,9 @@
       "instance_path": "/discovery_profiles",
       "occurrences": [
         "/allOf/1/then/properties/discovery_profiles"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-describe.schema.json",
@@ -1341,7 +1589,9 @@
       "instance_path": "/limits",
       "occurrences": [
         "/allOf/2/then/properties/limits"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-describe.schema.json",
@@ -1349,7 +1599,9 @@
       "instance_path": "/supported_profiles",
       "occurrences": [
         "/allOf/3/then/properties/supported_profiles"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-describe.schema.json",
@@ -1357,7 +1609,9 @@
       "instance_path": "/verified_profiles",
       "occurrences": [
         "/allOf/0/then/properties/verified_profiles"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-describe.schema.json",
@@ -1366,7 +1620,9 @@
       "occurrences": [
         "/$defs/auth_method/allOf/0/then/properties/grant_exchange",
         "/$defs/auth_method/allOf/1/then/properties/grant_exchange"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1374,7 +1630,9 @@
       "instance_path": "/messages",
       "occurrences": [
         "/$defs/DeviceMessagesGetOutcome/allOf/0/if/properties/messages"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1382,7 +1640,9 @@
       "instance_path": "/missing_event_digests",
       "occurrences": [
         "/$defs/EventsDependencyMissingProblem/anyOf/1/properties/missing_event_digests"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1390,7 +1650,9 @@
       "instance_path": "/missing_event_ids",
       "occurrences": [
         "/$defs/EventsDependencyMissingProblem/anyOf/0/properties/missing_event_ids"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1398,7 +1660,9 @@
       "instance_path": "/missing_seal_refs",
       "occurrences": [
         "/$defs/EventsDependencyMissingProblem/anyOf/2/properties/missing_seal_refs"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1406,7 +1670,9 @@
       "instance_path": "/created_at",
       "occurrences": [
         "/$defs/ProjectionMorphRow/properties/created_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1414,7 +1680,9 @@
       "instance_path": "/created_by",
       "occurrences": [
         "/$defs/ProjectionMorphRow/properties/created_by"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1422,7 +1690,9 @@
       "instance_path": "/state_changed_at",
       "occurrences": [
         "/$defs/ProjectionMorphRow/properties/state_changed_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1430,7 +1700,9 @@
       "instance_path": "/title",
       "occurrences": [
         "/$defs/ProjectionMorphRow/properties/title"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1438,7 +1710,9 @@
       "instance_path": "/updated_at",
       "occurrences": [
         "/$defs/ProjectionMorphRow/properties/updated_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1446,7 +1720,9 @@
       "instance_path": "/created_at",
       "occurrences": [
         "/$defs/ProjectionSpaceRow/properties/created_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1454,7 +1730,9 @@
       "instance_path": "/created_by",
       "occurrences": [
         "/$defs/ProjectionSpaceRow/properties/created_by"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1462,7 +1740,9 @@
       "instance_path": "/parent_space_id",
       "occurrences": [
         "/$defs/ProjectionSpaceRow/properties/parent_space_id"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1470,7 +1750,9 @@
       "instance_path": "/rank",
       "occurrences": [
         "/$defs/ProjectionSpaceRow/properties/rank"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1478,7 +1760,9 @@
       "instance_path": "/state_changed_at",
       "occurrences": [
         "/$defs/ProjectionSpaceRow/properties/state_changed_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1486,7 +1770,9 @@
       "instance_path": "/updated_at",
       "occurrences": [
         "/$defs/ProjectionSpaceRow/properties/updated_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1494,7 +1780,9 @@
       "instance_path": "/board_space_id",
       "occurrences": [
         "/$defs/ProjectionStrandRow/properties/board_space_id"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1502,7 +1790,9 @@
       "instance_path": "/created_at",
       "occurrences": [
         "/$defs/ProjectionStrandRow/properties/created_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1510,7 +1800,9 @@
       "instance_path": "/created_by",
       "occurrences": [
         "/$defs/ProjectionStrandRow/properties/created_by"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1518,7 +1810,9 @@
       "instance_path": "/list_space_id",
       "occurrences": [
         "/$defs/ProjectionStrandRow/properties/list_space_id"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1526,7 +1820,9 @@
       "instance_path": "/rank",
       "occurrences": [
         "/$defs/ProjectionStrandRow/properties/rank"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1534,7 +1830,9 @@
       "instance_path": "/state_changed_at",
       "occurrences": [
         "/$defs/ProjectionStrandRow/properties/state_changed_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1542,7 +1840,9 @@
       "instance_path": "/summary",
       "occurrences": [
         "/$defs/ProjectionStrandRow/properties/summary"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1550,7 +1850,9 @@
       "instance_path": "/title",
       "occurrences": [
         "/$defs/ProjectionStrandRow/properties/title"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1558,7 +1860,9 @@
       "instance_path": "/updated_at",
       "occurrences": [
         "/$defs/ProjectionStrandRow/properties/updated_at"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1566,7 +1870,9 @@
       "instance_path": "/updated_by",
       "occurrences": [
         "/$defs/ProjectionStrandRow/properties/updated_by"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1575,7 +1881,9 @@
       "occurrences": [
         "/$defs/RealmActorFrontierView/allOf/0/else/properties/frontier_event_ids",
         "/$defs/RealmActorFrontierView/allOf/0/then/properties/frontier_event_ids"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1583,7 +1891,9 @@
       "instance_path": "/previous_receipt",
       "occurrences": [
         "/$defs/ServiceRegistrationEnsureRequestBody/properties/previous_receipt"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1592,7 +1902,9 @@
       "occurrences": [
         "/$defs/SessionGrantRequestBody/allOf/0/then/properties/proof",
         "/$defs/SessionGrantRequestBody/allOf/1/then/properties/proof"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -1600,7 +1912,9 @@
       "instance_path": "/scopes",
       "occurrences": [
         "/$defs/SignedSessionGrantClaims/allOf/0/then/properties/scopes"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "strand.schema.json",
@@ -1608,7 +1922,9 @@
       "instance_path": "/metadata",
       "occurrences": [
         "/allOf/1/then/properties/metadata"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "strand.schema.json",
@@ -1616,7 +1932,9 @@
       "instance_path": "/body",
       "occurrences": [
         "/$defs/content_block/allOf/2/then/properties/body"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "strand.schema.json",
@@ -1627,7 +1945,9 @@
         "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment",
         "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment",
         "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "view.schema.json",
@@ -1635,7 +1955,9 @@
       "instance_path": "/end",
       "occurrences": [
         "/$defs/collection_position/oneOf/2/properties/end"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "view.schema.json",
@@ -1643,7 +1965,9 @@
       "instance_path": "/next_cursor",
       "occurrences": [
         "/$defs/collection_projection_group/properties/next_cursor"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "view.schema.json",
@@ -1651,7 +1975,9 @@
       "instance_path": "/next_cursor",
       "occurrences": [
         "/$defs/collection_projection_view/properties/next_cursor"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "view.schema.json",
@@ -1659,7 +1985,9 @@
       "instance_path": "/relation",
       "occurrences": [
         "/$defs/query/properties/relation"
-      ]
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     }
   ],
   "documents": {
@@ -8112,7 +8440,6 @@
         "/properties/chunk": "required",
         "/properties/chunk_manifest": "required",
         "/properties/effective_scope": "required",
-        "/properties/governance_binding": "required",
         "/properties/materialization_profile": "required",
         "/properties/proof_request_digest": "required",
         "/properties/realm_id": "required",

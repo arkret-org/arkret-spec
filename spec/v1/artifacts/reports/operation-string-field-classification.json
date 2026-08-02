@@ -1,0 +1,488 @@
+{
+  "schema": "arkret.operation-string-field-classification.v1",
+  "source_of_truth": false,
+  "generated_by": "tools/gen_operation_string_field_classification.py",
+  "generated_from": [
+    "spec/v1/artifacts/schemas/*operations.schema.json",
+    "spec/v1/artifacts/schemas/service-operation-dtos.schema.json"
+  ],
+  "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
+  "summary": {
+    "total_fields": 58,
+    "by_classification": {
+      "bounded_free_text": 7,
+      "closed_enum": 27,
+      "closed_literal": 7,
+      "validated_open_reason_code": 13,
+      "validated_open_token": 4
+    },
+    "unclassified": 0
+  },
+  "errors": [],
+  "fields": [
+    {
+      "schema_file": "account-operations.schema.json",
+      "shape": "device_summary",
+      "field": "status",
+      "pointer": "#/$defs/device_summary/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "agent-operations.schema.json",
+      "shape": "agent_deactivate_request_body",
+      "field": "reason",
+      "pointer": "#/$defs/agent_deactivate_request_body/properties/reason",
+      "classification": "bounded_free_text",
+      "basis": "human-readable text with schema boundary"
+    },
+    {
+      "schema_file": "agent-operations.schema.json",
+      "shape": "agent_human_approval_error_details",
+      "field": "reason_code",
+      "pointer": "#/$defs/agent_human_approval_error_details/properties/reason_code",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "agent-operations.schema.json",
+      "shape": "agent_pause_request_body",
+      "field": "reason",
+      "pointer": "#/$defs/agent_pause_request_body/properties/reason",
+      "classification": "bounded_free_text",
+      "basis": "human-readable text with schema boundary"
+    },
+    {
+      "schema_file": "agent-operations.schema.json",
+      "shape": "agent_pcr_recovery_state",
+      "field": "status",
+      "pointer": "#/$defs/agent_pcr_recovery_state/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "agent-operations.schema.json",
+      "shape": "agent_provision_outcome",
+      "field": "status",
+      "pointer": "#/$defs/agent_provision_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "agent-operations.schema.json",
+      "shape": "agent_runtime_approval_outcome",
+      "field": "status",
+      "pointer": "#/$defs/agent_runtime_approval_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "agent-operations.schema.json",
+      "shape": "grant_snapshot",
+      "field": "status",
+      "pointer": "#/$defs/grant_snapshot/properties/status",
+      "classification": "validated_open_token",
+      "basis": "open protocol token with schema boundary"
+    },
+    {
+      "schema_file": "agent-operations.schema.json",
+      "shape": "key_state",
+      "field": "status",
+      "pointer": "#/$defs/key_state/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "agent-operations.schema.json",
+      "shape": "operation_status_outcome",
+      "field": "status",
+      "pointer": "#/$defs/operation_status_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "agent-operations.schema.json",
+      "shape": "pending_sidecar_access_reconciliation_item",
+      "field": "reason",
+      "pointer": "#/$defs/pending_sidecar_access_reconciliation_item/properties/reason",
+      "classification": "bounded_free_text",
+      "basis": "human-readable text with schema boundary"
+    },
+    {
+      "schema_file": "agent-signer-evidence-operations.schema.json",
+      "shape": "query_failure",
+      "field": "reason",
+      "pointer": "#/$defs/query_failure/properties/reason",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "agent-signer-evidence-operations.schema.json",
+      "shape": "sync_bundle",
+      "field": "schema",
+      "pointer": "#/$defs/sync_bundle/properties/schema",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "applet-edge-operations.schema.json",
+      "shape": "rejected_item",
+      "field": "reason_code",
+      "pointer": "#/$defs/rejected_item/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "applet-ghost-operations.schema.json",
+      "shape": "ghost_actor_provision_request_body",
+      "field": "schema",
+      "pointer": "#/$defs/ghost_actor_provision_request_body/properties/schema",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "applet-install-operations.schema.json",
+      "shape": "applet_revoke_request_body",
+      "field": "reason_code",
+      "pointer": "#/$defs/applet_revoke_request_body/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "applet-install-operations.schema.json",
+      "shape": "rejected_item",
+      "field": "reason_code",
+      "pointer": "#/$defs/rejected_item/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "circle-operations.schema.json",
+      "shape": "circle_lifecycle_request_body",
+      "field": "reason_code",
+      "pointer": "#/$defs/circle_lifecycle_request_body/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "join-policy-operations.schema.json",
+      "shape": "application_entry",
+      "field": "status",
+      "pointer": "#/$defs/application_entry/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "join-policy-operations.schema.json",
+      "shape": "application_mutation_outcome",
+      "field": "status",
+      "pointer": "#/$defs/application_mutation_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "join-policy-operations.schema.json",
+      "shape": "review_receipt",
+      "field": "reason_code",
+      "pointer": "#/$defs/review_receipt/properties/reason_code",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "keypackage-operations.schema.json",
+      "shape": "failure",
+      "field": "reason_code",
+      "pointer": "#/$defs/failure/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "keypackage-operations.schema.json",
+      "shape": "key_packages_revoke_request_body",
+      "field": "reason",
+      "pointer": "#/$defs/key_packages_revoke_request_body/properties/reason",
+      "classification": "bounded_free_text",
+      "basis": "human-readable text with schema boundary"
+    },
+    {
+      "schema_file": "keys-operations.schema.json",
+      "shape": "backup_series_erase_confirmation",
+      "field": "schema",
+      "pointer": "#/$defs/backup_series_erase_confirmation/properties/schema",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "keys-operations.schema.json",
+      "shape": "backup_series_erase_outcome",
+      "field": "status",
+      "pointer": "#/$defs/backup_series_erase_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "keys-operations.schema.json",
+      "shape": "backup_series_erase_result",
+      "field": "reason_code",
+      "pointer": "#/$defs/backup_series_erase_result/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "keys-operations.schema.json",
+      "shape": "backup_series_erase_result",
+      "field": "status",
+      "pointer": "#/$defs/backup_series_erase_result/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "keys-operations.schema.json",
+      "shape": "failure",
+      "field": "reason_code",
+      "pointer": "#/$defs/failure/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "keys-operations.schema.json",
+      "shape": "keys_backups_delete_request_body",
+      "field": "reason",
+      "pointer": "#/$defs/keys_backups_delete_request_body/properties/reason",
+      "classification": "bounded_free_text",
+      "basis": "human-readable text with schema boundary"
+    },
+    {
+      "schema_file": "keys-operations.schema.json",
+      "shape": "keys_backups_replace_outcome",
+      "field": "status",
+      "pointer": "#/$defs/keys_backups_replace_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "mimi-operations.schema.json",
+      "shape": "failure",
+      "field": "reason_code",
+      "pointer": "#/$defs/failure/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "mimi-operations.schema.json",
+      "shape": "mimi_report_abuse_outcome",
+      "field": "status",
+      "pointer": "#/$defs/mimi_report_abuse_outcome/properties/status",
+      "classification": "validated_open_token",
+      "basis": "open protocol token with schema boundary"
+    },
+    {
+      "schema_file": "mimi-operations.schema.json",
+      "shape": "mimi_request_consent_outcome",
+      "field": "status",
+      "pointer": "#/$defs/mimi_request_consent_outcome/properties/status",
+      "classification": "validated_open_token",
+      "basis": "open protocol token with schema boundary"
+    },
+    {
+      "schema_file": "mimi-operations.schema.json",
+      "shape": "mimi_update_consent_outcome",
+      "field": "status",
+      "pointer": "#/$defs/mimi_update_consent_outcome/properties/status",
+      "classification": "validated_open_token",
+      "basis": "open protocol token with schema boundary"
+    },
+    {
+      "schema_file": "mimi-operations.schema.json",
+      "shape": "mimi_update_consent_request_body",
+      "field": "reason",
+      "pointer": "#/$defs/mimi_update_consent_request_body/properties/reason",
+      "classification": "bounded_free_text",
+      "basis": "human-readable text with schema boundary"
+    },
+    {
+      "schema_file": "push-operations.schema.json",
+      "shape": "push_notify_device_outcome",
+      "field": "reason_code",
+      "pointer": "#/$defs/push_notify_device_outcome/properties/reason_code",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "push-operations.schema.json",
+      "shape": "push_notify_request_body",
+      "field": "reason_code",
+      "pointer": "#/$defs/push_notify_request_body/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "realm-link-operations.schema.json",
+      "shape": "realm_link_create_request_body",
+      "field": "status",
+      "pointer": "#/$defs/realm_link_create_request_body/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "realm-link-operations.schema.json",
+      "shape": "realm_link_entry",
+      "field": "status",
+      "pointer": "#/$defs/realm_link_entry/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "realm-link-operations.schema.json",
+      "shape": "realm_link_mutation_outcome",
+      "field": "status",
+      "pointer": "#/$defs/realm_link_mutation_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "realm-organization-operations.schema.json",
+      "shape": "realm_organization_relationship_row",
+      "field": "status",
+      "pointer": "#/$defs/realm_organization_relationship_row/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "realm-read-operations.schema.json",
+      "shape": "realm_export",
+      "field": "schema",
+      "pointer": "#/$defs/realm_export/properties/schema",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "AccountCursorRevokeRequestBody",
+      "field": "reason_code",
+      "pointer": "#/$defs/AccountCursorRevokeRequestBody/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "AuthSessionLogoutRequestBody",
+      "field": "reason_code",
+      "pointer": "#/$defs/AuthSessionLogoutRequestBody/properties/reason_code",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "AuthzCheckOutcome",
+      "field": "reason_code",
+      "pointer": "#/$defs/AuthzCheckOutcome/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "ControlGovernanceHealth",
+      "field": "status",
+      "pointer": "#/$defs/ControlGovernanceHealth/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "DidOperationSubmitOutcome",
+      "field": "status",
+      "pointer": "#/$defs/DidOperationSubmitOutcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "DirectoryWithdrawRequestBody",
+      "field": "reason",
+      "pointer": "#/$defs/DirectoryWithdrawRequestBody/properties/reason",
+      "classification": "bounded_free_text",
+      "basis": "human-readable text with schema boundary"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "EventsDependencyMissingProblem",
+      "field": "reason_code",
+      "pointer": "#/$defs/EventsDependencyMissingProblem/properties/reason_code",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "EventsSubmitOutcome",
+      "field": "status",
+      "pointer": "#/$defs/EventsSubmitOutcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "EventsSubmitRejectedItem",
+      "field": "reason_code",
+      "pointer": "#/$defs/EventsSubmitRejectedItem/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "ModerationReportOutcome",
+      "field": "status",
+      "pointer": "#/$defs/ModerationReportOutcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "OrganizationRegistrationReceipt",
+      "field": "status",
+      "pointer": "#/$defs/OrganizationRegistrationReceipt/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "OrganizationRegistrationRevokeRequestBody",
+      "field": "reason_code",
+      "pointer": "#/$defs/OrganizationRegistrationRevokeRequestBody/properties/reason_code",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "PolicyCheckOutcome",
+      "field": "reason_code",
+      "pointer": "#/$defs/PolicyCheckOutcome/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "ReferenceLockedEventStub",
+      "field": "reason_code",
+      "pointer": "#/$defs/ReferenceLockedEventStub/properties/reason_code",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "ReferenceLockedEventStub",
+      "field": "status",
+      "pointer": "#/$defs/ReferenceLockedEventStub/properties/status",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "SessionGrantIntrospectOutcome",
+      "field": "status",
+      "pointer": "#/$defs/SessionGrantIntrospectOutcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    }
+  ]
+}

@@ -200,7 +200,8 @@
       ],
       "properties": {
         "reason_code": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/non_empty_string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
         },
         "target_ref": {
           "$ref": "#/$defs/non_empty_string"

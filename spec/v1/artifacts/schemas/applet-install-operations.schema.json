@@ -144,7 +144,8 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "reason_code": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/non_empty_string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
         }
       },
       "additionalProperties": false
@@ -352,7 +353,8 @@
           "$ref": "#/$defs/effective_scope"
         },
         "reason_code": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/non_empty_string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
         },
         "revoke_mode": {
           "type": "string",

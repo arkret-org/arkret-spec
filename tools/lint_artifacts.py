@@ -9878,15 +9878,62 @@ def check_mls_governance_proof_fixture(lint: Lint) -> None:
     if known.get("seal_digest") != seal_digest or known.get("seal_canonical_bytes") != len(seal_bytes):
         lint.fail(path, "known-answer Seal commitment mismatch")
 
+    commit_context = data.get("commit_context", {})
+    leaf_entries = (
+        commit_context.get("current_or_pending_mls_leaf_entries", [])
+        if isinstance(commit_context, dict)
+        else []
+    )
+    if not isinstance(leaf_entries, list) or leaf_entries != sorted(
+        leaf_entries, key=lambda row: canonical_json(row).encode("utf-8")
+    ):
+        lint.fail(path, "commit_context MLS leaf entries must be canonical sorted")
+        leaf_entries = []
+    mls_leaf_set_digest = wire_sha256(canonical_json(leaf_entries).encode("utf-8"))
+    if (
+        not isinstance(commit_context, dict)
+        or commit_context.get("mls_leaf_set_digest") != mls_leaf_set_digest
+        or known.get("mls_leaf_set_digest") != mls_leaf_set_digest
+    ):
+        lint.fail(path, "MLS leaf-set digest commitment mismatch")
+
+    cell_entries = known.get("security_frontier_cell_entries", [])
+    if not isinstance(cell_entries, list):
+        lint.fail(path, "known_answer.security_frontier_cell_entries must be an array")
+        cell_entries = []
+    expected_cell_entries = []
+    for event in events:
+        payload = event.get("payload", {}) if isinstance(event, dict) else {}
+        if not isinstance(payload, dict):
+            continue
+        expected_cell_entries.append(
+            {
+                "cell_family": "ak.component.member.state.v1",
+                "cell_subject": payload.get("actor_id"),
+                "projected_value_digest": wire_sha256(
+                    canonical_json(payload.get("membership")).encode("utf-8")
+                ),
+            }
+        )
+    expected_cell_entries.sort(
+        key=lambda row: (
+            row["cell_family"].encode("utf-8"),
+            canonical_json(row["cell_subject"]).encode("utf-8"),
+            row["projected_value_digest"],
+        )
+    )
+    if cell_entries != expected_cell_entries:
+        lint.fail(path, "known-answer security frontier cell projection mismatch")
     security_frontier_input = {
-        "profile": "ak.security_frontier.key_access.v1",
-        "cells": state,
+        "profile_id": "ak.security_frontier.v1",
+        "effective_scope": data.get("commit_context", {}).get("expected_effective_scope"),
+        "cell_entries": cell_entries,
+        "mls_leaf_set_digest": mls_leaf_set_digest,
     }
     security_frontier_bytes = canonical_json(security_frontier_input).encode("utf-8")
     security_frontier_digest = wire_sha256(security_frontier_bytes)
     if known.get("security_frontier_digest") != security_frontier_digest or known.get("security_frontier_input_canonical_bytes") != len(security_frontier_bytes):
         lint.fail(path, "known-answer security frontier commitment mismatch")
-    commit_context = data.get("commit_context", {})
     binding = commit_context.get("transcript_authenticated_governance_binding", {}) if isinstance(commit_context, dict) else {}
     if not isinstance(binding, dict) or binding.get("security_frontier_digest") != security_frontier_digest:
         lint.fail(path, "governance binding must contain the rederived security_frontier_digest")

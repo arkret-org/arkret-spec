@@ -2943,6 +2943,7 @@
           "$ref": "#/$defs/timestamp"
         },
         "expected_membership": {
+          "x-arkret-presence-semantics": "distinct",
           "oneOf": [
             {
               "$ref": "#/$defs/membership_state"

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.6",
+  "version": "2026-08-02.7",
   "source_of_truth": true,
-  "generated_at": "2026-08-02T16:00:00Z",
+  "generated_at": "2026-08-02T18:30:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -7846,13 +7846,22 @@
         "schema_id": "ak.schema.agent_sidecar_view_state.v1",
         "file": "schemas/agent-sidecar-view-state.schema.json",
         "status": "active",
-        "description": "Controller-private encrypted account-data plaintext for per-context Sidecar display mode and hosted-view state."
+        "description": "Controller-private encrypted account-data plaintext for per-context Sidecar display mode and hosted-view state.",
+        "consumer_binding": {
+          "kind": "account_data_plaintext",
+          "selector": "account_data key ak.account.agent_sidecar_view_state.*",
+          "normative_ref": "zh/models/sidecar.md"
+        }
       },
       {
         "schema_id": "ak.schema.agent_sidecar_exchange_projection.v1",
         "file": "schemas/agent-sidecar-exchange-projection.schema.json",
         "status": "active",
-        "description": "Disposable controller-device-local Event-fold cache for one source-routed Sidecar exchange. Not Account Data or wire truth."
+        "description": "Disposable controller-device-local Event-fold cache for one source-routed Sidecar exchange. Not Account Data or wire truth.",
+        "consumer_binding": {
+          "kind": "prose_only",
+          "rationale": "Disposable controller-device-local fold cache; it is explicitly not Account Data, a transport body, or durable wire truth."
+        }
       },
       {
         "schema_id": "ak.schema.agent_sidecar_event_exchange_binding.v1",
@@ -7878,13 +7887,23 @@
         "schema_id": "ak.schema.content_block_poll.v1",
         "file": "schemas/content-block-poll.schema.json",
         "status": "active",
-        "description": "Canonical content-block schema for ak.content.poll and ak.content.poll.response."
+        "description": "Canonical content-block schema for ak.content.poll and ak.content.poll.response.",
+        "consumer_binding": {
+          "kind": "dynamic_schema_ref",
+          "selector": "content block type poll or poll_response",
+          "normative_ref": "zh/conformance/schema-registry.md"
+        }
       },
       {
         "schema_id": "ak.schema.personal_productivity.v1",
         "file": "schemas/personal-productivity.schema.json",
         "status": "active",
-        "description": "Encrypted account-data value shapes for reminders, scheduled send, snooze, and saved items."
+        "description": "Encrypted account-data value shapes for reminders, scheduled send, snooze, and saved items.",
+        "consumer_binding": {
+          "kind": "account_data_plaintext",
+          "selector": "account_data productivity kind",
+          "normative_ref": "zh/models/personal-productivity.md"
+        }
       },
       {
         "schema_id": "ak.schema.draft_sync.v1",
@@ -7901,7 +7920,12 @@
         "schema_id": "ak.schema.file_transfer.v1",
         "file": "schemas/file-transfer.schema.json",
         "status": "active",
-        "description": "Encrypted account-data plaintext shape and to-device key message content for principal-private cross-device file transfer."
+        "description": "Encrypted account-data plaintext shape and to-device key message content for principal-private cross-device file transfer.",
+        "consumer_binding": {
+          "kind": "account_data_plaintext",
+          "selector": "account_data file-transfer kind",
+          "normative_ref": "zh/models/file-transfer.md"
+        }
       },
       {
         "schema_id": "ak.schema.calendar_event.v1",
@@ -7967,7 +7991,12 @@
       },
       {
         "schema_id": "ak.schema.policy.v1",
-        "file": "schemas/policy.schema.json"
+        "file": "schemas/policy.schema.json",
+        "consumer_binding": {
+          "kind": "dynamic_schema_ref",
+          "selector": "schema-selected Realm policy object",
+          "normative_ref": "zh/models/governance-objects.md"
+        }
       },
       {
         "schema_id": "ak.schema.invite.v1",
@@ -8013,7 +8042,12 @@
       },
       {
         "schema_id": "ak.schema.event_batch_receipt.v1",
-        "file": "schemas/event-batch-receipt.schema.json"
+        "file": "schemas/event-batch-receipt.schema.json",
+        "consumer_binding": {
+          "kind": "dynamic_schema_ref",
+          "selector": "schema=ak.schema.event_batch_receipt.v1",
+          "normative_ref": "zh/conformance/encoding.md"
+        }
       },
       {
         "schema_id": "ak.schema.availability_receipt.v1",
@@ -8028,7 +8062,12 @@
       },
       {
         "schema_id": "ak.schema.range_completeness_attestation.v1",
-        "file": "schemas/range-completeness-attestation.schema.json"
+        "file": "schemas/range-completeness-attestation.schema.json",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "sync range completeness attestation",
+          "normative_ref": "zh/sync/operations-sync.md"
+        }
       },
       {
         "schema_id": "ak.schema.ice_config_response.v1",
@@ -8046,7 +8085,12 @@
       },
       {
         "schema_id": "ak.schema.cursor.v1",
-        "file": "schemas/cursor.schema.json"
+        "file": "schemas/cursor.schema.json",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "opaque cursor payload selected by purpose",
+          "normative_ref": "zh/sync/api-conventions.md"
+        }
       },
       {
         "schema_id": "ak.schema.snapshot.v1",
@@ -8136,7 +8180,12 @@
         "schema_id": "ak.schema.signal_message_stream.v1",
         "file": "schemas/signal-message-stream.schema.json",
         "status": "active",
-        "description": "Closed decrypted Signal payload profile for transient Message generation keyframe, delta, and abort frames."
+        "description": "Closed decrypted Signal payload profile for transient Message generation keyframe, delta, and abort frames.",
+        "consumer_binding": {
+          "kind": "signal_plaintext_dispatch",
+          "selector": "Signal plaintext kind=message_stream_*",
+          "normative_ref": "zh/sync/signal.md"
+        }
       },
       {
         "schema_id": "ak.schema.signal_presence.v1",
@@ -8232,7 +8281,12 @@
         "schema_id": "ak.schema.extension_manifest.v1",
         "file": "schemas/extension-manifest.schema.json",
         "status": "active",
-        "description": "Declarative extension loading and conformance manifest."
+        "description": "Declarative extension loading and conformance manifest.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "extension loader manifest_id",
+          "normative_ref": "zh/conformance/schema-registry.md"
+        }
       },
       {
         "schema_id": "ak.schema.blob.v1",
@@ -8246,7 +8300,12 @@
       },
       {
         "schema_id": "ak.schema.media_metadata.v1",
-        "file": "schemas/media-metadata.schema.json"
+        "file": "schemas/media-metadata.schema.json",
+        "consumer_binding": {
+          "kind": "dynamic_schema_ref",
+          "selector": "message content media metadata component",
+          "normative_ref": "zh/conformance/schema-registry.md"
+        }
       },
       {
         "schema_id": "ak.schema.call_recording_artifact.v1",
@@ -8294,7 +8353,12 @@
         "schema_id": "ak.schema.key_backup_plaintext.v1",
         "file": "schemas/key-backup-plaintext.schema.json",
         "status": "active",
-        "description": "Canonical plaintext keybag opened from a ak.schema.key_backup.v1 envelope."
+        "description": "Canonical plaintext keybag opened from a ak.schema.key_backup.v1 envelope.",
+        "consumer_binding": {
+          "kind": "dynamic_schema_ref",
+          "selector": "decrypted ak.schema.key_backup.v1 plaintext schema",
+          "normative_ref": "zh/identity/key-management.md"
+        }
       },
       {
         "schema_id": "ak.schema.key_backup_unlock_proof.v1",
@@ -8328,7 +8392,12 @@
       },
       {
         "schema_id": "ak.schema.notification.v1",
-        "file": "schemas/notification.schema.json"
+        "file": "schemas/notification.schema.json",
+        "consumer_binding": {
+          "kind": "account_data_plaintext",
+          "selector": "principal-private notification projection",
+          "normative_ref": "zh/models/private-objects.md"
+        }
       },
       {
         "schema_id": "ak.schema.push_operations.v1",
@@ -8365,7 +8434,12 @@
         "schema_id": "ak.schema.did_continuity_proof.v1",
         "file": "schemas/did-continuity-proof.schema.json",
         "status": "active",
-        "description": "Signed DID continuity / migration proof payload"
+        "description": "Signed DID continuity / migration proof payload",
+        "consumer_binding": {
+          "kind": "dynamic_schema_ref",
+          "selector": "schema=ak.schema.did_continuity_proof.v1",
+          "normative_ref": "zh/identity/key-management.md"
+        }
       },
       {
         "schema_id": "ak.schema.identity_receipt.v1",
@@ -8381,7 +8455,12 @@
         "schema_id": "ak.schema.identity_link.v1",
         "file": "schemas/identity-link.schema.json",
         "status": "active",
-        "description": "Encrypted minimal-metadata binding from Realm-scoped pairwise DID to principal DID, scoped by realm_id and trust_domain."
+        "description": "Encrypted minimal-metadata binding from Realm-scoped pairwise DID to principal DID, scoped by realm_id and trust_domain.",
+        "consumer_binding": {
+          "kind": "account_data_plaintext",
+          "selector": "account_data identity-link schema field",
+          "normative_ref": "zh/crypto-media/encryption-and-audit.md"
+        }
       },
       {
         "schema_id": "ak.schema.member_identity.v1",
@@ -8435,7 +8514,12 @@
       },
       {
         "schema_id": "ak.schema.moderation_queue_item.v1",
-        "file": "schemas/moderation-queue-item.schema.json"
+        "file": "schemas/moderation-queue-item.schema.json",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "moderation queue projection item",
+          "normative_ref": "zh/conformance/conformance-profiles.md"
+        }
       },
       {
         "schema_id": "ak.schema.moderation_appeal.v1",
@@ -8443,7 +8527,12 @@
       },
       {
         "schema_id": "ak.schema.audit_release_attestation.v1",
-        "file": "schemas/audit-release-attestation.schema.json"
+        "file": "schemas/audit-release-attestation.schema.json",
+        "consumer_binding": {
+          "kind": "dynamic_schema_ref",
+          "selector": "ak.audit.release attestation evidence schema",
+          "normative_ref": "zh/crypto-media/audited-e2ee.md#6"
+        }
       },
       {
         "schema_id": "ak.schema.applet.v1",
@@ -8465,7 +8554,12 @@
         "schema_id": "ak.schema.applet_registration_epoch_transcript.v1",
         "file": "schemas/applet-registration-epoch-transcript.schema.json",
         "status": "active",
-        "description": "Closed normalized transcript for deterministic recomputation of Applet registration_epoch from derived registration, DID document/version, signing-key, endpoint/auth, and security-policy evidence."
+        "description": "Closed normalized transcript for deterministic recomputation of Applet registration_epoch from derived registration, DID document/version, signing-key, endpoint/auth, and security-policy evidence.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "applet registration_epoch canonical transcript",
+          "normative_ref": "zh/extensions/applet-schema.md"
+        }
       },
       {
         "schema_id": "ak.schema.applet_widget_declaration.v1",
@@ -8499,7 +8593,12 @@
       },
       {
         "schema_id": "ak.schema.audit_ryw_receipt.v1",
-        "file": "schemas/audit-ryw-receipt.schema.json"
+        "file": "schemas/audit-ryw-receipt.schema.json",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "audit read-your-writes receipt",
+          "normative_ref": "zh/models/event-and-patch.md"
+        }
       },
       {
         "schema_id": "ak.schema.erasure_receipt.v1",
@@ -8511,7 +8610,12 @@
         "schema_id": "ak.schema.erasure_verification_stub.v1",
         "file": "schemas/erasure-verification-stub.schema.json",
         "status": "active",
-        "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_digest"
+        "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_digest",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "erasure receipt retained_stub_digest target",
+          "normative_ref": "zh/models/common-fields.md"
+        }
       },
       {
         "schema_id": "ak.schema.cross_signing_publish.v1",
@@ -8535,7 +8639,12 @@
         "schema_id": "ak.schema.did_binding_contracts.v1",
         "file": "schemas/did-binding-contracts.schema.json",
         "status": "active",
-        "description": "Verified DID binding contracts behind identity/did-usage-and-verification.md §5: canonical evidence receipt (evidence_digest), canonical resolver policy snapshot (policy_digest), mechanically extracted evidence dependency record, per-pin limited-trust record, and the freshness profile row every authority call site references."
+        "description": "Verified DID binding contracts behind identity/did-usage-and-verification.md §5: canonical evidence receipt (evidence_digest), canonical resolver policy snapshot (policy_digest), mechanically extracted evidence dependency record, per-pin limited-trust record, and the freshness profile row every authority call site references.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "verified DID evidence/policy/freshness contract kind",
+          "normative_ref": "zh/identity/did-usage-and-verification.md#5"
+        }
       },
       {
         "schema_id": "ak.schema.seal.v1",
@@ -8553,13 +8662,23 @@
         "schema_id": "ak.schema.inclusion_list.v1",
         "file": "schemas/inclusion-list.schema.json",
         "status": "active",
-        "description": "FOCIL-style control-plane inclusion list signed by a non-proposer notary signer; the next Seal MUST include, signed-reject, or prove verification failure for every listed digest"
+        "description": "FOCIL-style control-plane inclusion list signed by a non-proposer notary signer; the next Seal MUST include, signed-reject, or prove verification failure for every listed digest",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "control-plane inclusion list",
+          "normative_ref": "zh/authz/event-auth-state-resolution.md"
+        }
       },
       {
         "schema_id": "ak.schema.seal_transparency.v1",
         "file": "schemas/seal-transparency.schema.json",
         "status": "active",
-        "description": "Seal transparency append-only log entry and independent auditor attestation wire schema"
+        "description": "Seal transparency append-only log entry and independent auditor attestation wire schema",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "Seal transparency log/auditor evidence",
+          "normative_ref": "zh/authz/event-auth-state-resolution.md"
+        }
       },
       {
         "schema_id": "ak.schema.agent_operations.v1",
@@ -8632,7 +8751,12 @@
         "schema_id": "ak.schema.websocket_frame.v1",
         "file": "schemas/websocket-frame.schema.json",
         "status": "active",
-        "description": "Closed bidirectional application-frame union for ak.profile.binding.websocket.v1."
+        "description": "Closed bidirectional application-frame union for ak.profile.binding.websocket.v1.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "ak.profile.binding.websocket.v1 frame union",
+          "normative_ref": "zh/sync/websocket-binding.md"
+        }
       },
       {
         "schema_id": "ak.schema.websocket_server_frame.v1",
@@ -8743,7 +8867,12 @@
         "schema_id": "ak.schema.websocket_dpop_proof.v1",
         "file": "schemas/websocket-dpop-proof.schema.json",
         "status": "active",
-        "description": "Decoded protected header and claim set for the application-level challenge_dpop_session_v1 proof."
+        "description": "Decoded protected header and claim set for the application-level challenge_dpop_session_v1 proof.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "challenge_dpop_session_v1 decoded proof",
+          "normative_ref": "zh/sync/websocket-binding.md#3.1"
+        }
       },
       {
         "schema_id": "ak.schema.websocket_dpop_protected_header.v1",
@@ -8787,13 +8916,23 @@
         "schema_id": "ak.schema.delivery_binding_stale.v1",
         "file": "schemas/delivery-binding-stale.schema.json",
         "status": "active",
-        "description": "Canonical response body for the delivery_binding_stale federation signal (member delivery-binding rebind handover): new_recipient_service_id, handover_frontier, and the verifiable handover_proof. See zh/sync/federation.md §4.1 and error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid)."
+        "description": "Canonical response body for the delivery_binding_stale federation signal (member delivery-binding rebind handover): new_recipient_service_id, handover_frontier, and the verifiable handover_proof. See zh/sync/federation.md §4.1 and error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid).",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "delivery_binding_stale federation response body",
+          "normative_ref": "zh/sync/federation.md#4.1"
+        }
       },
       {
         "schema_id": "ak.schema.query.v1",
         "file": "schemas/query.schema.json",
         "status": "active",
-        "description": "Canonical wire schema for client query / projection (query_request) and search (search_request) request bodies plus reusable filter / sort / relation-query $defs. The OpenAPI QueryRequestBody / SearchRequestBody / QueryFilter / FieldFilter / BooleanFilter / SortSpec / RelationQuery components $ref this file so there is a single source of truth. Human-readable semantics: zh/conformance/query-schema.md."
+        "description": "Canonical wire schema for client query / projection (query_request) and search (search_request) request bodies plus reusable filter / sort / relation-query $defs. The OpenAPI QueryRequestBody / SearchRequestBody / QueryFilter / FieldFilter / BooleanFilter / SortSpec / RelationQuery components $ref this file so there is a single source of truth. Human-readable semantics: zh/conformance/query-schema.md.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "OpenAPI QueryRequestBody/SearchRequestBody components",
+          "normative_ref": "zh/conformance/query-schema.md"
+        }
       },
       {
         "schema_id": "ak.schema.service_operation_dtos.v1",
@@ -8805,19 +8944,34 @@
         "schema_id": "ak.schema.sdk_conformance_claim.v1",
         "file": "schemas/sdk-conformance-claim.schema.json",
         "status": "active",
-        "description": "Machine-verifiable SDK release claim against the canonical sdk_conformance_contract."
+        "description": "Machine-verifiable SDK release claim against the canonical sdk_conformance_contract.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "published SDK conformance claim artifact",
+          "normative_ref": "zh/conformance/conformance-profiles.md"
+        }
       },
       {
         "schema_id": "ak.schema.key_transparency.v1",
         "file": "schemas/key-transparency.schema.json",
         "status": "active",
-        "description": "Canonical log head, inclusion proof, consistency proof and witness evidence for ak.profile.key_transparency.v1 and high-security log-backed identity checks."
+        "description": "Canonical log head, inclusion proof, consistency proof and witness evidence for ak.profile.key_transparency.v1 and high-security log-backed identity checks.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "ak.profile.key_transparency.v1 evidence",
+          "normative_ref": "zh/identity/identity-did.md"
+        }
       },
       {
         "schema_id": "ak.schema.object_addressing.v1",
         "file": "schemas/object-addressing.schema.json",
         "status": "active",
-        "description": "Canonical address-link target descriptor and signed token claims."
+        "description": "Canonical address-link target descriptor and signed token claims.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "address-link target/token kind",
+          "normative_ref": "zh/conformance/schema-registry.md"
+        }
       }
     ]
   },

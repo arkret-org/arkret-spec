@@ -52,6 +52,9 @@ ARTIFACT_VERSION_SCRIPT = Path(__file__).with_name("check_artifact_versions.py")
 COMPLETENESS_REPORT_SCRIPT = Path(__file__).with_name("gen_operation_completeness_report.py")
 PRESENCE_MANIFEST_SCRIPT = Path(__file__).with_name("gen_property_presence_manifest.py")
 SCHEMA_COVERAGE_SCRIPT = Path(__file__).with_name("gen_schema_consumer_coverage.py")
+OPERATION_STRING_CLASSIFICATION_SCRIPT = Path(__file__).with_name(
+    "gen_operation_string_field_classification.py"
+)
 SITE_META_PATH = ROOT / "site" / "src" / "lib" / "site-meta.ts"
 PUBLIC_V1 = ROOT / "site" / "public" / "v1"
 OPERATION_SCHEMA_INDEX_PATH = ARTIFACTS / "reports" / "operation-schema-index.json"
@@ -1062,6 +1065,13 @@ def run_schema_consumer_coverage(mode: str) -> int:
     return result.returncode
 
 
+def run_operation_string_classification(mode: str) -> int:
+    result = subprocess.run(
+        [sys.executable, str(OPERATION_STRING_CLASSIFICATION_SCRIPT), mode], cwd=ROOT
+    )
+    return result.returncode
+
+
 def cmd_generate(_: argparse.Namespace) -> int:
     write_capability_action_derivations()
     write_derived_registry_views()
@@ -1070,8 +1080,14 @@ def cmd_generate(_: argparse.Namespace) -> int:
     completeness_status = run_operation_completeness_report("generate")
     presence_status = run_property_presence_manifest("generate")
     coverage_status = run_schema_consumer_coverage("generate")
+    string_classification_status = run_operation_string_classification("generate")
     print_contract_status()
-    return completeness_status or presence_status or coverage_status
+    return (
+        completeness_status
+        or presence_status
+        or coverage_status
+        or string_classification_status
+    )
 
 
 def cmd_check(_: argparse.Namespace) -> int:
@@ -1091,6 +1107,7 @@ def cmd_check(_: argparse.Namespace) -> int:
     completeness_status = run_operation_completeness_report("check")
     presence_status = run_property_presence_manifest("check")
     coverage_status = run_schema_consumer_coverage("check")
+    string_classification_status = run_operation_string_classification("check")
     fixture_status = run_fixture_digest_check()
     artifact_version_status = run_artifact_version_check()
     lint_status = run_lint()
@@ -1098,6 +1115,8 @@ def cmd_check(_: argparse.Namespace) -> int:
     return (
         completeness_status
         or presence_status
+        or coverage_status
+        or string_classification_status
         or fixture_status
         or artifact_version_status
         or lint_status

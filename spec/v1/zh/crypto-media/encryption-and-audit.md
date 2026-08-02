@@ -411,7 +411,7 @@ E2EE DataEvent 必须声明 mls_group_id、epoch 与 security_frontier_digest，
 
 MLS GroupContext extension type 0xF1C0 继续把确定性 CBOR 编码的完整 mls_governance_binding 纳入 confirmed_transcript_hash。canonical map 只包含 §2.5.1 的字段；禁止 indefinite-length CBOR、非最短整数、重复/乱序 map key、未知字段或 JSON/CBOR 混用。
 
-轻客户端可以请求 mls-governance-proof-bundle 来取得从 trusted anchor 到 accepted Seal 的完整、有界、分块 proof materialization。bundle 的作用是让 verifier 重建 accepted control state 与 security_frontier_digest；它不让服务选择可信 anchor，也不把旧 covered_seals_cell 恢复为协议状态。
+轻客户端可以请求 mls-governance-proof-bundle 来取得从 trusted anchor 到 accepted Seal 的完整、有界、分块 proof materialization。bundle 的作用是让 verifier 重建 accepted control state，并与 verifier 本地持有的 RFC 9420 current/pending leaf set 一起重算 security_frontier_digest；它不复制候选 `governance_binding`，不让服务替客户端选择 MLS leaf set 或可信 anchor，也不把旧 covered_seals_cell 恢复为协议状态。`proof_request_digest` 将 group、epoch、profile 与 trusted anchor 绑定到 materialization acquisition；verifier 必须将其与 transcript-authenticated binding identity 重算比较。
 
 历史向量 id `ak.vector.mls.covered_seals_no_self_reference.v1` 为 registry 稳定性保留，但其当前
 断言是“普通 Seal/`seal_ref` 不进入 security frontier，active leaf revoke 必须进入”，不再测试已删除

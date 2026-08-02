@@ -328,8 +328,7 @@
       "properties": {
         "reason_code": {
           "type": "string",
-          "minLength": 1,
-          "maxLength": 256
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
         }
       },
       "additionalProperties": false

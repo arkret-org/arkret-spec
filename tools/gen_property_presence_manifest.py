@@ -10,9 +10,9 @@ independent axes, and their combination decides whether a receiver can tell
   required_nullable     the property must be present but may carry null;
                         absent and null are different wire facts.
   tristate              optional and nullable with no default, so absent,
-                        explicit null and a value are three distinguishable
-                        wire states. A plain two-state optional type loses
-                        information here.
+                        explicit null and a value are three accepted wire
+                        spellings. Their business semantics come from the
+                        presence disposition below, not from JSON Schema alone.
   optional_defaulted    optional with a schema default; omission means the
                         default, so absent and the default value agree.
   optional              optional and never null; absent is the only extra
@@ -260,6 +260,11 @@ def collect_rows(documents: dict[str, Any]) -> list[dict[str, Any]]:
                         "instance_path": f"{instance_path}/{name}",
                         "conditionally_required": name in conditional,
                         "presence_class": presence_class(is_required, nullable, has_default),
+                        "declared_presence_semantics": (
+                            child.get("x-arkret-presence-semantics")
+                            if isinstance(child, dict)
+                            else None
+                        ),
                     }
                 )
                 walk(
@@ -343,17 +348,59 @@ def build_manifest() -> dict[str, Any]:
             continue
         key = (row["schema_file"], row["shape"], row["instance_path"])
         tristate_targets.setdefault(key, []).append(row["pointer"])
-    tristate_audit_targets = [
-        {
+    tristate_audit_targets = []
+    disposition_counts: dict[str, int] = {}
+    for (schema_file, shape, instance_path), occurrences in sorted(
+        tristate_targets.items()
+    ):
+        matching_rows = [
+            row
+            for row in rows
+            if row["schema_file"] == schema_file
+            and row["shape"] == shape
+            and row["instance_path"] == instance_path
+            and row["presence_class"] == "tristate"
+        ]
+        declared = {
+            row["declared_presence_semantics"]
+            for row in matching_rows
+            if row["declared_presence_semantics"] is not None
+        }
+        unknown = declared - {"distinct"}
+        if unknown:
+            raise SystemExit(
+                f"{schema_file} {shape} {instance_path} has unknown "
+                f"x-arkret-presence-semantics values {sorted(unknown)}"
+            )
+        if "distinct" in declared:
+            disposition = "distinct"
+            rationale = (
+                "The schema explicitly declares x-arkret-presence-semantics=distinct; "
+                "the SDK must preserve Missing / Null / Value."
+            )
+        elif any(row["conditionally_required"] for row in matching_rows):
+            disposition = "condition_guarded"
+            rationale = (
+                "A conditional branch requires this property. Draft 2020-12 validation "
+                "rejects missing in that branch; explicit null remains the branch's empty value."
+            )
+        else:
+            disposition = "absent_null_equivalent"
+            rationale = (
+                "encoding.md §2.1.1 applies the v1 default: absent and explicit null "
+                "are the same empty value, and canonical producers omit the property."
+            )
+        disposition_counts[disposition] = disposition_counts.get(disposition, 0) + 1
+        tristate_audit_targets.append(
+            {
             "schema_file": schema_file,
             "shape": shape,
             "instance_path": instance_path,
             "occurrences": sorted(occurrences),
+            "sdk_disposition": disposition,
+            "rationale": rationale,
         }
-        for (schema_file, shape, instance_path), occurrences in sorted(
-            tristate_targets.items()
         )
-    ]
 
     by_document: dict[str, dict[str, Any]] = {}
     for row in rows:
@@ -380,15 +427,16 @@ def build_manifest() -> dict[str, Any]:
             "Per-property wire presence contract derived from the schema documents. "
             "required, nullable and default are independent axes; presence_class is "
             "their normative combination. An SDK MUST reproduce the class exactly: a "
-            "tristate property needs a Missing / Null / Value representation, because "
-            "a two-state optional collapses explicit null into absent. Repeated conditional "
+            "tristate property needs an explicit SDK disposition: the protocol-wide default "
+            "normalizes absent/null, conditional requiredness is enforced by the Draft runtime, "
+            "and only x-arkret-presence-semantics=distinct requires Missing / Null / Value. Repeated conditional "
             "schema occurrences are also grouped into semantic audit targets by shape and "
             "instance path so SDK audits do not count the same DTO field multiple times."
         ),
         "presence_class_definitions": {
             "required": "must be present and never null.",
             "required_nullable": "must be present and may be null; absent and null are different wire facts.",
-            "tristate": "optional, nullable, no default; absent, explicit null and a value are three distinguishable wire states.",
+            "tristate": "optional, nullable, no default; absent, explicit null and a value are three accepted wire spellings whose semantics require a disposition.",
             "optional_defaulted": "optional with a schema default; omission means the default.",
             "optional": "optional and never null.",
         },
@@ -398,6 +446,12 @@ def build_manifest() -> dict[str, Any]:
             "by_presence_class": dict(sorted(class_counts.items())),
             "tristate_occurrences": len(tristate),
             "tristate_audit_targets": len(tristate_audit_targets),
+            "tristate_sdk_dispositions": dict(sorted(disposition_counts.items())),
+        },
+        "sdk_disposition_definitions": {
+            "distinct": "business semantics distinguish Missing / Null / Value; SDK must preserve all three.",
+            "condition_guarded": "missing is invalid in an applicable conditional branch and is enforced before typed decoding.",
+            "absent_null_equivalent": "v1 default normalization; SDK uses an optional value and canonical output omits None.",
         },
         "tristate_properties": tristate,
         "tristate_audit_targets": tristate_audit_targets,

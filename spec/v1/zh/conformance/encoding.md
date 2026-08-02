@@ -55,6 +55,27 @@ Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs`、`unsigned` 与
 
 Schema source lint 的当前外部 `format: date-time` allowlist 只有 did:webvh `ServiceWebvhInceptionOperation.versionTime`；JWT/DPoP/OIDC 与 TURN 使用数值或复合字符串，因此不得伪装成 `date-time` allowlist 项。新增例外 MUST 同时登记 owner、规范链接、精确字段路径和删除条件，并增加互操作测试；无法分类的字段 MUST 先修改本规范，不得从现有 fixture 反推合同。
 
+### 2.1.1 Optional nullable 字段的 presence 语义
+
+JSON Schema 同时允许 property 省略和显式 `null`，只表示两种 wire spelling 都合法，并不自动创造
+两套业务状态。为避免每个 SDK 为普通 projection、期限或可选附件复制三态状态机，v1 使用以下闭合
+规则：
+
+- optional + nullable 且没有 `default` 的 property，默认把 absent 与显式 `null` 归一为同一个空值；
+  canonical producer MUST 省略该 property，receiver MUST 接受并按同一语义处理两种输入。
+- 若该 property 在适用的 `if/then`、`oneOf` 或其它分支中被 `required`，则分支要求优先：missing
+  是 schema violation，显式 `null` 才是该分支的空值。SDK 可以用判别 enum 表达分支，但不得让普通
+  `Option<T>` 绕过入站 Draft 2020-12 校验。
+- 只有 property 明确声明 `"x-arkret-presence-semantics": "distinct"`，且正文逐项定义 absent、null、
+  value 三者效果时，三种 wire 状态才具有不同业务语义。producer/receiver 的类型系统此时 MUST 使用
+  `Missing | Null | Value(T)` 等价表示，禁止用二态 optional 折叠。
+- 不得仅因字段名称包含 `expected`、`state`、`proof` 或 `ref` 就推断三态；安全关键 CAS 若确需
+  omission 表示“无断言”，必须显式使用上述扩展并提供三种正向与交叉负向 vector。
+
+当前唯一 `distinct` 目标是 Circle membership CAS 的 `expected_membership`。Realm default-strand 与
+Strand watch CAS 均在各自 schema description 中规定 absent≡null=`head_eq null`，因此使用普通
+optional；它们不是“省略即关闭 CAS”的例外。
+
 ### 2.2 String profile 与 Unicode 处理
 
 字符串 MUST 先按其协议角色选择 profile；实现 MUST NOT 对 DID、URI、email、phone、display text 与 Arkret human identifier 套用同一个 NFKC / case-fold normalizer。所有进入 canonical JSON 的 string value 仍 MUST 是 NFC；receiver MUST 验证而不得在验签阶段静默改写非 NFC wire bytes。

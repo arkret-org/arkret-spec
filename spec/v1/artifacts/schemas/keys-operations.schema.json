@@ -400,7 +400,8 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "reason_code": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/non_empty_string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
         },
         "retry_after_ms": {
           "type": "integer",

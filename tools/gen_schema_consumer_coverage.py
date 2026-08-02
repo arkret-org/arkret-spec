@@ -12,8 +12,9 @@ it:
                    any equivalent startup gate compiles it.
   vectors          a conformance profile or vector group requires it, or a
                    fixture references the schema ID.
-  schema_reference another schema $refs it, so it is a structural component
-                   rather than a standalone wire contract.
+  schema_reference another schema document $refs it, so it is a structural
+                   component rather than a standalone wire contract. A root
+                   document's own local `$defs` references do not count.
 
 Each consumer is recorded as ``exact`` when the reference targets the logical
 schema itself and ``fragment`` when the reference targets a $defs fragment of
@@ -100,14 +101,18 @@ def effective_schema_ref(row: dict[str, Any]) -> str:
 
 
 def collect_schema_references() -> set[str]:
-    references: set[str] = set()
+    return set(collect_schema_reference_origins())
+
+
+def collect_schema_reference_origins() -> dict[str, set[str]]:
+    origins: dict[str, set[str]] = {}
     for path in sorted(SCHEMA_DIR.glob("*.json")):
         raw = path.read_text(encoding="utf-8")
         for match in REF_TOKEN_RE.finditer(raw):
             target = normalize(match.group(1), path.name)
             if target:
-                references.add(target)
-    return references
+                origins.setdefault(target, set()).add(f"schemas/{path.name}")
+    return origins
 
 
 def collect_vector_mentions() -> set[str]:
@@ -142,6 +147,7 @@ def build_report() -> dict[str, Any]:
         if isinstance(operation.get("response_schema_ref"), str)
     } - {None}
     schema_references = collect_schema_references()
+    schema_reference_origins = collect_schema_reference_origins()
     required_schema_ids, fixture_text = collect_vector_mentions()
     event_kind_text = EVENT_KIND_REGISTRY.read_text(encoding="utf-8")
     prose_text = "\n".join(
@@ -152,6 +158,23 @@ def build_report() -> dict[str, Any]:
         payload_contract["event_envelope_schema"],
         payload_contract["payload_schema_file"],
     }
+
+    operation_refs: dict[str, set[str]] = {}
+    for operation in operations:
+        operation_id = operation.get("operation_id")
+        if not isinstance(operation_id, str):
+            continue
+        for key in ("request_schema_ref", "response_schema_ref"):
+            reference = operation.get(key)
+            if isinstance(reference, str):
+                normalized = normalize(reference)
+                if normalized:
+                    operation_refs.setdefault(normalized, set()).add(operation_id)
+
+    registry_ids_by_document: dict[str, set[str]] = {}
+    for registry_row in registry_rows:
+        document = effective_schema_ref(registry_row).split("#", 1)[0]
+        registry_ids_by_document.setdefault(document, set()).add(registry_row["schema_id"])
 
     rows: list[dict[str, Any]] = []
     for registry_row in registry_rows:
@@ -168,7 +191,16 @@ def build_report() -> dict[str, Any]:
         outbound = binding_kind(file_ref, response_refs)
         if outbound:
             consumers["outbound"] = outbound
-        reference = binding_kind(file_ref, schema_references)
+        consumer_references = {
+            target
+            for target in schema_references
+            if "#" in file_ref
+            or any(
+                origin != document
+                for origin in schema_reference_origins.get(target, set())
+            )
+        }
+        reference = binding_kind(file_ref, consumer_references)
         if reference:
             consumers["schema_reference"] = reference
         if schema_id in event_kind_text:
@@ -224,6 +256,80 @@ def build_report() -> dict[str, Any]:
                 )
             ),
         }
+        if "vectors" in consumers:
+            row["vector_coverage"] = {
+                "disposition": "direct",
+                "evidence": consumers["vectors"],
+            }
+        else:
+            operation_owners: set[str] = set()
+            for reference, operation_ids in operation_refs.items():
+                if binding_kind(file_ref, {reference}):
+                    operation_owners.update(operation_ids)
+            referring_documents: set[str] = set()
+            for reference, origins in schema_reference_origins.items():
+                if binding_kind(file_ref, {reference}):
+                    referring_documents.update(
+                        origin
+                        for origin in origins
+                        if "#" in file_ref or origin != document
+                    )
+            referring_schema_ids = sorted(
+                {
+                    schema_id
+                    for origin in referring_documents
+                    for schema_id in registry_ids_by_document.get(origin, set())
+                    if schema_id != row["schema_id"]
+                }
+            )
+            if operation_owners:
+                row["vector_coverage"] = {
+                    "disposition": "operation_e2e_owned",
+                    "owners": sorted(operation_owners),
+                    "rationale": (
+                        "This logical schema is a whole operation catalog or operation-bound "
+                        "DTO. Instance coverage belongs to the listed request/response E2E "
+                        "owners; a second whole-document vector would only exercise the "
+                        "catalog union rather than an independently admitted wire object."
+                    ),
+                }
+            elif referring_schema_ids:
+                row["vector_coverage"] = {
+                    "disposition": "composed_schema_owned",
+                    "owners": referring_schema_ids,
+                    "rationale": (
+                        "This schema is admitted only as a typed component of the listed "
+                        "logical schemas. Its instance cases belong in those composed "
+                        "vectors so reference resolution and surrounding invariants are "
+                        "tested together."
+                    ),
+                }
+            elif "event_kind" in consumers:
+                row["vector_coverage"] = {
+                    "disposition": "event_envelope_owned",
+                    "rationale": (
+                        "This payload is selected only by the registered Event kind. Its "
+                        "instances are owned by signed Event admission vectors, not by a "
+                        "standalone body vector."
+                    ),
+                }
+            elif "declared_wire" in consumers:
+                row["vector_coverage"] = {
+                    "disposition": "runtime_dispatch_owned",
+                    "owner": consumers["declared_wire"],
+                    "rationale": (
+                        "This schema is selected inside a registered dynamic/runtime "
+                        "dispatch surface. Coverage belongs to that enclosing dispatch "
+                        "vector because the object is never admitted independently."
+                    ),
+                }
+            elif "prose_only" in consumers:
+                row["vector_coverage"] = {
+                    "disposition": "no_v1_wire_instance",
+                    "rationale": registry_row["consumer_binding"]["rationale"],
+                }
+            else:
+                row["vector_coverage"] = {"disposition": "unresolved"}
         if declared_binding is not None:
             row["consumer_binding"] = declared_binding
         if isinstance(registry_row.get("fragment"), str):
@@ -241,6 +347,11 @@ def build_report() -> dict[str, Any]:
         row["schema_id"] for row in rows if "prose_only" in row["consumers"]
     ]
     vectorless = [row["schema_id"] for row in rows if "vectors" not in row["consumers"]]
+    unresolved_vector_disposition = [
+        row["schema_id"]
+        for row in rows
+        if row["vector_coverage"]["disposition"] == "unresolved"
+    ]
 
     consumer_counts: dict[str, int] = {}
     for row in rows:
@@ -268,7 +379,7 @@ def build_report() -> dict[str, Any]:
         "consumer_definitions": {
             "inbound": "bound as an operation request body, or an admitted Event envelope/payload contract.",
             "outbound": "bound as an operation response body.",
-            "schema_reference": "referenced by another schema, so it is a structural component.",
+            "schema_reference": "referenced by another schema document, so it is a structural component; local self-reference is not a consumer.",
             "event_kind": "bound by the Event kind registry, so a durable Event selects it by kind.",
             "declared_wire": "explicit machine-readable runtime, dynamic, nested-value or alias binding declared by the canonical schema registry.",
             "prose_only": "explicitly declared as having no whole-object v1 wire admission surface.",
@@ -285,6 +396,15 @@ def build_report() -> dict[str, Any]:
             "normative_text": "the schema ID appears in the normative prose.",
             "declared": "the canonical schema registry carries an explicit disposition.",
         },
+        "vector_coverage_disposition_definitions": {
+            "direct": "named by a conformance profile/vector group or fixture.",
+            "operation_e2e_owned": "the logical schema is an operation catalog/DTO whose instance cases belong to the listed request/response E2E owners.",
+            "composed_schema_owned": "the schema is only admitted inside the listed higher-level logical schemas.",
+            "event_envelope_owned": "the payload is selected by Event kind and is covered only inside signed Event admission.",
+            "runtime_dispatch_owned": "the schema is selected by an explicit dynamic/runtime binding in the canonical schema registry.",
+            "no_v1_wire_instance": "the canonical registry explicitly declares that v1 has no whole-object wire instance.",
+            "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker.",
+        },
         "summary": {
             "total_schemas": len(rows),
             "by_consumer": dict(sorted(consumer_counts.items())),
@@ -292,11 +412,13 @@ def build_report() -> dict[str, Any]:
             "explicit_prose_only": len(prose_only),
             "unresolved_consumer_coverage": len(unresolved),
             "without_vector_coverage": len(vectorless),
+            "unresolved_vector_disposition": len(unresolved_vector_disposition),
         },
         "without_wire_consumer": uncovered,
         "explicit_prose_only": prose_only,
         "unresolved_consumer_coverage": unresolved,
         "without_vector_coverage": vectorless,
+        "unresolved_vector_disposition": unresolved_vector_disposition,
         "schemas": rows,
     }
 

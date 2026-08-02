@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-02.3",
+  "version": "2026-08-02.5",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -27,7 +27,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#2-canonical-json",
-      "section_digest": "sha256:f61ed7a9ac8614167a98d3fd60bf9aa8a0117b036aadc6b8d0fb37a738a658c3",
+      "section_digest": "sha256:23c56b94a7c83535de10a4a653e00749ce9c18d207bf7f3dbd040768869b9487",
       "requirement": "Canonical JSON serialization (key order, number form, NFC strings, duplicate-key rejection) is the single encoding used for every digest, signature and canonical comparison.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -175,7 +175,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:ddd311136512e1fc3a284ede1c989a766c0d9b015826f63270db77819d90ce3d",
+      "section_digest": "sha256:ece3f8fe537010a41d48ee3ad7022e7fcf58ceb28b07765a37578926b59dca8b",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, encryption floors MUST NOT be downgraded, an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling, and every MLS epoch MUST bind the independently re-derived security frontier for its accepted key-access state.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -438,6 +438,16 @@
       "evidence_refs": [
         "ak.vector.cba.proposal_window_configuration.v1"
       ]
+    },
+    {
+      "clause_id": "AK-NC-030",
+      "status": "active",
+      "category": "wire",
+      "source_anchor": "spec/v1/zh/conformance/encoding.md#211-optional-nullable-字段的-presence-语义",
+      "section_digest": "sha256:92c74c5d68151e1a2a81565b66da262a308c9f44623f2ec9b36916e2e5ce0f08",
+      "requirement": "Optional nullable fields normalize absent and null unless a conditional branch requires the field or x-arkret-presence-semantics=distinct explicitly assigns three business states.",
+      "testability_grade": "audit",
+      "test_plan": "tools/gen_property_presence_manifest.py must classify every tristate audit target with zero unresolved dispositions; the Rust SDK draft202012_runtime and Circle payload tests pin the sole distinct target and its Missing/Null/Value round-trip."
     }
   ]
 }

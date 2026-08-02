@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.mls_governance_binding.full.v1",
-  "version": "2026-07-15",
+  "version": "2026-08-02",
   "suite": "mls_governance_proof_bundle",
   "generated_by": "tools/generate_mls_governance_proof_fixture.py",
   "runner": {
@@ -94,7 +94,7 @@
       "mls_group_id": "Z3JvdXAtMDE",
       "previous_epoch": 41,
       "next_epoch": 42,
-      "security_frontier_digest": "sha256:90e5a439e03eb9537319cc02f73e75c5a7fa6102ab5fe2a6bc9952a951ab2a60",
+      "security_frontier_digest": "sha256:e51fab331660721a1382f2e1017e62ecc54126e34436b1d82cd753cff44f60fe",
       "binding_profile": "ak.profile.mls_governance_binding.full.v1",
       "reducer_profile": "ak.reducer.core.v1"
     },
@@ -107,7 +107,20 @@
     "expected_previous_epoch": 41,
     "expected_next_epoch": 42,
     "expected_binding_profile": "ak.profile.mls_governance_binding.full.v1",
-    "expected_reducer_profile": "ak.reducer.core.v1"
+    "expected_reducer_profile": "ak.reducer.core.v1",
+    "current_or_pending_mls_leaf_entries": [
+      {
+        "leaf_index": 0,
+        "principal_id": "did:webvh:zfixture:bob.example",
+        "credential_ref": "did:webvh:zfixture:bob.example#device-1"
+      },
+      {
+        "leaf_index": 1,
+        "principal_id": "did:webvh:zfixture:carol.example",
+        "credential_ref": "did:webvh:zfixture:carol.example#device-1"
+      }
+    ],
+    "mls_leaf_set_digest": "sha256:3d6f866396fa67cbff0ae7baffb9640180744fd4f11d3057f2f3542ec40cb969"
   },
   "source_state": {
     "proof_identity": {
@@ -262,7 +275,7 @@
       "reducer_profile": "ak.reducer.core.v1",
       "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
       "chunk_index": 1,
-      "expected_bundle_digest": "sha256:8075b8c2017562256980754521620ee0c8d117c152e7de5d80f0f51916e5e462"
+      "expected_bundle_digest": "sha256:530e640aae8a5d60954f3cc1fb3717ea987257cb04b7115606cd07c5a40a776e"
     },
     {
       "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
@@ -277,7 +290,7 @@
       "reducer_profile": "ak.reducer.core.v1",
       "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
       "chunk_index": 2,
-      "expected_bundle_digest": "sha256:8075b8c2017562256980754521620ee0c8d117c152e7de5d80f0f51916e5e462"
+      "expected_bundle_digest": "sha256:530e640aae8a5d60954f3cc1fb3717ea987257cb04b7115606cd07c5a40a776e"
     },
     {
       "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
@@ -292,7 +305,7 @@
       "reducer_profile": "ak.reducer.core.v1",
       "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
       "chunk_index": 3,
-      "expected_bundle_digest": "sha256:8075b8c2017562256980754521620ee0c8d117c152e7de5d80f0f51916e5e462"
+      "expected_bundle_digest": "sha256:530e640aae8a5d60954f3cc1fb3717ea987257cb04b7115606cd07c5a40a776e"
     }
   ],
   "expected_acquisition": {
@@ -307,21 +320,6 @@
           "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
         },
         "reducer_profile": "ak.reducer.core.v1",
-        "governance_binding": {
-          "binding_version": 1,
-          "encoding_profile": "cbor-deterministic-rfc8949-v1",
-          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
-          "effective_scope": {
-            "kind": "realm",
-            "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
-          },
-          "mls_group_id": "Z3JvdXAtMDE",
-          "previous_epoch": 41,
-          "next_epoch": 42,
-          "security_frontier_digest": "sha256:90e5a439e03eb9537319cc02f73e75c5a7fa6102ab5fe2a6bc9952a951ab2a60",
-          "binding_profile": "ak.profile.mls_governance_binding.full.v1",
-          "reducer_profile": "ak.reducer.core.v1"
-        },
         "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
         "accepted_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
         "chunk_manifest": {
@@ -344,7 +342,7 @@
             "frontier_events": 32
           }
         },
-        "bundle_digest": "sha256:8075b8c2017562256980754521620ee0c8d117c152e7de5d80f0f51916e5e462",
+        "bundle_digest": "sha256:530e640aae8a5d60954f3cc1fb3717ea987257cb04b7115606cd07c5a40a776e",
         "chunk": {
           "chunk_index": 0,
           "collection": "seal_path",
@@ -394,21 +392,6 @@
           "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
         },
         "reducer_profile": "ak.reducer.core.v1",
-        "governance_binding": {
-          "binding_version": 1,
-          "encoding_profile": "cbor-deterministic-rfc8949-v1",
-          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
-          "effective_scope": {
-            "kind": "realm",
-            "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
-          },
-          "mls_group_id": "Z3JvdXAtMDE",
-          "previous_epoch": 41,
-          "next_epoch": 42,
-          "security_frontier_digest": "sha256:90e5a439e03eb9537319cc02f73e75c5a7fa6102ab5fe2a6bc9952a951ab2a60",
-          "binding_profile": "ak.profile.mls_governance_binding.full.v1",
-          "reducer_profile": "ak.reducer.core.v1"
-        },
         "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
         "accepted_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
         "chunk_manifest": {
@@ -431,7 +414,7 @@
             "frontier_events": 32
           }
         },
-        "bundle_digest": "sha256:8075b8c2017562256980754521620ee0c8d117c152e7de5d80f0f51916e5e462",
+        "bundle_digest": "sha256:530e640aae8a5d60954f3cc1fb3717ea987257cb04b7115606cd07c5a40a776e",
         "chunk": {
           "chunk_index": 1,
           "collection": "covered_event_digests",
@@ -457,21 +440,6 @@
           "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
         },
         "reducer_profile": "ak.reducer.core.v1",
-        "governance_binding": {
-          "binding_version": 1,
-          "encoding_profile": "cbor-deterministic-rfc8949-v1",
-          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
-          "effective_scope": {
-            "kind": "realm",
-            "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
-          },
-          "mls_group_id": "Z3JvdXAtMDE",
-          "previous_epoch": 41,
-          "next_epoch": 42,
-          "security_frontier_digest": "sha256:90e5a439e03eb9537319cc02f73e75c5a7fa6102ab5fe2a6bc9952a951ab2a60",
-          "binding_profile": "ak.profile.mls_governance_binding.full.v1",
-          "reducer_profile": "ak.reducer.core.v1"
-        },
         "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
         "accepted_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
         "chunk_manifest": {
@@ -494,7 +462,7 @@
             "frontier_events": 32
           }
         },
-        "bundle_digest": "sha256:8075b8c2017562256980754521620ee0c8d117c152e7de5d80f0f51916e5e462",
+        "bundle_digest": "sha256:530e640aae8a5d60954f3cc1fb3717ea987257cb04b7115606cd07c5a40a776e",
         "chunk": {
           "chunk_index": 2,
           "collection": "control_state",
@@ -530,21 +498,6 @@
           "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
         },
         "reducer_profile": "ak.reducer.core.v1",
-        "governance_binding": {
-          "binding_version": 1,
-          "encoding_profile": "cbor-deterministic-rfc8949-v1",
-          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
-          "effective_scope": {
-            "kind": "realm",
-            "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
-          },
-          "mls_group_id": "Z3JvdXAtMDE",
-          "previous_epoch": 41,
-          "next_epoch": 42,
-          "security_frontier_digest": "sha256:90e5a439e03eb9537319cc02f73e75c5a7fa6102ab5fe2a6bc9952a951ab2a60",
-          "binding_profile": "ak.profile.mls_governance_binding.full.v1",
-          "reducer_profile": "ak.reducer.core.v1"
-        },
         "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
         "accepted_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
         "chunk_manifest": {
@@ -567,7 +520,7 @@
             "frontier_events": 32
           }
         },
-        "bundle_digest": "sha256:8075b8c2017562256980754521620ee0c8d117c152e7de5d80f0f51916e5e462",
+        "bundle_digest": "sha256:530e640aae8a5d60954f3cc1fb3717ea987257cb04b7115606cd07c5a40a776e",
         "chunk": {
           "chunk_index": 3,
           "collection": "frontier_events",
@@ -652,7 +605,7 @@
         "sha256:0914552e17fdd42b146ab32c0e86557615a5a741bb98cf8cd3f4c52a9af88a66",
         "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf"
       ],
-      "manifest": "sha256:8075b8c2017562256980754521620ee0c8d117c152e7de5d80f0f51916e5e462",
+      "manifest": "sha256:530e640aae8a5d60954f3cc1fb3717ea987257cb04b7115606cd07c5a40a776e",
       "chunks": [
         "sha256:5023de80810ac1857eccf8bc908c179be43df042f46861ee7fe980ed2d5b8b00",
         "sha256:c224e76421ab70f02648f5f35cddbf2c2c316ab04b168dba7ffe134ca5529b4d",
@@ -688,8 +641,21 @@
     "state_root": "sha256:6697c95a65a0c59add7ae722f62d732c722462f45ad9d9a7f74d46960cf17153",
     "completeness_leaf_canonical_bytes": 237,
     "completeness_root": "sha256:9f919a6f19ddb58886de89b58c904612356a91a499149bcd7de9208b50c97f84",
-    "security_frontier_input_canonical_bytes": 280,
-    "security_frontier_digest": "sha256:90e5a439e03eb9537319cc02f73e75c5a7fa6102ab5fe2a6bc9952a951ab2a60",
+    "security_frontier_input_canonical_bytes": 637,
+    "security_frontier_cell_entries": [
+      {
+        "cell_family": "ak.component.member.state.v1",
+        "cell_subject": "did:webvh:zfixture:bob.example",
+        "projected_value_digest": "sha256:4a26cf086f5286a4befe1967da3e46f203ca9eae7b8bf709fa67b5e1277beab8"
+      },
+      {
+        "cell_family": "ak.component.member.state.v1",
+        "cell_subject": "did:webvh:zfixture:carol.example",
+        "projected_value_digest": "sha256:4a26cf086f5286a4befe1967da3e46f203ca9eae7b8bf709fa67b5e1277beab8"
+      }
+    ],
+    "mls_leaf_set_digest": "sha256:3d6f866396fa67cbff0ae7baffb9640180744fd4f11d3057f2f3542ec40cb969",
+    "security_frontier_digest": "sha256:e51fab331660721a1382f2e1017e62ecc54126e34436b1d82cd753cff44f60fe",
     "seal_canonical_bytes": 783,
     "seal_digest": "sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
     "proof_identity_canonical_bytes": 427,
@@ -708,8 +674,8 @@
     ],
     "chunks_root": "sha256:8910036b5758776e2912d6617684eaeb551db234aa2a666d752ecabacc0b758b",
     "total_item_bytes": 3638,
-    "bundle_header_canonical_bytes": 1526,
-    "bundle_digest": "sha256:8075b8c2017562256980754521620ee0c8d117c152e7de5d80f0f51916e5e462"
+    "bundle_header_canonical_bytes": 1012,
+    "bundle_digest": "sha256:530e640aae8a5d60954f3cc1fb3717ea987257cb04b7115606cd07c5a40a776e"
   },
   "verifier_cases": [
     {
@@ -725,7 +691,7 @@
         "reason_code": null,
         "verified_bundle_persisted": true,
         "epoch_advanced": true,
-        "verified_bundle_digest": "sha256:8075b8c2017562256980754521620ee0c8d117c152e7de5d80f0f51916e5e462"
+        "verified_bundle_digest": "sha256:530e640aae8a5d60954f3cc1fb3717ea987257cb04b7115606cd07c5a40a776e"
       }
     },
     {

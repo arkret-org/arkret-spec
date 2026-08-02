@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/mls-governance-proof-bundle.schema.json",
   "title": "Arkret MLS Governance Proof Bundle",
-  "description": "Bounded chunk of a complete-materialization proof bundle used by a light client to verify an MLS full-profile governance binding against an accepted Seal. The fixed-size manifest commits every ordered chunk through chunks_root; the verifier accepts only after fetching all chunks, checking contiguous collection ranges, and recomputing the accepted Seal roots. proof_request_digest binds the acquisition identity, bundle_digest addresses the complete logical bundle, and each chunk_digest addresses one bounded transport chunk. accepted_seal_id alone is not a Bundle cache key.",
+  "description": "Bounded chunk of a complete-materialization proof bundle used by a light client to verify an MLS full-profile governance binding against an accepted Seal. The bundle deliberately does not copy the candidate governance_binding: the verifier owns the RFC 9420 current/pending leaf set, rederives security_frontier_digest from that leaf set plus this materialization, and compares the result with the transcript-authenticated binding. The fixed-size manifest commits every ordered chunk through chunks_root; the verifier accepts only after fetching all chunks, checking contiguous collection ranges, and recomputing the accepted Seal roots. proof_request_digest binds the acquisition identity, bundle_digest addresses the complete logical bundle, and each chunk_digest addresses one bounded transport chunk. accepted_seal_id alone is not a Bundle cache key.",
   "type": "object",
   "required": [
     "bundle_version",
@@ -12,7 +12,6 @@
     "realm_id",
     "effective_scope",
     "reducer_profile",
-    "governance_binding",
     "trusted_anchor_seal_id",
     "accepted_seal_id",
     "chunk_manifest",
@@ -43,9 +42,6 @@
     "reducer_profile": {
       "type": "string",
       "pattern": "^ak\\.reducer(?:\\.[a-z0-9][a-z0-9_.-]*)?\\.v[0-9]+$"
-    },
-    "governance_binding": {
-      "$ref": "./event-payload.schema.json#/$defs/mls_governance_binding"
     },
     "trusted_anchor_seal_id": {
       "$ref": "./event-envelope.schema.json#/$defs/seal_ref",

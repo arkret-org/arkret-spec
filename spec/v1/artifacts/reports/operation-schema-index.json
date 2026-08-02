@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.6",
+  "version": "2026-08-02.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T16:00:00Z",
+  "generated_at": "2026-08-02T18:30:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3049,7 +3049,6 @@
           "realm_id",
           "effective_scope",
           "reducer_profile",
-          "governance_binding",
           "trusted_anchor_seal_id",
           "accepted_seal_id",
           "chunk_manifest",
@@ -3063,7 +3062,6 @@
           "realm_id",
           "effective_scope",
           "reducer_profile",
-          "governance_binding",
           "trusted_anchor_seal_id",
           "accepted_seal_id",
           "chunk_manifest",

@@ -277,9 +277,38 @@ def build_fixture() -> dict[str, Any]:
         "event_digests": [event_rows[0][1], event_rows[1][1]],
     }
     completeness_root = merkle_root_from_leaf_data([canonical_bytes(completeness_leaf)])
+    mls_leaf_entries = sorted(
+        [
+            {
+                "leaf_index": index,
+                "principal_id": member_did,
+                "credential_ref": f"{member_did}#device-1",
+            }
+            for index, (_, _, member_did, _) in enumerate(event_specs)
+        ],
+        key=canonical_bytes,
+    )
+    mls_leaf_set_digest = wire_digest(canonical_bytes(mls_leaf_entries))
+    security_frontier_cell_entries = sorted(
+        [
+            {
+                "cell_family": "ak.component.member.state.v1",
+                "cell_subject": member_did,
+                "projected_value_digest": wire_digest(canonical_bytes("join")),
+            }
+            for _, _, member_did, _ in event_specs
+        ],
+        key=lambda row: (
+            row["cell_family"].encode("utf-8"),
+            canonical_bytes(row["cell_subject"]),
+            row["projected_value_digest"],
+        ),
+    )
     security_frontier_input = {
-        "profile": "ak.security_frontier.key_access.v1",
-        "cells": control_state,
+        "profile_id": "ak.security_frontier.v1",
+        "effective_scope": deepcopy(effective_scope),
+        "cell_entries": security_frontier_cell_entries,
+        "mls_leaf_set_digest": mls_leaf_set_digest,
     }
     security_frontier_digest = wire_digest(canonical_bytes(security_frontier_input))
     seal_body = {
@@ -390,7 +419,6 @@ def build_fixture() -> dict[str, Any]:
         "realm_id": realm_id,
         "effective_scope": deepcopy(effective_scope),
         "reducer_profile": governance_binding["reducer_profile"],
-        "governance_binding": governance_binding,
         "trusted_anchor_seal_id": seal_id,
         "accepted_seal_id": seal_id,
         "chunk_manifest": manifest,
@@ -470,7 +498,7 @@ def build_fixture() -> dict[str, Any]:
 
     return {
         "profile": "ak.profile.mls_governance_binding.full.v1",
-        "version": "2026-07-15",
+        "version": "2026-08-02",
         "suite": "mls_governance_proof_bundle",
         "generated_by": "tools/generate_mls_governance_proof_fixture.py",
         "runner": {
@@ -534,6 +562,8 @@ def build_fixture() -> dict[str, Any]:
             "expected_next_epoch": 42,
             "expected_binding_profile": governance_binding["binding_profile"],
             "expected_reducer_profile": governance_binding["reducer_profile"],
+            "current_or_pending_mls_leaf_entries": mls_leaf_entries,
+            "mls_leaf_set_digest": mls_leaf_set_digest,
         },
         "source_state": {
             "proof_identity": proof_identity,
@@ -563,6 +593,8 @@ def build_fixture() -> dict[str, Any]:
             "completeness_leaf_canonical_bytes": len(canonical_bytes(completeness_leaf)),
             "completeness_root": completeness_root,
             "security_frontier_input_canonical_bytes": len(canonical_bytes(security_frontier_input)),
+            "security_frontier_cell_entries": security_frontier_cell_entries,
+            "mls_leaf_set_digest": mls_leaf_set_digest,
             "security_frontier_digest": security_frontier_digest,
             "seal_canonical_bytes": len(canonical_bytes(seal_body)),
             "seal_digest": seal_digest,
