@@ -296,6 +296,10 @@ components:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_register_outcome
     AccountRegisterRequestBody:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_register_request_body
+    AccountStatusPublicationOutcome:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_status_publication_outcome
+    AccountStatusPublicationRequestBody:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_status_publication_request_body
     AccountSubscribeFrame:
       $ref: ../schemas/account-subscribe-frame.schema.json
     AccountUpdateProfileOutcome:
@@ -4220,6 +4224,62 @@ paths:
                 $ref: '#/components/schemas/ErrorEnvelope'
         '422':
           description: The logical complete_control_state_v1 bundle exceeds a v1 count, byte, or chunk bound (`mls_governance_proof_bounds_exceeded`); no partial bundle is returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /_arkret/peer/account-status:
+    post:
+      operationId: ak.peer.account_status.command.submit
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Publish an authoritative account-status Event to a Principal Server.
+      description: |
+        Accepts exactly one Account Authority or delegated authoritative
+        Principal Server signed `ak.account.status` Event for the account
+        principal's Principal Control Realm. `authority_evidence` is a
+        short-lived Account Authority proof binding the service account,
+        principal, PCR, issuer service and live authority reference. The
+        receiver verifies that evidence, the original Event proof and current
+        PCR CBA closure independently. Initial publication carries no
+        AuthorizationLease; receipted fanout adds receiver-signed account-status
+        receipts (never generic IngressReceipt) and CBA proof bundles. A retry
+        with the same key and identical canonical body
+        returns the latest durable operation state; reuse with different bytes
+        is `duplicate_conflict`.
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        description: |
+          Durable publication operation key. It MUST be covered by the HTTP
+          Message Signature. Byte-identical retries reuse it while
+          `status=pending_seal` or fanout is progressing; a different canonical
+          body under the same key is rejected with `duplicate_conflict`.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountStatusPublicationRequestBody'
+      responses:
+        '200':
+          description: Durable local acceptance and propagation state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountStatusPublicationOutcome'
+        '409':
+          description: Idempotency-Key conflict or invalid account-status transition.
           content:
             application/json:
               schema:

@@ -272,6 +272,7 @@ Franking 信任链：
 
 ```json
 {
+  "owner": "did:webvh:z6mkfixture:holder.example",
   "version": 1,
   "entries": [
     {
@@ -300,6 +301,8 @@ Franking 信任链：
 - SHOULD 默认拒绝被屏蔽用户发起的 DM、call invite、contact request 和 applet-mediated request
 - MAY 在共同 Realm 中显示折叠占位符，避免破坏上下文
 - MUST NOT 从网络层面丢弃被屏蔽用户的 Operation（这些 Operation 对其他成员仍然有效）
+
+加入、移除、CAS revision、共享 Realm 与 Direct Conversation 的收取边界、解除屏蔽后的历史重算及 block / mute / hide 的精确差异，以 [`../discovery/client-preferences.md` §3.5–§3.5.1](../discovery/client-preferences.md) 为唯一权威源。本节不得另定义第二套屏蔽状态机。
 
 ### 4.3 个人过滤对象
 

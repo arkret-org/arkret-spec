@@ -135,6 +135,7 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 
 ```json
 {
+  "owner": "did:webvh:z6mkfixture:holder.example",
   "version": 1,
   "entries": [
     {
@@ -149,6 +150,8 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
         "mentions",
         "dm",
         "calls",
+        "contacts",
+        "applets",
         "presence",
         "notifications",
         "directory"
@@ -174,6 +177,11 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 
 规则：
 
+- `owner` MUST 与 Event `actor_id` 及 holder-private account-data owner 逐字一致。`version` 是该 principal blocklist 的单调 CAS revision；第一版为 `1`，后续写入必须精确为当前值 `+ 1`，跳号、回滚或并发旧版本均 `cas_conflict`。`ak.account.blocklist` 与 `ak.account_data.set{key="ak.account.blocklist"}` 共享同一个 revision counter，不能形成两条独立 winner 链。
+- 每个 payload 是**全量替换**，不是 entry patch：加入屏蔽对象是在下一 revision 中加入新 `entry_id`；修改同一规则时保留 `entry_id`；移除屏蔽对象是在下一 revision 中省略对应 entry；`entries=[]` 清空全部规则。服务端或客户端不得把“移除”解释为删除共享消息、撤销 capability 或通知被屏蔽方。`expires_at` 到期只令该 entry 在 holder projection 中失效；同步写者 SHOULD 在下一 revision 中清除它，receiver 不得用本地计时器改写 durable payload。
+- `target` 是闭合 discriminated union：`actor | service | organization` 必须且只能携带 `did`；`applet` 必须且只能携带 canonical `ak:applet:` `object_ref`；`handle | domain | keyword` 必须且只能携带 `value`；`device` 携带 canonical `ak:device:` `object_ref`，或在无法取得 device id 时携带 verification-method DID URL `value`。仅有裸 display name 不得成为 actor/device/service/organization target；device 与 applet 的 typed-id 前缀必须由 schema 校验，不能把其它 `object_ref` 塞入对应分支。
+- 同一 revision 内最多 4096 个 entry；规范化后的 `(target, applies_to)` 不得被多个 entry 重复覆盖；需要不同 mode 时必须使用互不重叠的 `applies_to`。`applies_to` 至少一个值并决定规则作用面，其中 `contacts` 覆盖 contact request/relationship surface，`applets` 覆盖 applet-mediated request；不得用 `dm` 或 `notifications` 猜测替代这两个独立 surface。
+- `mode="block"`：在所选 holder-facing surface 上拒绝新的 contact / DM / call / applet request 或隐藏来自 target 的内容；但共享 Realm Event 仍按下文“收取与过滤边界”处理。`mode="mute"`：内容仍可见、可搜索和正常同步，只抑制铃声、push、mention badge 等 attention surface。`mode="hide"`：内容仍同步、验证和保留，但从默认 holder view / search 中排除；它不拒绝新的协议请求。
 - 通过非可信服务同步时，account blocklist MUST 仅为 holder 自己的设备加密。
 - 客户端 SHOULD 抑制来自被屏蔽对象的通知、联系人请求、通话邀请与 DM 请求。
 - 客户端 MAY 在共享 Realm 视图中隐藏或折叠被屏蔽内容。
@@ -182,6 +190,16 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 - `ak.account.blocklist` 是 actor-private/account-private durable cell：它可以在 holder 的设备间同步，但不进入共享 Realm Seal coverage、membership state、Directory ingest 或 federation payload。
 - 若服务端代表用户执行 blocklist 过滤（例如通知、DM invite、call invite 或 directory preview），该服务 MUST 被 holder 显式授权读取对应 blocklist 明文，或声明自身进入 `plaintext_visible_services.data_classes=["blocklist"]` / 等价 holder-private confidential service；否则只能转发给客户端本地过滤。服务端执行模式不得让发送方、被查询方或 federation peer 区分"被屏蔽"与"无权限 / 不存在 / 用户离线"。
 - 屏蔽组织或域 MUST 在可能时通过已验证的 DID / claim 绑定评估；仅有弱字符串匹配时，客户端 SHOULD 给出警告。
+
+#### 3.5.1 收取与过滤边界（normative）
+
+- **共享 Realm 消息**：必须先按正常 federation / sync 路径收取、验签、准入、存储并推进 canonical Event / Seal 状态，因为同一 Event 对其他成员、引用链和 state root 仍然有效；随后才在 holder-private projection 应用 `block` / `hide`。不得在网络层丢弃该 Operation，也不得从共享 history、Seal coverage 或其它成员视图删除它。被过滤内容不生成 holder notification、mention attention、自动 read receipt，且不得触发 typing / presence 等可让发送方推断 block 命中的差异信号。
+- **现有 Direct Conversation**：个人 blocklist 自身只是私有过滤器，不撤销 membership、contact consent 或 participant authority。若产品的“拉黑用户”承诺阻止后续 DM 写入，客户端 MUST 把 blocklist 更新与 `ak.self.contact.command.tombstone{block_peer=true}`、对应 `ak.consent.revoke` 等 canonical contact/consent 动作作为同一持久化 saga 执行并重试至闭合；只有后者使稳定 conversation 投影为 `suspended` 并禁止新 application message。只写 blocklist 时，对端仍可能成功提交 shared DM Event，本端必须同步后私下过滤。
+- **新的 holder-private 请求**：contact request、首次 DM invite、call invite 或 applet-mediated request 在受托服务有权读取 blocklist 时可于 holder surface 前 drop；否则服务必须以不可区分形态转发加密材料，由客户端本地过滤。两种模式都不得向发送方返回 `blocked_by_user`，也不得产生可区分的错误、时延或 delivery receipt。
+- **解除屏蔽**：下一 revision 移除 entry 后，未来 projection 立即停止过滤。此前已经正常收取并按 retention 保留的共享 Realm / DM 历史会重新出现在 holder view；若产品希望解除后仍不显示旧内容，必须另存 holder-private hide/tombstone 或执行已有 erasure 流程，不能把 blocklist removal 偷换成历史删除。Block 期间被 contact/consent saga 真正拒绝、从未 accepted 的新请求或消息不会因解除屏蔽而补写。
+- **离线与多设备**：设备只能依据其已同步到的最高 accepted blocklist revision 过滤。尚未取得新 revision 的设备必须把 blocklist freshness 视为 unknown，禁止发送 read receipt / presence 等可能泄漏差异的信号，待 actor-private account-data catch-up 后重算 holder projection。
+
+上述 CAS、receive-before-filter、解除后 projection rebuild、DM contact/consent 正交性与不可枚举行为由 conformance vector `ak.vector.account.blocklist_projection.v1` 闭合。
 
 ### 3.6 联系人备注 (Contact Remarks)
 

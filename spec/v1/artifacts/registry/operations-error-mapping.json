@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-02.2",
+  "version": "2026-08-02.3",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -856,6 +856,18 @@
         "delivery_binding_stale",
         "delivery_binding_handed_over"
       ]
+    },
+    {
+      "operation_id": "ak.peer.account_status.command.submit",
+      "http_alias": "POST /_arkret/peer/account-status",
+      "operation_specific": [
+        "duplicate_conflict",
+        "failed_precondition",
+        "account_status_transition_invalid",
+        "erasure_pending_is_terminal",
+        "stale_peer"
+      ],
+      "description": "Account Authority / delegated Principal Server account-status publication. invalid_signature and unauthorized remain universal authentication failures; failed_precondition covers authority-evidence/Event/PCR field mismatch or stale binding evidence, while the two account-status codes cover illegal lifecycle transitions. Same Idempotency-Key with another canonical body is duplicate_conflict."
     },
     {
       "operation_id": "ak.peer.invites.command.submit",

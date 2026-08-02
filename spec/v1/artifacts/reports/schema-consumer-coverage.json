@@ -702,7 +702,7 @@
       "file": "schemas/cursor.schema.json",
       "consumers": {
         "prose": "normative_text",
-        "schema_reference": "fragment",
+        "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },

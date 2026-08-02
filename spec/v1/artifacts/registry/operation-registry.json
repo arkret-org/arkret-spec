@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.6",
+  "version": "2026-08-02.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T16:00:00Z",
+  "generated_at": "2026-08-02T17:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -116,6 +116,7 @@
       "operations": [
         "ak.peer.events.query.describe",
         "ak.peer.events.command.submit",
+        "ak.peer.account_status.command.submit",
         "ak.peer.events.query.resolve",
         "ak.peer.events.query.scan",
         "ak.peer.events.query.scan_body",
@@ -2066,6 +2067,25 @@
       "durable_effect": {
         "kind": "event_log",
         "event_kind_source": "$request.events[*].event.kind"
+      }
+    },
+    {
+      "operation_id": "ak.peer.account_status.command.submit",
+      "http": "POST /_arkret/peer/account-status",
+      "grpc": "PeerAccountStatus/Submit",
+      "mq": "peer.account_status.command.submit",
+      "notes": "Account Authority or authorized Principal Server publication of exactly one ak.account.status Event into the account principal's Principal Control Realm. The caller uses service-to-service HTTP Message Signature authentication and a required Idempotency-Key covered by the signature. authority_evidence is Account Authority-signed transport evidence binding account_id, principal_id, principal_control_realm_id, issuer service and a live authority_ref; the receiver independently verifies it, the Event proof, exact Event/evidence field equality, current issuer key/delegation and PCR CBA closure. Initial publication carries the Event without an AuthorizationLease; downstream fanout adds receiver-signed account_status_receipts and CbaProofBundle values. AccountStatusReceipt proves local frontier acceptance, contains no AuthorizationLease id, and generic IngressReceipt is forbidden. Same key plus different canonical body is duplicate_conflict. A byte-identical retry returns the latest durable operation state, allowing pending_seal and fanout progress to converge without creating another Event. accepted or duplicate is terminal for the receiving server's frontier; multi-server propagation continues from a durable bounded outbox and never mutates the signed account-status payload.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_request_body",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_outcome",
+      "durable_effect": {
+        "kind": "event_log",
+        "event_kinds": [
+          "ak.account.status"
+        ]
       }
     },
     {

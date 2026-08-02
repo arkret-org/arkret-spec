@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/account-operations.schema.json",
-  "title": "Arkret Account Self-Service Operation DTOs",
-  "description": "Closed request and response DTOs for account self-service operations: viewer, account-authentication handoff, identity-binding challenge, register, profile update, and session revocation.",
+  "title": "Arkret Account Operation DTOs",
+  "description": "Closed request and response DTOs for account self-service operations and Account Authority to Principal Server account-status publication.",
   "anyOf": [
     { "$ref": "#/$defs/account_view" },
     { "$ref": "#/$defs/account_handoff_request_body" },
@@ -13,6 +13,10 @@
     { "$ref": "#/$defs/account_register_outcome" },
     { "$ref": "#/$defs/account_update_profile_request_body" },
     { "$ref": "#/$defs/account_update_profile_outcome" },
+    { "$ref": "#/$defs/account_status_authority_evidence" },
+    { "$ref": "#/$defs/account_status_receipt" },
+    { "$ref": "#/$defs/account_status_publication_request_body" },
+    { "$ref": "#/$defs/account_status_publication_outcome" },
     { "$ref": "#/$defs/session_revoke_request_body" },
     { "$ref": "#/$defs/session_revoke_outcome" }
   ],
@@ -791,6 +795,169 @@
       ],
       "properties": {
         "profile": { "$ref": "./actor-profile.schema.json" }
+      },
+      "additionalProperties": false
+    },
+    "account_status_authority_evidence": {
+      "type": "object",
+      "description": "Account Authority-signed, transport-only evidence binding one service account, principal, Principal Control Realm and authorized Event issuer. It is not a public identity fact and MUST be disclosed only to Principal Servers that already hold or are about to hold state for this account/principal. The proof uses context ak.account_status.authority_evidence.v1 and payload_digest over RFC 8785 JCS of every field except proof.",
+      "required": [
+        "account_authority_id",
+        "issuer_service_id",
+        "principal_control_realm_id",
+        "account_id",
+        "principal_id",
+        "binding_version",
+        "authority_ref",
+        "issued_at",
+        "expires_at",
+        "proof"
+      ],
+      "properties": {
+        "account_authority_id": { "$ref": "#/$defs/did" },
+        "issuer_service_id": { "$ref": "#/$defs/did" },
+        "principal_control_realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
+        "account_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "principal_id": { "$ref": "#/$defs/did" },
+        "binding_version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Monotonic Account Authority-local binding generation. A receiver MUST reject rollback relative to evidence already accepted for the same (account_authority_id, account_id)."
+        },
+        "authority_ref": {
+          "$ref": "#/$defs/did_url",
+          "description": "Account Authority DID service/delegation URL authorizing issuer_service_id to sign ak.account.status for this account. For a direct Account Authority issuer this is its own account-authority service entry; for a delegated Principal Server it is the live delegation entry."
+        },
+        "issued_at": { "$ref": "#/$defs/timestamp" },
+        "expires_at": { "$ref": "#/$defs/timestamp" },
+        "proof": { "$ref": "./event-envelope.schema.json#/$defs/proof" }
+      },
+      "additionalProperties": false
+    },
+    "account_status_publication": {
+      "description": "Constrained carrier for exactly one ak.account.status Event. Initial Account Authority publication carries event only; fanout of an already accepted Event carries the same event plus account_status_receipts. AuthorizationLease and generic IngressReceipt are forbidden because this high-risk status publication is admitted against current authority state.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["event"],
+          "properties": {
+            "event": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventSubmitEnvelope" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["event", "account_status_receipts"],
+          "properties": {
+            "event": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventSubmitEnvelope" },
+            "account_status_receipts": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 32,
+              "uniqueItems": true,
+              "items": { "$ref": "#/$defs/account_status_receipt" }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "account_status_receipt": {
+      "type": "object",
+      "description": "Principal Server-signed transport receipt proving that one ak.account.status Event was accepted into that receiver's local account-status frontier. It is not an offline-publication IngressReceipt, contains no AuthorizationLease id, and grants no authority. proof uses context ak.account_status.ingress_receipt.v1 and payload_digest over RFC 8785 JCS of every field except proof.",
+      "required": [
+        "receipt_id",
+        "event_id",
+        "event_digest",
+        "account_id",
+        "principal_id",
+        "principal_control_realm_id",
+        "receiver_service_id",
+        "account_status_frontier_digest",
+        "accepted_at",
+        "proof"
+      ],
+      "properties": {
+        "receipt_id": {
+          "type": "string",
+          "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "event_id": { "$ref": "#/$defs/event_id" },
+        "event_digest": { "$ref": "#/$defs/hash" },
+        "account_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "principal_id": { "$ref": "#/$defs/did" },
+        "principal_control_realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
+        "receiver_service_id": { "$ref": "#/$defs/did" },
+        "account_status_frontier_digest": { "$ref": "#/$defs/hash" },
+        "accepted_at": { "$ref": "#/$defs/timestamp" },
+        "proof": { "$ref": "./event-envelope.schema.json#/$defs/proof" }
+      },
+      "additionalProperties": false
+    },
+    "account_status_publication_request_body": {
+      "type": "object",
+      "required": [
+        "authority_evidence",
+        "publication"
+      ],
+      "properties": {
+        "authority_evidence": { "$ref": "#/$defs/account_status_authority_evidence" },
+        "publication": { "$ref": "#/$defs/account_status_publication" },
+        "cba_proof_bundles": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": { "$ref": "./cba-proof-bundle.schema.json" },
+          "description": "Receiver-relative Principal Control Realm CBA closure for receipted fanout. Initial publication MAY omit it when the destination already has the current PCR dependencies."
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_status_publication_outcome": {
+      "type": "object",
+      "description": "Durable operation state. accepted/duplicate are terminal for this receiver's account-status frontier; pending_seal is retryable with the same Idempotency-Key and byte-identical request until the Event is accepted or rejected. propagation_state reports this receiver's downstream fanout obligation without mutating the signed Event payload.",
+      "required": [
+        "status",
+        "event_id",
+        "account_id",
+        "principal_id",
+        "propagation_state"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["pending_seal", "accepted", "duplicate"]
+        },
+        "event_id": { "$ref": "#/$defs/event_id" },
+        "account_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "principal_id": { "$ref": "#/$defs/did" },
+        "effective_status_event_id": { "$ref": "#/$defs/event_id" },
+        "account_status_frontier_digest": { "$ref": "#/$defs/hash" },
+        "barrier_cursor": { "$ref": "./cursor.schema.json" },
+        "propagation_state": {
+          "type": "string",
+          "enum": ["not_required", "scheduled", "complete", "incomplete"]
+        },
+        "pending_destination_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 1
+        }
       },
       "additionalProperties": false
     },
