@@ -112,7 +112,7 @@ request 到达 `rejected`、`expired` 或 `tombstoned` 后，后续重新发起 
 
 看到 peer 的合法 `ak.contact.tombstoned` 后，本 holder 的 projection SHOULD 立即把该 row 从 `accepted` 降级为 `tombstoned` 或等价 non-active state，避免列表长期显示 accepted 但 direct-message gate 已关闭。peer tombstone 尚未同步到本 holder 前，列表与 gate 可能短暂不一致；resolver 仍以最新可验证 contact projection + consent gate fail closed。
 
-列表 MAY 包含 `direct_conversation` 摘要，但该字段只能来自 direct conversation binding，不得反向决定 contact state。
+列表 MAY 包含 `direct_conversation` 摘要，但该字段只能来自已 materialize 的 immutable binding，不得反向决定 contact state。摘要固定携带同一 `realm_id`、`main_strand_id`、`binding_event_ref`，其 state 只有 `found | suspended`；创建进度只存在于 resolver outcome / durable operation，摘要不得出现 `creation_required`、`temporarily_unavailable` 或任何 retirement/candidate 状态。
 
 ### 4.1 跨 Principal Server 投递
 

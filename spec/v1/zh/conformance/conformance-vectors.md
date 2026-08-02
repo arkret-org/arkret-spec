@@ -3412,18 +3412,6 @@ Expected：
 - Resolver draft 必须显式携带 `{request,transport_binding}`；participant signature 必须绑定 source/destination service 与双方 trust domain，客户端不得从本地配置猜测这些值。
 - Direct Conversation request 必须同时绑定 pair key、Realm、main Strand 与 MLS group，且不得启用 last-resort。
 
-### 10.3.3 Vector: Direct Conversation Loser Claim Revocation
-
-`vector_id`: `ak.vector.keypackage.peer_claim_loser_revocation.v1`
-
-两个 PS 为同一 pair 并发创建候选 A/B，各领取不同 single-use KeyPackage；binding event-digest 全序选择 B 为 canonical winner。
-
-Expected：
-
-- 只有 B 的 Welcome 可激活，且只有 B 的 claim 可 consume。
-- A 的 Welcome MUST quarantine / ignore，不得建立可发送 MLS state。
-- A 的 claim 在 expiry 前保持 `claimed`（或经授权提前 `revoked`），到期 MUST 为 `revoked`；任何时刻都不得释放回 `published`。
-
 ### 10.3.4 Vector: Self Claim Authorization And Idempotency
 
 `vector_id`: `ak.vector.keypackage.self_claim_authorization_idempotency.v1`
@@ -3717,7 +3705,7 @@ Steps:
 1. Controller 调用 `ak.self.agent.command.provision`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限。prepare 返回 allocation 与 digest 且没有 durable side effect；Controller 按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算并逐字匹配，再用 SDK author 一个无内层 proof 的 `ak.agent.provision` Event。commit 只接受该单一 Event，并在一个 reducer transaction 原子投影 provision/accountability/selector，随后返回 `pairing_request_id`。Agent DID accepted inception history 的唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 只固定 digest，公开 entry 不含完整 scope。provisioning 不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope` 的变体必须 schema validation 失败。
 2. Agent runtime 生成 key pair，取得 pairing verifier 签名的 presentation request/challenge；controller 生成符合 `ak.schema.agent_requested_scope_disclosure.v1`、绑定该 verifier/audience/challenge 且接收窗口不超过 300 秒的私有披露，与 key pair request 一起提交。controller-signed `ak.agent.key.authorize.payload.agent_key_scope` 使用 actions/resources/constraints 的严格子集。另提交一个超出 action/resource ceiling 或删除 provision mandatory constraint 的变体。
 3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_id` bit-identical。
-4. 批准后写入 `ak.agent.key.authorize`；随后为该 Agent 附加一个更窄的 Realm-scoped grant，并分别尝试附加含未 provision action、超出显式内容 resource ceiling 的 grant。
+4. 批准后写入 `ak.agent.key.authorize`；随后为该 Agent 提交一个 controller-authored `ak.capability.grant` `EventInitialSubmission` 以附加更窄的 Realm-scoped grant。其 `event.payload.grant` 不含内层 proof，Event envelope proof 是唯一 durable issuer signature；另分别尝试提交 body-local proof、让服务端代签/合成 Event、含未 provision action及超出显式内容 resource ceiling 的变体。
 
 Expected:
 
@@ -3726,7 +3714,7 @@ Expected:
 - 第 2 步 disclosure 的 controller proof、request/challenge 单次性、verifier/audience、接收窗口与 digest 必须全部通过；缺失、摘要不匹配、重放或错 audience MUST fail closed，且不得退回服务本地 Agent row 作为权威来源。完整 disclosure 不得进入 authorize Event、Realm history、pairing code 或通知。
 - 在第 4 步之前，任何 `agent_key_proof` session grant 请求 MUST fail closed。
 - 第 2 步更窄 key scope MUST 接受；任何 action/resource 越界或删除 mandatory constraint 的 key scope MUST fail closed。实现不得要求 key scope 与 provision scope 完全相等。
-- 第 4 步后 agent runtime 只能在 `requested_scope ∩ agent_key_scope` 上限内签发 session grant；内容 capability 还必须来自后续独立的 Realm-scoped grant。更窄 grant MUST 接受；未 provision action 或超出显式内容 resource ceiling的 grant MUST 以 `agent_grant_exceeds_requested_scope` fail closed。
+- 第 4 步后 agent runtime 只能在 `requested_scope ∩ agent_key_scope` 上限内签发 session grant；内容 capability 还必须来自后续独立的 Realm-scoped grant。更窄 grant Event MUST 接受；ordinary CapabilityGrantBody 的内层 proof/signature、服务端代签/合成 Event 或 proof fallback MUST reject。未 provision action 或超出显式内容 resource ceiling 的 grant MUST 以 `agent_grant_exceeds_requested_scope` fail closed。
 
 ### 11.1.0 Vector: Requested Scope Public-History Privacy
 
@@ -3781,7 +3769,7 @@ Steps:
 
 Expected:
 
-- 服务将 agent runtime_state 投影为 `pairing_expired`(lifecycle 意图不变)，不得创建、撤销或改写任何 Realm grant。
+- generic list/get 必须关闭并省略 open-handle fields，返回 lifecycle 不变且 `readiness={state:not_ready,blockers:[...,runtime_key_missing]}`；`key_state` 不得出现 `status` / `runtime_state`。只有用该 handle 轮询 pairing poll 时才返回 operation-local `runtime_state=pairing_expired`。不得创建、撤销或改写任何 Realm grant。
 - 重放 `ak.gate.account.command.pair_agent_key`(使用过期 pairing_request_id)MUST fail closed。
 - Controller 可通过 `ak.self.agent.command.renew_pairing` 对同一 agent principal 原地重开 bootstrap pairing，也可重新发起 `ak.self.agent.command.provision`;后者得到新 agent_id,旧 agent_id 与新 provisioning 不复用。两种操作都不得从 `requested_scope` 物化 Realm grant。
 
@@ -3874,7 +3862,7 @@ Expected:
 - 第 2 步的新 session / capability action 与 open replacement 期间的 resume MUST fail closed；已存在 key/grant 的保留只用于原子 supersede 与审计，不等于 paused 状态可继续执行。
 - 第 3 步 MUST 以单一 controller-signed `ak.agent.key.authorize`(K2) Event 原子 remove `supersedes[]` 指定的 K1 authorization dot（reason=`superseded_by_repairing`）并 add K2 dot；不得伪造第二条 controller-authored revoke Event；capability grants 不受影响。遗漏 K1、加入不存在/已撤销 authorization，或引用错误 `authorized_event_ref` 的变体 MUST conflict / fail closed 且不改变任何 key。
 - 第 4 步 MUST fail closed:`K1` 的新 session 请求拒绝;`S1` MUST 在 revocation freshness window 内 fail closed,MUST NOT 自然存活到原 TTL。
-- 变体 A:无任何配对副作用,agent lifecycle 保持 `paused`、`K1` 有效,runtime_state 回到 `ready`;`pairing_expired` MUST NOT 出现在曾持钥 agent 上；handle 过期后 open-handle 投影必须清除。pause / resume 是纯 lifecycle 意图写入，在 handle open 期间也不被阻塞。
+- 变体 A:无任何配对副作用，Agent lifecycle 保持 `paused`、`K1` 有效；handle 过期后 generic key_state 清除 open-handle fields，readiness 移除 `pairing_open` 且不得出现第四状态轴。该 handle 的 pairing poll 可报 operation-local `runtime_state=ready`，绝不能报 `pairing_expired`。pause / resume 是纯 lifecycle 意图写入，在 handle open 期间也不被阻塞。
 - 变体 B:MUST `agent_deactivated`(terminal 状态拒绝续期)。
 
 ### 11.2.5 Vector: Longevity-safe Authorization Chain(No Expiry Cliffs)
@@ -3979,6 +3967,8 @@ Expected:
 ineffective。客户端提交逐 key/grant revoke bundle、只清 UI cache、或让任一 child authorization 绕过
 `lifecycle=deactivated` AND gate 均为不通过。read view 必须分别返回 durable `lifecycle`、含闭合
 `blockers[]` 的 `readiness` 与带 `expires_at/refresh_after` 的短期 `presence`；`offline` 不得替代前两轴。
+`agent_projection` 增加 `runtime_state`、或 generic `key_state` 增加 `status` / `runtime_state` 的 schema case
+必须失败；pairing poll outcome 仍必须要求其 operation-local `runtime_state`，证明不是删除 diagnostic enum。
 
 ### 11.5 Vector: Act-on-behalf Attribution
 
@@ -4287,7 +4277,7 @@ Steps:
 
 1. Controller 调用 `ak.self.agent.participation.resource.replace`，scope=`R`，selection=`{reply:true, accept_third_party_mention:true, act_on_behalf:false}`；虽然 Realm governance 允许第三方 mention，但 provision ceiling 不允许。
 2. 变体 A：调用方不是该 agent 的 controller。
-3. 变体 B：该 agent lifecycle 非 active(`paused` / `deactivated`)或从未完成首次配对(runtime_state `pending_runtime_key` / `pairing_expired`)。
+3. 变体 B：该 Agent lifecycle 非 active(`paused` / `deactivated`)或 readiness 为 `not_ready` 且含 `runtime_key_missing`（从未完成首次配对）。
 4. 变体 C：scope 不可解析，或 controller 非该 Realm active member。
 
 Expected:

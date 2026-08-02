@@ -128,7 +128,7 @@ DataEvent 通过验证后不是"被 seal final"，而是**本地终态**：相�
 
 - 直接 participant Event 的 `authorization_ref` 必须是 exact source token，并有恰好一条 critical
   `direct_conversation_binding` Event ref；任意 cell/Event、membership、`created_by` 或本地 row 不得替代；
-- verifier 在 `seal_ref` view 重算 active canonical winner、exact-two participant/membership、
+- verifier 在 `seal_ref` view 重算唯一 immutable binding 的有效性、exact-two participant/membership、
   Realm/Strand/MLS/lifecycle/resource 与 action-specific gate。dependency 缺失/冲突/freshness unknown 时
   pending/fail closed；
 - `executed_by` Event 的 `authorization_ref` 仍绑定 executor delegation；participant source、Agent
@@ -140,7 +140,7 @@ DataEvent 通过验证后不是"被 seal final"，而是**本地终态**：相�
   barrier 且已按旧 basis 合法接受的 Event 不追溯改写，因果晚于 barrier 的 Event 必须拒绝，依赖不完整的
   并发 Event 保持 pending，不能等待 retired fact 后再临时放行。
 
-影响 binding winner、membership、Realm/Strand terminal、MLS group、contact/consent 或 Agent
+影响 immutable binding 可用性、membership、Realm/Strand terminal、MLS group、contact/consent 或 Agent
 participation 的 accepted state 变化，MUST 在更新投影的同一事务边界把 participant authz cache stale；
 federation 迟到 evidence 补齐后必须重验 pending closure。
 

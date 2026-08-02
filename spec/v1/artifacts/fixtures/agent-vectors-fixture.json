@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.personal_agent_provisioning.v1",
-  "version": "2026-07-31",
+  "version": "2026-08-02",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -185,6 +185,80 @@
       "instance": {
         "state": "offline"
       }
+    },
+    {
+      "name": "generic_agent_projection_rejects_runtime_state_fourth_axis",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_projection",
+      "expect_valid": false,
+      "first_expected_error": "contains:runtime_state",
+      "instance": {
+        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "slug": "summary",
+        "lifecycle": "active",
+        "readiness": {
+          "state": "not_ready",
+          "blockers": [
+            "runtime_key_missing"
+          ]
+        },
+        "presence": {
+          "state": "offline",
+          "expires_at": "2026-08-02T00:01:00.000Z",
+          "refresh_after": "2026-08-02T00:00:20.000Z"
+        },
+        "runtime_state": "pairing_expired"
+      }
+    },
+    {
+      "name": "generic_key_state_rejects_status_and_runtime_state",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/key_state",
+      "expect_valid": false,
+      "first_expected_error": "contains:runtime_state",
+      "instance": {
+        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "controller_id": "did:webvh:z6mkcontroller:controller.example",
+        "principal_control_realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
+        "status": "active",
+        "runtime_state": "pending_runtime_key",
+        "pcr_recovery": {
+          "status": "pending"
+        },
+        "requested_scope": {
+          "actions": [
+            "ak.event.read"
+          ],
+          "resources": [
+            {
+              "kind": "operation",
+              "operation": "ak.self.events.query.scan"
+            }
+          ]
+        },
+        "requested_scope_digest": "sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042"
+      }
+    },
+    {
+      "name": "pairing_poll_keeps_operation_local_runtime_state",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome",
+      "expect_valid": true,
+      "instance": {
+        "ok": true,
+        "lifecycle": "active",
+        "runtime_state": "pending_runtime_key",
+        "readiness": {
+          "state": "not_ready",
+          "blockers": [
+            "runtime_key_missing",
+            "pairing_open"
+          ]
+        },
+        "presence": {
+          "state": "offline",
+          "expires_at": "2026-08-02T00:01:00.000Z",
+          "refresh_after": "2026-08-02T00:00:20.000Z"
+        }
+      }
     }
   ],
   "cases": [
@@ -232,6 +306,8 @@
         "pairing and grant admission require a controller-signed verifier-bound private requested_scope disclosure whose digest matches the accepted-at DID commitment",
         "provisioning writes one durable fact whose projections include accountability and selector and never materializes Realm grants",
         "a narrower per-key scope is accepted while a wider action/resource scope or omitted mandatory provision constraint is rejected",
+        "grant attach accepts a complete controller-authored ak.capability.grant EventInitialSubmission and submits its exact bytes through ordinary Event admission",
+        "the ordinary CapabilityGrantBody has no inner proof or signature; the Event envelope proof is the sole durable issuer signature and service signing or proof fallback is rejected",
         "a narrower Realm grant is accepted while an omitted action or out-of-ceiling content resource is rejected with agent_grant_exceeds_requested_scope",
         "missing accountability grants fail with accountability_grant_missing"
       ]

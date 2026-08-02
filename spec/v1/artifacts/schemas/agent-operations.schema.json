@@ -245,7 +245,7 @@
     },
     "agent_status": {
       "type": "string",
-      "description": "Controller lifecycle intent axis. Closed enum; only the controller's pause / resume / deactivate lifecycle events change it. It never encodes pairing progress: runtime key readiness is the orthogonal derived agent_runtime_state projection (key-management.md §3.6.1).",
+      "description": "Controller lifecycle intent axis. Closed enum; only the controller's pause / resume / deactivate lifecycle events change it. Pairing and key facts are reflected through the generic readiness axis and open-handle fields, never through a fourth generic state axis (key-management.md §3.6.1).",
       "enum": [
         "active",
         "paused",
@@ -254,7 +254,7 @@
     },
     "agent_runtime_state": {
       "type": "string",
-      "description": "Derived, read-only runtime key readiness axis (key-management.md §3.6.1). Services and clients MUST derive it from the same key/pairing facts and MUST NOT write it or treat it as a lifecycle transition target: no active accepted key authorization with an unexpired bootstrap handle is pending_runtime_key; no active key with the bootstrap handle expired is pairing_expired; an active key with no unconsumed replacement handle is ready; an active key with an unexpired replacement handle is replacing. Replacement handle expiry is side-effect free and returns the projection to ready.",
+      "description": "Operation-local diagnostic enum used only by agent_runtime_approval_status_outcome on the unauthenticated pairing poll. It is mechanically derived from the polled handle and key facts, is never writable, and MUST NOT appear in generic Agent list/get/key_state projections: no active accepted key authorization with an unexpired bootstrap handle is pending_runtime_key; no active key with the bootstrap handle expired is pairing_expired; an active key with no unconsumed replacement handle is ready; an active key with an unexpired replacement handle is replacing.",
       "enum": [
         "pending_runtime_key",
         "ready",
@@ -357,13 +357,12 @@
     },
     "key_state": {
       "type": "object",
+      "description": "Controller-private key, pairing-handle, authorization and PCR-recovery material for a generic Agent view. This object deliberately carries no lifecycle, readiness, presence or runtime_state field: the only three generic status axes are siblings on agent_projection, while pairing poll alone exposes its operation-local runtime_state diagnostic.",
       "required": [
         "agent_id",
         "controller_id",
         "principal_control_realm_id",
         "controller_authorization_ref",
-        "status",
-        "runtime_state",
         "pcr_recovery",
         "requested_scope",
         "requested_scope_digest"
@@ -380,12 +379,6 @@
         },
         "controller_authorization_ref": {
           "$ref": "#/$defs/did_url"
-        },
-        "status": {
-          "$ref": "#/$defs/agent_status"
-        },
-        "runtime_state": {
-          "$ref": "#/$defs/agent_runtime_state"
         },
         "pcr_recovery": {
           "$ref": "#/$defs/agent_pcr_recovery_state"
@@ -408,7 +401,7 @@
             "bootstrap",
             "replacement"
           ],
-          "description": "Durable branch discriminator for the current open handle. bootstrap is valid while runtime_state is pending_runtime_key / pairing_expired; replacement is valid for any agent holding an active authorized key (lifecycle active or paused) and projects runtime_state replacing while open."
+          "description": "Durable branch discriminator for the current open handle. bootstrap is valid when the Agent has no active accepted runtime-key authorization; replacement is valid when it already holds an active authorized key and lifecycle is active or paused. This field is pairing material, not a fourth generic status axis."
         },
         "pairing_code": {
           "$ref": "#/$defs/pairing_secret"
@@ -1188,7 +1181,7 @@
     },
     "agent_renew_pairing_request_body": {
       "type": "object",
-      "description": "Re-open bootstrap pairing or replace an agent runtime. The service issues a fresh one-time pairing_request_id + pairing_code; every previously issued pairing handle for the agent becomes permanently unresolvable. runtime_state pending_runtime_key / pairing_expired re-opens bootstrap pairing; any agent holding an active authorized key (lifecycle active or paused) performs runtime replacement re-pairing: lifecycle intent, existing keys and grants stay untouched until the new controller-signed authorization with an exact supersedes set is accepted atomically, and completion preserves the lifecycle intent (an active agent needs no resume). deactivated rejects.",
+      "description": "Re-open bootstrap pairing or replace an agent runtime. The service issues a fresh one-time pairing_request_id + pairing_code; every previously issued pairing handle for the agent becomes permanently unresolvable. An Agent with no active accepted runtime-key authorization re-opens bootstrap pairing; an Agent holding an active authorized key (lifecycle active or paused) performs runtime replacement re-pairing. Lifecycle intent, existing keys and grants stay untouched until the new controller-signed authorization with an exact supersedes set is accepted atomically, and completion preserves lifecycle intent. deactivated rejects.",
       "properties": {
         "pairing_ttl_ms": {
           "type": "integer",
@@ -1444,13 +1437,30 @@
     "agent_grant_attach_request_body": {
       "type": "object",
       "required": [
-        "grant",
+        "grant_event",
         "requested_scope_disclosure"
       ],
       "properties": {
-        "grant": {
-          "$ref": "./capability-grant.schema.json",
-          "description": "Complete signed Realm-scoped grant. In addition to JSON Schema validation, admission MUST verify its subject/issuer/Realm bindings and that every action and resource is covered by the requested_scope disclosed in the verifier-bound private sidecar; provision constraints remain mandatory. A violation fails with agent_grant_exceeds_requested_scope."
+        "grant_event": {
+          "allOf": [
+            {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.capability.grant"
+                    }
+                  },
+                  "required": ["kind"]
+                }
+              },
+              "required": ["event"]
+            }
+          ],
+          "description": "Complete controller-authored ak.capability.grant initial submission. event.payload.grant is a closed CapabilityGrantBody without an inner proof; the Event envelope proof is the sole durable issuer signature. Admission MUST verify that event.actor_id, event.realm_id, payload.grant_id, grant.id, grant.issuer, grant.subject and grant.realm_id match the authenticated controller, path Agent and governed Realm as applicable. Every action and resource must be covered by the requested_scope disclosed in the verifier-bound private sidecar, and provision constraints remain mandatory. A violation fails with agent_grant_exceeds_requested_scope. The service MUST submit these exact bytes through ordinary Event admission and MUST NOT synthesize the Event or fall back to a body-local signature."
         },
         "requested_scope_disclosure": {
           "$ref": "./agent-requested-scope-disclosure.schema.json",

@@ -411,15 +411,15 @@ Direct Conversation Realm MUST：
 - 使用 `encryption_profile="mls_rfc9420"`；`mls_dm` 不得作为 Realm `encryption_profile` 枚举值出现。
 - `content_encryption_floor="e2ee_required"` 且 `metadata_encryption_floor="e2ee_required"`。
 - `schema_refs` 同时包含 `ak.schema.realm.v1` 与 `ak.profile.direct_conversation_realm.v1`，并设置 `fields.collaboration_role="direct_conversation"`；两者受 schema 双向 guard 约束。不得复用 `fields.purpose="direct_message"`，因为 `fields.purpose` 已用于 Principal Control Realm。
-- active member count 等于 2；向 active DM Realm 加第三人 MUST 被拒绝。升级多人聊天必须创建新的普通 Realm / Strand，再用 Relation 或 Message 引用旧 DM 内容。
+- `found` 且可发送时 active member count 等于 2；任一 participant 离开、被移除或其它 gate 失败时，同一稳定 DM 投影为 `suspended`，恢复时仍使用原 Realm。向 DM Realm 加第三人 MUST 被拒绝。升级多人聊天必须创建新的普通 Realm / Strand，再用 Relation 或 Message 引用旧 DM 内容。
 - `default_join_rule` 为 `closed` 或等价 fail-closed policy。**这里必须区分两件事（normative）**：（a）**bootstrap peer join**——Realm bootstrap batch 内由 creator 写入的第二个成员（pair 的另一方）是 DM Realm 成立的必要步骤，MUST 被接受；它走 authorized-writer 分支（creator 在同批 genesis unit 内使用 staged authority-root proof 取得的 effective `ak.realm.owner`，见 [§2.5](#25-akrealmcreate-reducer-bootstrapnormative)），属于 [`../governance/join-policy.md` §4](../governance/join-policy.md) `closed` 行的封闭豁免列表第 3 项。（b）**向已 active 的 DM Realm 加第三人**——任何第三方 invite / member_add MUST 被拒绝。实现 MUST NOT 把（a）当成（b）拒掉，否则 1:1 私聊永远只有 1 个成员，违反“active member count 等于 2”。
 - `ak.space.*` Event MUST 以 `direct_conversation_space_forbidden` 拒绝；额外普通 Strand MAY 存在，但不改变 binding 指定的默认 main Strand。
-- 通过 principal-scoped `ak.direct_conversation.bound` fact 绑定 unordered participant pair、`realm_id` 与 `main_strand_id`。同一 pair 至多一个 active canonical DM Realm；并发 duplicate 必须用 deterministic tie-break 收敛。
+- 通过一次性 principal-scoped `ak.direct_conversation.bound` fact 绑定 unordered participant pair、`realm_id` 与 `main_strand_id`。同一 `(trust_domain,pair_key)` 只有一个 durable operation 与一组永久坐标；并发请求必须命中同一 `reserved | materializing | found` operation，不存在第二候选或 winner tie-break。
 - DM Realm 继续只有一个技术 authority-root controller，但 root 的 operational owner aggregate MUST 与 `ak.profile.direct_conversation_realm.v1` 的 phase mask 求交。founding 之外的普通消息、成员、policy、grant 与 terminal 写不得借 owner 绕过；双方日常写统一从 `ak.authority.direct_conversation_participant.v1` 求值。
-- participant authority 只在 active canonical binding、恰好两个 stable participant、actor active membership、Realm/Strand/MLS cross-binding、非终态 scope 与 action-specific gate 同时成立时生效。membership、`created_by`、role/projection mirror 与相同 `pair_key` 都不是其替代来源；authority reset 不使 baseline 失效。
+- participant authority 只在 immutable binding、恰好两个 stable participant、actor active membership、conversation 未 suspended、Realm/Strand/MLS cross-binding、非终态 scope 与 action-specific gate 同时成立时生效。membership、`created_by`、role/projection mirror 与相同 `pair_key` 都不是其替代来源；authority reset 不使 baseline 失效。
 - 基数是同一 trust domain/pair 的 `0..1` stable binding，且一旦 materialize，该 pair 永久复用同一个 Realm 与 main Strand。suspended、rejoin、rekey、恢复或 erasure 都不创建 successor；未完成创建只能恢复已锁定的同一 operation/Realm。
 
-任一参与方主动离开或被移出 DM Realm 后，该 Realm 与双方 participant authority 立即失去 active canonical DM 资格，不等待 retired binding fact 到达。Resolver MUST NOT 为了继续同一个私聊把退出方重新加入旧 Realm；后续 `ak.self.direct_conversation.command.resolve(create=true)` MUST 先完成 participant-signed retired binding anchor，再创建新的 DM Realm、main Strand、MLS group 与带 predecessor 的 binding。旧 Realm MAY 作为历史归档存在，但不得接收新的默认聊天消息；每段的 membership/history/MLS 权限独立判定。
+任一参与方主动离开或被移出 DM Realm 后，同一 immutable binding 立即投影为 `suspended`，双方 participant authority 失效，不需要也不得写 retirement fact。后续 `ak.self.direct_conversation.command.resolve(create=true)` MUST 返回同一 `pair_key`、Realm 与 main Strand；只有恢复所需 authorization basis 后，才可在同一 Realm 执行标准 rejoin/rekey 并恢复为 `found`。实现不得创建 successor、predecessor-linked binding、竞争 Realm 或历史 segment；旧 epoch/history key 仍逐次按 event-time visibility 与 history-sharing policy裁决。
 
 ## 3. Space
 

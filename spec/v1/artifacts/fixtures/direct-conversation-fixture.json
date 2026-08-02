@@ -132,6 +132,32 @@
       }
     },
     {
+      "name": "stable_contact_summary_uses_found_state",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_summary",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "binding_event_ref": "ak:event:0196419b-0000-7000-8000-000000000309",
+        "state": "found"
+      }
+    },
+    {
+      "name": "legacy_contact_summary_candidate_state_rejected",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_summary",
+      "expect_valid": false,
+      "first_expected_error": "contains:retired",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "binding_event_ref": "ak:event:0196419b-0000-7000-8000-000000000309",
+        "state": "retired"
+      }
+    },
+    {
       "name": "materializing_operation_must_not_expire",
       "schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_operation",
       "expect_valid": false,

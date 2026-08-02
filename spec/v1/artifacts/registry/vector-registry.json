@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-02.4",
+  "version": "2026-08-02.5",
   "source_of_truth": true,
   "generated_at": "2026-08-02T17:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
@@ -1050,7 +1050,7 @@
       "applies_to_fixtures": [
         "capability-fixture.json"
       ],
-      "description": "Grant-ref liveness follows upstream revocation without cascade writes, root refs survive controller transfer but fail after generation reset, and root-control terminal events reject ordinary grant proofs.",
+      "description": "Grant-ref liveness follows upstream revocation without cascade writes, root refs survive controller transfer but fail after generation reset, and root-control terminal events reject ordinary grant-based authorization.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
@@ -1113,7 +1113,7 @@
       "applies_to_fixtures": [
         "capability-fixture.json"
       ],
-      "description": "Direct Conversation participant authority is a profile-scoped non-grant source, survives root generation changes, requires the active canonical binding, and cannot issue child grants.",
+      "description": "Direct Conversation participant authority is a profile-scoped non-grant source, survives root generation changes, requires the pair's unique immutable binding, and cannot issue child grants.",
       "source_refs": [
         "spec/v1/zh/authz/capabilities.md",
         "spec/v1/zh/identity/contact-and-direct-conversation.md",
@@ -3428,19 +3428,6 @@
         "keypackage-lifecycle-fixture.json"
       ],
       "description": "Peer KeyPackage claim requires both a participant signature bound to the exact request/service destination and the source-service HTTP Message Signature. Destination authority, contact, consent, capability, freshness and Direct Conversation no-last-resort gates fail closed behind one claim_failed surface without inventory leakage.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.keypackage.peer_claim_loser_revocation.v1",
-      "status": "active",
-      "domain": "keypackage",
-      "applies_to_fixtures": [
-        "keypackage-lifecycle-fixture.json"
-      ],
-      "description": "Concurrent Direct Conversation candidates may claim different single-use KeyPackages, but only the canonical binding winner activates Welcome and consumes; the loser Welcome is quarantined and its unconsumed claim expires to revoked, never published.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"

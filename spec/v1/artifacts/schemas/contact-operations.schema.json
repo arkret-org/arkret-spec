@@ -107,6 +107,7 @@
     },
     "direct_conversation_summary": {
       "type": "object",
+      "description": "Contact-list projection of an already materialized stable Direct Conversation. Coordinates and binding identity are immutable; state only says whether the same conversation is currently sendable. Creation progress is exposed only by direct_conversation_resolve_outcome and its durable operation.",
       "required": [
         "realm_id",
         "main_strand_id",
@@ -125,10 +126,8 @@
         "state": {
           "type": "string",
           "enum": [
-            "active",
-            "retired",
-            "duplicate",
-            "non_canonical"
+            "found",
+            "suspended"
           ]
         }
       },

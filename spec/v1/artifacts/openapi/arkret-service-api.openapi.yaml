@@ -9067,7 +9067,7 @@ paths:
   /_arkret/self/agents/{agent_id}/renew-pairing:
     post:
       operationId: ak.self.agent.command.renew_pairing
-      description: Re-open pairing on any non-terminal agent with a fresh single-use pairing handle, the unchanged requested_scope_digest DID commitment, and the current managed-PCR recovery projection. All previously issued handles stay permanently unresolvable. runtime_state pending_runtime_key/pairing_expired re-opens bootstrap pairing; any agent holding an active authorized key (lifecycle active or paused) performs runtime replacement re-pairing while the lifecycle intent, existing keys and grants stay untouched until the controller-signed authorization with an exact supersedes set is accepted atomically; completion preserves the lifecycle intent (an active agent needs no resume). Neither branch creates, revokes, or re-issues Realm grants. Pair commit requires pcr_recovery.status=ready; deactivated rejects.
+      description: Re-open pairing on any non-terminal agent with a fresh single-use pairing handle, the unchanged requested_scope_digest DID commitment, and the current managed-PCR recovery projection. All previously issued handles stay permanently unresolvable. An Agent without an active accepted runtime-key authorization uses bootstrap; an Agent holding an active authorized key (lifecycle active or paused) uses replacement while lifecycle intent, existing keys and grants stay untouched until one controller-signed authorization atomically supersedes the prior keys. Generic views express the open branch through pairing_mode/handle fields and readiness blockers and never expose runtime_state; that diagnostic is pairing-poll-local. Neither branch creates, revokes, or re-issues Realm grants. Pair commit requires pcr_recovery.status=ready; deactivated rejects.
       security:
       - bearerAuth: []
       parameters:
@@ -9142,7 +9142,7 @@ paths:
   /_arkret/self/agents/{agent_id}/deactivate:
     post:
       operationId: ak.self.agent.command.deactivate
-      description: Terminally deactivate a native personal agent. fan-out ak.agent.key.revoke / ak.capability.revoke / runtime endpoint revocation.
+      description: Terminally deactivate a native personal agent with one controller-authorized lifecycle Event. Once accepted, the parent lifecycle AND gate makes every subordinate key, session, pairing handle, capability grant, KeyPackage, presence and future submission ineffective; client-authored revoke bundles are forbidden and asynchronous cleanup is not a success prerequisite.
       security:
       - bearerAuth: []
       parameters:

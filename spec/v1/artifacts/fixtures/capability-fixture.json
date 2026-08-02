@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.authz.capability.v1"
   },
   "profile": "ak.vector_group.capability.v1",
-  "version": "2026-07-30",
+  "version": "2026-08-02",
   "fixtures": [
     {
       "name": "direct_card_update_grant_allows_update",
@@ -1364,8 +1364,11 @@
       "authority_source": {
         "authority_source_id": "ak.authority.direct_conversation_participant.v1",
         "profile": "ak.profile.direct_conversation_realm.v1",
-        "binding_state": "active",
-        "canonical": true,
+        "conversation_state": "found",
+        "immutable_binding_present": true,
+        "pair_key": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "realm_id": "ak:realm:01990000-0000-7000-8000-000000000030",
+        "main_strand_id": "ak:strand:01990000-0000-7000-8000-000000000031",
         "participants": [
           "did:webvh:z6mkfixture:alice.example",
           "did:webvh:z6mkfixture:bob.example"
@@ -1399,7 +1402,7 @@
         },
         {
           "name": "membership_alone_never_selects_source",
-          "override_binding_state": "missing",
+          "override_immutable_binding_present": false,
           "actor_id": "did:webvh:z6mkfixture:bob.example",
           "action": "ak.message.create",
           "expected": {

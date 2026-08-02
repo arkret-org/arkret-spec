@@ -4467,7 +4467,7 @@
     "direct_conversation_participant_authority_ref": {
       "type": "string",
       "const": "ak.authority.direct_conversation_participant.v1",
-      "description": "The only profile-scoped non-grant authorization source accepted by Event.authorization_ref. It is meaningful solely in ak.profile.direct_conversation_realm.v1 and requires one critical refs[] role=direct_conversation_binding Event reference. The evaluator rederives canonical binding, exact-two participant membership, Realm/Strand/MLS cross-binding, lifecycle, consent and action-specific gates; this constant never authorizes arbitrary Realm or third-party writes."
+      "description": "The only profile-scoped non-grant authorization source accepted by Event.authorization_ref. It is meaningful solely in ak.profile.direct_conversation_realm.v1 and requires one critical refs[] role=direct_conversation_binding Event reference. The evaluator rederives the pair's unique immutable binding, exact-two participant membership, Realm/Strand/MLS cross-binding, lifecycle, consent and action-specific gates; this constant never authorizes arbitrary Realm or third-party writes."
     },
     "seal_ref": {
       "type": "string",

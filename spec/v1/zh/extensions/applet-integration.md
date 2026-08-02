@@ -102,11 +102,11 @@ Native personal AI agent(由 controller 通过 `ak.self.agent.command.provision`
 
 | 维度 | Native personal agent | Applet-managed Ghost Actor |
 | --- | --- | --- |
-| 创建路径 | `ak.self.agent.command.provision` 分配 Agent DID/PCR binding，并在 controller PCR 只 fan-out `ak.identity.accountability_grant` / `ak.agent.selector_claim`；必填 `requested_scope` 只建立 immutable 全局 ceiling，无论是否含内容 selector 都不生成 pending/active `ak.capability.grant`。controller E2EE client 随后本地生成并提交 Agent PCR genesis/Profile 与恢复备份，首次 `ak.agent.key.authorize` 只在 pairing commit 时提交；Realm grant 必须在之后独立签发且不得超过 provision ceiling | `ak.applet.registration` + Applet bot/Ghost Actor 注册 |
+| 创建路径 | `ak.self.agent.command.provision` 先无副作用分配 Agent DID/PCR binding，再接受唯一 controller-signed `ak.agent.provision` Event并在一个 reducer transaction 原子派生 provision/accountability/selector projection；必填 `requested_scope` 只建立 immutable 全局 ceiling，不生成 `ak.capability.grant`。controller E2EE client 随后本地生成并提交 Agent PCR genesis/Profile 与恢复备份，首次 `ak.agent.key.authorize` 只在 pairing commit 时提交 | `ak.applet.registration` + Applet bot/Ghost Actor 注册 |
 | `accountable_principal_ids` | 指向 controller principal，显式 `ak.identity.accountability_grant` | 初始 Profile 指向签署同一 aggregate accountability grant 的外部 service DID；Applet controller 关系由 registration / install 表达 |
 | Runtime credential | 通过 `POST /_arkret/gate/account/agent-key-pair` pairing 得到 `ak.agent.key.authorize` 绑定的 key | Applet 管辖，通常是 Applet service DID + HTTP signature |
 | Session 路径 | `POST /_arkret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `ak.edge.applet.command.transaction` 与 Applet 的 delegated session |
-| 撤销 | `ak.self.agent.command.pause` / `ak.self.agent.command.deactivate` + fan-out key/grant revoke | Applet registration 撤销；Ghost Actor 跟随 Applet 生命周期(经 §4b Revoke,`remove_ghost_membership` 需 active ghost projection 完整否则 MUST fail closed) |
+| 撤销 | `ak.self.agent.command.pause` / 单一 `ak.self.agent.command.deactivate` lifecycle Event；terminal parent gate 使 child authority ineffective，cleanup 非前置 | Applet registration 撤销；Ghost Actor 跟随 Applet 生命周期(经 §4b Revoke,`remove_ghost_membership` 需 active ghost projection 完整否则 MUST fail closed) |
 | Realm policy | Realm policy MUST 单独允许 native personal agent(`ak.profile.personal_agent_provisioning.v1`) | Realm policy MUST 单独允许 Applet base bot-only(`ak.profile.applet_service.v1`)；Ghost Actor / portal bridge 需额外声明 `ak.profile.applet_bridge.v1` |
 
 **Realm policy MUST 至少能分别控制 native personal agent 与 Applet / Ghost Actor**:部署可以禁止普通用户创建或使用 personal agents 同时允许管理员安装的 Applet + Ghost Actor，也可以反向配置；**二者不得被合并为一个不可区分的 "automation allowed" 开关**。

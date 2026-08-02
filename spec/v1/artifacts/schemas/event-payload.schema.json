@@ -533,7 +533,7 @@
         },
         "previous_status": {
           "type": "string",
-          "description": "Controller lifecycle intent at deactivation time. Runtime key readiness is the orthogonal derived runtime_state projection and never appears here (key-management.md §3.6.1).",
+          "description": "Controller lifecycle intent at deactivation time. Generic Agent status has only lifecycle, readiness and presence; pairing-poll runtime_state is operation-local and never appears here (key-management.md §3.6.1).",
           "enum": [
             "active",
             "paused"

@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.mls_governance_binding.full.v1",
-  "version": "2026-07-30",
+  "version": "2026-08-02",
   "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
@@ -124,7 +124,6 @@
     "ak.vector.keypackage.last_resort_affinity_and_optionality.v1",
     "ak.vector.keypackage.peer_claim_atomic_idempotency.v1",
     "ak.vector.keypackage.peer_claim_double_authorization_privacy.v1",
-    "ak.vector.keypackage.peer_claim_loser_revocation.v1",
     "ak.vector.keypackage.self_claim_authorization_idempotency.v1",
     "ak.vector.mls.welcome_keypackage_hash.v1"
   ],
@@ -399,36 +398,6 @@
         "the destination independently enforces contact, consent, capability and authority gates",
         "Direct Conversation peer claim never falls back to a last-resort KeyPackage",
         "business failures do not expose target inventory or per-device reasons"
-      ]
-    },
-    {
-      "name": "peer_claim_loser_revocation",
-      "vector_id": "ak.vector.keypackage.peer_claim_loser_revocation.v1",
-      "kind": "direct_conversation_concurrent_candidate_cleanup",
-      "pair_key": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
-      "candidate_a": {
-        "binding_event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "claim_id": "peer-claim-candidate-a",
-        "keypackage_ref": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
-      },
-      "candidate_b": {
-        "binding_event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "claim_id": "peer-claim-candidate-b",
-        "keypackage_ref": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
-      },
-      "expected": {
-        "canonical_winner": "candidate_b",
-        "winner_welcome": "activated",
-        "winner_keypackage_state": "consumed",
-        "loser_welcome": "quarantined_or_ignored",
-        "loser_state_before_expiry": "claimed",
-        "loser_state_after_expiry": "revoked",
-        "loser_ever_returns_to_published": false
-      },
-      "assertions": [
-        "only the canonical binding winner may activate Welcome and consume its claim",
-        "a loser Welcome never activates MLS state",
-        "an unconsumed loser claim expires to revoked and is never released to published"
       ]
     },
     {

@@ -55,8 +55,8 @@ Authorization condition: Claim / Attestation
 
 ID 语义：
 
-- `ak:grant:<uuid>` 是签名 Capability Grant object 的规范 ID，`ak.schema.capability.v1` 的 `id`、grant reference 和 revoke payload 均使用它。
-- `ak:capability:<uuid>` 只表示抽象 capability definition 引用；MUST NOT 作为签名 grant object ID 使用。
+- `ak:grant:<uuid>` 是 durable Capability Grant fact 的规范 ID，`ak.schema.capability.v1` body 的 `id`、grant reference 和 revoke payload 均使用它；body 本身无签名，签名位于承载它的 Event envelope proof。
+- `ak:capability:<uuid>` 只表示抽象 capability definition 引用；MUST NOT 作为 durable grant fact ID 使用。
 
 示例：
 
@@ -129,7 +129,7 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 
 签发以 `realm_root` ref 为根的 `ak.capability.grant` 时，reducer **MUST** 校验：grant 的 `actions[]` 与 `resources[]` 所表达的能力 **MUST ⊆** issuer 在签发时点（按该 grant 的 seal basis / `auth_state_digest`）**自身有效持有**的 effective capability。effective capability 的来源是一个**封闭列表**：active 上游 grant（含 `ak.realm.admin` / `ak.policy.manage` 等 admin capability 与 `ak.realm.owner` co-owner grant），或本节下文的 Realm authority-root cell current controller。**membership、`created_by`、Realm 角色标签与任何 `realm_state.owner` 一类投影镜像都不是授权来源**，MUST NOT 参与该判定。issuer 不得签发授予他人超出自身持有能力的 grant。
 
-聚合 admin action（如 `ak.realm.admin` / `ak.policy.manage`）在该上界校验中的展开 **MUST** 以 issuer grant 的签名 / registry basis 为锚：reducer 先解析 child grant 每个 `actions[]` 的 `target_event_kinds`，再在同一 registry basis 下解析 issuer 持有的聚合 action 覆盖集。issuer 字面持有 child action 时可直接满足上界；issuer 仅持有聚合 action 时，只有当该聚合 action 在该 basis 的 effective coverage set 覆盖 child action 的全部 `target_event_kinds`，且 issuer resources / constraints 覆盖 child resources / constraints 时，才视为满足上界。覆盖集为空（`target_event_kinds == []`）的 child action **MUST NOT** 由任何聚合满足——空集是任意集合的子集，若不显式拦下，每个非事件面 action 都会被每个聚合"覆盖"。历史聚合 grant **MUST NOT** 自动继承后来 registry 新增的 `target_event_kinds`；新增覆盖必须按 §5.0.1 重新签发或通过显式 opt-in 绑定新的 registry digest。聚合展开 **MUST NOT** 授权 `event_mapping_kind="non_event_surface"` 的 child action；这类 action 只有三个已注册的上界来源：issuer 字面持有相同 action、由 profile 显式声明的非事件面授权规则覆盖，或由下文 Realm owner authority 的 `grant_authority_actions` 逐字命中。
+聚合 admin action（如 `ak.realm.admin` / `ak.policy.manage`）在该上界校验中的展开 **MUST** 以承载 issuer grant 的 Event envelope proof / registry basis 为锚：reducer 先解析 child grant 每个 `actions[]` 的 `target_event_kinds`，再在同一 registry basis 下解析 issuer 持有的聚合 action 覆盖集。issuer 字面持有 child action 时可直接满足上界；issuer 仅持有聚合 action 时，只有当该聚合 action 在该 basis 的 effective coverage set 覆盖 child action 的全部 `target_event_kinds`，且 issuer resources / constraints 覆盖 child resources / constraints 时，才视为满足上界。覆盖集为空（`target_event_kinds == []`）的 child action **MUST NOT** 由任何聚合满足——空集是任意集合的子集，若不显式拦下，每个非事件面 action 都会被每个聚合"覆盖"。历史聚合 grant **MUST NOT** 自动继承后来 registry 新增的 `target_event_kinds`；新增覆盖必须按 §5.0.1 重新签发或通过显式 opt-in 绑定新的 registry digest。聚合展开 **MUST NOT** 授权 `event_mapping_kind="non_event_surface"` 的 child action；这类 action 只有三个已注册的上界来源：issuer 字面持有相同 action、由 profile 显式声明的非事件面授权规则覆盖，或由下文 Realm owner authority 的 `grant_authority_actions` 逐字命中。
 
 **Realm owner authority（normative）**：`ak.realm.owner` 是 Realm 内最高的显式授权聚合，有且仅有两个来源：
 
@@ -157,7 +157,7 @@ unsupported 时都必须 `grant_exceeds_issuer_authority` fail closed。该机�
 豁免，不允许 owner/membership 隐式授权，也不允许 profile 声明 wildcard/prefix action。
 机器正负向闭包由 `ak.vector.capability.applet_bridge_non_event_grant_authority.v1` 覆盖。
 
-凡 `actions[]` 含 `event_mapping_kind="aggregate_admin"` 的 grant，wire body MUST 携带 `capability_action_registry_digest`，并由 grant proof 覆盖。该 digest 为 `sha256:` + SHA-256（RFC 8785 JCS bytes of the complete canonical `capability-action-registry.json` object）；签发者 MUST 用该 digest 对应 registry 展开 coverage。Receiver 必须能够按 digest 取得同一 registry snapshot；未知 digest、snapshot 不可得或 JCS 重算不等时 MUST fail closed（`failed_precondition`，`reason_code="capability_registry_basis_unavailable"`），不得回退到当前 registry。非 aggregate grant MAY 携带该字段作审计锚，但不得改变逐字 action 命中语义。
+凡 `actions[]` 含 `event_mapping_kind="aggregate_admin"` 的 grant，wire body MUST 携带 `capability_action_registry_digest`，并由承载该 body 的 Event envelope proof 覆盖。该 digest 为 `sha256:` + SHA-256（RFC 8785 JCS bytes of the complete canonical `capability-action-registry.json` object）；签发者 MUST 用该 digest 对应 registry 展开 coverage。Receiver 必须能够按 digest 取得同一 registry snapshot；未知 digest、snapshot 不可得或 JCS 重算不等时 MUST fail closed（`failed_precondition`，`reason_code="capability_registry_basis_unavailable"`），不得回退到当前 registry。非 aggregate grant MAY 携带该字段作审计锚，但不得改变逐字 action 命中语义。
 
 **已发布 snapshot 的可获得性（normative）**：当前 snapshot 位于 `artifacts/registry/capability-action-registry.json`；每个曾被已发布实现写入 Realm authority root 或 grant 的旧 snapshot，MUST 以完整 canonical JSON 追加保存在 `artifacts/registry/snapshots/capability-action/sha256-<64hex>.json`，文件名中的 digest MUST 等于该文件按 RFC 8785 JCS 重算所得值。该目录是 v1 的 append-only 协议归档：升级 current registry 时不得覆盖或删除已经发布的 snapshot。Receiver MUST 先按签名中的 digest 精确解析 current 或归档 snapshot，再用该 snapshot 求值；不得把未知 digest 解释为 current，也不得因两个版本的 action 集看似相同而跳过 digest 校验。仅修改 registry 元数据同样会产生新的 snapshot digest。实现 MAY 从可信镜像取得同一完整 snapshot，但使用前仍 MUST 重算 digest；无论本地或远端均不可得时继续按上一段 fail closed。
 
@@ -183,7 +183,7 @@ v1 普通授权仍以 capability grant 为默认。唯一注册的 profile-scope
 [`authority-source-registry.json`](../../artifacts/registry/authority-source-registry.json)。语法匹配、membership、
 任意 Event/cell ref 或本地 projection row 都不能创建 source。该 source：
 
-- 只在 `ak.profile.direct_conversation_realm.v1` 内，按 active canonical binding 与 exact participant/member/
+- 只在 `ak.profile.direct_conversation_realm.v1` 内，按唯一 immutable binding 与 exact participant/member/
   Realm/Strand/MLS/lifecycle/consent/Agent gate 求值；
 - action 是 registry 闭合 allowlist，不能进入 `issuer_authority_refs[]`、不能授权
   `ak.capability.grant`，也不能被 owner/admin aggregate 放宽；
@@ -353,12 +353,12 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.capability.revoke`
 - `ak.agent.key.authorize`（high risk；授权 agent key，target=`ak.agent.key.authorize`。key 替换不设独立 rotate action：runtime replacement 的 controller-signed authorize Event 必须用精确 `supersedes[]` 列出全部既有 active authorization；reducer 接受该单一 Event 时原子 observe-remove，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md)）
 - `ak.agent.key.revoke`（high risk；撤销 agent key，target=`ak.agent.key.revoke`）
-- `ak.self.agent.command.provision`(aggregate admin action,`target_event_kinds=[ak.identity.accountability_grant, ak.agent.selector_claim]`,profile=`ak.profile.personal_agent_provisioning.v1`；采用 prepare/commit 两阶段：服务端先无副作用分配 Agent/PCR 坐标，controller 再通过 Arkret SDK 生成闭合的两个 controller-signed Event，并由普通 Event admission 接受。Principal Server MUST NOT 代签、重建 proof transcript 或用 service/dev proof 替代。Agent Profile 由 controller E2EE client 在后续独立提交中创建；首次 `ak.agent.key.authorize` 也不属于 provision 覆盖。Provisioning MUST NOT 物化任何 `ak.capability.grant`)
+- `ak.self.agent.command.provision`(aggregate admin action,`target_event_kinds=[ak.agent.provision]`,profile=`ak.profile.personal_agent_provisioning.v1`；采用 prepare/commit 两阶段：服务端先无副作用分配 Agent/PCR 坐标，controller 再通过 Arkret SDK 生成恰好一个 closed controller-signed `ak.agent.provision` Event，并由普通 Event admission 接受；同一 reducer transaction 原子派生 provision、accountability 与 selector projection。Principal Server MUST NOT 代签、重建 proof transcript、接受两条旧 accountability/selector Event 或用 service/dev proof 替代。Agent Profile 由 controller E2EE client 在后续独立提交中创建；首次 `ak.agent.key.authorize` 也不属于 provision 覆盖。Provisioning MUST NOT 物化任何 `ak.capability.grant`)
 - `ak.self.agent.command.renew_pairing`(controller-only,high risk;重开一次性 pairing handle；bootstrap 状态或已持有 active authorized key 且 lifecycle 为 `active | paused` 的 agent 均可调用，`active` 无需先 pause；怀疑旧 key 失陷时 SHOULD 先 pause；`target_event_kinds=[]`,`event_mapping_kind=non_event_surface`，不产生 durable Event，也不创建、撤销或重发 Realm grant；语义见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))
 - `ak.self.agent.command.pause`(controller-only;target=`ak.self.agent.pause`)
 - `ak.self.agent.command.resume`(controller-only;target=`ak.self.agent.resume`)
-- `ak.self.agent.command.deactivate`(controller-only,terminal;target=`ak.self.agent.deactivate`,fan-out 见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
-- `ak.self.agent.grant.command.attach`(controller-only,high risk;为 agent 附加完整、已签名的 capability grant,`target_event_kinds=[ak.capability.grant]`;grant subject MUST 是该 agent principal、issuer MUST 是 authenticated controller、`realm_id` MUST 存在且 Event MUST 写入该受治理 Realm，并且 MUST NOT 超过 controller 的 issuer-authority 上界；服务端不得补默认 action/resource)
+- `ak.self.agent.command.deactivate`(controller-only,terminal;target=`ak.self.agent.deactivate`；请求只提交一个 lifecycle Event，accepted parent lifecycle AND gate 使全部 child authority ineffective，cleanup 非成功前置；见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
+- `ak.self.agent.grant.command.attach`(controller-only,high risk;为 agent 附加完整 controller-authored `ak.capability.grant` `EventInitialSubmission`,`target_event_kinds=[ak.capability.grant]`;`event.payload.grant` 是无内层 proof 的 closed CapabilityGrantBody，Event envelope proof 是唯一 durable issuer signature；grant subject MUST 是该 agent principal、issuer MUST 是 authenticated controller、`realm_id` MUST 存在且 Event MUST 写入该受治理 Realm，并且 MUST NOT 超过 controller 的 issuer-authority 上界；服务端不得代签/合成 Event、接受 body-local signature fallback 或补默认 action/resource)
 - `ak.self.agent.grant.resource.delete`(controller-only,medium risk;撤销 agent capability grant,`target_event_kinds=[ak.capability.revoke]`;撤销后后续 agent action proof MUST fail closed)
 - `ak.agent.draft.propose`(agent-initiated draft;target=`ak.agent.draft.propose`,wire_scope=`actor_private_event`)
 - `ak.agent.action_request`(agent-initiated action request;target=`ak.agent.action_request`)

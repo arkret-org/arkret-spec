@@ -1006,7 +1006,7 @@ HTTP caller MUST 使用 §3 的 service-to-service authentication，并且是该
 
 在 `ak.profile.direct_conversation_realm.v1` 中，canonical pair 双方通过
 `ak.authority.direct_conversation_participant.v1` 对等取得 `ak.mls.proposal` 与 `ak.mls.commit`，所以
-epoch 活性不得依赖 creator/root controller 在线。求值仍必须逐字段验证 active canonical binding 的
+epoch 活性不得依赖 creator/root controller 在线。求值仍必须逐字段验证唯一 immutable binding 的
 `realm_id`、`main_strand_id`、`mls_group_id`、双方 active membership 与当前 MLS governance binding；仅有
 membership、相同 group id 或 root owner 均不足。
 
@@ -1016,11 +1016,11 @@ KeyPackage/claim/nonce/commit/MLS group 必须与 active binding 和当前 epoch
 principal、对方的 device 或未知 device；这些情况也不能回退到宽 `ak.mls.welcome`。Native Personal Agent
 participant 还必须同时满足 immutable provision、runtime key 和 participation ceiling。
 
-participant leave/ban、Realm terminal 或 canonical main Strand terminal accepted 时，旧 segment 的 participant
-MLS authoring authority立即停止；retired fact 是否已经投递不影响该 barrier。后续重新发起必须使用新 Realm、
-main Strand、MLS group、fresh KeyPackage claim 与带 canonical retired predecessor 的 binding，禁止复活旧
-group/epoch。旧 segment 的历史解密只按其自己的 membership/history/retention 与本地 key availability 判定，
-新 segment membership 或 MLS keys 不向前继承。
+participant leave/ban、Realm terminal 或 immutable main Strand terminal accepted 时，当前 participant
+MLS authoring authority 立即停止，同一 binding 投影为 `suspended`，不等待 retirement fact。恢复不得创建
+新 Realm/main Strand、successor/predecessor binding 或历史 segment；resolver 返回同一 `pair_key` 与永久坐标，
+并只在同一 Realm 内按标准 rejoin/rekey 建立新的 active MLS generation。旧 epoch 的历史解密仍逐次按
+event-time membership、history/retention policy 与本地 key availability 判定，恢复不得自动补发旧 epoch key。
 
 ### 5.4 并发 Commit
 如果 A 和 B 同时发起不同的 Commit，或者 A 发送缓慢导致与 B 的接力 Commit 在网络中发生竞态碰撞：
