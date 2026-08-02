@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.2",
+  "version": "2026-08-03.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-03T04:00:00Z",
+  "generated_at": "2026-08-03T05:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1091,6 +1091,7 @@
         "schema_kind": "oneOf",
         "required": [
           "status",
+          "operation_id",
           "sidecar_id",
           "private_strand_id",
           "private_relation_id"
@@ -1138,6 +1139,7 @@
             "schema_kind": "object",
             "required": [
               "status",
+              "operation_id",
               "accepted_phase",
               "ok",
               "sidecar_id",
@@ -1148,6 +1150,7 @@
             ],
             "properties": [
               "status",
+              "operation_id",
               "accepted_phase",
               "ok",
               "sidecar_id",
@@ -2905,9 +2908,7 @@
       "response": {
         "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_outcome",
         "schema_kind": "oneOf",
-        "required": [
-          "state"
-        ],
+        "required": [],
         "properties": [
           "state",
           "coordinates",
@@ -2916,7 +2917,8 @@
           "operation_id",
           "attempt_sequence",
           "operation_state",
-          "reason"
+          "reason",
+          "status"
         ],
         "closed": true,
         "variants": [
@@ -2989,6 +2991,23 @@
             ],
             "properties": [
               "state"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "operation_id",
+              "attempt_sequence",
+              "coordinates"
+            ],
+            "properties": [
+              "status",
+              "operation_id",
+              "attempt_sequence",
+              "coordinates"
             ],
             "closed": true
           }

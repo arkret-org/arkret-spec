@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 108,
+  "audited_occurrence_count": 109,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -347,7 +347,7 @@
     {
       "file": "service-operation-dtos.schema.json",
       "key": "membership_compensation_evidence",
-      "occurrences": 1,
+      "occurrences": 2,
       "disposition": "registry_contract",
       "reason": "Carries the closed accepted-at membership compensation delegation, join proof, terminal certificate, and single-use destination CAS token outside canonical Event bytes."
     },

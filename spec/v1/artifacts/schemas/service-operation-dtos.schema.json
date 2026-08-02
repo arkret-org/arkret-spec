@@ -4231,7 +4231,7 @@
         },
         "membership_compensation_evidence": {
           "$ref": "./protocol-journey-wire.schema.json#/$defs/membership_compensation_submission_evidence",
-          "description": "Transport-only accepted-at compensation authority. Allowed only when event.kind is ak.member.state, event.executed_by is present, and event.authorization_ref equals delegation.core.delegation_id. The destination evaluator also requires exact admission/incarnation/action/executor bindings and consumes (admission_id,delegation_digest) by single-write CAS. It is excluded from Event canonical bytes and event_digest."
+          "description": "Transport-only accepted-at compensation authority. Allowed only when event.kind is ak.member.state, event.executed_by is present, and event.authorization_ref equals membership_compensation_evidence.delegation.delegation_id. The destination evaluator also requires exact admission/incarnation/action/executor bindings and consumes (admission_id,delegation_digest) by single-write CAS. It is excluded from Event canonical bytes and event_digest."
         }
       },
       "allOf": [
@@ -4278,6 +4278,10 @@
         "control_proposal_receipt": {
           "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt",
           "description": "Canonical external-authority receipt set for a federated Control Move. Forbidden for DataEvents."
+        },
+        "membership_compensation_evidence": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/membership_compensation_submission_evidence",
+          "description": "Transport-only accepted-at compensation authority forwarded unchanged with a federated ak.member.state Event. It is excluded from Event canonical bytes and event_digest and is validated by the same exact admission/incarnation/action/executor/single-use evaluator as EventInitialSubmission."
         }
       },
       "allOf": [
@@ -4298,6 +4302,20 @@
             "properties": {
               "ingress_receipts": {
                 "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": { "required": ["membership_compensation_evidence"] },
+          "then": {
+            "properties": {
+              "event": {
+                "properties": {
+                  "kind": { "const": "ak.member.state" },
+                  "authorization_ref": { "$ref": "./event-envelope.schema.json#/$defs/membership_compensation_delegation_ref" }
+                },
+                "required": ["kind", "executed_by", "authorization_ref"]
               }
             }
           }

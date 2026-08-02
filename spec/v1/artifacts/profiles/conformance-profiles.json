@@ -1291,6 +1291,7 @@
         "Space events are forbidden in a Direct Conversation Realm with direct_conversation_space_forbidden; additional ordinary Strands remain allowed.",
         "The canonical main Strand MUST be active, belong to the Realm, have no Circle scope, and expose an active primary discussion track.",
         "First creation MUST use the deterministic coordinator and one durable reserved/materializing/found operation. The coordinator commits materializing and locks operation, Realm and main Strand identifiers before KeyPackage claim or any founding Event; materializing never expires or reallocates.",
+        "A permanently cancelled pair slot MUST return the tombstoned terminal resolver outcome with frozen operation, attempt and coordinates. Every later resolve exact-replays that outcome; the slot MUST NOT enter creation_required, allocate another attempt, or form another binding.",
         "Cross-Principal-Server creation MUST complete participant-authorized peer KeyPackage claim before materialization; Direct Conversation claims bind operation, pair, intended Realm, main Strand and initial MLS group and MUST NOT use a last-resort KeyPackage.",
         "The binding is immutable and fixes pair_key, participant pair, Realm and main Strand exactly once. It carries no authored lifecycle state or MLS group; current MLS generation is a separate accepted-history projection.",
         "Leave, ban, block, contact/consent revoke and participant terminal state suspend new writes without destroying the binding or creating a successor Realm. Recovery reuses the same Realm and MUST NOT automatically redeliver old epoch keys or history secrets.",
@@ -3357,6 +3358,7 @@
       "required_schemas": ["ak.schema.protocol_journey_wire.v1"],
       "wire_contract_refs": [
         "schemas/protocol-journey-wire.schema.json#/$defs/effect_value_core",
+        "schemas/protocol-journey-wire.schema.json#/$defs/qda_receipt",
         "schemas/protocol-journey-wire.schema.json#/$defs/qda_certificate",
         "schemas/protocol-journey-wire.schema.json#/$defs/prepared_certificate",
         "schemas/protocol-journey-wire.schema.json#/$defs/view_change_message",
@@ -3382,6 +3384,7 @@
       "value_and_envelope_contract": {
         "immutable_value": "EffectValueCore excludes view and every certificate",
         "value_digest": "SHA-256 of exact RFC8785/JCS EffectValueCore bytes",
+        "qda_destination_binding": "Every qDA receipt and certificate repeat destination exactly and validators match it to EffectValueCore.destination in addition to verifying value_digest",
         "per_view_envelope": "domain-separated registry/instance/view/phase/value_digest/qda_certificate_digest transcript",
         "view_change": "exact q VIEW-CHANGE; highest prepared wins; otherwise deterministic proposer supplies exactly one fresh candidate",
         "point_of_no_return": "q-COMMIT only",
@@ -3414,21 +3417,22 @@
       "feature_discovery": {"required":["stable_direct_conversation_exact_pair_repair"],"unsupported_optional":"keep the stable binding suspended and fail closed"}
     },
     "ak.profile.membership_join_compensation.v1": {
-      "required_endpoints": ["ak.self.events.command.submit", "ak.self.keys.keypackages.command.revoke", "ak.self.keys.keypackages.command.consume"],
+      "required_endpoints": ["ak.self.events.command.submit", "ak.peer.events.command.submit", "ak.self.keys.keypackages.command.revoke", "ak.self.keys.keypackages.command.consume"],
       "required_event_kinds": ["ak.member.state", "ak.mls.commit"],
       "rejected_event_kinds": [],
-      "required_schemas": ["ak.schema.protocol_journey_wire.v1"],
+      "required_schemas": ["ak.schema.protocol_journey_wire.v1", "ak.schema.service_operation_dtos.v1"],
       "wire_contract_refs": [
         "schemas/protocol-journey-wire.schema.json#/$defs/membership_compensation_action",
         "schemas/protocol-journey-wire.schema.json#/$defs/membership_compensation_executor_delegation",
         "schemas/protocol-journey-wire.schema.json#/$defs/membership_compensation_submission_evidence",
-        "schemas/protocol-journey-wire.schema.json#/$defs/mls_join_admission_receipt"
+        "schemas/protocol-journey-wire.schema.json#/$defs/mls_join_admission_receipt",
+        "schemas/service-operation-dtos.schema.json#/$defs/EventFederationSubmission"
       ],
       "required_fixtures": ["protocol-journey-closure-fixture.json", "keypackage-lifecycle-fixture.json"],
       "optional_extensions": [],
       "authority_source": "ak.authority.membership_compensation.v1",
       "actions": {"self_join":"ak.member.compensate.leave","delegated_or_admin_join":"ak.member.compensate.remove"},
-      "single_use_contract": ["actual_join_authoring_signer_signs_delegation_core", "exact_admission_and_membership_incarnation", "executor_did_and_proof_key_exact", "old_j1_provenance_only", "already_absent_and_superseded_are_signed_no_write", "terminal_certificate_excluded_from_event_digest", "old_mls_generation_only"],
+      "single_use_contract": ["actual_join_authoring_signer_signs_delegation_core", "exact_admission_and_membership_incarnation", "executor_did_and_proof_key_exact", "old_j1_provenance_only", "already_absent_and_superseded_are_signed_no_write", "terminal_certificate_excluded_from_event_digest", "federation_forwards_transport_evidence_unchanged", "old_mls_generation_only"],
       "feature_discovery": {"required":["accepted_at_membership_compensation_single_use"],"unsupported_optional":"leave the failed join operation pending cleanup; never synthesize authority"}
     },
     "ak.profile.mimi_interop.v1": {

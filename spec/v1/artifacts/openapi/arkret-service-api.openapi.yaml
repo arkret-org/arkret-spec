@@ -38,7 +38,7 @@ info:
 
     component schemas are named `EventsSubmitBatchRequestBody`,
 
-    `EventsSubmitFederationRequestBody`, `EventsSubmitOutcome`, `EventView`,
+    `EventFederationSubmission`, `EventsSubmitFederationRequestBody`, `EventsSubmitOutcome`, `EventView`,
 
     `EventsResolveRequestBody` / `EventsResolveOutcome`, `EventsQueryOutcome`,
 
@@ -1361,6 +1361,8 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody
     EventsSubmitBatchRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitBatchRequestBody
+    EventFederationSubmission:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventFederationSubmission
     EventsSubmitFederationRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody
     EventsSubmitOutcome:
@@ -4425,7 +4427,11 @@ paths:
       description: |
         Accepts a service-to-service federation event batch. This is the only
         canonical HTTP binding for federation event push; client/self event
-        submission remains under `/_arkret/self/events`.
+        submission remains under `/_arkret/self/events`. A federated
+        `ak.member.state` compensation submission carries the unchanged
+        transport-only `membership_compensation_evidence`; the receiver applies
+        the same exact admission, incarnation, action, executor and single-use
+        checks as initial submission.
       parameters:
       - in: header
         name: Idempotency-Key
@@ -5593,7 +5599,10 @@ paths:
         one deterministic coordinator and one durable reserved/materializing/found
         operation. Cross-service creation exposes typed remote KeyPackage claim
         and materialization actions; all retries after external effect retain the
-        same operation, Realm and main Strand identifiers.
+        same operation, Realm and main Strand identifiers. A permanently
+        cancelled pair slot returns the tombstoned terminal outcome with frozen
+        operation, attempt and coordinates; later resolve calls exact-replay it
+        and cannot create a new attempt or binding for that pair.
       requestBody:
         required: true
         content:

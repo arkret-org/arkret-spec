@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.2",
+  "version": "2026-08-03.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-03T04:00:00Z",
+  "generated_at": "2026-08-03T05:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -279,8 +279,8 @@
     {
       "schema_id": "ak.schema.peer_contact_delivery_request.v1",
       "file": "schemas/peer-contact-delivery-request.schema.json",
-      "status": "active",
-      "description": "Private service-to-service contact fact delivery request carrying a signed ak.contact.* envelope and contact_address for cross-Principal-Server projection."
+      "status": "deprecated",
+      "description": "Deprecated legacy service-to-service Contact carrier retained only for historical resolution. New writes use the closed ak.peer.contacts.command.submit request in protocol-journey-wire.schema.json."
     },
     {
       "schema_id": "ak.schema.authz_operations.v1",

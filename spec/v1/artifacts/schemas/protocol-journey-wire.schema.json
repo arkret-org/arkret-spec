@@ -414,9 +414,9 @@
     },
     "peer_contact_submit_outcome": {
       "oneOf": [
-        { "type": "object", "required": ["status", "mirror_receipt"], "properties": { "status": { "const": "accepted" }, "mirror_receipt": { "$ref": "#/$defs/peer_contact_mirror_receipt" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
-        { "type": "object", "required": ["status", "mirror_receipt"], "properties": { "status": { "const": "duplicate" }, "mirror_receipt": { "$ref": "#/$defs/peer_contact_mirror_receipt" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
-        { "type": "object", "required": ["status", "mirror_receipt"], "properties": { "status": { "const": "deferred" }, "mirror_receipt": { "$ref": "#/$defs/peer_contact_mirror_receipt" }, "retry_after_ms": { "type": "integer", "minimum": 0 } }, "additionalProperties": false }
+        { "type": "object", "required": ["status", "mirror_receipt"], "properties": { "status": { "const": "accepted" }, "mirror_receipt": { "allOf": [ { "$ref": "#/$defs/peer_contact_mirror_receipt" }, { "properties": { "disposition": { "const": "accepted" } }, "required": ["disposition"] } ] }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "mirror_receipt"], "properties": { "status": { "const": "duplicate" }, "mirror_receipt": { "allOf": [ { "$ref": "#/$defs/peer_contact_mirror_receipt" }, { "properties": { "disposition": { "const": "duplicate" } }, "required": ["disposition"] } ] }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "mirror_receipt"], "properties": { "status": { "const": "deferred" }, "mirror_receipt": { "allOf": [ { "$ref": "#/$defs/peer_contact_mirror_receipt" }, { "properties": { "disposition": { "const": "deferred" } }, "required": ["disposition"] } ] }, "retry_after_ms": { "type": "integer", "minimum": 0 } }, "additionalProperties": false }
       ]
     },
 
@@ -545,14 +545,16 @@
     },
     "qda_receipt": {
       "type": "object",
-      "required": ["domain", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "effect_id", "value_digest", "journal_root", "expected_host_epoch", "replica_id", "signature"],
-      "properties": { "domain": { "const": "ak.direct-conversation.qda-receipt.v1" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "value_digest": { "$ref": "#/$defs/hash" }, "journal_root": { "$ref": "#/$defs/hash" }, "expected_host_epoch": { "type": "integer", "minimum": 0 }, "replica_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } },
+      "description": "Each receipt repeats destination and all effect identity coordinates; evaluators require them to equal the referenced EffectValueCore byte-for-byte.",
+      "required": ["domain", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "effect_id", "value_digest", "journal_root", "destination", "expected_host_epoch", "replica_id", "signature"],
+      "properties": { "domain": { "const": "ak.direct-conversation.qda-receipt.v1" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "value_digest": { "$ref": "#/$defs/hash" }, "journal_root": { "$ref": "#/$defs/hash" }, "destination": { "$ref": "#/$defs/did" }, "expected_host_epoch": { "type": "integer", "minimum": 0 }, "replica_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } },
       "additionalProperties": false
     },
     "qda_certificate": {
       "type": "object",
-      "required": ["pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "effect_id", "value_digest", "journal_root", "expected_host_epoch", "n", "f", "quorum", "receipts"],
-      "properties": { "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "value_digest": { "$ref": "#/$defs/hash" }, "journal_root": { "$ref": "#/$defs/hash" }, "expected_host_epoch": { "type": "integer", "minimum": 0 }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "receipts": { "type": "array", "items": { "$ref": "#/$defs/qda_receipt" }, "minItems": 3 } },
+      "description": "Closed digest-free qDA certificate core. destination and all effect identity coordinates MUST equal the exact EffectValueCore and every contained receipt; signer identities are distinct and canonically sorted by the registered evaluator.",
+      "required": ["pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "effect_id", "value_digest", "journal_root", "destination", "expected_host_epoch", "n", "f", "quorum", "receipts"],
+      "properties": { "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "value_digest": { "$ref": "#/$defs/hash" }, "journal_root": { "$ref": "#/$defs/hash" }, "destination": { "$ref": "#/$defs/did" }, "expected_host_epoch": { "type": "integer", "minimum": 0 }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "receipts": { "type": "array", "items": { "$ref": "#/$defs/qda_receipt" }, "minItems": 3, "uniqueItems": true } },
       "additionalProperties": false
     },
     "qcommit_certificate": {
@@ -612,7 +614,8 @@
         { "type": "object", "required": ["state", "coordinates", "suspension_reason"], "properties": { "state": { "const": "suspended" }, "coordinates": { "$ref": "#/$defs/direct_conversation_coordinates" }, "suspension_reason": { "type": "string", "enum": ["participant_membership_missing", "contact_direction_revoked"] } }, "additionalProperties": false },
         { "type": "object", "required": ["state", "operation_id", "attempt_sequence", "operation_state"], "properties": { "state": { "const": "materializing" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "operation_state": { "enum": ["reserved", "materializing", "cleanup", "cleanup_complete_retryable"] } }, "additionalProperties": false },
         { "type": "object", "required": ["state", "reason"], "properties": { "state": { "const": "temporarily_unavailable" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reason": { "enum": ["dependency_pending", "operation_control_stale", "opaque_unavailable"] } }, "additionalProperties": false },
-        { "type": "object", "required": ["state"], "properties": { "state": { "const": "creation_required" } }, "additionalProperties": false }
+        { "type": "object", "required": ["state"], "properties": { "state": { "const": "creation_required" } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "operation_id", "attempt_sequence", "coordinates"], "properties": { "status": { "const": "tombstoned" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "coordinates": { "$ref": "#/$defs/direct_conversation_coordinates" } }, "additionalProperties": false }
       ]
     },
 
@@ -627,15 +630,17 @@
     },
     "membership_compensation_delegation_core": {
       "type": "object",
-      "required": ["authority", "delegation_id", "admission_id", "join_event_id", "join_event_digest", "membership_cell_id", "membership_incarnation", "membership_head_at_acceptance", "subject_id", "join_actor_id", "verification_method", "executor_service_id", "executor_proof_key", "resource", "action", "deadline"],
-      "properties": { "authority": { "const": "ak.authority.membership_compensation.v1" }, "delegation_id": { "$ref": "#/$defs/membership_compensation_delegation_ref" }, "admission_id": { "$ref": "#/$defs/opaque_id" }, "join_event_id": { "$ref": "#/$defs/event_id" }, "join_event_digest": { "$ref": "#/$defs/hash" }, "membership_cell_id": { "$ref": "#/$defs/opaque_id" }, "membership_incarnation": { "$ref": "#/$defs/hash" }, "membership_head_at_acceptance": { "$ref": "#/$defs/event_id" }, "subject_id": { "$ref": "#/$defs/did" }, "join_actor_id": { "$ref": "#/$defs/did" }, "executed_by": { "$ref": "#/$defs/did" }, "authorization_ref": { "$ref": "./event-envelope.schema.json#/properties/authorization_ref" }, "verification_method": { "$ref": "./common-ids.schema.json#/$defs/did_url" }, "executor_service_id": { "$ref": "#/$defs/did" }, "executor_proof_key": { "$ref": "#/$defs/did_url" }, "resource": { "$ref": "#/$defs/realm_id" }, "action": { "$ref": "#/$defs/membership_compensation_action" }, "deadline": { "$ref": "#/$defs/timestamp" } },
+      "description": "Unsigned and identifier-free canonical delegation core. delegation_digest is computed over this exact core; neither the outer delegation_id, digest nor signature is part of the core.",
+      "required": ["authority", "admission_id", "join_event_id", "join_event_digest", "membership_cell_id", "membership_incarnation", "membership_head_at_acceptance", "subject_id", "join_actor_id", "verification_method", "executor_service_id", "executor_proof_key", "resource", "action", "deadline"],
+      "properties": { "authority": { "const": "ak.authority.membership_compensation.v1" }, "admission_id": { "$ref": "#/$defs/opaque_id" }, "join_event_id": { "$ref": "#/$defs/event_id" }, "join_event_digest": { "$ref": "#/$defs/hash" }, "membership_cell_id": { "$ref": "#/$defs/opaque_id" }, "membership_incarnation": { "$ref": "#/$defs/hash" }, "membership_head_at_acceptance": { "$ref": "#/$defs/event_id" }, "subject_id": { "$ref": "#/$defs/did" }, "join_actor_id": { "$ref": "#/$defs/did" }, "executed_by": { "$ref": "#/$defs/did" }, "authorization_ref": { "$ref": "./event-envelope.schema.json#/properties/authorization_ref" }, "verification_method": { "$ref": "./common-ids.schema.json#/$defs/did_url" }, "executor_service_id": { "$ref": "#/$defs/did" }, "executor_proof_key": { "$ref": "#/$defs/did_url" }, "resource": { "$ref": "#/$defs/realm_id" }, "action": { "$ref": "#/$defs/membership_compensation_action" }, "deadline": { "$ref": "#/$defs/timestamp" } },
       "dependentRequired": { "executed_by": ["authorization_ref"] },
       "additionalProperties": false
     },
     "membership_compensation_executor_delegation": {
       "type": "object",
-      "required": ["core", "delegation_digest", "author_signature"],
-      "properties": { "core": { "$ref": "#/$defs/membership_compensation_delegation_core" }, "delegation_digest": { "$ref": "#/$defs/hash" }, "author_signature": { "$ref": "#/$defs/signature" } },
+      "description": "Content-addressed signed delegation. delegation_id MUST equal ak:membership-compensation-delegation:sha256:<hex>, where <hex> is exactly the suffix of delegation_digest=sha256:<hex> recomputed from the closed core.",
+      "required": ["delegation_id", "core", "delegation_digest", "signature"],
+      "properties": { "delegation_id": { "$ref": "#/$defs/membership_compensation_delegation_ref" }, "core": { "$ref": "#/$defs/membership_compensation_delegation_core" }, "delegation_digest": { "$ref": "#/$defs/hash" }, "signature": { "$ref": "#/$defs/signature" } },
       "additionalProperties": false
     },
     "membership_join_accepted_proof": {
@@ -726,9 +731,15 @@
     },
     "sidecar_create_event": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission" },
     "sidecar_context_attach_event": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission" },
+    "sidecar_context_ref": {
+      "oneOf": [
+        { "type": "object", "required": ["kind", "relation_id"], "properties": { "kind": { "const": "relation" }, "relation_id": { "$ref": "./common-ids.schema.json#/$defs/relation_id" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "strand_id"], "properties": { "kind": { "const": "strand" }, "strand_id": { "$ref": "#/$defs/strand_id" } }, "additionalProperties": false }
+      ]
+    },
     "sidecar_ensure_request": {
       "oneOf": [
-        { "type": "object", "required": ["phase", "operation_id", "idempotency_key", "source_realm_id", "controller_id", "context_ref"], "properties": { "phase": { "const": "prepare" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "source_realm_id": { "$ref": "#/$defs/realm_id" }, "controller_id": { "$ref": "#/$defs/did" }, "context_ref": { "$ref": "#/$defs/opaque_id" } }, "additionalProperties": false },
+        { "type": "object", "required": ["phase", "operation_id", "idempotency_key", "source_realm_id", "controller_id", "context_ref"], "properties": { "phase": { "const": "prepare" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "source_realm_id": { "$ref": "#/$defs/realm_id" }, "controller_id": { "$ref": "#/$defs/did" }, "context_ref": { "$ref": "#/$defs/sidecar_context_ref" } }, "additionalProperties": false },
         { "type": "object", "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "sidecar_id", "create_event", "context_attach_event"], "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "sidecar_id": { "$ref": "./common-ids.schema.json#/$defs/sidecar_id" }, "create_event": { "$ref": "#/$defs/sidecar_create_event" }, "context_attach_event": { "$ref": "#/$defs/sidecar_context_attach_event" } }, "additionalProperties": false },
         { "type": "object", "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "sidecar_id", "context_attach_event"], "properties": { "phase": { "const": "attach" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "sidecar_id": { "$ref": "./common-ids.schema.json#/$defs/sidecar_id" }, "context_attach_event": { "$ref": "#/$defs/sidecar_context_attach_event" } }, "additionalProperties": false }
       ]
@@ -743,7 +754,7 @@
     "sidecar_ensure_outcome": {
       "oneOf": [
         { "type": "object", "required": ["status", "operation_id", "reservation_handle", "expires_at", "sidecar_id", "private_strand_id", "private_relation_id"], "properties": { "status": { "const": "prepared" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "sidecar_id": { "$ref": "./common-ids.schema.json#/$defs/sidecar_id" }, "private_strand_id": { "$ref": "#/$defs/strand_id" }, "private_relation_id": { "$ref": "./common-ids.schema.json#/$defs/relation_id" } }, "additionalProperties": false },
-        { "type": "object", "required": ["status", "accepted_phase", "ok", "sidecar_id", "private_strand_id", "private_relation_id", "access_readiness", "pending_access_reconciliations"], "properties": { "status": { "const": "accepted" }, "accepted_phase": { "type": "string", "enum": ["commit", "attach"] }, "ok": { "const": true }, "sidecar_id": { "$ref": "./common-ids.schema.json#/$defs/sidecar_id" }, "private_strand_id": { "$ref": "#/$defs/strand_id" }, "private_relation_id": { "$ref": "./common-ids.schema.json#/$defs/relation_id" }, "access_readiness": { "$ref": "#/$defs/sidecar_access_readiness" }, "pending_access_reconciliations": { "type": "array", "items": { "$ref": "#/$defs/sidecar_pending_access_reconciliation" }, "uniqueItems": true } }, "additionalProperties": false }
+        { "type": "object", "required": ["status", "operation_id", "accepted_phase", "ok", "sidecar_id", "private_strand_id", "private_relation_id", "access_readiness", "pending_access_reconciliations"], "properties": { "status": { "const": "accepted" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "accepted_phase": { "type": "string", "enum": ["commit", "attach"] }, "ok": { "const": true }, "sidecar_id": { "$ref": "./common-ids.schema.json#/$defs/sidecar_id" }, "private_strand_id": { "$ref": "#/$defs/strand_id" }, "private_relation_id": { "$ref": "./common-ids.schema.json#/$defs/relation_id" }, "access_readiness": { "$ref": "#/$defs/sidecar_access_readiness" }, "pending_access_reconciliations": { "type": "array", "items": { "$ref": "#/$defs/sidecar_pending_access_reconciliation" }, "uniqueItems": true } }, "additionalProperties": false }
       ]
     },
     "sidecar_access_replace": {

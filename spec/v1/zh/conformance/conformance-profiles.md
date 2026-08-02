@@ -683,16 +683,17 @@ MUST NOT:
 
 MUST 支持:
 - `POST /_arkret/self/agent-sidecars:ensure`（`ak.self.agent.sidecar.command.ensure`）是 closed 三阶段 surface。
-  `prepare{phase="prepare",operation_id,idempotency_key,source_realm_id,agent_id,context_ref}` 只建立 private durable reservation，
+  `prepare{phase="prepare",operation_id,idempotency_key,source_realm_id,controller_id,context_ref}` 只建立 private durable reservation，
   返回 `prepared{operation_id,reservation_handle,expires_at,sidecar_id,private_strand_id,private_relation_id}`；首次创建使用
-  `commit{phase="commit",operation_id,idempotency_key,reservation_handle,create_event,context_attach_event}`，existing
+  `commit{phase="commit",operation_id,idempotency_key,reservation_handle,sidecar_id,create_event,context_attach_event}`，existing
   Sidecar只使用`attach{phase="attach",operation_id,idempotency_key,reservation_handle,sidecar_id,
   context_attach_event}`。`commit|attach` 成功才返回 accepted outcome；其closed字段为`operation_id`、
   `accepted_phase=commit|attach`、`ok`、三个预分配ID、`access_readiness`与`pending_access_reconciliations`，其中 pending
   数组始终存在。三阶段的同 operation/key/exact bytes必须回放原 outcome；handle过期、branch错配或 bytes变化必须
   fail closed，prepare不得提前写 canonical Sidecar/Strand/Relation
 - `GET /_arkret/self/agent-sidecars/{sidecar_id}` 与 list query 作为唯一 canonical read surface，返回强类型 Sidecar + desired/effective access；普通 Circle API 不得代替
-- `context_ref` polymorphic descriptor（`relation_id` 或 `strand_id` 的 Strand-level identity）；Track/Message coordinate MUST NOT 进入 private Strand reuse key
+- `context_ref` 是closed XOR descriptor：`{kind:"relation",relation_id}`或`{kind:"strand",strand_id}`；两分支不得
+  同时出现、全部缺失或携未知字段。Track/Message coordinate MUST NOT 进入 private Strand reuse key
 - Closed request schema(reject unknown top-level fields)
 - Fixed reuse：Sidecar `(realm_id, controller_id)`；private Strand `(sidecar_id, normalized_context_ref)`
 - prepare 返回的 `reservation_handle` 固定全部IDs与 `new|existing` branch；首次ensure的controller-signed minimal `ak.sidecar.create`使用parent-Realm bootstrap exception且只投影Sidecar/backing Circle/controller初始membership；独立controller-signed `ak.sidecar.context.attach`只投影private Strand/Relation并以`EventRef{role="after"}`引用create。首次`commit` staged atomic admission一次提交`[create,context.attach]`，任一失败全回滚；existing Sidecar的`attach`不得携create Event。caller不提供Circle shape/ID，commit/attach也不得绕过或替换prepare固定的ID、context与branch

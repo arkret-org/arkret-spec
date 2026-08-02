@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-03.3",
-  "generated_at": "2026-08-03T04:00:00Z",
+  "version": "2026-08-03.4",
+  "generated_at": "2026-08-03T05:00:00Z",
   "source_of_truth": true,
   "description": "Canonical reducer profile declarations and generated content-addressed semantic closures used for federation service_binding_ref.reducer_profile_digest.",
   "canonicalization": "json_jcs",
@@ -183,7 +183,7 @@
           },
           {
             "ref": "artifacts/registry/capability-action-registry.json",
-            "content_digest": "sha256:46b2ccee9eb84d1ef4a923b08bf94a067e04af6761a6f8a84e0c7031a2bb9318"
+            "content_digest": "sha256:63664cf22a048f45140fa4cd2b309bcd8141eaeeae1761069f35151050c511e8"
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
@@ -195,7 +195,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:acc170b59607671516e828c38a50ab20c70982eda7b8a05db01bc6884768d535"
+      "reducer_profile_digest": "sha256:8d0432507869254d33a64485a2c99879e5fa5f6353f93af4aeacc56e752c47ab"
     },
     {
       "profile_id": "ak.profile.chat_mvp.v1",
@@ -494,7 +494,7 @@
           },
           {
             "ref": "artifacts/registry/capability-action-registry.json",
-            "content_digest": "sha256:46b2ccee9eb84d1ef4a923b08bf94a067e04af6761a6f8a84e0c7031a2bb9318"
+            "content_digest": "sha256:63664cf22a048f45140fa4cd2b309bcd8141eaeeae1761069f35151050c511e8"
           },
           {
             "ref": "artifacts/registry/relation-kind-registry.json",
@@ -518,7 +518,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:6afc70d589d3210a5f23e7f05f7aab220d6a80a1dadade2b8d50cf5382026684"
+      "reducer_profile_digest": "sha256:c2a35f3107e96a299ebade0d8a1fdf87c85d02217be9386533562c6981dde6ce"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -785,7 +785,7 @@
           },
           {
             "ref": "artifacts/registry/capability-action-registry.json",
-            "content_digest": "sha256:46b2ccee9eb84d1ef4a923b08bf94a067e04af6761a6f8a84e0c7031a2bb9318"
+            "content_digest": "sha256:63664cf22a048f45140fa4cd2b309bcd8141eaeeae1761069f35151050c511e8"
           },
           {
             "ref": "artifacts/registry/relation-kind-registry.json",
@@ -813,7 +813,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:79d6b9d89ab9bc8acf3412c23eaa266ca7a696c3ca8e78a474947a4b4b0211e2"
+      "reducer_profile_digest": "sha256:7094c97c7daff96e0327c7b43ae21e7fbaff13047862eb93bb82242deb9ece8c"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1388,7 +1388,7 @@
           },
           {
             "ref": "artifacts/registry/capability-action-registry.json",
-            "content_digest": "sha256:46b2ccee9eb84d1ef4a923b08bf94a067e04af6761a6f8a84e0c7031a2bb9318"
+            "content_digest": "sha256:63664cf22a048f45140fa4cd2b309bcd8141eaeeae1761069f35151050c511e8"
           },
           {
             "ref": "artifacts/registry/operations-error-mapping.json",
@@ -1440,7 +1440,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:361b86262666e6f6ea4591816247e4c7d6166265687b5b890891a5f9496e060d"
+      "reducer_profile_digest": "sha256:3e06dee24d7fe68edb230d16dd838d328b4e0fee079ce1d77c675cd9549d61d9"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1663,11 +1663,11 @@
           },
           {
             "ref": "artifacts/registry/capability-action-registry.json",
-            "content_digest": "sha256:46b2ccee9eb84d1ef4a923b08bf94a067e04af6761a6f8a84e0c7031a2bb9318"
+            "content_digest": "sha256:63664cf22a048f45140fa4cd2b309bcd8141eaeeae1761069f35151050c511e8"
           },
           {
             "ref": "artifacts/registry/operation-registry.json",
-            "content_digest": "sha256:544f88c35f82ce7647b07758225bc25cb7a0d68cc5f87a1a4a364c1e9c0325ad"
+            "content_digest": "sha256:754ad5cfacea23aca4be6541703121b72e3054e3876472401eb44c94be6f8d97"
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
@@ -1683,11 +1683,11 @@
           },
           {
             "ref": "zh/sync/service-http-binding.md",
-            "content_digest": "sha256:b54e6d2c9c2a3da7f1ee442fdd2e7d42c6760f760c671d9a3a8fd52d7616386e"
+            "content_digest": "sha256:d2ea88b6e556a324e12bc1f8f6e9838d2c363b2e6b4200aa5c7f9351146a7b69"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:664061cf13c8d090b7b202d856c6eb103869e92b379602e925b319425a4c9641"
+      "reducer_profile_digest": "sha256:d8e2423ea5fa7f03f6bc720dab5a8d39b7935113b658196a32bcb04c25e56083"
     }
   ],
   "generated_fields": [

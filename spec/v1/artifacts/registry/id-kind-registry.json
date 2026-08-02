@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.2",
+  "version": "2026-08-03.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-03T04:00:00Z",
+  "generated_at": "2026-08-03T05:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -54,6 +54,13 @@
       "status": "active",
       "storage_recommendation": "Store the 32-byte receipt-claims digest or the complete typed content-addressed identifier.",
       "description": "Content-addressed ServiceRegistrationReceipt identifier derived from canonical receipt claims."
+    },
+    {
+      "kind": "membership_compensation_delegation",
+      "wire_form": "ak:membership-compensation-delegation:sha256:<lowercase_hex>",
+      "status": "active",
+      "storage_recommendation": "Store the 32-byte delegation digest or the complete typed content-addressed reference.",
+      "description": "Content-addressed membership-compensation delegation reference. The lowercase hexadecimal suffix MUST equal the SHA-256 delegation_digest derived from the profile-defined digest-free canonical core."
     },
     {
       "kind": "seal",

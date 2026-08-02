@@ -95,6 +95,9 @@ reject/scope/tombstone Event、该分支 exact acceptance receipt与可刷新的
 不得重签、改写、拆批或把 tentative 提升为 accepted。其 response 是独立 closed union
 `accepted | duplicate | deferred`，并携该分支允许的 current mirror receipt；它不得复用 self contact
 prepare/commit 的 `ContactOperationOutcome`，也不得把 holder-private receive state编码进状态值。
+`ak.schema.peer_contact_delivery_request.v1`/`peer-contact-delivery-request.schema.json` 是deprecated历史artifact，
+不得绑定到该operation、不得作为协商fallback或“唯一carrier”的替代，也不得借其缺少branch receipt/current proof的
+旧shape进入projection；新endpoint收到该shape必须schema reject。
 
 ## 3. Directional scope、current head 与终态
 
@@ -151,6 +154,12 @@ directional head已撤回 exact pair，返回 `suspended` 与原坐标。其余�
 `send_blockers[]`。personal blocklist是 holder-private blocker，只能对 owner显示 `personal_blocked`，不得伪造
 shared suspension。
 
+permanent cancel accepted后，resolver对有权的原requester及existing participant唯一返回closed
+`{status:"tombstoned",operation_id,attempt_sequence,coordinates}`；`coordinates`仍是首次genesis固定的immutable
+pair/Realm/main Strand/binding坐标，只供审计与确定性发现，不恢复create/send authority。相同请求永远exact replay
+该terminal outcome；任何`create=true`、attempt advance、claim、repair或新operation都不得使该slot复活。无权主体
+仍得到与不存在相同的opaque failure。
+
 `create=false`只需 peer。`create=true` request 必须在 body 中携 caller-generated `operation_id`、
 `idempotency_key`与同一 requester-signed `operation_control_authorization`。同 operation/key/canonical bytes回放原
 outcome；同 operation或 key配不同 bytes conflict。同 pair并发 operation由 permanent pair slot CAS只接受一个。
@@ -167,7 +176,8 @@ q-certified genesis固定 Realm、main Strand与未来 binding坐标。一旦发
 effect，slot不得删除或重分配。成功分支从 `materializing` 单调进入 `found`；失败分支才沿
 `materializing → cleanup → cleanup_complete_retryable`前进。`cleanup_complete_retryable` 只能经 §6 所述
 q-certified `attempt_advance` 打开下一 attempt并回到 `materializing`，不得直接变成 `found`。permanent cancel
-进入独立 tombstoned terminal，但仍保留 slot与已固定坐标。
+进入唯一名称`status="tombstoned"`的terminal，但仍保留slot与已固定坐标；其后只允许上述terminal exact replay，
+不得回到`creation_required`、`materializing`或`found`。
 
 每个 attempt 使用独立 `(operation_id, attempt_sequence)` journal，并最终绑定 fresh target authorization、
 KP claim、membership Event/version、MLS generation及所有 effects。新 attempt只能由同 operation-control log 的
@@ -198,6 +208,13 @@ atomic founding unit。跨 Principal Server claim receipt必填，本地同服�
 代签、合成或复制 Event。binding只在 recipient durable且 claim consumed之后创建一次。失败 attempt补偿完成后
 复用已 accepted Realm/Strand坐标，但使用 fresh authorization、未 claimed KP、较高 membership version与新 MLS
 generation；成功前不得报告 existing binding。
+
+跨Principal Server执行membership compensation时，发送方必须在`ak.peer.events.command.submit`对应
+`EventFederationSubmission.membership_compensation_evidence`传递与self admission逐字相同的closed transport
+evidence；该字段不进入Event canonical bytes/event digest。federation receiver不得丢弃、改名、重签、从digest重建
+或降级为普通grant，而必须重验delegation digest/author signature、原join accepted proof、exact admission/cell/
+incarnation/J1 provenance、leave/remove action XOR、executor service/proof key、terminal certificate与destination
+single-use CAS。任何缺失或不匹配均零写入fail closed；同一evidence在self与peer路径必须得到同一admission结果。
 
 ## 7. Operation-control PBFT、DA 与 host fence
 

@@ -47,7 +47,7 @@
       "event_kind": 11,
       "inbound": 40,
       "outbound": 44,
-      "prose": 108,
+      "prose": 109,
       "prose_only": 2,
       "schema_reference": 101,
       "startup_compile": 180,
@@ -2270,6 +2270,7 @@
       "schema_id": "ak.schema.peer_contact_delivery_request.v1",
       "file": "schemas/peer-contact-delivery-request.schema.json",
       "consumers": {
+        "prose": "normative_text",
         "schema_reference": "fragment",
         "startup_compile": "exact"
       },
