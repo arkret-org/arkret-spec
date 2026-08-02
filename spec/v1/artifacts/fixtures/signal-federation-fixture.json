@@ -8,7 +8,8 @@
     "must_not_allocate_declared_cardinality": true
   },
   "covers_vectors": [
-    "ak.vector.signal.peer_relay.v1"
+    "ak.vector.signal.peer_relay.v1",
+    "ak.vector.signal.device_authorization_domain.v1"
   ],
   "source_refs": [
     "spec/v1/zh/sync/signal.md",
@@ -196,6 +197,16 @@
         "signals_dispatched": 0,
         "producer_envelope_identity_preserved": true
       }
+    },
+    {
+      "name": "device_authorization_domain",
+      "vector_id": "ak.vector.signal.device_authorization_domain.v1",
+      "assertions": [
+        "seal_ref selects Realm and scope authorization only; device authorization uses the verifier's current accepted device directory",
+        "the full verification_method is byte-identical to sender_actor_id#sender_device_id",
+        "missing current directory key, trust anchor, scope eligibility, or signal-class action fails closed",
+        "currently revoked, fenced, or conflicted devices are rejected even if they were active at seal_ref"
+      ]
     }
   ]
 }

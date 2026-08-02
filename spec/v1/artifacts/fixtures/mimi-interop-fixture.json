@@ -14,6 +14,7 @@
     "ak.vector.mimi.identifier_query_privacy.v1",
     "ak.vector.mimi.consent_isolation.v1",
     "ak.vector.mimi.proxy_download_policy.v1",
+    "ak.vector.mimi.provider_directory_signature.v1",
     "ak.vector.mimi.unsupported_draft_fail_closed.v1"
   ],
   "drafts": {
@@ -199,6 +200,16 @@
         "asset_privacy_policy": "provider_proxy"
       },
       "expected": "direct_object_store_url_is_not_returned"
+    },
+    {
+      "vector_id": "ak.vector.mimi.provider_directory_signature.v1",
+      "name": "provider_directory_signature",
+      "assertions": [
+        "the detached JWS covers the exact canonical unsigned provider-directory projection",
+        "routing, cipher-suite, content-profile, and room-policy mutations invalidate the proof",
+        "empty required capability arrays, another proof controller, routing-shadow extensions, stale proofs, and development digests fail closed",
+        "HTTP message signature validity and provider-directory JWS validity remain independent gates"
+      ]
     },
     {
       "vector_id": "ak.vector.mimi.unsupported_draft_fail_closed.v1",

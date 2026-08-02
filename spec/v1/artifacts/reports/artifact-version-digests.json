@@ -171,9 +171,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/reducer-profile-registry.json",
-      "version": "2026-08-02.4",
-      "generated_at": "2026-08-02T13:00:00Z",
-      "content_digest": "sha256:775c7a6baf3b749d8908fa1bdacacfda157e6bdd2adba5df58d107fda0e684fc"
+      "version": "2026-08-02.5",
+      "generated_at": "2026-08-02T14:00:00Z",
+      "content_digest": "sha256:994bb32b256a4ca31c6682ee4092c3f6120e0bdf42541dc5cd6bc60a7c992132"
     },
     {
       "path": "spec/v1/artifacts/registry/registry-manifest.json",
@@ -225,9 +225,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-08-02.1",
-      "generated_at": "2026-08-02T09:00:00Z",
-      "content_digest": "sha256:9d915f4868b46a3192891f7bd4052eccc697d4c90cab516b4b03cdb4d5213522"
+      "version": "2026-08-02.2",
+      "generated_at": "2026-08-02T14:00:00Z",
+      "content_digest": "sha256:4a048d50c176dddb5a3a3347940429af4c29308a27bacd8754b67a78e88b8a0e"
     }
   ]
 }

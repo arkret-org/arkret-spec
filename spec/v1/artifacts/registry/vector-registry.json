@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.1",
+  "version": "2026-08-02.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-02T09:00:00Z",
+  "generated_at": "2026-08-02T14:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3210,6 +3210,7 @@
       ],
       "description": "Active-series tail deletion accepts exactly the three high-risk authority proof branches (principal_signing / device_quorum / trusted_recovery_service) over the canonical delete-intent transcript bound to a server-issued single-use challenge: ordinary current-device proof on an active tail, non-tail single deletion, deduplicated quorum below policy k, expired or consumed recovery session, replayed or expired challenge, and any tampered transcript field (backup_id / reason / audience / nonce) MUST all be rejected; a byte-identical retry returns the stored terminal outcome without re-admitting the consumed challenge.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
         "spec/v1/zh/identity/key-management.md"
       ]
     },
@@ -3376,6 +3377,7 @@
       ],
       "description": "cas_register join is the pure maximal-chain function over set ops carrying from: a sequential governance lifecycle (declaration -> whole-value head_eq tombstone -> re-declaration) joins to the single terminal value instead of bottom; two ops with the same from and different values form two maximal chains and join to bottom; a non-initial op whose from matches no covered value is a dangling supersession and fails closed to bottom; duplicate (value, from) sets are idempotent; supersession binds by value, so ABA reuse is the documented value-CAS semantic and families needing generational distinction embed a monotonic component in the value.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
         "spec/v1/zh/authz/event-auth-state-resolution.md"
       ]
     },
@@ -3776,6 +3778,7 @@
       ],
       "description": "The provider directory carries its full required security core and capability declaration, and its detached JWS verifies over the exact canonical unsigned projection: missing required capabilities or empty capability arrays, tampered endpoints / cipher suites / content profiles / room policy components, a proof controller different from service_id, an unknown extension attempting to change routing, a stale created_at, a dev digest in place of a signature, and an HTTP-signature-valid but directory-JWS-invalid response (and the reverse) MUST all be rejected.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
         "spec/v1/zh/extensions/mimi-interop.md"
       ]
     },
@@ -5092,6 +5095,7 @@
       ],
       "description": "Signal verification uses two independent state domains: seal_ref selects only the Realm/scope authorization basis, while device authorization resolves against each verifier's current accepted device directory. A device authorized after seal_ref but currently active passes the device check; a device active at seal_ref but currently revoked/fenced/conflicted is rejected; a verification_method whose full value is not byte-identical to sender_actor_id#sender_device_id is rejected; a missing current directory key or missing Tier-2/service-attested trust anchor is rejected; a currently active device whose sender lacks scope send eligibility or the signal_class action under the Realm seal_ref is rejected.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
         "spec/v1/zh/sync/signal.md"
       ]
     },

@@ -19,6 +19,7 @@
       "ak.vector.lattice.ordered_log_join.v1",
       "ak.vector.lattice.ordered_log_gap.v1",
       "ak.vector.lattice.fsm_join.v1",
+      "ak.vector.lattice.cas_register_supersession.v1",
       "ak.vector.realm_link.fsm_transition_matrix.v1"
     ],
     "cases": [
@@ -68,6 +69,16 @@
         "assertions": [
           "duplicate_same_transition_idempotent",
           "same_from_different_to_returns_bottom"
+        ]
+      },
+      {
+        "vector_id": "ak.vector.lattice.cas_register_supersession.v1",
+        "lattice": "cas_register",
+        "assertions": [
+          "a single maximal supersession chain resolves to its terminal value",
+          "same-from divergent successors resolve to bottom",
+          "a dangling non-initial supersession resolves to bottom",
+          "duplicate value/from operations are idempotent"
         ]
       },
       {

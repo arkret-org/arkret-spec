@@ -9,6 +9,7 @@
   "covers_vectors": [
     "ak.vector.key_backup.kdf_floor_rejected.v1",
     "ak.vector.key_backup.unlock_proof.v1",
+    "ak.vector.key_backup.delete_authority.v1",
     "ak.vector.key_backup.passphrase_kdf_kat.v1"
   ],
   "cases": [
@@ -240,6 +241,17 @@
         "the fixture AEAD transcript opens to plaintext using crypto_transcript.key_b64u, nonce_b64u, and aad_canonical_json",
         "bearer-only access without a fresh device proof is rejected",
         "plaintext metadata must match the outer envelope after decrypt/open"
+      ]
+    },
+    {
+      "name": "delete_authority",
+      "vector_id": "ak.vector.key_backup.delete_authority.v1",
+      "kind": "active_series_tail_delete_authority",
+      "assertions": [
+        "principal_signing, deduplicated device_quorum at policy k, and a live trusted_recovery_service session are the only accepted authority branches",
+        "ordinary current-device proof, non-tail single deletion, insufficient quorum, and expired or consumed recovery sessions fail closed",
+        "backup_id, reason, audience, and nonce are bound into the canonical delete-intent transcript",
+        "a byte-identical retry returns the stored terminal outcome without re-admitting the consumed challenge"
       ]
     },
     {

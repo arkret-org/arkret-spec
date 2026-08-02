@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-02.4",
-  "generated_at": "2026-08-02T13:00:00Z",
+  "version": "2026-08-02.5",
+  "generated_at": "2026-08-02T14:00:00Z",
   "source_of_truth": true,
   "description": "Canonical reducer profile declarations and generated content-addressed semantic closures used for federation service_binding_ref.reducer_profile_digest.",
   "canonicalization": "json_jcs",
@@ -452,7 +452,7 @@
         "fixture_contracts": [
           {
             "fixture": "cba-lattice-fixture.json",
-            "semantic_projection_digest": "sha256:2cc0362740d074e1dab55c5d6760b2f646ef6005e7eb7c8796617e25d2cbe0f1"
+            "semantic_projection_digest": "sha256:96eeb76d3c3eb428aef6a97831e0a635afdfc5170fa9f4d60b96e936f3df1550"
           },
           {
             "fixture": "crypto-signature-fixture.json",
@@ -518,7 +518,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:4082b2602e8e44151a8cf139b533fe114bab3657c42621d81c52725185d89a81"
+      "reducer_profile_digest": "sha256:36161fbf4e10a5e2446a3767b16915700e5ff6d03fe62a19a5a0ec721e4eed29"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -755,7 +755,7 @@
         "fixture_contracts": [
           {
             "fixture": "cba-lattice-fixture.json",
-            "semantic_projection_digest": "sha256:2cc0362740d074e1dab55c5d6760b2f646ef6005e7eb7c8796617e25d2cbe0f1"
+            "semantic_projection_digest": "sha256:96eeb76d3c3eb428aef6a97831e0a635afdfc5170fa9f4d60b96e936f3df1550"
           },
           {
             "fixture": "crypto-signature-fixture.json",
@@ -813,7 +813,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:f32a9ee803f91ecefd4586d4ba35b25dd241881a903f9e38f9de45ef950f26af"
+      "reducer_profile_digest": "sha256:eeed7f857c89bd8ae56153bfe71aee5f83893fd59a4212c49bbfc28d9089d565"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1334,7 +1334,7 @@
           },
           {
             "fixture": "cba-lattice-fixture.json",
-            "semantic_projection_digest": "sha256:2cc0362740d074e1dab55c5d6760b2f646ef6005e7eb7c8796617e25d2cbe0f1"
+            "semantic_projection_digest": "sha256:96eeb76d3c3eb428aef6a97831e0a635afdfc5170fa9f4d60b96e936f3df1550"
           },
           {
             "fixture": "crypto-signature-fixture.json",
@@ -1440,7 +1440,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:c45159ca2bd02b72d75195aad658bc0a16b4f193951b7896200aa4bb1d648aef"
+      "reducer_profile_digest": "sha256:ac4d3043d52aa724523fc5461482943b6ddb4cf6469686185bd8b450266d3053"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
