@@ -634,7 +634,7 @@ MUST 支持:
 - Sidecar exposure 披露：激活新 Agent 前 UI MUST 显式披露其在完成 access/MLS reconciliation 后将获得现有 Sidecar 未来内容访问权（联动 `ak.profile.agent_sidecar.v1`）
 
 MUST NOT:
-- 为 provisioning 引入独立 durable `ak.self.agent.command.provision` Event，或在 provision fan-out 中加入 Agent Profile、Agent key authorization、Realm capability grant；`ak.self.agent.command.provision` 只作为 aggregate operation id 存在，其 durable outputs 仅为 controller PCR 中既有 accountability / selector Event
+- 让 provisioning 接受旧的 accountability / selector 两 Event fan-out、为 `ak.self.agent.command.provision` 另造同名 durable Event，或在唯一 `ak.agent.provision` Event 的原子 projection 外加入 Agent Profile、Agent key authorization、Realm capability grant；服务端也不得代签/合成 provision Event 或暴露部分 projection
 - 返回长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token
 - 引入 custom URI scheme(`arkret://` 等)
 - 把 `agent_slug` 当作 grant subject、actor attribution、membership key、delivery key、Directory search key 或 audit attribution source

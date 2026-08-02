@@ -9167,7 +9167,7 @@ paths:
   /_arkret/self/agents/{agent_id}/grants:
     post:
       operationId: ak.self.agent.grant.command.attach
-      description: Attach a complete signed Realm-scoped capability grant to a native personal agent together with a controller-signed, verifier-bound private requested_scope disclosure. The verifier recomputes the accepted-at public DID commitment; grant actions and resources must be covered by the disclosed immutable ceiling, all provision constraints remain mandatory, no defaults are added, and the disclosure is never copied into Realm history.
+      description: Attach a complete controller-authored ak.capability.grant EventInitialSubmission to a native personal agent together with a controller-signed, verifier-bound private requested_scope disclosure. The closed CapabilityGrantBody has no inner proof; the Event envelope proof is the sole durable issuer signature, and the service submits the exact Event bytes through ordinary admission without signing or synthesis fallback. The verifier recomputes the accepted-at public DID commitment; grant actions and resources must be covered by the disclosed immutable ceiling, all provision constraints remain mandatory, no defaults are added, and the disclosure is never copied into Realm history.
       security:
       - bearerAuth: []
       parameters:

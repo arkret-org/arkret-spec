@@ -3802,7 +3802,7 @@ Steps:
 
 1. Provision Agent DID `A`，controller DID 为 `C`；Agent DID Document 写唯一 `ArkretPrincipalControlRealm` service entry，分配 `PCR_A`，并只固定 immutable `requested_scope` 的域分离 digest；完整 scope 由 controller-private disclosure 出示，controller 已有 `PCR_C`。
 2. Controller 按 delegation 创建 `PCR_A` genesis，并写 Agent profile/key/lifecycle facts。
-3. Provisioning 的单一 `ak.agent.provision` Event 写入 `PCR_C`，并原子投影 provisioning、accountability 与 selector facts；无论 `requested_scope` 是否列出内容 action 或显式内容 resource selector，都不得产生 pending / active capability grant。内容授权只能由后续独立、完整签名且写入对应受治理 Realm 的 `ak.capability.grant` 产生；operation/service scope 同样不生成隐式 `ak.event.read` 或其它内容 grant。
+3. Provisioning 的单一 `ak.agent.provision` Event 写入 `PCR_C`，并原子投影 provisioning、accountability 与 selector facts；无论 `requested_scope` 是否列出内容 action 或显式内容 resource selector，都不得产生 pending / active capability grant。内容授权只能由后续独立、写入对应受治理 Realm 的 `ak.capability.grant` Event 产生；CapabilityGrantBody 无内层签名，唯一 durable issuer signature 是 Event envelope proof。operation/service scope 同样不生成隐式 `ak.event.read` 或其它内容 grant。
 4. 变体 A：实现把 `PCR_C` deterministic id 当作 Agent PCR；变体 B：在 `PCR_A` 或 `PCR_C` id 上创建缺 PCR marker、restricted history、MLS profile 或任一 E2EE floor 的 Realm；变体 C：服务端以 Agent DID 伪造 proof，省略 `executed_by=C` / `authorization_ref`，或引用的 delegation purpose/resource scope 不覆盖目标 Event kind/PCR；变体 D：把 `requested_scope` 当作 Realm grant、在 provisioning 时物化内容权限，或在后续 Realm grant / participation 中允许超出 `requested_scope.actions[]` 的 action。
 
 Expected:
