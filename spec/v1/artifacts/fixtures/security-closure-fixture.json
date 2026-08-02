@@ -1769,6 +1769,281 @@
           }
         }
       ]
+    },
+    {
+      "vector_id": "ak.vector.account_status.authority_publication.v1",
+      "steps": [
+        {
+          "name": "matching_authority_evidence_reaches_accepted_frontier",
+          "input": {
+            "event_kind": "ak.account.status",
+            "event_authority_fields_match": true,
+            "authority_evidence_valid": true,
+            "pcr_cba_closure_valid": true,
+            "idempotency_body_match": true
+          },
+          "expected": {
+            "outcome": "accepted",
+            "invariants": [
+              "account status cell is written in the evidence-bound Principal Control Realm",
+              "terminal local ack carries frontier digest and barrier cursor",
+              "fanout progress is operation state and never mutates the signed Event"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.account_status.authority_publication.v1",
+              "preconditions": {
+                "authority_evidence_valid": true,
+                "pcr_cba_closure_valid": true
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "matching_authority_evidence_reaches_accepted_frontier",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "event_authority_fields_match": true,
+                "idempotency_body_match": true
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "accepted",
+              "account_status_frontier": "advanced",
+              "duplicate_event_count": 0
+            },
+            "expected_external_response": {
+              "outcome": "accepted",
+              "frontier_digest_present": true,
+              "barrier_cursor_present": true
+            },
+            "expected_audit_reason": "accepted"
+          }
+        },
+        {
+          "name": "authority_or_idempotency_mismatch_is_zero_write",
+          "input": {
+            "event_authority_fields_match": false,
+            "idempotency_body_match": false
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "duplicate_conflict",
+            "invariants": [
+              "issuer account principal PCR and binding evidence are conjunctive",
+              "same Idempotency-Key with different canonical bytes performs zero writes"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.account_status.authority_publication.v1",
+              "preconditions": {
+                "idempotency_key_exists": true
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "authority_or_idempotency_mismatch_is_zero_write",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "event_authority_fields_match": false,
+                "idempotency_body_match": false
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "duplicate_conflict",
+              "shared_effects": "none"
+            },
+            "expected_external_response": {
+              "outcome": "rejected",
+              "reason_code": "duplicate_conflict"
+            },
+            "expected_audit_reason": "duplicate_conflict"
+          }
+        },
+        {
+          "name": "byte_identical_retry_advances_pending_without_duplicate_event",
+          "input": {
+            "durable_operation_state": "pending_seal",
+            "same_idempotency_key": true,
+            "canonical_body_identical": true,
+            "seal_dependencies_now_available": true
+          },
+          "expected": {
+            "outcome": "accepted",
+            "invariants": [
+              "the durable operation record advances from pending_seal to accepted",
+              "the original Event is admitted exactly once",
+              "the retry returns the accepted frontier and barrier cursor"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.account_status.authority_publication.v1",
+              "preconditions": {
+                "durable_operation_state": "pending_seal",
+                "same_idempotency_key": true
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "byte_identical_retry_advances_pending_without_duplicate_event",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "canonical_body_identical": true,
+                "seal_dependencies_now_available": true
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "accepted",
+              "durable_operation_state": "accepted",
+              "duplicate_event_count": 0
+            },
+            "expected_external_response": {
+              "outcome": "accepted",
+              "frontier_digest_present": true,
+              "barrier_cursor_present": true
+            },
+            "expected_audit_reason": "accepted"
+          }
+        },
+        {
+          "name": "fanout_requires_dedicated_receipt_without_lease",
+          "input": {
+            "publication_branch": "receipted_fanout",
+            "receipt_kind": "generic_ingress_receipt",
+            "authorization_lease_id_present": true
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "schema_violation",
+            "invariants": [
+              "fanout accepts only receiver-signed AccountStatusReceipt values",
+              "AccountStatusReceipt binds the accepted frontier and contains no AuthorizationLease id",
+              "a generic offline-publication IngressReceipt grants no account-status publication authority"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.account_status.authority_publication.v1",
+              "preconditions": {
+                "publication_branch": "receipted_fanout"
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "fanout_requires_dedicated_receipt_without_lease",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "receipt_kind": "generic_ingress_receipt",
+                "authorization_lease_id_present": true
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "schema_violation",
+              "shared_effects": "none"
+            },
+            "expected_external_response": {
+              "outcome": "rejected",
+              "reason_code": "schema_violation"
+            },
+            "expected_audit_reason": "schema_violation"
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.account.blocklist_projection.v1",
+      "steps": [
+        {
+          "name": "shared_message_is_received_then_holder_filtered",
+          "input": {
+            "blocklist_version": 1,
+            "target_blocked_for_messages": true,
+            "shared_realm_event_valid": true
+          },
+          "expected": {
+            "outcome": "accepted",
+            "invariants": [
+              "shared Event and Seal history advance normally",
+              "holder rendering notification and automatic receipt are suppressed",
+              "sender-visible response does not disclose the block"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.account.blocklist_projection.v1",
+              "preconditions": {
+                "blocklist_version": 1,
+                "target_blocked_for_messages": true
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "shared_message_is_received_then_holder_filtered",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "shared_realm_event_valid": true
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "accepted",
+              "canonical_history": "advanced",
+              "holder_projection": "filtered"
+            },
+            "expected_external_response": {
+              "outcome": "accepted",
+              "block_disclosed": false
+            },
+            "expected_audit_reason": "accepted"
+          }
+        },
+        {
+          "name": "next_revision_removes_entry_and_rebuilds_projection",
+          "input": {
+            "previous_version": 1,
+            "next_version": 2,
+            "entry_present": false,
+            "history_retained": true
+          },
+          "expected": {
+            "outcome": "accepted",
+            "invariants": [
+              "omitting the entry is the canonical unblock operation",
+              "retained shared history becomes visible again",
+              "no shared Event or capability is rewritten"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.account.blocklist_projection.v1",
+              "preconditions": {
+                "previous_version": 1,
+                "history_retained": true
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "next_revision_removes_entry_and_rebuilds_projection",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "next_version": 2,
+                "entry_present": false
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "accepted",
+              "holder_projection": "rebuilt_visible"
+            },
+            "expected_external_response": {
+              "outcome": "accepted"
+            },
+            "expected_audit_reason": "accepted"
+          }
+        }
+      ]
     }
   ]
 }

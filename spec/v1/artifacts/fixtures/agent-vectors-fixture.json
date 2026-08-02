@@ -384,7 +384,7 @@
       "vector_id": "ak.vector.agent.repairing_supersede.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_repairing_supersede_vector",
       "assertions": [
-        "renew_pairing requires a paused agent and leaves status, existing keys, and grants untouched",
+        "renew_pairing accepts an active or paused agent without changing lifecycle intent, existing keys, or grants before pairing completes",
         "renew_pairing returns pairing_mode replacement and the current pcr_recovery projection without resetting it to pending",
         "issuing a new pairing handle makes every previous handle permanently unresolvable",
         "one controller-signed authorize event carries an exact supersedes set and atomically replaces every prior active authorization dot with reason superseded_by_repairing",

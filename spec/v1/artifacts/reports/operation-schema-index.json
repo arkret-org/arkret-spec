@@ -3538,6 +3538,48 @@
       }
     },
     {
+      "operation_id": "ak.peer.account_status.command.submit",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_request_body",
+        "schema_kind": "object",
+        "required": [
+          "authority_evidence",
+          "publication"
+        ],
+        "properties": [
+          "authority_evidence",
+          "publication",
+          "cba_proof_bundles"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_outcome",
+        "schema_kind": "object",
+        "required": [
+          "status",
+          "event_id",
+          "account_id",
+          "principal_id",
+          "propagation_state"
+        ],
+        "properties": [
+          "status",
+          "event_id",
+          "account_id",
+          "principal_id",
+          "effective_status_event_id",
+          "account_status_frontier_digest",
+          "barrier_cursor",
+          "propagation_state",
+          "pending_destination_count",
+          "retry_after_ms"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.peer.invites.command.submit",
       "success_shape_kind": "typed_response",
       "request": {

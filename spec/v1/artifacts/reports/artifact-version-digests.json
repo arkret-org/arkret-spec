@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-08-02.4",
-      "generated_at": "2026-08-02T15:00:00Z",
-      "content_digest": "sha256:639e23bad352edc72fcaaabd63a8c15454a1ffcfd4812f4beba621ba138dd523"
+      "version": "2026-08-02.5",
+      "generated_at": "2026-08-02T17:00:00Z",
+      "content_digest": "sha256:6e8ef8edb680df683224dfd1372547a338e30568748abb98151d192c6c517dde"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
@@ -153,9 +153,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-08-02.2",
+      "version": "2026-08-02.3",
       "generated_at": null,
-      "content_digest": "sha256:c5aca63d98764329a365b911b4870d97a24b6bf01ebcc82893900a9bdd4ef3f5"
+      "content_digest": "sha256:817112002718b58fba644a529fc81ff8cc8dbddb97773b8dc5e8bc3b9f508993"
     },
     {
       "path": "spec/v1/artifacts/registry/profiles-dependency-graph.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-08-02.3",
-      "generated_at": "2026-08-02T15:00:00Z",
-      "content_digest": "sha256:fbd6e2cb60771628675cdd3e3701f04cf0fa372e20d87ac3f85e1325474e4319"
+      "version": "2026-08-02.4",
+      "generated_at": "2026-08-02T17:00:00Z",
+      "content_digest": "sha256:4c94632bc6e5eb0f445956979d39685f862d69113d2726d58b3e6433634ef50a"
     }
   ]
 }

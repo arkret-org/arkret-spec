@@ -3711,7 +3711,34 @@
         },
         "preauth": {
           "require_consent": true
-        }
+        },
+        "allowed_third_party_invite_verification_service_ids": [
+          "did:webvh:z6mkfixture:verification.example"
+        ]
+      }
+    },
+    {
+      "name": "realm_policy_bundle_third_party_verification_service_allowset_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
+      "expect_valid": true,
+      "instance": {
+        "policy_revision": 2,
+        "allowed_third_party_invite_verification_service_ids": [
+          "did:webvh:z6mkfixture:verification-a.example",
+          "did:webvh:z6mkfixture:verification-b.example"
+        ]
+      }
+    },
+    {
+      "name": "realm_policy_bundle_third_party_verification_service_allowset_rejects_non_did",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
+      "expect_valid": false,
+      "first_expected_error": "$.allowed_third_party_invite_verification_service_ids[0]: 'https://verification.example' does not match '^did:[a-z0-9]+:[^\\\\s#?]+$'",
+      "instance": {
+        "policy_revision": 2,
+        "allowed_third_party_invite_verification_service_ids": [
+          "https://verification.example"
+        ]
       }
     },
     {
@@ -3762,6 +3789,148 @@
         }
       },
       "first_expected_error": "$: Additional properties are not allowed ('components' was unexpected)"
+    },
+    {
+      "name": "account_blocklist_closed_actor_target_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
+      "expect_valid": true,
+      "instance": {
+        "owner": "did:webvh:z6mkfixture:holder.example",
+        "version": 1,
+        "entries": [
+          {
+            "entry_id": "ak:block:019b5c20-0000-7000-8000-000000000010",
+            "target": {
+              "kind": "actor",
+              "did": "did:webvh:z6mkfixture:blocked.example"
+            },
+            "mode": "block",
+            "applies_to": ["messages", "dm", "contacts", "applets", "notifications"],
+            "created_at": "2026-08-02T00:00:00.000Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "account_status_receipt_without_authorization_lease_valid",
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_receipt",
+      "expect_valid": true,
+      "instance": {
+        "receipt_id": "ak:receipt:019b5c20-0000-7000-8000-000000000020",
+        "event_id": "ak:event:019b5c20-0000-7000-8000-000000000001",
+        "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "account_id": "acct_123",
+        "principal_id": "did:webvh:z6mkfixture:holder.example",
+        "principal_control_realm_id": "ak:realm:019b5c20-0000-7000-8000-000000000002",
+        "receiver_service_id": "did:webvh:z6mkfixture:principal.example",
+        "account_status_frontier_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "accepted_at": "2026-08-02T00:00:00.000Z",
+        "proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:principal.example#key-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "created_at": "2026-08-02T00:00:00.000Z",
+          "jws": "a..b"
+        }
+      }
+    },
+    {
+      "name": "account_status_receipt_rejects_authorization_lease_id",
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_receipt",
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('authorization_lease_id' was unexpected)",
+      "instance": {
+        "receipt_id": "ak:receipt:019b5c20-0000-7000-8000-000000000020",
+        "event_id": "ak:event:019b5c20-0000-7000-8000-000000000001",
+        "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "account_id": "acct_123",
+        "principal_id": "did:webvh:z6mkfixture:holder.example",
+        "principal_control_realm_id": "ak:realm:019b5c20-0000-7000-8000-000000000002",
+        "receiver_service_id": "did:webvh:z6mkfixture:principal.example",
+        "account_status_frontier_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "accepted_at": "2026-08-02T00:00:00.000Z",
+        "authorization_lease_id": "ak:authorization_lease:019b5c20-0000-7000-8000-000000000099",
+        "proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:principal.example#key-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "created_at": "2026-08-02T00:00:00.000Z",
+          "jws": "a..b"
+        }
+      }
+    },
+    {
+      "name": "account_blocklist_actor_target_with_value_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
+      "expect_valid": false,
+      "first_expected_error": "$.entries[0].target: {'kind': 'actor', 'value': 'display-name-only'} is not valid under any of the given schemas",
+      "instance": {
+        "owner": "did:webvh:z6mkfixture:holder.example",
+        "version": 1,
+        "entries": [
+          {
+            "target": {
+              "kind": "actor",
+              "value": "display-name-only"
+            },
+            "mode": "block",
+            "applies_to": ["messages"],
+            "created_at": "2026-08-02T00:00:00.000Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "account_blocklist_clear_all_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
+      "expect_valid": true,
+      "instance": {
+        "owner": "did:webvh:z6mkfixture:holder.example",
+        "version": 2,
+        "entries": []
+      }
+    },
+    {
+      "name": "account_blocklist_device_typed_ref_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
+      "expect_valid": true,
+      "instance": {
+        "owner": "did:webvh:z6mkfixture:holder.example",
+        "version": 3,
+        "entries": [
+          {
+            "target": {
+              "kind": "device",
+              "object_ref": "ak:device:019b5c20-0000-7000-8000-000000000011"
+            },
+            "mode": "block",
+            "applies_to": ["messages", "calls"],
+            "created_at": "2026-08-02T00:00:00.000Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "account_blocklist_applet_typed_ref_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
+      "expect_valid": true,
+      "instance": {
+        "owner": "did:webvh:z6mkfixture:holder.example",
+        "version": 4,
+        "entries": [
+          {
+            "target": {
+              "kind": "applet",
+              "object_ref": "ak:applet:019b5c20-0000-7000-8000-000000000012"
+            },
+            "mode": "block",
+            "applies_to": ["applets"],
+            "created_at": "2026-08-02T00:00:00.000Z"
+          }
+        ]
+      }
     }
   ]
 }

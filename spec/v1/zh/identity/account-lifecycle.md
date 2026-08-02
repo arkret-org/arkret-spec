@@ -132,18 +132,60 @@ Account Authority 与客户端 UI MUST 把 service-account 认证凭据（密码
 
 ```json
 {
+  "event_id": "ak:event:019b5c20-0000-7000-8000-000000000001",
   "kind": "ak.account.status",
-  "account_id": "acct_...",
-  "principal_id": "did:webvh:...",
-  "status": "suspended",
-  "reason_code": "abuse_review",
-  "effective_at": "2026-04-26T00:00:00Z",
-  "appeal_uri": "https://example.com/appeal/acct_...",
-  "signature": {"kid": "did:webvh:zGtABZixoZZ3m4cFx3E65LCmg:auth.example#key-1", "sig": "..."}
+  "realm_id": "ak:realm:019b5c20-0000-7000-8000-000000000002",
+  "scope_ref": {
+    "kind": "realm",
+    "realm_id": "ak:realm:019b5c20-0000-7000-8000-000000000002"
+  },
+  "actor_id": "did:webvh:zGtABZixoZZ3m4cFx3E65LCmg:auth.example",
+  "actor_seq": 7,
+  "created_at": "2026-04-26T00:00:00.000Z",
+  "prev_refs": [],
+  "refs": [],
+  "seal_basis": {
+    "leaves": [
+      "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    ]
+  },
+  "payload": {
+    "account_id": "acct_123",
+    "principal_id": "did:webvh:z6mkfixture:holder.example",
+    "status": "suspended",
+    "reason_code": "abuse_review",
+    "effective_at": "2026-04-26T00:00:00.000Z"
+  },
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "verification_method": "did:webvh:zGtABZixoZZ3m4cFx3E65LCmg:auth.example#key-1",
+      "alg": "EdDSA",
+      "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "created_at": "2026-04-26T00:00:00.000Z",
+      "jws": "a..b"
+    }
+  ]
 }
 ```
 
 `ak.account.status` 的 issuer MUST 是对该 `account_id` 具有权威性的 Account Authority，或该 service account 所属 Principal Server 的已委派 service DID。Event `actor_id`、proof controller 与 `signature.kid` controller MUST 解析到同一 issuer service DID；payload 的 `account_id` 与 `principal_id` MUST 逐字匹配该 issuer 在 Event CBA basis 下已验证的 service-account → principal binding。receiver MUST 验证 issuer key 在 `effective_at` 对应的验证窗口内 active，并验证该 service DID 的 Account Authority / Principal Server 委派覆盖目标 account；任一不一致 MUST `unauthorized` 或 `invalid_signature`，不得进入 account status ordered log。holder 自助请求、appeal、管理员操作或风控工作流只可触发该权威 issuer 发布状态，不能让 holder device、任意第三方 Principal Server 或未委派服务自行签发 `ak.account.status`。
+
+### 3.1 Account Authority publication carrier（normative）
+
+`ak.account.status` 不是 realm-less Event。与所有 active Event Envelope 一样，它 MUST 携带 `realm_id` 与 `scope_ref`；二者必须逐字指向 `authority_evidence.principal_control_realm_id`。这使 issuer authority、ordered-log write、Seal/CBA basis 和跨服务重放继续使用唯一 Event 模型，而不是为 account lifecycle 另造一套无 Realm 的签名/最终性规则。Cell subject 仍是 payload `account_id`；PCR 只是该 cell 的安全与同步 scope，不把不同 account 合并为同一个 lifecycle。
+
+Account Authority 或已委派 issuer 向 Principal Server 发布状态的唯一 HTTP operation 是 `ak.peer.account_status.command.submit`（`POST /_arkret/peer/account-status`），request 为 `account_status_publication_request_body`：
+
+- `publication` 只允许一条完整 `ak.account.status` Event。首次 Account Authority publication 只携 `event`；下游 fanout 携同一原始 Event 与此前 receiver 签发的 `account_status_receipts[]`。每份专用 receipt 闭合绑定 `receipt_id`、Event id/digest、account/principal/PCR、`receiver_service_id`、accepted frontier digest 与 `accepted_at`，proof context 固定为 `ak.account_status.ingress_receipt.v1`；proof controller 必须是 `receiver_service_id`，且 receipt 中的绑定字段必须与 Event/authority evidence 逐字一致。它只证明该 receiver 已把 Event accepted 进本地 account-status frontier，不授予发布 authority。两条 publication 分支都禁止 AuthorizationLease，也禁止复用 generic `IngressReceipt`（后者结构上必含 `authorization_lease_id`）：account status 是高风险在线写入，receiver 必须按当前 authority / binding / revocation state admission，不能用旧 lease 延长发布窗口。
+- `authority_evidence` 是 Account Authority 签名、短期、transport-only 的 service-account binding 证明，闭合绑定 `account_authority_id`、Event `issuer_service_id`、`principal_control_realm_id`、`account_id`、`principal_id`、单调 `binding_version`、`authority_ref`、签发/过期时间。Proof context 固定为 `ak.account_status.authority_evidence.v1`，`payload_digest` 是移除 `proof` 后完整对象的 RFC 8785 JCS SHA-256。它不得发布到 Directory、共享 Realm timeline 或 profile，不把部署本地 service-account id 提升为公共身份事实。
+- receiver MUST 逐字段比较 Event `actor_id` / proof controller、Event `realm_id` / `scope_ref`、payload `account_id` / `principal_id` 与 authority evidence；验证 Account Authority proof、Event proof、issuer key 在 `effective_at` 的历史有效性、`authority_ref` 当前覆盖目标 account/kind、binding version 未回滚，以及 PCR CBA closure。任何缺失、stale、fork、过期或不等都 fail closed。首次 receiver 已有依赖时可省略 request-level `cba_proof_bundles`；receipted fanout 对 receiver 缺失的 PCR 依赖必须携带 bundle 或返回 dependency failure，不能信任来源服务的“已验证”布尔值。
+- `Idempotency-Key` 必填并进入 HTTP Message Signature transcript。Scope 是 `(Source-Service-ID, Destination-Service-ID, Idempotency-Key)`；同 key 不同 canonical body MUST `duplicate_conflict`。相同 key + byte-identical body 可在 `pending_seal` 或 fanout 进行时重试，返回同一 durable operation record 的最新状态，不创建第二条 Event。`accepted | duplicate` 是该 receiver 本地 frontier 的 terminal ack，并返回 `effective_status_event_id`、`account_status_frontier_digest` 与 barrier cursor；`pending_seal` 必须返回 `Retry-After` / `retry_after_ms`，不得谎报 accepted。
+- HTTP 必须使用 RFC 9421 Message Signature，覆盖 method、target URI、authority、`Content-Digest`、Source/Destination service DID、Source/Destination trust domain 与 `Idempotency-Key`。Outer signature 认证 transport caller，不替代 Account Authority evidence、原 Event proof 或 CBA/Seal 验证。
+
+首个接收 Principal Server 从自身已持久化的 account session/device/KeyPackage/to-device/push-route、principal locator 与 Realm delivery-binding 状态确定**实际受影响 Principal Server 集合**，建立有界 durable outbox，并对每个目标复用上述 operation 的 receipted fanout 分支。集合只包含已经持有或即将持有该 account/principal 状态的服务；不得把 `account_id` 广播给无关 federation peer。每个目标按 `(account_authority_id, account_id, destination_service_id, event_id)` 去重；ack 后移出 outbox，失败按 bounded exponential backoff 重试。Outbox 必须有按 account/event/target 的唯一键、每 account 最大目标数 256、每目标最大一条未完成状态更新；更严格的新 status 可 supersede 尚未发送的较旧非 terminal 更新，但不得删除审计记录或跳过 `deactivated` / `erasure_pending` 屏障。
+
+上述 carrier、authority mismatch、幂等冲突、pending Seal 与 fanout incomplete/complete 转换由 conformance vector `ak.vector.account_status.authority_publication.v1` 闭合。
 
 Current account status projection 是 ordered_log 上的确定性派生值，而不是简单取本地最后到达的 event。cell family `ak.component.account.status.v1` 的 `cell_subject` 是 `account_id`；`principal_id` 是该 service account 的绑定主体，不是 lifecycle key。本节定义的 severity-order 仲裁是该 cell 上的 canonical projection。若同一 `account_id` 出现并发 `ak.account.status` head，client / server MUST 按以下规则选择当前状态；同一 principal 绑定的其它 `account_id` MUST 独立求值：
 
@@ -269,7 +311,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 - **本地投递必停**：无论 policy 是否 ban，上表前 6 行（session/device/applet/KeyPackage/push/to-device queue）必停 — 否则会出现"账户已停用但其 device 还能签名 / push gateway 还在投递"的不可解释窗口。
 - **MLS Remove**：若 Realm policy 决定 deactivate → leave，对应 MLS group MUST 在 grace window（默认 `mls_deactivation_grace_ms = 600,000 ms`）内 emit `ak.mls.commit` Remove；超时未 commit 则该 Realm 的成员客户端 MUST 在 verified timeline 中把该 principal 标 `unverifiable_member`，不再接受其新 epoch 消息。
 - Fanout 失败的 partial state：如果某条 fanout 因网络 / 服务不可达失败，server `account_status` MUST 标 `deactivation_partial` 并继续重试；客户端 UI MUST 显式标记 "停用未完成" 而不是显示已停用。
-- **跨 Principal Server 传播**：若该 principal 曾在其它 Principal Server 上持有 device / KeyPackage / to-device / push-route 状态，或通过 Realm membership delivery binding 使用过 peer 服务，源 Principal Server MUST 按 [`../sync/federation.md` §4.4.1](../sync/federation.md) 主动推送 `ak.account.status` deactivation。未在 `deactivation_propagation_window_ms` 内得到 peer ack 时，`account_status` MUST 标 `deactivation_federation_incomplete`，并暂停新 Realm onboard、新 session/device grant 与新 KeyPackage 发布。
+- **跨 Principal Server 传播**：若该 principal 曾在其它 Principal Server 上持有 device / KeyPackage / to-device / push-route 状态，或通过 Realm membership delivery binding 使用过 peer 服务，首个接收 Principal Server MUST 按 §3.1 的 durable affected-service index 与 `ak.peer.account_status.command.submit` receipted fanout 分支主动推送原始 `ak.account.status` Event及其专用 `account_status_receipts[]`；不得塞入通用 Realm federation batch后丢失 account binding evidence，也不得复用需要 AuthorizationLease 的 generic `IngressReceipt`，不得广播给无关 peer。每个 destination 返回的 `accepted | duplicate` 才构成 ack。未在 `deactivation_propagation_window_ms` 内得到全部 ack 时，本地 `propagation_state` 转为 `incomplete`，服务侧投影 flag `deactivation_federation_incomplete=true`，并暂停新 Realm onboard、新 session/device grant 与新 KeyPackage 发布；该 flag 是可变的 outbox/projection 状态，MUST NOT 回写或重签不可变 Event payload。后续全部 ack 到达后将 flag 清零并保留审计记录。
 
 ## 8. Erasure
 

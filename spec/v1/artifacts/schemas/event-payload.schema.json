@@ -10,6 +10,7 @@
       "description": "Payload for ak.account.blocklist. Holder-private personal blocklist state; it never enters shared Realm state or federation payloads.",
       "required": [
         "owner",
+        "version",
         "entries"
       ],
       "properties": {
@@ -21,7 +22,8 @@
         },
         "version": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Monotonic whole-value CAS revision. The next accepted ak.account.blocklist payload MUST use current version + 1; ak.account_data.set for key ak.account.blocklist uses expected_revision against the same counter. Omitting an entry in the next revision removes it, and entries=[] clears the list."
         },
         "entries": {
           "type": "array",
@@ -30,6 +32,7 @@
             "required": [
               "target",
               "mode",
+              "applies_to",
               "created_at"
             ],
             "properties": {
@@ -59,27 +62,88 @@
                     "$ref": "#/$defs/did"
                   },
                   "object_ref": {
-                    "$ref": "#/$defs/object_ref"
+                    "oneOf": [
+                      { "$ref": "./common-ids.schema.json#/$defs/device_id" },
+                      { "$ref": "./event-envelope.schema.json#/$defs/applet_id" }
+                    ]
                   },
                   "value": {
-                    "$ref": "#/$defs/non_empty_string"
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512
                   }
                 },
                 "anyOf": [
                   {
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "actor",
+                          "service",
+                          "organization"
+                        ]
+                      }
+                    },
                     "required": [
+                      "kind",
                       "did"
-                    ]
+                    ],
+                    "not": {
+                      "anyOf": [
+                        { "required": ["object_ref"] },
+                        { "required": ["value"] }
+                      ]
+                    }
                   },
                   {
+                    "properties": {
+                      "kind": { "const": "device" },
+                      "object_ref": { "$ref": "./common-ids.schema.json#/$defs/device_id" },
+                      "value": { "$ref": "./common-ids.schema.json#/$defs/did_url" }
+                    },
+                    "required": ["kind"],
+                    "oneOf": [
+                      { "required": ["object_ref"] },
+                      { "required": ["value"] }
+                    ],
+                    "not": { "required": ["did"] }
+                  },
+                  {
+                    "properties": {
+                      "kind": { "const": "applet" },
+                      "object_ref": { "$ref": "./event-envelope.schema.json#/$defs/applet_id" }
+                    },
                     "required": [
+                      "kind",
                       "object_ref"
-                    ]
+                    ],
+                    "not": {
+                      "anyOf": [
+                        { "required": ["did"] },
+                        { "required": ["value"] }
+                      ]
+                    }
                   },
                   {
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "handle",
+                          "domain",
+                          "keyword"
+                        ]
+                      }
+                    },
                     "required": [
+                      "kind",
                       "value"
-                    ]
+                    ],
+                    "not": {
+                      "anyOf": [
+                        { "required": ["did"] },
+                        { "required": ["object_ref"] }
+                      ]
+                    }
                   }
                 ],
                 "additionalProperties": false
@@ -90,10 +154,12 @@
                   "block",
                   "mute",
                   "hide"
-                ]
+                ],
+                "description": "block denies a new holder-facing interaction on the selected surfaces and filters shared durable content only after canonical receive/store; mute keeps content visible but suppresses attention surfaces; hide keeps canonical content but omits it from default holder rendering/search. None of the modes revokes a Realm capability or rewrites shared history."
               },
               "applies_to": {
                 "type": "array",
+                "minItems": 1,
                 "items": {
                   "type": "string",
                   "enum": [
@@ -101,6 +167,8 @@
                     "mentions",
                     "dm",
                     "calls",
+                    "contacts",
+                    "applets",
                     "presence",
                     "notifications",
                     "directory"
@@ -120,6 +188,7 @@
             },
             "additionalProperties": false
           },
+          "maxItems": 4096,
           "uniqueItems": true
         },
         "updated_at": {
@@ -9614,6 +9683,15 @@
             }
           },
           "additionalProperties": false
+        },
+        "allowed_third_party_invite_verification_service_ids": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "description": "Complete current allow-set of service DIDs trusted to attest 3PID ownership for ak.invite.third_party / ak.invite.claim. The array is whole-value replacement state in this policy-bundle revision, not an incremental patch. Absence and [] both deny every third-party invite verification service. Removing a DID in a later policy_revision revokes it for every later claim re-check; no separate tombstone exists. Reducers MUST evaluate the current accepted bundle cell on a fresh basis before accepting ak.invite.claim."
         }
       },
       "additionalProperties": false

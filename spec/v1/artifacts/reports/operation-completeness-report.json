@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 218,
+    "total_operations": 219,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 3,
-      "typed_schema": 205
+      "typed_schema": 206
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -40,7 +40,7 @@
         "no_request_body": 1,
         "service_describe": 2,
         "streaming_frame_schema": 1,
-        "typed_schema": 137
+        "typed_schema": 138
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -878,6 +878,20 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.peer.account_status.command.submit",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/account-status",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_request_body",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AccountStatusPublicationRequestBody",
+        "response": "#/components/schemas/AccountStatusPublicationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.peer.contacts.command.submit",

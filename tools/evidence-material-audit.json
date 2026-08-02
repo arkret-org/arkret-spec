@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 88,
+  "audited_occurrence_count": 90,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -37,6 +37,22 @@
       "disposition": "polymorphic_container",
       "material_families": ["proof", "attestation"],
       "reason": "Carries the registered heterogeneous registration policy material."
+    },
+    {
+      "file": "account-operations.schema.json",
+      "key": "account_status_authority_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "Closed transport evidence object carrying the Account Authority proof and account/principal/PCR authority binding."
+    },
+    {
+      "file": "account-operations.schema.json",
+      "key": "authority_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "Operation field referencing the registered account-status authority evidence object."
     },
     {
       "file": "account-subscribe-frame.schema.json",

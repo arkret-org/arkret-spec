@@ -506,7 +506,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:4d4e0e677cf734315fc11e66eddd53c3bfdce707bd85c79d8f84be547217ce5f"
+            "content_digest": "sha256:1a675e267755908bc006727935ca3f61df15a1786f6a8fd5b802247eb1d2b729"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -801,7 +801,7 @@
           },
           {
             "ref": "zh/models/realm-and-space.md",
-            "content_digest": "sha256:18c61646140d30c773cb74acd1886ca7dfd811df32dad1ef94c87f3e33db88a2"
+            "content_digest": "sha256:b5fed421035a53b229bb75f662f363af8ae1d3d25c375c5db262b56d6b811d26"
           },
           {
             "ref": "zh/models/relation.md",
@@ -1362,7 +1362,7 @@
           },
           {
             "fixture": "security-closure-fixture.json",
-            "semantic_projection_digest": "sha256:95b8f2a7b6f8d3e6508aa2273d71ffdbc709fb71407a039e72ab9347b44abd09"
+            "semantic_projection_digest": "sha256:552e67ebc9c698f5ce5d9e9a707f2808314b8d27bcf540271541ad97c5ff4288"
           },
           {
             "fixture": "sync-fixture.json",
@@ -1384,7 +1384,7 @@
           },
           {
             "ref": "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.principal_server.v1",
-            "content_digest": "sha256:a111beb68a904fab3dec587c8643d0169a3bad762981abbc003d0410f9af0647"
+            "content_digest": "sha256:6bacf03ea9d855b97361b6b52c8f3cd3a5c62542bf9cb92cbc912154b4623a28"
           },
           {
             "ref": "artifacts/registry/capability-action-registry.json",
@@ -1392,7 +1392,7 @@
           },
           {
             "ref": "artifacts/registry/operations-error-mapping.json",
-            "content_digest": "sha256:727e614ee8ee224927af39532b24cddf50cae7a5c7634829bae1ae4d9926f665"
+            "content_digest": "sha256:ccf8e0090f22a46f3224ba55e6aaae264c7e4313743aba37488ca5ebd0959f03"
           },
           {
             "ref": "artifacts/registry/relation-kind-registry.json",
@@ -1400,7 +1400,7 @@
           },
           {
             "ref": "zh/authz/capabilities.md",
-            "content_digest": "sha256:b74943e4ebf8172b51c28b255adac73aa5917cf4ed4365e2bf645d5119f77475"
+            "content_digest": "sha256:e89553238b284d7523af8fe045e0eee0f48df32873e4cce1d311550d2f0d699c"
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
@@ -1408,7 +1408,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:4d4e0e677cf734315fc11e66eddd53c3bfdce707bd85c79d8f84be547217ce5f"
+            "content_digest": "sha256:1a675e267755908bc006727935ca3f61df15a1786f6a8fd5b802247eb1d2b729"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -1416,7 +1416,7 @@
           },
           {
             "ref": "zh/models/realm-and-space.md",
-            "content_digest": "sha256:18c61646140d30c773cb74acd1886ca7dfd811df32dad1ef94c87f3e33db88a2"
+            "content_digest": "sha256:b5fed421035a53b229bb75f662f363af8ae1d3d25c375c5db262b56d6b811d26"
           },
           {
             "ref": "zh/models/relation.md",
@@ -1436,7 +1436,7 @@
           },
           {
             "ref": "zh/sync/third-party-invites.md",
-            "content_digest": "sha256:7549c4371382867ddb19875172a1a00acf9954cb0789ccd5104f280019afa26f"
+            "content_digest": "sha256:e2152c1894b31f58fbac87ce167195f538c2b4944e0713c1e2810a9530c0a5f7"
           }
         ]
       },
@@ -1683,7 +1683,7 @@
           },
           {
             "ref": "zh/sync/service-http-binding.md",
-            "content_digest": "sha256:536c12e5a6d603d4005cadb2fe51e8bd640cb94d9dd2bdbeee8f5d10a84d23f9"
+            "content_digest": "sha256:db7925ee549de77f96e8dfe455df92e4bfaf509c3a1e484729442f3f8c8dcb8b"
           }
         ]
       },

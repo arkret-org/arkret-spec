@@ -22,7 +22,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "4b9785caa7a18aac400e544d8ac9a8072fd745075022efff3fe6d1c951fbd800"
+      "sha256": "970dd59c86b7ca6ac18fc6bc59d9818d9b5f14b53222fef1afed4eeb9a736c30"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
@@ -270,7 +270,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "7950822d7df2b3510d02061a792e8d02781c4903d66f01e855fe5ad2c4525f37"
+      "sha256": "b88fd7650a043a8f5d06e8dec2da6f9b6c06dad486b0b8b84057ae998b1c4e15"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -286,7 +286,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-fixture.json",
-      "sha256": "cc2e67d797a0156c967608b008bfdbc8e30ed1f87ec8720bc3818bbbdb51d9bc"
+      "sha256": "ad57d967c27f29704080b95195a9dd074c3a151baf3937ece029248b0525d0ac"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",

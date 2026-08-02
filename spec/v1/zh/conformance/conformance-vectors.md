@@ -3853,7 +3853,7 @@ Preconditions:
 
 Steps:
 
-1. Controller 先提交 controller-signed delegated `ak.self.agent.pause`，再调用 `ak.self.agent.command.renew_pairing`，得到新一次性 `pairing_request_id` + `pairing_code`、`pairing_mode="replacement"` 与未被重置的当前 `pcr_recovery` 投影；直接在 `active` 调用的变体 MUST `failed_precondition`。
+1. 对已持有 active authorized key 且 lifecycle 为 `active` 的 agent，Controller 直接调用 `ak.self.agent.command.renew_pairing`，得到新一次性 `pairing_request_id` + `pairing_code`、`pairing_mode="replacement"` 与未被重置的当前 `pcr_recovery` 投影；`paused` 变体同样 MUST 成功。怀疑旧 key 失陷时 Controller SHOULD 先提交 controller-signed delegated `ak.self.agent.pause`，但 pause 不是 operation 前置条件。
 2. Agent 保持 `paused`；旧 key `K1` 与既有 grants 尚未被 replacement 撤销，但服务端不得签发新的 agent session grant 或执行新的 capability action。Controller 在 replacement 完成前调用 resume 的变体 MUST `failed_precondition`。
 3. 新 runtime 生成 key `K2` 提交 runtime-key-request；controller 签 `ak.agent.key.authorize`(K2)，其 payload 带 `supersedes=[{key_id: K1, authorized_event_ref: <K1 authorize Event>}]`，再调用 `ak.gate.account.command.pair_agent_key` 完成配对。
 4. 用 `K1` 再次请求 `agent_key_proof` session grant;`S1` 在 freshness window 后被使用。
@@ -3862,7 +3862,7 @@ Steps:
 
 Expected:
 
-- 第 1 步的 pause 之外，renew_pairing MUST NOT 改变 agent status、既有 key、grant 或 `pcr_recovery`；响应分支是 `pairing_mode="replacement"`，此前所有 pairing handle 永久不可解析。active 直调不得创建 handle。
+- renew_pairing MUST NOT 改变 agent status、既有 key、grant 或 `pcr_recovery`；响应分支是 `pairing_mode="replacement"`，此前所有 pairing handle 永久不可解析。`active` 与 `paused` 直调都必须创建新 handle；只有 `deactivated` 必须拒绝。
 - 第 2 步的新 session / capability action 与 open replacement 期间的 resume MUST fail closed；已存在 key/grant 的保留只用于原子 supersede 与审计，不等于 paused 状态可继续执行。
 - 第 3 步 MUST 以单一 controller-signed `ak.agent.key.authorize`(K2) Event 原子 remove `supersedes[]` 指定的 K1 authorization dot（reason=`superseded_by_repairing`）并 add K2 dot；不得伪造第二条 controller-authored revoke Event；capability grants 不受影响。遗漏 K1、加入不存在/已撤销 authorization，或引用错误 `authorized_event_ref` 的变体 MUST conflict / fail closed 且不改变任何 key。
 - 第 4 步 MUST fail closed:`K1` 的新 session 请求拒绝;`S1` MUST 在 revocation freshness window 内 fail closed,MUST NOT 自然存活到原 TTL。
@@ -6026,3 +6026,10 @@ Runner MUST 加载 [`event-kind-payload-coverage-fixture.json`](../../artifacts/
 - `ak.relation.tombstone` 正例只携带 `relation_id` 与可选 `reason`，并解析到 `relation_tombstone_payload`；携带 `target_ref` / `patch` 的 update 形态 MUST schema-invalid。Registry cell subject 必须由 `payload.relation_id` 解析为 `id:relation`。
 - `ak.moderation.franking_proof` 正例必须通过 `moderation-report.schema.json#/$defs/franking_proof`，registry 与 Event Envelope 必须引用同一个 def；只带 `report_id` / `target_ref` 的 report-keyed 形态 MUST schema-invalid。Registry cell subject 必须由目标 `payload.event_id` 解析为 `id:event`，不得使用外层 proof Event 自身的 `event_id`，也不得退回不存在的 report 字段。
 - 任一显式 schema ref 不存在、ref fragment 不可解析、Event Envelope 错接到共享 `audit_payload` / `relation_update_payload`、或 cell subject 在所选 payload class 上无可解析标量端点，均 MUST 使本组失败；`generic_standard_payload` 不能替代上述两条 kind-specific 合同。
+## Account status publication carrier
+
+`ak.vector.account_status.authority_publication.v1` MUST 覆盖：Account Authority 以当前 binding version 签 `authority_evidence`，Event actor/proof、payload account/principal 与 Principal Control Realm 全部一致时进入 `pending_seal -> accepted` 并返回 frontier digest/barrier cursor；相同 Idempotency-Key + byte-identical body 在 pending/accepted 两阶段均不创建第二条 Event且返回最新 operation state；同 key 异 body `duplicate_conflict`。Issuer、account、principal、PCR、authority ref、binding version、proof digest、HTTP Source/Destination 或 trust domain 任一不匹配均零写入失败。Receipted fanout 必须保留原 Event 并携 receiver-signed `account_status_receipts[]` / CBA closure；receipt 必须证明本地 accepted frontier 且不含 AuthorizationLease，generic `IngressReceipt` 必须 schema-invalid；目标 ack 前 outbox 保持 pending，超窗投影 `deactivation_federation_incomplete=true`，最终 ack 后清零 flag 而不改写 Event payload。Holder session、第三方服务与通用 `ak.peer.events.command.submit` 缺 account authority evidence 的尝试都不得成为可接受 carrier。
+
+## Personal blocklist revision and delivery semantics
+
+`ak.vector.account.blocklist_projection.v1` MUST 覆盖：version 1 加入 actor block 后，共享 Realm Message 仍被收取、验签、存储并进入 canonical history，但 holder projection/notification/read-receipt/presence side effect 被抑制；version 2 省略该 entry 后，retention 仍保留的历史重新可见。并发 version 2、跳到 version 3、owner/actor 不同、同一 normalized target+applies_to 重叠 entry 与 target discriminator/承载不匹配均拒绝。`entries=[]` 清空规则。仅写 personal blocklist 不得撤销 Direct Conversation participant authority；组合的 contact tombstone + consent revoke accepted 后 conversation 才 suspended。服务端无权读取 blocklist 时仍转发加密材料给 holder 设备并由端侧过滤；有权读取时可在 holder surface 前 drop，但两条路径对发送方的 response bytes、错误类别与 timing bucket 不可区分。

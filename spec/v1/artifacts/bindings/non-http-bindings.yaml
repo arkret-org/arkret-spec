@@ -198,6 +198,8 @@ grpc:
       Query: ak.peer.events.query.scan
       Resolve: ak.peer.events.query.resolve
       Submit: ak.peer.events.command.submit
+    PeerAccountStatus:
+      Submit: ak.peer.account_status.command.submit
     PeerInvites:
       Submit: ak.peer.invites.command.submit
     PeerContacts:

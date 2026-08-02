@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-02.4",
-  "generated_at": "2026-08-02T15:00:00Z",
+  "version": "2026-08-02.5",
+  "generated_at": "2026-08-02T17:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2192,7 +2192,8 @@
         "ak.self.events.stream.subscribe",
         "ak.self.events.query.scan",
         "ak.self.snapshot.query.manifest_head",
-        "ak.self.authz.query.check"
+        "ak.self.authz.query.check",
+        "ak.peer.account_status.command.submit"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -2204,6 +2205,7 @@
         "ak.invite.third_party",
         "ak.invite.claim",
         "ak.invite.revoke",
+        "ak.account.status",
         "ak.capability.grant",
         "ak.capability.revoke"
       ],
@@ -2574,7 +2576,8 @@
         "session_grant_release_readiness_must": "Release readiness MUST cover ak.vector.auth.session_grant_audience_binding.v1 and ak.vector.auth.soft_logout_did_proof.v1: proof binds challenge, audience, request_canonical_digest, principal and device; stranger audiences are rejected; soft_logged_out recovery requires fresh DID proof; development_mode=true never advertises verified profiles.",
         "not_identity_registry_must": "Auth Server MUST NOT claim `ak.profile.identity_registry.v1`; any DID document / key-log surface it exposes MUST be declared on `compat_surfaces[]` as `delegated_resolver` rather than self-claimed canonical authority.",
         "not_principal_server_must": "Auth Server MUST NOT claim `ak.profile.principal_server.v1`; Realm event acceptance is the principal server role and is incompatible with auth-server-only deployments.",
-        "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run."
+        "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run.",
+        "account_status_publication_must": "An Auth Server acting as Account Authority MUST sign authority_evidence and publish every ak.account.status transition through ak.peer.account_status.command.submit to the bound Principal Server; it MUST NOT impersonate a holder session or use a deployment-private route."
       }
     },
     "ak.profile.public_network_identity.v1": {
