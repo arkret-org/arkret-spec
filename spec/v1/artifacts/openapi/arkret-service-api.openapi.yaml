@@ -948,6 +948,10 @@ components:
       $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome
     DirectConversationResolveRequestBody:
       $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body
+    DirectConversationSegmentList:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_segment_list
+    DirectConversationSegmentListRequestBody:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_segment_list_request_body
     DirectoryActorSearchOutcome:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome
     DirectoryAgentSelectorResolutionOutcome:
@@ -5409,6 +5413,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DirectConversationResolveOutcome'
+  /_arkret/self/direct-conversations/segments/query:
+    post:
+      operationId: ak.self.direct_conversation_segment.query.list
+      security:
+      - bearerAuth: []
+      summary: List canonical historical segments for one direct-conversation pair.
+      description: |
+        Principal-private projection ordered by the verified binding predecessor
+        chain. Pending, orphan, duplicate and non-canonical candidates are
+        excluded. If an active canonical segment exists it is the unique chain
+        tail. Readability is evaluated independently for each Realm segment.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectConversationSegmentListRequestBody'
+      responses:
+        '200':
+          description: Canonical DM segment lineage visible to the caller.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectConversationSegmentList'
   /_arkret/self/snapshot/head:
     get:
       operationId: ak.self.snapshot.query.manifest_head

@@ -4459,20 +4459,20 @@
     },
     "direct_conversation_bound_payload": {
       "type": "object",
-      "description": "Principal-scoped signed binding from an unordered participant pair to the canonical DM Realm and main Strand. Issuer MUST be one of the participants; the original signed envelope may be mirrored by the other participant.",
+      "description": "Principal-scoped signed binding from an unordered participant pair to one DM Realm segment and main Strand. Issuer MUST be one of the participants; the original signed envelope may be mirrored by the other participant. Canonical active and retired facts form a verified predecessor chain; pending, orphan, duplicate and non-canonical candidates never enter that chain.",
       "required": [
         "pair_key",
-        "binding_state",
         "participants_unordered",
         "realm_id",
         "main_strand_id",
+        "mls_group_id",
         "authorization_basis",
         "member_event_refs",
         "main_strand_create_ref",
-        "mls_group_id",
         "mls_genesis_event_ref",
         "mls_commit_event_ref",
         "mls_welcome_event_ref",
+        "binding_state",
         "created_at"
       ],
       "properties": {
@@ -4496,6 +4496,11 @@
         "main_strand_id": {
           "$ref": "#/$defs/strand_id"
         },
+        "mls_group_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "MLS group bound to this DM Realm segment."
+        },
         "authorization_basis": {
           "$ref": "#/$defs/direct_conversation_authorization_basis"
         },
@@ -4505,11 +4510,6 @@
         },
         "main_strand_create_ref": {
           "$ref": "#/$defs/event_ref"
-        },
-        "mls_group_id": {
-          "type": "string",
-          "minLength": 1,
-          "description": "MLS group bound to this DM Realm candidate."
         },
         "mls_genesis_event_ref": {
           "$ref": "#/$defs/event_ref",
@@ -4523,8 +4523,17 @@
           "$ref": "#/$defs/event_ref",
           "description": "Accepted Welcome Event paired with mls_commit_event_ref."
         },
-        "created_at": {
-          "$ref": "#/$defs/timestamp"
+        "supersedes_binding_ref": {
+          "$ref": "#/$defs/event_ref",
+          "description": "For a retired fact, the exact active binding Event made ineligible by retirement_cause_event_ref."
+        },
+        "retirement_cause_event_ref": {
+          "$ref": "#/$defs/event_ref",
+          "description": "Accepted structural terminal Event that made the superseded active segment ineligible: participant leave/ban, Realm terminal state, or canonical main Strand terminal state. Contact or consent changes are not valid retirement causes."
+        },
+        "predecessor_binding_ref": {
+          "$ref": "#/$defs/event_ref",
+          "description": "Canonical retired binding Event for the immediately preceding segment of the same pair_key and trust_domain. It is omitted only for the first segment relative to complete verified evidence."
         },
         "binding_state": {
           "type": "string",
@@ -4534,8 +4543,8 @@
           ],
           "description": "Authored fact state. duplicate and non_canonical are derived projection states selected by the canonical candidate reducer and are never authored on wire."
         },
-        "supersedes_binding_ref": {
-          "$ref": "#/$defs/event_ref"
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false,
@@ -4553,8 +4562,37 @@
           },
           "then": {
             "required": [
-              "supersedes_binding_ref"
+              "supersedes_binding_ref",
+              "retirement_cause_event_ref"
             ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "binding_state": {
+                "const": "active"
+              }
+            },
+            "required": [
+              "binding_state"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "supersedes_binding_ref"
+                  ]
+                },
+                {
+                  "required": [
+                    "retirement_cause_event_ref"
+                  ]
+                }
+              ]
+            }
           }
         }
       ]

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-01.5",
+  "version": "2026-08-02.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-01T09:00:00Z",
+  "generated_at": "2026-08-02T09:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1104,6 +1104,20 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.capability.direct_conversation_participant_authority.v1",
+      "status": "active",
+      "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
+      "description": "Direct Conversation participant authority is a profile-scoped non-grant source, survives root generation changes, requires the active canonical binding, and cannot issue child grants.",
+      "source_refs": [
+        "spec/v1/zh/authz/capabilities.md",
+        "spec/v1/zh/identity/contact-and-direct-conversation.md",
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
     },
     {

@@ -463,6 +463,107 @@
       ],
       "additionalProperties": false
     },
+    "direct_conversation_segment_list_request_body": {
+      "type": "object",
+      "description": "Read-only complex-query body for the authenticated principal-private historical segment projection. It carries no idempotency field.",
+      "required": [
+        "peer"
+      ],
+      "properties": {
+        "peer": {
+          "$ref": "#/$defs/did"
+        },
+        "cursor": {
+          "$ref": "#/$defs/cursor"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200,
+          "default": 50
+        }
+      },
+      "additionalProperties": false
+    },
+    "direct_conversation_segment_entry": {
+      "type": "object",
+      "required": [
+        "pair_key",
+        "binding_state",
+        "realm_id",
+        "main_strand_id",
+        "mls_group_id",
+        "binding_event_ref",
+        "content_readability"
+      ],
+      "properties": {
+        "pair_key": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "binding_state": {
+          "type": "string",
+          "enum": [
+            "active",
+            "retired"
+          ]
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "main_strand_id": {
+          "$ref": "#/$defs/strand_id"
+        },
+        "mls_group_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "binding_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "predecessor_binding_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "content_readability": {
+          "type": "string",
+          "enum": [
+            "readable",
+            "metadata_only",
+            "content_unavailable"
+          ],
+          "description": "Caller-specific status derived from this segment's own membership/history/retention state and MLS key availability. It never inherits from another segment."
+        }
+      },
+      "additionalProperties": false
+    },
+    "direct_conversation_segment_list": {
+      "type": "object",
+      "required": [
+        "pair_key",
+        "segments",
+        "has_more"
+      ],
+      "properties": {
+        "pair_key": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "segments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/direct_conversation_segment_entry"
+          },
+          "maxItems": 200
+        },
+        "next_cursor": {
+          "$ref": "#/$defs/cursor"
+        },
+        "has_more": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Authenticated principal-private canonical segment chain ordered from oldest to newest within the page. The only active row, when present, is the verified chain tail. Pending, orphan, duplicate and non-canonical candidates are excluded."
+    },
     "direct_conversation_resolve_outcome": {
       "type": "object",
       "required": [
@@ -495,6 +596,7 @@
           "type": "string",
           "enum": [
             "remote_keypackage_claim",
+            "direct_conversation_retirement",
             "direct_conversation_materialization"
           ]
         },
@@ -534,7 +636,41 @@
             "expires_at": { "$ref": "#/$defs/timestamp" }
           },
           "additionalProperties": false,
-          "description": "Immutable client-side materialization plan issued only after a KeyPackage claim is final. The participant submits realm_event and peer_member_event as the atomic ordinary-Realm genesis unit; peer_member_event is authorized by a staged authority-root proof bound to realm_event in the same batch. Once that batch is canonically accepted, the creator is already an ak.realm.owner whose operational coverage includes ak.strand.create, so main_strand_event is submitted directly under an accepted-Seal inclusion proof of the ak.component.realm.authority_root.v1 cell; no separate capability grant is involved. The participant authors real MLS genesis/add-commit/Welcome objects from claimed_keypackage, then submits the remaining post-bootstrap Realm Events before binding_event in the participant PCR. No service may synthesize participant Event proofs or MLS ciphertext."
+          "description": "Immutable client-side materialization plan issued only after a KeyPackage claim is final and any required canonical retired predecessor is available. The participant submits realm_event and peer_member_event as the atomic ordinary-Realm genesis unit. Main Strand and MLS genesis/add-commit/Welcome writes are admitted only by the Direct Conversation root-owner founding mask and must match this exact unexpired draft; no ordinary grant is involved. The participant authors real MLS objects from claimed_keypackage, then submits binding_event in the participant PCR. No service may synthesize participant Event proofs or MLS ciphertext."
+        },
+        "retirement_draft": {
+          "type": "object",
+          "required": [
+            "draft_token",
+            "pair_key",
+            "supersedes_binding_ref",
+            "retirement_cause_event_ref",
+            "retirement_event",
+            "expires_at"
+          ],
+          "properties": {
+            "draft_token": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "pair_key": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "supersedes_binding_ref": {
+              "$ref": "#/$defs/event_id"
+            },
+            "retirement_cause_event_ref": {
+              "$ref": "#/$defs/event_id"
+            },
+            "retirement_event": {
+              "$ref": "#/$defs/unsigned_direct_binding_event"
+            },
+            "expires_at": {
+              "$ref": "#/$defs/timestamp"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Immutable participant-authoring draft for the canonical retired binding fact required before a successor can be materialized. The service validates the accepted structural terminal cause and reserves bytes, but never signs or mutates the binding projection on behalf of a participant."
         }
       },
       "allOf": [
@@ -568,6 +704,42 @@
                     "authoring_kind"
                   ]
                 },
+                {
+                  "required": [
+                    "claim_authorization_draft"
+                  ]
+                },
+                {
+                  "required": [
+                    "materialization_draft"
+                  ]
+                },
+                {
+                  "required": [
+                    "retirement_draft"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "authoring_kind": {
+                "const": "direct_conversation_retirement"
+              }
+            },
+            "required": [
+              "authoring_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "retirement_draft"
+            ],
+            "not": {
+              "anyOf": [
                 {
                   "required": [
                     "claim_authorization_draft"
@@ -618,8 +790,17 @@
               "materialization_draft"
             ],
             "not": {
-              "required": [
-                "claim_authorization_draft"
+              "anyOf": [
+                {
+                  "required": [
+                    "claim_authorization_draft"
+                  ]
+                },
+                {
+                  "required": [
+                    "retirement_draft"
+                  ]
+                }
               ]
             }
           }
@@ -677,7 +858,7 @@
           "required": ["kind"]
         }
       ],
-      "description": "Post-bootstrap main Strand create. Submitted after the MLS genesis/add-commit/Welcome objects authored from claimed_keypackage."
+      "description": "Post-bootstrap main Strand create admitted only by the Direct Conversation founding mask. It is accepted before the MLS genesis/add-commit/Welcome sequence and must match the same materialization draft."
     },
     "unsigned_direct_binding_event": {
       "allOf": [

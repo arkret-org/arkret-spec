@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-01.3",
+  "version": "2026-08-02.1",
   "codes": [
     {
       "code": "bad_json",
@@ -2795,6 +2795,15 @@
       "description": "An authored Direct Conversation binding fact has an invalid issuer, pair key, referenced contact facts, Realm role, membership set, main Strand, retirement target, or other canonical verification input."
     },
     {
+      "code": "direct_conversation_lineage_conflict",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution",
+        "service_call"
+      ],
+      "description": "The verified Direct Conversation predecessor graph does not yield one canonical retired anchor or one active tail. Projection and participant authority MUST fail closed; timestamps and local receive order MUST NOT repair the conflict."
+    },
+    {
       "code": "direct_conversation_invite_forbidden",
       "applies_to": [
         "event_envelope",
@@ -2810,6 +2819,41 @@
         "state_resolution"
       ],
       "description": "A Direct Conversation binding or membership projection does not resolve to exactly two distinct active principal participants. The Realm cannot be returned as an active canonical DM and policy evaluation fails closed."
+    },
+    {
+      "code": "direct_conversation_participant_authority_denied",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "The ak.authority.direct_conversation_participant.v1 evaluator did not establish every profile, canonical binding, exact participant, active membership, Realm/Strand/MLS cross-binding, lifecycle, resource, consent, device or Agent gate required for the requested allowlisted action. The evaluator MUST NOT fall back to created_by, membership, a local projection row, Realm owner aggregation or an arbitrary Event/cell reference."
+    },
+    {
+      "code": "direct_conversation_predecessor_required",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution",
+        "service_call"
+      ],
+      "description": "A non-first active Direct Conversation binding omitted predecessor_binding_ref, referenced a non-canonical/non-retired fact, or did not target the canonical retired binding for the same pair_key and trust_domain. The candidate remains pending or is rejected; created_at is never a predecessor substitute."
+    },
+    {
+      "code": "direct_conversation_retirement_evidence_required",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution",
+        "service_call"
+      ],
+      "description": "A retired Direct Conversation fact lacks a participant signature, the superseded active binding reference, or an accepted structural terminal cause Event. Contact/consent changes and service-local projection mutations are not valid retirement evidence."
+    },
+    {
+      "code": "direct_conversation_root_mask_violation",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "The technical authority-root controller attempted an operational, grant, member-governance, policy or terminal action outside the Direct Conversation profile phase mask. Root owner aggregation cannot bypass the participant authority or target the other participant."
     },
     {
       "code": "direct_conversation_space_forbidden",

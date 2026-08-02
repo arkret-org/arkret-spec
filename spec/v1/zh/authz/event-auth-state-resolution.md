@@ -121,6 +121,29 @@ verify_data_event(E):
 
 DataEvent 通过验证后不是"被 seal final"，而是**本地终态**：相同 data DAG 输入下，所有 verifier MUST 得到相同 data join 结果。后续发现的有效并发 DataEvent MAY 改变同一 data cell 的 join / exposed heads。
 
+### 4.2.1 Direct Conversation participant source 与 root mask
+
+当 Realm 声明 `ak.profile.direct_conversation_realm.v1` 时，authz check MUST 先识别机器 registry 中的
+`ak.authority.direct_conversation_participant.v1` 与 profile root-owner mask，再做最终求交：
+
+- 直接 participant Event 的 `authorization_ref` 必须是 exact source token，并有恰好一条 critical
+  `direct_conversation_binding` Event ref；任意 cell/Event、membership、`created_by` 或本地 row 不得替代；
+- verifier 在 `seal_ref` view 重算 active canonical winner、exact-two participant/membership、
+  Realm/Strand/MLS/lifecycle/resource 与 action-specific gate。dependency 缺失/冲突/freshness unknown 时
+  pending/fail closed；
+- `executed_by` Event 的 `authorization_ref` 仍绑定 executor delegation；participant source、Agent
+  provision/runtime/participation 与 executor delegation 全部是 AND gate；
+- owner aggregate 必须先与 profile phase mask 求交。active phase 的普通 owner operational coverage不能
+  作为 participant source 的 fallback；
+- authority reset/transfer 不改变 participant source。member leave/ban、Realm terminal 或 canonical main
+  Strand terminal 是结构性 zero-window barrier：该终态 accepted 后，新写立即不再 admission；明确因果早于
+  barrier 且已按旧 basis 合法接受的 Event 不追溯改写，因果晚于 barrier 的 Event 必须拒绝，依赖不完整的
+  并发 Event 保持 pending，不能等待 retired fact 后再临时放行。
+
+影响 binding winner、membership、Realm/Strand terminal、MLS group、contact/consent 或 Agent
+participation 的 accepted state 变化，MUST 在更新投影的同一事务边界把 participant authz cache stale；
+federation 迟到 evidence 补齐后必须重验 pending closure。
+
 ### 4.3 `seal_ref` 验证与撤销
 
 `seal_ref` 的语义是："我声称我的写入权基于这个控制面 seal"。
@@ -218,7 +241,7 @@ verify_control_move(M, pre_state):
   4. 验 seal_basis.state_root 与 leaves view 的治理 state 一致。
   5. 验 refs[] 中所有 critical ref 已知且 valid。
   6. 对每个 precondition 读取 pre_state 并判定。
-  7. 从 kind + payload 派生全部 write，对每项执行 lattice validate_op 与 authz check。
+  7. 从 kind + payload 派生全部 write，对每项执行 lattice validate_op 与 authz check；DM profile 还必须在同一 seal_basis joined view 求值 participant source 与 root-owner phase mask。
   8. PASS / FAIL。
 ```
 

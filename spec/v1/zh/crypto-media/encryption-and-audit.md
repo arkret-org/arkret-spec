@@ -1158,6 +1158,26 @@ Genesis 接受规则：
 - **Churn 合并**：committer SHOULD 在不超过 `max_mls_commit_delay_ms` 的前提下，把同一 `(scope, mls_group_id, base_epoch)` 上已可见且仍满足授权 / membership / policy freshness 的 pending membership proposals 合并进单个 Commit；实现不得为每个 join/leave 机械地产生独立 Commit。高隐私或大群 profile MAY 声明更严格的 epoch 推进速率上限，但 ban / revoke / device revoke 不得因此超过 §2.4.1 的发送暂停窗口。
 - **Commit 接管 (Takeover)**：任一持有相应 commit 权限的成员在 observe 到未消费的 Proposal 后，MAY 构造消费该 proposal 的 `ak.mls.commit` 并广播。该 commit 被 accepted Seal 覆盖后，epoch 推进，被移除成员自该 epoch 起 MUST 无法解密后续 application message。
 
+#### 5.3.1 Direct Conversation participant MLS authority
+
+在 `ak.profile.direct_conversation_realm.v1` 中，canonical pair 双方通过
+`ak.authority.direct_conversation_participant.v1` 对等取得 `ak.mls.proposal` 与 `ak.mls.commit`，所以
+epoch 活性不得依赖 creator/root controller 在线。求值仍必须逐字段验证 active canonical binding 的
+`realm_id`、`main_strand_id`、`mls_group_id`、双方 active membership 与当前 MLS governance binding；仅有
+membership、相同 group id 或 root owner 均不足。
+
+同一 stable participant 增加其 active authorized device 时只可使用 profile action
+`ak.mls.welcome.own_device`：Welcome recipient device 必须在该 participant 的当前 device authorization 中，
+KeyPackage/claim/nonce/commit/MLS group 必须与 active binding 和当前 epoch 精确匹配。该 action不得加入第三
+principal、对方的 device 或未知 device；这些情况也不能回退到宽 `ak.mls.welcome`。Native Personal Agent
+participant 还必须同时满足 immutable provision、runtime key 和 participation ceiling。
+
+participant leave/ban、Realm terminal 或 canonical main Strand terminal accepted 时，旧 segment 的 participant
+MLS authoring authority立即停止；retired fact 是否已经投递不影响该 barrier。后续重新发起必须使用新 Realm、
+main Strand、MLS group、fresh KeyPackage claim 与带 canonical retired predecessor 的 binding，禁止复活旧
+group/epoch。旧 segment 的历史解密只按其自己的 membership/history/retention 与本地 key availability 判定，
+新 segment membership 或 MLS keys 不向前继承。
+
 ### 5.4 并发 Commit
 如果 A 和 B 同时发起不同的 Commit，或者 A 发送缓慢导致与 B 的接力 Commit 在网络中发生竞态碰撞：
 - 节点 MUST 以 accepted Seal view 下的 `mls_epoch_cell` / `key_schedule_cell` Lattice 结果为准。互不可达候选不会按时间或 actor 自动选 winner。

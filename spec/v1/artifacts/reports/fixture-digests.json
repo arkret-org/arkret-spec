@@ -66,7 +66,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "b256492cac56abd5084dc3cdccc4ff665e50e25d6c8e70d53de3da688791f0bc"
+      "sha256": "73ba65fe6b0aec3bcd46ee5e3bb52b077bb1b57d3ec7491f6282751e22f49af6"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
@@ -106,7 +106,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "8a5210297d8956f118616c6584fc7c8dba689df9f980653604bd7b7420a1c907"
+      "sha256": "88a0555caa9d0d31f014a93b1ff5cc7fb6e3fb0e6f962b99644da0a560799ef5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
@@ -134,7 +134,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "03133f085e4f1828b63cb411071849a43f94fa377c5a6fe91d383d201b230556"
+      "sha256": "eda083d85af6898da3c84920a999892f660cff90dea04226d0c424590f8511d9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",

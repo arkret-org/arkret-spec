@@ -154,6 +154,7 @@ v1 规范采用窄读：private contact discovery 响应 MAY 在 PSI set-members
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
 | `ak.self.direct_conversation.command.resolve` | `POST /_arkret/self/direct-conversations/resolve` | `DirectConversationResolveRequestBody` / `DirectConversationResolveOutcome` | 解析或创建这对 actor 的 canonical 1:1 DM 入口 |
+| `ak.self.direct_conversation_segment.query.list` | `POST /_arkret/self/direct-conversations/segments/query` | `DirectConversationSegmentListRequestBody` / `DirectConversationSegmentList` | 按已验证 binding predecessor chain 分页读取调用方可见的 canonical 历史分段；只读 complex query，不声明 idempotency |
 
 Resolver MUST：
 
@@ -161,7 +162,7 @@ Resolver MUST：
    - `accepted_contact`：requester 与 peer 的 contact projection 为 `accepted`，requester 未 tombstone 该 contact；
    - `managed_agent_controller`：peer 是 lifecycle `active`、runtime key 已授权的 Native Personal Agent，且其 immutable controller binding bit-identical 指向 requester。
 2. `accepted_contact` basis 还 MUST 验证目标 holder 对 requester 有 active `consent_scope=direct_message` 或 `any`。`managed_agent_controller` basis 的 provisioning/controller binding 是该 controller 发起专属 Agent 私聊的授权根，不额外伪造 contact 或 consent fact；非 controller、paused/deactivated/unpaired Agent 均不得使用该分支。任一 basis 不成立时，对 requester 统一返回 `failed_precondition` / `direct_conversation_unavailable`。服务端 MAY 在 holder-private 审计中区分具体原因，但响应状态、body 与时序 MUST 不可区分。只想基于 consent 发起其它非联系人 DM 的 profile 必须另行注册 operation。
-3. 查询 direct conversation binding。若已有 active canonical binding，返回其 `realm_id` 与 `main_strand_id`。
+3. 查询 direct conversation binding。若已有 structurally eligible 的 active canonical binding，返回其 `realm_id` 与 `main_strand_id`。若旧 active binding 已被 accepted member leave/ban、Realm 终态或 main Strand 终态立即失去资格，但尚无 participant 原签名 retired fact，`create=true` MUST 先返回 `authoring_kind=direct_conversation_retirement`；不得直接创建 successor 或由服务端改投影。
 4. 若 `create=false` 且不存在 binding，返回 `not_found`。
 5. 若 `create=true`，先确定 KeyPackage claim，再向参与者返回不可变 materialization draft；真正的 Realm create / member add / Strand create、MLS group create / add-commit / Welcome 与 binding 必须由参与者设备完成签名并经 canonical Event rail 接受。同 Principal Server 可使用 self KeyPackage claim；跨 Principal Server MUST 使用 [`device-lifecycle.md` §9.2](../crypto-media/device-lifecycle.md) 的 participant-authorized peer claim，不得调用对端 `/_arkret/self/*` 或以 Event push 模拟 claim。Principal Server 不持有参与者设备私钥，也不得直接调用 reducer 伪装这些事实已经成为 Event。该编排的失败路径 MUST 返回如下终态错误，且 MUST NOT 把半成品 Realm 作为 canonical binding 返回：
    - **对端 principal 不可解析**（peer DID 无法解析到有效 principal / control state）：返回 `failed_precondition` / `peer_unresolvable`，不发起 KeyPackage claim 或 Realm create。
@@ -172,14 +173,15 @@ Resolver create 是多步编排，不是单个 reducer 原子操作。若 Realm 
 
 `state=authoring_required` 是显式的客户端签名状态，不是成功终态；该状态 MUST 携带 `authoring_kind`，且 `created` MUST 为 `false`：
 
+- `authoring_kind=direct_conversation_retirement`：仅在验证方已有 accepted 结构终态、旧 active binding 已立即失去 active eligibility、但 canonical retired fact 尚未到达时返回。`retirement_draft` MUST 固定 `pair_key`、`supersedes_binding_ref`、`retirement_cause_event_ref`、完整 unsigned `ak.direct_conversation.bound{binding_state="retired"}` Event 与 expiry。签名人 MUST 是 canonical pair participant；服务端只校验和预留 draft，不得代签、重签或直接 mutation projection。重复 resolver 在 draft 未过期时 MUST 逐字节返回同一 draft。retired Event accepted 并经相同 canonical tie-break 选为 lineage anchor 后，resolver 才可进入 KeyPackage/materialization authoring。
 - `authoring_kind=remote_keypackage_claim`：仅用于跨 Principal Server create。来源 resolver 先预留 immutable `claim_request_id`、Realm id、main Strand id、MLS group id、pair key、nonce 与 expiry，并把预期 source/destination service 与 trust-domain 值一并放入 `claim_authorization_draft={request,transport_binding}`；不得同时返回 `materialization_draft`，也不得先触碰对端 KeyPackage。客户端按 [`device-lifecycle.md` §9.2.1](../crypto-media/device-lifecycle.md) 对完整 draft 生成 `requester_authorization`，把 `draft.request` 加上该 authorization 组成 `peer_claim_request`，与相同的 `peer`、`create=true`、`idempotency_key` 再次提交。resolver MUST 验证 request 逐字段等于预留 draft、签名绑定同一 `transport_binding`、participant 与当前 session 一致，且 `peer_claim_request.claim_request_id == idempotency_key`；任一变化都 MUST 拒绝而不是悄悄重写再签。随后来源服务才可调用 peer claim；响应丢失时必须先走 claim outcome query，不得分配第二个 claim。
-- `authoring_kind=direct_conversation_materialization`：只在 KeyPackage claim 已确定成功后返回，并携带不可变 `materialization_draft`，不得同时携带 `claim_authorization_draft`。draft 至少包含 claim record（跨 PS 时同时包含目标服务原签名 receipt）、claim nonce、预留 MLS group id、预留 MLS genesis / commit / Welcome Event id、unsigned `ak.realm.create`、peer `ak.member.state{join}`、main `ak.strand.create` 与 PCR `ak.direct_conversation.bound` Event drafts 及 expiry。creator membership 由 `ak.realm.create` 派生，因此 binding 的 creator `member_event_ref` MUST 精确引用该 Realm create Event；另一个 member ref 与 main Strand ref 必须精确引用 draft 中对应 Event；`mls_group_id` 与三个 MLS Event ref 也 MUST 精确引用客户端随后生成并提交的同组 genesis、epoch-0 Add Commit 与 Welcome。客户端 MUST 使用 claim 中的真实 RFC 9420 KeyPackage 创建本地 MLS epoch-0 group、Add Commit 与 Welcome，把预留 Event id 写入对应 Event，禁止接受 resolver 生成的占位 welcome bytes / digest / signature。提交顺序是三个协议边界：先把 Realm create → peer member join 作为普通 Realm 的 atomic bootstrap batch，其中 peer member join 使用绑定同批 `ak.realm.create` `event_id` 的 staged authority-root proof 取得 effective `ak.realm.owner`；该批 canonical accepted 后 creator 已经是 effective `ak.realm.owner`，其 operational 覆盖包含 `ak.strand.create`，因此 main Strand create 直接以 accepted Seal 下的 `ak.component.realm.authority_root.v1` cell inclusion proof 作为 `authorization_ref` 提交，不需要任何额外 `ak.capability.grant`；随后依次提交并确认 `ak.mls.genesis`、`ak.mls.commit`、`ak.mls.welcome`，其中每次依赖前一 accepted frontier / Seal，Commit 未确认前绝对不得提交 Welcome；这些 Event 全部 canonical accepted 后，再签名并提交 PCR binding Event。实现不得把 Strand 或 MLS Event 塞入 closed ordinary-Realm bootstrap unit，也不得把 Realm create 与 peer member join 逐条提交。客户端在提交 Commit 前 MUST 持久化可重试的已签名 Commit、对应 Welcome 与 post-commit MLS snapshot；崩溃恢复 MUST 重放同一 Event id 和密文，禁止重新 claim 或生成第二份 Commit。任一步失败时不得提交 binding，已接受资源只能作为 pending orphan 候选。
+- `authoring_kind=direct_conversation_materialization`：只在 KeyPackage claim 已确定成功，且任何已验证 canonical predecessor 已有 retired anchor 后返回，并携带不可变 `materialization_draft`，不得同时携带其它 authoring draft。draft 至少包含 claim record（跨 PS 时同时包含目标服务原签名 receipt）、claim nonce、预留 MLS group id、预留 MLS genesis / commit / Welcome Event id、unsigned `ak.realm.create`、peer `ak.member.state{join}`、main `ak.strand.create` 与 PCR `ak.direct_conversation.bound` Event drafts 及 expiry；非首段 binding draft MUST 逐字携带 canonical retired Event 的 `predecessor_binding_ref`。creator membership 由 `ak.realm.create` 派生，因此 binding 的 creator `member_event_ref` MUST 精确引用该 Realm create Event；另一个 member ref 与 main Strand ref必须精确引用 draft 中对应 Event；`mls_group_id` 与三个 MLS Event ref 也 MUST 精确引用客户端随后生成并提交的同组 genesis、epoch-0 Add Commit 与 Welcome。客户端 MUST 使用 claim 中的真实 RFC 9420 KeyPackage 创建本地 MLS epoch-0 group、Add Commit 与 Welcome，把预留 Event id 写入对应 Event，禁止接受 resolver 生成的占位 welcome bytes / digest / signature。提交顺序是三个协议边界：先把 Realm create → peer member join 作为普通 Realm 的 atomic bootstrap batch；其后的 main Strand、MLS genesis/add-commit/Welcome 只能在 profile root mask 的 founding draft 分支内使用 root authority，且所有预留值逐字段匹配；最后再签名并提交 PCR binding Event。实现不得把 Strand 或 MLS Event 塞入 closed ordinary-Realm bootstrap unit，也不得把 Realm create 与 peer member join 逐条提交。客户端在提交 Commit 前 MUST 持久化可重试的已签名 Commit、对应 Welcome 与 post-commit MLS snapshot；崩溃恢复 MUST 重放同一 Event id 和密文，禁止重新 claim 或生成第二份 Commit。任一步失败时不得提交 binding，已接受资源只能作为 pending orphan 候选。
 
-同 PS create 可直接进入 `direct_conversation_materialization` authoring；跨 PS create 的顺序固定为 `remote_keypackage_claim → direct_conversation_materialization → found`，不得合并 claim authorization 与 Event proofs、交换顺序或把 participant authorization 当作任何 Event proof。重复 resolver 调用必须逐字节返回同一未过期 materialization draft；不得再次 claim 或重新分配 Event id。只有随后 resolver 返回 `found`，客户端才可把 `(realm_id, main_strand_id)` 当作 active 默认入口。Principal Server 在 canonical acceptance 前 MUST 只把候选保存为 pending state，不得投影为 active，也不得用服务签名、空 proof、占位 MLS ciphertext或直接 reducer mutation 伪造 participant issuer。
+首段同 PS create 可直接进入 `direct_conversation_materialization` authoring；重建时若缺 retired anchor，固定顺序先是 `direct_conversation_retirement`。跨 PS create 的剩余顺序固定为 `remote_keypackage_claim → direct_conversation_materialization → found`，不得合并 authoring 状态、交换顺序或把 participant authority 当作 Event proof。重复 resolver 调用必须逐字节返回同一未过期 draft；不得再次 claim 或重新分配 Event id。只有随后 resolver 返回 `found`，客户端才可把 `(realm_id, main_strand_id)` 当作 active 默认入口。Principal Server 在 canonical acceptance 前 MUST 只把候选保存为 pending state，不得投影为 active，也不得用服务签名、空 proof、占位 MLS ciphertext或直接 reducer mutation 伪造 participant issuer。
 
 跨 PS materialization 的 `ak.mls.welcome.payload.peer_claim_receipt` MUST 是目标服务对本次 peer claim 的原签名 receipt；其签名覆盖的 `request` 必须精确绑定该 binding 的 `pair_key`、`realm_id`、`main_strand_id`、`mls_group_id`、creator requester 与 peer recipient，且 `last_resort_allowed` 不得为 true。目标 PS 在 Welcome ingress 对 durable claim ledger 验证 receipt，在 binding projection 阶段再次对上述 Direct Conversation 引用做闭环验证；任一不一致的候选不得成为 active/canonical。
 
-Direct conversation binding 是 pair 到 `(realm_id, main_strand_id, mls_group_id)` 的 principal-scoped signed fact / projection，不是 server 私有表。`ak.direct_conversation.bound` 的 issuer MUST 是参与 pair 的一方，字段至少包含 `pair_key`, `binding_state`, `participants_unordered[]`, `realm_id`, `main_strand_id`, `authorization_basis`, `member_event_refs[]`, `main_strand_create_ref`, `mls_group_id`, `mls_genesis_event_ref`, `mls_commit_event_ref`, `mls_welcome_event_ref` 与 `created_at`。`authorization_basis.kind` 只能是 `accepted_contact|managed_agent_controller`，其 `event_refs[]` MUST 精确引用创建时已验证的 contact request/accept facts，或 managed Agent provisioning、controller binding 与 active runtime-key facts；不得使用显示名、sidebar 来源或服务私有行代替。active binding 的所有引用 MUST 指向已 accepted、同 Realm、同 MLS group 的精确 canonical Events；服务端 MUST 校验 genesis 为 epoch 0、commit 的 metadata 为 epoch 0 → 1、Welcome 的 metadata/`commit_ref`/recipient/claim envelope 精确对应 draft。由于 canonical Event rail 不解析 opaque MLS ciphertext，recipient MLS 实现还 MUST 解密 Welcome 并验证 RFC 9420 authenticated transcript 确实把被 claim KeyPackage 作为 Add leaf 纳入该 Commit；验证失败时 MUST 隔离该候选且不得把 binding 投影为可用会话。只检查 Realm/member/Strand projection 或只相信 MLS metadata，均不足以建立可用 active binding。线上可签发的 `binding_state` 只有 `active|retired`；`duplicate|non_canonical` 是 reducer 对有效候选的派生投影状态，不得作为 authored payload 伪造。`retired` fact MUST 通过 `supersedes_binding_ref` 引用被退役的 active binding Event。
+Direct conversation binding 是 pair 到一个 `(realm_id, main_strand_id, mls_group_id)` 会话段的 principal-scoped signed fact / projection，不是 server 私有表。`ak.direct_conversation.bound` 的字段语义顺序是：`pair_key`, `participants_unordered[]`, `realm_id`, `main_strand_id`, `mls_group_id` → `authorization_basis`, `member_event_refs[]`, `main_strand_create_ref`, `mls_genesis_event_ref`, `mls_commit_event_ref`, `mls_welcome_event_ref` → 可选 lineage refs → `binding_state` → `created_at`。issuer MUST 是参与 pair 的一方。`authorization_basis.kind` 只能是 `accepted_contact|managed_agent_controller`，其 `event_refs[]` MUST 精确引用创建时已验证的 contact request/accept facts，或 managed Agent provisioning、controller binding 与 active runtime-key facts；不得使用显示名、sidebar 来源或服务私有行代替。active binding 的所有引用 MUST 指向已 accepted、同 Realm、同 MLS group 的精确 canonical Events；服务端 MUST 校验 genesis 为 epoch 0、commit 的 metadata 为 epoch 0 → 1、Welcome 的 metadata/`commit_ref`/recipient/claim envelope 精确对应 draft。由于 canonical Event rail 不解析 opaque MLS ciphertext，recipient MLS 实现还 MUST 解密 Welcome 并验证 RFC 9420 authenticated transcript 确实把被 claim KeyPackage 作为 Add leaf 纳入该 Commit。线上可签发的 `binding_state` 只有 `active|retired`；`duplicate|non_canonical` 是 reducer 派生状态。`retired` fact MUST 同时以 `supersedes_binding_ref` 引用旧 active binding Event、以 `retirement_cause_event_ref` 引用已 accepted 的结构终态 Event；contact/consent 变化不成立。非首段 active/retired fact MUST 以 `predecessor_binding_ref` 引用同 pair、同 trust domain 的 canonical retired predecessor Event。解析不完整、交叉不匹配或 lineage 不闭合时保持 pending/fail closed。
 
 Binding facts 与 contact facts 一样需要在双方之间交换 / 镜像并以原签名 envelope 参与 projection；跨 Principal Server 时使用 `ak.peer.contacts.command.submit` / `POST /_arkret/peer/contacts` 投递 `fact_kind="ak.direct_conversation.bound"`，接收方 MUST 验证并保留原 Event proof 与 canonical Event digest，不得重签。若原 proof 使用来源 principal 的 typed device method且接收方尚无该 device directory，request MAY 携带 federation `signer_key_evidence`；接收方只有在 outer service signature 与 accepted contact 的 `peer_service_id` 均精确绑定来源服务后才能使用，并必须按 [`../sync/federation.md` §4](../sync/federation.md) 独立验证其中原始 `service_attested` `ak.device.authorize` Event 的 DID enrollment-authority proof，再验证 binding 原 JWS；不得把来源服务给出的裸 key 当作 participant trust root。否则 Alice 与 Bob 可能各自只看到自己的 binding fact，无法用同一 tie-break 算出相同 canonical Realm。Binding 只有在引用的 DM Realm、双方 active membership、DM main Strand、MLS genesis / Add Commit / Welcome 与 accepted contact refs 都可验证时才可成为 canonical。Realm Event 与 principal-scoped binding 可经不同 durable outbox 独立到达；若 binding 先到而任一被引用 Event 尚不可解析，接收方 MUST 返回 retryable / `temporarily_unavailable`（或持久化为 pending 后自动重验），不得把它永久判成 `schema_violation`，发送方 MUST 保持同一原签名 binding Event 重试。
 
@@ -228,6 +230,91 @@ Resolver MUST NOT 为了"继续同一个私聊"把退出方重新加入旧 DM Re
 旧 DM Realm MAY 继续作为历史归档存在，其可读性按离开时的 Realm history visibility、retention、redaction 与本地备份策略决定。它不得接收新的默认聊天消息。
 
 以下结构终态与 member leave/ban 等价，MUST 退役 active binding：Realm tombstone/destroy、canonical main Strand archive/tombstone。Contact tombstone 或 `direct_message` consent revoke 只阻止 resolver 成功与新的默认消息发送；它们不改写已接受 Event 历史，也不单独退役结构仍完整的 binding。若 contact/consent 后续重新满足且双方 membership/Realm/main Strand 均仍 active，resolver MAY 返回原 canonical binding；一旦发生上述结构退役条件，则永远不得复用旧 Realm。
+
+### 7.2 Participant authority（normative）
+
+DM Realm 的日常对等写权限来自唯一注册源 `ak.authority.direct_conversation_participant.v1`，不是
+membership、`created_by`、role 标签、root owner 聚合或普通 grant。机器合同见
+[`authority-source-registry.json`](../../artifacts/registry/authority-source-registry.json) 与
+`conformance-profiles.json#profile_requirements/ak.profile.direct_conversation_realm.v1`。
+
+直接由 participant 签发的 Event MUST 设置
+`authorization_ref="ak.authority.direct_conversation_participant.v1"`，并在 `refs[]` 中携带恰好一条
+`{role:"direct_conversation_binding", critical:true, id:<active-binding-event-ref>}`。该常量只能选择已注册
+evaluator；不得把任意 Event、cell、本地 binding row 或相同 `pair_key` 当作 authority。Native Personal
+Agent 等 `executed_by` 路径仍用 `authorization_ref` 绑定 executor grant/delegation，同时把 participant
+authority 作为独立 AND gate 求值；两者互不替代。
+
+每次求值 MUST 在目标 Event 的 CBA basis（non-event surface 则在请求的当前 verified basis）同时确认：
+
+1. Realm profile/discriminator 与 create critical extension 完整；
+2. 引用的 binding 是当前唯一 active canonical winner；
+3. actor 是 binding 的两个 stable subject DID 之一且当前 membership 为 `join`；
+4. binding 的 Realm/main Strand/MLS group 与所引用 Events 逐字段一致；目标 Strand 可以是 main Strand 或同 Realm 的额外 ordinary non-Circle discussion Strand，后者必须继承同一 Realm-default MLS group；
+5. Realm、binding、目标 Strand 未 terminal/retired；
+6. action 逐字命中 registry 的闭合 allowlist，resource 没有越出该 DM Realm；
+7. own-message、self-leave、same-participant device Welcome、当前 contact/consent 与 Agent
+   provision/runtime/participation 等 action-specific gate 全部成立。
+
+baseline 覆盖双方的 message create、own revise/redact、reaction、read cursor、typing/receipt/call signal、
+call join/screen share、MLS proposal/commit、同一 participant 的新 device Welcome、自身 leave，以及创建
+ordinary non-Circle discussion Strand。对 main Strand 和额外 ordinary discussion Strand使用同一规则。
+它不包含 owner/admin、普通转授、对方 member/message 治理、invite、policy、record/transcribe/moderate、
+Realm/Strand terminal 或第三方 MLS member。binding、membership、canonical winner、Seal/federation evidence
+缺失、冲突、不可达或 freshness unknown 时 MUST dependency-pending 或
+`direct_conversation_participant_authority_denied`，不得回退。`ak.realm.authority.reset` 与 transfer 不改变该
+source；结构终态 accepted 时双方 source 立即停止新写，不等待 retired fact 到达。
+该来源的 grant 正交性与 reset 不变性由
+`ak.vector.capability.direct_conversation_participant_authority.v1` 固定。
+
+### 7.3 Root owner profile mask（normative）
+
+DM authority root 保留单 controller，但它是技术 root，不是产品语义上的“群主”。profile mask 在 owner
+aggregate 之后、最终 allow 之前求交：
+
+- founding phase 只允许同一未过期 materialization draft 精确绑定的 peer bootstrap join、main Strand、
+  MLS genesis/epoch-0 Add Commit/Welcome；任何用户 Message、非预留对象或普通管理写均拒绝；
+- active phase 的普通 operational owner coverage 全部 masked。creator 发消息也必须走 participant source；
+  root 不得改/撤对方消息、remove/ban 对方、加第三成员、签 owner/admin、向 pair 外主体 grant、单方面改
+  policy 或 archive/freeze/tombstone/destroy Realm/main Strand；
+- root-control 只保留 authority basis update、不会影响 participant baseline 的 reset，以及 transfer 给另一
+  active participant；transfer 必须有 successor acceptance；
+- ordinary `ak.capability.grant` 默认拒绝。注册的窄例外只能面向 canonical participant，action 不超过
+  participant allowlist 或另一明确 profile ceiling，constraints 只能收紧；owner/admin、成员治理、普通
+  grant/revoke 权与第三方 subject 无条件拒绝；
+- 双方都不再 active、binding 已 retired 且 retention/audit 满足后才可清理 Realm 内容；仍被 lineage 引用
+  的 binding Event/proof anchor 不得删除。orphan cleanup 还要求无用户消息、无 active/retired binding
+  引用且 draft 过期。此阶段只允许 root-control `ak.realm.destroy|ak.realm.tombstone`；tombstone 的
+  `successor_realm_id` 仍只表达 Realm migration，不得代替 DM `predecessor_binding_ref`。引用闭包 unknown
+  时 fail closed。
+
+违反 mask 返回 `direct_conversation_root_mask_violation`。mask 不改变 authority-root cell 的单 controller
+结构，也不把 participant 升为 co-owner。
+
+### 7.4 Historical segment lineage（normative）
+
+同一 `(trust_domain, unordered stable-DID pair)` 在任一时刻是 `0..1` current active canonical segment，
+在时间上可以有 `0..N` retired canonical segments。`pair_key` 是逻辑 pair digest，不是 Realm 永久 ID。
+pending、orphan、duplicate 与 non-canonical loser 永不进入 canonical historical chain。
+
+accepted 结构终态立即使旧 active binding 与 participant authority 失效。之后 participant 签名的 retired
+fact 必须引用旧 active binding 和该终态 Event。多个 causally-unreachable 合法 retired facts 指向同一
+active binding 时，按 binding Event `event_digest` unsigned-byte lexicographic maximum 选唯一 retired
+anchor。successor active candidate 必须以 `predecessor_binding_ref` 指向该 anchor；多个 successor 引用
+同一 anchor 时复用同一 digest tie-break 选 active winner。存在已验证 predecessor evidence 却省略该字段，
+或 ref 尚未到达时，candidate MUST pending/reject，不得按 `created_at`、接收顺序或本地表顺序猜测。
+
+第一段相对于验证方完整已见 evidence 才可省略 predecessor。若后来到达更早 canonical evidence，原先的
+“首段”必须重验并在 closure 完整前 fail closed；引用缺失永远不能证明它是第一段。被后继或 historical
+projection 引用的 binding Event 与最小 proof closure 在引用存续期间必须可解析。Realm 内容清理后可把
+`content_readability` 投影为 `content_unavailable`，但不得删除 anchor 或跨 Realm 继承 membership、history、
+retention、MLS key。
+
+`ak.self.direct_conversation_segment.query.list` 是 authenticated principal-private 分页真源投影。read-only
+POST body 以 `peer`、可选 `ak:cursor:` 与 `limit<=200` 定位 pair；响应逐行返回 `pair_key`、`binding_state`、`realm_id`、
+`main_strand_id`、`mls_group_id`、`binding_event_ref`、可选 `predecessor_binding_ref` 与 caller-specific
+`content_readability`。行按 predecessor chain 从旧到新排列；若存在 active row，它必须是唯一 verified
+tail。该 read 不接受/返回 idempotency 字段，不得用客户端本地数据库或时间戳替代。
 
 ## 8. DM 主 Strand Well-Known 形态
 

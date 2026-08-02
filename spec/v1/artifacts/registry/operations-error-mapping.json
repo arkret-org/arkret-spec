@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-07-31",
+  "version": "2026-08-02.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -554,9 +554,21 @@
         "not_found",
         "failed_precondition",
         "keypackage_unknown",
-        "direct_conversation_unavailable"
+        "direct_conversation_unavailable",
+        "direct_conversation_lineage_conflict",
+        "direct_conversation_predecessor_required",
+        "direct_conversation_retirement_evidence_required"
       ],
-      "description": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates or repairs the canonical DM Realm/main Strand/binding."
+      "description": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true returns participant-authoring retirement/materialization steps as needed and only found identifies the canonical active entry."
+    },
+    {
+      "operation_id": "ak.self.direct_conversation_segment.query.list",
+      "http_alias": "POST /_arkret/self/direct-conversations/segments/query",
+      "operation_specific": [
+        "not_found",
+        "direct_conversation_lineage_conflict"
+      ],
+      "description": "Principal-private read of one pair's verified canonical segment chain. An unknown/invisible pair is not enumerable; an internally conflicting verified lineage fails closed instead of being timestamp-sorted."
     },
     {
       "operation_id": "ak.find.directory.command.announce",

@@ -1359,6 +1359,66 @@
       }
     },
     {
+      "name": "direct_conversation_participant_authority_is_not_a_grant",
+      "vector_id": "ak.vector.capability.direct_conversation_participant_authority.v1",
+      "authority_source": {
+        "authority_source_id": "ak.authority.direct_conversation_participant.v1",
+        "profile": "ak.profile.direct_conversation_realm.v1",
+        "binding_state": "active",
+        "canonical": true,
+        "participants": [
+          "did:webvh:z6mkfixture:alice.example",
+          "did:webvh:z6mkfixture:bob.example"
+        ],
+        "active_members": [
+          "did:webvh:z6mkfixture:alice.example",
+          "did:webvh:z6mkfixture:bob.example"
+        ]
+      },
+      "cases": [
+        {
+          "name": "peer_message_allowed_without_grant",
+          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "action": "ak.message.create",
+          "ordinary_grants": [],
+          "expected": {
+            "decision": "allow",
+            "matched_authority_source": "ak.authority.direct_conversation_participant.v1"
+          }
+        },
+        {
+          "name": "root_generation_reset_does_not_revoke_source",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "action": "ak.mls.commit",
+          "authority_generation_before": 0,
+          "authority_generation_after": 1,
+          "expected": {
+            "decision": "allow",
+            "participant_authority_unchanged": true
+          }
+        },
+        {
+          "name": "membership_alone_never_selects_source",
+          "override_binding_state": "missing",
+          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "action": "ak.message.create",
+          "expected": {
+            "decision": "deny",
+            "reason_code": "direct_conversation_participant_authority_denied"
+          }
+        },
+        {
+          "name": "source_cannot_issue_child_grant",
+          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "action": "ak.capability.grant",
+          "expected": {
+            "decision": "deny",
+            "reason_code": "direct_conversation_participant_authority_denied"
+          }
+        }
+      ]
+    },
+    {
       "name": "sensitive_field_handling",
       "vector_id": "ak.vector.auth.sensitive_field_handling.v1",
       "constraint": {

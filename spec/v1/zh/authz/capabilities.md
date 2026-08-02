@@ -183,6 +183,27 @@ unsupported 时都必须 `grant_exceeds_issuer_authority` fail closed。该机�
 
 该规则使首发 grant 的上界校验有"先按 seal_basis joined view 确定性解析 ancestor 授权，再按 §18.2 对 basis 新鲜度做高风险 fail-closed"的两步确定性算法，消除 §18.2 freshness 与上界校验之间的循环依赖。
 
+### 3.3 注册的非 grant authority source（normative）
+
+v1 普通授权仍以 capability grant 为默认。唯一注册的 profile-scoped 非 grant source 是
+`ak.authority.direct_conversation_participant.v1`，canonical 行见
+[`authority-source-registry.json`](../../artifacts/registry/authority-source-registry.json)。语法匹配、membership、
+任意 Event/cell ref 或本地 projection row 都不能创建 source。该 source：
+
+- 只在 `ak.profile.direct_conversation_realm.v1` 内，按 active canonical binding 与 exact participant/member/
+  Realm/Strand/MLS/lifecycle/consent/Agent gate 求值；
+- action 是 registry 闭合 allowlist，不能进入 `issuer_authority_refs[]`、不能授权
+  `ak.capability.grant`，也不能被 owner/admin aggregate 放宽；
+- 不依赖 `authority_generation`，所以 root reset/transfer 不撤销 participant baseline；结构终态则立即失效；
+- 直接 participant Event 以 exact source token + critical binding Event ref 选择 evaluator；`executed_by` 路径
+  仍以普通 grant/delegation 绑定 executor，并与 participant source 做 AND；
+- 任一 evidence 缺失、冲突或 freshness unknown 都 fail closed/dependency pending，不得回退。
+
+Direct Conversation root owner 还必须与 profile phase mask 求交：founding 仅可完成逐字段绑定 draft，active
+phase 只保留注册 root-control，普通 operational/grant/member/policy/terminal coverage 被拒绝。完整规则见
+[`contact-and-direct-conversation.md` §7.2–§7.4](../identity/contact-and-direct-conversation.md)。
+机器正负向闭包由 `ak.vector.capability.direct_conversation_participant_authority.v1` 固定。
+
 ## 4. Resource Selector
 
 Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) 与 [`policy-server.md` §7.0](./policy-server.md) 为准）：
@@ -365,6 +386,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.invite.third_party`（签发 3PID 邀请，target=`ak.invite.third_party`）
 - `ak.invite.claim`
 - `ak.invite.revoke`
+- `ak.member.leave.own`（risk_tier=medium；profile=`ak.profile.direct_conversation_realm.v1`；scope_suffix_variant，target=`ak.member.state`；只允许 `actor_id == payload.actor_id` 的 `join → leave`，不得 leave/ban 对方或执行 join）
 - `ak.realm.join.review`（候选 capability，与 candidate join-policy event 配对：审核 `member.application`、签发 `member.application.review`；详见 [`../governance/join-policy.md` §7](../governance/join-policy.md)。capability-action-registry 中 `profile = "ak.profile.candidate.join_policy.v1"`：未声明该候选 profile 的 receiver MUST 按 registry_rules 把本 action 视为 unknown，default risk_tier=high。Join-policy 正式登记前，本 capability 不属于 v1 active conformance。**Candidate / Profile-only**：`ak.realm.join.review` 不是 v1 base conformance 必需 capability；base v1 实现把 review 结果承载为 signed receipt（`review_receipt_digest`），并把 `ak.invite.create.refs[role='join_authorised_by']` 指向该 receipt digest（见 [`../governance/join-policy.md` §7.5](../governance/join-policy.md)）。只有声明 join-policy candidate profile 的部署才需要注册该 capability。）
 - `ak.approval.vote`
 - `ak.moderation.decision`（写入 sealed moderation state cell；详见 [`policy-server.md` §7.1](./policy-server.md)）
@@ -388,6 +410,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.mls.proposal`
 - `ak.mls.commit`
 - `ak.mls.welcome`
+- `ak.mls.welcome.own_device`（high risk；profile=`ak.profile.direct_conversation_realm.v1`；scope_suffix_variant，target=`ak.mls.welcome`；recipient 必须是同一 stable participant 的 active authorized device，MLS group 必须精确匹配 active binding）
 - `ak.mls.keypackage`
 - `ak.realm_key.share`（high risk；仅授权 durable 历史密钥投递 Event，仍须独立通过 history-sharing policy、成员、设备、`source_authorization_ref` 与 recipient gate；不得由 `ak.realm.admin` 隐式推出）
 - `ak.audit.accessed`

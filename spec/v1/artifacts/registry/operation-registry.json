@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-01.3",
+  "version": "2026-08-02.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-01T08:00:00Z",
+  "generated_at": "2026-08-02T12:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -163,7 +163,8 @@
         "ak.self.invite_locator.command.issue",
         "ak.self.invite_locator.command.rotate",
         "ak.self.invite_locator.command.revoke",
-        "ak.self.direct_conversation.command.resolve"
+        "ak.self.direct_conversation.command.resolve",
+        "ak.self.direct_conversation_segment.query.list"
       ],
       "surface_class": "extension"
     },
@@ -1466,7 +1467,7 @@
       "http": "POST /_arkret/self/direct-conversations/resolve",
       "grpc": "SelfDirectConversation/Resolve",
       "mq": "self.direct_conversation.command.resolve",
-      "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent. Cross-Principal-Server create=true uses two participant-authoring stages: a reserved remote KeyPackage claim draft is signed and resubmitted before the binding Event draft; only found is an active success state.",
+      "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent. Recreate after a structural terminal Event first returns a participant-signed retirement draft when the canonical retired fact is missing; cross-Principal-Server create=true then uses the reserved remote KeyPackage claim and materialization authoring stages. Only found is an active success state.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -1477,6 +1478,18 @@
         "kind": "none",
         "rationale": "returns_client_authoring_material_or_an_existing_projection_and_never_commits_the_draft_events"
       }
+    },
+    {
+      "operation_id": "ak.self.direct_conversation_segment.query.list",
+      "http": "POST /_arkret/self/direct-conversations/segments/query",
+      "grpc": "SelfDirectConversationSegment/List",
+      "mq": "self.direct_conversation_segment.query.list",
+      "notes": "Principal-private paginated projection of the verified canonical segment lineage for the authenticated actor and one peer. Rows are ordered by predecessor chain, not timestamps; pending, orphan, duplicate and non-canonical candidates are excluded. The POST body is a read-only complex query and the operation declares no idempotency mechanism.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "max_items": 200,
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_segment_list_request_body",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_segment_list"
     },
     {
       "operation_id": "ak.self.circle.command.create",

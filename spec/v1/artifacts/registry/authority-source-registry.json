@@ -1,0 +1,59 @@
+{
+  "version": "2026-08-02.2",
+  "source_of_truth": false,
+  "generated_at": "2026-08-02T12:00:00Z",
+  "generated_from": "registry/contract-registry.json",
+  "generated_by": "tools/artifact_pipeline.py",
+  "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
+  "registry_rules": [
+    "A non-grant authorization source is active only when one exact active row is selected by authority_source_id; syntax or an arbitrary Event/cell reference never creates authority.",
+    "The evaluator MUST rederive all activation, actor, resource and lifecycle predicates from accepted signed evidence at the Event CBA basis or the current non-event request basis and MUST fail closed on missing, conflicting, non-canonical or freshness-unknown dependencies.",
+    "Profile-scoped sources do not enter issuer_authority_refs, cannot authorize ak.capability.grant, and cannot be widened by Realm owner/admin aggregation.",
+    "When an Event is directly participant-authored, authorization_ref uses the source wire_ref and refs contains the registered binding_ref_role. When executed_by is present, authorization_ref continues to bind the delegated executor grant/delegation; the profile source is an independent conjunctive evaluator gate and is never replaced by that delegation."
+  ],
+  "sources": [
+    {
+      "authority_source_id": "ak.authority.direct_conversation_participant.v1",
+      "status": "active",
+      "profile": "ak.profile.direct_conversation_realm.v1",
+      "wire_ref": "ak.authority.direct_conversation_participant.v1",
+      "binding_event_kind": "ak.direct_conversation.bound",
+      "binding_ref_role": "direct_conversation_binding",
+      "action_allowlist": [
+        "ak.call.join",
+        "ak.call.screen_share",
+        "ak.call.signal.send",
+        "ak.member.leave.own",
+        "ak.message.create",
+        "ak.message.redact.own",
+        "ak.message.revise.own",
+        "ak.mls.commit",
+        "ak.mls.proposal",
+        "ak.mls.welcome.own_device",
+        "ak.reaction.add",
+        "ak.reaction.remove",
+        "ak.read_cursor.advance",
+        "ak.receipt.broadcast",
+        "ak.strand.create",
+        "ak.typing.broadcast"
+      ],
+      "activation_checks": [
+        "realm_profile_and_discriminator_exact",
+        "realm_create_critical_extension_present",
+        "active_canonical_binding_exact",
+        "actor_is_one_of_exactly_two_stable_participants",
+        "actor_membership_active_join",
+        "realm_main_strand_target_scope_and_mls_cross_binding_exact",
+        "realm_binding_and_target_strand_non_terminal",
+        "resource_within_dm_realm_non_circle_discussion_scope",
+        "current_contact_consent_gate_for_send_like_actions",
+        "action_specific_self_device_mls_and_agent_gates"
+      ],
+      "revocation_model": "structural_profile_lifecycle",
+      "authority_generation_independent": true,
+      "grantable": false,
+      "delegated_event_rule": "conjunctive_with_executor_delegation",
+      "failure_mode": "fail_closed_or_dependency_pending"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-01.3",
+  "version": "2026-08-02.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-01T08:00:00Z",
+  "generated_at": "2026-08-02T12:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1971,7 +1971,41 @@
           "created",
           "authoring_kind",
           "claim_authorization_draft",
-          "materialization_draft"
+          "materialization_draft",
+          "retirement_draft"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.direct_conversation_segment.query.list",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_segment_list_request_body",
+        "schema_kind": "object",
+        "required": [
+          "peer"
+        ],
+        "properties": [
+          "peer",
+          "cursor",
+          "limit"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_segment_list",
+        "schema_kind": "object",
+        "required": [
+          "pair_key",
+          "segments",
+          "has_more"
+        ],
+        "properties": [
+          "pair_key",
+          "segments",
+          "next_cursor",
+          "has_more"
         ],
         "closed": true
       }

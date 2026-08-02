@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-01.3",
+  "version": "2026-08-02.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-01T08:00:00Z",
+  "generated_at": "2026-08-02T12:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -39,6 +39,12 @@
       "file": "registry/binding-kind-registry.json",
       "section": "binding_kind_registry",
       "description": "Generated registry view for closed ServiceDescribe transport binding kinds and their extension profiles."
+    },
+    {
+      "name": "authority_sources",
+      "file": "registry/authority-source-registry.json",
+      "section": "authority_source_registry",
+      "description": "Generated registry view for closed non-grant authorization sources and their profile-scoped evaluator contracts."
     },
     {
       "name": "capability_actions",
@@ -79,6 +85,60 @@
           "schema_ref": "schemas/strand.schema.json"
         },
         "description": "Authoritative structured and narrative synthesis section of a Strand."
+      }
+    ]
+  },
+  "authority_source_registry": {
+    "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
+    "registry_rules": [
+      "A non-grant authorization source is active only when one exact active row is selected by authority_source_id; syntax or an arbitrary Event/cell reference never creates authority.",
+      "The evaluator MUST rederive all activation, actor, resource and lifecycle predicates from accepted signed evidence at the Event CBA basis or the current non-event request basis and MUST fail closed on missing, conflicting, non-canonical or freshness-unknown dependencies.",
+      "Profile-scoped sources do not enter issuer_authority_refs, cannot authorize ak.capability.grant, and cannot be widened by Realm owner/admin aggregation.",
+      "When an Event is directly participant-authored, authorization_ref uses the source wire_ref and refs contains the registered binding_ref_role. When executed_by is present, authorization_ref continues to bind the delegated executor grant/delegation; the profile source is an independent conjunctive evaluator gate and is never replaced by that delegation."
+    ],
+    "sources": [
+      {
+        "authority_source_id": "ak.authority.direct_conversation_participant.v1",
+        "status": "active",
+        "profile": "ak.profile.direct_conversation_realm.v1",
+        "wire_ref": "ak.authority.direct_conversation_participant.v1",
+        "binding_event_kind": "ak.direct_conversation.bound",
+        "binding_ref_role": "direct_conversation_binding",
+        "action_allowlist": [
+          "ak.call.join",
+          "ak.call.screen_share",
+          "ak.call.signal.send",
+          "ak.member.leave.own",
+          "ak.message.create",
+          "ak.message.redact.own",
+          "ak.message.revise.own",
+          "ak.mls.commit",
+          "ak.mls.proposal",
+          "ak.mls.welcome.own_device",
+          "ak.reaction.add",
+          "ak.reaction.remove",
+          "ak.read_cursor.advance",
+          "ak.receipt.broadcast",
+          "ak.strand.create",
+          "ak.typing.broadcast"
+        ],
+        "activation_checks": [
+          "realm_profile_and_discriminator_exact",
+          "realm_create_critical_extension_present",
+          "active_canonical_binding_exact",
+          "actor_is_one_of_exactly_two_stable_participants",
+          "actor_membership_active_join",
+          "realm_main_strand_target_scope_and_mls_cross_binding_exact",
+          "realm_binding_and_target_strand_non_terminal",
+          "resource_within_dm_realm_non_circle_discussion_scope",
+          "current_contact_consent_gate_for_send_like_actions",
+          "action_specific_self_device_mls_and_agent_gates"
+        ],
+        "revocation_model": "structural_profile_lifecycle",
+        "authority_generation_independent": true,
+        "grantable": false,
+        "delegated_event_rule": "conjunctive_with_executor_delegation",
+        "failure_mode": "fail_closed_or_dependency_pending"
       }
     ]
   },
@@ -9288,7 +9348,8 @@
           "ak.self.invite_locator.command.issue",
           "ak.self.invite_locator.command.rotate",
           "ak.self.invite_locator.command.revoke",
-          "ak.self.direct_conversation.command.resolve"
+          "ak.self.direct_conversation.command.resolve",
+          "ak.self.direct_conversation_segment.query.list"
         ],
         "surface_class": "extension"
       },
@@ -10591,7 +10652,7 @@
         "http": "POST /_arkret/self/direct-conversations/resolve",
         "grpc": "SelfDirectConversation/Resolve",
         "mq": "self.direct_conversation.command.resolve",
-        "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent. Cross-Principal-Server create=true uses two participant-authoring stages: a reserved remote KeyPackage claim draft is signed and resubmitted before the binding Event draft; only found is an active success state.",
+        "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent. Recreate after a structural terminal Event first returns a participant-signed retirement draft when the canonical retired fact is missing; cross-Principal-Server create=true then uses the reserved remote KeyPackage claim and materialization authoring stages. Only found is an active success state.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -10602,6 +10663,18 @@
           "kind": "none",
           "rationale": "returns_client_authoring_material_or_an_existing_projection_and_never_commits_the_draft_events"
         }
+      },
+      {
+        "operation_id": "ak.self.direct_conversation_segment.query.list",
+        "http": "POST /_arkret/self/direct-conversations/segments/query",
+        "grpc": "SelfDirectConversationSegment/List",
+        "mq": "self.direct_conversation_segment.query.list",
+        "notes": "Principal-private paginated projection of the verified canonical segment lineage for the authenticated actor and one peer. Rows are ordered by predecessor chain, not timestamps; pending, orphan, duplicate and non-canonical candidates are excluded. The POST body is a read-only complex query and the operation declares no idempotency mechanism.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "max_items": 200,
+        "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_segment_list_request_body",
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_segment_list"
       },
       {
         "operation_id": "ak.self.circle.command.create",
@@ -13500,6 +13573,22 @@
         "notes": "Authorizes only the transaction-bound old-series targets in a fixed SecurityRotationTransaction plan after both replacement active-series pointers are accepted. It never authorizes deleting an active or unplanned backup series."
       },
       {
+        "action": "ak.member.leave.own",
+        "category": "membership",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "required_evaluator_checks": [
+          "membership_transition_is_join_to_leave",
+          "actor_equals_membership_subject"
+        ],
+        "target_event_kinds": [
+          "ak.member.state"
+        ],
+        "profile": "ak.profile.direct_conversation_realm.v1",
+        "event_mapping_kind": "scope_suffix_variant",
+        "notes": "Direct Conversation participant self-leave only. It never authorizes leave/ban/remove of the other participant or any join transition."
+      },
+      {
         "action": "ak.message.create",
         "category": "discussion",
         "risk_tier": "medium",
@@ -13657,6 +13746,22 @@
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ak.mls.welcome.own_device",
+        "category": "service",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "required_evaluator_checks": [
+          "welcome_recipient_is_active_device_of_same_participant",
+          "mls_group_matches_active_direct_conversation_binding"
+        ],
+        "target_event_kinds": [
+          "ak.mls.welcome"
+        ],
+        "profile": "ak.profile.direct_conversation_realm.v1",
+        "event_mapping_kind": "scope_suffix_variant",
+        "notes": "Narrow Direct Conversation participant authority for welcoming another currently authorized device of the same stable participant. It cannot add a third principal or a device of the other participant."
       },
       {
         "action": "ak.moderation.appeal.review",

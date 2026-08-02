@@ -55,9 +55,12 @@
         },
         {
           "$ref": "#/$defs/realm_authority_root_ref"
+        },
+        {
+          "$ref": "#/$defs/direct_conversation_participant_authority_ref"
         }
       ],
-      "description": "Optional. Required when executed_by is present. Prefer a materialized ak:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization; a DID-document delegation URL (did_delegation_ref) is allowed when the delegation is expressed in the principal DID document (for example ArkretDeviceEnrollmentAuthority or the managed-agent principal-control delegation); realm_authority_root_ref designates this Realm's registered authority-root cell and is the only form that resolves to Realm owner authority rather than to a grant. Reducer MUST validate the referenced grant/delegation covers the event kind and target resource and is within its effective validity window; for did_delegation_ref the designation is resolved against the actor_id principal DID document at the event's accepted-at."
+      "description": "Optional. Required when executed_by is present. Prefer a materialized ak:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization; a DID-document delegation URL (did_delegation_ref) is allowed when the delegation is expressed in the principal DID document; realm_authority_root_ref designates this Realm's registered authority-root cell. The sole non-grant profile source admitted here is the exact direct_conversation_participant_authority_ref constant, paired with one critical refs[] role=direct_conversation_binding Event reference and the registered profile evaluator. An arbitrary Event/cell MUST NOT be treated as participant authority. When executed_by is present, authorization_ref binds the executor delegation instead and the DM participant source is evaluated as an independent conjunctive profile gate."
     },
     "applet_id": {
       "$ref": "#/$defs/applet_id",
@@ -297,6 +300,54 @@
         "required": [
           "authorization_ref"
         ]
+      }
+    },
+    {
+      "$comment": "Closed direct-conversation participant authority reference. Direct participant writes cite the registered source token and one exact critical binding Event evidence ref. Delegated Agent writes use authorization_ref for the executor delegation and satisfy participant authority independently in the profile evaluator.",
+      "if": {
+        "properties": {
+          "authorization_ref": {
+            "const": "ak.authority.direct_conversation_participant.v1"
+          }
+        },
+        "required": [
+          "authorization_ref"
+        ]
+      },
+      "then": {
+        "required": [
+          "refs"
+        ],
+        "properties": {
+          "refs": {
+            "contains": {
+              "type": "object",
+              "required": [
+                "id",
+                "role",
+                "critical"
+              ],
+              "properties": {
+                "id": {
+                  "$ref": "#/$defs/event_ref"
+                },
+                "role": {
+                  "const": "direct_conversation_binding"
+                },
+                "critical": {
+                  "const": true
+                }
+              }
+            },
+            "minContains": 1,
+            "maxContains": 1
+          }
+        },
+        "not": {
+          "required": [
+            "executed_by"
+          ]
+        }
       }
     },
     {
@@ -4402,6 +4453,11 @@
       "type": "string",
       "const": "ak:cell:ak.component.realm.authority_root.v1:null",
       "description": "Designates the registered authority-root cell of the envelope's own realm_id. This is a closed constant, not a general cell_ref: only the singleton ak.component.realm.authority_root.v1 cell carries Realm owner authority, and widening it to an arbitrary cell_ref would let any projected cell be presented as an authorization source. Reducer MUST resolve it against that cell in the Event's authorization basis and verify controller_id == the authorizing principal, plus the cell's capability_action_registry_digest and authority_generation. Inside the ak.realm.create genesis batch the staged root value is used and the Event MUST descend from the same batch's create Event through prev_refs; outside that batch an accepted-Seal inclusion proof is required and a staged proof MUST be rejected. See zh/models/realm-and-space.md section 2.5 and zh/authz/capabilities.md section 3.2."
+    },
+    "direct_conversation_participant_authority_ref": {
+      "type": "string",
+      "const": "ak.authority.direct_conversation_participant.v1",
+      "description": "The only profile-scoped non-grant authorization source accepted by Event.authorization_ref. It is meaningful solely in ak.profile.direct_conversation_realm.v1 and requires one critical refs[] role=direct_conversation_binding Event reference. The evaluator rederives canonical binding, exact-two participant membership, Realm/Strand/MLS cross-binding, lifecycle, consent and action-specific gates; this constant never authorizes arbitrary Realm or third-party writes."
     },
     "seal_ref": {
       "type": "string",

@@ -32,6 +32,22 @@
   },
   "schema_validation_cases": [
     {
+      "name": "direct_conversation_participant_authority_ref_registered_constant_valid",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/direct_conversation_participant_authority_ref",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": "ak.authority.direct_conversation_participant.v1"
+    },
+    {
+      "name": "arbitrary_cell_cannot_substitute_participant_authority_ref",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/direct_conversation_participant_authority_ref",
+      "expect_valid": false,
+      "first_expected_error": "$: 'ak.authority.direct_conversation_participant.v1' was expected",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": "ak:cell:ak.component.direct_conversation.binding.v1:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
       "name": "direct_conversation_realm_role_valid",
       "schema_ref": "schemas/realm.schema.json",
       "expect_valid": true,
@@ -254,6 +270,75 @@
       }
     },
     {
+      "name": "retired_binding_with_structural_cause_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
+        "participants_unordered": [
+          "did:webvh:z6mkfixture:alice.example",
+          "did:webvh:z6mkfixture:bob.example"
+        ],
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "mls_group_id": "AZZBmwAAAACAAAAAAAAAAQ",
+        "authorization_basis": {
+          "kind": "accepted_contact",
+          "event_refs": [
+            "ak:event:0196419b-0000-7000-8000-000000000301",
+            "ak:event:0196419b-0000-7000-8000-000000000308"
+          ]
+        },
+        "member_event_refs": [
+          "ak:event:0196419b-0000-7000-8000-000000000302",
+          "ak:event:0196419b-0000-7000-8000-000000000303"
+        ],
+        "main_strand_create_ref": "ak:event:0196419b-0000-7000-8000-000000000304",
+        "mls_genesis_event_ref": "ak:event:0196419b-0000-7000-8000-000000000305",
+        "mls_commit_event_ref": "ak:event:0196419b-0000-7000-8000-000000000306",
+        "mls_welcome_event_ref": "ak:event:0196419b-0000-7000-8000-000000000307",
+        "supersedes_binding_ref": "ak:event:0196419b-0000-7000-8000-000000000309",
+        "retirement_cause_event_ref": "ak:event:0196419b-0000-7000-8000-000000000310",
+        "binding_state": "retired",
+        "created_at": "2026-07-21T01:00:00.000Z"
+      }
+    },
+    {
+      "name": "successor_active_binding_with_predecessor_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
+        "participants_unordered": [
+          "did:webvh:z6mkfixture:alice.example",
+          "did:webvh:z6mkfixture:bob.example"
+        ],
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000121",
+        "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000221",
+        "mls_group_id": "AZZBmwAAAACAAAAAAAAAAw",
+        "authorization_basis": {
+          "kind": "accepted_contact",
+          "event_refs": [
+            "ak:event:0196419b-0000-7000-8000-000000000301",
+            "ak:event:0196419b-0000-7000-8000-000000000308"
+          ]
+        },
+        "member_event_refs": [
+          "ak:event:0196419b-0000-7000-8000-000000000321",
+          "ak:event:0196419b-0000-7000-8000-000000000322"
+        ],
+        "main_strand_create_ref": "ak:event:0196419b-0000-7000-8000-000000000323",
+        "mls_genesis_event_ref": "ak:event:0196419b-0000-7000-8000-000000000324",
+        "mls_commit_event_ref": "ak:event:0196419b-0000-7000-8000-000000000325",
+        "mls_welcome_event_ref": "ak:event:0196419b-0000-7000-8000-000000000326",
+        "predecessor_binding_ref": "ak:event:0196419b-0000-7000-8000-000000000327",
+        "binding_state": "active",
+        "created_at": "2026-07-21T02:00:00.000Z"
+      }
+    },
+    {
       "name": "direct_materialization_peer_member_inhabitable",
       "vector_id": "ak.vector.contact.direct_materialization_witness.v1",
       "schema_ref": "schemas/contact-operations.schema.json#/$defs/unsigned_direct_peer_member_event",
@@ -381,6 +466,163 @@
       "semantic_outcome": "accept",
       "expected_active_member_count": 2,
       "notes": "default_join_rule=closed only closes applicant-initiated entry; the bootstrap initial member written by the creator is the closed exemption listed in governance/join-policy.md section 4 and is exempt from seal_basis per authz/event-auth-state-resolution.md section 5. It is NOT the third-party member_add forbidden by realm-and-space.md section 2.8.4."
+    },
+    {
+      "name": "both_participants_receive_equal_baseline",
+      "precondition": "active canonical binding and exact-two active membership",
+      "actions": [
+        "ak.message.create",
+        "ak.message.revise.own",
+        "ak.message.redact.own",
+        "ak.reaction.add",
+        "ak.reaction.remove",
+        "ak.read_cursor.advance",
+        "ak.typing.broadcast",
+        "ak.receipt.broadcast",
+        "ak.call.signal.send",
+        "ak.call.join",
+        "ak.call.screen_share",
+        "ak.mls.proposal",
+        "ak.mls.commit"
+      ],
+      "semantic_outcome": "accept",
+      "assertions": [
+        "creator and peer decisions are identical",
+        "matched authority source is ak.authority.direct_conversation_participant.v1",
+        "no ordinary grant is required"
+      ]
+    },
+    {
+      "name": "participant_authority_survives_root_reset_and_transfer",
+      "precondition": "active canonical binding",
+      "action": "root authority reset then transfer with successor acceptance",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "both participant baselines remain active",
+        "authority_generation is not an input to participant authority"
+      ]
+    },
+    {
+      "name": "root_owner_cannot_operate_as_dm_superuser",
+      "precondition": "active canonical binding and actor is technical root controller",
+      "requests": [
+        "revise peer message",
+        "redact peer message",
+        "remove or ban peer",
+        "grant owner or admin",
+        "grant any action to third party",
+        "change Realm policy",
+        "archive or tombstone active Realm or main Strand"
+      ],
+      "semantic_outcome": "reject",
+      "expected_reason_code": "direct_conversation_root_mask_violation"
+    },
+    {
+      "name": "membership_or_marker_without_complete_binding_denied",
+      "precondition": "actor is joined but active canonical binding or create critical extension is absent",
+      "action": "ak.message.create",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "direct_conversation_participant_authority_denied"
+    },
+    {
+      "name": "cross_binding_mismatch_denied",
+      "precondition": "binding Realm, Strand, MLS group or evidence ref differs from target Event",
+      "action": "ak.message.create",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "direct_conversation_participant_authority_denied"
+    },
+    {
+      "name": "extra_ordinary_strand_is_symmetric",
+      "precondition": "active non-Circle discussion Strand in the bound DM Realm",
+      "action": "both participants create messages",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "both use the same participant source",
+        "main Strand remains the resolver default"
+      ]
+    },
+    {
+      "name": "participant_self_leave_only",
+      "precondition": "active canonical binding",
+      "action": "ak.member.state join-to-leave",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "actor equals membership subject",
+        "attempting the same transition for the peer is denied"
+      ]
+    },
+    {
+      "name": "leave_barrier_precedes_retirement_fact",
+      "precondition": "participant leave is accepted and retired binding fact is still in authoring or federation delivery",
+      "action": "new message against old segment",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "direct_conversation_participant_authority_denied"
+    },
+    {
+      "name": "successor_requires_canonical_retired_predecessor",
+      "precondition": "verified prior canonical segment exists",
+      "action": "admit successor active binding without predecessor_binding_ref",
+      "semantic_outcome": "dependency_pending",
+      "expected_reason_code": "direct_conversation_predecessor_required"
+    },
+    {
+      "name": "concurrent_retired_facts_choose_digest_max_anchor",
+      "precondition": "two valid causally-unreachable retired facts supersede the same active binding and cite the same terminal cause",
+      "action": "fold retired candidates",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "unsigned-byte lexicographically greatest event_digest is the lineage anchor",
+        "both federation peers choose the same anchor"
+      ]
+    },
+    {
+      "name": "concurrent_successors_share_predecessor_and_choose_one_winner",
+      "precondition": "two valid active candidates cite the same canonical retired predecessor",
+      "action": "fold successor candidates",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "digest maximum is the unique active winner",
+        "loser is excluded from historical lineage"
+      ]
+    },
+    {
+      "name": "segment_projection_follows_lineage_not_time",
+      "precondition": "two retired segments and one active segment form a verified chain",
+      "action": "ak.self.direct_conversation_segment.query.list",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "rows follow predecessor order",
+        "active row is unique tail",
+        "pending orphan duplicate and non-canonical rows are absent",
+        "each row computes content_readability independently"
+      ]
+    },
+    {
+      "name": "consent_revoke_blocks_send_without_rewriting_history",
+      "precondition": "binding remains structurally active but direct_message consent is revoked",
+      "action": "send Message or call signal",
+      "semantic_outcome": "reject",
+      "assertions": [
+        "existing history is unchanged",
+        "binding is not retired solely by consent revoke"
+      ]
+    },
+    {
+      "name": "agent_requires_participation_conjunction",
+      "precondition": "Agent is one canonical participant but reply participation is disabled",
+      "action": "Agent reply using participant source",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "direct_conversation_participant_authority_denied"
+    },
+    {
+      "name": "same_participant_device_welcome_only",
+      "precondition": "active canonical binding and current MLS group",
+      "action": "ak.mls.welcome.own_device",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "active device of the same stable participant is accepted",
+        "third-principal and other-participant devices are rejected"
+      ]
     }
   ]
 }
