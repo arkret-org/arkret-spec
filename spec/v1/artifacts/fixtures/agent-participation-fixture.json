@@ -49,22 +49,30 @@
       "vector_id": "ak.vector.agent.participation.ceiling_tighten.v1",
       "kind": "ceiling_chain",
       "parent_ceiling": {
-        "reply": true,
+        "reply_message": true,
+        "reaction_add": true,
+        "reaction_remove": false,
         "accept_third_party_mention": true,
         "act_on_behalf": false
       },
       "accepted_child_ceiling": {
-        "reply": true,
+        "reply_message": true,
+        "reaction_add": true,
+        "reaction_remove": false,
         "accept_third_party_mention": false,
         "act_on_behalf": false
       },
       "widening_child_ceiling": {
-        "reply": true,
+        "reply_message": true,
+        "reaction_add": true,
+        "reaction_remove": false,
         "accept_third_party_mention": true,
         "act_on_behalf": true
       },
       "strand_widening_ceiling": {
-        "reply": true,
+        "reply_message": true,
+        "reaction_add": true,
+        "reaction_remove": false,
         "accept_third_party_mention": true,
         "act_on_behalf": false
       },
@@ -124,7 +132,9 @@
             ]
           },
           "expected": {
-            "reply": false,
+            "reply_message": true,
+            "reaction_add": false,
+            "reaction_remove": false,
             "accept_third_party_mention": false,
             "act_on_behalf": false
           }
@@ -144,7 +154,9 @@
             ]
           },
           "expected": {
-            "reply": true,
+          "reply_message": true,
+          "reaction_add": true,
+          "reaction_remove": false,
             "accept_third_party_mention": false,
             "act_on_behalf": false
           }
@@ -175,25 +187,33 @@
             ]
           },
           "expected": {
-            "reply": true,
+            "reply_message": true,
+            "reaction_add": true,
+            "reaction_remove": false,
             "accept_third_party_mention": false,
             "act_on_behalf": false
           }
         }
       ],
       "governance_ceiling": {
-        "reply": true,
+        "reply_message": true,
+        "reaction_add": true,
+        "reaction_remove": false,
         "accept_third_party_mention": true,
         "act_on_behalf": false
       },
       "selection": {
-        "reply": true,
+        "reply_message": true,
+        "reaction_add": true,
+        "reaction_remove": false,
         "accept_third_party_mention": false,
         "act_on_behalf": true
       },
       "expected": {
         "effective": {
-          "reply": true,
+          "reply_message": true,
+          "reaction_add": true,
+          "reaction_remove": false,
           "accept_third_party_mention": false,
           "act_on_behalf": false
         },
@@ -205,12 +225,16 @@
           "ak.agent.act_on_behalf"
         ],
         "after_reply_tighten": {
-          "reply": false,
+          "reply_message": false,
+          "reaction_add": false,
+          "reaction_remove": false,
           "accept_third_party_mention": false,
           "act_on_behalf": false
         },
         "unknown_source_effective": {
-          "reply": false,
+          "reply_message": false,
+          "reaction_add": false,
+          "reaction_remove": false,
           "accept_third_party_mention": false,
           "act_on_behalf": false
         }
@@ -218,7 +242,7 @@
       "assertions": [
         "effective participation is the bitwise meet of the provision-derived ceiling, governance ceiling and controller selection",
         "the provision ceiling is derived from the complete requested_scope rather than accepted as caller-supplied booleans",
-        "reply requires both ak.message.create and ak.reaction.add",
+        "reply_message is derived from ak.message.create independently of reaction capabilities",
         "act_on_behalf requires an approval or accountability constraint applicable to ak.message.create",
         "governance cannot restore third-party mention omitted by the provision ceiling",
         "reply grants materialize only when the effective reply bit is true",
@@ -244,12 +268,16 @@
         ]
       },
       "governance_ceiling": {
-        "reply": true,
+        "reply_message": true,
+        "reaction_add": true,
+        "reaction_remove": false,
         "accept_third_party_mention": true,
         "act_on_behalf": false
       },
       "selection": {
-        "reply": true,
+        "reply_message": true,
+        "reaction_add": true,
+        "reaction_remove": false,
         "accept_third_party_mention": true,
         "act_on_behalf": false
       },
@@ -271,23 +299,29 @@
       "name": "session_overlay",
       "vector_id": "ak.vector.agent.participation.session_overlay.v1",
       "kind": "session_scope_details",
-      "participation_scope": {
+      "target_scope": {
         "kind": "realm",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
       },
       "selection": {
-        "reply": true,
+        "reply_message": true,
+        "reaction_add": true,
+        "reaction_remove": false,
         "accept_third_party_mention": false,
         "act_on_behalf": false
       },
       "ceiling": {
-        "reply": true,
+        "reply_message": true,
+        "reaction_add": true,
+        "reaction_remove": false,
         "accept_third_party_mention": true,
         "act_on_behalf": false
       },
       "expected": {
         "effective": {
-          "reply": true,
+          "reply_message": true,
+          "reaction_add": true,
+          "reaction_remove": false,
           "accept_third_party_mention": false,
           "act_on_behalf": false
         },
@@ -308,12 +342,16 @@
       "third_party_subject": "did:webvh:z6mkfixture:acme.example:users:bob",
       "agent_subject": "did:webvh:z6mkfixture:agents.acme.example:alice-summary",
       "effective_before": {
-        "reply": true,
+        "reply_message": true,
+        "reaction_add": true,
+        "reaction_remove": false,
         "accept_third_party_mention": false,
         "act_on_behalf": false
       },
       "effective_after": {
-        "reply": true,
+        "reply_message": true,
+        "reaction_add": true,
+        "reaction_remove": false,
         "accept_third_party_mention": true,
         "act_on_behalf": false
       },

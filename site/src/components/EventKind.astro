@@ -23,14 +23,14 @@ const href = `/catalog/event-kinds/${encodeURIComponent(name)}/`;
 
 {
   inline ? (
-    <a class="ak.tag" data-kind="event" href={href}>
+    <a class="ak-tag" data-kind="event" href={href}>
       <code>{name}</code>
     </a>
   ) : (
-    <article class="ak.card">
+    <article class="ak-card">
       <header>
-        <span class="ak.tag" data-kind="event">event</span>
-        <a class="ak.card-title" href={href}>
+        <span class="ak-tag" data-kind="event">event</span>
+        <a class="ak-card-title" href={href}>
           <code>{name}</code>
         </a>
         <span>· {row.category}</span>

@@ -11,7 +11,7 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
     · interactive HTTP shape: <a href="/openapi/">/openapi/</a>
   </p>
 
-  <nav class="ak.surface-jump" aria-label="Surface groups">
+  <nav class="ak-surface-jump" aria-label="Surface groups">
     <strong>Jump to surface:</strong>
     <ul>
       {
@@ -19,7 +19,7 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
           <li>
             <a href={`#surface-${group.surface}`} data-surface-class={group.surface_class}>
               <code>{group.surface}</code>
-              <span class="ak.surface-class">{group.surface_class}</span>
+              <span class="ak-surface-class">{group.surface_class}</span>
             </a>
           </li>
         ))

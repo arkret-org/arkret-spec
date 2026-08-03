@@ -57,8 +57,10 @@ prepare **MUST** 保存 operation/idempotency/canonical request digest、预分�
 full-set scope、expiry 与该分支已有的 basis/version/predecessor，并返回branch-typed
 `{event_id,kind,unsigned_event_bytes,event_digest}` canonical draft；request/reject不得伪造未来basis字段。draft
 不含holder proof，客户端只可追加该proof。commit移除proof后必须与reserved unsigned bytes、ID、kind与digest
-逐字一致，任何其它变化返回conflict；不存在接受caller自造Event shape的兼容分支。相同identity + 相同完整
-bytes回放首次outcome。响应丢失、重启或outbox redelivery不得产生第二Event、第二receipt或第二lineage head。
+逐字一致，任何其它变化返回conflict；不存在接受caller自造Event shape的分支。同一
+operation/idempotency/phase + 相同完整bytes回放该phase首次outcome；prepare与commit必须使用同一
+operation/idempotency，但两phase的canonical bytes与幂等记录彼此独立。响应丢失、重启或outbox redelivery
+不得产生第二Event、第二receipt或第二lineage head。
 
 holder source service **MUST** 以本地 `(holder, peer)` admission slot CAS 串行 request/respond/reject，并保证
 任一 request ref 最多被 normal、glare 或 reject 之一消费。每条 accepted request 独立取得 source-signed
