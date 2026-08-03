@@ -41,7 +41,7 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 180,
+    "total_schemas": 181,
     "by_consumer": {
       "declared_wire": 43,
       "event_kind": 11,
@@ -49,14 +49,14 @@
       "outbound": 44,
       "prose": 109,
       "prose_only": 2,
-      "schema_reference": 101,
-      "startup_compile": 180,
-      "vectors": 112
+      "schema_reference": 102,
+      "startup_compile": 181,
+      "vectors": 114
     },
     "without_wire_consumer": 2,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 68,
+    "without_vector_coverage": 67,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -116,7 +116,6 @@
     "ak.schema.object_addressing.v1",
     "ak.schema.offline_publication.v1",
     "ak.schema.patch.v1",
-    "ak.schema.peer_contact_delivery_request.v1",
     "ak.schema.principal_locator.v1",
     "ak.schema.protocol_journey_traceability.v1",
     "ak.schema.public_key.v1",
@@ -434,6 +433,22 @@
         "selector": "account_data key ak.account.agent_sidecar_view_state.*",
         "normative_ref": "zh/models/sidecar.md"
       }
+    },
+    {
+      "schema_id": "ak.schema.agent_signer_admission_receipt.v1",
+      "file": "schemas/agent-signer-evidence.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "direct",
+        "evidence": "required_schema"
+      },
+      "fragment": "#/$defs/event_admission_receipt"
     },
     {
       "schema_id": "ak.schema.agent_signer_evidence.v1",
@@ -955,6 +970,7 @@
           "ak.schema.agent_sidecar_exchange_control.v1",
           "ak.schema.agent_sidecar_exchange_projection.v1",
           "ak.schema.agent_sidecar_view_state.v1",
+          "ak.schema.agent_signer_admission_receipt.v1",
           "ak.schema.agent_signer_evidence.v1",
           "ak.schema.agent_signer_evidence_bundle.v1",
           "ak.schema.agent_signer_evidence_query_outcome.v1",
@@ -975,6 +991,7 @@
           "ak.schema.circle_operations.v1",
           "ak.schema.contact_operations.v1",
           "ak.schema.contact_scope_update.v1",
+          "ak.schema.controller_account_gate_attestation.v1",
           "ak.schema.cross_signing_publish.v1",
           "ak.schema.delivery_binding_stale.v1",
           "ak.schema.did_binding_contracts.v1",
@@ -1013,7 +1030,6 @@
           "ak.schema.morph.v1",
           "ak.schema.notification.v1",
           "ak.schema.offline_publication.v1",
-          "ak.schema.peer_contact_delivery_request.v1",
           "ak.schema.policy.v1",
           "ak.schema.protocol_journey_wire.v1",
           "ak.schema.push_operations.v1",
@@ -1147,6 +1163,21 @@
         "selector": "content block type poll or poll_response",
         "normative_ref": "zh/conformance/schema-registry.md"
       }
+    },
+    {
+      "schema_id": "ak.schema.controller_account_gate_attestation.v1",
+      "file": "schemas/agent-signer-evidence.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "direct",
+        "evidence": "required_schema"
+      },
+      "fragment": "#/$defs/controller_account_gate_attestation"
     },
     {
       "schema_id": "ak.schema.cross_signing_publish.v1",
@@ -1564,7 +1595,6 @@
         "disposition": "composed_schema_owned",
         "owners": [
           "ak.schema.keypackage_operations.v1",
-          "ak.schema.peer_contact_delivery_request.v1",
           "ak.schema.service_operation_dtos.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
@@ -2262,24 +2292,6 @@
         "owners": [
           "ak.schema.account_operations.v1",
           "ak.schema.event_payload.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
-      }
-    },
-    {
-      "schema_id": "ak.schema.peer_contact_delivery_request.v1",
-      "file": "schemas/peer-contact-delivery-request.schema.json",
-      "consumers": {
-        "prose": "normative_text",
-        "schema_reference": "fragment",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.contact_scope_update.v1",
-          "ak.schema.protocol_journey_wire.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
@@ -3095,10 +3107,8 @@
           "ak.schema.agent_requested_scope_disclosure.v1",
           "ak.schema.agent_selector_claim.v1",
           "ak.schema.agent_sidecar.v1",
+          "ak.schema.agent_signer_admission_receipt.v1",
           "ak.schema.agent_signer_evidence.v1",
-          "ak.schema.agent_signer_evidence_bundle.v1",
-          "ak.schema.agent_signer_evidence_query_outcome.v1",
-          "ak.schema.agent_signer_evidence_query_request.v1",
           "ak.schema.agent_signing_key_binding.v1",
           "ak.schema.applet_package.v1",
           "ak.schema.applet_registration_epoch_transcript.v1",
@@ -3118,6 +3128,7 @@
           "ak.schema.consent_operations.v1",
           "ak.schema.contact_operations.v1",
           "ak.schema.contact_scope_update.v1",
+          "ak.schema.controller_account_gate_attestation.v1",
           "ak.schema.cross_signing_publish.v1",
           "ak.schema.cross_signing_reset.v1",
           "ak.schema.cursor.v1",
@@ -3162,7 +3173,6 @@
           "ak.schema.morph.v1",
           "ak.schema.notification.v1",
           "ak.schema.offline_publication.v1",
-          "ak.schema.peer_contact_delivery_request.v1",
           "ak.schema.personal_productivity.v1",
           "ak.schema.policy.v1",
           "ak.schema.principal_locator.v1",

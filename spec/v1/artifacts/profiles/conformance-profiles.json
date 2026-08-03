@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-03.3",
-  "generated_at": "2026-08-03T06:00:00Z",
+  "version": "2026-08-03.6",
+  "generated_at": "2026-08-03T09:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1294,7 +1294,7 @@
         "A permanently cancelled pair slot MUST return the tombstoned terminal resolver outcome with frozen operation, attempt and coordinates. Every later resolve exact-replays that outcome; the slot MUST NOT enter creation_required, allocate another attempt, or form another binding.",
         "Cross-Principal-Server creation MUST complete participant-authorized peer KeyPackage claim before materialization; Direct Conversation claims bind operation, pair, intended Realm, main Strand and initial MLS group and MUST NOT use a last-resort KeyPackage.",
         "The binding is immutable and fixes pair_key, participant pair, Realm and main Strand exactly once. It carries no authored lifecycle state or MLS group; current MLS generation is a separate accepted-history projection.",
-        "Leave, ban, block, contact/consent revoke and participant terminal state suspend new writes without destroying the binding or creating a successor Realm. Recovery reuses the same Realm and MUST NOT automatically redeliver old epoch keys or history secrets.",
+        "Leave, ban, block, either directional Contact terminal and participant terminal state suspend new writes without destroying the binding or creating a successor Realm. Consent changes never affect Personal DM authority. Recovery reuses the same Realm and MUST NOT automatically redeliver old epoch keys or history secrets.",
         "Principal-private deletion and global content/key erasure retain stable pair, Realm and main Strand identity. The resolver never returns a competing candidate or performs winner selection.",
         "Participant authority and root-owner masking are conjunctive profile admission rules and MUST be evaluated from the same accepted evidence basis as the target action; neither created_by nor membership alone is an authorization source."
       ],
@@ -1952,7 +1952,7 @@
       }
     },
     "ak.profile.agent_signer_evidence.v1": {
-      "description": "Portable ordinary-Realm Native Agent signer authorization evidence. Producers publish controller bindings, accepted state witnesses and freshness attestations; consumers independently verify them and cross-bind encrypted Events to the historical MLS leaf.",
+      "description": "Portable ordinary-Realm Native Agent signer authorization evidence. Producers publish one Agent authority snapshot with key and Agent-lifecycle witnesses, one privacy-minimal Account Authority controller gate, and a structural XOR between exact-request current observation and destination-signed historical Event admission receipt. Consumers independently verify all three orthogonal gates, reject cross-request replay, preserve accepted Event validity across later terminal transitions, and cross-bind encrypted Events to the historical MLS leaf.",
       "required_endpoints": [
         "ak.self.agent_signer_evidence.query.resolve"
       ],
@@ -1963,6 +1963,8 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.agent_signing_key_binding.v1",
+        "ak.schema.controller_account_gate_attestation.v1",
+        "ak.schema.agent_signer_admission_receipt.v1",
         "ak.schema.agent_signer_evidence.v1",
         "ak.schema.agent_signer_evidence_query_request.v1",
         "ak.schema.agent_signer_evidence_query_outcome.v1",
@@ -1977,7 +1979,7 @@
       "feature_discovery": {
         "required": [
           "agent_signer_evidence",
-          "agent_signer_evidence_historical_frontier",
+          "agent_signer_evidence_historical_receipt",
           "agent_mls_authorization_cross_binding"
         ],
         "unsupported_optional": "Do not mark ordinary Native Agent Events Verified. Preserve ciphertext or quarantined plaintext with verification_pending and never fall back to keys/query or ordinary MLS leaf-only trust."
@@ -3352,12 +3354,16 @@
     },
     "ak.profile.direct_conversation_operation_control.v1": {
       "inherits": ["ak.profile.direct_conversation_realm.v1"],
-      "required_endpoints": ["ak.self.direct_conversation.command.resolve", "ak.peer.keys.keypackages.command.claim", "ak.peer.keys.keypackages.query.claim", "ak.peer.events.command.submit"],
+      "required_endpoints": ["ak.self.direct_conversation.command.resolve", "ak.peer.direct_conversation.operation_control.command.submit", "ak.peer.direct_conversation.operation_control.command.deliver", "ak.peer.direct_conversation.operation_control.query.execution_bundle", "ak.peer.direct_conversation.operation_control.query.read_certificate", "ak.peer.keys.keypackages.command.claim", "ak.peer.keys.keypackages.query.claim", "ak.peer.events.command.submit"],
       "required_event_kinds": ["ak.realm.create", "ak.member.state", "ak.strand.create", "ak.direct_conversation.bound", "ak.mls.genesis", "ak.mls.commit", "ak.mls.welcome"],
       "rejected_event_kinds": [],
       "required_schemas": ["ak.schema.protocol_journey_wire.v1"],
       "wire_contract_refs": [
+        "schemas/protocol-journey-wire.schema.json#/$defs/pair_registry_statement",
+        "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_authorization",
         "schemas/protocol-journey-wire.schema.json#/$defs/effect_value_core",
+        "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_effect",
+        "schemas/protocol-journey-wire.schema.json#/$defs/authenticated_encrypted_journal",
         "schemas/protocol-journey-wire.schema.json#/$defs/qda_receipt",
         "schemas/protocol-journey-wire.schema.json#/$defs/qda_certificate",
         "schemas/protocol-journey-wire.schema.json#/$defs/prepared_certificate",
@@ -3366,7 +3372,11 @@
         "schemas/protocol-journey-wire.schema.json#/$defs/new_view_certificate",
         "schemas/protocol-journey-wire.schema.json#/$defs/per_view_certificate",
         "schemas/protocol-journey-wire.schema.json#/$defs/qcommit_certificate",
-        "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle"
+        "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle",
+        "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_message_submit_request",
+        "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_delivery_request",
+        "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_query_request",
+        "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_read_certificate"
       ],
       "required_fixtures": ["direct-conversation-fixture.json", "operation-control-pbft-fixture.json", "protocol-journey-closure-fixture.json"],
       "optional_extensions": [],
@@ -3378,18 +3388,22 @@
         "write_certificate": "q_commit",
         "current_head_read_certificate": "q_read",
         "availability_certificate": "q_da",
-        "one_vote_rule": "one_value_digest_per_registry_instance_view_phase",
-        "genesis_rule": "no_canonical_operation_or_effect_before_q_commit"
+        "one_vote_rule": "one semantic value/lock per (registry,pair,predecessor head,view,phase,replica); operation_id is not a separate slot",
+        "proposer_rule": "replicas[view mod N]",
+        "genesis_rule": "domain-root-signed registry statement plus requester authorization fix one initial host and domain-separated genesis_head_digest; no canonical operation or effect exists before q_commit"
       },
       "value_and_envelope_contract": {
         "immutable_value": "EffectValueCore excludes view and every certificate",
-        "value_digest": "SHA-256 of exact RFC8785/JCS EffectValueCore bytes",
-        "qda_destination_binding": "Every qDA receipt and certificate repeat destination exactly and validators match it to EffectValueCore.destination in addition to verifying value_digest",
-        "per_view_envelope": "domain-separated registry/instance/view/phase/value_digest/qda_certificate_digest transcript",
+        "value_digest": "registered H over exact RFC8785/JCS EffectValueCore; effect_digest covers the closed typed effect details",
+        "qda_destination_binding": "Every qDA receipt and certificate repeat destination plus expected/resulting host DID+epoch exactly and validators match EffectValueCore",
+        "per_view_envelope": "closed phase XOR over registry, predecessor-head instance, view, phase, value, qDA and exact phase lock",
         "view_change": "exact q VIEW-CHANGE; highest prepared wins; otherwise deterministic proposer supplies exactly one fresh candidate",
         "point_of_no_return": "q-COMMIT only",
-        "execution_bundle_role": "validated transport carrier only",
-        "partition_rule": "no fresh q-certified current head means pending/fail closed"
+        "journal_root": "SHA-256 of domain bytes ak.direct-conversation.journal-root.v1 newline concatenated with decoded authenticated_encrypted_journal.ciphertext bytes; decrypted payload cross-binds payload/effect digest",
+        "effect_head": "domain-separated JCS transcript over predecessor/value/qDA coordinates, excluding qCOMMIT certificate to avoid self-digest cycles",
+        "execution_bundle_role": "validated transport carrier including exact immutable registry authorization",
+        "partition_rule": "read request lifetime <=60s, clock skew <=5s, and no fresh q-certified complete host-DID+epoch head means pending/fail closed",
+        "effect_cas": "compare effect_commitment_digest, never full bundle bytes; alternate valid quorum witness subsets are duplicates"
       },
       "attempt_contract": {
         "stable_operation": true,

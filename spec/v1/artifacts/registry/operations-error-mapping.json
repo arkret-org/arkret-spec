@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-03.2",
+  "version": "2026-08-03.4",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -512,7 +512,7 @@
         "cursor_invalid",
         "cursor_revoked"
       ],
-      "description": "Holder contact projection from contact facts plus consent-derived directional scopes."
+      "description": "Holder Contact projection from the two holder-signed directional Contact lineages; Consent is never an authority source."
     },
     {
       "operation_id": "ak.self.contact.command.tombstone",
@@ -568,7 +568,7 @@
         "failed_precondition",
         "direct_conversation_unavailable"
       ],
-      "description": "Idempotent resolver for a pair's one stable conversation. Existing conversations return found or suspended without a KeyPackage lookup. All undisclosable no-binding, peer, contact and consent failures collapse to direct_conversation_unavailable; typed success states are found, creation_required, suspended and temporarily_unavailable."
+      "description": "Idempotent resolver for a pair's one stable conversation. Existing conversations return found or suspended without a KeyPackage lookup. All undisclosable no-binding, peer and directional Contact failures collapse to direct_conversation_unavailable; Consent is not queried. Typed success states are found, creation_required, suspended and temporarily_unavailable."
     },
     {
       "operation_id": "ak.find.directory.command.announce",
@@ -1870,6 +1870,30 @@
       "http_alias": "POST /_arkret/peer/agents/participation:replace",
       "operation_specific": ["participation_evidence_conflict", "agent_participation_exceeds_ceiling", "agent_participation_ceiling_unresolved"],
       "description": "The target Realm authority rejects invalid private evidence, stale/forked ceilings or out-of-ceiling signed batches; the relay does not translate errors."
+    },
+    {
+      "operation_id": "ak.peer.direct_conversation.operation_control.command.submit",
+      "http_alias": "POST /_arkret/peer/direct-conversation-operation-control/messages",
+      "operation_specific": ["operation_control_equivocation", "operation_control_certificate_invalid", "dependency_missing"],
+      "description": "A different signed value in the same immutable protocol slot is equivocation; invalid cross-binding or quorum material is rejected; a durably queued message may report typed missing dependencies."
+    },
+    {
+      "operation_id": "ak.peer.direct_conversation.operation_control.command.deliver",
+      "http_alias": "POST /_arkret/peer/direct-conversation-operation-control/execution-bundles",
+      "operation_specific": ["operation_control_equivocation", "operation_control_certificate_invalid", "dependency_missing", "stale_frontier"],
+      "description": "The destination rejects conflicting permanent effect identities, invalid registry/qDA/PBFT/journal certificates and stale host epochs; deferred exact bytes name durable missing dependencies."
+    },
+    {
+      "operation_id": "ak.peer.direct_conversation.operation_control.query.execution_bundle",
+      "http_alias": "POST /_arkret/peer/direct-conversation-operation-control/execution-bundles/query",
+      "operation_specific": ["operation_control_certificate_invalid"],
+      "description": "Only exact immutable coordinates are queryable; a returned bundle or destination receipt that fails its certified bindings is invalid."
+    },
+    {
+      "operation_id": "ak.peer.direct_conversation.operation_control.query.read_certificate",
+      "http_alias": "POST /_arkret/peer/direct-conversation-operation-control/read-certificates/query",
+      "operation_specific": ["operation_control_quorum_unavailable", "operation_control_certificate_invalid", "stale_frontier"],
+      "description": "A fresh read requires q=2f+1 identical-head receipts; stale, non-canonical or insufficient receipts never select a local or sub-quorum head."
     }
   ],
   "cross_links": {

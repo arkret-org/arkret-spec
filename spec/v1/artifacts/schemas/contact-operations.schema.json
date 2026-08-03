@@ -17,6 +17,12 @@
       "$ref": "#/$defs/contact_respond_outcome"
     },
     {
+      "$ref": "#/$defs/contact_reject_request_body"
+    },
+    {
+      "$ref": "#/$defs/contact_reject_outcome"
+    },
+    {
       "$ref": "#/$defs/contact_list"
     },
     {
@@ -24,6 +30,12 @@
     },
     {
       "$ref": "#/$defs/contact_tombstone"
+    },
+    {
+      "$ref": "#/$defs/contact_scope_update_request_body"
+    },
+    {
+      "$ref": "#/$defs/contact_scope_update_outcome"
     },
     {
       "$ref": "./protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_request"
@@ -59,40 +71,6 @@
     "non_empty_string": {
       "type": "string",
       "minLength": 1
-    },
-    "consent_scope": {
-      "type": "string",
-      "enum": [
-        "invite",
-        "direct_message",
-        "voice_call",
-        "video_call",
-        "presence",
-        "any"
-      ]
-    },
-    "consent_scopes": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/consent_scope"
-      },
-      "minItems": 1,
-      "uniqueItems": true
-    },
-    "consent_scope_list": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/consent_scope"
-      },
-      "uniqueItems": true
-    },
-    "event_refs": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/event_id"
-      },
-      "minItems": 1,
-      "uniqueItems": true
     },
     "contact_state": {
       "type": "string",
@@ -221,13 +199,19 @@
       "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_operation_request"
     },
     "contact_request_outcome": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_operation_outcome"
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_request_outcome"
     },
     "contact_respond_request_body": {
       "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_respond_request"
     },
     "contact_respond_outcome": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_operation_outcome"
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_respond_outcome"
+    },
+    "contact_reject_request_body": {
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_reject_request"
+    },
+    "contact_reject_outcome": {
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_reject_outcome"
     },
     "contact_list": {
       "type": "object",
@@ -255,277 +239,16 @@
       "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_tombstone_request"
     },
     "contact_tombstone": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_operation_outcome"
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_tombstone_outcome"
     },
     "contact_scope_update_request_body": {
       "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scope_update_request"
     },
     "contact_scope_update_outcome": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_operation_outcome"
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scope_update_outcome"
     },
     "direct_conversation_resolve_request_body": {
       "$ref": "./protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_request"
-    },
-    "direct_conversation_operation": {
-      "type": "object",
-      "required": ["operation_id", "pair_key", "coordinator_service_id", "operation_state"],
-      "properties": {
-        "operation_id": { "$ref": "#/$defs/non_empty_string" },
-        "pair_key": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
-        "coordinator_service_id": { "$ref": "#/$defs/did" },
-        "operation_state": { "type": "string", "enum": ["reserved", "materializing", "found"] },
-        "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
-        "main_strand_id": { "$ref": "#/$defs/strand_id" },
-        "expires_at": { "$ref": "#/$defs/timestamp" }
-      },
-      "allOf": [
-        {
-          "if": { "properties": { "operation_state": { "const": "reserved" } }, "required": ["operation_state"] },
-          "then": { "required": ["expires_at"] },
-          "else": {
-            "required": ["realm_id", "main_strand_id"],
-            "not": { "required": ["expires_at"] }
-          }
-        }
-      ],
-      "additionalProperties": false,
-      "description": "Coordinator-owned durable allocation. reserved is removable only before any KeyPackage claim, accepted founding Event, or other external effect. materializing and found permanently retain the same Realm and main Strand identifiers."
-    },
-    "direct_conversation_resolve_outcome": {
-      "type": "object",
-      "required": ["state", "pair_key"],
-      "properties": {
-        "state": {
-          "type": "string",
-          "enum": [
-            "found",
-            "creation_required",
-            "suspended",
-            "temporarily_unavailable"
-          ]
-        },
-        "pair_key": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "main_strand_id": {
-          "$ref": "#/$defs/strand_id"
-        },
-        "binding_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "operation": { "$ref": "#/$defs/direct_conversation_operation" },
-        "next_action": {
-          "type": "string",
-          "enum": [
-            "remote_keypackage_claim",
-            "direct_conversation_materialization",
-            "retry"
-          ]
-        },
-        "claim_authorization_draft": {
-          "$ref": "./keypackage-operations.schema.json#/$defs/peer_key_packages_claim_authorization_draft",
-          "description": "Immutable peer claim request and explicit service/trust-domain transport binding reserved by the source service. The participant signs the canonical authorization transcript and resubmits draft.request plus requester_authorization as peer_claim_request."
-        },
-        "materialization_draft": {
-          "type": "object",
-          "required": [
-            "operation_id",
-            "operation_state",
-            "pair_key",
-            "claim_nonce",
-            "mls_group_id",
-            "mls_genesis_event_ref",
-            "mls_commit_event_ref",
-            "mls_welcome_event_ref",
-            "claimed_keypackage",
-            "realm_event",
-            "peer_member_event",
-            "main_strand_event",
-            "binding_event",
-            "coordinator_service_id"
-          ],
-          "properties": {
-            "operation_id": { "$ref": "#/$defs/non_empty_string" },
-            "operation_state": { "const": "materializing" },
-            "pair_key": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
-            "coordinator_service_id": { "$ref": "#/$defs/did" },
-            "claim_nonce": { "$ref": "./keypackage-operations.schema.json#/$defs/base64url" },
-            "mls_group_id": { "$ref": "#/$defs/non_empty_string" },
-            "mls_genesis_event_ref": { "$ref": "#/$defs/event_id" },
-            "mls_commit_event_ref": { "$ref": "#/$defs/event_id" },
-            "mls_welcome_event_ref": { "$ref": "#/$defs/event_id" },
-            "claimed_keypackage": { "$ref": "./keypackage-operations.schema.json#/$defs/keypackage_claim_record" },
-            "claim_receipt": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt" },
-            "realm_event": { "$ref": "#/$defs/unsigned_direct_realm_create_event" },
-            "peer_member_event": { "$ref": "#/$defs/unsigned_direct_peer_member_event" },
-            "main_strand_event": { "$ref": "#/$defs/unsigned_direct_main_strand_event" },
-            "binding_event": { "$ref": "#/$defs/unsigned_direct_binding_event" }
-          },
-          "additionalProperties": false,
-          "description": "Immutable client-side plan for the pair's only durable materializing operation. The participant authors real MLS objects and founding Events; services never synthesize participant proofs or MLS ciphertext. The draft has no expiry because materializing identifiers cannot be reallocated."
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "state": { "const": "creation_required" }
-            },
-            "required": [
-              "state"
-            ]
-          },
-          "then": {
-            "required": [
-              "operation",
-              "next_action"
-            ]
-          },
-          "else": {
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "next_action"
-                  ]
-                },
-                {
-                  "required": [
-                    "claim_authorization_draft"
-                  ]
-                },
-                {
-                  "required": [
-                    "materialization_draft"
-                  ]
-                },
-                {
-                  "required": [
-                    "operation"
-                  ]
-                }
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "next_action": {
-                "const": "remote_keypackage_claim"
-              }
-            },
-            "required": [
-              "next_action"
-            ]
-          },
-          "then": {
-            "required": [
-              "claim_authorization_draft"
-            ],
-            "not": {
-              "required": ["materialization_draft"]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "next_action": {
-                "const": "direct_conversation_materialization"
-              }
-            },
-            "required": [
-              "next_action"
-            ]
-          },
-          "then": {
-            "required": [
-              "materialization_draft"
-            ],
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "claim_authorization_draft"
-                  ]
-                },
-                { "required": ["claim_authorization_draft"] }
-              ]
-            }
-          }
-        },
-        {
-          "if": { "properties": { "state": { "enum": ["found", "suspended"] } }, "required": ["state"] },
-          "then": { "required": ["realm_id", "main_strand_id", "binding_event_ref"] }
-        }
-      ],
-      "additionalProperties": false
-    },
-    "unsigned_direct_materialization_event_base": {
-      "type": "object",
-      "required": ["event_id", "kind", "realm_id", "actor_id", "actor_seq", "hlc", "payload", "proofs"],
-      "properties": {
-        "event_id": { "$ref": "#/$defs/event_id" },
-        "kind": { "type": "string" },
-        "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
-        "actor_id": { "$ref": "./common-ids.schema.json#/$defs/did" },
-        "actor_seq": { "type": "integer", "minimum": 0 },
-        "hlc": { "type": "string", "minLength": 1 },
-        "payload": { "type": "object" },
-        "proofs": { "type": "array", "maxItems": 0 }
-      },
-      "additionalProperties": false,
-      "description": "Shared envelope shape of every unsigned draft Event in a direct_conversation_materialization plan. proofs MUST be empty: the service issues an authoring draft and never signs on behalf of the participant. Each draft slot narrows this base to exactly one kind via its own role-closed definition; the four slots are NOT interchangeable."
-    },
-    "unsigned_direct_realm_create_event": {
-      "allOf": [
-        { "$ref": "#/$defs/unsigned_direct_materialization_event_base" },
-        {
-          "properties": {
-            "kind": { "const": "ak.realm.create" }
-          },
-          "required": ["kind"]
-        }
-      ],
-      "description": "Bootstrap unit event 1. payload.object MUST be the Direct Conversation Realm object (ak.profile.direct_conversation_realm.v1) whose id equals this envelope realm_id and whose created_by equals actor_id."
-    },
-    "unsigned_direct_peer_member_event": {
-      "allOf": [
-        { "$ref": "#/$defs/unsigned_direct_materialization_event_base" },
-        {
-          "properties": {
-            "kind": { "const": "ak.member.state" }
-          },
-          "required": ["kind"]
-        }
-      ],
-      "description": "Bootstrap unit event 2: the peer member join written by the creator under the staged ak.component.realm.authority_root.v1 proof bound to realm_event in the same genesis batch. It is the bootstrap initial member carve-out of governance/join-policy.md section 4, not a third-party member_add, and it is exempt from seal_basis per authz/event-auth-state-resolution.md section 5."
-    },
-    "unsigned_direct_main_strand_event": {
-      "allOf": [
-        { "$ref": "#/$defs/unsigned_direct_materialization_event_base" },
-        {
-          "properties": {
-            "kind": { "const": "ak.strand.create" }
-          },
-          "required": ["kind"]
-        }
-      ],
-      "description": "Post-bootstrap main Strand create admitted only by the Direct Conversation founding mask. It is accepted before the MLS genesis/add-commit/Welcome sequence and must match the same materialization draft."
-    },
-    "unsigned_direct_binding_event": {
-      "allOf": [
-        { "$ref": "#/$defs/unsigned_direct_materialization_event_base" },
-        {
-          "properties": {
-            "kind": { "const": "ak.direct_conversation.bound" }
-          },
-          "required": ["kind"]
-        }
-      ],
-      "description": "Final binding event submitted in the participant PCR after the Realm side is complete."
     }
   }
 }

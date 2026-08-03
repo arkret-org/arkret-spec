@@ -136,7 +136,7 @@ see_also:
 | `identity/did-usage-and-verification.md` | DID / DID URL 字段总表、非 DID identifier 对照、普通身份锚点使用与少量 DID 权威验证触发条件、verified binding 缓存和失效边界。 |
 | `identity/identity-handles.md` | Handle 解析、connection identifier、双向绑定、claim / attestation、`MemberDeliveryBindingCandidate`（§3.7）。 |
 | `identity/consent-model.md` | 用户同意、披露边界、撤回语义和跨服务 consent proof。 |
-| `identity/contact-and-direct-conversation.md` | 联系人请求 / 接受 / 拒绝 / tombstone、contact-managed consent、private contact discovery 边界、direct conversation resolver、DM Realm 与 DM 主 Strand 形态。 |
+| `identity/contact-and-direct-conversation.md` | 联系人请求 / 接受 / 拒绝 / tombstone、双方方向性 Contact authority、private contact discovery 边界、direct conversation resolver、DM Realm 与 DM 主 Strand 形态。 |
 | `identity/tsp-integration.md` | TSP 作为可选 transport / trust binding。 |
 | `identity/key-management.md` | 密钥、恢复、Accountable Actor。 |
 | `identity/security-transactions.md` | RecoveryTransaction / SecurityRotationTransaction 的幂等、恢复与终态合同。 |

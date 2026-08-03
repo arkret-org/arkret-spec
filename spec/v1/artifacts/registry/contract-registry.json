@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.3",
+  "version": "2026-08-03.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-03T05:00:00Z",
+  "generated_at": "2026-08-03T09:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -197,7 +197,7 @@
     "admission_class_definitions": {
       "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
       "did_root_anchor": "Admitted only by the closed identity-root anchor verifier. v1 permits this class for a self-principal PCR genesis ak.realm.create bound to entry 0 through one critical did_inception ref, and for B-model ak.device.reanchor bound to the accepted registry head through one critical did_recovery_anchor ref. This verifier is the sole exception to generic Event verification_method-controller equality: verification_method MUST instead equal an active controller-proof verification method from the referenced entry, and the verifier validates it against the accepted did:webvh history/update authority without rewriting its did:key controller to actor_id. Root/update authority MUST NOT authorize any other Event kind. Batch shape, DID history, active update authority, full frontier CAS and conflict-slot checks remain mandatory.",
-      "delegated_pcr_genesis": "Admitted only for a principal_control ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. The verifier MUST prove actor_id is a managed Agent or explicitly organization-governed principal, resolve authorization_ref in that actor DID's accepted ArkretPrincipalControlRealm/controller delegation, require realm_id and payload.object.id to equal the delegated PCR binding, require proof.verification_method to resolve to executed_by or its current authorized device, and reject self-principal or generic realm.create-capability substitution. This class never authorizes the following device authorize slot by itself.",
+      "delegated_pcr_genesis": "Admitted only for a principal_control ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A managed Native Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed principal branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
       "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
       "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
       "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed.",
@@ -274,7 +274,7 @@
       "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
       "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
       "lifecycle_modality applies to physical object lifecycle writes, identified mechanically by an fsm_contract whose axis is object_lifecycle, plus explicitly registered reversible Realm lifecycle facets. Every active event kind that writes such a family MUST declare lifecycle_modality. Use reversible for a reversible facet or either member of an archive/restore pair, and terminal for an irreversible transition. Workflow, membership, status, audit, key-material and OR-Set revocation axes are excluded. Reducers and SDKs MUST read this field and MUST NOT infer modality from event-kind spelling.",
-      "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell contract. A single-target kind MAY use the legacy cell_family/cell_subject/lattice/bottom shorthand. cell_writes[] is the general authority and is REQUIRED for multi-target kinds; each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional: it uses the closed grammar {kind: field_present|field_absent|field_equals|any_field_present, field: <dot-path>, const?: <scalar>, fields?: [<dot-path>...]} evaluated as a pure function of the schema-validated payload. When the condition holds the target is required and the reducer MUST derive exactly one matching write from kind+payload; when it does not hold the reducer MUST NOT derive that write. See zh/models/event-and-patch.md section 2.4.2. The generator materializes the single-target shorthand when cell_writes[] has one entry. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a coalesce descriptor, or a composite descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any reducer write has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
+      "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell_writes[] contract; no parallel single-target fields or aliases exist. Each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional. Payload conditions use the closed grammar field_present|field_absent|field_equals|any_field_present; a signed semantic-ref condition uses only critical_ref_role_exact_count{role,count}. All are pure functions of the schema-validated signed Event. When the condition holds the target is required and the reducer MUST derive exactly one matching write from kind+payload; when it does not hold the reducer MUST NOT derive that write. See zh/models/event-and-patch.md section 2.4.2. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a coalesce descriptor, or a composite descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any reducer write has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
       "Every lattice=fsm cell write MUST resolve by cell_family to exactly one fsm_contract. Event-kind parameters MUST NOT duplicate states or allowed_transitions. Template-backed contracts resolve their instance_parameters before transition validation; unresolved templates, parameters or conditional edges fail closed.",
       "Every active wire_scope=actor_private_event kind MUST resolve to exactly one entry in actor_private_contracts.event_writes. Actor-private writes use only the registered actor_private_contracts.cell_families merge contract, never shared Realm plane/sealed routing, CBA fields, reducer_input, or shared cell_contracts.",
       "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 is canonically defined in zh/authz/event-auth-state-resolution.md section 6.5; its genesis value comes from ak.realm.create and subsequent writes use ak.realm.notary.",
@@ -1431,8 +1431,8 @@
           {
             "cell_family": "ak.component.contact.fact_log.v1",
             "cell_subject": {
-              "field": "payload.requester",
-              "kind": "did"
+              "kind": "composite",
+              "components": [{"kind":"select","selector":"payload.peer.kind","branches":{"human":{"field":"payload.peer.principal_id"},"agent":{"field":"payload.peer.agent_id"}}}]
             },
             "lattice": "ordered_log",
             "bottom": "expose",
@@ -1456,8 +1456,8 @@
           {
             "cell_family": "ak.component.contact.fact_log.v1",
             "cell_subject": {
-              "field": "payload.requester",
-              "kind": "did"
+              "kind": "composite",
+              "components": [{"kind":"select","selector":"payload.peer.kind","branches":{"human":{"field":"payload.peer.principal_id"},"agent":{"field":"payload.peer.agent_id"}}}]
             },
             "lattice": "ordered_log",
             "bottom": "expose",
@@ -1481,8 +1481,8 @@
           {
             "cell_family": "ak.component.contact.fact_log.v1",
             "cell_subject": {
-              "field": "payload.target",
-              "kind": "did"
+              "kind": "composite",
+              "components": [{"kind":"select","selector":"payload.peer.kind","branches":{"human":{"field":"payload.peer.principal_id"},"agent":{"field":"payload.peer.agent_id"}}}]
             },
             "lattice": "ordered_log",
             "bottom": "expose",
@@ -1506,8 +1506,8 @@
           {
             "cell_family": "ak.component.contact.fact_log.v1",
             "cell_subject": {
-              "field": "payload.peer",
-              "kind": "did"
+              "kind": "composite",
+              "components": [{"kind":"select","selector":"payload.peer.kind","branches":{"human":{"field":"payload.peer.principal_id"},"agent":{"field":"payload.peer.agent_id"}}}]
             },
             "lattice": "ordered_log",
             "bottom": "expose",
@@ -3479,6 +3479,29 @@
                 "projected_value": true
               }
             }
+          },
+          {
+            "cell_family": "ak.component.agent.status.v1",
+            "cell_subject": {
+              "kind": "did",
+              "field": "payload.object.created_by"
+            },
+            "lattice": "fsm",
+            "bottom": "reject",
+            "condition": {
+              "kind": "critical_ref_role_exact_count",
+              "role": "agent_provision",
+              "count": 1
+            },
+            "effect_projection": {
+              "kind": "transition",
+              "from": {
+                "const": "uninitialized"
+              },
+              "to": {
+                "const": "active"
+              }
+            }
           }
         ],
         "concurrency_class": "security_barrier"
@@ -5307,7 +5330,21 @@
             "when": {
               "payload_path": "object.fields.purpose",
               "const": "principal_control",
-              "ref_role": "did_inception",
+              "ref_role": "agent_provision",
+              "ref_critical": true,
+              "ref_exact_count": 1,
+              "top_level_fields_present": [
+                "executed_by",
+                "authorization_ref"
+              ]
+            },
+            "admission": "delegated_pcr_genesis"
+          },
+          {
+            "when": {
+              "payload_path": "object.fields.purpose",
+              "const": "principal_control",
+              "ref_role": "agent_provision",
               "ref_exact_count": 0,
               "top_level_fields_present": [
                 "executed_by",
@@ -6339,7 +6376,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Principal-scoped contact request fact. Issuer is requester; target holder must respond with accepted/rejected."
+        "payload": "Requester-signed directional Contact request: closed peer XOR plus full granted_to_peer_scopes. It precedes every acceptance receipt and basis and never reads or writes Consent.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_requested_payload"
       },
       {
         "event_kind": "ak.contact.accepted",
@@ -6348,7 +6386,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Principal-scoped contact acceptance fact. Issuer is original request target and MUST reference target-controlled consent grants."
+        "payload": "Holder-signed normal Contact acceptance: closed peer XOR, exact request/receipt digest, stable basis, lineage version 1 and full granted_to_peer_scopes. It never reads or writes Consent.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_accepted_payload"
       },
       {
         "event_kind": "ak.contact.rejected",
@@ -6357,7 +6396,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Principal-scoped contact rejection fact. Issuer is original request target and does not write consent."
+        "payload": "Holder-signed terminal rejection bound to the exact request Event and acceptance-receipt digest. It creates no basis and has no Consent or basis-proof fields.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_rejected_payload"
       },
       {
         "event_kind": "ak.contact.tombstoned",
@@ -6366,7 +6406,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Holder-signed issuer-local Contact generation terminal. It consumes the stable basis and cannot carry scope replacement or write/revoke Private Consent."
+        "payload": "Holder-signed issuer-local Contact generation terminal. It consumes the stable basis and cannot carry scope replacement or write/revoke Private Consent.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_tombstoned_payload"
       },
       {
         "event_kind": "ak.contact.scope.update",
@@ -7023,6 +7064,7 @@
       "ak.component.agent.status.v1": {
         "axis": "status",
         "states": [
+          "uninitialized",
           "active",
           "paused",
           "deactivated"
@@ -7033,6 +7075,10 @@
         "idempotent_replay": "same_transition_same_basis_noop",
         "concurrent_sibling_conflict": "bottom",
         "allowed_transitions": [
+          [
+            "uninitialized",
+            "active"
+          ],
           [
             "active",
             "paused"
@@ -7050,7 +7096,7 @@
             "deactivated"
           ]
         ],
-        "initial_state": "active"
+        "initial_state": "uninitialized"
       },
       "ak.component.audit.binding.v1": {
         "axis": "audit",
@@ -7876,7 +7922,7 @@
   "schema_registry": {
     "registry_rules": [
       "A schema row with omitted status defaults to active. New or edited rows MUST spell status explicitly.",
-      "Allowed status values are active and deprecated. Deprecated rows remain resolvable for historical data but MUST NOT be produced by new writes.",
+      "The only allowed schema status is active. Unknown or any non-active status fails closed; the registry defines no historical compatibility rows.",
       "consumer_binding, when present, is the machine-readable disposition for a logical schema that is not directly named by an operation, Event kind, or another schema. Runtime and dynamic wire bindings MUST declare kind, selector, and normative_ref. A prose_only binding MUST instead declare a non-empty rationale and MUST NOT be counted as wire coverage.",
       "The effective schema reference of a row is the literal concatenation (file + optional fragment): fragment already includes its leading '#', so consumers MUST NOT insert another separator. For example file='schemas/agent-operations.schema.json' plus fragment='#/$defs/agent_pairing_bootstrap' resolves to exactly 'schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap'. Consumers MUST resolve that URI-fragment JSON Pointer and MUST NOT bind schema_id to the top-level document of file. When fragment is absent, the effective reference is the top-level document of file. Two schema_id rows mapping to the same file MUST be distinguished by fragment (or one MUST omit fragment to denote the whole document); a consumer that ignores fragment and loads the top-level document for a fragment-bearing row is non-conforming.",
       "fragment, when present, MUST be a non-empty RFC 6901 JSON Pointer in URI-fragment representation starting with '#/'. If the pointer does not resolve within file, or a row that shares a file with another row omits fragment while that other row also omits fragment (ambiguous whole-document mapping), consumers MUST fail closed rather than silently pick a schema."
@@ -7935,6 +7981,20 @@
         "file": "schemas/agent-signer-evidence.schema.json",
         "status": "active",
         "description": "Portable Native Agent signer authorization, state-witness, and freshness evidence used outside the ordinary device directory."
+      },
+      {
+        "schema_id": "ak.schema.controller_account_gate_attestation.v1",
+        "file": "schemas/agent-signer-evidence.schema.json",
+        "fragment": "#/$defs/controller_account_gate_attestation",
+        "status": "active",
+        "description": "Privacy-minimal Account Authority attestation of the controller principal lifecycle gate; never carries service-local account identity or a raw account cell."
+      },
+      {
+        "schema_id": "ak.schema.agent_signer_admission_receipt.v1",
+        "file": "schemas/agent-signer-evidence.schema.json",
+        "fragment": "#/$defs/event_admission_receipt",
+        "status": "active",
+        "description": "Destination-signed immutable receipt for the exact Native Agent signer evidence used when one Event was accepted."
       },
       {
         "schema_id": "ak.schema.agent_signer_evidence_query_request.v1",
@@ -8145,12 +8205,6 @@
         "file": "schemas/invite-receive-policy.schema.json",
         "status": "active",
         "description": "Subject-private invite receive policy controlling which introduction evidence kinds may notify the holder."
-      },
-      {
-        "schema_id": "ak.schema.peer_contact_delivery_request.v1",
-        "file": "schemas/peer-contact-delivery-request.schema.json",
-        "status": "deprecated",
-        "description": "Deprecated legacy service-to-service Contact carrier retained only for historical resolution. New writes use the closed ak.peer.contacts.command.submit request in protocol-journey-wire.schema.json."
       },
       {
         "schema_id": "ak.schema.authz_operations.v1",
@@ -8714,7 +8768,7 @@
       {
         "schema_id": "ak.schema.join_policy_operations.v1",
         "file": "schemas/join-policy-operations.schema.json",
-        "status": "candidate",
+        "status": "active",
         "description": "Closed profile-private request/response and signed receipt DTO bundle for ak.profile.candidate.join_policy.v1. Candidate receipts never become Event.kind values or shared Realm history."
       },
       {
@@ -9809,7 +9863,11 @@
           "ak.self.invite_locator.command.issue",
           "ak.self.invite_locator.command.rotate",
           "ak.self.invite_locator.command.revoke",
-          "ak.self.direct_conversation.command.resolve"
+          "ak.self.direct_conversation.command.resolve",
+          "ak.peer.direct_conversation.operation_control.command.submit",
+          "ak.peer.direct_conversation.operation_control.command.deliver",
+          "ak.peer.direct_conversation.operation_control.query.execution_bundle",
+          "ak.peer.direct_conversation.operation_control.query.read_certificate"
         ],
         "surface_class": "extension"
       },
@@ -10544,10 +10602,10 @@
         "http": "POST /_arkret/self/agent-sidecars:ensure",
         "grpc": "SelfAgent/SidecarEnsure",
         "mq": "self.agent.sidecar.command.ensure",
-        "notes": "First ensure uses a private reservation and staged atomic admission of exactly [controller-signed ak.sidecar.create, controller-signed ak.sidecar.context.attach]. Create alone projects the Sidecar, backing Circle and controller membership; attach alone projects the private Strand and Relation and must reference create with EventRef role after. Existing Sidecars admit only a new attach. The parent-Realm bootstrap exception is scoped only to create.",
+        "notes": "Prepare fixes the new|existing branch, every reducer-derived coordinate, Event ID, canonical unsigned Event bytes and digest. It returns two controller-signing drafts for a new Sidecar and only an attach draft for an existing Sidecar. Commit accepts only proofs appended to those exact drafts. First ensure atomically admits exactly [ak.sidecar.create, ak.sidecar.context.attach]; attach must reference the reserved create Event with role after. The parent-Realm bootstrap exception is scoped only to create.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
+        "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_request",
         "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_outcome",
@@ -10977,7 +11035,7 @@
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_request",
-        "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+        "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_request_outcome",
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": ["ak.contact.requested"]
@@ -10991,10 +11049,10 @@
         "notes": "Two-phase holder-local normal accept response. The service accepts only the holder-signed response Event bytes reserved for the current request slot, signs the matching normal-response acceptance receipt, and never writes Private Consent. Reject uses the separate ak.self.contact.command.reject operation. Glare is mechanically derived from two causally concurrent request receipts and forbids this operation.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
+        "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_request",
-        "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+        "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_outcome",
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": ["ak.contact.accepted"]
@@ -11008,10 +11066,10 @@
         "notes": "Two-phase holder-local terminal reject. The service accepts only the holder-signed ak.contact.rejected Event bytes reserved for the exact current request slot, signs the matching rejection acceptance receipt, and provides durable exact replay/conflict semantics independently from normal accept responses.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
+        "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_request",
-        "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+        "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_outcome",
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": ["ak.contact.rejected"]
@@ -11038,7 +11096,7 @@
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_scope_update_request",
-        "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+        "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_scope_update_outcome",
         "durable_effect": {"kind":"event_log","event_kinds":["ak.contact.scope.update"]}
       },
       {
@@ -11049,10 +11107,10 @@
         "notes": "Holder-signed issuer-local lineage terminal. It consumes the Contact basis and generation; it does not carry scope replacement and does not write or revoke Private Consent.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
+        "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_tombstone_request",
-        "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+        "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_tombstone_outcome",
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": ["ak.contact.tombstoned"]
@@ -11163,6 +11221,58 @@
           "kind": "none",
           "rationale": "the_service_persists_only_the_coordinator_operation_record_and_returns_participant_authoring_material_or_an_existing_projection"
         }
+      },
+      {
+        "operation_id": "ak.peer.direct_conversation.operation_control.command.submit",
+        "http": "POST /_arkret/peer/direct-conversation-operation-control/messages",
+        "grpc": "PeerDirectConversationOperationControl/Submit",
+        "mq": "peer.direct_conversation.operation_control.command.submit",
+        "notes": "Closed immutable-replica carrier for the domain-root-signed registry, qDA, PBFT, view change and fresh read messages. Source and recipient must be exact immutable replicas. A one-vote slot omits operation_id and compares semantic value/lock digests: different carriers or valid quorum subsets for the same vote replay safely; only a conflicting semantic vote is equivocation. queued requires durable message bytes and typed missing dependencies.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "schema_resource",
+        "idempotency_mechanism": "protocol_sequence",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_message_submit_request",
+        "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_message_receipt",
+        "durable_effect": { "kind": "none", "rationale": "authenticated_replica_protocol_log_only" }
+      },
+      {
+        "operation_id": "ak.peer.direct_conversation.operation_control.command.deliver",
+        "http": "POST /_arkret/peer/direct-conversation-operation-control/execution-bundles",
+        "grpc": "PeerDirectConversationOperationControl/DeliverExecutionBundle",
+        "mq": "peer.direct_conversation.operation_control.command.deliver",
+        "notes": "Delivers one fully certified ExecutionBundle to EffectValueCore.destination. The destination independently validates registry authorization, typed effect, qDA, ancestors, qCOMMIT, journal and complete host DID+epoch fence. Ledger identity is (pair_registry_id,operation_id,attempt_sequence,effect_id) and compares effect_commitment_digest, not full bundle bytes: alternative valid quorum witness subsets are duplicate; only a different semantic commitment is permanent equivocation. submitted_bundle_digest is exact recovery/audit identity. deferred requires durable exact bundle bytes plus named dependencies.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "schema_resource",
+        "idempotency_mechanism": "protocol_sequence",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_delivery_request",
+        "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_delivery_outcome",
+        "durable_effect": { "kind": "none", "rationale": "certified_external_effect_and_destination_ledger_only" }
+      },
+      {
+        "operation_id": "ak.peer.direct_conversation.operation_control.query.execution_bundle",
+        "http": "POST /_arkret/peer/direct-conversation-operation-control/execution-bundles/query",
+        "grpc": "PeerDirectConversationOperationControl/QueryExecutionBundle",
+        "mq": "peer.direct_conversation.operation_control.query.execution_bundle",
+        "notes": "Stable exact recovery query, never a current-head oracle. by_effect requires registry, operation, attempt, effect and expected value/bundle digests; delivery_outcome requires the exact destination and bundle digest. Only an immutable replica, certified destination or the same operation requester may query.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "schema_resource",
+        "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_query_request",
+        "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_query_outcome",
+        "durable_effect": { "kind": "none", "rationale": "read_only_exact_execution_bundle_or_delivery_receipt_lookup" }
+      },
+      {
+        "operation_id": "ak.peer.direct_conversation.operation_control.query.read_certificate",
+        "http": "POST /_arkret/peer/direct-conversation-operation-control/read-certificates/query",
+        "grpc": "PeerDirectConversationOperationControl/ReadCertificate",
+        "mq": "peer.direct_conversation.operation_control.query.read_certificate",
+        "notes": "Produces a fresh quorum read certificate for one exact signed request. The evaluator requires exactly q=2f+1 distinct immutable replicas, canonical order, unexpired receipts and byte-identical request digest and complete genesis|committed head. Without q it fails operation_control_quorum_unavailable; a read certificate never authorizes an effect, transfer or attempt advance.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "schema_resource",
+        "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_read_request",
+        "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_read_certificate",
+        "durable_effect": { "kind": "none", "rationale": "read_only_fresh_quorum_certificate_assembly" }
       },
       {
         "operation_id": "ak.self.circle.command.create",
@@ -12496,6 +12606,7 @@
         "http": "POST /_arkret/self/agent-signer-evidence/query",
         "grpc": "SelfAgentSignerEvidence/Resolve",
         "mq": "self.agent_signer_evidence.query.resolve",
+        "notes": "Closed selector XOR. current_admission binds the actual operation, request digest, verifier, audience and challenge and may authorize first live Signal evidence through current shared context. historical_event binds Event id, digest and receiver service and returns only the destination-signed admission receipt persisted when that exact Event was accepted; current state never reconstructs historical validity.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_request",

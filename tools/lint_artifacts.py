@@ -1071,6 +1071,12 @@ def check_common_object_field_matrix(lint: Lint) -> None:
     if not isinstance(view_schema, dict):
         return
     view_properties = view_schema.get("properties", {})
+    view_required = view_schema.get("required", [])
+    if "state" not in view_required:
+        lint.fail(view_schema_path, "View.state must be explicitly required; missing state is not a valid wire shape")
+    state_property = view_properties.get("state", {}) if isinstance(view_properties, dict) else {}
+    if isinstance(state_property, dict) and "default" in state_property:
+        lint.fail(view_schema_path, "View.state must not declare a default")
     for raw_field, row in by_field.items():
         if not isinstance(raw_field, str) or not isinstance(row, dict):
             continue
@@ -1095,6 +1101,28 @@ def check_common_object_field_matrix(lint: Lint) -> None:
         (state_rule.get("then") or {}).get("required") or []
     ):
         lint.fail(view_schema_path, "View.state_changed_at must be conditionally required for tombstoned")
+
+
+def check_keypackage_claim_proof_shape(lint: Lint) -> None:
+    """Self-claim uses one canonical singular proof field and rejects plural aliases."""
+
+    path = ARTIFACTS / "schemas" / "keypackage-operations.schema.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+    claim = ((data.get("$defs") or {}).get("key_packages_claim_request_body") or {})
+    if not isinstance(claim, dict):
+        lint.fail(path, "$defs.key_packages_claim_request_body must exist")
+        return
+    required = claim.get("required") or []
+    properties = claim.get("properties") or {}
+    if "holder_acceptance_proof" not in required:
+        lint.fail(path, "self KeyPackage claim must require holder_acceptance_proof")
+    singular = properties.get("holder_acceptance_proof") if isinstance(properties, dict) else None
+    if not isinstance(singular, dict) or singular.get("$ref") != "#/$defs/keypackage_claim_proof":
+        lint.fail(path, "holder_acceptance_proof must directly reference keypackage_claim_proof")
+    if isinstance(properties, dict) and "proofs" in properties:
+        lint.fail(path, "self KeyPackage claim must not retain a plural proofs compatibility field")
 
 
 def check_event_proof_digest_shape(lint: Lint) -> None:
@@ -1652,12 +1680,18 @@ def lint_cell_write_condition(lint: Lint, path: Path, ref: str, condition: objec
 
     See zh/models/event-and-patch.md section 2.4.2: a conditional target
     participates only when the condition holds, and the grammar is closed so the
-    predicate stays a pure function of the schema-validated payload.
+    predicate stays a pure function of the schema-validated signed Event.
     """
     if not isinstance(condition, dict):
         lint.fail(path, f"{ref} must be an object")
         return
-    allowed_kinds = {"field_present", "field_absent", "field_equals", "any_field_present"}
+    allowed_kinds = {
+        "field_present",
+        "field_absent",
+        "field_equals",
+        "any_field_present",
+        "critical_ref_role_exact_count",
+    }
     condition_kind = condition.get("kind")
     if condition_kind not in allowed_kinds:
         lint.fail(path, f"{ref}.kind must be one of {sorted(allowed_kinds)}")
@@ -1674,6 +1708,17 @@ def lint_cell_write_condition(lint: Lint, path: Path, ref: str, condition: objec
             lint_field_path(lint, path, f"{ref}.fields[{index}]", field)
         if len(fields) != len({repr(field) for field in fields}):
             lint.fail(path, f"{ref}.fields must not repeat a path")
+        return
+    if condition_kind == "critical_ref_role_exact_count":
+        unknown = set(condition) - {"kind", "role", "count"}
+        if unknown:
+            lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
+        role = condition.get("role")
+        if not isinstance(role, str) or re.fullmatch(r"[a-z][a-z0-9_]{0,63}", role) is None:
+            lint.fail(path, f"{ref}.role must be a canonical semantic-ref role")
+        count = condition.get("count")
+        if not isinstance(count, int) or isinstance(count, bool) or count < 0:
+            lint.fail(path, f"{ref}.count must be a non-negative integer")
         return
     allowed_keys = {"kind", "field"} | ({"const"} if condition_kind == "field_equals" else set())
     unknown = set(condition) - allowed_keys
@@ -2421,36 +2466,16 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         wire_scope = row.get("wire_scope")
         if wire_scope not in wire_scopes:
             lint.fail(event_path, f"{kind} has unknown wire_scope {wire_scope!r}")
-        lattice = row.get("lattice")
-        if lattice is not None and lattice not in REGISTRY_LATTICES:
-            lint.fail(event_path, f"{kind} has unknown lattice {lattice!r}")
-        bottom = row.get("bottom")
-        if bottom is not None and bottom not in REGISTRY_BOTTOMS:
-            lint.fail(event_path, f"{kind} has unknown bottom {bottom!r}")
-        elif lattice == "or_set" and bottom == "reject":
+        removed_single_target_fields = {
+            "cell_family", "cell_subject", "value_projection", "effect_projection",
+            "lattice", "bottom", "initial_value",
+        }
+        present_removed_fields = sorted(removed_single_target_fields.intersection(row))
+        if present_removed_fields:
             lint.fail(
                 event_path,
-                f"{kind} declares bottom=reject on an or_set; an or_set bottom MUST be "
-                "inert or expose and MUST NOT fail authorization closed "
-                "(zh/authz/event-auth-state-resolution.md section 9.1.1)",
+                f"{kind} uses removed single-target fields {present_removed_fields}; cell_writes[] is the only reducer contract",
             )
-        cell_family = row.get("cell_family")
-        if cell_family is not None:
-            if not isinstance(cell_family, str):
-                lint.fail(event_path, f"{kind} cell_family must be a string")
-            elif CELL_FAMILY_RE.fullmatch(cell_family) is None:
-                lint.fail(
-                    event_path,
-                    f"{kind} cell_family must use canonical ak.component.<facet-path>.v<n> form",
-                )
-            plane = row.get("plane")
-            if plane not in REGISTRY_PLANES:
-                lint.fail(event_path, f"{kind} cell_family row must declare plane=data|control")
-            sealed = row.get("sealed")
-            if not isinstance(sealed, bool):
-                lint.fail(event_path, f"{kind} cell_family row must declare sealed boolean")
-            elif (plane == "control") != sealed:
-                lint.fail(event_path, f"{kind} sealed must be true iff plane=control")
         cell_writes = row.get("cell_writes")
         if cell_writes is not None:
             if not isinstance(cell_writes, list) or not cell_writes:
@@ -2712,31 +2737,11 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     event_path,
                     f"{kind} data contract must omit control concurrency_class",
                 )
-            if (
-                len(cell_writes) == 1
-                and isinstance(cell_writes[0], dict)
-                and "cell_ref" not in cell_writes[0]
-            ):
-                # The conflict-recovery form has no single-target shorthand to
-                # agree with: the shorthand is a literal cell_family plus a
-                # lattice op, and this write has neither. The generator
-                # deliberately does not mirror it.
-                for field in (
-                    "cell_family",
-                    "cell_subject",
-                    "value_projection",
-                    "effect_projection",
-                    "lattice",
-                    "bottom",
-                    "initial_value",
-                ):
-                    if field in cell_writes[0] and row.get(field) != cell_writes[0].get(field):
-                        lint.fail(event_path, f"{kind} single-target shorthand {field} differs from cell_writes[0]")
         if row.get("status") == "active" and row.get("reducer_input") is True:
-            if cell_family is None and cell_writes is None:
+            if cell_writes is None:
                 lint.fail(
                     event_path,
-                    f"{kind} active reducer-input kind must declare cell_family or cell_writes",
+                    f"{kind} active reducer-input kind must declare cell_writes",
                 )
     schema_rows = schema_registry.get("schemas", [])
     schema_ids = unique_values(lint, schema_path, schema_rows, "schema_id")
@@ -2752,6 +2757,9 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         if not isinstance(row, dict):
             continue
         schema_id = row.get("schema_id")
+        schema_status = row.get("status", "active")
+        if schema_status != "active":
+            lint.fail(schema_path, f"{schema_id!r} schema status must be active; historical compatibility rows are forbidden")
         file_ref = row.get("file")
         fragment = row.get("fragment")
         consumer_binding = row.get("consumer_binding")
@@ -5772,12 +5780,6 @@ def check_null_cell_subject_wire_form(lint: Lint) -> None:
         return
 
     null_families: set[str] = set()
-    for row in registry.get("event_kinds", []) or []:
-        if not isinstance(row, dict):
-            continue
-        family = row.get("cell_family")
-        if isinstance(family, str) and family and row.get("cell_subject") is None:
-            null_families.add(family)
     for contract in (registry.get("cell_contracts") or {}).values():
         if not isinstance(contract, dict):
             continue
@@ -11488,6 +11490,7 @@ def main(argv: list[str] | None = None) -> int:
             ("naming_predicates", lambda: check_naming_predicates(lint)),
             ("profile_graph", lambda: check_profile_dependency_graph(lint)),
             ("field_matrix", lambda: check_common_object_field_matrix(lint)),
+            ("keypackage_claim_proof_shape", lambda: check_keypackage_claim_proof_shape(lint)),
             ("event_proof_digest", lambda: check_event_proof_digest_shape(lint)),
             ("digest_alias", lambda: check_canonical_digest_alias(lint)),
             ("announce_ids", lambda: check_legacy_announce_id_form(lint)),

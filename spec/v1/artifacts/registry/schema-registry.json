@@ -1,12 +1,12 @@
 {
-  "version": "2026-08-03.3",
+  "version": "2026-08-03.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-03T05:00:00Z",
+  "generated_at": "2026-08-03T09:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
     "A schema row with omitted status defaults to active. New or edited rows MUST spell status explicitly.",
-    "Allowed status values are active and deprecated. Deprecated rows remain resolvable for historical data but MUST NOT be produced by new writes.",
+    "The only allowed schema status is active. Unknown or any non-active status fails closed; the registry defines no historical compatibility rows.",
     "consumer_binding, when present, is the machine-readable disposition for a logical schema that is not directly named by an operation, Event kind, or another schema. Runtime and dynamic wire bindings MUST declare kind, selector, and normative_ref. A prose_only binding MUST instead declare a non-empty rationale and MUST NOT be counted as wire coverage.",
     "The effective schema reference of a row is the literal concatenation (file + optional fragment): fragment already includes its leading '#', so consumers MUST NOT insert another separator. For example file='schemas/agent-operations.schema.json' plus fragment='#/$defs/agent_pairing_bootstrap' resolves to exactly 'schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap'. Consumers MUST resolve that URI-fragment JSON Pointer and MUST NOT bind schema_id to the top-level document of file. When fragment is absent, the effective reference is the top-level document of file. Two schema_id rows mapping to the same file MUST be distinguished by fragment (or one MUST omit fragment to denote the whole document); a consumer that ignores fragment and loads the top-level document for a fragment-bearing row is non-conforming.",
     "fragment, when present, MUST be a non-empty RFC 6901 JSON Pointer in URI-fragment representation starting with '#/'. If the pointer does not resolve within file, or a row that shares a file with another row omits fragment while that other row also omits fragment (ambiguous whole-document mapping), consumers MUST fail closed rather than silently pick a schema."
@@ -65,6 +65,20 @@
       "file": "schemas/agent-signer-evidence.schema.json",
       "status": "active",
       "description": "Portable Native Agent signer authorization, state-witness, and freshness evidence used outside the ordinary device directory."
+    },
+    {
+      "schema_id": "ak.schema.controller_account_gate_attestation.v1",
+      "file": "schemas/agent-signer-evidence.schema.json",
+      "fragment": "#/$defs/controller_account_gate_attestation",
+      "status": "active",
+      "description": "Privacy-minimal Account Authority attestation of the controller principal lifecycle gate; never carries service-local account identity or a raw account cell."
+    },
+    {
+      "schema_id": "ak.schema.agent_signer_admission_receipt.v1",
+      "file": "schemas/agent-signer-evidence.schema.json",
+      "fragment": "#/$defs/event_admission_receipt",
+      "status": "active",
+      "description": "Destination-signed immutable receipt for the exact Native Agent signer evidence used when one Event was accepted."
     },
     {
       "schema_id": "ak.schema.agent_signer_evidence_query_request.v1",
@@ -275,12 +289,6 @@
       "file": "schemas/invite-receive-policy.schema.json",
       "status": "active",
       "description": "Subject-private invite receive policy controlling which introduction evidence kinds may notify the holder."
-    },
-    {
-      "schema_id": "ak.schema.peer_contact_delivery_request.v1",
-      "file": "schemas/peer-contact-delivery-request.schema.json",
-      "status": "deprecated",
-      "description": "Deprecated legacy service-to-service Contact carrier retained only for historical resolution. New writes use the closed ak.peer.contacts.command.submit request in protocol-journey-wire.schema.json."
     },
     {
       "schema_id": "ak.schema.authz_operations.v1",
@@ -844,7 +852,7 @@
     {
       "schema_id": "ak.schema.join_policy_operations.v1",
       "file": "schemas/join-policy-operations.schema.json",
-      "status": "candidate",
+      "status": "active",
       "description": "Closed profile-private request/response and signed receipt DTO bundle for ak.profile.candidate.join_policy.v1. Candidate receipts never become Event.kind values or shared Realm history."
     },
     {

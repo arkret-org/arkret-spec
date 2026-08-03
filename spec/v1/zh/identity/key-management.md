@@ -217,25 +217,75 @@ digest不一致必须拒绝，service不得替换disclosure或代controller补�
 
 `ak.component.agent.key.v1` 的 registered reducer projection 是 portable state witness 的唯一状态来源，不能只把 key Event 写入历史。cell subject MUST 使用 SDK `composite_subject([agent_id, key_id])`，不得用字符串拼接或 diagnostic subject。每个 `ak.agent.key.authorize` 的 reducer MUST 先对 `payload.supersedes[]` 逐项在对应旧 key cell 投影 `remove(tag=authorized_event_ref 对应的 observed canonical Event dot)`，再在当前 key cell 投影 `add(tag=canonical_event_dot(event_id, write_index), value=完整 authorize payload)`；authorization 元素的稳定 tag 是 [`event-and-patch.md` §2.4.2](../models/event-and-patch.md) 定义的 `<event_id>:<write_index>`，绝不是裸 `event_id`。`ak.agent.key.revoke` MUST 在 `seal_basis` 观察到的对应 key cell 中移除全部 active authorize dot，并加入 `add(tag=canonical_event_dot(event_id, write_index), value=完整 revoke payload)` 的 transition marker；marker 只保留可见证的撤销边界，不是 active authorization。Principal Server MUST 在接受前从 `kind + payload` 重建并逐项校验这些 canonical writes；write 缺失、多余、cell/tag/value/顺序不一致均须 `reducer_projection_failed`。这样 authorize、same-key re-authorization、replacement supersede 与 explicit revoke 都能从签名 Seal 的 resolved cell 独立证明，不依赖服务端私有投影。
 
-`ak.schema.agent_signer_evidence.v1` 把 binding 与 `ak.component.agent.key.v1` accepted state witness、authorization有效区间、source-service freshness attestation组合为 portable evidence。raw public key不是秘密；Agent/controller private key与MLS private state永不进入evidence。baseline receiver必须独立验证controller proof、两项digest、state witness/Seal linkage、freshness与status；来源服务签名只证明投影来源和新鲜度，不能替代前三项。启用 `ak.profile.key_transparency.v1` 时还必须验证 inclusion/consistency/witness proof。完整 transcript 与正负状态矩阵由 `ak.vector.agent.signer_evidence_binding.v1` 固化。
+`ak.schema.agent_signer_evidence.v1` 是 structural XOR：顶层只能是 `verification_mode=current_admission` 或
+`verification_mode=historical_event` 两种 closed object 之一，二者字段集合不同，不能通过改 tag 或增删一个
+frontier 互换。共享 `admission_evidence` 只含 `agent_authority_snapshot`、隐私最小化的
+`controller_account_gate_attestation` 及无自引用的 `admission_evidence_digest`。raw public key不是秘密；Agent/controller
+private key、MLS private state、服务本地 `account_id` 与 raw account cell 永不进入 portable evidence。
 
-`state_witness.cell_ref` MUST 精确等于由 `(agent_id, signing_key_binding.agent_key_id)` 对应 `ak.component.agent.key.v1` composite subject 派生的 cell ref，`cell_value` MUST 是该 Seal view 下此 cell 的完整 resolved、非 `⊥` 值，并包含 tag 可规范解析为 `(authorization_event_id, write_index)` 且 value 与 binding 匹配的 accepted add；裸 `authorization_event_id`、非 canonical 十进制 write index 或属于另一 Event 的 dot 均不匹配。Witness MUST 携带完整签名 `seal`；其 `id`、`state_root` MUST 分别等于 sibling `seal_id`、`state_root`，且 `realm_id` MUST 等于该 Agent 的权威 Principal Control Realm。Receiver MUST 验证 Seal id、notary signature与lineage，再用 canonical state-leaf 编码重算 `leaf_digest`，并以 `leaf_index`、`leaf_count` 和从 leaf 层到 root 排列的 `inclusion_proof[]` 按 §6.2.2 odd-tail promotion 规则重建 `state_root`；缺少 signed Seal/index/count/value、proof 有剩余或不足、PCR/cell ref 不匹配、重建 root 不等于签名 Seal `state_root`，均 MUST 拒绝。仅传一个未绑定 cell value 的 opaque `leaf_digest` 或只传 `seal_id/state_root` 不构成 portable state witness。
+`agent_authority_snapshot.core` 在 Agent Principal Control Realm 的一个 exact signed Seal view 中同时承载完整
+`signing_key_binding`、key authorization、key state witness 和 Agent lifecycle witness。`snapshot_digest` 只对 core
+做 RFC 8785/JCS SHA-256；`lease` 由该 PCR 的权威 service DID 在独立 domain
+`ak.agent-authority-snapshot-v1` 下签名并逐字绑定 authority、verification method、snapshot digest 与时窗。
+snapshot core 的 `seal_lineage[]` 必须是把 key/status witness Seal 连接到 `frontier_seal_id` 的完整、无重复
+predecessor closure；unknown、fork、跨 Realm、缺 predecessor 或签名无效均拒绝。
 
-当 `authorization.status` 为 `revoked` 或 `superseded` 时，evidence MUST 同时携带 `transition_witness`；`authorization.valid_until_frontier`、`authorization.transition_event_id` 与该 witness 的 `accepted_frontier`、`transition_event_id` MUST byte-identical。`transition_witness.cell_ref` MUST 由 `(agent_id, transition_key_id)` 派生，其完整 `cell_value` MUST 包含该 transition Event；receiver MUST 对它执行与起始 `state_witness` 相同的 signed Seal、leaf digest、index/count 与 Merkle inclusion 验证。supersede 的 transition key可以是 replacement authorize 的新 key，因此不得假设 transition cell 与旧 authorization cell相同。缺少第二 witness 时，历史有效区间只是来源服务的声明，不得用于 Verified。
+key `cell_ref` MUST 精确等于 SDK 从 `(agent_id, agent_key_id)` 派生的 `ak.component.agent.key.v1` composite
+subject；`cell_value` 是 closed、canonical sorted OR-set entry array，每项 tag 必须解析为 accepted Event 的 canonical
+`<event_id>:<write_index>` dot，value 必须是 schema-valid authorize/revoke payload。Agent lifecycle `cell_ref` MUST
+由 `agent_id` 派生，`cell_value` 是 closed lifecycle 值；`accepted_status_event`、provenance、registered reducer write、
+Seal delta/lineage 和 state leaf 必须互相重算一致。首次 active 的唯一 provenance 是 managed Agent delegated PCR
+genesis `ak.realm.create` 对恰好一个 critical `refs[] role=agent_provision` 的条件写；服务私有 row、FSM 默认值或
+organization-governed PCR 都不能合成首次 active witness。
 
-当 key 因 Agent lifecycle=`deactivated` 或 controller/account terminal而派生为ineffective时，不伪造
-`ak.agent.key.revoke` transition。`parent_lifecycle_witness`必须是closed typed union，分别承载Agent terminal与
-controller/account terminal witness；两个parent gate都可能同时出现，并与逐key `transition_witness`按closed
-组合规则验证。receiver把最早有效terminal frontier作为subordinate authorization的`valid_until_frontier`。
-current admission必须同时要求key、Agent lifecycle与controller/account lifecycle current active且fresh；
-pause/deactivate/revoke/supersede/expire均拒绝新操作。event-time historical verification只在Event admitted
-frontier验证当时三层均有效，后来terminal只界定valid-until，不追溯抹除历史签名。historical evidence不得用于
-新admission，current evidence也不得因后来状态改变被改写为“历史从未有效”。缺失、未知type、非法混用或
-lifecycle非terminal均fail closed。
+每个 state witness 都必须携带完整 signed Seal、closed `cell_value`、leaf digest/index/count 与 inclusion proof。
+receiver 验证 Seal id/notary signature/Realm/lineage，以 canonical
+`{"cell":cell_ref,"state":{"value":cell_value}}` 重算 leaf，再按 §6.2.2 odd-tail promotion 重建 `state_root`。
+缺 signed Seal/value、cell/subject/actor/controller/event dot 错配、proof 剩余/不足或 root 不等均 fail closed。
 
-`freshness_attestation.source_proof` MUST 是来源 service DID 对固定 transcript `UTF8("ak.agent-evidence-freshness-v1\n") + JCS(freshness_attestation without source_proof.jws)` 的 Ed25519 detached JWS，proof method controller MUST 等于 `source_service_id`。这样同一 attestation 可在 sync、backfill 与 federation bundle 中独立复验；不得把 RFC 9421 HTTP `Signature` header 文本嵌入被该 header 覆盖的响应 body 形成循环摘要。直接 evidence query 与 federation transport MUST 另外用 RFC 9421 HTTP Message Signature 覆盖完整 response/request content digest、operation id及双方 service/session binding。
+`controller_account_gate_attestation` 由 Account Authority 在 domain `ak.controller-account-gate-v1` 下签名，只公开
+controller principal DID、closed active/inactive eligibility、六值 account status、`basis.kind` 对应的最小
+binding/status digest 与时窗。`account_binding_default` 表示权威私有 binding 上尚无更严格 accepted status head；
+`account_status_event` 绑定真实 status Event/frontier digest。`status=active` 当且仅当 `eligibility=active`；其它状态
+全部 inactive。由于 portable evidence 不公开 service-local account identity，任何 `account_id`、raw account cell 或
+caller 自报 active 布尔值都是 schema violation。
 
-authorization准入按 Event admission receipt固定的accepted frontier判断；历史复验按 `[valid_from, valid_until)` 区间判断。后来正常rotation/revoke不会追溯抹除边界前的合法签名；但新Event的freshness observation不得早于其admission。`revoked`、`superseded`、`expired`、`conflicted`或边界后签名是确定性拒绝；evidence缺失、超freshness window或网络失败是 `Unresolved/Stale`，绝不得提升为Verified。
+current 分支必须携带 `current_observation`，逐字绑定 operation/request/verifier/audience/challenge、Agent snapshot
+digest、key/status Seal 与 controller gate digest。validator MUST 要求 `operation_id`、`request_digest`、`challenge`
+与当前实际请求完全相同，`verifier_id` 与实际执行验证的 authenticated service DID 相同，`audience` 与目标 operation
+的实际 audience 相同；任一字段不得由 evidence 自报后直接采信。observation 的 snapshot digest、key Seal、status Seal
+与 controller gate attestation digest MUST 分别逐字等于同一 `admission_evidence` 中被验证对象的实际值。
+outer attestation 的 source service MUST 是该 Agent PCR 的预期 authority service，并且其 proof 必须覆盖整个 tagged
+evidence。verifier-now 必须同时位于 outer attestation、Agent snapshot lease、
+controller gate attestation 和 current observation 的时窗内，且 key、Agent lifecycle、controller account 三层均
+active；pause/deactivate/revoke/supersede/expire/conflict或任一 stale/mismatch 均拒绝新操作。current object 在
+historical API 或 Event 历史验签路径结构性非法，也不得跨 verifier、audience、operation、request 或 challenge 重放。
+
+historical 分支必须携带由实际接收 Principal Server 在 Event accepted 时签发的
+`ak.schema.agent_signer_admission_receipt.v1`。receipt 在 domain
+`ak.agent-signer-admission-receipt-v1` 下闭合绑定 Event id/digest/Realm/admitted Seal/accepted_at、Agent/key method、
+authorize Event、完整 admission evidence digest、Agent snapshot/key/status basis、controller gate digest 与 receiver。
+receipt 的 `receiver_service_id` MUST 与实际接收并承诺该Event的destination service相同，receipt proof必须由该
+destination的registered verification method验证；查询方不得用source service或current authority替代。历史 verifier
+在 receipt `accepted_at` 检查当时 snapshot lease和account attestation有效，且 receipt 固定的三层 basis
+均 active；不要求这些短期证明在 verifier-now 仍有效。删除 receipt、替换任一 basis、拿 later paused/deactivated
+witness 冒充 admission witness、或把 historical object用于新 admission均拒绝。
+
+key interval、Agent lifecycle 与 controller account lifecycle 是三个正交 AND gate。key revoke/supersede 只由真实
+`ak.agent.key.*` transition witness表达；parent pause/resume/deactivate或account状态变化不得伪造 key transition、
+不得改写 key authorization。Agent PCR 与 account authority 属于不同 DAG，frontier 不可跨 Realm 排序，协议明确
+否决“取最早 terminal frontier写入单一 valid_until”的做法。历史有效性只取决于 destination-signed receipt 固定的
+三项 admission-time basis；后来任一 gate 变化只阻止新 admission，不追溯抹除此前合法签名。
+
+outer attestation 在 domain `ak.agent-signer-evidence.v1` 下签整个 tagged evidence（只省略 outer_attestation 自身）
+的 JCS digest，防止 mode/context/snapshot/receipt拼接；它不替代底层 controller proof、Seal、snapshot lease、Account
+Authority proof或receipt proof。直接 evidence query 与 federation transport另用 RFC 9421 HTTP Message Signature
+覆盖完整 content digest、operation id与双方 service/session binding，不把 HTTP Signature header 嵌回 body形成环。
+
+`revoked`、`superseded`、`expired`、`conflicted`或 admission-time 任一 parent inactive 是确定性拒绝；evidence/receipt
+缺失、时窗不满足或网络失败是 `Unresolved/Stale`，绝不得提升为 Verified。启用
+`ak.profile.key_transparency.v1` 时还必须验证 inclusion/consistency/witness proof。完整 transcript 与正负矩阵由
+`ak.vector.agent.signer_evidence_binding.v1` 固化。
 
 任何缺少 `signing_key_binding_digest` 证据的 authorization 都是 unresolved，服务端不得从 session row 合成证书，也不得提升为 Verified。客户端 MUST 显示 `verification_pending`；controller MUST 通过 same-key re-authorization 产生 replacement authorize Event 与完整 v1 binding，runtime key MAY 保持不变。
 - **Sidecar exposure 披露**：pairing approval UI 上，若该 controller 在新 agent 将要 active 的任一 Realm 中已存在独立 Agent Sidecar 对象，实现 MUST 显式披露“该 agent 激活并完成 access/MLS reconciliation 后，将获得这些 Realm 中现有私人 AI 工作区未来内容的访问权”（见 [`../models/sidecar.md` §4](../models/sidecar.md)）。

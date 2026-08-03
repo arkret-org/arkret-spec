@@ -40,7 +40,7 @@ Consent grant / revoke 表达的是 **holder 自己的决定**。它写入 holde
 
 ### 2.2 Consent 不授予 Realm 权限，也不是联系人关系真源
 
-Consent 表达"我允许某个 peer 发起某类联系动作"，但加入 Realm、写入 Realm、解密 E2EE 内容仍需独立的 capability + membership。Consent 是 invite / direct-message / call / presence 流程上游的 action gate，不替代下游授权。
+Consent 表达"我允许某个 peer 发起某类非 Contact basis 动作"，但加入 Realm、写入 Realm、解密 E2EE 内容仍需独立的 capability + membership。Consent 可作为 invite、非 Contact call/presence 等流程的上游 action gate；Contact-based create/send 与 Personal DM 完全不读取它。
 
 联系人关系的 pending / accepted / rejected / tombstoned 状态不属于 consent cell。它们的真源是 [`contact-and-direct-conversation.md`](./contact-and-direct-conversation.md) 定义的 principal-scoped contact fact log。Consent 的有效状态只有 `active` / `no-consent`；`revoke` 是撤销操作，不是联系人关系状态。
 

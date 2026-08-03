@@ -425,7 +425,7 @@
         "required_capabilities",
         "claim_nonce",
         "expires_at",
-        "proofs"
+        "holder_acceptance_proof"
       ],
       "properties": {
         "target_principal_id": {
@@ -470,14 +470,9 @@
         "mls_group_id": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "proofs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/keypackage_claim_proof"
-          },
-          "minItems": 1,
-          "maxItems": 1,
-          "description": "v1 requires exactly one holder_acceptance proof. The plural field is retained for wire compatibility; quorum or hybrid proof semantics require a future profile and MUST NOT be inferred by accepting extra entries."
+        "holder_acceptance_proof": {
+          "$ref": "#/$defs/keypackage_claim_proof",
+          "description": "The single requester holder_acceptance proof for this claim. Quorum or hybrid authorization requires a separately defined future request schema and MUST NOT be inferred from this field."
         }
       },
       "additionalProperties": false
@@ -871,6 +866,14 @@
       "additionalProperties": false,
       "description": "Destination-service-signed durable receipt. source_service_id and request are covered by the receipt signature; request_digest additionally binds the complete transport command, including participant authorization and portable signer evidence."
     },
+    "keypackage_claim_terminal_receipt": {
+      "type": "object",
+      "required": ["domain", "claim_request_id", "request_digest", "terminal_state", "source_service_id", "destination_service_id", "terminal_at", "signature"],
+      "properties": { "domain": { "const": "ak.keypackage.claim-terminal-receipt.v1" }, "claim_request_id": { "$ref": "#/$defs/base64url", "minLength": 22, "maxLength": 128 }, "request_digest": { "$ref": "#/$defs/hash" }, "terminal_state": { "type": "string", "enum": ["never_claimed", "expired", "revoked"] }, "key_package_refs": { "$ref": "#/$defs/keypackage_ref_array" }, "source_service_id": { "$ref": "#/$defs/did" }, "destination_service_id": { "$ref": "#/$defs/did" }, "terminal_at": { "$ref": "#/$defs/timestamp" }, "signature": { "$ref": "#/$defs/signature" } },
+      "allOf": [ { "if": { "properties": { "terminal_state": { "const": "never_claimed" } }, "required": ["terminal_state"] }, "then": { "not": { "required": ["key_package_refs"] } }, "else": { "required": ["key_package_refs"] } } ],
+      "additionalProperties": false,
+      "description": "The KeyPackage owner service signs an immutable terminal ledger fact. never_claimed is issued only after the request can no longer succeed; expired/revoked identify every formerly claimed ordinary KeyPackage. This is the portable cleanup authority for a failed Direct Conversation attempt."
+    },
     "peer_key_packages_claim_outcome": {
       "type": "object",
       "required": [
@@ -934,6 +937,7 @@
             "unknown",
             "pending",
             "claimed",
+            "consumed",
             "claim_failed",
             "expired",
             "revoked"
@@ -941,6 +945,12 @@
         },
         "claim_outcome": {
           "$ref": "#/$defs/peer_key_packages_claim_outcome"
+        },
+        "consume_receipt": {
+          "$ref": "#/$defs/keypackage_consume_receipt"
+        },
+        "terminal_receipt": {
+          "$ref": "#/$defs/keypackage_claim_terminal_receipt"
         },
         "retry_after_ms": {
           "type": "integer",
@@ -957,6 +967,7 @@
               "state": {
                 "enum": [
                   "claimed",
+                  "consumed",
                   "expired",
                   "revoked"
                 ]
@@ -978,6 +989,16 @@
               ]
             }
           }
+        },
+        {
+          "if": { "properties": { "state": { "const": "consumed" } }, "required": ["state"] },
+          "then": { "required": ["consume_receipt"] },
+          "else": { "not": { "required": ["consume_receipt"] } }
+        },
+        {
+          "if": { "properties": { "state": { "enum": ["claim_failed", "expired", "revoked"] } }, "required": ["state"] },
+          "then": { "required": ["terminal_receipt"] },
+          "else": { "not": { "required": ["terminal_receipt"] } }
         },
         {
           "if": {
@@ -1030,6 +1051,20 @@
       ],
       "additionalProperties": false
     },
+    "recipient_mls_durable_receipt": {
+      "type": "object",
+      "required": ["domain", "claim_request_id", "key_package_ref", "recipient_principal_id", "recipient_device_id", "recipient_service_id", "realm_id", "mls_group_id", "mls_epoch", "welcome_ref", "welcome_digest", "durable_at", "device_verification_method", "signature"],
+      "properties": { "domain": { "const": "ak.mls.recipient-durable-receipt.v1" }, "claim_request_id": { "$ref": "#/$defs/base64url", "minLength": 22, "maxLength": 128 }, "key_package_ref": { "$ref": "#/$defs/non_empty_string" }, "recipient_principal_id": { "$ref": "#/$defs/did" }, "recipient_device_id": { "$ref": "#/$defs/device_id" }, "recipient_service_id": { "$ref": "#/$defs/did" }, "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" }, "mls_group_id": { "$ref": "#/$defs/non_empty_string" }, "mls_epoch": { "type": "integer", "minimum": 0 }, "welcome_ref": { "$ref": "#/$defs/object_ref" }, "welcome_digest": { "$ref": "#/$defs/hash" }, "durable_at": { "$ref": "#/$defs/timestamp" }, "device_verification_method": { "$ref": "#/$defs/non_empty_string" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false,
+      "description": "The exact recipient device signs every field except signature only after durably storing and opening the Welcome and matching it to the claimed KeyPackage, Realm, group and epoch. recipient_principal_id must control recipient_device_id/device_verification_method and the claim must target the same participant and device."
+    },
+    "keypackage_consume_receipt": {
+      "type": "object",
+      "required": ["domain", "claim_request_id", "claim_ids", "key_package_refs", "recipient_durable_receipt", "welcome_ref", "realm_id", "mls_group_id", "mls_epoch", "source_service_id", "consumed_at", "signature"],
+      "properties": { "domain": { "const": "ak.keypackage.consume-receipt.v1" }, "claim_request_id": { "$ref": "#/$defs/base64url", "minLength": 22, "maxLength": 128 }, "claim_ids": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "minItems": 1, "uniqueItems": true }, "key_package_refs": { "$ref": "#/$defs/keypackage_ref_array" }, "recipient_durable_receipt": { "$ref": "#/$defs/recipient_mls_durable_receipt" }, "welcome_ref": { "$ref": "#/$defs/object_ref" }, "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" }, "mls_group_id": { "$ref": "#/$defs/non_empty_string" }, "mls_epoch": { "type": "integer", "minimum": 0 }, "source_service_id": { "$ref": "#/$defs/did" }, "consumed_at": { "$ref": "#/$defs/timestamp" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false,
+      "description": "Owner Principal Server signed single-use CAS receipt. It embeds the exact device-signed recipient_mls_durable_receipt so the authorized original peer claim source can recover and verify the complete durable proof through the consumed claim query. It is issued only after atomically transitioning every listed ordinary KeyPackage claim to consumed. Same exact consume replays this receipt; any coordinate mismatch conflicts."
+    },
     "key_packages_consume_request_body": {
       "type": "object",
       "required": [
@@ -1067,8 +1102,8 @@
           "$ref": "#/$defs/object_ref"
         },
         "recipient_durable_receipt": {
-          "$ref": "#/$defs/hash",
-          "description": "Destination-signed proof that the exact Welcome is durable. Consume MUST NOT run before this proof exists."
+          "$ref": "#/$defs/recipient_mls_durable_receipt",
+          "description": "Device-signed proof that the exact Welcome is durable. Consume MUST NOT run before this proof exists."
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -1089,11 +1124,15 @@
     "key_packages_consume_outcome": {
       "type": "object",
       "required": [
-        "consumed"
+        "consumed",
+        "consume_receipt"
       ],
       "properties": {
         "consumed": {
           "$ref": "#/$defs/keypackage_ref_array"
+        },
+        "consume_receipt": {
+          "$ref": "#/$defs/keypackage_consume_receipt"
         },
         "failures": {
           "type": "array",

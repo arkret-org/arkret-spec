@@ -3161,73 +3161,37 @@
     },
     "contact_accepted_payload": {
       "type": "object",
-      "description": "Principal-scoped contact accept fact. Issuer is the original request target; requester is the peer whose request was accepted. Accepting writes target-controlled consent grants and references them here.",
+      "description": "Holder-signed normal Contact acceptance fact. This is version 1 of the issuer-local directional lineage. It grants only the explicit Contact scopes and neither reads nor writes Consent.",
       "required": [
-        "request_id",
-        "requester",
-        "granted_scopes",
-        "consent_grant_refs"
+        "peer",
+        "basis_id",
+        "version",
+        "request_event_ref",
+        "request_acceptance_receipt_digest",
+        "granted_to_peer_scopes"
       ],
       "properties": {
-        "request_id": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "requester": {
-          "$ref": "#/$defs/did"
-        },
-        "granted_scopes": {
-          "$ref": "#/$defs/contact_consent_scopes"
-        },
-        "consent_grant_refs": {
-          "$ref": "#/$defs/contact_event_refs"
-        },
-        "expanded_scope_reason": {
-          "type": "string"
-        }
+        "peer": { "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_peer" },
+        "basis_id": { "$ref": "#/$defs/hash" },
+        "version": { "const": 1 },
+        "request_event_ref": { "$ref": "#/$defs/event_ref" },
+        "request_acceptance_receipt_digest": { "$ref": "#/$defs/hash" },
+        "granted_to_peer_scopes": { "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scopes" }
       },
       "additionalProperties": false
     },
-    "contact_consent_scope": {
-      "type": "string",
-      "enum": [
-        "invite",
-        "direct_message",
-        "voice_call",
-        "video_call",
-        "presence",
-        "any"
-      ]
-    },
-    "contact_consent_scopes": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/contact_consent_scope"
-      },
-      "minItems": 1,
-      "uniqueItems": true
-    },
-    "contact_event_refs": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/event_ref"
-      },
-      "minItems": 1,
-      "uniqueItems": true
-    },
     "contact_rejected_payload": {
       "type": "object",
-      "description": "Principal-scoped contact rejection fact. Issuer is the original request target. Rejecting does not grant or revoke consent by itself.",
+      "description": "Holder-signed terminal rejection of one exact accepted request. It establishes no Contact basis and has no Consent or basis-proof fields.",
       "required": [
-        "request_id",
-        "requester"
+        "peer",
+        "request_event_ref",
+        "request_acceptance_receipt_digest"
       ],
       "properties": {
-        "request_id": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "requester": {
-          "$ref": "#/$defs/did"
-        },
+        "peer": { "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_peer" },
+        "request_event_ref": { "$ref": "#/$defs/event_ref" },
+        "request_acceptance_receipt_digest": { "$ref": "#/$defs/hash" },
         "reason": {
           "type": "string"
         }
@@ -3236,31 +3200,18 @@
     },
     "contact_requested_payload": {
       "type": "object",
-      "description": "Principal-scoped contact request fact. Issuer is the requester; target is the holder being asked to accept. This fact lives in the requester's Principal Control Realm and may be mirrored by the target as the original signed envelope.",
+      "description": "Requester-signed directional Contact request fact. It is created before any acceptance receipt or basis exists, so neither may appear in this payload. It grants only the requester's explicit Contact scopes and neither reads nor writes Consent.",
       "required": [
-        "request_id",
-        "target",
-        "requested_scopes",
-        "requester_consent_refs"
+        "peer",
+        "granted_to_peer_scopes",
+        "introduction_evidence_digest"
       ],
       "properties": {
-        "request_id": {
-          "$ref": "#/$defs/event_ref",
-          "description": "SHOULD equal the enclosing ak.contact.requested event_id."
-        },
-        "target": {
-          "$ref": "#/$defs/did"
-        },
-        "requested_scopes": {
-          "$ref": "#/$defs/contact_consent_scopes"
-        },
-        "requester_consent_refs": {
-          "$ref": "#/$defs/contact_event_refs",
-          "description": "Consent grant event refs written by requester for every requested scope."
-        },
+        "peer": { "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_peer" },
+        "granted_to_peer_scopes": { "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scopes" },
         "introduction_evidence_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Optional digest of the private contact request introduction_evidence carried by PeerContactDeliveryRequest. Raw evidence is not written into the contact fact log."
+          "description": "Required digest of the exact private introduction_evidence carried by the request branch of ak.peer.contacts.command.submit. Raw evidence is not written into the contact fact log."
         },
         "message": {
           "type": "string"
@@ -3273,28 +3224,18 @@
     },
     "contact_tombstoned_payload": {
       "type": "object",
-      "description": "Principal-scoped holder tombstone for one contact relation view. Issuer is the holder ending their side of the contact. Default revocation scope is contact-managed active consent dots only.",
+      "description": "Holder-signed terminal event for one issuer-local Contact lineage. The event kind itself supplies terminal semantics; the payload carries only the exact peer, basis and predecessor coordinates. It does not read, write or revoke Consent.",
       "required": [
         "peer",
-        "revoke_scopes"
+        "basis_id",
+        "version",
+        "predecessor_event_ref"
       ],
       "properties": {
-        "peer": {
-          "$ref": "#/$defs/did"
-        },
-        "revoke_scopes": {
-          "$ref": "#/$defs/contact_consent_scopes"
-        },
-        "consent_revoke_refs": {
-          "$ref": "#/$defs/contact_event_refs"
-        },
-        "full_peer_revoke": {
-          "type": "boolean",
-          "default": false
-        },
-        "partial_revoke": {
-          "type": "boolean"
-        },
+        "peer": { "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_peer" },
+        "basis_id": { "$ref": "#/$defs/hash" },
+        "version": { "type": "integer", "minimum": 2 },
+        "predecessor_event_ref": { "$ref": "#/$defs/event_ref" },
         "reason": {
           "type": "string"
         }
@@ -4544,7 +4485,11 @@
           "$ref": "#/$defs/direct_conversation_authorization_basis"
         },
         "member_event_refs": {
-          "$ref": "#/$defs/contact_event_refs",
+          "type": "array",
+          "items": { "$ref": "#/$defs/event_ref" },
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
           "description": "Membership event refs proving both participants are active members of the DM Realm."
         },
         "main_strand_create_ref": {

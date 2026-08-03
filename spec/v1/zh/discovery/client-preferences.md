@@ -194,18 +194,18 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 #### 3.5.1 收取与过滤边界（normative）
 
 - **共享 Realm 消息**：必须先按正常 federation / sync 路径收取、验签、准入、存储并推进 canonical Event / Seal 状态，因为同一 Event 对其他成员、引用链和 state root 仍然有效；随后才在 holder-private projection 应用 `block` / `hide`。不得在网络层丢弃该 Operation，也不得从共享 history、Seal coverage 或其它成员视图删除它。被过滤内容不生成 holder notification、mention attention、自动 read receipt，且不得触发 typing / presence 等可让发送方推断 block 命中的差异信号。
-- **现有 Direct Conversation**：个人 blocklist 自身只是私有过滤器，不撤销 membership、contact consent 或 participant authority。若产品的“拉黑用户”承诺阻止后续 DM 写入，客户端 MUST 把 blocklist 更新与 `ak.self.contact.command.tombstone{block_peer=true}`、对应 `ak.consent.revoke` 等 canonical contact/consent 动作作为同一持久化 saga 执行并重试至闭合；只有后者使稳定 conversation 投影为 `suspended` 并禁止新 application message。只写 blocklist 时，对端仍可能成功提交 shared DM Event，本端必须同步后私下过滤。
+- **现有 Direct Conversation**：个人 blocklist 自身只是私有过滤器，不撤销 membership、Contact authority 或 participant authority。若产品的“拉黑用户”承诺阻止后续 DM 写入，客户端 MUST 把 blocklist 更新与 `ak.self.contact.command.tombstone{block_peer=true}` 作为同一持久化 saga 执行并重试至闭合；Contact tombstone使稳定 conversation 投影为 `suspended` 并禁止新 application message，Consent revoke不得作为替代或附加门槛。只写 blocklist 时，对端仍可能成功提交 shared DM Event，本端必须同步后私下过滤。
 - **新的 holder-private 请求**：contact request、首次 DM invite、call invite 或 applet-mediated request 在受托服务有权读取 blocklist 时可于 holder surface 前 drop；否则服务必须以不可区分形态转发加密材料，由客户端本地过滤。两种模式都不得向发送方返回 `blocked_by_user`，也不得产生可区分的错误、时延或 delivery receipt。
-- **解除屏蔽**：下一 revision 移除 entry 后，未来 projection 立即停止过滤。此前已经正常收取并按 retention 保留的共享 Realm / DM 历史会重新出现在 holder view；若产品希望解除后仍不显示旧内容，必须另存 holder-private hide/tombstone 或执行已有 erasure 流程，不能把 blocklist removal 偷换成历史删除。Block 期间被 contact/consent saga 真正拒绝、从未 accepted 的新请求或消息不会因解除屏蔽而补写。
+- **解除屏蔽**：下一 revision 移除 entry 后，未来 projection 立即停止过滤。此前已经正常收取并按 retention 保留的共享 Realm / DM 历史会重新出现在 holder view；若产品希望解除后仍不显示旧内容，必须另存 holder-private hide/tombstone 或执行已有 erasure 流程，不能把 blocklist removal 偷换成历史删除。Block 期间被 Contact tombstone真正拒绝、从未 accepted 的新请求或消息不会因解除屏蔽而补写。
 - **离线与多设备**：设备只能依据其已同步到的最高 accepted blocklist revision 过滤。尚未取得新 revision 的设备必须把 blocklist freshness 视为 unknown，禁止发送 read receipt / presence 等可能泄漏差异的信号，待 actor-private account-data catch-up 后重算 holder projection。
 
-上述 CAS、receive-before-filter、解除后 projection rebuild、DM contact/consent 正交性与不可枚举行为由 conformance vector `ak.vector.account.blocklist_projection.v1` 闭合。
+上述 CAS、receive-before-filter、解除后 projection rebuild、DM Contact authority与Consent完全隔离及不可枚举行为由 conformance vector `ak.vector.account.blocklist_projection.v1` 闭合。
 
 ### 3.6 联系人备注 (Contact Remarks)
 
 用户可以为已知联系人（其他 Actor / Organization / 设备）保存只对自己可见的本地备注名、笔记和私有标签。该数据是 actor-private 的渲染覆盖层，**不**修改对方公开 profile，**不**写入 Realm history、mention、sender attribution 或任何协议主体字段。
 
-`ak.contacts.*` account-data key 只表达 holder-private 备注、标签、置顶、别名和本地排序。它不通知对方，不证明对方接受，也不打开 `direct_message` / `invite` / `call` / `presence` gate。联系人关系状态 MUST 从 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 定义的 `ak.contact.*` fact log 投影；contact action gate MUST 从 [`../identity/consent-model.md`](../identity/consent-model.md) 定义的 consent cell 投影。客户端 MAY 把本地备注与 `ak.self.contact.query.list` 结果合并展示，但不得把 account-data note 当作 accepted contact。
+`ak.contacts.*` account-data key 只表达 holder-private 备注、标签、置顶、别名和本地排序。它不通知对方，不证明对方接受，也不打开 `direct_message` / `invite` / `call` / `presence` gate。联系人关系状态与 Contact-based action gate MUST 只从 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 定义的 `ak.contact.*` directional fact log 投影；Consent不得参与。客户端 MAY 把本地备注与 `ak.self.contact.query.list` 结果合并展示，但不得把 account-data note 当作 accepted contact。
 
 **Key:** `ak.contacts.actor.<did>`
 

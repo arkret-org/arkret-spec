@@ -27,6 +27,14 @@
     { "$ref": "#/$defs/sidecar_ensure_request" },
     { "$ref": "#/$defs/sidecar_ensure_outcome" },
     { "$ref": "#/$defs/sidecar_access_replace" },
+    { "$ref": "#/$defs/operation_control_message_submit_request" },
+    { "$ref": "#/$defs/operation_control_message_receipt" },
+    { "$ref": "#/$defs/operation_control_read_request" },
+    { "$ref": "#/$defs/operation_control_read_certificate" },
+    { "$ref": "#/$defs/execution_bundle_delivery_request" },
+    { "$ref": "#/$defs/execution_bundle_delivery_outcome" },
+    { "$ref": "#/$defs/execution_bundle_query_request" },
+    { "$ref": "#/$defs/execution_bundle_query_outcome" },
     { "$ref": "#/$defs/protocol_execution_attestation" }
   ],
   "$defs": {
@@ -38,7 +46,7 @@
     "device_id": { "$ref": "./common-ids.schema.json#/$defs/device_id" },
     "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
     "circle_id": { "$ref": "./common-ids.schema.json#/$defs/circle_id" },
-    "strand_id": { "$ref": "./common-ids.schema.json#/$defs/strand_id" },
+    "strand_id": { "type": "string", "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
     "operation_id": { "type": "string", "pattern": "^ak:operation:[A-Za-z0-9._:-]+$" },
     "opaque_id": { "type": "string", "minLength": 1, "maxLength": 512 },
     "base64url": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
@@ -192,6 +200,22 @@
     },
     "contact_scope": { "type": "string", "enum": ["invite", "direct_message", "voice_call", "video_call", "presence"] },
     "contact_scopes": { "type": "array", "items": { "$ref": "#/$defs/contact_scope" }, "uniqueItems": true },
+    "contact_introduction_evidence": {
+      "oneOf": [
+        { "type": "object", "required": ["kind", "principal_locator"], "properties": { "kind": { "const": "locator_ref" }, "principal_locator": { "$ref": "./principal-locator.schema.json" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "realm_id", "requester_member_ref", "target_member_ref"], "properties": { "kind": { "const": "shared_realm" }, "realm_id": { "$ref": "#/$defs/realm_id" }, "requester_member_ref": { "$ref": "#/$defs/event_id" }, "target_member_ref": { "$ref": "#/$defs/event_id" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "handle", "handle_claim"], "properties": { "kind": { "const": "handle_claim" }, "handle": { "$ref": "./string-profiles.schema.json#/$defs/canonical_handle" }, "handle_claim": { "$ref": "./handle-claim.schema.json" }, "resolved_by": { "$ref": "#/$defs/did" }, "resolved_at": { "$ref": "#/$defs/timestamp" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind"], "properties": { "kind": { "const": "same_principal_server" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind"], "properties": { "kind": { "const": "explicit_address" } }, "additionalProperties": false }
+      ]
+    },
+    "contact_prepared_event_draft": {
+      "type": "object",
+      "required": ["event_id", "kind", "unsigned_event_bytes", "event_digest"],
+      "properties": { "event_id": { "$ref": "#/$defs/event_id" }, "kind": { "enum": ["ak.contact.requested", "ak.contact.accepted", "ak.contact.rejected", "ak.contact.scope.update", "ak.contact.tombstoned"] }, "unsigned_event_bytes": { "$ref": "#/$defs/base64url" }, "event_digest": { "$ref": "#/$defs/hash" } },
+      "additionalProperties": false,
+      "description": "Service-fixed canonical Event bytes without the holder proof. The client may only append the proof; after removing that proof the commit Event must equal these bytes, ID and digest exactly."
+    },
     "request_acceptance_receipt_core": {
       "type": "object",
       "required": ["holder", "peer", "slot_version", "request_event_ref", "request_digest", "source_checkpoint", "accepted_at", "issuer"],
@@ -227,16 +251,31 @@
         },
         {
           "type": "object",
-          "required": ["kind", "sorted_pair_members", "requests", "causal_concurrency_proof"],
+          "required": ["kind", "sorted_pair_members", "requests"],
           "properties": {
             "kind": { "const": "glare" },
             "sorted_pair_members": { "type": "array", "items": { "$ref": "#/$defs/did" }, "minItems": 2, "maxItems": 2, "uniqueItems": true },
-            "requests": { "type": "array", "items": { "type": "object", "required": ["request_event_ref", "request_acceptance_receipt_digest"], "properties": { "request_event_ref": { "$ref": "#/$defs/event_id" }, "request_acceptance_receipt_digest": { "$ref": "#/$defs/hash" } }, "additionalProperties": false }, "minItems": 2, "maxItems": 2, "uniqueItems": true },
-            "causal_concurrency_proof": { "$ref": "#/$defs/contact_current_proof" }
+            "requests": { "type": "array", "items": { "type": "object", "required": ["request_event_ref", "request_acceptance_receipt_digest"], "properties": { "request_event_ref": { "$ref": "#/$defs/event_id" }, "request_acceptance_receipt_digest": { "$ref": "#/$defs/hash" } }, "additionalProperties": false }, "minItems": 2, "maxItems": 2, "uniqueItems": true }
           },
           "additionalProperties": false
         }
       ]
+    },
+    "glare_concurrency_attestation": {
+      "type": "object",
+      "required": ["issuer", "peer", "request_receipt_digests", "observed_frontier", "complete_through", "unconsumed_slot_checkpoint", "observed_at", "signature"],
+      "properties": {
+        "issuer": { "$ref": "#/$defs/did" },
+        "peer": { "$ref": "#/$defs/did" },
+        "request_receipt_digests": { "type": "array", "items": { "$ref": "#/$defs/hash" }, "minItems": 2, "maxItems": 2, "uniqueItems": true },
+        "observed_frontier": { "type": "array", "items": { "$ref": "#/$defs/event_id" }, "minItems": 1, "uniqueItems": true },
+        "complete_through": { "type": "integer", "minimum": 1 },
+        "unconsumed_slot_checkpoint": { "$ref": "#/$defs/hash" },
+        "observed_at": { "$ref": "#/$defs/timestamp" },
+        "signature": { "$ref": "#/$defs/signature" }
+      },
+      "additionalProperties": false,
+      "description": "Source-signed evidence that the issuer had accepted both directional request receipts while neither request slot had yet been consumed by a normal response or rejection. Exactly one attestation from each pair member is required by the glare evidence bundle."
     },
     "contact_current_proof": {
       "type": "object",
@@ -276,14 +315,14 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["phase", "operation_id", "idempotency_key", "peer", "granted_to_peer_scopes"],
-          "properties": { "phase": { "const": "prepare" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "peer": { "$ref": "#/$defs/contact_peer" }, "granted_to_peer_scopes": { "$ref": "#/$defs/contact_scopes" } },
+          "required": ["phase", "operation_id", "idempotency_key", "peer", "granted_to_peer_scopes", "introduction_evidence"],
+          "properties": { "phase": { "const": "prepare" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "peer": { "$ref": "#/$defs/contact_peer" }, "granted_to_peer_scopes": { "$ref": "#/$defs/contact_scopes" }, "introduction_evidence": { "$ref": "#/$defs/contact_introduction_evidence" }, "message": { "type": "string" } },
           "additionalProperties": false
         },
         {
           "type": "object",
           "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "signed_event"],
-          "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" } },
+          "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.contact.requested" } }, "required": ["kind"] } ] } },
           "additionalProperties": false
         }
       ]
@@ -299,7 +338,7 @@
         {
           "type": "object",
           "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "signed_event"],
-          "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" } },
+          "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.contact.scope.update" } }, "required": ["kind"] } ] } },
           "additionalProperties": false
         }
       ]
@@ -308,14 +347,14 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["phase", "operation_id", "idempotency_key", "request_receipt", "action", "granted_to_peer_scopes", "normal_basis_evidence"],
-          "properties": { "phase": { "const": "prepare" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "request_receipt": { "$ref": "#/$defs/request_acceptance_receipt" }, "action": { "const": "accept" }, "granted_to_peer_scopes": { "$ref": "#/$defs/contact_scopes" }, "normal_basis_evidence": { "$ref": "#/$defs/contact_basis_evidence_bundle" } },
+          "required": ["phase", "operation_id", "idempotency_key", "request_receipt", "action", "granted_to_peer_scopes"],
+          "properties": { "phase": { "const": "prepare" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "request_receipt": { "$ref": "#/$defs/request_acceptance_receipt" }, "action": { "const": "accept" }, "granted_to_peer_scopes": { "$ref": "#/$defs/contact_scopes" } },
           "additionalProperties": false
         },
         {
           "type": "object",
           "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "signed_event"],
-          "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" } },
+          "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.contact.accepted" } }, "required": ["kind"] } ] } },
           "additionalProperties": false
         }
       ]
@@ -331,7 +370,7 @@
         {
           "type": "object",
           "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "signed_event"],
-          "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" } },
+          "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.contact.rejected" } }, "required": ["kind"] } ] } },
           "additionalProperties": false
         }
       ]
@@ -350,7 +389,7 @@
         {
           "type": "object",
           "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "signed_event"],
-          "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" } },
+          "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.contact.tombstoned" } }, "required": ["kind"] } ] } },
           "additionalProperties": false
         }
       ]
@@ -370,30 +409,81 @@
     },
     "contact_operation_outcome": {
       "oneOf": [
-        { "type": "object", "required": ["status", "operation_id", "reservation_handle", "expires_at"], "properties": { "status": { "const": "prepared" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "expires_at": { "$ref": "#/$defs/timestamp" } }, "additionalProperties": false },
-        { "type": "object", "required": ["status", "operation_id", "accepted_event_ref", "lineage", "current_proof"], "properties": { "status": { "const": "accepted" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "accepted_event_ref": { "$ref": "#/$defs/event_id" }, "lineage": { "$ref": "#/$defs/contact_lineage" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
-        { "type": "object", "required": ["status", "operation_id", "reason"], "properties": { "status": { "const": "rejected" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reason": { "type": "string", "enum": ["contact_idempotency_conflict", "contact_basis_conflict", "contact_lineage_conflict", "contact_terminal", "contact_scope_stale"] } }, "additionalProperties": false }
+        { "type": "object", "required": ["status", "result_kind", "operation_id", "reservation_handle", "expires_at", "event_draft"], "properties": { "status": { "const": "prepared" }, "result_kind": { "const": "request" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "event_draft": { "allOf": [ { "$ref": "#/$defs/contact_prepared_event_draft" }, { "properties": { "kind": { "const": "ak.contact.requested" } }, "required": ["kind"] } ] } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "result_kind", "operation_id", "reservation_handle", "expires_at", "event_draft"], "properties": { "status": { "const": "prepared" }, "result_kind": { "const": "response" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "event_draft": { "allOf": [ { "$ref": "#/$defs/contact_prepared_event_draft" }, { "properties": { "kind": { "const": "ak.contact.accepted" } }, "required": ["kind"] } ] } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "result_kind", "operation_id", "reservation_handle", "expires_at", "event_draft"], "properties": { "status": { "const": "prepared" }, "result_kind": { "const": "reject" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "event_draft": { "allOf": [ { "$ref": "#/$defs/contact_prepared_event_draft" }, { "properties": { "kind": { "const": "ak.contact.rejected" } }, "required": ["kind"] } ] } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "result_kind", "operation_id", "reservation_handle", "expires_at", "event_draft"], "properties": { "status": { "const": "prepared" }, "result_kind": { "const": "scope_update" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "event_draft": { "allOf": [ { "$ref": "#/$defs/contact_prepared_event_draft" }, { "properties": { "kind": { "const": "ak.contact.scope.update" } }, "required": ["kind"] } ] } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "result_kind", "operation_id", "reservation_handle", "expires_at", "event_draft"], "properties": { "status": { "const": "prepared" }, "result_kind": { "const": "tombstone" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "event_draft": { "allOf": [ { "$ref": "#/$defs/contact_prepared_event_draft" }, { "properties": { "kind": { "const": "ak.contact.tombstoned" } }, "required": ["kind"] } ] } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "result_kind", "operation_id", "request_acceptance_receipt"], "properties": { "status": { "const": "accepted" }, "result_kind": { "const": "request" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "request_acceptance_receipt": { "$ref": "#/$defs/request_acceptance_receipt" } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "result_kind", "operation_id", "normal_response_acceptance_receipt", "lineage", "current_proof"], "properties": { "status": { "const": "accepted" }, "result_kind": { "const": "response" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "normal_response_acceptance_receipt": { "$ref": "#/$defs/normal_response_acceptance_receipt" }, "lineage": { "$ref": "#/$defs/contact_lineage" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "result_kind", "operation_id", "reject_acceptance_receipt"], "properties": { "status": { "const": "accepted" }, "result_kind": { "const": "reject" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reject_acceptance_receipt": { "$ref": "#/$defs/reject_acceptance_receipt" } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "result_kind", "operation_id", "lineage", "current_proof"], "properties": { "status": { "const": "accepted" }, "result_kind": { "const": "scope_update" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "lineage": { "$ref": "#/$defs/contact_lineage" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "result_kind", "operation_id", "lineage", "current_proof"], "properties": { "status": { "const": "accepted" }, "result_kind": { "const": "tombstone" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "lineage": { "$ref": "#/$defs/contact_lineage" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "result_kind", "operation_id", "reason"], "properties": { "status": { "const": "failed" }, "result_kind": { "enum": ["request", "response", "reject", "scope_update", "tombstone"] }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reason": { "type": "string", "enum": ["contact_idempotency_conflict", "contact_basis_conflict", "contact_lineage_conflict", "contact_terminal", "contact_scope_stale"] } }, "additionalProperties": false }
+      ]
+    },
+    "contact_request_outcome": {
+      "allOf": [
+        { "$ref": "#/$defs/contact_operation_outcome" },
+        { "type": "object", "required": ["result_kind"], "properties": { "result_kind": { "const": "request" } } }
+      ]
+    },
+    "contact_respond_outcome": {
+      "allOf": [
+        { "$ref": "#/$defs/contact_operation_outcome" },
+        { "type": "object", "required": ["result_kind"], "properties": { "result_kind": { "const": "response" } } }
+      ]
+    },
+    "contact_reject_outcome": {
+      "allOf": [
+        { "$ref": "#/$defs/contact_operation_outcome" },
+        { "type": "object", "required": ["result_kind"], "properties": { "result_kind": { "const": "reject" } } }
+      ]
+    },
+    "contact_scope_update_outcome": {
+      "allOf": [
+        { "$ref": "#/$defs/contact_operation_outcome" },
+        { "type": "object", "required": ["result_kind"], "properties": { "result_kind": { "const": "scope_update" } } }
+      ]
+    },
+    "contact_tombstone_outcome": {
+      "allOf": [
+        { "$ref": "#/$defs/contact_operation_outcome" },
+        { "type": "object", "required": ["result_kind"], "properties": { "result_kind": { "const": "tombstone" } } }
       ]
     },
     "contact_basis_evidence_bundle": {
       "type": "object",
       "required": ["basis_id", "basis", "request_receipts", "current_proofs"],
-      "properties": { "basis_id": { "$ref": "#/$defs/hash" }, "basis": { "$ref": "#/$defs/contact_basis" }, "request_receipts": { "type": "array", "items": { "$ref": "#/$defs/request_acceptance_receipt" }, "minItems": 1, "maxItems": 2, "uniqueItems": true }, "normal_response_receipt": { "$ref": "#/$defs/normal_response_acceptance_receipt" }, "current_proofs": { "type": "array", "items": { "$ref": "#/$defs/contact_current_proof" }, "minItems": 1, "maxItems": 2, "uniqueItems": true } },
+      "properties": { "basis_id": { "$ref": "#/$defs/hash" }, "basis": { "$ref": "#/$defs/contact_basis" }, "request_receipts": { "type": "array", "items": { "$ref": "#/$defs/request_acceptance_receipt" }, "minItems": 1, "maxItems": 2, "uniqueItems": true }, "normal_response_receipt": { "$ref": "#/$defs/normal_response_acceptance_receipt" }, "glare_concurrency_attestations": { "type": "array", "items": { "$ref": "#/$defs/glare_concurrency_attestation" }, "minItems": 2, "maxItems": 2, "uniqueItems": true }, "current_proofs": { "type": "array", "items": { "$ref": "#/$defs/contact_current_proof" }, "minItems": 1, "maxItems": 2, "uniqueItems": true } },
       "allOf": [
         {
           "if": { "properties": { "basis": { "properties": { "kind": { "const": "glare" } }, "required": ["kind"] } }, "required": ["basis"] },
-          "then": { "properties": { "request_receipts": { "minItems": 2, "maxItems": 2 }, "current_proofs": { "minItems": 2, "maxItems": 2 } }, "not": { "required": ["normal_response_receipt"] } },
-          "else": { "properties": { "request_receipts": { "minItems": 1, "maxItems": 1 }, "current_proofs": { "minItems": 1, "maxItems": 1 } } }
+          "then": { "required": ["glare_concurrency_attestations"], "properties": { "request_receipts": { "minItems": 2, "maxItems": 2 }, "current_proofs": { "minItems": 2, "maxItems": 2 } }, "not": { "required": ["normal_response_receipt"] } },
+          "else": { "required": ["normal_response_receipt"], "properties": { "request_receipts": { "minItems": 1, "maxItems": 1 }, "current_proofs": { "minItems": 2, "maxItems": 2 } }, "not": { "required": ["glare_concurrency_attestations"] } }
         }
       ],
       "additionalProperties": false
     },
+    "contact_address": {
+      "type": "object",
+      "required": ["subject_id", "recipient_service_id"],
+      "properties": {
+        "subject_id": { "$ref": "#/$defs/did", "description": "Principal DID whose private Contact projection receives this fact." },
+        "recipient_service_id": { "$ref": "#/$defs/did", "description": "Principal Server service DID that hosts subject_id and accepts this delivery." },
+        "recipient_service_kind": { "const": "principal_server" }
+      },
+      "additionalProperties": false
+    },
     "peer_contact_submit_request": {
       "oneOf": [
-        { "type": "object", "required": ["kind", "idempotency_key", "signed_event", "request_receipt", "contact_address"], "properties": { "kind": { "const": "request" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" }, "request_receipt": { "$ref": "#/$defs/request_acceptance_receipt" }, "contact_address": { "$ref": "./peer-contact-delivery-request.schema.json#/$defs/contact_address" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
-        { "type": "object", "required": ["kind", "idempotency_key", "signed_event", "response_receipt", "contact_address"], "properties": { "kind": { "const": "response" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" }, "response_receipt": { "$ref": "#/$defs/normal_response_acceptance_receipt" }, "contact_address": { "$ref": "./peer-contact-delivery-request.schema.json#/$defs/contact_address" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
-        { "type": "object", "required": ["kind", "idempotency_key", "signed_event", "reject_receipt", "contact_address"], "properties": { "kind": { "const": "reject" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" }, "reject_receipt": { "$ref": "#/$defs/reject_acceptance_receipt" }, "contact_address": { "$ref": "./peer-contact-delivery-request.schema.json#/$defs/contact_address" } }, "additionalProperties": false },
-        { "type": "object", "required": ["kind", "idempotency_key", "signed_event", "lineage", "current_proof", "contact_address"], "properties": { "kind": { "enum": ["scope_update", "tombstone"] }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "$ref": "#/$defs/signed_event" }, "lineage": { "$ref": "#/$defs/contact_lineage" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" }, "contact_address": { "$ref": "./peer-contact-delivery-request.schema.json#/$defs/contact_address" } }, "additionalProperties": false }
+        { "type": "object", "required": ["kind", "idempotency_key", "signed_event", "request_receipt", "contact_address", "introduction_evidence"], "properties": { "kind": { "const": "request" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.contact.requested" } }, "required": ["kind"] } ] }, "request_receipt": { "$ref": "#/$defs/request_acceptance_receipt" }, "contact_address": { "$ref": "#/$defs/contact_address" }, "introduction_evidence": { "$ref": "#/$defs/contact_introduction_evidence" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "idempotency_key", "signed_event", "response_receipt", "contact_address"], "properties": { "kind": { "const": "response" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.contact.accepted" } }, "required": ["kind"] } ] }, "response_receipt": { "$ref": "#/$defs/normal_response_acceptance_receipt" }, "contact_address": { "$ref": "#/$defs/contact_address" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "idempotency_key", "signed_event", "reject_receipt", "contact_address"], "properties": { "kind": { "const": "reject" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.contact.rejected" } }, "required": ["kind"] } ] }, "reject_receipt": { "$ref": "#/$defs/reject_acceptance_receipt" }, "contact_address": { "$ref": "#/$defs/contact_address" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "idempotency_key", "signed_event", "lineage", "current_proof", "contact_address"], "properties": { "kind": { "const": "scope_update" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.contact.scope.update" } }, "required": ["kind"] } ] }, "lineage": { "$ref": "#/$defs/contact_lineage" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" }, "contact_address": { "$ref": "#/$defs/contact_address" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "idempotency_key", "signed_event", "lineage", "current_proof", "contact_address"], "properties": { "kind": { "const": "tombstone" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "signed_event": { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.contact.tombstoned" } }, "required": ["kind"] } ] }, "lineage": { "$ref": "#/$defs/contact_lineage" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" }, "contact_address": { "$ref": "#/$defs/contact_address" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "idempotency_key", "prior_mirror_receipt", "current_proof", "contact_address"], "properties": { "kind": { "const": "proof_refresh" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "prior_mirror_receipt": { "$ref": "#/$defs/peer_contact_authoritative_mirror_receipt" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" }, "contact_address": { "$ref": "#/$defs/contact_address" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "idempotency_key", "basis_id", "basis", "request_receipts", "remote_mirror_receipt", "glare_concurrency_attestation", "contact_address"], "properties": { "kind": { "const": "glare_finalize" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "basis_id": { "$ref": "#/$defs/hash" }, "basis": { "allOf": [ { "$ref": "#/$defs/contact_basis" }, { "properties": { "kind": { "const": "glare" } }, "required": ["kind"] } ] }, "request_receipts": { "type": "array", "items": { "$ref": "#/$defs/request_acceptance_receipt" }, "minItems": 2, "maxItems": 2, "uniqueItems": true }, "remote_mirror_receipt": { "$ref": "#/$defs/peer_contact_authoritative_mirror_receipt" }, "glare_concurrency_attestation": { "$ref": "#/$defs/glare_concurrency_attestation" }, "contact_address": { "$ref": "#/$defs/contact_address" } }, "additionalProperties": false }
       ]
     },
     "peer_contact_mirror_receipt": {
@@ -412,11 +502,62 @@
       },
       "additionalProperties": false
     },
+    "peer_contact_authoritative_mirror_receipt": {
+      "allOf": [
+        { "$ref": "#/$defs/peer_contact_mirror_receipt" },
+        { "properties": { "disposition": { "type": "string", "enum": ["accepted", "duplicate"] } }, "required": ["disposition"] }
+      ],
+      "description": "Only an accepted or duplicate mirror receipt proves that the immutable signed Contact fact is durably mirrored. A deferred receipt is never authority for proof refresh or glare finalization."
+    },
+    "peer_contact_control_receipt": {
+      "type": "object",
+      "required": ["domain", "request_kind", "request_digest", "disposition", "recipient_service_id", "received_at", "issuer", "signature"],
+      "properties": {
+        "domain": { "const": "ak.peer-contact.control-receipt.v1" },
+        "request_kind": { "type": "string", "enum": ["proof_refresh", "glare_finalize"] },
+        "request_digest": { "$ref": "#/$defs/hash" },
+        "disposition": { "type": "string", "enum": ["accepted", "duplicate", "deferred"] },
+        "result_digest": { "$ref": "#/$defs/hash", "description": "H('ak.peer-contact.control-result.v1',{request_digest,result_kind,glare_concurrency_attestation?,current_proof?}) over the exact closed successful result." },
+        "recipient_service_id": { "$ref": "#/$defs/did" },
+        "received_at": { "$ref": "#/$defs/timestamp" },
+        "issuer": { "$ref": "#/$defs/did" },
+        "signature": { "$ref": "#/$defs/signature" }
+      },
+      "allOf": [
+        { "if": { "properties": { "disposition": { "enum": ["accepted", "duplicate"] } }, "required": ["disposition"] }, "then": { "required": ["result_digest"] }, "else": { "not": { "required": ["result_digest"] } } }
+      ],
+      "additionalProperties": false,
+      "description": "The recipient signs every field except signature. This receipt is only for proof_refresh or glare_finalize and cannot stand in for a signed Event mirror receipt."
+    },
+    "peer_contact_event_submit_outcome": {
+      "type": "object",
+      "required": ["result_kind", "status", "mirror_receipt"],
+      "properties": {
+        "result_kind": { "type": "string", "enum": ["request", "response", "reject", "scope_update", "tombstone"] },
+        "status": { "type": "string", "enum": ["accepted", "duplicate", "deferred"] },
+        "mirror_receipt": { "$ref": "#/$defs/peer_contact_mirror_receipt" },
+        "current_proof": { "$ref": "#/$defs/contact_current_proof" },
+        "retry_after_ms": { "type": "integer", "minimum": 0 }
+      },
+      "allOf": [
+        { "if": { "properties": { "status": { "const": "accepted" } }, "required": ["status"] }, "then": { "properties": { "mirror_receipt": { "properties": { "disposition": { "const": "accepted" } }, "required": ["disposition"] } }, "not": { "required": ["retry_after_ms"] } } },
+        { "if": { "properties": { "status": { "const": "duplicate" } }, "required": ["status"] }, "then": { "properties": { "mirror_receipt": { "properties": { "disposition": { "const": "duplicate" } }, "required": ["disposition"] } }, "not": { "required": ["retry_after_ms"] } } },
+        { "if": { "properties": { "status": { "const": "deferred" } }, "required": ["status"] }, "then": { "properties": { "mirror_receipt": { "properties": { "disposition": { "const": "deferred" } }, "required": ["disposition"] } }, "not": { "required": ["current_proof"] } } },
+        { "if": { "properties": { "result_kind": { "const": "reject" } }, "required": ["result_kind"] }, "then": { "not": { "required": ["current_proof"] } } },
+        { "if": { "properties": { "result_kind": { "enum": ["scope_update", "tombstone"] }, "status": { "enum": ["accepted", "duplicate"] } }, "required": ["result_kind", "status"] }, "then": { "required": ["current_proof"] } }
+      ],
+      "additionalProperties": false,
+      "description": "Only the five signed Contact Event request kinds use this branch. The receipt event coordinates and result_kind must match the submitted Event exactly. Request/response may return a current proof; accepted or duplicate scope/tombstone must return one; reject and deferred never do."
+    },
     "peer_contact_submit_outcome": {
       "oneOf": [
-        { "type": "object", "required": ["status", "mirror_receipt"], "properties": { "status": { "const": "accepted" }, "mirror_receipt": { "allOf": [ { "$ref": "#/$defs/peer_contact_mirror_receipt" }, { "properties": { "disposition": { "const": "accepted" } }, "required": ["disposition"] } ] }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
-        { "type": "object", "required": ["status", "mirror_receipt"], "properties": { "status": { "const": "duplicate" }, "mirror_receipt": { "allOf": [ { "$ref": "#/$defs/peer_contact_mirror_receipt" }, { "properties": { "disposition": { "const": "duplicate" } }, "required": ["disposition"] } ] }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
-        { "type": "object", "required": ["status", "mirror_receipt"], "properties": { "status": { "const": "deferred" }, "mirror_receipt": { "allOf": [ { "$ref": "#/$defs/peer_contact_mirror_receipt" }, { "properties": { "disposition": { "const": "deferred" } }, "required": ["disposition"] } ] }, "retry_after_ms": { "type": "integer", "minimum": 0 } }, "additionalProperties": false }
+        { "$ref": "#/$defs/peer_contact_event_submit_outcome" },
+        { "type": "object", "required": ["result_kind", "status", "control_receipt", "current_proof"], "properties": { "result_kind": { "const": "proof_refresh" }, "status": { "const": "accepted" }, "control_receipt": { "allOf": [ { "$ref": "#/$defs/peer_contact_control_receipt" }, { "properties": { "request_kind": { "const": "proof_refresh" }, "disposition": { "const": "accepted" } }, "required": ["request_kind", "disposition"] } ] }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
+        { "type": "object", "required": ["result_kind", "status", "control_receipt", "current_proof"], "properties": { "result_kind": { "const": "proof_refresh" }, "status": { "const": "duplicate" }, "control_receipt": { "allOf": [ { "$ref": "#/$defs/peer_contact_control_receipt" }, { "properties": { "request_kind": { "const": "proof_refresh" }, "disposition": { "const": "duplicate" } }, "required": ["request_kind", "disposition"] } ] }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
+        { "type": "object", "required": ["result_kind", "status", "control_receipt", "glare_concurrency_attestation"], "properties": { "result_kind": { "const": "glare_finalize" }, "status": { "const": "accepted" }, "control_receipt": { "allOf": [ { "$ref": "#/$defs/peer_contact_control_receipt" }, { "properties": { "request_kind": { "const": "glare_finalize" }, "disposition": { "const": "accepted" } }, "required": ["request_kind", "disposition"] } ] }, "glare_concurrency_attestation": { "$ref": "#/$defs/glare_concurrency_attestation" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
+        { "type": "object", "required": ["result_kind", "status", "control_receipt", "glare_concurrency_attestation"], "properties": { "result_kind": { "const": "glare_finalize" }, "status": { "const": "duplicate" }, "control_receipt": { "allOf": [ { "$ref": "#/$defs/peer_contact_control_receipt" }, { "properties": { "request_kind": { "const": "glare_finalize" }, "disposition": { "const": "duplicate" } }, "required": ["request_kind", "disposition"] } ] }, "glare_concurrency_attestation": { "$ref": "#/$defs/glare_concurrency_attestation" }, "current_proof": { "$ref": "#/$defs/contact_current_proof" } }, "additionalProperties": false },
+        { "type": "object", "required": ["result_kind", "status", "request_kind", "control_receipt"], "properties": { "result_kind": { "const": "control_deferred" }, "status": { "const": "deferred" }, "request_kind": { "const": "proof_refresh" }, "control_receipt": { "allOf": [ { "$ref": "#/$defs/peer_contact_control_receipt" }, { "properties": { "request_kind": { "const": "proof_refresh" }, "disposition": { "const": "deferred" } }, "required": ["request_kind", "disposition"] } ] }, "retry_after_ms": { "type": "integer", "minimum": 0 } }, "additionalProperties": false },
+        { "type": "object", "required": ["result_kind", "status", "request_kind", "control_receipt"], "properties": { "result_kind": { "const": "control_deferred" }, "status": { "const": "deferred" }, "request_kind": { "const": "glare_finalize" }, "control_receipt": { "allOf": [ { "$ref": "#/$defs/peer_contact_control_receipt" }, { "properties": { "request_kind": { "const": "glare_finalize" }, "disposition": { "const": "deferred" } }, "required": ["request_kind", "disposition"] } ] }, "retry_after_ms": { "type": "integer", "minimum": 0 } }, "additionalProperties": false }
       ]
     },
 
@@ -498,42 +639,239 @@
       "additionalProperties": false
     },
 
-    "effect_value_core": {
+    "ordinary_external_effect": {
+      "oneOf": [
+        { "type": "object", "required": ["materialization_step", "target_operation_id", "request_schema_ref", "request_digest", "authorization_digest"], "properties": { "materialization_step": { "const": "keypackage_claim" }, "target_operation_id": { "const": "ak.peer.keys.keypackages.command.claim" }, "request_schema_ref": { "const": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body" }, "request_digest": { "$ref": "#/$defs/hash" }, "authorization_digest": { "$ref": "#/$defs/hash" } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "target_operation_id", "request_schema_ref", "request_digest", "authorization_digest", "admitted_event_kinds", "claim_receipt_digest"], "properties": { "materialization_step": { "const": "founding_unit" }, "target_operation_id": { "const": "ak.peer.events.command.submit" }, "request_schema_ref": { "const": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody" }, "request_digest": { "$ref": "#/$defs/hash" }, "authorization_digest": { "$ref": "#/$defs/hash" }, "admitted_event_kinds": { "const": ["ak.realm.create", "ak.member.state"] }, "claim_receipt_digest": { "$ref": "#/$defs/hash" } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "target_operation_id", "request_schema_ref", "request_digest", "authorization_digest", "admitted_event_kinds", "founding_effect_commitment_digest", "founding_delivery_receipt_digest"], "properties": { "materialization_step": { "const": "main_strand" }, "target_operation_id": { "const": "ak.peer.events.command.submit" }, "request_schema_ref": { "const": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody" }, "request_digest": { "$ref": "#/$defs/hash" }, "authorization_digest": { "$ref": "#/$defs/hash" }, "admitted_event_kinds": { "const": ["ak.strand.create"] }, "founding_effect_commitment_digest": { "$ref": "#/$defs/hash" }, "founding_delivery_receipt_digest": { "$ref": "#/$defs/hash" } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "target_operation_id", "request_schema_ref", "request_digest", "authorization_digest", "admitted_event_kinds", "strand_effect_commitment_digest", "strand_delivery_receipt_digest", "claim_receipt_digest"], "properties": { "materialization_step": { "const": "mls_epoch" }, "target_operation_id": { "const": "ak.peer.events.command.submit" }, "request_schema_ref": { "const": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody" }, "request_digest": { "$ref": "#/$defs/hash" }, "authorization_digest": { "$ref": "#/$defs/hash" }, "admitted_event_kinds": { "const": ["ak.mls.genesis", "ak.mls.commit"] }, "strand_effect_commitment_digest": { "$ref": "#/$defs/hash" }, "strand_delivery_receipt_digest": { "$ref": "#/$defs/hash" }, "claim_receipt_digest": { "$ref": "#/$defs/hash" } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "target_operation_id", "request_schema_ref", "request_digest", "authorization_digest", "admitted_event_kinds", "claim_receipt_digest", "mls_effect_commitment_digest", "mls_delivery_receipt_digest"], "properties": { "materialization_step": { "const": "welcome_admission" }, "target_operation_id": { "const": "ak.peer.events.command.submit" }, "request_schema_ref": { "const": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody" }, "request_digest": { "$ref": "#/$defs/hash" }, "authorization_digest": { "$ref": "#/$defs/hash" }, "admitted_event_kinds": { "const": ["ak.mls.welcome"] }, "claim_receipt_digest": { "$ref": "#/$defs/hash" }, "mls_effect_commitment_digest": { "$ref": "#/$defs/hash" }, "mls_delivery_receipt_digest": { "$ref": "#/$defs/hash" } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "target_operation_id", "request_schema_ref", "request_digest", "authorization_digest", "admitted_event_kinds", "welcome_effect_commitment_digest", "welcome_delivery_receipt_digest", "recipient_durable_receipt_digest", "consume_receipt_digest"], "properties": { "materialization_step": { "const": "binding_finalize" }, "target_operation_id": { "const": "ak.peer.events.command.submit" }, "request_schema_ref": { "const": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody" }, "request_digest": { "$ref": "#/$defs/hash" }, "authorization_digest": { "$ref": "#/$defs/hash" }, "admitted_event_kinds": { "const": ["ak.direct_conversation.bound"] }, "welcome_effect_commitment_digest": { "$ref": "#/$defs/hash" }, "welcome_delivery_receipt_digest": { "$ref": "#/$defs/hash" }, "recipient_durable_receipt_digest": { "$ref": "#/$defs/hash" }, "consume_receipt_digest": { "$ref": "#/$defs/hash" } }, "additionalProperties": false }
+        ,{ "type": "object", "required": ["materialization_step", "target_operation_id", "request_schema_ref", "request_digest", "authorization_digest", "admitted_event_kinds", "founding_effect_commitment_digest", "founding_delivery_receipt_digest", "compensation_evidence_digest"], "properties": { "materialization_step": { "const": "membership_compensation" }, "target_operation_id": { "const": "ak.peer.events.command.submit" }, "request_schema_ref": { "const": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody" }, "request_digest": { "$ref": "#/$defs/hash" }, "authorization_digest": { "$ref": "#/$defs/hash" }, "admitted_event_kinds": { "const": ["ak.member.state"] }, "founding_effect_commitment_digest": { "$ref": "#/$defs/hash" }, "founding_delivery_receipt_digest": { "$ref": "#/$defs/hash" }, "compensation_evidence_digest": { "$ref": "#/$defs/hash" } }, "additionalProperties": false }
+      ],
+      "description": "Closed materialization FSM. Each branch has one exact plaintext schema and exact Event kind/cardinality/order. Destination preflight validates every request/authorization/prerequisite receipt digest before qDA; stages may advance only keypackage_claim -> founding_unit -> main_strand -> mls_epoch -> welcome_admission -> binding_finalize. No branch authorizes an arbitrary operation or a mixed-stage Event batch."
+    },
+    "event_admission_authorization_item": {
       "type": "object",
-      "description": "Immutable external-effect business value. It intentionally contains no view or certificate.",
-      "required": ["pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "effect_id", "effect_digest", "destination", "expected_host_epoch", "predecessor_head_digest", "journal_root"],
-      "properties": { "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "effect_digest": { "$ref": "#/$defs/hash" }, "destination": { "$ref": "#/$defs/did" }, "expected_host_epoch": { "type": "integer", "minimum": 0 }, "predecessor_head_digest": { "$ref": "#/$defs/hash" }, "journal_root": { "$ref": "#/$defs/hash" } },
+      "required": ["event_id", "event_digest", "proof_digests", "ingress_receipt_digests"],
+      "properties": { "event_id": { "$ref": "#/$defs/event_id" }, "event_digest": { "$ref": "#/$defs/hash" }, "proof_digests": { "type": "array", "items": { "$ref": "#/$defs/hash" }, "uniqueItems": true }, "authorization_lease_digest": { "$ref": "#/$defs/hash" }, "ingress_receipt_digests": { "type": "array", "items": { "$ref": "#/$defs/hash" }, "uniqueItems": true }, "control_proposal_receipt_digest": { "$ref": "#/$defs/hash" }, "membership_compensation_evidence_digest": { "$ref": "#/$defs/hash" } },
       "additionalProperties": false
     },
-    "consensus_phase": { "type": "string", "enum": ["pre_prepare", "prepare", "commit"] },
-    "consensus_envelope": {
+    "event_admission_authorization_projection": {
       "type": "object",
-      "required": ["domain", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "view", "phase", "value_digest", "qda_certificate_digest", "replica_id", "signature"],
-      "properties": { "domain": { "const": "ak.direct-conversation.pbft-envelope.v1" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "view": { "type": "integer", "minimum": 0 }, "phase": { "$ref": "#/$defs/consensus_phase" }, "value_digest": { "$ref": "#/$defs/hash" }, "qda_certificate_digest": { "$ref": "#/$defs/hash" }, "prepared_certificate_digest": { "$ref": "#/$defs/hash" }, "replica_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } },
+      "required": ["domain", "events", "request_cba_proof_bundle_digests", "signer_key_evidence_digests"],
+      "properties": { "domain": { "const": "ak.direct-conversation.event-admission-authorization-projection.v1" }, "events": { "type": "array", "items": { "$ref": "#/$defs/event_admission_authorization_item" }, "minItems": 1, "uniqueItems": true }, "request_cba_proof_bundle_digests": { "type": "array", "items": { "$ref": "#/$defs/hash" }, "uniqueItems": true }, "signer_key_evidence_digests": { "type": "array", "items": { "$ref": "#/$defs/hash" }, "uniqueItems": true }, "agent_signer_evidence_bundle_digest": { "$ref": "#/$defs/hash" } },
+      "additionalProperties": false,
+      "description": "Mechanically derived closed projection of EventsSubmitFederationRequestBody. Events are sorted by event_id; every digest array is lower-case digest-byte sorted and deduplicated. Each evidence digest is H('ak.direct-conversation.evidence-object.v1', the exact closed evidence object). Empty evidence classes are represented by empty arrays, never omission. authorization_digest=H('ak.direct-conversation.external-authorization.v1', this exact projection)."
+    },
+    "direct_conversation_event_admission_journal": {
+      "oneOf": [
+        { "type": "object", "required": ["domain", "materialization_step", "request", "authorization_projection", "step_commit_receipt", "claim_receipt"], "properties": { "domain": { "const": "ak.direct-conversation.event-admission-journal.v1" }, "materialization_step": { "const": "founding_unit" }, "request": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody" }, "authorization_projection": { "$ref": "#/$defs/event_admission_authorization_projection" }, "step_commit_receipt": { "$ref": "#/$defs/direct_conversation_materialization_step_commit_receipt" }, "claim_receipt": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt" } }, "additionalProperties": false },
+        { "type": "object", "required": ["domain", "materialization_step", "request", "authorization_projection", "step_commit_receipt", "founding_delivery_receipt"], "properties": { "domain": { "const": "ak.direct-conversation.event-admission-journal.v1" }, "materialization_step": { "const": "main_strand" }, "request": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody" }, "authorization_projection": { "$ref": "#/$defs/event_admission_authorization_projection" }, "step_commit_receipt": { "$ref": "#/$defs/direct_conversation_materialization_step_commit_receipt" }, "founding_delivery_receipt": { "$ref": "#/$defs/execution_bundle_delivery_receipt" } }, "additionalProperties": false },
+        { "type": "object", "required": ["domain", "materialization_step", "request", "authorization_projection", "step_commit_receipt", "claim_receipt", "strand_delivery_receipt"], "properties": { "domain": { "const": "ak.direct-conversation.event-admission-journal.v1" }, "materialization_step": { "const": "mls_epoch" }, "request": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody" }, "authorization_projection": { "$ref": "#/$defs/event_admission_authorization_projection" }, "step_commit_receipt": { "$ref": "#/$defs/direct_conversation_materialization_step_commit_receipt" }, "claim_receipt": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt" }, "strand_delivery_receipt": { "$ref": "#/$defs/execution_bundle_delivery_receipt" } }, "additionalProperties": false },
+        { "type": "object", "required": ["domain", "materialization_step", "request", "authorization_projection", "step_commit_receipt", "claim_receipt", "mls_delivery_receipt"], "properties": { "domain": { "const": "ak.direct-conversation.event-admission-journal.v1" }, "materialization_step": { "const": "welcome_admission" }, "request": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody" }, "authorization_projection": { "$ref": "#/$defs/event_admission_authorization_projection" }, "step_commit_receipt": { "$ref": "#/$defs/direct_conversation_materialization_step_commit_receipt" }, "claim_receipt": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt" }, "mls_delivery_receipt": { "$ref": "#/$defs/execution_bundle_delivery_receipt" } }, "additionalProperties": false },
+        { "type": "object", "required": ["domain", "materialization_step", "request", "authorization_projection", "step_commit_receipt", "welcome_delivery_receipt", "consume_receipt"], "properties": { "domain": { "const": "ak.direct-conversation.event-admission-journal.v1" }, "materialization_step": { "const": "binding_finalize" }, "request": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody" }, "authorization_projection": { "$ref": "#/$defs/event_admission_authorization_projection" }, "step_commit_receipt": { "$ref": "#/$defs/direct_conversation_materialization_step_commit_receipt" }, "welcome_delivery_receipt": { "$ref": "#/$defs/execution_bundle_delivery_receipt" }, "consume_receipt": { "$ref": "./keypackage-operations.schema.json#/$defs/keypackage_consume_receipt" } }, "additionalProperties": false }
+      ],
+      "description": "The destination validates the nested request against the stage's exact Event kind/cardinality/order and recomputes every effect_details digest from these complete receipt objects before issuing journal_validation_receipt."
+    },
+    "direct_conversation_compensation_journal": {
+      "type": "object",
+      "required": ["domain", "request", "authorization_projection", "founding_delivery_receipt", "compensation_evidence"],
+      "properties": { "domain": { "const": "ak.direct-conversation.compensation-journal.v1" }, "request": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody" }, "authorization_projection": { "$ref": "#/$defs/event_admission_authorization_projection" }, "founding_delivery_receipt": { "$ref": "#/$defs/authoritative_execution_bundle_delivery_receipt" }, "compensation_evidence": { "$ref": "#/$defs/membership_compensation_submission_evidence" } },
+      "additionalProperties": false,
+      "description": "Exactly one ak.member.state leave/remove compensation Event is allowed. Its nested membership_compensation_evidence must equal compensation_evidence byte-for-byte and bind the original founding delivery receipt and accepted join; destination preflight recomputes all digests before qDA."
+    },
+    "authoritative_execution_bundle_delivery_receipt": {
+      "allOf": [ { "$ref": "#/$defs/execution_bundle_delivery_receipt" }, { "properties": { "disposition": { "type": "string", "enum": ["accepted", "duplicate"] } }, "required": ["disposition"] } ],
+      "description": "Only accepted or duplicate proves the q-committed effect reached its permanent semantic CAS. Deferred is durable transport only and never terminal cleanup evidence."
+    },
+    "attempt_cleanup_manifest": {
+      "type": "object",
+      "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "failed_stage", "claim_terminal_receipt", "effect_delivery_receipts", "membership_compensation_delivery_receipts", "current_host_service_id", "current_host_epoch", "completed_at"],
+      "properties": { "domain": { "const": "ak.direct-conversation.attempt-cleanup-manifest.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/hash" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "failed_stage": { "type": "string", "enum": ["keypackage_claim", "founding_unit", "main_strand", "mls_epoch", "welcome_admission", "binding_finalize"] }, "claim_terminal_receipt": { "$ref": "./keypackage-operations.schema.json#/$defs/keypackage_claim_terminal_receipt" }, "effect_delivery_receipts": { "type": "array", "items": { "$ref": "#/$defs/authoritative_execution_bundle_delivery_receipt" }, "uniqueItems": true }, "membership_compensation_delivery_receipts": { "type": "array", "items": { "$ref": "#/$defs/authoritative_execution_bundle_delivery_receipt" }, "uniqueItems": true }, "current_host_service_id": { "$ref": "#/$defs/did" }, "current_host_epoch": { "type": "integer", "minimum": 0 }, "completed_at": { "$ref": "#/$defs/timestamp" } },
+      "additionalProperties": false,
+      "description": "Closed cleanup proof. effect_delivery_receipts is the exact ordered set of every externally delivered effect in the failed attempt. The evaluator derives the required compensation set from failed_stage and those receipts: every claimed package is terminal, and every accepted membership requiring compensation has an accepted/duplicate compensation Event delivery receipt. No host assertion can substitute for a missing authority receipt. manifest_digest=H('ak.direct-conversation.attempt-cleanup-manifest.v1', this exact object)."
+    },
+    "attempt_cleanup_value": {
+      "type": "object",
+      "required": ["operation_id", "attempt_sequence", "failed_stage", "cleanup_manifest_digest"],
+      "properties": { "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "failed_stage": { "type": "string", "enum": ["keypackage_claim", "founding_unit", "main_strand", "mls_epoch", "welcome_admission", "binding_finalize"] }, "cleanup_manifest_digest": { "$ref": "#/$defs/hash" } },
       "additionalProperties": false
+    },
+    "attempt_cleanup_journal_plaintext": {
+      "type": "object",
+      "required": ["domain", "cleanup_manifest", "cleanup_manifest_digest"],
+      "properties": { "domain": { "const": "ak.direct-conversation.attempt-cleanup-journal.v1" }, "cleanup_manifest": { "$ref": "#/$defs/attempt_cleanup_manifest" }, "cleanup_manifest_digest": { "$ref": "#/$defs/hash" } },
+      "additionalProperties": false
+    },
+    "attempt_cleanup_certificate_bundle": {
+      "type": "object",
+      "required": ["value_core", "journal_validation_receipt", "qda_certificate", "qcommit_certificate", "cleanup_manifest"],
+      "properties": { "value_core": { "$ref": "#/$defs/effect_value_core" }, "journal_validation_receipt": { "$ref": "#/$defs/journal_validation_receipt" }, "qda_certificate": { "$ref": "#/$defs/qda_certificate" }, "qcommit_certificate": { "$ref": "#/$defs/qcommit_certificate" }, "cleanup_manifest": { "$ref": "#/$defs/attempt_cleanup_manifest" } },
+      "additionalProperties": false,
+      "description": "Portable q-certified cleanup proof. value_core.effect must be attempt_cleanup and all manifest/value/qDA/qCOMMIT coordinates and digests must cross-match exactly."
+    },
+    "attempt_advance_value": {
+      "type": "object",
+      "required": ["operation_id", "from_attempt", "to_attempt", "cleanup_effect_commitment_digest", "cleanup_effect_head_digest", "fresh_target_authorization_digest", "claim_request_digest"],
+      "properties": { "operation_id": { "$ref": "#/$defs/operation_id" }, "from_attempt": { "type": "integer", "minimum": 1 }, "to_attempt": { "type": "integer", "minimum": 2 }, "cleanup_effect_commitment_digest": { "$ref": "#/$defs/hash" }, "cleanup_effect_head_digest": { "$ref": "#/$defs/hash" }, "fresh_target_authorization_digest": { "$ref": "#/$defs/hash" }, "claim_request_digest": { "$ref": "#/$defs/hash" } },
+      "additionalProperties": false,
+      "description": "A successor committed in the old attempt log: outer attempt_sequence equals from_attempt, to_attempt equals from_attempt+1, predecessor_head_digest equals cleanup_effect_head_digest, and the exact q-certified cleanup bundle plus fresh peer claim request are carried in the journal."
+    },
+    "attempt_advance_journal_plaintext": {
+      "type": "object",
+      "required": ["domain", "cleanup_certificate_bundle", "fresh_peer_claim_request"],
+      "properties": { "domain": { "const": "ak.direct-conversation.attempt-advance-journal.v1" }, "cleanup_certificate_bundle": { "$ref": "#/$defs/attempt_cleanup_certificate_bundle" }, "fresh_peer_claim_request": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body" } },
+      "additionalProperties": false
+    },
+    "host_transfer_journal_entry": {
+      "type": "object",
+      "required": ["journal_index", "attempt_sequence", "effect_id", "value_digest", "effect_commitment_digest", "effect_head_digest", "qcommit_certificate_digest", "submitted_bundle_digest"],
+      "properties": { "journal_index": { "type": "integer", "minimum": 1 }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "value_digest": { "$ref": "#/$defs/hash" }, "effect_commitment_digest": { "$ref": "#/$defs/hash" }, "effect_head_digest": { "$ref": "#/$defs/hash" }, "qcommit_certificate_digest": { "$ref": "#/$defs/hash" }, "submitted_bundle_digest": { "$ref": "#/$defs/hash" } },
+      "additionalProperties": false
+    },
+    "host_transfer_journal_manifest": {
+      "type": "object",
+      "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "operation_id", "transfer_id", "from_host_service_id", "from_host_epoch", "to_host_service_id", "to_host_epoch", "completed_effect_head_digest", "entries", "issued_at"],
+      "properties": { "domain": { "const": "ak.direct-conversation.host-transfer-journal-manifest.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/hash" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "transfer_id": { "$ref": "#/$defs/opaque_id" }, "from_host_service_id": { "$ref": "#/$defs/did" }, "from_host_epoch": { "type": "integer", "minimum": 0 }, "to_host_service_id": { "$ref": "#/$defs/did" }, "to_host_epoch": { "type": "integer", "minimum": 1 }, "completed_effect_head_digest": { "$ref": "#/$defs/hash" }, "entries": { "type": "array", "items": { "$ref": "#/$defs/host_transfer_journal_entry" }, "uniqueItems": true }, "issued_at": { "$ref": "#/$defs/timestamp" } },
+      "additionalProperties": false,
+      "description": "Closed complete journal inventory. Entries have consecutive journal_index values starting at 1 and form one predecessor-linked chain ending at completed_effect_head_digest; each coordinate resolves an exact immutable bundle. An empty array is valid only before the first effect and completed_effect_head_digest then equals genesis_head_digest. to_host_epoch equals from_host_epoch+1 and to_host_service_id must be in the signed domain policy eligible_hosts. manifest_digest=H('ak.direct-conversation.host-transfer-journal-manifest.v1', this exact object)."
+    },
+    "host_transfer_failover_vote": {
+      "type": "object",
+      "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "operation_id", "transfer_id", "manifest_digest", "from_host_service_id", "from_host_epoch", "to_host_service_id", "to_host_epoch", "read_certificate_digest", "unavailable_since", "observed_at", "replica_id", "signature"],
+      "properties": { "domain": { "const": "ak.direct-conversation.host-transfer-failover-vote.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/hash" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "transfer_id": { "$ref": "#/$defs/opaque_id" }, "manifest_digest": { "$ref": "#/$defs/hash" }, "from_host_service_id": { "$ref": "#/$defs/did" }, "from_host_epoch": { "type": "integer", "minimum": 0 }, "to_host_service_id": { "$ref": "#/$defs/did" }, "to_host_epoch": { "type": "integer", "minimum": 1 }, "read_certificate_digest": { "$ref": "#/$defs/hash" }, "unavailable_since": { "$ref": "#/$defs/timestamp" }, "observed_at": { "$ref": "#/$defs/timestamp" }, "replica_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false
+    },
+    "host_transfer_failover_certificate": {
+      "type": "object",
+      "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "operation_id", "transfer_id", "manifest_digest", "from_host_service_id", "from_host_epoch", "to_host_service_id", "to_host_epoch", "read_certificate", "host_epoch_policy_digest", "n", "f", "quorum", "votes"],
+      "properties": { "domain": { "const": "ak.direct-conversation.host-transfer-failover-certificate.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/hash" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "transfer_id": { "$ref": "#/$defs/opaque_id" }, "manifest_digest": { "$ref": "#/$defs/hash" }, "from_host_service_id": { "$ref": "#/$defs/did" }, "from_host_epoch": { "type": "integer", "minimum": 0 }, "to_host_service_id": { "$ref": "#/$defs/did" }, "to_host_epoch": { "type": "integer", "minimum": 1 }, "read_certificate": { "$ref": "#/$defs/operation_control_read_certificate" }, "host_epoch_policy_digest": { "$ref": "#/$defs/hash" }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "votes": { "type": "array", "items": { "$ref": "#/$defs/host_transfer_failover_vote" }, "minItems": 3, "uniqueItems": true } },
+      "additionalProperties": false,
+      "description": "Exactly quorum=2f+1 canonical distinct immutable replica votes over identical fields. The fresh read head must name from_host/from_epoch and the latest certified head, observed unavailability must satisfy the signed host epoch policy, and to_host must be policy-eligible. This replaces a missing old-host signature without trusting one coordinator."
+    },
+    "host_transfer_authorization": {
+      "oneOf": [
+        { "type": "object", "required": ["authorization_kind", "from_host_verification_method", "from_host_signature"], "properties": { "authorization_kind": { "const": "graceful" }, "from_host_verification_method": { "$ref": "#/$defs/did_url" }, "from_host_signature": { "$ref": "#/$defs/signature" } }, "additionalProperties": false },
+        { "type": "object", "required": ["authorization_kind", "failover_certificate"], "properties": { "authorization_kind": { "const": "quorum_failover" }, "failover_certificate": { "$ref": "#/$defs/host_transfer_failover_certificate" } }, "additionalProperties": false }
+      ],
+      "description": "Graceful transfer is authorized by the certified current host over the exact manifest digest. If that host is unavailable, the closed quorum failover certificate is the only alternative."
+    },
+    "host_transfer_prepare_journal_plaintext": {
+      "type": "object",
+      "required": ["domain", "manifest", "manifest_digest", "transfer_authorization"],
+      "properties": { "domain": { "const": "ak.direct-conversation.host-transfer-prepare-journal.v1" }, "manifest": { "$ref": "#/$defs/host_transfer_journal_manifest" }, "manifest_digest": { "$ref": "#/$defs/hash" }, "transfer_authorization": { "$ref": "#/$defs/host_transfer_authorization" } },
+      "additionalProperties": false,
+      "description": "The current host signs exact {domain,manifest,manifest_digest,from_host_verification_method}. The target verifies and durably stores every exact manifest entry when the committed host_transfer_prepare bundle is delivered."
+    },
+    "host_transfer_prepare_value": {
+      "type": "object",
+      "required": ["transfer_id", "from_host_service_id", "from_host_epoch", "to_host_service_id", "to_host_epoch", "manifest_digest"],
+      "properties": { "transfer_id": { "$ref": "#/$defs/opaque_id" }, "from_host_service_id": { "$ref": "#/$defs/did" }, "from_host_epoch": { "type": "integer", "minimum": 0 }, "to_host_service_id": { "$ref": "#/$defs/did" }, "to_host_epoch": { "type": "integer", "minimum": 1 }, "manifest_digest": { "$ref": "#/$defs/hash" } },
+      "additionalProperties": false,
+      "description": "First committed step: outer expected/resulting host fence remains the current host and destination is to_host_service_id. Only an accepted/duplicate delivery receipt proves target acceptance."
+    },
+    "host_transfer_finalize_journal_plaintext": {
+      "type": "object",
+      "required": ["domain", "manifest", "manifest_digest", "transfer_authorization", "prepare_effect_commitment_digest", "prepare_delivery_receipt"],
+      "properties": { "domain": { "const": "ak.direct-conversation.host-transfer-finalize-journal.v1" }, "manifest": { "$ref": "#/$defs/host_transfer_journal_manifest" }, "manifest_digest": { "$ref": "#/$defs/hash" }, "transfer_authorization": { "$ref": "#/$defs/host_transfer_authorization" }, "prepare_effect_commitment_digest": { "$ref": "#/$defs/hash" }, "prepare_delivery_receipt": { "allOf": [ { "$ref": "#/$defs/execution_bundle_delivery_receipt" }, { "properties": { "disposition": { "type": "string", "enum": ["accepted", "duplicate"] } }, "required": ["disposition"] } ] } },
+      "additionalProperties": false,
+      "description": "The receipt destination equals manifest.to_host_service_id and its semantic commitment equals the exact preceding host_transfer_prepare effect for this manifest. Deferred receipts are forbidden."
+    },
+    "host_transfer_value": {
+      "type": "object",
+      "required": ["transfer_id", "from_host_service_id", "from_host_epoch", "to_host_service_id", "to_host_epoch", "manifest_digest", "prepare_effect_commitment_digest"],
+      "properties": { "transfer_id": { "$ref": "#/$defs/opaque_id" }, "from_host_service_id": { "$ref": "#/$defs/did" }, "from_host_epoch": { "type": "integer", "minimum": 0 }, "to_host_service_id": { "$ref": "#/$defs/did" }, "to_host_epoch": { "type": "integer", "minimum": 1 }, "manifest_digest": { "$ref": "#/$defs/hash" }, "prepare_effect_commitment_digest": { "$ref": "#/$defs/hash" } },
+      "additionalProperties": false
+    },
+    "operation_control_effect": {
+      "oneOf": [
+        { "type": "object", "required": ["effect_kind", "effect_details"], "properties": { "effect_kind": { "const": "ordinary_external" }, "effect_details": { "$ref": "#/$defs/ordinary_external_effect" } }, "additionalProperties": false },
+        { "type": "object", "required": ["effect_kind", "effect_details"], "properties": { "effect_kind": { "const": "attempt_cleanup" }, "effect_details": { "$ref": "#/$defs/attempt_cleanup_value" } }, "additionalProperties": false },
+        { "type": "object", "required": ["effect_kind", "effect_details"], "properties": { "effect_kind": { "const": "attempt_advance" }, "effect_details": { "$ref": "#/$defs/attempt_advance_value" } }, "additionalProperties": false },
+        { "type": "object", "required": ["effect_kind", "effect_details"], "properties": { "effect_kind": { "const": "host_transfer_prepare" }, "effect_details": { "$ref": "#/$defs/host_transfer_prepare_value" } }, "additionalProperties": false },
+        { "type": "object", "required": ["effect_kind", "effect_details"], "properties": { "effect_kind": { "const": "host_transfer" }, "effect_details": { "$ref": "#/$defs/host_transfer_value" } }, "additionalProperties": false }
+      ]
+    },
+    "authenticated_encrypted_journal": {
+      "type": "object",
+      "description": "Closed single-recipient RFC 9180 base-mode HPKE envelope for EffectValueCore.destination. info is the UTF-8 domain string; AAD is RFC8785/JCS(aad_core). The destination decrypts and validates the exact plaintext before issuing journal_validation_receipt; qDA replicas verify that signed receipt and store the opaque envelope without learning the plaintext. The suite derives its nonce internally (single-shot sequence 0), so no nonce field exists. journal_root commits every scheme/key/enc/schema/AAD/ciphertext field.",
+      "required": ["domain", "scheme", "recipient_service_id", "recipient_key_ref", "enc", "plaintext_schema_ref", "plaintext_digest", "aad_core", "aad_digest", "ciphertext"],
+      "properties": { "domain": { "const": "ak.direct-conversation.authenticated-journal.v1" }, "scheme": { "const": "ak.hpke_x25519_aead_chacha20poly1305.v1" }, "recipient_service_id": { "$ref": "#/$defs/did" }, "recipient_key_ref": { "$ref": "#/$defs/did_url" }, "enc": { "$ref": "#/$defs/base64url" }, "plaintext_schema_ref": { "enum": ["schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body", "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_event_admission_journal", "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_compensation_journal", "schemas/protocol-journey-wire.schema.json#/$defs/attempt_cleanup_journal_plaintext", "schemas/protocol-journey-wire.schema.json#/$defs/attempt_advance_journal_plaintext", "schemas/protocol-journey-wire.schema.json#/$defs/host_transfer_prepare_journal_plaintext", "schemas/protocol-journey-wire.schema.json#/$defs/host_transfer_finalize_journal_plaintext"] }, "plaintext_digest": { "$ref": "#/$defs/hash" }, "aad_core": { "$ref": "#/$defs/operation_control_journal_aad_core" }, "aad_digest": { "$ref": "#/$defs/hash" }, "ciphertext": { "$ref": "#/$defs/base64url" } },
+      "additionalProperties": false
+    },
+    "operation_control_journal_aad_core": {
+      "type": "object",
+      "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "effect_id", "effect_digest", "payload_digest", "destination", "expected_host_service_id", "expected_host_epoch", "resulting_host_service_id", "resulting_host_epoch", "predecessor_head_digest"],
+      "properties": { "domain": { "const": "ak.direct-conversation.authenticated-journal-aad.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "effect_digest": { "$ref": "#/$defs/hash" }, "payload_digest": { "$ref": "#/$defs/hash" }, "destination": { "$ref": "#/$defs/did" }, "expected_host_service_id": { "$ref": "#/$defs/did" }, "expected_host_epoch": { "type": "integer", "minimum": 0 }, "resulting_host_service_id": { "$ref": "#/$defs/did" }, "resulting_host_epoch": { "type": "integer", "minimum": 0 }, "predecessor_head_digest": { "$ref": "#/$defs/hash" } },
+      "additionalProperties": false,
+      "description": "Exact AAD coordinates. journal_root, value_digest, ciphertext, enc and signatures are intentionally absent, avoiding a ciphertext/value self-reference."
+    },
+    "journal_validation_core": {
+      "type": "object",
+      "required": ["registry_digest", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "effect_id", "effect", "effect_digest", "payload_digest", "destination", "expected_host_service_id", "expected_host_epoch", "resulting_host_service_id", "resulting_host_epoch", "predecessor_head_digest", "journal_root"],
+      "properties": { "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/hash" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "effect": { "$ref": "#/$defs/operation_control_effect" }, "effect_digest": { "$ref": "#/$defs/hash" }, "payload_digest": { "$ref": "#/$defs/hash" }, "destination": { "$ref": "#/$defs/did" }, "expected_host_service_id": { "$ref": "#/$defs/did" }, "expected_host_epoch": { "type": "integer", "minimum": 0 }, "resulting_host_service_id": { "$ref": "#/$defs/did" }, "resulting_host_epoch": { "type": "integer", "minimum": 0 }, "predecessor_head_digest": { "$ref": "#/$defs/hash" }, "journal_root": { "$ref": "#/$defs/hash" } },
+      "additionalProperties": false,
+      "description": "Exact proposed value fields before a validation receipt exists. validation_core_digest=H('ak.direct-conversation.journal-validation-core.v1', this exact object)."
+    },
+    "journal_validation_request": {
+      "type": "object",
+      "required": ["validation_request_id", "registry_authorization", "validation_core", "authenticated_encrypted_journal"],
+      "properties": { "validation_request_id": { "$ref": "#/$defs/opaque_id" }, "registry_authorization": { "$ref": "#/$defs/operation_control_authorization" }, "validation_core": { "$ref": "#/$defs/journal_validation_core" }, "authenticated_encrypted_journal": { "$ref": "#/$defs/authenticated_encrypted_journal" } },
+      "additionalProperties": false,
+      "description": "Read-only destination preflight. It cannot execute an effect or reserve destination state. The destination verifies committed registry authorization, current host fence, envelope/root/AAD, decryptability, plaintext schema and every branch projection/digest before signing a receipt."
+    },
+    "journal_validation_receipt": {
+      "type": "object",
+      "required": ["domain", "validation_request_id", "validation_core_digest", "journal_root", "effect_digest", "payload_digest", "destination", "recipient_key_ref", "validated_at", "expires_at", "issuer", "signature"],
+      "properties": { "domain": { "const": "ak.direct-conversation.journal-validation-receipt.v1" }, "validation_request_id": { "$ref": "#/$defs/opaque_id" }, "validation_core_digest": { "$ref": "#/$defs/hash" }, "journal_root": { "$ref": "#/$defs/hash" }, "effect_digest": { "$ref": "#/$defs/hash" }, "payload_digest": { "$ref": "#/$defs/hash" }, "destination": { "$ref": "#/$defs/did" }, "recipient_key_ref": { "$ref": "#/$defs/did_url" }, "validated_at": { "$ref": "#/$defs/timestamp" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "issuer": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false,
+      "description": "Destination signs every field except signature after successful read-only validation; issuer equals destination and recipient_key_ref equals the envelope key. expires_at-validated_at is at most 5 minutes. qDA must form before expiry; later expiry does not invalidate a qDA/qCOMMIT that incorporated the receipt while live. receipt_digest=H('ak.direct-conversation.journal-validation-receipt.v1', the exact signed receipt including signature)."
+    },
+    "journal_validation_outcome": {
+      "oneOf": [
+        { "type": "object", "required": ["status", "receipt"], "properties": { "status": { "const": "accepted" }, "receipt": { "$ref": "#/$defs/journal_validation_receipt" } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "receipt"], "properties": { "status": { "const": "duplicate" }, "receipt": { "$ref": "#/$defs/journal_validation_receipt" } }, "additionalProperties": false }
+      ]
+    },
+    "effect_value_core": {
+      "type": "object",
+      "description": "Immutable external-effect business value with a typed effect and complete host transition fence. It intentionally contains no view or certificate. value_digest is H('ak.direct-conversation.value.v1', this exact object).",
+      "required": ["registry_digest", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "effect_id", "effect", "effect_digest", "payload_digest", "destination", "expected_host_service_id", "expected_host_epoch", "resulting_host_service_id", "resulting_host_epoch", "predecessor_head_digest", "journal_root", "journal_validation_receipt_digest"],
+      "properties": { "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/hash" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "effect": { "$ref": "#/$defs/operation_control_effect" }, "effect_digest": { "$ref": "#/$defs/hash", "description": "H('ak.direct-conversation.effect.v1', the exact closed {effect_kind,effect_details} object)." }, "payload_digest": { "$ref": "#/$defs/hash", "description": "H('ak.direct-conversation.effect-payload.v1', the exact authenticated plaintext payload executed by destination). Must equal authenticated_encrypted_journal.plaintext_digest and aad_core.payload_digest." }, "destination": { "$ref": "#/$defs/did" }, "expected_host_service_id": { "$ref": "#/$defs/did" }, "expected_host_epoch": { "type": "integer", "minimum": 0 }, "resulting_host_service_id": { "$ref": "#/$defs/did" }, "resulting_host_epoch": { "type": "integer", "minimum": 0 }, "predecessor_head_digest": { "$ref": "#/$defs/hash" }, "journal_root": { "$ref": "#/$defs/hash" }, "journal_validation_receipt_digest": { "$ref": "#/$defs/hash" } },
+      "additionalProperties": false
+    },
+    "consensus_envelope": {
+      "description": "Closed phase XOR. PREPARE signs the digest of the exact PRE-PREPARE envelope; COMMIT signs the digest of the exact prepared certificate. Fields from another phase are rejected.",
+      "oneOf": [
+        { "type": "object", "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "instance_predecessor_head_digest", "operation_id", "attempt_sequence", "view", "phase", "value_digest", "qda_certificate_digest", "replica_id", "signature"], "properties": { "domain": { "const": "ak.direct-conversation.pbft-envelope.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "instance_predecessor_head_digest": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "view": { "type": "integer", "minimum": 0 }, "phase": { "const": "pre_prepare" }, "value_digest": { "$ref": "#/$defs/hash" }, "qda_certificate_digest": { "$ref": "#/$defs/hash" }, "replica_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } }, "additionalProperties": false },
+        { "type": "object", "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "instance_predecessor_head_digest", "operation_id", "attempt_sequence", "view", "phase", "value_digest", "qda_certificate_digest", "pre_prepare_digest", "replica_id", "signature"], "properties": { "domain": { "const": "ak.direct-conversation.pbft-envelope.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "instance_predecessor_head_digest": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "view": { "type": "integer", "minimum": 0 }, "phase": { "const": "prepare" }, "value_digest": { "$ref": "#/$defs/hash" }, "qda_certificate_digest": { "$ref": "#/$defs/hash" }, "pre_prepare_digest": { "$ref": "#/$defs/hash", "description": "H('ak.direct-conversation.pre-prepare.v1', the exact signed PRE-PREPARE consensus_envelope including its signature)." }, "replica_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } }, "additionalProperties": false },
+        { "type": "object", "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "instance_predecessor_head_digest", "operation_id", "attempt_sequence", "view", "phase", "value_digest", "qda_certificate_digest", "prepared_certificate_digest", "replica_id", "signature"], "properties": { "domain": { "const": "ak.direct-conversation.pbft-envelope.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "instance_predecessor_head_digest": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "view": { "type": "integer", "minimum": 0 }, "phase": { "const": "commit" }, "value_digest": { "$ref": "#/$defs/hash" }, "qda_certificate_digest": { "$ref": "#/$defs/hash" }, "prepared_certificate_digest": { "$ref": "#/$defs/hash" }, "replica_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } }, "additionalProperties": false }
+      ]
     },
     "prepared_certificate": {
       "type": "object",
-      "required": ["certificate_kind", "domain", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "view", "value_digest", "qda_certificate_digest", "n", "f", "quorum", "prepares"],
-      "properties": { "certificate_kind": { "const": "prepared" }, "domain": { "const": "ak.direct-conversation.prepared-certificate.v1" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "view": { "type": "integer", "minimum": 0 }, "value_digest": { "$ref": "#/$defs/hash" }, "qda_certificate_digest": { "$ref": "#/$defs/hash" }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "prepares": { "type": "array", "items": { "allOf": [ { "$ref": "#/$defs/consensus_envelope" }, { "properties": { "phase": { "const": "prepare" } }, "required": ["phase"] } ] }, "minItems": 3, "uniqueItems": true } },
+      "description": "The exact PRE-PREPARE is part of the certificate. Every PREPARE must carry its digest and otherwise match it on all instance, view, value and qDA coordinates.",
+      "required": ["certificate_kind", "domain", "registry_digest", "pair_registry_id", "pair_key", "instance_predecessor_head_digest", "operation_id", "attempt_sequence", "view", "value_digest", "qda_certificate_digest", "certificate_digest", "pre_prepare", "n", "f", "quorum", "prepares"],
+      "properties": { "certificate_kind": { "const": "prepared" }, "domain": { "const": "ak.direct-conversation.prepared-certificate.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "instance_predecessor_head_digest": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "view": { "type": "integer", "minimum": 0 }, "value_digest": { "$ref": "#/$defs/hash" }, "qda_certificate_digest": { "$ref": "#/$defs/hash" }, "certificate_digest": { "$ref": "#/$defs/hash", "description": "H('ak.direct-conversation.prepared-certificate.v1', semantic core containing every field except certificate_digest, pre_prepare and prepares)." }, "pre_prepare": { "allOf": [ { "$ref": "#/$defs/consensus_envelope" }, { "properties": { "phase": { "const": "pre_prepare" } }, "required": ["phase"] } ] }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "prepares": { "type": "array", "items": { "allOf": [ { "$ref": "#/$defs/consensus_envelope" }, { "properties": { "phase": { "const": "prepare" } }, "required": ["phase"] } ] }, "minItems": 3, "uniqueItems": true } },
       "additionalProperties": false
     },
     "view_change_message": {
       "oneOf": [
-        { "type": "object", "required": ["domain", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "from_view", "target_view", "prepared_state", "replica_id", "signature"], "properties": { "domain": { "const": "ak.direct-conversation.view-change.v1" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "from_view": { "type": "integer", "minimum": 0 }, "target_view": { "type": "integer", "minimum": 1 }, "prepared_state": { "const": "none" }, "replica_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } }, "additionalProperties": false },
-        { "type": "object", "required": ["domain", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "from_view", "target_view", "prepared_state", "highest_prepared", "replica_id", "signature"], "properties": { "domain": { "const": "ak.direct-conversation.view-change.v1" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "from_view": { "type": "integer", "minimum": 0 }, "target_view": { "type": "integer", "minimum": 1 }, "prepared_state": { "const": "prepared" }, "highest_prepared": { "$ref": "#/$defs/prepared_certificate" }, "replica_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } }, "additionalProperties": false }
+        { "type": "object", "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "instance_predecessor_head_digest", "operation_id", "attempt_sequence", "from_view", "target_view", "prepared_state", "replica_id", "signature"], "properties": { "domain": { "const": "ak.direct-conversation.view-change.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "instance_predecessor_head_digest": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "from_view": { "type": "integer", "minimum": 0 }, "target_view": { "type": "integer", "minimum": 1 }, "prepared_state": { "const": "none" }, "replica_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } }, "additionalProperties": false },
+        { "type": "object", "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "instance_predecessor_head_digest", "operation_id", "attempt_sequence", "from_view", "target_view", "prepared_state", "highest_prepared", "replica_id", "signature"], "properties": { "domain": { "const": "ak.direct-conversation.view-change.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "instance_predecessor_head_digest": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "from_view": { "type": "integer", "minimum": 0 }, "target_view": { "type": "integer", "minimum": 1 }, "prepared_state": { "const": "prepared" }, "highest_prepared": { "$ref": "#/$defs/prepared_certificate" }, "replica_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } }, "additionalProperties": false }
       ]
     },
     "view_change_certificate": {
       "type": "object",
-      "required": ["certificate_kind", "domain", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "target_view", "n", "f", "quorum", "messages"],
-      "properties": { "certificate_kind": { "const": "view_change" }, "domain": { "const": "ak.direct-conversation.view-change-certificate.v1" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "target_view": { "type": "integer", "minimum": 1 }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "messages": { "type": "array", "items": { "$ref": "#/$defs/view_change_message" }, "minItems": 3, "uniqueItems": true } },
+      "required": ["certificate_kind", "domain", "registry_digest", "pair_registry_id", "pair_key", "instance_predecessor_head_digest", "operation_id", "attempt_sequence", "target_view", "n", "f", "quorum", "messages"],
+      "properties": { "certificate_kind": { "const": "view_change" }, "domain": { "const": "ak.direct-conversation.view-change-certificate.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "instance_predecessor_head_digest": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "target_view": { "type": "integer", "minimum": 1 }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "messages": { "type": "array", "items": { "$ref": "#/$defs/view_change_message" }, "minItems": 3, "uniqueItems": true } },
       "additionalProperties": false
     },
     "new_view_certificate": {
       "type": "object",
-      "required": ["certificate_kind", "domain", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "view", "selected_value_digest", "qda_certificate_digest", "view_change_certificate", "proposal", "proposer_id", "signature"],
-      "properties": { "certificate_kind": { "const": "new_view" }, "domain": { "const": "ak.direct-conversation.new-view-certificate.v1" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "view": { "type": "integer", "minimum": 1 }, "selected_value_digest": { "$ref": "#/$defs/hash" }, "qda_certificate_digest": { "$ref": "#/$defs/hash" }, "view_change_certificate": { "$ref": "#/$defs/view_change_certificate" }, "proposal": { "allOf": [ { "$ref": "#/$defs/consensus_envelope" }, { "properties": { "phase": { "const": "pre_prepare" } }, "required": ["phase"] } ] }, "proposer_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } },
+      "required": ["certificate_kind", "domain", "registry_digest", "pair_registry_id", "pair_key", "instance_predecessor_head_digest", "operation_id", "attempt_sequence", "view", "selected_value_digest", "qda_certificate_digest", "view_change_certificate", "proposal", "proposer_id", "signature"],
+      "properties": { "certificate_kind": { "const": "new_view" }, "domain": { "const": "ak.direct-conversation.new-view-certificate.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "instance_predecessor_head_digest": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "view": { "type": "integer", "minimum": 1 }, "selected_value_digest": { "$ref": "#/$defs/hash" }, "qda_certificate_digest": { "$ref": "#/$defs/hash" }, "view_change_certificate": { "$ref": "#/$defs/view_change_certificate" }, "proposal": { "allOf": [ { "$ref": "#/$defs/consensus_envelope" }, { "properties": { "phase": { "const": "pre_prepare" } }, "required": ["phase"] } ] }, "proposer_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } },
       "additionalProperties": false
     },
     "per_view_certificate": {
@@ -546,40 +884,323 @@
     "qda_receipt": {
       "type": "object",
       "description": "Each receipt repeats destination and all effect identity coordinates; evaluators require them to equal the referenced EffectValueCore byte-for-byte.",
-      "required": ["domain", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "effect_id", "value_digest", "journal_root", "destination", "expected_host_epoch", "replica_id", "signature"],
-      "properties": { "domain": { "const": "ak.direct-conversation.qda-receipt.v1" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "value_digest": { "$ref": "#/$defs/hash" }, "journal_root": { "$ref": "#/$defs/hash" }, "destination": { "$ref": "#/$defs/did" }, "expected_host_epoch": { "type": "integer", "minimum": 0 }, "replica_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } },
+      "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "effect_id", "value_digest", "journal_root", "destination", "expected_host_service_id", "expected_host_epoch", "resulting_host_service_id", "resulting_host_epoch", "replica_id", "signature"],
+      "properties": { "domain": { "const": "ak.direct-conversation.qda-receipt.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "value_digest": { "$ref": "#/$defs/hash" }, "journal_root": { "$ref": "#/$defs/hash" }, "destination": { "$ref": "#/$defs/did" }, "expected_host_service_id": { "$ref": "#/$defs/did" }, "expected_host_epoch": { "type": "integer", "minimum": 0 }, "resulting_host_service_id": { "$ref": "#/$defs/did" }, "resulting_host_epoch": { "type": "integer", "minimum": 0 }, "replica_id": { "$ref": "#/$defs/did" }, "signature": { "$ref": "#/$defs/signature" } },
       "additionalProperties": false
     },
     "qda_certificate": {
       "type": "object",
-      "description": "Closed digest-free qDA certificate core. destination and all effect identity coordinates MUST equal the exact EffectValueCore and every contained receipt; signer identities are distinct and canonically sorted by the registered evaluator.",
-      "required": ["pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "effect_id", "value_digest", "journal_root", "destination", "expected_host_epoch", "n", "f", "quorum", "receipts"],
-      "properties": { "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "value_digest": { "$ref": "#/$defs/hash" }, "journal_root": { "$ref": "#/$defs/hash" }, "destination": { "$ref": "#/$defs/did" }, "expected_host_epoch": { "type": "integer", "minimum": 0 }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "receipts": { "type": "array", "items": { "$ref": "#/$defs/qda_receipt" }, "minItems": 3, "uniqueItems": true } },
+      "description": "qDA semantic certificate plus exact quorum witnesses. certificate_digest is stable across alternative valid witness subsets.",
+      "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "effect_id", "value_digest", "journal_root", "destination", "expected_host_service_id", "expected_host_epoch", "resulting_host_service_id", "resulting_host_epoch", "n", "f", "quorum", "certificate_digest", "receipts"],
+      "properties": { "domain": { "const": "ak.direct-conversation.qda-certificate.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "value_digest": { "$ref": "#/$defs/hash" }, "journal_root": { "$ref": "#/$defs/hash" }, "destination": { "$ref": "#/$defs/did" }, "expected_host_service_id": { "$ref": "#/$defs/did" }, "expected_host_epoch": { "type": "integer", "minimum": 0 }, "resulting_host_service_id": { "$ref": "#/$defs/did" }, "resulting_host_epoch": { "type": "integer", "minimum": 0 }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "certificate_digest": { "$ref": "#/$defs/hash", "description": "H('ak.direct-conversation.qda-certificate.v1', semantic core containing every field except certificate_digest and receipts)." }, "receipts": { "type": "array", "items": { "$ref": "#/$defs/qda_receipt" }, "minItems": 3, "uniqueItems": true } },
       "additionalProperties": false
     },
     "qcommit_certificate": {
       "type": "object",
-      "required": ["pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "view", "value_digest", "qda_certificate_digest", "n", "f", "quorum", "commits"],
-      "properties": { "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "view": { "type": "integer", "minimum": 0 }, "value_digest": { "$ref": "#/$defs/hash" }, "qda_certificate_digest": { "$ref": "#/$defs/hash" }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "commits": { "type": "array", "items": { "allOf": [ { "$ref": "#/$defs/consensus_envelope" }, { "properties": { "phase": { "const": "commit" } }, "required": ["phase"] } ] }, "minItems": 3, "uniqueItems": true } },
+      "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "view", "value_digest", "qda_certificate_digest", "predecessor_head_digest", "effect_head_digest", "n", "f", "quorum", "certificate_digest", "commits"],
+      "properties": { "domain": { "const": "ak.direct-conversation.qcommit-certificate.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "view": { "type": "integer", "minimum": 0 }, "value_digest": { "$ref": "#/$defs/hash" }, "qda_certificate_digest": { "$ref": "#/$defs/hash" }, "predecessor_head_digest": { "$ref": "#/$defs/hash" }, "effect_head_digest": { "$ref": "#/$defs/hash", "description": "H('ak.direct-conversation.effect-head.v1',{registry_digest,pair_registry_id,pair_key,operation_id,attempt_sequence,view,predecessor_head_digest,value_digest,qda_certificate_digest})." }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "certificate_digest": { "$ref": "#/$defs/hash", "description": "H('ak.direct-conversation.qcommit-certificate.v1', semantic core containing every field except certificate_digest and commits)." }, "commits": { "type": "array", "items": { "allOf": [ { "$ref": "#/$defs/consensus_envelope" }, { "properties": { "phase": { "const": "commit" } }, "required": ["phase"] } ] }, "minItems": 3, "uniqueItems": true } },
       "additionalProperties": false
     },
     "execution_bundle": {
       "type": "object",
-      "required": ["value_core", "qda_certificate", "per_view_certificates", "qcommit_certificate", "authenticated_encrypted_journal_bytes"],
-      "properties": { "value_core": { "$ref": "#/$defs/effect_value_core" }, "qda_certificate": { "$ref": "#/$defs/qda_certificate" }, "per_view_certificates": { "type": "array", "items": { "$ref": "#/$defs/per_view_certificate" }, "minItems": 1, "uniqueItems": true }, "qcommit_certificate": { "$ref": "#/$defs/qcommit_certificate" }, "authenticated_encrypted_journal_bytes": { "$ref": "#/$defs/base64url" } },
+      "required": ["registry_authorization", "value_core", "journal_validation_receipt", "qda_certificate", "per_view_certificates", "qcommit_certificate", "authenticated_encrypted_journal"],
+      "properties": { "registry_authorization": { "$ref": "#/$defs/operation_control_authorization" }, "value_core": { "$ref": "#/$defs/effect_value_core" }, "journal_validation_receipt": { "$ref": "#/$defs/journal_validation_receipt" }, "qda_certificate": { "$ref": "#/$defs/qda_certificate" }, "per_view_certificates": { "type": "array", "items": { "$ref": "#/$defs/per_view_certificate" }, "minItems": 1, "uniqueItems": true }, "qcommit_certificate": { "$ref": "#/$defs/qcommit_certificate" }, "authenticated_encrypted_journal": { "$ref": "#/$defs/authenticated_encrypted_journal" } },
       "additionalProperties": false
+    },
+    "operation_control_host_epoch_policy": {
+      "type": "object",
+      "required": ["domain", "target_rule", "graceful_receipt_ttl_seconds", "failover_min_unavailable_seconds", "read_certificate_max_age_seconds"],
+      "properties": { "domain": { "const": "ak.direct-conversation.host-epoch-policy.v1" }, "target_rule": { "const": "eligible_hosts_only" }, "graceful_receipt_ttl_seconds": { "type": "integer", "minimum": 30, "maximum": 3600 }, "failover_min_unavailable_seconds": { "type": "integer", "minimum": 30, "maximum": 86400 }, "read_certificate_max_age_seconds": { "type": "integer", "minimum": 1, "maximum": 60 } },
+      "additionalProperties": false
+    },
+    "operation_control_domain_policy_core": {
+      "type": "object",
+      "required": ["domain", "trust_domain_id", "policy_version", "domain_root_id", "domain_root_verification_method", "eligible_replicas", "eligible_hosts", "n", "f", "quorum", "host_epoch_policy", "issued_at", "expires_at"],
+      "properties": { "domain": { "const": "ak.direct-conversation.operation-control-domain-policy.v1" }, "trust_domain_id": { "$ref": "./common-ids.schema.json#/$defs/trust_domain" }, "policy_version": { "type": "integer", "minimum": 1 }, "domain_root_id": { "$ref": "#/$defs/did" }, "domain_root_verification_method": { "$ref": "#/$defs/did_url" }, "eligible_replicas": { "type": "array", "items": { "$ref": "#/$defs/did" }, "minItems": 4, "uniqueItems": true }, "eligible_hosts": { "type": "array", "items": { "$ref": "#/$defs/did" }, "minItems": 1, "uniqueItems": true }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "host_epoch_policy": { "$ref": "#/$defs/operation_control_host_epoch_policy" }, "issued_at": { "$ref": "#/$defs/timestamp" }, "expires_at": { "$ref": "#/$defs/timestamp" } },
+      "additionalProperties": false,
+      "description": "Configured trust-domain-root policy snapshot. Evaluators require n=3f+1, quorum=2f+1 and canonical sorting of eligible sets. For a new pair-slot CAS, accepted_at must be within [issued_at,expires_at] and the root verification method must be valid at accepted_at and chain to the configured trust-domain anchor. Later policy expiry never invalidates an already accepted permanent registry; historical verification uses the root method state at accepted_at."
+    },
+    "operation_control_domain_policy_statement": {
+      "type": "object",
+      "required": ["core", "policy_digest", "signature"],
+      "properties": { "core": { "$ref": "#/$defs/operation_control_domain_policy_core" }, "policy_digest": { "$ref": "#/$defs/hash", "description": "H('ak.direct-conversation.operation-control-domain-policy.v1', core)." }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false,
+      "description": "The configured domain root signs the exact closed {core,policy_digest} object. The verification method in core must be controlled by core.domain_root_id and must chain to the verifier's trust-domain anchor."
+    },
+    "pair_registry_core": {
+      "type": "object",
+      "description": "Domain-root governed permanent pair slot. pair_slot_id=H('ak.direct-conversation.pair-slot.v1',{trust_domain_id,pair_key}) and pair_registry_id equals that stable slot id; registry_digest=H('ak.direct-conversation.pair-registry.v1',this exact core). replicas are exactly the first n canonical-sorted eligible policy replicas, initial_host_service_id is the first canonical-sorted eligible host, origin_coordinator=replicas[0], and proposer(view)=replicas[view mod n].",
+      "required": ["domain", "trust_domain_id", "domain_policy_digest", "pair_slot_id", "pair_key", "participants", "origin_coordinator", "initial_host_service_id", "initial_host_epoch", "replicas", "n", "f", "quorum", "host_epoch_policy_digest"],
+      "properties": { "domain": { "const": "ak.direct-conversation.pair-registry-core.v1" }, "trust_domain_id": { "$ref": "./common-ids.schema.json#/$defs/trust_domain" }, "domain_policy_digest": { "$ref": "#/$defs/hash" }, "pair_slot_id": { "$ref": "#/$defs/hash" }, "pair_key": { "$ref": "#/$defs/hash" }, "participants": { "type": "array", "items": { "$ref": "#/$defs/did" }, "minItems": 2, "maxItems": 2, "uniqueItems": true }, "origin_coordinator": { "$ref": "#/$defs/did" }, "initial_host_service_id": { "$ref": "#/$defs/did" }, "initial_host_epoch": { "const": 0 }, "replicas": { "type": "array", "items": { "$ref": "#/$defs/did" }, "minItems": 4, "uniqueItems": true }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "host_epoch_policy_digest": { "$ref": "#/$defs/hash" } },
+      "additionalProperties": false
+    },
+    "pair_registry_statement": {
+      "type": "object",
+      "required": ["domain_policy_statement", "core", "pair_registry_id", "registry_digest", "stable_operation_id", "initial_requester_id", "slot_version", "accepted_at", "domain_root_verification_method", "signature"],
+      "properties": { "domain_policy_statement": { "$ref": "#/$defs/operation_control_domain_policy_statement" }, "core": { "$ref": "#/$defs/pair_registry_core" }, "pair_registry_id": { "$ref": "#/$defs/hash" }, "registry_digest": { "$ref": "#/$defs/hash" }, "stable_operation_id": { "$ref": "#/$defs/operation_id" }, "initial_requester_id": { "$ref": "#/$defs/did" }, "slot_version": { "const": 1 }, "accepted_at": { "$ref": "#/$defs/timestamp" }, "domain_root_verification_method": { "$ref": "#/$defs/did_url" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false,
+      "description": "Permanent single-write pair-slot CAS receipt. pair_registry_id equals core.pair_slot_id. The domain root signs every field except signature, including the one stable operation and its initial requester. domain_policy_statement and core coordinates must match; accepted_at must be inside the policy window. A second registry, operation or requester for the same pair_slot_id is permanently rejected. Policy expiry after accepted_at does not invalidate this historical receipt."
+    },
+    "direct_conversation_materialization_event_slots": {
+      "type": "object",
+      "required": ["realm_create_event_id", "peer_join_event_id", "main_strand_event_id", "mls_genesis_event_id", "mls_commit_event_id", "mls_welcome_event_id", "binding_event_id"],
+      "properties": { "realm_create_event_id": { "$ref": "#/$defs/event_id" }, "peer_join_event_id": { "$ref": "#/$defs/event_id" }, "main_strand_event_id": { "$ref": "#/$defs/event_id" }, "mls_genesis_event_id": { "$ref": "#/$defs/event_id" }, "mls_commit_event_id": { "$ref": "#/$defs/event_id" }, "mls_welcome_event_id": { "$ref": "#/$defs/event_id" }, "binding_event_id": { "$ref": "#/$defs/event_id" } },
+      "additionalProperties": false
+    },
+    "direct_conversation_materialization_genesis": {
+      "type": "object",
+      "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "coordinates", "mls_group_id", "event_slots", "compensation_delegation_core_digest", "claim_authorization_draft"],
+      "properties": { "domain": { "const": "ak.direct-conversation.materialization-genesis.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/hash" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "const": 1 }, "coordinates": { "$ref": "#/$defs/direct_conversation_coordinates" }, "mls_group_id": { "$ref": "#/$defs/opaque_id" }, "event_slots": { "$ref": "#/$defs/direct_conversation_materialization_event_slots" }, "compensation_delegation_core_digest": { "$ref": "#/$defs/hash" }, "claim_authorization_draft": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_key_packages_claim_authorization_draft" } },
+      "additionalProperties": false,
+      "description": "Domain-reserved immutable genesis returned before caller signing. It fixes every stable Realm/Strand/binding/MLS/event ID and the exact peer claim authorization draft. Later stage preparation fills content-dependent Event bytes, but may never change an ID or coordinate. materialization_genesis_digest=H('ak.direct-conversation.materialization-genesis.v1', this exact object)."
+    },
+    "operation_control_authorization_core": {
+      "type": "object",
+      "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "operation_id", "requester_id", "materialization_genesis_digest", "genesis_head_digest"],
+      "properties": { "domain": { "const": "ak.direct-conversation.operation-control-authorization.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/hash" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "requester_id": { "$ref": "#/$defs/did" }, "materialization_genesis_digest": { "$ref": "#/$defs/hash" }, "genesis_head_digest": { "$ref": "#/$defs/hash", "description": "H('ak.direct-conversation.genesis-head.v1',{registry_digest,pair_registry_id,pair_key,operation_id,materialization_genesis_digest,initial_host_service_id,host_epoch:0})." } },
+      "additionalProperties": false
+    },
+    "operation_control_authorization_draft": {
+      "type": "object",
+      "required": ["registry_statement", "materialization_genesis", "core", "requester_signature"],
+      "properties": { "registry_statement": { "$ref": "#/$defs/pair_registry_statement" }, "materialization_genesis": { "$ref": "#/$defs/direct_conversation_materialization_genesis" }, "core": { "$ref": "#/$defs/operation_control_authorization_core" }, "requester_signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false,
+      "description": "Prepared caller-signed commit input only. It is not qDA/PBFT authority and cannot appear in an ExecutionBundle because it lacks the domain authorization commit receipt."
     },
     "operation_control_authorization": {
       "type": "object",
-      "required": ["domain_policy_digest", "pair_registry_id", "pair_key", "operation_id", "origin_coordinator", "replicas", "n", "f", "quorum", "epoch_policy", "requester_signature"],
-      "properties": { "domain_policy_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "origin_coordinator": { "$ref": "#/$defs/did" }, "replicas": { "type": "array", "items": { "$ref": "#/$defs/did" }, "minItems": 4, "uniqueItems": true }, "n": { "type": "integer", "minimum": 4 }, "f": { "type": "integer", "minimum": 1 }, "quorum": { "type": "integer", "minimum": 3 }, "epoch_policy": { "$ref": "#/$defs/hash" }, "requester_signature": { "$ref": "#/$defs/signature" } },
+      "required": ["registry_statement", "materialization_genesis", "core", "requester_signature", "commit_receipt"],
+      "properties": { "registry_statement": { "$ref": "#/$defs/pair_registry_statement" }, "materialization_genesis": { "$ref": "#/$defs/direct_conversation_materialization_genesis" }, "core": { "$ref": "#/$defs/operation_control_authorization_core" }, "requester_signature": { "$ref": "#/$defs/signature" }, "commit_receipt": { "$ref": "#/$defs/operation_control_authorization_commit_receipt" } },
+      "additionalProperties": false,
+      "description": "Committed registry and requester authorization, self-contained apart from the configured trust-domain root anchor. requester_signature signs exact core only and its verification method/controller is resolved from requester_id. The domain-signed commit_receipt proves that the unexpired reservation handle and requester signature were accepted; a prepared draft without it is never qDA/PBFT authority. All statement/core/receipt pair, registry, stable operation and requester coordinates must match byte-for-byte."
+    },
+    "operation_control_authorization_commit_receipt": {
+      "type": "object",
+      "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "stable_operation_id", "requester_id", "authorization_core_digest", "materialization_genesis_digest", "claim_request_digest", "slot_version", "committed_at", "domain_root_verification_method", "signature"],
+      "properties": { "domain": { "const": "ak.direct-conversation.operation-control-authorization-commit.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/hash" }, "pair_key": { "$ref": "#/$defs/hash" }, "stable_operation_id": { "$ref": "#/$defs/operation_id" }, "requester_id": { "$ref": "#/$defs/did" }, "authorization_core_digest": { "$ref": "#/$defs/hash", "description": "H('ak.direct-conversation.operation-control-authorization.v1', the exact authorization core)." }, "materialization_genesis_digest": { "$ref": "#/$defs/hash" }, "claim_request_digest": { "$ref": "#/$defs/hash" }, "slot_version": { "const": 1 }, "committed_at": { "$ref": "#/$defs/timestamp" }, "domain_root_verification_method": { "$ref": "#/$defs/did_url" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false,
+      "description": "The domain authority issues this only after consuming the live reservation handle, verifying requester_signature over the exact core, and matching the permanent pair statement. It signs every field except signature. Same exact commit replays this receipt; any different operation/requester/core for the slot conflicts permanently."
+    },
+    "operation_control_proposal": {
+      "type": "object",
+      "description": "Complete proposal material required before a replica may emit PREPARE. All value, qDA and journal coordinates must cross-match exactly. For view 0 new_view_certificate is forbidden; for view >0 it is required and its embedded proposal must be byte-identical to pre_prepare.",
+      "required": ["value_core", "journal_validation_receipt", "qda_certificate", "authenticated_encrypted_journal", "pre_prepare"],
+      "properties": {
+        "value_core": { "$ref": "#/$defs/effect_value_core" },
+        "journal_validation_receipt": { "$ref": "#/$defs/journal_validation_receipt" },
+        "qda_certificate": { "$ref": "#/$defs/qda_certificate" },
+        "authenticated_encrypted_journal": { "$ref": "#/$defs/authenticated_encrypted_journal" },
+        "pre_prepare": { "allOf": [ { "$ref": "#/$defs/consensus_envelope" }, { "properties": { "phase": { "const": "pre_prepare" } }, "required": ["phase"] } ] },
+        "new_view_certificate": { "$ref": "#/$defs/new_view_certificate" }
+      },
+      "allOf": [
+        { "if": { "properties": { "pre_prepare": { "properties": { "view": { "const": 0 } }, "required": ["view"] } }, "required": ["pre_prepare"] }, "then": { "not": { "required": ["new_view_certificate"] } }, "else": { "required": ["new_view_certificate"] } }
+      ],
       "additionalProperties": false
     },
-    "attempt_advance_value": {
+    "operation_control_qda_store": {
       "type": "object",
-      "required": ["operation_id", "from_attempt", "to_attempt", "cleanup_terminal_proof", "fresh_target_authorization", "unclaimed_keypackage_ref", "claim_request_digest"],
-      "properties": { "operation_id": { "$ref": "#/$defs/operation_id" }, "from_attempt": { "type": "integer", "minimum": 1 }, "to_attempt": { "type": "integer", "minimum": 2 }, "cleanup_terminal_proof": { "$ref": "#/$defs/hash" }, "fresh_target_authorization": { "$ref": "#/$defs/hash" }, "unclaimed_keypackage_ref": { "$ref": "#/$defs/opaque_id" }, "claim_request_digest": { "$ref": "#/$defs/hash" } },
+      "required": ["registry_authorization", "value_core", "journal_validation_receipt", "authenticated_encrypted_journal"],
+      "properties": {
+        "registry_authorization": { "$ref": "#/$defs/operation_control_authorization" },
+        "value_core": { "$ref": "#/$defs/effect_value_core" },
+        "journal_validation_receipt": { "$ref": "#/$defs/journal_validation_receipt" },
+        "authenticated_encrypted_journal": { "$ref": "#/$defs/authenticated_encrypted_journal" }
+      },
+      "additionalProperties": false,
+      "description": "Replica must verify the live destination journal_validation_receipt, all public cross-matches and the committed authorization, then durably store these exact opaque journal bytes before issuing qDA. It recomputes journal_root and receipt digest; it does not need the destination's decryption key."
+    },
+    "operation_control_message": {
+      "oneOf": [
+        { "type": "object", "required": ["message_kind", "registry_authorization"], "properties": { "message_kind": { "const": "registry_authorization" }, "registry_authorization": { "$ref": "#/$defs/operation_control_authorization" } }, "additionalProperties": false },
+        { "type": "object", "required": ["message_kind", "qda_store"], "properties": { "message_kind": { "const": "qda_store" }, "qda_store": { "$ref": "#/$defs/operation_control_qda_store" } }, "additionalProperties": false },
+        { "type": "object", "required": ["message_kind", "qda_receipt"], "properties": { "message_kind": { "const": "qda_receipt" }, "qda_receipt": { "$ref": "#/$defs/qda_receipt" } }, "additionalProperties": false },
+        { "type": "object", "required": ["message_kind", "qda_certificate"], "properties": { "message_kind": { "const": "qda_certificate" }, "qda_certificate": { "$ref": "#/$defs/qda_certificate" } }, "additionalProperties": false },
+        { "type": "object", "required": ["message_kind", "proposal"], "properties": { "message_kind": { "const": "proposal" }, "proposal": { "$ref": "#/$defs/operation_control_proposal" } }, "additionalProperties": false },
+        { "type": "object", "required": ["message_kind", "consensus_envelope"], "properties": { "message_kind": { "const": "consensus_envelope" }, "consensus_envelope": { "$ref": "#/$defs/consensus_envelope" } }, "additionalProperties": false },
+        { "type": "object", "required": ["message_kind", "prepared_certificate"], "properties": { "message_kind": { "const": "prepared_certificate" }, "prepared_certificate": { "$ref": "#/$defs/prepared_certificate" } }, "additionalProperties": false },
+        { "type": "object", "required": ["message_kind", "view_change_message"], "properties": { "message_kind": { "const": "view_change_message" }, "view_change_message": { "$ref": "#/$defs/view_change_message" } }, "additionalProperties": false },
+        { "type": "object", "required": ["message_kind", "new_view_certificate"], "properties": { "message_kind": { "const": "new_view_certificate" }, "new_view_certificate": { "$ref": "#/$defs/new_view_certificate" } }, "additionalProperties": false },
+        { "type": "object", "required": ["message_kind", "qcommit_certificate"], "properties": { "message_kind": { "const": "qcommit_certificate" }, "qcommit_certificate": { "$ref": "#/$defs/qcommit_certificate" } }, "additionalProperties": false },
+        { "type": "object", "required": ["message_kind", "read_request"], "properties": { "message_kind": { "const": "read_request" }, "read_request": { "$ref": "#/$defs/operation_control_read_request" } }, "additionalProperties": false },
+        { "type": "object", "required": ["message_kind", "read_receipt"], "properties": { "message_kind": { "const": "read_receipt" }, "read_receipt": { "$ref": "#/$defs/operation_control_read_receipt" } }, "additionalProperties": false }
+      ]
+    },
+    "operation_control_message_submit_request": {
+      "type": "object",
+      "required": ["recipient_replica_id", "registry_digest", "message"],
+      "properties": {
+        "recipient_replica_id": { "$ref": "#/$defs/did" },
+        "registry_digest": { "$ref": "#/$defs/hash" },
+        "message": { "$ref": "#/$defs/operation_control_message" }
+      },
+      "additionalProperties": false,
+      "description": "registry_digest must equal the embedded message registry coordinate. message_digest used by the receipt is H('ak.direct-conversation.operation-control-message.v1', the exact closed tagged message including inner signatures)."
+    },
+    "operation_control_message_receipt": {
+      "type": "object",
+      "required": ["domain", "status", "message_digest", "receiver_replica_id", "received_at", "signature"],
+      "properties": {
+        "domain": { "const": "ak.direct-conversation.operation-control-message-receipt.v1" },
+        "status": { "type": "string", "enum": ["accepted", "duplicate", "queued"] },
+        "message_digest": { "$ref": "#/$defs/hash" },
+        "receiver_replica_id": { "$ref": "#/$defs/did" },
+        "received_at": { "$ref": "#/$defs/timestamp" },
+        "missing_dependency_digests": { "type": "array", "items": { "$ref": "#/$defs/hash" }, "minItems": 1, "uniqueItems": true },
+        "signature": { "$ref": "#/$defs/signature" }
+      },
+      "allOf": [
+        { "if": { "properties": { "status": { "const": "queued" } }, "required": ["status"] }, "then": { "required": ["missing_dependency_digests"] }, "else": { "not": { "required": ["missing_dependency_digests"] } } }
+      ],
+      "additionalProperties": false,
+      "description": "The receiver signature covers every field except signature. duplicate is based on the registered semantic protocol slot/value rule; different carrier bytes for the same semantic vote are not equivocation."
+    },
+    "operation_control_read_request": {
+      "type": "object",
+      "required": ["domain", "registry_digest", "read_request_id", "pair_registry_id", "pair_key", "operation_id", "requester_service_id", "audience", "minimum_host_epoch", "issued_at", "expires_at", "signature"],
+      "properties": {
+        "domain": { "const": "ak.direct-conversation.operation-control-read-request.v1" },
+        "registry_digest": { "$ref": "#/$defs/hash" },
+        "read_request_id": { "$ref": "#/$defs/opaque_id" },
+        "pair_registry_id": { "$ref": "#/$defs/opaque_id" },
+        "pair_key": { "$ref": "#/$defs/hash" },
+        "operation_id": { "$ref": "#/$defs/operation_id" },
+        "requester_service_id": { "$ref": "#/$defs/did" },
+        "audience": { "$ref": "#/$defs/did" },
+        "expected_host_service_id": { "$ref": "#/$defs/did" },
+        "minimum_host_epoch": { "type": "integer", "minimum": 0 },
+        "known_head_digest": { "$ref": "#/$defs/hash" },
+        "issued_at": { "$ref": "#/$defs/timestamp" },
+        "expires_at": { "$ref": "#/$defs/timestamp" },
+        "signature": { "$ref": "#/$defs/signature" }
+      },
+      "additionalProperties": false,
+      "description": "Signature covers every field except signature. read_request_digest=H('ak.direct-conversation.read-request.v1', that exact unsigned core). expires_at-issued_at MUST be <=60 seconds; receiver clock skew allowance is at most 5 seconds. Returned head.host_epoch must be >= minimum_host_epoch; when expected_host_service_id is present it must match exactly, while omission permits a certified successor host DID to be discovered after transfer."
+    },
+    "operation_control_head": {
+      "oneOf": [
+        { "type": "object", "required": ["head_kind", "registry_digest", "pair_registry_id", "pair_key", "genesis_head_digest", "host_service_id", "host_epoch"], "properties": { "head_kind": { "const": "genesis" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "genesis_head_digest": { "$ref": "#/$defs/hash" }, "host_service_id": { "$ref": "#/$defs/did" }, "host_epoch": { "const": 0 } }, "additionalProperties": false },
+        { "type": "object", "required": ["head_kind", "registry_digest", "pair_registry_id", "pair_key", "effect_id", "effect_commitment_digest", "effect_head_digest", "predecessor_head_digest", "operation_id", "attempt_sequence", "value_digest", "qda_certificate_digest", "qcommit_certificate_digest", "host_service_id", "host_epoch"], "properties": { "head_kind": { "const": "committed" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "pair_key": { "$ref": "#/$defs/hash" }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "effect_commitment_digest": { "$ref": "#/$defs/hash" }, "effect_head_digest": { "$ref": "#/$defs/hash" }, "predecessor_head_digest": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "value_digest": { "$ref": "#/$defs/hash" }, "qda_certificate_digest": { "$ref": "#/$defs/hash" }, "qcommit_certificate_digest": { "$ref": "#/$defs/hash" }, "host_service_id": { "$ref": "#/$defs/did" }, "host_epoch": { "type": "integer", "minimum": 0 } }, "additionalProperties": false }
+      ]
+    },
+    "operation_control_read_receipt": {
+      "type": "object",
+      "required": ["domain", "request_digest", "head", "replica_id", "observed_at", "expires_at", "signature"],
+      "properties": {
+        "domain": { "const": "ak.direct-conversation.operation-control-read-receipt.v1" },
+        "request_digest": { "$ref": "#/$defs/hash" },
+        "head": { "$ref": "#/$defs/operation_control_head" },
+        "observed_at": { "$ref": "#/$defs/timestamp" },
+        "expires_at": { "$ref": "#/$defs/timestamp" },
+        "replica_id": { "$ref": "#/$defs/did" },
+        "signature": { "$ref": "#/$defs/signature" }
+      },
       "additionalProperties": false
+    },
+    "operation_control_read_certificate": {
+      "type": "object",
+      "required": ["domain", "read_request", "request_digest", "head", "n", "f", "quorum", "receipts"],
+      "properties": {
+        "domain": { "const": "ak.direct-conversation.operation-control-read-certificate.v1" },
+        "read_request": { "$ref": "#/$defs/operation_control_read_request" },
+        "request_digest": { "$ref": "#/$defs/hash" },
+        "head": { "$ref": "#/$defs/operation_control_head" },
+        "n": { "type": "integer", "minimum": 4 },
+        "f": { "type": "integer", "minimum": 1 },
+        "quorum": { "type": "integer", "minimum": 3 },
+        "receipts": { "type": "array", "items": { "$ref": "#/$defs/operation_control_read_receipt" }, "minItems": 3, "uniqueItems": true }
+      },
+      "description": "Evaluator requires quorum=2f+1, exactly quorum distinct immutable replicas in canonical order, and byte-identical request_digest and head in every receipt. observed_at must be inside the signed request window, every receipt expires no later than the request, consumer now must be within every expiry with at most 5 seconds skew, and observation age must be <=60 seconds. It proves only the fresh read and never authorizes an effect or attempt advance.",
+      "additionalProperties": false
+    },
+    "execution_bundle_delivery_request": {
+      "type": "object",
+      "required": ["registry_digest", "submitted_bundle_digest", "effect_commitment_digest", "bundle"],
+      "properties": {
+        "registry_digest": { "$ref": "#/$defs/hash" },
+        "submitted_bundle_digest": { "$ref": "#/$defs/hash", "description": "H('ak.direct-conversation.execution-bundle-wire.v1', the complete bundle including witness arrays and signatures). It is an exact-recovery/audit digest, not the semantic CAS identity." },
+        "effect_commitment_digest": { "$ref": "#/$defs/hash", "description": "H('ak.direct-conversation.effect-commitment.v1',{registry_digest,pair_registry_id,pair_key,operation_id,attempt_sequence,effect_id,value_digest,effect_head_digest})." },
+        "bundle": { "$ref": "#/$defs/execution_bundle" }
+      },
+      "additionalProperties": false
+    },
+    "execution_bundle_delivery_receipt": {
+      "type": "object",
+      "required": ["domain", "submitted_bundle_digest", "effect_commitment_digest", "value_digest", "effect_head_digest", "effect_id", "disposition", "destination", "host_service_id", "host_epoch", "recorded_at", "signature"],
+      "properties": {
+        "domain": { "const": "ak.direct-conversation.execution-bundle-delivery-receipt.v1" },
+        "submitted_bundle_digest": { "$ref": "#/$defs/hash" },
+        "effect_commitment_digest": { "$ref": "#/$defs/hash" },
+        "value_digest": { "$ref": "#/$defs/hash" },
+        "effect_head_digest": { "$ref": "#/$defs/hash" },
+        "effect_id": { "$ref": "#/$defs/opaque_id" },
+        "disposition": { "type": "string", "enum": ["accepted", "duplicate", "deferred"] },
+        "destination": { "$ref": "#/$defs/did" },
+        "host_service_id": { "$ref": "#/$defs/did" },
+        "host_epoch": { "type": "integer", "minimum": 0 },
+        "recorded_at": { "$ref": "#/$defs/timestamp" },
+        "missing_dependency_digests": { "type": "array", "items": { "$ref": "#/$defs/hash" }, "minItems": 1, "uniqueItems": true },
+        "signature": { "$ref": "#/$defs/signature" }
+      },
+      "allOf": [ { "if": { "properties": { "disposition": { "const": "deferred" } }, "required": ["disposition"] }, "then": { "required": ["missing_dependency_digests"] }, "else": { "not": { "required": ["missing_dependency_digests"] } } } ],
+      "additionalProperties": false,
+      "description": "For accepted or duplicate delivery, destination equals EffectValueCore.destination and host_service_id/host_epoch equal its resulting host fence. A host_transfer effect additionally requires destination=to_host_service_id; other effects preserve expected and resulting host exactly."
+    },
+    "execution_bundle_delivery_outcome": { "$ref": "#/$defs/execution_bundle_delivery_receipt" },
+    "execution_bundle_query_request": {
+      "oneOf": [
+        { "type": "object", "required": ["query_kind", "registry_digest", "pair_registry_id", "operation_id", "attempt_sequence", "effect_id", "expected_value_digest", "expected_effect_commitment_digest", "submitted_bundle_digest", "requester_service_id"], "properties": { "query_kind": { "const": "by_effect" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "expected_value_digest": { "$ref": "#/$defs/hash" }, "expected_effect_commitment_digest": { "$ref": "#/$defs/hash" }, "submitted_bundle_digest": { "$ref": "#/$defs/hash" }, "requester_service_id": { "$ref": "#/$defs/did" } }, "additionalProperties": false },
+        { "type": "object", "required": ["query_kind", "registry_digest", "pair_registry_id", "operation_id", "attempt_sequence", "effect_id", "value_digest", "effect_commitment_digest", "effect_head_digest", "qcommit_certificate_digest", "requester_service_id"], "properties": { "query_kind": { "const": "by_committed_head" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "value_digest": { "$ref": "#/$defs/hash" }, "effect_commitment_digest": { "$ref": "#/$defs/hash" }, "effect_head_digest": { "$ref": "#/$defs/hash" }, "qcommit_certificate_digest": { "$ref": "#/$defs/hash" }, "requester_service_id": { "$ref": "#/$defs/did" } }, "additionalProperties": false },
+        { "type": "object", "required": ["query_kind", "registry_digest", "pair_registry_id", "operation_id", "attempt_sequence", "effect_id", "effect_commitment_digest", "destination", "requester_service_id"], "properties": { "query_kind": { "const": "delivery_outcome" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/opaque_id" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "effect_id": { "$ref": "#/$defs/opaque_id" }, "effect_commitment_digest": { "$ref": "#/$defs/hash" }, "destination": { "$ref": "#/$defs/did" }, "requester_service_id": { "$ref": "#/$defs/did" } }, "additionalProperties": false }
+      ]
+    },
+    "execution_bundle_query_outcome": {
+      "oneOf": [
+        { "type": "object", "required": ["outcome_kind", "submitted_bundle_digest", "effect_commitment_digest", "bundle"], "properties": { "outcome_kind": { "const": "bundle" }, "submitted_bundle_digest": { "$ref": "#/$defs/hash" }, "effect_commitment_digest": { "$ref": "#/$defs/hash" }, "bundle": { "$ref": "#/$defs/execution_bundle" } }, "additionalProperties": false },
+        { "type": "object", "required": ["outcome_kind", "delivery_receipt"], "properties": { "outcome_kind": { "const": "delivery_outcome" }, "delivery_receipt": { "$ref": "#/$defs/execution_bundle_delivery_receipt" } }, "additionalProperties": false }
+      ]
+    },
+
+    "direct_conversation_prepared_event_draft": {
+      "type": "object",
+      "required": ["event_id", "kind", "unsigned_event_bytes", "event_digest"],
+      "properties": { "event_id": { "$ref": "#/$defs/event_id" }, "kind": { "type": "string", "enum": ["ak.realm.create", "ak.member.state", "ak.strand.create", "ak.mls.genesis", "ak.mls.commit", "ak.mls.welcome", "ak.direct_conversation.bound"] }, "unsigned_event_bytes": { "$ref": "#/$defs/base64url" }, "event_digest": { "$ref": "#/$defs/hash" } },
+      "additionalProperties": false,
+      "description": "Service-built canonical Event bytes with proofs and reducer-managed fields absent. The participant adds only the required proof over event_digest and returns the exact resulting signed Event; any changed unsigned byte or digest is rejected."
+    },
+    "direct_conversation_prepared_stage": {
+      "oneOf": [
+        { "type": "object", "required": ["materialization_step", "event_drafts"], "properties": { "materialization_step": { "const": "founding_unit" }, "event_drafts": { "type": "array", "prefixItems": [ { "allOf": [ { "$ref": "#/$defs/direct_conversation_prepared_event_draft" }, { "properties": { "kind": { "const": "ak.realm.create" } }, "required": ["kind"] } ] }, { "allOf": [ { "$ref": "#/$defs/direct_conversation_prepared_event_draft" }, { "properties": { "kind": { "const": "ak.member.state" } }, "required": ["kind"] } ] } ], "items": false, "minItems": 2, "maxItems": 2 } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "event_drafts"], "properties": { "materialization_step": { "const": "main_strand" }, "event_drafts": { "type": "array", "prefixItems": [ { "allOf": [ { "$ref": "#/$defs/direct_conversation_prepared_event_draft" }, { "properties": { "kind": { "const": "ak.strand.create" } }, "required": ["kind"] } ] } ], "items": false, "minItems": 1, "maxItems": 1 } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "event_drafts"], "properties": { "materialization_step": { "const": "mls_epoch" }, "event_drafts": { "type": "array", "prefixItems": [ { "allOf": [ { "$ref": "#/$defs/direct_conversation_prepared_event_draft" }, { "properties": { "kind": { "const": "ak.mls.genesis" } }, "required": ["kind"] } ] }, { "allOf": [ { "$ref": "#/$defs/direct_conversation_prepared_event_draft" }, { "properties": { "kind": { "const": "ak.mls.commit" } }, "required": ["kind"] } ] } ], "items": false, "minItems": 2, "maxItems": 2 } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "event_drafts"], "properties": { "materialization_step": { "const": "welcome_admission" }, "event_drafts": { "type": "array", "prefixItems": [ { "allOf": [ { "$ref": "#/$defs/direct_conversation_prepared_event_draft" }, { "properties": { "kind": { "const": "ak.mls.welcome" } }, "required": ["kind"] } ] } ], "items": false, "minItems": 1, "maxItems": 1 } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "event_drafts"], "properties": { "materialization_step": { "const": "binding_finalize" }, "event_drafts": { "type": "array", "prefixItems": [ { "allOf": [ { "$ref": "#/$defs/direct_conversation_prepared_event_draft" }, { "properties": { "kind": { "const": "ak.direct_conversation.bound" } }, "required": ["kind"] } ] } ], "items": false, "minItems": 1, "maxItems": 1 } }, "additionalProperties": false }
+      ]
+    },
+    "direct_conversation_signed_stage": {
+      "oneOf": [
+        { "type": "object", "required": ["materialization_step", "signed_events"], "properties": { "materialization_step": { "const": "founding_unit" }, "signed_events": { "type": "array", "prefixItems": [ { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.realm.create" } }, "required": ["kind"] } ] }, { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.member.state" } }, "required": ["kind"] } ] } ], "items": false, "minItems": 2, "maxItems": 2 } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "signed_events"], "properties": { "materialization_step": { "const": "main_strand" }, "signed_events": { "type": "array", "prefixItems": [ { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.strand.create" } }, "required": ["kind"] } ] } ], "items": false, "minItems": 1, "maxItems": 1 } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "signed_events"], "properties": { "materialization_step": { "const": "mls_epoch" }, "signed_events": { "type": "array", "prefixItems": [ { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.mls.genesis" } }, "required": ["kind"] } ] }, { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.mls.commit" } }, "required": ["kind"] } ] } ], "items": false, "minItems": 2, "maxItems": 2 } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "signed_events"], "properties": { "materialization_step": { "const": "welcome_admission" }, "signed_events": { "type": "array", "prefixItems": [ { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.mls.welcome" } }, "required": ["kind"] } ] } ], "items": false, "minItems": 1, "maxItems": 1 } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "signed_events"], "properties": { "materialization_step": { "const": "binding_finalize" }, "signed_events": { "type": "array", "prefixItems": [ { "allOf": [ { "$ref": "#/$defs/signed_event" }, { "properties": { "kind": { "const": "ak.direct_conversation.bound" } }, "required": ["kind"] } ] } ], "items": false, "minItems": 1, "maxItems": 1 } }, "additionalProperties": false }
+      ]
+    },
+    "direct_conversation_materialization_step_evidence": {
+      "oneOf": [
+        { "type": "object", "required": ["materialization_step", "claim_receipt"], "properties": { "materialization_step": { "const": "founding_unit" }, "claim_receipt": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt" } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "founding_delivery_receipt"], "properties": { "materialization_step": { "const": "main_strand" }, "founding_delivery_receipt": { "$ref": "#/$defs/execution_bundle_delivery_receipt" } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "claim_receipt", "strand_delivery_receipt"], "properties": { "materialization_step": { "const": "mls_epoch" }, "claim_receipt": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt" }, "strand_delivery_receipt": { "$ref": "#/$defs/execution_bundle_delivery_receipt" } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "claim_receipt", "mls_delivery_receipt"], "properties": { "materialization_step": { "const": "welcome_admission" }, "claim_receipt": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt" }, "mls_delivery_receipt": { "$ref": "#/$defs/execution_bundle_delivery_receipt" } }, "additionalProperties": false },
+        { "type": "object", "required": ["materialization_step", "welcome_delivery_receipt", "consume_receipt"], "properties": { "materialization_step": { "const": "binding_finalize" }, "welcome_delivery_receipt": { "$ref": "#/$defs/execution_bundle_delivery_receipt" }, "consume_receipt": { "$ref": "./keypackage-operations.schema.json#/$defs/keypackage_consume_receipt" } }, "additionalProperties": false }
+      ]
+    },
+    "direct_conversation_materialization_step_commit_receipt": {
+      "type": "object",
+      "required": ["domain", "registry_digest", "pair_registry_id", "pair_key", "operation_id", "attempt_sequence", "materialization_step", "prepared_step_digest", "event_ids", "event_digests", "host_service_id", "host_epoch", "committed_at", "signature"],
+      "properties": { "domain": { "const": "ak.direct-conversation.materialization-step-commit.v1" }, "registry_digest": { "$ref": "#/$defs/hash" }, "pair_registry_id": { "$ref": "#/$defs/hash" }, "pair_key": { "$ref": "#/$defs/hash" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "materialization_step": { "type": "string", "enum": ["founding_unit", "main_strand", "mls_epoch", "welcome_admission", "binding_finalize"] }, "prepared_step_digest": { "$ref": "#/$defs/hash" }, "event_ids": { "type": "array", "items": { "$ref": "#/$defs/event_id" }, "minItems": 1, "maxItems": 2, "uniqueItems": true }, "event_digests": { "type": "array", "items": { "$ref": "#/$defs/hash" }, "minItems": 1, "maxItems": 2, "uniqueItems": true }, "host_service_id": { "$ref": "#/$defs/did" }, "host_epoch": { "type": "integer", "minimum": 0 }, "committed_at": { "$ref": "#/$defs/timestamp" }, "signature": { "$ref": "#/$defs/signature" } },
+      "additionalProperties": false,
+      "description": "Current certified host signs the exact stage and ordered Event IDs/digests only after every returned signed Event is byte-identical to the prepared unsigned bytes except for allowed proofs. It is preparation evidence, not Event admission authority."
     },
 
     "direct_conversation_resolve_request": {
@@ -592,8 +1213,26 @@
         },
         {
           "type": "object",
-          "required": ["peer", "create", "operation_id", "idempotency_key", "operation_control_authorization"],
-          "properties": { "peer": { "$ref": "#/$defs/contact_peer" }, "create": { "const": true }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "operation_control_authorization": { "$ref": "#/$defs/operation_control_authorization" }, "peer_claim_request": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body" } },
+          "required": ["peer", "create", "phase", "operation_id", "idempotency_key"],
+          "properties": { "peer": { "$ref": "#/$defs/contact_peer" }, "create": { "const": true }, "phase": { "const": "prepare_authorization" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" } },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["peer", "create", "phase", "operation_id", "idempotency_key", "reservation_handle", "operation_control_authorization", "peer_claim_request"],
+          "properties": { "peer": { "$ref": "#/$defs/contact_peer" }, "create": { "const": true }, "phase": { "const": "commit_authorization" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "operation_control_authorization": { "$ref": "#/$defs/operation_control_authorization_draft" }, "peer_claim_request": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body" } },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["peer", "create", "phase", "operation_id", "idempotency_key", "operation_control_authorization", "step_evidence"],
+          "properties": { "peer": { "$ref": "#/$defs/contact_peer" }, "create": { "const": true }, "phase": { "const": "prepare_materialization_step" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "operation_control_authorization": { "$ref": "#/$defs/operation_control_authorization" }, "step_evidence": { "$ref": "#/$defs/direct_conversation_materialization_step_evidence" } },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["peer", "create", "phase", "operation_id", "idempotency_key", "operation_control_authorization", "reservation_handle", "signed_stage"],
+          "properties": { "peer": { "$ref": "#/$defs/contact_peer" }, "create": { "const": true }, "phase": { "const": "commit_materialization_step" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "operation_control_authorization": { "$ref": "#/$defs/operation_control_authorization" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "signed_stage": { "$ref": "#/$defs/direct_conversation_signed_stage" } },
           "additionalProperties": false
         }
       ]
@@ -610,6 +1249,10 @@
     },
     "direct_conversation_resolve_outcome": {
       "oneOf": [
+        { "type": "object", "required": ["state", "operation_id", "reservation_handle", "expires_at", "registry_statement", "materialization_genesis", "authorization_core", "claim_authorization_draft"], "properties": { "state": { "const": "authorization_prepared" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "registry_statement": { "$ref": "#/$defs/pair_registry_statement" }, "materialization_genesis": { "$ref": "#/$defs/direct_conversation_materialization_genesis" }, "authorization_core": { "$ref": "#/$defs/operation_control_authorization_core" }, "claim_authorization_draft": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_key_packages_claim_authorization_draft" } }, "additionalProperties": false },
+        { "type": "object", "required": ["state", "operation_id", "operation_control_authorization"], "properties": { "state": { "const": "authorization_committed" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "operation_control_authorization": { "$ref": "#/$defs/operation_control_authorization" } }, "additionalProperties": false },
+        { "type": "object", "required": ["state", "operation_id", "reservation_handle", "expires_at", "prepared_step", "prepared_step_digest"], "properties": { "state": { "const": "materialization_step_prepared" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "prepared_step": { "$ref": "#/$defs/direct_conversation_prepared_stage" }, "prepared_step_digest": { "$ref": "#/$defs/hash" } }, "additionalProperties": false },
+        { "type": "object", "required": ["state", "operation_id", "step_commit_receipt"], "properties": { "state": { "const": "materialization_step_committed" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "step_commit_receipt": { "$ref": "#/$defs/direct_conversation_materialization_step_commit_receipt" } }, "additionalProperties": false },
         { "type": "object", "required": ["state", "coordinates", "send_blockers"], "properties": { "state": { "const": "found" }, "coordinates": { "$ref": "#/$defs/direct_conversation_coordinates" }, "send_blockers": { "type": "array", "items": { "$ref": "#/$defs/direct_conversation_send_blocker" }, "uniqueItems": true } }, "additionalProperties": false },
         { "type": "object", "required": ["state", "coordinates", "suspension_reason"], "properties": { "state": { "const": "suspended" }, "coordinates": { "$ref": "#/$defs/direct_conversation_coordinates" }, "suspension_reason": { "type": "string", "enum": ["participant_membership_missing", "contact_direction_revoked"] } }, "additionalProperties": false },
         { "type": "object", "required": ["state", "operation_id", "attempt_sequence", "operation_state"], "properties": { "state": { "const": "materializing" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "attempt_sequence": { "type": "integer", "minimum": 1 }, "operation_state": { "enum": ["reserved", "materializing", "cleanup", "cleanup_complete_retryable"] } }, "additionalProperties": false },
@@ -729,19 +1372,41 @@
       "properties": { "kind": { "const": "circle" }, "realm_id": { "$ref": "#/$defs/realm_id" }, "circle_id": { "$ref": "#/$defs/circle_id" } },
       "additionalProperties": false
     },
-    "sidecar_create_event": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission" },
-    "sidecar_context_attach_event": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission" },
+    "sidecar_create_event": {
+      "allOf": [
+        { "$ref": "#/$defs/signed_event" },
+        { "type": "object", "required": ["kind"], "properties": { "kind": { "const": "ak.sidecar.create" } } }
+      ]
+    },
+    "sidecar_context_attach_event": {
+      "allOf": [
+        { "$ref": "#/$defs/signed_event" },
+        { "type": "object", "required": ["kind"], "properties": { "kind": { "const": "ak.sidecar.context.attach" } } }
+      ]
+    },
+    "sidecar_prepared_event_draft": {
+      "type": "object",
+      "description": "Service-built canonical producer Event bytes with proofs and reducer-managed fields absent. The client MUST decode these exact bytes, add only a controller proof over event_digest, and return the resulting signed Event. The service MUST reject any other unsigned bytes or digest.",
+      "required": ["event_id", "kind", "unsigned_event_bytes", "event_digest"],
+      "properties": {
+        "event_id": { "$ref": "#/$defs/event_id" },
+        "kind": { "type": "string", "enum": ["ak.sidecar.create", "ak.sidecar.context.attach"] },
+        "unsigned_event_bytes": { "$ref": "#/$defs/base64url" },
+        "event_digest": { "$ref": "#/$defs/hash" }
+      },
+      "additionalProperties": false
+    },
     "sidecar_context_ref": {
       "oneOf": [
-        { "type": "object", "required": ["kind", "relation_id"], "properties": { "kind": { "const": "relation" }, "relation_id": { "$ref": "./common-ids.schema.json#/$defs/relation_id" } }, "additionalProperties": false },
+        { "type": "object", "required": ["kind", "relation_id"], "properties": { "kind": { "const": "relation" }, "relation_id": { "$ref": "./event-payload.schema.json#/$defs/relation_id" } }, "additionalProperties": false },
         { "type": "object", "required": ["kind", "strand_id"], "properties": { "kind": { "const": "strand" }, "strand_id": { "$ref": "#/$defs/strand_id" } }, "additionalProperties": false }
       ]
     },
     "sidecar_ensure_request": {
       "oneOf": [
         { "type": "object", "required": ["phase", "operation_id", "idempotency_key", "source_realm_id", "controller_id", "context_ref"], "properties": { "phase": { "const": "prepare" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "source_realm_id": { "$ref": "#/$defs/realm_id" }, "controller_id": { "$ref": "#/$defs/did" }, "context_ref": { "$ref": "#/$defs/sidecar_context_ref" } }, "additionalProperties": false },
-        { "type": "object", "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "sidecar_id", "create_event", "context_attach_event"], "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "sidecar_id": { "$ref": "./common-ids.schema.json#/$defs/sidecar_id" }, "create_event": { "$ref": "#/$defs/sidecar_create_event" }, "context_attach_event": { "$ref": "#/$defs/sidecar_context_attach_event" } }, "additionalProperties": false },
-        { "type": "object", "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "sidecar_id", "context_attach_event"], "properties": { "phase": { "const": "attach" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "sidecar_id": { "$ref": "./common-ids.schema.json#/$defs/sidecar_id" }, "context_attach_event": { "$ref": "#/$defs/sidecar_context_attach_event" } }, "additionalProperties": false }
+        { "type": "object", "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "create_event", "context_attach_event"], "properties": { "phase": { "const": "commit" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "create_event": { "$ref": "#/$defs/sidecar_create_event" }, "context_attach_event": { "$ref": "#/$defs/sidecar_context_attach_event" } }, "additionalProperties": false },
+        { "type": "object", "required": ["phase", "operation_id", "idempotency_key", "reservation_handle", "context_attach_event"], "properties": { "phase": { "const": "attach" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "context_attach_event": { "$ref": "#/$defs/sidecar_context_attach_event" } }, "additionalProperties": false }
       ]
     },
     "sidecar_access_readiness": { "type": "string", "enum": ["opening", "access_reconciliation_pending", "key_material_pending", "epoch_update_required", "ready", "failed"] },
@@ -753,8 +1418,9 @@
     },
     "sidecar_ensure_outcome": {
       "oneOf": [
-        { "type": "object", "required": ["status", "operation_id", "reservation_handle", "expires_at", "sidecar_id", "private_strand_id", "private_relation_id"], "properties": { "status": { "const": "prepared" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "sidecar_id": { "$ref": "./common-ids.schema.json#/$defs/sidecar_id" }, "private_strand_id": { "$ref": "#/$defs/strand_id" }, "private_relation_id": { "$ref": "./common-ids.schema.json#/$defs/relation_id" } }, "additionalProperties": false },
-        { "type": "object", "required": ["status", "operation_id", "accepted_phase", "ok", "sidecar_id", "private_strand_id", "private_relation_id", "access_readiness", "pending_access_reconciliations"], "properties": { "status": { "const": "accepted" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "accepted_phase": { "type": "string", "enum": ["commit", "attach"] }, "ok": { "const": true }, "sidecar_id": { "$ref": "./common-ids.schema.json#/$defs/sidecar_id" }, "private_strand_id": { "$ref": "#/$defs/strand_id" }, "private_relation_id": { "$ref": "./common-ids.schema.json#/$defs/relation_id" }, "access_readiness": { "$ref": "#/$defs/sidecar_access_readiness" }, "pending_access_reconciliations": { "type": "array", "items": { "$ref": "#/$defs/sidecar_pending_access_reconciliation" }, "uniqueItems": true } }, "additionalProperties": false }
+        { "type": "object", "required": ["status", "branch", "operation_id", "reservation_handle", "expires_at", "sidecar_id", "backing_circle_id", "private_strand_id", "private_relation_id", "create_event_id", "context_attach_event_id", "create_event_draft", "context_attach_event_draft"], "properties": { "status": { "const": "prepared" }, "branch": { "const": "new" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "sidecar_id": { "$ref": "./common-ids.schema.json#/$defs/sidecar_id" }, "backing_circle_id": { "$ref": "#/$defs/circle_id" }, "private_strand_id": { "$ref": "#/$defs/strand_id" }, "private_relation_id": { "$ref": "./event-payload.schema.json#/$defs/relation_id" }, "create_event_id": { "$ref": "#/$defs/event_id" }, "context_attach_event_id": { "$ref": "#/$defs/event_id" }, "create_event_draft": { "allOf": [ { "$ref": "#/$defs/sidecar_prepared_event_draft" }, { "properties": { "kind": { "const": "ak.sidecar.create" } }, "required": ["kind"] } ] }, "context_attach_event_draft": { "allOf": [ { "$ref": "#/$defs/sidecar_prepared_event_draft" }, { "properties": { "kind": { "const": "ak.sidecar.context.attach" } }, "required": ["kind"] } ] } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "branch", "operation_id", "reservation_handle", "expires_at", "sidecar_id", "backing_circle_id", "private_strand_id", "private_relation_id", "context_attach_event_id", "context_attach_event_draft"], "properties": { "status": { "const": "prepared" }, "branch": { "const": "existing" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "reservation_handle": { "$ref": "#/$defs/opaque_id" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "sidecar_id": { "$ref": "./common-ids.schema.json#/$defs/sidecar_id" }, "backing_circle_id": { "$ref": "#/$defs/circle_id" }, "private_strand_id": { "$ref": "#/$defs/strand_id" }, "private_relation_id": { "$ref": "./event-payload.schema.json#/$defs/relation_id" }, "context_attach_event_id": { "$ref": "#/$defs/event_id" }, "context_attach_event_draft": { "allOf": [ { "$ref": "#/$defs/sidecar_prepared_event_draft" }, { "properties": { "kind": { "const": "ak.sidecar.context.attach" } }, "required": ["kind"] } ] } }, "additionalProperties": false },
+        { "type": "object", "required": ["status", "operation_id", "accepted_phase", "ok", "sidecar_id", "private_strand_id", "private_relation_id", "access_readiness", "pending_access_reconciliations"], "properties": { "status": { "const": "accepted" }, "operation_id": { "$ref": "#/$defs/operation_id" }, "accepted_phase": { "type": "string", "enum": ["commit", "attach"] }, "ok": { "const": true }, "sidecar_id": { "$ref": "./common-ids.schema.json#/$defs/sidecar_id" }, "private_strand_id": { "$ref": "#/$defs/strand_id" }, "private_relation_id": { "$ref": "./event-payload.schema.json#/$defs/relation_id" }, "access_readiness": { "$ref": "#/$defs/sidecar_access_readiness" }, "pending_access_reconciliations": { "type": "array", "items": { "$ref": "#/$defs/sidecar_pending_access_reconciliation" }, "uniqueItems": true } }, "additionalProperties": false }
       ]
     },
     "sidecar_access_replace": {

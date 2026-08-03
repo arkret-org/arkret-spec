@@ -8,6 +8,7 @@
     "schema",
     "realm_id",
     "kind",
+    "state",
     "query",
     "created_by",
     "created_at"
@@ -53,8 +54,7 @@
         "active",
         "tombstoned"
       ],
-      "default": "active",
-      "description": "View lifecycle. Absent means active for compatibility. Shared View removal is an ak.view.update patch to tombstoned; tombstoned is terminal."
+      "description": "Required View lifecycle state. Shared View removal is an ak.view.update patch to tombstoned; tombstoned is terminal."
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",

@@ -211,6 +211,11 @@ grpc:
       Submit: ak.peer.invites.command.submit
     PeerContacts:
       Submit: ak.peer.contacts.command.submit
+    PeerDirectConversationOperationControl:
+      Submit: ak.peer.direct_conversation.operation_control.command.submit
+      DeliverExecutionBundle: ak.peer.direct_conversation.operation_control.command.deliver
+      QueryExecutionBundle: ak.peer.direct_conversation.operation_control.query.execution_bundle
+      ReadCertificate: ak.peer.direct_conversation.operation_control.query.read_certificate
     PeerAgent:
       ScopeEvidencePrepare: ak.peer.agent.participation.query.prepare_scope_evidence
       Replace: ak.peer.agent.participation.command.replace
@@ -368,6 +373,10 @@ mq:
     peer.mls.query.group_state_material: ak.peer.mls.query.group_state_material
     peer.invites.command.submit: ak.peer.invites.command.submit
     peer.contacts.command.submit: ak.peer.contacts.command.submit
+    peer.direct_conversation.operation_control.command.submit: ak.peer.direct_conversation.operation_control.command.submit
+    peer.direct_conversation.operation_control.command.deliver: ak.peer.direct_conversation.operation_control.command.deliver
+    peer.direct_conversation.operation_control.query.execution_bundle: ak.peer.direct_conversation.operation_control.query.execution_bundle
+    peer.direct_conversation.operation_control.query.read_certificate: ak.peer.direct_conversation.operation_control.query.read_certificate
     peer.agent.participation.query.prepare_scope_evidence: ak.peer.agent.participation.query.prepare_scope_evidence
     peer.agent.participation.command.replace: ak.peer.agent.participation.command.replace
     peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim

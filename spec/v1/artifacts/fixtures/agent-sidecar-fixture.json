@@ -71,7 +71,8 @@
       "assertions": [
         "ensure operation id remains ak.self.agent.sidecar.command.ensure",
         "ensure capability action matches the operation id",
-        "ensure returns sidecar_id and never private_circle_id",
+        "prepare returns a closed new or existing branch with service-fixed sidecar, backing Circle, Strand, Relation, Event IDs and canonical unsigned draft bytes",
+        "the controller may append proofs but any unsigned-byte, payload, Event ID, backing Circle, or refs.after mutation conflicts with zero writes",
         "backing Circle canonical shape and reserved SC- prefix remain enforced",
         "sidecar profile id remains ak.profile.agent_sidecar.v1"
       ]
@@ -93,7 +94,7 @@
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_existence_privacy_vector",
       "assertions": [
         "callers without sidecar ensure capability receive sidecar_create_denied",
-        "sidecar and backing Circle existence are not disclosed via distinct branches"
+        "an unauthorized caller never learns Sidecar or backing Circle existence; only the authorized controller receives the fixed new|existing prepare branch"
       ]
     },
     {

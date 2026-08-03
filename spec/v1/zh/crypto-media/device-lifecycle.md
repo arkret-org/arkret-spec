@@ -961,9 +961,9 @@ upload、consume、revoke 的 byte-exact正向与负向向量由 `ak.vector.cryp
 
 ### 9.0.1 Self claim requester proof 与重放闭包（normative）
 
-`ak.self.keys.keypackages.command.claim` 是同一 KeyPackage authority 内的领取面，但 bearer/session 身份本身不能替代对具体领取意图的签名授权。request MUST 携带恰好一个 `proofs[]` 元素并验证 `keypackage-operations.schema.json#/$defs/keypackage_claim_proof`；v1 保留复数 wire 字段只为兼容，未定义 quorum、hybrid 或“任一通过”语义。零个、两个以上、开放对象、`domain`、非 `holder_acceptance` purpose 或非 DID `audience` 都必须在选择 KeyPackage 前拒绝。
+`ak.self.keys.keypackages.command.claim` 是同一 KeyPackage authority 内的领取面，但 bearer/session 身份本身不能替代对具体领取意图的签名授权。request MUST 携带单数 `holder_acceptance_proof` 并验证 `keypackage-operations.schema.json#/$defs/keypackage_claim_proof`。v1 不定义 quorum、hybrid 或“任一通过”语义；这类能力必须由未来单独定义的新 request schema 承载。缺失该字段、出现任何未声明 proof 容器、proof 对象开放、携带 `domain`、purpose 非 `holder_acceptance` 或 `audience` 非 DID，都必须在选择 KeyPackage 前拒绝。
 
-先从闭合 request 删除顶层 `proofs`（不是置为 `null`），保留所有实际存在的 optional 字段，计算 `payload_digest = SHA-256(JCS(request_without_proofs))` typed digest。proof `payload_digest` MUST 与之 byte-identical；detached JWS 的 payload segment MUST 为空，并对下列唯一 canonical binding object 的 JCS bytes 签名：
+先从闭合 request 删除顶层 `holder_acceptance_proof`（不是置为 `null`），保留所有实际存在的 optional 字段，计算 `payload_digest = SHA-256(JCS(request_without_holder_acceptance_proof))` typed digest。proof `payload_digest` MUST 与之 byte-identical；detached JWS 的 payload segment MUST 为空，并对下列唯一 canonical binding object 的 JCS bytes 签名：
 
 ```json
 {
@@ -1005,7 +1005,7 @@ verification method 的 DID controller MUST 等于 `requester`，并按 requeste
 | `minimal_metadata_allowed` | `boolean` | optional | 是否允许 pseudonymous credential。 |
 | `claim_nonce` | `string` | required | 至少 128-bit CSPRNG entropy；与 `requester` 组成 claim object identity 和原子幂等 ledger key。 |
 | `expires_at` | `datetime` | required | claim 有效期。 |
-| `proofs` | `keypackage_claim_proof[1]` | required | 恰好一个 requester `holder_acceptance` detached-JWS proof，完整语义见 §9.0.1；peer surface 不复用此字段，而使用 §9.2 的闭合 `requester_authorization`。 |
+| `holder_acceptance_proof` | `keypackage_claim_proof` | required | 唯一 requester `holder_acceptance` detached-JWS proof，完整语义见 §9.0.1；peer surface 不复用此字段，而使用 §9.2 的闭合 `requester_authorization`。 |
 
 `claim` 响应字段：
 
@@ -1100,7 +1100,7 @@ peer claim MUST 同时满足两层授权，任一层缺失或失效都 MUST fail
 - `Source-Service-ID` 是 requester 当前已验证 Principal Server locator / home authority，`Destination-Service-ID` 是 `target_principal_id` 当前 KeyPackage authority，且两端与请求中的 trust domain 均属于允许此次 Realm 建立的同一 trust domain；
 - participant authorization 的 requester、verification method、generation / device authorization、freshness 与 exact request/transport binding 全部有效；
 - target 当前 active device、KeyPackage expiry / revocation / capability 均有效，并满足 `required_capabilities ⊆ capabilities`；
-- `claim_purpose=direct_conversation` 时，request MUST 携带 `pair_key` 与 main `strand_id`；目标服务按 [`../identity/contact-and-direct-conversation.md` §7](../identity/contact-and-direct-conversation.md) 重算 pair key，并验证双方 accepted contact、target 对 requester 的 active `direct_message|any` consent、预留 Realm / Strand / MLS group 的一致性；
+- `claim_purpose=direct_conversation` 时，request MUST 携带 `pair_key` 与 main `strand_id`；目标服务按 [`../identity/contact-and-direct-conversation.md` §7](../identity/contact-and-direct-conversation.md) 重算 pair key，并验证双方 current directional Contact heads 都包含 `direct_message`、预留 Realm / Strand / MLS group 的一致性；该路径不得查询 Consent；
 - `(Source-Service-ID, target_principal_id)` 的限速与 abuse policy 通过。
 
 `claim_purpose=direct_conversation` 时 `last_resort_allowed` MUST 缺省或为 `false`，目标服务 MUST NOT 返回 last-resort KeyPackage。一般 `realm_membership` claim 只有在双方 feature negotiation 均声明 `ak.feature.mls_last_resort_keypackage.v1` 且请求显式 `last_resort_allowed=true` 时才可返回 last-resort record；否则 single-use pool 耗尽即失败。
@@ -1122,7 +1122,7 @@ peer claim MUST 同时满足两层授权，任一层缺失或失效都 MUST fail
 
 通过 peer claim 生成的 `ak.mls.welcome` MUST 原样携带 `payload.peer_claim_receipt`。目标 Principal Server 在接受该 Welcome 前 MUST：验证 receipt 目标服务签名；以外层认证的 `Source-Service-ID` 精确匹配 `source_service_id`；查询 `(source_service_id, claim_request_id)` durable ledger 并逐字匹配 `request_digest` 与 stored outcome；验证 request 的 requester / target principal / intended Realm / MLS group / claim nonce 与 Event actor、recipient、Realm、Welcome group / `claim_envelope` 一致；验证 stored claim 与 Welcome 的 claim id、KeyPackage ref / digest、recipient device 一致。缺 receipt、ledger 未就绪或任一绑定不一致时均须 fail closed；ledger 尚未可见属于 retryable dependency，不得把未经认领的 Welcome 降级接受。Direct Conversation immutable binding accepted 前还 MUST 将 receipt.request 的 `pair_key` 与 `strand_id` 精确匹配该 pair 唯一 durable operation 已锁定的 binding payload。
 
-所有目标不存在、contact/consent 不满足、设备不可见、KeyPackage 耗尽、capability 不满足、policy denied、participant authorization 失效和限速失败，对**已通过外层服务认证**的 peer caller 必须收敛为同一 `claim_failed` 外观；不得返回 `available_count`、目标设备列表或逐设备 `failures[]`。外层 RFC 9421 signature / source service identity 无法通过时，接收方在读取 target 状态前返回通用 `unauthenticated` / `invalid_signature`；该响应必须只由 transport authentication 决定，对任意 `target_principal_id` 完全相同。
+所有目标不存在、任一方 Contact head/scope 不满足、设备不可见、KeyPackage 耗尽、capability 不满足、policy denied、participant authorization 失效和限速失败，对**已通过外层服务认证**的 peer caller 必须收敛为同一 `claim_failed` 外观；不得返回 `available_count`、目标设备列表或逐设备 `failures[]`。外层 RFC 9421 signature / source service identity 无法通过时，接收方在读取 target 状态前返回通用 `unauthenticated` / `invalid_signature`；该响应必须只由 transport authentication 决定，对任意 `target_principal_id` 完全相同。
 
 #### 9.2.4 Welcome、consume 与唯一 materializing operation
 

@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_signer_evidence.v1",
-  "version": "2026-07-25",
+  "version": "2026-08-03",
   "suite": "agent_signer_evidence",
   "runner": {
     "kind": "named_suite",
@@ -10,246 +10,170 @@
     "ak.vector.agent.signer_evidence_binding.v1"
   ],
   "binding_vector": {
-    "controller_public_key": "7UkoxijRwsbq6QM4kFmVYSlZJzpcY_k2NsFGFKyHN9E",
-    "canonical_without_jws": "{\"agent_id\":\"did:webvh:z6mkagent:agent.example\",\"agent_key_authorize_event_id\":\"ak:event:01964137-0000-7000-8000-000000000001\",\"agent_key_id\":\"did:webvh:z6mkagent:agent.example#runtime-1\",\"controller_id\":\"did:webvh:z6mkcontroller:controller.example\",\"controller_proof\":{\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkcontroller:controller.example#ak:device:01964137-0000-7000-8000-000000000002\"},\"issued_at\":\"2026-07-25T00:00:00.000Z\",\"public_key\":{\"alg\":\"Ed25519\",\"key\":\"6kpsY-KcUgq-9VB7Ey7F-ZVHdq6-vnuSQh7qaRRG0iw\",\"kty\":\"OKP\"},\"public_key_digest\":\"sha256:bbeb7e8a892586b86114ab88cc60807dc588f3f5f29a428e69b46808f573bfa3\",\"schema\":\"ak.schema.agent_signing_key_binding.v1\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
-    "signing_input_base64url": "YWsuYWdlbnQtc2lnbmluZy1rZXktYmluZGluZy12MQp7ImFnZW50X2lkIjoiZGlkOndlYnZoOno2bWthZ2VudDphZ2VudC5leGFtcGxlIiwiYWdlbnRfa2V5X2F1dGhvcml6ZV9ldmVudF9pZCI6ImFrOmV2ZW50OjAxOTY0MTM3LTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMSIsImFnZW50X2tleV9pZCI6ImRpZDp3ZWJ2aDp6Nm1rYWdlbnQ6YWdlbnQuZXhhbXBsZSNydW50aW1lLTEiLCJjb250cm9sbGVyX2lkIjoiZGlkOndlYnZoOno2bWtjb250cm9sbGVyOmNvbnRyb2xsZXIuZXhhbXBsZSIsImNvbnRyb2xsZXJfcHJvb2YiOnsia2luZCI6ImRldGFjaGVkX2p3cyIsInZlcmlmaWNhdGlvbl9tZXRob2QiOiJkaWQ6d2Vidmg6ejZta2NvbnRyb2xsZXI6Y29udHJvbGxlci5leGFtcGxlI2FrOmRldmljZTowMTk2NDEzNy0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDIifSwiaXNzdWVkX2F0IjoiMjAyNi0wNy0yNVQwMDowMDowMC4wMDBaIiwicHVibGljX2tleSI6eyJhbGciOiJFZDI1NTE5Iiwia2V5IjoiNmtwc1ktS2NVZ3EtOVZCN0V5N0YtWlZIZHE2LXZudVNRaDdxYVJSRzBpdyIsImt0eSI6Ik9LUCJ9LCJwdWJsaWNfa2V5X2RpZ2VzdCI6InNoYTI1NjpiYmViN2U4YTg5MjU4NmI4NjExNGFiODhjYzYwODA3ZGM1ODhmM2Y1ZjI5YTQyOGU2OWI0NjgwOGY1NzNiZmEzIiwic2NoZW1hIjoiYWsuc2NoZW1hLmFnZW50X3NpZ25pbmdfa2V5X2JpbmRpbmcudjEiLCJ2ZXJpZmljYXRpb25fbWV0aG9kIjoiZGlkOndlYnZoOno2bWthZ2VudDphZ2VudC5leGFtcGxlI3J1bnRpbWUtMSJ9",
+    "agent_id": "did:webvh:z6mkagent:agent.example",
+    "controller_id": "did:webvh:z6mkcontroller:controller.example",
+    "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+    "agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+    "public_key": "6kpsY-KcUgq-9VB7Ey7F-ZVHdq6-vnuSQh7qaRRG0iw",
     "binding_digest": "sha256:6214dbe074a0a8ab5c15bf5621c1de7db7efc2136dbacab5ead55aeca88d3a30",
-    "binding": {
-      "schema": "ak.schema.agent_signing_key_binding.v1",
-      "agent_id": "did:webvh:z6mkagent:agent.example",
-      "agent_key_id": "did:webvh:z6mkagent:agent.example#runtime-1",
-      "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
-      "public_key": {
-        "kty": "OKP",
-        "alg": "Ed25519",
-        "key": "6kpsY-KcUgq-9VB7Ey7F-ZVHdq6-vnuSQh7qaRRG0iw"
-      },
-      "public_key_digest": "sha256:bbeb7e8a892586b86114ab88cc60807dc588f3f5f29a428e69b46808f573bfa3",
-      "agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
-      "issued_at": "2026-07-25T00:00:00.000Z",
-      "controller_id": "did:webvh:z6mkcontroller:controller.example",
-      "controller_proof": {
-        "kind": "detached_jws",
-        "verification_method": "did:webvh:z6mkcontroller:controller.example#ak:device:01964137-0000-7000-8000-000000000002",
-        "jws": "eyJhbGciOiJFZERTQSJ9..H4Oa3vvlPEV7ufZM_NgzfVWL17tQqeE9FnliAzjua66xfy5V7XSzSiyL4IcmqfsXo1ue2FfdMzaRzV1PYldPDA"
-      }
-    }
+    "requirements": [
+      "recompute_controller_proof_transcript",
+      "recompute_public_key_digest",
+      "match_authorize_event_commitment",
+      "match_agent_and_controller"
+    ]
   },
   "cases": [
     {
-      "name": "native_agent_active_at_admission_and_matching_leaf",
-      "expected": "verified",
-      "actor_id": "did:webvh:z6mkagent:agent.example",
-      "executed_by": null,
-      "proof_verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
-      "event_accepted_frontier": "agent-key-frontier:10",
-      "authorization_status": "active",
-      "authorization_valid_from_frontier": "agent-key-frontier:7",
-      "freshness_observed_frontier": "agent-key-frontier:10",
-      "matching_basic_leaf_count": 1,
-      "leaf_signature_key": "6kpsY-KcUgq-9VB7Ey7F-ZVHdq6-vnuSQh7qaRRG0iw",
-      "leaf_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001"
+      "name": "current_exact_request_and_three_active_gates_verified",
+      "verification_mode": "current_admission",
+      "key_status": "active",
+      "agent_status": "active",
+      "controller_account_status": "active",
+      "observation_matches_actual_request": true,
+      "observation_basis_matches_admission_evidence": true,
+      "all_current_windows_valid": true,
+      "expected": "verified"
     },
     {
-      "name": "delegated_agent_keeps_actor_in_proof_transcript",
-      "expected": "verified",
-      "actor_id": "did:webvh:z6mkcontroller:controller.example",
-      "executed_by": "did:webvh:z6mkagent:agent.example",
-      "proof_binding_actor_id": "did:webvh:z6mkcontroller:controller.example",
-      "signer_id": "did:webvh:z6mkagent:agent.example",
-      "proof_verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
-      "authorization_ref_valid": true,
-      "matching_basic_leaf_count": 1
+      "name": "current_cross_verifier_replay_rejected",
+      "verification_mode": "current_admission",
+      "observation_verifier_matches_authenticated_service": false,
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch"
     },
     {
-      "name": "stale_freshness_is_unresolved",
+      "name": "current_request_or_challenge_replay_rejected",
+      "verification_mode": "current_admission",
+      "operation_request_audience_challenge_exact_match": false,
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch"
+    },
+    {
+      "name": "current_snapshot_digest_mix_and_match_rejected",
+      "verification_mode": "current_admission",
+      "observation_basis_matches_admission_evidence": false,
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch"
+    },
+    {
+      "name": "current_stale_lease_is_unresolved",
+      "verification_mode": "current_admission",
+      "all_current_windows_valid": false,
       "expected": "unresolved",
-      "reason": "agent_signer_evidence_stale",
-      "event_accepted_frontier": "agent-key-frontier:10",
-      "freshness_observed_frontier": "agent-key-frontier:9"
+      "reason": "agent_signer_evidence_stale"
     },
     {
-      "name": "superseded_old_key_new_event_is_rejected",
+      "name": "current_paused_agent_rejected",
+      "verification_mode": "current_admission",
+      "agent_status": "paused",
       "expected": "rejected",
-      "reason": "agent_authorization_inactive",
-      "event_accepted_frontier": "agent-key-frontier:11",
-      "authorization_valid_until_frontier": "agent-key-frontier:11",
-      "authorization_status": "superseded"
+      "reason": "agent_authorization_inactive"
     },
     {
-      "name": "historical_event_before_rotation_remains_verified",
-      "expected": "verified",
-      "event_accepted_frontier": "agent-key-frontier:10",
-      "authorization_valid_until_frontier": "agent-key-frontier:11",
-      "current_authorization_status": "superseded"
-    },
-    {
-      "name": "method_fragment_mismatch_is_rejected",
+      "name": "current_inactive_controller_account_rejected",
+      "verification_mode": "current_admission",
+      "controller_account_status": "deactivated",
       "expected": "rejected",
-      "reason": "agent_signing_key_mismatch",
-      "proof_verification_method": "did:webvh:z6mkagent:agent.example#runtime-2"
+      "reason": "agent_authorization_inactive"
     },
     {
-      "name": "duplicate_agent_leaf_is_rejected",
+      "name": "current_revoked_or_superseded_key_rejected",
+      "verification_mode": "current_admission",
+      "key_status": "superseded",
       "expected": "rejected",
-      "reason": "agent_mls_leaf_binding_mismatch",
-      "matching_basic_leaf_count": 2
+      "reason": "agent_authorization_inactive"
     },
     {
-      "name": "applet_does_not_enter_agent_regime",
+      "name": "historical_destination_receipt_preserves_admission",
+      "verification_mode": "historical_event",
+      "receipt_matches_event_and_receiver": true,
+      "three_gates_active_at_receipt_time": true,
+      "current_agent_status": "deactivated",
+      "current_controller_account_status": "deactivated",
+      "expected": "verified"
+    },
+    {
+      "name": "historical_current_snapshot_substitution_rejected",
+      "verification_mode": "historical_event",
+      "event_admission_receipt_present": false,
+      "current_observation_present": true,
       "expected": "rejected",
-      "reason": "signer_regime_mismatch",
-      "actor_kind": "integration",
-      "proof_verification_method": "did:webvh:z6mkapplet:applet.example#service-key"
+      "reason": "agent_signer_evidence_missing"
     },
     {
-      "name": "minimal_metadata_forbids_agent_query",
-      "expected": "verified_by_minimal_metadata_only",
+      "name": "historical_wrong_destination_receipt_rejected",
+      "verification_mode": "historical_event",
+      "receipt_matches_event_and_receiver": false,
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch"
+    },
+    {
+      "name": "historical_inactive_gate_at_receipt_time_rejected",
+      "verification_mode": "historical_event",
+      "three_gates_active_at_receipt_time": false,
+      "expected": "rejected",
+      "reason": "agent_authorization_inactive"
+    },
+    {
+      "name": "account_gate_never_discloses_local_identity",
+      "controller_account_gate_closed_schema": true,
+      "contains_service_local_account_id": false,
+      "contains_raw_account_cell": false,
+      "expected": "verified"
+    },
+    {
+      "name": "agent_genesis_active_requires_provision_ref",
+      "provenance.kind": "delegated_pcr_genesis",
+      "critical_agent_provision_ref_count": 1,
+      "expected": "verified"
+    },
+    {
+      "name": "organization_pcr_cannot_materialize_agent_active",
+      "principal_kind": "organization",
+      "critical_agent_provision_ref_count": 0,
+      "expected": "rejected",
+      "reason": "agent_authorization_inactive"
+    },
+    {
+      "name": "state_witness_uses_canonical_event_dot",
+      "key_state_tag": "ak:event:01964137-0000-7000-8000-000000000001:0",
+      "state_root_recomputed": true,
+      "expected": "verified"
+    },
+    {
+      "name": "bare_event_id_state_tag_rejected",
+      "key_state_tag": "ak:event:01964137-0000-7000-8000-000000000001",
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch"
+    },
+    {
+      "name": "outer_attestation_prevents_mode_splice",
+      "outer_core_digest_matches_complete_tagged_evidence": false,
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch"
+    },
+    {
+      "name": "historical_mls_leaf_cross_binding_verified",
+      "verification_mode": "historical_event",
+      "matching_basic_leaf_count": 1,
+      "leaf_signature_key_matches_binding": true,
+      "leaf_authorize_event_matches_receipt": true,
+      "expected": "verified"
+    },
+    {
+      "name": "duplicate_or_mismatched_mls_leaf_rejected",
+      "verification_mode": "historical_event",
+      "matching_basic_leaf_count": 2,
+      "expected": "rejected",
+      "reason": "agent_mls_leaf_binding_mismatch"
+    },
+    {
+      "name": "minimal_metadata_forbids_agent_evidence_query",
       "realm_profile": "ak.profile.mls.minimal_metadata_realm.v1",
       "agent_evidence_queries": 0,
-      "device_directory_queries": 0
-    },
-    {
-      "name": "binding_controller_mismatch_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch",
-      "controller_id": "did:webvh:z6mkother:controller.example"
-    },
-    {
-      "name": "binding_public_key_digest_mismatch_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch",
-      "public_key_digest_matches_raw_key": false
-    },
-    {
-      "name": "binding_controller_proof_invalid_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch",
-      "controller_proof_verified": false
-    },
-    {
-      "name": "binding_agent_key_id_mismatch_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch",
-      "agent_key_id_matches_authorize_payload": false
-    },
-    {
-      "name": "state_witness_agent_mismatch_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch",
-      "state_witness_agent_matches": false
-    },
-    {
-      "name": "state_witness_authorization_ref_mismatch_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch",
-      "state_witness_authorization_ref_matches": false
-    },
-    {
-      "name": "state_witness_frontier_mismatch_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch",
-      "state_witness_frontier_matches_authorization": false
-    },
-    {
-      "name": "freshness_signature_invalid_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch",
-      "freshness_signature_verified": false
-    },
-    {
-      "name": "freshness_frontier_conflict_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_authorization_conflicted",
-      "freshness_relation_to_event": "conflict"
-    },
-    {
-      "name": "cache_frontier_rollback_is_unresolved",
-      "expected": "unresolved",
-      "reason": "agent_signer_evidence_stale",
-      "freshness_relation_to_event": "behind"
-    },
-    {
-      "name": "revoked_historical_event_inside_interval_remains_verified",
-      "expected": "verified",
-      "authorization_status": "revoked",
-      "authorization_interval_relation": "contains"
-    },
-    {
-      "name": "revoked_old_key_new_event_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_authorization_inactive",
-      "authorization_status": "revoked",
-      "authorization_interval_relation": "after"
-    },
-    {
-      "name": "historical_transition_witness_missing_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_authorization_inactive",
-      "authorization_status": "superseded",
-      "transition_witness_present": false
-    },
-    {
-      "name": "historical_transition_witness_event_mismatch_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_signing_key_mismatch",
-      "authorization_status": "revoked",
-      "transition_witness_event_matches": false
-    },
-    {
-      "name": "expired_event_at_boundary_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_authorization_inactive",
-      "event_time_relation_to_expiry": "at_or_after"
-    },
-    {
-      "name": "missing_agent_leaf_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_mls_leaf_binding_mismatch",
-      "matching_basic_leaf_count": 0
-    },
-    {
-      "name": "agent_leaf_signature_key_mismatch_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_mls_leaf_binding_mismatch",
-      "leaf_signature_key_matches_evidence": false
-    },
-    {
-      "name": "agent_leaf_authorization_ref_mismatch_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_mls_leaf_binding_mismatch",
-      "leaf_authorization_ref_matches_evidence": false
-    },
-    {
-      "name": "wrong_mls_epoch_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_mls_leaf_binding_mismatch",
-      "group_epoch_matches_event": false
-    },
-    {
-      "name": "non_winning_group_state_is_rejected",
-      "expected": "rejected",
-      "reason": "agent_mls_leaf_binding_mismatch",
-      "group_state_ref_is_accepted_winner": false
-    },
-    {
-      "name": "high_assurance_missing_transparency_is_unresolved",
-      "expected": "unresolved",
-      "reason": "agent_signer_evidence_missing",
-      "required_profile": "ak.profile.key_transparency.v1",
-      "transparency_present": false
-    },
-    {
-      "name": "unknown_principal_does_not_enter_agent_regime",
-      "expected": "rejected",
-      "reason": "signer_regime_mismatch",
-      "actor_kind": "unknown"
-    },
-    {
-      "name": "ordinary_device_does_not_enter_agent_regime",
-      "expected": "verified_by_device_directory_only",
-      "actor_kind": "device",
-      "agent_evidence_queries": 0
+      "device_directory_queries": 0,
+      "expected": "verified_by_minimal_metadata_only"
     }
   ]
 }

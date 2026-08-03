@@ -224,7 +224,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - lost-device response
 - local plaintext search for encrypted content
 
-声明 `ak.profile.mls_governance_binding.full.v1`（兼容保留的 profile id；其 v1 当前语义见 `crypto-media/encryption-and-audit.md §2.5`）时，客户端和服务端 MUST 验证 Commit 的 `governance_binding.security_frontier_digest` 精确覆盖会改变当前或历史密钥访问资格的闭合 frontier：membership、实际 MLS leaf 使用的 device/Agent runtime key、MLS group membership 与 encryption/history key-access policy。普通 capability、metadata、moderation、routing、contact/consent-only 变化不得令 digest stale；若它们同时产生 member/leaf remove，则只由该 remove 进入 frontier。E2EE DataEvent 的普通 `seal_ref` 与 MLS frontier 正交；服务端不得要求同一 Seal 覆盖自身。无法从 accepted state 重建当前 frontier 时客户端 MUST fail closed。该 profile 的机器 requirement closure 必须包含 `ak.self.events.query.mls_governance_proof`、`ak.schema.mls_governance_proof_bundle.v1` 与 `mls-governance-proof-fixture.json`；认证器 MUST 分别以 SDK consumer 和 server consumer 角色执行 fixture 登记的 verify / materialize runner，并连同 `ak.vector.scalability.mls_governance_proof_bounds.v1` 输出逐 case 结果。任一角色缺失、只做 schema shape check 或未执行完整 mutation/limit matrix时不得声明 full profile 通过。
+声明 `ak.profile.mls_governance_binding.full.v1`（当前唯一 full profile ID；语义见 `crypto-media/encryption-and-audit.md §2.5`）时，客户端和服务端 MUST 验证 Commit 的 `governance_binding.security_frontier_digest` 精确覆盖会改变当前或历史密钥访问资格的闭合 frontier：membership、实际 MLS leaf 使用的 device/Agent runtime key、MLS group membership 与 encryption/history key-access policy。普通 capability、metadata、moderation、routing、contact/consent-only 变化不得令 digest stale；若它们同时产生 member/leaf remove，则只由该 remove 进入 frontier。E2EE DataEvent 的普通 `seal_ref` 与 MLS frontier 正交；服务端不得要求同一 Seal 覆盖自身。无法从 accepted state 重建当前 frontier 时客户端 MUST fail closed。该 profile 的机器 requirement closure 必须包含 `ak.self.events.query.mls_governance_proof`、`ak.schema.mls_governance_proof_bundle.v1` 与 `mls-governance-proof-fixture.json`；认证器 MUST 分别以 SDK consumer 和 server consumer 角色执行 fixture 登记的 verify / materialize runner，并连同 `ak.vector.scalability.mls_governance_proof_bounds.v1` 输出逐 case 结果。任一角色缺失、只做 schema shape check 或未执行完整 mutation/limit matrix时不得声明 full profile 通过。
 
 声明 `ak.profile.attested_audit.e2ee.v1` 时，审计 applet release service MUST 提供可验证 remote attestation，并执行 active binding、session request/authorize/notice、sealed `ak.audit.release`、RYW receipt 等待和成员可见 disclosure；RYW receipt 的 `audit_assurance_class` MUST 等于 `attested_hardware`。声明 `ak.profile.disclosed_audit.e2ee.v1` 时，不要求 TEE attestation，但 Realm / Circle policy 和加入 UI MUST 明确展示这是流程性披露；同样不得绕过 Audit Applet Binding + release session 留痕流程；RYW receipt 的 `audit_assurance_class` MUST 等于 `disclosed_policy`。审计 applet 不是 MLS 成员，也不获得实时消息 fanout。两个 profile 不再共享 family 前缀，对外材料 MUST 遵守 `encryption-and-audit.md §3` / `audited-e2ee.md` 的禁用措辞条款，不得将 disclosed 类宣传为密码学/硬件强制审计。
 
@@ -684,10 +684,12 @@ MUST NOT:
 MUST 支持:
 - `POST /_arkret/self/agent-sidecars:ensure`（`ak.self.agent.sidecar.command.ensure`）是 closed 三阶段 surface。
   `prepare{phase="prepare",operation_id,idempotency_key,source_realm_id,controller_id,context_ref}` 只建立 private durable reservation，
-  返回 `prepared{operation_id,reservation_handle,expires_at,sidecar_id,private_strand_id,private_relation_id}`；首次创建使用
-  `commit{phase="commit",operation_id,idempotency_key,reservation_handle,sidecar_id,create_event,context_attach_event}`，existing
-  Sidecar只使用`attach{phase="attach",operation_id,idempotency_key,reservation_handle,sidecar_id,
-  context_attach_event}`。`commit|attach` 成功才返回 accepted outcome；其closed字段为`operation_id`、
+  返回 closed branch XOR：`branch="new"` 固定 Sidecar/backing Circle/Strand/Relation/create Event/attach Event IDs
+  并返回两份 `{event_id,kind,unsigned_event_bytes,event_digest}` canonical draft；`branch="existing"` 固定已有
+  Sidecar/backing Circle与新Strand/Relation/attach Event ID并只返回attach draft。首次创建使用
+  `commit{phase="commit",operation_id,idempotency_key,reservation_handle,create_event,context_attach_event}`，existing
+  Sidecar只使用`attach{phase="attach",operation_id,idempotency_key,reservation_handle,context_attach_event}`。
+  `commit|attach` 成功才返回 accepted outcome；其closed字段为`operation_id`、
   `accepted_phase=commit|attach`、`ok`、三个预分配ID、`access_readiness`与`pending_access_reconciliations`，其中 pending
   数组始终存在。三阶段的同 operation/key/exact bytes必须回放原 outcome；handle过期、branch错配或 bytes变化必须
   fail closed，prepare不得提前写 canonical Sidecar/Strand/Relation
@@ -696,11 +698,10 @@ MUST 支持:
   同时出现、全部缺失或携未知字段。Track/Message coordinate MUST NOT 进入 private Strand reuse key
 - Closed request schema(reject unknown top-level fields)
 - Fixed reuse：Sidecar `(realm_id, controller_id)`；private Strand `(sidecar_id, normalized_context_ref)`
-- prepare 返回的 `reservation_handle` 固定全部IDs与 `new|existing` branch；首次ensure的controller-signed minimal `ak.sidecar.create`使用parent-Realm bootstrap exception且只投影Sidecar/backing Circle/controller初始membership；独立controller-signed `ak.sidecar.context.attach`只投影private Strand/Relation并以`EventRef{role="after"}`引用create。首次`commit` staged atomic admission一次提交`[create,context.attach]`，任一失败全回滚；existing Sidecar的`attach`不得携create Event。caller不提供Circle shape/ID，commit/attach也不得绕过或替换prepare固定的ID、context与branch
+- prepare 返回的 `reservation_handle` 固定全部IDs、`new|existing` branch、两类Event去除proof后的canonical bytes及digest；首次ensure的controller-signed minimal `ak.sidecar.create`使用parent-Realm bootstrap exception且只投影Sidecar/backing Circle/controller初始membership；独立controller-signed `ak.sidecar.context.attach`只投影private Strand/Relation并以`EventRef{role="after"}`引用同一reservation的create Event。客户端只能在exact draft上追加controller proof。首次`commit` staged atomic admission一次提交`[create,context.attach]`，任一失败全回滚；existing Sidecar的`attach`不得携create Event。prepare caller不提供Circle shape/ID、Event ID或payload，commit/attach也不得绕过或替换prepare固定的bytes、ID、context与branch
 - 唯一access authority Event为controller-signed versioned full-set `ak.sidecar.access.replace`；desired access是`{controller} ∪ (current selection ∩ current eligible owned Agents)`，effective access再与policy/lifecycle/participation/backing membership/MLS求交。`control_frontier`只含create、current access selection和current正/负backing membership refs，context attach排除；MLS security digest独立按标准Seal+leaf/proof重算
 - desired access、effective access、backing membership、MLS/device readiness 分离投影；发送只在安全交集 ready 后开放
-- ensure不得接受未登记的`addressed_agent_ids[]`兼容字段；desired Agent full-set只能由
-  `ak.sidecar.access.replace`表达，单次exchange寻址走Sidecar private Event binding，不进入ensure reservation
+- desired Agent full-set只能由`ak.sidecar.access.replace`表达，单次exchange寻址走Sidecar private Event binding，不进入ensure reservation
 - 历史 backfill 经由 application-level resend（显式 plaintext 披露）；不得使用 MLS exporter secret / past commit secret
 - Cross-Realm fan-out：Agent deactivate 只影响该 Agent 实际进入 desired access 的 Sidecars 及其 backing scopes
 - `agent_sidecar_of` relation kind(weak-semantic、non-structural、non-cascading);`fields` 不含 `target_realm_id`

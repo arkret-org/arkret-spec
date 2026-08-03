@@ -918,7 +918,7 @@ Arkret 不复制易漂移的外部密码学金值；本向量直接 pin MLS WG `
 
 ### 2.5.5 Vector: MLS Security Frontier 精确且不吸收普通 Seal
 
-`vector_id`: `ak.vector.mls.covered_seals_no_self_reference.v1`
+`vector_id`: `ak.vector.mls.security_frontier_key_access_only.v1`
 
 该历史 vector id 为兼容保留；当前语义固定 [`encryption-and-audit.md` §2.5.2](../crypto-media/encryption-and-audit.md#252-send-gate-与-self-heal) 的两条结构性规则：security frontier 只吸收改变密钥访问资格的 closed cell set，普通 DataEvent 的 `seal_ref` 与 MLS frontier 正交。
 
@@ -3403,7 +3403,7 @@ Expected：
 
 `vector_id`: `ak.vector.keypackage.peer_claim_double_authorization_privacy.v1`
 
-对有效 Direct Conversation claim 分别施加以下单点变异：移除 / 过期 participant authorization、替换 participant signature 所绑定 destination、让 source 不是 requester home authority、破坏外层 service signature、移除 accepted contact / target consent、扩大 required capability，或令 `last_resort_allowed=true`。
+对有效 Direct Conversation claim 分别施加以下单点变异：移除 / 过期 participant authorization、替换 participant signature 所绑定 destination、让 source 不是 requester home authority、破坏外层 service signature、移除任一方 current directional Contact head或其 `direct_message` scope、扩大 required capability，或令 `last_resort_allowed=true`。不得增加 Consent 兼容门槛。
 
 Expected：
 
@@ -4033,17 +4033,21 @@ Expected:
 
 Steps:
 
-1. Alice 的两台设备并发调用 `ak.self.agent.sidecar.command.ensure` 同一 `context_ref`。
-2. 同一 Alice 第三次调用 `ensure`(同样 context_ref),`addressed_agent_ids` 列表不同。
-3. Alice 在另一 context_ref 调用 ensure(同 Realm)。
+1. Alice 的两台设备并发以不同operation调用 `prepare`，目标是同一 `context_ref`；两者均取得服务端固定的
+   Sidecar/backing Circle/Strand/Relation与create/attach Event draft。
+2. 一台设备只在exact draft上追加controller proof后`commit`；另一台分别尝试变更backing Circle、Event ID、payload、
+   `refs.after`与unsigned bytes，并重放自己的reservation。
+3. Alice 对同一context再次prepare，再对另一context prepare（同Realm）。
 
 Expected:
 
-- 第 1 步并发 MUST 收敛到单一 `sidecar_id`、单一 reducer-managed backing Circle 与单一 private Strand；两个 response 的公开 typed IDs bit-identical，且不返回 `private_circle_id`。
-- `ak.sidecar.create` MUST 与 backing Circle/initial access/Strand/Relation 在同一 atomic batch 中，并以 `effective_scope.circle_id=backing_circle_id` 投递；任一子事件失败时不得留下部分对象。
+- 第 1 步并发 MUST 收敛到单一 `sidecar_id`、单一 reducer-managed backing Circle 与单一 private Strand；reservation
+  固定的typed IDs与canonical draft bit-identical。
+- 第 2 步exact signed drafts MUST staged atomic接受`[ak.sidecar.create,ak.sidecar.context.attach]`；任一变异都必须
+  conflict且零写入。create投影backing Circle/initial access，attach投影Strand/Relation并引用同一create Event。
 - backing Circle shape MUST 与 `sidecar.md` §5 bit-identical；普通 Circle create/update 使用 `SC-` short-name 前缀 MUST 以 `reserved_circle_short_name` 拒绝。
-- 第 2 步 MUST 复用既有 Sidecar 与 Strand；addressed list 不改变 desired/effective access 或 Strand/Relation identity，只影响本次 exchange fanout。
-- 第 3 步 MUST 复用 `(realm_id, controller_id)` Sidecar 与 backing Circle，创建新的 context-private Strand。
+- 第 3 步同context MUST返回`branch=existing`并复用既有Sidecar、backing Circle与Strand；另一context也复用
+  `(realm_id,controller_id)` Sidecar/backing Circle，但固定新的context-private Strand与唯一attach draft。
 
 ### 11.8.1 Vector: Sidecar MLS Bootstrap Binding
 
@@ -5531,20 +5535,6 @@ Expected:
 - 负例：响应携带 `disclosed_outcome="quarantined"` 视为不合规；该值不在枚举内。
 - 三条通道的可观察量 MUST 互不能用于区分 quarantine 与拒绝。
 
-### 23.8 Direct Conversation materialization draft 可居住性
-
-`vector_id`: `ak.vector.contact.direct_materialization_witness.v1`
-
-Steps:
-
-1. 构造一个完整合法的 `direct_conversation_materialization` outcome，并对 `contact-operations.schema.json` 校验。
-
-Expected:
-
-- 正例存在：`peer_member_event.kind="ak.member.state"` 且 envelope `proofs=[]` MUST 校验通过；其 `authorization_ref` 是与同批 `realm_event` 绑定的 staged authority-root ref。
-- 四个 draft slot 各自的 `kind` 是 const；互换任意两个 slot MUST `schema_violation`（负例）。
-- 缺失 `peer_member_event`、非空 envelope `proofs` MUST `schema_violation`（负例）。
-
 ### 23.9 3PID claim 过期判定的 canonical 时点
 
 `vector_id`: `ak.vector.invite.claim_expiry_canonical_time.v1`
@@ -5941,8 +5931,9 @@ Runner MUST 覆盖：
 `vector_id`: `ak.vector.agent.signer_evidence_binding.v1`
 
 runner MUST 执行 `agent-signer-evidence-fixture.json` 的完整 `binding_vector` 与全部 case：重算
-controller proof signing input、binding digest、accepted state / transition witness 与 freshness
-边界，并覆盖 active、revoked、superseded、unresolved 及字段篡改分支；state witness 正例 MUST 使用
+Agent authority snapshot、privacy-minimal controller account gate、key / Agent lifecycle state与transition witness、
+current exact request binding、historical destination receipt、outer attestation与全部时窗，并覆盖 active、revoked、
+superseded、unresolved、跨verifier重放及字段混拼分支；state witness 正例 MUST 使用
 `<event_id>:<write_index>` canonical Event dot，裸 Event id、非 canonical write index 与其它 Event dot
 均 MUST 拒绝，revoke 后的 transition witness MUST 来自同一 key cell 中 reducer 写入的 revoke marker。
 只加载 fixture、只验证来源服务
@@ -6030,4 +6021,4 @@ Runner MUST 加载 [`event-kind-payload-coverage-fixture.json`](../../artifacts/
 
 ## Personal blocklist revision and delivery semantics
 
-`ak.vector.account.blocklist_projection.v1` MUST 覆盖：version 1 加入 actor block 后，共享 Realm Message 仍被收取、验签、存储并进入 canonical history，但 holder projection/notification/read-receipt/presence side effect 被抑制；version 2 省略该 entry 后，retention 仍保留的历史重新可见。并发 version 2、跳到 version 3、owner/actor 不同、同一 normalized target+applies_to 重叠 entry 与 target discriminator/承载不匹配均拒绝。`entries=[]` 清空规则。仅写 personal blocklist 不得撤销 Direct Conversation participant authority；组合的 contact tombstone + consent revoke accepted 后 conversation 才 suspended。服务端无权读取 blocklist 时仍转发加密材料给 holder 设备并由端侧过滤；有权读取时可在 holder surface 前 drop，但两条路径对发送方的 response bytes、错误类别与 timing bucket 不可区分。
+`ak.vector.account.blocklist_projection.v1` MUST 覆盖：version 1 加入 actor block 后，共享 Realm Message 仍被收取、验签、存储并进入 canonical history，但 holder projection/notification/read-receipt/presence side effect 被抑制；version 2 省略该 entry 后，retention 仍保留的历史重新可见。并发 version 2、跳到 version 3、owner/actor 不同、同一 normalized target+applies_to 重叠 entry 与 target discriminator/承载不匹配均拒绝。`entries=[]` 清空规则。仅写 personal blocklist 不得撤销 Direct Conversation participant authority；任一方 Contact tombstone accepted 后 conversation 即 suspended，Consent grant/revoke 对 Personal DM authority无效。服务端无权读取 blocklist 时仍转发加密材料给 holder 设备并由端侧过滤；有权读取时可在 holder surface 前 drop，但两条路径对发送方的 response bytes、错误类别与 timing bucket 不可区分。

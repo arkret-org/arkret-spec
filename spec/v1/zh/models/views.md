@@ -114,7 +114,7 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 | `renderer` | no | `enum(board, list, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；交互能力仍由对象类型、显式 schema/profile、capability 与 typed config 决定。 |
 | `title` | no | `string` |  | View 名称。 |
 | `visibility` | no | `enum(private, shared)` |  | View 共享可见性。 |
-| `state` | no | `enum(active, tombstoned)` | 缺省 `active`；`tombstoned` terminal。 | View lifecycle。 |
+| `state` | yes | `enum(active, tombstoned)` | 必须显式给出；`tombstoned` terminal。 | View lifecycle。 |
 | `state_changed_at` | conditional | `timestamp` | `state=tombstoned` 时 reducer-derived 必填。 | 终态 accepted 时间。 |
 | `query` | yes | `Query` | 见 [`../conformance/query-schema.md`](../conformance/query-schema.md)。 | 数据查询。 |
 | `visible_fields` | no | `array<string>` | dot path。 | 展示字段。 |
@@ -210,6 +210,7 @@ reconcile 同样 MUST NOT 写入被投影对象的任何 canonical state（§2.1
   "created_by": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
   "created_at": "2026-04-26T00:00:00Z",
   "kind": "collection",
+  "state": "active",
   "renderer": "board",
   "title": "Release Strand",
   "visibility": "shared",

@@ -887,23 +887,23 @@ components:
     ContactList:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_list
     ContactRejectOutcome:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome
+      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_outcome
     ContactRejectRequestBody:
       $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_request
     ContactRequestOutcome:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome
+      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_request_outcome
     ContactRequestRequestBody:
       $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_request
     ContactRespondOutcome:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome
+      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_outcome
     ContactRespondRequestBody:
       $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_request
     ContactScopeUpdateOutcome:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome
+      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_scope_update_outcome
     ContactScopeUpdateRequestBody:
       $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_scope_update_request
     ContactTombstone:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome
+      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_tombstone_outcome
     ContactTombstoneRequestBody:
       $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_tombstone_request
     Cursor:
@@ -1329,6 +1329,8 @@ components:
               - contact_lineage_conflict
               - participation_evidence_conflict
               - operation_control_quorum_unavailable
+              - operation_control_equivocation
+              - operation_control_certificate_invalid
               - membership_compensation_conflict
             message:
               type: string
@@ -4701,6 +4703,102 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_outcome
+  /_arkret/peer/direct-conversation-operation-control/messages:
+    post:
+      operationId: ak.peer.direct_conversation.operation_control.command.submit
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Submit one closed qDA/PBFT/view-change/read message to an immutable replica.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/operation_control_message_submit_request
+      responses:
+        '200':
+          description: Signed immutable-replica message receipt.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/operation_control_message_receipt
+  /_arkret/peer/direct-conversation-operation-control/execution-bundles:
+    post:
+      operationId: ak.peer.direct_conversation.operation_control.command.deliver
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Deliver one fully certified ExecutionBundle to its exact destination.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_delivery_request
+      responses:
+        '200':
+          description: Destination-signed durable delivery outcome.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_delivery_outcome
+  /_arkret/peer/direct-conversation-operation-control/execution-bundles/query:
+    post:
+      operationId: ak.peer.direct_conversation.operation_control.query.execution_bundle
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Recover an exact immutable ExecutionBundle or its destination receipt.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_query_request
+      responses:
+        '200':
+          description: Exact bundle or exact delivery outcome.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_query_outcome
+  /_arkret/peer/direct-conversation-operation-control/read-certificates/query:
+    post:
+      operationId: ak.peer.direct_conversation.operation_control.query.read_certificate
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Produce a fresh q-certified operation-control head read.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/operation_control_read_request
+      responses:
+        '200':
+          description: Fresh read certificate containing q distinct signed receipts.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/operation_control_read_certificate
   /_arkret/peer/keys/keypackages/claim:
     post:
       operationId: ak.peer.keys.keypackages.command.claim

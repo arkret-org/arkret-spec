@@ -1,10 +1,10 @@
 {
-  "version": "2026-06-10",
+  "version": "2026-08-03.1",
   "source_of_truth": true,
   "description": "Canonical digest suite vocabulary for v1 typed digest values. A digest suite is the registered tuple (canonicalization, hash_algorithm). The suite canonical_id is the wire prefix in `<suite>:<lowercase_hex>` typed digest values and the value space of the Realm `digest_algorithm` field.",
-  "suite_id_grammar": "suite_id = hash_id | canonicalization_id '.' hash_id ; each segment matches [a-z0-9_]+ ; at most one dot. A bare hash_id (no dot) denotes canonicalization=json_jcs for historical wire compatibility.",
+  "suite_id_grammar": "suite_id = hash_id | canonicalization_id '.' hash_id ; each segment matches [a-z0-9_]+ ; at most one dot. In the v1 canonical grammar, a bare hash_id denotes canonicalization=json_jcs.",
   "registry_rules": [
-    "A digest suite id without a dot denotes canonicalization=json_jcs (canonical JSON per zh/conformance/encoding.md §2). The bare ids sha256/blake3 are therefore JSON-canonicalization suites; their wire semantics are unchanged from earlier v1 drafts and existing signed bytes are unaffected.",
+    "A digest suite id without a dot denotes canonicalization=json_jcs (canonical JSON per zh/conformance/encoding.md §2). The only active JSON-canonicalization suite ids in v1 are the canonical bare ids sha256 and blake3; dotted json_jcs aliases are not registered and MUST fail closed.",
     "Suites are registered as explicit tuples. Implementations MUST NOT combine canonicalization ids and hash ids freely; only suites present as rows in this registry exist, and only status=active rows are valid on wire.",
     "A suite prefix not present as an active row MUST fail closed with unsupported_digest_algorithm when it appears in a critical field (event_digest, state_root, prev_refs / refs digest, seal id, receipt digest); in non-critical metadata receivers MAY record it as unknown and preserve raw bytes (zh/conformance/encoding.md §3.2).",
     "status=reserved rows pin the wire prefix and profile gate but MUST NOT appear on wire until every activation_requirements entry is met and the row is flipped to active in a registry release.",

@@ -3283,6 +3283,64 @@
       }
     },
     {
+      "$comment": "agent_provision is a reserved critical ref role used only by a managed Native Agent delegated PCR genesis. It selects the registered Agent-status materialization write and therefore must occur exactly once and cannot coexist with did_inception.",
+      "if": {
+        "properties": {
+          "refs": {
+            "contains": {
+              "type": "object",
+              "properties": { "role": { "const": "agent_provision" } },
+              "required": ["role"]
+            }
+          }
+        },
+        "required": ["refs"]
+      },
+      "then": {
+        "required": ["kind", "payload", "refs", "executed_by", "authorization_ref"],
+        "properties": {
+          "kind": { "const": "ak.realm.create" },
+          "payload": {
+            "type": "object",
+            "properties": {
+              "object": {
+                "type": "object",
+                "properties": {
+                  "fields": {
+                    "type": "object",
+                    "properties": { "purpose": { "const": "principal_control" } },
+                    "required": ["purpose"]
+                  }
+                },
+                "required": ["fields"]
+              }
+            },
+            "required": ["object"]
+          },
+          "refs": {
+            "contains": {
+              "type": "object",
+              "required": ["id", "role", "critical"],
+              "properties": {
+                "id": { "$ref": "#/$defs/event_ref" },
+                "role": { "const": "agent_provision" },
+                "critical": { "const": true }
+              }
+            },
+            "minContains": 1,
+            "maxContains": 1,
+            "not": {
+              "contains": {
+                "type": "object",
+                "properties": { "role": { "const": "did_inception" } },
+                "required": ["role"]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       "if": {
         "properties": {
           "kind": {
@@ -4530,7 +4588,7 @@
     "direct_conversation_participant_authority_ref": {
       "type": "string",
       "const": "ak.authority.direct_conversation_participant.v1",
-      "description": "The only profile-scoped non-grant authorization source accepted by Event.authorization_ref. It is meaningful solely in ak.profile.direct_conversation_realm.v1 and requires one critical refs[] role=direct_conversation_binding Event reference. The evaluator rederives the pair's unique immutable binding, exact-two participant membership, Realm/Strand/MLS cross-binding, lifecycle, consent and action-specific gates; this constant never authorizes arbitrary Realm or third-party writes."
+      "description": "The only profile-scoped non-grant authorization source accepted by Event.authorization_ref. It is meaningful solely in ak.profile.direct_conversation_realm.v1 and requires one critical refs[] role=direct_conversation_binding Event reference. The evaluator rederives the pair's unique immutable binding, exact-two participant membership, Realm/Strand/MLS cross-binding, lifecycle, both directional Contact heads/scopes and action-specific gates without consulting Consent; this constant never authorizes arbitrary Realm or third-party writes."
     },
     "membership_compensation_delegation_ref": {
       "type": "string",

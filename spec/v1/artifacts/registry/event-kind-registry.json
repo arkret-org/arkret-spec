@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.3",
+  "version": "2026-08-03.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-03T05:00:00Z",
+  "generated_at": "2026-08-03T09:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -12,7 +12,7 @@
   "admission_class_definitions": {
     "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
     "did_root_anchor": "Admitted only by the closed identity-root anchor verifier. v1 permits this class for a self-principal PCR genesis ak.realm.create bound to entry 0 through one critical did_inception ref, and for B-model ak.device.reanchor bound to the accepted registry head through one critical did_recovery_anchor ref. This verifier is the sole exception to generic Event verification_method-controller equality: verification_method MUST instead equal an active controller-proof verification method from the referenced entry, and the verifier validates it against the accepted did:webvh history/update authority without rewriting its did:key controller to actor_id. Root/update authority MUST NOT authorize any other Event kind. Batch shape, DID history, active update authority, full frontier CAS and conflict-slot checks remain mandatory.",
-    "delegated_pcr_genesis": "Admitted only for a principal_control ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. The verifier MUST prove actor_id is a managed Agent or explicitly organization-governed principal, resolve authorization_ref in that actor DID's accepted ArkretPrincipalControlRealm/controller delegation, require realm_id and payload.object.id to equal the delegated PCR binding, require proof.verification_method to resolve to executed_by or its current authorized device, and reject self-principal or generic realm.create-capability substitution. This class never authorizes the following device authorize slot by itself.",
+    "delegated_pcr_genesis": "Admitted only for a principal_control ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A managed Native Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed principal branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
     "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
     "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
     "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed.",
@@ -89,7 +89,7 @@
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
     "lifecycle_modality applies to physical object lifecycle writes, identified mechanically by an fsm_contract whose axis is object_lifecycle, plus explicitly registered reversible Realm lifecycle facets. Every active event kind that writes such a family MUST declare lifecycle_modality. Use reversible for a reversible facet or either member of an archive/restore pair, and terminal for an irreversible transition. Workflow, membership, status, audit, key-material and OR-Set revocation axes are excluded. Reducers and SDKs MUST read this field and MUST NOT infer modality from event-kind spelling.",
-    "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell contract. A single-target kind MAY use the legacy cell_family/cell_subject/lattice/bottom shorthand. cell_writes[] is the general authority and is REQUIRED for multi-target kinds; each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional: it uses the closed grammar {kind: field_present|field_absent|field_equals|any_field_present, field: <dot-path>, const?: <scalar>, fields?: [<dot-path>...]} evaluated as a pure function of the schema-validated payload. When the condition holds the target is required and the reducer MUST derive exactly one matching write from kind+payload; when it does not hold the reducer MUST NOT derive that write. See zh/models/event-and-patch.md section 2.4.2. The generator materializes the single-target shorthand when cell_writes[] has one entry. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a coalesce descriptor, or a composite descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any reducer write has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
+    "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell_writes[] contract; no parallel single-target fields or aliases exist. Each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional. Payload conditions use the closed grammar field_present|field_absent|field_equals|any_field_present; a signed semantic-ref condition uses only critical_ref_role_exact_count{role,count}. All are pure functions of the schema-validated signed Event. When the condition holds the target is required and the reducer MUST derive exactly one matching write from kind+payload; when it does not hold the reducer MUST NOT derive that write. See zh/models/event-and-patch.md section 2.4.2. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a coalesce descriptor, or a composite descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any reducer write has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
     "Every lattice=fsm cell write MUST resolve by cell_family to exactly one fsm_contract. Event-kind parameters MUST NOT duplicate states or allowed_transitions. Template-backed contracts resolve their instance_parameters before transition validation; unresolved templates, parameters or conditional edges fail closed.",
     "Every active wire_scope=actor_private_event kind MUST resolve to exactly one entry in actor_private_contracts.event_writes. Actor-private writes use only the registered actor_private_contracts.cell_families merge contract, never shared Realm plane/sealed routing, CBA fields, reducer_input, or shared cell_contracts.",
     "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 is canonically defined in zh/authz/event-auth-state-resolution.md section 6.5; its genesis value comes from ak.realm.create and subsequent writes use ak.realm.notary.",
@@ -129,7 +129,21 @@
           "when": {
             "payload_path": "object.fields.purpose",
             "const": "principal_control",
-            "ref_role": "did_inception",
+            "ref_role": "agent_provision",
+            "ref_critical": true,
+            "ref_exact_count": 1,
+            "top_level_fields_present": [
+              "executed_by",
+              "authorization_ref"
+            ]
+          },
+          "admission": "delegated_pcr_genesis"
+        },
+        {
+          "when": {
+            "payload_path": "object.fields.purpose",
+            "const": "principal_control",
+            "ref_role": "agent_provision",
             "ref_exact_count": 0,
             "top_level_fields_present": [
               "executed_by",
@@ -248,6 +262,29 @@
               "projected_value": true
             }
           }
+        },
+        {
+          "cell_family": "ak.component.agent.status.v1",
+          "cell_subject": {
+            "kind": "did",
+            "field": "payload.object.created_by"
+          },
+          "lattice": "fsm",
+          "bottom": "reject",
+          "condition": {
+            "kind": "critical_ref_role_exact_count",
+            "role": "agent_provision",
+            "count": 1
+          },
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "uninitialized"
+            },
+            "to": {
+              "const": "active"
+            }
+          }
         }
       ],
       "concurrency_class": "security_barrier"
@@ -278,20 +315,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.metadata.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "apply_patch",
-        "patch": {
-          "field": "payload.patch"
-        },
-        "expected_prestate": {
-          "field": "payload.expected_state_digest"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.alias",
@@ -317,17 +341,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.alias.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.upgrade",
@@ -355,20 +369,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.upgrade.v1",
-      "cell_subject": {
-        "field": "payload.target_reducer_profile",
-        "kind": "profile_ref"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.organization",
@@ -407,31 +408,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.organization.v1",
-      "cell_subject": {
-        "components": [
-          {
-            "name": "organization_id",
-            "field": "payload.organization_id",
-            "kind": "did"
-          },
-          {
-            "name": "relationship",
-            "field": "payload.relationship",
-            "kind": "string"
-          }
-        ],
-        "kind": "tuple"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.link",
@@ -470,31 +447,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.link.v1",
-      "cell_subject": {
-        "components": [
-          {
-            "name": "target_realm_id",
-            "field": "payload.target_realm_id",
-            "kind": "id:realm"
-          },
-          {
-            "name": "link_kind",
-            "field": "payload.link_kind",
-            "kind": "string"
-          }
-        ],
-        "kind": "tuple"
-      },
-      "effect_projection": {
-        "kind": "transition_to",
-        "to": {
-          "field": "payload.status"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.policy",
@@ -519,17 +472,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.policy.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.join_rule",
@@ -554,17 +497,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.join_rule.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.history_visibility",
@@ -589,17 +522,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.history_visibility.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.discovery",
@@ -624,17 +547,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.realm.discovery.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.realm.preview_policy",
@@ -659,17 +572,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.preview_policy.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.disappearing_policy",
@@ -695,17 +598,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.disappearing_policy.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.search_policy",
@@ -731,17 +624,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.search_policy.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.set_default_strand",
@@ -766,17 +649,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.realm.set_default_strand.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.strand_id"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.realm.notary",
@@ -801,17 +674,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.notary.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.notary"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.digest_suite_transition",
@@ -836,17 +699,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.digest_suite.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.to_digest_algorithm"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.policy_server",
@@ -872,17 +725,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.policy_server.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.policy_bundle",
@@ -908,17 +751,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.policy_bundle.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.history_sharing_policy",
@@ -943,17 +776,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.history_sharing_policy.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.delivery_binding_policy",
@@ -979,17 +802,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.delivery_binding_policy.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.asset_privacy_policy",
@@ -1014,17 +827,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.asset_privacy_policy.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.read_receipt_policy",
@@ -1049,17 +852,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.read_receipt_policy.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.moderation_policy",
@@ -1084,17 +877,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.moderation_policy.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.plaintext_visible_services",
@@ -1119,17 +902,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.plaintext_visible_services.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.media_service",
@@ -1154,17 +927,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.media_service.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.schema",
@@ -1189,17 +952,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.schema.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.inheritance_policy",
@@ -1227,20 +980,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.inheritance_policy.v1",
-      "cell_subject": {
-        "field": "payload.source_realm_id",
-        "kind": "id:realm"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.archive",
@@ -1266,17 +1006,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.archive.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.archived"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.freeze",
@@ -1302,17 +1032,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.freeze.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.frozen"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.tombstone",
@@ -1338,17 +1058,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.tombstone.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.destroy",
@@ -1374,17 +1084,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.destroy.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.circle.create",
@@ -1412,20 +1112,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.circle.create.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "inert"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.sidecar.create",
@@ -1454,20 +1141,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.sidecar.create.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "inert"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.sidecar.context.attach",
@@ -1500,23 +1174,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.sidecar.context.v1",
-      "cell_subject": {
-        "field": "payload.sidecar_id",
-        "kind": "id:sidecar"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "inert"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.sidecar.access.replace",
@@ -1546,20 +1204,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.sidecar.access.v1",
-      "cell_subject": {
-        "field": "payload.sidecar_id",
-        "kind": "id:sidecar"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.circle.update",
@@ -1590,23 +1235,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.circle.metadata.v1",
-      "cell_subject": {
-        "kind": "id:circle",
-        "field": "payload.circle_id"
-      },
-      "effect_projection": {
-        "kind": "apply_patch",
-        "patch": {
-          "field": "payload.patch"
-        },
-        "expected_prestate": {
-          "field": "payload.expected_state_digest"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.circle.archive",
@@ -1641,26 +1270,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.circle.lifecycle.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.circle_id",
-          "payload.target_ref"
-        ]
-      },
-      "effect_projection": {
-        "kind": "transition",
-        "from": {
-          "const": "active"
-        },
-        "to": {
-          "const": "archived"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.circle.restore",
@@ -1695,26 +1305,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.circle.lifecycle.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.circle_id",
-          "payload.target_ref"
-        ]
-      },
-      "effect_projection": {
-        "kind": "transition",
-        "from": {
-          "const": "archived"
-        },
-        "to": {
-          "const": "active"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.circle.tombstone",
@@ -1746,23 +1337,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.circle.tombstone.v1",
-      "cell_subject": {
-        "fields": [
-          "payload.circle_id",
-          "payload.target_ref"
-        ],
-        "kind": "coalesce"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.circle.member.state",
@@ -1793,23 +1368,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.circle.member.v1",
-      "cell_subject": {
-        "components": [
-          "payload.circle_id",
-          "payload.actor_id"
-        ],
-        "kind": "composite"
-      },
-      "effect_projection": {
-        "kind": "transition_to",
-        "to": {
-          "field": "payload.membership"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.circle.seal_commit",
@@ -1846,20 +1405,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.organization.discovery.v1",
-      "cell_subject": {
-        "kind": "did",
-        "field": "payload.organization_did"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.actor.discovery",
@@ -1888,20 +1434,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.actor.discovery.v1",
-      "cell_subject": {
-        "kind": "did",
-        "field": "payload.resource_id"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.applet.discovery",
@@ -1930,20 +1463,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.applet.discovery.v1",
-      "cell_subject": {
-        "kind": "typed_id",
-        "field": "payload.resource_id"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.handle.discovery",
@@ -1972,20 +1492,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.handle.discovery.v1",
-      "cell_subject": {
-        "kind": "string",
-        "field": "payload.resource_id"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.organization.moderation_policy",
@@ -2017,23 +1524,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.organization.moderation_policy.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.organization_did",
-          "payload.organization_id"
-        ]
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.did.proof",
@@ -2064,23 +1555,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.identity.proof_log.v1",
-      "cell_subject": {
-        "kind": "did",
-        "field": "payload.did"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.identity.disclosure_policy",
@@ -2109,20 +1584,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.identity.disclosure_policy.v1",
-      "cell_subject": {
-        "kind": "typed_id",
-        "field": "payload.policy_id"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.identity.disclosure_receipt",
@@ -2153,23 +1615,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.identity.disclosure_receipt.v1",
-      "cell_subject": {
-        "kind": "did",
-        "field": "payload.holder_did"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.identity.presentation_request",
@@ -2200,23 +1646,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.identity.presentation.v1",
-      "cell_subject": {
-        "kind": "typed_id",
-        "field": "payload.request_id"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.identity.presentation_response",
@@ -2247,23 +1677,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.identity.presentation.v1",
-      "cell_subject": {
-        "kind": "typed_id",
-        "field": "payload.request_id"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.identity.accountability_grant",
@@ -2301,28 +1715,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.identity.accountability.v1",
-      "cell_subject": {
-        "kind": "composite",
-        "components": [
-          "payload.issuer",
-          "payload.subject",
-          {
-            "kind": "string_set_digest",
-            "field": "payload.accountability_scope",
-            "context": "ak.accountability-scope-set-v1"
-          }
-        ]
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.schema.define",
@@ -2351,21 +1744,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.schema.definition.v1",
-      "cell_subject": {
-        "kind": "string",
-        "field": "payload.schema_id"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject",
-      "initial_value": "__unset__"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.schema.update",
@@ -2394,21 +1773,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.schema.definition.v1",
-      "cell_subject": {
-        "kind": "string",
-        "field": "payload.schema_id"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject",
-      "initial_value": "__unset__"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.policy.set",
@@ -2436,20 +1801,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.policy.definition.v1",
-      "cell_subject": {
-        "kind": "typed_id",
-        "field": "payload.policy_id"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.policy.rule",
@@ -2480,23 +1832,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.policy.rule.v1",
-      "cell_subject": {
-        "field": "payload.rule_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.policy.action",
@@ -2530,26 +1866,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.policy.action_log.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.policy_id",
-          "payload.action_id"
-        ]
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.state.conflict_recovery",
@@ -2613,29 +1930,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.notary_fault.v1",
-      "cell_subject": {
-        "components": [
-          {
-            "name": "signer_id",
-            "field": "payload.signer_id",
-            "kind": "did"
-          }
-        ],
-        "kind": "tuple"
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.notary.fault.censorship",
@@ -2673,29 +1968,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.notary_fault.v1",
-      "cell_subject": {
-        "components": [
-          {
-            "name": "signer_id",
-            "field": "payload.signer_id",
-            "kind": "did"
-          }
-        ],
-        "kind": "tuple"
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.member.state",
@@ -2724,20 +1997,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.member.state.v1",
-      "cell_subject": {
-        "field": "payload.actor_id",
-        "kind": "did"
-      },
-      "effect_projection": {
-        "kind": "transition_to",
-        "to": {
-          "field": "payload.membership"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.member.identity.update",
@@ -2773,27 +2033,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.member.identity.v1",
-      "cell_subject": {
-        "components": [
-          "payload.realm_id",
-          "payload.actor_id",
-          "payload.segment"
-        ],
-        "kind": "composite"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.strand.create",
@@ -2820,20 +2060,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.strand.object.v1",
-      "cell_subject": {
-        "kind": "id:strand",
-        "field": "payload.object.id"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.object"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.strand.update",
@@ -2863,23 +2090,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.strand.metadata.v1",
-      "cell_subject": {
-        "field": "payload.target_ref",
-        "kind": "id:strand"
-      },
-      "effect_projection": {
-        "kind": "apply_patch",
-        "patch": {
-          "field": "payload.patch"
-        },
-        "expected_prestate": {
-          "field": "payload.expected_state_digest"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.strand.archive",
@@ -2914,26 +2125,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.strand.lifecycle.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.strand_id",
-          "payload.target_ref"
-        ]
-      },
-      "effect_projection": {
-        "kind": "transition",
-        "from": {
-          "const": "active"
-        },
-        "to": {
-          "const": "archived"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.strand.restore",
@@ -2968,26 +2160,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.strand.lifecycle.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.strand_id",
-          "payload.target_ref"
-        ]
-      },
-      "effect_projection": {
-        "kind": "transition",
-        "from": {
-          "const": "archived"
-        },
-        "to": {
-          "const": "active"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.strand.stage.set",
@@ -3015,20 +2188,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.strand.stage.v1",
-      "cell_subject": {
-        "field": "payload.strand_id",
-        "kind": "id:strand"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.stage"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.strand.tracks.update",
@@ -3058,23 +2218,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.strand.tracks.v1",
-      "cell_subject": {
-        "field": "payload.target_ref",
-        "kind": "id:strand"
-      },
-      "effect_projection": {
-        "kind": "apply_patch",
-        "patch": {
-          "field": "payload.patch"
-        },
-        "expected_prestate": {
-          "field": "payload.expected_state_digest"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.strand.move",
@@ -3126,44 +2270,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.strand.position.v1",
-      "cell_subject": {
-        "components": [
-          {
-            "name": "board_space_id",
-            "field": "payload.board_space_id",
-            "kind": "id:space"
-          },
-          {
-            "name": "strand_id",
-            "field": "payload.strand_id",
-            "kind": "id:strand"
-          }
-        ],
-        "kind": "tuple"
-      },
-      "value_projection": {
-        "kind": "object",
-        "members": [
-          {
-            "name": "list_space_id",
-            "field": "payload.target_space_id"
-          },
-          {
-            "name": "rank",
-            "field": "payload.rank"
-          }
-        ]
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "projected_value": true
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.strand.reorder",
@@ -3215,44 +2322,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.strand.position.v1",
-      "cell_subject": {
-        "components": [
-          {
-            "name": "board_space_id",
-            "field": "payload.board_space_id",
-            "kind": "id:space"
-          },
-          {
-            "name": "strand_id",
-            "field": "payload.strand_id",
-            "kind": "id:strand"
-          }
-        ],
-        "kind": "tuple"
-      },
-      "value_projection": {
-        "kind": "object",
-        "members": [
-          {
-            "name": "list_space_id",
-            "field": "payload.space_id"
-          },
-          {
-            "name": "rank",
-            "field": "payload.rank"
-          }
-        ]
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "projected_value": true
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.strand.watch.set",
@@ -3366,20 +2436,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.space.metadata.v1",
-      "cell_subject": {
-        "kind": "id:space",
-        "field": "payload.object.id"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.object"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.space.update",
@@ -3412,26 +2469,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.space.metadata.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.space_id",
-          "payload.target_ref"
-        ]
-      },
-      "effect_projection": {
-        "kind": "apply_patch",
-        "patch": {
-          "field": "payload.patch"
-        },
-        "expected_prestate": {
-          "field": "payload.expected_state_digest"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.space.parent",
@@ -3459,20 +2497,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.space.parent.v1",
-      "cell_subject": {
-        "field": "payload.space_id",
-        "kind": "id:space"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.parent_space_id"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.space.archive",
@@ -3507,26 +2532,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.space.lifecycle.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.space_id",
-          "payload.target_ref"
-        ]
-      },
-      "effect_projection": {
-        "kind": "transition",
-        "from": {
-          "const": "active"
-        },
-        "to": {
-          "const": "archived"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.space.restore",
@@ -3561,26 +2567,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.space.lifecycle.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.space_id",
-          "payload.target_ref"
-        ]
-      },
-      "effect_projection": {
-        "kind": "transition",
-        "from": {
-          "const": "archived"
-        },
-        "to": {
-          "const": "active"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.space.tombstone",
@@ -3612,23 +2599,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.space.lifecycle.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.space_id",
-          "payload.target_ref"
-        ]
-      },
-      "effect_projection": {
-        "kind": "transition_to",
-        "to": {
-          "const": "tombstoned"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.message.create",
@@ -3658,23 +2629,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.strand.discussion.timeline.v1",
-      "cell_subject": {
-        "field": "payload.strand_id",
-        "kind": "id:strand"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.agent.sidecar.exchange.control",
@@ -3704,23 +2659,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.strand.discussion.timeline.v1",
-      "cell_subject": {
-        "field": "payload.strand_id",
-        "kind": "id:strand"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.message.revise",
@@ -3751,24 +2690,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.message.revision.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.message_id",
-          "payload.target_ref",
-          "payload.revision_of"
-        ]
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.message.redact",
@@ -3804,28 +2726,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.object.redaction.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.message_id",
-          "payload.target_ref",
-          "payload.event_id",
-          "payload.target_event_id"
-        ]
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "inert"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.reaction.add",
@@ -3855,23 +2756,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.message.reactions.v1",
-      "cell_subject": {
-        "field": "payload.target_ref",
-        "kind": "id:message"
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.reaction.remove",
@@ -3901,23 +2786,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.message.reactions.v1",
-      "cell_subject": {
-        "field": "payload.target_ref",
-        "kind": "id:message"
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.rsvp.set",
@@ -3949,24 +2818,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.calendar.rsvp.v1",
-      "cell_subject": {
-        "kind": "composite",
-        "components": [
-          "payload.event_ref",
-          "payload.occurrence",
-          "envelope.actor_id"
-        ]
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.entry"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.pin.add",
@@ -3997,23 +2849,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.pin.v1",
-      "cell_subject": {
-        "field": "payload.pin_scope.id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.pin.remove",
@@ -4044,23 +2880,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.pin.v1",
-      "cell_subject": {
-        "field": "payload.pin_scope.id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.pin.reorder",
@@ -4091,23 +2911,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.pin.v1",
-      "cell_subject": {
-        "field": "payload.pin_scope.id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.redaction",
@@ -4143,27 +2947,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.object.redaction.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.target_ref",
-          "payload.event_id",
-          "payload.target_event_id"
-        ]
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "inert"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.morph.create",
@@ -4190,20 +2974,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.morph.v1",
-      "cell_subject": {
-        "kind": "id:morph",
-        "field": "payload.object.id"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.object"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.morph.update",
@@ -4233,23 +3004,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.morph.v1",
-      "cell_subject": {
-        "kind": "id:morph",
-        "field": "payload.target_ref"
-      },
-      "effect_projection": {
-        "kind": "apply_patch",
-        "patch": {
-          "field": "payload.patch"
-        },
-        "expected_prestate": {
-          "field": "payload.expected_state_digest"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.morph.archive",
@@ -4284,26 +3039,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.morph.lifecycle.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.morph_id",
-          "payload.target_ref"
-        ]
-      },
-      "effect_projection": {
-        "kind": "transition",
-        "from": {
-          "const": "active"
-        },
-        "to": {
-          "const": "archived"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.morph.restore",
@@ -4338,26 +3074,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.morph.lifecycle.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.morph_id",
-          "payload.target_ref"
-        ]
-      },
-      "effect_projection": {
-        "kind": "transition",
-        "from": {
-          "const": "archived"
-        },
-        "to": {
-          "const": "active"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.morph.schema_migrate",
@@ -4385,20 +3102,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.morph.schema.v1",
-      "cell_subject": {
-        "kind": "id:morph",
-        "field": "payload.morph_id"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.morph.stage.set",
@@ -4426,20 +3130,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.morph.stage.v1",
-      "cell_subject": {
-        "field": "payload.morph_id",
-        "kind": "id:morph"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.stage"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.relation.create",
@@ -4466,20 +3157,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.relation.v1",
-      "cell_subject": {
-        "kind": "typed_id",
-        "field": "payload.relation.id"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.relation"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.relation.update",
@@ -4509,23 +3187,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.relation.v1",
-      "cell_subject": {
-        "kind": "id:relation",
-        "field": "payload.target_ref"
-      },
-      "effect_projection": {
-        "kind": "apply_patch",
-        "patch": {
-          "field": "payload.patch"
-        },
-        "expected_prestate": {
-          "field": "payload.expected_state_digest"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.relation.tombstone",
@@ -4555,20 +3217,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.relation.lifecycle.v1",
-      "cell_subject": {
-        "kind": "id:relation",
-        "field": "payload.relation_id"
-      },
-      "effect_projection": {
-        "kind": "transition_to",
-        "to": {
-          "const": "tombstoned"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.container.move_item",
@@ -4599,23 +3248,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.container.position.v1",
-      "cell_subject": {
-        "kind": "composite",
-        "components": [
-          "payload.container_ref",
-          "payload.item_ref"
-        ]
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.container.rebalance",
@@ -4643,20 +3276,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.container.order.v1",
-      "cell_subject": {
-        "kind": "string",
-        "field": "payload.container_ref"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.view.create",
@@ -4683,20 +3303,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.view.create.v1",
-      "cell_subject": {
-        "field": "payload.view_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.object"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.view.update",
@@ -4726,23 +3333,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.view.update.v1",
-      "cell_subject": {
-        "field": "payload.view_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "apply_patch",
-        "patch": {
-          "field": "payload.patch"
-        },
-        "expected_prestate": {
-          "field": "payload.expected_state_digest"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.view.reconcile",
@@ -4769,20 +3360,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.view.reconcile.v1",
-      "cell_subject": {
-        "field": "payload.view_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.definition"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.agent.key.authorize",
@@ -4980,23 +3558,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.agent.selector_claim.v1",
-      "cell_subject": {
-        "components": [
-          "payload.controller_subject",
-          "payload.agent_slug"
-        ],
-        "kind": "composite"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.self.agent.pause",
@@ -5027,23 +3589,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.agent.status.v1",
-      "cell_subject": {
-        "field": "payload.agent_id",
-        "kind": "did"
-      },
-      "effect_projection": {
-        "kind": "transition",
-        "from": {
-          "field": "payload.previous_status"
-        },
-        "to": {
-          "const": "paused"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.self.agent.resume",
@@ -5074,23 +3620,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.agent.status.v1",
-      "cell_subject": {
-        "field": "payload.agent_id",
-        "kind": "did"
-      },
-      "effect_projection": {
-        "kind": "transition",
-        "from": {
-          "field": "payload.previous_status"
-        },
-        "to": {
-          "const": "active"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.self.agent.deactivate",
@@ -5121,23 +3651,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.agent.status.v1",
-      "cell_subject": {
-        "field": "payload.agent_id",
-        "kind": "did"
-      },
-      "effect_projection": {
-        "kind": "transition",
-        "from": {
-          "field": "payload.previous_status"
-        },
-        "to": {
-          "const": "deactivated"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.agent.draft.propose",
@@ -5210,23 +3724,7 @@
           ]
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.capability.grant.v1",
-      "cell_subject": {
-        "field": "payload.grant_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "inert"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.capability.revoke",
@@ -5251,17 +3749,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.capability.grant.v1",
-      "cell_subject": {
-        "field": "payload.grant_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "or_set_remove_observed"
-      },
-      "lattice": "or_set",
-      "bottom": "inert"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.capability.derived",
@@ -5292,23 +3780,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.capability.derived.v1",
-      "cell_subject": {
-        "field": "payload.grant_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "inert"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.session.grant",
@@ -5340,23 +3812,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.session.grant.v1",
-      "cell_subject": {
-        "field": "payload.grant_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "inert"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.consent.grant",
@@ -5388,23 +3844,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.consent.grant.v1",
-      "cell_subject": {
-        "field": "payload.consent_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "inert"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.consent.revoke",
@@ -5433,20 +3873,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.consent.grant.v1",
-      "cell_subject": {
-        "field": "payload.consent_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "or_set_remove_dots",
-        "dots": {
-          "field": "payload.observed_dots"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "inert"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.contact.requested",
@@ -5455,15 +3882,29 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Principal-scoped contact request fact. Issuer is requester; target holder must respond with accepted/rejected.",
+      "payload": "Requester-signed directional Contact request: closed peer XOR plus full granted_to_peer_scopes. It precedes every acceptance receipt and basis and never reads or writes Consent.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_requested_payload",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
         {
           "cell_family": "ak.component.contact.fact_log.v1",
           "cell_subject": {
-            "field": "payload.target",
-            "kind": "did"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "select",
+                "selector": "payload.peer.kind",
+                "branches": {
+                  "human": {
+                    "field": "payload.peer.principal_id"
+                  },
+                  "agent": {
+                    "field": "payload.peer.agent_id"
+                  }
+                }
+              }
+            ]
           },
           "lattice": "ordered_log",
           "bottom": "expose",
@@ -5478,23 +3919,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.contact.fact_log.v1",
-      "cell_subject": {
-        "field": "payload.target",
-        "kind": "did"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.contact.accepted",
@@ -5503,15 +3928,29 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Principal-scoped contact acceptance fact. Issuer is original request target and MUST reference target-controlled consent grants.",
+      "payload": "Holder-signed normal Contact acceptance: closed peer XOR, exact request/receipt digest, stable basis, lineage version 1 and full granted_to_peer_scopes. It never reads or writes Consent.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_accepted_payload",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
         {
           "cell_family": "ak.component.contact.fact_log.v1",
           "cell_subject": {
-            "field": "payload.requester",
-            "kind": "did"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "select",
+                "selector": "payload.peer.kind",
+                "branches": {
+                  "human": {
+                    "field": "payload.peer.principal_id"
+                  },
+                  "agent": {
+                    "field": "payload.peer.agent_id"
+                  }
+                }
+              }
+            ]
           },
           "lattice": "ordered_log",
           "bottom": "expose",
@@ -5526,23 +3965,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.contact.fact_log.v1",
-      "cell_subject": {
-        "field": "payload.requester",
-        "kind": "did"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.contact.rejected",
@@ -5551,15 +3974,29 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Principal-scoped contact rejection fact. Issuer is original request target and does not write consent.",
+      "payload": "Holder-signed terminal rejection bound to the exact request Event and acceptance-receipt digest. It creates no basis and has no Consent or basis-proof fields.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_rejected_payload",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
         {
           "cell_family": "ak.component.contact.fact_log.v1",
           "cell_subject": {
-            "field": "payload.requester",
-            "kind": "did"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "select",
+                "selector": "payload.peer.kind",
+                "branches": {
+                  "human": {
+                    "field": "payload.peer.principal_id"
+                  },
+                  "agent": {
+                    "field": "payload.peer.agent_id"
+                  }
+                }
+              }
+            ]
           },
           "lattice": "ordered_log",
           "bottom": "expose",
@@ -5574,23 +4011,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.contact.fact_log.v1",
-      "cell_subject": {
-        "field": "payload.requester",
-        "kind": "did"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.contact.tombstoned",
@@ -5600,14 +4021,28 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Holder-signed issuer-local Contact generation terminal. It consumes the stable basis and cannot carry scope replacement or write/revoke Private Consent.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_tombstoned_payload",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
         {
           "cell_family": "ak.component.contact.fact_log.v1",
           "cell_subject": {
-            "field": "payload.peer",
-            "kind": "did"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "select",
+                "selector": "payload.peer.kind",
+                "branches": {
+                  "human": {
+                    "field": "payload.peer.principal_id"
+                  },
+                  "agent": {
+                    "field": "payload.peer.agent_id"
+                  }
+                }
+              }
+            ]
           },
           "lattice": "ordered_log",
           "bottom": "expose",
@@ -5622,23 +4057,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.contact.fact_log.v1",
-      "cell_subject": {
-        "field": "payload.peer",
-        "kind": "did"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.contact.scope.update",
@@ -5684,36 +4103,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.contact.fact_log.v1",
-      "cell_subject": {
-        "kind": "composite",
-        "components": [
-          {
-            "kind": "select",
-            "selector": "payload.peer.kind",
-            "branches": {
-              "human": {
-                "field": "payload.peer.principal_id"
-              },
-              "agent": {
-                "field": "payload.peer.agent_id"
-              }
-            }
-          }
-        ]
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.direct_conversation.bound",
@@ -5745,23 +4135,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.direct_conversation.binding.v1",
-      "cell_subject": {
-        "field": "payload.pair_key",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.account.status",
@@ -5793,23 +4167,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.account.status.v1",
-      "cell_subject": {
-        "field": "payload.account_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.account.blocklist",
@@ -5854,20 +4212,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.profile.create.v1",
-      "cell_subject": {
-        "field": "payload.object.id",
-        "kind": "id:actor_profile"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload.object"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.profile.update",
@@ -5899,23 +4244,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.profile.create.v1",
-      "cell_subject": {
-        "field": "payload.target_ref",
-        "kind": "id:actor_profile"
-      },
-      "effect_projection": {
-        "kind": "apply_patch",
-        "patch": {
-          "field": "payload.patch"
-        },
-        "expected_prestate": {
-          "field": "payload.expected_state_digest"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.profile.realm_override",
@@ -5947,23 +4276,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.profile.realm_override.v1",
-      "cell_subject": {
-        "kind": "composite",
-        "components": [
-          "payload.target_realm_id",
-          "payload.target_ref"
-        ]
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.device.authorize",
@@ -5998,26 +4311,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.device.authorization.v1",
-      "cell_subject": {
-        "components": [
-          "payload.principal_id",
-          "payload.device_id"
-        ],
-        "kind": "composite"
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "inert"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.device.reanchor",
@@ -6050,23 +4344,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.device.reanchor.v1",
-      "cell_subject": {
-        "field": "payload.principal_id",
-        "kind": "did"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.device.revoke",
@@ -6095,20 +4373,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.device.authorization.v1",
-      "cell_subject": {
-        "components": [
-          "payload.principal_id",
-          "payload.device_id"
-        ],
-        "kind": "composite"
-      },
-      "effect_projection": {
-        "kind": "or_set_remove_observed"
-      },
-      "lattice": "or_set",
-      "bottom": "inert"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.device.list_update",
@@ -6140,23 +4405,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.device.list_update.v1",
-      "cell_subject": {
-        "field": "payload.principal_id",
-        "kind": "did"
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "inert"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.key_backup.active_series",
@@ -6197,31 +4446,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.key_backup.active_series.v1",
-      "cell_subject": {
-        "components": [
-          {
-            "name": "actor_id",
-            "field": "payload.actor_id",
-            "kind": "did"
-          },
-          {
-            "name": "backup_kind",
-            "field": "payload.backup_kind",
-            "kind": "string"
-          }
-        ],
-        "kind": "tuple"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.device.push_route",
@@ -6270,31 +4495,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.cross_signing.publish.v1",
-      "cell_subject": {
-        "components": [
-          {
-            "name": "principal_id",
-            "field": "payload.principal_id",
-            "kind": "did"
-          },
-          {
-            "name": "expected_previous_generation",
-            "field": "payload.expected_previous_generation",
-            "kind": "integer"
-          }
-        ],
-        "kind": "tuple"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.cross_signing.reset",
@@ -6327,23 +4528,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.cross_signing.reset.v1",
-      "cell_subject": {
-        "field": "payload.principal_id",
-        "kind": "did"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.mls.proposal",
@@ -6374,23 +4559,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.mls.proposal.v1",
-      "cell_subject": {
-        "kind": "string",
-        "field": "payload.mls_group_id"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.mls.genesis",
@@ -6509,23 +4678,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.mls.failure_log.v1",
-      "cell_subject": {
-        "kind": "string",
-        "field": "payload.mls_group_id"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.mls.welcome",
@@ -6560,27 +4713,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.mls.welcome.v1",
-      "cell_subject": {
-        "kind": "composite",
-        "components": [
-          "payload.mls_group_id",
-          "payload.recipient_principal_id",
-          "payload.recipient_device_id"
-        ]
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.mls.keypackage",
@@ -6612,24 +4745,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.mls.keypackage.v1",
-      "cell_subject": {
-        "kind": "composite",
-        "components": [
-          "payload.principal_id",
-          "payload.device_id",
-          "payload.keypackage_ref"
-        ]
-      },
-      "effect_projection": {
-        "kind": "transition_to",
-        "to": {
-          "field": "payload.state"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm_key.share",
@@ -6776,139 +4892,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.realm_key.delivery.v1",
-      "cell_subject": {
-        "kind": "composite",
-        "components": [
-          "payload.share_kind",
-          "payload.recipient_principal_id",
-          {
-            "kind": "select",
-            "selector": "payload.share_kind",
-            "branches": {
-              "member_device": {
-                "field": "payload.recipient_device_id",
-                "forbidden_fields": [
-                  "payload.recipient_verification_method",
-                  "payload.recovery_recipient_id"
-                ]
-              },
-              "realm_recovery_key": {
-                "field": "payload.recovery_recipient_id",
-                "forbidden_fields": [
-                  "payload.recipient_device_id"
-                ]
-              }
-            }
-          },
-          {
-            "kind": "select",
-            "selector": "payload.key_scope.effective_scope.kind",
-            "branches": {
-              "realm": {
-                "field": "payload.key_scope.effective_scope.realm_id"
-              },
-              "circle": {
-                "field": "payload.key_scope.effective_scope.circle_id"
-              }
-            }
-          }
-        ]
-      },
-      "value_projection": {
-        "kind": "object",
-        "members": [
-          {
-            "name": "delivery_outcome",
-            "literal": "shared"
-          },
-          {
-            "name": "share_kind",
-            "field": "payload.share_kind"
-          },
-          {
-            "name": "recipient_principal_id",
-            "field": "payload.recipient_principal_id"
-          },
-          {
-            "name": "recipient_target_id",
-            "select": {
-              "kind": "select",
-              "selector": "payload.share_kind",
-              "branches": {
-                "member_device": {
-                  "field": "payload.recipient_device_id",
-                  "forbidden_fields": [
-                    "payload.recipient_verification_method",
-                    "payload.recovery_recipient_id"
-                  ]
-                },
-                "realm_recovery_key": {
-                  "field": "payload.recovery_recipient_id",
-                  "forbidden_fields": [
-                    "payload.recipient_device_id"
-                  ]
-                }
-              }
-            }
-          },
-          {
-            "name": "effective_scope_id",
-            "select": {
-              "kind": "select",
-              "selector": "payload.key_scope.effective_scope.kind",
-              "branches": {
-                "realm": {
-                  "field": "payload.key_scope.effective_scope.realm_id"
-                },
-                "circle": {
-                  "field": "payload.key_scope.effective_scope.circle_id"
-                }
-              }
-            }
-          },
-          {
-            "name": "policy_digest",
-            "field": "payload.key_scope.policy_digest"
-          },
-          {
-            "name": "from_epoch",
-            "field": "payload.key_scope.from_epoch",
-            "optional": true
-          },
-          {
-            "name": "to_epoch",
-            "field": "payload.key_scope.to_epoch",
-            "optional": true
-          },
-          {
-            "name": "sender_device_id",
-            "field": "payload.sender_device_id"
-          },
-          {
-            "name": "source_authorization_ref",
-            "field": "payload.source_authorization_ref"
-          },
-          {
-            "name": "payload_digest",
-            "digest_of": {
-              "input": "event_payload_canonical_bytes"
-            }
-          }
-        ]
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "projected_value": true
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.realm_key.withheld",
@@ -7059,143 +5043,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.realm_key.delivery.v1",
-      "cell_subject": {
-        "kind": "composite",
-        "components": [
-          "payload.share_kind",
-          "payload.recipient_principal_id",
-          {
-            "kind": "select",
-            "selector": "payload.share_kind",
-            "branches": {
-              "member_device": {
-                "field": "payload.recipient_device_id",
-                "forbidden_fields": [
-                  "payload.recipient_verification_method",
-                  "payload.recovery_recipient_id"
-                ]
-              },
-              "realm_recovery_key": {
-                "field": "payload.recovery_recipient_id",
-                "forbidden_fields": [
-                  "payload.recipient_device_id"
-                ]
-              }
-            }
-          },
-          {
-            "kind": "select",
-            "selector": "payload.key_scope.effective_scope.kind",
-            "branches": {
-              "realm": {
-                "field": "payload.key_scope.effective_scope.realm_id"
-              },
-              "circle": {
-                "field": "payload.key_scope.effective_scope.circle_id"
-              }
-            }
-          }
-        ]
-      },
-      "value_projection": {
-        "kind": "object",
-        "members": [
-          {
-            "name": "delivery_outcome",
-            "literal": "withheld"
-          },
-          {
-            "name": "share_kind",
-            "field": "payload.share_kind"
-          },
-          {
-            "name": "recipient_principal_id",
-            "field": "payload.recipient_principal_id"
-          },
-          {
-            "name": "recipient_target_id",
-            "select": {
-              "kind": "select",
-              "selector": "payload.share_kind",
-              "branches": {
-                "member_device": {
-                  "field": "payload.recipient_device_id",
-                  "forbidden_fields": [
-                    "payload.recipient_verification_method",
-                    "payload.recovery_recipient_id"
-                  ]
-                },
-                "realm_recovery_key": {
-                  "field": "payload.recovery_recipient_id",
-                  "forbidden_fields": [
-                    "payload.recipient_device_id"
-                  ]
-                }
-              }
-            }
-          },
-          {
-            "name": "effective_scope_id",
-            "select": {
-              "kind": "select",
-              "selector": "payload.key_scope.effective_scope.kind",
-              "branches": {
-                "realm": {
-                  "field": "payload.key_scope.effective_scope.realm_id"
-                },
-                "circle": {
-                  "field": "payload.key_scope.effective_scope.circle_id"
-                }
-              }
-            }
-          },
-          {
-            "name": "policy_digest",
-            "field": "payload.key_scope.policy_digest"
-          },
-          {
-            "name": "from_epoch",
-            "field": "payload.key_scope.from_epoch",
-            "optional": true
-          },
-          {
-            "name": "to_epoch",
-            "field": "payload.key_scope.to_epoch",
-            "optional": true
-          },
-          {
-            "name": "sender_device_id",
-            "field": "payload.sender_device_id"
-          },
-          {
-            "name": "source_authorization_ref",
-            "field": "payload.source_authorization_ref"
-          },
-          {
-            "name": "payload_digest",
-            "digest_of": {
-              "input": "event_payload_canonical_bytes"
-            }
-          },
-          {
-            "name": "withheld_reason_code",
-            "field": "payload.withheld_reason_code"
-          }
-        ]
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "projected_value": true
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.realm_key.share_audit",
@@ -7227,23 +5075,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.realm_key.audit.v1",
-      "cell_subject": {
-        "kind": "string",
-        "field": "payload.share_event_ref"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.audit.accessed",
@@ -7278,27 +5110,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.audit.access_log.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.target_ref",
-          "payload.target_cell_id",
-          "payload.paired_event_id"
-        ]
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.audit.applet_binding",
@@ -7326,20 +5138,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.audit.binding.v1",
-      "cell_subject": {
-        "field": "payload.binding_id",
-        "kind": "typed_id"
-      },
-      "effect_projection": {
-        "kind": "transition_to",
-        "to": {
-          "field": "payload.status"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.audit.session.request",
@@ -7367,20 +5166,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.audit.session.v1",
-      "cell_subject": {
-        "field": "payload.session_id",
-        "kind": "typed_id"
-      },
-      "effect_projection": {
-        "kind": "transition_to",
-        "to": {
-          "field": "payload.session_state"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.audit.session.authorize",
@@ -7408,20 +5194,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.audit.session.v1",
-      "cell_subject": {
-        "field": "payload.session_id",
-        "kind": "typed_id"
-      },
-      "effect_projection": {
-        "kind": "transition_to",
-        "to": {
-          "field": "payload.session_state"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.audit.session.notice",
@@ -7449,20 +5222,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.audit.session.v1",
-      "cell_subject": {
-        "field": "payload.session_id",
-        "kind": "typed_id"
-      },
-      "effect_projection": {
-        "kind": "transition_to",
-        "to": {
-          "field": "payload.session_state"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.audit.release",
@@ -7498,23 +5258,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.audit.release.v1",
-      "cell_subject": {
-        "field": "payload.session_id",
-        "kind": "typed_id"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "reject"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.audit.session.close",
@@ -7542,20 +5286,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.audit.session.v1",
-      "cell_subject": {
-        "field": "payload.session_id",
-        "kind": "typed_id"
-      },
-      "effect_projection": {
-        "kind": "transition_to",
-        "to": {
-          "field": "payload.session_state"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.audit.ryw_receipt",
@@ -7625,23 +5356,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.moderation.report.v1",
-      "cell_subject": {
-        "kind": "string",
-        "field": "payload.target_ref"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.moderation.franking_proof",
@@ -7673,23 +5388,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.moderation.franking_proof.v1",
-      "cell_subject": {
-        "kind": "id:event",
-        "field": "payload.event_id"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.moderation.decision",
@@ -7720,23 +5419,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.moderation_state.v1",
-      "cell_subject": {
-        "field": "payload.target_ref",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.moderation.decision.lift",
@@ -7764,20 +5447,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.moderation_state.v1",
-      "cell_subject": {
-        "field": "payload.target_ref",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "or_set_remove_dots",
-        "dots": {
-          "field": "payload.observed_dots"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.moderation.appeal.submit",
@@ -7808,23 +5478,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.moderation.appeal.v1",
-      "cell_subject": {
-        "field": "payload.appeal_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "transition",
-        "from": {
-          "const": null
-        },
-        "to": {
-          "const": "submitted"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.moderation.appeal.review",
@@ -7855,23 +5509,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.moderation.appeal.v1",
-      "cell_subject": {
-        "field": "payload.appeal_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "transition",
-        "from": {
-          "const": "submitted"
-        },
-        "to": {
-          "const": "under_review"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.moderation.appeal.decision",
@@ -7902,23 +5540,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.moderation.appeal.v1",
-      "cell_subject": {
-        "field": "payload.appeal_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "transition",
-        "from": {
-          "const": "under_review"
-        },
-        "to": {
-          "const": "decided"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.moderation.appeal.close",
@@ -7946,20 +5568,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.moderation.appeal.v1",
-      "cell_subject": {
-        "field": "payload.appeal_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "transition_to",
-        "to": {
-          "const": "closed"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.read_cursor.advance",
@@ -8181,26 +5790,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.invite.lifecycle.v1",
-      "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.invite.id",
-          "payload.invite_id"
-        ]
-      },
-      "effect_projection": {
-        "kind": "transition",
-        "from": {
-          "const": null
-        },
-        "to": {
-          "const": "pending"
-        }
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.invite.claim",
@@ -8343,23 +5933,7 @@
             }
           }
         }
-      ],
-      "cell_family": "ak.component.applet.bridge_error.v1",
-      "cell_subject": {
-        "kind": "typed_id",
-        "field": "payload.applet_id"
-      },
-      "effect_projection": {
-        "kind": "append",
-        "value": {
-          "field": "payload"
-        },
-        "issuer_seq": {
-          "envelope_field": "actor_seq"
-        }
-      },
-      "lattice": "ordered_log",
-      "bottom": "expose"
+      ]
     },
     {
       "event_kind": "ak.applet.registration",
@@ -8388,20 +5962,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.applet.registration.v1",
-      "cell_subject": {
-        "kind": "typed_id",
-        "field": "payload.applet_id"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.mimi.room_binding",
@@ -8430,20 +5991,7 @@
           }
         }
       ],
-      "concurrency_class": "merge_safe",
-      "cell_family": "ak.component.mimi.room_binding.v1",
-      "cell_subject": {
-        "field": "payload.mimi_room_uri",
-        "kind": "mimi_uri"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "mv_register",
-      "bottom": "expose"
+      "concurrency_class": "merge_safe"
     },
     {
       "event_kind": "ak.call.state",
@@ -8822,20 +6370,7 @@
           }
         }
       ],
-      "concurrency_class": "exclusive",
-      "cell_family": "ak.component.call.summary.v1",
-      "cell_subject": {
-        "field": "payload.call_id",
-        "kind": "typed_id"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.sovereign.did_policy",
@@ -8864,20 +6399,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.sovereign.did_policy.v1",
-      "cell_subject": {
-        "kind": "string",
-        "field": "payload.trust_domain"
-      },
-      "effect_projection": {
-        "kind": "set",
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.owner.transfer",
@@ -8905,20 +6427,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.authority_root.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "apply_patch",
-        "patch": {
-          "field": "payload.patch"
-        },
-        "expected_prestate": {
-          "field": "payload.expected_state_digest"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.authority.reset",
@@ -8946,20 +6455,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.authority_root.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "apply_patch",
-        "patch": {
-          "field": "payload.patch"
-        },
-        "expected_prestate": {
-          "field": "payload.expected_state_digest"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.authority.basis_update",
@@ -8987,20 +6483,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.realm.authority_root.v1",
-      "cell_subject": null,
-      "effect_projection": {
-        "kind": "apply_patch",
-        "patch": {
-          "field": "payload.patch"
-        },
-        "expected_prestate": {
-          "field": "payload.expected_state_digest"
-        }
-      },
-      "lattice": "cas_register",
-      "bottom": "reject"
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.capability.relinquish",
@@ -9026,17 +6509,7 @@
           }
         }
       ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.capability.grant.v1",
-      "cell_subject": {
-        "field": "payload.grant_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "or_set_remove_observed"
-      },
-      "lattice": "or_set",
-      "bottom": "inert"
+      "concurrency_class": "security_barrier"
     }
   ],
   "concurrency_class_definitions": {
@@ -9143,6 +6616,7 @@
     "ak.component.agent.status.v1": {
       "axis": "status",
       "states": [
+        "uninitialized",
         "active",
         "paused",
         "deactivated"
@@ -9153,6 +6627,10 @@
       "idempotent_replay": "same_transition_same_basis_noop",
       "concurrent_sibling_conflict": "bottom",
       "allowed_transitions": [
+        [
+          "uninitialized",
+          "active"
+        ],
         [
           "active",
           "paused"
@@ -9170,7 +6648,7 @@
           "deactivated"
         ]
       ],
-      "initial_state": "active"
+      "initial_state": "uninitialized"
     },
     "ak.component.audit.binding.v1": {
       "axis": "audit",

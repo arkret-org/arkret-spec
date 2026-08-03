@@ -5,8 +5,7 @@
   "covers_vectors": [
     "ak.vector.direct_conversation.realm_shape.v1",
     "ak.vector.direct_conversation.stable_allocation.v1",
-    "ak.vector.direct_conversation.suspend_rejoin.v1",
-    "ak.vector.contact.direct_materialization_witness.v1"
+    "ak.vector.direct_conversation.suspend_rejoin.v1"
   ],
   "version": "2026-08-02",
   "spec_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#6-direct-conversation-resolver",
@@ -107,28 +106,34 @@
     },
     {
       "name": "found_outcome_valid_without_keypackage",
-      "schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
+      "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_outcome",
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
         "state": "found",
-        "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
-        "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
-        "binding_event_ref": "ak:event:0196419b-0000-7000-8000-000000000309"
+        "coordinates": {
+          "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+          "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
+          "binding_event_ref": "ak:event:0196419b-0000-7000-8000-000000000309"
+        },
+        "send_blockers": []
       }
     },
     {
       "name": "suspended_outcome_keeps_coordinates",
-      "schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
+      "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_outcome",
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
         "state": "suspended",
-        "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
-        "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
-        "binding_event_ref": "ak:event:0196419b-0000-7000-8000-000000000309"
+        "coordinates": {
+          "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+          "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
+          "binding_event_ref": "ak:event:0196419b-0000-7000-8000-000000000309"
+        },
+        "suspension_reason": "contact_direction_revoked"
       }
     },
     {
@@ -158,34 +163,19 @@
       }
     },
     {
-      "name": "materializing_operation_must_not_expire",
-      "schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_operation",
+      "name": "legacy_flat_found_outcome_rejected",
+      "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_outcome",
       "expect_valid": false,
-      "first_expected_error": "contains:expires_at",
+      "first_expected_error": "contains:not valid under any of the given schemas",
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
-        "operation_id": "op-1",
+        "state": "found",
         "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
-        "coordinator_service_id": "did:web:ps-a.example",
-        "operation_state": "materializing",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
         "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
-        "expires_at": "2026-08-02T00:05:00.000Z"
-      }
-    },
-    {
-      "name": "reserved_operation_requires_expiry",
-      "schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_operation",
-      "expect_valid": false,
-      "first_expected_error": "contains:expires_at",
-      "semantic_outcome": "reject",
-      "expected_reason_code": "schema_violation",
-      "instance": {
-        "operation_id": "op-2",
-        "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
-        "coordinator_service_id": "did:web:ps-a.example",
-        "operation_state": "reserved"
+        "binding_event_ref": "ak:event:0196419b-0000-7000-8000-000000000309",
+        "send_blockers": []
       }
     }
   ],
@@ -230,8 +220,8 @@
       "expected_reason_code": "failed_precondition"
     },
     {
-      "name": "leave_or_consent_revoke_suspends",
-      "precondition": "stable binding exists and leave block contact or consent gate becomes false",
+      "name": "leave_or_directional_contact_terminal_suspends",
+      "precondition": "stable binding exists and leave, block, or either directional Contact head/scope gate becomes false; Consent is not consulted",
       "action": "resolve and attempt message",
       "semantic_outcome": "reject",
       "expected_reason_code": "direct_conversation_participant_authority_denied",

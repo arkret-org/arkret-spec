@@ -349,29 +349,6 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
                         + ", ".join(overlapping)
                     )
                 event_row.update(copy.deepcopy(contract))
-                writes = contract.get("cell_writes")
-                if (
-                    isinstance(writes, list)
-                    and len(writes) == 1
-                    and isinstance(writes[0], dict)
-                    and "cell_ref" not in writes[0]
-                ):
-                    # Preserve the v1 single-target shorthand for existing consumers while
-                    # making cell_writes[] the general machine authority. The conflict-recovery
-                    # form is excluded: the shorthand's whole shape is a literal cell_family
-                    # plus a lattice op, and mirroring only the projection out of a write that
-                    # has neither would advertise a target the row does not name.
-                    for field in (
-                        "cell_family",
-                        "cell_subject",
-                        "value_projection",
-                        "effect_projection",
-                        "lattice",
-                        "bottom",
-                        "initial_value",
-                    ):
-                        if field in writes[0]:
-                            event_row[field] = copy.deepcopy(writes[0][field])
         payloads[ARTIFACTS / file_ref] = {
             "version": version,
             "source_of_truth": False,

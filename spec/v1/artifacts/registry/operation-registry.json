@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.3",
+  "version": "2026-08-03.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-03T05:00:00Z",
+  "generated_at": "2026-08-03T09:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -170,7 +170,11 @@
         "ak.self.invite_locator.command.issue",
         "ak.self.invite_locator.command.rotate",
         "ak.self.invite_locator.command.revoke",
-        "ak.self.direct_conversation.command.resolve"
+        "ak.self.direct_conversation.command.resolve",
+        "ak.peer.direct_conversation.operation_control.command.submit",
+        "ak.peer.direct_conversation.operation_control.command.deliver",
+        "ak.peer.direct_conversation.operation_control.query.execution_bundle",
+        "ak.peer.direct_conversation.operation_control.query.read_certificate"
       ],
       "surface_class": "extension"
     },
@@ -905,10 +909,10 @@
       "http": "POST /_arkret/self/agent-sidecars:ensure",
       "grpc": "SelfAgent/SidecarEnsure",
       "mq": "self.agent.sidecar.command.ensure",
-      "notes": "First ensure uses a private reservation and staged atomic admission of exactly [controller-signed ak.sidecar.create, controller-signed ak.sidecar.context.attach]. Create alone projects the Sidecar, backing Circle and controller membership; attach alone projects the private Strand and Relation and must reference create with EventRef role after. Existing Sidecars admit only a new attach. The parent-Realm bootstrap exception is scoped only to create.",
+      "notes": "Prepare fixes the new|existing branch, every reducer-derived coordinate, Event ID, canonical unsigned Event bytes and digest. It returns two controller-signing drafts for a new Sidecar and only an attach draft for an existing Sidecar. Commit accepts only proofs appended to those exact drafts. First ensure atomically admits exactly [ak.sidecar.create, ak.sidecar.context.attach]; attach must reference the reserved create Event with role after. The parent-Realm bootstrap exception is scoped only to create.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "object_id",
+      "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
       "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_request",
       "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_outcome",
@@ -1338,7 +1342,7 @@
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
       "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_request_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
@@ -1354,10 +1358,10 @@
       "notes": "Two-phase holder-local normal accept response. The service accepts only the holder-signed response Event bytes reserved for the current request slot, signs the matching normal-response acceptance receipt, and never writes Private Consent. Reject uses the separate ak.self.contact.command.reject operation. Glare is mechanically derived from two causally concurrent request receipts and forbids this operation.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "object_id",
+      "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
       "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
@@ -1373,10 +1377,10 @@
       "notes": "Two-phase holder-local terminal reject. The service accepts only the holder-signed ak.contact.rejected Event bytes reserved for the exact current request slot, signs the matching rejection acceptance receipt, and provides durable exact replay/conflict semantics independently from normal accept responses.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "object_id",
+      "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
       "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
@@ -1405,7 +1409,7 @@
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
       "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_scope_update_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_scope_update_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
@@ -1421,10 +1425,10 @@
       "notes": "Holder-signed issuer-local lineage terminal. It consumes the Contact basis and generation; it does not carry scope replacement and does not write or revoke Private Consent.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "object_id",
+      "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
       "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_tombstone_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_outcome",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_tombstone_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
@@ -1536,6 +1540,70 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "the_service_persists_only_the_coordinator_operation_record_and_returns_participant_authoring_material_or_an_existing_projection"
+      }
+    },
+    {
+      "operation_id": "ak.peer.direct_conversation.operation_control.command.submit",
+      "http": "POST /_arkret/peer/direct-conversation-operation-control/messages",
+      "grpc": "PeerDirectConversationOperationControl/Submit",
+      "mq": "peer.direct_conversation.operation_control.command.submit",
+      "notes": "Closed immutable-replica carrier for the domain-root-signed registry, qDA, PBFT, view change and fresh read messages. Source and recipient must be exact immutable replicas. A one-vote slot omits operation_id and compares semantic value/lock digests: different carriers or valid quorum subsets for the same vote replay safely; only a conflicting semantic vote is equivocation. queued requires durable message bytes and typed missing dependencies.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_message_submit_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_message_receipt",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "authenticated_replica_protocol_log_only"
+      }
+    },
+    {
+      "operation_id": "ak.peer.direct_conversation.operation_control.command.deliver",
+      "http": "POST /_arkret/peer/direct-conversation-operation-control/execution-bundles",
+      "grpc": "PeerDirectConversationOperationControl/DeliverExecutionBundle",
+      "mq": "peer.direct_conversation.operation_control.command.deliver",
+      "notes": "Delivers one fully certified ExecutionBundle to EffectValueCore.destination. The destination independently validates registry authorization, typed effect, qDA, ancestors, qCOMMIT, journal and complete host DID+epoch fence. Ledger identity is (pair_registry_id,operation_id,attempt_sequence,effect_id) and compares effect_commitment_digest, not full bundle bytes: alternative valid quorum witness subsets are duplicate; only a different semantic commitment is permanent equivocation. submitted_bundle_digest is exact recovery/audit identity. deferred requires durable exact bundle bytes plus named dependencies.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_delivery_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_delivery_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "certified_external_effect_and_destination_ledger_only"
+      }
+    },
+    {
+      "operation_id": "ak.peer.direct_conversation.operation_control.query.execution_bundle",
+      "http": "POST /_arkret/peer/direct-conversation-operation-control/execution-bundles/query",
+      "grpc": "PeerDirectConversationOperationControl/QueryExecutionBundle",
+      "mq": "peer.direct_conversation.operation_control.query.execution_bundle",
+      "notes": "Stable exact recovery query, never a current-head oracle. by_effect requires registry, operation, attempt, effect and expected value/bundle digests; delivery_outcome requires the exact destination and bundle digest. Only an immutable replica, certified destination or the same operation requester may query.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_query_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_query_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "read_only_exact_execution_bundle_or_delivery_receipt_lookup"
+      }
+    },
+    {
+      "operation_id": "ak.peer.direct_conversation.operation_control.query.read_certificate",
+      "http": "POST /_arkret/peer/direct-conversation-operation-control/read-certificates/query",
+      "grpc": "PeerDirectConversationOperationControl/ReadCertificate",
+      "mq": "peer.direct_conversation.operation_control.query.read_certificate",
+      "notes": "Produces a fresh quorum read certificate for one exact signed request. The evaluator requires exactly q=2f+1 distinct immutable replicas, canonical order, unexpired receipts and byte-identical request digest and complete genesis|committed head. Without q it fails operation_control_quorum_unavailable; a read certificate never authorizes an effect, transfer or attempt advance.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_read_request",
+      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_read_certificate",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "read_only_fresh_quorum_certificate_assembly"
       }
     },
     {
@@ -2876,6 +2944,7 @@
       "http": "POST /_arkret/self/agent-signer-evidence/query",
       "grpc": "SelfAgentSignerEvidence/Resolve",
       "mq": "self.agent_signer_evidence.query.resolve",
+      "notes": "Closed selector XOR. current_admission binds the actual operation, request digest, verifier, audience and challenge and may authorize first live Signal evidence through current shared context. historical_event binds Event id, digest and receiver service and returns only the destination-signed admission receipt persisted when that exact Event was accepted; current state never reconstructs historical validity.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_request",

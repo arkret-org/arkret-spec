@@ -371,7 +371,7 @@ security_frontier_digest 的输入由 [`mls-security-frontier-registry.json`](..
 3. MLS group membership；
 4. 改变谁能取得当前或历史密钥的 encryption floor、content encryption scheme、history visibility / sharing policy。
 
-与当前或 pending leaf 无关的 device/Agent key、普通 capability、message/Strand metadata、moderation、display metadata、media/routing endpoint 和 contact/consent-only state MUST 排除。block/contact/consent 会立即禁止新 application message、call signal 与 Welcome，但除非其 accepted effect 同时 remove leaf，否则不单独触发 rekey。
+与当前或 pending leaf 无关的 device/Agent key、普通 capability、message/Strand metadata、moderation、display metadata、media/routing endpoint 和 contact/consent-only state MUST 排除。block、Contact或Consent只在各自被当前操作正式登记为authority gate的路径上立即禁止新 application message、call signal或Welcome；Personal DM只读取双方directional Contact heads，Consent变化对其无效。除非accepted effect同时remove leaf，否则这些变化不单独触发rekey。
 
 producer 不提交任意 Event/Seal ref 清单来定义 frontier。所有实现必须从相同 accepted state 得到逐字节相同的 canonical digest；未知 cell family 或无法闭合依赖时 fail closed。
 #### 2.5.1 Security binding payload
@@ -417,7 +417,7 @@ proof bundle 的所有 chunk 都 MUST NOT 携带 MLS leaves、leaf index、Group
 GroupInfo/ratchet tree 的获取只走 §5.1.1 的 group-state-material 合同；current/pending leaf set 仍由 verifier 的
 RFC 9420 state 持有。两条材料路径不得合并为服务端选择 leaf set 的私有 proof DTO。
 
-历史向量 id `ak.vector.mls.covered_seals_no_self_reference.v1` 为 registry 稳定性保留，但其当前
+当前向量 `ak.vector.mls.security_frontier_key_access_only.v1`
 断言是“普通 Seal/`seal_ref` 不进入 security frontier，active leaf revoke 必须进入”，不再测试已删除
 的 covered-seals accumulator。
 
@@ -865,7 +865,7 @@ Receiver MUST 按以下顺序验证：
 本节只适用于未启用 minimal-metadata profile 的 ordinary MLS encrypted Event。Receiver 在 `event-and-patch.md` signer dispatch 已唯一确定 Native Agent regime 后，MUST：
 
 1. 从 encrypted envelope 读取精确 `(group_id, epoch, group_state_ref)`，并证明 ref 是该 epoch accepted/winning state；不得用 current epoch 或同 epoch另一 fork补偿。
-2. 验证 `ak.schema.agent_signer_evidence.v1`：controller binding、authorize Event commitments、accepted-at state witness、有效区间、freshness 与可选 transparency proof。
+2. 只接受`verification_mode=historical_event`的`ak.schema.agent_signer_evidence.v1`：验证destination-signed Event admission receipt、Agent authority snapshot、key与Agent lifecycle witness、controller Account Authority gate，以及这些basis在receipt `accepted_at`的有效性；不得以current snapshot重建历史。按profile验证可选transparency proof。
 3. 要求 proof method byte-identical 等于 binding method，并用 binding raw key验证 detached JWS；proof transcript actor仍是Event `actor_id`，signer principal是 `executed_by ?? actor_id`。
 4. 在该historical group state的active leaves中找到恰好一个BasicCredential identity等于signer Agent DID。缺失、removed、non-basic或duplicate均拒绝。
 5. 要求该leaf `signature_key`与binding raw key逐字节相等。

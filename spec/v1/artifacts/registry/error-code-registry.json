@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-03.2",
+  "version": "2026-08-03.4",
   "codes": [
     {
       "code": "bad_json",
@@ -1039,7 +1039,7 @@
       "code": "direct_conversation_unavailable",
       "http_status": 409,
       "scope": "both",
-      "description": "Opaque failed_precondition sub-reason for direct-conversation resolution when the peer, accepted contact, holder consent, trust-domain binding, or no-create binding state cannot be disclosed. Requester-visible status, body and timing MUST NOT distinguish those causes; detail is holder-private audit only."
+      "description": "Opaque failed_precondition sub-reason for direct-conversation resolution when the peer, either directional Contact head/scope, trust-domain binding, or no-create binding state cannot be disclosed. Consent is not queried. Requester-visible status, body and timing MUST NOT distinguish those causes; detail is holder-private audit only."
     },
     {
       "code": "contact_request_not_pending",
@@ -1693,6 +1693,18 @@
       "http_status": 503,
       "scope": "endpoint",
       "description": "No fresh q=2f+1 certificate proves the current operation-control head or required journal availability. The operation remains pending/fail closed and no external effect, cancel, transfer or attempt advance is inferred from a local replica head."
+    },
+    {
+      "code": "operation_control_equivocation",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "A replica signed conflicting semantic value/lock digests for the same immutable one-vote slot, or one permanent effect-ledger identity was presented with a different effect_commitment_digest. Different carriers or valid quorum witness subsets for the same semantic commitment are duplicates, not equivocation. True conflicting material is quarantined."
+    },
+    {
+      "code": "operation_control_certificate_invalid",
+      "http_status": 422,
+      "scope": "endpoint",
+      "description": "A qDA, PBFT, qCOMMIT, ancestor-chain, ExecutionBundle or read certificate is structurally valid JSON but fails cross-binding, immutable replica membership, distinct-signer, canonical-order, threshold, journal-root, head-transcript or signature validation."
     },
     {
       "code": "membership_compensation_conflict",
@@ -2841,7 +2853,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "The ak.authority.direct_conversation_participant.v1 evaluator did not establish the immutable stable binding, exact participant, active membership, Realm/Strand/current-MLS-generation cross-binding, lifecycle, resource, consent, device or Agent gate required for the requested allowlisted action. The evaluator MUST NOT fall back to created_by, membership, a local projection row, Realm owner aggregation or an arbitrary Event/cell reference."
+      "description": "The ak.authority.direct_conversation_participant.v1 evaluator did not establish the immutable stable binding, exact participant, active membership, Realm/Strand/current-MLS-generation cross-binding, lifecycle, resource, both directional Contact heads/scopes, device or Agent gate required for the requested allowlisted action. Consent is not an authority source. The evaluator MUST NOT fall back to created_by, membership, a local projection row, Realm owner aggregation or an arbitrary Event/cell reference."
     },
     {
       "code": "direct_conversation_root_mask_violation",

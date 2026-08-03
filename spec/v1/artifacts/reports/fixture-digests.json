@@ -14,11 +14,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json",
-      "sha256": "bbb6390acb2d77b28225f8d14b4aa286b23410039e826bbe126711abfc1320cf"
+      "sha256": "d2e04b37dca6dd7e0951be55955247bcdf8c797386ff5fdcd7ab337af901ed64"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
-      "sha256": "eb2b8a721d534a7ea1f15582c1c3a0a034e93408742f3c9eb3b6d3983397d6b2"
+      "sha256": "fce08301ef8052ba9a5958011cc011a00556b4c24b5ef85a23d1f005436dda19"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
@@ -106,7 +106,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "d25e0bf86313990ae4c986b2823d89ad03e651243543a90a204b5366e50230b5"
+      "sha256": "31497d39e77e7b30373d6a6b280c7ee6add4d17bd6de89d354dd041a5be8399d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
@@ -134,15 +134,15 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "429a730c363c6c7d3b5826e5fc30c68712e648508d0e310269ebdf5962a20689"
+      "sha256": "4e4fbe722e82d204bc42a24acddd9c92a2960d8f611371d2b361c7dd5d29eb86"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "1ffe95ae725182a65aa4efa30d8b77047be8ad51f74c378efba8547aa52bd0af"
+      "sha256": "d78d19c764691e1ce1a99405533c68d2de30a2a440ce02179ca7258a32acd96a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hash-transition-fixture.json",
-      "sha256": "f6cebcc2bea4cfd96cbf156188564905a893a2af5bcd4d1db23a9b89b2e4d90d"
+      "sha256": "bb89a052d084818992b4c1ffb9140edba3d895c84b86844d2e91457fc2c52fe7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
@@ -174,7 +174,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "59f336963e269245c6e39c8745a3f2a2fab4d8065fcbd8c3066a8fe9d4b58a25"
+      "sha256": "f25e31ffde092ab2d7cbe63240bad9cd50335dbe5598e68f2d802adcf396e9b2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
@@ -214,7 +214,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/operation-control-pbft-fixture.json",
-      "sha256": "5177ef037ed4820e7d90456543b0d513979504726f646d5807c653b5b745b2dd"
+      "sha256": "53285531dec5ef955f88502f10e810c22b629609050f353989f1297e946bfd62"
     },
     {
       "path": "spec/v1/artifacts/fixtures/operation-registry-coverage-fixture.json",
@@ -234,7 +234,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",
-      "sha256": "ab9d61be11ec83914ea25a49ac2d51ddccc8b21a3e3465f1af582f7bc027e118"
+      "sha256": "bcd1846215ca5b0bbcf72394f7b249069c25137a6194ad46be040cea03a572d9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",

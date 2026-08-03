@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 109,
+  "audited_occurrence_count": 122,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -69,6 +69,37 @@
       "disposition": "polymorphic_container",
       "material_families": ["proof", "attestation", "commitment"],
       "reason": "Returns the registered composite Agent signer evidence object."
+    },
+    {
+      "file": "agent-signer-evidence.schema.json",
+      "key": "admission_evidence",
+      "occurrences": 3,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "commitment"],
+      "reason": "Closed composite of the Agent authority snapshot, privacy-minimal controller Account Authority gate and their exact digest."
+    },
+    {
+      "file": "agent-signer-evidence.schema.json",
+      "key": "admission_evidence_digest",
+      "occurrences": 2,
+      "disposition": "qualifier",
+      "reason": "Unambiguously names the JCS digest of the two-field admission evidence core; it is a commitment, not a second proof container."
+    },
+    {
+      "file": "agent-signer-evidence.schema.json",
+      "key": "current_admission_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "commitment"],
+      "reason": "Closed current-mode aggregate containing exact request observation and the three independently verified admission gates."
+    },
+    {
+      "file": "agent-signer-evidence.schema.json",
+      "key": "historical_event_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "commitment"],
+      "reason": "Closed historical-mode aggregate containing the destination-signed admission receipt and its exact admission-time evidence."
     },
     {
       "file": "did-binding-contracts.schema.json",
@@ -297,30 +328,6 @@
       "reason": "Declares conformance evidence kinds rather than a wire material instance."
     },
     {
-      "file": "peer-contact-delivery-request.schema.json",
-      "key": "contact_introduction_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation"],
-      "reason": "The union spans possession, consent, shared-membership, handle-claim, and authenticated-service material; its single-category alternatives use basis names."
-    },
-    {
-      "file": "peer-contact-delivery-request.schema.json",
-      "key": "introduction_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation"],
-      "reason": "Carries the registered contact introduction evidence union."
-    },
-    {
-      "file": "peer-contact-delivery-request.schema.json",
-      "key": "signer_key_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation"],
-      "reason": "Combines original device authorization Event proofs with source-service active-key attestations."
-    },
-    {
       "file": "sdk-conformance-claim.schema.json",
       "key": "evidence",
       "occurrences": 3,
@@ -440,19 +447,27 @@
     },
     {
       "file": "protocol-journey-wire.schema.json",
+      "key": "contact_introduction_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "Closed first-contact evidence union for locator, shared-Realm membership, verified handle claim, same-service or explicit-address policy evaluation."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "introduction_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "Carries the exact private first-contact evidence whose digest is committed by the signed request Event."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
       "key": "membership_compensation_submission_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
       "material_families": ["proof", "attestation", "commitment"],
       "reason": "Carries delegation, accepted-join proof, terminal certificate and single-use CAS material for membership compensation."
-    },
-    {
-      "file": "protocol-journey-wire.schema.json",
-      "key": "normal_basis_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "receipt", "commitment"],
-      "reason": "Carries the registered Contact basis evidence bundle for a normal response."
     },
     {
       "file": "protocol-journey-wire.schema.json",
@@ -490,6 +505,58 @@
       "occurrences": 1,
       "disposition": "derived_summary",
       "reason": "Commits the accepted participation scope evidence in the destination receipt without copying disclosure material."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "agent_signer_evidence_bundle_digest",
+      "occurrences": 1,
+      "disposition": "derived_summary",
+      "reason": "Commits the exact optional Agent signer evidence bundle carried by federation Event admission."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "compensation_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt", "commitment"],
+      "reason": "Carries the exact compensation authorization, acceptance and single-use terminal material for one cleanup Event."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "compensation_evidence_digest",
+      "occurrences": 1,
+      "disposition": "derived_summary",
+      "reason": "Commits the exact closed membership compensation evidence object used by the typed cleanup effect."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "direct_conversation_materialization_step_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "receipt", "commitment"],
+      "reason": "Defines the closed stage-specific receipt and proof inputs used to prepare immutable Direct Conversation Event drafts."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "membership_compensation_evidence_digest",
+      "occurrences": 1,
+      "disposition": "derived_summary",
+      "reason": "Commits the exact per-Event membership compensation evidence within the authorization projection."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "signer_key_evidence_digests",
+      "occurrences": 1,
+      "disposition": "derived_summary",
+      "reason": "Canonical digest set for request-level signer-key evidence used by Event admission."
+    },
+    {
+      "file": "protocol-journey-wire.schema.json",
+      "key": "step_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "receipt", "commitment"],
+      "reason": "Carries the closed stage-specific materialization evidence selected by the prepare request."
     }
   ]
 }

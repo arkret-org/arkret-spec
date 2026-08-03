@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.1",
+  "version": "2026-08-03.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-03T02:00:00Z",
+  "generated_at": "2026-08-03T09:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -331,7 +331,7 @@
       "applies_to_fixtures": [
         "agent-signer-evidence-fixture.json"
       ],
-      "description": "Executes the portable Agent signer evidence binding transcript and all positive, unresolved, revoked, superseded, freshness, witness and tamper cases.",
+      "description": "Executes the portable Agent signer evidence transcript across exact-request current admission, destination-receipted historical verification, three orthogonal lifecycle gates, canonical witnesses, MLS cross-binding and tamper cases.",
       "source_refs": [
         "spec/v1/zh/identity/key-management.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -1537,18 +1537,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.contact.direct_materialization_witness.v1",
-      "status": "active",
-      "domain": "contact",
-      "applies_to_fixtures": [
-        "direct-conversation-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.content.long_text_boundaries.v1",
       "status": "active",
       "domain": "content",
@@ -1737,7 +1725,7 @@
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "Leave, block, contact/consent and terminal gates suspend the immutable conversation; recovery reuses the same Realm and main Strand with a new active MLS generation and never automatically redelivers old epoch keys or history secrets.",
+      "description": "Leave, block, either directional Contact terminal and participant terminal gates suspend the immutable conversation; Consent is not consulted. Recovery reuses the same Realm and main Strand with a new active MLS generation and never automatically redelivers old epoch keys or history secrets.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
       ]
@@ -3422,7 +3410,7 @@
       "applies_to_fixtures": [
         "keypackage-lifecycle-fixture.json"
       ],
-      "description": "Peer KeyPackage claim requires both a participant signature bound to the exact request/service destination and the source-service HTTP Message Signature. Destination authority, contact, consent, capability, freshness and Direct Conversation no-last-resort gates fail closed behind one claim_failed surface without inventory leakage.",
+      "description": "Peer KeyPackage claim requires both a participant signature bound to the exact request/service destination and the source-service HTTP Message Signature. Destination authority, both directional Contact heads/scopes, capability, freshness and Direct Conversation no-last-resort gates fail closed behind one claim_failed surface without inventory leakage; Consent is not queried.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
@@ -3911,13 +3899,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.mls.covered_seals_no_self_reference.v1",
+      "vector_id": "ak.vector.mls.security_frontier_key_access_only.v1",
       "status": "active",
       "domain": "mls",
       "applies_to_fixtures": [
         "final-conformance-closure-fixture.json"
       ],
-      "description": "Historical vector id retained for compatibility. It now proves that MLS security_frontier_digest includes only registered key-access state: unrelated capability/metadata Seal changes and the DataEvent's own seal_ref do not change it, while an active MLS leaf revoke blocks sending until a new Commit covers the rederived frontier.",
+      "description": "Proves that MLS security_frontier_digest includes only registered key-access state: unrelated capability/metadata Seal changes and the DataEvent's own seal_ref do not change it, while an active MLS leaf revoke blocks sending until a new Commit covers the rederived frontier.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/crypto-media/encryption-and-audit.md",

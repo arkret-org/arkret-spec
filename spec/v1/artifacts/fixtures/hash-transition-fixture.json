@@ -13,12 +13,12 @@
     {
       "name": "dual_root_recompute",
       "vector_id": "ak.vector.hash_transition.dual_root_recompute.v1",
-      "old_suite": "json_jcs.sha256",
-      "new_suite": "json_jcs.blake3",
+      "old_suite": "sha256",
+      "new_suite": "blake3",
       "snapshot_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "expected": {
-        "previous_state_root_recomputed_with": "json_jcs.sha256",
-        "state_root_recomputed_with": "json_jcs.blake3",
+        "previous_state_root_recomputed_with": "sha256",
+        "state_root_recomputed_with": "blake3",
         "both_roots_required": true,
         "decision": "accept"
       }

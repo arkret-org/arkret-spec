@@ -115,9 +115,14 @@ fail closed。
 
 官方 SDK MUST 为跨多次 HTTP round trip 的安全流程提供单一高层入口，至少包括
 `resolve_or_create_direct_conversation(peer)`、`deactivate_agent(agent_id, reason)` 与
-`prepare_mls_security_commit(scope)`。调用方只持有服务返回的一个 durable `operation_id` 和闭合
-`next_action` variant；SDK 必须穷尽处理该 union，并在 restart/retry 后恢复同一 operation。产品代码
-不得自行分配第二组 Event id、Realm/main Strand、KeyPackage claim 或 MLS Commit draft。
+`prepare_mls_security_commit(scope)`。Direct Conversation 创建的授权是显式两阶段流程：SDK 先以
+`phase=prepare_authorization` 取得闭合的 `authorization_prepared` 本地 outcome、reservation、registry
+statement 与待签 authorization core，再由参与方签名并以同一 `operation_id + idempotency_key` 发起
+`phase=commit_authorization`。SDK MUST 穷尽处理 resolver 的 typed local outcome（包括
+`authorization_prepared`、`found`、`suspended`、`materializing`、`temporarily_unavailable`、
+需要创建与`tombstoned`终态），并在 restart/retry 后恢复同一 durable operation；服务不得再返回
+一个跨端点、可任意推进工作流的全局动作指令。产品代码不得自行分配第二组 Event id、Realm/main
+Strand、KeyPackage claim 或 MLS Commit draft。
 
 `deactivate_agent` 只 author 一个 controller-signed terminal lifecycle Event；
 `prepare_mls_security_commit` 从 accepted state 重算当前 `security_frontier_digest` 并构造含完整 RFC 9420
@@ -217,8 +222,12 @@ Receiver MUST 在解析任何验签 key 前先确定唯一 signer regime，不�
 
 每个 `status=active && reducer_input=true` 的 durable Event kind MUST 在 `event-kind-registry.json`
 声明完整 reducer contract。`plane` / `sealed` 固定 CBA 路由；`cell_writes[]` 是 reducer 内部目标集合，
-每项固定 `cell_family`、`cell_subject` 派生式、`lattice`、`bottom`、可选 `initial_value` 与必需
-`effect_projection`。这些声明不出现在 Event wire，producer 不能覆盖。
+每项固定 `cell_family`、`cell_subject` 派生式、`lattice`、`bottom`、可选 `initial_value`、可选
+`condition` 与必需 `effect_projection`。`condition` 是对已签名 Event 的封闭纯函数：payload 条件只允许
+`field_present | field_absent | field_equals | any_field_present`；需要由 critical semantic ref 选择投影时只允许
+`critical_ref_role_exact_count{role,count}`，它精确统计 `refs[]` 中 `critical=true` 且 role 相等的元素。不得读取
+unsigned、服务本地 row、到达顺序或外部 lookup 决定某项 registered write 是否存在。这些声明不出现在 Event wire，
+producer 不能覆盖。
 
 receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重算所有目标和 lattice op。
 任一 source 缺失、projection 无法求值、data/control plane 写反或目标间原子约束失败，分别以

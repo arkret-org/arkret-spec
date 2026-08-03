@@ -20,8 +20,7 @@
         ],
         "claim_nonce": "AAAAAAAAAAAAAAAAAAAAAA",
         "expires_at": "2026-07-31T00:05:00.000Z",
-        "proofs": [
-          {
+        "holder_acceptance_proof": {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
             "alg": "EdDSA",
@@ -30,15 +29,14 @@
             "audience": "did:webvh:z6mkfixture:ps.example",
             "proof_purpose": "holder_acceptance",
             "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
-          }
-        ]
+        }
       }
     },
     {
       "name": "self_keypackage_claim_rejects_missing_proof",
       "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
       "expect_valid": false,
-      "first_expected_error": "contains:proofs",
+      "first_expected_error": "contains:holder_acceptance_proof",
       "instance": {
         "target_principal_id": "did:webvh:z6mkfixture:bob.example",
         "intended_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
@@ -51,10 +49,10 @@
       }
     },
     {
-      "name": "self_keypackage_claim_rejects_multiple_proofs",
+      "name": "self_keypackage_claim_rejects_plural_proofs_field",
       "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
       "expect_valid": false,
-      "first_expected_error": "contains:proofs",
+      "first_expected_error": "contains:holder_acceptance_proof",
       "instance": {
         "target_principal_id": "did:webvh:z6mkfixture:bob.example",
         "intended_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
@@ -102,8 +100,7 @@
         ],
         "claim_nonce": "too-short",
         "expires_at": "2026-07-31T00:05:00.000Z",
-        "proofs": [
-          {
+        "holder_acceptance_proof": {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
             "alg": "EdDSA",
@@ -112,8 +109,7 @@
             "audience": "did:webvh:z6mkfixture:ps.example",
             "proof_purpose": "holder_acceptance",
             "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
-          }
-        ]
+        }
       }
     }
   ],
@@ -326,7 +322,7 @@
       ],
       "negative_mutations": [
         "missing_proof",
-        "multiple_proofs",
+        "plural_proofs_field",
         "open_proof_object",
         "wrong_audience",
         "wrong_proof_purpose",
@@ -377,7 +373,7 @@
         "source_service_not_requester_home_authority",
         "outer_service_signature_invalid",
         "contact_not_accepted",
-        "target_consent_missing",
+        "target_directional_contact_scope_missing",
         "required_capability_not_in_keypackage",
         "last_resort_allowed_true"
       ],
@@ -395,7 +391,7 @@
       "assertions": [
         "participant authorization and outer service authorization are both mandatory",
         "the participant signature binds the exact request and service/trust-domain destination",
-        "the destination independently enforces contact, consent, capability and authority gates",
+        "the destination independently enforces both directional Contact heads/scopes, capability and authority gates without consulting Consent",
         "Direct Conversation peer claim never falls back to a last-resort KeyPackage",
         "business failures do not expose target inventory or per-device reasons"
       ]
