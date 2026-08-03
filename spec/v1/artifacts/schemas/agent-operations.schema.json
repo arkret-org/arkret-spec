@@ -1134,6 +1134,10 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
           "description": "Authenticated controller PCR in which the provision Event must be authored. Present only while status is awaiting_controller_event."
         },
+        "allocation_handle": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/opaque_id",
+          "description": "Service-signed opaque allocation binding returned only by prepare and presented unchanged by commit."
+        },
         "controller_authorization_ref": {
           "$ref": "#/$defs/did_url"
         },
@@ -1172,7 +1176,7 @@
               "const": "awaiting_controller_event"
             }
           },
-          "required": ["controller_realm_id"],
+          "required": ["controller_realm_id", "allocation_handle"],
           "not": {
             "anyOf": [
               {
@@ -1202,7 +1206,14 @@
             }
           },
           "not": {
-            "required": ["controller_realm_id"]
+            "anyOf": [
+              {
+                "required": ["controller_realm_id"]
+              },
+              {
+                "required": ["allocation_handle"]
+              }
+            ]
           }
         }
       ],

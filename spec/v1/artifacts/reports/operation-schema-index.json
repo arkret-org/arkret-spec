@@ -757,7 +757,8 @@
             "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
             "schema_kind": null,
             "required": [
-              "controller_realm_id"
+              "controller_realm_id",
+              "allocation_handle"
             ],
             "properties": [
               "status"

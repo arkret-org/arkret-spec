@@ -15,10 +15,10 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10219,
+    "total_properties": 10220,
     "total_schema_documents": 155,
     "by_presence_class": {
-      "optional": 2922,
+      "optional": 2923,
       "optional_defaulted": 75,
       "required": 6856,
       "required_nullable": 94,
@@ -2573,6 +2573,7 @@
         "/$defs/agent_provision_outcome/oneOf/0/properties/status": "optional",
         "/$defs/agent_provision_outcome/oneOf/1/properties/status": "optional",
         "/$defs/agent_provision_outcome/properties/agent_id": "required",
+        "/$defs/agent_provision_outcome/properties/allocation_handle": "optional",
         "/$defs/agent_provision_outcome/properties/controller_authorization_ref": "required",
         "/$defs/agent_provision_outcome/properties/controller_realm_id": "optional",
         "/$defs/agent_provision_outcome/properties/expires_at": "optional",
@@ -2712,6 +2713,7 @@
         "/$defs/agent_pcr_recovery_state/properties/managed_frontier_ref",
         "/$defs/agent_pcr_recovery_state/properties/series_id",
         "/$defs/agent_pcr_recovery_state/properties/series_seq",
+        "/$defs/agent_provision_outcome/properties/allocation_handle",
         "/$defs/agent_provision_outcome/properties/controller_realm_id",
         "/$defs/agent_provision_outcome/properties/expires_at",
         "/$defs/agent_provision_outcome/properties/pairing_request_id",
