@@ -264,7 +264,7 @@ Server 端实现合规要点：
 - 若 server 为 capability 使用独立索引 / cache，MUST 与 Realm metadata、creator membership、create log、notary、reducer-profile cell 一起原子物化 authority-root cell；任一写入失败必须回滚整个 bootstrap unit。不得先返回 create 成功再异步补写 authority root。
 - 不允许通过 spec 之外的 REST 端点（如 `POST /spaces` 之类的私造 lifecycle 命令面）来兜底 bootstrap。此类端点违反 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md#21-rest-api-命名空间组织) 的"实现不得用未声明路径绕过 canonical operation"规则，且会让事件流上的 read-only consumer 看不到完整的 source-of-truth 事件。
 
-**Backfill / federation peer 一致性（normative）**：creator membership 是 `ak.realm.create` reducer 的第 2 条派生写，authority root 是第 5 条，因此回放签名 event 流即可得到 creator 的 `join` 与 Realm 的 authority root。consumer MUST 运行本节步骤 1–5 的全部注册 reducer writes，不得因为没有独立 `ak.member.state{join}` Event 就判定无成员，也不得因为没有独立授权 Event 就判定无 authority root。缺失/越界的 bootstrap 不得本地补造。
+**Backfill / federation peer 一致性（normative）**：creator membership 是 `ak.realm.create` reducer 的第 2 条派生写，authority root 是第 6 条，因此回放签名 event 流即可得到 creator 的 `join` 与 Realm 的 authority root。consumer MUST 运行本节步骤 1–6 的全部注册 reducer writes，不得因为没有独立 `ak.member.state{join}` Event 就判定无成员，也不得因为没有独立授权 Event 就判定无 authority root。缺失/越界的 bootstrap 不得本地补造。
 
 ### 2.6 Realm 终态 (`ak.realm.tombstone` / `ak.realm.destroy`)
 

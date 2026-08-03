@@ -71,7 +71,7 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 
 | 豁免类别 | 例子 | 权威定义位置 |
 | --- | --- | --- |
-| 算法 / 编码 profile id | `ak.rank.lexofractional.v1`、`ak.reducer.v1` | 定义文档（encoding.md §9、snapshot-schema.md）；它们不是 conformance profile，不进 conformance-profiles.json |
+| 算法 / 编码 profile id | `ak.rank.lexofractional.v1`、`ak.reducer.core.v1` | 定义文档（encoding.md §9、snapshot-schema.md）；它们不是 conformance profile，不进 conformance-profiles.json |
 | 设备验证方法名 | `ak.sas.v1`、`ak.qr.v1` | device-lifecycle.md（`ak.key.verification.request.methods` 词表） |
 | client-local scheme id（不进 wire 互操作面） | `ak.secret_storage.v1`、secret storage 的 `ak.mls.v1` | device-lifecycle.md / key-management.md |
 | 信封 scheme 常量 | `ak.blob.presign.v1` | media-and-blob.md §5.4.2（与已进 schema const 的 scheme 并存是允许的；进 schema const 后以 schema 为准）。**例外**：HPKE 封装 suite id（`ak.hpke_*`）已进 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)，按 registered 算法 agility suite 处理（与 signature / digest / mls-ciphersuite registry 并列），**不属**本豁免类别。 |

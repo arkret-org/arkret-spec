@@ -24,7 +24,7 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
 {
   "id": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "reducer_profile": "ak.reducer.v1",
+  "reducer_profile": "ak.reducer.core.v1",
   "security_class": "high_assurance",
   "schema_profile_refs": ["ak.profile.core_event_store.v1"],
   "frontier": {
@@ -91,7 +91,7 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
   "type": "snapshot_chunk",
   "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
   "index": 0,
-  "reducer_profile": "ak.reducer.v1",
+  "reducer_profile": "ak.reducer.core.v1",
   "items": [
     {
       "kind": "strand",
