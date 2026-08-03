@@ -4031,7 +4031,7 @@
             },
             "participation": {
               "type": "array",
-              "description": "`ak.profile.agent_participation_policy.v1` overlay (service-surface.md §10.1). Present when the agent session scope covers participation-aware scope. Each entry is isomorphic to agent_participation_entry ({participation_scope, selection, ceiling, effective}). The runtime MUST treat this array as a behavioral contract; the server still enforces capability grants, dispatcher gates and reducer checks as the hard boundary.",
+              "description": "`ak.profile.agent_participation_policy.v1` overlay (service-surface.md §10.1). Present when the agent session scope covers participation-aware scope. Each entry is isomorphic to agent_participation_entry ({target_scope, selection, version}). The runtime uses it to avoid disabled actions; the target still evaluates current policy, capability and lifecycle at action time and does not trust a copied ceiling/effective value.",
               "items": {
                 "$ref": "./agent-operations.schema.json#/$defs/agent_participation_entry"
               }

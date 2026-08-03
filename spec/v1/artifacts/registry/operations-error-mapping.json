@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-03.4",
+  "version": "2026-08-03.5",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -277,12 +277,9 @@
       "operation_id": "ak.self.agent.participation.resource.replace",
       "http_alias": "PUT /_arkret/self/agents/{agent_id}/participation",
       "operation_specific": [
-        "agent_participation_exceeds_ceiling",
-        "agent_participation_ceiling_unresolved",
-        "agent_requested_scope_commitment_invalid",
-        "participation_evidence_conflict"
+        "cas_conflict"
       ],
-      "description": "The requested selection is bounded by the immutable provision-derived ceiling and the deployment/Realm/Circle/Strand governance ceiling. A true bit outside either ceiling returns failed_precondition with reason=`agent_participation_exceeds_ceiling`; an unreadable provision or governance layer returns `agent_participation_ceiling_unresolved`."
+      "description": "expected_version must equal the Account Authority's current version for the exact agent/scope slot. First write uses zero; a mismatch returns cas_conflict and performs no write."
     },
     {
       "operation_id": "ak.self.agent.participation.resource.get",
@@ -1852,24 +1849,6 @@
       "http_alias": "POST /_arkret/self/contacts/scope-update",
       "operation_specific": ["contact_lineage_conflict", "contact_scope_stale"],
       "description": "Issuer-local version/predecessor conflicts quarantine; stale current proof cannot authorize an update or subsequent Contact-based create/send."
-    },
-    {
-      "operation_id": "ak.self.agent.participation.query.prepare_scope_evidence",
-      "http_alias": "POST /_arkret/self/agents/{agent_id}/participation/scope-evidence:prepare",
-      "operation_specific": ["participation_evidence_conflict"],
-      "description": "Challenge replay, target/verifier/audience mismatch and request-byte conflicts perform no canonical write."
-    },
-    {
-      "operation_id": "ak.peer.agent.participation.query.prepare_scope_evidence",
-      "http_alias": "POST /_arkret/peer/agents/participation/scope-evidence:prepare",
-      "operation_specific": ["participation_evidence_conflict"],
-      "description": "The target authority's signed challenge conflict semantics pass through the opaque peer relay unchanged."
-    },
-    {
-      "operation_id": "ak.peer.agent.participation.command.replace",
-      "http_alias": "POST /_arkret/peer/agents/participation:replace",
-      "operation_specific": ["participation_evidence_conflict", "agent_participation_exceeds_ceiling", "agent_participation_ceiling_unresolved"],
-      "description": "The target Realm authority rejects invalid private evidence, stale/forked ceilings or out-of-ceiling signed batches; the relay does not translate errors."
     },
     {
       "operation_id": "ak.peer.direct_conversation.operation_control.command.submit",

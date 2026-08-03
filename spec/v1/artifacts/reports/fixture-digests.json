@@ -10,7 +10,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
-      "sha256": "858f9572f7d37d95d72bc47b13c34b9f9e8656748f0d820d49c763b18390f6fb"
+      "sha256": "d713823a8842d71b603bbf6b99a8ec5002f9e790ff046267001f91af0f768331"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json",
@@ -22,7 +22,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "164bea85a5ffde962fa79efea811c920265ef678377212b833740b309b4e0f71"
+      "sha256": "5e7b544defa248c972000283724dcb622df80df70744ede7287c214a77a720e8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
@@ -242,7 +242,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json",
-      "sha256": "6f8400c0f8d0ec92bca881017c2739e3b2fbd27a9c989de1a2dbfd5bae951877"
+      "sha256": "c3daca452fc548aca593737d2e138e4bfa9a6c5633e666f97c05d1d4cb42a57d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",
@@ -278,7 +278,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "229df08a3fc02499edd09dee54fcec422b99f0f410ec5380c19456f643a47c8e"
+      "sha256": "89b2f148ea7c42383c71e7778ef7ba1275ce290acf98978dd62724f0df09a635"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

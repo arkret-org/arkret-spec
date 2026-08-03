@@ -279,6 +279,7 @@
           "ak.self.agent.grant.command.attach",
           "ak.self.agent.grant.resource.delete",
           "ak.self.agent.participation.resource.get",
+          "ak.self.agent.participation.resource.replace",
           "ak.self.agent.query.list",
           "ak.self.agent.resource.get",
           "ak.self.agent.sidecar.query.list",

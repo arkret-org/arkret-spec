@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-03.5",
+  "version": "2026-08-03.6",
   "codes": [
     {
       "code": "bad_json",
@@ -1683,12 +1683,6 @@
       "description": "A Contact fact forks an issuer-local version, skips a version, references a non-current predecessor, reuses a consumed request ref, or attempts to revive a tombstoned generation. The conflicting fact is quarantined."
     },
     {
-      "code": "participation_evidence_conflict",
-      "http_status": 409,
-      "scope": "endpoint",
-      "description": "A participation challenge or accepted target receipt was reused outside its exact agent/scope/commitment/target/verifier/audience binding, expired, or paired with different signed batch bytes. The target Realm authority performs no write."
-    },
-    {
       "code": "operation_control_quorum_unavailable",
       "http_status": 503,
       "scope": "endpoint",
@@ -1847,7 +1841,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "Evaluating `ak.self.agent.participation.resource.replace` required folding the immutable provision-derived ceiling with the deployment⊇Realm⊇Circle⊇Strand agent-participation ceiling, but one or more layers were in a bottom (⊥) / unresolvable state at the operation's basis. The fold MUST treat any unresolved layer as the most restrictive (empty selection / full deny) and the replace MUST `failed_precondition`; an unresolved layer MUST NOT be read as 'no declaration = no tightening'. See zh/authz/capabilities.md §5.4."
+      "description": "An Agent action or mention fanout requires the current target-local deployment/Realm/Circle/Strand participation policy, but one or more required layers are bottom (⊥), stale or unresolvable. The action-time gate treats the unresolved policy as all false. The controller's private selection remains stored unchanged. See zh/authz/capabilities.md §5.4."
     },
     {
       "code": "agent_participation_ceiling_widen",
@@ -1855,14 +1849,6 @@
         "state_resolution"
       ],
       "description": "Sub-reason for failed_precondition when a Realm/Circle/Strand agent_participation ceiling write would widen (enable a bit disabled by) its parent ceiling. The deployment ⊇ Realm ⊇ Circle ⊇ Strand ceiling chain is tighten-only (monotone). See zh/models/realm-and-space.md, zh/models/circle.md, zh/authz/capabilities.md §5.4."
-    },
-    {
-      "code": "agent_participation_exceeds_ceiling",
-      "applies_to": [
-        "state_resolution",
-        "service_call"
-      ],
-      "description": "Sub-reason for failed_precondition when a controller's ak.self.agent.participation.resource.replace selection enables a bit disabled by either the immutable provision-derived ceiling or the effective deployment/Realm/Circle/Strand governance ceiling. Effective participation = provision-derived ceiling ∩ governance ceiling ∩ selection. See zh/authz/capabilities.md §5.4."
     },
     {
       "code": "agent_paused",
@@ -1886,7 +1872,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "A native personal agent attempted to author ak.message.create / ak.reaction.add in a scope where its effective participation reply bit is false (no reply-enabled selection ∩ ceiling covering the scope). See zh/authz/capabilities.md §5.4 and zh/models/private-objects.md §4.1."
+      "description": "A native personal agent attempted to author ak.message.create in a scope where current controller selection and current target policy do not both enable reply_message. See zh/authz/capabilities.md §5.4 and zh/models/private-objects.md §4.1."
     },
     {
       "code": "agent_requested_scope_commitment_invalid",
@@ -1895,7 +1881,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "The complete immutable Agent requested_scope commitment is missing from accepted-at Agent DID history, differs from the service projection, or its domain-separated digest does not verify. Pairing, Realm grant admission, participation and agent session issuance MUST fail closed and MUST NOT treat a service-local Agent row as the authority source. See zh/identity/key-management.md section 3.6.1."
+      "description": "The complete immutable Agent requested_scope commitment is missing from accepted-at Agent DID history, differs from the service projection, or its domain-separated digest does not verify. Pairing, Realm grant admission and agent session issuance MUST fail closed and MUST NOT treat a service-local Agent row as the authority source. See zh/identity/key-management.md section 3.6.1."
     },
     {
       "code": "agent_runtime_request_conflict",

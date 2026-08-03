@@ -16,8 +16,7 @@
     { "$ref": "#/$defs/effect_value_core" },
     { "$ref": "#/$defs/consensus_envelope" },
     { "$ref": "#/$defs/execution_bundle" },
-    { "$ref": "#/$defs/participation_scope_evidence_prepare_request" },
-    { "$ref": "#/$defs/participation_replacement_batch" },
+    { "$ref": "#/$defs/participation_replace_request" },
     { "$ref": "#/$defs/membership_compensation_executor_delegation" },
     { "$ref": "#/$defs/membership_compensation_submission_evidence" },
     { "$ref": "#/$defs/mls_join_admission_receipt" },
@@ -574,68 +573,11 @@
         { "type": "object", "required": ["kind", "realm_id", "strand_id"], "properties": { "kind": { "const": "strand" }, "realm_id": { "$ref": "#/$defs/realm_id" }, "strand_id": { "$ref": "#/$defs/strand_id" } }, "additionalProperties": false }
       ]
     },
-    "participation_scope_evidence_prepare_request": {
+    "participation_replace_request": {
       "type": "object",
-      "required": ["base_batch_digest", "caller_id", "agent_id", "target_scope", "target_service_id", "verifier_id", "audience", "idempotency_key"],
-      "properties": { "base_batch_digest": { "$ref": "#/$defs/hash" }, "caller_id": { "$ref": "#/$defs/did" }, "agent_id": { "$ref": "#/$defs/did" }, "target_scope": { "$ref": "#/$defs/participation_scope" }, "target_service_id": { "$ref": "#/$defs/did" }, "verifier_id": { "$ref": "#/$defs/did" }, "audience": { "$ref": "#/$defs/opaque_id" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" } },
-      "additionalProperties": false
-    },
-    "participation_scope_evidence_challenge": {
-      "type": "object",
-      "required": ["domain", "challenge_id", "base_batch_digest", "caller_id", "agent_id", "target_scope", "target_service_id", "verifier_id", "audience", "issued_at", "expires_at", "signature"],
-      "properties": { "domain": { "const": "ak.participation.scope-evidence-challenge.v1" }, "challenge_id": { "$ref": "#/$defs/opaque_id" }, "base_batch_digest": { "$ref": "#/$defs/hash" }, "caller_id": { "$ref": "#/$defs/did" }, "agent_id": { "$ref": "#/$defs/did" }, "target_scope": { "$ref": "#/$defs/participation_scope" }, "target_service_id": { "$ref": "#/$defs/did" }, "verifier_id": { "$ref": "#/$defs/did" }, "audience": { "$ref": "#/$defs/opaque_id" }, "issued_at": { "$ref": "#/$defs/timestamp" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "signature": { "$ref": "#/$defs/signature" } },
-      "additionalProperties": false
-    },
-    "participation_scope_evidence": {
-      "oneOf": [
-        { "type": "object", "required": ["kind", "challenge", "suite_id", "recipient_key_ref", "enc", "ciphertext", "plaintext_digest"], "properties": { "kind": { "const": "inline_encrypted" }, "challenge": { "$ref": "#/$defs/participation_scope_evidence_challenge" }, "suite_id": { "$ref": "#/$defs/opaque_id" }, "recipient_key_ref": { "$ref": "#/$defs/did_url" }, "enc": { "$ref": "#/$defs/base64url" }, "ciphertext": { "$ref": "#/$defs/base64url" }, "plaintext_digest": { "$ref": "#/$defs/hash" } }, "additionalProperties": false },
-        { "type": "object", "required": ["kind", "receipt_id", "disclosure_digest", "commitment", "agent_id", "target_scope", "target_service_id", "verifier_id", "audience", "issued_at", "expires_at", "binding_digest", "signature"], "properties": { "kind": { "const": "accepted_target_receipt" }, "receipt_id": { "$ref": "#/$defs/opaque_id" }, "disclosure_digest": { "$ref": "#/$defs/hash" }, "commitment": { "$ref": "#/$defs/hash" }, "agent_id": { "$ref": "#/$defs/did" }, "target_scope": { "$ref": "#/$defs/participation_scope" }, "target_service_id": { "$ref": "#/$defs/did" }, "verifier_id": { "$ref": "#/$defs/did" }, "audience": { "$ref": "#/$defs/opaque_id" }, "issued_at": { "$ref": "#/$defs/timestamp" }, "expires_at": { "$ref": "#/$defs/timestamp" }, "binding_digest": { "$ref": "#/$defs/hash" }, "signature": { "$ref": "#/$defs/signature" } }, "additionalProperties": false }
-      ]
-    },
-    "participation_replacement_batch": {
-      "type": "object",
-      "required": ["agent_id", "target_scope", "selection", "scope_evidence", "expected_version", "basis", "grant_events", "revoke_events", "idempotency_key", "controller_signature"],
-      "properties": { "agent_id": { "$ref": "#/$defs/did" }, "target_scope": { "$ref": "#/$defs/participation_scope" }, "selection": { "$ref": "#/$defs/participation_bits" }, "scope_evidence": { "$ref": "#/$defs/participation_scope_evidence" }, "expected_version": { "type": "integer", "minimum": 0 }, "basis": { "type": "array", "items": { "$ref": "#/$defs/event_id" }, "minItems": 1, "uniqueItems": true }, "grant_events": { "type": "array", "items": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission" } }, "revoke_events": { "type": "array", "items": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission" } }, "idempotency_key": { "$ref": "#/$defs/opaque_id" }, "controller_signature": { "$ref": "#/$defs/signature" } },
-      "additionalProperties": false
-    },
-    "participation_replace_relay_request": {
-      "type": "object",
-      "required": ["original_signed_batch_bytes", "target_service_id", "transport_digest", "idempotency_key"],
-      "properties": { "original_signed_batch_bytes": { "$ref": "#/$defs/base64url" }, "target_service_id": { "$ref": "#/$defs/did" }, "transport_digest": { "$ref": "#/$defs/hash" }, "idempotency_key": { "$ref": "#/$defs/opaque_id" } },
-      "additionalProperties": false
-    },
-    "participation_replace_receipt": {
-      "type": "object",
-      "required": ["batch_digest", "scope_evidence_digest", "deployment_ceiling_digest", "deployment_ceiling_version", "accepted_version", "target_service_id", "accepted_at", "signature"],
-      "properties": { "batch_digest": { "$ref": "#/$defs/hash" }, "scope_evidence_digest": { "$ref": "#/$defs/hash" }, "deployment_ceiling_digest": { "$ref": "#/$defs/hash" }, "deployment_ceiling_version": { "type": "integer", "minimum": 1 }, "accepted_version": { "type": "integer", "minimum": 1 }, "target_service_id": { "$ref": "#/$defs/did" }, "accepted_at": { "$ref": "#/$defs/timestamp" }, "signature": { "$ref": "#/$defs/signature" } },
-      "additionalProperties": false
-    },
-    "deployment_ceiling_core": {
-      "type": "object",
-      "description": "Unsigned, digest-free deployment-ceiling transcript. Its canonical digest is computed over this exact core; neither the digest nor a completeness root appears inside the core.",
-      "required": ["domain", "slot_id", "target_service_id", "issuer", "issuer_verification_method", "version", "ceiling", "policy_basis", "issued_at", "expires_at"],
-      "properties": { "domain": { "const": "ak.participation.deployment-ceiling.v1" }, "slot_id": { "$ref": "#/$defs/opaque_id" }, "target_service_id": { "$ref": "#/$defs/did" }, "issuer": { "$ref": "#/$defs/did" }, "issuer_verification_method": { "$ref": "#/$defs/did_url" }, "version": { "type": "integer", "minimum": 1 }, "predecessor_digest": { "$ref": "#/$defs/hash" }, "ceiling": { "$ref": "#/$defs/participation_bits" }, "policy_basis": { "$ref": "#/$defs/hash" }, "issued_at": { "$ref": "#/$defs/timestamp" }, "expires_at": { "$ref": "#/$defs/timestamp" } },
-      "allOf": [ { "if": { "properties": { "version": { "const": 1 } }, "required": ["version"] }, "then": { "not": { "required": ["predecessor_digest"] } }, "else": { "required": ["predecessor_digest"] } } ],
-      "additionalProperties": false
-    },
-    "deployment_ceiling_signed_head": {
-      "type": "object",
-      "required": ["head_digest", "core", "signature"],
-      "properties": { "head_digest": { "$ref": "#/$defs/hash" }, "core": { "$ref": "#/$defs/deployment_ceiling_core" }, "signature": { "$ref": "#/$defs/signature" } },
-      "additionalProperties": false
-    },
-    "deployment_ceiling_completeness_core": {
-      "type": "object",
-      "description": "Closed, unsigned completeness transcript. completeness_root is computed over this exact core and therefore is intentionally absent here.",
-      "required": ["domain", "slot_id", "target_service_id", "checkpoint_issuer", "checkpoint_verification_method", "checkpoint_seq", "covered_through_version", "covered_through_head_digest", "fork_heads", "issued_at", "expires_at"],
-      "properties": { "domain": { "const": "ak.participation.deployment-ceiling-completeness.v1" }, "slot_id": { "$ref": "#/$defs/opaque_id" }, "target_service_id": { "$ref": "#/$defs/did" }, "checkpoint_issuer": { "$ref": "#/$defs/did" }, "checkpoint_verification_method": { "$ref": "#/$defs/did_url" }, "checkpoint_seq": { "type": "integer", "minimum": 1 }, "covered_through_version": { "type": "integer", "minimum": 1 }, "covered_through_head_digest": { "$ref": "#/$defs/hash" }, "fork_heads": { "type": "array", "items": { "$ref": "#/$defs/deployment_ceiling_signed_head" }, "minItems": 2, "uniqueItems": true }, "issued_at": { "$ref": "#/$defs/timestamp" }, "expires_at": { "$ref": "#/$defs/timestamp" } },
-      "additionalProperties": false
-    },
-    "deployment_ceiling_fork_repair": {
-      "type": "object",
-      "description": "The successor is the unique synthetic merge: predecessor_set equals the canonical-sorted fork head digests, successor.version is covered_through_version+1, and successor.predecessor_digest equals completeness_root. These cross-field equalities and the target-authority single-write CAS are mandatory evaluator checks.",
-      "required": ["domain", "completeness_core", "completeness_root", "predecessor_set", "successor", "successor_digest", "target_authority", "target_verification_method", "signature"],
-      "properties": { "domain": { "const": "ak.participation.deployment-ceiling-fork-repair.v1" }, "completeness_core": { "$ref": "#/$defs/deployment_ceiling_completeness_core" }, "completeness_root": { "$ref": "#/$defs/hash" }, "predecessor_set": { "type": "array", "items": { "$ref": "#/$defs/hash" }, "minItems": 2, "uniqueItems": true }, "successor": { "$ref": "#/$defs/deployment_ceiling_core" }, "successor_digest": { "$ref": "#/$defs/hash" }, "target_authority": { "$ref": "#/$defs/did" }, "target_verification_method": { "$ref": "#/$defs/did_url" }, "signature": { "$ref": "#/$defs/signature" } },
+      "description": "Controller-owned full replacement of one per-scope participation selection. The authenticated Account Authority is the sole selection authority; first write uses expected_version=0 and each accepted write increments by one.",
+      "required": ["target_scope", "selection", "expected_version"],
+      "properties": { "target_scope": { "$ref": "#/$defs/participation_scope" }, "selection": { "$ref": "#/$defs/participation_bits" }, "expected_version": { "type": "integer", "minimum": 0, "maximum": 9223372036854775806 } },
       "additionalProperties": false
     },
 

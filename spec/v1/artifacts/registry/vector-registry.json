@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.5",
+  "version": "2026-08-03.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-03T12:00:00Z",
+  "generated_at": "2026-08-03T15:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -225,7 +225,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.agent.participation.selection_within_ceiling.v1",
+      "vector_id": "ak.vector.agent.participation.selection_cas.v1",
       "status": "active",
       "domain": "agent",
       "applies_to_fixtures": [
@@ -5410,11 +5410,11 @@
       "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
     },
     {
-      "vector_id": "ak.vector.protocol_journey.participation_private_evidence.v1",
+      "vector_id": "ak.vector.protocol_journey.participation_selection_cas.v1",
       "status": "active",
       "domain": "protocol_journey",
       "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
-      "description": "Target-verifier-bound requested-scope challenge/receipt XOR, exact JCS/HPKE binding, transparent relay and five-bit ceiling admission.",
+      "description": "Controller-only five-bit per-scope selection replacement with Account Authority CAS versioning and action-time target policy enforcement.",
       "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
     },
     {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.9",
+  "version": "2026-08-03.10",
   "source_of_truth": false,
-  "generated_at": "2026-08-03T12:30:00Z",
+  "generated_at": "2026-08-03T15:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1250,121 +1250,35 @@
       }
     },
     {
-      "operation_id": "ak.self.agent.participation.query.prepare_scope_evidence",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_prepare_request",
-        "schema_kind": "object",
-        "required": [
-          "base_batch_digest",
-          "caller_id",
-          "agent_id",
-          "target_scope",
-          "target_service_id",
-          "verifier_id",
-          "audience",
-          "idempotency_key"
-        ],
-        "properties": [
-          "base_batch_digest",
-          "caller_id",
-          "agent_id",
-          "target_scope",
-          "target_service_id",
-          "verifier_id",
-          "audience",
-          "idempotency_key"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_challenge",
-        "schema_kind": "object",
-        "required": [
-          "domain",
-          "challenge_id",
-          "base_batch_digest",
-          "caller_id",
-          "agent_id",
-          "target_scope",
-          "target_service_id",
-          "verifier_id",
-          "audience",
-          "issued_at",
-          "expires_at",
-          "signature"
-        ],
-        "properties": [
-          "domain",
-          "challenge_id",
-          "base_batch_digest",
-          "caller_id",
-          "agent_id",
-          "target_scope",
-          "target_service_id",
-          "verifier_id",
-          "audience",
-          "issued_at",
-          "expires_at",
-          "signature"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.agent.participation.resource.replace",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replacement_batch",
+        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_request",
         "schema_kind": "object",
         "required": [
-          "agent_id",
           "target_scope",
           "selection",
-          "scope_evidence",
-          "expected_version",
-          "basis",
-          "grant_events",
-          "revoke_events",
-          "idempotency_key",
-          "controller_signature"
+          "expected_version"
         ],
         "properties": [
-          "agent_id",
           "target_scope",
           "selection",
-          "scope_evidence",
-          "expected_version",
-          "basis",
-          "grant_events",
-          "revoke_events",
-          "idempotency_key",
-          "controller_signature"
+          "expected_version"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_receipt",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
         "schema_kind": "object",
         "required": [
-          "batch_digest",
-          "scope_evidence_digest",
-          "deployment_ceiling_digest",
-          "deployment_ceiling_version",
-          "accepted_version",
-          "target_service_id",
-          "accepted_at",
-          "signature"
+          "ok",
+          "agent_id",
+          "entries"
         ],
         "properties": [
-          "batch_digest",
-          "scope_evidence_digest",
-          "deployment_ceiling_digest",
-          "deployment_ceiling_version",
-          "accepted_version",
-          "target_service_id",
-          "accepted_at",
-          "signature"
+          "ok",
+          "agent_id",
+          "entries"
         ],
         "closed": true
       }
@@ -5297,114 +5211,6 @@
             "closed": true
           }
         ]
-      }
-    },
-    {
-      "operation_id": "ak.peer.agent.participation.query.prepare_scope_evidence",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_prepare_request",
-        "schema_kind": "object",
-        "required": [
-          "base_batch_digest",
-          "caller_id",
-          "agent_id",
-          "target_scope",
-          "target_service_id",
-          "verifier_id",
-          "audience",
-          "idempotency_key"
-        ],
-        "properties": [
-          "base_batch_digest",
-          "caller_id",
-          "agent_id",
-          "target_scope",
-          "target_service_id",
-          "verifier_id",
-          "audience",
-          "idempotency_key"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_challenge",
-        "schema_kind": "object",
-        "required": [
-          "domain",
-          "challenge_id",
-          "base_batch_digest",
-          "caller_id",
-          "agent_id",
-          "target_scope",
-          "target_service_id",
-          "verifier_id",
-          "audience",
-          "issued_at",
-          "expires_at",
-          "signature"
-        ],
-        "properties": [
-          "domain",
-          "challenge_id",
-          "base_batch_digest",
-          "caller_id",
-          "agent_id",
-          "target_scope",
-          "target_service_id",
-          "verifier_id",
-          "audience",
-          "issued_at",
-          "expires_at",
-          "signature"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.agent.participation.command.replace",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_relay_request",
-        "schema_kind": "object",
-        "required": [
-          "original_signed_batch_bytes",
-          "target_service_id",
-          "transport_digest",
-          "idempotency_key"
-        ],
-        "properties": [
-          "original_signed_batch_bytes",
-          "target_service_id",
-          "transport_digest",
-          "idempotency_key"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_receipt",
-        "schema_kind": "object",
-        "required": [
-          "batch_digest",
-          "scope_evidence_digest",
-          "deployment_ceiling_digest",
-          "deployment_ceiling_version",
-          "accepted_version",
-          "target_service_id",
-          "accepted_at",
-          "signature"
-        ],
-        "properties": [
-          "batch_digest",
-          "scope_evidence_digest",
-          "deployment_ceiling_digest",
-          "deployment_ceiling_version",
-          "accepted_version",
-          "target_service_id",
-          "accepted_at",
-          "signature"
-        ],
-        "closed": true
       }
     },
     {

@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_participation_policy.v1",
-  "version": "2026-06-19",
+  "version": "2026-08-03",
   "suite": "agent_participation",
   "runner": {
     "kind": "named_suite",
@@ -10,7 +10,7 @@
     "ak.vector.agent.mention_selector.v1",
     "ak.vector.agent.participation.ceiling_tighten.v1",
     "ak.vector.agent.participation.effective_intersection.v1",
-    "ak.vector.agent.participation.selection_within_ceiling.v1",
+    "ak.vector.agent.participation.selection_cas.v1",
     "ak.vector.agent.participation.session_overlay.v1",
     "ak.vector.agent.participation.third_party_mention_gate.v1"
   ],
@@ -90,110 +90,9 @@
       "name": "effective_intersection",
       "vector_id": "ak.vector.agent.participation.effective_intersection.v1",
       "kind": "effective_participation",
-      "requested_scope": {
-        "actions": [
-          "ak.message.create",
-          "ak.reaction.add"
-        ],
-        "resources": [
-          {
-            "kind": "operation",
-            "operation": "ak.self.events.stream.subscribe"
-          }
-        ],
-        "constraints": [
-          {
-            "constraint_kind": "claim_based",
-            "constraint_subkind": "accountability",
-            "effect": "allow",
-            "accountability_required": true,
-            "approval_relation": "controller",
-            "approval_actor_ids": [
-              "did:webvh:z6mkfixture:alice.example"
-            ],
-            "applies_to_actions": [
-              "ak.message.create"
-            ]
-          }
-        ]
-      },
-      "derivation_variants": [
-        {
-          "name": "reply_missing_reaction",
-          "requested_scope": {
-            "actions": [
-              "ak.message.create"
-            ],
-            "resources": [
-              {
-                "kind": "operation",
-                "operation": "ak.self.events.stream.subscribe"
-              }
-            ]
-          },
-          "expected": {
-            "reply_message": true,
-            "reaction_add": false,
-            "reaction_remove": false,
-            "accept_third_party_mention": false,
-            "act_on_behalf": false
-          }
-        },
-        {
-          "name": "act_on_behalf_missing_constraint",
-          "requested_scope": {
-            "actions": [
-              "ak.message.create",
-              "ak.reaction.add"
-            ],
-            "resources": [
-              {
-                "kind": "operation",
-                "operation": "ak.self.events.stream.subscribe"
-              }
-            ]
-          },
-          "expected": {
-          "reply_message": true,
-          "reaction_add": true,
-          "reaction_remove": false,
-            "accept_third_party_mention": false,
-            "act_on_behalf": false
-          }
-        },
-        {
-          "name": "act_on_behalf_constraint_wrong_action",
-          "requested_scope": {
-            "actions": [
-              "ak.message.create",
-              "ak.reaction.add"
-            ],
-            "resources": [
-              {
-                "kind": "operation",
-                "operation": "ak.self.events.stream.subscribe"
-              }
-            ],
-            "constraints": [
-              {
-                "constraint_kind": "claim_based",
-                "constraint_subkind": "approval",
-                "effect": "require_review",
-                "approval_required": true,
-                "applies_to_actions": [
-                  "ak.reaction.add"
-                ]
-              }
-            ]
-          },
-          "expected": {
-            "reply_message": true,
-            "reaction_add": true,
-            "reaction_remove": false,
-            "accept_third_party_mention": false,
-            "act_on_behalf": false
-          }
-        }
+      "ordinary_capabilities": [
+        "ak.message.create",
+        "ak.reaction.add"
       ],
       "governance_ceiling": {
         "reply_message": true,
@@ -217,13 +116,6 @@
           "accept_third_party_mention": false,
           "act_on_behalf": false
         },
-        "materialized_grants": [
-          "ak.message.create",
-          "ak.reaction.add"
-        ],
-        "forbidden_grants": [
-          "ak.agent.act_on_behalf"
-        ],
         "after_reply_tighten": {
           "reply_message": false,
           "reaction_add": false,
@@ -240,38 +132,28 @@
         }
       },
       "assertions": [
-        "effective participation is the bitwise meet of the provision-derived ceiling, governance ceiling and controller selection",
-        "the provision ceiling is derived from the complete requested_scope rather than accepted as caller-supplied booleans",
-        "reply_message is derived from ak.message.create independently of reaction capabilities",
-        "act_on_behalf requires an approval or accountability constraint applicable to ak.message.create",
-        "governance cannot restore third-party mention omitted by the provision ceiling",
-        "reply grants materialize only when the effective reply bit is true",
-        "act-on-behalf is not granted when the ceiling disables it",
-        "tightening the ceiling revokes previously materialized reply grants",
+        "effective participation is the bitwise meet of the current governance/deployment ceiling and controller selection",
+        "the five controller selection bits are independent and are not derived from requested scope",
+        "participation is an additional action gate and never materializes a capability grant",
+        "act-on-behalf is denied when the current ceiling disables it",
+        "tightening the ceiling immediately disables the corresponding action gate",
         "unknown or stale ceiling source fails closed to no effective participation"
       ]
     },
     {
-      "name": "selection_within_ceiling",
-      "vector_id": "ak.vector.agent.participation.selection_within_ceiling.v1",
-      "kind": "selection_gate",
-      "requested_scope": {
-        "actions": [
-          "ak.message.create",
-          "ak.reaction.add"
-        ],
-        "resources": [
-          {
-            "kind": "operation",
-            "operation": "ak.self.events.stream.subscribe"
-          }
-        ]
+      "name": "selection_cas",
+      "vector_id": "ak.vector.agent.participation.selection_cas.v1",
+      "kind": "selection_cas",
+      "target_scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
       },
+      "initial_expected_version": 0,
       "governance_ceiling": {
         "reply_message": true,
         "reaction_add": true,
         "reaction_remove": false,
-        "accept_third_party_mention": true,
+        "accept_third_party_mention": false,
         "act_on_behalf": false
       },
       "selection": {
@@ -282,17 +164,22 @@
         "act_on_behalf": false
       },
       "expected": {
-        "outcome": "failed_precondition",
-        "reason": "agent_participation_exceeds_ceiling",
+        "stored_version": 1,
+        "effective": {
+          "reply_message": true,
+          "reaction_add": true,
+          "reaction_remove": false,
+          "accept_third_party_mention": false,
+          "act_on_behalf": false
+        },
         "capped_bits": [
           "accept_third_party_mention"
-        ],
-        "materialized_grants": []
+        ]
       },
       "assertions": [
-        "controller selection must be a subset of the provision-derived and governance effective ceiling",
-        "selection that enables third-party mention omitted by provision is rejected even when governance allows it",
-        "rejected selections create no capability grants"
+        "Account Authority stores the full controller selection without converting it into authority",
+        "target action enforcement intersects the stored selection with current governance",
+        "a capped selection bit grants no action and creates no capability grant"
       ]
     },
     {
@@ -310,21 +197,8 @@
         "accept_third_party_mention": false,
         "act_on_behalf": false
       },
-      "ceiling": {
-        "reply_message": true,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": true,
-        "act_on_behalf": false
-      },
+      "version": 7,
       "expected": {
-        "effective": {
-          "reply_message": true,
-          "reaction_add": true,
-          "reaction_remove": false,
-          "accept_third_party_mention": false,
-          "act_on_behalf": false
-        },
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_entry",
         "runtime_without_grant": "failed_precondition"
       },

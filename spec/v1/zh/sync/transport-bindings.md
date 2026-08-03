@@ -99,8 +99,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.peer.direct_conversation.operation_control.query.read_certificate` | 对exact signed request产生fresh `q=2f+1` operation-control head certificate；只证明读取。 |
 | `ak.gate.account.command.cancel_device_bootstrap` | 取消同一typed bootstrap transaction；bootstrap bearer+DPoP、closed response、exact replay/conflict。 |
 | `ak.self.contact.command.scope_update` | Contact issuer-local signed full-set scope replacement，固定`phase=prepare|commit`。 |
-| `ak.self.agent.participation.query.prepare_scope_evidence` / `ak.peer.agent.participation.query.prepare_scope_evidence` | 本地入口与远端透明relay取得target-signed single-use scope evidence challenge。 |
-| `ak.peer.agent.participation.command.replace` | 透明转发原始controller-signed participation replacement batch/evidence，并返回destination-signed receipt。 |
+| `ak.self.agent.participation.resource.replace` | controller 通过 bearer+DPoP 在自己的 Account Authority 原子替换一个 versioned per-scope selection；不产生 Realm Event、不走 peer relay。 |
 | `ak.peer.snapshot.query.manifest_head` | federation peer 获取 snapshot-assisted bootstrap 的 manifest head。 |
 | `ak.self.account.query.viewer` | 当前 holder 的账号主体自读；响应使用 signed handle claim / ref / digest。 |
 | `ak.self.account.command.update_profile` | 当前账号 profile 更新；`bio` 映射到 `profile_fields.bio`。 |

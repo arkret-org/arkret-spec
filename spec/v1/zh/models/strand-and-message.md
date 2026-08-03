@@ -807,13 +807,13 @@ Audience mention 的失败不得污染普通消息写入语义：实现 MAY 接�
 
 #### 9.4.5 Native agent 第三方 mention 投递 gate
 
-当一条 `ak.message.create` / `ak.message.revise`（含 direct mention 与 audience mention）的某个 mention target 是一个 **native personal agent** principal 时，dispatcher / reducer 在为该 agent 派生 mention notification 前 MUST 解析该 message effective_scope（Strand → Circle / Realm）针对该 agent 的 effective participation（immutable provision-derived ceiling ∩ deployment/Realm/Circle/Strand governance ceiling ∩ controller selection），并据 `accept_third_party_mention` 位决定投递。该位只有在 provision `requested_scope.actions[]` 含 `ak.event.read` 时才可能为真；治理 policy 不得补回创建时省略的 action：
+当一条 `ak.message.create` / `ak.message.revise`（含 direct mention 与 audience mention）的某个 mention target 是一个 **native personal agent** principal 时，dispatcher / reducer 在为该 agent 派生 mention notification 前 MUST 解析该 message effective_scope（Strand → Circle / Realm），并以当前 `controller selection ∩ deployment/Realm/Circle/Strand governance policy` 求出 participation gate。`accept_third_party_mention` 只决定是否允许第三方触发投递；requested scope、key scope、Realm capability、membership/history 与 E2EE access 仍是独立前置条件，任一缺失都拒绝投递：
 
 - mention 作者 == 该 agent 的 controller principal：照常投递（仍受该 agent 是否被授权读取该 scope 约束）。
 - mention 作者 != controller 且 effective `accept_third_party_mention=false`：MUST NOT 为该 agent 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入该 agent 的 `ak.self.events.stream.subscribe` 投影。该抑制只针对该 agent 自身；对 message 的其他人类 target、shared history、其它投影无影响。
 - effective `accept_third_party_mention=true`：照常投递，并继续受 `level=muted`、个人 blocklist、DND、rate-limit 等本节既有更高优先级规则约束（§9.4.1–§9.4.4）。
 
-该 gate 是 reducer / dispatcher 强制规则，不依赖 agent runtime 自觉；runtime 另从 session `scope_details.participation` 与 `ak.self.agent.participation.resource.get` 获得同一 effective 契约用于主动遵守。effective ceiling 未知或 stale 时 MUST fail closed 为不投递。
+该 gate 是 reducer / dispatcher 强制规则，不依赖 agent runtime 自觉；runtime 可从 session `scope_details.participation` 与 `ak.self.agent.participation.resource.get` 取得 selection/version 用于主动遵守，但 target MUST 以当前本地治理状态重新求交，不得信任客户端复制的 effective 值。任一 required policy source 未知或 stale 时 MUST fail closed 为不投递。
 
 求值时点与非追溯语义（normative）：
 

@@ -1385,13 +1385,6 @@
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000101",
         "idempotency_key": "agent-provision-prepare-001",
         "slug": "summary",
-        "participation_ceiling": {
-          "reply_message": true,
-          "reaction_add": true,
-          "reaction_remove": true,
-          "accept_third_party_mention": false,
-          "act_on_behalf": false
-        },
         "requested_scope": {
           "actions": [
             "ak.event.read",
@@ -1415,14 +1408,7 @@
         "phase": "prepare",
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000102",
         "idempotency_key": "agent-provision-prepare-002",
-        "slug": "summary",
-        "participation_ceiling": {
-          "reply_message": true,
-          "reaction_add": true,
-          "reaction_remove": true,
-          "accept_third_party_mention": false,
-          "act_on_behalf": false
-        }
+        "slug": "summary"
       }
     },
     {
@@ -1434,13 +1420,6 @@
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000103",
         "idempotency_key": "agent-provision-prepare-003",
         "slug": "circle-summary",
-        "participation_ceiling": {
-          "reply_message": true,
-          "reaction_add": true,
-          "reaction_remove": true,
-          "accept_third_party_mention": false,
-          "act_on_behalf": false
-        },
         "requested_scope": {
           "actions": [
             "ak.event.read"
@@ -1465,13 +1444,6 @@
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000104",
         "idempotency_key": "agent-provision-prepare-004",
         "slug": "ambiguous-service-scope",
-        "participation_ceiling": {
-          "reply_message": true,
-          "reaction_add": true,
-          "reaction_remove": true,
-          "accept_third_party_mention": false,
-          "act_on_behalf": false
-        },
         "requested_scope": {
           "actions": [
             "ak.self.events.stream.subscribe"
@@ -1499,13 +1471,6 @@
         "principal_control_realm_id": "ak:realm:019a7360-0000-7000-8000-000000000010",
         "allocation_handle": "agent-allocation-001",
         "slug": "summary",
-        "participation_ceiling": {
-          "reply_message": true,
-          "reaction_add": true,
-          "reaction_remove": true,
-          "accept_third_party_mention": false,
-          "act_on_behalf": false
-        },
         "requested_scope": {
           "actions": [
             "ak.event.read"

@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-03.6",
-  "generated_at": "2026-08-03T09:00:00Z",
+  "version": "2026-08-03.7",
+  "generated_at": "2026-08-03T15:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -3310,24 +3310,14 @@
         "ak.profile.personal_agent_provisioning.v1"
       ],
       "required_endpoints": [
-        "ak.self.agent.participation.query.prepare_scope_evidence",
-        "ak.peer.agent.participation.query.prepare_scope_evidence",
         "ak.self.agent.participation.resource.replace",
-        "ak.peer.agent.participation.command.replace",
         "ak.self.agent.participation.resource.get"
       ],
-      "required_event_kinds": [
-        "ak.capability.grant",
-        "ak.capability.revoke"
-      ],
+      "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": ["ak.schema.protocol_journey_wire.v1"],
       "wire_contract_refs": [
-        "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_prepare_request",
-        "schemas/protocol-journey-wire.schema.json#/$defs/participation_replacement_batch",
-        "schemas/protocol-journey-wire.schema.json#/$defs/deployment_ceiling_core",
-        "schemas/protocol-journey-wire.schema.json#/$defs/deployment_ceiling_completeness_core",
-        "schemas/protocol-journey-wire.schema.json#/$defs/deployment_ceiling_fork_repair"
+        "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_request"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -3338,16 +3328,11 @@
       "feature_discovery": {
         "required": [
           "agent_participation_ceiling_tightens",
-          "provision_ceiling_intersection",
           "effective_is_ceiling_meet_selection",
           "third_party_mention_gate",
-          "selection_within_ceiling_gate",
           "session_scope_details_participation",
-          "scope_evidence_target_verifier_bound",
-          "scope_evidence_challenge_or_receipt_closed_xor",
-          "peer_relay_byte_identical",
           "five_bit_ceiling_closed",
-          "deployment_ceiling_fork_fail_closed"
+          "selection_cas_version"
         ],
         "unsupported_optional": "fail closed; deny agent participation when the ceiling is unknown or stale"
       }

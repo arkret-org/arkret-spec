@@ -1014,7 +1014,8 @@ membership、相同 group id 或 root owner 均不足。
 `ak.mls.welcome.own_device`：Welcome recipient device 必须在该 participant 的当前 device authorization 中，
 KeyPackage/claim/nonce/commit/MLS group 必须与 active binding 和当前 epoch 精确匹配。该 action不得加入第三
 principal、对方的 device 或未知 device；这些情况也不能回退到宽 `ak.mls.welcome`。Native Personal Agent
-participant 还必须同时满足 immutable provision、runtime key 和 participation ceiling。
+participant 还必须同时满足 immutable provision、runtime key、独立 capability 及当前 participation
+selection/policy gate。
 
 participant leave/ban、Realm terminal 或 immutable main Strand terminal accepted 时，当前 participant
 MLS authoring authority 立即停止，同一 binding 投影为 `suspended`，不等待 retirement fact。恢复不得创建

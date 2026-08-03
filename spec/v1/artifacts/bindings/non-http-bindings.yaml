@@ -74,7 +74,6 @@ grpc:
       SidecarList: ak.self.agent.sidecar.query.list
       ParticipationSet: ak.self.agent.participation.resource.replace
       ParticipationGet: ak.self.agent.participation.resource.get
-      ParticipationScopeEvidencePrepare: ak.self.agent.participation.query.prepare_scope_evidence
     EdgeApplet:
       Describe: ak.edge.applet.query.describe
       Ping: ak.edge.applet.query.ping
@@ -216,9 +215,6 @@ grpc:
       DeliverExecutionBundle: ak.peer.direct_conversation.operation_control.command.deliver
       QueryExecutionBundle: ak.peer.direct_conversation.operation_control.query.execution_bundle
       ReadCertificate: ak.peer.direct_conversation.operation_control.query.read_certificate
-    PeerAgent:
-      ScopeEvidencePrepare: ak.peer.agent.participation.query.prepare_scope_evidence
-      Replace: ak.peer.agent.participation.command.replace
     PeerKeys:
       KeyPackagesClaim: ak.peer.keys.keypackages.command.claim
       KeyPackagesClaimQuery: ak.peer.keys.keypackages.query.claim
@@ -377,8 +373,6 @@ mq:
     peer.direct_conversation.operation_control.command.deliver: ak.peer.direct_conversation.operation_control.command.deliver
     peer.direct_conversation.operation_control.query.execution_bundle: ak.peer.direct_conversation.operation_control.query.execution_bundle
     peer.direct_conversation.operation_control.query.read_certificate: ak.peer.direct_conversation.operation_control.query.read_certificate
-    peer.agent.participation.query.prepare_scope_evidence: ak.peer.agent.participation.query.prepare_scope_evidence
-    peer.agent.participation.command.replace: ak.peer.agent.participation.command.replace
     peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim
     peer.keys.keypackages.query.claim: ak.peer.keys.keypackages.query.claim
     peer.snapshot.query.manifest_head: ak.peer.snapshot.query.manifest_head
@@ -407,7 +401,6 @@ mq:
     self.agent.sidecar.query.list: ak.self.agent.sidecar.query.list
     self.agent.participation.resource.replace: ak.self.agent.participation.resource.replace
     self.agent.participation.resource.get: ak.self.agent.participation.resource.get
-    self.agent.participation.query.prepare_scope_evidence: ak.self.agent.participation.query.prepare_scope_evidence
     self.contact.command.request: ak.self.contact.command.request
     self.contact.command.respond: ak.self.contact.command.respond
     self.contact.command.reject: ak.self.contact.command.reject

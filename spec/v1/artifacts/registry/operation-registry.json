@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.9",
+  "version": "2026-08-03.10",
   "source_of_truth": false,
-  "generated_at": "2026-08-03T12:30:00Z",
+  "generated_at": "2026-08-03T15:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -125,8 +125,6 @@
         "ak.peer.events.query.frontier",
         "ak.peer.invites.command.submit",
         "ak.peer.contacts.command.submit",
-        "ak.peer.agent.participation.query.prepare_scope_evidence",
-        "ak.peer.agent.participation.command.replace",
         "ak.peer.keys.keypackages.command.claim",
         "ak.peer.keys.keypackages.query.claim",
         "ak.peer.snapshot.query.manifest_head",
@@ -457,7 +455,6 @@
         "ak.self.agent.sidecar.command.ensure",
         "ak.self.agent.sidecar.resource.get",
         "ak.self.agent.sidecar.query.list",
-        "ak.self.agent.participation.query.prepare_scope_evidence",
         "ak.self.agent.participation.resource.replace",
         "ak.self.agent.participation.resource.get"
       ],
@@ -942,21 +939,6 @@
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_list"
     },
     {
-      "operation_id": "ak.self.agent.participation.query.prepare_scope_evidence",
-      "http": "POST /_arkret/self/agents/{agent_id}/participation/scope-evidence:prepare",
-      "grpc": "SelfAgent/ParticipationScopeEvidencePrepare",
-      "mq": "self.agent.participation.query.prepare_scope_evidence",
-      "notes": "Canonical bearer+DPoP client entry for a target-verifier-bound private requested-scope challenge. Local targets reserve and sign the challenge directly; remote targets are transparently relayed without rewriting. The reservation is private durable state only and creates no Event, cell or participation slot.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_prepare_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_challenge",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "private_target_challenge_reservation_only"
-      }
-    },
-    {
       "operation_id": "ak.self.agent.participation.resource.replace",
       "http": "PUT /_arkret/self/agents/{agent_id}/participation",
       "grpc": "SelfAgent/ParticipationReplace",
@@ -965,14 +947,12 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
       "retry_safe": true,
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replacement_batch",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_receipt",
+      "notes": "Controller-only full replacement of one Account-Authority-owned per-scope selection. The authenticated bearer+DPoP session is the authority proof. First write uses expected_version=0; each accepted write increments the exact agent/scope slot by one. Governance ceilings and ordinary Agent capabilities are evaluated at action time and are not copied into this record.",
+      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_request",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
       "durable_effect": {
-        "kind": "event_log",
-        "event_kinds": [
-          "ak.capability.grant",
-          "ak.capability.revoke"
-        ]
+        "kind": "none",
+        "rationale": "controller_private_versioned_account_state"
       }
     },
     {
@@ -2267,38 +2247,6 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "delivers_existing_signed_fact_without_committing_a_local_event"
-      }
-    },
-    {
-      "operation_id": "ak.peer.agent.participation.query.prepare_scope_evidence",
-      "http": "POST /_arkret/peer/agents/participation/scope-evidence:prepare",
-      "grpc": "PeerAgent/ParticipationScopeEvidencePrepare",
-      "mq": "peer.agent.participation.query.prepare_scope_evidence",
-      "notes": "Peer-authenticated transparent relay to the target Realm authority for one private requested-scope challenge. It forwards the original closed request, cannot decrypt disclosure material, and returns the target-signed outcome unchanged.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_prepare_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_challenge",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "transparent_private_challenge_relay"
-      }
-    },
-    {
-      "operation_id": "ak.peer.agent.participation.command.replace",
-      "http": "POST /_arkret/peer/agents/participation:replace",
-      "grpc": "PeerAgent/ParticipationReplace",
-      "mq": "peer.agent.participation.command.replace",
-      "notes": "Peer-authenticated byte-identical relay of the original controller-signed ParticipationReplacementBatch to its target Realm authority. The relay cannot decrypt, re-sign, rewrite or split the batch and returns the destination-signed accepted receipt unchanged.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "idempotency_key",
-      "retry_safe": true,
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_relay_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_receipt",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "transparent_signed_batch_relay"
       }
     },
     {

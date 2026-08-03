@@ -29,12 +29,12 @@
       "reject": "Unsigned peer identity, an open peer shape, a request ref consumed by two bases, Private Consent as Contact authority, or a stale proof used to authorize create/send."
     },
     {
-      "vector_id": "ak.vector.protocol_journey.participation_private_evidence.v1",
-      "class": "privacy_replay",
-      "given": "A target-signed single-use challenge or a still-fresh accepted target receipt bound to exact agent, scope, commitment, target, verifier and audience.",
-      "when": "The original signed replacement batch is submitted locally or transparently relayed to the target Realm authority.",
-      "then": "The target validates the closed JCS binding, HPKE AAD/info, five-bit ceilings and expected-version CAS, then returns a destination-signed receipt.",
-      "reject": "Relay decryption or rewriting, bare digest/ref evidence, challenge reuse with different bytes, omitted ceiling bits, forked deployment ceiling, or controller-private defaults used as authority."
+      "vector_id": "ak.vector.protocol_journey.participation_selection_cas.v1",
+      "class": "cas_retry",
+      "given": "An authenticated controller and the Account Authority's current version for one exact agent/scope selection slot.",
+      "when": "The controller submits the closed five-bit full replacement with expected_version equal to the current version.",
+      "then": "The Account Authority stores the selection and increments version exactly once; target action enforcement later intersects it with current policy and ordinary capability.",
+      "reject": "A stale expected_version, partial bit shape, non-controller caller, selection treated as a capability, Realm Event materialization, or peer relay."
     },
     {
       "vector_id": "ak.vector.protocol_journey.membership_compensation_single_use.v1",

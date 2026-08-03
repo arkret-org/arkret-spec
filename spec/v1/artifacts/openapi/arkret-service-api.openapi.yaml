@@ -344,16 +344,8 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_pairing_resolve_request_body
     AgentParticipationOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_participation_outcome
-    AgentParticipationReplaceReceipt:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_receipt
-    AgentParticipationReplaceRelayRequestBody:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_relay_request
     AgentParticipationReplaceRequestBody:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/participation_replacement_batch
-    AgentParticipationScopeEvidenceChallenge:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_challenge
-    AgentParticipationScopeEvidencePrepareRequestBody:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_prepare_request
+      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_request
     AgentPauseRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_pause_request_body
     AgentProvisionOutcome:
@@ -1327,7 +1319,6 @@ components:
               - bootstrap_idempotency_conflict
               - contact_scope_stale
               - contact_lineage_conflict
-              - participation_evidence_conflict
               - operation_control_quorum_unavailable
               - operation_control_equivocation
               - operation_control_certificate_invalid
@@ -9507,7 +9498,7 @@ paths:
   /_arkret/self/agents/{agent_id}/participation:
     put:
       operationId: ak.self.agent.participation.resource.replace
-      description: Set an agent's participation selection for a scope (controller-self only). The selection is bounded by both the immutable provision-derived ceiling and the deployment/Realm/Circle/Strand governance ceiling; policy cannot restore a bit omitted at provision time.
+      description: Replace one controller-private per-scope participation selection at its Account Authority. First write uses expected_version=0; successful writes increment by one. Selection grants no capability and is intersected with current target policy at action time.
       security:
       - bearerAuth: []
         dpopProof: []
@@ -9523,7 +9514,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentParticipationReplaceReceipt'
+                $ref: '#/components/schemas/AgentParticipationOutcome'
       requestBody:
         required: true
         content:
@@ -9532,7 +9523,7 @@ paths:
               $ref: '#/components/schemas/AgentParticipationReplaceRequestBody'
     get:
       operationId: ak.self.agent.participation.resource.get
-      description: Get an agent's resolved participation policy (controller-self only).
+      description: Get the Account Authority's current versioned per-scope participation selections (controller-self only).
       security:
       - bearerAuth: []
         dpopProof: []
@@ -9544,86 +9535,11 @@ paths:
           type: string
       responses:
         '200':
-          description: Resolved participation policy
+          description: Current participation selections
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentParticipationOutcome'
-  /_arkret/self/agents/{agent_id}/participation/scope-evidence:prepare:
-    post:
-      operationId: ak.self.agent.participation.query.prepare_scope_evidence
-      security:
-      - bearerAuth: []
-        dpopProof: []
-      summary: Reserve verifier-bound private participation scope evidence.
-      parameters:
-      - in: path
-        name: agent_id
-        required: true
-        schema:
-          type: string
-          pattern: ^did:[a-z0-9]+:[^\s#?]+$
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AgentParticipationScopeEvidencePrepareRequestBody'
-      responses:
-        '200':
-          description: Target-signed single-use challenge.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentParticipationScopeEvidenceChallenge'
-  /_arkret/peer/agents/participation/scope-evidence:prepare:
-    post:
-      operationId: ak.peer.agent.participation.query.prepare_scope_evidence
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Relay a scope-evidence reservation to the target Realm service.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AgentParticipationScopeEvidencePrepareRequestBody'
-      responses:
-        '200':
-          description: Destination-signed challenge returned unchanged.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentParticipationScopeEvidenceChallenge'
-  /_arkret/peer/agents/participation:replace:
-    post:
-      operationId: ak.peer.agent.participation.command.replace
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Relay exact controller-signed participation replacement bytes.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AgentParticipationReplaceRelayRequestBody'
-      responses:
-        '200':
-          description: Destination-signed accepted receipt returned unchanged.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentParticipationReplaceReceipt'
   /_arkret/gate/account/oidc/callback:
     servers:
     - url: https://{host}

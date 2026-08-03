@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-03.2",
+  "version": "2026-08-03.3",
   "source_of_truth": true,
   "description": "Closed static traceability map for Personal A-J, cross-journey CJ01-CJ22 and product journey PJ01-PJ18. It is not an authority source and contains no revision, execution or release evidence.",
   "closed_world": true,
@@ -49,14 +49,14 @@
     },
     "participation_and_attribution": {
       "prose_refs": ["spec/v1/zh/identity/account-lifecycle.md", "spec/v1/zh/sync/service-api-schema.mdx"],
-      "schema_pointers": ["spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_prepare_request", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/participation_replacement_batch", "spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/deployment_ceiling_fork_repair"],
-      "operation_ids": ["ak.self.agent.participation.query.prepare_scope_evidence", "ak.peer.agent.participation.query.prepare_scope_evidence", "ak.self.agent.participation.resource.replace", "ak.peer.agent.participation.command.replace"],
-      "event_kinds": ["ak.capability.grant", "ak.capability.revoke", "ak.message.create", "ak.reaction.add", "ak.reaction.remove"],
+      "schema_pointers": ["spec/v1/artifacts/schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_request"],
+      "operation_ids": ["ak.self.agent.participation.resource.replace", "ak.self.agent.participation.resource.get"],
+      "event_kinds": ["ak.message.create", "ak.reaction.add", "ak.reaction.remove"],
       "action_ids": ["ak.message.create", "ak.reaction.add", "ak.reaction.remove"],
       "profile_ids": ["ak.profile.agent_participation_policy.v1"],
       "authority_source_ids": [],
-      "vector_ids": ["ak.vector.protocol_journey.participation_private_evidence.v1"],
-      "lint_rule_ids": ["participation_scope_closed_xor", "participation_evidence_closed_xor", "participation_five_bit_ceiling", "participation_peer_relay_byte_identical", "deployment_completeness_core_no_self_reference"],
+      "vector_ids": ["ak.vector.protocol_journey.participation_selection_cas.v1"],
+      "lint_rule_ids": ["participation_scope_closed_xor", "participation_five_bit_selection", "participation_selection_cas"],
       "consumers": ["arkret-rust-sdk", "soland", "soland-contracts", "chime", "yoface", "inkson", "sodmin", "cotest"]
     },
     "stable_dm_operation_control": {

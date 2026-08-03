@@ -3803,7 +3803,7 @@ Steps:
 1. Provision Agent DID `A`，controller DID 为 `C`；Agent DID Document 写唯一 `ArkretPrincipalControlRealm` service entry，分配 `PCR_A`，并只固定 immutable `requested_scope` 的域分离 digest；完整 scope 由 controller-private disclosure 出示，controller 已有 `PCR_C`。
 2. Controller 按 delegation 创建 `PCR_A` genesis，并写 Agent profile/key/lifecycle facts。
 3. Provisioning 的单一 `ak.agent.provision` Event 写入 `PCR_C`，并原子投影 provisioning、accountability 与 selector facts；无论 `requested_scope` 是否列出内容 action 或显式内容 resource selector，都不得产生 pending / active capability grant。内容授权只能由后续独立、写入对应受治理 Realm 的 `ak.capability.grant` Event 产生；CapabilityGrantBody 无内层签名，唯一 durable issuer signature 是 Event envelope proof。operation/service scope 同样不生成隐式 `ak.event.read` 或其它内容 grant。
-4. 变体 A：实现把 `PCR_C` deterministic id 当作 Agent PCR；变体 B：在 `PCR_A` 或 `PCR_C` id 上创建缺 PCR marker、restricted history、MLS profile 或任一 E2EE floor 的 Realm；变体 C：服务端以 Agent DID 伪造 proof，省略 `executed_by=C` / `authorization_ref`，或引用的 delegation purpose/resource scope 不覆盖目标 Event kind/PCR；变体 D：把 `requested_scope` 当作 Realm grant、在 provisioning 时物化内容权限，或在后续 Realm grant / participation 中允许超出 `requested_scope.actions[]` 的 action。
+4. 变体 A：实现把 `PCR_C` deterministic id 当作 Agent PCR；变体 B：在 `PCR_A` 或 `PCR_C` id 上创建缺 PCR marker、restricted history、MLS profile 或任一 E2EE floor 的 Realm；变体 C：服务端以 Agent DID 伪造 proof，省略 `executed_by=C` / `authorization_ref`，或引用的 delegation purpose/resource scope 不覆盖目标 Event kind/PCR；变体 D：把 `requested_scope` 当作 Realm grant、在 provisioning 时物化内容权限，或接受超出 `requested_scope.actions[]` 的后续 Realm grant。Participation selection 可独立保存，但不得补回任何缺失 authority。
 
 Expected:
 
@@ -4218,7 +4218,7 @@ Expected:
 - 第 2 步 `actor_id` / `executed_by` MUST 是 S 单一 DID，而非 "agent group"。
 - 第 3 步若 R 的 grant 不覆盖该内容或 R 未持 fresh approval,MUST fail closed。R 通过自己的 grant 可独立发布，但 attribution 仍是 R 单一 DID；不得复合 S+R。
 
-### 11.12 Vector: Participation Ceiling Tighten-Only
+### 11.12 Vector: Participation Policy Tighten-Only
 
 `vector_id`: `ak.vector.agent.participation.ceiling_tighten.v1`
 
@@ -4226,12 +4226,12 @@ Expected:
 
 Preconditions:
 
-- 部署顶层 ceiling 全 `false`。Realm `R` 经 Event kind `ak.realm.policy_bundle` 写入 payload path `agent_participation.native_agent`，值为 `{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。
+- 部署顶层 policy 为 `{reply_message:true,reaction_add:true,reaction_remove:false,accept_third_party_mention:true,act_on_behalf:false}`。Realm `R` 经 `ak.realm.policy_bundle` 写入同一个 required 五位 inner shape。
 
 Steps:
 
-1. Circle `C`(父级为 `R`)写入 `agent_participation = {reply:true, accept_third_party_mention:false, act_on_behalf:false}`。
-2. Strand `F`(`scope_circle_id=C`)写入 `agent_participation = {reply:true, accept_third_party_mention:false, act_on_behalf:false}`。
+1. Circle `C`(父级为 `R`)写入完整五位 policy，并把 `accept_third_party_mention` 收紧为 `false`。
+2. Strand `F`(`scope_circle_id=C`)写入与 Circle 相同的完整五位 policy。
 3. 变体 A：Circle `C` 尝试写入 `act_on_behalf:true`(放宽父 Realm `native_agent.act_on_behalf=false`)。
 4. 变体 B：Strand `F` 尝试写入 `accept_third_party_mention:true`(放宽父 Circle `C` 的 `false`)。
 
@@ -4241,7 +4241,7 @@ Expected:
 - 变体 A、B MUST fail closed(`failed_precondition`, `reason="agent_participation_ceiling_widen"`)，与 [`../models/circle.md` §7](../models/circle.md) 的 floor downgrade 同形。
 - 未显式声明 `agent_participation` 的内层 scope 继承父级 ceiling(不放宽)；effective ceiling 以从 Strand→Circle→Realm→deployment 逐级按位 AND 求值，对违反不变量的历史数据 fail closed。
 
-### 11.13 Vector: Participation Effective = Ceiling ∩ Selection
+### 11.13 Vector: Participation Is an Action-Time Deny Gate
 
 `vector_id`: `ak.vector.agent.participation.effective_intersection.v1`
 
@@ -4249,45 +4249,46 @@ Expected:
 
 Preconditions:
 
-- Realm `R` 的 `native_agent` ceiling `{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。Agent `A` 为 controller `Alice` 的 active native personal agent；其 accepted-at DID binding 固定 digest，verifier-private controller disclosure 给出 `requested_scope.actions=[ak.message.create, ak.reaction.add]`，且 mandatory constraints 含一条适用于 `ak.message.create` 的 `claim_based{constraint_subkind=accountability}` controller constraint，因此现场派生 provision ceiling=`{reply:true, accept_third_party_mention:false, act_on_behalf:true}`。
+- Realm `R` 的 current native-agent policy 允许 `reply_message/reaction_add`，拒绝 `reaction_remove/act_on_behalf`。Agent `A` 为 controller `Alice` 的 active native personal agent，并持有 `ak.message.create` 与 `ak.reaction.add` 的普通 capability。
 
 Steps:
 
-1. Alice 调用 `ak.self.agent.participation.resource.replace`，`target_scope=R`，selection=`{reply:true, accept_third_party_mention:false, act_on_behalf:true}`。
-2. 服务端从 accepted-at DID binding 验证 digest，并验证 verifier-private controller disclosure 后现场派生 provision ceiling，再求 effective selection = controller selection ∩ provision ceiling ∩ governance ceiling。
-3. 变体 A：之后 Realm ceiling 把 `reply` 收紧为 `false`。
-4. 变体 B：controller selection 来源缺失或 unknown。
-5. 变体 C：从 `requested_scope.actions[]` 删除 `ak.reaction.add`；变体 D：保留 `ak.message.create` 但删除 controller approval/accountability constraint；变体 E：constraint 仅适用于 `ak.reaction.add` 而不适用于 `ak.message.create`。
+1. Alice 以 `expected_version=0` 保存 selection=`{reply_message:true,reaction_add:true,reaction_remove:true,accept_third_party_mention:false,act_on_behalf:true}`。
+2. `A` 尝试发送 message、添加 reaction、删除 reaction 和 act-on-behalf。
+3. 变体 A：之后 Realm policy 把 `reply_message` 收紧为 `false`。
+4. 变体 B：current selection 或任一 required target policy 来源 unknown/stale。
+5. 变体 C：撤销 `ak.reaction.add` 的普通 capability，但 selection 与 policy 保持 `reaction_add=true`。
 
 Expected:
 
-- 第 2 步 effective = `{reply:true, accept_third_party_mention:false, act_on_behalf:false}`(`act_on_behalf` 被 ceiling 封掉)。`reply` effective=true MUST 物化为一条 subject=`A`、`actions=[ak.message.create, ak.reaction.add]`、resource selector=scope `R` 的 `ak.capability.grant`；`act_on_behalf` effective=false MUST NOT 物化 act-on-behalf grant。
-- 物化是幂等的：重复 set 收敛到同一 grant 集合；selection 改变导致的 grant 增删 MUST atomic，不得留半物化状态。
-- 变体 A：`reply` effective 翻为 `false` 后 MUST `ak.capability.revoke` 对应 grant。
-- 变体 B：任一来源缺失或 unknown，对应位 MUST fail closed 为 `false`。
-- 变体 C 派生 `reply=false`；变体 D、E 派生 `act_on_behalf=false`。实现不得接受调用方直接提供的预计算 provision 三位来绕过 actions/constraints 派生。
+- 第 1 步只保存 selection/version，不创建任何 Realm Event、capability grant 或 revoke。
+- 第 2 步 message 与 reaction-add 通过 participation gate；reaction-remove 与 act-on-behalf 被 current policy 拒绝。每个动作仍须独立通过其普通 capability、session、membership 与 lifecycle。
+- 变体 A 立即拒绝后续 message，不改写已保存 selection，也不产生 revoke。
+- 变体 B 对相关动作全 deny；变体 C 即使 participation 两侧都为 true，仍因普通 capability 缺失而拒绝。
 
-### 11.14 Vector: Participation Selection Within Ceiling
+### 11.14 Vector: Participation Selection CAS
 
-`vector_id`: `ak.vector.agent.participation.selection_within_ceiling.v1`
+`vector_id`: `ak.vector.agent.participation.selection_cas.v1`
 
 参见 [`../sync/service-surface.md` §10.1](../sync/service-surface.md)。
 
 Preconditions:
 
-- Realm `R` 的 `native_agent` ceiling `{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。Agent accepted-at DID binding 固定 digest，verifier-private controller disclosure 的 `requested_scope.actions=[ak.message.create, ak.reaction.add]` 且不含 `ak.event.read`，现场派生 provision ceiling=`{reply:true, accept_third_party_mention:false, act_on_behalf:false}`。
+- Agent `A` 在 Realm `R` 的 selection slot 尚未写入。
 
 Steps:
 
-1. Controller 调用 `ak.self.agent.participation.resource.replace`，`target_scope=R`，selection=`{reply:true, accept_third_party_mention:true, act_on_behalf:false}`；虽然 Realm governance 允许第三方 mention，但 provision ceiling 不允许。
-2. 变体 A：调用方不是该 agent 的 controller。
-3. 变体 B：该 Agent lifecycle 非 active(`paused` / `deactivated`)或 readiness 为 `not_ready` 且含 `runtime_key_missing`（从未完成首次配对）。
-4. 变体 C：`target_scope` 不可解析，或 controller 非该 Realm active member。
+1. Controller 调用 replace，body 为完整 `{target_scope:R,selection,expected_version:0}`；selection 可包含当前 target policy 拒绝的位。
+2. Controller 再以 `expected_version=1` 替换同一 slot。
+3. Controller 重放第 2 步，或两个设备同时提交 `expected_version=1` 的不同 selection。
+4. 变体 A：调用方不是该 agent 的 controller；变体 B：body 缺位或 scope 不是 closed realm/circle/strand shape。
 
 Expected:
 
-- 第 1 步 MUST fail closed(`failed_precondition`, `reason="agent_participation_exceeds_ceiling"`)，并在 error detail 中列出被封顶的位(`accept_third_party_mention`)，使 UI 能解释“为何不能开启”；MUST NOT 物化任何 grant。
-- 变体 A、B、C MUST fail closed。`ak.self.agent.participation.resource.replace` 仅 controller 可调用；`ak.self.agent.participation.resource.get` 可由 controller 或该 agent runtime 调用。
+- 第 1、2 步成功后 version 分别为 1、2；GET 返回 `{target_scope,selection,version}`。
+- 第 3 步只能有一个竞争写成功；其余返回 `cas_conflict` 且零写入。客户端 GET 最新 version、合并用户意图后重试。
+- target policy 不参与 replace admission；被 policy 封顶的 selection 位可以存储，但不会产生权限。
+- 变体 A、B fail closed。replace/get 都只允许 controller；Agent runtime 通过 session grant 获得所需快照。
 
 ### 11.15 Vector: Participation Session Overlay
 
@@ -4303,8 +4304,8 @@ Steps:
 
 Expected:
 
-- 第 2 步 `scope_details.participation[]` 每个条目 MUST 与 `agent-operations.schema.json#/$defs/agent_participation_entry`(`{target_scope, selection, ceiling, effective}`)同构，而非扁平三位；承载的是已解析 effective 策略。
-- runtime MUST 把该数组视为本 session 行为契约。但它不是安全边界：第 3 步即使 runtime 越权，reducer 因无对应 `ak.message.create` grant MUST `failed_precondition`；第三方 mention 在 dispatcher gate 已被拦下；`act_on_behalf` 越权被 receiver 的 `executed_by`/`authorization_ref` 校验拒绝。
+- 第 2 步 `scope_details.participation[]` 每个条目 MUST 与 `agent-operations.schema.json#/$defs/agent_participation_entry` 的 `{target_scope,selection,version}` 同构，不携带 ceiling/effective。
+- runtime 用该数组避免无效请求，但它不是安全边界：第 3 步仍由 target 读取 current policy 与 selection，并独立校验普通 capability；第三方 mention 在 dispatcher gate 拦截，`act_on_behalf` 还必须通过 receiver 的 `executed_by`/`authorization_ref` 校验。
 
 ### 11.16 Vector: Participation Third-Party Mention Gate (Non-Retroactive)
 

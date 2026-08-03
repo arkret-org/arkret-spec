@@ -385,7 +385,7 @@
         },
         "requested_scope": {
           "$ref": "#/$defs/agent_key_scope",
-          "description": "Controller-private projection of the required immutable global Agent key/session ceiling captured at provision time, not a grant. Content actions are the maximum actions that later key scopes, Realm-scoped grants, participation or sessions may allow; an omitted action cannot be added later. Provisioning never materializes content grants from this field. Operation/service resources constrain the service surface; explicit content resource selectors only further narrow later grants. Receiver authority comes from a valid agent-requested-scope-disclosure whose digest matches the accepted-at Agent DID commitment, not this service projection."
+          "description": "Controller-private projection of the required immutable global Agent key/session ceiling captured at provision time, not a grant. Content actions are the maximum actions that later key scopes, Realm-scoped grants and sessions may allow; an omitted action cannot be added later. Participation is a separate action-time deny gate and cannot add authority. Provisioning never materializes content grants from this field. Operation/service resources constrain the service surface; explicit content resource selectors only further narrow later grants. Receiver authority comes from a valid agent-requested-scope-disclosure whose digest matches the accepted-at Agent DID commitment, not this service projection."
         },
         "requested_scope_digest": {
           "$ref": "#/$defs/hash",
@@ -1039,8 +1039,7 @@
         "operation_id",
         "idempotency_key",
         "slug",
-        "requested_scope",
-        "participation_ceiling"
+        "requested_scope"
       ],
       "properties": {
         "phase": {
@@ -1067,10 +1066,7 @@
         },
         "requested_scope": {
           "$ref": "#/$defs/agent_key_scope",
-          "description": "Required immutable global Agent key/session ceiling, not a grant. Later key scopes, Realm grants, participation selections and session requests MAY narrow it but MUST NOT exceed its actions, resource selectors or mandatory constraints. An omitted action can never be added later. Provisioning never materializes content grants from this field. Operation/service resources constrain the service surface; explicit content resource selectors only further narrow later grants."
-        },
-        "participation_ceiling": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_bits"
+          "description": "Required immutable global Agent key/session ceiling, not a grant. Later key scopes, Realm grants and session requests MUST NOT exceed its actions, resource selectors or mandatory constraints. Participation is an independent action-time deny gate and cannot restore authority omitted here. Provisioning never materializes content grants from this field. Operation/service resources constrain the service surface; explicit content resource selectors only further narrow later grants."
         },
         "allocation_handle": {
           "$ref": "./protocol-journey-wire.schema.json#/$defs/opaque_id"
@@ -1754,21 +1750,14 @@
       "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_scope"
     },
     "agent_participation_replace_request_body": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_replacement_batch"
-    },
-    "agent_participation_scope_evidence_prepare_request_body": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_prepare_request"
-    },
-    "agent_participation_scope_evidence_prepare_outcome": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_scope_evidence_challenge"
+      "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_replace_request"
     },
     "agent_participation_entry": {
       "type": "object",
       "required": [
         "target_scope",
         "selection",
-        "ceiling",
-        "effective"
+        "version"
       ],
       "properties": {
         "target_scope": {
@@ -1777,13 +1766,10 @@
         "selection": {
           "$ref": "#/$defs/agent_participation"
         },
-        "ceiling": {
-          "$ref": "#/$defs/agent_participation",
-          "description": "Effective admission ceiling after intersecting the immutable provision-derived ceiling with the deployment/Realm/Circle/Strand governance ceiling."
-        },
-        "effective": {
-          "$ref": "#/$defs/agent_participation",
-          "description": "Final participation after intersecting ceiling with controller selection."
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Account Authority CAS version for this exact agent/scope selection."
         }
       },
       "additionalProperties": false

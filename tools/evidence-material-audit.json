@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 122,
+  "audited_occurrence_count": 115,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -382,20 +382,6 @@
       "reason": "Combines original device authorization Event proofs with source-service active-key attestations."
     },
     {
-      "file": "agent-operations.schema.json",
-      "key": "agent_participation_scope_evidence_prepare_outcome",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Names the registered operation outcome alias for the target-signed participation scope-evidence challenge."
-    },
-    {
-      "file": "agent-operations.schema.json",
-      "key": "agent_participation_scope_evidence_prepare_request_body",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Names the registered operation request alias for preparing target-bound participation scope evidence."
-    },
-    {
       "file": "protocol-journey-traceability.json",
       "key": "evidence_boundary",
       "occurrences": 1,
@@ -468,43 +454,6 @@
       "disposition": "polymorphic_container",
       "material_families": ["proof", "attestation", "commitment"],
       "reason": "Carries delegation, accepted-join proof, terminal certificate and single-use CAS material for membership compensation."
-    },
-    {
-      "file": "protocol-journey-wire.schema.json",
-      "key": "participation_scope_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "receipt", "commitment"],
-      "reason": "Closed XOR between inline encrypted disclosure evidence and a target-signed accepted receipt."
-    },
-    {
-      "file": "protocol-journey-wire.schema.json",
-      "key": "participation_scope_evidence_challenge",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Defines the target-signed challenge contract binding participation scope evidence to one verifier and audience."
-    },
-    {
-      "file": "protocol-journey-wire.schema.json",
-      "key": "participation_scope_evidence_prepare_request",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Defines the closed request used to reserve a target-bound participation evidence challenge."
-    },
-    {
-      "file": "protocol-journey-wire.schema.json",
-      "key": "scope_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "receipt", "commitment"],
-      "reason": "Carries the registered participation scope-evidence XOR within a replacement batch."
-    },
-    {
-      "file": "protocol-journey-wire.schema.json",
-      "key": "scope_evidence_digest",
-      "occurrences": 1,
-      "disposition": "derived_summary",
-      "reason": "Commits the accepted participation scope evidence in the destination receipt without copying disclosure material."
     },
     {
       "file": "protocol-journey-wire.schema.json",
