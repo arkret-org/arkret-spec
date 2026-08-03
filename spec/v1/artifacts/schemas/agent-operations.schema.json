@@ -653,22 +653,10 @@
     "account_device_pair_outcome": {
       "type": "object",
       "required": [
-        "bootstrap_transaction_id",
-        "canonical_request_digest",
-        "idempotency_key",
         "device_id",
         "authorized_event_ref"
       ],
       "properties": {
-        "bootstrap_transaction_id": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/opaque_id"
-        },
-        "canonical_request_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "idempotency_key": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/opaque_id"
-        },
         "device_id": {
           "$ref": "#/$defs/device_id"
         },

@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10222,
+    "total_properties": 10219,
     "total_schema_documents": 155,
     "by_presence_class": {
       "optional": 2922,
       "optional_defaulted": 75,
-      "required": 6859,
+      "required": 6856,
       "required_nullable": 94,
       "tristate": 272
     },
@@ -2490,11 +2490,8 @@
         "/$defs/account_device_enroll_request_body/properties/hpke_key": "required",
         "/$defs/account_device_enroll_request_body/properties/not_before": "optional",
         "/$defs/account_device_pair_outcome/properties/authorized_event_ref": "required",
-        "/$defs/account_device_pair_outcome/properties/bootstrap_transaction_id": "required",
-        "/$defs/account_device_pair_outcome/properties/canonical_request_digest": "required",
         "/$defs/account_device_pair_outcome/properties/device_grant": "optional",
         "/$defs/account_device_pair_outcome/properties/device_id": "required",
-        "/$defs/account_device_pair_outcome/properties/idempotency_key": "required",
         "/$defs/account_device_pair_outcome/properties/key_backup_hint": "optional",
         "/$defs/account_device_pair_request_body/properties/challenge_proof": "required",
         "/$defs/account_device_pair_request_body/properties/challenge_transcript": "optional",

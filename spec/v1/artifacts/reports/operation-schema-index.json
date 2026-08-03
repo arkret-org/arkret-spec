@@ -181,16 +181,10 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome",
         "schema_kind": "object",
         "required": [
-          "bootstrap_transaction_id",
-          "canonical_request_digest",
-          "idempotency_key",
           "device_id",
           "authorized_event_ref"
         ],
         "properties": [
-          "bootstrap_transaction_id",
-          "canonical_request_digest",
-          "idempotency_key",
           "device_id",
           "authorized_event_ref",
           "device_grant",
