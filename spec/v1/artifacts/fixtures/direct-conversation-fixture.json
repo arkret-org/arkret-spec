@@ -54,6 +54,7 @@
       "name": "managed_agent_basis_rejects_retired_three_ref_provisioning_chain",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_authorization_basis",
       "expect_valid": false,
+      "first_expected_error": "contains:is too long",
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {

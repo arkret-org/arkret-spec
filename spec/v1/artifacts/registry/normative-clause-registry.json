@@ -224,13 +224,16 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#5-control-move",
-      "section_digest": "sha256:6e11ec0e51f009d8e121f75d91d217593889b00e62152b1894fe70deab3a005f",
-      "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal; events in the same batch MUST NOT advance the authorization basis they rely on.",
+      "section_digest": "sha256:7d4852d141715fe85ab0791f4ef9ec74577b01f8bcf0072f5402ee3dc7b7ad5d",
+      "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with proposal receipts and pending-index obligations.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1",
         "ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1",
-        "ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1"
+        "ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1",
+        "ak.vector.identity.root_anchor_exclusivity.v1",
+        "ak.vector.identity.device_reanchor.v1",
+        "ak.vector.agent.managed_pcr_separation.v1"
       ]
     },
     {
@@ -435,7 +438,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-receipt-与-inclusion-obligation",
-      "section_digest": "sha256:9bd3d256110095353711551f098efa35f285bf14421ea6e82a441233901cde75",
+      "section_digest": "sha256:7fdb48cd301fcda0f94e1cc30ba18ae0a8a1769328d445e45ad02d7259554293",
       "requirement": "Realm proposal configuration must leave a realizable decision schedule: decision window does not exceed the absolute deadline, equality is valid only when deferral is disabled, and invalid create/update writes reject without state change.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -451,6 +454,18 @@
       "requirement": "Optional nullable fields normalize absent and null unless a conditional branch requires the field or x-arkret-presence-semantics=distinct explicitly assigns three business states.",
       "testability_grade": "audit",
       "test_plan": "tools/gen_property_presence_manifest.py must classify every tristate audit target with zero unresolved dispositions; the Rust SDK draft202012_runtime and Circle payload tests pin the sole distinct target and its Missing/Null/Value round-trip."
+    },
+    {
+      "clause_id": "AK-NC-031",
+      "status": "active",
+      "category": "state_machine",
+      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-receipt-与-inclusion-obligation",
+      "section_digest": "sha256:7fdb48cd301fcda0f94e1cc30ba18ae0a8a1769328d445e45ad02d7259554293",
+      "requirement": "An accepted closed-anchor Control Move, its proposal receipt and pending index are committed atomically; the covering Seal atomically applies lineage and cell effects and marks every covered pending digest sealed, rolling back if any digest is absent.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.agent.managed_pcr_separation.v1"
+      ]
     }
   ]
 }
