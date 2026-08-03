@@ -1488,6 +1488,7 @@
         "agent_id": "did:webvh:z6mkfixture:agent.example",
         "principal_control_realm_id": "ak:realm:019a7360-0000-7000-8000-000000000010",
         "controller_realm_id": "ak:realm:019a7360-0000-7000-8000-000000000011",
+        "allocation_handle": "agent-provision-allocation.fixture.signature",
         "controller_authorization_ref": "did:webvh:z6mkfixture:agent.example#controller-delegation",
         "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       }
