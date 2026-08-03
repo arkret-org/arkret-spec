@@ -110,9 +110,10 @@ defer_count, authority_set_ref, member_receipts[]
 Realm authority set。登记的完整闭合 genesis 单元（ordinary Realm、self-principal PCR、
 managed Agent PCR）中的每条 Event 虽然免 `seal_basis`，仍是 Control Move，因而在 durable
 proposal ingress 时 **MUST 各自具有 proposal receipt**；`AnchorUnit` transport context 只证明
-无 basis 单元的闭合形态，不得据此禁止或省略 `control_proposal_receipt`。receipt、canonical
-Event、pending Control index 与 wakeup MUST 按本文件的统一提交规则原子落库，不能先接受 Event
-再等待首 Seal 时补 pending row。
+无 basis 单元的闭合形态，不得据此让 durable ingress 省略 receipt。receipt、canonical Event、
+pending Control index 与 wakeup MUST 按本文件的统一提交规则原子落库，不能先接受 Event 再等待
+首 Seal 时补 pending row。这里的“具有”约束的是 durable ingress 事务，不等于所有来源都必须在
+`EventInitialSubmission.control_proposal_receipt` 中预先携带 receipt；wire 责任由下列两个来源决定。
 
 该 authority set 正由单元创建，不能循环要求尚未生效的 founding notary state 作为 receipt
 验证前提，但允许以下两个互斥且可独立验证的 ingress authority 来源：
@@ -125,12 +126,20 @@ Event、pending Control index 与 wakeup MUST 按本文件的统一提交规则�
 2. 否则，完成全量预准入并为同一有序单元签发 `AuthorizationLease` 的 Principal Server MAY
    签发 receipt；receipt 的 `authority_set_ref` MUST 等于这些 lease 的
    `authority_set_digest`，且每个 receipt 仍逐一绑定 exact Event digest，并以自身真实 admission
-   verification method 产生唯一 `member_receipts[0]`。
+   verification method 产生唯一 `member_receipts[0]`。此路径的 caller MUST 为完整单元逐项携带
+   同序 lease，MUST NOT 预填 `control_proposal_receipt`；admitting Principal Server 在重新验证
+   完整 lease-bound unit 后、提交事务内签发 receipt。这样 receipt 时间与 durable ingress 是同一
+   事实，也避免单 Event receipt 请求无法独立重建完整 genesis unit 的循环。
 
 第二条不是把 Principal Server 冒充为 founding notary，也不得与其它服务 receipt 拼成虚构
 notary quorum。两条路径都只确认 ingress，不产生授权、accepted state 或 finality；首个 accepted
 Seal 仍 MUST 由单元声明的 founding notary 签署并独立重算 genesis state。已有 accepted Realm
 authority、reanchor、recovery 或普通 Control Move 不得使用第二条例外。
+
+两条来源在 wire 上互斥：来源 1 的 caller 携带 authority-signed
+`control_proposal_receipt`；来源 2 的 caller 携带完整 anchor-unit lease set 且 receipt 字段为空，
+由同一 admitting server 在原子 ingress 中产生并返回 receipt。实现不得同时接受两种证据，也不得
+把来源 2 的 lease 当作可调用单 Event receipt endpoint 的凭据。
 
 Realm 可通过 `proposal_decision_window_ms`、`proposal_absolute_deadline_ms` 与
 `max_proposal_defers` 声明更严格的有效值；协议硬上限：
