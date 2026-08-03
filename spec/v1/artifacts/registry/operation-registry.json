@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.6",
+  "version": "2026-08-03.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-03T09:00:00Z",
+  "generated_at": "2026-08-03T09:00:01Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -544,17 +544,14 @@
       "notes": "Managed-DID (account-authority) device enrollment, device-lifecycle.md §5.4 / key-management.md §5.0.6. The authenticated session asks its designated enrollment authority to mint a service_attested ak.device.authorize for this session's own device; the authority signs with its persistent enrollment key (never the principal SSK) and returns the full Event. The caller submits it verbatim to POST /_arkret/self/events. Distinct from pair_device (§2.1), which lands an existing-device SAS/QR approval and carries a pairing_code; enroll_device is only the bootstrap / first-device path where no sibling device can approve. The authority MUST require actor_seq=1, a verified identity-creation binding receipt for the same principal/account, and no existing active device; a bare session grant or actor_seq>1 MUST NOT enroll a second long-term device. Later devices use pair_device or the recovery re-anchor strand.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "none",
-      "retry_safe": false,
-      "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.self.account.query.viewer"
-      },
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "full_body",
+      "retry_safe": true,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome",
       "durable_effect": {
         "kind": "none",
-        "rationale": "returns_signed_event_material_without_committing_it"
+        "rationale": "persists_byte_stable_signed_enrollment_outcome_without_committing_the_event"
       }
     },
     {

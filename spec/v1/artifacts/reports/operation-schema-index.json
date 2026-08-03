@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.6",
+  "version": "2026-08-03.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-03T09:00:00Z",
+  "generated_at": "2026-08-03T09:00:01Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
