@@ -3879,7 +3879,7 @@ Expected:
 
 Steps:
 
-1. Controller provision agent,`ak.identity.accountability_grant` 不声明 `expires_at`,`ak.agent.key.authorize` 不声明 `expires_at`,授予不带 temporal constraint 的低风险内容 grant(如 `ak.agent.draft.propose` + 显式 resource selector)。
+1. Controller provision agent；单一 `ak.agent.provision` 派生的 accountability projection 不声明 `expires_at`，`ak.agent.key.authorize` 不声明 `expires_at`，并授予不带 temporal constraint 的低风险内容 grant（如 `ak.agent.draft.propose` + 显式 resource selector）。
 2. 模拟长时间推移(超过任何常见部署 TTL,如 400 天)后,runtime 用 authorized key 签发 session 并执行 grant 内动作。
 3. Controller 执行 `ak.self.agent.command.pause`。
 4. 提交 `risk_tier=high` action 的 agent grant(如 act-on-behalf 链路)但不带 `expires_at`。

@@ -4378,7 +4378,7 @@
     },
     "direct_conversation_authorization_basis": {
       "type": "object",
-      "description": "Canonical authorization basis for creating a Direct Conversation. accepted_contact references the accepted contact facts; managed_agent_controller references the accepted managed-Agent provisioning/controller/runtime-key facts that bind the peer Agent to the requester controller.",
+      "description": "Canonical authorization basis for creating a Direct Conversation. accepted_contact carries exactly the accepted contact request/accept refs. managed_agent_controller carries exactly two unique accepted Event refs: the controller-authored ak.agent.provision Event, whose payload already binds the Agent, controller, delegation, accountability and selector facts, and the current active ak.agent.key.authorize Event. The retired accountability-grant plus selector-claim provisioning pair is invalid here.",
       "required": [
         "kind",
         "event_refs"
@@ -4435,8 +4435,8 @@
           "then": {
             "properties": {
               "event_refs": {
-                "minItems": 3,
-                "maxItems": 3
+                "minItems": 2,
+                "maxItems": 2
               }
             }
           }
