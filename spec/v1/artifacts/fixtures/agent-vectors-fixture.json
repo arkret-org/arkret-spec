@@ -281,13 +281,20 @@
             }
           ]
         },
-        "expected_digest": "sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042"
+        "participation_ceiling": {
+          "reply_message": false,
+          "reaction_add": false,
+          "reaction_remove": false,
+          "accept_third_party_mention": true,
+          "act_on_behalf": false
+        },
+        "expected_digest": "sha256:11ad19d7f056f01c389c8a6157d067ee2c8b3fad9b58bcc192babd75e3c10232"
       },
       "public_did_service_endpoint": {
         "realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
         "controller_did": "did:webvh:z6mkcontroller:controller.example",
         "authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
-        "requested_scope_digest": "sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042"
+        "requested_scope_digest": "sha256:11ad19d7f056f01c389c8a6157d067ee2c8b3fad9b58bcc192babd75e3c10232"
       },
       "assertions": [
         "agent provision operation id remains ak.self.agent.command.provision",
