@@ -206,6 +206,13 @@ Control Move 是写 control plane cell 的 Event，通常 MUST 携带 `seal_basi
 
 这两个例外不得推广到 batch 外、普通设备入册或其他 Control Move。机器执行闭包分别由 `ak.vector.identity.root_anchor_exclusivity.v1` 与 `ak.vector.identity.device_reanchor.v1` 覆盖。
 
+**无 basis 不等于 DataEvent（normative）**：上述 caller-proven closed anchor unit 中的 Event 仍是
+Control Move，并进入 §7.2 的 proposal receipt / pending / bounded-decision 轨道；只有在
+`EventSubmitContext=AnchorUnit` 已验证整个封闭有序单元时，wire validator 才可允许
+`seal_basis` 缺失而 `control_proposal_receipt` 存在。标准上下文中无 `seal_basis` 的 DataEvent
+仍 MUST 拒绝该 receipt。实现不得用“anchor 禁止 receipt”或“只有存在 `seal_basis` 才写 pending
+Control index”的启发式替代这个上下文判定。
+
 ```text
 ControlMove {
   event_id / event_digest / proofs
@@ -526,7 +533,10 @@ author 将互异 member receipt 按 `signature.verification_method` canonical �
    `received_at <= decision_due_at <= absolute_due_at`；set级字段与该计算不一致即拒绝；
 4. 按`single_did` / `threshold` / `mixed`当前profile计算互异member quorum；open-set按
    `(Realm, signer slot)`独立receipt，不得把互不相干leaves拼成threshold；
-5. 把canonical receipt set、accepted Event、pending index与wakeup原子提交。duplicate Event
+5. 把canonical receipt set、accepted Event、pending index与wakeup原子提交。closed anchor Event
+   不能因无 `seal_basis` 跳过该 pending index；覆盖它的 accepted Seal 必须在同一原子事务写入
+   Seal lineage / cell effects 并把每个 `delta[]` digest 从 pending 标记为 sealed，任一 digest
+   不存在时整笔 Seal 提交回滚。duplicate Event
    返回byte-identical receipt set；receipt集合、成员时间、顺序或签名不同均不得覆盖首次事实。
 
 `EventInitialSubmission.control_proposal_receipt` 与

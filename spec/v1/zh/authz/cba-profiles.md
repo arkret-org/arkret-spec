@@ -107,16 +107,30 @@ defer_count, authority_set_ref, member_receipts[]
 ```
 
 **闭合 genesis 的 ingress authority**：普通路径中的 `authority_set_ref` 来自已经生效的
-Realm authority set。仅对登记的完整闭合 genesis 单元（ordinary Realm、self-principal
-PCR、managed Agent PCR），该 authority set 正由单元创建，不能循环要求尚未生效的 founding
-notary 先签 receipt。此时，完成全量预准入并为同一有序单元签发
-`AuthorizationLease` 的 Principal Server MAY 签发 proposal receipt；receipt 的
-`authority_set_ref` MUST 等于这些 lease 的 `authority_set_digest`，且每个 receipt
-仍逐一绑定 exact Event digest，并以自身真实admission verification method产生唯一
-`member_receipts[0]`。这不是把Principal Server冒充为founding notary，也不得与其它服务receipt
-拼成虚构notary quorum。该例外只确认 ingress，不产生授权、accepted state 或 finality；
-首个 accepted Seal 仍 MUST 由单元声明的 founding notary 签署并独立重算 genesis state。
-已有 accepted Realm authority、reanchor、recovery 或普通 Control Move 不得使用此例外。
+Realm authority set。登记的完整闭合 genesis 单元（ordinary Realm、self-principal PCR、
+managed Agent PCR）中的每条 Event 虽然免 `seal_basis`，仍是 Control Move，因而在 durable
+proposal ingress 时 **MUST 各自具有 proposal receipt**；`AnchorUnit` transport context 只证明
+无 basis 单元的闭合形态，不得据此禁止或省略 `control_proposal_receipt`。receipt、canonical
+Event、pending Control index 与 wakeup MUST 按本文件的统一提交规则原子落库，不能先接受 Event
+再等待首 Seal 时补 pending row。
+
+该 authority set 正由单元创建，不能循环要求尚未生效的 founding notary state 作为 receipt
+验证前提，但允许以下两个互斥且可独立验证的 ingress authority 来源：
+
+1. 若 founding signer authority 可从单元外的已接受证据与候选 genesis 完整确定，则该 signer
+   MAY 直接签 receipt。managed Agent PCR 的唯一此类路径是：从候选 signed create 重算 founding
+   `NotaryValue` / `authority_set_ref`，再以 accepted Agent DID delegation 验证当前 controller
+   device；receipt signer 是 controller device，不能伪装成 Agent key。候选 create、Agent DID、
+   controller DID、Realm 与 `authorization_ref` 任一不闭合即 fail closed。
+2. 否则，完成全量预准入并为同一有序单元签发 `AuthorizationLease` 的 Principal Server MAY
+   签发 receipt；receipt 的 `authority_set_ref` MUST 等于这些 lease 的
+   `authority_set_digest`，且每个 receipt 仍逐一绑定 exact Event digest，并以自身真实 admission
+   verification method 产生唯一 `member_receipts[0]`。
+
+第二条不是把 Principal Server 冒充为 founding notary，也不得与其它服务 receipt 拼成虚构
+notary quorum。两条路径都只确认 ingress，不产生授权、accepted state 或 finality；首个 accepted
+Seal 仍 MUST 由单元声明的 founding notary 签署并独立重算 genesis state。已有 accepted Realm
+authority、reanchor、recovery 或普通 Control Move 不得使用第二条例外。
 
 Realm 可通过 `proposal_decision_window_ms`、`proposal_absolute_deadline_ms` 与
 `max_proposal_defers` 声明更严格的有效值；协议硬上限：

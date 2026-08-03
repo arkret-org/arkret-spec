@@ -3801,15 +3801,23 @@ Expected:
 Steps:
 
 1. Provision Agent DID `A`，controller DID 为 `C`；Agent DID Document 写唯一 `ArkretPrincipalControlRealm` service entry，分配 `PCR_A`，并只固定 immutable `requested_scope` 的域分离 digest；完整 scope 由 controller-private disclosure 出示，controller 已有 `PCR_C`。
-2. Controller 按 delegation 创建 `PCR_A` genesis，并写 Agent profile/key/lifecycle facts。
+2. Controller 按 delegation 创建 `PCR_A` genesis：对 basis-free candidate create 重算 founding
+   `NotaryValue` / `authority_set_ref`，由 `C` 的当前 device 为 exact Event digest 签 proposal
+   receipt，再以 `EventSubmitContext=AnchorUnit` 提交。receiver 在一个事务写 canonical create、
+   receipt 与 pending Control index；controller 随后提交无 predecessor 且覆盖该 digest 的首 Seal，
+   receiver 在一个事务写 Seal/cell effects并标记 pending digest sealed。之后再写 Agent
+   profile/key/lifecycle facts。
 3. Provisioning 的单一 `ak.agent.provision` Event 写入 `PCR_C`，并原子投影 provisioning、accountability 与 selector facts；无论 `requested_scope` 是否列出内容 action 或显式内容 resource selector，都不得产生 pending / active capability grant。内容授权只能由后续独立、写入对应受治理 Realm 的 `ak.capability.grant` Event 产生；CapabilityGrantBody 无内层签名，唯一 durable issuer signature 是 Event envelope proof。operation/service scope 同样不生成隐式 `ak.event.read` 或其它内容 grant。
-4. 变体 A：实现把 `PCR_C` deterministic id 当作 Agent PCR；变体 B：在 `PCR_A` 或 `PCR_C` id 上创建缺 PCR marker、restricted history、MLS profile 或任一 E2EE floor 的 Realm；变体 C：服务端以 Agent DID 伪造 proof，省略 `executed_by=C` / `authorization_ref`，或引用的 delegation purpose/resource scope 不覆盖目标 Event kind/PCR；变体 D：把 `requested_scope` 当作 Realm grant、在 provisioning 时物化内容权限，或接受超出 `requested_scope.actions[]` 的后续 Realm grant。Participation selection 可独立保存，但不得补回任何缺失 authority。
+4. 变体 A：实现把 `PCR_C` deterministic id 当作 Agent PCR；变体 B：在 `PCR_A` 或 `PCR_C` id 上创建缺 PCR marker、restricted history、MLS profile 或任一 E2EE floor 的 Realm；变体 C：服务端以 Agent DID 伪造 proof，省略 `executed_by=C` / `authorization_ref`，或引用的 delegation purpose/resource scope 不覆盖目标 Event kind/PCR；变体 D：把 `requested_scope` 当作 Realm grant、在 provisioning 时物化内容权限，或接受超出 `requested_scope.actions[]` 的后续 Realm grant；变体 E：anchor validator 禁止 receipt、按 `seal_basis` 缺失跳过 pending index，或让首 Seal 在 PostgreSQL / durable store 以 `control Event ... not in store` 失败。Participation selection 可独立保存，但不得补回任何缺失 authority。
 
 Expected:
 
 - `PCR_A != PCR_C`，且 receiver 必须从 Agent DID accepted-at history 验证 service entry 的 PCR/controller/authorization/digest 四元组，再验证 controller-signed private disclosure 后使用 scope；不得验证实现私有派生算法或信任服务本地 scope row。
 - `PCR_A.created_by == PCR_A.notary == A`，purpose/profile/history/encryption floor 全部满足 PCR invariant。
 - Controller 写 Agent PCR 时 `actor_id=A`、`executed_by=C`，proof method 属于 C，delegation 覆盖目标 kind；不得伪造 A 签名。
+- basis-free create 仍必须返回并持久化 controller-device proposal receipt；首 Seal 提交前 pending
+  index 必须存在同一 digest，提交后该 digest、Seal lineage 与 registered effects 必须在同一事务
+  转为 sealed/accepted。memory 与 PostgreSQL adapter 必须产生相同结果。
 - Agent profile、key authorize/revoke、lifecycle 只进入 `PCR_A`；单一 provision Event及其 accountability/selector projections 只进入 `PCR_C`；Realm-specific capability grant 只进入其所治理 Realm；pairing request/notification 不进入任一 PCR。
 - 四个变体全部 fail closed，且不得留下非 PCR Realm 占用任一 principal control id，也不得扩大 Agent 的内容权限。
 

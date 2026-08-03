@@ -403,6 +403,13 @@ Agent PCR genesis 必须遵守普通 PCR marker、`history_visibility=restricted
 
 Agent PCR 的 Event Seal 仍由 `POST /_arkret/self/events/seals` 提交。若 accepted Agent DID delegation 的 purpose 覆盖 `principal_control_realm_recovery`，该 delegation 同时授权当前 controller device 为此 managed PCR 的 delegated notary signer；receiver MUST 从唯一 signed managed-PCR create Event 精确验证 `(Agent DID, controller DID, realm_id, authorization_ref)`。Managed PCR Event 必须由 producer 签名 Realm `scope_ref`，reducer 独立复核。首个非空 Seal MUST 无 predecessor 并原子覆盖 managed PCR founding anchor unit；Principal Server、Account Authority 或其他 service 不得用 service key 代替 Agent/controller 签署。
 
+Managed Agent PCR 的单条 create 虽无 `seal_basis`，仍是 closed-anchor Control Move。Controller
+client MUST 从该候选 create 重算完整 founding notary authority，并由 accepted delegation 下的
+当前 controller device 为 exact create digest 签 proposal receipt；Principal Server MUST 在同一
+事务提交 receipt、canonical create 与 pending Control index。首 Seal 的原子提交再把同一 digest
+标记 sealed，并同时提交 Seal lineage 与 registered cell effects；不得出现“Event log 已有 create，
+但 pending store 无该 digest”或以 service key/无 receipt 绕过 proposal 轨道的中间状态。
+
 Native Personal Agent 不建立独立的面向用户 Recovery Key，也不得要求用户为每个 Agent 保存另一套 24 词。Agent DID / PCR 管理连续性来自当前 controller delegation；Agent PCR 内容可恢复性来自 §7.5.6 的 controller-owned `mls_history` backup。二者是不同权力：解开 Agent PCR 历史密钥不授予 Agent DID 控制、agent-control authoring 或业务 capability；任何恢复后的写入仍必须验证当前 Agent DID delegation、controller 状态与目标 Event authorization。
 
 实现 MAY 用 identity sidecar、device registry 或 DID/key-log operation 存储同一状态，但它们必须提供等价的签名、digest、auth dependency 和撤销语义；桥接到 Event Envelope 时仍必须遵守上述 `realm_id` 规则。
