@@ -36,49 +36,44 @@
       "delivery_binding_frontier": [
         "ak:event:01964145-8000-7000-8000-000000000001"
       ],
-      "destination_service_kind": "principal_server",
-      "reducer_profile_digest": "sha256:7897050d2058ef16f6ccee9a069ac3da654fc8247fb5245550b3085bf26f0df7"
+      "destination_service_kind": "principal_server"
     }
   },
   "cases": [
     {
-      "name": "reducer_profile_digest_federation_minimal",
-      "vector_id": "ak.vector.federation.reducer_profile_digest.v1",
-      "resolved_digest_input_source": {
-        "registry": "registry/reducer-profile-registry.json",
-        "profile_id": "ak.profile.federation_minimal.v1",
-        "field": "resolved_digest_input",
-        "recompute_from_local_contracts": true
+      "name": "ordinary_event_uses_cba_reducer_profile_cell",
+      "vector_id": "ak.vector.federation.reducer_profile_resolution.v1",
+      "input": {
+        "event_kind": "ak.message.create",
+        "profile_source": "seal_ref_joined_control_state",
+        "settled_reducer_profile": "ak.reducer.core.v1",
+        "receiver_supported_reducer_profiles": [
+          "ak.reducer.core.v1"
+        ],
+        "event_declares_reducer_profile": false,
+        "service_binding_declares_reducer_profile": false
       },
-      "expected_digest": "sha256:45ff08ae8902e13dd6e873a5e468eb5d36abe19073ac052880a1042d856c5b89",
-      "mutation_cases": [
-        {
-          "name": "event_kind_contract_content_changes",
-          "target": "event_kind_contracts[event_kind=ak.realm.create].content_digest",
-          "mutation": "replace_with_sha256_zeros",
-          "expected": "reducer_profile_digest_changes"
-        },
-        {
-          "name": "schema_document_content_changes",
-          "target": "schema_contracts[schema_id=ak.schema.event.v1].document_digest",
-          "mutation": "replace_with_sha256_zeros",
-          "expected": "reducer_profile_digest_changes"
-        },
-        {
-          "name": "canonical_object_key_order_changes",
-          "target": "resolved_digest_input",
-          "mutation": "reverse_object_insertion_order_recursively",
-          "expected": "reducer_profile_digest_unchanged"
-        }
-      ],
-      "expected": "canonical_digest_matches_reducer_profile_registry_row"
+      "expected": "accepted"
     },
     {
-      "name": "reducer_profile_mismatch",
-      "vector_id": "ak.vector.federation.reducer_profile_digest.v1",
-      "sender_reducer_profile_digest": "sha256:c3699f25a5384b83b83fd7f789fd7a5d1916e4bd8e972a4b279be5b81f9fd092",
-      "receiver_reducer_profile_digest": "sha256:9acf68105ee4698368137d3ea070548556bfd6f6ad7771df0fdc77f8c97a5e09",
-      "expected": "whole_batch_rejected_with_reducer_profile_mismatch"
+      "name": "settled_reducer_profile_not_implemented",
+      "vector_id": "ak.vector.federation.reducer_profile_resolution.v1",
+      "input": {
+        "profile_source": "seal_ref_joined_control_state",
+        "settled_reducer_profile": "ak.reducer.core.v1",
+        "receiver_supported_reducer_profiles": []
+      },
+      "expected": "profile_unsupported"
+    },
+    {
+      "name": "upgrade_target_not_registered",
+      "vector_id": "ak.vector.federation.reducer_profile_resolution.v1",
+      "input": {
+        "source_reducer_profile": "ak.reducer.core.v1",
+        "target_reducer_profile": "ak.reducer.future.v2",
+        "profile_source": "seal_basis_frozen_predecessor"
+      },
+      "expected": "profile_unsupported"
     },
     {
       "name": "online_event_omits_offline_publication_evidence",

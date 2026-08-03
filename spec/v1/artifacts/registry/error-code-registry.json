@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-03.4",
+  "version": "2026-08-03.5",
   "codes": [
     {
       "code": "bad_json",
@@ -1009,7 +1009,7 @@
       "code": "profile_unsupported",
       "http_status": 422,
       "scope": "both",
-      "description": "Caller requested an operation that relies on a Realm-declared profile or feature this service has not declared in ak.server.query.describe.supported_features / supported_profiles. The server MUST fail-closed and MUST NOT silently downgrade to a permissive interpretation. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
+      "description": "The selected operation, portable artifact, Realm genesis, or Realm reducer-profile control state requires a profile or feature the service does not implement. Reducer support is advertised in ServiceDescribe.supported_reducer_profiles; other capabilities use supported_features / supported_profiles. The server MUST fail closed and MUST NOT substitute a local default or permissive interpretation. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
     },
     {
       "code": "unsupported_join_rule",
@@ -4489,14 +4489,6 @@
         "state_resolution"
       ],
       "description": "Conflict-recovery witness is older than the permitted freshness window, or local frontier has observed a revoke / supersede for the referenced recovery_capability after the witness frontier. Receivers MUST reject stale witness replay. See zh/authz/event-auth-state-resolution.md §9.5."
-    },
-    {
-      "code": "reducer_profile_mismatch",
-      "applies_to": [
-        "federation_transaction",
-        "service_call"
-      ],
-      "description": "Federation push / pull body's service_binding_ref.reducer_profile_digest differs from the receiver's reducer profile for the target Realm. Receiver MUST reject the entire batch (not partial-accept) because the same Event under different reducer profiles would produce divergent cell state, state_root and security_frontier_digest — silently accepting would corrupt audit. Sender SHOULD reconcile reducer profile via Realm policy update or terminate federation for this Realm."
     },
     {
       "code": "reducer_projection_failed",

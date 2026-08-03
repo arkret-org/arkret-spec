@@ -29,8 +29,6 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable
 
-from reducer_profile_digest import content_digest, materialize_registry
-
 try:
     import yaml
 except ImportError:  # pragma: no cover - CI installs the dependency.
@@ -629,7 +627,6 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "canonical_hash": "canonical_digest",
     "binding_hash": "binding_digest",
     "realm_policy_hash": "realm_policy_digest",
-    "reducer_profile_hash": "reducer_profile_digest",
     "first_body_hash": "first_body_digest",
     "second_body_hash": "second_body_digest",
     "alpha_event_hash": "alpha_event_digest",
@@ -8957,99 +8954,6 @@ def check_declared_canonical_json_strings(lint: Lint) -> None:
         walk(data, "")
 
 
-def check_reducer_profile_digest_closure(lint: Lint) -> None:
-    path = ARTIFACTS / "registry" / "reducer-profile-registry.json"
-    registry = load_json(lint, path)
-    if not isinstance(registry, dict):
-        return
-    try:
-        expected = materialize_registry(registry)
-    except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
-        lint.fail(path, f"cannot resolve reducer profile semantic closure: {exc}")
-        return
-    if registry != expected:
-        lint.fail(path, "generated reducer profile semantic closure is stale")
-        return
-    rows = registry.get("profiles", [])
-    for index, row in enumerate(rows):
-        if not isinstance(row, dict):
-            continue
-        resolved = row.get("resolved_digest_input")
-        digest = row.get("reducer_profile_digest")
-        if not isinstance(resolved, dict) or digest != content_digest(resolved):
-            lint.fail(path, f"profiles[{index}] reducer_profile_digest does not bind resolved_digest_input")
-
-    fixture_path = ARTIFACTS / "fixtures" / "federation-fixture.json"
-    fixture = load_json(lint, fixture_path)
-    if not isinstance(fixture, dict):
-        return
-    cases = fixture.get("cases", [])
-    digest_case = next(
-        (
-            case
-            for case in cases
-            if isinstance(case, dict)
-            and case.get("vector_id") == "ak.vector.federation.reducer_profile_digest.v1"
-            and case.get("name") == "reducer_profile_digest_federation_minimal"
-        ),
-        None,
-    )
-    profile_row = next(
-        (
-            row
-            for row in rows
-            if isinstance(row, dict)
-            and row.get("profile_id") == "ak.profile.federation_minimal.v1"
-        ),
-        None,
-    )
-    if not isinstance(digest_case, dict) or not isinstance(profile_row, dict):
-        lint.fail(fixture_path, "missing federation-minimal reducer profile digest vector case")
-        return
-    baseline = profile_row.get("resolved_digest_input")
-    baseline_digest = profile_row.get("reducer_profile_digest")
-    if digest_case.get("expected_digest") != baseline_digest:
-        lint.fail(fixture_path, "reducer profile vector expected_digest differs from generated registry")
-    if not isinstance(baseline, dict) or not isinstance(baseline_digest, str):
-        return
-
-    event_mutation = copy.deepcopy(baseline)
-    event_contracts = event_mutation.get("event_kind_contracts", [])
-    event_row = next(
-        (item for item in event_contracts if item.get("event_kind") == "ak.realm.create"),
-        None,
-    )
-    schema_mutation = copy.deepcopy(baseline)
-    schema_contracts = schema_mutation.get("schema_contracts", [])
-    schema_row = next(
-        (item for item in schema_contracts if item.get("schema_id") == "ak.schema.event.v1"),
-        None,
-    )
-    zero_digest = "sha256:" + "0" * 64
-    if not isinstance(event_row, dict) or not isinstance(schema_row, dict):
-        lint.fail(fixture_path, "reducer profile mutation targets do not resolve")
-        return
-    event_row["content_digest"] = zero_digest
-    schema_row["document_digest"] = zero_digest
-    if content_digest(event_mutation) == baseline_digest:
-        lint.fail(fixture_path, "event-kind contract mutation did not change reducer profile digest")
-    if content_digest(schema_mutation) == baseline_digest:
-        lint.fail(fixture_path, "schema document mutation did not change reducer profile digest")
-
-    def reverse_object_order(value: Any) -> Any:
-        if isinstance(value, dict):
-            return {
-                key: reverse_object_order(value[key])
-                for key in reversed(list(value.keys()))
-            }
-        if isinstance(value, list):
-            return [reverse_object_order(item) for item in value]
-        return value
-
-    if content_digest(reverse_object_order(baseline)) != baseline_digest:
-        lint.fail(fixture_path, "canonical object key reordering changed reducer profile digest")
-
-
 def check_text_files_utf8_no_nul(lint: Lint) -> None:
     """Reject binary-corrupted text contract files.
 
@@ -9065,6 +8969,104 @@ def check_text_files_utf8_no_nul(lint: Lint) -> None:
             raw.decode("utf-8")
         except UnicodeDecodeError as exc:
             lint.fail(path, f"text contract file is not valid UTF-8: {exc}")
+
+
+def check_reducer_profile_registry(lint: Lint) -> None:
+    registry_path = ARTIFACTS / "registry" / "reducer-profile-registry.json"
+    registry = load_json(lint, registry_path)
+    if not isinstance(registry, dict):
+        return
+    rows = registry.get("profiles")
+    if not isinstance(rows, list) or not rows:
+        lint.fail(registry_path, "profiles must be a non-empty array")
+        return
+
+    profile_pattern = re.compile(r"^ak\.reducer(?:\.[a-z0-9][a-z0-9_.-]*)?\.v[0-9]+$")
+    ids: set[str] = set()
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            lint.fail(registry_path, f"profiles[{index}] must be an object")
+            continue
+        profile_id = row.get("profile_id")
+        if not isinstance(profile_id, str) or not profile_pattern.fullmatch(profile_id):
+            lint.fail(registry_path, f"profiles[{index}].profile_id must use ak.reducer.*.vN")
+            continue
+        if profile_id in ids:
+            lint.fail(registry_path, f"duplicate reducer profile id: {profile_id}")
+        ids.add(profile_id)
+        if row.get("status") != "active":
+            lint.fail(registry_path, f"{profile_id} status must be active")
+        if not isinstance(row.get("governs"), list) or not row["governs"]:
+            lint.fail(registry_path, f"{profile_id} must declare governs[]")
+        if not isinstance(row.get("supported_lattices"), list) or not row["supported_lattices"]:
+            lint.fail(registry_path, f"{profile_id} must declare supported_lattices[]")
+        edges = row.get("upgrade_edges")
+        if not isinstance(edges, list):
+            lint.fail(registry_path, f"{profile_id}.upgrade_edges must be an array")
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        for edge_index, edge in enumerate(row.get("upgrade_edges", [])):
+            if not isinstance(edge, dict):
+                lint.fail(registry_path, f"{row.get('profile_id')}.upgrade_edges[{edge_index}] must be an object")
+                continue
+            target = edge.get("target_profile")
+            transition = edge.get("state_transition")
+            if target not in ids:
+                lint.fail(registry_path, f"upgrade edge target is not registered: {target}")
+            if transition != "identity" and not isinstance(transition, dict):
+                lint.fail(registry_path, "upgrade edge state_transition must be identity or a deterministic transition object")
+
+    event_schema_path = ARTIFACTS / "schemas" / "event-envelope.schema.json"
+    event_schema = load_json(lint, event_schema_path)
+    requirement_properties = (
+        event_schema.get("properties", {}).get("requirements", {}).get("properties", {})
+        if isinstance(event_schema, dict)
+        else {}
+    )
+    if "reducer" in requirement_properties:
+        lint.fail(event_schema_path, "Event requirements must not declare reducer selection")
+
+    realm_schema_path = ARTIFACTS / "schemas" / "realm.schema.json"
+    realm_schema = load_json(lint, realm_schema_path)
+    if isinstance(realm_schema, dict):
+        if "reducer_profile" not in realm_schema.get("required", []):
+            lint.fail(realm_schema_path, "Realm.reducer_profile must be required")
+        reducer_property = realm_schema.get("properties", {}).get("reducer_profile")
+        if not isinstance(reducer_property, dict) or reducer_property.get("pattern") != profile_pattern.pattern:
+            lint.fail(realm_schema_path, "Realm.reducer_profile must use the canonical reducer profile pattern")
+
+    event_registry_path = ARTIFACTS / "registry" / "event-kind-registry.json"
+    event_registry = load_json(lint, event_registry_path)
+    event_rows = event_registry.get("event_kinds", []) if isinstance(event_registry, dict) else []
+    by_kind = {
+        row.get("event_kind"): row
+        for row in event_rows
+        if isinstance(row, dict) and isinstance(row.get("event_kind"), str)
+    }
+    expected_family = "ak.component.realm.reducer_profile.v1"
+    create_writes = by_kind.get("ak.realm.create", {}).get("cell_writes", [])
+    upgrade_writes = by_kind.get("ak.realm.upgrade", {}).get("cell_writes", [])
+    create_profile_writes = [write for write in create_writes if write.get("cell_family") == expected_family]
+    upgrade_profile_writes = [write for write in upgrade_writes if write.get("cell_family") == expected_family]
+    if len(create_profile_writes) != 1 or create_profile_writes[0].get("cell_subject") is not None:
+        lint.fail(event_registry_path, "ak.realm.create must initialize exactly one reducer-profile singleton cell")
+    if len(upgrade_profile_writes) != 1 or upgrade_profile_writes[0].get("cell_subject") is not None:
+        lint.fail(event_registry_path, "ak.realm.upgrade must write exactly one reducer-profile singleton cell")
+
+    dto_path = ARTIFACTS / "schemas" / "service-operation-dtos.schema.json"
+    dto_schema = load_json(lint, dto_path)
+    binding = dto_schema.get("$defs", {}).get("FederationServiceBindingRef", {}) if isinstance(dto_schema, dict) else {}
+    binding_properties = binding.get("properties", {}) if isinstance(binding, dict) else {}
+    if any(name in binding_properties for name in ("reducer_profile", "reducer_profile_digest")):
+        lint.fail(dto_path, "FederationServiceBindingRef must not carry reducer identity")
+
+    describe_path = ARTIFACTS / "schemas" / "service-describe.schema.json"
+    describe = load_json(lint, describe_path)
+    supported = describe.get("properties", {}).get("supported_reducer_profiles") if isinstance(describe, dict) else None
+    if not isinstance(supported, dict):
+        lint.fail(describe_path, "ServiceDescribe must declare supported_reducer_profiles")
 
 
 FIELD_ORDER_RULES_PATH = Path(__file__).with_name("field-order-rules.json")
@@ -11471,7 +11473,7 @@ def main(argv: list[str] | None = None) -> int:
             ("string_profiles", lambda: check_string_profile_format_vectors(lint)),
             ("one_of_branches", lambda: check_one_of_branch_discriminability(lint)),
             ("canonical_strings", lambda: check_declared_canonical_json_strings(lint)),
-            ("reducer_digest", lambda: check_reducer_profile_digest_closure(lint)),
+            ("reducer_profiles", lambda: check_reducer_profile_registry(lint)),
             ("mls_proof", lambda: check_mls_governance_proof_fixture(lint)),
         ],
         quiet=args.quiet,

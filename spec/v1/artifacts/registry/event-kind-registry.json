@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.7",
+  "version": "2026-08-03.9",
   "source_of_truth": false,
-  "generated_at": "2026-08-03T09:00:01Z",
+  "generated_at": "2026-08-03T12:30:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -92,7 +92,7 @@
     "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell_writes[] contract; no parallel single-target fields or aliases exist. Each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional. Payload conditions use the closed grammar field_present|field_absent|field_equals|any_field_present; a signed semantic-ref condition uses only critical_ref_role_exact_count{role,count}. All are pure functions of the schema-validated signed Event. When the condition holds the target is required and the reducer MUST derive exactly one matching write from kind+payload; when it does not hold the reducer MUST NOT derive that write. See zh/models/event-and-patch.md section 2.4.2. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a coalesce descriptor, or a composite descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any reducer write has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
     "Every lattice=fsm cell write MUST resolve by cell_family to exactly one fsm_contract. Event-kind parameters MUST NOT duplicate states or allowed_transitions. Template-backed contracts resolve their instance_parameters before transition validation; unresolved templates, parameters or conditional edges fail closed.",
     "Every active wire_scope=actor_private_event kind MUST resolve to exactly one entry in actor_private_contracts.event_writes. Actor-private writes use only the registered actor_private_contracts.cell_families merge contract, never shared Realm plane/sealed routing, CBA fields, reducer_input, or shared cell_contracts.",
-    "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 is canonically defined in zh/authz/event-auth-state-resolution.md section 6.5; its genesis value comes from ak.realm.create and subsequent writes use ak.realm.notary.",
+    "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 and ak.component.realm.reducer_profile.v1 are canonically defined in zh/authz/event-auth-state-resolution.md; their genesis values come from ak.realm.create, and subsequent writes use ak.realm.notary and ak.realm.upgrade respectively.",
     "Lattice MUST be one of the fully specified core types: or_set, mv_register, cas_register, fsm, counter, ordered_log. A new lattice type cannot become active until its join, bottom, op schema, profile gate, and conformance vectors are all registered.",
     "State convergence is defined by CBA: DataEvent writes are projected and locally accepted against seal_ref, Control Move writes are projected and finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
     "Every active durable reducer-input event_kind MUST have a machine-readable admission source: either at least one capability action targets it (capability_action_registry.target_event_kinds), or it declares an admission class from admission_class_definitions. capability_gated events MUST be listed in at least one action's target_event_kinds - admission has a single direction of truth and no per-event capability list. Enforced by lint_artifacts.py; no active durable reducer-input event may lack an admission source (fail-closed).",
@@ -230,6 +230,19 @@
           }
         },
         {
+          "cell_family": "ak.component.realm.reducer_profile.v1",
+          "cell_subject": null,
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "initial_value": "__unset__",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.object.reducer_profile"
+            }
+          }
+        },
+        {
           "cell_family": "ak.component.realm.authority_root.v1",
           "cell_subject": null,
           "lattice": "cas_register",
@@ -295,7 +308,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm patch",
+      "payload": "Realm metadata patch. target_ref MUST identify a Realm, and patch paths beginning with reducer_profile are forbidden because only ak.realm.upgrade writes the reducer-profile singleton control cell.",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -349,22 +362,19 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm version upgrade",
+      "payload": "Writes a registered target_reducer_profile to the Realm reducer-profile singleton control cell. The Move MUST carry a head_eq precondition for that cell's settled source profile. The source profile interprets the upgrade Event; successors whose governance basis contains the accepted upgrade use the target profile.",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
         {
-          "cell_family": "ak.component.realm.upgrade.v1",
-          "cell_subject": {
-            "field": "payload.target_reducer_profile",
-            "kind": "profile_ref"
-          },
+          "cell_family": "ak.component.realm.reducer_profile.v1",
+          "cell_subject": null,
           "lattice": "cas_register",
           "bottom": "reject",
           "effect_projection": {
             "kind": "set",
             "value": {
-              "field": "payload"
+              "field": "payload.target_reducer_profile"
             }
           }
         }

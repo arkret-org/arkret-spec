@@ -433,6 +433,16 @@ KeyView {
 
 每个 Realm 恰有一个 protocol-singleton cell `ak:cell:ak.component.notary.v1:null`，其 value shape 与 `realm.schema.json` 的 `notary` 相同，lattice=`cas_register`、bottom=`reject`、plane=`control`。genesis value 由 `ak.realm.create` 的注册 reducer projection 从 `payload.object.notary` 写入；后继值只能由 `ak.realm.notary` Control Move 写入，并以当前 head 作 CAS。实现不得通过未登记 kind、部署私有端点或数据库直写改变该 cell。
 
+### 6.6 Realm reducer-profile control cell（normative）
+
+每个 Realm 恰有一个 protocol-singleton cell `ak:cell:ak.component.realm.reducer_profile.v1:null`，value 是 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 中 active `ak.reducer.*` profile ID，lattice=`cas_register`、bottom=`reject`、plane=`control`。
+
+Genesis value 由 `ak.realm.create` 的注册 reducer projection 从 `payload.object.reducer_profile` 写入；后继值只能由 `ak.realm.upgrade` 写入同一 cell。Upgrade payload 只携带 `target_reducer_profile`，并且 Event 的 `preconditions[]` 必须包含 `{op:"head_eq", cell:"ak:cell:ak.component.realm.reducer_profile.v1:null", value:<source-profile>}`。Target 未注册时返回 `profile_unsupported`；registry 没有 source→target `upgrade_edges` 时返回 `failed_precondition`；cell 为 `⊥` 时按 §9.1.1 返回 `failed_bottom`、reason=`cell_in_bottom_state`。
+
+Profile view 必须逐 Event 求值：DataEvent 使用 `seal_ref` 认证的 joined control state；Control Move 使用 `seal_basis` 指定的 frozen predecessor `J(L)`。`ak.realm.upgrade` 自身由 source profile 解释；只有 governance basis 已包含该 accepted upgrade 的后继才由 target profile 解释。与 upgrade 并发且 basis 不含它的 Event 仍使用 source profile。实现不得读取本地 latest profile、软件默认值、接收顺序或 Event 自报字段。
+
+同一前驱上的并发互斥 upgrade 按 §9.3.1 的 `cas_register` join 进入 `⊥`；恢复只使用 §9.5 的 `ak.state.conflict_recovery`。不得为 profile 另设 epoch、frontier、CAS 或冲突算法。若 target row 与 edge 已知、upgrade 在 source profile 下有效，但本 build 未实现 target reducer，receiver 仍接受 upgrade 并把验证 frontier 推进到该 Event；target-profile 后继返回 `profile_unsupported` 且不得进入 accepted state。
+
 ## 7. 问责、审查与 transparency
 
 ### 7.1 Signer slot 与 equivocation

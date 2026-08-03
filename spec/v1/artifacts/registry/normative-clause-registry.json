@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-03.3",
+  "version": "2026-08-03.4",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -238,14 +238,15 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:1bcdb00a0a0b1cbc30f1079fa318911b19b8fe243b5ea1fb28442f3626027c5e",
-      "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, and equivocating notaries are quarantined instead of silently merged.",
+      "section_digest": "sha256:be848d3a6b2ac716e198d0760a1c028ed3c3f468f78db8969a41e596438505b6",
+      "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, and equivocating notaries are quarantined instead of silently merged.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.cba_lattice.seal_canonical_no_self_reference.v1",
         "ak.vector.cba_lattice.seal_delta_excludes_data_event_digest.v1",
         "ak.vector.cba_lattice.open_set_compaction_preserves_control_roots.v1",
-        "ak.vector.cba_lattice.notary_fault_equivocation_quarantine.v1"
+        "ak.vector.cba_lattice.notary_fault_equivocation_quarantine.v1",
+        "ak.vector.federation.reducer_profile_resolution.v1"
       ]
     },
     {

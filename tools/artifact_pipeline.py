@@ -37,8 +37,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from reducer_profile_digest import materialize_registry
-
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_ROOT = ROOT / "spec" / "v1"
 ARTIFACTS = SPEC_ROOT / "artifacts"
@@ -58,7 +56,6 @@ OPERATION_STRING_CLASSIFICATION_SCRIPT = Path(__file__).with_name(
 SITE_META_PATH = ROOT / "site" / "src" / "lib" / "site-meta.ts"
 PUBLIC_V1 = ROOT / "site" / "public" / "v1"
 OPERATION_SCHEMA_INDEX_PATH = ARTIFACTS / "reports" / "operation-schema-index.json"
-REDUCER_PROFILE_REGISTRY_PATH = REGISTRY / "reducer-profile-registry.json"
 CLASSIFICATION_FIELD_REGISTRY_PATH = REGISTRY / "classification-field-registry.json"
 
 
@@ -866,87 +863,6 @@ def write_operation_schema_index() -> None:
     print(f"updated {OPERATION_SCHEMA_INDEX_PATH.relative_to(ROOT).as_posix()}")
 
 
-def write_reducer_profile_registry() -> None:
-    current = load_json(REDUCER_PROFILE_REGISTRY_PATH)
-    materialized = materialize_registry(current)
-    REDUCER_PROFILE_REGISTRY_PATH.write_text(
-        dump_json(materialized), encoding="utf-8", newline="\n"
-    )
-    print(f"updated {REDUCER_PROFILE_REGISTRY_PATH.relative_to(ROOT).as_posix()}")
-    sync_reducer_profile_digest_vector(materialized)
-
-
-FEDERATION_FIXTURE_PATH = ARTIFACTS / "fixtures" / "federation-fixture.json"
-REDUCER_PROFILE_DIGEST_VECTOR_ID = "ak.vector.federation.reducer_profile_digest.v1"
-REDUCER_PROFILE_DIGEST_VECTOR_CASE = "reducer_profile_digest_federation_minimal"
-REDUCER_PROFILE_DIGEST_VECTOR_PROFILE = "ak.profile.federation_minimal.v1"
-
-
-def sync_reducer_profile_digest_vector(materialized: Any) -> None:
-    """Keep the pinned conformance vector in step with the generated registry.
-
-    `federation-fixture.json` pins the federation-minimal reducer profile digest so
-    implementations can check they derive the same value. That digest covers spec prose,
-    so any edit to a covered document invalidates it and the artifact lint fails with
-    "reducer profile vector expected_digest differs from generated registry". The fixture
-    mirrors a generated value, so regenerating it belongs here rather than being rediscovered
-    by hand on every prose change.
-    """
-    rows = materialized.get("profiles") if isinstance(materialized, dict) else None
-    if not isinstance(rows, list):
-        return
-    expected = next(
-        (
-            row.get("reducer_profile_digest")
-            for row in rows
-            if isinstance(row, dict)
-            and row.get("profile_id") == REDUCER_PROFILE_DIGEST_VECTOR_PROFILE
-        ),
-        None,
-    )
-    if not isinstance(expected, str):
-        return
-    raw = FEDERATION_FIXTURE_PATH.read_text(encoding="utf-8")
-    fixture = json.loads(raw)
-
-    def find_case(node: Any) -> Any:
-        if isinstance(node, dict):
-            if (
-                node.get("vector_id") == REDUCER_PROFILE_DIGEST_VECTOR_ID
-                and node.get("name") == REDUCER_PROFILE_DIGEST_VECTOR_CASE
-            ):
-                return node
-            for value in node.values():
-                found = find_case(value)
-                if found is not None:
-                    return found
-        elif isinstance(node, list):
-            for value in node:
-                found = find_case(value)
-                if found is not None:
-                    return found
-        return None
-
-    case = find_case(fixture)
-    if not isinstance(case, dict):
-        return
-    current = case.get("expected_digest")
-    if not isinstance(current, str) or current == expected:
-        return
-    if raw.count(current) != 1:
-        raise SystemExit(
-            f"cannot rewrite {REDUCER_PROFILE_DIGEST_VECTOR_ID}: expected_digest is not unique "
-            f"in {FEDERATION_FIXTURE_PATH.name}"
-        )
-    FEDERATION_FIXTURE_PATH.write_text(
-        raw.replace(current, expected), encoding="utf-8", newline="\n"
-    )
-    print(
-        f"updated {FEDERATION_FIXTURE_PATH.relative_to(ROOT).as_posix()} "
-        f"({REDUCER_PROFILE_DIGEST_VECTOR_ID})"
-    )
-
-
 def write_public_registry_snapshot() -> None:
     canonical_bytes = CONTRACT_REGISTRY_PATH.read_bytes()
     PUBLIC_V1.mkdir(parents=True, exist_ok=True)
@@ -986,19 +902,6 @@ def check_operation_schema_index() -> list[str]:
             "(run python tools/artifact_pipeline.py generate)"
         )
     return errors
-
-
-def check_reducer_profile_registry() -> list[str]:
-    current = load_json(REDUCER_PROFILE_REGISTRY_PATH)
-    expected = dump_json(materialize_registry(current))
-    actual = REDUCER_PROFILE_REGISTRY_PATH.read_text(encoding="utf-8")
-    if actual == expected:
-        return []
-    return [
-        "reducer profile digest closure drift: "
-        f"{REDUCER_PROFILE_REGISTRY_PATH.relative_to(ROOT).as_posix()} "
-        "(run python tools/artifact_pipeline.py generate)"
-    ]
 
 
 def run_lint() -> int:
@@ -1053,7 +956,6 @@ def cmd_generate(_: argparse.Namespace) -> int:
     write_capability_action_derivations()
     write_derived_registry_views()
     write_operation_schema_index()
-    write_reducer_profile_registry()
     completeness_status = run_operation_completeness_report("generate")
     presence_status = run_property_presence_manifest("generate")
     coverage_status = run_schema_consumer_coverage("generate")
@@ -1071,7 +973,6 @@ def cmd_check(_: argparse.Namespace) -> int:
     errors = check_capability_action_derivations()
     errors.extend(check_derived_registry_views())
     errors.extend(check_operation_schema_index())
-    errors.extend(check_reducer_profile_registry())
     errors.extend(check_classification_discipline())
     if errors:
         for error in errors:

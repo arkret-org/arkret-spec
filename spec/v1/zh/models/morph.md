@@ -174,7 +174,7 @@ Reducer-input event 若未在 `requirements.schema[]` 中绑定生效 schema 版
 - additive fast path 仍然 **MUST** 满足 S2 的 schema-evolution policy gate；`additive` 只表示兼容性类别允许用 `ak.morph.update` 表达，不表示 `schema_refs[]` 可以在没有授权 action / `authorization_ref` 的情况下裸更新。
 - breaking / transformation 路径**只能**通过 `ak.morph.schema_migrate` 表达。
 
-**additive 判定的 canonical 算法（normative）**：为保证两个实现 / 联邦 reducer 对同一 `ak.morph.update` 给出一致的 accept / reject（与 [`../sync/federation.md` §4.1](../sync/federation.md) `reducer_profile_digest` 想防的「同 Event 两端不同 cell 状态」对齐），「additive」MUST 按下列确定性谓词判定，记 `from` = update 写入前 Morph 的当前 `schema_refs[]`、`to` = update 后的 `schema_refs[]`，且二者各自展开为其引用 schema profile 声明的字段集（按各 profile 的 canonical 字段定义合并去重）：
+**additive 判定的 canonical 算法（normative）**：为保证两个实现按同一 Realm reducer profile 对同一 `ak.morph.update` 给出一致的 accept / reject，「additive」MUST 按下列确定性谓词判定，记 `from` = update 写入前 Morph 的当前 `schema_refs[]`、`to` = update 后的 `schema_refs[]`，且二者各自展开为其引用 schema profile 声明的字段集（按各 profile 的 canonical 字段定义合并去重）：
 
 1. **superset 约束**：`to` 引用的 profile id 集合 MUST ⊇ `from` 引用的 profile id 集合（不得移除既有 profile）。
 2. **新增字段仅 optional**：`to` 相对 `from` 新增的每个字段 MUST 为 optional（无 `required` 语义、无非空默认强制）。新增 required 字段即非 additive。

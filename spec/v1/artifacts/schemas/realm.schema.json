@@ -13,6 +13,7 @@
     "default_discoverability",
     "default_join_rule",
     "history_visibility",
+    "reducer_profile",
     "encryption_profile",
     "notary_profile",
     "notary",
@@ -229,6 +230,11 @@
         "joined",
         "restricted"
       ]
+    },
+    "reducer_profile": {
+      "type": "string",
+      "pattern": "^ak\\.reducer(?:\\.[a-z0-9][a-z0-9_.-]*)?\\.v[0-9]+$",
+      "description": "Materialized value of the Realm reducer-profile singleton control cell. ak.realm.create supplies its genesis value; only ak.realm.upgrade may change it."
     },
     "encryption_profile": {
       "type": "string",

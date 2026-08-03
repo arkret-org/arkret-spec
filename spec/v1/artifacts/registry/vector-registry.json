@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.4",
+  "version": "2026-08-03.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-03T09:00:00Z",
+  "generated_at": "2026-08-03T12:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2799,13 +2799,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.federation.reducer_profile_digest.v1",
+      "vector_id": "ak.vector.federation.reducer_profile_resolution.v1",
       "status": "active",
       "domain": "federation",
       "applies_to_fixtures": [
         "federation-fixture.json"
       ],
-      "description": "service_binding_ref.reducer_profile_digest is computed per federation.md section 4.1.1 from a locally rebuilt content-addressed resolved_digest_input closure; event-kind or schema content mutation changes the digest, canonical key reordering does not, and the receiver rejects the whole batch with reducer_profile_mismatch on divergence.",
+      "description": "Each Event selects its Realm reducer from the authenticated CBA governance basis; ordinary Events and federation service bindings carry no reducer identity, unsupported settled profiles fail with profile_unsupported, and an unregistered upgrade target fails closed.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/federation-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

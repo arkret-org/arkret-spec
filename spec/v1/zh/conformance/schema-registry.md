@@ -179,7 +179,7 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | `ak.realm.create` | Realm create |
 | `ak.realm.update` | Realm patch |
 | `ak.realm.alias` | Realm alias declaration or durable value tombstone（alias 的唯一 wire 承载） |
-| `ak.realm.upgrade` | Realm version upgrade |
+| `ak.realm.upgrade` | Realm reducer profile upgrade |
 | `ak.realm.organization` | Organization-authorized Realm relationship statement or revocation |
 | `ak.realm.link` | Typed Realm link graph edge |
 | `ak.realm.inheritance_policy` | Policy inheritance declaration from a source Realm (subject=`payload.source_realm_id`) |
@@ -299,7 +299,7 @@ Schema evolution MUST：
 
 v1 canonical object（Event Envelope / Operation / Event Batch Receipt / Snapshot / Grant / encrypted envelope）的 schema 是封闭的（`additionalProperties: false`）：schema 未声明的未知字段 MUST 被 schema validation 以 `schema_violation` 拒绝，**不存在**“接受并保留任意未知字段”的隐式路径（与 [`../models/event-and-patch.md` §2.2](../models/event-and-patch.md) 的 Event Envelope 封闭规则和 [`../models/common-fields.md`](../models/common-fields.md) 的字段默认规则同源）。前向兼容扩展只能通过 schema 显式声明的扩展位承载：已声明 `x_*` patternProperties 扩展槽的 payload kind（现仅 `invite_payload`）、`requirements.critical_extensions[].parameters`，以及不进入 canonical bytes 的 `unsigned`。对 schema 允许但实现未识别的扩展位内容，接收方 MUST 在存储、转发、backfill 与 hash / 签名校验的 canonical bytes 中原样保留；reducer 可忽略其语义，但不得剔除。
 
-未知 critical feature MUST fail closed。Event Envelope 的 `requirements` 对象（含 `schema[]` / `reducer` / `features[]` / `critical_extensions[]`）是 v1 固定的扩展声明位置，全部进入 canonical bytes 并参与 `event_digest`。`requirements.critical_extensions[]` 每项必须包含 `id`、`extension_scope` 和 `fail_closed=true`；entry 顶层不得携带未声明字段，扩展参数必须放入 `parameters`，大对象必须用 `material_digest` 绑定。
+未知 critical feature MUST fail closed。Event Envelope 的 `requirements` 对象（含 `schema[]` / `features[]` / `critical_extensions[]`）是 v1 固定的扩展声明位置，全部进入 canonical bytes 并参与 `event_digest`。Reducer profile 从 Event 的 CBA governance basis 读取，不在 `requirements` 中重复声明。`requirements.critical_extensions[]` 每项必须包含 `id`、`extension_scope` 和 `fail_closed=true`；entry 顶层不得携带未声明字段，扩展参数必须放入 `parameters`，大对象必须用 `material_digest` 绑定。
 
 OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical protocol object，内嵌对象 MUST 按 registry schema 解析，并按本节规则处理：未声明字段拒绝，显式扩展位内容保留。
 

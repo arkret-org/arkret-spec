@@ -209,6 +209,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
     "object": {
       "id": "ak:realm:019640ea-8000-7000-8000-000000000000",
       "schema": "ak.schema.realm.v1",
+      "reducer_profile": "ak.reducer.core.v1",
       "security_class": "high_assurance",
       "title": "External Collaboration",
       "created_by": "did:webvh:zGsmzvyUSDby8As5bHG3kAtWL:defense.example",

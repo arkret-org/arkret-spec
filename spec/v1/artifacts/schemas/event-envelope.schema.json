@@ -203,7 +203,7 @@
     },
     "requirements": {
       "type": "object",
-      "description": "Schema/reducer/feature/critical-extension requirements declared by this event. All sub-fields enter the canonical event bytes and the proof event_digest. Receivers MUST fail closed on any unknown critical entry.",
+      "description": "Schema, feature, and critical-extension requirements declared by this event. All sub-fields enter the canonical event bytes and the proof event_digest. Reducer selection is derived from the Realm reducer-profile control cell, never declared by an ordinary Event. Receivers MUST fail closed on any unknown critical entry.",
       "properties": {
         "schema": {
           "type": "array",
@@ -212,10 +212,6 @@
           },
           "uniqueItems": true,
           "description": "Schema profile ids this event depends on."
-        },
-        "reducer": {
-          "$ref": "#/$defs/profile_ref",
-          "description": "Reducer profile id this event depends on."
         },
         "features": {
           "type": "array",
@@ -1590,10 +1586,26 @@
       "if": {
         "properties": {
           "kind": {
-            "enum": [
-              "ak.realm.update",
-              "ak.profile.update"
-            ]
+            "const": "ak.realm.update"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_update_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.profile.update"
           }
         },
         "required": [

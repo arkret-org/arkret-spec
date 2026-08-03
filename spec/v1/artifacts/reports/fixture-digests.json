@@ -22,7 +22,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "5e7b544defa248c972000283724dcb622df80df70744ede7287c214a77a720e8"
+      "sha256": "164bea85a5ffde962fa79efea811c920265ef678377212b833740b309b4e0f71"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
@@ -86,7 +86,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
-      "sha256": "741ab60923cc8746e3c85e28f076bb609d95b133563cb75fbb10f48dcd25e41e"
+      "sha256": "03db8f4f710f85a54055bbcd26696d64767bd4179a742c1401c722b19adc3660"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
@@ -134,7 +134,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "a67858d04a537aa32cce060452f28a0de26c130592ca5c8d8ddb085d21322f4c"
+      "sha256": "e4ddc511002a06505f09c75fd94dd4ffa5cc84d29407616e73572cf991cf79dc"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -278,7 +278,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "5ed8056af305ff964766ed87d9932395dce112165189c219d84a1398edf3d37c"
+      "sha256": "229df08a3fc02499edd09dee54fcec422b99f0f410ec5380c19456f643a47c8e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -330,7 +330,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/websocket-binding-fixture.json",
-      "sha256": "ce78df0f42f7b8e60c525a28c9d36cd22fcb7eda8b13cdc8eb90ff725bb6d3b3"
+      "sha256": "4db63b4b8929232bfe998dc9d51018bcd63ad72cb70e61397bf75a829300861d"
     }
   ],
   "fixtures_root": "spec/v1/artifacts/fixtures",

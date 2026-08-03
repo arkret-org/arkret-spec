@@ -1442,7 +1442,6 @@ components:
       - membership_frontier
       - delivery_binding_frontier
       - destination_service_kind
-      - reducer_profile_digest
       properties:
         realm_id:
           type: string
@@ -1466,10 +1465,6 @@ components:
         destination_service_kind:
           type: string
           minLength: 1
-        reducer_profile_digest:
-          type: string
-          description: SHA-256 over the Arkret canonical JSON bytes of the locally rebuilt content-addressed resolved_digest_input closure declared by artifacts/registry/reducer-profile-registry.json. Receivers independently resolve local event-kind, schema, fixture, and reducer-contract content and reject the whole federation batch with reducer_profile_mismatch on mismatch.
-          pattern: ^sha256:[0-9a-f]{64}$
       additionalProperties: false
     FieldFilter:
       $ref: ../schemas/query.schema.json#/$defs/field_filter
@@ -2510,9 +2505,11 @@ components:
                 type: string
         supported_reducer_profiles:
           type: array
-          description: Reducer profile ids whose digest_input rows are published in artifacts/registry/reducer-profile-registry.json.
+          description: Registered Realm reducer profiles this service can execute. This is a runtime capability set, not a conformance claim and not a selected Realm profile.
           items:
             type: string
+            pattern: ^ak\.reducer(?:\.[a-z0-9][a-z0-9_.-]*)?\.v[0-9]+$
+          uniqueItems: true
         supported_schema_profiles:
           type: array
           items:

@@ -22,7 +22,7 @@ sidebar:
 - capability 与授权派生规则
 - Principal Server Events API / Sync Service / E2EE / applet / Policy Server 关键接口
 
-所有 schema / profile 变更通过 Event Envelope 的 `requirements.{schema, reducer}` 与 `ak.realm.upgrade` 完成；v1 不使用顶层 `space_version` wire 字段。
+Schema 依赖由 Event Envelope 的 `requirements.schema[]` 声明；Realm reducer 版本由 reducer-profile singleton control cell 决定，并且只通过 `ak.realm.create` / `ak.realm.upgrade` 写入。v1 不使用顶层 `space_version` wire 字段。
 
 ## 2. 测试角色（Profile）
 

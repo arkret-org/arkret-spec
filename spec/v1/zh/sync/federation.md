@@ -151,13 +151,13 @@ Realm 级 server ACL 的权威表达是 `ak.realm.moderation_policy` 中的 serv
 - **实现私有 peer 入站轨 MUST NOT 作为联邦互通入口**：实现可以在自己的 negative-space root（如 `/_<impl>/peer/...`）下保留部署本地的内部接收 / 调试路径，但这类私有轨 MUST NOT 被任何跨厂商 / 跨 deployment 对端当作联邦投递目标，MUST NOT 接受外部 federation peer 的 Move / Anchor / Operation 推送，也 MUST NOT 在 `GET /_arkret/describe` 的 `supported_operations` 中作为 federation surface 宣告。它们只能降级为**只读调试 / 部署本地内部** affordance，或整体移除；保留时 MUST 在 `profile_limitations()` 等价声明中标注为 deployment-local-only、非互通入口，且 MUST 与 `/_arkret/peer/events` 施加同等或更严的 §3 service-to-service 认证与授权（不得出现"私有轨有 9421 验签、协议轨反而没有"的姿态倒挂——协议轨 `/_arkret/peer/events` 的 §3.2 RFC 9421 service signature 是 MUST，私有轨不得以更弱姿态接收外部流量）。
 - 任一对端把实现私有 peer 轨当作联邦投递目标，或任一接收方在私有轨上接受外部 federation 写入，均视为 federation profile violation；跨 deployment 互通声明（`ak.profile.federation_minimal.v1` 等）只覆盖 `/_arkret/peer/*` 协议轨。
 
-> 单轨收敛同时消除了双轨各自演化、验签 / policy 闸门姿态倒挂的风险：唯一受 conformance gate 的联邦接收轨是 `/_arkret/peer/events`，其 9421 验签、trust-domain、destination binding、reducer-profile digest 与最小披露失败语义均由 §3 / §4.1 强制。
+> 唯一受 conformance gate 的联邦接收轨是 `/_arkret/peer/events`，其 9421 验签、trust-domain、destination binding、逐 Event CBA reducer 求值与最小披露失败语义均由 §3 / §4.1 强制。
 
 ### 4.0.1 MLS-backed Realm 联邦互操作下界（normative）
 
 任一 federation transaction 携带或依赖 `encryption_profile="mls_rfc9420"` 的 Realm 状态、`ak.mls.genesis`、`ak.mls.commit`、`ak.mls.welcome`、MLS-backed E2EE DataEvent 或 active MLS security-frontier projection 时，接收方 MUST 把 [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.5 的 `ak.profile.mls_governance_binding.full.v1` 视为 MLS 联邦互操作下界。该下界至少包含：
 
-- `governance_binding.binding_profile` 与 `governance_binding.reducer_profile` 均存在，且与 Realm policy、ServiceDescribe / peer profile 声明和当前 reducer profile digest 一致；
+- `governance_binding.binding_profile` 与 `governance_binding.reducer_profile` 均存在；后者必须等于该制品绑定 frontier 下 Realm reducer-profile cell 的 settled value，并位于验证方的 `supported_reducer_profiles`；
 - `ak.mls.commit` 的 MLS GroupContext extensions 中存在固定 codepoint `mls_governance_binding` (`0xF1C0`)，并且 extension bytes、Event payload 与 registered active generation projection 相互匹配；
 - `security_frontier_digest` 必须从 accepted key-access state 独立重算；E2EE DataEvent 的 group/epoch 必须指向当前 digest，普通 `seal_ref` 另行按 Event admission 验证；
 - peer 的 `ServiceDescribe.supported_profiles` / `supported_features` 声明足以支持该下界；仅支持 payload fallback、替换私用 codepoint 或省略 GroupContext extension 的 peer 不满足下界。
@@ -170,7 +170,7 @@ Fail-closed 条件：
 
 - peer 不声明或不支持所需 full / relaxed profile；
 - `binding_profile` 缺失、未知、与 Realm policy 不一致，或 full Realm 上出现 relaxed binding；
-- `reducer_profile` 缺失或与本批次签名 transcript / service binding 中的 reducer profile digest 不一致；
+- `reducer_profile` 缺失，或与该制品绑定 frontier 下的 Realm reducer-profile cell 不一致；
 - `0xF1C0` extension 缺失、被其它私用 codepoint 替代、或 extension canonical bytes 与 Event payload 不一致；
 - active MLS generation 未覆盖最新 key-access security frontier，或把普通 capability/metadata Seal 错误吸收到该 frontier；
 - relaxed federation guard 中任一 SLA、窗口或 federation_policy 条件无法证明。
@@ -257,26 +257,8 @@ Signature: sig1=:base64...:
 | `service_binding_ref.delivery_binding_frontier` | body | `id[]` | required | 发送方解析投递目标时所依据的 member delivery binding 因果前沿。接收方 MUST 校验该前沿在自己的 Realm 视图中可达，且对应到当前 effective `delivery_binding.recipient_service_id = Destination-Service-ID`。前沿落后于当前接收方 binding（接收方已收到 rebind handover frontier `F` 而 sender 仍按旧 binding 投递）时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_id` 与 `handover_frontier`，sender 切到新目标后重试。 |
 | `service_binding_ref.delivery_binding_diagnostics` | body | `object` | optional | 纯诊断字段。可携带 `basis: ["member_delivery_binding"\|"realm_sync_endpoint"]` 等本次投递的来源标签，便于排查；不得替代接收方独立校验。 |
 | `service_binding_ref.destination_service_kind` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
-| `service_binding_ref.reducer_profile_digest` | body | `sha256:<hash>` | required | 发送方在此 Realm 使用的 reducer profile 内容寻址摘要。计算规则见下文；输入对象是从 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 对应 `profile_id` 的声明及本地 reducer 契约内容独立重建的 `resolved_digest_input`。接收方 MUST 独立重建并比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免同一 Event 因 registry、schema、fixture 或 lattice/reducer 规范内容不同而在两端产生不同 cell 状态、state_root 或 covered_seals。 |
 
-#### `reducer_profile_digest` 计算规则（normative）
-
-`reducer_profile_digest` 的 profile 声明源是 [`artifacts/registry/reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json)。发送方与接收方 MUST 选取目标 Realm 声明的 `profile_id`，从该 row 的 `digest_input` 声明独立重建 `resolved_digest_input`，不得直接信任 registry 中预生成的内容摘要。重建算法如下：
-
-1. 递归展开 `inherits[]`，按 `profile_id` 排序收集传递闭包内的完整 profile 声明；外部 conformance profile 从 `conformance-profiles.json#/profile_requirements` 解析。
-2. 对闭包中 `required_event_kinds[]` 的每个 kind，取本地 `event-kind-registry.json` 完整 row 的 canonical JSON SHA-256；这会绑定 `plane`、`cell_writes[]`、lattice、bottom 与 admission 元数据，而不是只绑定 kind 名。
-3. 对闭包中 `required_schemas[]` 的每个 schema，同时摘要本地 `schema-registry.json` row 与其 `file` 指向的完整 JSON Schema canonical 内容。
-4. 对 `required_fixtures[]` 摘要 fixture 的 canonical 语义投影。为避免自引用，投影 MUST 移除 `vector_id = ak.vector.federation.reducer_profile_digest.v1` 的 case，以及键名包含 `reducer_profile_digest` 的输出字段；其余内容 MUST 保留。
-5. 对 `reducer_contract_refs[]` 去重排序并摘要实际引用内容：JSON 引用按 JSON Pointer 选中值后 canonicalize；Markdown 按 UTF-8、LF 换行摘要。为避免生成输出自引用，仅在含 `reducer_profile_digest` 字样的行内把 `sha256:<64 lowercase hex>` 规范化为字面量 `sha256:<digest>`；其他 SHA-256 字面量仍属于被绑定内容。`event-kind-registry.json` 裸引用由第 2 步的 required-kind 精确投影替代，避免无关 kind 改动改变本 profile。
-6. `resolved_digest_input` MUST 恰由 `profile_id`、`profile_declarations[]`、`event_kind_contracts[]`、`schema_contracts[]`、`fixture_contracts[]`、`reducer_contracts[]` 六个字段组成；各集合按其稳定标识符升序排列。registry row 中的同名对象与 `reducer_profile_digest` 是生成的审计缓存，接收方仍 MUST 从本地内容重建后再使用。
-
-```text
-reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolved_digest_input)))
-```
-
-其中 `canonical_json` 是 [`encoding.md` §2](../conformance/encoding.md) 的 Arkret canonical JSON。实现不得只摘要名称/路径列表，也不得改用本地配置对象、ServiceDescribe 摘要或手写 `{domain, profile}` 对象。
-
-接收方 MUST 用同一 registry 规则重算自己在该 Realm 上实际执行的 reducer profile digest，并与请求字段逐字节比对。缺少 registry row、profile_id 未声明、canonicalization 不支持、digest suite 不是 active `sha256`，或重算结果不一致，均 MUST fail closed；对于 `POST /_arkret/peer/events`，失败结果是整批拒绝并返回 `reducer_profile_mismatch`，不得 partial accept。
+Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 profile。接收方对每个 Event 独立读取其 CBA governance basis 中的 `ak.component.realm.reducer_profile.v1` cell：DataEvent 使用 `seal_ref` 认证的 joined control state，Control Move 使用 `seal_basis` 的 frozen predecessor `J(L)`。缺少求值依赖返回 `dependency_missing`；cell 为 Bottom 返回 `failed_bottom`；settled profile 本地未实现时返回 `profile_unsupported`。
 
 `signer_key_evidence` 只解决「目标 Realm host 尚无来源 principal 的本地 device directory projection」时的原 Event 验签，不扩大来源服务的代言范围。接收方只能在外层 RFC 9421 请求已认证、actor 与来源 service authority / 已验证 Realm membership / 本节规定的初始 Direct Conversation authority 之一绑定成功后使用该证据；还必须：(1) 重算 `device_authorize_event` digest 与 proof transcript；(2) 按其 accepted-at 时点独立解析 principal DID 的 enrollment delegation 与 `executed_by` authority DID，验证原 authority proof；(3) 确认 authorization Event 的 actor/device/key 与 evidence 逐字一致；(4) 用该 key 验证被投递 Event 的原 JWS。来源服务只为“该已验证 authorization 当前仍 active”背书，裸 key 断言绝不是 participant trust root。证据缺失、authorization Event 不可独立验证、actor/device/method/key 不匹配或任一 JWS 失败均 MUST fail closed。接收方不得持久化一个被证据改写的 Event；持久化的 canonical envelope 必须与 sender 的 `events[].event` 项 byte-identical。
 
@@ -297,8 +279,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
     "delivery_binding_diagnostics": {
       "basis": ["member_delivery_binding"]
     },
-    "destination_service_kind": "principal_server",
-    "reducer_profile_digest": "sha256:9f816e28a928952624e0a6dd50021b212593f05fd94ed502929beb836d57c046"
+    "destination_service_kind": "principal_server"
   },
   "events": [
     {
@@ -579,9 +560,9 @@ sequenceDiagram
 
     Cli->>Alpha: 提交 signed Event 到 Realm S
     Alpha->>Pol: 解析应接收的 Principal Server
-    Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(realm_policy_digest / membership_frontier / delivery_binding_frontier / reducer_profile_digest)
+    Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(realm_policy_digest / membership_frontier / delivery_binding_frontier)
     Alpha->>Beta: POST /_arkret/peer/events (ak.peer.events.command.submit)<br>HTTP Message Sig (RFC 9421)<br>Source/Destination Service DID + Trust Domain<br>Content-Digest + receiver-computed canonical body digest<br>service_binding_ref / events 数组
-    note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. reducer_profile_digest 逐字节一致(不一致整批拒绝)<br>6. 逐 Event verify_event + actor chain<br>7. CBA basis + Lattice / Seal
+    note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. 逐 Event verify_event + actor chain<br>6. 从 CBA basis 读取 reducer-profile cell<br>7. Lattice / Seal
     Beta-->>Alpha: 200 + accepted / rejected / quarantine
     note over Alpha: 失败项<br>重试 / quarantine / 暴露给上游 actor
 ```
@@ -589,7 +570,7 @@ sequenceDiagram
 读图要点：
 
 - 接收方独立验证每个 Event 的签名与因果链，不信任发送方服务器；服务器之间的握手只是传输面认证。
-- `service_binding_ref.reducer_profile_digest` 不一致时整批拒绝（`reducer_profile_mismatch`），避免同 Event 在两端 reducer 下产生不同 cell 状态的隐性失败。
+- 每个 Event 按自己的 CBA governance basis 选择 reducer；同批可以包含 upgrade 及其后继，只要 control-before-data、依赖、Seal 与原子 unit 规则成立。
 - 批内单 Event 失败 **不**回滚同批已接受 Event；依赖同批失败项的后续 Event 必须 `dependency_missing` / `causal_conflict` 拒绝或 quarantine。
 
 ### 4.1.1 批量推送与幂等
@@ -598,7 +579,7 @@ Arkret v1 联邦推送使用 `POST /_arkret/peer/events`（`ak.peer.events.comma
 
 - 幂等以 `(Source-Service-ID, Destination-Service-ID, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 在 `duplicate[]` 中确认（幂等 no-op）而非报错，内容不一致 MUST 以 `duplicate_conflict`（409）拒绝（参见 §4.3）。
 - 批次级重放检测使用 receiver 从已验证 exact body bytes 计算的 canonical digest 与签名覆盖的 `Idempotency-Key`；不引入额外 path 事务 ID。
-- `quarantine[]` 是 `EventsSubmitOutcome` 的独立响应字段；实现 MUST NOT 把隔离项折叠进 `rejected[]`，除非调用方明确使用不支持 `quarantine[]` 的旧本地 adapter，且该 adapter 不得声明 v1 wire conformance。
+- `quarantine[]` 是 `EventsSubmitOutcome` 的独立响应字段；实现 MUST NOT 把隔离项折叠进 `rejected[]`。非协议 adapter 的本地展示行为不改变 wire outcome。
 - 持续同步、批量重试和 frontier 交换通过组合 `ak.peer.events.command.submit`（推送，本节）、`ak.peer.events.query.scan` / `ak.peer.events.query.resolve`（拉取 / backfill / 补洞，§4.2）与 `ak.peer.events.query.frontier`（§4.5）完成；无需额外的有状态事务 endpoint。
 
 ### 4.2 拉取模式 (Pull / Backfill)

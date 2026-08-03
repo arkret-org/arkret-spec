@@ -58,7 +58,7 @@ HTTP/JSON 是参考绑定；同一操作应能无语义损失映射到其它 tra
   - `verified_profiles`
   - `experimental_features`
   - `compat_surfaces`
-  `supported_reducer_profiles` / `supported_schema_profiles` 仅可作为扩展字段发布，不是 core `ServiceDescribe` 必填字段。
+  `supported_reducer_profiles` 是 canonical 可选字段：任何实际执行 Realm Event admission、Snapshot 生成或 MLS governance materialization 的服务都必须发布其实际实现的 `ak.reducer.*` 集合。`supported_schema_profiles` 仍通过已登记扩展或具体 operation 合同表达。
 
 ### 2.1 操作分组
 

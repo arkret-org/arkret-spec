@@ -6698,8 +6698,8 @@
         },
         "reducer_profile": {
           "type": "string",
-          "minLength": 1,
-          "description": "Reducer profile identifier used to interpret the closed security_frontier_digest projection. Receivers MUST fail closed when this field is missing or does not match the reducer profile negotiated for the Realm/federation peer."
+          "pattern": "^ak\\.reducer(?:\\.[a-z0-9][a-z0-9_.-]*)?\\.v[0-9]+$",
+          "description": "Reducer profile used to derive the closed security_frontier_digest projection. Receivers MUST fail closed when this field does not equal the Realm reducer-profile cell at the binding's authenticated frontier."
         }
       },
       "allOf": [
@@ -7685,6 +7685,37 @@
       },
       "additionalProperties": false
     },
+    "realm_update_payload": {
+      "type": "object",
+      "description": "Payload for ak.realm.update. reducer_profile is owned by the Realm reducer-profile singleton control cell and cannot be patched.",
+      "required": [
+        "target_ref",
+        "patch"
+      ],
+      "properties": {
+        "target_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "patch": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/patch"
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^reducer_profile(?:\\.|$)"
+                }
+              }
+            }
+          ]
+        },
+        "expected_state_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
     "object_ref": {
       "type": "string",
       "pattern": "^(ak:(realm|circle|space|actor_profile|strand|message|morph|relation|view|policy|grant|invite|call|audit_binding|audit_session|audit_release|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
@@ -8644,7 +8675,7 @@
     },
     "realm_create_payload": {
       "type": "object",
-      "description": "Create payload uses the full Realm object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance. payload.object.capability_action_registry_digest MUST resolve to a retrievable capability-action-registry.json snapshot whose RFC 8785 JCS recomputation matches, and the reducer MUST copy that signed value verbatim into the ak.component.realm.authority_root.v1 cell rather than inferring it from its own embedded registry. All five registered cell writes defined by zh/models/realm-and-space.md section 2.5 are one atomic unit; any of them failing rejects the whole create.",
+      "description": "Create payload uses the full Realm object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance. payload.object.capability_action_registry_digest MUST resolve to a retrievable capability-action-registry.json snapshot whose RFC 8785 JCS recomputation matches. payload.object.reducer_profile is the genesis value of the Realm reducer-profile singleton control cell. All registered cell writes defined by zh/models/realm-and-space.md section 2.5 are one atomic unit; any of them failing rejects the whole create.",
       "required": [
         "object"
       ],
@@ -9770,22 +9801,15 @@
     },
     "realm_upgrade_state_payload": {
       "type": "object",
-      "description": "Realm reducer-profile upgrade state payload. target_reducer_profile is the ak.component.realm.upgrade.v1 cas_register cell subject. Schema and reducer requirements travel in the Event Envelope requirements.{schema, reducer} fields, not here (zh/conformance/conformance-suite.md section 2).",
+      "description": "Realm reducer-profile upgrade payload. target_reducer_profile is the new value written to the Realm reducer-profile singleton control cell. The Event's standard head_eq precondition binds the current cell value.",
       "required": [
         "target_reducer_profile"
       ],
       "properties": {
         "target_reducer_profile": {
           "type": "string",
-          "pattern": "^[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$",
-          "description": "Reducer profile id this Realm upgrades to. Same lexical form as the envelope requirements.reducer profile ref."
-        },
-        "value": {},
-        "state": {
-          "type": "string"
-        },
-        "reason": {
-          "type": "string"
+          "pattern": "^ak\\.reducer(?:\\.[a-z0-9][a-z0-9_.-]*)?\\.v[0-9]+$",
+          "description": "Registered reducer profile id this Realm upgrades to."
         }
       },
       "additionalProperties": false

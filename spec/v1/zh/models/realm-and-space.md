@@ -92,6 +92,7 @@ Schema id: `ak.schema.realm.v1`
 | `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | reducer 派生。 | 默认可发现性。 |
 | `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | reducer 派生。 | 默认加入规则。 |
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | reducer 派生。`world_readable` / `shared` / `invited` 在 MLS-backed Realm 上要求 effective `content_scheme=mls_exporter_aead_v1`；`mls_rfc9420` 只能与 `joined` / `restricted` 同用。 | 历史可见性。 |
+| `reducer_profile` | yes | `ak.reducer.*.vN` | create 时写入 singleton control cell；只允许 `ak.realm.upgrade` 修改，`ak.realm.update` patch 触及该路径必须 `schema_violation`。 | 当前 Realm 共识 reducer。 |
 | `preview_policy_id` | no | `id:policy` | reducer 派生或投影字段；canonical 写入路径为 `ak.realm.preview_policy`。 | 加入前 / token-scoped preview 的 policy 引用或摘要。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create-locked 的**能力轴**：只声明加密**机制**(有没有 MLS group)，不声明哪些 Arkret 字段进入密文，也不是"内容是否加密"的开关。`none` 是 bridge / 公开广播等"结构上永不 E2EE"scope 的诚实 opt-out；将来可能加密的协作 Realm SHOULD 以 `mls_rfc9420` + `content_encryption_floor=allow_plaintext` 创建，以便后期原地启用加密。完整语义见 [`circle.md` §7](./circle.md)。 | 加密机制声明。 |
 | `content_scheme` | no | `enum(mls_rfc9420, mls_exporter_aead_v1)` | reducer 派生（Realm policy 字段，经 `ak.realm.policy_bundle` 写入并纳入 MLS `security_frontier_digest`）。仅当 `encryption_profile=mls_rfc9420` 时适用；缺省为 `mls_rfc9420`。`mls_rfc9420` 使用 MLS PrivateMessage，join 前历史不可被后加入者解密，故只能配 `history_visibility=joined` / `restricted`；`mls_exporter_aead_v1` 使用 per-epoch `history_secret`，可在 history sharing policy 授权下经 `ak.realm_key.share` 交付，但不自动打开 pre-join delivery。切换只对后续 epoch 生效，完整语义见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10。 | MLS-backed content envelope scheme。 |
@@ -103,7 +104,7 @@ Schema id: `ak.schema.realm.v1`
 | `notary_profile` | yes | `enum(single_did, threshold, open_set, mixed)` | create-locked。 | Seal finality profile。 |
 | `digest_algorithm` | no | `enum(digest-suite-registry active ids；v1: sha256, blake3)` | create 时锁定，唯一例外是 `ak.realm.digest_suite_transition`（默认 `sha256`）。 | Digest suite（canonicalization × hash 注册元组，见 [`encoding.md` §3.1–§3.3](../conformance/encoding.md)）：裸 id = canonical JSON 归一化，点分 id（如 reserved 的 `cbor.sha256`）= 备用归一化编码 suite。Realm 内单一 suite 排他；切换走控制面 suite transition Seal（[`event-auth-state-resolution.md` §9.3.2](../authz/event-auth-state-resolution.md)）。 |
 | `notary` | yes | `object` | Genesis notary control cell 初值；其 `kind` MUST 与 `notary_profile` 同源并满足对应 profile 的条件必填子字段。discriminator `kind` 的取值与 `notary_profile` 枚举同源：`single_did` / `threshold` / `open_set` / `mixed`；schema 以 `realm.schema.json` 为准。 | 当前 Seal 签发规则。 |
-| `capability_action_registry_digest` | yes | `string` | create-locked。`sha256:<64 hex>`，绑定 receiver 可取得且 JCS 重算一致的完整 `capability-action-registry.json` snapshot。reducer 原样复制进 authority-root cell（§2.5 步骤 5），MUST NOT 用本机 embedded registry 推断；后续变更只能走 root-control basis update。 | Realm authority root 的 capability registry basis。 |
+| `capability_action_registry_digest` | yes | `string` | create-locked。`sha256:<64 hex>`，绑定 receiver 可取得且 JCS 重算一致的完整 `capability-action-registry.json` snapshot。reducer 原样复制进 authority-root cell（§2.5 步骤 6），MUST NOT 用本机 embedded registry 推断；后续变更只能走 root-control basis update。 | Realm authority root 的 capability registry basis。 |
 | `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省为 1 个 notary holder，仅约束 Seal include。 | bytes availability receipt 门槛。 |
 | `audit_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省时不得采信 range-completeness / transparency witness attestation。 | completeness / transparency witness policy。 |
 | `revocation_freshness_window_ms` | no | `integer` | 默认 24h；用于 DataEvent `seal_ref` 和 Control Move `seal_basis` 的撤销新鲜度判定。高风险写入 MAY 按 [`capabilities.md` §18.2](../authz/capabilities.md) 要求更短窗口。 | CBA 授权基准 freshness 上限。 |
@@ -181,6 +182,7 @@ Schema id: `ak.schema.realm.v1`
   "default_discoverability": "invite_only",
   "default_join_rule": "invite",
   "history_visibility": "joined",
+  "reducer_profile": "ak.reducer.core.v1",
   "encryption_profile": "mls_rfc9420",
   "notary_profile": "single_did",
   "notary": {
@@ -198,20 +200,22 @@ Schema id: `ak.schema.realm.v1`
 
 ### 2.5 `ak.realm.create` Reducer Bootstrap（normative）
 
-`ak.realm.create` 是 Realm 生命周期的 genesis event。它同时承担“建 Realm metadata”、“为 `created_by` 引导首份成员资格”和“建立该 Realm 终身稳定的 authority root”三项职责，全部由该 Event 的注册 reducer contract 原子承担。
+`ak.realm.create` 是 Realm 生命周期的 genesis event。它同时建立 Realm metadata、`created_by` 的首份成员资格、Realm reducer profile、notary 与终身稳定的 authority root，全部由该 Event 的注册 reducer contract 原子承担。
 
 **Principal Control Realm 分支（normative）**：当 create 同时满足 `fields.purpose="principal_control"`、PCR profile、`created_by=actor_id=principal DID` 与 [`identity/key-management.md` §5.0.1](../identity/key-management.md) 的唯一 critical `did_inception` root anchor 时，bootstrap unit 的第二条固定为首个 delegated `ak.device.authorize`。两条必须在同一 `ak.self.events.command.submit` batch 原子接受，均免 `seal_basis`；authority 必须来自 entry 0/document delegation。PCR 的自体控制权来自 root-anchored genesis，MUST NOT 用 Realm authority-root cell 取代该 root anchor，也不得反过来把 device authority 当作 Realm authority root。该分支不得用于 managed Agent PCR：Agent genesis 继续使用 controller device proof + accepted DID delegation，不携带 `did_inception`，并且必须携带恰好一个 critical `refs[] role="agent_provision"`，指向已接受的 controller-authored `ak.agent.provision` Event。admission 必须逐字交叉校验 provision 的 Agent DID、PCR、controller 与本 create；组织治理 principal 的 delegated PCR 分支必须携带零个 `agent_provision` ref，二者结构互斥。PCR allowlist 包含恢复专用 `ak.device.reanchor`，但该 kind 只能走 key-management §5.0.7 的独立原子 unit。
 
-以下步骤 MUST 在评估同一批次后续 event 前完成。步骤 1–5 是 `ak.realm.create` **对全部 bootstrap 分支一致适用的 registered writes**；步骤 6 是只由上述 signed `agent_provision` critical ref 选择的 managed-Agent 条件写。六项以 registry 为完整投影，任何实现不得再顺带写私有状态。
+以下步骤 MUST 在评估同一批次后续 event 前完成。步骤 1–6 是 `ak.realm.create` **对全部 bootstrap 分支一致适用的 registered writes**；步骤 7 是只由上述 signed `agent_provision` critical ref 选择的 managed-Agent 条件写。七项以 registry 为完整投影，任何实现不得再顺带写私有状态。
 
 `ak.realm.create` 的 registered writes MUST 由该 Event 的 canonical reducer contract 原子承担。全部 writes 在 [`contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `ak.realm.create.cell_writes[]` 中登记；wire 不重复携带：
 
-1. **物化 Realm metadata**：reducer 投影写入 `ak.component.realm.metadata.v1`（`cas_register`，`bottom=reject`，`cell_subject=null`，与 `ak.realm.update` 同一 cell），初值为 `payload.object`（schema 校验、`encryption_profile` / `security_class` / `notary_profile` 等 create-locked 字段固化；`digest_algorithm` 仅可由 [`ak.realm.digest_suite_transition`](../authz/event-auth-state-resolution.md#932-digest-suite-transition-sealnormative) 后续改变）。该 cell MUST 在 genesis Seal 即存在；"metadata cell 只在首次 `ak.realm.update` 之后才出现在 `state_root` leaf 集合中"是不合规实现。
+1. **物化 Realm metadata**：reducer 投影写入 `ak.component.realm.metadata.v1`（`cas_register`，`bottom=reject`，`cell_subject=null`，与 `ak.realm.update` 同一 cell），初值为 `payload.object`（schema 校验、`encryption_profile` / `security_class` / `notary_profile` 等 create-locked 字段固化；`digest_algorithm` 仅可由 [`ak.realm.digest_suite_transition`](../authz/event-auth-state-resolution.md#932-digest-suite-transition-sealnormative) 后续改变）。其中 `reducer_profile` 只是签名 create 输入的 genesis copy；effective Realm projection 必须始终用步骤 5 的 singleton cell settled value 覆盖它，`ak.realm.update` 也在 schema 层禁止该 patch path。该 cell MUST 在 genesis Seal 即存在；"metadata cell 只在首次 `ak.realm.update` 之后才出现在 `state_root` leaf 集合中"是不合规实现。
 2. **写入 `ak.component.member.state.v1` cell**：投影的 `cell_subject` 取 `payload.object.created_by`，transition 为 `leave -> join`，hlc 取自 create Event。这 **不要求** 发起者额外提交一条 `ak.member.state{join}` Event——该 write 由 create 的 reducer contract 派生，wire 上仍然只有一条 Event；`created_by == actor_id` 的跨字段校验见 [`common-fields.md` §3](common-fields.md)、[`event-and-patch.md` §2.5](event-and-patch.md#25-create-类-event-的跨字段语义校验)。
 3. **写入 `ak.component.realm.create.v1` cell**（`ordered_log`，`bottom=inert`，`cell_subject=null`，`issuer_seq=0`）。该 cell 记录 accepted create 条目用于审计 / backfill；`ordered_log` 的 join 数学上不产生 `⊥` 且本 family 不定义领域冲突语义，因此登记 `bottom=inert`（[`event-auth-state-resolution.md` §9.1.1](../authz/event-auth-state-resolution.md)）。"同一 Realm id 的第二条 create MUST 拒绝为 `realm_already_exists`"是 reducer 的 admission precondition，不经由 lattice bottom 表达，也不得把 duplicate create 作为普通 log append 接受。
 4. **写入 `ak.component.notary.v1` cell**（`cas_register`，`bottom=reject`，`cell_subject=null`），初值为 `payload.object.notary`。该 cell 的后继写入只能由 `ak.realm.notary` Control Move 承担，定义见 [`event-auth-state-resolution.md` §6.5](../authz/event-auth-state-resolution.md)。它同样 MUST 是 create 的显式注册投影——genesis Seal 的 signer authority 就在这个 cell 上求值（§6.3 step 2b）；若 `cell_writes[]` 未登记该 write，两个实现会对 genesis `state_root` 得到不同 leaf 集合。
 
-5. **写入 `ak.component.realm.authority_root.v1` cell**（`cas_register`，`bottom=reject`，`cell_subject=null`），值由注册 `value_projection` 从 create payload 确定性派生：
+5. **写入 `ak.component.realm.reducer_profile.v1` cell**（`cas_register`，`bottom=reject`，`cell_subject=null`），初值为 `payload.object.reducer_profile`。该值必须命中 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 的 active `ak.reducer.*` row，且本地实现必须支持；否则整个 create 返回 `profile_unsupported`。该 cell 是 effective `Realm.reducer_profile` 的唯一权威；upgrade 不回写 metadata cell。后继写入只能由 `ak.realm.upgrade` 承担，完整求值规则见 [`event-auth-state-resolution.md` §6.6](../authz/event-auth-state-resolution.md)。
+
+6. **写入 `ak.component.realm.authority_root.v1` cell**（`cas_register`，`bottom=reject`，`cell_subject=null`），值由注册 `value_projection` 从 create payload 确定性派生：
 
    ```text
    {
@@ -224,9 +228,9 @@ Schema id: `ak.schema.realm.v1`
 
    `(realm_id, cell_ref)` 是该 Realm **终身稳定的 authority root identity**；`controller_id` 只是当前控制者，`controller_epoch` 只随 root controller 轮换递增，`authority_generation` 只随整代授权重置递增。`capability_action_registry_digest` MUST 由创建者写入并签进 `ak.realm.create` payload；receiver MUST 取得对应 `capability-action-registry.json` snapshot、按 RFC 8785 JCS 重算 digest 一致后**原样复制**进该 cell，MUST NOT 用本机当前 embedded registry 推断——否则跨版本回放会对同一签名 Event 得到不同 genesis `state_root`。已发布实现写入过的旧 snapshot MUST 按 [`capabilities.md` §3.2](../authz/capabilities.md#32-首发-grant-的-issuer-自身权限上界normative) 的 append-only 归档规则保留；current registry 升级不得使既有 Realm 的 digest 失去可解析性。snapshot 不可得或重算不一致时，整个 bootstrap unit MUST 原子拒绝（`failed_precondition`，`reason="capability_registry_basis_unavailable"`）。author 不得自行提供 `controller_id` / `controller_epoch` / `authority_generation`，也不得携带该四字段之外的成员；出现额外 author-supplied 字段时 MUST 原子拒绝（`failed_precondition`，`reason="realm_authority_root_conflict"`）。
 
-6. **仅 managed Native Agent PCR 物化 lifecycle genesis**：当且仅当签名 create 的 `refs[]` 中恰好一个元素满足 `role="agent_provision" && critical=true` 时，reducer 必须在同一事务把 `ak.component.agent.status.v1` 的 `payload.object.created_by` subject 从 registered internal `uninitialized` 转为 `active`。该 ref 的 Event 必须是已接受、字段完全匹配的 `ak.agent.provision`；缺失、重复、非 critical、错误 kind/Agent/PCR/controller 或组织治理分支携带该 role 都拒绝整个 create。`uninitialized` 只是尚未发布 Agent PCR 的 reducer 初态，不是公开 lifecycle 值；任何 query、session、key authorization 或 signer evidence 都不得把它当 active。此 genesis create Event 与其 signed Seal/state leaf 是首次 active 的唯一 provenance；不得用服务私有 row 或默认值合成 witness。
+7. **仅 managed Native Agent PCR 物化 lifecycle genesis**：当且仅当签名 create 的 `refs[]` 中恰好一个元素满足 `role="agent_provision" && critical=true` 时，reducer 必须在同一事务把 `ak.component.agent.status.v1` 的 `payload.object.created_by` subject 从 registered internal `uninitialized` 转为 `active`。该 ref 的 Event 必须是已接受、字段完全匹配的 `ak.agent.provision`；缺失、重复、非 critical、错误 kind/Agent/PCR/controller 或组织治理分支携带该 role 都拒绝整个 create。`uninitialized` 只是尚未发布 Agent PCR 的 reducer 初态，不是公开 lifecycle 值；任何 query、session、key authorization 或 signer evidence 都不得把它当 active。此 genesis create Event 与其 signed Seal/state leaf 是首次 active 的唯一 provenance；不得用服务私有 row 或默认值合成 witness。
 
-以上六条是 `ak.realm.create` 的完整 reducer projection，其中第六条按 closed condition 只在 managed Agent 分支出现。**任何未登记在 `cell_writes[]` 中的"reducer 顺带写入"MUST NOT 进入 `state_root`**（[`event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md)）。任一 required/selected write 失败，整个 bootstrap unit MUST 原子回滚，不得只留下 Realm / membership / Agent status 半成品；authority-root cell 缺失时 MUST `failed_precondition`，`reason="realm_authority_root_missing"`。
+以上七条是 `ak.realm.create` 的完整 reducer projection，其中第七条按 closed condition 只在 managed Agent 分支出现。**任何未登记在 `cell_writes[]` 中的"reducer 顺带写入"MUST NOT 进入 `state_root`**（[`event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md)）。任一 required/selected write 失败，整个 bootstrap unit MUST 原子回滚，不得只留下 Realm / membership / Agent status 半成品；authority-root cell 缺失时 MUST `failed_precondition`，`reason="realm_authority_root_missing"`。
 
 **root authority 的语义边界（normative）**：authority-root cell 的 current controller 在给定 Seal basis 下凭该 cell 的 inclusion proof 获得 effective `ak.realm.owner` 与封闭的 root-control authority。它是显式、sealed、registry-basis-bound 的协议状态，**不是** `realm_state.owner`、membership 或 `created_by` 身份旁路：
 
@@ -257,7 +261,7 @@ Authz 含义：
 Server 端实现合规要点：
 
 - 若 server 内部维护"显式成员索引"（如 in-memory `members` set）用于快速 authz 判断，MUST 在 `ak.realm.create` 的 commit 路径同步更新此索引，且必须在向 actor 返回 `ak.self.events.command.submit` 200 之前完成 — 否则后续 facet event 在同批次内会以 `capability_denied` 错误失败，把 spec-合规客户端逼到旁路。
-- 若 server 为 capability 使用独立索引 / cache，MUST 与 Realm metadata、creator membership、create log、notary 一起原子物化 authority-root cell；任一写入失败必须回滚整个 bootstrap unit。不得先返回 create 成功再异步补写 authority root。
+- 若 server 为 capability 使用独立索引 / cache，MUST 与 Realm metadata、creator membership、create log、notary、reducer-profile cell 一起原子物化 authority-root cell；任一写入失败必须回滚整个 bootstrap unit。不得先返回 create 成功再异步补写 authority root。
 - 不允许通过 spec 之外的 REST 端点（如 `POST /spaces` 之类的私造 lifecycle 命令面）来兜底 bootstrap。此类端点违反 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md#21-rest-api-命名空间组织) 的"实现不得用未声明路径绕过 canonical operation"规则，且会让事件流上的 read-only consumer 看不到完整的 source-of-truth 事件。
 
 **Backfill / federation peer 一致性（normative）**：creator membership 是 `ak.realm.create` reducer 的第 2 条派生写，authority root 是第 5 条，因此回放签名 event 流即可得到 creator 的 `join` 与 Realm 的 authority root。consumer MUST 运行本节步骤 1–5 的全部注册 reducer writes，不得因为没有独立 `ak.member.state{join}` Event 就判定无成员，也不得因为没有独立授权 Event 就判定无 authority root。缺失/越界的 bootstrap 不得本地补造。

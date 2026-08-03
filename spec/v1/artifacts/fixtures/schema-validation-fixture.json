@@ -384,6 +384,7 @@
       "instance": {
         "id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "schema": "ak.schema.realm.v1",
+        "reducer_profile": "ak.reducer.core.v1",
         "title": "Launch Plan Confidential Realm",
         "created_by": "did:webvh:z6mkfixture:acme.example",
         "trust_domain": "ak:trust_domain:did.webvh.acme.example",
@@ -417,6 +418,7 @@
       "instance": {
         "id": "ak:realm:0196419b-0000-7000-8000-000000000010",
         "schema": "ak.schema.realm.v1",
+        "reducer_profile": "ak.reducer.core.v1",
         "title": "Alice Principal Control Realm",
         "created_by": "did:webvh:z6mkfixture:alice.example",
         "trust_domain": "ak:trust_domain:did.webvh.alice.example",
@@ -456,6 +458,7 @@
       "instance": {
         "id": "ak:realm:0196419b-0000-7000-8000-000000000011",
         "schema": "ak.schema.realm.v1",
+        "reducer_profile": "ak.reducer.core.v1",
         "title": "Alice Principal Control Realm",
         "created_by": "did:webvh:z6mkfixture:alice.example",
         "trust_domain": "ak:trust_domain:did.webvh.alice.example",
@@ -497,6 +500,7 @@
       "instance": {
         "id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "schema": "ak.schema.realm.v1",
+        "reducer_profile": "ak.reducer.core.v1",
         "title": "Launch Plan Confidential Realm",
         "created_by": "did:webvh:z6mkfixture:acme.example",
         "schema_refs": [
@@ -510,6 +514,29 @@
       }
     },
     {
+      "name": "realm_patch_title_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_update_payload",
+      "expect_valid": true,
+      "instance": {
+        "target_ref": "ak:realm:0196419b-0000-7000-8000-000000000020",
+        "patch": {
+          "title": "Updated Realm"
+        }
+      }
+    },
+    {
+      "name": "realm_patch_reducer_profile_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_update_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:reducer_profile",
+      "instance": {
+        "target_ref": "ak:realm:0196419b-0000-7000-8000-000000000020",
+        "patch": {
+          "reducer_profile": "ak.reducer.core.v1"
+        }
+      }
+    },
+    {
       "name": "realm_object_alias_property_rejected",
       "schema_ref": "schemas/realm.schema.json",
       "expect_valid": false,
@@ -517,6 +544,7 @@
       "instance": {
         "id": "ak:realm:0196419b-0000-7000-8000-000000000020",
         "schema": "ak.schema.realm.v1",
+        "reducer_profile": "ak.reducer.core.v1",
         "title": "Launch Plan Confidential Realm",
         "created_by": "did:webvh:z6mkfixture:acme.example",
         "trust_domain": "ak:trust_domain:did.webvh.acme.example",
@@ -545,6 +573,7 @@
       "instance": {
         "id": "ak:realm:0196419b-0000-7000-8000-000000000021",
         "schema": "ak.schema.realm.v1",
+        "reducer_profile": "ak.reducer.core.v1",
         "title": "Managed Agent Principal Control Realm",
         "created_by": "did:webvh:z6mkfixture:agent.example",
         "trust_domain": "ak:trust_domain:did.webvh.agent.example",
@@ -850,6 +879,7 @@
           "object": {
             "id": "ak:realm:0196419b-0000-7000-8000-000000000010",
             "schema": "ak.schema.realm.v1",
+            "reducer_profile": "ak.reducer.core.v1",
             "title": "Alice Principal Control Realm",
             "created_by": "did:webvh:z6mkfixture:alice.example",
             "trust_domain": "ak:trust_domain:did.webvh.alice.example",
@@ -915,6 +945,7 @@
           "object": {
             "id": "ak:realm:0196419b-0000-7000-8000-000000000011",
             "schema": "ak.schema.realm.v1",
+            "reducer_profile": "ak.reducer.core.v1",
             "title": "Managed Agent Principal Control Realm",
             "created_by": "did:webvh:z6mkfixture:agent.example",
             "trust_domain": "ak:trust_domain:did.webvh.alice.example",
@@ -984,6 +1015,7 @@
           "object": {
             "id": "ak:realm:0196419b-0000-7000-8000-000000000012",
             "schema": "ak.schema.realm.v1",
+            "reducer_profile": "ak.reducer.core.v1",
             "title": "Alice Principal Control Realm",
             "created_by": "did:webvh:z6mkfixture:alice.example",
             "trust_domain": "ak:trust_domain:did.webvh.alice.example",
@@ -1053,6 +1085,7 @@
           "object": {
             "id": "ak:realm:0196419b-0000-7000-8000-000000000013",
             "schema": "ak.schema.realm.v1",
+            "reducer_profile": "ak.reducer.core.v1",
             "title": "Collaboration Realm",
             "created_by": "did:webvh:z6mkfixture:alice.example",
             "trust_domain": "ak:trust_domain:did.webvh.alice.example",

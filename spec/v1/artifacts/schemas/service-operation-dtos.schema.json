@@ -4912,8 +4912,7 @@
         "realm_policy_digest",
         "membership_frontier",
         "delivery_binding_frontier",
-        "destination_service_kind",
-        "reducer_profile_digest"
+        "destination_service_kind"
       ],
       "properties": {
         "realm_id": {
@@ -4944,11 +4943,6 @@
         "destination_service_kind": {
           "type": "string",
           "minLength": 1
-        },
-        "reducer_profile_digest": {
-          "type": "string",
-          "description": "SHA-256 over the Arkret canonical JSON bytes of the locally rebuilt content-addressed resolved_digest_input closure declared by artifacts/registry/reducer-profile-registry.json. Receivers MUST independently resolve local event-kind, schema, fixture, and reducer-contract content and reject the whole federation batch with reducer_profile_mismatch on mismatch.",
-          "pattern": "^sha256:[0-9a-f]{64}$"
         }
       },
       "additionalProperties": false

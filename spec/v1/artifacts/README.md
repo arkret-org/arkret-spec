@@ -17,7 +17,7 @@ updated: 2026-05-25
 - `artifacts/registry/error-code-registry.json`
   - 错误码体系。
 - `artifacts/registry/reducer-profile-registry.json`
-  - 联邦 `reducer_profile_digest` 的 profile 声明、内容寻址 `resolved_digest_input` 闭包与重建规则；生成字段由 `tools/reducer_profile_digest.py` 解析本地 reducer 契约后写入。
+  - Realm reducer profile、共识语义范围、支持的 lattice、conformance vector group 与显式 upgrade edge。
 - `artifacts/registry/registry-manifest.json`
   - `artifacts/registry/` 下所有机器注册表索引。
 - `artifacts/profiles/conformance-profiles.json`

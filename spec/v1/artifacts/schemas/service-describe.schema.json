@@ -75,6 +75,15 @@
       },
       "uniqueItems": true
     },
+    "supported_reducer_profiles": {
+      "type": "array",
+      "description": "Registered Realm reducer profiles this service can execute. This is a runtime capability set, not a conformance claim and not a selected Realm profile.",
+      "items": {
+        "type": "string",
+        "pattern": "^ak\\.reducer(?:\\.[a-z0-9][a-z0-9_.-]*)?\\.v[0-9]+$"
+      },
+      "uniqueItems": true
+    },
     "profile_bindings": {
       "type": "object",
       "description": "Profile-specific carrier declarations keyed by profile id. A profile that mandates one interoperable private carrier must bind it here rather than relying on a product-local route.",

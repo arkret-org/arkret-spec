@@ -1,11 +1,11 @@
 ---
-title: 协议演进与 current-wire 边界
+title: 协议演进
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-08-03
 see_also:
-  - ../conformance/encoding.md
+  - ../authz/event-auth-state-resolution.md
   - ../conformance/conformance-profiles.md
   - ../sync/service-http-binding.md
   - ../conformance/normative-language.md
@@ -17,67 +17,76 @@ sidebar:
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
-## 1. 目标与边界
+## 1. 四个版本维度
 
-本文定义 Arkret v1 的协议演进边界：实现如何在不破坏已接受 v1 签名字节、不引入隐式双语义、不让未声明能力跨越信任边界的前提下新增能力。
+Arkret/1 分别管理四个版本维度，任何实现不得用其中一个替代另一个：
 
-本文只约束 **current v1 wire**。current parser、reducer、federation peer、snapshot consumer、conformance runner 与生产 SDK 只处理当前 registry、schema、profile 与 OpenAPI binding 所定义的 v1 形态。任何不在当前真相源中的 operation、event kind、schema、字段、profile 或 critical extension 都按对应源文档定义的 `unsupported_feature`、`unknown_kind`、`unknown_field`、`schema_violation`、`quarantine` 等结果 fail closed；实现不得在实时协议路径中做隐式形态转换、字段猜测或按 payload shape 选择另一套语义。
+| 维度 | Wire 表达 | 作用 |
+| --- | --- | --- |
+| 协议族 | `protocol_version="1.0"` | 标识 Arkret/1 的身份、签名域、Event 因果模型与核心认证规则。 |
+| Wire schema | `schema_id`、带 `.vN` 的 event kind / operation schema | 定义单个 Event、DTO、证明或持久对象的 closed shape。 |
+| Realm reducer profile | Realm 的 `ak.component.realm.reducer_profile.v1` singleton control cell | 定义 Event admission、cell projection、lattice join、state root 与 security frontier 的共识语义。 |
+| Capability | `ServiceDescribe` 的 operation、feature、schema/profile 能力集合 | 决定可选功能是否可用。 |
 
-## 2. 两个硬约束
+Spec、SDK 与服务实现的 SemVer 只管理发布制品，不参与联邦请求判定。实现不得用构建 SHA、发布版本或整包内容摘要代替上述机器可读合同。
 
-Arkret 是联邦化、端到端加密（MLS）、事件溯源协议。客户端、服务端与 federation peer 独立部署，因此协议演进受两个硬约束支配：
+## 2. Realm reducer profile
 
-1. **已接受事件是不可变签名字节。** Event Envelope 的签名与 hash 输入是去除 `proofs` 与 `unsigned` 后的 canonical JSON bytes（见 [conformance/encoding.md](../conformance/encoding.md) §2）。改写其中任一字节即破坏签名。
-2. **对端能力必须显式声明。** federation peer、client、service 与 gateway 不能假设对方支持本地新增能力；互通只能基于 describe/profile/feature/operation 交集。
+Reducer profile ID 使用 `ak.reducer.*.vN` 命名空间。当前注册的基线是 `ak.reducer.core.v1`。`ak.profile.*` 只表示实现、部署、产品或 conformance profile，不得写入 Realm reducer-profile cell。
 
-由此得出 v1 演进基本规则：
+每个 Realm 恰有一个 reducer-profile singleton control cell：
 
-> 演进 MUST 是加性的、可协商的、可测试的；实现 MUST 持续验证其已接受且仍在声明 profile 范围内的 v1 签名字节；未声明或未登记能力 MUST fail closed，而不是被实时路径容忍、猜测或重写。
+```text
+ak:cell:ak.component.realm.reducer_profile.v1:null
+```
 
-## 3. 加性演进
+其规则如下：
 
-v1 内部演进采用以下加性方式：
+1. `ak.realm.create.payload.object.reducer_profile` 提供 genesis 值。
+2. `ak.realm.upgrade.payload.target_reducer_profile` 是唯一后继写入口；该 Control Move 必须用标准 `head_eq` precondition 绑定 source profile。
+3. profile cell 使用 `cas_register`、`bottom=reject`、`plane=control`，并完全复用 CBA join、Bottom 与 conflict recovery。
+4. profile ID 的已发布语义不可原地修改；语义变化必须注册新的 ID 和从 source 到 target 的确定性 upgrade edge。
+5. upgrade Event 本身由 source profile 解释；治理 basis 已包含该 upgrade 的后继才由 target profile 解释。
 
-- 新增 event kind、schema id、operation、profile、feature 或已预先声明的 extension point；closed schema / payload 上新增 optional 字段仍是 wire-breaking，不属于可独立部署的加性变更；
-- 新增能力必须登记到相应单一真相源：contract registry、schema registry、profile matrix、operation registry、error-code registry、OpenAPI binding 或对应 domain registry；
-- 任何进入签名语义的字段，一旦被当前 v1 接受，其 canonical bytes 与语义不得原地改变；
-- 需要改变对象模型或状态机语义时，必须新增可协商的 schema/profile/kind，并明确与既有 current-v1 语义的边界；
-- 新增 critical extension、required feature 或高风险 profile 时，未声明实现按 [conformance/conformance-profiles.md](../conformance/conformance-profiles.md) 与 `conformance-profiles.json` 的 unknown/unsupported 规则 fail closed。
+普通 Event 不声明 reducer profile。DataEvent 从其 `seal_ref` 认证的 joined control state 读取 cell；Control Move 从 `seal_basis` 的 frozen predecessor `J(L)` 读取。实现不得从本地 latest state、软件默认值、接收顺序或调用方字段推断。
 
-Profile 命名采用 `ak.profile.<name>.v1`。current-v1 树不得预注册其它 major；需要调整的 profile 在稳定发布前直接原子更新其 canonical v1 定义。
+## 3. Profile carrier 边界
 
-### 3.1 破坏性变更的承载（normative）
+Reducer profile 只出现在以下 canonical 位置：
 
-当前规范尚未稳定发布，因此破坏性修订 MUST 在一个原子变更中直接更新 canonical event kind、schema、field、profile、OpenAPI、fixture 与 vector，并删除被替代形态。current-v1 树不得保留 rename alias、migration manifest、旧 parser 分支、新旧双写或未来 major profile。修订完成后，只有更新后的 canonical 形态存在；任何缺席于当前 registry/schema 的输入都按 `unknown_kind`、`unknown_field`、`schema_violation` 或对应稳定错误 fail closed。
+- Realm create 的 `payload.object.reducer_profile`；
+- Realm upgrade 的 `payload.target_reducer_profile`；
+- Snapshot、MLS governance proof / binding 等必须脱离 Realm 状态独立验证的 reducer-derived artifact；
+- `ServiceDescribe.supported_reducer_profiles[]`，用于广告本进程实际可执行的集合。
 
-stable v1 发布包一旦冻结，其 registry/schema/reducer release 即为不可变 lockstep 单元。closed schema、既有 kind payload 或 reducer contract 的任何修订必须通过新的 schema id / event kind / 显式 profile 发布；不得原地给 stable closed schema 增加 optional 字段。联邦双方 release digest 不同期间，`reducer_profile_mismatch` 整批 fail closed 是预期行为；self surface 对未知 kind / field 逐事件 fail closed。Producer 只能在双方已声明的 schema/kind/profile 交集内发送，不存在“已知加性超集”自动降级。混版本部署必须先升级所有参与节点的声明能力，再启用新 profile；旧 profile 的 wire bytes 与语义保持不变。
+普通 Event、Event submit/query/subscribe/resolve/pull、普通 Realm operation 和 federation service binding 均不携带 reducer profile。调用方不得增加私有 header、query 或 JSON 字段来选择 reducer。
 
-## 4. Profile / capability 协商
+## 4. 能力发现与失败边界
 
-每个实现 MUST 声明自己支持的 profile、operation、feature、schema 与 binding（见 [conformance/conformance-profiles.md](../conformance/conformance-profiles.md) §1-§2.1）。互通集合由双方声明能力的交集确定：
+节点只根据明确能力集合决定可用功能：
 
-- 未声明的 optional extension 可以省略交互；若调用方仍尝试该交互，receiver 返回已登记的 wire code `unsupported_feature`。`feature_not_advertised` 只是在能力发现面描述“未广告”的状态标签，不是 wire 错误码；
-- 未声明的 required feature、critical extension、高风险 action 或影响授权 / 安全 / 密钥材料的能力 MUST fail closed；
-- federation peer 在接受跨域事件、snapshot、KeyPackage、directory claim、capability decision 或 applet transaction 前，必须验证本地 profile 与对端 profile 的交集覆盖该对象的全部 required semantics；
-- client 与 SDK 不得把本地 UI/配置开关当成协议能力声明；协议能力以 ServiceDescribe、profile matrix、event/schema registry 与签名对象内的 profile 绑定为准。
+- `supported_operations[]`：可调用 operation；
+- `supported_reducer_profiles[]`：可执行 Realm reducer；
+- `supported_profiles[]`：实现、部署或产品 conformance profile；
+- `supported_features[]`：可选功能。
 
-## 5. 传输层 versionless
+目标 Realm 的 active reducer profile 不在本地实现集合时，该 Realm 操作返回 `profile_unsupported`；其它 Realm 不受影响。缺少计算 profile cell 所需的 CBA 依赖返回 `dependency_missing`；cell 为 Bottom 返回 `failed_bottom`、reason=`cell_in_bottom_state`。
 
-默认 HTTP/JSON binding 的 path 都在 negative-space 根 `/_arkret/` 之下且不含版本段；版本与能力发现由 `*.describe` / `supported_operations` / `supported_profiles` / `supported_features` 承载。见 [sync/service-http-binding.md](../sync/service-http-binding.md) §2.1。
+Reducer upgrade target 的词法形状不合法时返回 `schema_violation`；target 未注册时返回 `profile_unsupported`；registry 中不存在 source→target edge 时返回 `failed_precondition`。
 
-pre-auth 的根级能力广告位于 `GET /_arkret/describe`（`ak.server.query.describe`）。实现不得通过 URL path 后缀、私有 header 或部署约定绕开 ServiceDescribe 的能力声明。
+## 5. Schema 与功能演进
 
-## 6. 签名位面与 `unsigned` 位面
+- closed schema 的新形状使用新的 schema ID、event kind 或 operation carrier；
+- 已声明 extensible map 内的 namespaced 非 critical 字段可以按 schema 规则保留或忽略；
+- critical extension 不受支持时只拒绝相关 Event；
+- 不改变共识结果的功能使用 capability 协商；
+- 改变 Event admission、cell、state root 或 security frontier 的功能使用新 reducer profile 和显式 Realm upgrade；
+- 文档、fixture、实现重构与无语义 registry 整理不改变联邦判定。
 
-`unsigned` 是传输或本地附加信息，MUST NOT 影响 event digest 或 proof `event_digest`（见 [conformance/encoding.md](../conformance/encoding.md) §2）。因此 `unsigned` 可以承载可丢弃的本地/传输元信息；任何影响授权、状态机、密钥材料、审计，或任何进入 reducer / canonical projection 计算的真相输入（projection 本身是派生层、非真相源，此处指"被 reducer 消费以派生 canonical 状态的签名输入"，而非派生出的投影结果）的内容，不得只放在 `unsigned` 中。
+任何进入签名语义的 canonical bytes 与已发布语义都不得原地重定义。每项影响 wire、状态、授权、安全、同步或互操作的变化必须进入对应 schema / registry，并有 conformance vector、fixture 或明确测试计划。
 
-## 7. 可操作清单
+## 6. 传输与 `unsigned`
 
-落地一项协议改动时，按以下清单判断：
+HTTP path 不承担协议版本语义；能力由 `GET /_arkret/describe` 和各 surface describe 返回。`open`、`edge`、`self`、`root`、`peer`、`gate`、`find` 只区分调用者和信任边界。
 
-1. **单一真相源**：新增或改变的对象、字段、operation、error、profile、vector 必须进入对应 registry/schema/artifact；Markdown 表只做说明视图。
-2. **加性优先**：新增能力通过 optional/required feature、profile、schema 或 event kind 表达；不得原地改变已接受签名字节语义。
-3. **显式协商**：跨 client/service/federation 的新能力必须能从 describe/profile 交集中判断可用性。
-4. **fail closed**：未知 required feature、critical extension、高风险 action、未登记 operation/kind/field 与不匹配 profile 均按源文档定义的稳定错误或 quarantine 处理。
-5. **可测试**：每个影响 wire、状态机、授权、安全、同步或互操作的新增义务都应配套 conformance vector、fixture 或明确测试计划。
-6. **不泄漏产品面**：`/_arkret/` 只承载协议语义；部署私有管理、运营或产品 API 不得注册进 Arkret operation namespace。
+`unsigned` 仅承载可丢弃的本地或传输元数据，MUST NOT 影响 event digest、授权、reducer 或 canonical state。任何状态真相输入必须位于签名覆盖的 canonical schema 中。
