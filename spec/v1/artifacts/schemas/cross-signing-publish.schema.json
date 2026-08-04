@@ -15,15 +15,23 @@
     "issued_at"
   ],
   "properties": {
-    "principal_id": { "$ref": "#/$defs/did" },
+    "principal_id": {
+      "$ref": "#/$defs/did"
+    },
     "trust_domain": {
       "type": "string",
       "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$",
       "description": "Deployment-scope trust domain identifier. MUST match the receiver's current trust_domain and enters the PSK binding transcript so a publish from deployment A cannot be replayed into deployment B."
     },
-    "principal_signing_key": { "$ref": "#/$defs/published_key" },
-    "self_signing_key": { "$ref": "#/$defs/subordinate_signed_key" },
-    "user_signing_key": { "$ref": "#/$defs/subordinate_signed_key" },
+    "principal_signing_key": {
+      "$ref": "#/$defs/published_key"
+    },
+    "self_signing_key": {
+      "$ref": "#/$defs/subordinate_signed_key"
+    },
+    "user_signing_key": {
+      "$ref": "#/$defs/subordinate_signed_key"
+    },
     "generation": {
       "type": "integer",
       "minimum": 1,
@@ -34,7 +42,9 @@
       "minimum": 0,
       "description": "CAS precondition for the current accepted cross-signing generation. Initial publish uses 0. Reducers MUST accept only when this equals the current accepted generation and generation == expected_previous_generation + 1."
     },
-    "issued_at": { "$ref": "#/$defs/timestamp" }
+    "issued_at": {
+      "$ref": "#/$defs/timestamp"
+    }
   },
   "additionalProperties": false,
   "$defs": {
@@ -49,14 +59,18 @@
       "$ref": "./common-ids.schema.json#/$defs/did_url",
       "description": "DID URL of a verification method within the principal's current DID document or key-log head. Published cross-signing keys are controller keys, so this is always a DID URL, never a profile-local key label."
     },
-    "alg": {
+    "algorithm": {
       "type": "string",
       "minLength": 1,
       "description": "JOSE-style algorithm identifier; MUST be present in the protocol algorithm registry."
     },
     "key_format": {
       "type": "string",
-      "enum": ["multibase", "jwk", "raw_base64url"]
+      "enum": [
+        "multibase",
+        "jwk",
+        "raw_base64url"
+      ]
     },
     "public_key": {
       "type": "string",
@@ -64,33 +78,70 @@
     },
     "published_key": {
       "type": "object",
-      "required": ["kid", "alg", "public_key", "key_format"],
+      "required": [
+        "kid",
+        "algorithm",
+        "public_key",
+        "key_format"
+      ],
       "properties": {
-        "kid": { "$ref": "#/$defs/kid" },
-        "alg": { "$ref": "#/$defs/alg" },
-        "public_key": { "$ref": "#/$defs/public_key" },
-        "key_format": { "$ref": "#/$defs/key_format" }
+        "kid": {
+          "$ref": "#/$defs/kid"
+        },
+        "algorithm": {
+          "$ref": "#/$defs/algorithm"
+        },
+        "public_key": {
+          "$ref": "#/$defs/public_key"
+        },
+        "key_format": {
+          "$ref": "#/$defs/key_format"
+        }
       },
       "additionalProperties": false
     },
     "subordinate_signed_key": {
       "type": "object",
-      "required": ["kid", "alg", "public_key", "key_format", "binding"],
+      "required": [
+        "kid",
+        "algorithm",
+        "public_key",
+        "key_format",
+        "binding"
+      ],
       "properties": {
-        "kid": { "$ref": "#/$defs/kid" },
-        "alg": { "$ref": "#/$defs/alg" },
-        "public_key": { "$ref": "#/$defs/public_key" },
-        "key_format": { "$ref": "#/$defs/key_format" },
+        "kid": {
+          "$ref": "#/$defs/kid"
+        },
+        "algorithm": {
+          "$ref": "#/$defs/algorithm"
+        },
+        "public_key": {
+          "$ref": "#/$defs/public_key"
+        },
+        "key_format": {
+          "$ref": "#/$defs/key_format"
+        },
         "binding": {
           "type": "object",
           "$comment": "Cross-field constraint (not expressible in JSON Schema, enforced by conformance vectors and receivers): binding.verification_method MUST be byte-identical to principal_signing_key.kid, so the verifying PSK is uniquely determined without trial verification.",
-          "required": ["verification_method", "alg", "signature"],
+          "required": [
+            "verification_method",
+            "signature_algorithm",
+            "signature"
+          ],
           "properties": {
             "verification_method": {
               "$ref": "./common-ids.schema.json#/$defs/did_url",
               "description": "DID URL of the PSK verification method that signed this subordinate key's canonical signing input. MUST be byte-identical to principal_signing_key.kid."
             },
-            "alg": { "$ref": "#/$defs/alg" },
+            "signature_algorithm": {
+              "type": "string",
+              "enum": [
+                "Ed25519",
+                "ML-DSA-65"
+              ]
+            },
             "signature": {
               "type": "string",
               "minLength": 1,

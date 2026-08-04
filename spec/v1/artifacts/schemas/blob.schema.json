@@ -10,7 +10,7 @@
       "required": [
         "blob_ref",
         "encrypted",
-        "alg",
+        "encryption_algorithm",
         "key_ref",
         "epoch",
         "ciphertext_digest",
@@ -32,7 +32,7 @@
             "ak.blob.stream_aead.v1"
           ]
         },
-        "alg": {
+        "encryption_algorithm": {
           "type": "string",
           "enum": [
             "mls_exporter_aead_xchacha20poly1305",
@@ -94,7 +94,7 @@
             "scheme": {
               "const": "ak.blob.whole_file_aead.v1"
             },
-            "alg": {
+            "encryption_algorithm": {
               "enum": [
                 "mls_exporter_aead_xchacha20poly1305",
                 "mls_exporter_aead_aes_256_gcm"
@@ -134,7 +134,7 @@
             "scheme": {
               "const": "ak.blob.stream_aead.v1"
             },
-            "alg": {
+            "encryption_algorithm": {
               "enum": [
                 "mls_exporter_aead_xchacha20poly1305_stream",
                 "mls_exporter_aead_aes_256_gcm_stream"

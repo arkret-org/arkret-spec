@@ -82,7 +82,7 @@
       "required": [
         "transcript",
         "kid",
-        "alg",
+        "signature_algorithm",
         "transcript_digest",
         "signature"
       ],
@@ -99,8 +99,12 @@
           "$ref": "#/$defs/device_id",
           "description": "MUST equal new_device_pubkey.kid. The proof is verified with the staged new_device_pubkey and with no other key. This is a device-local ak:device key id selecting the staged key (identity/did-usage-and-verification.md section 2.3), not a DID URL; it is deliberately not named verification_method."
         },
-        "alg": {
-          "$ref": "#/$defs/non_empty_string"
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "Ed25519",
+            "ML-DSA-65"
+          ]
         },
         "transcript_digest": {
           "$ref": "#/$defs/hash",

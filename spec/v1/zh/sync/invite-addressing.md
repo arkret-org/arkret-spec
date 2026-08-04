@@ -136,7 +136,6 @@ token 要求：
       "proof": {
         "kind": "detached_jws",
         "verification_method": "did:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc:ps.bob.example#server-key-1",
-        "alg": "EdDSA",
         "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "created_at": "2026-06-07T10:00:00Z",
         "jws": "..."

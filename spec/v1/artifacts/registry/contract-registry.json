@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.10",
+  "version": "2026-08-04.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-03T15:00:00Z",
+  "generated_at": "2026-08-04T12:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -9082,7 +9082,7 @@
         "schema_id": "ak.schema.public_key.v1",
         "file": "schemas/public-key.schema.json",
         "status": "active",
-        "description": "Defs-only canonical PublicKey DTO (kty/kid/alg/key, optional key_digest). Owned by its own document so device, agent, account and to-device surfaces reference one shared definition instead of reverse-referencing each other's bundles. The {kid, alg, public_key} spelling is not canonical wire and MUST be rejected."
+        "description": "Defs-only canonical PublicKey DTO (kty/kid/algorithm/key, optional key_digest). Owned by its own document so device, agent, account and to-device surfaces reference one shared definition instead of reverse-referencing each other's bundles. The {kid, alg, public_key} spelling is not canonical wire and MUST be rejected."
       },
       {
         "schema_id": "ak.schema.time.v1",

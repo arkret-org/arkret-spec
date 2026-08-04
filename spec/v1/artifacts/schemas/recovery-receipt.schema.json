@@ -273,7 +273,8 @@
         "signature_algorithm": {
           "type": "string",
           "enum": [
-            "Ed25519"
+            "Ed25519",
+            "ML-DSA-65"
           ],
           "description": "v1 fixes the recovery-strand replacement device possession proof to Ed25519 (zh/crypto-media/device-lifecycle.md sections 5.2 and 15). The three-algorithm set in zh/identity/key-management.md section 7.9 belongs to recovery_policy.recovery_keys[].alg and MUST NOT be reused as a reason to widen this one."
         },

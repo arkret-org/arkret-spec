@@ -156,13 +156,13 @@
     "recording_encryption": {
       "type": "object",
       "required": [
-        "alg",
+        "encryption_algorithm",
         "exporter_label",
         "context",
         "ciphertext_digest"
       ],
       "properties": {
-        "alg": {
+        "encryption_algorithm": {
           "type": "string",
           "enum": [
             "mls_exporter_aead_xchacha20poly1305",

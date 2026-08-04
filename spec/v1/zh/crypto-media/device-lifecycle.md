@@ -267,31 +267,31 @@ Schema id：`ak.schema.cross_signing_publish.v1`
     "trust_domain": "ak:trust_domain:did.webvh.example",
     "principal_signing_key": {
       "kid": "did:webvh:...#ak_principal_signing_v1",
-      "alg": "EdDSA",
       "public_key": "z6Mk...",
-      "key_format": "multibase"
+      "key_format": "multibase",
+      "algorithm": "Ed25519"
     },
     "self_signing_key": {
       "kid": "did:webvh:...#ak_self_signing_v1",
-      "alg": "EdDSA",
       "public_key": "z6Mk...",
       "key_format": "multibase",
       "binding": {
         "verification_method": "did:webvh:...#ak_principal_signing_v1",
-        "alg": "EdDSA",
-        "signature": "base64url..."
-      }
+        "signature": "base64url...",
+        "signature_algorithm": "Ed25519"
+      },
+      "algorithm": "Ed25519"
     },
     "user_signing_key": {
       "kid": "did:webvh:...#ak_user_signing_v1",
-      "alg": "EdDSA",
       "public_key": "z6Mk...",
       "key_format": "multibase",
       "binding": {
         "verification_method": "did:webvh:...#ak_principal_signing_v1",
-        "alg": "EdDSA",
-        "signature": "base64url..."
-      }
+        "signature": "base64url...",
+        "signature_algorithm": "Ed25519"
+      },
+      "algorithm": "Ed25519"
     },
     "expected_previous_generation": 0,
     "generation": 1,
@@ -308,29 +308,29 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
   "trust_domain": "ak:trust_domain:did.webvh.example",
   "principal_signing_key": {
     "kid": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ak_principal_signing_v1",
-    "alg": "EdDSA",
+    "algorithm": "Ed25519",
     "public_key": "AA",
     "key_format": "raw_base64url"
   },
   "self_signing_key": {
     "kid": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ak_self_signing_v1",
-    "alg": "EdDSA",
+    "algorithm": "Ed25519",
     "public_key": "BB",
     "key_format": "raw_base64url",
     "binding": {
       "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ak_principal_signing_v1",
-      "alg": "EdDSA",
+      "signature_algorithm": "Ed25519",
       "signature": "c2ln"
     }
   },
   "user_signing_key": {
     "kid": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ak_user_signing_v1",
-    "alg": "EdDSA",
+    "algorithm": "Ed25519",
     "public_key": "CC",
     "key_format": "raw_base64url",
     "binding": {
       "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ak_principal_signing_v1",
-      "alg": "EdDSA",
+      "signature_algorithm": "Ed25519",
       "signature": "c2ln"
     }
   },
@@ -361,13 +361,13 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
     "trust_domain": <trust_domain>,
     "subordinate_key_kind": "self_signing" | "user_signing",
     "subordinate_kid": <kid>,
-    "subordinate_alg": <alg>,
+    "subordinate_algorithm": <algorithm>,
     "subordinate_public_key": <public_key>,
     "generation": <generation>
   })
 ```
 
-服务端 MUST 拒绝 `subordinate_alg` 不在协议算法 registry 中、或 `subordinate_public_key` 与 binding 输入声明不一致的 publish。Reducer 接受 publish 前还 MUST 校验 `payload.expected_previous_generation == current accepted generation` 且 `payload.generation == payload.expected_previous_generation + 1`；同一控制提交批次内若 reset 与 stale publish 并发，stale publish 因 head precondition 不成立而 fail closed，不得依赖本地到达顺序。
+服务端 MUST 拒绝 `subordinate_algorithm` 不在协议算法 registry 中、或 `subordinate_public_key` 与 binding 输入声明不一致的 publish。Reducer 接受 publish 前还 MUST 校验 `payload.expected_previous_generation == current accepted generation` 且 `payload.generation == payload.expected_previous_generation + 1`；同一控制提交批次内若 reset 与 stale publish 并发，stale publish 因 head precondition 不成立而 fail closed，不得依赖本地到达顺序。
 
 `trust_domain` 绑定（normative）：`ak.cross_signing.publish` 与 §14 的 reset 使用同一 deployment-scope replay boundary。Receiver MUST 在解析 publish 时先检查 `payload.trust_domain == current_receive_context.trust_domain`；不匹配时直接拒绝，不得把该 publish 纳入 accepted generation。由于 `trust_domain` 也进入 PSK 对 SSK / USK 的 binding transcript，同一 publish bytes 从 deployment A 搬到 deployment B 时签名 transcript 不同，验证必然失败。
 
@@ -393,12 +393,15 @@ DID-method history → principal_signing_key (PSK)
     "device_id": "ak:device:...",
     "device_public_key": "z6Mk...",
     "hpke_key": "z6LS...",
-    "algorithms": ["ak.hpke_x25519_aead_chacha20poly1305.v1", "ak.mls.v1"],
+    "algorithms": [
+      "ak.hpke_x25519_aead_chacha20poly1305.v1",
+      "ak.mls.v1"
+    ],
     "cross_signing_binding": {
       "verification_method": "did:webvh:...#ak_self_signing_v1",
-      "alg": "EdDSA",
       "ssk_generation": 1,
-      "signature": "base64url..."
+      "signature": "base64url...",
+      "signature_algorithm": "Ed25519"
     },
     "...": "..."
   }
@@ -444,7 +447,7 @@ DID-method history → principal_signing_key (PSK)
   })
 ```
 
-`device_key_algorithm` MUST be `EdDSA`/`Ed25519` for v1 `device_signature` verification. Optional `expires_at`, `scopes`, and `recovery_session_id` are normalized to `null` when absent; `scopes` is sorted and deduplicated before signing。`authorization_binding_kind` 只描述实际授权制度：A 模型为 `cross_signing`，B 模型以及 A 模型 delegated bootstrap 的首设备路径为 `enrollment_authority`；bootstrap unit 是 batch 上下文，不是第三种 binding kind，MUST NOT 编码为 `bootstrap`。Signature bytes、`device_signature`、`proof` 与 nested authorization-binding signature material 被排除以避免循环；`authorization_binding_kind` 加 `cross_signing_generation` 把 possession proof 绑定到授权制度与 cross-signing generation。
+`device_key_algorithm` MUST be `Ed25519`/`Ed25519` for v1 `device_signature` verification. Optional `expires_at`, `scopes`, and `recovery_session_id` are normalized to `null` when absent; `scopes` is sorted and deduplicated before signing。`authorization_binding_kind` 只描述实际授权制度：A 模型为 `cross_signing`，B 模型以及 A 模型 delegated bootstrap 的首设备路径为 `enrollment_authority`；bootstrap unit 是 batch 上下文，不是第三种 binding kind，MUST NOT 编码为 `bootstrap`。Signature bytes、`device_signature`、`proof` 与 nested authorization-binding signature material 被排除以避免循环；`authorization_binding_kind` 加 `cross_signing_generation` 把 possession proof 绑定到授权制度与 cross-signing generation。
 
 #### 5.2.1 验证算法（normative）
 
@@ -698,21 +701,24 @@ Content-Type: application/json
           "from_device": "ak:device:01964137-0000-7000-8000-000000000000",
           "timestamp": "2026-04-26T00:00:00Z",
           "expires_at": "2026-04-26T00:10:00Z",
-          "methods": ["ak.sas.v1", "ak.qr.v1"],
+          "methods": [
+            "ak.sas.v1",
+            "ak.qr.v1"
+          ],
           "purpose": "same_principal_device_authorization",
           "pairing_code": "7H2K9M4Q",
           "new_device_pubkey": {
             "kty": "OKP",
             "kid": "ak:device:01964137-0000-7000-8000-000000000000",
-            "alg": "Ed25519",
-            "key": "base64url..."
+            "key": "base64url...",
+            "algorithm": "Ed25519"
           },
           "challenge_proof": {
             "transcript": "ak.device-pairing.challenge.to_device.v1",
             "kid": "ak:device:01964137-0000-7000-8000-000000000000",
-            "alg": "Ed25519",
             "transcript_digest": "sha256:89abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567",
-            "signature": "base64url..."
+            "signature": "base64url...",
+            "signature_algorithm": "Ed25519"
           },
           "gate_audience": "https://auth.example.com",
           "request_canonical_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -955,7 +961,7 @@ UTF8("ak.self.keys.keypackages.upload.create\n")
 
 entry signature 不覆盖、替代或降级 batch signature。batch signature 无效时整个 request MUST 在任何 KeyPackage 状态写入前拒绝。batch 有效但 present entry signature 无效时，只能拒绝对应 entry；entry signature 缺省时，已验证的 batch authorization覆盖该 entry。接收方不得尝试 `ak.keypackage-upload-v1`、只覆盖 `{device_id,key_packages}` 的旧 transcript或任何实现私有 fallback。
 
-签名算法 v1 为 Ed25519；`signature.alg` MAY 使用注册别名 `Ed25519` 或 `EdDSA`，`signature.kid` MUST 指向同一 accepted signing key。普通 device 从 current accepted device authorization/cross-signing state解析该 key；Native Agent 从 current accepted `ak.agent.key.authorize.verification_method` 解析该 key，并且该 key MUST 同时等于 MLS LeafNode signature key。三条 batch签名与 present entry签名都必须在解析或改变 KeyPackage状态前验证。
+签名算法 v1 为 Ed25519；`signature.alg` MAY 使用注册别名 `Ed25519` 或 `Ed25519`，`signature.kid` MUST 指向同一 accepted signing key。普通 device 从 current accepted device authorization/cross-signing state解析该 key；Native Agent 从 current accepted `ak.agent.key.authorize.verification_method` 解析该 key，并且该 key MUST 同时等于 MLS LeafNode signature key。三条 batch签名与 present entry签名都必须在解析或改变 KeyPackage状态前验证。
 
 upload、consume、revoke 的 byte-exact正向与负向向量由 `ak.vector.crypto.keypackage_write_transcripts.v1` 固化。SDK helper输出与该 fixture不一致时实现 MUST fail closed；不得以当前 server或client实现为兼容依据。
 
@@ -1409,7 +1415,9 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
       "backup_kind": "mls_history",
       "backup_version": "kb_1",
       "created_at": "2026-04-26T00:00:00Z",
-      "item_kinds": ["mls_epoch_secret"]
+      "item_kinds": [
+        "mls_epoch_secret"
+      ]
     }
   },
   "contents": [
@@ -1427,7 +1435,6 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
   "auth_data": {
     "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
     "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak:device:01964137-0000-7000-8000-000000000000",
-    "signature_algorithm": "Ed25519",
     "signature": "base64url...",
     "signed_fields": [
       "backup_id",
@@ -1441,7 +1448,8 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
       "domain_separation",
       "contents",
       "ciphertext_digest"
-    ]
+    ],
+    "signature_algorithm": "Ed25519"
   }
 }
 ```
@@ -1701,8 +1709,8 @@ Schema id：`ak.schema.cross_signing_reset.v1`
     "proof": {
       "kind": "principal_signing",
       "verification_method": "did:webvh:...#ak_principal_signing_v1",
-      "alg": "EdDSA",
-      "signature": "base64url..."
+      "signature": "base64url...",
+      "signature_algorithm": "Ed25519"
     },
     "issued_at": "2026-04-26T00:00:00Z"
   }
@@ -1722,7 +1730,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
   "proof": {
     "kind": "principal_signing",
     "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ak_principal_signing_v1",
-    "alg": "EdDSA",
+    "signature_algorithm": "Ed25519",
     "signature": "c2ln"
   },
   "issued_at": "2026-04-26T00:00:00.000Z"
@@ -1801,13 +1809,13 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 | proof.kind | Receiver MUST 校验 | 失败 reason_code |
 | --- | --- | --- |
 | `principal_signing` | (a) `verification_method` MUST 是该 principal 当前 DID Document 中具备**principal-grade 控制权**的 verification method（即 [`../identity/key-management.md` §3.2](../identity/key-management.md) 定义的 principal signing key 类，例如 `did:webvh:...#ak_principal_signing_v1` 或等价 DID method 控制密钥），且在 `issued_at` 时刻未撤销 / 未轮换；**MUST NOT** 是被本次 reset 重置对象的 `self_signing_key` / `user_signing_key`（让被废止的密钥自我授权废止自身会导致 trust circular）。(b) `signature` 在 `alg` 下覆盖 §14.1 canonical input 验证通过；(c) `previous_generation` 等于 receiver 持有的 accepted publish generation，`new_generation = previous_generation + 1`。 | `cross_signing_reset_proof_authority_invalid` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_generation_mismatch` |
-| `recovery_unlock` | (a) `recovery_secret_ref` 只解析到 recovery session 创建时 snapshot 的 accepted `recovery_policy.recovery_keys[]` 签名 entry（必须在 `issued_at` 时刻 authoritative，未撤销 / 未过期）；DID Document-only key 与 `recovery_key_agreements[]` HPKE key 均 MUST reject；(b) `signature` 验证使用该 signing entry 绑定的 public key、`alg` 在 entry 的算法白名单内、覆盖 §14.1 canonical input（**密码学强度仅由本签名提供**——拥有 recovery-proof 私钥即视作 unlock 通过）；(c) `unlock_commitment` 等于 `SHA-256(utf8("ak.cross-signing-reset-unlock-binding-v1\n") \|\| recovery_secret_ref \|\| unlock_binding_input_bytes)`；`unlock_binding_input_bytes` 按 §14.1 定义，使用同一组 reset 字段，但 `proof_body` 同时排除 `signature` 与 `unlock_commitment`，避免 commitment 对自身取 hash。这是一个**完全由公开材料派生**的 wire-integrity 哈希，receiver 用事件自身的 `recovery_secret_ref` 与 `unlock_binding_input_bytes` 重算后比对；它**不证明持有 recovery secret**（signature 已承担该证明），但绑定 proof 到具体 ref + reset 内容，阻止把同一 ref 的签名跨 reset 复用为另一组 (principal_id, generation) 的 proof shell。 | `cross_signing_reset_recovery_ref_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_unlock_commitment_mismatch` |
+| `recovery_unlock` | (a) `recovery_secret_ref` 只解析到 recovery session 创建时 snapshot 的 accepted `recovery_policy.recovery_keys[]` 签名 entry（必须在 `issued_at` 时刻 authoritative，未撤销 / 未过期）；DID Document-only key 与 `recovery_key_agreements[]` HPKE key 均 MUST reject；(b) `signature` 验证使用该 signing entry 绑定的 public key、`signature_algorithm` 在 entry 的算法白名单内、覆盖 §14.1 canonical input（**密码学强度仅由本签名提供**——拥有 recovery-proof 私钥即视作 unlock 通过）；(c) `unlock_commitment` 等于 `SHA-256(utf8("ak.cross-signing-reset-unlock-binding-v1\n") \|\| recovery_secret_ref \|\| unlock_binding_input_bytes)`；`unlock_binding_input_bytes` 按 §14.1 定义，使用同一组 reset 字段，但 `proof_body` 同时排除 `signature` 与 `unlock_commitment`，避免 commitment 对自身取 hash。这是一个**完全由公开材料派生**的 wire-integrity 哈希，receiver 用事件自身的 `recovery_secret_ref` 与 `unlock_binding_input_bytes` 重算后比对；它**不证明持有 recovery secret**（signature 已承担该证明），但绑定 proof 到具体 ref + reset 内容，阻止把同一 ref 的签名跨 reset 复用为另一组 (principal_id, generation) 的 proof shell。 | `cross_signing_reset_recovery_ref_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_unlock_commitment_mismatch` |
 | `device_quorum` | (a) 每个 `signatures[i]` 的 `verification_method` 是当前 principal device set 中**已授权且未撤销**的 device key（按 `signatures[i].device_id` 查找其 `ak.device.authorize` 记录），并验证 `signature` 覆盖 §14.1 canonical input；(b) `signatures[]` 按 `device_id` 去重；(c) 去重后**有效**签名数 ≥ `threshold`；(d) `threshold` 等于 receiver 当前 `recovery_policy.device_quorum.k`（或等价已发布门限策略），小于该值 MUST 拒（`recovery_policy` 自身的发布 / 修改授权——含降低 `device_quorum.k`——受 [`../identity/key-management.md` §8.1](../identity/key-management.md) 的 ratchet 约束:MUST 由当前 principal signing key 或满足旧 policy 门限的 quorum 签名、`version` 严格递增，因此单设备无法单方面调低本门限）。 | `cross_signing_reset_signature_invalid` / `cross_signing_reset_quorum_insufficient` / `cross_signing_reset_quorum_below_policy` |
 | `trusted_recovery_service` | (a) `service_id` 出现在 recovery session snapshot 的 accepted `recovery_policy.trusted_recovery_services[]` 中、未撤销、`issued_at` 在其有效窗口内；DID Document-only 声明不充分；(b) `verification_method` 是该服务**已公布**的 verification method；(c) `signature` 覆盖 §14.1 canonical input；(d) 若 policy entry 要求 attestation，`attestation_ref` 在同 `trust_domain` 可验证；(e) `recovery_session_id` 指向当前 verified、未过期、未消费的 session，且该 session 的独立 proof kind 为 `principal_signing` / `recovery_unlock` / `device_quorum`，不得仍为 trusted service。 | `cross_signing_reset_recovery_service_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_attestation_missing` / `cross_signing_reset_recovery_service_attestation_domain_mismatch` / `cross_signing_reset_second_factor_missing` |
 
 通用规则：
 
-- 所有 proof 的 `alg` MUST 在 [`conformance/encoding.md` §6.1](../conformance/encoding.md) 的 Signature Suite registered set（签名算法白名单）内；未列入算法 MUST `unsupported_signature_alg`。
+- 所有 raw-signature proof 的 `signature_algorithm` MUST 命中 [`conformance/encoding.md` §6.1](../conformance/encoding.md) 的非空 `raw_signature_algorithm` mapping；detached JWS 的算法只从 protected header 标准 `alg` 读取并命中 `jose_algorithm`。未列入相应 carrier mapping 的算法 MUST `unsupported_signature_alg`。
 - `issued_at` 与 receiver 本地时钟偏差超出 [`ak.profile.cross_signing.reset.v1`](../../artifacts/profiles/conformance-profiles.json) 声明的 `parameters.max_clock_skew_seconds`（默认 300s，允许范围 60–900s）MUST `cross_signing_reset_clock_skew_exceeded`。
 - 同一 `(principal_id, previous_generation)` 已被某条 reset 消费后，新到达的 reset MUST 以 `cross_signing_reset_replayed` 拒绝；replay-rejection 缓存保留时间不得少于 profile `parameters.reset_replay_cache_min_retention_seconds`（默认 90000s，对应 24h + 1h slack），且必须覆盖 `parameters.publish_recovery_window_seconds`（默认 86400s）所定义的"reset → publish"窗口。
 - Receiver MUST 在接受 reset 后 `parameters.publish_recovery_window_seconds` 之内观察到对应的 `ak.cross_signing.publish`；超时未观察到 MUST 进入 §14.2 第 6 项的 "无可用 SSK / USK" 状态，并拒绝任何引用 `new_generation` 的设备授权事件。

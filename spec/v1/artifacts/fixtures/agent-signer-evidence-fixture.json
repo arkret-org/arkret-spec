@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_signer_evidence.v1",
-  "version": "2026-08-03",
+  "version": "2026-08-04",
   "suite": "agent_signer_evidence",
   "runner": {
     "kind": "named_suite",
@@ -15,6 +15,8 @@
     "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
     "agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
     "public_key": "6kpsY-KcUgq-9VB7Ey7F-ZVHdq6-vnuSQh7qaRRG0iw",
+    "public_key_digest": "sha256:fe812c12f3ab4ce6ac5db69ac352f906cb1b11ef43fb33e252ef7ff552263889",
+    "runtime_request_public_key_digest": "sha256:bbeb7e8a892586b86114ab88cc60807dc588f3f5f29a428e69b46808f573bfa3",
     "binding_digest": "sha256:6214dbe074a0a8ab5c15bf5621c1de7db7efc2136dbacab5ead55aeca88d3a30",
     "requirements": [
       "recompute_controller_proof_transcript",

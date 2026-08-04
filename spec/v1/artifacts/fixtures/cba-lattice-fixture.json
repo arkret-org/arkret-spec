@@ -616,10 +616,9 @@
         "signature": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:notary-signer.example#key-1",
-          "alg": "EdDSA",
           "payload_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
           "created_at": "2026-06-11T00:00:00.000Z",
-          "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
         }
       },
       "cases": [

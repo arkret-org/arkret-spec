@@ -217,8 +217,8 @@
       "context": {
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000129",
         "aad_visibility": {
-      "event_id": "routing_digest"
-    },
+          "event_id": "routing_digest"
+        },
         "mls_group_id": "Zm9vYmFy",
         "epoch": 7
       },
@@ -303,8 +303,8 @@
       "context": {
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000129",
         "aad_visibility": {
-      "event_id": "hidden"
-    },
+          "event_id": "hidden"
+        },
         "mls_group_id": "Zm9vYmFy",
         "old_epoch": 7,
         "new_epoch": 8

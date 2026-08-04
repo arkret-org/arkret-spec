@@ -2993,42 +2993,61 @@ Directory 返回 verified handle claim：
   "did": "did:webvh:z2dmjA1ice:users.acme.example",
   "subject": "did:webvh:z2dmjA1ice:users.acme.example",
   "handle": "alice:acme.example",
-  "handle_aliases": ["acct:alice@acme.example"],
+  "handle_aliases": [
+    "acct:alice@acme.example"
+  ],
   "verified": true,
   "audience": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "claims": [{
-    "claim_kind": "organization_handle",
-    "handle": "alice:acme.example",
-    "handle_aliases": ["acct:alice@acme.example"],
-    "subject": "did:webvh:z2dmjA1ice:users.acme.example",
-    "issuer": "did:webvh:z6mkfixture:acme.example",
-    "binding_state": "verified",
-    "audience": "ak:realm:0196419b-0000-7000-8000-000000000000",
-    "member_delivery_binding": {
-      "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
-      "recipient_service_kind": "principal_server",
-      "binding_source": "organization_policy",
-      "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
-      "service_acceptance_ref": "ak:event:0196419b-0000-7000-8000-000000000001",
-      "policy_event_ref": "ak:event:0196419b-0000-7000-8000-000000000002"
-    },
-    "created_at": "2026-05-19T00:00:00Z",
-    "expires_at": "2026-08-19T00:00:00Z",
-    "proofs": [{
-      "kind": "detached_jws",
-      "alg": "EdDSA",
-      "verification_method": "did:webvh:z6mkfixture:principal.acme.example#key-1",
-      "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-      "created_at": "2026-05-19T00:00:00Z",
+  "claims": [
+    {
+      "claim_kind": "organization_handle",
+      "handle": "alice:acme.example",
+      "handle_aliases": [
+        "acct:alice@acme.example"
+      ],
+      "subject": "did:webvh:z2dmjA1ice:users.acme.example",
+      "issuer": "did:webvh:z6mkfixture:acme.example",
+      "binding_state": "verified",
       "audience": "ak:realm:0196419b-0000-7000-8000-000000000000",
-      "jws": "aaa.bbb.ccc"
-    }]
-  }],
+      "member_delivery_binding": {
+        "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
+        "recipient_service_kind": "principal_server",
+        "binding_source": "organization_policy",
+        "delivery_modes": [
+          "events",
+          "sync",
+          "to_device",
+          "push",
+          "key_packages"
+        ],
+        "service_acceptance_ref": "ak:event:0196419b-0000-7000-8000-000000000001",
+        "policy_event_ref": "ak:event:0196419b-0000-7000-8000-000000000002"
+      },
+      "created_at": "2026-05-19T00:00:00Z",
+      "expires_at": "2026-08-19T00:00:00Z",
+      "proofs": [
+        {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:principal.acme.example#key-1",
+          "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "created_at": "2026-05-19T00:00:00Z",
+          "audience": "ak:realm:0196419b-0000-7000-8000-000000000000",
+          "jws": "aaa.bbb.ccc"
+        }
+      ]
+    }
+  ],
   "member_delivery_binding": {
     "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
     "recipient_service_kind": "principal_server",
     "binding_source": "organization_policy",
-    "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
+    "delivery_modes": [
+      "events",
+      "sync",
+      "to_device",
+      "push",
+      "key_packages"
+    ],
     "service_acceptance_ref": "ak:event:0196419b-0000-7000-8000-000000000001",
     "policy_event_ref": "ak:event:0196419b-0000-7000-8000-000000000002"
   },

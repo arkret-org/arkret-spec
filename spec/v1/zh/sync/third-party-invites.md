@@ -145,7 +145,7 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
   },
   "subject_proof": {
     "verification_method": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com#device-1",
-    "alg": "EdDSA",
+    "signature_algorithm": "Ed25519",
     "transcript_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "signature": "c2ln"
   }

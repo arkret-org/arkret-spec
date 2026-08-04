@@ -447,11 +447,10 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
   "proofs": [
     {
       "kind": "detached_jws",
-      "alg": "EdDSA",
       "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:00:00.000Z",
-      "jws": "eyJhbGciOiJFZERTQSJ9..signature"
+      "jws": "eyJhbGciOiJFZDI1NTE5In0..signature"
     }
   ]
 }
@@ -491,11 +490,10 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
   "proofs": [
     {
       "kind": "detached_jws",
-      "alg": "EdDSA",
       "verification_method": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example#device-1",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:01:00.000Z",
-      "jws": "eyJhbGciOiJFZERTQSJ9..signature"
+      "jws": "eyJhbGciOiJFZDI1NTE5In0..signature"
     }
   ]
 }
@@ -539,11 +537,10 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
   "proofs": [
     {
       "kind": "detached_jws",
-      "alg": "EdDSA",
       "verification_method": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example#device-2",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:02:00.000Z",
-      "jws": "eyJhbGciOiJFZERTQSJ9..signature"
+      "jws": "eyJhbGciOiJFZDI1NTE5In0..signature"
     }
   ]
 }

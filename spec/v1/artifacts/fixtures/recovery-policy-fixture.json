@@ -69,7 +69,6 @@
             {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a8200-0000-7000-8000-000000000004",
-              "alg": "EdDSA",
               "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
               "created_at": "2026-07-29T02:00:00.000Z",
               "jws": "e30..c2ln"
@@ -132,7 +131,6 @@
             {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a8200-0000-7000-8000-000000000004",
-              "alg": "EdDSA",
               "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "created_at": "2026-07-29T02:00:00.000Z",
               "jws": "e30..c2ln"
@@ -336,16 +334,16 @@
             "verification_method": "did:webvh:z6mkfixture:alice.example#recovery-proof-1",
             "public_key_multibase": "z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA",
             "key_agreement_ref": "did:webvh:z6mkfixture:alice.example#backup-hpke-1",
-            "alg": "Ed25519",
             "not_before": "2026-07-29T02:00:00.000Z",
             "expires_at": "2036-07-29T02:00:00.000Z",
-            "revoked_at": null
+            "revoked_at": null,
+            "signature_algorithm": "Ed25519"
           }
         ],
         "recovery_key_agreements": [
           {
             "key_agreement_ref": "did:webvh:z6mkfixture:alice.example#backup-hpke-1",
-            "alg": "X25519",
+            "key_agreement_algorithm": "X25519",
             "public_key_multibase": "z6LSriWhVBzW9Vz2PvqbieSz7Aa2hPLzTKJuDwXTMKFeomeW",
             "hpke_suites": [
               "ak.hpke_x25519_aead_chacha20poly1305.v1"

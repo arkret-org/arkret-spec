@@ -108,11 +108,10 @@ Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到
   "proofs": [
     {
       "kind": "detached_jws",
-      "alg": "EdDSA",
       "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#key-1",
       "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "created_at": "2026-04-26T00:00:00Z",
-      "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+      "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
     }
   ]
 }
@@ -129,9 +128,15 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
   "actor_seq": 2,
   "created_at": "2026-04-26T00:01:00Z",
   "hlc": "01970e598d21-0001-a13f9c2e",
-  "prev_refs": ["ak:event:019640ed-8000-7000-8000-000000000000"],
+  "prev_refs": [
+    "ak:event:019640ed-8000-7000-8000-000000000000"
+  ],
   "refs": [
-    { "id": "ak:grant:019640ed-8000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    {
+      "id": "ak:grant:019640ed-8000-7000-8000-000000000000",
+      "role": "authorized_by",
+      "critical": true
+    }
   ],
   "payload": {
     "target_ref": "ak:actor_profile:019640ab-0000-7000-8000-000000000000",
@@ -143,11 +148,10 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
   "proofs": [
     {
       "kind": "detached_jws",
-      "alg": "EdDSA",
       "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#key-1",
       "event_digest": "sha256:6b5ad6b5ad6b7ad6b5ad6b5ad6b5ad6b6b5ad6b5ad6b7ad6b5ad6b5ad6b5ad6b",
       "created_at": "2026-04-26T00:01:00Z",
-      "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+      "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
     }
   ]
 }
@@ -174,9 +178,15 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
   "actor_seq": 3,
   "created_at": "2026-04-26T00:02:00Z",
   "hlc": "01970e5a8d21-0001-a13f9c2e",
-  "prev_refs": ["ak:event:019640ed-8400-7000-8000-000000000000"],
+  "prev_refs": [
+    "ak:event:019640ed-8400-7000-8000-000000000000"
+  ],
   "refs": [
-    { "id": "ak:grant:019640ed-8400-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    {
+      "id": "ak:grant:019640ed-8400-7000-8000-000000000000",
+      "role": "authorized_by",
+      "critical": true
+    }
   ],
   "payload": {
     "target_ref": "ak:actor_profile:019640ab-0000-7000-8000-000000000000",
@@ -191,11 +201,10 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
   "proofs": [
     {
       "kind": "detached_jws",
-      "alg": "EdDSA",
       "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#key-1",
       "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "created_at": "2026-04-26T00:02:00Z",
-      "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+      "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
     }
   ]
 }

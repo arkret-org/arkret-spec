@@ -25,7 +25,9 @@
       "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Typed event_id of the Event Envelope carrying this reset payload. MUST equal the enclosing Event.event_id. Binding it into proof transcript prevents wrapping the same proof bytes into a different Event shell. Mismatch MUST be rejected as reset_event_id_mismatch."
     },
-    "principal_id": { "$ref": "#/$defs/did" },
+    "principal_id": {
+      "$ref": "#/$defs/did"
+    },
     "previous_generation": {
       "type": "integer",
       "minimum": 1,
@@ -38,7 +40,12 @@
     },
     "reset_reason_code": {
       "type": "string",
-      "enum": ["rotation", "compromise", "device_loss", "policy_required"],
+      "enum": [
+        "rotation",
+        "compromise",
+        "device_loss",
+        "policy_required"
+      ],
       "description": "Machine-readable reset reason code."
     },
     "revoked_device_ids": {
@@ -53,13 +60,23 @@
     },
     "proof": {
       "oneOf": [
-        { "$ref": "#/$defs/principal_signing_proof" },
-        { "$ref": "#/$defs/recovery_unlock_proof" },
-        { "$ref": "#/$defs/device_quorum_proof" },
-        { "$ref": "#/$defs/trusted_recovery_service_proof" }
+        {
+          "$ref": "#/$defs/principal_signing_proof"
+        },
+        {
+          "$ref": "#/$defs/recovery_unlock_proof"
+        },
+        {
+          "$ref": "#/$defs/device_quorum_proof"
+        },
+        {
+          "$ref": "#/$defs/trusted_recovery_service_proof"
+        }
       ]
     },
-    "issued_at": { "$ref": "#/$defs/timestamp" }
+    "issued_at": {
+      "$ref": "#/$defs/timestamp"
+    }
   },
   "additionalProperties": false,
   "allOf": [
@@ -108,24 +125,48 @@
     "principal_signing_proof": {
       "type": "object",
       "description": "Principal-control-key proof. The schema only encodes wire shape; key-class verification is normative in zh/crypto-media/device-lifecycle.md §14.4. `verification_method` MUST be a principal-grade DID-control verification method (zh/identity/key-management.md §3.2 — e.g. `did:webvh:...#ak_principal_signing_v1` or the DID method's equivalent control key), and MUST NOT be the self_signing_key or user_signing_key being retired by this reset.",
-      "required": ["kind", "verification_method", "alg", "signature"],
+      "required": [
+        "kind",
+        "verification_method",
+        "signature_algorithm",
+        "signature"
+      ],
       "properties": {
-        "kind": { "const": "principal_signing" },
+        "kind": {
+          "const": "principal_signing"
+        },
         "verification_method": {
           "$ref": "#/$defs/did_url",
           "description": "Principal-grade control-key verification method. MUST NOT reference the SSK/USK being reset (§14.4 rule (a))."
         },
-        "alg": { "type": "string", "minLength": 1 },
-        "signature": { "$ref": "#/$defs/signature_b64u" }
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "Ed25519",
+            "ML-DSA-65"
+          ]
+        },
+        "signature": {
+          "$ref": "#/$defs/signature_b64u"
+        }
       },
       "additionalProperties": false
     },
     "recovery_unlock_proof": {
       "type": "object",
       "description": "Recovery-key unlock proof. The cryptographic strength comes entirely from `signature` — possession of the recovery private key is proven by verifying `signature` over the §14.1 canonical input under the public key bound to `recovery_secret_ref` in the recovery session's snapshotted accepted recovery_policy. A DID Document-only recovery key is not authoritative. `unlock_commitment` is a wire-integrity / debug binding only: it is a deterministic public hash that the receiver re-computes from material already in the event. See zh/crypto-media/device-lifecycle.md §14.4: (a) recovery_secret_ref MUST resolve to a recovery_keys[] entry that was authoritative at issued_at; (b) signature MUST verify against that entry's public key; (c) unlock_commitment MUST equal SHA-256(utf8('ak.cross-signing-reset-unlock-binding-v1\\n') || recovery_secret_ref || unlock_binding_input_bytes), where unlock_binding_input_bytes is the §14.1 canonical input with proof_body excluding both signature fields and unlock_commitment. Receivers MUST reject the reset if any of (a)-(c) fails.",
-      "required": ["kind", "recovery_session_id", "recovery_secret_ref", "unlock_commitment", "alg", "signature"],
+      "required": [
+        "kind",
+        "recovery_session_id",
+        "recovery_secret_ref",
+        "unlock_commitment",
+        "signature_algorithm",
+        "signature"
+      ],
       "properties": {
-        "kind": { "const": "recovery_unlock" },
+        "kind": {
+          "const": "recovery_unlock"
+        },
         "recovery_session_id": {
           "type": "string",
           "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
@@ -140,31 +181,60 @@
           "$ref": "#/$defs/hash",
           "description": "Deterministic wire-integrity hash bound to (recovery_secret_ref, reset content). Receiver-computable from public material; does NOT prove possession of the recovery secret — `signature` does. See §14.4 rule (c) for the exact derivation and the self-reference exclusion."
         },
-        "alg": { "type": "string", "minLength": 1 },
-        "signature": { "$ref": "#/$defs/signature_b64u" }
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "Ed25519",
+            "ML-DSA-65"
+          ]
+        },
+        "signature": {
+          "$ref": "#/$defs/signature_b64u"
+        }
       },
       "additionalProperties": false
     },
     "device_quorum_signature": {
       "type": "object",
-      "required": ["device_id", "verification_method", "alg", "signature"],
+      "required": [
+        "device_id",
+        "verification_method",
+        "signature_algorithm",
+        "signature"
+      ],
       "properties": {
         "device_id": {
           "type": "string",
           "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "verification_method": { "$ref": "#/$defs/did_url" },
-        "alg": { "type": "string", "minLength": 1 },
-        "signature": { "$ref": "#/$defs/signature_b64u" }
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "Ed25519",
+            "ML-DSA-65"
+          ]
+        },
+        "signature": {
+          "$ref": "#/$defs/signature_b64u"
+        }
       },
       "additionalProperties": false
     },
     "device_quorum_proof": {
       "type": "object",
       "description": "Device-quorum proof. The schema enforces only the minimum wire shape (threshold>=2, signatures.minItems=1). Cryptographic and quorum verification are normative in zh/crypto-media/device-lifecycle.md §14.4: (a) every signature MUST verify against the public key of an authorized, non-revoked device in the principal's current device set at issued_at, over the §14.1 canonical input; (b) signatures MUST be deduplicated by device_id; (c) the count of valid, deduplicated signatures MUST be >= threshold; (d) threshold MUST equal the current `recovery_policy.device_quorum.k` (or equivalent published quorum policy) at issued_at — a smaller threshold supplied by the issuer MUST be rejected as `failed_precondition` reason=`cross_signing_reset_quorum_below_policy`. Receivers MUST reject the reset if any of (a)-(d) fails.",
-      "required": ["kind", "threshold", "signatures"],
+      "required": [
+        "kind",
+        "threshold",
+        "signatures"
+      ],
       "properties": {
-        "kind": { "const": "device_quorum" },
+        "kind": {
+          "const": "device_quorum"
+        },
         "threshold": {
           "type": "integer",
           "minimum": 2,
@@ -173,7 +243,9 @@
         "signatures": {
           "type": "array",
           "minItems": 1,
-          "items": { "$ref": "#/$defs/device_quorum_signature" },
+          "items": {
+            "$ref": "#/$defs/device_quorum_signature"
+          },
           "description": "minItems=1 is the schema floor only; reducer-side verification requires deduplicated valid signatures count >= threshold per description rule (c)."
         }
       },
@@ -181,13 +253,34 @@
     },
     "trusted_recovery_service_proof": {
       "type": "object",
-      "required": ["kind", "service_id", "verification_method", "alg", "signature", "recovery_session_id"],
+      "required": [
+        "kind",
+        "service_id",
+        "verification_method",
+        "signature_algorithm",
+        "signature",
+        "recovery_session_id"
+      ],
       "properties": {
-        "kind": { "const": "trusted_recovery_service" },
-        "service_id": { "$ref": "#/$defs/did" },
-        "verification_method": { "$ref": "#/$defs/did_url" },
-        "alg": { "type": "string", "minLength": 1 },
-        "signature": { "$ref": "#/$defs/signature_b64u" },
+        "kind": {
+          "const": "trusted_recovery_service"
+        },
+        "service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "Ed25519",
+            "ML-DSA-65"
+          ]
+        },
+        "signature": {
+          "$ref": "#/$defs/signature_b64u"
+        },
         "recovery_session_id": {
           "type": "string",
           "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",

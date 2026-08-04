@@ -770,14 +770,14 @@
       "vector_id": "ak.vector.identity.recovery_key_role_separation.v1",
       "input": {
         "signing_verification_method": "did:webvh:z6mkfixture:alice.example#recovery-proof-1",
-        "signing_alg": "Ed25519",
         "signing_public_key_multibase": "z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA",
         "key_agreement_ref": "did:webvh:z6mkfixture:alice.example#backup-hpke-1",
-        "key_agreement_alg": "X25519",
         "key_agreement_public_key_multibase": "z6LSriWhVBzW9Vz2PvqbieSz7Aa2hPLzTKJuDwXTMKFeomeW",
         "recipient_ref_matches_pair": true,
         "hpke_suite_allowed": true,
-        "both_entries_active": true
+        "both_entries_active": true,
+        "signature_algorithm": "Ed25519",
+        "key_agreement_algorithm": "X25519"
       },
       "expected": {
         "decision": "accept"

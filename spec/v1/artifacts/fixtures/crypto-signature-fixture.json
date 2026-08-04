@@ -9,7 +9,6 @@
     {
       "name": "ak.vector.encoding.crypto.ed25519_detached_jws.v1",
       "description": "Ed25519 detached JWS over the canonical proof binding object for a Arkret Event Envelope.",
-      "alg": "EdDSA",
       "did_document_fragment": {
         "id": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
         "type": "JsonWebKey2020",
@@ -84,18 +83,17 @@
       "canonical_binding_payload": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-05-02T00:00:00.000Z\",\"domain\":\"arkret-event-v1\",\"event_digest\":\"sha256:d7e2e4fed2f250cccf4a88d481fa63b0330157c68ccb9592c41c53dc79859ef8\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}",
       "binding_digest": "sha256:05e83928b8ca851462ff37016a5496520b97d8d7277ca608644d445255fdef89",
       "protected_header": {
-        "alg": "EdDSA"
+        "alg": "Ed25519"
       },
-      "protected_header_canonical": "{\"alg\":\"EdDSA\"}",
+      "protected_header_canonical": "{\"alg\":\"Ed25519\"}",
       "detached_payload_b64u": "eyJhY3Rvcl9pZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlIiwiY29udGV4dCI6ImFrLmV2ZW50LXByb29mLXYxIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDUtMDJUMDA6MDA6MDAuMDAwWiIsImRvbWFpbiI6ImFya3JldC1ldmVudC12MSIsImV2ZW50X2RpZ2VzdCI6InNoYTI1NjpkN2UyZTRmZWQyZjI1MGNjY2Y0YTg4ZDQ4MWZhNjNiMDMzMDE1N2M2OGNjYjk1OTJjNDFjNTNkYzc5ODU5ZWY4IiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIn0",
-      "jws_signing_input": "eyJhbGciOiJFZERTQSJ9.eyJhY3Rvcl9pZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlIiwiY29udGV4dCI6ImFrLmV2ZW50LXByb29mLXYxIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDUtMDJUMDA6MDA6MDAuMDAwWiIsImRvbWFpbiI6ImFya3JldC1ldmVudC12MSIsImV2ZW50X2RpZ2VzdCI6InNoYTI1NjpkN2UyZTRmZWQyZjI1MGNjY2Y0YTg4ZDQ4MWZhNjNiMDMzMDE1N2M2OGNjYjk1OTJjNDFjNTNkYzc5ODU5ZWY4IiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIn0",
+      "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.eyJhY3Rvcl9pZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlIiwiY29udGV4dCI6ImFrLmV2ZW50LXByb29mLXYxIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDUtMDJUMDA6MDA6MDAuMDAwWiIsImRvbWFpbiI6ImFya3JldC1ldmVudC12MSIsImV2ZW50X2RpZ2VzdCI6InNoYTI1NjpkN2UyZTRmZWQyZjI1MGNjY2Y0YTg4ZDQ4MWZhNjNiMDMzMDE1N2M2OGNjYjk1OTJjNDFjNTNkYzc5ODU5ZWY4IiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIn0",
       "proof": {
         "kind": "detached_jws",
-        "alg": "EdDSA",
         "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
         "created_at": "2026-05-02T00:00:00.000Z",
         "domain": "arkret-event-v1",
-        "jws": "eyJhbGciOiJFZERTQSJ9.._HfHFeShxvNBEAAKzCeMhcRj2yQH8nk40_ys0aPQHL_-fPDAS_5tuxzPfEF5TRqlY4Tsm9x-793L52UqkqGiDQ",
+        "jws": "eyJhbGciOiJFZDI1NTE5In0..yJlrwlTeMbG6nLZeYo5sktcXG28MgGbaBDjb0fOOHTmJNgWKCsBgi1nl2VAgr7s_buBjRbk33_ciYuJYMD8MBw",
         "event_digest": "sha256:d7e2e4fed2f250cccf4a88d481fa63b0330157c68ccb9592c41c53dc79859ef8"
       },
       "event_with_proof": {
@@ -145,11 +143,10 @@
         "proofs": [
           {
             "kind": "detached_jws",
-            "alg": "EdDSA",
             "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
             "created_at": "2026-05-02T00:00:00.000Z",
             "domain": "arkret-event-v1",
-            "jws": "eyJhbGciOiJFZERTQSJ9.._HfHFeShxvNBEAAKzCeMhcRj2yQH8nk40_ys0aPQHL_-fPDAS_5tuxzPfEF5TRqlY4Tsm9x-793L52UqkqGiDQ",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..yJlrwlTeMbG6nLZeYo5sktcXG28MgGbaBDjb0fOOHTmJNgWKCsBgi1nl2VAgr7s_buBjRbk33_ciYuJYMD8MBw",
             "event_digest": "sha256:d7e2e4fed2f250cccf4a88d481fa63b0330157c68ccb9592c41c53dc79859ef8"
           }
         ]
@@ -161,12 +158,12 @@
         "reject_if_jws_payload_segment_is_non_empty_for_detached_profile": true,
         "reject_if_verification_method_not_in_did_document": true
       },
-      "event_digest": "sha256:d7e2e4fed2f250cccf4a88d481fa63b0330157c68ccb9592c41c53dc79859ef8"
+      "event_digest": "sha256:d7e2e4fed2f250cccf4a88d481fa63b0330157c68ccb9592c41c53dc79859ef8",
+      "jose_algorithm": "Ed25519"
     },
     {
       "name": "ak.vector.encoding.crypto.es256_detached_jws.v1",
       "description": "ECDSA P-256 (ES256) detached JWS over the canonical proof binding object for an Arkret Event Envelope. Optional interop suite gated by ak.profile.signature.ecdsa_p256.v1.",
-      "alg": "ES256",
       "applies_to_profiles": [
         "ak.profile.signature.ecdsa_p256.v1"
       ],
@@ -255,7 +252,6 @@
       "jws_signing_input": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VzMjU2LTIwMjYtMDctZml4dHVyZSIsInR5cCI6IkpPU0UifQ.eyJhY3Rvcl9pZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlIiwiY29udGV4dCI6ImFrLmV2ZW50LXByb29mLXYxIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDUtMDJUMDA6MDA6MDAuMDAwWiIsImRvbWFpbiI6ImFya3JldC1ldmVudC12MSIsImV2ZW50X2RpZ2VzdCI6InNoYTI1NjpmN2FiMGE0NzRiNTE2ZjU4Zjk1MTQ3NTkxZjI4NGE4YWU1YjkwZjhhYjhlYWViMTVmOGZiYWE0ZWUwODA3MmRkIiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VzMjU2LTIwMjYtMDctZml4dHVyZSJ9",
       "proof": {
         "kind": "detached_jws",
-        "alg": "ES256",
         "verification_method": "did:webvh:z6mkfixture:alice.example#es256-2026-07-fixture",
         "created_at": "2026-05-02T00:00:00.000Z",
         "domain": "arkret-event-v1",
@@ -309,7 +305,6 @@
         "proofs": [
           {
             "kind": "detached_jws",
-            "alg": "ES256",
             "verification_method": "did:webvh:z6mkfixture:alice.example#es256-2026-07-fixture",
             "created_at": "2026-05-02T00:00:00.000Z",
             "domain": "arkret-event-v1",
@@ -326,7 +321,8 @@
         "reject_if_verification_method_not_in_did_document": true,
         "reject_if_receiver_does_not_declare_profile": "ak.profile.signature.ecdsa_p256.v1"
       },
-      "event_digest": "sha256:f7ab0a474b516f58f95147591f284a8ae5b90f8ab8eaeb15f8fbaa4ee08072dd"
+      "event_digest": "sha256:f7ab0a474b516f58f95147591f284a8ae5b90f8ab8eaeb15f8fbaa4ee08072dd",
+      "jose_algorithm": "ES256"
     },
     {
       "name": "ak.vector.encoding.crypto.mldsa65_raw_detached_signature.v1",
@@ -399,8 +395,8 @@
       "name": "reject_flipped_signature_bit",
       "base_vector": "ak.vector.encoding.crypto.ed25519_detached_jws.v1",
       "description": "One bit of the Ed25519 signature is flipped (first signature byte XOR 0x01); everything else is byte-identical to the valid vector.",
-      "proof_jws": "eyJhbGciOiJFZERTQSJ9..Xh2tMVU5lJLUyJqlhCS0L_ZBME7MXthUeSk8dqCvAG5es_Bsp8Z3CglYicsPyHuYurR4HgVMkP51Oh-EvC3dAQ",
-      "jws_signing_input": "eyJhbGciOiJFZERTQSJ9.eyJhY3Rvcl9pZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlIiwiY29udGV4dCI6ImFrLmV2ZW50LXByb29mLXYxIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDUtMDJUMDA6MDA6MDAuMDAwWiIsImRvbWFpbiI6ImFya3JldC1ldmVudC12MSIsImV2ZW50X2RpZ2VzdCI6InNoYTI1NjplOGM2NjU4N2IwYjUxY2Y2NzEwOTY1ZDBiMGI4Mjg5MDhiZDhhNzljNjllNzUxYzk2MmFjNzE5NDQ2MTdkNDZjIiwicGF5bG9hZF9kaWdlc3QiOiJzaGEyNTY6ZThjNjY1ODdiMGI1MWNmNjcxMDk2NWQwYjBiODI4OTA4YmQ4YTc5YzY5ZTc1MWM5NjJhYzcxOTQ0NjE3ZDQ2YyIsInZlcmlmaWNhdGlvbl9tZXRob2QiOiJkaWQ6d2Vidmg6ejZta2ZpeHR1cmU6YWxpY2UuZXhhbXBsZSNlZDI1NTE5LTIwMjYtMDUtZml4dHVyZSJ9",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..Xh2tMVU5lJLUyJqlhCS0L_ZBME7MXthUeSk8dqCvAG5es_Bsp8Z3CglYicsPyHuYurR4HgVMkP51Oh-EvC3dAQ",
+      "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.eyJhY3Rvcl9pZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlIiwiY29udGV4dCI6ImFrLmV2ZW50LXByb29mLXYxIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDUtMDJUMDA6MDA6MDAuMDAwWiIsImRvbWFpbiI6ImFya3JldC1ldmVudC12MSIsImV2ZW50X2RpZ2VzdCI6InNoYTI1NjplOGM2NjU4N2IwYjUxY2Y2NzEwOTY1ZDBiMGI4Mjg5MDhiZDhhNzljNjllNzUxYzk2MmFjNzE5NDQ2MTdkNDZjIiwicGF5bG9hZF9kaWdlc3QiOiJzaGEyNTY6ZThjNjY1ODdiMGI1MWNmNjcxMDk2NWQwYjBiODI4OTA4YmQ4YTc5YzY5ZTc1MWM5NjJhYzcxOTQ0NjE3ZDQ2YyIsInZlcmlmaWNhdGlvbl9tZXRob2QiOiJkaWQ6d2Vidmg6ejZta2ZpeHR1cmU6YWxpY2UuZXhhbXBsZSNlZDI1NTE5LTIwMjYtMDUtZml4dHVyZSJ9",
       "public_key_jwk": {
         "crv": "Ed25519",
         "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
@@ -453,7 +449,7 @@
       "name": "reject_truncated_public_key",
       "base_vector": "ak.vector.encoding.crypto.ed25519_detached_jws.v1",
       "description": "The DID Document publicKeyJwk.x is truncated to 31 bytes; the JWS is the untampered valid vector value.",
-      "proof_jws": "eyJhbGciOiJFZERTQSJ9..Xh2tMVU5lJLUyJqlhCS0L_ZBME7MXthUeSk8dqCvAG5es_Bsp8Z3CglYicsPyHuYurR4HgVMkP51Oh-EvC3dAA",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..Xh2tMVU5lJLUyJqlhCS0L_ZBME7MXthUeSk8dqCvAG5es_Bsp8Z3CglYicsPyHuYurR4HgVMkP51Oh-EvC3dAA",
       "public_key_jwk": {
         "crv": "Ed25519",
         "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMQ",
@@ -469,7 +465,7 @@
       "name": "reject_non_empty_payload_segment",
       "base_vector": "ak.vector.encoding.crypto.ed25519_detached_jws.v1",
       "description": "The detached payload is re-attached as the JWS payload segment. The signature still verifies as an attached JWS over the identical signing input, so accepting it would silently downgrade the detached profile; receivers MUST reject on the non-empty payload segment alone.",
-      "proof_jws": "eyJhbGciOiJFZERTQSJ9.e30.Xh2tMVU5lJLUyJqlhCS0L_ZBME7MXthUeSk8dqCvAG5es_Bsp8Z3CglYicsPyHuYurR4HgVMkP51Oh-EvC3dAA",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0.e30.Xh2tMVU5lJLUyJqlhCS0L_ZBME7MXthUeSk8dqCvAG5es_Bsp8Z3CglYicsPyHuYurR4HgVMkP51Oh-EvC3dAA",
       "expected": {
         "decision": "reject",
         "error_code": "invalid_signature",

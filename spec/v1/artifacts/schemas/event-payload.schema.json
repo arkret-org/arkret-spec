@@ -63,8 +63,12 @@
                   },
                   "object_ref": {
                     "oneOf": [
-                      { "$ref": "./common-ids.schema.json#/$defs/device_id" },
-                      { "$ref": "./event-envelope.schema.json#/$defs/applet_id" }
+                      {
+                        "$ref": "./common-ids.schema.json#/$defs/device_id"
+                      },
+                      {
+                        "$ref": "./event-envelope.schema.json#/$defs/applet_id"
+                      }
                     ]
                   },
                   "value": {
@@ -90,28 +94,60 @@
                     ],
                     "not": {
                       "anyOf": [
-                        { "required": ["object_ref"] },
-                        { "required": ["value"] }
+                        {
+                          "required": [
+                            "object_ref"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "value"
+                          ]
+                        }
                       ]
                     }
                   },
                   {
                     "properties": {
-                      "kind": { "const": "device" },
-                      "object_ref": { "$ref": "./common-ids.schema.json#/$defs/device_id" },
-                      "value": { "$ref": "./common-ids.schema.json#/$defs/did_url" }
+                      "kind": {
+                        "const": "device"
+                      },
+                      "object_ref": {
+                        "$ref": "./common-ids.schema.json#/$defs/device_id"
+                      },
+                      "value": {
+                        "$ref": "./common-ids.schema.json#/$defs/did_url"
+                      }
                     },
-                    "required": ["kind"],
-                    "oneOf": [
-                      { "required": ["object_ref"] },
-                      { "required": ["value"] }
+                    "required": [
+                      "kind"
                     ],
-                    "not": { "required": ["did"] }
+                    "oneOf": [
+                      {
+                        "required": [
+                          "object_ref"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "value"
+                        ]
+                      }
+                    ],
+                    "not": {
+                      "required": [
+                        "did"
+                      ]
+                    }
                   },
                   {
                     "properties": {
-                      "kind": { "const": "applet" },
-                      "object_ref": { "$ref": "./event-envelope.schema.json#/$defs/applet_id" }
+                      "kind": {
+                        "const": "applet"
+                      },
+                      "object_ref": {
+                        "$ref": "./event-envelope.schema.json#/$defs/applet_id"
+                      }
                     },
                     "required": [
                       "kind",
@@ -119,8 +155,16 @@
                     ],
                     "not": {
                       "anyOf": [
-                        { "required": ["did"] },
-                        { "required": ["value"] }
+                        {
+                          "required": [
+                            "did"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "value"
+                          ]
+                        }
                       ]
                     }
                   },
@@ -140,8 +184,16 @@
                     ],
                     "not": {
                       "anyOf": [
-                        { "required": ["did"] },
-                        { "required": ["object_ref"] }
+                        {
+                          "required": [
+                            "did"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "object_ref"
+                          ]
+                        }
                       ]
                     }
                   }
@@ -690,7 +742,7 @@
         },
         "public_key_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Digest of the public key material behind verification_method. Native Agent authorization always commits this value; receivers compare it with the disclosed raw Ed25519 key."
+          "description": "SHA-256 of the decoded 32-byte Ed25519 public key behind verification_method, computed with agent_signing_public_key_digest. Native Agent authorization always commits this raw-key digest; it is distinct from the private runtime-request PublicKey DTO digest."
         },
         "signing_key_binding_digest": {
           "$ref": "#/$defs/hash",
@@ -3171,12 +3223,24 @@
         "granted_to_peer_scopes"
       ],
       "properties": {
-        "peer": { "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_peer" },
-        "basis_id": { "$ref": "#/$defs/hash" },
-        "version": { "const": 1 },
-        "request_event_ref": { "$ref": "#/$defs/event_ref" },
-        "request_acceptance_receipt_digest": { "$ref": "#/$defs/hash" },
-        "granted_to_peer_scopes": { "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scopes" }
+        "peer": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_peer"
+        },
+        "basis_id": {
+          "$ref": "#/$defs/hash"
+        },
+        "version": {
+          "const": 1
+        },
+        "request_event_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "request_acceptance_receipt_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "granted_to_peer_scopes": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scopes"
+        }
       },
       "additionalProperties": false
     },
@@ -3189,9 +3253,15 @@
         "request_acceptance_receipt_digest"
       ],
       "properties": {
-        "peer": { "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_peer" },
-        "request_event_ref": { "$ref": "#/$defs/event_ref" },
-        "request_acceptance_receipt_digest": { "$ref": "#/$defs/hash" },
+        "peer": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_peer"
+        },
+        "request_event_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "request_acceptance_receipt_digest": {
+          "$ref": "#/$defs/hash"
+        },
         "reason": {
           "type": "string"
         }
@@ -3207,8 +3277,12 @@
         "introduction_evidence_digest"
       ],
       "properties": {
-        "peer": { "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_peer" },
-        "granted_to_peer_scopes": { "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scopes" },
+        "peer": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_peer"
+        },
+        "granted_to_peer_scopes": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scopes"
+        },
         "introduction_evidence_digest": {
           "$ref": "#/$defs/hash",
           "description": "Required digest of the exact private introduction_evidence carried by the request branch of ak.peer.contacts.command.submit. Raw evidence is not written into the contact fact log."
@@ -3232,10 +3306,19 @@
         "predecessor_event_ref"
       ],
       "properties": {
-        "peer": { "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_peer" },
-        "basis_id": { "$ref": "#/$defs/hash" },
-        "version": { "type": "integer", "minimum": 2 },
-        "predecessor_event_ref": { "$ref": "#/$defs/event_ref" },
+        "peer": {
+          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_peer"
+        },
+        "basis_id": {
+          "$ref": "#/$defs/hash"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "predecessor_event_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
         "reason": {
           "type": "string"
         }
@@ -3637,7 +3720,7 @@
                       "pattern": "^ak:blob:(sha256|blake3):[0-9a-f]{64}$",
                       "description": "Long text MUST use a hash-addressed Blob ref; the <suite>:<hex> part MUST equal attachment.ciphertext_digest and the Blob metadata content_digest."
                     },
-                    "alg": {
+                    "encryption_algorithm": {
                       "type": "string",
                       "enum": [
                         "mls_exporter_aead_xchacha20poly1305_stream",
@@ -3998,7 +4081,7 @@
         },
         "device_signature": {
           "$ref": "#/$defs/signature_material",
-          "description": "Device possession proof for ak.device.authorize. When present, it MUST be an Ed25519/EdDSA detached signature by the private key corresponding to device_public_key over the ak.device-authorize-possession-v1 canonical input defined in zh/crypto-media/device-lifecycle.md §5.2. It MUST NOT be signed by the grant-binding (DPoP) key / session_public_key / cnf.jkt key. Recovery-strand device authorization requires this field."
+          "description": "Device possession proof for ak.device.authorize. When present, it MUST be an Ed25519 detached signature by the private key corresponding to device_public_key over the ak.device-authorize-possession-v1 canonical input defined in zh/crypto-media/device-lifecycle.md §5.2. It MUST NOT be signed by the grant-binding (DPoP) key / session_public_key / cnf.jkt key. Recovery-strand device authorization requires this field."
         },
         "proof": {
           "$ref": "#/$defs/signature_material"
@@ -4022,7 +4105,7 @@
       "description": "SSK signature binding a ak.device.authorize payload's device_public_key, hpke_key and algorithms to the principal's accepted cross-signing generation. Canonical signing input is defined in zh/crypto-media/device-lifecycle.md §5.2.",
       "required": [
         "verification_method",
-        "alg",
+        "signature_algorithm",
         "ssk_generation",
         "signature"
       ],
@@ -4031,8 +4114,12 @@
           "$ref": "#/$defs/verification_method",
           "description": "DID URL of the self-signing key that signed the device trust binding."
         },
-        "alg": {
-          "$ref": "#/$defs/non_empty_string"
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "Ed25519",
+            "ML-DSA-65"
+          ]
         },
         "ssk_generation": {
           "type": "integer",
@@ -4097,7 +4184,7 @@
               "minProperties": 1,
               "description": "JWK form of the snapshotted verification method public key. Exactly one of public_key_multibase / public_key_jwk MUST be present."
             },
-            "alg": {
+            "algorithm": {
               "$ref": "#/$defs/non_empty_string",
               "description": "Signature algorithm of the snapshotted verification method."
             }
@@ -4486,7 +4573,9 @@
         },
         "member_event_refs": {
           "type": "array",
-          "items": { "$ref": "#/$defs/event_ref" },
+          "items": {
+            "$ref": "#/$defs/event_ref"
+          },
           "minItems": 2,
           "maxItems": 2,
           "uniqueItems": true,
@@ -5093,7 +5182,7 @@
           "description": "Subject DID proof over ak.invite.claim.subject_proof.v1 transcript. The transcript digest binds subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience, verification_service_id, and binding_proof_digest of the complete signed binding_proof object.",
           "required": [
             "verification_method",
-            "alg",
+            "signature_algorithm",
             "transcript_digest",
             "signature"
           ],
@@ -5103,8 +5192,12 @@
               "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
               "description": "Current verification method of subject_id."
             },
-            "alg": {
-              "$ref": "#/$defs/non_empty_string"
+            "signature_algorithm": {
+              "type": "string",
+              "enum": [
+                "Ed25519",
+                "ML-DSA-65"
+              ]
             },
             "transcript_digest": {
               "type": "string",
@@ -6492,10 +6585,10 @@
         "mls_group_id",
         "base_epoch",
         "base_epoch_ref",
-          "proposal_refs",
-          "next_epoch",
-          "commit_bytes_b64",
-          "commit_digest",
+        "proposal_refs",
+        "next_epoch",
+        "commit_bytes_b64",
+        "commit_digest",
         "governance_binding"
       ],
       "not": {
@@ -6523,18 +6616,18 @@
           },
           "uniqueItems": true
         },
-          "next_epoch": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Committed next MLS epoch. MUST equal governance_binding.next_epoch."
-          },
-          "commit_bytes_b64": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "^[A-Za-z0-9_-]+$",
-            "description": "Unpadded base64url RFC 9420 MLS Commit message. Receivers verify commit_digest before applying it."
-          },
-          "commit_message_ref": {
+        "next_epoch": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Committed next MLS epoch. MUST equal governance_binding.next_epoch."
+        },
+        "commit_bytes_b64": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "Unpadded base64url RFC 9420 MLS Commit message. Receivers verify commit_digest before applying it."
+        },
+        "commit_message_ref": {
           "$ref": "#/$defs/object_ref"
         },
         "commit_digest": {
@@ -7128,8 +7221,12 @@
                 "kid": {
                   "$ref": "#/$defs/non_empty_string"
                 },
-                "alg": {
-                  "$ref": "#/$defs/non_empty_string"
+                "signature_algorithm": {
+                  "type": "string",
+                  "enum": [
+                    "Ed25519",
+                    "ML-DSA-65"
+                  ]
                 },
                 "sig": {
                   "$ref": "#/$defs/non_empty_string"

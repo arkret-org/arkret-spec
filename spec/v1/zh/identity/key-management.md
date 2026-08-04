@@ -208,12 +208,19 @@ JCS(binding object with controller_proof.jws omitted)
 `controller_proof` MUST 按 `issued_at` 时点的 controller DID/delegation 与 device authorization 验证。binding 的
 `issued_at`、`expires_at`、agent/key/method/controller必须与 authorize payload逐字相等。`agent_key_id` MUST 等于
 authorize payload 的 `key_id`；`verification_method` 去除 fragment/query 后 MUST 与 `agent_id` byte-identical；
-raw key必须解码为恰好32 bytes。`public_key_digest`只对这32-byte raw Ed25519 key调用 SDK唯一
-`agent_runtime_public_key_digest` helper计算，不得hash multibase/hex文本。`signing_key_binding_digest`只对**包含
+raw key必须解码为恰好32 bytes。authorize payload、公开 binding 与 runtime 审批状态中的
+`public_key_digest` MUST 只对这32-byte raw Ed25519 key调用 SDK唯一
+`agent_signing_public_key_digest` helper计算，不得hash PublicKey DTO、JWK、multibase或hex文本。`signing_key_binding_digest`只对**包含
 完整 controller proof 的整个 binding object**做RFC8785/JCS后SHA-256；controller proof签名transcript则使用上文
 独立domain tag并省略`controller_proof.jws`。两种digest与proof transcript是三个互斥domain，不得交换、二次
 hash或形成自引用。对应authorize payload必须分别承诺两digest；Event/key/method/controller/time/expiry或任一
 digest不一致必须拒绝，service不得替换disclosure或代controller补签。
+
+上述公开授权 digest 与 runtime request binding 中的私有请求 digest 是两个不同 domain。后者只在
+`ak.agent.runtime_key_binding.v1` 内使用 `agent_runtime_public_key_digest` 对完整
+`agent_runtime_approval_request_body.public_key` DTO 做RFC8785/JCS SHA-256，因此覆盖`kty`、`kid`、`alg`与`key`；
+它不得写入 authorize payload、公开 signing-key binding或审批状态，也不得与 raw-key digest直接比较。pairing
+接收方必须解码两边raw key逐字匹配（或调用SDK显式的runtime-request转换helper），再分别验证两个digest domain。
 
 `ak.component.agent.key.v1` 的 registered reducer projection 是 portable state witness 的唯一状态来源，不能只把 key Event 写入历史。cell subject MUST 使用 SDK `composite_subject([agent_id, key_id])`，不得用字符串拼接或 diagnostic subject。每个 `ak.agent.key.authorize` 的 reducer MUST 先对 `payload.supersedes[]` 逐项在对应旧 key cell 投影 `remove(tag=authorized_event_ref 对应的 observed canonical Event dot)`，再在当前 key cell 投影 `add(tag=canonical_event_dot(event_id, write_index), value=完整 authorize payload)`；authorization 元素的稳定 tag 是 [`event-and-patch.md` §2.4.2](../models/event-and-patch.md) 定义的 `<event_id>:<write_index>`，绝不是裸 `event_id`。`ak.agent.key.revoke` MUST 在 `seal_basis` 观察到的对应 key cell 中移除全部 active authorize dot，并加入 `add(tag=canonical_event_dot(event_id, write_index), value=完整 revoke payload)` 的 transition marker；marker 只保留可见证的撤销边界，不是 active authorization。Principal Server MUST 在接受前从 `kind + payload` 重建并逐项校验这些 canonical writes；write 缺失、多余、cell/tag/value/顺序不一致均须 `reducer_projection_failed`。这样 authorize、same-key re-authorization、replacement supersede 与 explicit revoke 都能从签名 Seal 的 resolved cell 独立证明，不依赖服务端私有投影。
 
@@ -302,9 +309,9 @@ Agent projection MUST 分离三轴：`lifecycle=active|paused|deactivated` 是du
 
 Conformance vector：`ak.vector.agent.runtime_key_binding.v1`。
 
-每个 open `pairing_request_id` 同时最多一个 pending runtime key binding。服务端 MUST 以 canonical JSON 对象计算稳定 digest，kind 固定为 `ak.agent.runtime_key_binding.v1`，对象字段为 `{kind, agent_id, pairing_request_id, verification_method, public_key_digest, attestation_digest}`；`public_key_digest` 与 `attestation_digest` 分别对 `agent_runtime_approval_request_body.public_key` 和 `runtime_attestation`（缺省时为 JSON `null`）的 canonical JSON bytes 计算 SHA-256 typed digest。外层 binding 对象再按同一规则计算 SHA-256 typed digest。pairing code、过期时间、PoP challenge/signature 等 freshness proof 不得进入这份稳定身份。canonical helper 只能由 arkret-rust-sdk 定义并供实现复用。
+每个 open `pairing_request_id` 同时最多一个 pending runtime key binding。服务端 MUST 以 canonical JSON 对象计算稳定 digest，kind 固定为 `ak.agent.runtime_key_binding.v1`，对象字段为 `{kind, agent_id, pairing_request_id, verification_method, public_key_digest, attestation_digest}`；此处的`public_key_digest`是私有runtime-request digest，MUST调用`agent_runtime_public_key_digest`对`agent_runtime_approval_request_body.public_key`完整DTO的canonical JSON bytes计算SHA-256 typed digest；它与上节公开授权所用raw-key digest不同且不得互换。`attestation_digest`对`runtime_attestation`（缺省时为 JSON `null`）的 canonical JSON bytes 计算 SHA-256 typed digest。外层 binding 对象再按同一规则计算 SHA-256 typed digest。pairing code、过期时间、PoP challenge/signature 等 freshness proof 不得进入这份稳定身份。canonical helper 只能由 arkret-rust-sdk 定义并供实现复用。
 
-`proof_of_possession` MUST 验证 `agent-operations.schema.json#/$defs/agent_runtime_key_possession_proof`，不得接受旧的开放 JSON、实现私有字段或算法 fallback。v1 runtime key profile 固定为 Ed25519：`public_key.kty="OKP"`、`public_key.alg="EdDSA"`，`public_key.key` 解码后恰为 32 bytes；`public_key.kid`、request `verification_method` 与 proof `verification_method` MUST byte-identical，且该 DID URL 的 controller MUST 等于 request `agent_id`。proof `kind` 固定为 `agent_runtime_key_possession`，`alg` 固定为 `EdDSA`，`signature` 是 64-byte raw Ed25519 signature 的无 padding base64url 表达。key 与 signature 解码后还 MUST 以 canonical unpadded base64url 重编码并与 wire byte-identical；非零 unused bits、padding 或其它别名表达必须拒绝。
+`proof_of_possession` MUST 验证 `agent-operations.schema.json#/$defs/agent_runtime_key_possession_proof`，不得接受开放 JSON、实现私有字段或算法 fallback。v1 runtime key profile 固定为 Ed25519：`public_key.kty="OKP"`、`public_key.alg="Ed25519"`，`public_key.key` 解码后恰为 32 bytes；`public_key.kid`、request `verification_method` 与 proof `verification_method` MUST byte-identical，且该 DID URL 的 controller MUST 等于 request `agent_id`。proof `kind` 固定为 `agent_runtime_key_possession`，proof `alg` 固定为 `Ed25519`，`signature` 是 64-byte raw Ed25519 signature 的无 padding base64url 表达。`Ed25519`也是 RFC 9864 fully-specified JOSE algorithm identifier；任何不能仅凭 `alg` 唯一确定曲线和签名算法的多态别名都不属于本协议词表并 MUST fail closed。controller proof 的 detached JWS protected header 同样 MUST 使用 `alg="Ed25519"`。key 与 signature 解码后还 MUST 以 canonical unpadded base64url 重编码并与 wire byte-identical；非零 unused bits、padding 或其它别名表达必须拒绝。
 
 构造方先计算上述稳定 `runtime_key_binding_digest`，再对以下闭合对象的 JCS bytes 签名；`context` 只存在于签名输入，不是 wire 字段：
 
@@ -313,13 +320,13 @@ Conformance vector：`ak.vector.agent.runtime_key_binding.v1`。
   "context": "ak.agent-runtime-key-possession-proof-v1",
   "kind": "agent_runtime_key_possession",
   "verification_method": "<request.verification_method>",
-  "alg": "EdDSA",
   "challenge": "<pairing_request_id>",
   "audience": "<pairing record service_id>",
   "created_at": "<proof.created_at>",
   "expires_at": "<proof.expires_at>",
   "pairing_code": "<pairing record pairing_code>",
-  "runtime_key_binding_digest": "<stable binding digest>"
+  "runtime_key_binding_digest": "<stable binding digest>",
+  "signature_algorithm": "Ed25519"
 }
 ```
 
@@ -679,9 +686,9 @@ unit 验证完成时授权 fence 立即生效，不等待旧设备签 Seal。red
   "authorized_by": "ak:device:01964136-8000-7000-8000-000000000000",
   "cross_signing_binding": {
     "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_self_signing_v1",
-    "alg": "EdDSA",
     "ssk_generation": 1,
-    "signature": "base64url..."
+    "signature": "base64url...",
+    "signature_algorithm": "Ed25519"
   },
   "proof": {
     "kind": "detached_jws",
@@ -1153,7 +1160,7 @@ freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
 
 v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybrid 迁移：
 
-- `recovery_policy.recovery_keys[].alg` MUST 取自 active [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json) row；v1 机读集合为 `Ed25519`、`ES256`、`ML-DSA-65`。`Ed25519` 是默认 MUST，`ES256` 用于硬件 / WebAuthn 兼容，`ML-DSA-65` 仅在实现声明相应 PQ 签名能力时可签发。receiver 不支持 entry 声明的 active algorithm 时 MUST fail closed `unsupported_signature_alg`，不得回退为 Ed25519 或忽略该 recovery key。
+- `recovery_policy.recovery_keys[].signature_algorithm` MUST 取自 active [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json) row 的非空 `raw_signature_algorithm`；v1 机读集合为 `Ed25519`、`ML-DSA-65`。`Ed25519` 是默认 MUST，`ML-DSA-65` 仅在实现声明相应 PQ 签名能力时可签发。`ES256` 只有 JOSE mapping，没有 Arkret raw-signature mapping，因此不得出现在该字段。receiver 不支持 entry 声明的 active algorithm 时 MUST fail closed `unsupported_signature_alg`，不得回退为 Ed25519 或忽略该 recovery key。
 
 - Receiver MUST 对未知 `encryption.kdf.name`、`encryption.aead.name`、`encryption.aead.aead_profile`、`encryption.recipient_method` fail closed（不得回退到默认）。
 - PQ / hybrid KEM agility MUST 通过 `encryption.hpke_suite` 选择子 + [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 声明，不得塞进 AEAD profile。PQ hybrid（X25519+ML-KEM-768）已在该 registry 预留 `ak.hpke_xwing_aead_chacha20poly1305.v1`（status=reserved，profile `ak.profile.kem.hybrid_xwing.v1`），与 `ak.aead.hybrid_kem.*` 预留 namespace 对齐；只有该 registry row 的 activation requirements 全部满足并翻为 active 后才可出现在 wire 上。`ak.aead.*` 只描述 AEAD 算法、nonce/tag/key 长度和 AAD 构造；receiver 收到把 KEM 语义编码进 `encryption.aead.aead_profile` 的 envelope MUST fail closed。
@@ -1196,13 +1203,17 @@ Recovery policy 的标准发布面是 `POST /_arkret/root/identity/recovery-poli
   "version": 1,
   "supersedes": null,
   "trust_domain": "ak:trust_domain:did.webvh.example",
-  "allowed_proof_kinds": ["threshold_recovery"],
+  "allowed_proof_kinds": [
+    "threshold_recovery"
+  ],
   "publication_authorization_rules": [
     {
       "rule_id": "threshold_recovery",
       "proof_kind": "threshold_recovery",
       "issuer_role": "identity_recovery",
-      "allowed_actions": ["ak.device.reanchor"],
+      "allowed_actions": [
+        "ak.device.reanchor"
+      ],
       "issuers": [
         {
           "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery-proof-1"
@@ -1250,18 +1261,20 @@ Recovery policy 的标准发布面是 `POST /_arkret/root/identity/recovery-poli
       "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery-proof-1",
       "public_key_multibase": "z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA",
       "key_agreement_ref": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#backup-hpke-1",
-      "alg": "Ed25519",
       "not_before": "2026-04-26T00:00:00.000Z",
       "expires_at": "2036-04-26T00:00:00.000Z",
-      "revoked_at": null
+      "revoked_at": null,
+      "signature_algorithm": "Ed25519"
     }
   ],
   "recovery_key_agreements": [
     {
       "key_agreement_ref": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#backup-hpke-1",
-      "alg": "X25519",
+      "key_agreement_algorithm": "X25519",
       "public_key_multibase": "z6LSriWhVBzW9Vz2PvqbieSz7Aa2hPLzTKJuDwXTMKFeomeW",
-      "hpke_suites": ["ak.hpke_x25519_aead_chacha20poly1305.v1"],
+      "hpke_suites": [
+        "ak.hpke_x25519_aead_chacha20poly1305.v1"
+      ],
       "use": "backup_hpke",
       "not_before": "2026-04-26T00:00:00.000Z",
       "expires_at": "2036-04-26T00:00:00.000Z",
@@ -1278,7 +1291,6 @@ Recovery policy 的标准发布面是 `POST /_arkret/root/identity/recovery-poli
   "expires_at": null,
   "auth_data": {
     "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
-    "signature_algorithm": "Ed25519",
     "signature": "c2lnbmF0dXJl",
     "signed_fields": [
       "schema",
@@ -1296,7 +1308,8 @@ Recovery policy 的标准发布面是 `POST /_arkret/root/identity/recovery-poli
       "issued_at",
       "not_before",
       "expires_at"
-    ]
+    ],
+    "signature_algorithm": "Ed25519"
   }
 }
 ```

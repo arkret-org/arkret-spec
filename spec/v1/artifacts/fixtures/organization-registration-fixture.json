@@ -71,10 +71,9 @@
             {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixture:acme.example#org-control-key-1",
-              "alg": "EdDSA",
               "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "created_at": "2026-05-01T00:01:00.000Z",
-              "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             }
           ]
         },
@@ -102,18 +101,16 @@
             {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixture:acme.example#org-governance-key-1",
-              "alg": "EdDSA",
               "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "created_at": "2026-05-01T00:01:00.000Z",
-              "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             },
             {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixture:acme.example#org-governance-key-2",
-              "alg": "EdDSA",
               "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "created_at": "2026-05-01T00:01:00.000Z",
-              "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             }
           ]
         },
@@ -148,10 +145,9 @@
         "proof": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-          "alg": "EdDSA",
           "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
           "created_at": "2026-05-01T00:01:00.000Z",
-          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
         }
       }
     },
@@ -170,10 +166,9 @@
           {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkfixture:acme.example#org-control-key-1",
-            "alg": "EdDSA",
             "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "created_at": "2026-05-01T00:01:00.000Z",
-            "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
           }
         ]
       }
@@ -192,10 +187,9 @@
           {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkfixture:acme.example#org-governance-key-1",
-            "alg": "EdDSA",
             "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "created_at": "2026-05-01T00:01:00.000Z",
-            "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
           }
         ]
       }
@@ -226,10 +220,9 @@
         "proof": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-          "alg": "EdDSA",
           "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
           "created_at": "2026-05-01T00:01:00.000Z",
-          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
         }
       }
     },
@@ -268,10 +261,9 @@
             {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixture:acme.example#org-control-key-1",
-              "alg": "EdDSA",
               "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "created_at": "2026-05-01T00:01:00.000Z",
-              "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             }
           ]
         },
@@ -327,10 +319,9 @@
           {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkfixture:acme.example#org-governance-key-1",
-            "alg": "EdDSA",
             "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "created_at": "2026-05-01T00:01:00.000Z",
-            "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
           }
         ]
       }
@@ -359,10 +350,9 @@
             {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixture:acme.example#org-control-key-1",
-              "alg": "EdDSA",
               "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "created_at": "2026-05-01T00:01:00.000Z",
-              "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             }
           ]
         },
@@ -392,10 +382,9 @@
             {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixture:acme.example#org-control-key-2",
-              "alg": "EdDSA",
               "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "created_at": "2026-05-02T00:01:00.000Z",
-              "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             }
           ]
         }
@@ -428,10 +417,9 @@
         "proof": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-          "alg": "EdDSA",
           "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
           "created_at": "2026-05-01T00:01:00.000Z",
-          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
         }
       }
     },
@@ -454,10 +442,9 @@
             {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixture:acme.example#org-control-key-1",
-              "alg": "EdDSA",
               "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "created_at": "2026-05-01T00:01:00.000Z",
-              "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             }
           ]
         },
@@ -501,10 +488,9 @@
           "proof": {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-            "alg": "EdDSA",
             "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
             "created_at": "2026-05-01T00:01:00.000Z",
-            "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
           }
         },
         "created": false
@@ -539,10 +525,9 @@
           "proof": {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-            "alg": "EdDSA",
             "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
             "created_at": "2026-05-01T00:01:00.000Z",
-            "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
           }
         },
         "created": true
@@ -578,10 +563,9 @@
           "proof": {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-            "alg": "EdDSA",
             "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
             "created_at": "2026-05-01T00:01:00.000Z",
-            "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
           }
         },
         "created": true
@@ -618,10 +602,9 @@
         "proof": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-          "alg": "EdDSA",
           "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
           "created_at": "2026-05-01T00:01:00.000Z",
-          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
         }
       }
     }

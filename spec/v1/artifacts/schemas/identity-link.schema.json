@@ -99,7 +99,6 @@
           "type": "string",
           "enum": [
             "Ed25519",
-            "ES256",
             "ML-DSA-65"
           ]
         },

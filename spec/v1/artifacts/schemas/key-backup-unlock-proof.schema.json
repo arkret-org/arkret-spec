@@ -75,7 +75,6 @@
           "type": "string",
           "enum": [
             "Ed25519",
-            "ES256",
             "ML-DSA-65"
           ]
         },
@@ -92,17 +91,61 @@
             "type": "string"
           },
           "allOf": [
-            { "contains": { "const": "schema" } },
-            { "contains": { "const": "recovery_session_id" } },
-            { "contains": { "const": "principal_id" } },
-            { "contains": { "const": "requesting_device_id" } },
-            { "contains": { "const": "backup_id" } },
-            { "contains": { "const": "backup_kind" } },
-            { "contains": { "const": "series_id" } },
-            { "contains": { "const": "ciphertext_digest" } },
-            { "contains": { "const": "proof_kind" } },
-            { "contains": { "const": "proof_digest" } },
-            { "contains": { "const": "issued_at" } }
+            {
+              "contains": {
+                "const": "schema"
+              }
+            },
+            {
+              "contains": {
+                "const": "recovery_session_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "principal_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "requesting_device_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "backup_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "backup_kind"
+              }
+            },
+            {
+              "contains": {
+                "const": "series_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "ciphertext_digest"
+              }
+            },
+            {
+              "contains": {
+                "const": "proof_kind"
+              }
+            },
+            {
+              "contains": {
+                "const": "proof_digest"
+              }
+            },
+            {
+              "contains": {
+                "const": "issued_at"
+              }
+            }
           ]
         }
       },

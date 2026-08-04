@@ -425,7 +425,7 @@
         "kind",
         "challenge",
         "verification_method",
-        "alg",
+        "signature_algorithm",
         "signature"
       ],
       "properties": {
@@ -440,9 +440,12 @@
           "$ref": "#/$defs/did_url",
           "description": "Principal-grade DID control verification method authorized by the active recovery policy."
         },
-        "alg": {
+        "signature_algorithm": {
           "type": "string",
-          "minLength": 1
+          "enum": [
+            "Ed25519",
+            "ML-DSA-65"
+          ]
         },
         "signature": {
           "type": "string",
@@ -458,7 +461,7 @@
         "challenge",
         "recovery_secret_ref",
         "verification_method",
-        "alg",
+        "signature_algorithm",
         "unlock_commitment",
         "signature"
       ],
@@ -477,9 +480,12 @@
         "verification_method": {
           "$ref": "#/$defs/did_url"
         },
-        "alg": {
+        "signature_algorithm": {
           "type": "string",
-          "minLength": 1
+          "enum": [
+            "Ed25519",
+            "ML-DSA-65"
+          ]
         },
         "unlock_commitment": {
           "$ref": "#/$defs/hash",
@@ -519,7 +525,7 @@
             "required": [
               "device_id",
               "verification_method",
-              "alg",
+              "signature_algorithm",
               "signature"
             ],
             "properties": {
@@ -529,9 +535,12 @@
               "verification_method": {
                 "$ref": "#/$defs/did_url"
               },
-              "alg": {
+              "signature_algorithm": {
                 "type": "string",
-                "minLength": 1
+                "enum": [
+                  "Ed25519",
+                  "ML-DSA-65"
+                ]
               },
               "signature": {
                 "type": "string",
@@ -552,7 +561,7 @@
         "service_id",
         "audience",
         "verification_method",
-        "alg",
+        "signature_algorithm",
         "signature"
       ],
       "properties": {
@@ -572,9 +581,12 @@
         "verification_method": {
           "$ref": "#/$defs/did_url"
         },
-        "alg": {
+        "signature_algorithm": {
           "type": "string",
-          "minLength": 1
+          "enum": [
+            "Ed25519",
+            "ML-DSA-65"
+          ]
         },
         "attestation_ref": {
           "type": "string",
@@ -617,7 +629,7 @@
               "holder",
               "transcript_digest",
               "verification_method",
-              "alg",
+              "signature_algorithm",
               "signature"
             ],
             "properties": {
@@ -635,9 +647,12 @@
               "verification_method": {
                 "$ref": "#/$defs/did_url"
               },
-              "alg": {
+              "signature_algorithm": {
                 "type": "string",
-                "minLength": 1
+                "enum": [
+                  "Ed25519",
+                  "ML-DSA-65"
+                ]
               },
               "signature": {
                 "type": "string",

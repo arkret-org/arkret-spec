@@ -52,9 +52,9 @@
           }
         ],
         "proof": {
-          "alg": "EdDSA",
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "aJtxevQ7OiSMz7sIm09RsBTP31Pbx00LKdi_Y61PKwWbqX2efznqQTrORpNuoYYy6XFoNOYN8l-BV4WzlVnABQ"
+          "signature": "aJtxevQ7OiSMz7sIm09RsBTP31Pbx00LKdi_Y61PKwWbqX2efznqQTrORpNuoYYy6XFoNOYN8l-BV4WzlVnABQ",
+          "signature_algorithm": "Ed25519"
         }
       }
     },
@@ -93,9 +93,9 @@
           }
         ],
         "proof": {
-          "alg": "EdDSA",
           "kid": "did:webvh:z6mkfixture:release.example#claim-key-1",
-          "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "signature_algorithm": "Ed25519"
         }
       }
     },
@@ -133,9 +133,9 @@
           }
         ],
         "proof": {
-          "alg": "EdDSA",
           "kid": "did:webvh:z6mkfixture:release.example#claim-key-1",
-          "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "signature_algorithm": "Ed25519"
         }
       }
     },
@@ -174,9 +174,9 @@
           }
         ],
         "proof": {
-          "alg": "EdDSA",
           "kid": "did:webvh:z6mkfixture:release.example#claim-key-1",
-          "signature": "not+base64url"
+          "signature": "not+base64url",
+          "signature_algorithm": "Ed25519"
         }
       }
     }

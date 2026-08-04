@@ -177,11 +177,10 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
   "proofs": [
     {
       "kind": "detached_jws",
-      "alg": "EdDSA",
       "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:00:00.000Z",
-      "jws": "eyJhbGciOiJFZERTQSJ9..signature"
+      "jws": "eyJhbGciOiJFZDI1NTE5In0..signature"
     }
   ]
 }
@@ -492,7 +491,7 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `kind` | yes | `enum(detached_jws)` | 初版必须支持。 | 证明类型。 |
-| `alg` | yes | `string` | 初版默认 `EdDSA`。 | 签名算法。 |
+| `alg` | yes | `string` | 初版默认 `Ed25519`。 | 签名算法。 |
 | `verification_method` | yes | `string` | DID URL。 | 公钥/设备方法。 |
 | `event_digest` | yes | `hash` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned_actor_kind)`。签名输入包含 `scope_ref`、`payload`、basis 与其它 producer 字段，只排除 `proofs`、`unsigned`、`actor_kind`。 | producer-signed canonical Event digest。 |
 | `created_at` | yes | `timestamp` | MUST 使用 canonical RFC 3339 UTC 毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`（整秒也写 `.000Z`）；微秒/纳秒输入必须在生成 proof binding 与签名之前截断到毫秒，不得使用 `+00:00`。 | 签名时间。 |
@@ -639,11 +638,10 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   "proofs": [
     {
       "kind": "detached_jws",
-      "alg": "EdDSA",
       "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:00:00.000Z",
-      "jws": "eyJhbGciOiJFZERTQSJ9..signature"
+      "jws": "eyJhbGciOiJFZDI1NTE5In0..signature"
     }
   ]
 }

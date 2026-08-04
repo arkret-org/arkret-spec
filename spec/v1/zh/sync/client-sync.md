@@ -428,7 +428,6 @@ event_id ASC
           "proofs": [
             {
               "kind": "detached_jws",
-              "alg": "EdDSA",
               "verification_method": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example#key-1",
               "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
               "created_at": "2026-05-27T00:00:00Z",
@@ -529,9 +528,9 @@ MemberIdentity 明文对象形态（`identity_payload.member_identity`，或 `en
   "expires_at": "2026-06-27T00:00:00Z",
   "proof": {
     "verification_method": "did:webvh:zQmPr8...#key-1",
-    "signature_algorithm": "Ed25519",
     "payload_digest": "sha256:...",
-    "signature": "base64url..."
+    "signature": "base64url...",
+    "signature_algorithm": "Ed25519"
   }
 }
 ```

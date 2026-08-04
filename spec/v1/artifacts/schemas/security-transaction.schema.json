@@ -1547,7 +1547,7 @@
           "type": "object",
           "required": [
             "verification_method",
-            "alg",
+            "signature_algorithm",
             "signature",
             "signed_fields"
           ],
@@ -1555,9 +1555,9 @@
             "verification_method": {
               "$ref": "./common-ids.schema.json#/$defs/did_url"
             },
-            "alg": {
+            "signature_algorithm": {
               "type": "string",
-              "const": "EdDSA"
+              "const": "Ed25519"
             },
             "signature": {
               "type": "string",

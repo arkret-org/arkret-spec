@@ -168,8 +168,15 @@
       "vector_id": "ak.vector.sidecar.context_locator_recovery.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_context_locator_recovery_vector",
       "pagination": {
-        "sidecar_list_cursors": ["sidecars-page-2", null],
-        "event_scan_cursors": ["events-page-2", "events-page-3", null],
+        "sidecar_list_cursors": [
+          "sidecars-page-2",
+          null
+        ],
+        "event_scan_cursors": [
+          "events-page-2",
+          "events-page-3",
+          null
+        ],
         "repeated_cursor_outcome": "backfill_pending",
         "incomplete_page_outcome": "backfill_pending"
       },
@@ -207,7 +214,12 @@
         }
       ],
       "winner_rule": "bytewise_max(Event::event_digest())",
-      "forbidden_winner_inputs": ["event_id", "hlc", "arrival_order", "database_order"],
+      "forbidden_winner_inputs": [
+        "event_id",
+        "hlc",
+        "arrival_order",
+        "database_order"
+      ],
       "assertions": [
         "same actor_seq siblings are decided by the bytewise maximum canonical accepted Event envelope digest",
         "reversing arrival and database order does not change the winner",
@@ -284,7 +296,11 @@
       "name": "sidecar_revoke_fail_closed",
       "vector_id": "ak.vector.sidecar.revoke_fail_closed.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_revoke_fail_closed_vector",
-      "lifecycle_transitions": ["revoke", "pause", "deactivate"],
+      "lifecycle_transitions": [
+        "revoke",
+        "pause",
+        "deactivate"
+      ],
       "post_transition": {
         "server_addressing": false,
         "server_delivery": false,
@@ -306,7 +322,9 @@
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_explicit_publish_vector",
       "before_confirmation_shared_event_count": 0,
       "after_confirmation_shared_event_count": 1,
-      "allowed_payload_fields": ["content"],
+      "allowed_payload_fields": [
+        "content"
+      ],
       "forbidden_fields": [
         "sidecar_id",
         "backing_circle_id",
@@ -329,7 +347,11 @@
       "accepted_request_event_id": "ak:event:01964137-0000-7000-8000-000000000034",
       "response_binding_request_event_id": "ak:event:01964137-0000-7000-8000-000000000034",
       "response_after_ref": "ak:event:01964137-0000-7000-8000-000000000034",
-      "invalid_identity_kinds": ["message_id", "local_intent_id", "unaccepted_event_id"],
+      "invalid_identity_kinds": [
+        "message_id",
+        "local_intent_id",
+        "unaccepted_event_id"
+      ],
       "assertions": [
         "the runtime persists exchange_id to the accepted request Event id only",
         "response binding request_event_id and top-level after ref equal the same accepted Event id",
@@ -341,14 +363,44 @@
       "name": "sidecar_hosted_ui_matrix",
       "vector_id": "ak.vector.sidecar.hosted_ui_matrix.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_hosted_ui_matrix_vector",
-      "browsers": ["chrome", "edge"],
-      "tracks": ["synthesis", "discussion", "future_profile_track"],
-      "display_modes": ["context_merged", "sidecar_only"],
-      "device_roles": ["leader", "follower"],
-      "viewports": ["desktop", "narrow"],
-      "stressors": ["multi_agent", "long_title", "long_handle", "long_history"],
-      "preserved_state": ["scroll", "editor", "draft"],
-      "required_evidence": ["trace", "screenshots", "request_counts", "ui_state_assertions"],
+      "browsers": [
+        "chrome",
+        "edge"
+      ],
+      "tracks": [
+        "synthesis",
+        "discussion",
+        "future_profile_track"
+      ],
+      "display_modes": [
+        "context_merged",
+        "sidecar_only"
+      ],
+      "device_roles": [
+        "leader",
+        "follower"
+      ],
+      "viewports": [
+        "desktop",
+        "narrow"
+      ],
+      "stressors": [
+        "multi_agent",
+        "long_title",
+        "long_handle",
+        "long_history"
+      ],
+      "preserved_state": [
+        "scroll",
+        "editor",
+        "draft"
+      ],
+      "required_evidence": [
+        "trace",
+        "screenshots",
+        "request_counts",
+        "ui_state_assertions"
+      ],
       "assertions": [
         "Chrome and Edge execute the full cross-product against a stable build",
         "realm tree sidecar view and private history seed are asserted before product checks",

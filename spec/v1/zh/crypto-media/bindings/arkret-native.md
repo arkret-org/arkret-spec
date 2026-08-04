@@ -30,7 +30,6 @@ sidebar:
 
 ```json
 {
-  "alg": "EdDSA",
   "kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
   "payload": {
     "call_id": "ak:call:...",
@@ -38,9 +37,14 @@ sidebar:
     "participant_identity": "ak:rtc_participant:...",
     "issued_at": "2026-05-27T12:29:56Z",
     "expires_at": "2026-05-27T12:34:56Z",
-    "media": { "audio": true, "video": true, "screen": false }
+    "media": {
+      "audio": true,
+      "video": true,
+      "screen": false
+    }
   },
-  "sig": "base64url..."
+  "sig": "base64url...",
+  "signature_algorithm": "Ed25519"
 }
 ```
 

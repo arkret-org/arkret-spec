@@ -74,7 +74,7 @@
       "type": "object",
       "required": [
         "verification_method",
-        "alg",
+        "signature_algorithm",
         "transcript_digest",
         "signature"
       ],
@@ -82,9 +82,9 @@
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
-        "alg": {
+        "signature_algorithm": {
           "type": "string",
-          "const": "EdDSA"
+          "const": "Ed25519"
         },
         "transcript_digest": {
           "$ref": "#/$defs/hash",
@@ -440,7 +440,7 @@
           "type": "object",
           "required": [
             "verification_method",
-            "alg",
+            "signature_algorithm",
             "signature",
             "signed_fields"
           ],
@@ -448,12 +448,11 @@
             "verification_method": {
               "$ref": "./common-ids.schema.json#/$defs/did_url"
             },
-            "alg": {
+            "signature_algorithm": {
               "type": "string",
               "enum": [
-                "EdDSA",
-                "ES256",
-                "PS256"
+                "Ed25519",
+                "ML-DSA-65"
               ]
             },
             "signature": {
@@ -528,7 +527,7 @@
             "proof_jwt": {
               "type": "string",
               "minLength": 1,
-              "description": "RFC 9449 EdDSA DPoP proof for this exact POST endpoint. Its nonce claim MUST equal canonical_request_digest."
+              "description": "RFC 9449 Ed25519 DPoP proof for this exact POST endpoint. Its nonce claim MUST equal canonical_request_digest."
             }
           },
           "additionalProperties": false
@@ -664,7 +663,7 @@
           "type": "object",
           "required": [
             "verification_method",
-            "alg",
+            "signature_algorithm",
             "signature",
             "signed_fields"
           ],
@@ -672,9 +671,9 @@
             "verification_method": {
               "$ref": "./common-ids.schema.json#/$defs/did_url"
             },
-            "alg": {
+            "signature_algorithm": {
               "type": "string",
-              "const": "EdDSA"
+              "const": "Ed25519"
             },
             "signature": {
               "type": "string",
@@ -765,7 +764,7 @@
             "proof_jwt": {
               "type": "string",
               "minLength": 1,
-              "description": "RFC 9449 EdDSA DPoP proof for this exact POST endpoint. Its nonce claim MUST equal canonical_request_digest."
+              "description": "RFC 9449 Ed25519 DPoP proof for this exact POST endpoint. Its nonce claim MUST equal canonical_request_digest."
             }
           },
           "additionalProperties": false

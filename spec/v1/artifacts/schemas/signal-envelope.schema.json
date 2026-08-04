@@ -135,7 +135,6 @@
       "required": [
         "kind",
         "verification_method",
-        "alg",
         "envelope_digest",
         "created_at",
         "jws"
@@ -148,14 +147,6 @@
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
           "description": "MUST equal `{sender_actor_id}#{sender_device_id}` verbatim. That equality is only the completeness condition of the directory lookup key and never stands in for device authorization: the verifier MUST resolve the authoritative verify key for (sender_actor_id, sender_device_id) from its own current accepted device directory, which is a state domain seal_ref does not select (zh/sync/signal.md section 1)."
-        },
-        "alg": {
-          "type": "string",
-          "enum": [
-            "EdDSA",
-            "ES256",
-            "ML-DSA-65"
-          ]
         },
         "envelope_digest": {
           "$ref": "#/$defs/hash"

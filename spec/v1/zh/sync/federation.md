@@ -313,7 +313,6 @@ Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 p
         "proofs": [
           {
             "kind": "detached_jws",
-            "alg": "EdDSA",
             "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
             "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
             "created_at": "2026-04-26T00:00:00.000Z",
@@ -372,7 +371,6 @@ Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 p
         "proofs": [
           {
             "kind": "detached_jws",
-            "alg": "EdDSA",
             "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alpha.example#notary-1",
             "payload_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
             "created_at": "2026-04-25T20:00:00.000Z",
@@ -957,8 +955,8 @@ Signature: sig1=:<base64>:
   "signed_payload_digest": "sha256:...",
   "signature": {
     "kid": "did:webvh:...#device-a",
-    "alg": "Ed25519",
-    "sig": "base64url..."
+    "sig": "base64url...",
+    "signature_algorithm": "Ed25519"
   }
 }
 ```

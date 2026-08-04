@@ -624,45 +624,45 @@
                   "is_primary": true
                 }
               }
-          }
-        },
-        {
-          "name": "disabled_primary_rejected",
-          "patch": [
-            {
-              "path": "tracks.synthesis.enabled",
-              "op": "set",
-              "value": false
             }
-          ],
-          "expected": {
-            "decision": "reject",
-            "reason": "primary_track_required",
-            "tracks_unchanged": true
-          }
-        },
-        {
-          "name": "last_enabled_track_rejected",
-          "patch": [
-            {
-              "path": "tracks.discussion.enabled",
-              "op": "set",
-              "value": false
-            },
-            {
-              "path": "tracks.synthesis.enabled",
-              "op": "set",
-              "value": false
+          },
+          {
+            "name": "disabled_primary_rejected",
+            "patch": [
+              {
+                "path": "tracks.synthesis.enabled",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "expected": {
+              "decision": "reject",
+              "reason": "primary_track_required",
+              "tracks_unchanged": true
             }
-          ],
-          "expected": {
-            "decision": "reject",
-            "reason": "primary_track_required",
-            "tracks_unchanged": true
-          }
-        },
-        {
-          "name": "primary_conflict_rejected_all_or_nothing",
+          },
+          {
+            "name": "last_enabled_track_rejected",
+            "patch": [
+              {
+                "path": "tracks.discussion.enabled",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "tracks.synthesis.enabled",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "expected": {
+              "decision": "reject",
+              "reason": "primary_track_required",
+              "tracks_unchanged": true
+            }
+          },
+          {
+            "name": "primary_conflict_rejected_all_or_nothing",
             "patch": [
               {
                 "path": "tracks.synthesis.is_primary",

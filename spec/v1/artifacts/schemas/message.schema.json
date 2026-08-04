@@ -613,7 +613,7 @@
                       "pattern": "^ak:blob:(sha256|blake3):[0-9a-f]{64}$",
                       "description": "Long text MUST use a hash-addressed Blob ref; the <suite>:<hex> part MUST equal attachment.ciphertext_digest and the Blob metadata content_digest."
                     },
-                    "alg": {
+                    "encryption_algorithm": {
                       "type": "string",
                       "enum": [
                         "mls_exporter_aead_xchacha20poly1305_stream",

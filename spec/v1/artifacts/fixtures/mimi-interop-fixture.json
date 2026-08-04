@@ -95,7 +95,6 @@
         "proof": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:mimi.example.com#mimi-provider",
-          "alg": "EdDSA",
           "payload_digest": "sha256:89abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567",
           "created_at": "2026-07-31T00:00:00Z",
           "jws": "c2ln"

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/public-key.schema.json",
   "title": "Arkret Canonical Public Key DTO",
-  "description": "Canonical wire shape of a public key carried in Arkret DTOs. It is defined in its own document so that device, agent and account surfaces reference one shared definition instead of reverse-referencing each other's bundles. Prose examples MUST use this exact shape: kty/kid/alg/key, no public_key alias.",
+  "description": "Canonical wire shape of a public key carried in Arkret DTOs. It is defined in its own document so that device, agent and account surfaces reference one shared definition instead of reverse-referencing each other's bundles. Prose examples MUST use this exact shape: kty/kid/algorithm/key, no public_key alias.",
   "$ref": "#/$defs/public_key",
   "$defs": {
     "non_empty_string": {
@@ -24,7 +24,7 @@
       "required": [
         "kty",
         "kid",
-        "alg",
+        "algorithm",
         "key"
       ],
       "properties": {
@@ -34,7 +34,7 @@
         "kid": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "alg": {
+        "algorithm": {
           "$ref": "#/$defs/non_empty_string"
         },
         "key": {

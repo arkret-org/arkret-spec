@@ -182,7 +182,6 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
   },
   "proof": {
     "kind": "detached_jws",
-    "alg": "EdDSA",
     "verification_method": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#admin-key-1",
     "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "created_at": "2026-04-26T00:00:00Z",
@@ -463,10 +462,9 @@ Arkret Sync Service / Events API 向 Applet 推送事件批次。
       "proof": {
         "kind": "detached_jws",
         "verification_method": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example#device-1",
-        "alg": "EdDSA",
         "envelope_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
         "created_at": "2026-07-30T12:00:00Z",
-        "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJl"
+        "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJl"
       }
     }
   ]
@@ -673,7 +671,6 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
   "proofs": [
     {
       "kind": "detached_jws",
-      "alg": "EdDSA",
       "verification_method": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123#key-1",
       "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "created_at": "2026-04-26T00:00:01Z",

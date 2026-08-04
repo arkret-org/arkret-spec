@@ -39,7 +39,7 @@
       "type": "object",
       "required": [
         "kid",
-        "alg",
+        "signature_algorithm",
         "sig"
       ],
       "properties": {
@@ -47,11 +47,10 @@
           "$ref": "#/$defs/did_url",
           "description": "DID URL of the concrete issuer verification method. Bare DID is not accepted because the receipt must pin one already accepted service key binding."
         },
-        "alg": {
+        "signature_algorithm": {
           "type": "string",
           "enum": [
-            "EdDSA",
-            "ES256",
+            "Ed25519",
             "ML-DSA-65"
           ]
         },

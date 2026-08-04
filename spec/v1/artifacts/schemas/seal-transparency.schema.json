@@ -153,7 +153,6 @@
       "required": [
         "kind",
         "verification_method",
-        "alg",
         "payload_digest",
         "created_at",
         "jws"
@@ -165,14 +164,6 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-        },
-        "alg": {
-          "type": "string",
-          "enum": [
-            "EdDSA",
-            "ES256",
-            "ML-DSA-65"
-          ]
         },
         "payload_digest": {
           "$ref": "#/$defs/hash",

@@ -272,7 +272,7 @@ applicant 直接提交：
     "gate_proofs": [
       {
         "gate_id": "g-org-vc",
-        "claim_presentation": "jws-vc:eyJhbGciOiJFZERTQSJ9..."
+        "claim_presentation": "jws-vc:eyJhbGciOiJFZDI1NTE5In0..."
       },
       {
         "gate_id": "g-captcha",

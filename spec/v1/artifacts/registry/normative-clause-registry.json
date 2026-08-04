@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-04.1",
+  "version": "2026-08-04.4",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -67,8 +67,8 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#6-signature",
-      "section_digest": "sha256:7c89cc5e0a12c5b4ca6887bc4b2f91c879018b577218d94e48840492b8bbf06e",
-      "requirement": "The signature binding payload MUST bind algorithm, domain and audience; a signature valid for one domain or audience MUST NOT verify for another.",
+      "section_digest": "sha256:5a7605d1584bc15bd2b640c067c4f64b835f82e3b07783127a40043c6c184ff2",
+      "requirement": "The signature carrier MUST cryptographically protect its algorithm selection, and the binding payload MUST bind domain and audience; a signature valid for one algorithm, domain or audience MUST NOT verify for another.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.encoding.signature_binding_payload.v1",
@@ -304,7 +304,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
-      "section_digest": "sha256:e5eab95cc2af0a106e4a1fd4dad5c4bb9b41a999c1bd8f39707242f267a3a7c6",
+      "section_digest": "sha256:2dbbfe8f25fe7cedeb9f4913f280e50c4b00595a7106d2676324c5cdfe4123bf",
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected.",
       "testability_grade": "vector",
       "evidence_refs": [

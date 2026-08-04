@@ -1,10 +1,12 @@
 {
-  "version": "2026-07-13",
+  "version": "2026-08-04.2",
   "source_of_truth": true,
-  "description": "Canonical signature algorithm vocabulary for v1 proof alg and raw signature_algorithm fields.",
+  "description": "Canonical signature algorithm vocabulary and explicit per-standard mappings for v1 JOSE, Arkret raw signatures, and RFC 9421 HTTP Message Signatures.",
   "registry_rules": [
-    "Schema enum values for proof alg fields MUST be generated from active rows' proof_alg only when publishing a new schema version, then frozen for that schema version.",
-    "Schema enum values for raw signature_algorithm fields MUST be generated from active rows' signature_algorithm only when publishing a new schema version, then frozen for that schema version. Activating a reserved/new algorithm requires a new schema version and profile negotiation; registry activation MUST NOT expand an existing schema enum in place (zh/conformance/schema-registry.md §6.1 b.1).",
+    "A JWS protected header MUST use the standard JOSE member alg and its value MUST equal the active row's jose_algorithm. Arkret MUST NOT rename members inside a JOSE object.",
+    "An Arkret-owned raw-signature carrier MUST use signature_algorithm and its value MUST equal an active row's raw_signature_algorithm. It MUST NOT use the JOSE abbreviation alg as an Arkret field name.",
+    "An RFC 9421 Signature-Input alg parameter MUST use http_message_signature_algorithm. JOSE names such as ES256 are not HTTP Signature Algorithms registry names and MUST NOT be substituted.",
+    "Activating a reserved/new algorithm requires a new schema version and profile negotiation; registry activation MUST NOT expand an existing schema enum in place (zh/conformance/schema-registry.md §6.1 b.1).",
     "Algorithms not present as active rows MUST fail closed with unsupported_signature_alg on critical proofs.",
     "Every status=active row MUST declare kat_vector_id naming an active vector-registry entry; every status=reserved row MUST instead declare kat_absence_reason and MUST NOT declare kat_vector_id. tools/lint_artifacts.py enforces this binding.",
     "A reserved hybrid row is a single negotiated verification policy over two independent proof entries, not a new unregistered compact signature encoding. Both components MUST bind the same canonical payload and proof purpose; accepting a stripped single component as hybrid-verified is forbidden."
@@ -12,10 +14,12 @@
   "algorithms": [
     {
       "canonical_id": "Ed25519",
-      "proof_alg": "EdDSA",
-      "signature_algorithm": "Ed25519",
+      "jose_algorithm": "Ed25519",
+      "raw_signature_algorithm": "Ed25519",
+      "http_message_signature_algorithm": "ed25519",
       "jwk_kty": "OKP",
       "jwk_crv": "Ed25519",
+      "jose_reference": "RFC 9864",
       "status": "active",
       "role": "v1_default_must",
       "profile_gate": null,
@@ -28,8 +32,9 @@
     },
     {
       "canonical_id": "ECDSA-P256-SHA256",
-      "proof_alg": "ES256",
-      "signature_algorithm": "ES256",
+      "jose_algorithm": "ES256",
+      "raw_signature_algorithm": null,
+      "http_message_signature_algorithm": "ecdsa-p256-sha256",
       "jwk_kty": "EC",
       "jwk_crv": "P-256",
       "status": "active",
@@ -43,8 +48,9 @@
     },
     {
       "canonical_id": "ML-DSA-65",
-      "proof_alg": "ML-DSA-65",
-      "signature_algorithm": "ML-DSA-65",
+      "jose_algorithm": "ML-DSA-65",
+      "raw_signature_algorithm": "ML-DSA-65",
+      "http_message_signature_algorithm": null,
       "jwk_kty": "AKP",
       "jwk_crv": null,
       "jwk_alg_required": true,
@@ -64,8 +70,9 @@
     },
     {
       "canonical_id": "Ed25519+ML-DSA-65",
-      "proof_alg": null,
-      "signature_algorithm": null,
+      "jose_algorithm": null,
+      "raw_signature_algorithm": null,
+      "http_message_signature_algorithm": null,
       "components": ["Ed25519", "ML-DSA-65"],
       "composition": "two_independent_proof_entries_all_required",
       "status": "reserved",
@@ -77,7 +84,7 @@
         "Publish canonical proof-set ordering and duplicate-component rejection rules",
         "Publish anti-stripping vectors proving that both components bind identical canonical payload bytes and proof purpose and that either missing/invalid component fails hybrid verification",
         "Define verifier capability tiers and downgrade display semantics without ever reporting a single-component result as hybrid verified",
-        "Publish a new negotiated proof contract release; reserved policy MUST NOT widen frozen proof_alg or signature_algorithm enums in place"
+        "Publish a new negotiated proof contract release; reserved policy MUST NOT widen frozen JOSE or raw-signature enums in place"
       ],
       "security_note": "Reserved hybrid verification policy. Before activation, the canonical_id itself is not a wire alg and MUST fail closed if presented as one; active Ed25519 and ML-DSA-65 proofs retain their independent existing semantics."
     }

@@ -21,14 +21,13 @@
         "claim_nonce": "AAAAAAAAAAAAAAAAAAAAAA",
         "expires_at": "2026-07-31T00:05:00.000Z",
         "holder_acceptance_proof": {
-            "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
-            "alg": "EdDSA",
-            "payload_digest": "sha256:a3b359db5508038c628aa0999c3431b45237ed2a5df91d18d0d5b14c0ca821f0",
-            "created_at": "2026-07-31T00:00:00.000Z",
-            "audience": "did:webvh:z6mkfixture:ps.example",
-            "proof_purpose": "holder_acceptance",
-            "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
+          "payload_digest": "sha256:a3b359db5508038c628aa0999c3431b45237ed2a5df91d18d0d5b14c0ca821f0",
+          "created_at": "2026-07-31T00:00:00.000Z",
+          "audience": "did:webvh:z6mkfixture:ps.example",
+          "proof_purpose": "holder_acceptance",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
         }
       }
     },
@@ -66,22 +65,20 @@
           {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
-            "alg": "EdDSA",
             "payload_digest": "sha256:a3b359db5508038c628aa0999c3431b45237ed2a5df91d18d0d5b14c0ca821f0",
             "created_at": "2026-07-31T00:00:00.000Z",
             "audience": "did:webvh:z6mkfixture:ps.example",
             "proof_purpose": "holder_acceptance",
-            "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
           },
           {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
-            "alg": "EdDSA",
             "payload_digest": "sha256:a3b359db5508038c628aa0999c3431b45237ed2a5df91d18d0d5b14c0ca821f0",
             "created_at": "2026-07-31T00:00:00.000Z",
             "audience": "did:webvh:z6mkfixture:ps.example",
             "proof_purpose": "holder_acceptance",
-            "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
           }
         ]
       }
@@ -101,14 +98,13 @@
         "claim_nonce": "too-short",
         "expires_at": "2026-07-31T00:05:00.000Z",
         "holder_acceptance_proof": {
-            "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
-            "alg": "EdDSA",
-            "payload_digest": "sha256:a3b359db5508038c628aa0999c3431b45237ed2a5df91d18d0d5b14c0ca821f0",
-            "created_at": "2026-07-31T00:00:00.000Z",
-            "audience": "did:webvh:z6mkfixture:ps.example",
-            "proof_purpose": "holder_acceptance",
-            "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
+          "payload_digest": "sha256:a3b359db5508038c628aa0999c3431b45237ed2a5df91d18d0d5b14c0ca821f0",
+          "created_at": "2026-07-31T00:00:00.000Z",
+          "audience": "did:webvh:z6mkfixture:ps.example",
+          "proof_purpose": "holder_acceptance",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
         }
       }
     }

@@ -126,7 +126,6 @@
       "required": [
         "kind",
         "verification_method",
-        "alg",
         "payload_digest",
         "created_at",
         "domain",
@@ -140,9 +139,6 @@
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url",
           "description": "DID URL of a verification method authorized by the issuer's current DID Document (extensions/mimi-interop.md section 5.1)."
-        },
-        "alg": {
-          "const": "EdDSA"
         },
         "payload_digest": {
           "$ref": "#/$defs/hash"

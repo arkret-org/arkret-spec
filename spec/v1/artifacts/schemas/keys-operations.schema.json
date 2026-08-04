@@ -98,8 +98,12 @@
         "kid": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "alg": {
-          "$ref": "#/$defs/non_empty_string"
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "Ed25519",
+            "ML-DSA-65"
+          ]
         },
         "sig": {
           "$ref": "#/$defs/base64url"

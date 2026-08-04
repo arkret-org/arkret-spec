@@ -26,16 +26,22 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "reducer_profile": "ak.reducer.core.v1",
   "security_class": "high_assurance",
-  "schema_profile_refs": ["ak.profile.core_event_store.v1"],
+  "schema_profile_refs": [
+    "ak.profile.core_event_store.v1"
+  ],
   "frontier": {
-    "event_ids": ["ak:event:019640ed-8000-7000-8000-000000000000"],
+    "event_ids": [
+      "ak:event:019640ed-8000-7000-8000-000000000000"
+    ],
     "timeline_hlc": "01970e589d21-0004-a13f9c2e"
   },
   "event_set_commitment": {
     "algorithm": "merkle_event_set_v1",
     "root": "sha256:...",
     "covered_event_count": 42000,
-    "covered_event_ids": ["ak:event:019640ed-8000-7000-8000-000000000000"]
+    "covered_event_ids": [
+      "ak:event:019640ed-8000-7000-8000-000000000000"
+    ]
   },
   "state_digest": "sha256:...",
   "chunks": [
@@ -60,12 +66,13 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
     "issuer": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
     "authority_kind": "realm_policy_snapshot_issuer",
     "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "auth_frontier": ["ak:event:019640ed-8000-7000-8000-000000000000"],
+    "auth_frontier": [
+      "ak:event:019640ed-8000-7000-8000-000000000000"
+    ],
     "checked_at": "2026-04-26T00:00:00Z"
   },
   "signature": {
     "kind": "detached_jws",
-    "alg": "EdDSA",
     "verification_method": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example#snapshot-key-1",
     "payload_digest": "sha256:...",
     "created_at": "2026-04-26T00:00:00Z",
@@ -224,7 +231,10 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
     {
       "kind": "event_id",
       "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
-      "merkle_branch": ["sha256:...", "sha256:..."],
+      "merkle_branch": [
+        "sha256:...",
+        "sha256:..."
+      ],
       "leaf_canonical_entry": {
         "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
         "event_digest": "sha256:...",
@@ -239,18 +249,30 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
       "from_seq": 100,
       "to_seq": 199,
       "ordered_set_slice": [
-        {"event_id": "ak:event:...", "event_digest": "sha256:...", "actor_seq": 100, "hlc": "..."},
+        {
+          "event_id": "ak:event:...",
+          "event_digest": "sha256:...",
+          "actor_seq": 100,
+          "hlc": "..."
+        },
         "..."
       ],
       "gap_attribution": [
-        {"actor_seq": 142, "category": "soft_failed", "digest_index": 7},
-        {"actor_seq": 167, "category": "quarantined", "digest_index": 3}
+        {
+          "actor_seq": 142,
+          "category": "soft_failed",
+          "digest_index": 7
+        },
+        {
+          "actor_seq": 167,
+          "category": "quarantined",
+          "digest_index": 3
+        }
       ]
     }
   ],
   "issuer_signature": {
     "kind": "detached_jws",
-    "alg": "EdDSA",
     "verification_method": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example#snapshot-key-1",
     "payload_digest": "sha256:...",
     "created_at": "2026-04-26T00:00:00Z",

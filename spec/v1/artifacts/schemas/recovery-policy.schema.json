@@ -373,7 +373,6 @@
           "type": "string",
           "enum": [
             "Ed25519",
-            "ES256",
             "ML-DSA-65"
           ]
         },
@@ -869,7 +868,7 @@
         "verification_method",
         "public_key_multibase",
         "key_agreement_ref",
-        "alg",
+        "signature_algorithm",
         "not_before",
         "expires_at"
       ],
@@ -887,11 +886,10 @@
           "$ref": "#/$defs/did_url",
           "description": "MUST identify exactly one non-revoked recovery_key_agreements[] entry in the same policy."
         },
-        "alg": {
+        "signature_algorithm": {
           "type": "string",
           "enum": [
             "Ed25519",
-            "ES256",
             "ML-DSA-65"
           ],
           "description": "Signature algorithm used by the recovery key. Values mirror active signature-alg-registry rows; ML-DSA-65 use additionally requires the corresponding PQ-capable implementation profile."
@@ -923,7 +921,7 @@
       "description": "Dedicated X25519 HPKE recipient for key-backup envelopes. It cannot verify recovery_unlock or authorize DID/Event operations.",
       "required": [
         "key_agreement_ref",
-        "alg",
+        "key_agreement_algorithm",
         "public_key_multibase",
         "hpke_suites",
         "use",
@@ -935,7 +933,7 @@
           "$ref": "#/$defs/did_url",
           "description": "Stable identifier used by key-backup encryption.recipient_key_ref."
         },
-        "alg": {
+        "key_agreement_algorithm": {
           "const": "X25519"
         },
         "public_key_multibase": {

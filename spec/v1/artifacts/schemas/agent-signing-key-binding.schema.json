@@ -38,7 +38,8 @@
       "$ref": "#/$defs/public_key"
     },
     "public_key_digest": {
-      "$ref": "#/$defs/sha256"
+      "$ref": "#/$defs/sha256",
+      "description": "SHA-256 of public_key.key after base64url decoding to exactly 32 bytes, computed with agent_signing_public_key_digest; verification_method and alg are not in this digest domain."
     },
     "agent_key_authorize_event_id": {
       "$ref": "./event-envelope.schema.json#/$defs/event_ref"
@@ -63,14 +64,14 @@
       "type": "object",
       "required": [
         "kty",
-        "alg",
+        "algorithm",
         "key"
       ],
       "properties": {
         "kty": {
           "const": "OKP"
         },
-        "alg": {
+        "algorithm": {
           "const": "Ed25519"
         },
         "key": {

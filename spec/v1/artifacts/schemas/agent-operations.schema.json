@@ -173,7 +173,7 @@
       "required": [
         "kind",
         "verification_method",
-        "alg",
+        "signature_algorithm",
         "challenge",
         "audience",
         "expires_at",
@@ -190,9 +190,9 @@
         "verification_method": {
           "$ref": "#/$defs/did_url"
         },
-        "alg": {
+        "signature_algorithm": {
           "type": "string",
-          "const": "EdDSA"
+          "const": "Ed25519"
         },
         "challenge": {
           "$ref": "#/$defs/opaque_local_id"
@@ -224,6 +224,32 @@
     "public_key": {
       "$ref": "./public-key.schema.json#/$defs/public_key",
       "description": "Canonical PublicKey DTO. Defined once in public-key.schema.json so device, agent and account surfaces share one definition."
+    },
+    "agent_runtime_public_key": {
+      "description": "Closed v1 Native Agent runtime signing-key profile. Ed25519 is the fully-specified JOSE algorithm identifier from RFC 9864; polymorphic algorithm identifiers are rejected.",
+      "type": "object",
+      "required": [
+        "kty",
+        "kid",
+        "algorithm",
+        "key"
+      ],
+      "properties": {
+        "kty": {
+          "const": "OKP"
+        },
+        "kid": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "algorithm": {
+          "const": "Ed25519"
+        },
+        "key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        }
+      },
+      "additionalProperties": false
     },
     "device_metadata": {
       "type": "object",
@@ -264,31 +290,95 @@
     },
     "agent_readiness": {
       "type": "object",
-      "required": ["state", "blockers"],
+      "required": [
+        "state",
+        "blockers"
+      ],
       "properties": {
-        "state": { "type": "string", "enum": ["ready", "not_ready"] },
+        "state": {
+          "type": "string",
+          "enum": [
+            "ready",
+            "not_ready"
+          ]
+        },
         "blockers": {
           "type": "array",
           "uniqueItems": true,
           "items": {
             "type": "string",
-            "enum": ["runtime_key_missing", "pairing_open", "recovery_stale"]
+            "enum": [
+              "runtime_key_missing",
+              "pairing_open",
+              "recovery_stale"
+            ]
           }
         }
       },
       "allOf": [
-        { "if": { "properties": { "state": { "const": "ready" } }, "required": ["state"] }, "then": { "properties": { "blockers": { "maxItems": 0 } } } },
-        { "if": { "properties": { "state": { "const": "not_ready" } }, "required": ["state"] }, "then": { "properties": { "blockers": { "minItems": 1 } } } }
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "ready"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "blockers": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "not_ready"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "blockers": {
+                "minItems": 1
+              }
+            }
+          }
+        }
       ],
       "additionalProperties": false
     },
     "agent_presence": {
       "type": "object",
-      "required": ["state", "expires_at", "refresh_after"],
+      "required": [
+        "state",
+        "expires_at",
+        "refresh_after"
+      ],
       "properties": {
-        "state": { "type": "string", "enum": ["online", "offline", "unknown"] },
-        "expires_at": { "$ref": "#/$defs/timestamp" },
-        "refresh_after": { "$ref": "#/$defs/timestamp" }
+        "state": {
+          "type": "string",
+          "enum": [
+            "online",
+            "offline",
+            "unknown"
+          ]
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "refresh_after": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false,
       "description": "Short-lived reachability signal only. It never substitutes for lifecycle or readiness and does not use a protocol-wide fixed five-minute refresh interval."
@@ -318,8 +408,12 @@
         "lifecycle": {
           "$ref": "#/$defs/agent_status"
         },
-        "readiness": { "$ref": "#/$defs/agent_readiness" },
-        "presence": { "$ref": "#/$defs/agent_presence" },
+        "readiness": {
+          "$ref": "#/$defs/agent_readiness"
+        },
+        "presence": {
+          "$ref": "#/$defs/agent_presence"
+        },
         "created_at": {
           "$ref": "#/$defs/timestamp"
         },
@@ -796,7 +890,7 @@
           "$ref": "#/$defs/did_url"
         },
         "public_key": {
-          "$ref": "#/$defs/public_key"
+          "$ref": "#/$defs/agent_runtime_public_key"
         },
         "proof_of_possession": {
           "$ref": "#/$defs/agent_runtime_key_possession_proof"
@@ -875,7 +969,7 @@
           "$ref": "#/$defs/did_url"
         },
         "public_key": {
-          "$ref": "#/$defs/public_key"
+          "$ref": "#/$defs/agent_runtime_public_key"
         },
         "proof_of_possession": {
           "$ref": "#/$defs/agent_runtime_key_possession_proof"
@@ -907,7 +1001,7 @@
           "$ref": "#/$defs/did_url"
         },
         "public_key": {
-          "$ref": "#/$defs/public_key"
+          "$ref": "#/$defs/agent_runtime_public_key"
         },
         "proof_of_possession": {
           "$ref": "#/$defs/agent_runtime_key_possession_proof"
@@ -999,8 +1093,12 @@
         "runtime_state": {
           "$ref": "#/$defs/agent_runtime_state"
         },
-        "readiness": { "$ref": "#/$defs/agent_readiness" },
-        "presence": { "$ref": "#/$defs/agent_presence" },
+        "readiness": {
+          "$ref": "#/$defs/agent_readiness"
+        },
+        "presence": {
+          "$ref": "#/$defs/agent_presence"
+        },
         "approval_request_id": {
           "$ref": "#/$defs/opaque_local_id"
         },
@@ -1011,7 +1109,8 @@
           "$ref": "#/$defs/did_url"
         },
         "authorized_public_key_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/hash",
+          "description": "SHA-256 of the decoded 32-byte Ed25519 public key, computed with agent_signing_public_key_digest. This is not the canonical runtime-request PublicKey DTO digest."
         },
         "authorized_signing_key_binding": {
           "$ref": "./agent-signing-key-binding.schema.json"
@@ -1078,16 +1177,24 @@
           "not": {
             "anyOf": [
               {
-                "required": ["agent_id"]
+                "required": [
+                  "agent_id"
+                ]
               },
               {
-                "required": ["principal_control_realm_id"]
+                "required": [
+                  "principal_control_realm_id"
+                ]
               },
               {
-                "required": ["provision_event"]
+                "required": [
+                  "provision_event"
+                ]
               },
               {
-                "required": ["allocation_handle"]
+                "required": [
+                  "allocation_handle"
+                ]
               }
             ]
           }
@@ -1176,20 +1283,31 @@
               "const": "awaiting_controller_event"
             }
           },
-          "required": ["controller_realm_id", "allocation_handle"],
+          "required": [
+            "controller_realm_id",
+            "allocation_handle"
+          ],
           "not": {
             "anyOf": [
               {
-                "required": ["pcr_recovery"]
+                "required": [
+                  "pcr_recovery"
+                ]
               },
               {
-                "required": ["pairing_request_id"]
+                "required": [
+                  "pairing_request_id"
+                ]
               },
               {
-                "required": ["pairing_code"]
+                "required": [
+                  "pairing_code"
+                ]
               },
               {
-                "required": ["expires_at"]
+                "required": [
+                  "expires_at"
+                ]
               }
             ]
           }
@@ -1208,10 +1326,14 @@
           "not": {
             "anyOf": [
               {
-                "required": ["controller_realm_id"]
+                "required": [
+                  "controller_realm_id"
+                ]
               },
               {
-                "required": ["allocation_handle"]
+                "required": [
+                  "allocation_handle"
+                ]
               }
             ]
           }
@@ -1396,10 +1518,14 @@
                       "const": "ak.self.agent.pause"
                     }
                   },
-                  "required": ["kind"]
+                  "required": [
+                    "kind"
+                  ]
                 }
               },
-              "required": ["event"]
+              "required": [
+                "event"
+              ]
             }
           ],
           "description": "Closed ak.self.agent.pause Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. The service submits these exact bytes through ordinary Event admission and never synthesizes an Agent-authored Event. Its optional payload.reason MUST equal the request reason exactly (both absent or the same string)."
@@ -1429,10 +1555,14 @@
                       "const": "ak.self.agent.resume"
                     }
                   },
-                  "required": ["kind"]
+                  "required": [
+                    "kind"
+                  ]
                 }
               },
-              "required": ["event"]
+              "required": [
+                "event"
+              ]
             }
           ],
           "description": "Closed ak.self.agent.resume Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. Its sidecar_exposure_ack, when present, must equal the request sidecar exactly."
@@ -1442,7 +1572,9 @@
     },
     "agent_deactivate_request_body": {
       "type": "object",
-      "required": ["lifecycle_event"],
+      "required": [
+        "lifecycle_event"
+      ],
       "properties": {
         "reason": {
           "$ref": "#/$defs/non_empty_string"
@@ -1460,10 +1592,14 @@
                       "const": "ak.self.agent.deactivate"
                     }
                   },
-                  "required": ["kind"]
+                  "required": [
+                    "kind"
+                  ]
                 }
               },
-              "required": ["event"]
+              "required": [
+                "event"
+              ]
             }
           ],
           "description": "The single controller-authorized terminal ak.self.agent.deactivate Event. Once accepted, lifecycle is an unavoidable AND gate that makes every subordinate runtime key, session, pairing handle, capability grant, KeyPackage, presence and future submission ineffective. Cleanup Events are not part of this request. Optional payload.reason MUST equal request reason."
@@ -1494,10 +1630,14 @@
                       "const": "ak.capability.grant"
                     }
                   },
-                  "required": ["kind"]
+                  "required": [
+                    "kind"
+                  ]
                 }
               },
-              "required": ["event"]
+              "required": [
+                "event"
+              ]
             }
           ],
           "description": "Complete controller-authored ak.capability.grant initial submission. event.payload.grant is a closed CapabilityGrantBody without an inner proof; the Event envelope proof is the sole durable issuer signature. Admission MUST verify that event.actor_id, event.realm_id, payload.grant_id, grant.id, grant.issuer, grant.subject and grant.realm_id match the authenticated controller, path Agent and governed Realm as applicable. Every action and resource must be covered by the requested_scope disclosed in the verifier-bound private sidecar, and provision constraints remain mandatory. A violation fails with agent_grant_exceeds_requested_scope. The service MUST submit these exact bytes through ordinary Event admission and MUST NOT synthesize the Event or fall back to a body-local signature."

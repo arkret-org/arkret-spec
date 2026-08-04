@@ -51,7 +51,7 @@
           "const": "dpop+jwt"
         },
         "alg": {
-          "const": "EdDSA"
+          "const": "Ed25519"
         },
         "jwk": {
           "$ref": "#/$defs/public_jwk"

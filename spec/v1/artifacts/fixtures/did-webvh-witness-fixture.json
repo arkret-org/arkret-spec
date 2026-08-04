@@ -504,10 +504,9 @@
         "signature": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-          "alg": "EdDSA",
           "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "created_at": "2026-05-01T00:00:00.000Z",
-          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
         }
       }
     },
@@ -529,10 +528,9 @@
         "signature": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-          "alg": "EdDSA",
           "payload_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "created_at": "2026-05-01T00:00:00.000Z",
-          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
         }
       }
     },
@@ -558,10 +556,9 @@
         "signature": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-          "alg": "EdDSA",
           "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "created_at": "2026-05-01T00:00:00.000Z",
-          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
         }
       }
     },
@@ -587,10 +584,9 @@
         "signature": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-          "alg": "EdDSA",
           "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "created_at": "2026-05-01T00:00:00.000Z",
-          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
         }
       }
     },
@@ -617,10 +613,9 @@
         "signature": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-          "alg": "EdDSA",
           "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "created_at": "2026-05-01T00:00:00.000Z",
-          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
         }
       }
     },
@@ -648,10 +643,9 @@
         "signature": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-          "alg": "EdDSA",
           "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "created_at": "2026-05-01T00:00:00.000Z",
-          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
         }
       }
     },
@@ -678,10 +672,9 @@
             "signature": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-              "alg": "EdDSA",
               "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "created_at": "2026-05-01T00:00:00.000Z",
-              "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             }
           },
           {
@@ -696,10 +689,9 @@
             "signature": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-              "alg": "EdDSA",
               "payload_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
               "created_at": "2026-05-01T00:00:00.000Z",
-              "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             }
           }
         ],

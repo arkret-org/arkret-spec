@@ -114,7 +114,7 @@ compact JWS 的 protected header 必须精确符合
 `ak.schema.websocket_dpop_protected_header.v1`：
 
 ```json
-{"alg":"EdDSA","jwk":{"crv":"Ed25519","kty":"OKP","x":"<43-char-base64url>"},"typ":"dpop+jwt"}
+{"alg":"Ed25519","jwk":{"crv":"Ed25519","kty":"OKP","x":"<43-char-base64url>"},"typ":"dpop+jwt"}
 ```
 
 payload 必须精确符合 `ak.schema.websocket_dpop_claims.v1`，字段为：

@@ -9416,7 +9416,7 @@ def json_pointer_get(data: Any, pointer: str) -> Any:
     return current
 
 
-def check_signature_algorithm_registry(lint: Lint) -> None:
+def check_alg_registry(lint: Lint) -> None:
     path = ARTIFACTS / "registry" / "signature-alg-registry.json"
     data = load_json(lint, path)
     if not isinstance(data, dict):
@@ -9426,8 +9426,11 @@ def check_signature_algorithm_registry(lint: Lint) -> None:
         lint.fail(path, "algorithms must be a non-empty array")
         return
 
-    proof_algs: set[str] = set()
-    raw_algs: set[str] = set()
+    algs_by_proof_kind: dict[str, set[str]] = {
+        "detached_jws": set(),
+        "raw_detached_signature": set(),
+    }
+    http_message_signature_algorithms: set[str] = set()
     canonical_ids: set[str] = set()
     for index, row in enumerate(algorithms):
         label = f"algorithms[{index}]"
@@ -9435,8 +9438,10 @@ def check_signature_algorithm_registry(lint: Lint) -> None:
             lint.fail(path, f"{label} must be an object")
             continue
         canonical_id = row.get("canonical_id")
-        proof_alg = row.get("proof_alg")
-        raw_alg = row.get("signature_algorithm")
+        jose_algorithm = row.get("jose_algorithm")
+        raw_signature_algorithm = row.get("raw_signature_algorithm")
+        http_message_signature_algorithm = row.get("http_message_signature_algorithm")
+        proof_kinds = row.get("proof_kinds")
         status = row.get("status")
         if not isinstance(canonical_id, str) or not canonical_id:
             lint.fail(path, f"{label}.canonical_id must be a non-empty string")
@@ -9445,39 +9450,134 @@ def check_signature_algorithm_registry(lint: Lint) -> None:
             lint.fail(path, f"duplicate canonical_id: {canonical_id}")
         canonical_ids.add(canonical_id)
         if status == "active":
-            if not isinstance(proof_alg, str) or not proof_alg:
-                lint.fail(path, f"{label}.proof_alg must be a non-empty string")
-            else:
-                proof_algs.add(proof_alg)
-            if not isinstance(raw_alg, str) or not raw_alg:
-                lint.fail(path, f"{label}.signature_algorithm must be a non-empty string")
-            else:
-                raw_algs.add(raw_alg)
+            if not isinstance(proof_kinds, list) or not proof_kinds:
+                lint.fail(path, f"{label}.proof_kinds must be a non-empty array")
+                continue
+            for proof_kind in proof_kinds:
+                if proof_kind not in algs_by_proof_kind:
+                    lint.fail(path, f"{label}.proof_kinds contains unsupported kind {proof_kind!r}")
+                    continue
+                algorithm = (
+                    jose_algorithm
+                    if proof_kind == "detached_jws"
+                    else raw_signature_algorithm
+                )
+                if not isinstance(algorithm, str) or not algorithm:
+                    lint.fail(path, f"{label} lacks an algorithm mapping for {proof_kind}")
+                    continue
+                algs_by_proof_kind[proof_kind].add(algorithm)
+            if isinstance(http_message_signature_algorithm, str) and http_message_signature_algorithm:
+                http_message_signature_algorithms.add(http_message_signature_algorithm)
 
-    expected_proof = sorted(proof_algs)
-    expected_raw = sorted(raw_algs)
-    proof_enum_locations = [
-        ("schemas/event-envelope.schema.json", "/$defs/event_proof/properties/alg/enum"),
-        ("schemas/event-envelope.schema.json", "/$defs/proof/properties/alg/enum"),
-        ("schemas/seal.schema.json", "/$defs/signature/properties/alg/enum"),
-        ("schemas/ice-config-response.schema.json", "/$defs/signature/properties/alg/enum"),
-        ("schemas/audit-release-attestation.schema.json", "/properties/attestation_key/properties/alg/enum"),
-    ]
-    raw_enum_locations = [
-        ("schemas/member-identity.schema.json", "/properties/proof/properties/signature_algorithm/enum"),
-    ]
-    for file_ref, pointer in proof_enum_locations:
-        schema_path = ARTIFACTS / file_ref
+    expected_jws = sorted(algs_by_proof_kind["detached_jws"])
+    expected_raw = sorted(algs_by_proof_kind["raw_detached_signature"])
+    # `alg` belongs to standards-defined JOSE objects only. In v1 schemas the
+    # only inline JOSE object is the WebSocket DPoP protected header; compact
+    # detached JWS values elsewhere are opaque strings and MUST NOT duplicate
+    # their protected algorithm in an Arkret wrapper field.
+    allowed_alg_property = (
+        "websocket-dpop-proof.schema.json",
+        "/$defs/protected_header/properties/alg",
+    )
+
+    def algorithm_properties(value: Any, pointer: str = "") -> Iterable[tuple[str, str, Any]]:
+        if isinstance(value, dict):
+            properties = value.get("properties")
+            if isinstance(properties, dict):
+                for name, property_schema in properties.items():
+                    yield name, f"{pointer}/properties/{name}", property_schema
+            for key, child in value.items():
+                yield from algorithm_properties(child, f"{pointer}/{key}")
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                yield from algorithm_properties(child, f"{pointer}/{index}")
+
+    for schema_path in sorted((ARTIFACTS / "schemas").glob("*.json")):
         schema = load_json(lint, schema_path)
-        actual = json_pointer_get(schema, pointer) if isinstance(schema, dict) else None
-        if sorted(actual or []) != expected_proof:
-            lint.fail(schema_path, f"{pointer} must match signature-alg-registry proof_alg values {expected_proof}")
-    for file_ref, pointer in raw_enum_locations:
-        schema_path = ARTIFACTS / file_ref
-        schema = load_json(lint, schema_path)
-        actual = json_pointer_get(schema, pointer) if isinstance(schema, dict) else None
-        if sorted(actual or []) != expected_raw:
-            lint.fail(schema_path, f"{pointer} must match signature-alg-registry signature_algorithm values {expected_raw}")
+        if not isinstance(schema, dict):
+            continue
+        for name, pointer, property_schema in algorithm_properties(schema):
+            if name == "alg" and (schema_path.name, pointer) != allowed_alg_property:
+                lint.fail(
+                    schema_path,
+                    f"{pointer} uses JOSE-only shorthand alg in an Arkret-owned object",
+                )
+            if name == "accepted_algs" or name.endswith("_alg"):
+                lint.fail(schema_path, f"{pointer} uses forbidden abbreviated algorithm field {name}")
+            if name != "signature_algorithm" or not isinstance(property_schema, dict):
+                continue
+            resolved = property_schema
+            ref = resolved.get("$ref")
+            if isinstance(ref, str) and ref.startswith("#/"):
+                resolved = json_pointer_get(schema, ref.removeprefix("#"))
+            values: list[str] = []
+            if isinstance(resolved, dict) and isinstance(resolved.get("const"), str):
+                values = [resolved["const"]]
+            elif isinstance(resolved, dict) and isinstance(resolved.get("enum"), list):
+                values = [item for item in resolved["enum"] if isinstance(item, str)]
+            if not values:
+                lint.fail(
+                    schema_path,
+                    f"{pointer} must fail closed with an explicit const/enum from raw_signature_algorithm mappings",
+                )
+            elif not set(values).issubset(set(expected_raw)):
+                lint.fail(
+                    schema_path,
+                    f"{pointer} contains values outside active raw_signature_algorithm mappings: {values!r}; allowed={expected_raw!r}",
+                )
+
+    def check_fixture_algorithm_names(value: Any, fixture_path: Path, pointer: str = "") -> None:
+        if isinstance(value, dict):
+            for short_name in (
+                name for name in value if name == "accepted_algs" or name.endswith("_alg")
+            ):
+                lint.fail(
+                    fixture_path,
+                    f"{pointer}/{short_name} uses forbidden abbreviated algorithm field {short_name}",
+                )
+            if "alg" in value:
+                path_tokens = {token for token in pointer.split("/") if token}
+                is_protected_header = bool(path_tokens & {"protected_header", "protected"})
+                is_jwk = value.get("kty") in {"OKP", "EC", "RSA", "AKP"} and (
+                    "crv" in value or "x" in value or "n" in value or "pub" in value
+                )
+                if not is_protected_header and not is_jwk:
+                    lint.fail(
+                        fixture_path,
+                        f"{pointer}/alg uses JOSE-only shorthand outside a protected header or JWK",
+                    )
+            for key, child in value.items():
+                check_fixture_algorithm_names(child, fixture_path, f"{pointer}/{key}")
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                check_fixture_algorithm_names(child, fixture_path, f"{pointer}/{index}")
+
+    for fixture_path in sorted((ARTIFACTS / "fixtures").glob("*.json")):
+        fixture = load_json(lint, fixture_path)
+        if fixture is not None:
+            check_fixture_algorithm_names(fixture, fixture_path)
+
+    dpop_alg = load_json(lint, ARTIFACTS / "schemas" / allowed_alg_property[0])
+    dpop_value = json_pointer_get(dpop_alg, allowed_alg_property[1]) if isinstance(dpop_alg, dict) else None
+    dpop_const = dpop_value.get("const") if isinstance(dpop_value, dict) else None
+    if dpop_const not in expected_jws:
+        lint.fail(
+            ARTIFACTS / "schemas" / allowed_alg_property[0],
+            f"{allowed_alg_property[1]} must use an active jose_algorithm; got {dpop_const!r}",
+        )
+
+    applet_path = ARTIFACTS / "schemas" / "applet-package.schema.json"
+    applet_schema = load_json(lint, applet_path)
+    accepted_http_algorithms = json_pointer_get(
+        applet_schema,
+        "/$defs/http_message_signature_algorithm/enum",
+    ) if isinstance(applet_schema, dict) else None
+    if set(accepted_http_algorithms or []) != http_message_signature_algorithms:
+        lint.fail(
+            applet_path,
+            "webhook_auth.accepted_signature_algorithms must exactly match active "
+            f"http_message_signature_algorithm mappings: {sorted(http_message_signature_algorithms)!r}",
+        )
 
 
 def check_service_kind_registry(lint: Lint) -> None:
@@ -11523,7 +11623,7 @@ def main(argv: list[str] | None = None) -> int:
             ("field_order", lambda: check_field_order(lint)),
             ("required_field_tables", lambda: check_model_required_field_table_coverage(lint)),
             ("exporter_labels", lambda: check_exporter_label_registry(lint)),
-            ("signature_algorithms", lambda: check_signature_algorithm_registry(lint)),
+            ("algs", lambda: check_alg_registry(lint)),
             ("mls_bounds", lambda: check_mls_governance_proof_bounds(lint)),
             ("mls_pq", lambda: check_mls_pq_suite_registration(lint)),
             ("service_kinds", lambda: check_service_kind_registry(lint)),

@@ -22,8 +22,13 @@ updated: 2026-07-02
   "controller_id": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "base_url": "https://applet.example/applet",
   "bot_actor_id": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example:bot",
-  "claimed_profiles": ["ak.profile.applet_service.v1", "ak.profile.applet_bridge.v1"],
-  "protocols": ["slack"],
+  "claimed_profiles": [
+    "ak.profile.applet_service.v1",
+    "ak.profile.applet_bridge.v1"
+  ],
+  "protocols": [
+    "slack"
+  ],
   "namespaces": {
     "actors": [],
     "realms": [],
@@ -36,11 +41,13 @@ updated: 2026-07-02
   "registration_epoch": "sha256:<canonical-registration-epoch-hash>",
   "webhook_auth": {
     "kind": "http_message_signature",
-    "key_ref": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example#server-key-1"
+    "key_ref": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example#server-key-1",
+    "accepted_signature_algorithms": [
+      "ed25519"
+    ]
   },
   "proof": {
     "kind": "detached_jws",
-    "alg": "EdDSA",
     "verification_method": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#controller-key-1",
     "payload_digest": "sha256:<canonical-registration-hash>",
     "created_at": "2026-04-26T00:00:00Z",
@@ -70,7 +77,7 @@ updated: 2026-07-02
 
 - `derived_registration` MUST 固定包含 schema 所列的 registration 安全字段；`proof`、`registration_epoch` 与派生 `manifest` 不进入该对象。manifest 的安全含义必须展开到 `endpoint_policy`、`webhook_auth` 与 `security_policy`，不得通过嵌套 opaque manifest 间接参与 hash。
 - `service_did_document` MUST 包含 `service_id`、canonical DID Document 的 `document_digest` 与 closed `method_version`。有稳定版本证据的 DID method MUST 令 `unversioned_refetch=false`，并至少给出 `version_id` 或 `version_time`；没有稳定版本证据的 method MUST 令 `unversioned_refetch=true`，且 MUST 省略 `version_id` / `version_time`。后者只在 registration epoch 首次接受 / 续期、binding invalidation 或该授权面的显式 authority freshness 到期时重新解析 canonical document并比对 `document_digest`；同一 accepted epoch 下的普通授权匹配复用其固定 document digest 与 key binding。
-- 以下数组是数学集合，producer MUST 先按 UTF-8 字节序升序排列并拒绝重复项：`protocols`、`requested_scopes`、`claimed_profiles`、`webhook_auth.accepted_algs`、`accepted_signing_keys`（按 `key_ref`）、三个 namespace bucket（按 `pattern`，相同 pattern 再按 `exclusive=false` 在前）、`endpoint_policy.endpoints`（按 `method`、`path`、`auth` 的 tuple）。同一排序键重复 MUST fail closed，不能靠“保留第一项”消歧。
+- 以下数组是数学集合，producer MUST 先按 UTF-8 字节序升序排列并拒绝重复项：`protocols`、`requested_scopes`、`claimed_profiles`、`webhook_auth.accepted_signature_algorithms`、`accepted_signing_keys`（按 `key_ref`）、三个 namespace bucket（按 `pattern`，相同 pattern 再按 `exclusive=false` 在前）、`endpoint_policy.endpoints`（按 `method`、`path`、`auth` 的 tuple）。同一排序键重复 MUST fail closed，不能靠“保留第一项”消歧。
 - 任意 optional 字段缺失时 MUST 直接省略；不得以 JSON `null` 代替。对象成员顺序最终由 JCS 处理；上述数组排序在 JCS 之前完成。
 - transcript 通过 schema 与集合规范化校验后，令 `canonical_bytes = JCS(transcript)`；令域分离字节为 UTF-8 `arkret-applet-registration-epoch-v1\n`（末尾单个 LF，字节 `0a`）；最终值为 `registration_epoch = "sha256:" + lowercase_hex(SHA-256(domain_separator || canonical_bytes))`。
 

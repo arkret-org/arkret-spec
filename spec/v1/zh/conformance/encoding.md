@@ -318,7 +318,6 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 ```json
 {
   "kind": "detached_jws",
-  "alg": "EdDSA",
   "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
   "created_at": "2026-04-26T00:00:00Z",
   "event_digest": "sha256:...",
@@ -359,21 +358,23 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned` 与 `act
 
 ### 6.1 Signature Suite registered set
 
-签名算法的 canonical 机器来源是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json)(与 §3.2 Hash registered set 对称)，下表是其规范阅读视图。proof `alg` 字段 MUST 取自所声明 schema 版本冻结 enum 对应的 registry active row `proof_alg`；raw / non-JWS `signature_algorithm` 同理取 `signature_algorithm`。散落于各 schema 的签名算法 enum MUST 在 schema 版本发布时由该 registry 生成并冻结，MUST NOT 私自引入未登记算法或随 registry release 原地扩写。`detached_jws` 形态的 `alg` 使用 JWS 标准标识(`EdDSA` 对应 Ed25519)；非 JWS 形态(如 raw detached signature)按 registry 的 raw `signature_algorithm` 标识。
+签名算法的 canonical 机器来源是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json)(与 §3.2 Hash registered set 对称)，下表是其规范阅读视图。字段命名按对象所有权确定，而不是把外部标准缩写扩散到 Arkret：JWS protected header / JWK 等 JOSE 对象 MUST 保留标准成员 `alg`，其值取 active row 的 `jose_algorithm`；Arkret 自有 raw-signature 对象 MUST 使用完整字段名 `signature_algorithm`，其值取 active row 的 `raw_signature_algorithm`；RFC 9421 `Signature-Input` 的标准 `alg` parameter 必须取 `http_message_signature_algorithm`。三种映射属于不同命名空间，不得相互猜测或替代。schema enum 均须在版本发布时生成并冻结。Arkret 自有对象不得使用 `alg` 作为自定义字段，JOSE / RFC 9421 标准对象也不得把标准成员改名。
+
+Arkret 的 `detached_jws` proof wrapper **不得重复携带算法字段**。算法唯一来源是 compact JWS 内已受签名保护的 protected header `alg`；verifier 解码 protected header 后按 `jose_algorithm` 和已解析 key type 选择 verifier。这样不存在外层明文算法与内层受保护算法不一致时“相信哪一个”的分支。
 
 对称地，**非-MLS 应用层公钥封装**（key-backup `recovery_public_key` / `did_recovery` envelope、to-device `ak.secret.send`、member-application 与 file-transfer key envelope）的 KEM/KDF/AEAD 算法 agility 由 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)（HPKE，RFC 9180）承载，与签名、digest、MLS-ciphersuite 并列为第四个算法 agility 面；其 `hpke_suite` / envelope `scheme` 选择字段的 enum MUST 在对应 schema 版本发布时由 registry active rows 生成并冻结，未被该 schema 版本接受的 suite MUST fail closed（`unsupported_hpke_suite`）。MLS 群组消息的 HPKE 内核仍由 [`mls-ciphersuite-registry.json`](../../artifacts/registry/mls-ciphersuite-registry.json) 承载，不在该 registry 范围内。四个算法 registry 的 activation / schema bump 纪律统一见 [`schema-registry.md` §6.1(b.1)](./schema-registry.md)。
 
-表列与 registry active row 字段一一对应:`canonical_id`(下表 `Algo`)、`proof_alg`(JWS `alg`，detached_jws 形态用)、`signature_algorithm`(raw / non-JWS detached signature 形态用)。`Ed25519` 行的 `proof_alg`(`EdDSA`)与 `signature_algorithm`(`Ed25519`)不同，二者 MUST 分别取自对应列，不可互相替代。
+`canonical_id` 是 registry 内用于指代算法 suite 的稳定标识；`jose_algorithm` 是 JOSE `alg` 的标准值；`raw_signature_algorithm` 是 Arkret raw signature 的值（不支持 raw 编码时为 `null`）；`http_message_signature_algorithm` 是 RFC 9421 HTTP Signature Algorithms registry 的值（未注册时为 `null`）。实现不得从 `canonical_id` 猜测任一 wire 值，必须按 carrier 读取相应映射。特别是 RFC 9421 的注册值是小写 `ed25519` / `ecdsa-p256-sha256`，不是 JOSE 的 `Ed25519` / `ES256`。
 
-| Algo（`canonical_id`） | `proof_alg`（JWS `alg`） | `signature_algorithm`（raw / non-JWS） | v1 角色 | 抗量子 / future-ready 评估 |
-| --- | --- | --- | --- | --- |
-| `Ed25519` | `EdDSA`（JWS, crv=Ed25519） | `Ed25519` | **v1 default-MUST**；所有 receiver MUST 支持。Event proof、receipt proof、device cross-signing binding 等核心签名默认使用。 | 不抗量子(Shor 可破)；通过 `ak.profile.signature.pqc.v1` 迁移到后量子 suite。 |
-| `ECDSA-P256-SHA256` | `ES256`（JWS, P-256 + SHA-256） | `ES256` | v1 optional；声明 `ak.profile.signature.ecdsa_p256.v1` 的实现 MUST 支持。用于需要与 WebAuthn / FIDO2 / 既有 PKI 互通的部署。 | 不抗量子(Shor 可破)；选择仅出于生态互通。 |
-| `ML-DSA-65` | `ML-DSA-65`（RFC 9964 detached JWS；JWK `kty=AKP`、`alg=ML-DSA-65`、`pub` 必填） | `ML-DSA-65` | v1 profile-gated；声明 `ak.profile.signature.pqc.v1` 的实现 MUST 支持。`detached_jws` 与 raw detached signature 均可使用；JWK 私钥只允许 RFC 9964 的 32-byte seed `priv`，公共 JWK 不得含 `priv`。 | 抗量子（NIST FIPS 204）；JOSE / COSE 映射以 RFC 9964 为准。 |
+| Algo（`canonical_id`） | `jose_algorithm` | `raw_signature_algorithm` | `http_message_signature_algorithm` | 允许的 `proof_kinds` | v1 角色 | 抗量子 / future-ready 评估 |
+| --- | --- | --- | --- | --- | --- | --- |
+| `Ed25519` | `Ed25519`（JWS, crv=Ed25519） | `Ed25519` | `ed25519` | `detached_jws`, `raw_detached_signature` | **v1 default-MUST**；所有 receiver MUST 支持。Event proof、receipt proof、device cross-signing binding 等核心签名默认使用。 | 不抗量子(Shor 可破)；通过 `ak.profile.signature.pqc.v1` 迁移到后量子 suite。 |
+| `ECDSA-P256-SHA256` | `ES256`（JWS, P-256 + SHA-256） | `null` | `ecdsa-p256-sha256` | `detached_jws` | v1 optional；声明 `ak.profile.signature.ecdsa_p256.v1` 的实现 MUST 支持。用于需要与 WebAuthn / FIDO2 / 既有 PKI 互通的部署。 | 不抗量子(Shor 可破)；选择仅出于生态互通。 |
+| `ML-DSA-65` | `ML-DSA-65`（RFC 9964；JWK `kty=AKP`、`alg=ML-DSA-65`、`pub` 必填） | `ML-DSA-65` | `null` | `detached_jws`, `raw_detached_signature` | v1 profile-gated；声明 `ak.profile.signature.pqc.v1` 的实现 MUST 支持。JWK 私钥只允许 RFC 9964 的 32-byte seed `priv`，公共 JWK 不得含 `priv`。 | 抗量子（NIST FIPS 204）；JOSE / COSE 映射以 RFC 9964 为准。 |
 
 实现 MUST:
 
-- 默认按 `EdDSA`(Ed25519) 验证 event / receipt proof；遇到未识别的 `alg` → 若位于 critical proof(event_digest binding、device authorization、recovery)→ fail closed (`unsupported_signature_alg`)；若位于非 critical metadata signature → MAY 记录为 unknown 并 preserve raw bytes。
+- 默认按 `Ed25519` 验证 event / receipt proof；JOSE protected header 的 `alg` 或 Arkret raw proof 的 `signature_algorithm` 未命中对应 registry mapping 时，critical proof（event_digest binding、device authorization、recovery）MUST fail closed (`unsupported_signature_alg`)；非 critical metadata signature MAY 记录为 unknown 并 preserve raw bytes。
 - 在 `server/describe.crypto` 暴露支持的签名 algo 集合(与 hash algo 集合并列),client 据此选择写入算法。
 - MUST NOT "算法升级"已签名的 canonical bytes:一旦 proof 用某 `alg` 发布，verify 路径永远按该 algo 重验；新算法走新 proof，不重写历史签名字节。
 

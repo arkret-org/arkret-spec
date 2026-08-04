@@ -62,14 +62,14 @@ def public_jwk(private_key: Ed25519PrivateKey, kid: str) -> dict[str, str]:
         "kty": "OKP",
         "crv": "Ed25519",
         "x": b64u(public),
-        "alg": "EdDSA",
+        "alg": "Ed25519",
         "use": "sig",
         "kid": kid,
     }
 
 
 def detached_jws(private_key: Ed25519PrivateKey, kid: str, payload: bytes) -> str:
-    protected = b64u(canonical_bytes({"alg": "EdDSA", "kid": kid}))
+    protected = b64u(canonical_bytes({"alg": "Ed25519", "kid": kid}))
     signing_input = protected.encode("ascii") + b"." + b64u(payload).encode("ascii")
     return protected + ".." + b64u(private_key.sign(signing_input))
 
@@ -150,7 +150,6 @@ def build_event(
     proof = {
         "kind": "detached_jws",
         "verification_method": verification_method,
-        "alg": "EdDSA",
         "event_digest": event_digest,
         "created_at": proof_created_at,
         "jws": detached_jws(signing_key, verification_method, canonical_bytes(binding)),
@@ -342,7 +341,6 @@ def build_fixture() -> dict[str, Any]:
     seal = {"id": seal_id, **seal_body}
     seal["notary_signature"] = {
         "verification_method": notary_vm,
-        "alg": "EdDSA",
         "payload_digest": seal_digest,
         "created_at": seal_body["sealed_at"],
         "jws": detached_jws(notary_key, notary_vm, canonical_bytes(seal_body)),

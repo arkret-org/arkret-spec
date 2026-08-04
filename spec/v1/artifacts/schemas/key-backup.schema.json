@@ -664,10 +664,9 @@
           "type": "string",
           "enum": [
             "Ed25519",
-            "ES256",
             "ML-DSA-65"
           ],
-          "description": "Raw signature algorithm name; MUST be a value generated from an active signature-alg-registry row (Ed25519 / ES256 / ML-DSA-65). EdDSA is the proof_alg label, not a raw signature_algorithm value. ML-DSA-65 is gated behind the PQ migration profile."
+          "description": "Raw signature algorithm name; MUST be an active signature-alg-registry alg whose proof_kinds includes raw_detached_signature. Ed25519 is the v1 default; ML-DSA-65 is gated behind the PQ migration profile."
         },
         "signature": {
           "type": "string",

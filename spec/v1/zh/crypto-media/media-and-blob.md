@@ -110,7 +110,6 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 {
   "blob_ref": "ak:blob:sha256:...",
   "encrypted": true,
-  "alg": "xchacha20_poly1305",
   "key_ref": {
     "algorithm": "MLS",
     "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
@@ -119,7 +118,8 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
   "nonce": "base64url...",
   "ciphertext_digest": "sha256:...",
   "size_bytes": 1234,
-  "media_type": "image/png"
+  "media_type": "image/png",
+  "encryption_algorithm": "xchacha20_poly1305"
 }
 ```
 
@@ -247,7 +247,6 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
   "blob_ref": "ak:blob:sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "encrypted": true,
   "scheme": "ak.blob.stream_aead.v1",
-  "alg": "mls_exporter_aead_xchacha20poly1305_stream",
   "key_ref": {
     "algorithm": "MLS",
     "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
@@ -258,7 +257,8 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
   "segment_count": 13,
   "ciphertext_digest": "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
   "size_bytes": 3211264,
-  "media_type": "video/mp4"
+  "media_type": "video/mp4",
+  "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305_stream"
 }
 ```
 

@@ -20,21 +20,21 @@
         "trust_domain": "ak:trust_domain:soland.local",
         "principal_signing_key": {
           "kid": "did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRLnRA1z9RfmT#z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRLnRA1z9RfmT",
-          "alg": "EdDSA",
           "public_key": "z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRLnRA1z9RfmT",
-          "key_format": "multibase"
+          "key_format": "multibase",
+          "algorithm": "Ed25519"
         },
         "self_signing_key": {
           "kid": "did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK#z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK",
-          "alg": "EdDSA",
           "public_key": "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK",
-          "key_format": "multibase"
+          "key_format": "multibase",
+          "algorithm": "Ed25519"
         },
         "user_signing_key": {
           "kid": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
-          "alg": "EdDSA",
           "public_key": "z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
-          "key_format": "multibase"
+          "key_format": "multibase",
+          "algorithm": "Ed25519"
         },
         "generation": 1
       },

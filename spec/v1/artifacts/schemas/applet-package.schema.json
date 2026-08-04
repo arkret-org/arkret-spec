@@ -210,12 +210,11 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
     },
-    "signature_alg": {
+    "http_message_signature_algorithm": {
       "type": "string",
       "enum": [
-        "EdDSA",
-        "ES256",
-        "ML-DSA-65"
+        "ed25519",
+        "ecdsa-p256-sha256"
       ]
     },
     "detached_proof": {
@@ -224,7 +223,6 @@
       "required": [
         "kind",
         "verification_method",
-        "alg",
         "payload_digest",
         "created_at",
         "jws"
@@ -238,9 +236,6 @@
         },
         "verification_method": {
           "$ref": "#/$defs/did_url"
-        },
-        "alg": {
-          "$ref": "#/$defs/signature_alg"
         },
         "payload_digest": {
           "$ref": "#/$defs/hash"
@@ -275,21 +270,21 @@
       "additionalProperties": false
     },
     "webhook_auth": {
-      "description": "HTTP message signature verification seal for transaction push. key_ref is the Applet service DID URL used as the app/bridge->arkret inbound source signature anchor; its DID part MUST equal service_id and it is bound to the effective registration_epoch. accepted_algs pins the acceptable RFC 9421 signature algorithms.",
+      "description": "HTTP message signature verification seal for transaction push. key_ref is the Applet service DID URL used as the app/bridge->arkret inbound source signature anchor; its DID part MUST equal service_id and it is bound to the effective registration_epoch. accepted_signature_algorithms pins the acceptable RFC 9421 signature algorithms.",
       "required": [
         "kind",
         "key_ref",
-        "accepted_algs"
+        "accepted_signature_algorithms"
       ],
       "properties": {
         "key_ref": {
           "$ref": "#/$defs/did_url",
           "description": "DID URL under the Applet service_id. For app/bridge->arkret inbound transaction push, Signature-Input keyid MUST equal this value. Node->Applet pushes verify the Arkret source service DID key from Source-Service-ID, not this field."
         },
-        "accepted_algs": {
+        "accepted_signature_algorithms": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/signature_alg"
+            "$ref": "#/$defs/http_message_signature_algorithm"
           },
           "minItems": 1,
           "uniqueItems": true

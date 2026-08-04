@@ -623,14 +623,15 @@ Handle 解析示例：
   "binding_state": "verified",
   "created_at": "2026-05-19T00:00:00Z",
   "expires_at": "2026-08-19T00:00:00Z",
-  "proofs": [{
-    "kind": "detached_jws",
-    "alg": "EdDSA",
-    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#key-1",
-    "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "created_at": "2026-05-19T00:00:00Z",
-    "jws": "aaa.bbb.ccc"
-  }]
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#key-1",
+      "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "created_at": "2026-05-19T00:00:00Z",
+      "jws": "aaa.bbb.ccc"
+    }
+  ]
 }
 ```
 
@@ -640,7 +641,9 @@ Handle 解析示例：
 {
   "schema": "ak.schema.handle_claim.v1",
   "handle": "alice:acme.example",
-  "handle_aliases": ["acct:alice@acme.example"],
+  "handle_aliases": [
+    "acct:alice@acme.example"
+  ],
   "subject": "did:webvh:z2dmjA1ice:users.acme.example",
   "issuer": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
   "issuer_service_id": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example",
@@ -652,21 +655,28 @@ Handle 解析示例：
     "recipient_service_id": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example",
     "recipient_service_kind": "principal_server",
     "binding_source": "organization_policy",
-    "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
+    "delivery_modes": [
+      "events",
+      "sync",
+      "to_device",
+      "push",
+      "key_packages"
+    ],
     "service_acceptance_ref": "ak:event:0196419b-0000-7000-8000-000000000001",
     "policy_event_ref": "ak:event:0196419b-0000-7000-8000-000000000002"
   },
   "created_at": "2026-05-19T00:00:00Z",
   "expires_at": "2026-08-19T00:00:00Z",
-  "proofs": [{
-    "kind": "detached_jws",
-    "alg": "EdDSA",
-    "verification_method": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example#key-1",
-    "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-    "created_at": "2026-05-19T00:00:00Z",
-    "audience": "ak:realm:0196419b-0000-7000-8000-000000000000",
-    "jws": "aaa.bbb.ccc"
-  }]
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "verification_method": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example#key-1",
+      "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "created_at": "2026-05-19T00:00:00Z",
+      "audience": "ak:realm:0196419b-0000-7000-8000-000000000000",
+      "jws": "aaa.bbb.ccc"
+    }
+  ]
 }
 ```
 

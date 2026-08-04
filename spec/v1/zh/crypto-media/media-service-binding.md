@@ -146,7 +146,7 @@ Content-Type: application/json
 - **`participant_identity` 传播边界**：因为它本身不携带 actor 链接信息，客户端 **MUST** 把它写入 `ak.call.state.roster_delta.op="join"` 的 participant value（用于 §7 cross-check）——这条 OR-Set value 是 Realm-encrypted control state，不构成 actor-身份外泄。但 `participant_identity` MUST NOT 进入下列三类 surface：(a) 任何 plaintext audit log / 服务方 access log（包括 backend SFU 自身的日志）；(b) 任何 unencrypted ephemeral / push / telemetry 通道；(c) backend 一侧对外的 metrics、tracing 标签或 cross-tenant 数据导出。Backend 内部允许保留它作为 SFU-local routing handle，但不应跨 call leg / 跨 tenant 复用。
 - **`participant_binding` 是 token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)` 的签名承诺**。客户端 MUST 先验证该 binding，再把它写入 / 对照 `ak.component.call.roster.v1` effective OR-Set（见 [`call-state.md` §4](./call-state.md)）。backend 只看到 `participant_identity` 与 `backend_token`，不应获得长期 actor 身份。
 - **落账时序**：客户端在获得 token exchange response 后，MUST 先提交包含本端 `participant_identity` 与 `participant_binding` 的单项 `ak.call.state.roster_delta` join，并等待该 event 被服务端接受，之后才可把该 identity 视为 durable roster 成员并向用户暴露/订阅对应 SFU media stream。`ak.call.signal` 中的 `invite` / `answer` 只表示实时协商意图，MUST NOT 作为 participant authorization 或 cross-check 真源。
-  - **签名输入（normative，跨实现互通契约）**：`participant_binding.sig` MUST 是 issuer 私钥（对应 `issuer_kid`）对下列字节串的 EdDSA(Ed25519) 签名：
+  - **签名输入（normative，跨实现互通契约）**：`participant_binding.sig` MUST 是 issuer 私钥（对应 `issuer_kid`）对下列字节串的 Ed25519 签名：
 
     ```text
     signing_input =
@@ -156,7 +156,7 @@ Content-Type: application/json
     ```
 
     第一段是固定 ASCII 域分隔 label（逐字节等于 `scheme` 值），随后单字节 `0x00` 分隔，再接 7 字段对象的 canonical JSON（RFC 8785 JCS：键按字母序、无多余空白，故字段书写顺序无关）。**签名仅覆盖这 7 个权威字段**；binding 对象另带的 `scheme` / `issuer_kid` / `issued_at` 是**未签名元数据**，MUST NOT 进入 `signing_input`。接收方据 wire 上的 7 个权威字段值重建 `signing_input` 再验签——故篡改任一权威字段都会令验签失败。任何 media service（arkret_native / LiveKit / 第三方）MUST 按此构造，任何客户端 / reducer MUST 按此验签；实现 MUST NOT 引入私有 domain 前缀，也 MUST NOT 把元数据字段并入签名输入，否则破坏跨 service 互通。
-  - **`service_signature`**：`service_signature.sig` 是 issuer 对**同一 `signing_input`**（label 与 7 元组与上完全一致）的 EdDSA 签名，承诺该次 token exchange 响应整体的 issuer 身份；`service_signature.kid` 与 `participant_binding.issuer_kid` 都 MUST 锚定当前 epoch `service_id`（见上「Token issuer DID 锚定」）。客户端在默认验证路径中 **MUST** 同时验 `service_signature.sig` 与 `participant_binding.sig` 通过后才使用该 token——二者任一验签失败即 `token_issuer_unauthorised` 拒绝，MUST NOT 把签名校验降级为可选的 SHOULD。
+  - **`service_signature`**：`service_signature.sig` 是 issuer 对**同一 `signing_input`**（label 与 7 元组与上完全一致）的 Ed25519 签名，承诺该次 token exchange 响应整体的 issuer 身份；`service_signature.kid` 与 `participant_binding.issuer_kid` 都 MUST 锚定当前 epoch `service_id`（见上「Token issuer DID 锚定」）。客户端在默认验证路径中 **MUST** 同时验 `service_signature.sig` 与 `participant_binding.sig` 通过后才使用该 token——二者任一验签失败即 `token_issuer_unauthorised` 拒绝，MUST NOT 把签名校验降级为可选的 SHOULD。
 
 Token issuer MUST 在签发前校验：
 

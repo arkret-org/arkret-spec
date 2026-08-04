@@ -85,7 +85,7 @@ recovery session，并在同一 durable commit 中 CAS 绑定该 session；Secur
 必须等于 binding 中预留的 `terminal_receipt_id` / `local_commit_digest`。attestation 必须携带
 typed `artifact`：前者是完整 `ak.schema.recovery_receipt.v1`，后者是
 `ak.schema.security_rotation_local_commit.v1`。`attestation_digest` 必须等于
-`SHA-256(JCS(artifact))`；外层 EdDSA `auth_data.signed_fields` 必须逐字等于
+`SHA-256(JCS(artifact))`；外层 Ed25519 `auth_data.signed_fields` 必须逐字等于
 `step, output_ref, transaction_id, transaction_request_digest, prepared_plan_digest,
 attestation_digest` 的有序集合并签该 JCS projection。coordinator 必须重算 artifact digest，
 验证 outer attestation；recovery 还必须验证 receipt 自己的 device signature transcript。其它 step
@@ -213,7 +213,7 @@ resource 必须进入 `awaiting_device_attestation`，`next_required_step=issue_
 
 coordinator 接受 terminal receipt 时，必须在写入最后一条 accepted step 和
 `state=completed` 的同一 durable transaction 中签发
-`ak.schema.recovery_completion_attestation.v1`。该 EdDSA attestation 必须按 schema 登记的
+`ak.schema.recovery_completion_attestation.v1`。该 Ed25519 attestation 必须按 schema 登记的
 14 个有序字段投影后 JCS 签名，绑定 transaction/request/plan、principal/coordinator、
 recovery session、terminal receipt id/digest、replacement device、accepted authorization
 Event id/digest、result generation 与 `completed_at`。completed recovery transaction 的
@@ -240,8 +240,8 @@ ticket 必须逐字复制这两个 typed 字段，不得从 generic Event JSON�
 holder_proof.proof_jwt omitted))`。`holder_proof.dpop_jkt` 与所有业务字段仍在摘要投影内；
 只排除摘要字段本身与将签署该摘要的 JWT，避免签名自引用。
 
-`holder_proof.proof_jwt` 必须是 RFC 9449 EdDSA DPoP proof：protected header 必须为
-`typ=dpop+jwt`、`alg=EdDSA` 并携带 public `jwk`；claims 必须携带 fresh `iat`、single-use
+`holder_proof.proof_jwt` 必须是 RFC 9449 Ed25519 DPoP proof：protected header 必须为
+`typ=dpop+jwt`、`alg=Ed25519` 并携带 public `jwk`；claims 必须携带 fresh `iat`、single-use
 `jti`、精确 `htm=POST`、精确到无 query/fragment endpoint 的 `htu`，且 `nonce` 必须逐字等于
 `canonical_request_digest`。header JWK 的 RFC 7638 thumbprint 必须等于
 `holder_proof.dpop_jkt`。authorization 时该 JKT 还必须等于 ticket/preimage 的
@@ -261,7 +261,7 @@ proof digest。Account Authority 必须按 `(ticket_id, transaction_id, request_
 
 v1 ticket 必须满足 `0 < expires_at - issued_at <= 300 seconds`。`auth_data.signed_fields` 必须
 逐字等于 schema 登记的 25 个顶层字段，不能添加实现私有字段；签名输入是只投影这 25 个键后
-的 `JCS` object bytes，不包含 `auth_data`，因此不形成 signature 自引用。`EdDSA` 直接对该
+的 `JCS` object bytes，不包含 `auth_data`，因此不形成 signature 自引用。`Ed25519` 直接对该
 projection 签名；其它 schema-admitted service signature algorithm 也必须签同一 projection。
 
 `replacement_device_possession_proof` 不是第二套 transaction-specific possession transcript。

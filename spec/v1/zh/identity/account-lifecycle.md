@@ -160,7 +160,6 @@ Account Authority 与客户端 UI MUST 把 service-account 认证凭据（密码
     {
       "kind": "detached_jws",
       "verification_method": "did:webvh:zGtABZixoZZ3m4cFx3E65LCmg:auth.example#key-1",
-      "alg": "EdDSA",
       "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "created_at": "2026-04-26T00:00:00.000Z",
       "jws": "a..b"

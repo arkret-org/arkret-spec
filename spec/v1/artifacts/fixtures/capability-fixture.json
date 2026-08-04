@@ -641,12 +641,12 @@
         },
         {
           "grant_id": "ak:grant:01964110-0400-7000-8000-000000000000",
-        "issuer_authority_refs": [
-          {
-            "kind": "grant",
-            "grant_id": "ak:grant:01964110-0000-7000-8000-000000000000"
-          }
-        ],
+          "issuer_authority_refs": [
+            {
+              "kind": "grant",
+              "grant_id": "ak:grant:01964110-0000-7000-8000-000000000000"
+            }
+          ],
           "subject": "did:webvh:z6mkfixture:bob.example.com",
           "actions": [
             "ak.strand.update"
@@ -1164,17 +1164,25 @@
             {
               "grant_id": "ak:grant:01990000-0000-7000-8000-000000000031",
               "active": false,
-              "actions": ["ak.message.create"]
+              "actions": [
+                "ak.message.create"
+              ]
             },
             {
               "grant_id": "ak:grant:01990000-0000-7000-8000-000000000032",
               "active": true,
-              "actions": ["ak.reaction.add"]
+              "actions": [
+                "ak.reaction.add"
+              ]
             }
           ],
           "expected": {
-            "active_actions": ["ak.reaction.add"],
-            "inactive_actions": ["ak.message.create"]
+            "active_actions": [
+              "ak.reaction.add"
+            ],
+            "inactive_actions": [
+              "ak.message.create"
+            ]
           }
         }
       ]

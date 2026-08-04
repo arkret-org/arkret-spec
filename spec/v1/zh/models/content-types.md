@@ -157,7 +157,6 @@ E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` pla
     "blob_ref": "ak:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "encrypted": true,
     "scheme": "ak.blob.stream_aead.v1",
-    "alg": "mls_exporter_aead_xchacha20poly1305_stream",
     "key_ref": {
       "algorithm": "MLS",
       "group_state_ref": "ak:event:01900000-0000-7000-8000-000000000000"
@@ -168,7 +167,8 @@ E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` pla
     "media_type": "text/plain",
     "nonce_prefix": "AAAAAAAAAAAAAAAAAAAAAAAAAA",
     "segment_bytes": 262144,
-    "segment_count": 3
+    "segment_count": 3,
+    "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305_stream"
   }
 }
 ```
