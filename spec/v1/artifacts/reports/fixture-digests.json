@@ -178,7 +178,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
-      "sha256": "a829e6b0ea2db77d6a1c9dbcd32057c0f48925e66cc387183fe9d79889807085"
+      "sha256": "25c18245bafe5e9ab57cffcac9433472b55c928dabff77b3d1d5b6348137e29a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
