@@ -832,7 +832,7 @@
       ],
       "properties": {
         "bootstrap_transaction_id": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/opaque_id"
+          "$ref": "./operation-control.schema.json#/$defs/opaque_id"
         },
         "principal_id": {
           "$ref": "#/$defs/did"
@@ -861,10 +861,10 @@
       "additionalProperties": false
     },
     "account_device_bootstrap_cancel_request_body": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/cancel_device_bootstrap_request"
+      "$ref": "./operation-control.schema.json#/$defs/cancel_device_bootstrap_request"
     },
     "account_device_bootstrap_cancel_outcome": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/cancel_device_bootstrap_outcome"
+      "$ref": "./operation-control.schema.json#/$defs/cancel_device_bootstrap_outcome"
     },
     "agent_key_pair_request_body": {
       "type": "object",
@@ -1136,10 +1136,10 @@
           ]
         },
         "operation_id": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/operation_id"
+          "$ref": "./operation-control.schema.json#/$defs/operation_id"
         },
         "idempotency_key": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/opaque_id"
+          "$ref": "./operation-control.schema.json#/$defs/opaque_id"
         },
         "agent_id": {
           "$ref": "#/$defs/did"
@@ -1156,7 +1156,7 @@
           "description": "Required immutable global Agent key/session ceiling, not a grant. Later key scopes, Realm grants and session requests MUST NOT exceed its actions, resource selectors or mandatory constraints. Participation is an independent action-time deny gate and cannot restore authority omitted here. Provisioning never materializes content grants from this field. Operation/service resources constrain the service surface; explicit content resource selectors only further narrow later grants."
         },
         "allocation_handle": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/opaque_id"
+          "$ref": "./operation-control.schema.json#/$defs/opaque_id"
         },
         "provision_event": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
@@ -1242,7 +1242,7 @@
           "description": "Authenticated controller PCR in which the provision Event must be authored. Present only while status is awaiting_controller_event."
         },
         "allocation_handle": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/opaque_id",
+          "$ref": "./operation-control.schema.json#/$defs/opaque_id",
           "description": "Service-signed opaque allocation binding returned only by prepare and presented unchanged by commit."
         },
         "controller_authorization_ref": {
@@ -1725,7 +1725,7 @@
       "additionalProperties": false
     },
     "agent_sidecar_ensure_request_body": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/sidecar_ensure_request"
+      "$ref": "./operation-control.schema.json#/$defs/sidecar_ensure_request"
     },
     "pending_sidecar_access_reconciliation_item": {
       "type": "object",
@@ -1766,7 +1766,7 @@
       ]
     },
     "agent_sidecar_ensure_outcome": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/sidecar_ensure_outcome"
+      "$ref": "./operation-control.schema.json#/$defs/sidecar_ensure_outcome"
     },
     "agent_sidecar_mls_context": {
       "type": "object",
@@ -1883,13 +1883,13 @@
       "additionalProperties": false
     },
     "agent_participation": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_bits"
+      "$ref": "./operation-control.schema.json#/$defs/participation_bits"
     },
     "agent_participation_scope": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_scope"
+      "$ref": "./operation-control.schema.json#/$defs/participation_scope"
     },
     "agent_participation_replace_request_body": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_replace_request"
+      "$ref": "./operation-control.schema.json#/$defs/participation_replace_request"
     },
     "agent_participation_entry": {
       "type": "object",

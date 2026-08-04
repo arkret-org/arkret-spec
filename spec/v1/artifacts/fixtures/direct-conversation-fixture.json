@@ -135,7 +135,7 @@
     },
     {
       "name": "found_outcome_valid_without_keypackage",
-      "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_outcome",
+      "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
@@ -151,7 +151,7 @@
     },
     {
       "name": "suspended_outcome_keeps_coordinates",
-      "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_outcome",
+      "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
@@ -193,7 +193,7 @@
     },
     {
       "name": "legacy_flat_found_outcome_rejected",
-      "schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_outcome",
+      "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
       "expect_valid": false,
       "first_expected_error": "contains:not valid under any of the given schemas",
       "semantic_outcome": "reject",

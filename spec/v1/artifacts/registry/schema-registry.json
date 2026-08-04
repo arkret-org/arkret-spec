@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-04.1",
+  "version": "2026-08-05.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-04T12:00:00Z",
+  "generated_at": "2026-08-05T12:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1238,19 +1238,19 @@
       }
     },
     {
-      "schema_id": "ak.schema.protocol_journey_wire.v1",
-      "file": "schemas/protocol-journey-wire.schema.json",
+      "schema_id": "ak.schema.operation_control.v1",
+      "file": "schemas/operation-control.schema.json",
       "status": "active",
       "description": "Closed shared wire carriers for bootstrap, Contact, participation, stable Direct Conversation operation control, membership compensation, history ingress, KeyPackage terminal handling, Sidecar and external execution attestation.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
-        "selector": "registered protocol-journey operation DTO and proof carriers",
+        "selector": "registered operation-control DTO and proof carriers",
         "normative_ref": "zh/conformance/schema-registry.md"
       }
     },
     {
       "schema_id": "ak.schema.contact_scope_update.v1",
-      "file": "schemas/protocol-journey-wire.schema.json",
+      "file": "schemas/operation-control.schema.json",
       "fragment": "#/$defs/contact_scope_update_payload",
       "status": "active",
       "description": "Closed holder-signed Contact scope replacement payload, including the peer XOR, stable basis, version, predecessor and full granted-scope set.",
@@ -1258,17 +1258,6 @@
         "kind": "standalone_schema_alias",
         "selector": "ak.contact.scope.update Event payload",
         "normative_ref": "zh/identity/contact-and-direct-conversation.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.protocol_journey_traceability.v1",
-      "file": "schemas/protocol-journey-traceability.schema.json",
-      "status": "active",
-      "description": "Closed schema for the single static A-J/CJ/PJ traceability registry. Runtime revisions, execution evidence, release results and self references are not fields of this schema.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "registry/protocol-journey-traceability.json",
-        "normative_ref": "zh/conformance/schema-registry.md"
       }
     }
   ]

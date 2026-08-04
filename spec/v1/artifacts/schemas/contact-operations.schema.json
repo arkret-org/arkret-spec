@@ -38,10 +38,10 @@
       "$ref": "#/$defs/contact_scope_update_outcome"
     },
     {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_request"
+      "$ref": "./operation-control.schema.json#/$defs/direct_conversation_resolve_request"
     },
     {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_outcome"
+      "$ref": "./operation-control.schema.json#/$defs/direct_conversation_resolve_outcome"
     }
   ],
   "$defs": {
@@ -152,7 +152,7 @@
       ],
       "properties": {
         "peer": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_peer"
+          "$ref": "./operation-control.schema.json#/$defs/contact_peer"
         },
         "state": {
           "$ref": "#/$defs/contact_state"
@@ -167,16 +167,16 @@
           "$ref": "#/$defs/event_id"
         },
         "granted_to_peer_scopes": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scopes"
+          "$ref": "./operation-control.schema.json#/$defs/contact_scopes"
         },
         "granted_by_peer_scopes": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scopes"
+          "$ref": "./operation-control.schema.json#/$defs/contact_scopes"
         },
         "bidirectional_scopes": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scopes"
+          "$ref": "./operation-control.schema.json#/$defs/contact_scopes"
         },
         "effective_scopes": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scopes",
+          "$ref": "./operation-control.schema.json#/$defs/contact_scopes",
           "description": "Optional shorthand. When present, MUST equal bidirectional_scopes."
         },
         "peer_service_id": {
@@ -196,22 +196,22 @@
       "additionalProperties": false
     },
     "contact_request_request_body": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_operation_request"
+      "$ref": "./operation-control.schema.json#/$defs/contact_operation_request"
     },
     "contact_request_outcome": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_request_outcome"
+      "$ref": "./operation-control.schema.json#/$defs/contact_request_outcome"
     },
     "contact_respond_request_body": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_respond_request"
+      "$ref": "./operation-control.schema.json#/$defs/contact_respond_request"
     },
     "contact_respond_outcome": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_respond_outcome"
+      "$ref": "./operation-control.schema.json#/$defs/contact_respond_outcome"
     },
     "contact_reject_request_body": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_reject_request"
+      "$ref": "./operation-control.schema.json#/$defs/contact_reject_request"
     },
     "contact_reject_outcome": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_reject_outcome"
+      "$ref": "./operation-control.schema.json#/$defs/contact_reject_outcome"
     },
     "contact_list": {
       "type": "object",
@@ -236,19 +236,19 @@
       "additionalProperties": false
     },
     "contact_tombstone_request_body": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_tombstone_request"
+      "$ref": "./operation-control.schema.json#/$defs/contact_tombstone_request"
     },
     "contact_tombstone": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_tombstone_outcome"
+      "$ref": "./operation-control.schema.json#/$defs/contact_tombstone_outcome"
     },
     "contact_scope_update_request_body": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scope_update_request"
+      "$ref": "./operation-control.schema.json#/$defs/contact_scope_update_request"
     },
     "contact_scope_update_outcome": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/contact_scope_update_outcome"
+      "$ref": "./operation-control.schema.json#/$defs/contact_scope_update_outcome"
     },
     "direct_conversation_resolve_request_body": {
-      "$ref": "./protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_request"
+      "$ref": "./operation-control.schema.json#/$defs/direct_conversation_resolve_request"
     }
   }
 }

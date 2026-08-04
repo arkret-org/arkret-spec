@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 116,
+  "audited_occurrence_count": 109,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -382,49 +382,7 @@
       "reason": "Combines original device authorization Event proofs with source-service active-key attestations."
     },
     {
-      "file": "protocol-journey-traceability.json",
-      "key": "evidence_boundary",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Declares that traceability rows are static specification contracts rather than execution evidence."
-    },
-    {
-      "file": "protocol-journey-traceability.json",
-      "key": "execution_evidence_is_external",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Qualifies execution evidence as external to the static traceability registry."
-    },
-    {
-      "file": "protocol-journey-traceability.json",
-      "key": "runtime_or_release_evidence_fields_forbidden",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Forbids runtime or release evidence fields in the static traceability registry."
-    },
-    {
-      "file": "protocol-journey-traceability.schema.json",
-      "key": "evidence_boundary",
-      "occurrences": 2,
-      "disposition": "registry_contract",
-      "reason": "Defines and references the closed static-versus-execution evidence boundary object."
-    },
-    {
-      "file": "protocol-journey-traceability.schema.json",
-      "key": "execution_evidence_is_external",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Requires the external execution-evidence boundary flag."
-    },
-    {
-      "file": "protocol-journey-traceability.schema.json",
-      "key": "runtime_or_release_evidence_fields_forbidden",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Requires the prohibition on runtime and release evidence fields."
-    },
-    {
-      "file": "protocol-journey-wire.schema.json",
+      "file": "operation-control.schema.json",
       "key": "contact_basis_evidence_bundle",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -432,7 +390,7 @@
       "reason": "Bundles the stable Contact basis, signed acceptance receipts and refreshable current proofs."
     },
     {
-      "file": "protocol-journey-wire.schema.json",
+      "file": "operation-control.schema.json",
       "key": "contact_introduction_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -440,7 +398,7 @@
       "reason": "Closed first-contact evidence union for locator, shared-Realm membership, verified handle claim, same-service or explicit-address policy evaluation."
     },
     {
-      "file": "protocol-journey-wire.schema.json",
+      "file": "operation-control.schema.json",
       "key": "introduction_evidence",
       "occurrences": 2,
       "disposition": "polymorphic_container",
@@ -448,7 +406,7 @@
       "reason": "Carries the exact private first-contact evidence whose digest is committed by the signed request Event."
     },
     {
-      "file": "protocol-journey-wire.schema.json",
+      "file": "operation-control.schema.json",
       "key": "membership_compensation_submission_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -456,14 +414,14 @@
       "reason": "Carries delegation, accepted-join proof, terminal certificate and single-use CAS material for membership compensation."
     },
     {
-      "file": "protocol-journey-wire.schema.json",
+      "file": "operation-control.schema.json",
       "key": "agent_signer_evidence_bundle_digest",
       "occurrences": 1,
       "disposition": "derived_summary",
       "reason": "Commits the exact optional Agent signer evidence bundle carried by federation Event admission."
     },
     {
-      "file": "protocol-journey-wire.schema.json",
+      "file": "operation-control.schema.json",
       "key": "compensation_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -471,14 +429,14 @@
       "reason": "Carries the exact compensation authorization, acceptance and single-use terminal material for one cleanup Event."
     },
     {
-      "file": "protocol-journey-wire.schema.json",
+      "file": "operation-control.schema.json",
       "key": "compensation_evidence_digest",
       "occurrences": 1,
       "disposition": "derived_summary",
       "reason": "Commits the exact closed membership compensation evidence object used by the typed cleanup effect."
     },
     {
-      "file": "protocol-journey-wire.schema.json",
+      "file": "operation-control.schema.json",
       "key": "direct_conversation_materialization_step_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -486,21 +444,21 @@
       "reason": "Defines the closed stage-specific receipt and proof inputs used to prepare immutable Direct Conversation Event drafts."
     },
     {
-      "file": "protocol-journey-wire.schema.json",
+      "file": "operation-control.schema.json",
       "key": "membership_compensation_evidence_digest",
       "occurrences": 1,
       "disposition": "derived_summary",
       "reason": "Commits the exact per-Event membership compensation evidence within the authorization projection."
     },
     {
-      "file": "protocol-journey-wire.schema.json",
+      "file": "operation-control.schema.json",
       "key": "signer_key_evidence_digests",
       "occurrences": 1,
       "disposition": "derived_summary",
       "reason": "Canonical digest set for request-level signer-key evidence used by Event admission."
     },
     {
-      "file": "protocol-journey-wire.schema.json",
+      "file": "operation-control.schema.json",
       "key": "step_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",

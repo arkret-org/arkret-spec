@@ -515,10 +515,10 @@
           "$ref": "#/$defs/SessionGrantRecoveryBinding"
         },
         "bootstrap_binding": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/device_bootstrap_credential"
+          "$ref": "./operation-control.schema.json#/$defs/device_bootstrap_credential"
         },
         "holder_binding": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/standard_holder_binding",
+          "$ref": "./operation-control.schema.json#/$defs/standard_holder_binding",
           "description": "Required closed human-device versus Agent-runtime holder binding for every standard grant."
         }
       },
@@ -3878,10 +3878,10 @@
           "$ref": "#/$defs/SessionGrantRecoveryBinding"
         },
         "bootstrap_binding": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/device_bootstrap_credential"
+          "$ref": "./operation-control.schema.json#/$defs/device_bootstrap_credential"
         },
         "holder_binding": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/standard_holder_binding"
+          "$ref": "./operation-control.schema.json#/$defs/standard_holder_binding"
         },
         "proof_kind": {
           "type": "string",
@@ -4230,7 +4230,7 @@
           "description": "Required external-authority receipt set when a Control Move is submitted to a receiver that cannot itself produce the complete current authority quorum. Forbidden for DataEvents."
         },
         "membership_compensation_evidence": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/membership_compensation_submission_evidence",
+          "$ref": "./operation-control.schema.json#/$defs/membership_compensation_submission_evidence",
           "description": "Transport-only accepted-at compensation authority. Allowed only when event.kind is ak.member.state, event.executed_by is present, and event.authorization_ref equals membership_compensation_evidence.delegation.delegation_id. The destination evaluator also requires exact admission/incarnation/action/executor bindings and consumes (admission_id,delegation_digest) by single-write CAS. It is excluded from Event canonical bytes and event_digest."
         }
       },
@@ -4280,7 +4280,7 @@
           "description": "Canonical external-authority receipt set for a federated Control Move. Forbidden for DataEvents."
         },
         "membership_compensation_evidence": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/membership_compensation_submission_evidence",
+          "$ref": "./operation-control.schema.json#/$defs/membership_compensation_submission_evidence",
           "description": "Transport-only accepted-at compensation authority forwarded unchanged with a federated ak.member.state Event. It is excluded from Event canonical bytes and event_digest and is validated by the same exact admission/incarnation/action/executor/single-use evaluator as EventInitialSubmission."
         }
       },

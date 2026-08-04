@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-03.6",
+  "version": "2026-08-05.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-03T15:00:00Z",
+  "generated_at": "2026-08-05T12:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5392,70 +5392,6 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/discovery/client-preferences.md"
       ]
-    },
-    {
-      "vector_id": "ak.vector.protocol_journey.bootstrap_exact_replay.v1",
-      "status": "active",
-      "domain": "protocol_journey",
-      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
-      "description": "Founding/sibling bootstrap exact replay, independent bearer and transaction expiry, cancel closed outcome and original Event byte stability.",
-      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
-    },
-    {
-      "vector_id": "ak.vector.protocol_journey.contact_lineage_reorder.v1",
-      "status": "active",
-      "domain": "protocol_journey",
-      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
-      "description": "Contact peer XOR, signed request/response/reject receipts, causal glare, issuer-local lineage and reorder/fork/tombstone handling.",
-      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
-    },
-    {
-      "vector_id": "ak.vector.protocol_journey.participation_selection_cas.v1",
-      "status": "active",
-      "domain": "protocol_journey",
-      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
-      "description": "Controller-only five-bit per-scope selection replacement with Account Authority CAS versioning and action-time target policy enforcement.",
-      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
-    },
-    {
-      "vector_id": "ak.vector.protocol_journey.membership_compensation_single_use.v1",
-      "status": "active",
-      "domain": "protocol_journey",
-      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
-      "description": "Accepted-at actual-author membership compensation delegation, action XOR, old-incarnation CAS, single use and MLS old-generation removal.",
-      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
-    },
-    {
-      "vector_id": "ak.vector.protocol_journey.sidecar_staged_atomic.v1",
-      "status": "active",
-      "domain": "protocol_journey",
-      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
-      "description": "Sidecar create/context staged atomic admission, projection split, access Event authority and frontier separation.",
-      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
-    },
-    {
-      "vector_id": "ak.vector.protocol_journey.history_causal_ingress.v1",
-      "status": "active",
-      "domain": "protocol_journey",
-      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
-      "description": "T0/T1/T2 separation and causal offline ingress behavior under prior, later, unknown and concurrent revocation.",
-      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
-    },
-    {
-      "vector_id": "ak.vector.protocol_journey.keypackage_terminal_fanout.v1",
-      "status": "active",
-      "domain": "protocol_journey",
-      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
-      "description": "Exact owner account terminal fanout loops through CAS conflicts until KeyPackages are retired, revoked with original claim, or immutable consumed.",
-      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
-    },
-    {
-      "vector_id": "ak.vector.protocol_journey.traceability_no_self_attestation.v1",
-      "status": "active",
-      "domain": "protocol_journey",
-      "applies_to_fixtures": ["protocol-journey-closure-fixture.json"],
-      "description": "Static Spec traceability cannot contain revision/execution truth or self-digests; execution proof is external and excludes itself from artifact digests.",
-      "source_refs": ["spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json"]
     },
     {
       "vector_id": "ak.vector.operation_control.pbft_view_change_value_stability.v1",

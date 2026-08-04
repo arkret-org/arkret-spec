@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-04.1",
+  "version": "2026-08-05.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-04T12:00:00Z",
+  "generated_at": "2026-08-05T12:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -561,8 +561,8 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/cancel_device_bootstrap_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/cancel_device_bootstrap_outcome",
+      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/cancel_device_bootstrap_request",
+      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/cancel_device_bootstrap_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_bootstrap_transaction_terminal_or_replay_only"
@@ -908,8 +908,8 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_outcome",
+      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/sidecar_ensure_request",
+      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/sidecar_ensure_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
@@ -948,7 +948,7 @@
       "idempotency_mechanism": "object_id",
       "retry_safe": true,
       "notes": "Controller-only full replacement of one Account-Authority-owned per-scope selection. The authenticated bearer+DPoP session is the authority proof. First write uses expected_version=0; each accepted write increments the exact agent/scope slot by one. Governance ceilings and ordinary Agent capabilities are evaluated at action time and are not copied into this record.",
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_request",
+      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/participation_replace_request",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
       "durable_effect": {
         "kind": "none",
@@ -1318,8 +1318,8 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_request_outcome",
+      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_operation_request",
+      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_request_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
@@ -1337,8 +1337,8 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_outcome",
+      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_respond_request",
+      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_respond_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
@@ -1356,8 +1356,8 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_outcome",
+      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_reject_request",
+      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_reject_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
@@ -1385,8 +1385,8 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_scope_update_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_scope_update_outcome",
+      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_scope_update_request",
+      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_scope_update_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
@@ -1404,8 +1404,8 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_tombstone_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/contact_tombstone_outcome",
+      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_tombstone_request",
+      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_tombstone_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
@@ -1512,8 +1512,8 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_outcome",
+      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_request",
+      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "the_service_persists_only_the_coordinator_operation_record_and_returns_participant_authoring_material_or_an_existing_projection"
@@ -1529,8 +1529,8 @@
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "protocol_sequence",
       "retry_safe": true,
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_message_submit_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_message_receipt",
+      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_message_submit_request",
+      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_message_receipt",
       "durable_effect": {
         "kind": "none",
         "rationale": "authenticated_replica_protocol_log_only"
@@ -1546,8 +1546,8 @@
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "protocol_sequence",
       "retry_safe": true,
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_delivery_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_delivery_outcome",
+      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_delivery_request",
+      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_delivery_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "certified_external_effect_and_destination_ledger_only"
@@ -1561,8 +1561,8 @@
       "notes": "Stable exact recovery query, never a current-head oracle. by_effect requires registry, operation, attempt, effect and expected value/bundle digests; delivery_outcome requires the exact destination and bundle digest. Only an immutable replica, certified destination or the same operation requester may query.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_query_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_query_outcome",
+      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_query_request",
+      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_query_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "read_only_exact_execution_bundle_or_delivery_receipt_lookup"
@@ -1576,8 +1576,8 @@
       "notes": "Produces a fresh quorum read certificate for one exact signed request. The evaluator requires exactly q=2f+1 distinct immutable replicas, canonical order, unexpired receipts and byte-identical request digest and complete genesis|committed head. Without q it fails operation_control_quorum_unavailable; a read certificate never authorizes an effect, transfer or attempt advance.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_read_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_read_certificate",
+      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_read_request",
+      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_read_certificate",
       "durable_effect": {
         "kind": "none",
         "rationale": "read_only_fresh_quorum_certificate_assembly"
@@ -2242,8 +2242,8 @@
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
-      "request_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_request",
-      "response_schema_ref": "schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_outcome",
+      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_request",
+      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "delivers_existing_signed_fact_without_committing_a_local_event"

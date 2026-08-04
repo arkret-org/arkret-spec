@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-03.7",
-  "generated_at": "2026-08-03T15:00:00Z",
+  "version": "2026-08-05.1",
+  "generated_at": "2026-08-05T12:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1212,13 +1212,13 @@
         "ak.peer.events.query.resolve"
       ],
       "wire_contract_refs": [
-        "schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_request",
-        "schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_request",
-        "schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_request",
-        "schemas/protocol-journey-wire.schema.json#/$defs/contact_scope_update_request",
-        "schemas/protocol-journey-wire.schema.json#/$defs/contact_tombstone_request",
-        "schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_request",
-        "schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_outcome"
+        "schemas/operation-control.schema.json#/$defs/contact_operation_request",
+        "schemas/operation-control.schema.json#/$defs/contact_respond_request",
+        "schemas/operation-control.schema.json#/$defs/contact_reject_request",
+        "schemas/operation-control.schema.json#/$defs/contact_scope_update_request",
+        "schemas/operation-control.schema.json#/$defs/contact_tombstone_request",
+        "schemas/operation-control.schema.json#/$defs/peer_contact_submit_request",
+        "schemas/operation-control.schema.json#/$defs/peer_contact_submit_outcome"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -3253,7 +3253,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.agent_sidecar.v1",
-        "ak.schema.protocol_journey_wire.v1",
+        "ak.schema.operation_control.v1",
         "ak.schema.agent_sidecar_view_state.v1",
         "ak.schema.agent_sidecar_exchange_projection.v1",
         "ak.schema.agent_sidecar_event_exchange_binding.v1",
@@ -3263,16 +3263,15 @@
         "ak.schema.relation.v1"
       ],
       "wire_contract_refs": [
-        "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_request",
-        "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_outcome",
-        "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_access_replace",
-        "schemas/protocol-journey-wire.schema.json#/$defs/sidecar_control_frontier"
+        "schemas/operation-control.schema.json#/$defs/sidecar_ensure_request",
+        "schemas/operation-control.schema.json#/$defs/sidecar_ensure_outcome",
+        "schemas/operation-control.schema.json#/$defs/sidecar_access_replace",
+        "schemas/operation-control.schema.json#/$defs/sidecar_control_frontier"
       ],
       "required_fixtures": [
         "capability-fixture.json",
         "privacy-security-fixture.json",
-        "agent-sidecar-fixture.json",
-        "protocol-journey-closure-fixture.json"
+        "agent-sidecar-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -3315,14 +3314,13 @@
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
-      "required_schemas": ["ak.schema.protocol_journey_wire.v1"],
+      "required_schemas": ["ak.schema.operation_control.v1"],
       "wire_contract_refs": [
-        "schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_request"
+        "schemas/operation-control.schema.json#/$defs/participation_replace_request"
       ],
       "required_fixtures": [
         "capability-fixture.json",
-        "agent-participation-fixture.json",
-        "protocol-journey-closure-fixture.json"
+        "agent-participation-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -3342,28 +3340,28 @@
       "required_endpoints": ["ak.self.direct_conversation.command.resolve", "ak.peer.direct_conversation.operation_control.command.submit", "ak.peer.direct_conversation.operation_control.command.deliver", "ak.peer.direct_conversation.operation_control.query.execution_bundle", "ak.peer.direct_conversation.operation_control.query.read_certificate", "ak.peer.keys.keypackages.command.claim", "ak.peer.keys.keypackages.query.claim", "ak.peer.events.command.submit"],
       "required_event_kinds": ["ak.realm.create", "ak.member.state", "ak.strand.create", "ak.direct_conversation.bound", "ak.mls.genesis", "ak.mls.commit", "ak.mls.welcome"],
       "rejected_event_kinds": [],
-      "required_schemas": ["ak.schema.protocol_journey_wire.v1"],
+      "required_schemas": ["ak.schema.operation_control.v1"],
       "wire_contract_refs": [
-        "schemas/protocol-journey-wire.schema.json#/$defs/pair_registry_statement",
-        "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_authorization",
-        "schemas/protocol-journey-wire.schema.json#/$defs/effect_value_core",
-        "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_effect",
-        "schemas/protocol-journey-wire.schema.json#/$defs/authenticated_encrypted_journal",
-        "schemas/protocol-journey-wire.schema.json#/$defs/qda_receipt",
-        "schemas/protocol-journey-wire.schema.json#/$defs/qda_certificate",
-        "schemas/protocol-journey-wire.schema.json#/$defs/prepared_certificate",
-        "schemas/protocol-journey-wire.schema.json#/$defs/view_change_message",
-        "schemas/protocol-journey-wire.schema.json#/$defs/view_change_certificate",
-        "schemas/protocol-journey-wire.schema.json#/$defs/new_view_certificate",
-        "schemas/protocol-journey-wire.schema.json#/$defs/per_view_certificate",
-        "schemas/protocol-journey-wire.schema.json#/$defs/qcommit_certificate",
-        "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle",
-        "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_message_submit_request",
-        "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_delivery_request",
-        "schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_query_request",
-        "schemas/protocol-journey-wire.schema.json#/$defs/operation_control_read_certificate"
+        "schemas/operation-control.schema.json#/$defs/pair_registry_statement",
+        "schemas/operation-control.schema.json#/$defs/operation_control_authorization",
+        "schemas/operation-control.schema.json#/$defs/effect_value_core",
+        "schemas/operation-control.schema.json#/$defs/operation_control_effect",
+        "schemas/operation-control.schema.json#/$defs/authenticated_encrypted_journal",
+        "schemas/operation-control.schema.json#/$defs/qda_receipt",
+        "schemas/operation-control.schema.json#/$defs/qda_certificate",
+        "schemas/operation-control.schema.json#/$defs/prepared_certificate",
+        "schemas/operation-control.schema.json#/$defs/view_change_message",
+        "schemas/operation-control.schema.json#/$defs/view_change_certificate",
+        "schemas/operation-control.schema.json#/$defs/new_view_certificate",
+        "schemas/operation-control.schema.json#/$defs/per_view_certificate",
+        "schemas/operation-control.schema.json#/$defs/qcommit_certificate",
+        "schemas/operation-control.schema.json#/$defs/execution_bundle",
+        "schemas/operation-control.schema.json#/$defs/operation_control_message_submit_request",
+        "schemas/operation-control.schema.json#/$defs/execution_bundle_delivery_request",
+        "schemas/operation-control.schema.json#/$defs/execution_bundle_query_request",
+        "schemas/operation-control.schema.json#/$defs/operation_control_read_certificate"
       ],
-      "required_fixtures": ["direct-conversation-fixture.json", "operation-control-pbft-fixture.json", "protocol-journey-closure-fixture.json"],
+      "required_fixtures": ["direct-conversation-fixture.json", "operation-control-pbft-fixture.json"],
       "optional_extensions": [],
       "fixed_pbft": {
         "replica_rule": "N=3f+1",
@@ -3408,8 +3406,8 @@
       "required_endpoints": ["ak.self.events.command.submit", "ak.self.direct_conversation.command.resolve"],
       "required_event_kinds": ["ak.member.state", "ak.mls.commit", "ak.mls.welcome"],
       "rejected_event_kinds": [],
-      "required_schemas": ["ak.schema.protocol_journey_wire.v1"],
-      "required_fixtures": ["direct-conversation-fixture.json", "protocol-journey-closure-fixture.json"],
+      "required_schemas": ["ak.schema.operation_control.v1"],
+      "required_fixtures": ["direct-conversation-fixture.json"],
       "optional_extensions": [],
       "authority_source": "ak.authority.direct_conversation_repair.v1",
       "invariants": ["same_pair_realm_main_strand", "exact_two_participant_mask", "human_self_or_owned_agent_controller_closed_xor", "current_signed_directional_contact_heads", "new_mls_generation_has_no_prejoin_history"],
@@ -3419,15 +3417,15 @@
       "required_endpoints": ["ak.self.events.command.submit", "ak.peer.events.command.submit", "ak.self.keys.keypackages.command.revoke", "ak.self.keys.keypackages.command.consume"],
       "required_event_kinds": ["ak.member.state", "ak.mls.commit"],
       "rejected_event_kinds": [],
-      "required_schemas": ["ak.schema.protocol_journey_wire.v1", "ak.schema.service_operation_dtos.v1"],
+      "required_schemas": ["ak.schema.operation_control.v1", "ak.schema.service_operation_dtos.v1"],
       "wire_contract_refs": [
-        "schemas/protocol-journey-wire.schema.json#/$defs/membership_compensation_action",
-        "schemas/protocol-journey-wire.schema.json#/$defs/membership_compensation_executor_delegation",
-        "schemas/protocol-journey-wire.schema.json#/$defs/membership_compensation_submission_evidence",
-        "schemas/protocol-journey-wire.schema.json#/$defs/mls_join_admission_receipt",
+        "schemas/operation-control.schema.json#/$defs/membership_compensation_action",
+        "schemas/operation-control.schema.json#/$defs/membership_compensation_executor_delegation",
+        "schemas/operation-control.schema.json#/$defs/membership_compensation_submission_evidence",
+        "schemas/operation-control.schema.json#/$defs/mls_join_admission_receipt",
         "schemas/service-operation-dtos.schema.json#/$defs/EventFederationSubmission"
       ],
-      "required_fixtures": ["protocol-journey-closure-fixture.json", "keypackage-lifecycle-fixture.json"],
+      "required_fixtures": ["keypackage-lifecycle-fixture.json"],
       "optional_extensions": [],
       "authority_source": "ak.authority.membership_compensation.v1",
       "actions": {"self_join":"ak.member.compensate.leave","delegated_or_admin_join":"ak.member.compensate.remove"},

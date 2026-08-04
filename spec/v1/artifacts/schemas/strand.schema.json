@@ -91,7 +91,7 @@
       ],
       "properties": {
         "native_agent": {
-          "$ref": "./protocol-journey-wire.schema.json#/$defs/participation_bits"
+          "$ref": "./operation-control.schema.json#/$defs/participation_bits"
         }
       },
       "additionalProperties": false

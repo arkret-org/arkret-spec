@@ -345,7 +345,7 @@ components:
     AgentParticipationOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_participation_outcome
     AgentParticipationReplaceRequestBody:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/participation_replace_request
+      $ref: ../schemas/operation-control.schema.json#/$defs/participation_replace_request
     AgentPauseRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_pause_request_body
     AgentProvisionOutcome:
@@ -367,9 +367,9 @@ components:
     AgentRuntimeApprovalStatusRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body
     AgentSidecarEnsureOutcome:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_outcome
+      $ref: ../schemas/operation-control.schema.json#/$defs/sidecar_ensure_outcome
     AgentSidecarEnsureRequestBody:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/sidecar_ensure_request
+      $ref: ../schemas/operation-control.schema.json#/$defs/sidecar_ensure_request
     AgentSidecarList:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_list
     AgentSidecarView:
@@ -879,32 +879,32 @@ components:
     ContactList:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_list
     ContactRejectOutcome:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_outcome
+      $ref: ../schemas/operation-control.schema.json#/$defs/contact_reject_outcome
     ContactRejectRequestBody:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_reject_request
+      $ref: ../schemas/operation-control.schema.json#/$defs/contact_reject_request
     ContactRequestOutcome:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_request_outcome
+      $ref: ../schemas/operation-control.schema.json#/$defs/contact_request_outcome
     ContactRequestRequestBody:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_operation_request
+      $ref: ../schemas/operation-control.schema.json#/$defs/contact_operation_request
     ContactRespondOutcome:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_outcome
+      $ref: ../schemas/operation-control.schema.json#/$defs/contact_respond_outcome
     ContactRespondRequestBody:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_respond_request
+      $ref: ../schemas/operation-control.schema.json#/$defs/contact_respond_request
     ContactScopeUpdateOutcome:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_scope_update_outcome
+      $ref: ../schemas/operation-control.schema.json#/$defs/contact_scope_update_outcome
     ContactScopeUpdateRequestBody:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_scope_update_request
+      $ref: ../schemas/operation-control.schema.json#/$defs/contact_scope_update_request
     ContactTombstone:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_tombstone_outcome
+      $ref: ../schemas/operation-control.schema.json#/$defs/contact_tombstone_outcome
     ContactTombstoneRequestBody:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/contact_tombstone_request
+      $ref: ../schemas/operation-control.schema.json#/$defs/contact_tombstone_request
     Cursor:
       type: string
       pattern: ^ak:cursor:[A-Za-z0-9_-]+$
     DeviceBootstrapCancelOutcome:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/cancel_device_bootstrap_outcome
+      $ref: ../schemas/operation-control.schema.json#/$defs/cancel_device_bootstrap_outcome
     DeviceBootstrapCancelRequestBody:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/cancel_device_bootstrap_request
+      $ref: ../schemas/operation-control.schema.json#/$defs/cancel_device_bootstrap_request
     DeviceId:
       type: string
       pattern: ^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
@@ -952,9 +952,9 @@ components:
     DidOperationSubmitRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody
     DirectConversationResolveOutcome:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_outcome
+      $ref: ../schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome
     DirectConversationResolveRequestBody:
-      $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/direct_conversation_resolve_request
+      $ref: ../schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_request
     DirectoryActorSearchOutcome:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome
     DirectoryAgentSelectorResolutionOutcome:
@@ -4683,14 +4683,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_request
+              $ref: ../schemas/operation-control.schema.json#/$defs/peer_contact_submit_request
       responses:
         '200':
           description: Generic contact fact delivery receive outcome.
           content:
             application/json:
               schema:
-                $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/peer_contact_submit_outcome
+                $ref: ../schemas/operation-control.schema.json#/$defs/peer_contact_submit_outcome
   /_arkret/peer/direct-conversation-operation-control/messages:
     post:
       operationId: ak.peer.direct_conversation.operation_control.command.submit
@@ -4707,14 +4707,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/operation_control_message_submit_request
+              $ref: ../schemas/operation-control.schema.json#/$defs/operation_control_message_submit_request
       responses:
         '200':
           description: Signed immutable-replica message receipt.
           content:
             application/json:
               schema:
-                $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/operation_control_message_receipt
+                $ref: ../schemas/operation-control.schema.json#/$defs/operation_control_message_receipt
   /_arkret/peer/direct-conversation-operation-control/execution-bundles:
     post:
       operationId: ak.peer.direct_conversation.operation_control.command.deliver
@@ -4731,14 +4731,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_delivery_request
+              $ref: ../schemas/operation-control.schema.json#/$defs/execution_bundle_delivery_request
       responses:
         '200':
           description: Destination-signed durable delivery outcome.
           content:
             application/json:
               schema:
-                $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_delivery_outcome
+                $ref: ../schemas/operation-control.schema.json#/$defs/execution_bundle_delivery_outcome
   /_arkret/peer/direct-conversation-operation-control/execution-bundles/query:
     post:
       operationId: ak.peer.direct_conversation.operation_control.query.execution_bundle
@@ -4755,14 +4755,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_query_request
+              $ref: ../schemas/operation-control.schema.json#/$defs/execution_bundle_query_request
       responses:
         '200':
           description: Exact bundle or exact delivery outcome.
           content:
             application/json:
               schema:
-                $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/execution_bundle_query_outcome
+                $ref: ../schemas/operation-control.schema.json#/$defs/execution_bundle_query_outcome
   /_arkret/peer/direct-conversation-operation-control/read-certificates/query:
     post:
       operationId: ak.peer.direct_conversation.operation_control.query.read_certificate
@@ -4779,14 +4779,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/operation_control_read_request
+              $ref: ../schemas/operation-control.schema.json#/$defs/operation_control_read_request
       responses:
         '200':
           description: Fresh read certificate containing q distinct signed receipts.
           content:
             application/json:
               schema:
-                $ref: ../schemas/protocol-journey-wire.schema.json#/$defs/operation_control_read_certificate
+                $ref: ../schemas/operation-control.schema.json#/$defs/operation_control_read_certificate
   /_arkret/peer/keys/keypackages/claim:
     post:
       operationId: ak.peer.keys.keypackages.command.claim

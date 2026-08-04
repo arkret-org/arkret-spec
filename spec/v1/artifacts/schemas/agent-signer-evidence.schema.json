@@ -245,7 +245,7 @@
         "expires_at"
       ],
       "properties": {
-        "operation_id": { "$ref": "./protocol-journey-wire.schema.json#/$defs/operation_id" },
+        "operation_id": { "$ref": "./operation-control.schema.json#/$defs/operation_id" },
         "request_digest": { "$ref": "#/$defs/sha256" },
         "verifier_id": { "$ref": "./common-ids.schema.json#/$defs/did" },
         "audience": { "$ref": "./common-ids.schema.json#/$defs/did" },

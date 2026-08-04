@@ -234,8 +234,7 @@ participant-authorized reservation + compensation authority
 → found
 ```
 
-draft是 closed object且恰有 Realm create、peer join、main Strand create、binding四个 Event slots；只有前两个是
-atomic founding unit。跨 Principal Server claim receipt必填，本地同服分支明确缺省。服务不得添加第五 Event、
+draft是 closed object且恰有 Realm create、peer join、main Strand create、MLS genesis、MLS Add Commit、MLS Welcome、binding七个 Event slots；它们按 founding unit（前两个，atomic）、main Strand、MLS epoch（genesis + Add Commit）、welcome admission、binding finalize 五步物化。跨 Principal Server claim receipt必填，本地同服分支明确缺省。服务不得添加第八个 Event、
 代签、合成或复制 Event。binding只在 recipient durable且 claim consumed之后创建一次。失败 attempt补偿完成后
 复用已 accepted Realm/Strand坐标，但使用 fresh authorization、未 claimed KP、较高 membership version与新 MLS
 generation；成功前不得报告 existing binding。

@@ -106,7 +106,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "84408de98b19134fc20db18d34c749504f4b9a7df54ff3701900669b176f1ad4"
+      "sha256": "9e57971aadb9a4e4c88989a3aa1127ef9c9fbc8a2e69b2d68ea7b19958163af5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
@@ -239,10 +239,6 @@
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
       "sha256": "d31ff8de83150a2c2483ebfd390828017ae251ca4309ee778b2b8c49e87bbeae"
-    },
-    {
-      "path": "spec/v1/artifacts/fixtures/protocol-journey-closure-fixture.json",
-      "sha256": "c3daca452fc548aca593737d2e138e4bfa9a6c5633e666f97c05d1d4cb42a57d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",

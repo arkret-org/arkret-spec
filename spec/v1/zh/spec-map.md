@@ -260,7 +260,6 @@ see_also:
 | `conformance/scalability-constraints.md` | v1 wire、授权、CBA/Lattice、Board/Relation/View 和 E2EE 的规模上限。 |
 | `conformance/conformance-suite.md` | 自动化互操作 suite、向量优先级、组件测试矩阵。 |
 | `conformance/conformance-profiles.md` | 实现 profile 与一致性测试范围。 |
-| `conformance/protocol-journey-contracts.md` | CJ01–CJ22与Personal A–J到既有正文唯一真源的静态路由；不重复wire/authority，不携SHA或执行状态。 |
 
 ### 4.10 实现指南
 
