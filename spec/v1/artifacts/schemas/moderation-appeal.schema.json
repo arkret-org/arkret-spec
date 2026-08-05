@@ -25,7 +25,7 @@
     },
     "decision_ref": {
       "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Reference to the ak.moderation.decision event being appealed."
     },
     "actor_ref": {
@@ -164,7 +164,7 @@
         },
         "modify_decision_ref": {
           "type": "string",
-          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Required iff verdict=modify. Points to the replacement ak.moderation.decision event in the same ordered submit batch or equivalent control transaction; that transaction MUST also contain a ak.moderation.decision.lift for the original appealed decision."
         },
         "decided_at": {

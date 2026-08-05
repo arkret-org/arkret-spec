@@ -39,7 +39,7 @@
     },
     "source_event_id": {
       "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "source_account_artifact": {
       "type": "object",
@@ -62,12 +62,12 @@
     },
     "source_ref": {
       "type": "string",
-      "pattern": "^(ak:(message|strand|morph|relation|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:blob:(sha256|blake3):[0-9a-f]{64})$",
+      "pattern": "^((?:ak:(message|strand|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:(blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64})$",
       "description": "Optional canonical-object reference for clients that want to render the notification target without resolving source_event_id. Reducers MUST treat source_event_id as authoritative; source_ref is a render-only hint."
     },
     "strand_id": {
       "type": "string",
-      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional Strand context for routing the notification."
     },
     "track_name": {

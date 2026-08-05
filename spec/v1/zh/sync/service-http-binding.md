@@ -416,18 +416,18 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "scope_ref": {
     "kind": "realm",
-    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
   },
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 4,
   "kind": "ak.message.create",
   "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
-  "prev_refs": ["ak:event:019640ed-0000-7000-8000-000000000000"],
+  "prev_refs": ["ak:event:019640ed-0000-8000-8000-000000000000"],
   "refs": [
     { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
@@ -439,7 +439,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
     "key_epoch": 1
   },
   "payload": {
-    "strand_id": "ak:strand:019640c6-8000-7000-8000-000000000000",
+    "strand_id": "ak:strand:019640c6-8000-8000-8000-000000000000",
     "track_name": "discussion",
     "content": { "kind": "ak.content.text", "body": "Sample message" }
   },
@@ -459,18 +459,18 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ak:event:019640ed-9000-7000-8000-000000000000",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-9000-8000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "scope_ref": {
     "kind": "realm",
-    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
   },
   "actor_id": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
   "actor_seq": 7,
   "kind": "ak.message.create",
   "created_at": "2026-04-26T00:01:00.000Z",
   "hlc": "01970e589d34-0001-c00ff00f",
-  "prev_refs": ["ak:event:019640ed-8500-7000-8000-000000000000"],
+  "prev_refs": ["ak:event:019640ed-8500-8000-8000-000000000000"],
   "refs": [
     { "id": "ak:grant:0196410c-1000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
@@ -482,7 +482,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
     "key_epoch": 1
   },
   "payload": {
-    "strand_id": "ak:strand:019640c6-8000-7000-8000-000000000000",
+    "strand_id": "ak:strand:019640c6-8000-8000-8000-000000000000",
     "track_name": "discussion",
     "content": { "kind": "ak.content.text", "body": "Reply" }
   },
@@ -506,21 +506,21 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ak:event:019640ee-0000-7000-8000-000000000000",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ee-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "scope_ref": {
     "kind": "realm",
-    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
   },
   "actor_id": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example",
   "actor_seq": 12,
   "kind": "ak.reaction.add",
   "created_at": "2026-04-26T00:02:00.000Z",
   "hlc": "01970e589d40-0002-c00fbeef",
-  "prev_refs": ["ak:event:019640ed-9000-7000-8000-000000000000"],
+  "prev_refs": ["ak:event:019640ed-9000-8000-8000-000000000000"],
   "refs": [
     { "id": "ak:grant:0196410c-2000-7000-8000-000000000000", "role": "authorized_by", "critical": true },
-    { "id": "ak:event:019640ed-8000-7000-8000-000000000000", "role": "parent_event", "critical": false }
+    { "id": "ak:event:019640ed-8000-8000-8000-000000000000", "role": "parent_event", "critical": false }
   ],
   "causal_refs": ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
   "seal_ref": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
@@ -530,7 +530,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
     "key_epoch": 1
   },
   "payload": {
-    "target_ref": "ak:message:019640ed-8000-7000-8000-000000000000",
+    "target_ref": "ak:message:019640ed-8000-8000-8000-000000000000",
     "key": "+1"
   },
   "proofs": [
@@ -843,11 +843,11 @@ POST /_arkret/self/events
 ```json
 {
   "event": {
-    "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
-    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+    "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
     "scope_ref": {
       "kind": "realm",
-      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
     },
     "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
     "actor_seq": 42,
@@ -881,15 +881,15 @@ POST /_arkret/self/events
 ```json
 {
   "status": "accepted",
-  "accepted": ["ak:event:019640ed-8000-7000-8000-000000000000"],
+  "accepted": ["ak:event:019640ed-8000-8000-8000-000000000000"],
   "realm_actor_frontiers": [{
     "kind": "realm_actor",
-    "realm_id": "ak:realm:01904100-0000-7000-8000-000000000001",
+    "realm_id": "ak:realm:01904100-0000-8000-8000-000000000001",
     "actor_id": "did:web:alice.example",
     "next_actor_seq": 43,
     "frontier_event_ids": [
-      "ak:event:01904100-0000-7000-8000-000000000001",
-      "ak:event:01904100-0000-7000-8000-000000000002"
+      "ak:event:01904100-0000-8000-8000-000000000001",
+      "ak:event:01904100-0000-8000-8000-000000000002"
     ],
     "frontier_digest": "sha256:4f928af58951a0a04f532b272fe6c45b371d33e932d0a15a8df84725a5efe1cf"
   }],
@@ -921,7 +921,7 @@ POST /_arkret/self/events/resolve
 
 ```json
 {
-  "event_ids": ["ak:event:019640ed-8000-7000-8000-000000000000"],
+  "event_ids": ["ak:event:019640ed-8000-8000-8000-000000000000"],
   "include_payload": true
 }
 ```

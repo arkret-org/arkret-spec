@@ -372,7 +372,7 @@
     },
     "actor_profile_id": {
       "type": "string",
-      "pattern": "^ak:actor_profile:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:actor_profile:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "agent_action_approve_payload": {
       "type": "object",
@@ -2151,7 +2151,7 @@
     },
     "board_space_id": {
       "type": "string",
-      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "A Space with kind=board. Pattern matches any ak:space:; kind invariant enforced by reducer/profile."
     },
     "call_capture_failure_reason_code": {
@@ -3022,7 +3022,19 @@
       ],
       "properties": {
         "object": {
-          "$ref": "./circle.schema.json"
+          "allOf": [
+            {
+              "$ref": "./circle.schema.json"
+            },
+            {
+              "not": {
+                "required": [
+                  "id"
+                ],
+                "$comment": "zh/models/common-fields.md: the object id is derived from this create Event's own event_id; carrying it in the payload is schema_violation reason object_id_not_event_derived."
+              }
+            }
+          ]
         }
       },
       "not": {
@@ -3860,7 +3872,7 @@
         },
         "reset_event_id": {
           "type": "string",
-          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "principal_id": {
           "$ref": "#/$defs/did"
@@ -4312,7 +4324,7 @@
         },
         "replacement_authorize_event_id": {
           "type": "string",
-          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "replacement_authorize_digest": {
           "$ref": "#/$defs/hash"
@@ -4638,7 +4650,7 @@
     },
     "event_ref": {
       "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "generic_standard_payload": {
       "type": "object",
@@ -5522,7 +5534,7 @@
     },
     "list_space_id": {
       "type": "string",
-      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "A Space with kind=list."
     },
     "member_delivery_binding": {
@@ -6123,7 +6135,7 @@
     },
     "message_id": {
       "type": "string",
-      "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "message_metadata": {
       "type": "object",
@@ -7454,7 +7466,19 @@
       ],
       "properties": {
         "object": {
-          "$ref": "./morph.schema.json"
+          "allOf": [
+            {
+              "$ref": "./morph.schema.json"
+            },
+            {
+              "not": {
+                "required": [
+                  "id"
+                ],
+                "$comment": "zh/models/common-fields.md: the object id is derived from this create Event's own event_id; carrying it in the payload is schema_violation reason object_id_not_event_derived."
+              }
+            }
+          ]
         },
         "initial_relations": {
           "type": "array",
@@ -7467,7 +7491,7 @@
     },
     "morph_id": {
       "type": "string",
-      "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "morph_schema_migrate_payload": {
       "type": "object",
@@ -7481,7 +7505,7 @@
       "properties": {
         "morph_id": {
           "type": "string",
-          "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "from_schema_refs": {
           "type": "array",
@@ -7536,7 +7560,7 @@
       "properties": {
         "morph_id": {
           "type": "string",
-          "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "stage": {
           "type": "string",
@@ -7766,7 +7790,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^(ak:(realm|circle|space|actor_profile|strand|message|morph|relation|view|policy|grant|invite|call|audit_binding|audit_session|audit_release|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^((?:ak:(realm|circle|space|actor_profile|strand|message|morph|relation|view|event):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:(policy|grant|invite|call|audit_binding|audit_session|audit_release|blob|snapshot|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
     },
     "object_snapshot": {
       "type": "object",
@@ -7861,7 +7885,7 @@
     },
     "or_set_dot": {
       "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:[0-9]+$",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:[0-9]+$",
       "description": "Canonical OR-Set dot: \"ak:event:\" + event_id + \":\" + write_index, where write_index is the 0-based index of the write in the event kind's registry cell_writes[]. See zh/models/event-and-patch.md section 2.4.2."
     },
     "organization_discovery_state_payload": {
@@ -8729,7 +8753,19 @@
       ],
       "properties": {
         "object": {
-          "$ref": "./realm.schema.json"
+          "allOf": [
+            {
+              "$ref": "./realm.schema.json"
+            },
+            {
+              "not": {
+                "required": [
+                  "id"
+                ],
+                "$comment": "zh/models/common-fields.md: the object id is derived from this create Event's own event_id; carrying it in the payload is schema_violation reason object_id_not_event_derived."
+              }
+            }
+          ]
         },
         "initial_relations": {
           "type": "array",
@@ -9983,7 +10019,7 @@
       "type": "object",
       "properties": {
         "relation": {
-          "$ref": "#/$defs/object_snapshot"
+          "$ref": "#/$defs/relation_create_object"
         },
         "rank": {
           "$ref": "#/$defs/rank"
@@ -9997,7 +10033,7 @@
     },
     "relation_id": {
       "type": "string",
-      "pattern": "^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "relation_tombstone_payload": {
       "type": "object",
@@ -10477,7 +10513,19 @@
       ],
       "properties": {
         "object": {
-          "$ref": "./space.schema.json"
+          "allOf": [
+            {
+              "$ref": "./space.schema.json"
+            },
+            {
+              "not": {
+                "required": [
+                  "id"
+                ],
+                "$comment": "zh/models/common-fields.md: the object id is derived from this create Event's own event_id; carrying it in the payload is schema_violation reason object_id_not_event_derived."
+              }
+            }
+          ]
         },
         "initial_relations": {
           "type": "array",
@@ -10490,7 +10538,7 @@
     },
     "space_id": {
       "type": "string",
-      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "space_object_tombstone_payload": {
       "type": "object",
@@ -10633,7 +10681,19 @@
       ],
       "properties": {
         "object": {
-          "$ref": "./strand.schema.json"
+          "allOf": [
+            {
+              "$ref": "./strand.schema.json"
+            },
+            {
+              "not": {
+                "required": [
+                  "id"
+                ],
+                "$comment": "zh/models/common-fields.md: the object id is derived from this create Event's own event_id; carrying it in the payload is schema_violation reason object_id_not_event_derived."
+              }
+            }
+          ]
         },
         "initial_relations": {
           "type": "array",
@@ -10646,7 +10706,7 @@
     },
     "strand_id": {
       "type": "string",
-      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "strand_move_payload": {
       "type": "object",
@@ -10969,7 +11029,7 @@
         },
         "view_id": {
           "type": "string",
-          "pattern": "^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       },
       "additionalProperties": false
@@ -10984,13 +11044,32 @@
       "properties": {
         "view_id": {
           "type": "string",
-          "pattern": "^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "definition": {
           "$ref": "./view.schema.json"
         }
       },
       "additionalProperties": false
+    },
+    "relation_create_object": {
+      "type": "object",
+      "additionalProperties": true,
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "id"
+            ]
+          },
+          {
+            "required": [
+              "type"
+            ]
+          }
+        ]
+      },
+      "description": "Relation create input. Same shape as object_snapshot minus the id: the relation id is derived from this create Event's event_id (zh/models/common-fields.md); `type` stays banned because the object kind comes from the typed-id prefix."
     }
   }
 }

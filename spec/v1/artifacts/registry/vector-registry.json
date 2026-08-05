@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-05.2",
+  "version": "2026-08-06.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-05T18:30:00Z",
+  "generated_at": "2026-08-06T06:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -16,6 +16,20 @@
         "spec/v1/zh/conformance/conformance-vectors.md"
       ],
       "description": "The Realm ak.realm.policy_bundle aad_visibility.event_id component is a disclosure ceiling over the encrypted-envelope aad_visibility_event_id discriminator: an equal or narrower envelope is accepted, a wider one is rejected with aad_visibility_policy_violation, and an absent component means the hidden ceiling rather than no constraint."
+    },
+    {
+      "vector_id": "ak.vector.account.blocklist_projection.v1",
+      "status": "active",
+      "domain": "account",
+      "applies_to_fixtures": [
+        "security-closure-fixture.json"
+      ],
+      "description": "Personal blocklist whole-value CAS updates, target closure, shared-history receive-before-filter behavior, unblock projection rebuild and non-enumerable holder-side filtering.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/discovery/client-preferences.md"
+      ]
     },
     {
       "vector_id": "ak.vector.account_data.cas_convergence.v1",
@@ -44,6 +58,20 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/discovery/client-preferences.md",
         "spec/v1/zh/models/views.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.account_status.authority_publication.v1",
+      "status": "active",
+      "domain": "account_status",
+      "applies_to_fixtures": [
+        "security-closure-fixture.json"
+      ],
+      "description": "Account Authority evidence, PCR-scoped ak.account.status publication, idempotent pending-to-accepted operation state and bounded Principal Server fanout.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/identity/account-lifecycle.md"
       ]
     },
     {
@@ -1068,6 +1096,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.capability.direct_conversation_participant_authority.v1",
+      "status": "active",
+      "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
+      "description": "Direct Conversation participant authority is a profile-scoped non-grant source, survives root generation changes, requires the pair's unique immutable binding, and cannot issue child grants.",
+      "source_refs": [
+        "spec/v1/zh/authz/capabilities.md",
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.capability.freshness_risk_matrix.v1",
       "status": "active",
       "domain": "capability",
@@ -1107,19 +1148,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.capability.direct_conversation_participant_authority.v1",
-      "status": "active",
-      "domain": "capability",
-      "applies_to_fixtures": [
-        "capability-fixture.json"
-      ],
-      "description": "Direct Conversation participant authority is a profile-scoped non-grant source, survives root generation changes, requires the pair's unique immutable binding, and cannot issue child grants.",
-      "source_refs": [
-        "spec/v1/zh/authz/capabilities.md",
-        "spec/v1/artifacts/fixtures/capability-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.capability.membership_is_not_baseline.v1",
       "status": "active",
       "domain": "capability",
@@ -1145,18 +1173,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.capability.revoke_downstream_recheck.v1",
-      "status": "active",
-      "domain": "capability",
-      "applies_to_fixtures": [
-        "capability-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/capability-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.capability.relinquish_pending.v1",
       "status": "active",
       "domain": "capability",
@@ -1169,14 +1185,14 @@
       ]
     },
     {
-      "vector_id": "ak.vector.capability.unified_authority_constraints.v1",
+      "vector_id": "ak.vector.capability.revoke_downstream_recheck.v1",
       "status": "active",
       "domain": "capability",
       "applies_to_fixtures": [
         "capability-fixture.json"
       ],
-      "description": "The unified grant form preserves depth, expiry-seal, cycle and constraint inheritance, permits unbounded low/medium-risk multi-hop agent grants, and requires finite expiry for high-risk agent or service grants.",
       "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
     },
@@ -1189,6 +1205,18 @@
       ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.capability.unified_authority_constraints.v1",
+      "status": "active",
+      "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
+      "description": "The unified grant form preserves depth, expiry-seal, cycle and constraint inheritance, permits unbounded low/medium-risk multi-hop agent grants, and requires finite expiry for high-risk agent or service grants.",
+      "source_refs": [
         "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
     },
@@ -1707,30 +1735,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.direct_conversation.stable_allocation.v1",
-      "status": "active",
-      "domain": "direct_conversation",
-      "applies_to_fixtures": [
-        "direct-conversation-fixture.json"
-      ],
-      "description": "Deterministic coordinator selection, one durable reserved/materializing/found operation per pair, pre-effect reservation expiry, non-expiring materialization and same-ID crash/retry recovery.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.direct_conversation.suspend_rejoin.v1",
-      "status": "active",
-      "domain": "direct_conversation",
-      "applies_to_fixtures": [
-        "direct-conversation-fixture.json"
-      ],
-      "description": "Leave, block, either directional Contact terminal and participant terminal gates suspend the immutable conversation; Consent is not consulted. Recovery reuses the same Realm and main Strand with a new active MLS generation and never automatically redelivers old epoch keys or history secrets.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.direct_conversation.pair_key.v1",
       "status": "active",
       "domain": "direct_conversation",
@@ -1750,6 +1754,30 @@
         "direct-conversation-fixture.json"
       ],
       "description": "Direct Conversation Realm profile/discriminator bidirectional schema guard, MLS and closed-join shape, exact-two membership, no-Space policy and main-Strand invariants.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.stable_allocation.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-fixture.json"
+      ],
+      "description": "Deterministic coordinator selection, one durable reserved/materializing/found operation per pair, pre-effect reservation expiry, non-expiring materialization and same-ID crash/retry recovery.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.suspend_rejoin.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-fixture.json"
+      ],
+      "description": "Leave, block, either directional Contact terminal and participant terminal gates suspend the immutable conversation; Consent is not consulted. Recovery reuses the same Realm and main Strand with a new active MLS generation and never automatically redelivers old epoch keys or history secrets.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
       ]
@@ -2709,6 +2737,19 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-profiles.md",
         "spec/v1/artifacts/fixtures/event-envelope-negative-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.event_id.content_bound.v1",
+      "status": "active",
+      "domain": "event_id",
+      "applies_to_fixtures": [
+        "content-bound-event-id-fixture.json"
+      ],
+      "description": "Content-bound event_id: 34-bit created_at second segment plus 88 bits from the leftmost 11 octets of the Event's own event_digest, with the digest preimage excluding event_id. Covers the bit layout KAT, the mandatory recompute-and-compare with reason_code event_id_digest_mismatch, and that the carried value is unusable before comparison.",
+      "source_refs": [
+        "spec/v1/zh/conformance/encoding.md",
+        "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json"
       ]
     },
     {
@@ -3899,20 +3940,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.mls.security_frontier_key_access_only.v1",
-      "status": "active",
-      "domain": "mls",
-      "applies_to_fixtures": [
-        "final-conformance-closure-fixture.json"
-      ],
-      "description": "Proves that MLS security_frontier_digest includes only registered key-access state: unrelated capability/metadata Seal changes and the DataEvent's own seal_ref do not change it, while an active MLS leaf revoke blocks sending until a new Commit covers the rederived frontier.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-        "spec/v1/zh/crypto-media/encryption-and-audit.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
       "vector_id": "ak.vector.mls.governance_epoch_binding.v1",
       "status": "active",
       "domain": "mls",
@@ -3961,6 +3988,20 @@
       "source_refs": [
         "spec/v1/artifacts/registry/mls-ciphersuite-registry.json",
         "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mls.security_frontier_key_access_only.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "final-conformance-closure-fixture.json"
+      ],
+      "description": "Proves that MLS security_frontier_digest includes only registered key-access state: unrelated capability/metadata Seal changes and the DataEvent's own seal_ref do not change it, while an active MLS leaf revoke blocks sending until a new Commit covers the rederived frontier.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
+        "spec/v1/zh/crypto-media/encryption-and-audit.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -4114,6 +4155,19 @@
       "description": "Deterministic integer-to-number schema widening preserves the JSON numeric value and rejects unregistered widening pairs.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/morph-schema-migration-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.object_identity.event_derived.v1",
+      "status": "active",
+      "domain": "object_identity",
+      "applies_to_fixtures": [
+        "content-bound-event-id-fixture.json"
+      ],
+      "description": "Create-once object ids are retyped from the create Event's own event_id: create payloads omit the id, ak.realm.create omits realm_id and uses the realm_genesis scope, and receivers derive both. Covers the self-certifying realm_id check and the two rejection reason codes.",
+      "source_refs": [
+        "spec/v1/zh/models/common-fields.md",
+        "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json"
       ]
     },
     {
@@ -5363,34 +5417,6 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.account_status.authority_publication.v1",
-      "status": "active",
-      "domain": "account_status",
-      "applies_to_fixtures": [
-        "security-closure-fixture.json"
-      ],
-      "description": "Account Authority evidence, PCR-scoped ak.account.status publication, idempotent pending-to-accepted operation state and bounded Principal Server fanout.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/security-closure-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/identity/account-lifecycle.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.account.blocklist_projection.v1",
-      "status": "active",
-      "domain": "account",
-      "applies_to_fixtures": [
-        "security-closure-fixture.json"
-      ],
-      "description": "Personal blocklist whole-value CAS updates, target closure, shared-history receive-before-filter behavior, unblock projection rebuild and non-enumerable holder-side filtering.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/security-closure-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/discovery/client-preferences.md"
       ]
     }
   ]

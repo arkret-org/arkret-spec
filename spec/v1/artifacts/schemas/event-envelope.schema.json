@@ -7,7 +7,6 @@
   "required": [
     "event_id",
     "kind",
-    "realm_id",
     "scope_ref",
     "actor_id",
     "actor_seq",
@@ -20,7 +19,7 @@
   "properties": {
     "event_id": {
       "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "kind": {
       "type": "string",
@@ -4453,6 +4452,43 @@
           }
         }
       }
+    },
+    {
+      "$comment": "zh/models/realm-and-space.md section 2.5.0: ak.realm.create MUST omit realm_id and use the realm_genesis scope, because realm_id is derived from this Event's own event_id and would otherwise be a function of the digest inside the digest preimage. Every other kind MUST carry realm_id.",
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "const": "ak.realm.create"
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "realm_id"
+          ]
+        },
+        "properties": {
+          "scope_ref": {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "const": "realm_genesis"
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "realm_id"
+        ]
+      }
     }
   ],
   "$defs": {
@@ -4564,6 +4600,19 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_genesis"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Genesis scope for ak.realm.create only. It carries no realm_id because the Realm's own id is derived from this Event: zh/models/realm-and-space.md section 2.5.0. Embedding realm_id here would put a function of the digest inside the digest preimage, which is circular."
         }
       ]
     },
@@ -4621,19 +4670,19 @@
     },
     "space_id": {
       "type": "string",
-      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "board_space_id": {
       "type": "string",
-      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "list_space_id": {
       "type": "string",
-      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "strand_id": {
       "type": "string",
-      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "track_name": {
       "type": "string",
@@ -4641,11 +4690,11 @@
     },
     "relation_id": {
       "type": "string",
-      "pattern": "^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "event_ref": {
       "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "grant_ref": {
       "type": "string",

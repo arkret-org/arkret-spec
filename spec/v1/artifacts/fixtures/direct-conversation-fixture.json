@@ -45,8 +45,8 @@
       "instance": {
         "kind": "managed_agent_controller",
         "event_refs": [
-          "ak:event:0196419b-0000-7000-8000-000000000311",
-          "ak:event:0196419b-0000-7000-8000-000000000313"
+          "ak:event:0196419b-0000-8000-8000-000000000311",
+          "ak:event:0196419b-0000-8000-8000-000000000313"
         ]
       }
     },
@@ -60,9 +60,9 @@
       "instance": {
         "kind": "managed_agent_controller",
         "event_refs": [
-          "ak:event:0196419b-0000-7000-8000-000000000311",
-          "ak:event:0196419b-0000-7000-8000-000000000312",
-          "ak:event:0196419b-0000-7000-8000-000000000313"
+          "ak:event:0196419b-0000-8000-8000-000000000311",
+          "ak:event:0196419b-0000-8000-8000-000000000312",
+          "ak:event:0196419b-0000-8000-8000-000000000313"
         ]
       }
     },
@@ -77,18 +77,18 @@
           "did:webvh:z6mkfixture:alice.example",
           "did:webvh:z6mkfixture:bob.example"
         ],
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
-        "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
+        "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "authorization_basis": {
           "kind": "accepted_contact",
           "event_refs": [
-            "ak:event:0196419b-0000-7000-8000-000000000301",
-            "ak:event:0196419b-0000-7000-8000-000000000308"
+            "ak:event:0196419b-0000-8000-8000-000000000301",
+            "ak:event:0196419b-0000-8000-8000-000000000308"
           ]
         },
         "created_at": "2026-08-02T00:00:00.000Z",
         "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "initial_exact_pair_generation_ref": "ak:event:0196419b-0000-7000-8000-00000000030a"
+        "initial_exact_pair_generation_ref": "ak:event:0196419b-0000-8000-8000-00000000030a"
       }
     },
     {
@@ -104,19 +104,19 @@
           "did:webvh:z6mkfixture:alice.example",
           "did:webvh:z6mkfixture:bob.example"
         ],
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
-        "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
+        "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "authorization_basis": {
           "kind": "accepted_contact",
           "event_refs": [
-            "ak:event:0196419b-0000-7000-8000-000000000301",
-            "ak:event:0196419b-0000-7000-8000-000000000308"
+            "ak:event:0196419b-0000-8000-8000-000000000301",
+            "ak:event:0196419b-0000-8000-8000-000000000308"
           ]
         },
         "created_at": "2026-08-02T00:00:00.000Z",
         "binding_state": "active",
         "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "initial_exact_pair_generation_ref": "ak:event:0196419b-0000-7000-8000-00000000030a"
+        "initial_exact_pair_generation_ref": "ak:event:0196419b-0000-8000-8000-00000000030a"
       }
     },
     {
@@ -128,12 +128,12 @@
         "state": "found",
         "coordinates": {
           "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
-          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
-          "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
-          "binding_event_ref": "ak:event:0196419b-0000-7000-8000-000000000309"
+          "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
+          "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
+          "binding_event_ref": "ak:event:0196419b-0000-8000-8000-000000000309"
         },
         "send_blockers": [],
-        "active_mls_generation_ref": "ak:event:0196419b-0000-7000-8000-00000000030a"
+        "active_mls_generation_ref": "ak:event:0196419b-0000-8000-8000-00000000030a"
       }
     },
     {
@@ -145,9 +145,9 @@
         "state": "suspended",
         "coordinates": {
           "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
-          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
-          "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
-          "binding_event_ref": "ak:event:0196419b-0000-7000-8000-000000000309"
+          "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
+          "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
+          "binding_event_ref": "ak:event:0196419b-0000-8000-8000-000000000309"
         },
         "blockers": [
           "contact_scope_stale"
@@ -160,9 +160,9 @@
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
-        "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
-        "binding_event_ref": "ak:event:0196419b-0000-7000-8000-000000000309",
+        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
+        "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
+        "binding_event_ref": "ak:event:0196419b-0000-8000-8000-000000000309",
         "state": "found"
       }
     },
@@ -174,9 +174,9 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
-        "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
-        "binding_event_ref": "ak:event:0196419b-0000-7000-8000-000000000309",
+        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
+        "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
+        "binding_event_ref": "ak:event:0196419b-0000-8000-8000-000000000309",
         "state": "retired"
       }
     },
@@ -190,9 +190,9 @@
       "instance": {
         "state": "found",
         "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
-        "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
-        "binding_event_ref": "ak:event:0196419b-0000-7000-8000-000000000309",
+        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
+        "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
+        "binding_event_ref": "ak:event:0196419b-0000-8000-8000-000000000309",
         "send_blockers": []
       }
     }

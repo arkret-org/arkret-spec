@@ -106,7 +106,7 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "For ak.message.create, the reducer derives this value by retyping the UUIDv7 of the creating Event.event_id from ak:event: to ak:message:. It is not independently producer-chosen."
     },
     "schema": {
@@ -117,7 +117,7 @@
     },
     "strand_id": {
       "type": "string",
-      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "track_name": {
       "type": "string",
@@ -178,7 +178,7 @@
     },
     "revision_root": {
       "type": "string",
-      "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "First revision in this message's edit chain. The first revision MUST have revision_root == id. Maintained by ak.message.revise reducer."
     },
     "edited_at": {
@@ -186,7 +186,7 @@
     },
     "redaction_ref": {
       "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Required when state=redacted; references the ak.message.redact event that produced this state. MUST be absent for other states."
     },
     "created_by": {
@@ -341,7 +341,7 @@
           "properties": {
             "message_ref": {
               "type": "string",
-              "pattern": "^ak:(message|event):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:(message|event):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
             "sender_actor_id": {
               "$ref": "#/$defs/did"

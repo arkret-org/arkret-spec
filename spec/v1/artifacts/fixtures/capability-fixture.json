@@ -20,8 +20,8 @@
           "resources": [
             {
               "kind": "strand",
-              "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-              "strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
+              "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+              "strand_id": "ak:strand:019640c5-0000-8000-8000-000000000000"
             }
           ]
         }
@@ -31,8 +31,8 @@
         "action": "ak.strand.update",
         "resource": {
           "kind": "strand",
-          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-          "strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
+          "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+          "strand_id": "ak:strand:019640c5-0000-8000-8000-000000000000"
         }
       },
       "expected": {
@@ -56,8 +56,8 @@
           "resources": [
             {
               "kind": "strand",
-              "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-              "strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
+              "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+              "strand_id": "ak:strand:019640c5-0000-8000-8000-000000000000"
             }
           ]
         }
@@ -67,9 +67,9 @@
         "action": "ak.message.create",
         "resource": {
           "kind": "strand",
-          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-          "strand_id": "ak:strand:01964180-0000-7000-8000-000000000000",
-          "linked_from_strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
+          "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+          "strand_id": "ak:strand:01964180-0000-8000-8000-000000000000",
+          "linked_from_strand_id": "ak:strand:019640c5-0000-8000-8000-000000000000"
         }
       },
       "expected": {
@@ -83,7 +83,7 @@
       "memberships": [
         {
           "actor_id": "did:webvh:z6mkfixture:member.example",
-          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
           "membership": "join"
         }
       ],
@@ -95,8 +95,8 @@
           "action": "ak.message.create",
           "resource": {
             "kind": "strand",
-            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-            "strand_id": "ak:strand:01964180-0000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+            "strand_id": "ak:strand:01964180-0000-8000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -109,8 +109,8 @@
           "action": "ak.pin.add",
           "resource": {
             "kind": "strand",
-            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-            "strand_id": "ak:strand:01964180-0000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+            "strand_id": "ak:strand:01964180-0000-8000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -123,8 +123,8 @@
           "action": "ak.rsvp.set",
           "resource": {
             "kind": "strand",
-            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-            "strand_id": "ak:strand:01964180-0000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+            "strand_id": "ak:strand:01964180-0000-8000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -137,7 +137,7 @@
           "action": "ak.policy.manage",
           "resource": {
             "kind": "realm",
-            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -150,8 +150,8 @@
           "action": "ak.relation.create",
           "resource": {
             "kind": "relation",
-            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-            "cell": "ak:cell:ak.component.relation.v1:ak:relation:01964180-1000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+            "cell": "ak:cell:ak.component.relation.v1:ak:relation:01964180-1000-8000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -164,8 +164,8 @@
           "action": "ak.morph.create",
           "resource": {
             "kind": "morph",
-            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-            "cell": "ak:cell:ak.component.morph.v1:ak:morph:01964180-2000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+            "cell": "ak:cell:ak.component.morph.v1:ak:morph:01964180-2000-8000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -178,7 +178,7 @@
       "name": "revoked_grant_denies_later_write",
       "events": [
         {
-          "event_id": "ak:event:019640e8-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640e8-0000-8000-8000-000000000000",
           "kind": "ak.capability.grant",
           "hlc": "01970e589d21-0001-a13f9c2e",
           "payload": {
@@ -190,13 +190,13 @@
             "resources": [
               {
                 "kind": "strand",
-                "strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
+                "strand_id": "ak:strand:019640c5-0000-8000-8000-000000000000"
               }
             ]
           }
         },
         {
-          "event_id": "ak:event:019640ec-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640ec-0000-8000-8000-000000000000",
           "kind": "ak.capability.revoke",
           "hlc": "01970e589d22-0001-a13f9c2e",
           "payload": {
@@ -204,7 +204,7 @@
           }
         },
         {
-          "event_id": "ak:event:019640ee-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640ee-0000-8000-8000-000000000000",
           "kind": "ak.strand.update",
           "hlc": "01970e589d23-0001-a13f9c2e",
           "refs": [
@@ -215,7 +215,7 @@
             }
           ],
           "payload": {
-            "target_ref": "ak:strand:019640c5-0000-7000-8000-000000000000",
+            "target_ref": "ak:strand:019640c5-0000-8000-8000-000000000000",
             "patch": {
               "metadata.title": {
                 "$op": "set",
@@ -226,7 +226,7 @@
         }
       ],
       "expected": {
-        "event_id": "ak:event:019640ee-0000-7000-8000-000000000000",
+        "event_id": "ak:event:019640ee-0000-8000-8000-000000000000",
         "decision": "deny",
         "reason_code": "grant_revoked_before_event_frontier"
       }
@@ -235,7 +235,7 @@
       "name": "repeated_revoke_same_grant_is_idempotent_and_denies",
       "events": [
         {
-          "event_id": "ak:event:019640f0-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640f0-0000-8000-8000-000000000000",
           "kind": "ak.capability.grant",
           "hlc": "01970e589d30-0001-a13f9c2e",
           "payload": {
@@ -247,13 +247,13 @@
             "resources": [
               {
                 "kind": "strand",
-                "strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
+                "strand_id": "ak:strand:019640c5-0000-8000-8000-000000000000"
               }
             ]
           }
         },
         {
-          "event_id": "ak:event:019640f2-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640f2-0000-8000-8000-000000000000",
           "kind": "ak.capability.revoke",
           "hlc": "01970e589d31-0001-a13f9c2e",
           "payload": {
@@ -261,7 +261,7 @@
           }
         },
         {
-          "event_id": "ak:event:019640f4-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640f4-0000-8000-8000-000000000000",
           "kind": "ak.capability.revoke",
           "hlc": "01970e589d32-0001-a13f9c2e",
           "payload": {
@@ -269,7 +269,7 @@
           }
         },
         {
-          "event_id": "ak:event:019640f6-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640f6-0000-8000-8000-000000000000",
           "kind": "ak.strand.update",
           "hlc": "01970e589d33-0001-a13f9c2e",
           "refs": [
@@ -280,7 +280,7 @@
             }
           ],
           "payload": {
-            "target_ref": "ak:strand:019640c5-0000-7000-8000-000000000000",
+            "target_ref": "ak:strand:019640c5-0000-8000-8000-000000000000",
             "patch": {
               "metadata.title": {
                 "$op": "set",
@@ -291,7 +291,7 @@
         }
       ],
       "expected": {
-        "event_id": "ak:event:019640f6-0000-7000-8000-000000000000",
+        "event_id": "ak:event:019640f6-0000-8000-8000-000000000000",
         "decision": "deny",
         "reason_code": "grant_revoked_before_event_frontier"
       }
@@ -300,7 +300,7 @@
       "name": "regrant_same_grant_id_after_revoke_stays_revoked",
       "events": [
         {
-          "event_id": "ak:event:019640f8-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640f8-0000-8000-8000-000000000000",
           "kind": "ak.capability.grant",
           "hlc": "01970e589d34-0001-a13f9c2e",
           "payload": {
@@ -312,13 +312,13 @@
             "resources": [
               {
                 "kind": "strand",
-                "strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
+                "strand_id": "ak:strand:019640c5-0000-8000-8000-000000000000"
               }
             ]
           }
         },
         {
-          "event_id": "ak:event:019640fa-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640fa-0000-8000-8000-000000000000",
           "kind": "ak.capability.revoke",
           "hlc": "01970e589d35-0001-a13f9c2e",
           "payload": {
@@ -326,7 +326,7 @@
           }
         },
         {
-          "event_id": "ak:event:019640fc-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640fc-0000-8000-8000-000000000000",
           "kind": "ak.capability.grant",
           "hlc": "01970e589d36-0001-a13f9c2e",
           "payload": {
@@ -338,13 +338,13 @@
             "resources": [
               {
                 "kind": "strand",
-                "strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
+                "strand_id": "ak:strand:019640c5-0000-8000-8000-000000000000"
               }
             ]
           }
         },
         {
-          "event_id": "ak:event:019640fe-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640fe-0000-8000-8000-000000000000",
           "kind": "ak.strand.update",
           "hlc": "01970e589d37-0001-a13f9c2e",
           "refs": [
@@ -355,7 +355,7 @@
             }
           ],
           "payload": {
-            "target_ref": "ak:strand:019640c5-0000-7000-8000-000000000000",
+            "target_ref": "ak:strand:019640c5-0000-8000-8000-000000000000",
             "patch": {
               "metadata.title": {
                 "$op": "set",
@@ -366,7 +366,7 @@
         }
       ],
       "expected": {
-        "event_id": "ak:event:019640fe-0000-7000-8000-000000000000",
+        "event_id": "ak:event:019640fe-0000-8000-8000-000000000000",
         "decision": "deny",
         "reason_code": "grant_revoked_before_event_frontier"
       }
@@ -384,7 +384,7 @@
         "resources": [
           {
             "kind": "realm",
-            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
           }
         ],
         "constraints": [
@@ -410,7 +410,7 @@
           "label": "with_approval",
           "context": {
             "approval_refs": [
-              "ak:event:019640ab-0000-7000-8000-000000000000"
+              "ak:event:019640ab-0000-8000-8000-000000000000"
             ]
           },
           "expected": {
@@ -424,7 +424,7 @@
       "vector_id": "ak.vector.capability.authority_chain.v1",
       "base": {
         "grant_id": "ak:grant:019640d0-b800-7000-8000-000000000000",
-        "root_event_id": "ak:event:01964180-0350-72ab-a000-000000000000",
+        "root_event_id": "ak:event:01964180-0350-82ab-a000-000000000000",
         "subject": "did:webvh:z6mkfixture:root-admin.example.com",
         "actions": [
           "ak.realm.admin"
@@ -433,7 +433,7 @@
       "action_query": {
         "actor_id": "did:webvh:z6mkfixture:intern.example.com",
         "action": "ak.invite.create",
-        "resource": "ak:realm:0196414c-8000-7000-8000-000000000000",
+        "resource": "ak:realm:0196414c-8000-8000-8000-000000000000",
         "request_time": "2026-04-26T01:00:00.000Z",
         "request_audience": "did:webvh:z6mkfixture:vendor.example"
       },
@@ -453,12 +453,12 @@
       },
       "authority_chain": [
         {
-          "event_id": "ak:event:019640d0-c000-7000-8000-000000000000",
+          "event_id": "ak:event:019640d0-c000-8000-8000-000000000000",
           "kind": "ak.capability.grant",
-          "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
+          "realm_id": "ak:realm:0196414c-8000-8000-8000-000000000000",
           "scope_ref": {
             "kind": "realm",
-            "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196414c-8000-8000-8000-000000000000"
           },
           "actor_id": "did:webvh:z6mkfixture:root-admin.example.com",
           "payload": {
@@ -473,7 +473,7 @@
             "resources": [
               {
                 "kind": "realm",
-                "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
+                "realm_id": "ak:realm:0196414c-8000-8000-8000-000000000000",
                 "match_scope": "realm_wide"
               }
             ],
@@ -509,12 +509,12 @@
           ]
         },
         {
-          "event_id": "ak:event:019640d0-c400-7000-8000-000000000000",
+          "event_id": "ak:event:019640d0-c400-8000-8000-000000000000",
           "kind": "ak.capability.grant",
-          "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
+          "realm_id": "ak:realm:0196414c-8000-8000-8000-000000000000",
           "scope_ref": {
             "kind": "realm",
-            "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196414c-8000-8000-8000-000000000000"
           },
           "actor_id": "did:webvh:z6mkfixture:ops.example.com",
           "payload": {
@@ -529,7 +529,7 @@
             "resources": [
               {
                 "kind": "realm",
-                "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
+                "realm_id": "ak:realm:0196414c-8000-8000-8000-000000000000",
                 "match_scope": "realm_wide"
               }
             ],
@@ -573,7 +573,7 @@
       "vector_id": "ak.vector.capability.revoke_rollback.v1",
       "events": [
         {
-          "event_id": "ak:event:01964101-2800-7000-8000-000000000000",
+          "event_id": "ak:event:01964101-2800-8000-8000-000000000000",
           "kind": "ak.capability.grant",
           "created_at": "2026-04-26T00:00:00.000Z",
           "payload": {
@@ -585,7 +585,7 @@
           }
         },
         {
-          "event_id": "ak:event:01964181-2800-7000-8000-000000000000",
+          "event_id": "ak:event:01964181-2800-8000-8000-000000000000",
           "kind": "ak.capability.revoke",
           "created_at": "2026-04-26T00:00:01.000Z",
           "payload": {
@@ -593,7 +593,7 @@
           }
         },
         {
-          "event_id": "ak:event:019641d1-2800-7000-8000-000000000000",
+          "event_id": "ak:event:019641d1-2800-8000-8000-000000000000",
           "kind": "ak.member.state",
           "created_at": "2026-04-26T00:00:02.000Z",
           "payload": {
@@ -602,12 +602,12 @@
           }
         },
         {
-          "event_id": "ak:event:0196414c-c04a-7000-8000-000000000000",
+          "event_id": "ak:event:0196414c-c04a-8000-8000-000000000000",
           "kind": "ak.message.create",
           "actor_id": "did:webvh:z6mkfixture:alice.example.com",
           "created_at": "2026-04-26T00:00:03.000Z",
           "payload": {
-            "strand_id": "ak:strand:0196418d-cc00-7000-8000-000000000000",
+            "strand_id": "ak:strand:0196418d-cc00-8000-8000-000000000000",
             "content": {
               "kind": "ak.content.text",
               "body": "should_fail_if_revoke_applies"
@@ -617,10 +617,10 @@
         }
       ],
       "rollback": {
-        "target_event_id": "ak:event:01964181-2800-7000-8000-000000000000",
+        "target_event_id": "ak:event:01964181-2800-8000-8000-000000000000",
         "reason": "revoke_undo_invalid_signature"
       },
-      "subject_event_id": "ak:event:0196414c-c04a-7000-8000-000000000000",
+      "subject_event_id": "ak:event:0196414c-c04a-8000-8000-000000000000",
       "expected": {
         "initial_decision": "deny",
         "post_rollback_decision": "allow",
@@ -654,12 +654,12 @@
         }
       ],
       "accepted_event": {
-        "event_id": "ak:event:01964110-0800-7000-8000-000000000000",
+        "event_id": "ak:event:01964110-0800-8000-8000-000000000000",
         "kind": "ak.strand.update",
         "authorized_by": "ak:grant:01964110-0000-7000-8000-000000000000"
       },
       "pending_event": {
-        "event_id": "ak:event:01964110-0c00-7000-8000-000000000000",
+        "event_id": "ak:event:01964110-0c00-8000-8000-000000000000",
         "kind": "ak.strand.update",
         "authorized_by": "ak:grant:01964110-0400-7000-8000-000000000000"
       },
@@ -984,7 +984,7 @@
       "name": "authority_liveness_and_root_lifecycle",
       "vector_id": "ak.vector.capability.authority_liveness.v1",
       "root": {
-        "realm_id": "ak:realm:01990000-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01990000-0000-8000-8000-000000000001",
         "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
         "controller_id": "did:web:alice.example",
         "controller_epoch": 0,
@@ -999,7 +999,7 @@
           "issuer_authority_refs": [
             {
               "kind": "realm_root",
-              "realm_id": "ak:realm:01990000-0000-7000-8000-000000000001",
+              "realm_id": "ak:realm:01990000-0000-8000-8000-000000000001",
               "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
               "controller_epoch_at_issuance": 0,
               "authority_generation": 4
@@ -1134,7 +1134,7 @@
         {
           "name": "new_controller_can_revoke_old_controller_grant",
           "actor": "did:web:bob.example",
-          "target_grant_realm_id": "ak:realm:01990000-0000-7000-8000-000000000001",
+          "target_grant_realm_id": "ak:realm:01990000-0000-8000-8000-000000000001",
           "actor_is_target_realm_current_controller": true,
           "expected": {
             "accepted": true
@@ -1300,13 +1300,13 @@
           "authority_root_refs": [
             {
               "kind": "realm_root",
-              "realm_id": "ak:realm:01990000-0000-7000-8000-000000000003",
+              "realm_id": "ak:realm:01990000-0000-8000-8000-000000000003",
               "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
               "authority_generation": 2
             },
             {
               "kind": "realm_root",
-              "realm_id": "ak:realm:01990000-0000-7000-8000-000000000002",
+              "realm_id": "ak:realm:01990000-0000-8000-8000-000000000002",
               "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
               "authority_generation": 7
             }
@@ -1318,7 +1318,7 @@
           "authority_root_refs": [
             {
               "kind": "realm_root",
-              "realm_id": "ak:realm:01990000-0000-7000-8000-000000000002",
+              "realm_id": "ak:realm:01990000-0000-8000-8000-000000000002",
               "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
               "authority_generation": 7
             }
@@ -1340,13 +1340,13 @@
         "authority_root_refs": [
           {
             "kind": "realm_root",
-            "realm_id": "ak:realm:01990000-0000-7000-8000-000000000002",
+            "realm_id": "ak:realm:01990000-0000-8000-8000-000000000002",
             "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
             "authority_generation": 7
           },
           {
             "kind": "realm_root",
-            "realm_id": "ak:realm:01990000-0000-7000-8000-000000000003",
+            "realm_id": "ak:realm:01990000-0000-8000-8000-000000000003",
             "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
             "authority_generation": 2
           }
@@ -1375,8 +1375,8 @@
         "conversation_state": "found",
         "immutable_binding_present": true,
         "pair_key": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
-        "realm_id": "ak:realm:01990000-0000-7000-8000-000000000030",
-        "main_strand_id": "ak:strand:01990000-0000-7000-8000-000000000031",
+        "realm_id": "ak:realm:01990000-0000-8000-8000-000000000030",
+        "main_strand_id": "ak:strand:01990000-0000-8000-8000-000000000031",
         "participants": [
           "did:webvh:z6mkfixture:alice.example",
           "did:webvh:z6mkfixture:bob.example"

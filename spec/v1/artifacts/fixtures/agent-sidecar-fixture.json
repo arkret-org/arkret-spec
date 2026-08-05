@@ -34,14 +34,14 @@
       "desired_access_transcript": {
         "domain": "ak.sidecar.desired_access.v1",
         "sidecar_id": "ak:sidecar:01964137-0000-7000-8000-000000000020",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000000",
         "controller_id": "did:webvh:z6mkfixture:alice.example",
         "principal_ids": [
           "did:webvh:z6mkfixture:alice.example",
           "did:webvh:z6mkfixture:assistant.agents.example"
         ]
       },
-      "expected_desired_access_digest": "sha256:a8c91fc896c6c19179770fdd629ca3fd24acbb8a3d824b0d76c6ad77f3a5767a",
+      "expected_desired_access_digest": "sha256:38abbaede2dded3e0318b26fd6ae5996cabc49d3f1a24e0760ba6c970b35533e",
       "assertions": [
         "desired access transcript includes the controller and is sorted and unique",
         "the SDK canonical helper is the only producer of desired_access_digest",
@@ -181,12 +181,12 @@
         "incomplete_page_outcome": "backfill_pending"
       },
       "locator": {
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000000",
         "controller_id": "did:webvh:z6mkfixture:alice.example",
         "sidecar_id": "ak:sidecar:01964137-0000-7000-8000-000000000020",
-        "backing_circle_id": "ak:circle:01964137-0000-7000-8000-000000000030",
-        "private_strand_id": "ak:strand:01964137-0000-7000-8000-000000000031",
-        "source_context_ref": "ak:strand:01964137-0000-7000-8000-000000000010"
+        "backing_circle_id": "ak:circle:01964137-0000-8000-8000-000000000030",
+        "private_strand_id": "ak:strand:01964137-0000-8000-8000-000000000031",
+        "source_context_ref": "ak:strand:01964137-0000-8000-8000-000000000010"
       },
       "assertions": [
         "all sidecar-list and event-scan pages complete before any locator becomes echo-eligible",
@@ -203,12 +203,12 @@
       "actor_seq": 9,
       "siblings": [
         {
-          "event_id": "ak:event:01964137-0000-7000-8000-0000000000f0",
+          "event_id": "ak:event:01964137-0000-8000-8000-0000000000f0",
           "hlc": "01970e589d21-ffff-a13f9c2e",
           "content_text": "digest sibling counterexample high-id 2"
         },
         {
-          "event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+          "event_id": "ak:event:01964137-0000-8000-8000-000000000001",
           "hlc": "01970e589d21-0001-a13f9c2e",
           "content_text": "digest sibling counterexample 6"
         }
@@ -232,21 +232,21 @@
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_union_history_frontier_vector",
       "device_histories": {
         "device_a": [
-          "ak:event:01964137-0000-7000-8000-000000000034",
-          "ak:event:01964137-0000-7000-8000-000000000035"
+          "ak:event:01964137-0000-8000-8000-000000000034",
+          "ak:event:01964137-0000-8000-8000-000000000035"
         ],
         "device_b": [
-          "ak:event:01964137-0000-7000-8000-000000000034",
-          "ak:event:01964137-0000-7000-8000-000000000036"
+          "ak:event:01964137-0000-8000-8000-000000000034",
+          "ak:event:01964137-0000-8000-8000-000000000036"
         ],
         "union": [
-          "ak:event:01964137-0000-7000-8000-000000000034",
-          "ak:event:01964137-0000-7000-8000-000000000035",
-          "ak:event:01964137-0000-7000-8000-000000000036"
+          "ak:event:01964137-0000-8000-8000-000000000034",
+          "ak:event:01964137-0000-8000-8000-000000000035",
+          "ak:event:01964137-0000-8000-8000-000000000036"
         ],
         "maximal_heads": [
-          "ak:event:01964137-0000-7000-8000-000000000035",
-          "ak:event:01964137-0000-7000-8000-000000000036"
+          "ak:event:01964137-0000-8000-8000-000000000035",
+          "ak:event:01964137-0000-8000-8000-000000000036"
         ]
       },
       "incomplete_outcome": "keep_cache_and_mark_backfill_pending",
@@ -344,9 +344,9 @@
       "name": "sidecar_accepted_request_identity",
       "vector_id": "ak.vector.sidecar.accepted_request_identity.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_accepted_request_identity_vector",
-      "accepted_request_event_id": "ak:event:01964137-0000-7000-8000-000000000034",
-      "response_binding_request_event_id": "ak:event:01964137-0000-7000-8000-000000000034",
-      "response_after_ref": "ak:event:01964137-0000-7000-8000-000000000034",
+      "accepted_request_event_id": "ak:event:01964137-0000-8000-8000-000000000034",
+      "response_binding_request_event_id": "ak:event:01964137-0000-8000-8000-000000000034",
+      "response_after_ref": "ak:event:01964137-0000-8000-8000-000000000034",
       "invalid_identity_kinds": [
         "message_id",
         "local_intent_id",

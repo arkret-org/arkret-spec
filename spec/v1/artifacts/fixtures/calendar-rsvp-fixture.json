@@ -48,9 +48,9 @@
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
-        "id": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "id": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "schema": "ak.schema.strand.v1",
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
         "schema_refs": [
           "ak.schema.calendar_event.v1"
         ],
@@ -85,9 +85,9 @@
       "expected_reason_code": "calendar_activation_mismatch",
       "first_expected_error": "contains:'fields' is a required property",
       "instance": {
-        "id": "ak:strand:0196419b-0000-7000-8000-000000000202",
+        "id": "ak:strand:0196419b-0000-8000-8000-000000000202",
         "schema": "ak.schema.strand.v1",
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
         "schema_refs": [
           "ak.schema.calendar_event.v1"
         ],
@@ -112,9 +112,9 @@
       "expected_reason_code": "calendar_activation_mismatch",
       "first_expected_error": "contains:schema_refs",
       "instance": {
-        "id": "ak:strand:0196419b-0000-7000-8000-000000000203",
+        "id": "ak:strand:0196419b-0000-8000-8000-000000000203",
         "schema": "ak.schema.strand.v1",
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
         "metadata": {
           "fields": {
             "calendar": {
@@ -145,9 +145,9 @@
       "expected_reason_code": "schema_violation",
       "first_expected_error": "contains:ak.schema.strand.v1",
       "instance": {
-        "id": "ak:strand:0196419b-0000-7000-8000-000000000204",
+        "id": "ak:strand:0196419b-0000-8000-8000-000000000204",
         "schema": "ak.schema.strand.v1",
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
         "schema_refs": [
           "ak.schema.strand.v1"
         ],
@@ -169,9 +169,9 @@
       "expected_reason_code": "schema_violation",
       "first_expected_error": "contains:should not be valid under",
       "instance": {
-        "id": "ak:strand:0196419b-0000-7000-8000-000000000205",
+        "id": "ak:strand:0196419b-0000-8000-8000-000000000205",
         "schema": "ak.schema.strand.v1",
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
         "metadata": {
           "fields": {
             "profile": "ak.profile.calendar_event.v1"
@@ -195,9 +195,9 @@
       "expected_reason_code": "schema_violation",
       "first_expected_error": "contains:should not be valid under",
       "instance": {
-        "id": "ak:strand:0196419b-0000-7000-8000-000000000206",
+        "id": "ak:strand:0196419b-0000-8000-8000-000000000206",
         "schema": "ak.schema.strand.v1",
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
         "metadata": {
           "fields": {
             "start": "2026-06-22T09:00:00",
@@ -651,7 +651,7 @@
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
-        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "event_ref": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "occurrence": null,
         "entry": {
           "schedule_basis_refs": [
@@ -666,13 +666,13 @@
             "ciphertext": "rsvpAlpha",
             "aad_visibility_event_id": "routing_digest",
             "aad": {
-              "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+              "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
               "event_kind": "ak.rsvp.set",
               "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
             },
             "key_ref": {
               "algorithm": "MLS",
-              "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
+              "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
             },
             "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
             "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
@@ -686,7 +686,7 @@
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
-        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "event_ref": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "occurrence": "2026-06-22T09:00:00[America/Los_Angeles]",
         "entry": {
           "schedule_basis_refs": [
@@ -707,7 +707,7 @@
       "expected_reason_code": "schema_violation",
       "first_expected_error": "contains:entry",
       "instance": {
-        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "event_ref": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "occurrence": null,
         "entry": {
           "schedule_basis_refs": [
@@ -725,13 +725,13 @@
             "ciphertext": "rsvpAlpha",
             "aad_visibility_event_id": "routing_digest",
             "aad": {
-              "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+              "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
               "event_kind": "ak.rsvp.set",
               "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
             },
             "key_ref": {
               "algorithm": "MLS",
-              "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
+              "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
             },
             "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
             "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
@@ -747,7 +747,7 @@
       "expected_reason_code": "schema_violation",
       "first_expected_error": "contains:'entry' is a required property",
       "instance": {
-        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "event_ref": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "occurrence": null,
         "status": "accepted"
       }
@@ -760,7 +760,7 @@
       "expected_reason_code": "rsvp_basis_not_causal",
       "first_expected_error": "contains:schedule_basis_refs",
       "instance": {
-        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "event_ref": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "occurrence": null,
         "entry": {
           "schedule_basis_refs": [],
@@ -778,7 +778,7 @@
       "expected_reason_code": "rsvp_basis_not_causal",
       "first_expected_error": "contains:schedule_basis_refs",
       "instance": {
-        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "event_ref": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "occurrence": null,
         "entry": {
           "schedule_basis_refs": [
@@ -799,7 +799,7 @@
       "expected_reason_code": "rsvp_occurrence_not_canonical",
       "first_expected_error": "contains:occurrence",
       "instance": {
-        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "event_ref": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "occurrence": "2026-06-22T16:00:00.000Z",
         "entry": {
           "schedule_basis_refs": [
@@ -819,7 +819,7 @@
       "expected_reason_code": "rsvp_occurrence_not_canonical",
       "first_expected_error": "contains:occurrence",
       "instance": {
-        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "event_ref": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "occurrence": "2026-02-30",
         "entry": {
           "schedule_basis_refs": [
@@ -839,7 +839,7 @@
       "expected_reason_code": "rsvp_occurrence_not_canonical",
       "first_expected_error": "contains:occurrence",
       "instance": {
-        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "event_ref": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "occurrence": "series",
         "entry": {
           "schedule_basis_refs": [
@@ -904,7 +904,7 @@
       "expected_reason_code": "schema_violation",
       "first_expected_error": "contains:schedule_basis_refs",
       "instance": {
-        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "event_ref": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "occurrence": null,
         "entry": {
           "schedule_basis_refs": [
@@ -1053,7 +1053,7 @@
       "expected_reason_code": "rsvp_occurrence_not_canonical",
       "first_expected_error": "contains:occurrence",
       "instance": {
-        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "event_ref": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "occurrence": "2026-06-22T09:00:00",
         "entry": {
           "schedule_basis_refs": [
@@ -1073,7 +1073,7 @@
       "expected_reason_code": "schema_violation",
       "first_expected_error": "contains:entry",
       "instance": {
-        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "event_ref": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "occurrence": null,
         "entry": {
           "schedule_basis_refs": [
@@ -1090,7 +1090,7 @@
       "expected_reason_code": "schema_violation",
       "first_expected_error": "contains:application/vnd.arkret.calendar-rsvp-response+json",
       "instance": {
-        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "event_ref": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "occurrence": null,
         "entry": {
           "schedule_basis_refs": [
@@ -1105,13 +1105,13 @@
             "ciphertext": "rsvpAlpha",
             "aad_visibility_event_id": "routing_digest",
             "aad": {
-              "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+              "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
               "event_kind": "ak.rsvp.set",
               "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
             },
             "key_ref": {
               "algorithm": "MLS",
-              "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
+              "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
             },
             "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
             "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"

@@ -148,7 +148,7 @@ Realm scope Event：
 {
   "scope_ref": {
     "kind": "realm",
-    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
   }
 }
 ```
@@ -159,8 +159,8 @@ Circle scope Event：
 {
   "scope_ref": {
     "kind": "circle",
-    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-    "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
+    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+    "circle_id": "ak:circle:0196419c-0000-8000-8000-000000000000"
   }
 }
 ```
@@ -260,7 +260,7 @@ Reducer MUST 在 `ak.strand.create`、`ak.strand.move`、`ak.space.parent`、str
 
 ```
 Strand F_public  (scope_circle_id = null)              ← 公开 seal Strand，承载 metadata.title / metadata.summary / stage / metadata.fields
-Strand F_private (scope_circle_id = ak:circle:0196419c-0000-7000-8000-000000000000; short_name=HR-Conf) ← Circle 内 Strand，承载敏感讨论与决策细节
+Strand F_private (scope_circle_id = ak:circle:0196419c-0000-8000-8000-000000000000; short_name=HR-Conf) ← Circle 内 Strand，承载敏感讨论与决策细节
 F_private --confidential_discussion_of--> F_public
 ```
 

@@ -28,7 +28,7 @@
       "vector_id": "ak.vector.mls_exporter_aead.content_key_derivation.v1",
       "input": {
         "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-        "realm_id_utf8": "ak:realm:019a7360-0000-7000-8000-000000000000",
+        "realm_id_utf8": "ak:realm:019a7360-0000-8000-8000-000000000000",
         "history_label": "ak.history-v1",
         "content_label": "ak.content-v1",
         "content_context_hex": "",
@@ -55,21 +55,21 @@
           "scheme": "mls_exporter_aead_v1",
           "key_ref": {
             "algorithm": "MLS-EXPORTER-AEAD",
-            "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
+            "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
           },
           "epoch": 42,
           "nonce": "cUNyogAAAAAAAAAH",
           "purpose": "mls_exporter_aead_content",
           "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
           "aad": {
-            "realm_id": "ak:realm:01904100-0000-7000-8000-000000000042",
+            "realm_id": "ak:realm:01904100-0000-8000-8000-000000000042",
             "event_kind": "ak.message.create"
           }
         }
       },
       "expected": {
-        "aead_aad_canonical_json": "{\"aad\":{\"event_kind\":\"ak.message.create\",\"realm_id\":\"ak:realm:01904100-0000-7000-8000-000000000042\"},\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"epoch\":42,\"key_ref\":{\"algorithm\":\"MLS-EXPORTER-AEAD\",\"group_state_ref\":\"ak:event:01964148-0000-7000-8000-000000000000\"},\"nonce\":\"cUNyogAAAAAAAAAH\",\"purpose\":\"mls_exporter_aead_content\",\"scheme\":\"mls_exporter_aead_v1\"}",
-        "ciphertext_with_tag_hex": "e758b2f7d462d5170fe80aa7daee698cbdef6d5247cdd6cfc71e311632aa1730d3e406aa948ab34a36dbc8953b1809",
+        "aead_aad_canonical_json": "{\"aad\":{\"event_kind\":\"ak.message.create\",\"realm_id\":\"ak:realm:01904100-0000-8000-8000-000000000042\"},\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"epoch\":42,\"key_ref\":{\"algorithm\":\"MLS-EXPORTER-AEAD\",\"group_state_ref\":\"ak:event:01964148-0000-8000-8000-000000000000\"},\"nonce\":\"cUNyogAAAAAAAAAH\",\"purpose\":\"mls_exporter_aead_content\",\"scheme\":\"mls_exporter_aead_v1\"}",
+        "ciphertext_with_tag_hex": "e758b2f7d462d5170fe80aa7daee698cbdef6d5247cdd6cfc71e311632aa1707ab9014cfad44fcf2803521107ae3c0",
         "opened_plaintext_hex": "6578706f727465722d616561642072656772657373696f6e20616e63686f72",
         "negative_mutations": [
           "aad.event_kind",
@@ -86,7 +86,7 @@
       "vector_id": "ak.vector.signal.exporter_key_kat.v1",
       "input": {
         "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-        "realm_id_utf8": "ak:realm:019a7360-0000-7000-8000-000000000000",
+        "realm_id_utf8": "ak:realm:019a7360-0000-8000-8000-000000000000",
         "history_label": "ak.history-v1",
         "signal_label": "ak.signal-v1",
         "signal_context_hex": "",
@@ -96,7 +96,7 @@
       "expected": {
         "history_secret_hex": "c23c438ea6324409174e5fe5c330199fe511c44eca88f0100cc40eca29a84d2a",
         "signal_expand_with_label_info_hex": "0010144d4c5320312e3020616b2e7369676e616c2d763100",
-        "signal_key_hex": "6c24824085cbce6c08585acf5b343a51",
+        "signal_key_hex": "abebd3fc1a745ef76b9d33f02b030898",
         "negative_mutations": [
           "signal_label=ak.content-v1",
           "signal_context=realm_id",
@@ -114,7 +114,7 @@
         "context": {
           "key_ref": {
             "algorithm": "MLS-EXPORTER-AEAD",
-            "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
+            "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
           },
           "epoch": 42,
           "device_id": "ak:device:019a7360-0000-7000-8000-000000000001",
@@ -125,9 +125,9 @@
         "counter_be64_hex": "0000000000000007"
       },
       "expected": {
-        "context_canonical_json": "{\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"device_id\":\"ak:device:019a7360-0000-7000-8000-000000000001\",\"epoch\":42,\"key_ref\":{\"algorithm\":\"MLS-EXPORTER-AEAD\",\"group_state_ref\":\"ak:event:01964148-0000-7000-8000-000000000000\"},\"purpose\":\"mls_exporter_aead_content\"}",
-        "sender_nonce_prefix_hex": "1fd3bc95",
-        "nonce_hex": "1fd3bc950000000000000007",
+        "context_canonical_json": "{\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"device_id\":\"ak:device:019a7360-0000-7000-8000-000000000001\",\"epoch\":42,\"key_ref\":{\"algorithm\":\"MLS-EXPORTER-AEAD\",\"group_state_ref\":\"ak:event:01964148-0000-8000-8000-000000000000\"},\"purpose\":\"mls_exporter_aead_content\"}",
+        "sender_nonce_prefix_hex": "0775006d",
+        "nonce_hex": "0775006d0000000000000007",
         "negative_mutations": [
           "omit_device_id",
           "epoch=43",
@@ -142,13 +142,13 @@
       "vector_id": "ak.vector.mention.routing_hmac_kat.v1",
       "input": {
         "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-        "realm_id_utf8": "ak:realm:019a7360-0000-7000-8000-000000000000",
+        "realm_id_utf8": "ak:realm:019a7360-0000-8000-8000-000000000000",
         "exporter_label": "arkret-mention-routing-v1",
         "mentioned_did_utf8": "did:webvh:z6MkhAlice:example.com"
       },
       "expected": {
-        "routing_hmac_key_hex": "8735286815aa4aaa887018f249331ab8f800b46a9156aaef5ed089e087f957c2",
-        "routing_tag_hex": "41c455540fa92c5a3f49ba34d436261858dc3d31ab803267682df81ebfb20af4",
+        "routing_hmac_key_hex": "1feb18f3cdcbc0a0e72a67f152703f30bae3f1ea80e66d37cfac5a9c676af021",
+        "routing_tag_hex": "03ffd6b4b4157d5531667612850162e1290a5de71fafba15c4e84e0f2165ec4b",
         "negative_mutations": [
           "wrong_exporter_label",
           "different_realm_id",
@@ -184,7 +184,7 @@
       "vector_id": "ak.vector.reaction.routing_hmac_kat.v1",
       "input": {
         "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-        "realm_id_utf8": "ak:realm:019a7360-0000-7000-8000-000000000000",
+        "realm_id_utf8": "ak:realm:019a7360-0000-8000-8000-000000000000",
         "exporter_label": "arkret-reaction-routing-v1",
         "emoji_cases": [
           {

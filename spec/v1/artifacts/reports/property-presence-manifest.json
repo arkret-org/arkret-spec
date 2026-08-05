@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9211,
+    "total_properties": 9215,
     "total_schema_documents": 155,
     "by_presence_class": {
-      "optional": 2816,
+      "optional": 2824,
       "optional_defaulted": 75,
-      "required": 5957,
+      "required": 5952,
       "required_nullable": 93,
-      "tristate": 270
+      "tristate": 271
     },
-    "tristate_occurrences": 270,
-    "tristate_audit_targets": 163,
+    "tristate_occurrences": 271,
+    "tristate_audit_targets": 164,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 153,
+      "absent_null_equivalent": 154,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -81,6 +81,7 @@
     "event-envelope.schema.json/$defs/predicate/properties/value",
     "event-envelope.schema.json/allOf/115/then/properties/payload",
     "event-envelope.schema.json/allOf/117/then/properties/refs",
+    "event-envelope.schema.json/allOf/176/then/properties/scope_ref",
     "event-envelope.schema.json/allOf/5/then/properties/payload",
     "event-envelope.schema.json/allOf/6/then/properties/payload",
     "event-payload.schema.json/$defs/account_blocklist_payload/properties/entries/items/properties/expires_at",
@@ -548,6 +549,16 @@
       "instance_path": "/refs",
       "occurrences": [
         "/allOf/117/then/properties/refs"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "event-envelope.schema.json",
+      "shape": "#",
+      "instance_path": "/scope_ref",
+      "occurrences": [
+        "/allOf/176/then/properties/scope_ref"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -2434,7 +2445,7 @@
         "/properties/created_at": "required",
         "/properties/display_name": "required",
         "/properties/handle": "optional",
-        "/properties/id": "required",
+        "/properties/id": "optional",
         "/properties/principal_id": "required",
         "/properties/profile_fields": "optional",
         "/properties/profile_fields/properties/bio": "optional",
@@ -3938,7 +3949,7 @@
         "/properties/display": "required",
         "/properties/encryption_profile": "required",
         "/properties/history_visibility": "required",
-        "/properties/id": "required",
+        "/properties/id": "optional",
         "/properties/join_rule": "required",
         "/properties/metadata_encryption_floor": "optional",
         "/properties/mls_group_ref": "optional",
@@ -5362,6 +5373,7 @@
         "/$defs/scope_ref/oneOf/1/properties/circle_id": "required",
         "/$defs/scope_ref/oneOf/1/properties/kind": "required",
         "/$defs/scope_ref/oneOf/1/properties/realm_id": "required",
+        "/$defs/scope_ref/oneOf/2/properties/kind": "required",
         "/$defs/semantic_ref/properties/critical": "optional_defaulted",
         "/$defs/semantic_ref/properties/id": "required",
         "/$defs/semantic_ref/properties/proof": "optional",
@@ -5579,6 +5591,9 @@
         "/allOf/174/then/properties/payload": "optional",
         "/allOf/175/if/properties/kind": "required",
         "/allOf/175/then/properties/payload": "optional",
+        "/allOf/176/if/properties/kind": "required",
+        "/allOf/176/then/properties/scope_ref": "tristate",
+        "/allOf/176/then/properties/scope_ref/properties/kind": "required",
         "/allOf/18/if/properties/kind": "required",
         "/allOf/18/then/properties/payload": "optional",
         "/allOf/19/if/properties/kind": "required",
@@ -5782,7 +5797,7 @@
         "/properties/preconditions": "optional",
         "/properties/prev_refs": "required",
         "/properties/proofs": "required",
-        "/properties/realm_id": "required",
+        "/properties/realm_id": "optional",
         "/properties/redacts": "optional",
         "/properties/refs": "required",
         "/properties/requirements": "optional",
@@ -5802,6 +5817,7 @@
         "/properties/causal_refs",
         "/properties/executed_by",
         "/properties/hlc",
+        "/properties/realm_id",
         "/properties/seal_basis",
         "/properties/seal_ref"
       ]
@@ -9263,7 +9279,7 @@
         "/properties/encrypted_metadata": "optional",
         "/properties/facets": "optional",
         "/properties/fields": "optional",
-        "/properties/id": "required",
+        "/properties/id": "optional",
         "/properties/metadata": "optional",
         "/properties/morph_kind": "required",
         "/properties/realm_id": "required",
@@ -10272,7 +10288,7 @@
         "/properties/fields/properties/collaboration_role": "optional",
         "/properties/fields/properties/purpose": "optional",
         "/properties/history_visibility": "required",
-        "/properties/id": "required",
+        "/properties/id": "optional",
         "/properties/max_authority_lifetime_ms": "optional_defaulted",
         "/properties/max_proposal_defers": "optional_defaulted",
         "/properties/metadata_encryption_floor": "optional",
@@ -12419,7 +12435,7 @@
         "/properties/fields": "optional",
         "/properties/fields/properties/wip_limit": "optional",
         "/properties/fields/properties/wip_limit_enforcement": "optional",
-        "/properties/id": "required",
+        "/properties/id": "optional",
         "/properties/kind": "required",
         "/properties/labels": "optional",
         "/properties/parent_space_id": "optional",
@@ -12508,7 +12524,7 @@
         "/properties/created_by": "required",
         "/properties/encrypted_content": "optional",
         "/properties/encrypted_metadata": "optional",
-        "/properties/id": "required",
+        "/properties/id": "optional",
         "/properties/metadata": "optional",
         "/properties/realm_id": "required",
         "/properties/schema": "required",
@@ -12687,7 +12703,7 @@
         "/properties/dashboard": "optional",
         "/properties/document": "optional",
         "/properties/graph": "optional",
-        "/properties/id": "required",
+        "/properties/id": "optional",
         "/properties/kind": "required",
         "/properties/layout": "optional",
         "/properties/query": "required",

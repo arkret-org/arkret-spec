@@ -557,7 +557,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
   "policy_revision": "01JTV0KQ7K5ZP4VN6C9WEZK2X1",
   "ttl_seconds": 86400,
   "source_refs": [
-    "ak:event:0196419b-0000-7000-8000-000000000000"
+    "ak:event:0196419b-0000-8000-8000-000000000000"
   ],
   "discovery_state": {
     "kind": "ak.organization.discovery",
@@ -810,7 +810,7 @@ Result：
 {
   "results": [
     {
-      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
       "title": "Release Coordination",
       "summary": "Public release coordination",
       "discoverability": "listed",
@@ -822,7 +822,7 @@ Result：
       "preview_ref": "ak:event:<uuid>",
       "join_candidates": [
         {
-          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
           "service_id": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example",
           "service_kind": "principal_server",
           "role": "primary",
@@ -838,7 +838,7 @@ Result：
           "priority": 0,
           "source": "directory_ingest",
           "source_refs": [
-            "ak:event:36531ccc-395a-7455-9880-000000000000"
+            "ak:event:36531ccc-395a-8455-9880-000000000000"
           ],
           "as_of": "2026-05-10T07:55:12Z",
           "expires_at": "2026-05-10T08:05:12Z"
@@ -847,9 +847,9 @@ Result：
       "as_of": "2026-05-10T07:55:12Z",
       "policy_revision": "01JTV0KQ7K5ZP4VN6C9WEZK2X1",
       "source_refs": [
-        "ak:event:36531ccc-395a-7455-9880-000000000000",
-        "ak:event:36531cd0-e580-7bb1-a8ab-310000000000",
-        "ak:event:36531c0c-4155-7fd5-a082-b15662000000"
+        "ak:event:36531ccc-395a-8455-9880-000000000000",
+        "ak:event:36531cd0-e580-8bb1-a8ab-310000000000",
+        "ak:event:36531c0c-4155-8fd5-a082-b15662000000"
       ]
     }
   ],

@@ -13,17 +13,17 @@
     {
       "name": "key_patterns_require_a_full_typed_id_tail",
       "accepted_keys": [
-        "ak.views.private.ak:view:0196419b-0000-7000-8000-000000000001",
+        "ak.views.private.ak:view:0196419b-0000-8000-8000-000000000001",
         "ak.notifications.inbox.ak:notification:0196419b-0000-7000-8000-000000000002"
       ],
       "rejected_keys": [
         "ak.views.private",
         "ak.views.private.",
         "ak.views.private.quarterly-plan",
-        "ak.views.private.ak:realm:0196419b-0000-7000-8000-000000000001",
+        "ak.views.private.ak:realm:0196419b-0000-8000-8000-000000000001",
         "ak.notifications.inbox",
         "ak.notifications.inbox.",
-        "ak.notifications.inbox.ak:view:0196419b-0000-7000-8000-000000000001"
+        "ak.notifications.inbox.ak:view:0196419b-0000-8000-8000-000000000001"
       ],
       "expected": {
         "rejected_error": "invalid_param",
@@ -33,7 +33,7 @@
     },
     {
       "name": "storage_is_encrypted_account_data",
-      "account_data_key": "ak.views.private.ak:view:0196419b-0000-7000-8000-000000000001",
+      "account_data_key": "ak.views.private.ak:view:0196419b-0000-8000-8000-000000000001",
       "requests": [
         {
           "id": "plaintext_definition",
@@ -41,8 +41,8 @@
           "expected_revision": 0,
           "content": {
             "schema": "ak.schema.view.v1",
-            "id": "ak:view:0196419b-0000-7000-8000-000000000001",
-            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+            "id": "ak:view:0196419b-0000-8000-8000-000000000001",
+            "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
             "kind": "collection",
             "state": "active",
             "visibility": "private",
@@ -76,12 +76,12 @@
     },
     {
       "name": "private_view_plaintext_binds_its_own_key",
-      "account_data_key": "ak.views.private.ak:view:0196419b-0000-7000-8000-000000000001",
+      "account_data_key": "ak.views.private.ak:view:0196419b-0000-8000-8000-000000000001",
       "decrypted_plaintext_cases": [
         {
           "name": "accepted",
           "schema": "ak.schema.view.v1",
-          "id": "ak:view:0196419b-0000-7000-8000-000000000001",
+          "id": "ak:view:0196419b-0000-8000-8000-000000000001",
           "visibility": "private",
           "state": "active",
           "accepted": true
@@ -98,7 +98,7 @@
         },
         {
           "name": "foreign_view_id",
-          "id": "ak:view:0196419b-0000-7000-8000-000000000009",
+          "id": "ak:view:0196419b-0000-8000-8000-000000000009",
           "visibility": "private",
           "accepted": false
         },
@@ -212,7 +212,7 @@
     {
       "name": "deletion_mode_is_physical_delete",
       "account_data_keys": [
-        "ak.views.private.ak:view:0196419b-0000-7000-8000-000000000001",
+        "ak.views.private.ak:view:0196419b-0000-8000-8000-000000000001",
         "ak.notifications.inbox.ak:notification:0196419b-0000-7000-8000-000000000002"
       ],
       "requests": [

@@ -79,9 +79,9 @@ Schema id: `ak.schema.strand.v1`
 
 ```json schema=schemas/strand.schema.json
 {
-  "id": "ak:strand:019640f9-8000-7000-8000-000000000000",
+  "id": "ak:strand:019640f9-8000-8000-8000-000000000000",
   "schema": "ak.schema.strand.v1",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "metadata": {
     "title": "支付重构",
     "summary": "统一支付链路、风控回调和退款状态机；同步 owner、决策与 blocker。",
@@ -101,7 +101,7 @@ Schema id: `ak.schema.strand.v1`
     "synthesis": { "is_primary": true },
     "discussion": { "profile": "review" }
   },
-  "scope_circle_id": "ak:circle:019640dc-8000-7000-8000-000000000000",
+  "scope_circle_id": "ak:circle:019640dc-8000-8000-8000-000000000000",
   "state": "active",
   "stage": "in_progress",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
@@ -325,7 +325,7 @@ Strand 永远只有**一个** effective scope。整个 Strand（含所有 track�
     "synthesis": { "is_primary": true },
     "discussion": { "profile": "review" }
   },
-  "scope_circle_id": "ak:circle:019640dc-8000-7000-8000-000000000000"
+  "scope_circle_id": "ak:circle:019640dc-8000-8000-8000-000000000000"
 }
 ```
 
@@ -347,7 +347,7 @@ flowchart LR
     subgraph Realm ["ak:realm: — 父 Realm（federation / policy / capability registry）"]
         direction TB
         StrandA["ak:strand: F_A<br/>scope_circle_id = null"]
-        StrandB["ak:strand: F_B<br/>scope_circle_id = ak:circle:0196419c-0000-7000-8000-000000000000"]
+        StrandB["ak:strand: F_B<br/>scope_circle_id = ak:circle:0196419c-0000-8000-8000-000000000000"]
         RealmScope["Realm-default scope<br/>+ Realm membership"]
         subgraph Circle ["ak:circle: C — 子事件边界"]
             direction TB
@@ -619,10 +619,10 @@ Schema id: `ak.schema.message.v1`
 
 ```json schema=schemas/message.schema.json
 {
-  "id": "ak:message:0196414c-8000-7000-8000-000000000000",
+  "id": "ak:message:0196414c-8000-8000-8000-000000000000",
   "schema": "ak.schema.message.v1",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "strand_id": "ak:strand:019640f9-8000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "strand_id": "ak:strand:019640f9-8000-8000-8000-000000000000",
   "track_name": "discussion",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "content": {
@@ -632,7 +632,7 @@ Schema id: `ak.schema.message.v1`
     "formatted_body": "<mention did=\"did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
   },
   "state": "active",
-  "revision_root": "ak:message:0196414c-8000-7000-8000-000000000000",
+  "revision_root": "ak:message:0196414c-8000-8000-8000-000000000000",
   "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
@@ -649,9 +649,9 @@ Schema id: `ak.schema.message.v1`
     "kind": "ak.strand.create",
     "payload": {
       "object": {
-        "id": "ak:strand:019640f9-8000-7000-8000-000000000000",
+        "id": "ak:strand:019640f9-8000-8000-8000-000000000000",
         "schema": "ak.schema.strand.v1",
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
         "metadata": {
           "title": "项目同步"
         },
@@ -667,7 +667,7 @@ Schema id: `ak.schema.message.v1`
   {
     "kind": "ak.message.create",
     "payload": {
-      "strand_id": "ak:strand:019640f9-8000-7000-8000-000000000000",
+      "strand_id": "ak:strand:019640f9-8000-8000-8000-000000000000",
       "track_name": "discussion",
       "content": {
         "kind": "ak.content.text",

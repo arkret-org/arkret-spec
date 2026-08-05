@@ -70,7 +70,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           }
         },
         "timeline_hlc": {
@@ -108,7 +108,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "description": "When present, MUST denote the same event id set as the top-level frontier.event_ids (set equality): both bind the same snapshot frontier. Consumers MUST reject the snapshot on any mismatch (cross-field consistency enforced by snapshot-schema.md section 5, not by JSON Schema). Members are boundary event ids, not Seal ids; the field is unrelated to the MLS security_frontier_digest."
         },
@@ -253,7 +253,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "minItems": 1,
           "uniqueItems": true,

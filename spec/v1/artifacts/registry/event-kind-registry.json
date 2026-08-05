@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-05.4",
+  "version": "2026-08-06.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-05T20:00:00Z",
+  "generated_at": "2026-08-06T07:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -185,6 +185,7 @@
         }
       ],
       "payload": "Realm create",
+      "id_source": "event_derived",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -327,6 +328,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm metadata patch. target_ref MUST identify a Realm, and patch paths beginning with reducer_profile are forbidden because only ak.realm.upgrade writes the reducer-profile singleton control cell.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -356,6 +358,7 @@
       "reducer_input": true,
       "payload": "Realm alias declaration or durable value tombstone. The declaration is the ONLY wire carrier of a Realm alias: realm.schema.json is closed and carries no alias property, and ak.realm.create / ak.realm.update payloads MUST NOT carry one. Declaration payloads and {tombstone:true} both set ak.component.realm.alias.v1 through the registered cas_register effect; effective resolution treats the tombstone as absence of an alias and falls back to realm_id-only addressing.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_alias_payload",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -381,6 +384,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Writes a registered target_reducer_profile to the Realm reducer-profile singleton control cell. The Move MUST carry a head_eq precondition for that cell's settled source profile. The source profile interprets the upgrade Event; successors whose governance basis contains the accepted upgrade use the target profile.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -406,6 +410,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Organization-authorized Realm relationship statement or revocation",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -445,6 +450,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Typed Realm link graph edge. link_kind declares governance / discoverability / import-export / confidential-extension semantics; it is never generic parent/child containment and never implicitly propagates membership, capabilities, history, E2EE keys, retention, or federation policy.",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -484,6 +490,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm access policy reference (policy_id)",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -509,6 +516,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm join rule (public/invite/knock/restricted/knock_restricted/closed)",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -534,6 +542,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm history visibility scope",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -559,6 +568,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm discoverability state",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -584,6 +594,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm preview / peek policy for directory card, stripped state, history stub, and plaintext history snippet projections",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -610,6 +621,7 @@
       "reducer_input": true,
       "payload": "Realm disappearing-message expiry policy",
       "payload_schema": "ak.schema.disappearing_messages.v1",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -636,6 +648,7 @@
       "reducer_input": true,
       "payload": "Realm privacy-preserving search policy",
       "payload_schema": "ak.schema.search_service.v1",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -661,6 +674,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Sets / changes the Realm's authoritative default discussion Strand pointer. payload = {realm_id, strand_id}; reducer projects payload.strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify the referenced strand_id already exists in this Realm (a projected, non-tombstoned Strand); a dangling reference MUST be rejected with failed_precondition. Strand-side is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage; clients discover the default Strand deterministically from the Realm projection default_strand_id or the Strand projection is_default, NOT from any UUID-reuse implementation detail. Authorization is the standard Realm-admin gate (hold ak.realm.admin, or the same-name action ak.realm.set_default_strand).",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -686,6 +700,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "CAS rotation of the per-Realm notary authority. The current notary must finalize the Move; concurrent rotations join to Bottom and require recovery.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -711,6 +726,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Profile-gated transition from the Realm's current digest suite to a stronger active suite, bound to a transition snapshot and dual-root Seal under ak.profile.hash_transition.v1.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -737,6 +753,7 @@
       "reducer_input": true,
       "payload": "Realm Policy Server direct binding or durable value tombstone. Declaration payloads and {tombstone:true} both set ak.component.realm.policy_server.v1 through the registered cas_register effect; effective queries treat the tombstone as absence of a direct binding and resume governed_by fallback.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_server_payload",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -763,6 +780,7 @@
       "reducer_input": true,
       "payload": "Enabled Realm policy components set, written wholesale into the cas_register cell (every revision restates the complete component set). Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_digest MUST cover policy_revision.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -788,6 +806,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "E2EE history sharing policy",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -814,6 +833,7 @@
       "reducer_input": true,
       "payload": "Constraints on member delivery_binding: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, who may sign rebind. Governs reducer acceptance of ak.member.state{membership=join}.delivery_binding (see governance/join-policy.md §5.1).",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_delivery_binding_policy_payload",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -839,6 +859,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm asset privacy policy",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -864,6 +885,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed / receipt_compliance_opt_in); see zh/discovery/read-receipts.md §2.5 for the closed compliance opt-in object",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -889,6 +911,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm moderation policy (blocklists, allowlists, content filters)",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -914,6 +937,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Plaintext-visible services declaration outside E2EE boundary",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -939,6 +963,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Media Service (TURN/SFU/MCU + ICE) binding",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -964,6 +989,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm schema_refs declaration",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -989,6 +1015,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Per-parent inheritance policy; one entry per source Realm",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1018,6 +1045,7 @@
       "reducer_input": true,
       "payload": "Realm archive lifecycle facet (reversible boolean)",
       "lifecycle_modality": "reversible",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1044,6 +1072,7 @@
       "reducer_input": true,
       "payload": "Realm freeze lifecycle facet (reversible boolean)",
       "lifecycle_modality": "reversible",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1070,6 +1099,7 @@
       "reducer_input": true,
       "payload": "Realm tombstone lifecycle facet (terminal pointer to successor)",
       "lifecycle_modality": "terminal",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1096,6 +1126,7 @@
       "reducer_input": true,
       "payload": "Realm destroy lifecycle facet (terminal decommission marker)",
       "lifecycle_modality": "terminal",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1121,6 +1152,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5.",
+      "id_source": "event_derived",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1150,6 +1182,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Controller-signed minimal Sidecar creation intent. Under the registered parent-Realm bootstrap authority it projects exactly the Sidecar, backing Circle and controller initial backing membership; context objects are excluded. First ensure admits it atomically with ak.sidecar.context.attach. See zh/models/sidecar.md §2-§5.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1180,6 +1213,7 @@
       "admission": "self_authored_proof",
       "payload": "Controller-signed versioned context attachment. It projects only the private Strand and Relation and contains a required EventRef role=after to the Sidecar create Event. It is excluded from the Sidecar control frontier and MLS security frontier input.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_context_attach_payload",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1213,6 +1247,7 @@
       "admission": "self_authored_proof",
       "payload": "Controller-signed full-set access replacement fixed to the parent Realm and backing Circle scope. Version 1 omits predecessor; each successor increments exactly once and references the current head. Delivery receipts are evidence only and never authority.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_access_replace_payload",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1241,6 +1276,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Circle patch (ak.schema.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility.",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1273,6 +1309,7 @@
       "reducer_input": true,
       "payload": "Circle archive lifecycle facet (active -> archived).",
       "lifecycle_modality": "reversible",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1308,6 +1345,7 @@
       "reducer_input": true,
       "payload": "Circle restore lifecycle facet (archived -> active).",
       "lifecycle_modality": "reversible",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1343,6 +1381,7 @@
       "reducer_input": true,
       "payload": "Circle tombstone (terminal). Triggers lifecycle cascade per zh/models/circle.md §9.2.",
       "lifecycle_modality": "terminal",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1374,6 +1413,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Circle membership state. Uses the same membership_state enum as ak.member.state (invite/join/knock/leave/ban), scoped to a Circle. Reducer MUST first validate the target actor is a parent Realm `join` member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1404,7 +1444,8 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": false,
-      "payload": "Reducer-derived: Circle sub-seal commits opaque sub_seal_head_digest to the Realm Seal stream at the Circle's profile-defined cadence. MUST use time-based ticks + empty-batch commitment to avoid leaking activity frequency. See zh/models/circle.md §10.2."
+      "payload": "Reducer-derived: Circle sub-seal commits opaque sub_seal_head_digest to the Realm Seal stream at the Circle's profile-defined cadence. MUST use time-based ticks + empty-batch commitment to avoid leaking activity frequency. See zh/models/circle.md §10.2.",
+      "id_source": "not_an_object_id"
     },
     {
       "event_kind": "ak.organization.discovery",
@@ -1414,6 +1455,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Organization discoverability state",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1443,6 +1485,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Actor discoverability state",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1472,6 +1515,7 @@
       "reducer_input": true,
       "admission": "service_attested",
       "payload": "Applet discoverability state",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1501,6 +1545,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Handle discoverability state",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1530,6 +1575,7 @@
       "reducer_input": true,
       "admission": "capability_gated",
       "payload": "Organization moderation policy state",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1562,6 +1608,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "DID proof object or event",
+      "id_source": "not_an_object_id",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -1593,6 +1640,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Identity disclosure policy",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1622,6 +1670,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Identity disclosure receipt",
+      "id_source": "not_an_object_id",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -1653,6 +1702,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Presentation request",
+      "id_source": "reference",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -1684,6 +1734,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Presentation response",
+      "id_source": "reference",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -1716,6 +1767,7 @@
       "admission": "self_authored_proof",
       "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable_principal_ids the issuer for a declared scope (employment / contracted_service / agent_operator / etc.). Every `Actor Profile.accountable_principal_ids[]` entry requires a matching active grant at profile admission; a missing grant deterministically rejects the whole profile Event with accountability_grant_missing. See zh/models/actor.md §3.3.1. expires_at is optional; absent means non-expiring, governed by grant_status revocation and controller lifecycle cascade.",
       "payload_schema_ref": "schemas/accountability-grant.schema.json",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1752,6 +1804,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Schema definition",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1781,6 +1834,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Schema patch",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1810,6 +1864,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Policy object set",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1838,6 +1893,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Policy rule state",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1869,6 +1925,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Policy-gated action proposal or execution",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1904,6 +1961,7 @@
       "reducer_input": true,
       "payload": "Control cell bottom recovery",
       "admission": "capability_gated",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1930,6 +1988,7 @@
       "reducer_input": true,
       "payload": "Notary equivocation evidence (Control Move). Payload carries signer_id plus the two conflicting Seal wire objects: same (realm_id, notary_seq) slot with different canonical bytes, or a notary_seq=k+1 Seal that does not descend from the same signer's notary_seq=k Seal (authz/event-auth-state-resolution.md section 7.1). Admission is verification-only: any Realm member MAY submit and the two conflicting notary signatures are the complete authorization; no capability grant is consulted and reducer MUST NOT require one. Reducer MUST re-verify both signatures and the slot rule, then add a per-signer fault record to the notary_fault cell. Once a fault record is accepted: receivers MUST reject later Seals signed by the fault signer, the two conflicting Seals and their descendants enter fork_quarantine, and Realm-wide pause applies only when no eligible signer remains.",
       "admission": "crypto_verifiable",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1968,6 +2027,7 @@
       "reducer_input": true,
       "payload": "Notary censorship evidence (Control Move). Payload carries signer_id, the signed control-plane receipt, the seal_ref of the Seal that was obliged to include / signed-reject / defer the pending Control Move, a control_event_set_root non-membership proof for the censored event digest, and the missing rejection-or-defer proof (authz/event-auth-state-resolution.md section 7.2). Admission is verification-only: the receipt holder MAY submit; the receipt signature plus the non-membership proof are the complete authorization. This evidence does NOT automatically disqualify the notary: reducer adds an audit fault record that MUST raise governance alarms, feeds inclusion-list / recovery obligations, and is evaluated by governance or the genesis recovery path.",
       "admission": "crypto_verifiable",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2006,6 +2066,7 @@
       "reducer_input": true,
       "admission": "capability_gated",
       "payload": "Realm membership state",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2035,6 +2096,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior ak.member.identity.update events via payload.replaces[] without overloading ak.profile.update patch semantics.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2070,6 +2132,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Strand create",
+      "id_source": "event_derived",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2077,7 +2140,7 @@
           "cell_family": "ak.component.strand.object.v1",
           "cell_subject": {
             "kind": "id:strand",
-            "field": "payload.object.id"
+            "field": "envelope.event_id"
           },
           "lattice": "mv_register",
           "bottom": "expose",
@@ -2097,6 +2160,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Strand patch",
+      "id_source": "reference",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2128,6 +2192,7 @@
       "reducer_input": true,
       "payload": "Strand archive",
       "lifecycle_modality": "reversible",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2163,6 +2228,7 @@
       "reducer_input": true,
       "payload": "Strand restore",
       "lifecycle_modality": "reversible",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2197,6 +2263,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Strand business-progression stage transition. Single source of truth for mutating Strand.stage / Strand.stage_changed_at; ak.strand.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Strand's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=strand_already_terminal; state=archived yields strand_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. A per-Realm workflow profile MAY narrow which transitions are legal beyond these hard invariants.",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2225,6 +2292,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Unified Strand tracks patch. payload.patch uses ak.schema.patch.v1 against the Strand.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
+      "id_source": "reference",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2255,6 +2323,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Strand move between Spaces (target_space_id in payload). Writes a cas_register cell keyed by (board_space_id, strand_id); the contains Relation list_space_id->strand_id is derived from cell value, not a separate truth source. Plane ruling (CBA): ak.component.strand.position.v1 defaults to sealed=true (control plane), so ak.strand.move is a Control Move carrying seal_basis; Realm schema MAY redeclare the cell family as data-plane mv_register + user-pick or per-object sequencer per authz/event-auth-state-resolution.md section 9.4 and models/realm-and-space.md section 3.6.",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2307,6 +2376,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Strand reorder within Space. Writes the same cell as ak.strand.move; the reducer-projected list_space_id MUST equal head_eq.list_space_id (rank-only update). Plane ruling follows ak.strand.move: same cell family, same default sealed=true control-plane declaration (models/realm-and-space.md section 3.6).",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2359,6 +2429,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a cas_register cell keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch ak.audit.accessed event with access_kind=watch_set_others. The watches Relation (actor --watches--> strand) is a derived projection of this cell, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2446,6 +2517,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Space create (board / list / swimlane / calendar bucket / etc.)",
+      "id_source": "event_derived",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2453,7 +2525,7 @@
           "cell_family": "ak.component.space.metadata.v1",
           "cell_subject": {
             "kind": "id:space",
-            "field": "payload.object.id"
+            "field": "envelope.event_id"
           },
           "lattice": "mv_register",
           "bottom": "expose",
@@ -2473,6 +2545,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Space metadata update (title, rank, kind-specific fields)",
+      "id_source": "not_an_object_id",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2506,6 +2579,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Space parent declaration. Parent is another ak:space: or null; cross-Realm parent is navigation only and never propagates Realm membership, capabilities, history, E2EE keys, retention, or federation policy.",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2535,6 +2609,7 @@
       "reducer_input": true,
       "payload": "Space archive (UI-level grouping archive; contained Strands MUST be relocated or follow archive)",
       "lifecycle_modality": "reversible",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2570,6 +2645,7 @@
       "reducer_input": true,
       "payload": "Space restore (transition state archived -> active; only valid when current state == archived; tombstoned Spaces MUST NOT be restored)",
       "lifecycle_modality": "reversible",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2605,6 +2681,7 @@
       "reducer_input": true,
       "payload": "Space tombstone (irreversible; contained Strands MUST be relocated before)",
       "lifecycle_modality": "terminal",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2636,6 +2713,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Message create. Payload MUST omit message_id; reducer materializes Message.id by retyping the UUIDv7 of Event.event_id.",
+      "id_source": "event_derived",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2666,6 +2744,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Controller-authored durable Sidecar exchange control. The outer payload exposes only private Strand routing plus an MLS encrypted payload whose plaintext validates as ak.schema.agent_sidecar_exchange_control.v1. It is accepted only in the matching Sidecar backing Circle from that Sidecar controller and is the sole truth source for coordinator reassignment and terminal exchange state.",
+      "id_source": "reference",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2696,6 +2775,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Message edit patch",
+      "id_source": "not_an_object_id",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2727,6 +2807,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Message-scoped redaction; does not grant generic redaction authority",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2763,6 +2844,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Reaction add",
+      "id_source": "reference",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2793,6 +2875,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Reaction remove",
+      "id_source": "reference",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2824,6 +2907,7 @@
       "reducer_input": true,
       "payload": "Calendar event RSVP set",
       "payload_schema": "ak.schema.rsvp.v1",
+      "id_source": "not_an_object_id",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2856,6 +2940,7 @@
       "reducer_input": true,
       "payload": "Shared pin add or update",
       "payload_schema": "ak.schema.pin.v1",
+      "id_source": "not_an_object_id",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2887,6 +2972,7 @@
       "reducer_input": true,
       "payload": "Shared pin remove",
       "payload_schema": "ak.schema.pin.v1",
+      "id_source": "not_an_object_id",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2918,6 +3004,7 @@
       "reducer_input": true,
       "payload": "Shared pin rank update",
       "payload_schema": "ak.schema.pin.v1",
+      "id_source": "not_an_object_id",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2949,6 +3036,7 @@
       "reducer_input": true,
       "payload": "Generic redaction envelope for non-message objects/events and profile-declared content trimming",
       "lifecycle_modality": "terminal",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2984,6 +3072,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Morph create",
+      "id_source": "event_derived",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2991,7 +3080,7 @@
           "cell_family": "ak.component.morph.v1",
           "cell_subject": {
             "kind": "id:morph",
-            "field": "payload.object.id"
+            "field": "envelope.event_id"
           },
           "lattice": "mv_register",
           "bottom": "expose",
@@ -3011,6 +3100,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Morph patch",
+      "id_source": "reference",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -3042,6 +3132,7 @@
       "reducer_input": true,
       "payload": "Morph archive",
       "lifecycle_modality": "reversible",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3077,6 +3168,7 @@
       "reducer_input": true,
       "payload": "Morph restore",
       "lifecycle_modality": "reversible",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3111,6 +3203,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability ak.morph.schema_migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares ak.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3.",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3139,6 +3232,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Morph business-progression stage transition. Single source of truth for mutating Morph.stage / Morph.stage_changed_at; ak.morph.update / ak.morph.schema_migrate patches on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on an associated discussion track that 'references' this event. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=morph_already_terminal; state=archived yields morph_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at.",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3167,14 +3261,15 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Relation create",
+      "id_source": "event_derived",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
         {
           "cell_family": "ak.component.relation.v1",
           "cell_subject": {
-            "kind": "typed_id",
-            "field": "payload.relation.id"
+            "kind": "id:relation",
+            "field": "envelope.event_id"
           },
           "lattice": "mv_register",
           "bottom": "expose",
@@ -3194,6 +3289,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Relation patch",
+      "id_source": "reference",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -3226,6 +3322,7 @@
       "payload": "Irreversible Relation lifecycle transition. payload.relation_id is the sole target carrier; payload.target_ref and update-style payload.patch are forbidden. Optional payload.reason is retained on the Event, while the materialized Relation stores only state=tombstoned and state_changed_at=Event.created_at.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_tombstone_payload",
       "lifecycle_modality": "terminal",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3254,6 +3351,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Profile-declared container item move",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3285,6 +3383,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Profile-declared container rank rebalance",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3313,14 +3412,15 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "View create",
+      "id_source": "event_derived",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
         {
           "cell_family": "ak.component.view.create.v1",
           "cell_subject": {
-            "field": "payload.view_id",
-            "kind": "string"
+            "kind": "id:view",
+            "field": "envelope.event_id"
           },
           "lattice": "mv_register",
           "bottom": "expose",
@@ -3340,6 +3440,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "View update",
+      "id_source": "not_an_object_id",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -3370,6 +3471,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "View schema or definition sync",
+      "id_source": "not_an_object_id",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -3397,6 +3499,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorize_payload and bind agent_id, key_id, verification_method, accountable_principal_id, agent_key_scope, audience, issued_at, and approval_evidence; expires_at is optional (absent means non-expiring, revocation-governed). The agent-key cell is an observed-remove OR-Set. First authorization adds one authorization dot. Same-key re-authorization MUST atomically remove every active authorization dot visible at the Move seal_basis and add the replacement dot; it MUST NOT select a winner by arrival time. Concurrent replacement dots that survive the join are evaluated by the deterministic strictest fold: intersect agent_key_scope and audience, take the earliest finite expires_at (absence is +infinity), and fail closed if accountable_principal_id or verification_method disagree. Key replacement has no dedicated rotate kind: runtime replacement re-pairing authorizes the new key and revokes every prior active key (reason=superseded_by_repairing) in the same accepted transaction.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3446,6 +3549,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoke_payload and bind agent_id, key_id, revoked_at, and revoked_by; the revocation's control-plane basis is the Control Move envelope seal_basis, and its cutoff is the accepted Seal covering the Move.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3497,6 +3601,7 @@
       "admission": "self_authored_proof",
       "payload": "Controller-authored native personal Agent provisioning fact. One Event proof binds the allocated Agent DID/PCR, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability and selector cells; no nested payload proof or partial two-Event state is valid.",
       "payload_schema_ref": "schemas/agent-provision.schema.json",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3564,6 +3669,7 @@
       "admission": "self_authored_proof",
       "payload": "Controller-owned signed selector statement binding (controller_subject, agent_slug) to one native personal agent DID. The Event belongs in the controller Principal Control Realm, never the Agent PCR or a Collaboration Realm. Concurrent distinct current values remain visible and make selector resolution ambiguous/fail-closed.",
       "payload_schema_ref": "schemas/agent-selector-claim.schema.json",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3595,6 +3701,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent lifecycle transition to paused state. Authorization basis is the Control Move envelope seal_basis; payload carries no independent frontier. Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within an independent pause revocation freshness window of at most 60 seconds, never merely the session maximum TTL. Reversible via ak.self.agent.resume.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3626,6 +3733,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent lifecycle transition from paused to active. Authorization basis is the Control Move envelope seal_basis; payload carries no independent frontier. At acceptance the reducer MUST use the accepted current control frontier to re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3657,6 +3765,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent lifecycle terminal state. One accepted controller-authorized Event is the unavoidable parent AND gate for every runtime key, session, pairing handle, capability grant, KeyPackage, presence and future submission. Cleanup is asynchronous and MUST NOT synthesize or require child revocation Events. Terminal — no transition out.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3687,7 +3796,8 @@
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Agent-initiated draft proposal. Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned ak.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history."
+      "payload": "Agent-initiated draft proposal. Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned ak.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history.",
+      "id_source": "not_an_object_id"
     },
     {
       "event_kind": "ak.agent.action_request",
@@ -3695,7 +3805,8 @@
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Agent-initiated action request. Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event."
+      "payload": "Agent-initiated action request. Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event.",
+      "id_source": "not_an_object_id"
     },
     {
       "event_kind": "ak.agent.action_approve",
@@ -3703,7 +3814,8 @@
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Controller approval of a draft / action request. Binds draft_id, content digest, target descriptor, proposed_action, approved payload digest, approval expiry, and single-use nonce. Publish executor MUST atomic-consume the nonce; reuse fails closed (reason=approval_already_consumed)."
+      "payload": "Controller approval of a draft / action request. Binds draft_id, content digest, target descriptor, proposed_action, approved payload digest, approval expiry, and single-use nonce. Publish executor MUST atomic-consume the nonce; reuse fails closed (reason=approval_already_consumed).",
+      "id_source": "not_an_object_id"
     },
     {
       "event_kind": "ak.agent.action_reject",
@@ -3711,7 +3823,8 @@
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Controller rejection of a draft / action request. Draft transitions to rejected; agent runtime MUST NOT continue publish attempts."
+      "payload": "Controller rejection of a draft / action request. Draft transitions to rejected; agent runtime MUST NOT continue publish attempts.",
+      "id_source": "not_an_object_id"
     },
     {
       "event_kind": "ak.capability.grant",
@@ -3720,6 +3833,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Capability grant",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3761,6 +3875,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Capability revocation",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3786,6 +3901,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Derived capability state",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3818,6 +3934,7 @@
       "reducer_input": true,
       "admission": "service_attested",
       "payload": "Session grant",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3850,6 +3967,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Holder-private consent declaration: 'I consent to receive <consent_scope> from <peer>'",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3882,6 +4000,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Revoke a previously granted consent (shares the ak.consent.grant cell; semantically a remove on the consent or_set)",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3912,6 +4031,7 @@
       "admission": "self_authored_proof",
       "payload": "Requester-signed directional Contact request: closed peer XOR plus full granted_to_peer_scopes. It precedes every acceptance receipt and basis and never reads or writes Consent.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_requested_payload",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -3958,6 +4078,7 @@
       "admission": "self_authored_proof",
       "payload": "Holder-signed normal Contact acceptance: closed peer XOR, exact request/receipt digest, stable basis, lineage version 1 and full granted_to_peer_scopes. It never reads or writes Consent.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_accepted_payload",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4004,6 +4125,7 @@
       "admission": "self_authored_proof",
       "payload": "Holder-signed terminal rejection bound to the exact request Event and acceptance-receipt digest. It creates no basis and has no Consent or basis-proof fields.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_rejected_payload",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4050,6 +4172,7 @@
       "admission": "self_authored_proof",
       "payload": "Holder-signed issuer-local Contact generation terminal. It consumes the stable basis and cannot carry scope replacement or write/revoke Private Consent.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_tombstoned_payload",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4096,6 +4219,7 @@
       "admission": "self_authored_proof",
       "payload": "Holder-signed issuer-local full-set granted_to_peer_scopes replacement bound to the closed peer XOR, stable basis, version and predecessor. Expansion and narrowing are both explicit; tombstone remains the only generation terminal.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_scope_update_payload",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4141,6 +4265,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Participant endorsement of the settled Direct Conversation coordinates and of the first exact-pair MLS generation. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact basis may author the founding unit. Written once and never retired; the active MLS generation is projected separately and read as the current value, never pinned by this payload.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4173,6 +4298,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Selects which already-established MLS group currently holds send authority in a Direct Conversation Realm. It never creates a group: the producer first establishes candidate state with ordinary ak.mls.genesis and Add Commit and durably stores its own private state, and the activation then references those accepted public facts. Generation 0 is the founder's sender-only provisional exporter group. Generation 1 MUST be authored by the joiner, because no portable proof exists that the peer Principal Server durably accepted the Welcome and only the joiner can truthfully assert it. Generation 2 and above are post-binding repair and require generation = current + 1 with predecessor_active_value_digest matching the current value.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4199,6 +4325,7 @@
       "reducer_input": true,
       "admission": "service_attested",
       "payload": "Account Authority / authoritative Principal Server signed account lifecycle status. Event actor/proof controller is the authorized issuer service DID; payload account_id and principal_id MUST match its verified service-account binding.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4229,7 +4356,8 @@
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Actor-private blocklist state"
+      "payload": "Actor-private blocklist state",
+      "id_source": "not_an_object_id"
     },
     {
       "event_kind": "ak.account_data.set",
@@ -4237,7 +4365,8 @@
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Actor-private account data update"
+      "payload": "Actor-private account data update",
+      "id_source": "not_an_object_id"
     },
     {
       "event_kind": "ak.profile.create",
@@ -4247,14 +4376,15 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Actor profile create",
+      "id_source": "event_derived",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
         {
           "cell_family": "ak.component.profile.create.v1",
           "cell_subject": {
-            "field": "payload.object.id",
-            "kind": "id:actor_profile"
+            "kind": "id:actor_profile",
+            "field": "envelope.event_id"
           },
           "lattice": "mv_register",
           "bottom": "expose",
@@ -4276,6 +4406,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Actor profile update",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4308,6 +4439,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Realm-scoped profile override. payload.target_realm_id is the target Realm and no Space boundary is created.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4340,6 +4472,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Device authorization",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4376,6 +4509,7 @@
       "admission": "did_root_anchor",
       "payload": "B-model DID-root recovery re-anchor. Accepted only as the first event of an atomic re-anchor plus replacement-authorize unit in a principal control Realm. It fences the old device generation against the complete accepted Seal frontier and preserves every same-version candidate for deterministic conflict quarantine.",
       "payload_schema": "ak.schema.device_reanchor.v1",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4408,6 +4542,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Device revocation",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4437,6 +4572,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Device list update",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4470,6 +4606,7 @@
       "admission": "self_authored_proof",
       "payload": "Key backup active series selection for one principal and backup_kind.",
       "payload_schema": "ak.schema.key_backup_active_series.v1",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4508,7 +4645,8 @@
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Push route binding for a (recipient_service_id, principal, device, push_route) tuple. Carries push_target_id, push_gateway_did, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_id context."
+      "payload": "Push route binding for a (recipient_service_id, principal, device, push_route) tuple. Carries push_target_id, push_gateway_did, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_id context.",
+      "id_source": "not_an_object_id"
     },
     {
       "event_kind": "ak.cross_signing.publish",
@@ -4519,6 +4657,7 @@
       "admission": "self_authored_proof",
       "payload": "Cross-signing publish",
       "payload_schema": "ak.schema.cross_signing_publish.v1",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4560,6 +4699,7 @@
       "admission": "self_authored_proof",
       "payload": "Cross-signing reset",
       "payload_schema": "ak.schema.cross_signing_reset.v1",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4591,6 +4731,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "MLS proposal",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4622,6 +4763,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "MLS group genesis",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4667,6 +4809,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "MLS commit",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4710,6 +4853,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "MLS commit or Welcome processing failure diagnostic",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4741,6 +4885,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "MLS welcome reference",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4776,6 +4921,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "MLS KeyPackage publication",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -4809,6 +4955,7 @@
       "reducer_input": true,
       "admission": "crypto_verifiable",
       "payload": "Realm key share: member-device history key delivery or RRK durability seal",
+      "id_source": "not_an_object_id",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -4956,6 +5103,7 @@
       "reducer_input": true,
       "admission": "crypto_verifiable",
       "payload": "Realm key withheld notice",
+      "id_source": "not_an_object_id",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -5107,6 +5255,7 @@
       "reducer_input": true,
       "admission": "service_attested",
       "payload": "Auditable history key share marker",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5138,6 +5287,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Auditable access marker for privileged reads or privacy-sensitive paired writes. E2EE compliance release uses ak.audit.release; ak.audit.accessed remains for non-release audit pairs such as Circle metadata audit, watch_set_others, late recovery, and policy reads.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5173,6 +5323,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Audit Applet Binding. Declares that an audit applet/service may request staged historical release sessions for a specific Realm or Circle effective_scope. Binding is control-plane only: it does not add the applet to MLS, does not subscribe it to signal sync, and does not grant plaintext/history keys. Bindings are non-retroactive: activation_frontier_digest / first_auditable_epoch define the earliest eligible material, and later policy changes MUST NOT expand eligibility for already encrypted messages.",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5201,6 +5352,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Audit release session request. Must reference an active ak.audit.applet_binding and a bounded historical target range or target_refs.",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5229,6 +5381,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Audit release session authorization by a scoped approver. Approves only the intersection of request, binding, policy, and effective_scope.",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5257,6 +5410,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Member-visible notice for an audit release session. Circle-scoped notices are visible only to the target Circle audience and authorized moderators/admins.",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5290,6 +5444,7 @@
         "same_basis_close_vs_release": "close_wins_release_rejected",
         "within_seal_order": "event_digest_lexicographic"
       },
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5321,6 +5476,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Close an audit release session and freeze its final release_refs. release_refs MUST exactly equal the accepted ordered release log at the close seal_basis. Close is terminal; for same-basis close versus release, close wins and the competing release is rejected.",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5348,7 +5504,8 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": false,
-      "payload": "Audit RYW receipt"
+      "payload": "Audit RYW receipt",
+      "id_source": "not_an_object_id"
     },
     {
       "event_kind": "ak.audit.erasure_receipt",
@@ -5356,7 +5513,8 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": false,
-      "payload": "Signed hard-erasure receipt. Attests deletion outcome and retained verification stub within an issuer-declared storage boundary; does not prove independent third-party copies disappeared."
+      "payload": "Signed hard-erasure receipt. Attests deletion outcome and retained verification stub within an issuer-declared storage boundary; does not prove independent third-party copies disappeared.",
+      "id_source": "not_an_object_id"
     },
     {
       "event_kind": "ak.attestation.range_completeness",
@@ -5364,7 +5522,8 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": false,
-      "payload": "Range-bound completeness attestation. Distinct from ak.audit.ryw_receipt (per-event read-your-writes hint) and ak.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent seal backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §6.4."
+      "payload": "Range-bound completeness attestation. Distinct from ak.audit.ryw_receipt (per-event read-your-writes hint) and ak.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent seal backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §6.4.",
+      "id_source": "not_an_object_id"
     },
     {
       "event_kind": "ak.self.moderation.report",
@@ -5389,6 +5548,7 @@
         }
       ],
       "payload": "Moderation report. A report authored by the reporter's own device admits as self_authored_proof (actor == subject == payload.reporter). An inbound MIMI report mapped by the provider facade sets payload.provenance=mimi_facade and admits as service_attested: the envelope actor is the facade service DID, payload.reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 10/11 consent and holder-claim rules, payload.source_provider carries the origin MIMI provider, and the reducer MUST verify the actor service operates the MIMI facade for payload.realm_id. The facade MUST NOT author actor_id as the reporter principal.",
+      "id_source": "not_an_object_id",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -5421,6 +5581,7 @@
       "admission": "crypto_verifiable",
       "payload": "Receiving-service proof that one encrypted target Event was received. The payload is exactly moderation-report.schema.json#/$defs/franking_proof; payload.event_id identifies the proven Event and is the ak.component.moderation.franking_proof.v1 cell subject. A proof is created independently of any later report, so report_id and target_ref are not payload fields.",
       "payload_schema_ref": "schemas/moderation-report.schema.json#/$defs/franking_proof",
+      "id_source": "reference",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -5451,6 +5612,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Sealed moderation decision (writes ak.component.moderation_state.v1 cell)",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5482,6 +5644,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Lift a previously sealed moderation decision (observed-remove/supersede the referenced decision in ak.component.moderation_state.v1)",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5510,6 +5673,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Submit an appeal against an existing ak.moderation.decision. Writes the appeal cell to state=submitted. Schema: ak.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal strand).",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5541,6 +5705,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: ak.schema.moderation_appeal.v1.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5572,6 +5737,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits ak.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: ak.schema.moderation_appeal.v1.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5603,6 +5769,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Closes the appeal from submitted / under_review / decided via reviewer close, appellant withdrawal, or a deployment's authorized close service. close is a manual/authorized action; the protocol does not mandate any auto-close timer or cool-off duration (deployment/Realm policy decides). Schema: ak.schema.moderation_appeal.v1.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5630,7 +5797,8 @@
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Read cursor advance event (actor-private). Writes the actor's latest read position for a given (realm_id, read_scope) tuple. Was historically named ak.read.cursor; renamed to align the event_kind, capability action, schema id and typed ID prefix on a single noun root read_cursor."
+      "payload": "Read cursor advance event (actor-private). Writes the actor's latest read position for a given (realm_id, read_scope) tuple. Was historically named ak.read.cursor; renamed to align the event_kind, capability action, schema id and typed ID prefix on a single noun root read_cursor.",
+      "id_source": "not_an_object_id"
     },
     {
       "event_kind": "ak.invite.create",
@@ -5639,6 +5807,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Invite create. Directed v1 invite payloads carry invitee plus invite_delivery_target and introduction_evidence_digest; raw locator tokens and invite_receive_policy state are private and MUST NOT enter the durable Realm event.",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5698,6 +5867,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Invite cancel",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5776,6 +5946,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Invite accept",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5819,6 +5990,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Third-party identifier pending invite",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5866,6 +6038,7 @@
         "ak.vector.invite.consumed_token_resubject_rejected.v1",
         "ak.vector.invite.failure_indistinguishable.v1"
       ],
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5918,6 +6091,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Third-party invite revoke",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5966,6 +6140,7 @@
       "reducer_input": true,
       "admission": "service_attested",
       "payload": "Bridge failure",
+      "id_source": "reference",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -5997,6 +6172,7 @@
       "reducer_input": true,
       "admission": "service_attested",
       "payload": "Applet registration",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -6026,6 +6202,7 @@
       "reducer_input": true,
       "admission": "capability_gated",
       "payload": "MIMI room binding state",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -6054,6 +6231,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Call state",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -6294,6 +6472,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Call recording / transcript capture start",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -6405,6 +6584,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Durable end-of-call summary",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -6434,6 +6614,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Sovereign DID resolver policy state",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -6462,6 +6643,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm authority-root controller transfer",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -6490,6 +6672,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm authority generation reset",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -6518,6 +6701,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm authority-root capability registry basis update",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -6547,6 +6731,7 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Subject-authored release of the actor own capability grant",
+      "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,
       "cell_writes": [

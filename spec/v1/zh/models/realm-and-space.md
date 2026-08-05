@@ -174,7 +174,7 @@ Schema id: `ak.schema.realm.v1`
 
 ```json schema=schemas/realm.schema.json
 {
-  "id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "schema": "ak.schema.realm.v1",
   "title": "Launch Plan Confidential Realm",
   "trust_domain": "ak:trust_domain:did.webvh.acme.example",
@@ -199,6 +199,53 @@ Schema id: `ak.schema.realm.v1`
 ```
 
 ### 2.5 `ak.realm.create` Reducer Bootstrap（normative）
+
+#### 2.5.0 `realm_id` 由 genesis Event 派生且自证（normative）
+
+Realm ID 不由创建者选取，而是由 genesis Event 自身派生。`ak.realm.create` MUST 满足：
+
+```text
+envelope.realm_id       MUST 省略
+envelope.scope_ref      MUST 是 {"kind":"realm_genesis"}（不含 realm_id）
+payload.object.id       MUST 省略
+
+receiver 派生：realm_id = retype(event_id, "realm")
+```
+
+违反 MUST `schema_violation`，`reason_code=realm_id_not_event_derived`。
+
+**为什么必须省略而不是"携带并校验相等"（normative rationale）**：`event_digest` 的 preimage 只排除 `proofs` / `unsigned` / `actor_kind` / `event_id`（[`../conformance/encoding.md` §6](../conformance/encoding.md)），`realm_id` 与 `scope_ref` **仍在 preimage 内**。而 §4.0 的 `event_id` 由该 digest 决定，`realm_id` 又要等于 `retype(event_id)`——于是 `realm_id` 成为 digest 的函数，却又是 digest 的输入，**定义即循环，没有不动点可解**。唯一出路是把它移出 preimage，即从 envelope 省略；`scope_ref` 同理，故 genesis 使用不含 `realm_id` 的 `realm_genesis` 形态。这与 Matrix room v12 把 `room_id` 从 create event 移除的理由完全相同。
+
+Realm 之外的 create-once 对象没有这个问题：它们的 ID 只出现在 payload，且按 [`common-fields.md` §6.0](./common-fields.md) 一律省略。
+
+**Principal Control Realm 是本节的例外（normative）**：PCR 的 `realm_id` 不由 genesis Event 派生，而由 principal DID 确定性派生：
+
+```text
+uuid = truncate16( SHA-256( PCR_DOMAIN || principal_did ) )   并置 UUIDv7 的 version / variant 位
+PCR_DOMAIN = UTF8("ak" ":" "realm" ":" "principal-control:v1:")
+```
+
+理由是**可寻址性**：任何一方拿到某个 principal 的 DID 就能直接算出其 PCR 地址，不需要查询；而带时间戳段的 event-derived 形态无法从 DID 单独算出。PCR 的身份锚本来也不是 genesis Event，而是 [`../identity/key-management.md` §5.0.1](../identity/key-management.md) 的唯一 critical `did_inception` root anchor——那比 genesis Event 更强。
+
+因此 `ak:realm:` 是**唯一同时接受两种内容绑定形态**的 typed kind：collaboration Realm 用 event-derived UUIDv8，PCR 用 subject-derived UUIDv7 布局。两者都不是 producer 自选，分支由 create 的 `purpose` 决定，实现 MUST NOT 逐调用点自选。
+
+**首次接触校验义务（normative）**：receiver 首次接触某个 `realm_id` 时 MUST：
+
+1. 先定位该 Realm 的 `ak.realm.create` 并取得其完整 canonical bytes；
+2. 重算 `event_id` 并校验 `retype(event_id) == realm_id`；
+3. **校验通过前 MUST NOT 接受该 Realm 的任何 Event 或 Seal**；
+4. 把该 genesis 持久化为该 `realm_id` 的永久本地绑定；
+5. 此后出现的任何不同 genesis MUST 拒绝，MUST NOT 因为它先到、更新、或来自"更权威"的 peer 而覆盖。
+
+上面第 3 条大体已被现有机制隐含——Control Move 要 `seal_basis`、DataEvent 要 `seal_ref`，Seal 链最终 root 在 genesis Seal——但仍 MUST 显式执行，否则实现会在 backfill 乱序时先落一半状态。
+
+**这条使 `realm_id` 自证。**一个恶意 join candidate 服务自造的"Realm S"时，其 genesis 内容不同 → `event_id` 不同 → `retype(event_id) ≠ S` → 首次接触即被拒。因此 invite、`join_candidates[]` 与 Directory 响应 **MUST NOT** 被要求携带 genesis digest 或 authority-root 值：自证不需要外部背书，也不引入对邀请者或 Directory 的新信任。拒绝时的对外语义复用 [`../sync/federation.md` §5.0](../sync/federation.md) 规则 4 的统一最小披露失败族。
+
+> **边界：identity 自证，naming 不自证。**攻击者仍可创建一个 `realm_id` 完全合法自证的 Realm，再去抢注一个像样的 alias。alias 抢注与目录投毒是独立问题，本节不解决，也 MUST NOT 被表述为已解决。
+
+由于两条不同的 create 必然有不同 `event_id`、因而必然是两个不同的 Realm，"同一 Realm id 的第二条 create"只可能来自伪造 `event_id`（§4.0 的 2^88）。下文步骤 3 的 `realm_already_exists` 因此成为一条防御性剩余分支，而不是常规路径。
+
+#### 2.5.1 Bootstrap 步骤
 
 `ak.realm.create` 是 Realm 生命周期的 genesis event。它同时建立 Realm metadata、`created_by` 的首份成员资格、Realm reducer profile、notary 与终身稳定的 authority root，全部由该 Event 的注册 reducer contract 原子承担。
 
@@ -559,10 +606,10 @@ Project Space：
 
 ```json schema=schemas/space.schema.json
 {
-  "id": "ak:space:019640b6-8000-7000-8000-000000000000",
+  "id": "ak:space:019640b6-8000-8000-8000-000000000000",
   "schema": "ak.schema.space.v1",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "default_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "default_realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "kind": "project",
   "title": "Website Redesign",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
@@ -574,11 +621,11 @@ Confidential sibling Space：
 
 ```json schema=schemas/space.schema.json
 {
-  "id": "ak:space:019640c0-8000-7000-8000-000000000000",
+  "id": "ak:space:019640c0-8000-8000-8000-000000000000",
   "schema": "ak.schema.space.v1",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "default_realm_id": "ak:realm:019641aa-0000-7000-8000-000000000000",
-  "parent_space_id": "ak:space:019640a0-8000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "default_realm_id": "ak:realm:019641aa-0000-8000-8000-000000000000",
+  "parent_space_id": "ak:space:019640a0-8000-8000-8000-000000000000",
   "kind": "project",
   "title": "Pricing Strategy",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",

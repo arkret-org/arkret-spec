@@ -730,10 +730,10 @@ components:
           const: relation_container
         scope_container_id:
           type: string
-          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         container_id:
           type: string
-          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
@@ -753,16 +753,16 @@ components:
           const: relation
         scope_container_id:
           type: string
-          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         container_id:
           type: string
-          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
         relation_id:
           type: string
-          pattern: ^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         rank:
           type: string
           pattern: ^[0-9A-Za-z]{1,128}$
@@ -822,10 +822,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         widgets:
@@ -1051,10 +1051,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         sections:
@@ -1334,7 +1334,7 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventFederationSubmission
     EventId:
       type: string
-      pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     EventsActorCasConflictProblem:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsActorCasConflictProblem
     EventsDependencyMissingProblem:
@@ -1373,7 +1373,7 @@ components:
       properties:
         event_id:
           type: string
-          pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         event_digest:
           type: string
           description: Canonical hash of the event's canonical bytes (excluding
@@ -1433,7 +1433,7 @@ components:
       properties:
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_policy_digest:
           type: string
           pattern: ^sha256:[0-9a-f]{64}$
@@ -1441,12 +1441,12 @@ components:
           type: array
           items:
             type: string
-            pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         delivery_binding_frontier:
           type: array
           items:
             type: string
-            pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         delivery_binding_diagnostics:
           type: object
           additionalProperties: true
@@ -1475,16 +1475,16 @@ components:
       properties:
         relation_id:
           type: string
-          pattern: ^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
         from_ref:
           type: string
-          pattern: ^(ak:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+          pattern: ^(ak:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         to_ref:
           type: string
-          pattern: ^(ak:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+          pattern: ^(ak:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         rank:
           type: string
           pattern: ^[0-9A-Za-z]{1,128}$
@@ -1523,10 +1523,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         nodes:
@@ -1749,7 +1749,7 @@ components:
       additionalProperties: false
     ObjectRef:
       type: string
-      pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     OrganizationRegistrationChallenge:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallenge
     OrganizationRegistrationChallengeRequestBody:
@@ -1824,7 +1824,7 @@ components:
       properties:
         relation_id:
           type: string
-          pattern: ^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         actor_id:
           type: string
           pattern: ^did:[a-z0-9]+:[^\s#?]+$
@@ -1842,10 +1842,10 @@ components:
       properties:
         morph_id:
           type: string
-          pattern: ^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         morph_kind:
           type: string
         state:
@@ -1876,7 +1876,7 @@ components:
       properties:
         id:
           type: string
-          pattern: ^ak:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         type:
           type: string
           enum:
@@ -1947,10 +1947,10 @@ components:
       properties:
         space_id:
           type: string
-          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         kind:
           type: string
           description: Space kind such as `board`, `list`, `folder`, or a profile-registered kind.
@@ -1996,10 +1996,10 @@ components:
       properties:
         strand_id:
           type: string
-          pattern: ^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         state:
           type: string
           enum:
@@ -2022,13 +2022,13 @@ components:
           type:
           - string
           - 'null'
-          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
           description: Derived board Space id from ak.component.strand.position.v1; not canonical Strand object state.
         list_space_id:
           type:
           - string
           - 'null'
-          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
           description: Derived list Space id from ak.component.strand.position.v1; not canonical Strand object state.
         rank:
           type:
@@ -2184,7 +2184,7 @@ components:
       $ref: ../schemas/event-payload.schema.json#/$defs/realm_freeze_payload
     RealmId:
       type: string
-      pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     RealmLifecycleView:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view
     RealmLinkCreateRequestBody:
@@ -2840,7 +2840,7 @@ components:
       properties:
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         edge_status:
           $ref: '#/components/schemas/SpaceHierarchyEdgeState'
         accessible:
@@ -2861,10 +2861,10 @@ components:
       properties:
         parent_space_id:
           type: string
-          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         child_space_id:
           type: string
-          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         edge_status:
           $ref: '#/components/schemas/SpaceHierarchyEdgeState'
         relation_kind:
@@ -2886,7 +2886,7 @@ components:
       properties:
         root_space_id:
           type: string
-          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         root:
           $ref: '#/components/schemas/ProjectionObject'
         children:
@@ -2914,7 +2914,7 @@ components:
           type: array
           items:
             type: string
-            pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         actor_frontiers:
           type: array
           items:
@@ -2932,7 +2932,7 @@ components:
                 minimum: 0
               event_id:
                 type: string
-                pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
               hlc:
                 type: string
                 pattern: ^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$
@@ -2989,7 +2989,7 @@ components:
       additionalProperties: false
     StrandId:
       type: string
-      pattern: ^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     TimelineProjectionRow:
       type: object
       required:
@@ -3010,7 +3010,7 @@ components:
           - tombstone
         event_id:
           type: string
-          pattern: ^ak:(evt|event):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^(?:ak:(event):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:(evt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$
         object:
           $ref: '#/components/schemas/ProjectionObject'
         actor_id:
@@ -3022,7 +3022,7 @@ components:
           minLength: 1
         thread_id:
           type: string
-          pattern: ^ak:(strand|message):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:(strand|message):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         body:
           type: object
         redacted:
@@ -3043,10 +3043,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         entries:
@@ -5254,7 +5254,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       responses:
         '200':
           description: Circles visible to the caller in the named Realm.
@@ -5678,7 +5678,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - name: include_terminal
         in: query
         required: false
@@ -5725,7 +5725,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - name: include_terminal
         in: query
         required: false
@@ -5772,7 +5772,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - name: include_terminal
         in: query
         required: false
@@ -5820,7 +5820,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       requestBody:
         required: false
         content:
@@ -5854,13 +5854,13 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - name: morph_id
         in: path
         required: true
         schema:
           type: string
-          pattern: ^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       responses:
         '200':
           description: Document Morph projection visible to the caller.
@@ -7383,7 +7383,7 @@ paths:
         required: false
         schema:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - in: query
         name: cursor
         required: false
@@ -9384,7 +9384,7 @@ paths:
         required: false
         schema:
           type: string
-          pattern: '^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+          pattern: '^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
       - in: query
         name: cursor
         required: false

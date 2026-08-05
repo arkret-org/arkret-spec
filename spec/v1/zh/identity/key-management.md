@@ -379,7 +379,7 @@ MLS KeyPackage key 用于加入加密 Realm。
   "device_key_format": "Multikey",
   "created_at": "2026-04-26T00:00:00Z",
   "authorized_by": "ak:device:01964136-8000-7000-8000-000000000000",
-  "authorization_ref": "ak:event:01964137-8000-7000-8000-000000000000",
+  "authorization_ref": "ak:event:01964137-8000-8000-8000-000000000000",
   "status": "active",
   "last_seen_at": "2026-04-26T08:00:00Z",
   "revocation_ref": null
@@ -719,7 +719,7 @@ Arkret v1 使用 `ak.session.grant` 作为 principal control stream 中的标准
 ```json
 {
   "grant_id": "ak:grant:01964198-0000-7000-8000-000000000000",
-  "realm_id": "ak:realm:01964198-7000-7000-8000-000000000000",
+  "realm_id": "ak:realm:01964198-7000-8000-8000-000000000000",
   "issuer": "did:webvh:z99jGJ9cd12QASVtC6r35kV5q:auth-gateway.example.com",
   "subject": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "session_public_key": "z6Mss...",

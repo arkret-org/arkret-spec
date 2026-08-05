@@ -133,7 +133,7 @@ POST /_arkret/edge/push/unregister-device
       "kind": "override",
       "enabled": true,
       "conditions": [
-        { "kind": "field_match", "field": "realm_id", "pattern": "ak:realm:9bd39a00-0000-7000-8000-000000000000..." }
+        { "kind": "field_match", "field": "realm_id", "pattern": "ak:realm:9bd39a00-0000-8000-8000-000000000000..." }
       ],
       "actions": ["dont_notify"]
     },

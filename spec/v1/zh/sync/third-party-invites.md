@@ -46,7 +46,7 @@ updated: 2026-07-02
   "invite": {
     "id": "ak:invite:0196419b-1000-7000-8000-000000000000",
     "schema": "ak.schema.invite.v1",
-    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
     "inviter": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "third_party_id": {
       "display_name_hint": "external invite",
@@ -137,7 +137,7 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
     "verification_service_id": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example",
     "verification_method": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example#invite-001",
     "subject_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
-    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
     "audience": "arkret.invite.claim",
     "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
     "expires_at": "2026-05-05T00:00:00.000Z",

@@ -137,7 +137,7 @@
         "schema": "ak.schema.agent_provision.v1",
         "agent_id": "did:webvh:z6mkagent:agent.example",
         "controller_id": "did:webvh:z6mkcontroller:controller.example",
-        "principal_control_realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
+        "principal_control_realm_id": "ak:realm:01964137-0000-8000-8000-000000000000",
         "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
         "agent_slug": "summary",
         "accountability_scope": "agent_operator",
@@ -155,7 +155,7 @@
         "schema": "ak.schema.agent_provision.v1",
         "agent_id": "did:webvh:z6mkagent:agent.example",
         "controller_id": "did:webvh:z6mkcontroller:controller.example",
-        "principal_control_realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
+        "principal_control_realm_id": "ak:realm:01964137-0000-8000-8000-000000000000",
         "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
         "agent_slug": "summary",
         "accountability_scope": "agent_operator",
@@ -217,7 +217,7 @@
       "instance": {
         "agent_id": "did:webvh:z6mkagent:agent.example",
         "controller_id": "did:webvh:z6mkcontroller:controller.example",
-        "principal_control_realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
+        "principal_control_realm_id": "ak:realm:01964137-0000-8000-8000-000000000000",
         "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
         "status": "active",
         "runtime_state": "pending_runtime_key",
@@ -284,7 +284,7 @@
         "expected_digest": "sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042"
       },
       "public_did_service_endpoint": {
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000000",
         "controller_did": "did:webvh:z6mkcontroller:controller.example",
         "authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
         "requested_scope_digest": "sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042"

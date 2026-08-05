@@ -36,7 +36,7 @@
       "notes": "issuer_role=organization_did with proof; control_scopes covers one verifiable scope (official_badge). Both authorization layers satisfied.",
       "instance": {
         "statement_id": "org-stmt-00000001",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000001",
         "organization_id": "did:webvh:z6mkfixture:acme.example",
         "relationship": "owner",
         "status": "active",
@@ -66,7 +66,7 @@
       "notes": "issuer_role=governance_service without delegation_ref. Schema allOf requires delegation_ref for governance_service / account_authority.",
       "instance": {
         "statement_id": "org-stmt-00000002",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000001",
         "organization_id": "did:webvh:z6mkfixture:acme.example",
         "relationship": "governance",
         "status": "active",
@@ -92,7 +92,7 @@
       "notes": "Same governance_service statement with delegation_ref present; delegation purpose MUST cover ak.realm.organization, relationship=governance, and the listed control_scopes.",
       "instance": {
         "statement_id": "org-stmt-00000003",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000001",
         "organization_id": "did:webvh:z6mkfixture:acme.example",
         "relationship": "governance",
         "status": "active",
@@ -123,7 +123,7 @@
       "notes": "issuer_role=account_authority without delegation_ref. Same allOf requirement as governance_service.",
       "instance": {
         "statement_id": "org-stmt-00000004",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000001",
         "organization_id": "did:webvh:z6mkfixture:acme.example",
         "relationship": "sponsor",
         "status": "active",
@@ -148,7 +148,7 @@
       "notes": "account_authority statement with a resolvable delegation_ref.",
       "instance": {
         "statement_id": "org-stmt-00000005",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000001",
         "organization_id": "did:webvh:z6mkfixture:acme.example",
         "relationship": "sponsor",
         "status": "active",
@@ -176,7 +176,7 @@
       "notes": "status=revoked MUST carry revokes_statement_id (schema allOf).",
       "instance": {
         "statement_id": "org-stmt-00000006",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000001",
         "organization_id": "did:webvh:z6mkfixture:acme.example",
         "relationship": "owner",
         "status": "revoked",
@@ -201,7 +201,7 @@
       "notes": "Well-formed revocation of org-stmt-00000001.",
       "instance": {
         "statement_id": "org-stmt-00000007",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000001",
         "organization_id": "did:webvh:z6mkfixture:acme.example",
         "relationship": "owner",
         "status": "revoked",
@@ -229,7 +229,7 @@
       "notes": "authorization without proof; organization-side consent cannot be verified.",
       "instance": {
         "statement_id": "org-stmt-00000008",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000001",
         "organization_id": "did:webvh:z6mkfixture:acme.example",
         "relationship": "owner",
         "status": "active",
@@ -255,7 +255,7 @@
       "notes": "realm_admin is a Realm-side capability, not an organization-side issuer_role; the organization-consent layer cannot be satisfied by a Realm admin.",
       "instance": {
         "statement_id": "org-stmt-00000009",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000001",
         "organization_id": "did:webvh:z6mkfixture:acme.example",
         "relationship": "owner",
         "status": "active",
@@ -282,7 +282,7 @@
       "notes": "relationship outside the registered enum.",
       "instance": {
         "statement_id": "org-stmt-00000010",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000001",
         "organization_id": "did:webvh:z6mkfixture:acme.example",
         "relationship": "affiliate",
         "status": "active",
@@ -309,7 +309,7 @@
       "notes": "Schema-valid but expires_at is in the past relative to the reducer evaluation time. JSON Schema cannot express the validity-window check; the reducer MUST reject as realm_organization_expired.",
       "instance": {
         "statement_id": "org-stmt-00000011",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000001",
         "organization_id": "did:webvh:z6mkfixture:acme.example",
         "relationship": "owner",
         "status": "active",
@@ -338,7 +338,7 @@
       "notes": "Schema-valid but not_before is in the future relative to the reducer evaluation time; rejected as not-yet-valid under the same registered reason code realm_organization_expired.",
       "instance": {
         "statement_id": "org-stmt-00000012",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000001",
         "organization_id": "did:webvh:z6mkfixture:acme.example",
         "relationship": "owner",
         "status": "active",
@@ -367,7 +367,7 @@
       "notes": "Schema-valid. The control_scopes claim policy_server / notary_control but the resolved delegation purpose only covers official_badge; reducer MUST reject as realm_organization_scope_missing.",
       "instance": {
         "statement_id": "org-stmt-00000013",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000001",
         "organization_id": "did:webvh:z6mkfixture:acme.example",
         "relationship": "governance",
         "status": "active",
@@ -396,7 +396,7 @@
       "notes": "Schema-valid and organization-side proof is well-formed, but the writing principal does not hold ak.realm.admin and the event is not part of an allowed create-bootstrap batch. The Realm-side acceptance layer is independent of the organization-side proof and MUST fail as realm_organization_realm_acceptance_missing.",
       "instance": {
         "statement_id": "org-stmt-00000014",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000001",
         "organization_id": "did:webvh:z6mkfixture:acme.example",
         "relationship": "owner",
         "status": "active",

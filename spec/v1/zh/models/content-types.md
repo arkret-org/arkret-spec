@@ -159,7 +159,7 @@ E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` pla
     "scheme": "ak.blob.stream_aead.v1",
     "key_ref": {
       "algorithm": "MLS",
-      "group_state_ref": "ak:event:01900000-0000-7000-8000-000000000000"
+      "group_state_ref": "ak:event:01900000-0000-8000-8000-000000000000"
     },
     "epoch": 42,
     "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -511,7 +511,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
   "body": "> Alice: 这个方案可行吗？\n\n我觉得需要再评估一下风险。",
   "format": "markdown",
   "reply_context": {
-    "message_ref": "ak:message:01964200-0000-7000-8000-000000000129",
+    "message_ref": "ak:message:01964200-0000-8000-8000-000000000129",
     "sender_actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "excerpt": "这个方案可行吗？"
   }

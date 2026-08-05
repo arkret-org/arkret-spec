@@ -1575,7 +1575,7 @@
           "basis_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "scope_ref": {
             "kind": "realm",
-            "realm_id": "ak:realm:01964142-0000-7000-8000-000000000001"
+            "realm_id": "ak:realm:01964142-0000-8000-8000-000000000001"
           },
           "authority_set_ref": {
             "authority_set_id": "ak.authority_set.recovery_cross_signing.v1",
@@ -1587,11 +1587,11 @@
             "policy_kind": "principal_control",
             "scope_ref": {
               "kind": "realm",
-              "realm_id": "ak:realm:01964142-0000-7000-8000-000000000001"
+              "realm_id": "ak:realm:01964142-0000-8000-8000-000000000001"
             },
             "source": {
               "source_kind": "cross_signing_publish",
-              "source_ref": "ak:event:01964142-0000-7000-8000-0000000000aa",
+              "source_ref": "ak:event:01964142-0000-8000-8000-0000000000aa",
               "source_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
               "generation_ref": "2"
             },
@@ -1665,8 +1665,8 @@
         "identity_model": "cross_signing",
         "previous_model_generation_ref": 2,
         "result_model_generation_ref": 2,
-        "authorization_event_id": "ak:event:01964145-0000-7000-8000-000000000000",
-        "device_list_update_event_id": "ak:event:01964145-0000-7000-8000-000000000001",
+        "authorization_event_id": "ak:event:01964145-0000-8000-8000-000000000000",
+        "device_list_update_event_id": "ak:event:01964145-0000-8000-8000-000000000001",
         "proof_summary": {
           "kind": "threshold_recovery",
           "proof_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
@@ -1739,8 +1739,8 @@
         "identity_model": "cross_signing",
         "previous_model_generation_ref": 2,
         "result_model_generation_ref": 2,
-        "authorization_event_id": "ak:event:01964145-0000-7000-8000-000000000002",
-        "device_list_update_event_id": "ak:event:01964145-0000-7000-8000-000000000003",
+        "authorization_event_id": "ak:event:01964145-0000-8000-8000-000000000002",
+        "device_list_update_event_id": "ak:event:01964145-0000-8000-8000-000000000003",
         "proof_summary": {
           "kind": "threshold_recovery",
           "proof_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
@@ -1840,7 +1840,7 @@
               {
                 "managed_principal_id": "did:webvh:QmAgent7p8K3pV4cXbKqL2nMsR9:agent.example",
                 "controller_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-                "principal_control_realm_id": "ak:realm:01964144-0000-7000-8000-000000000001",
+                "principal_control_realm_id": "ak:realm:01964144-0000-8000-8000-000000000001",
                 "authorization_ref": "did:webvh:QmAgent7p8K3pV4cXbKqL2nMsR9:agent.example#controller-alice",
                 "managed_frontier_ref": {
                   "frontier_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
@@ -1856,11 +1856,11 @@
         "contents": [
           {
             "item_kind": "mls_group_state",
-            "realm_id": "ak:realm:01964144-0000-7000-8000-000000000001",
+            "realm_id": "ak:realm:01964144-0000-8000-8000-000000000001",
             "managed_principal_binding": {
               "managed_principal_id": "did:webvh:QmAgent7p8K3pV4cXbKqL2nMsR9:agent.example",
               "controller_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-              "principal_control_realm_id": "ak:realm:01964144-0000-7000-8000-000000000001",
+              "principal_control_realm_id": "ak:realm:01964144-0000-8000-8000-000000000001",
               "authorization_ref": "did:webvh:QmAgent7p8K3pV4cXbKqL2nMsR9:agent.example#controller-alice",
               "managed_frontier_ref": {
                 "frontier_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
@@ -1915,11 +1915,11 @@
             "secret_id": "managed_agent_pcr_state",
             "secret_b64u": "c2VjcmV0",
             "secret_generation": 1,
-            "realm_id": "ak:realm:01964144-0000-7000-8000-000000000001",
+            "realm_id": "ak:realm:01964144-0000-8000-8000-000000000001",
             "managed_principal_binding": {
               "managed_principal_id": "did:webvh:QmAgent7p8K3pV4cXbKqL2nMsR9:agent.example",
               "controller_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-              "principal_control_realm_id": "ak:realm:01964144-0000-7000-8000-000000000001",
+              "principal_control_realm_id": "ak:realm:01964144-0000-8000-8000-000000000001",
               "authorization_ref": "did:webvh:QmAgent7p8K3pV4cXbKqL2nMsR9:agent.example#controller-alice",
               "managed_frontier_ref": {
                 "frontier_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",

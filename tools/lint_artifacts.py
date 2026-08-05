@@ -66,6 +66,7 @@ VECTOR_ID_TOKEN_RE = re.compile(r"\bak\.vector\.[a-z0-9_.-]+\.v[0-9]+\b")
 VECTOR_GROUP_ID_RE = re.compile(r"^ak\.vector_group\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+$")
 TYPED_ID_TOKEN_RE = re.compile(r"\bak:([a-z0-9_]+):([A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*)")
 UUID7_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
+UUID8_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 OPENAPI_OPERATION_ID_RE = re.compile(r"^\s*operationId:\s*([A-Za-z0-9_.-]+)\s*$", re.MULTILINE)
 YAML_REF_RE = re.compile(r"\$ref:\s*['\"]?([^'\"\s#]+(?:#[^'\"\s]+)?)")
@@ -377,6 +378,11 @@ def sha256_text(value: str) -> str:
 
 def base64url_text(value: str) -> str:
     return base64.urlsafe_b64encode(value.encode("utf-8")).rstrip(b"=").decode("ascii")
+
+
+def sha256_base64url_text(value: str) -> str:
+    digest = hashlib.sha256(value.encode("utf-8")).digest()
+    return base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
 
 
 def walk_json(value: Any, json_path: str = "$") -> Iterable[tuple[str, Any, str | None]]:
@@ -1699,12 +1705,19 @@ def lint_subject_field_path(lint: Lint, path: Path, ref: str, value: object) -> 
         return
     if value == "envelope.actor_id":
         return
+    if value == "envelope.event_id":
+        # Event-derived object identity: the created object's id is the create
+        # Event's own event_id retyped to the kind declared by cell_subject.kind
+        # (zh/models/common-fields.md). The payload MUST NOT carry the id, so the
+        # envelope is the only legal source and no second truth exists.
+        return
     if value.startswith("envelope."):
         lint.fail(path, f"{ref} uses an unregistered envelope source: {value!r}")
         return
     lint.fail(
         path,
-        f"{ref} must use an explicit payload.* or envelope.actor_id source: {value!r}",
+        f"{ref} must use an explicit payload.*, envelope.actor_id or "
+        f"envelope.event_id source: {value!r}",
     )
 
 
@@ -2857,6 +2870,11 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
 
     id_rows = id_registry.get("id_kinds", [])
     id_kinds = unique_values(lint, id_path, id_rows, "kind")
+    event_derived_id_kinds = {
+        row.get("kind")
+        for row in (id_rows if isinstance(id_rows, list) else [])
+        if isinstance(row, dict) and row.get("id_form") == "event_derived"
+    }
     for row in id_rows if isinstance(id_rows, list) else []:
         if not isinstance(row, dict):
             continue
@@ -3323,6 +3341,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         "track_names": track_names,
         "active_track_names": active_track_names,
         "id_kinds": id_kinds,
+        "event_derived_id_kinds": event_derived_id_kinds,
         "special_id_kinds": special_id_kinds,
         "operation_ids": operation_ids,
         "http_only_operation_ids": {
@@ -7335,7 +7354,27 @@ def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str
         return
     if token_kind in known["id_kinds"]:
         candidate = rest[:36]
-        if not UUID7_RE.fullmatch(candidate):
+        # zh/conformance/encoding.md section 4: the UUID construction is fixed per
+        # kind by id-kind-registry id_form. event_derived kinds carry the UUIDv8
+        # content-bound layout of section 4.0; everything else stays UUIDv7.
+        if token_kind == "realm":
+            # zh/models/realm-and-space.md section 2.5.0: `ak:realm:` is the one
+            # kind with two content-bound forms — collaboration Realms are
+            # event-derived (v8), Principal Control Realms are subject-derived
+            # from the principal DID (v7 layout) so they stay computable from
+            # the DID alone. Neither is producer-chosen.
+            if not (UUID8_RE.fullmatch(candidate) or UUID7_RE.fullmatch(candidate)):
+                lint.fail(
+                    path,
+                    f"{json_path} has invalid ak:realm: expected a content-bound typed uuid",
+                )
+        elif token_kind in known.get("event_derived_id_kinds", set()):
+            if not UUID8_RE.fullmatch(candidate):
+                lint.fail(
+                    path,
+                    f"{json_path} has invalid ak:{token_kind}: expected content-bound typed UUIDv8",
+                )
+        elif not UUID7_RE.fullmatch(candidate):
             lint.fail(path, f"{json_path} has invalid ak:{token_kind}: typed UUIDv7 reference")
         return
     if token_kind in known["special_id_kinds"]:
@@ -7565,7 +7604,12 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
         event = vector.get("event_without_proofs")
         if isinstance(event, dict):
             signed_event = dict(event)
+            # zh/conformance/encoding.md section 6: the digest preimage removes
+            # proofs, unsigned, actor_kind and event_id. event_id is excluded
+            # because section 4.0 derives it from this very digest.
             signed_event.pop("unsigned", None)
+            signed_event.pop("actor_kind", None)
+            signed_event.pop("event_id", None)
             expected_canonical = canonical_json(signed_event)
             if vector.get("canonical_event_payload") != expected_canonical:
                 lint.fail(path, f"vectors[{index}] canonical_event_payload does not match canonical JSON")
@@ -7578,6 +7622,8 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
                 unsigned = dict(event_with_proof)
                 unsigned.pop("proofs", None)
                 unsigned.pop("unsigned", None)
+                unsigned.pop("actor_kind", None)
+                unsigned.pop("event_id", None)
                 if unsigned != signed_event:
                     lint.fail(path, f"vectors[{index}] event_with_proof without proofs differs from event_without_proofs")
 
@@ -8499,6 +8545,56 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
                         f"digest mismatch: {input_key!r} canonical bytes produce "
                         f"{recomputed} but {digest_key!r}={expected}",
     )
+
+
+def check_stated_preimage_matches_stated_digest(lint: Lint) -> None:
+    """Every fixture that spells out a preimage MUST hash to the digest beside it.
+
+    These pairs are the whole point of a KAT: an implementor reads the preimage,
+    hashes it and compares. When an id inside the preimage changes and the digest
+    beside it does not, the vector still *looks* authoritative while pinning a
+    value nothing can produce — which is exactly how the v1 id-form change left
+    stale `expected_subject` / `batch_tag` values behind. Checking the pair here
+    makes that state unreachable.
+    """
+
+    pairs = (
+        ("expected_canonical_bytes_utf8", "expected_subject"),
+        ("tag_preimage_utf8", "batch_tag"),
+    )
+
+    def walk(node: Any, fixture_path: Path) -> None:
+        if isinstance(node, dict):
+            components = node.get("components_array")
+            if isinstance(components, list) and isinstance(node.get("expected_subject"), str):
+                recomputed = sha256_base64url_text(canonical_json(components))
+                if recomputed != node["expected_subject"]:
+                    lint.fail(
+                        fixture_path,
+                        f"'expected_subject'={node['expected_subject']} but "
+                        f"'components_array' hashes to {recomputed}",
+                    )
+            for source_key, digest_key in pairs:
+                source = node.get(source_key)
+                digest = node.get(digest_key)
+                if isinstance(source, str) and isinstance(digest, str):
+                    recomputed = sha256_base64url_text(source)
+                    if recomputed != digest:
+                        lint.fail(
+                            fixture_path,
+                            f"{digest_key!r}={digest} but {source_key!r} hashes to "
+                            f"{recomputed}: the stated preimage and the stated digest disagree",
+                        )
+            for value in node.values():
+                walk(value, fixture_path)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value, fixture_path)
+
+    for fixture_path in sorted((ARTIFACTS / "fixtures").glob("*.json")):
+        fixture = load_json(lint, fixture_path)
+        if fixture is not None:
+            walk(fixture, fixture_path)
 
 
 def check_event_batch_receipt_normalization_vector(lint: Lint) -> None:
@@ -9946,8 +10042,10 @@ def check_mls_governance_proof_fixture(lint: Lint) -> None:
         producer = {
             key: value
             for key, value in event.items()
-            if key not in {"proofs", "unsigned", "effective_scope", "actor_kind"}
+            if key not in {"proofs", "unsigned", "effective_scope", "actor_kind", "event_id"}
         }
+        # event_id is excluded because zh/conformance/encoding.md section 4.0
+        # derives it from this digest; see section 6 for the two-class rationale.
         producer_bytes = canonical_json(producer).encode("utf-8")
         event_digest = wire_sha256(producer_bytes)
         event_digests.append(event_digest)
@@ -11605,6 +11703,10 @@ def main(argv: list[str] | None = None) -> int:
             ("crypto_signatures", lambda: check_crypto_signature_fixture(lint)),
             ("canonical_digests", lambda: check_canonical_digest_fixtures(lint)),
             ("batch_receipt", lambda: check_event_batch_receipt_normalization_vector(lint)),
+            (
+                "stated_preimage_digest",
+                lambda: check_stated_preimage_matches_stated_digest(lint),
+            ),
             ("encrypted_digest", lambda: check_encrypted_envelope_digest_vector(lint)),
             ("string_profiles", lambda: check_string_profile_format_vectors(lint)),
             ("one_of_branches", lambda: check_one_of_branch_discriminability(lint)),

@@ -132,12 +132,12 @@ Account Authority 与客户端 UI MUST 把 service-account 认证凭据（密码
 
 ```json
 {
-  "event_id": "ak:event:019b5c20-0000-7000-8000-000000000001",
+  "event_id": "ak:event:019b5c20-0000-8000-8000-000000000001",
   "kind": "ak.account.status",
-  "realm_id": "ak:realm:019b5c20-0000-7000-8000-000000000002",
+  "realm_id": "ak:realm:019b5c20-0000-8000-8000-000000000002",
   "scope_ref": {
     "kind": "realm",
-    "realm_id": "ak:realm:019b5c20-0000-7000-8000-000000000002"
+    "realm_id": "ak:realm:019b5c20-0000-8000-8000-000000000002"
   },
   "actor_id": "did:webvh:zGtABZixoZZ3m4cFx3E65LCmg:auth.example",
   "actor_seq": 7,

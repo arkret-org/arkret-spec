@@ -36,7 +36,7 @@ Realm 是硬安全边界，不承担产品导航树职责。因此 Arkret v1 不
 {
   "kind": "ak.realm.link",
   "payload": {
-    "target_realm_id": "ak:realm:91085a00-8000-7000-8000-000000000000",
+    "target_realm_id": "ak:realm:91085a00-8000-8000-8000-000000000000",
     "link_kind": "governed_by",
     "status": "active",
     "label": "Acme governance realm",

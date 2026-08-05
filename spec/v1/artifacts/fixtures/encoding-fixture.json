@@ -220,12 +220,12 @@
       "vector_id": "ak.vector.encoding.event_digest.v1",
       "kind": "canonical_json_digest",
       "input": {
-        "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
+        "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
         "kind": "ak.message.create",
-        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:01964137-0000-8000-8000-000000000000",
         "scope_ref": {
           "kind": "realm",
-          "realm_id": "ak:realm:01964137-0000-7000-8000-000000000000"
+          "realm_id": "ak:realm:01964137-0000-8000-8000-000000000000"
         },
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 1,
@@ -240,7 +240,7 @@
           "key_epoch": 1
         },
         "payload": {
-          "strand_id": "ak:strand:01964137-0000-7000-8000-000000000000",
+          "strand_id": "ak:strand:01964137-0000-8000-8000-000000000000",
           "track_name": "discussion",
           "content": {
             "kind": "ak.content.text",
@@ -248,8 +248,8 @@
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"auth_context\":{\"did\":\"did:webvh:z6mkfixture:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00.000Z\",\"event_id\":\"ak:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[],\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:01964137-0000-7000-8000-000000000000\"},\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
-      "expected_digest": "sha256:e78bdef1ff9554389beeecefd8f1658081f2bd5db29d0229557fe04caf98dfbb",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"auth_context\":{\"did\":\"did:webvh:z6mkfixture:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00.000Z\",\"event_id\":\"ak:event:019640ed-8000-8000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"strand_id\":\"ak:strand:01964137-0000-8000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:01964137-0000-8000-8000-000000000000\",\"refs\":[],\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:01964137-0000-8000-8000-000000000000\"},\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
+      "expected_digest": "sha256:68d6bb2ddcfa1355cc96ce25368ea042d7717e6428d98c36006e4409dedee958",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
         "event_id MUST appear inside the digest input but does not replace the digest",
@@ -405,48 +405,51 @@
         "content_type": "application/json",
         "aad_visibility_event_id": "routing_digest",
         "aad": {
-          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
           "event_kind": "ak.message.create",
-          "event_ref_digest": "sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3"
+          "event_ref_digest": "sha256:9e9317900fc1c29c1a5de03536d3ed1ffd26a23ab4a027c9efe8a875152ac943"
         },
         "key_ref": {
           "algorithm": "MLS",
-          "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
+          "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
         }
       },
       "event_ref_digest_kat": {
         "domain_separator_utf8": "ak.aad-event-ref-v1",
-        "event_id": "ak:event:01964148-0000-7000-8000-000000000000",
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-        "digest_input_hex": "616b2e6161642d6576656e742d7265662d763100616b3a6576656e743a30313936343134382d303030302d373030302d383030302d30303030303030303030303000616b3a7265616c6d3a30313936343139622d303030302d373030302d383030302d303030303030303030303030",
-        "expected_digest": "sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3",
+        "event_id": "ak:event:01964148-0000-8000-8000-000000000000",
+        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+        "digest_input_hex": "616b2e6161642d6576656e742d7265662d763100616b3a6576656e743a30313936343134382d303030302d383030302d383030302d30303030303030303030303000616b3a7265616c6d3a30313936343139622d303030302d383030302d383030302d303030303030303030303030",
+        "expected_digest": "sha256:9e9317900fc1c29c1a5de03536d3ed1ffd26a23ab4a027c9efe8a875152ac943",
         "mutation_cases": [
           {
             "name": "omit_nul_separators",
-            "digest_input_hex": "616b2e6161642d6576656e742d7265662d7631616b3a6576656e743a30313936343134382d303030302d373030302d383030302d303030303030303030303030616b3a7265616c6d3a30313936343139622d303030302d373030302d383030302d303030303030303030303030",
-            "expected_digest": "sha256:09833467e54fb56f0e06983d323303cfdf804a314789acebbc457e5dfc5cb59f",
-            "must_not_equal_valid": true
+            "digest_input_hex": "616b2e6161642d6576656e742d7265662d7631616b3a6576656e743a30313936343134382d303030302d383030302d383030302d303030303030303030303030616b3a7265616c6d3a30313936343139622d303030302d383030302d383030302d303030303030303030303030",
+            "expected_digest": "sha256:12a69c396d92188985ef7843652f0ab05c46a2f137f35fdfed9fc43546b4ee3a",
+            "must_not_equal_valid": true,
+            "input_hex": "616b2e6161642d6576656e742d7265662d7631616b3a6576656e743a30313936343134382d303030302d383030302d383030302d303030303030303030303030616b3a7265616c6d3a30313936343139622d303030302d383030302d383030302d303030303030303030303030"
           },
           {
             "name": "swap_event_id_and_realm_id",
-            "digest_input_hex": "616b2e6161642d6576656e742d7265662d763100616b3a7265616c6d3a30313936343139622d303030302d373030302d383030302d30303030303030303030303000616b3a6576656e743a30313936343134382d303030302d373030302d383030302d303030303030303030303030",
-            "expected_digest": "sha256:3a323f00b9fe1406b9aeb67a345acd14a3ae8dd26ed8d016873e347355fdbf6a",
-            "must_not_equal_valid": true
+            "digest_input_hex": "616b2e6161642d6576656e742d7265662d763100616b3a7265616c6d3a30313936343139622d303030302d383030302d383030302d30303030303030303030303000616b3a6576656e743a30313936343134382d303030302d383030302d383030302d303030303030303030303030",
+            "expected_digest": "sha256:a7831fa7efa3ce60ae28fe91a947ddf2386473bb55c61c20ed37b5ea81c17bd1",
+            "must_not_equal_valid": true,
+            "input_hex": "616b2e6161642d6576656e742d7265662d763100616b3a7265616c6d3a30313936343139622d303030302d383030302d383030302d30303030303030303030303000616b3a6576656e743a30313936343134382d303030302d383030302d383030302d303030303030303030303030"
           },
           {
             "name": "append_trailing_nul",
-            "digest_input_hex": "616b2e6161642d6576656e742d7265662d763100616b3a6576656e743a30313936343134382d303030302d373030302d383030302d30303030303030303030303000616b3a7265616c6d3a30313936343139622d303030302d373030302d383030302d30303030303030303030303000",
-            "expected_digest": "sha256:b0b6324da3c15cf907c32f15acbc143613305cb4f87a601c4d592d8cad4103da",
-            "must_not_equal_valid": true
+            "digest_input_hex": "616b2e6161642d6576656e742d7265662d763100616b3a6576656e743a30313936343134382d303030302d383030302d383030302d30303030303030303030303000616b3a7265616c6d3a30313936343139622d303030302d383030302d383030302d30303030303030303030303000",
+            "expected_digest": "sha256:192e961f89452df564c39fa4ba9eb1d95ab327a4c66e4fed5dd2d2b7197a7a6e",
+            "must_not_equal_valid": true,
+            "input_hex": "616b2e6161642d6576656e742d7265662d763100616b3a6576656e743a30313936343134382d303030302d383030302d383030302d30303030303030303030303000616b3a7265616c6d3a30313936343139622d303030302d383030302d383030302d30303030303030303030303000"
           }
         ]
       },
-      "expected_metadata_canonical_bytes_utf8": "{\"aad\":{\"event_kind\":\"ak.message.create\",\"event_ref_digest\":\"sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3\",\"realm_id\":\"ak:realm:0196419b-0000-7000-8000-000000000000\"},\"aad_visibility_event_id\":\"routing_digest\",\"content_type\":\"application/json\",\"epoch\":12,\"group_id\":\"Z3JvdXAtMDAx\",\"key_ref\":{\"algorithm\":\"MLS\",\"group_state_ref\":\"ak:event:01964148-0000-7000-8000-000000000000\"},\"scheme\":\"mls_rfc9420\",\"version\":\"1.0\"}",
+      "expected_metadata_canonical_bytes_utf8": "{\"aad\":{\"event_kind\":\"ak.message.create\",\"event_ref_digest\":\"sha256:9e9317900fc1c29c1a5de03536d3ed1ffd26a23ab4a027c9efe8a875152ac943\",\"realm_id\":\"ak:realm:0196419b-0000-8000-8000-000000000000\"},\"aad_visibility_event_id\":\"routing_digest\",\"content_type\":\"application/json\",\"epoch\":12,\"group_id\":\"Z3JvdXAtMDAx\",\"key_ref\":{\"algorithm\":\"MLS\",\"group_state_ref\":\"ak:event:01964148-0000-8000-8000-000000000000\"},\"scheme\":\"mls_rfc9420\",\"version\":\"1.0\"}",
       "ciphertext_base64url": "Y2lwaGVydGV4dC1leGFtcGxlLTAwMQ",
       "ciphertext_bytes_utf8": "ciphertext-example-001",
       "digest_input_rule": "sha256(canonical_json(payload_metadata) || base64url_decode(ciphertext))",
-      "aad_digest": "sha256:444a07e27e86cefb4b50ac885413b6b9ea43e7576b943812d5243d73701b7c8a",
-      "expected_digest": "sha256:e0dd316ae6c08f2b27d037543d97abde582ab329ef14d702fd3e13d3e7f9facd",
+      "aad_digest": "sha256:a8653a077f5231dacd4420bf583b99f632fab259f54328726c85eb5851355e7b",
+      "expected_digest": "sha256:4bb1b546bf078c0f90699aa661c799fb69956caed147f17e09ecc79be8bb67bb",
       "rules": [
         "implementations MUST NOT hash plaintext payload",
         "implementations MUST NOT omit payload metadata required for routing/decryption; otherwise sync service cannot safely dedupe or audit envelopes"
@@ -852,31 +855,31 @@
         {
           "name": "instance_occurrence",
           "components_array": [
-            "ak:strand:019f9e50-d787-74e0-8731-c9ad5eaa9182",
+            "ak:strand:019f9e50-d787-84e0-8731-c9ad5eaa9182",
             "2026-07-26T09:00:00[Asia/Shanghai]",
             "did:webvh:z6mkfixture:alice.example"
           ],
-          "expected_canonical_bytes_utf8": "[\"ak:strand:019f9e50-d787-74e0-8731-c9ad5eaa9182\",\"2026-07-26T09:00:00[Asia/Shanghai]\",\"did:webvh:z6mkfixture:alice.example\"]",
-          "expected_subject": "tc2S5LQybi5y3tI-hoyB6HoBWFepT_tDfFcmHJk_jd0"
+          "expected_canonical_bytes_utf8": "[\"ak:strand:019f9e50-d787-84e0-8731-c9ad5eaa9182\",\"2026-07-26T09:00:00[Asia/Shanghai]\",\"did:webvh:z6mkfixture:alice.example\"]",
+          "expected_subject": "jf3fbUvz3MqDtt8iV7dbotMquW_ddop9YpeYfWwGK0Q"
         },
         {
           "name": "series_occurrence_preserves_json_null",
           "components_array": [
-            "ak:strand:019f9e50-d787-74e0-8731-c9ad5eaa9182",
+            "ak:strand:019f9e50-d787-84e0-8731-c9ad5eaa9182",
             null,
             "did:webvh:z6mkfixture:alice.example"
           ],
-          "expected_canonical_bytes_utf8": "[\"ak:strand:019f9e50-d787-74e0-8731-c9ad5eaa9182\",null,\"did:webvh:z6mkfixture:alice.example\"]",
-          "expected_subject": "3iBI9bjQLklvfcVhQeaxLajMskSVG4oZ5IMpU62GvRc"
+          "expected_canonical_bytes_utf8": "[\"ak:strand:019f9e50-d787-84e0-8731-c9ad5eaa9182\",null,\"did:webvh:z6mkfixture:alice.example\"]",
+          "expected_subject": "LjvpAsw7qCPnXbATwtWyUYHAncyxVuNfGaCjpuF0968"
         },
         {
           "name": "reordered_components_diverge",
           "components_array": [
             "did:webvh:z6mkfixture:alice.example",
             null,
-            "ak:strand:019f9e50-d787-74e0-8731-c9ad5eaa9182"
+            "ak:strand:019f9e50-d787-84e0-8731-c9ad5eaa9182"
           ],
-          "expected_subject": "G-jylvAZSC52_c77DCKw98StFxsbCIT71e4Gp0a5QcY",
+          "expected_subject": "b5n4zo9Y5FIRGCwAgDm8lhDVLg_40YEpxksitemEH7s",
           "must_differ_from": "series_occurrence_preserves_json_null"
         }
       ],
@@ -886,7 +889,7 @@
           "expected_error": "schema_violation"
         },
         {
-          "name": "unregistered_envelope_source",
+          "name": "bare_event_id_component_has_no_target_kind",
           "source": "envelope.event_id",
           "expected_error": "schema_violation"
         },
@@ -946,9 +949,9 @@
     {
       "vector_id": "ak.vector.encoding.canonical_event_tie_break.v1",
       "kind": "canonical_event_tie_break",
-      "description": "Single protocol-wide winner rule for both concurrent candidate sets and logical-slot equivocation candidate sets. The comparison key is the decoded digest octets of canonical_digest(envelope_without_proofs_unsigned_actor_kind), bytewise greatest, with the canonical suite id as secondary key only when the octets are identical.",
+      "description": "Single protocol-wide winner rule for both concurrent candidate sets and logical-slot equivocation candidate sets. The comparison key is the decoded digest octets of canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id), bytewise greatest, with the canonical suite id as secondary key only when the octets are identical.",
       "digest_preimage": {
-        "source": "envelope_without_proofs_unsigned_actor_kind",
+        "source": "envelope_without_proofs_unsigned_actor_kind_event_id",
         "removed_top_level_fields": [
           "proofs",
           "unsigned",
@@ -1094,22 +1097,22 @@
       "vector_id": "ak.vector.encoding.or_set_dot_and_batch_tag.v1",
       "kind": "or_set_dot_and_batch_tag",
       "description": "Canonical OR-Set dot and or_set_batch_add tag encoding. dot = \"ak:event:\" + event_id + \":\" + write_index, where write_index is the 0-based index of the write in the event kind's registry cell_writes[]. batch_tag = base64url_nopad(sha256(utf8(tag_context) || 0x0A || utf8(dot) || 0x0A || canonical_json(values[i]))) over values sorted by canonical value ascending.",
-      "event_id": "ak:event:01964185-0400-7000-8000-000000000000",
+      "event_id": "ak:event:01964185-0400-8000-8000-000000000000",
       "dot_cases": [
         {
           "name": "single_target_write_index_is_zero",
           "write_index": 0,
-          "dot": "ak:event:01964185-0400-7000-8000-000000000000:0"
+          "dot": "ak:event:01964185-0400-8000-8000-000000000000:0"
         },
         {
           "name": "second_write_of_multi_target_contract",
           "write_index": 1,
-          "dot": "ak:event:01964185-0400-7000-8000-000000000000:1"
+          "dot": "ak:event:01964185-0400-8000-8000-000000000000:1"
         }
       ],
       "batch_add": {
         "tag_context": "ak.covered-seal-tag-v1",
-        "dot": "ak:event:01964185-0400-7000-8000-000000000000:0",
+        "dot": "ak:event:01964185-0400-8000-8000-000000000000:0",
         "sorted_values": [
           "ak:seal:01964185-0400-7000-8000-00000000000a",
           "ak:seal:01964185-0400-7000-8000-00000000000b"
@@ -1118,27 +1121,27 @@
           {
             "index": 0,
             "value": "ak:seal:01964185-0400-7000-8000-00000000000a",
-            "tag_preimage_utf8": "ak.covered-seal-tag-v1\nak:event:01964185-0400-7000-8000-000000000000:0\n\"ak:seal:01964185-0400-7000-8000-00000000000a\"",
-            "batch_tag": "1iBmBx9eyxpIkSNfOAOpK85TXemME7YOfXe_MwkojTM"
+            "tag_preimage_utf8": "ak.covered-seal-tag-v1\nak:event:01964185-0400-8000-8000-000000000000:0\n\"ak:seal:01964185-0400-7000-8000-00000000000a\"",
+            "batch_tag": "_MW1wChNmMzvCOcS5luH9XI6EOhEHi2e0Mr91jWWDq4"
           },
           {
             "index": 1,
             "value": "ak:seal:01964185-0400-7000-8000-00000000000b",
-            "tag_preimage_utf8": "ak.covered-seal-tag-v1\nak:event:01964185-0400-7000-8000-000000000000:0\n\"ak:seal:01964185-0400-7000-8000-00000000000b\"",
-            "batch_tag": "70hmv5IajqSpRoVHskF9M4V4h6nIZeftWLdvwWBlrhY"
+            "tag_preimage_utf8": "ak.covered-seal-tag-v1\nak:event:01964185-0400-8000-8000-000000000000:0\n\"ak:seal:01964185-0400-7000-8000-00000000000b\"",
+            "batch_tag": "xqdQAkWDfswSR-ize8Gq50VJFTQjNvF5V0e0w8ikifY"
           }
         ]
       },
       "negative_cases": [
         {
           "name": "bare_event_id_as_tag",
-          "tag": "ak:event:01964185-0400-7000-8000-000000000000",
+          "tag": "ak:event:01964185-0400-8000-8000-000000000000",
           "reason": "reducer_projection_failed",
           "note": "A bare event_id is not a dot; it is not unique across multiple or_set writes on one cell."
         },
         {
           "name": "wire_array_index_as_third_segment",
-          "tag": "ak:event:01964185-0400-7000-8000-000000000000:0",
+          "tag": "ak:event:01964185-0400-8000-8000-000000000000:0",
           "derived_from": "payload array index",
           "reason": "reducer_projection_failed",
           "note": "The third segment MUST be the registry cell_writes[] index; v1 has no producer-written effect array."
@@ -1148,24 +1151,24 @@
   ],
   "rank_order": [
     {
-      "strand_id": "ak:strand:019640c5-0400-7000-8000-000000000000",
-      "list_id": "ak:space:01964010-8000-7000-8000-000000000000",
+      "strand_id": "ak:strand:019640c5-0400-8000-8000-000000000000",
+      "list_id": "ak:space:01964010-8000-8000-8000-000000000000",
       "rank": "U"
     },
     {
-      "strand_id": "ak:strand:019640c5-0800-7000-8000-000000000000",
-      "list_id": "ak:space:01964010-8000-7000-8000-000000000000",
+      "strand_id": "ak:strand:019640c5-0800-8000-8000-000000000000",
+      "list_id": "ak:space:01964010-8000-8000-8000-000000000000",
       "rank": "j"
     },
     {
-      "strand_id": "ak:strand:019640c5-0c00-7000-8000-000000000000",
-      "list_id": "ak:space:01964010-8000-7000-8000-000000000000",
+      "strand_id": "ak:strand:019640c5-0c00-8000-8000-000000000000",
+      "list_id": "ak:space:01964010-8000-8000-8000-000000000000",
       "rank": "t"
     }
   ],
   "expected_order": [
-    "ak:strand:019640c5-0400-7000-8000-000000000000",
-    "ak:strand:019640c5-0800-7000-8000-000000000000",
-    "ak:strand:019640c5-0c00-7000-8000-000000000000"
+    "ak:strand:019640c5-0400-8000-8000-000000000000",
+    "ak:strand:019640c5-0800-8000-8000-000000000000",
+    "ak:strand:019640c5-0c00-8000-8000-000000000000"
   ]
 }

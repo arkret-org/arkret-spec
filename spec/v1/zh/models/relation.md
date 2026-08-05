@@ -53,7 +53,7 @@ Schema id: `ak.schema.relation.v1`
 
 ```text
 {
-  "relation_id": "ak:relation:01964180-0000-7000-8000-000000000000",
+  "relation_id": "ak:relation:01964180-0000-8000-8000-000000000000",
   "reason": "relationship no longer applies"
 }
 ```
@@ -64,12 +64,12 @@ Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询�
 
 ```json schema=schemas/relation.schema.json
 {
-  "id": "ak:relation:01964180-0000-7000-8000-000000000000",
+  "id": "ak:relation:01964180-0000-8000-8000-000000000000",
   "schema": "ak.schema.relation.v1",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "relation_kind": "contains",
-  "from_ref": "ak:space:019640b6-8000-7000-8000-000000000000",
-  "to_ref": "ak:strand:019640c6-8000-7000-8000-000000000000",
+  "from_ref": "ak:space:019640b6-8000-8000-8000-000000000000",
+  "to_ref": "ak:strand:019640c6-8000-8000-8000-000000000000",
   "rank": "mV",
   "created_by": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
   "created_at": "2026-04-26T00:00:00.000Z"

@@ -514,6 +514,29 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 
 ## 6. 通用对象 ID 约定
 
+### 6.0 create-once 对象 ID 由 create Event 派生（normative）
+
+对象 ID 不由调用方选取。对每个在 [`contract-registry.json`](../../artifacts/registry/contract-registry.json) 中声明 `id_source="event_derived"` 的 create Event kind：
+
+```text
+object_id ≡ retype(create_event.event_id, object_kind)
+```
+
+即被创建对象的 ID 与创建它的 Event 的 `event_id` 共享同一段 UUID，只更换 typed 前缀（`ak:event:<U>` → `ak:<object_kind>:<U>`）。该 UUID 段本身按 [`../conformance/encoding.md` §4.0](../conformance/encoding.md) 由 Event 内容绑定，因此对象 ID 的每一位都由签名内容决定。
+
+规则：
+
+- **create payload MUST NOT 携带该 ID 字段。**携带即 `schema_violation`，`reason_code=object_id_not_event_derived`。reducer 在物化对象时派生它。
+- **一条 create Event 只派生一个 create-once 对象 ID。**一个 `event_id` 只能命名一个对象；需要一次原子创建两个带独立 ID 的对象的 kind 在 v1 中不存在，新增此类 kind MUST 先解决命名冲突，不得复用同一 `event_id`。
+- **`event_id` 的唯一性作用域 MUST 保持全局。**它 MUST NOT 被收窄为 `(realm_id, actor_id)`：那样两个 actor 可以派生出同名对象，正是本规则要消除的情形。
+- `ak.realm.create` 的 `realm_id` 在 Event Envelope 而不在 payload，其形态见 [`realm-and-space.md` §2.5](./realm-and-space.md)。
+
+**这是构造性约束，不是检测规则。**两条不同的 create Event 必然有不同的 `event_id`，因而必然命名两个不同的对象；"同一个对象 ID 对应两份不同 Genesis"在 v1 中不可表达，因此不需要冲突检测、隔离或恢复机制。要伪造一个与既有对象同名的 create，攻击者必须先伪造 `event_id`，那是 §4.0 的 2^88。
+
+本节的 conformance 入口是 `ak.vector.object_identity.event_derived.v1`（机读 fixture 见 [`content-bound-event-id-fixture.json`](../../artifacts/fixtures/content-bound-event-id-fixture.json)）：它固定 `retype(event_id)` 的 KAT、`realm_id` 的自证校验，以及 `object_id_not_event_derived` / `realm_id_not_event_derived` 两条拒绝路径。
+
+`id_source` 的另两个取值：`reference` 表示该 kind 引用一个别处创建的对象；`not_an_object_id` 表示该字段不是 typed 对象 ID（DID、命名空间字符串、profile-scoped form）。**每个 active kind MUST 声明其一**，registry lint 在缺声明时失败——覆盖面由机器保证，不依赖人工枚举。
+
 Protocol typed identifier / reference 的 wire value MUST 使用带类型前缀的稳定字符串：
 
 ```text
@@ -558,9 +581,9 @@ UUID 部分 MUST 使用 UUIDv7（time-ordered），便于审计与排序；conte
 
 ```json
 {
-  "id": "ak:strand:01964137-0000-7000-8000-000000000000",
+  "id": "ak:strand:01964137-0000-8000-8000-000000000000",
   "schema": "ak.schema.strand.v1",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "created_by": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "created_at": "2026-04-26T00:00:00Z",
   "updated_by": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",

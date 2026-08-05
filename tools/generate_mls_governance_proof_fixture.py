@@ -106,6 +106,30 @@ def four_leaf_root_and_proofs(digests: list[str]) -> tuple[str, list[list[str]]]
     return as_wire(root), proofs
 
 
+def derive_event_id_uuid(created_at: str, digest_wire: str) -> str:
+    """zh/conformance/encoding.md section 4.0 content-bound UUIDv8.
+
+    34-bit second timestamp from created_at, then 88 bits taken from the
+    leftmost 11 octets of the Event's own event_digest.
+    """
+    from datetime import datetime, timezone
+
+    stamp = int(
+        datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+        .astimezone(timezone.utc)
+        .timestamp()
+    )
+    material = int.from_bytes(bytes.fromhex(digest_wire.split(":", 1)[1])[:11], "big")
+    value = (stamp & ((1 << 34) - 1)) << 94
+    value |= ((material >> 74) & 0x3FFF) << 80
+    value |= 0x8 << 76
+    value |= ((material >> 62) & 0xFFF) << 64
+    value |= 0b10 << 62
+    value |= material & ((1 << 62) - 1)
+    raw = f"{value:032x}"
+    return f"{raw[0:8]}-{raw[8:12]}-{raw[12:16]}-{raw[16:20]}-{raw[20:32]}"
+
+
 def build_event(
     *,
     event_id: str,
@@ -138,7 +162,14 @@ def build_event(
             "delivery_status": "unroutable",
         },
     }
-    event_digest = wire_digest(canonical_bytes(producer_event))
+    # section 6: the digest preimage removes proofs/unsigned/actor_kind/event_id;
+    # section 4.0 then derives event_id from that digest, so compute in that order.
+    digest_source = {k: v for k, v in producer_event.items() if k != "event_id"}
+    event_digest = wire_digest(canonical_bytes(digest_source))
+    producer_event["event_id"] = "ak:event:" + derive_event_id_uuid(
+        producer_event["created_at"], event_digest
+    )
+    event_id = producer_event["event_id"]
     proof_created_at = producer_event["created_at"]
     binding = {
         "context": "ak.event-proof-v1",
@@ -162,7 +193,7 @@ def build_event(
     }
     kat = {
         "event_id": event_id,
-        "producer_event_canonical_bytes": len(canonical_bytes(producer_event)),
+        "producer_event_canonical_bytes": len(canonical_bytes(digest_source)),
         "producer_event_digest": event_digest,
         "proof_binding_canonical_bytes": len(canonical_bytes(binding)),
         "proof_binding_sha256": wire_digest(canonical_bytes(binding)),
@@ -223,21 +254,21 @@ def build_fixture() -> dict[str, Any]:
     actor_vm = actor_did + "#key-1"
     notary_did = "did:webvh:zfixture:notary.example"
     notary_vm = notary_did + "#key-1"
-    realm_id = "ak:realm:019809f4-a800-7000-8000-000000000001"
+    realm_id = "ak:realm:019809f4-a800-8000-8000-000000000001"
     effective_scope = {"kind": "realm", "realm_id": realm_id}
 
     event_specs = [
         (
-            "ak:event:019809f4-a800-7000-8000-000000000101",
+            "ak:event:019809f4-a800-8000-8000-000000000101",
             0,
             "did:webvh:zfixture:bob.example",
             None,
         ),
         (
-            "ak:event:019809f4-a801-7000-8000-000000000102",
+            "ak:event:019809f4-a801-8000-8000-000000000102",
             1,
             "did:webvh:zfixture:carol.example",
-            "ak:event:019809f4-a800-7000-8000-000000000101",
+            "ak:event:019809f4-a800-8000-8000-000000000101",
         ),
     ]
     event_rows = [
@@ -435,7 +466,7 @@ def build_fixture() -> dict[str, Any]:
 
     unknown_seal = "ak:seal:sha256:" + "f0" * 32
     extra_digest = "sha256:" + "f1" * 32
-    extra_event_id = "ak:event:019809f4-a802-7000-8000-000000000103"
+    extra_event_id = "ak:event:019809f4-a802-8000-8000-000000000103"
     verifier_cases = [
         {
             "name": "valid_complete_bundle",
@@ -465,7 +496,7 @@ def build_fixture() -> dict[str, Any]:
         mutation_case("extra_frontier_event", "append_frontier_event", "membership_frontier", "state_mismatch", parameters={"event_id": extra_event_id}),
         mutation_case("duplicate_frontier_event", "duplicate_collection_item", "membership_frontier", "state_mismatch", parameters={"collection": "frontier_events", "index": 0}),
         mutation_case("frontier_event_order", "reverse_collection", "membership_frontier", "state_mismatch", parameters={"collection": "frontier_events"}),
-        mutation_case("frontier_cross_realm_scope", "replace_frontier_effective_scope", "membership_frontier", "state_mismatch", parameters={"realm_id": "ak:realm:019809f4-a800-7000-8000-000000000099"}),
+        mutation_case("frontier_cross_realm_scope", "replace_frontier_effective_scope", "membership_frontier", "state_mismatch", parameters={"realm_id": "ak:realm:019809f4-a800-8000-8000-000000000099"}),
         mutation_case("frontier_event_proof_invalid", "flip_frontier_signature_bit", "membership_frontier", "signature_invalid"),
         mutation_case("chunks_root_mismatch", "flip_chunks_root_bit", "chunk_commitment", "digest_mismatch", recommit="none"),
         mutation_case("missing_chunk", "remove_chunk", "chunk_sequence", "state_mismatch", parameters={"chunk_index": 2}, recommit="none"),

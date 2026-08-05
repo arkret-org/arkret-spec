@@ -650,7 +650,7 @@ Handle 解析示例：
   "claim_kind": "organization_handle",
   "visibility": "restricted",
   "binding_state": "verified",
-  "audience": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "audience": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "member_delivery_binding": {
     "recipient_service_id": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example",
     "recipient_service_kind": "principal_server",
@@ -662,8 +662,8 @@ Handle 解析示例：
       "push",
       "key_packages"
     ],
-    "service_acceptance_ref": "ak:event:0196419b-0000-7000-8000-000000000001",
-    "policy_event_ref": "ak:event:0196419b-0000-7000-8000-000000000002"
+    "service_acceptance_ref": "ak:event:0196419b-0000-8000-8000-000000000001",
+    "policy_event_ref": "ak:event:0196419b-0000-8000-8000-000000000002"
   },
   "created_at": "2026-05-19T00:00:00Z",
   "expires_at": "2026-08-19T00:00:00Z",
@@ -673,7 +673,7 @@ Handle 解析示例：
       "verification_method": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example#key-1",
       "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "created_at": "2026-05-19T00:00:00Z",
-      "audience": "ak:realm:0196419b-0000-7000-8000-000000000000",
+      "audience": "ak:realm:0196419b-0000-8000-8000-000000000000",
       "jws": "aaa.bbb.ccc"
     }
   ]

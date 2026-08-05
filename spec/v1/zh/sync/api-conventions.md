@@ -481,7 +481,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 ```json
 {
   "status": "accepted",
-  "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
   "cursor": "ak:cursor:..."
 }
 ```

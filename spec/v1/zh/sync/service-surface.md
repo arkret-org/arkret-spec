@@ -589,8 +589,8 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
     "kind": "conflict",
     "cells": ["ak:cell:ak.component.realm.policy.v1:null"],
     "event_ids": [
-      "ak:event:84210000-0000-7000-8000-000000000000…",
-      "ak:event:a5294000-0000-7000-8000-000000000000…"
+      "ak:event:84210000-0000-8000-8000-000000000000…",
+      "ak:event:a5294000-0000-8000-8000-000000000000…"
     ],
     "basis": {
       "leaves": ["ak:seal:sha256:dddd…"],
@@ -661,7 +661,7 @@ Inbox 和 notification 可以由客户端从本地 Event、read cursor、mention
 ```json
 {
   "query": "legal review",
-  "realm_ids": ["ak:realm:0196419b-0000-7000-8000-000000000000"],
+  "realm_ids": ["ak:realm:0196419b-0000-8000-8000-000000000000"],
   "object_kinds": ["message", "strand", "morph"],
   "morph_kinds": ["comment"],
   "sender_actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",

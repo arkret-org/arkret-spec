@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-04.4",
+  "version": "2026-08-06.4",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -67,7 +67,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#6-signature",
-      "section_digest": "sha256:5a7605d1584bc15bd2b640c067c4f64b835f82e3b07783127a40043c6c184ff2",
+      "section_digest": "sha256:0c0755c2c22d82749f8219262958118f62c08e48da4b7d3fdff50929ce3c19eb",
       "requirement": "The signature carrier MUST cryptographically protect its algorithm selection, and the binding payload MUST bind domain and audience; a signature valid for one algorithm, domain or audience MUST NOT verify for another.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -175,7 +175,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:f4778553dc05fd8ecfb00bc8df72fc1570e30d2d1700e8936e190162998da141",
+      "section_digest": "sha256:b7e6d047143d5a71723294571d6b36b185b980939ac2a63bfcb949b60d68cde3",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, encryption floors MUST NOT be downgraded, an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling, every MLS epoch MUST bind the independently re-derived security frontier for its accepted key-access state, and epoch-0 leaf indices MUST be recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -285,7 +285,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#9-lattice-与冲突语义",
-      "section_digest": "sha256:7d773b72fed92dd806d4dcdc14d964102e869a92d4797ada1137dd4acad3e3a9",
+      "section_digest": "sha256:0447a5a36af0f29f45ea33f66f3483f56c17cfef4e4ce42714342734f746ecf6",
       "requirement": "Lattice joins are idempotent, commutative and associative per family; data-plane conflicts return structured bottom instead of electing a winner by arrival order or HLC.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -304,7 +304,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
-      "section_digest": "sha256:2dbbfe8f25fe7cedeb9f4913f280e50c4b00595a7106d2676324c5cdfe4123bf",
+      "section_digest": "sha256:3f35e33c87f9d002656863fbe1e15ee3ae48990276d27d3a5e7482d47e09e37d",
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -333,7 +333,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
-      "section_digest": "sha256:fc4b18298b67d4d42f827a8eaa5bbc75861bb13949cf4addbf15d43a3e6e6977",
+      "section_digest": "sha256:eac10589b03eb95ea3a4fdac42b7d14e0e112c01b695db124635ce2e5c38dd6e",
       "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, replaying the same state is a no-op, and concurrent siblings resolve to bottom.",
       "testability_grade": "vector",
       "evidence_refs": [

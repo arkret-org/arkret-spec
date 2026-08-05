@@ -4,7 +4,6 @@
   "title": "Arkret Realm",
   "type": "object",
   "required": [
-    "id",
     "schema",
     "title",
     "created_by",
@@ -50,7 +49,8 @@
   },
   "properties": {
     "id": {
-      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id",
+      "description": "Present on the materialised object. MUST be absent from the create Event payload: zh/models/common-fields.md derives it from the create Event's own event_id (retyped), so a payload-supplied id would be a second, forgeable truth."
     },
     "schema": {
       "const": "ak.schema.realm.v1"
@@ -196,7 +196,7 @@
         "string",
         "null"
       ],
-      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional / nullable. AUTHORITATIVE single pointer to the Realm's default discussion Strand (last value projected from ak.realm.set_default_strand; cell ak.component.realm.set_default_strand.v1, cas_register, bottom=reject). A single pointer avoids multi-default dirty state. null / absent means the Realm has no designated default Strand. The reducer rejects a set_default_strand whose strand_id does not resolve to a projected non-tombstoned Strand in this Realm (failed_precondition), so this pointer never dangles. The Strand projection's derived is_default flag is computed as strand_id == this value; clients discover the default Strand deterministically from this field (or the Strand is_default marker) and MUST NOT rely on any Strand-reuses-Realm-UUID implementation detail. See zh/models/strand-and-message.md (default-Strand discovery)."
     },
     "default_discoverability": {
@@ -271,7 +271,9 @@
     "agent_participation": {
       "type": "object",
       "description": "Realm five-bit native Agent participation ceiling. It may only tighten the target-service safety ceiling and is itself the parent of Circle and Strand ceilings.",
-      "required": ["native_agent"],
+      "required": [
+        "native_agent"
+      ],
       "properties": {
         "native_agent": {
           "$ref": "./principal-operations.schema.json#/$defs/participation_bits"

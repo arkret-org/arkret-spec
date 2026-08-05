@@ -142,19 +142,19 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
 
 ```json schema=schemas/event-envelope.schema.json
 {
-  "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
   "kind": "ak.strand.update",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "scope_ref": {
     "kind": "realm",
-    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
   },
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 4,
   "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [
-    "ak:event:019640ed-0000-7000-8000-000000000000"
+    "ak:event:019640ed-0000-8000-8000-000000000000"
   ],
   "refs": [
     { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
@@ -169,7 +169,7 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
     "key_epoch": 7
   },
   "payload": {
-    "target_ref": "ak:strand:019640c6-8000-7000-8000-000000000000",
+    "target_ref": "ak:strand:019640c6-8000-8000-8000-000000000000",
     "patch": {
       "metadata.fields.review_status": "approved"
     }
@@ -429,6 +429,38 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 
 校验失败 MUST `schema_violation` 或 `capability_denied`，不得把 payload 中的创建者字段当作 proof、capability 或审计归属的替代来源。
 
+### 2.5.1 `created_at` 下界（normative）
+
+[`../conformance/encoding.md` §4.0](../conformance/encoding.md) 把 `event_id` 的时间戳段绑定到 `created_at`，因此伪造一个与既有 Event 碰撞的 `event_id` 要求攻击者声称一个落在**目标同一秒**的 `created_at`——而那一秒必然在过去。对回填加下界，使离线 grinding 变成有截止时间的在线攻击。
+
+判据全部是**签名值对签名值的比较，不使用本地时钟**，因此无时钟依赖、跨 receiver 收敛、与到达顺序无关，且对经 submit 还是 federation 路径到达的 Event 一律成立：
+
+```text
+(a) created_at ≥ max( prev_refs[] 中每条已接受 Event 的 created_at )
+        reason_code = created_at_before_causal_predecessor
+(b) created_at ≥ 本 Event 绑定 Seal 的 sealed_at
+        DataEvent    取 seal_ref 指向 Seal 的 sealed_at
+        Control Move 取 max(seal_basis.leaves[].sealed_at)
+        reason_code = created_at_before_basis_seal
+(c) created_at ≤ now + hard_future_skew_ms   （既有规则，未来一侧）
+```
+
+- **(a)** 的输入是 `prev_refs`——因果前沿，其中每条在因果上都早于本 Event，取 `max` 天然正确。它同时消除了 `actor_seq-1` 处存在 sibling fork（§2.6 单桶上限 16）时"以哪一条为准"的歧义：producer 按 §2.6 必须把观察到的完整 frontier 合入 `prev_refs`，所以 `max` 的输入集合就是签名覆盖的那个集合。`prev_refs` 为空（genesis）时本条不适用。
+- **(b)** 绑定所有主体，包括在该 Realm 内 `actor_seq=0` 的新成员——他们仍然必须绑定一个已接受的 Seal。攻击者因此被夹在两头：要声称 `created_at = T` 就必须绑一个 `sealed_at ≤ T` 的旧 Seal，而 `revocation_freshness_window_ms` 禁止高风险写入绑定过旧的 Seal。**攻击窗口 = 撤销新鲜度窗口。**该窗口的取值因此直接是一个安全参数：放宽它等于同比例放宽伪造预算；部署 SHOULD 对 create-once 的 create kind 单独收紧，并 MUST 把这些 kind 计入高风险写入集合，否则夹逼不生效。
+- **(b)** 的比较跨两台机器的墙钟，MUST 允许 `hard_future_skew_ms` 的对称容差；MUST NOT 为此新增阈值。
+
+**anchor unit 例外与其代价（normative）**：`ak.realm.create` 与 `ak.device.reanchor` 无 `seal_ref` / `seal_basis`，(b) 不适用；`ak.realm.create` 的 `prev_refs` 为空，(a) 也不适用。因此这两类 Event 的 `event_id` 伪造是**无时限的离线 2^88**，不受本节窗口压缩。这是有意接受的边界，实现 MUST NOT 把它实现成"静默跳过"，规范读者也 MUST NOT 认为本节覆盖全部 Event。genesis 批次内免 `seal_basis` 的白名单 follow-up 因 `actor_seq > 0` 且 `prev_refs` 非空，仍受 (a) 覆盖。
+
+**producer 义务**：
+
+```text
+created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
+```
+
+否则时钟回拨的设备会把自己卡死。`created_at` MUST 是**本 Event 的提交时刻**；桥接外部平台消息时，外部原始时间戳只能进 `metadata` / `external_ref`，写入 `created_at` 会被 (b) 拒。
+
+同型先例见 [`../authz/event-auth-state-resolution.md` §6.3](../authz/event-auth-state-resolution.md) 的 "`sealed_at` MUST 不早于全部 predecessor 的 `sealed_at`"：同样是签名值对签名值、沿 DAG 单调、无本地时钟。
+
 ### 2.6 `actor_seq` fork 约束
 
 - Event actor chain 的唯一作用域是 `(realm_id, actor_id)`。首个普通 Event 使用 `actor_seq=0`；后续 Event 的 sequence 只可由该作用域的 accepted authoring frontier 或同一 authoring transaction 内已经构造的前一 Event 推导。实现不得维护会在签发时烧号的 actor-sequence floor，也不得用 actor-only aggregate、另一 Realm 或未经验证的本地缓存提升 `actor_seq`。
@@ -493,7 +525,7 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 | `kind` | yes | `enum(detached_jws)` | 初版必须支持。 | 证明类型。 |
 | `alg` | yes | `string` | 初版默认 `Ed25519`。 | 签名算法。 |
 | `verification_method` | yes | `string` | DID URL。 | 公钥/设备方法。 |
-| `event_digest` | yes | `hash` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned_actor_kind)`。签名输入包含 `scope_ref`、`payload`、basis 与其它 producer 字段，只排除 `proofs`、`unsigned`、`actor_kind`。 | producer-signed canonical Event digest。 |
+| `event_digest` | yes | `hash` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`。签名输入包含 `scope_ref`、`payload`、basis 与其它 producer 字段，只排除 `proofs`、`unsigned`、`actor_kind`。 | producer-signed canonical Event digest。 |
 | `created_at` | yes | `timestamp` | MUST 使用 canonical RFC 3339 UTC 毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`（整秒也写 `.000Z`）；微秒/纳秒输入必须在生成 proof binding 与签名之前截断到毫秒，不得使用 `+00:00`。 | 签名时间。 |
 | `domain` | no | `string` | 同一 trust domain 内 SHOULD 设置；跨服务、跨 trust domain 或 federation profile 下 MUST 设置。 | 域绑定。 |
 | `audience` | no | `string` 或 `array<string>` | 同一 service audience 内 SHOULD 设置；跨域/服务调用、多受众调用或 federation profile 下 MUST 设置。 | 受众绑定。 |
@@ -515,7 +547,7 @@ DID proof JSON Schema MUST 与 [`../identity/identity-did.md`](../identity/ident
 }
 ```
 
-Verifier MUST 先移除 `proofs`、`unsigned` 与 `actor_kind`，保留 `scope_ref`，计算 producer-signed canonical Event hash并与 `proof.event_digest` 比对；随后写入固定 signing-context `context="ak.event-proof-v1"` 验证 detached JWS。JWS transcript 同时绑定 context、actor、verification method、时间、domain/audience，避免跨对象族、跨服务或跨 actor/scope 重放。
+Verifier MUST 先移除 `proofs`、`unsigned`、`actor_kind` 与 `event_id`，保留 `scope_ref`，计算 producer-signed canonical Event hash并与 `proof.event_digest` 比对；随后按 [`../conformance/encoding.md` §4.0](../conformance/encoding.md) 重算 `event_id` 并与携带值比对（不一致 `event_id_digest_mismatch`），比对通过前 MUST NOT 将 `event_id` 用于去重、索引、路由或授权判断；随后写入固定 signing-context `context="ak.event-proof-v1"` 验证 detached JWS。JWS transcript 同时绑定 context、actor、verification method、时间、domain/audience，避免跨对象族、跨服务或跨 actor/scope 重放。
 
 在 cross-service、cross-trust-domain、federation 或任何 profile 声明的多受众调用中，缺少 `domain` 或缺少所需 `audience` 的 proof MUST fail closed（`proof_binding_missing` 或 profile 声明的更具体 reason）。同一服务内单受众本地写入 MAY 省略其中一项，但 verifier 仍 MUST 把处理上下文中的 Realm / service audience 与 envelope `realm_id`、proof controller 和 capability 绑定分开校验；不得因为 proof 验签通过就跨服务接受同一 Event。
 
@@ -606,18 +638,18 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
   "kind": "ak.strand.update",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "scope_ref": {
     "kind": "realm",
-    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
   },
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 5,
   "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
-  "prev_refs": ["ak:event:019640ed-7000-7000-8000-000000000000"],
+  "prev_refs": ["ak:event:019640ed-7000-8000-8000-000000000000"],
   "refs": [
     { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
@@ -629,7 +661,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
     "key_epoch": 7
   },
   "payload": {
-    "target_ref": "ak:strand:019640c6-8000-7000-8000-000000000000",
+    "target_ref": "ak:strand:019640c6-8000-8000-8000-000000000000",
     "patch": {
       "metadata.fields.review_status": { "$op": "set", "value": "approved" },
       "metadata.fields.due_date": { "$op": "set", "value": "2026-06-01" }

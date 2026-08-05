@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-05.4",
+  "version": "2026-08-06.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-05T20:00:00Z",
+  "generated_at": "2026-08-06T07:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -93,70 +93,80 @@
       "referenceability": [
         "relation_endpoint"
       ],
-      "description": "Actor profile object ID"
+      "description": "Actor profile object ID",
+      "id_form": "event_derived"
     },
     {
       "kind": "appeal",
       "category": "moderation",
       "status": "active",
       "wire_form": "ak:appeal:<uuid>",
-      "description": "Moderation appeal ID — opaque key for the ak.component.moderation.appeal.v1 cell. Created by ak.moderation.appeal.submit; referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5."
+      "description": "Moderation appeal ID — opaque key for the ak.component.moderation.appeal.v1 cell. Created by ak.moderation.appeal.submit; referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "announce",
       "category": "discovery",
       "status": "active",
       "wire_form": "ak:announce:<uuid>",
-      "description": "Directory-local announce ingest record ID. It is typed and UUIDv7-shaped for validator consistency, but it is scoped to the issuing Directory and is not a global federated object authority."
+      "description": "Directory-local announce ingest record ID. It is typed and UUIDv7-shaped for validator consistency, but it is scoped to the issuing Directory and is not a global federated object authority.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "applet",
       "category": "extension",
       "status": "active",
       "wire_form": "ak:applet:<uuid>",
-      "description": "Applet registration/service ID"
+      "description": "Applet registration/service ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "audit_binding",
       "category": "audit",
       "status": "active",
       "wire_form": "ak:audit_binding:<uuid>",
-      "description": "Audit Applet Binding ID. Created by ak.audit.applet_binding and referenced by audit session request/authorize/notice/release events."
+      "description": "Audit Applet Binding ID. Created by ak.audit.applet_binding and referenced by audit session request/authorize/notice/release events.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "audit_session",
       "category": "audit",
       "status": "active",
       "wire_form": "ak:audit_session:<uuid>",
-      "description": "Audit release session ID. Threads ak.audit.session.request, authorize, notice, release, and close events for one bounded historical audit window."
+      "description": "Audit release session ID. Threads ak.audit.session.request, authorize, notice, release, and close events for one bounded historical audit window.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "audit_release",
       "category": "audit",
       "status": "active",
       "wire_form": "ak:audit_release:<uuid>",
-      "description": "Audit release manifest ID. Created by ak.audit.release for a sealed historical release under an active audit binding/session."
+      "description": "Audit release manifest ID. Created by ak.audit.release for a sealed historical release under an active audit binding/session.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "backup",
       "category": "identity",
       "status": "active",
       "wire_form": "ak:backup:<uuid>",
-      "description": "Encrypted backup object ID"
+      "description": "Encrypted backup object ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "backup_series",
       "category": "identity",
       "status": "active",
       "wire_form": "ak:backup_series:<uuid>",
-      "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_kind). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ak.schema.key_backup.v1.series_id and recovery strands to detect rollback. See identity/key-management.md §7.6."
+      "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_kind). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ak.schema.key_backup.v1.series_id and recovery strands to detect rollback. See identity/key-management.md §7.6.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "batch",
       "category": "discovery",
       "status": "active",
       "wire_form": "ak:batch:<uuid>",
-      "description": "Discovery/private-contact batch ID"
+      "description": "Discovery/private-contact batch ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "blob",
@@ -167,35 +177,40 @@
         "relation_endpoint",
         "notification_source"
       ],
-      "description": "Blob metadata row ID; content-addressed blobs use the special digest form"
+      "description": "Blob metadata row ID; content-addressed blobs use the special digest form",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "block",
       "category": "account_private",
       "status": "active",
       "wire_form": "ak:block:<uuid>",
-      "description": "Actor-private blocklist entry ID"
+      "description": "Actor-private blocklist entry ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "call",
       "category": "media",
       "status": "active",
       "wire_form": "ak:call:<uuid>",
-      "description": "Call/session ID"
+      "description": "Call/session ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "rtc_participant",
       "category": "media",
       "status": "active",
       "wire_form": "ak:rtc_participant:<uuid>",
-      "description": "SFU-local participant handle. Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_id, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in an `ak.call.state.roster_delta` join participant value and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
+      "description": "SFU-local participant handle. Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_id, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in an `ak.call.state.roster_delta` join participant value and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "capability",
       "category": "authz",
       "status": "active",
       "wire_form": "ak:capability:<uuid>",
-      "description": "Abstract capability definition reference ID; signed grant objects use ak:grant:<uuid>."
+      "description": "Abstract capability definition reference ID; signed grant objects use ak:grant:<uuid>.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "circle",
@@ -205,21 +220,24 @@
       "referenceability": [
         "read_cursor_scope_ref"
       ],
-      "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md."
+      "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md.",
+      "id_form": "event_derived"
     },
     {
       "kind": "sidecar",
       "category": "core_object",
       "status": "active",
       "wire_form": "ak:sidecar:<uuid>",
-      "description": "Agent Sidecar object ID — controller-owned private AI workspace, singleton per (realm_id, controller_id), with derived eligible-Agent access. See zh/models/sidecar.md."
+      "description": "Agent Sidecar object ID — controller-owned private AI workspace, singleton per (realm_id, controller_id), with derived eligible-Agent access. See zh/models/sidecar.md.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "consent",
       "category": "identity_authz",
       "status": "active",
       "wire_form": "ak:consent:<uuid>",
-      "description": "Consent grant/revoke/request identifier shared by Arkret consent events and MIMI interop DTOs."
+      "description": "Consent grant/revoke/request identifier shared by Arkret consent events and MIMI interop DTOs.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "strand",
@@ -231,35 +249,40 @@
         "notification_source",
         "read_cursor_scope_ref"
       ],
-      "description": "Strand object ID"
+      "description": "Strand object ID",
+      "id_form": "event_derived"
     },
     {
       "kind": "chunk",
       "category": "snapshot",
       "status": "active",
       "wire_form": "ak:chunk:<uuid>",
-      "description": "Snapshot/blob chunk ID"
+      "description": "Snapshot/blob chunk ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "claim",
       "category": "identity_authz",
       "status": "active",
       "wire_form": "ak:claim:<uuid>",
-      "description": "Claim or attestation ID"
+      "description": "Claim or attestation ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "device",
       "category": "identity",
       "status": "active",
       "wire_form": "ak:device:<uuid>",
-      "description": "Device identifier (ak:device:<uuid>). A device is a typed ID scoped to an owning principal, NOT a DID and NOT an actor principal. Device keys are registered as verification methods under the owning principal DID via ak.device.authorize."
+      "description": "Device identifier (ak:device:<uuid>). A device is a typed ID scoped to an owning principal, NOT a DID and NOT an actor principal. Device keys are registered as verification methods under the owning principal DID via ak.device.authorize.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "device_message",
       "category": "sync",
       "status": "active",
       "wire_form": "ak:device_message:<uuid>",
-      "description": "To-device message queue ID"
+      "description": "To-device message queue ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "event",
@@ -269,56 +292,64 @@
       "referenceability": [
         "relation_endpoint"
       ],
-      "description": "Event Envelope ID"
+      "description": "Event Envelope ID",
+      "id_form": "event_derived"
     },
     {
       "kind": "filter",
       "category": "policy",
       "status": "active",
       "wire_form": "ak:filter:<uuid>",
-      "description": "Moderation/filter rule ID"
+      "description": "Moderation/filter rule ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "frame",
       "category": "transport",
       "status": "active",
       "wire_form": "ak:frame:<uuid>",
-      "description": "Non-HTTP stream frame ID"
+      "description": "Non-HTTP stream frame ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "franking_proof",
       "category": "moderation",
       "status": "active",
       "wire_form": "ak:franking_proof:<uuid>",
-      "description": "Message franking proof ID"
+      "description": "Message franking proof ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "grant",
       "category": "authz",
       "status": "active",
       "wire_form": "ak:grant:<uuid>",
-      "description": "Signed capability grant object ID used by ak.schema.capability.v1 and grant/revoke references."
+      "description": "Signed capability grant object ID used by ak.schema.capability.v1 and grant/revoke references.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "invite",
       "category": "authz",
       "status": "active",
       "wire_form": "ak:invite:<uuid>",
-      "description": "Invite object ID"
+      "description": "Invite object ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "invite_locator",
       "category": "account_private",
       "status": "active",
       "wire_form": "ak:invite_locator:<uuid>",
-      "description": "Non-secret Principal Server administrative ID for one account-owned online invite locator. The ID is exposed only on the authenticated self management surface and is distinct from the opaque bearer locator_token."
+      "description": "Non-secret Principal Server administrative ID for one account-owned online invite locator. The ID is exposed only on the authenticated self management surface and is distinct from the opaque bearer locator_token.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "key_event",
       "category": "identity",
       "status": "active",
       "wire_form": "ak:key_event:<uuid>",
-      "description": "DID/key log event ID"
+      "description": "DID/key log event ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "message",
@@ -330,14 +361,16 @@
         "notification_source",
         "read_cursor_thread_root"
       ],
-      "description": "Message object ID"
+      "description": "Message object ID",
+      "id_form": "event_derived"
     },
     {
       "kind": "message_stream",
       "category": "sync",
       "status": "active",
       "wire_form": "ak:message_stream:<uuid>",
-      "description": "Transient Signal Message preview stream instance ID; never a durable object or Event identity"
+      "description": "Transient Signal Message preview stream instance ID; never a durable object or Event identity",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "morph",
@@ -348,70 +381,80 @@
         "relation_endpoint",
         "notification_source"
       ],
-      "description": "Morph object ID"
+      "description": "Morph object ID",
+      "id_form": "event_derived"
     },
     {
       "kind": "notification",
       "category": "derived_projection",
       "status": "active",
       "wire_form": "ak:notification:<uuid>",
-      "description": "Notification projection ID"
+      "description": "Notification projection ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "operation",
       "category": "security",
       "status": "active",
       "wire_form": "ak:operation:<opaque>",
-      "description": "Opaque identifier for a durable or reserved multi-phase protocol operation instance."
+      "description": "Opaque identifier for a durable or reserved multi-phase protocol operation instance.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "read_cursor",
       "category": "account_private",
       "status": "active",
       "wire_form": "ak:read_cursor:<uuid>",
-      "description": "Actor-private read cursor ID"
+      "description": "Actor-private read cursor ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "policy",
       "category": "policy",
       "status": "active",
       "wire_form": "ak:policy:<uuid>",
-      "description": "Policy object ID"
+      "description": "Policy object ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "presentation",
       "category": "identity",
       "status": "active",
       "wire_form": "ak:presentation:<uuid>",
-      "description": "Presentation/proof exchange ID"
+      "description": "Presentation/proof exchange ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "receipt",
       "category": "receipt",
       "status": "active",
       "wire_form": "ak:receipt:<uuid>",
-      "description": "Receipt object ID"
+      "description": "Receipt object ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "authorization_lease",
       "category": "authz",
       "status": "active",
       "wire_form": "ak:authorization_lease:<uuid>",
-      "description": "Basis-bound AuthorizationLease identifier."
+      "description": "Basis-bound AuthorizationLease identifier.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "recovery_session",
       "category": "identity",
       "status": "active",
       "wire_form": "ak:recovery_session:<uuid>",
-      "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery strand. Referenced by ak.schema.recovery_receipt.v1 and by §15 recovery proofs. See crypto-media/device-lifecycle.md §15."
+      "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery strand. Referenced by ak.schema.recovery_receipt.v1 and by §15 recovery proofs. See crypto-media/device-lifecycle.md §15.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "attestation",
       "category": "audit",
       "status": "active",
       "wire_form": "ak:attestation:<uuid>",
-      "description": "Attestation object ID (e.g. ak.attestation.range_completeness)."
+      "description": "Attestation object ID (e.g. ak.attestation.range_completeness).",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "relation",
@@ -422,35 +465,40 @@
         "relation_endpoint",
         "notification_source"
       ],
-      "description": "Relation object ID"
+      "description": "Relation object ID",
+      "id_form": "event_derived"
     },
     {
       "kind": "report",
       "category": "moderation",
       "status": "active",
       "wire_form": "ak:report:<uuid>",
-      "description": "Moderation report ID"
+      "description": "Moderation report ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "moderation_queue_item",
       "category": "moderation",
       "status": "active",
       "wire_form": "ak:moderation_queue_item:<uuid>",
-      "description": "Moderation queue item ID"
+      "description": "Moderation queue item ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "request",
       "category": "transport",
       "status": "active",
       "wire_form": "ak:request:<uuid>",
-      "description": "Request/correlation ID"
+      "description": "Request/correlation ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "snapshot",
       "category": "snapshot",
       "status": "active",
       "wire_form": "ak:snapshot:<uuid>",
-      "description": "Snapshot manifest ID"
+      "description": "Snapshot manifest ID",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "space",
@@ -461,14 +509,16 @@
         "relation_endpoint",
         "read_cursor_scope_ref"
       ],
-      "description": "Space object ID — structural grouping object inside a Realm (board, list, swimlane, calendar bucket, etc.). Authorization-transparent: never carries its own membership / policy / E2EE group; resolves to the containing Realm."
+      "description": "Space object ID — structural grouping object inside a Realm (board, list, swimlane, calendar bucket, etc.). Authorization-transparent: never carries its own membership / policy / E2EE group; resolves to the containing Realm.",
+      "id_form": "event_derived"
     },
     {
       "kind": "subscription",
       "category": "discovery",
       "status": "active",
       "wire_form": "ak:subscription:<uuid>",
-      "description": "Directory notification subscription identifier."
+      "description": "Directory notification subscription identifier.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "realm",
@@ -479,21 +529,25 @@
         "relation_endpoint",
         "read_cursor_scope_kind"
       ],
-      "description": "Realm object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy."
+      "description": "Realm object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy.",
+      "id_form": "event_derived_or_subject_derived",
+      "id_form_note": "Collaboration Realms are event-derived (UUIDv8, encoding.md section 4.0). Principal Control Realms are subject-derived from the principal DID (H(\"ak:realm:principal-control:v1:\" || did), UUIDv7 layout) so the address stays computable from the DID alone; their identity anchor is did_inception, not the genesis Event. Neither form is producer-chosen and the branch is fixed by the create's purpose."
     },
     {
       "kind": "transaction",
       "category": "security",
       "status": "active",
       "wire_form": "ak:transaction:<uuid>",
-      "description": "Durable RecoveryTransaction, SecurityRotationTransaction, federation, or applet transaction identifier."
+      "description": "Durable RecoveryTransaction, SecurityRotationTransaction, federation, or applet transaction identifier.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "recovery_authority_ticket",
       "category": "security",
       "status": "active",
       "wire_form": "ak:recovery_authority_ticket:<uuid>",
-      "description": "Reserved UUIDv7 identity of the Principal Server signed, RecoveryTransaction-bound one-time Account Authority ticket. The id is fixed at transaction create; signed ticket bytes are issued only after the transaction is durable."
+      "description": "Reserved UUIDv7 identity of the Principal Server signed, RecoveryTransaction-bound one-time Account Authority ticket. The id is fixed at transaction create; signed ticket bytes are issued only after the transaction is durable.",
+      "id_form": "producer_allocated"
     },
     {
       "kind": "view",
@@ -504,9 +558,13 @@
         "relation_endpoint",
         "notification_source"
       ],
-      "description": "View object ID"
+      "description": "View object ID",
+      "id_form": "event_derived"
     }
   ],
-  "uuid_pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-  "typed_uuid_pattern": "^ak:<kind>:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+  "uuid_pattern_producer_allocated": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+  "uuid_pattern_event_derived": "^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+  "typed_uuid_pattern_producer_allocated": "^ak:<kind>:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+  "typed_uuid_pattern_event_derived": "^ak:<kind>:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+  "uuid_form_rules": "Every typed ak:<kind>:<uuid> uses exactly one of two constructions, declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7, assigned by the service or client that mints the identifier. event_derived = RFC 9562 UUIDv8 with the content-bound layout of zh/conformance/encoding.md section 4.0: 34-bit second timestamp derived from created_at plus 88 bits taken from the leftmost 11 octets of the creating Event's event_digest. An event_derived id has no producer-chosen bits, so forging one that collides with an existing object requires 2^88 hash operations instead of typing a string. Implementations MUST NOT choose the form per site; it is fixed by this registry."
 }

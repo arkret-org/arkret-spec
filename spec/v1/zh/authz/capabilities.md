@@ -64,13 +64,13 @@ ID 语义：
 {
   "id": "ak:grant:0196410c-0000-7000-8000-000000000000",
   "schema": "ak.schema.capability.v1",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "issuer": "did:webvh:z6qRDFWgaBgTY3UGDLivJztno:acme.example.com",
   "subject": "did:webvh:z8NNMm8UHw7JcDSuuZd34UisF:agent.copy.example.com",
   "issuer_authority_refs": [
     {
       "kind": "realm_root",
-      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
       "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
       "controller_epoch_at_issuance": 0,
       "authority_generation": 0
@@ -86,13 +86,13 @@ ID 语义：
   "resources": [
     {
       "kind": "object",
-      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
       "object_kind": "strand",
       "match_scope": "realm_wide"
     },
     {
       "kind": "morph",
-      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
       "morph_kind": "document",
       "match_scope": "realm_wide"
     }

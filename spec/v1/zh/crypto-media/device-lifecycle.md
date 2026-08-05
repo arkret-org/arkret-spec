@@ -1423,11 +1423,11 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
   "contents": [
     {
       "item_kind": "mls_epoch_secret",
-      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
       "mls_group_id": "base64url",
       "epoch": 42,
-      "first_event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
-      "last_event_id": "ak:event:019640ee-0000-7000-8000-000000000000"
+      "first_event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
+      "last_event_id": "ak:event:019640ee-0000-8000-8000-000000000000"
     }
   ],
   "ciphertext": "base64url...",
@@ -1701,7 +1701,7 @@ Schema id：`ak.schema.cross_signing_reset.v1`
   "actor_id": "did:webvh:...",
   "payload": {
     "trust_domain": "ak:trust_domain:did.webvh.example",
-    "reset_event_id": "ak:event:0196414c-5000-7000-8000-000000000000",
+    "reset_event_id": "ak:event:0196414c-5000-8000-8000-000000000000",
     "principal_id": "did:webvh:...",
     "previous_generation": 1,
     "new_generation": 2,
@@ -1722,7 +1722,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 ```json schema=schemas/cross-signing-reset.schema.json
 {
   "trust_domain": "ak:trust_domain:did.webvh.example",
-  "reset_event_id": "ak:event:0196414c-5000-7000-8000-000000000000",
+  "reset_event_id": "ak:event:0196414c-5000-8000-8000-000000000000",
   "principal_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "previous_generation": 1,
   "new_generation": 2,

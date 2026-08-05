@@ -228,11 +228,11 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "constraint_kind": "scope_limitation",
   "effect": "allow",
   "allowed_strand_ids": [
-    "ak:strand:01964180-0280-7000-8000-000000000000"
+    "ak:strand:01964180-0280-8000-8000-000000000000"
   ],
   "allowed_tracks": ["discussion"],
   "denied_strand_ids": [
-    "ak:strand:01964180-0289-7a52-94a5-294a5294a400"
+    "ak:strand:01964180-0289-8a52-94a5-294a5294a400"
   ]
 }
 ```
@@ -267,9 +267,9 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "constraint_kind": "scope_limitation",
   "effect": "allow",
   "allowed_relation_kinds": ["contains"],
-  "allowed_view_ids": ["ak:view:019641be-0000-7000-8000-000000000000"],
-  "allowed_from_container_refs": ["ak:space:019640c0-8000-7000-8000-000000000000"],
-  "allowed_to_container_refs": ["ak:space:019640c1-0000-7000-8000-000000000000"],
+  "allowed_view_ids": ["ak:view:019641be-0000-8000-8000-000000000000"],
+  "allowed_from_container_refs": ["ak:space:019640c0-8000-8000-8000-000000000000"],
+  "allowed_to_container_refs": ["ak:space:019640c1-0000-8000-8000-000000000000"],
   "wip_limit_override": false
 }
 ```
@@ -286,7 +286,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "effect": "allow",
   "blob_presign_scope": {
     "allowed_purposes": ["media_inline", "thumbnail"],
-    "realm_ids": ["ak:realm:0196419b-0000-7000-8000-000000000000"]
+    "realm_ids": ["ak:realm:0196419b-0000-8000-8000-000000000000"]
   },
   "allowed_endpoints": ["https://api.trusted.example"],
   "allowed_data_labels": ["public", "internal"]
@@ -1135,9 +1135,9 @@ Child grant MUST 等于或窄于其 issuer-authority grants。`max_authority_dep
   "constraint_kind": "scope_limitation",
   "effect": "allow",
   "allowed_relation_kinds": ["contains"],
-  "allowed_view_ids": ["ak:view:019641be-0000-7000-8000-000000000000"],
-  "allowed_from_container_refs": ["ak:space:019640c0-8000-7000-8000-000000000000"],
-  "allowed_to_container_refs": ["ak:space:019640c1-0000-7000-8000-000000000000"],
+  "allowed_view_ids": ["ak:view:019641be-0000-8000-8000-000000000000"],
+  "allowed_from_container_refs": ["ak:space:019640c0-8000-8000-8000-000000000000"],
+  "allowed_to_container_refs": ["ak:space:019640c1-0000-8000-8000-000000000000"],
   "wip_limit_override": false
 }
 ```

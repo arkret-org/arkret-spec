@@ -124,13 +124,13 @@ Realm policy MUST 通过 Event kind `ak.realm.policy_bundle` 的 payload path `m
     "ciphertext": "base64url",
     "aad_visibility_event_id": "routing_digest",
     "aad": {
-      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
       "event_kind": "ak.message.create",
       "event_ref_digest": "sha256:..."
     },
     "key_ref": {
       "algorithm": "MLS",
-      "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
+      "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
     },
     "payload_digest": "sha256:...",
     "aad_digest": "sha256:..."
@@ -187,10 +187,10 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 
 ```json
 {
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "event_kind": "ak.message.create",
   "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-  "causal_refs": ["ak:event:019640ed-0000-7000-8000-000000000000"]
+  "causal_refs": ["ak:event:019640ed-0000-8000-8000-000000000000"]
 }
 ```
 
@@ -217,13 +217,13 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
   "content_type": "application/json",
   "aad_visibility_event_id": "routing_digest",
   "aad": {
-    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
     "event_kind": "ak.message.create",
     "event_ref_digest": "sha256:..."
   },
   "key_ref": {
     "algorithm": "MLS",
-    "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
+    "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
   }
 }
 ```
@@ -575,7 +575,7 @@ Profile 规则：
   "pairwise_did": "did:key:z6Mkpseudonymous",
   "principal_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "device_id": "ak:device:019a6aa0-0000-7000-8000-000000000000",
-  "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:019a7360-0000-8000-8000-000000000000",
   "trust_domain": "ak:trust_domain:did.webvh.example",
   "mls_group_id": "mls-group-019a7360",
   "mls_leaf_index": 0,
@@ -736,14 +736,14 @@ scheme 选择是 Realm policy 字段 `content_scheme`（经 `ak.realm.policy_bun
   "scheme": "mls_exporter_aead_v1",
   "key_ref": {
     "algorithm": "MLS-EXPORTER-AEAD",
-    "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
+    "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
   },
   "epoch": 42,
   "nonce": "base64url...",
   "purpose": "mls_exporter_aead_content",
   "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
   "aad": {
-    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
     "event_kind": "ak.message.create",
     "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
   }

@@ -11,7 +11,7 @@
     {
       "vector_id": "ak.vector.membership.delivery_binding.explicit.v1",
       "given_state": {
-        "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:7d000000-0000-8000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
         "delivery_binding_policy": {
           "allowed_binding_sources": [
@@ -26,9 +26,9 @@
         },
         "service_acceptance_events": [
           {
-            "event_id": "ak:event:7d000001-0000-7000-8000-000000000000",
+            "event_id": "ak:event:7d000001-0000-8000-8000-000000000000",
             "verification_method": "did:webvh:z6mkfixture:principal.acme.example#key-1",
-            "scope_realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
+            "scope_realm_id": "ak:realm:7d000000-0000-8000-8000-000000000000",
             "endorsed_by": [
               "did:webvh:z6mkfixture:acme.example"
             ]
@@ -39,7 +39,7 @@
       "input": {
         "event_kind": "ak.member.state",
         "payload": {
-          "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
+          "realm_id": "ak:realm:7d000000-0000-8000-8000-000000000000",
           "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "membership": "join",
           "delivery_status": "routable",
@@ -56,7 +56,7 @@
               "key_packages"
             ],
             "resolved_at": "2026-05-19T10:00:00.000Z",
-            "service_acceptance_ref": "ak:event:7d000001-0000-7000-8000-000000000000"
+            "service_acceptance_ref": "ak:event:7d000001-0000-8000-8000-000000000000"
           },
           "gate_proofs": [
             {
@@ -75,7 +75,7 @@
     {
       "vector_id": "ak.vector.membership.delivery_binding.did_document_default.v1",
       "given_state": {
-        "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:7d000000-0000-8000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
         "delivery_binding_policy": {
           "did_document_default_allowed": true
@@ -90,7 +90,7 @@
       "input": {
         "event_kind": "ak.member.state",
         "payload": {
-          "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
+          "realm_id": "ak:realm:7d000000-0000-8000-8000-000000000000",
           "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "membership": "join",
           "delivery_status": "routable",
@@ -122,7 +122,7 @@
     {
       "vector_id": "ak.vector.membership.delivery_binding.unroutable.v1",
       "given_state": {
-        "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:7d000000-0000-8000-8000-000000000000",
         "delivery_binding_policy": {
           "unroutable_membership_allowed": true
         }
@@ -131,7 +131,7 @@
       "input": {
         "event_kind": "ak.member.state",
         "payload": {
-          "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
+          "realm_id": "ak:realm:7d000000-0000-8000-8000-000000000000",
           "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "membership": "join",
           "delivery_status": "unroutable"
@@ -189,7 +189,7 @@
     {
       "vector_id": "ak.vector.membership.delivery_binding.policy_mismatch.v1",
       "given_state": {
-        "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:7d000000-0000-8000-8000-000000000000",
         "delivery_binding_policy": {
           "allowed_binding_sources": [
             "organization_policy"
@@ -203,7 +203,7 @@
       "input": {
         "event_kind": "ak.member.state",
         "payload": {
-          "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
+          "realm_id": "ak:realm:7d000000-0000-8000-8000-000000000000",
           "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "membership": "join",
           "delivery_status": "routable",
@@ -217,7 +217,7 @@
               "sync"
             ],
             "resolved_at": "2026-05-19T10:00:00.000Z",
-            "service_acceptance_ref": "ak:event:7d000002-0000-7000-8000-000000000000"
+            "service_acceptance_ref": "ak:event:7d000002-0000-8000-8000-000000000000"
           }
         }
       },
@@ -230,7 +230,7 @@
         {
           "case_id": "allowlisted_service_missing_required_endorser",
           "given_state": {
-            "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
+            "realm_id": "ak:realm:7d000000-0000-8000-8000-000000000000",
             "delivery_binding_policy": {
               "allowed_binding_sources": [
                 "explicit"
@@ -244,9 +244,9 @@
             },
             "service_acceptance_events": [
               {
-                "event_id": "ak:event:7d000003-0000-7000-8000-000000000000",
+                "event_id": "ak:event:7d000003-0000-8000-8000-000000000000",
                 "verification_method": "did:webvh:z6mkfixture:principal.acme.example#key-1",
-                "scope_realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
+                "scope_realm_id": "ak:realm:7d000000-0000-8000-8000-000000000000",
                 "endorsed_by": []
               }
             ]
@@ -254,7 +254,7 @@
           "input": {
             "event_kind": "ak.member.state",
             "payload": {
-              "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
+              "realm_id": "ak:realm:7d000000-0000-8000-8000-000000000000",
               "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
               "membership": "join",
               "delivery_status": "routable",
@@ -268,7 +268,7 @@
                   "sync"
                 ],
                 "resolved_at": "2026-05-19T10:00:00.000Z",
-                "service_acceptance_ref": "ak:event:7d000003-0000-7000-8000-000000000000"
+                "service_acceptance_ref": "ak:event:7d000003-0000-8000-8000-000000000000"
               }
             }
           },

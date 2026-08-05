@@ -86,7 +86,7 @@
       "expect_valid": true,
       "instance": {
         "kind": "realm_actor",
-        "realm_id": "ak:realm:01904100-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01904100-0000-8000-8000-000000000001",
         "actor_id": "did:web:alice.example",
         "next_actor_seq": 0,
         "frontier_event_ids": [],
@@ -99,14 +99,14 @@
       "expect_valid": true,
       "instance": {
         "kind": "realm_actor",
-        "realm_id": "ak:realm:01904100-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01904100-0000-8000-8000-000000000001",
         "actor_id": "did:web:alice.example",
         "next_actor_seq": 43,
         "frontier_event_ids": [
-          "ak:event:01904100-0000-7000-8000-000000000001",
-          "ak:event:01904100-0000-7000-8000-000000000002"
+          "ak:event:01904100-0000-8000-8000-000000000001",
+          "ak:event:01904100-0000-8000-8000-000000000002"
         ],
-        "frontier_digest": "sha256:4f928af58951a0a04f532b272fe6c45b371d33e932d0a15a8df84725a5efe1cf"
+        "frontier_digest": "sha256:c1b2e97b69fc7fa6765972391384aa59c9a36a3598bc096c30af552a451f6cf4"
       }
     },
     {
@@ -117,7 +117,7 @@
       "instance": {
         "actor_id": "did:web:alice.example",
         "actor_seq": 42,
-        "event_id": "ak:event:01904100-0000-7000-8000-000000000001"
+        "event_id": "ak:event:01904100-0000-8000-8000-000000000001"
       }
     },
     {
@@ -127,7 +127,7 @@
       "first_expected_error": "contains:should be non-empty",
       "instance": {
         "kind": "realm_actor",
-        "realm_id": "ak:realm:01904100-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:01904100-0000-8000-8000-000000000001",
         "actor_id": "did:web:alice.example",
         "next_actor_seq": 1,
         "frontier_event_ids": [],
@@ -178,28 +178,28 @@
   "collection_projection": {
     "projection": "collection",
     "renderer": "board",
-    "view_id": "ak:view:019641be-0000-7000-8000-000000000000",
+    "view_id": "ak:view:019641be-0000-8000-8000-000000000000",
     "frontier": {
       "state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "event_ids": [
-        "ak:event:019640ed-8000-7000-8000-000000000000"
+        "ak:event:019640ed-8000-8000-8000-000000000000"
       ]
     },
     "groups": [
       {
-        "id": "ak:space:01964010-8400-7000-8000-000000000000",
+        "id": "ak:space:01964010-8400-8000-8000-000000000000",
         "title": "Todo",
         "items": [
           {
             "object": {
-              "id": "ak:strand:019640c5-0400-7000-8000-000000000000",
+              "id": "ak:strand:019640c5-0400-8000-8000-000000000000",
               "title": "Legal review"
             },
             "item_render": "card",
             "position": {
               "model": "relation",
-              "container_id": "ak:space:01964010-8400-7000-8000-000000000000",
-              "relation_id": "ak:relation:01964187-0400-7000-8000-000000000000",
+              "container_id": "ak:space:01964010-8400-8000-8000-000000000000",
+              "relation_id": "ak:relation:01964187-0400-8000-8000-000000000000",
               "rank": "U"
             },
             "permissions": [
@@ -215,7 +215,7 @@
     ]
   },
   "strand_discussion_timeline": {
-    "strand_id": "ak:strand:01964180-0000-7000-8000-000000000000",
+    "strand_id": "ak:strand:01964180-0000-8000-8000-000000000000",
     "ordering": [
       "causal_depth",
       "hlc",
@@ -225,9 +225,9 @@
     ],
     "entries": [
       {
-        "event_id": "ak:event:01964147-0000-7000-8000-000000000000",
-        "message_id": "ak:message:01964147-0000-7000-8000-000000000000",
-        "strand_id": "ak:strand:01964180-0000-7000-8000-000000000000",
+        "event_id": "ak:event:01964147-0000-8000-8000-000000000000",
+        "message_id": "ak:message:01964147-0000-8000-8000-000000000000",
+        "strand_id": "ak:strand:01964180-0000-8000-8000-000000000000",
         "decryption_state": "plaintext"
       }
     ],
@@ -404,7 +404,7 @@
       "after": "ak:cursor:eyJleHBpcmVzX2F0IjoiMjAyNi0wMS0wMVQwMDowMDowMC4wMDBaIiwiaCI6IlpYaHdhWEpsWkMxemRISmxZVzB0YUdGdVpHeGwiLCJpc3N1ZWRfYXQiOiIyMDI1LTEyLTMxVDIzOjU5OjU5LjAwMFoiLCJwdXJwb3NlIjoic3RyZWFtIiwidiI6IjEifQ",
       "filter": {
         "realm_ids": [
-          "ak:realm:0196419b-0000-7000-8000-000000000000"
+          "ak:realm:0196419b-0000-8000-8000-000000000000"
         ]
       }
     },
@@ -413,7 +413,7 @@
       "http_status": 410,
       "recovery": {
         "call": "ak.self.snapshot.query.manifest_head",
-        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
       }
     }
   },
@@ -437,7 +437,7 @@
         {
           "branch": "snapshot_bootstrap",
           "call": "ak.self.snapshot.query.manifest_head",
-          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+          "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
         }
       ],
       "forbidden_recovery": [
@@ -450,7 +450,7 @@
         {
           "branch": "frontier_as_cursor",
           "call": "ak.self.events.query.scan",
-          "after": "ak:event:019640ed-8000-7000-8000-000000000000",
+          "after": "ak:event:019640ed-8000-8000-8000-000000000000",
           "reject_reason": "invalid_param: snapshot frontier event_id is not a cursor"
         }
       ]
@@ -461,7 +461,7 @@
     "state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "frontier": {
       "event_ids": [
-        "ak:event:019640ed-8000-7000-8000-000000000000"
+        "ak:event:019640ed-8000-8000-8000-000000000000"
       ],
       "timeline_hlc": "01970e589d21-0001-a13f9c2e"
     },
@@ -470,7 +470,7 @@
       "root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "covered_event_count": 1,
       "covered_event_ids": [
-        "ak:event:019640ed-8000-7000-8000-000000000000"
+        "ak:event:019640ed-8000-8000-8000-000000000000"
       ]
     },
     "expected": {
@@ -480,7 +480,7 @@
       "backfill_direction": "from_head_toward_older",
       "backfill_after_present": false,
       "backfill_stop_frontier": [
-        "ak:event:019640ed-8000-7000-8000-000000000000"
+        "ak:event:019640ed-8000-8000-8000-000000000000"
       ]
     }
   },
@@ -502,26 +502,26 @@
       "created_at": "2026-04-26T00:00:00.000Z",
       "event_set_commitment": {
         "algorithm": "merkle_event_set_v1",
-        "root": "sha256:36cd99d1a18c97734dba991dd240e1ac91915a1249984d1081828213a18c4fe1",
+        "root": "sha256:23beb12d9ab46b53f035e2bcf8a2bbd8070481269d2f22ebadf05c64d02a7659",
         "covered_event_count": 20,
         "actor_seq_ranges": [
           {
             "actor_id": "did:webvh:z6mkfixture:alice.example",
             "from_seq": 100,
             "to_seq": 106,
-            "root": "sha256:f90fe90acfc75e14516014406abb8b47a04391502552ad9d9b801df72ebfbe11"
+            "root": "sha256:cc60fe8213b107e71a65c29c30d92f3d52c05cd158deb3b341d939aea3f62a7d"
           },
           {
             "actor_id": "did:webvh:z6mkfixture:bob.example",
             "from_seq": 200,
             "to_seq": 206,
-            "root": "sha256:02f8840b7bb6fb7ffa2e853b5bba708919d0fa564b69463da34335186ed94b8a"
+            "root": "sha256:b39473199dac7cc67f993e4d4d35f289307283dbedb17cf8e8920ed9f2630e4e"
           },
           {
             "actor_id": "did:webvh:z6mkfixture:chrid.example",
             "from_seq": 300,
             "to_seq": 305,
-            "root": "sha256:a7d8cb63dc15eee5c783ddcc2fd954da59a163fece94b82aa01dcf119accff67"
+            "root": "sha256:9e352526c7ea7e630a3253895be7117d6a8204faa9ec1ee34faec679e5e18ac7"
           }
         ]
       },
@@ -534,140 +534,140 @@
     },
     "event_set_entries": [
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-000000000001",
+        "event_id": "ak:event:01965000-0000-8000-8000-000000000001",
         "event_digest": "sha256:ce36863f51b6baf9d16397ffb3e9af506b284a816f72d487e55943c1fd974d6d",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 100,
         "hlc": "01970e589d21-0001-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-000000000004",
+        "event_id": "ak:event:01965000-0000-8000-8000-000000000004",
         "event_digest": "sha256:7867155e59d4840ba0ddc4e8a2105ef5c2da06643a2a0c51891cd41ae063eb97",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 101,
         "hlc": "01970e589d21-0004-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-000000000007",
+        "event_id": "ak:event:01965000-0000-8000-8000-000000000007",
         "event_digest": "sha256:5976124a116880e33f397dc0a913686e1b2b7e11043a1990077d5f8dadb8f05c",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 102,
         "hlc": "01970e589d21-0007-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-00000000000a",
+        "event_id": "ak:event:01965000-0000-8000-8000-00000000000a",
         "event_digest": "sha256:ca7731e11bd510a2d86738aeb730b11531ceeb6a1a5f0c21ec2b25bf0549237c",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 103,
         "hlc": "01970e589d21-000a-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-00000000000d",
+        "event_id": "ak:event:01965000-0000-8000-8000-00000000000d",
         "event_digest": "sha256:a797c16f8729ea29beaf2a23ea87c858d08649b3e712841a24b7af8e26fdd41f",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 104,
         "hlc": "01970e589d21-000d-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-000000000010",
+        "event_id": "ak:event:01965000-0000-8000-8000-000000000010",
         "event_digest": "sha256:4ca086f5f4bda04e85f1e730c4e16a44e06bb48ad91a619c835165bf3ea80967",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 105,
         "hlc": "01970e589d21-0010-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-000000000013",
+        "event_id": "ak:event:01965000-0000-8000-8000-000000000013",
         "event_digest": "sha256:be462e46a8031b1a79c3a3df7a5aef698627c3a6b6d626d8fa0475949876fb34",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 106,
         "hlc": "01970e589d21-0013-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-000000000002",
+        "event_id": "ak:event:01965000-0000-8000-8000-000000000002",
         "event_digest": "sha256:b4e3d14e7519279e6a352f776d75a905a9de9a27efdb6d802fe4e700224ade2e",
         "actor_id": "did:webvh:z6mkfixture:bob.example",
         "actor_seq": 200,
         "hlc": "01970e589d21-0002-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-000000000005",
+        "event_id": "ak:event:01965000-0000-8000-8000-000000000005",
         "event_digest": "sha256:2e46e678bb4f65f93919deca4cfccb22d0fda59b85464af3b8a69e955233f91e",
         "actor_id": "did:webvh:z6mkfixture:bob.example",
         "actor_seq": 201,
         "hlc": "01970e589d21-0005-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-000000000008",
+        "event_id": "ak:event:01965000-0000-8000-8000-000000000008",
         "event_digest": "sha256:0dbabc9cc3b7edd7f84234f185d187fee0bd7e6423add65d53f37aedd9fedb01",
         "actor_id": "did:webvh:z6mkfixture:bob.example",
         "actor_seq": 202,
         "hlc": "01970e589d21-0008-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-00000000000b",
+        "event_id": "ak:event:01965000-0000-8000-8000-00000000000b",
         "event_digest": "sha256:182e682c84d74cdd7ca6552c7bd01a5e09a6c3500a01d112b25769620055df03",
         "actor_id": "did:webvh:z6mkfixture:bob.example",
         "actor_seq": 203,
         "hlc": "01970e589d21-000b-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-00000000000e",
+        "event_id": "ak:event:01965000-0000-8000-8000-00000000000e",
         "event_digest": "sha256:428ba7d91bd2b38e40ee6baac0d82ec111351ac72553526eca9c0910b37fe182",
         "actor_id": "did:webvh:z6mkfixture:bob.example",
         "actor_seq": 204,
         "hlc": "01970e589d21-000e-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-000000000011",
+        "event_id": "ak:event:01965000-0000-8000-8000-000000000011",
         "event_digest": "sha256:239cb67b21fd72742f39c9fa372492f7fef7459e260230b0a0ce9e6ac3e2e551",
         "actor_id": "did:webvh:z6mkfixture:bob.example",
         "actor_seq": 205,
         "hlc": "01970e589d21-0011-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-000000000014",
+        "event_id": "ak:event:01965000-0000-8000-8000-000000000014",
         "event_digest": "sha256:7f932710e9e157bb1b85751a76fe2f148163e577e1f8fab0bdcb904f4fe43ed2",
         "actor_id": "did:webvh:z6mkfixture:bob.example",
         "actor_seq": 206,
         "hlc": "01970e589d21-0014-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-000000000003",
+        "event_id": "ak:event:01965000-0000-8000-8000-000000000003",
         "event_digest": "sha256:1441ba5507f9658d9bea29b0d9567e6900468e0153fa990194e0f0f94699694b",
         "actor_id": "did:webvh:z6mkfixture:chrid.example",
         "actor_seq": 300,
         "hlc": "01970e589d21-0003-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-000000000006",
+        "event_id": "ak:event:01965000-0000-8000-8000-000000000006",
         "event_digest": "sha256:dee9b7bd6593cfa90d48e86c6bcd59cf68cc997e4500a498fb33c553c21ba133",
         "actor_id": "did:webvh:z6mkfixture:chrid.example",
         "actor_seq": 301,
         "hlc": "01970e589d21-0006-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-000000000009",
+        "event_id": "ak:event:01965000-0000-8000-8000-000000000009",
         "event_digest": "sha256:4beef4f5053f170d7c2bfd69180ea5e3ed6e3ce487a14b6e7e3a6795358b8277",
         "actor_id": "did:webvh:z6mkfixture:chrid.example",
         "actor_seq": 302,
         "hlc": "01970e589d21-0009-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-00000000000c",
+        "event_id": "ak:event:01965000-0000-8000-8000-00000000000c",
         "event_digest": "sha256:80179e34a2d8caf07b74cba2e7cd78ed0946716503e8c20c5cce4a08ced95bd0",
         "actor_id": "did:webvh:z6mkfixture:chrid.example",
         "actor_seq": 303,
         "hlc": "01970e589d21-000c-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-00000000000f",
+        "event_id": "ak:event:01965000-0000-8000-8000-00000000000f",
         "event_digest": "sha256:c5f2b63ac29c15bdd260dc84d10abec17920cb729c6a6a3d15f74892af06a80a",
         "actor_id": "did:webvh:z6mkfixture:chrid.example",
         "actor_seq": 304,
         "hlc": "01970e589d21-000f-a13f9c2e"
       },
       {
-        "event_id": "ak:event:01965000-0000-7000-8000-000000000012",
+        "event_id": "ak:event:01965000-0000-8000-8000-000000000012",
         "event_digest": "sha256:6f804f4fc5b594aae15970de9713420a205343411cf881227257cef7f97fb6cc",
         "actor_id": "did:webvh:z6mkfixture:chrid.example",
         "actor_seq": 305,
@@ -682,121 +682,121 @@
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-000000000001"
+            "ak:event:01965000-0000-8000-8000-000000000001"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-000000000004"
+            "ak:event:01965000-0000-8000-8000-000000000004"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-000000000007"
+            "ak:event:01965000-0000-8000-8000-000000000007"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-00000000000a"
+            "ak:event:01965000-0000-8000-8000-00000000000a"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-00000000000d"
+            "ak:event:01965000-0000-8000-8000-00000000000d"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-000000000010"
+            "ak:event:01965000-0000-8000-8000-000000000010"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-000000000013"
+            "ak:event:01965000-0000-8000-8000-000000000013"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-000000000002"
+            "ak:event:01965000-0000-8000-8000-000000000002"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-000000000005"
+            "ak:event:01965000-0000-8000-8000-000000000005"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-000000000008"
+            "ak:event:01965000-0000-8000-8000-000000000008"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-00000000000b"
+            "ak:event:01965000-0000-8000-8000-00000000000b"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-00000000000e"
+            "ak:event:01965000-0000-8000-8000-00000000000e"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-000000000011"
+            "ak:event:01965000-0000-8000-8000-000000000011"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-000000000014"
+            "ak:event:01965000-0000-8000-8000-000000000014"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-000000000003"
+            "ak:event:01965000-0000-8000-8000-000000000003"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-000000000006"
+            "ak:event:01965000-0000-8000-8000-000000000006"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-000000000009"
+            "ak:event:01965000-0000-8000-8000-000000000009"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-00000000000c"
+            "ak:event:01965000-0000-8000-8000-00000000000c"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-00000000000f"
+            "ak:event:01965000-0000-8000-8000-00000000000f"
           ]
         },
         {
           "kind": "event_id",
           "event_ids": [
-            "ak:event:01965000-0000-7000-8000-000000000012"
+            "ak:event:01965000-0000-8000-8000-000000000012"
           ]
         },
         {
@@ -821,87 +821,87 @@
     },
     "base_response": {
       "commitment_algorithm": "merkle_event_set_v1",
-      "commitment_root": "sha256:36cd99d1a18c97734dba991dd240e1ac91915a1249984d1081828213a18c4fe1",
+      "commitment_root": "sha256:23beb12d9ab46b53f035e2bcf8a2bbd8070481269d2f22ebadf05c64d02a7659",
       "proofs": [
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-000000000001"
+          "event_id": "ak:event:01965000-0000-8000-8000-000000000001"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-000000000004"
+          "event_id": "ak:event:01965000-0000-8000-8000-000000000004"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-000000000007"
+          "event_id": "ak:event:01965000-0000-8000-8000-000000000007"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-00000000000a"
+          "event_id": "ak:event:01965000-0000-8000-8000-00000000000a"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-00000000000d"
+          "event_id": "ak:event:01965000-0000-8000-8000-00000000000d"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-000000000010"
+          "event_id": "ak:event:01965000-0000-8000-8000-000000000010"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-000000000013"
+          "event_id": "ak:event:01965000-0000-8000-8000-000000000013"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-000000000002"
+          "event_id": "ak:event:01965000-0000-8000-8000-000000000002"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-000000000005"
+          "event_id": "ak:event:01965000-0000-8000-8000-000000000005"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-000000000008"
+          "event_id": "ak:event:01965000-0000-8000-8000-000000000008"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-00000000000b"
+          "event_id": "ak:event:01965000-0000-8000-8000-00000000000b"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-00000000000e"
+          "event_id": "ak:event:01965000-0000-8000-8000-00000000000e"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-000000000011"
+          "event_id": "ak:event:01965000-0000-8000-8000-000000000011"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-000000000014"
+          "event_id": "ak:event:01965000-0000-8000-8000-000000000014"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-000000000003"
+          "event_id": "ak:event:01965000-0000-8000-8000-000000000003"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-000000000006"
+          "event_id": "ak:event:01965000-0000-8000-8000-000000000006"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-000000000009"
+          "event_id": "ak:event:01965000-0000-8000-8000-000000000009"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-00000000000c"
+          "event_id": "ak:event:01965000-0000-8000-8000-00000000000c"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-00000000000f"
+          "event_id": "ak:event:01965000-0000-8000-8000-00000000000f"
         },
         {
           "kind": "event_id",
-          "event_id": "ak:event:01965000-0000-7000-8000-000000000012"
+          "event_id": "ak:event:01965000-0000-8000-8000-000000000012"
         },
         {
           "kind": "actor_seq_range",
@@ -1029,7 +1029,7 @@
         "kind": "delta",
         "cursor": "ak:cursor:fixture",
         "realms": {
-          "ak:realm:0196419b-0000-7000-8000-000000000129": {
+          "ak:realm:0196419b-0000-8000-8000-000000000129": {
             "state_at_window_start": {
               "actor_profiles": {
                 "did:webvh:z6mkfixture:alice.example": {
@@ -1064,7 +1064,7 @@
         "kind": "delta",
         "cursor": "ak:cursor:fixture",
         "realms": {
-          "ak:realm:0196419b-0000-7000-8000-000000000129": {
+          "ak:realm:0196419b-0000-8000-8000-000000000129": {
             "unread_notifications": {
               "notification_count": -1
             }
@@ -1077,12 +1077,12 @@
     "vector_id": "ak.vector.actor_frontier.realm_scoped.v1",
     "transcript_label_utf8_nul": "ak-realm-actor-frontier-v1\u0000",
     "digest_algorithm": "sha256",
-    "canonical_json": "{\"actor_id\":\"did:web:alice.example\",\"frontier_event_ids\":[\"ak:event:01904100-0000-7000-8000-000000000001\",\"ak:event:01904100-0000-7000-8000-000000000002\"],\"kind\":\"realm_actor\",\"next_actor_seq\":43,\"realm_id\":\"ak:realm:01904100-0000-7000-8000-000000000001\"}",
-    "expected_digest": "sha256:4f928af58951a0a04f532b272fe6c45b371d33e932d0a15a8df84725a5efe1cf"
+    "canonical_json": "{\"actor_id\":\"did:web:alice.example\",\"frontier_event_ids\":[\"ak:event:01904100-0000-8000-8000-000000000001\",\"ak:event:01904100-0000-8000-8000-000000000002\"],\"kind\":\"realm_actor\",\"next_actor_seq\":43,\"realm_id\":\"ak:realm:01904100-0000-8000-8000-000000000001\"}",
+    "expected_digest": "sha256:c1b2e97b69fc7fa6765972391384aa59c9a36a3598bc096c30af552a451f6cf4"
   },
   "e2ee_decryption_pending": {
-    "event_id": "ak:event:01964140-8000-7000-8000-000000000000",
-    "strand_id": "ak:strand:01964180-0000-7000-8000-000000000000",
+    "event_id": "ak:event:01964140-8000-8000-8000-000000000000",
+    "strand_id": "ak:strand:01964180-0000-8000-8000-000000000000",
     "mls_epoch": 7,
     "client_missing": [
       "welcome",

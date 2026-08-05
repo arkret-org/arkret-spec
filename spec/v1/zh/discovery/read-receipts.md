@@ -159,14 +159,14 @@ Read cursor schema：`ak.schema.read_cursor.v1`。Read Cursor 是 actor-private 
   "schema": "ak.schema.read_cursor.v1",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "read_scope": {
     "kind": "strand",
-    "container_ref": "ak:strand:01964200-0000-7000-8000-000000000001",
+    "container_ref": "ak:strand:01964200-0000-8000-8000-000000000001",
     "track_name": "discussion"
   },
   "position": {
-    "event_id": "ak:event:01964386-8000-7000-8000-000000000000",
+    "event_id": "ak:event:01964386-8000-8000-8000-000000000000",
     "hlc": "01970e589d21-0004-a13f9c2e"
   },
   "updated_at": "2026-04-26T10:00:00Z"
@@ -213,14 +213,14 @@ Read Cursor 是 actor-private 状态。最小结构示例：
 {
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "read_scope": {
     "kind": "strand",
-    "container_ref": "ak:strand:01964180-0280-7000-8000-000000000000",
+    "container_ref": "ak:strand:01964180-0280-8000-8000-000000000000",
     "track_name": "discussion"
   },
   "position": {
-    "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
+    "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
     "hlc": "01970e589d21-0004-a13f9c2e"
   },
   "updated_at": "2026-04-26T00:00:00Z"
@@ -239,10 +239,10 @@ schema：`ak.schema.read_receipt.v1`：
   "kind": "ak.receipt.read",
   "payload_sequence": 41,
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-  "event_id": "ak:event:01964387-7000-7000-8000-000000000000",
+  "event_id": "ak:event:01964387-7000-8000-8000-000000000000",
   "read_scope": {
     "kind": "strand",
-    "object_ref": "ak:strand:01964200-0000-7000-8000-000000000001",
+    "object_ref": "ak:strand:01964200-0000-8000-8000-000000000001",
     "track_name": "discussion"
   }
 }
@@ -257,10 +257,10 @@ Notification 是派生 projection，不是 canonical truth。schema：`ak.schema
   "id": "ak:notification:01964157-8000-7000-8000-000000000000",
   "schema": "ak.schema.notification.v1",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "source_event_id": "ak:event:0196434a-8000-7000-8000-000000000000",
-  "source_ref": "ak:message:0196434c-c000-7000-8000-000000000000",
-  "strand_id": "ak:strand:01964200-0000-7000-8000-000000000001",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "source_event_id": "ak:event:0196434a-8000-8000-8000-000000000000",
+  "source_ref": "ak:message:0196434c-c000-8000-8000-000000000000",
+  "strand_id": "ak:strand:01964200-0000-8000-8000-000000000001",
   "track_name": "discussion",
   "notification_kind": "mention",
   "priority": "normal",

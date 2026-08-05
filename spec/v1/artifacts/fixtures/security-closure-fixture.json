@@ -1457,8 +1457,8 @@
           "name": "input_order_independent_winner",
           "input": {
             "siblings": [
-              "ak:event:019a7360-0000-7000-8000-000000000001",
-              "ak:event:019a7360-0000-7000-8000-000000000002"
+              "ak:event:019a7360-0000-8000-8000-000000000001",
+              "ak:event:019a7360-0000-8000-8000-000000000002"
             ],
             "same_logical_time": true
           },
@@ -1473,8 +1473,8 @@
               "vector_id": "ak.vector.lattice.lww_open_set.v1",
               "preconditions": {
                 "siblings": [
-                  "ak:event:019a7360-0000-7000-8000-000000000001",
-                  "ak:event:019a7360-0000-7000-8000-000000000002"
+                  "ak:event:019a7360-0000-8000-8000-000000000001",
+                  "ak:event:019a7360-0000-8000-8000-000000000002"
                 ],
                 "same_logical_time": true
               }
@@ -1485,8 +1485,8 @@
               "canonicalization": "fixture_json_v1",
               "input": {
                 "siblings": [
-                  "ak:event:019a7360-0000-7000-8000-000000000001",
-                  "ak:event:019a7360-0000-7000-8000-000000000002"
+                  "ak:event:019a7360-0000-8000-8000-000000000001",
+                  "ak:event:019a7360-0000-8000-8000-000000000002"
                 ],
                 "same_logical_time": true
               }

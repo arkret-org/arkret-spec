@@ -169,7 +169,7 @@ Content-Type: application/json
 
 ```json
 {
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "call_id": "ak:call:0196419c-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",

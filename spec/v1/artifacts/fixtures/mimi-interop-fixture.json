@@ -111,8 +111,8 @@
           "profile": "ak.profile.mimi_interop.v1",
           "mimi_room_uri": "mimi://mimi.example.com/rooms/01JSMIMI",
           "binding_scope": {
-            "realm_id": "ak:realm:0110c853-1d09-7044-b214-c74240110c85",
-            "strand_id": "ak:strand:0110c853-1d09-7044-b214-c74240110c85"
+            "realm_id": "ak:realm:0110c853-1d09-8044-b214-c74240110c85",
+            "strand_id": "ak:strand:0110c853-1d09-8044-b214-c74240110c85"
           },
           "hub_provider": "did:webvh:z6mkfixture:mimi.example.com",
           "local_provider_role": "hub",
@@ -128,7 +128,7 @@
       "input": {
         "operation_id": "ak.open.mimi.exchange.request_key_material",
         "target_identifier": "mimi://remote.example/alice",
-        "realm_id": "ak:realm:0110c853-1d09-7044-b214-c74240110c85",
+        "realm_id": "ak:realm:0110c853-1d09-8044-b214-c74240110c85",
         "mimi_room_uri": "mimi://mimi.example.com/rooms/01JSMIMI",
         "requester_provider": "did:webvh:z6mkfixture:mimi.example.com",
         "required_content_profile": "ak.profile.mimi_interop.v1",
@@ -187,7 +187,7 @@
       "input": {
         "consent_state": "accepted",
         "target_identifier": "mimi://remote.example/alice",
-        "realm_id": "ak:realm:0110c853-1d09-7044-b214-c74240110c85"
+        "realm_id": "ak:realm:0110c853-1d09-8044-b214-c74240110c85"
       },
       "expected": "consent_does_not_grant_space_read_or_write_capability"
     },

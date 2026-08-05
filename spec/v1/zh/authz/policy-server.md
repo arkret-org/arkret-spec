@@ -145,7 +145,7 @@ Content-Type: application/json
 ```json schema=openapi/arkret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequestBody
 {
   "request_id": "polreq_01",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "action": "ak.message.create",
   "actor_id": "did:webvh:...",
@@ -222,7 +222,7 @@ Content-Type: application/json
 {
   "request_id": "polreq_01",
   "bound_to": {
-    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
     "actor_id": "did:webvh:...",
     "action": "ak.message.create",
     "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

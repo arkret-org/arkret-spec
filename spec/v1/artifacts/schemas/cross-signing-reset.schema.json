@@ -22,7 +22,7 @@
     },
     "reset_event_id": {
       "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Typed event_id of the Event Envelope carrying this reset payload. MUST equal the enclosing Event.event_id. Binding it into proof transcript prevents wrapping the same proof bytes into a different Event shell. Mismatch MUST be rejected as reset_event_id_mismatch."
     },
     "principal_id": {

@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-05.2",
+  "version": "2026-08-06.1",
   "codes": [
     {
       "code": "bad_json",
@@ -2469,6 +2469,20 @@
       "description": "A compaction Seal's covered set does not match the deterministic control view of the interval it claims to compact. Mismatched coverage MUST reject; only full-coverage compaction within seal_compaction_max_interval_ms enables bootstrap. See authz/event-auth-state-resolution.md and fixtures/cba-lattice-fixture.json."
     },
     {
+      "code": "created_at_before_basis_seal",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "Sub-reason for schema_violation when created_at is earlier than the sealed_at of the Seal this Event binds to (seal_ref for a DataEvent, max of seal_basis.leaves[].sealed_at for a Control Move), beyond the symmetric hard_future_skew_ms tolerance. Anchor units carry no such basis and are exempt; see zh/models/event-and-patch.md."
+    },
+    {
+      "code": "created_at_before_causal_predecessor",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "Sub-reason for schema_violation when created_at is earlier than the greatest created_at among the accepted Events referenced in prev_refs. prev_refs is the causal frontier, so every referenced Event precedes this one; the bound is a signed-value comparison and uses no local clock. Empty prev_refs (genesis) does not carry this bound."
+    },
+    {
       "code": "cross_domain_replay_rejected",
       "applies_to": [
         "auth_decision"
@@ -2976,6 +2990,13 @@
       "description": "Retained erasure stub bytes do not match retained_stub_digest in the erasure receipt. Verifier MUST reject the receipt and treat the erasure as not completed (fail closed)."
     },
     {
+      "code": "event_id_digest_mismatch",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "Sub-reason for schema_violation when the carried event_id does not equal the value re-derived from the Event's own canonical content per zh/conformance/encoding.md section 4.0. Receivers MUST re-derive and compare before using event_id for deduplication, indexing, routing, idempotency or authorization, and MUST NOT report this as proof_invalid: the distinct code is what localises cross-implementation canonical-JSON divergence and what prevents a forged event_id from entering the duplicate_conflict quarantine path."
+    },
+    {
       "code": "evidence_recipient_mismatch",
       "applies_to": [
         "moderation_decision",
@@ -3051,6 +3072,13 @@
         "state_resolution"
       ],
       "description": "External applicant-facing generic join gate failure. Wire response MUST NOT reveal whether a claim was absent, revoked, issuer-unreachable, parent-membership-missing, or challenge-invalid; detailed diagnostics are audit/reviewer-only. See zh/governance/join-policy.md §5."
+    },
+    {
+      "code": "genesis_created_at_too_old",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "Sub-reason for schema_violation when ak.realm.create is submitted through the self events surface with a created_at older than the deployment genesis submit window. The self surface never accepts federation peer wire, so a locally authored Realm genesis is always being created now; this bound does not and cannot apply to backfill."
     },
     {
       "code": "governance_binding_mismatch",
@@ -3822,6 +3850,13 @@
       "description": "Standard moderation reason: not-safe-for-work / explicit adult content posted outside permitted contexts."
     },
     {
+      "code": "object_id_not_event_derived",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "Sub-reason for schema_violation when a create Event carries an object identifier in its payload for an object kind whose id MUST be derived from the create Event's event_id. Create payloads MUST omit the id; the reducer materialises it by retyping the event_id UUID. See zh/models/common-fields.md."
+    },
+    {
       "code": "ok",
       "applies_to": [
         "batch_item",
@@ -4263,6 +4298,13 @@
         "auth_decision"
       ],
       "description": "The Realm has no registered ak.component.realm.authority_root.v1 cell in the authorization basis, or a ak.realm.create bootstrap unit failed to materialize it. Reducer MUST reject the entire bootstrap unit atomically without leaving Realm metadata or creator membership, and MUST NOT fall back to created_by, membership or a realm_state.owner projection mirror. See zh/models/realm-and-space.md section 2.5."
+    },
+    {
+      "code": "realm_id_not_event_derived",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "Sub-reason for schema_violation when ak.realm.create carries an envelope realm_id whose UUID segment differs from the UUID segment of its own event_id, or when its payload.object still carries an id field. See zh/models/realm-and-space.md section 2.5."
     },
     {
       "code": "realm_link_invalid_transition",

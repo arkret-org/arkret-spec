@@ -146,7 +146,7 @@
         {
           "name": "first_page",
           "items": [
-            "ak:space:0196419b-0000-7000-8000-000000002001"
+            "ak:space:0196419b-0000-8000-8000-000000002001"
           ],
           "has_more": true,
           "next_cursor": "ak:cursor:projection-page-1",
@@ -162,7 +162,7 @@
         {
           "name": "last_page",
           "items": [
-            "ak:space:0196419b-0000-7000-8000-000000002002"
+            "ak:space:0196419b-0000-8000-8000-000000002002"
           ],
           "has_more": false,
           "expected": {
@@ -218,14 +218,14 @@
           "witnesses": [
             {
               "witness_id": "did:webvh:z6mkfixture:witness-a.example",
-              "realm_id": "ak:realm:0196419b-0000-7000-8000-000000003001",
+              "realm_id": "ak:realm:0196419b-0000-8000-8000-000000003001",
               "actor_id": "did:webvh:z6mkfixture:alice.example",
               "actor_seq": 7,
               "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
             },
             {
               "witness_id": "did:webvh:z6mkfixture:witness-b.example",
-              "realm_id": "ak:realm:0196419b-0000-7000-8000-000000003001",
+              "realm_id": "ak:realm:0196419b-0000-8000-8000-000000003001",
               "actor_id": "did:webvh:z6mkfixture:alice.example",
               "actor_seq": 7,
               "event_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"

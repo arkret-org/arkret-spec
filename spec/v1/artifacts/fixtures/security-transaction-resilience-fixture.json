@@ -24,7 +24,7 @@
             "ciphertext_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           }
         ],
-        "active_series_event_id": "ak:event:019a7400-0000-7000-8000-000000000004",
+        "active_series_event_id": "ak:event:019a7400-0000-8000-8000-000000000004",
         "old_backups": [
           {
             "backup_id": "ak:backup:019a7400-0000-7000-8000-000000000005",
