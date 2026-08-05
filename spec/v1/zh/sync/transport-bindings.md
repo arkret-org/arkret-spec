@@ -93,10 +93,6 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.peer.events.query.scan_body` | `ak.peer.events.query.scan` 的 HTTP POST/body binding variant。 |
 | `ak.peer.events.query.frontier` | federation peer 查询 Realm frontier 以检测 fork / stale peer。 |
 | `ak.peer.contacts.command.submit` | federation peer以closed XOR投递原签名`ak.contact.*` fact、对应source-signed acceptance receipt与可刷新current proof；不得承载`ak.direct_conversation.bound`、共享Realm Event或unsigned service row。 |
-| `ak.peer.direct_conversation.operation_control.command.submit` | immutable replica间的closed registry/qDA/PBFT/view-change/read消息；外层peer签名与内层签名均必验。 |
-| `ak.peer.direct_conversation.operation_control.command.deliver` | 向EffectValueCore.destination交付完整certified ExecutionBundle，并由destination永久CAS effect ledger。 |
-| `ak.peer.direct_conversation.operation_control.query.execution_bundle` | 按exact immutable effect coordinates补取bundle或destination delivery receipt；不得作为head oracle。 |
-| `ak.peer.direct_conversation.operation_control.query.read_certificate` | 对exact signed request产生fresh `q=2f+1` operation-control head certificate；只证明读取。 |
 | `ak.gate.account.command.cancel_device_bootstrap` | 取消同一typed bootstrap transaction；bootstrap bearer+DPoP、closed response、exact replay/conflict。 |
 | `ak.self.contact.command.scope_update` | Contact issuer-local signed full-set scope replacement，固定`phase=prepare|commit`。 |
 | `ak.self.agent.participation.resource.replace` | controller 通过 bearer+DPoP 在自己的 Account Authority 原子替换一个 versioned per-scope selection；不产生 Realm Event、不走 peer relay。 |

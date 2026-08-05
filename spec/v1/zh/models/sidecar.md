@@ -14,7 +14,7 @@ updated: 2026-07-20
 
 **Agent Sidecar**（`ak:sidecar:`）是绑定到一个 `(realm_id, controller_id)` 的个人 AI 私有工作区。它是一等协议对象，不是 Circle profile、普通 Circle、Direct Conversation、Strand Track 或某个 Agent 的 1:1 会话。
 
-用户从 Contacts/Direct Messages 产品面点击自己的 Native Personal Agent 时，客户端 MUST 使用 [`ak.self.direct_conversation.command.resolve`](../identity/contact-and-direct-conversation.md#5-direct-conversation-resolver) 建立或复用 `{controller, agent}` 的独立双成员 Direct Conversation Realm。该入口不得调用 Sidecar ensure、不得要求当前 Realm/Strand context，也不得把 backing Circle 暴露成私聊会话。Sidecar 仅用于既有 Realm/Strand 内的 context-routed 私有协作。
+用户从 Contacts/Direct Messages 产品面点击自己的 Native Personal Agent 时，客户端 MUST 使用 [`ak.self.direct_conversation.query.resolve`](../identity/contact-and-direct-conversation.md#91-resolver-状态) 定位 `{controller, agent}` 的独立双成员 Direct Conversation Realm；尚不存在时由 controller 按 [contact-and-direct-conversation.md §5.4](../identity/contact-and-direct-conversation.md#54-create-判别与授权) 的 `direct_conversation_agent_genesis` 分支创建（该分支 founder 固定为 controller）。resolve 是查询入口，MUST NOT 承载 create phase。该入口不得调用 Sidecar ensure、不得要求当前 Realm/Strand context，也不得把 backing Circle 暴露成私聊会话。Sidecar 仅用于既有 Realm/Strand 内的 context-routed 私有协作。
 
 Sidecar 与 Circle 的职责不同：
 

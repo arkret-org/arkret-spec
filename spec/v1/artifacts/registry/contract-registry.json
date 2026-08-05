@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-05.1",
+  "version": "2026-08-05.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-05T12:00:00Z",
+  "generated_at": "2026-08-05T18:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -125,12 +125,12 @@
         "activation_checks": [
           "realm_profile_and_discriminator_exact",
           "realm_create_critical_extension_present",
-        "stable_binding_exact",
+          "stable_binding_exact",
           "actor_is_one_of_exactly_two_stable_participants",
           "actor_membership_active_join",
-        "realm_main_strand_and_target_scope_exact",
-        "active_mls_generation_cross_binding_exact",
-        "realm_binding_and_target_strand_non_terminal_or_suspended",
+          "realm_main_strand_and_target_scope_exact",
+          "active_mls_generation_cross_binding_exact",
+          "realm_binding_and_target_strand_non_terminal_or_suspended",
           "resource_within_dm_realm_non_circle_discussion_scope",
           "current_signed_directional_contact_heads_gate_for_send_like_actions",
           "action_specific_self_device_mls_and_agent_gates"
@@ -148,8 +148,17 @@
         "wire_ref": "ak.authority.direct_conversation_repair.v1",
         "binding_event_kind": "ak.direct_conversation.bound",
         "binding_ref_role": "direct_conversation_binding",
-        "action_allowlist": ["ak.member.leave.own"],
-        "activation_checks": ["stable_binding_exact", "exact_two_participant_mask", "missing_member_branch_closed", "current_signed_directional_contact_heads_authorize_exact_pair", "current_human_or_owned_agent_authoring_proof", "new_mls_generation_history_isolated"],
+        "action_allowlist": [
+          "ak.member.leave.own"
+        ],
+        "activation_checks": [
+          "stable_binding_exact",
+          "exact_two_participant_mask",
+          "missing_member_branch_closed",
+          "current_signed_directional_contact_heads_authorize_exact_pair",
+          "current_human_or_owned_agent_authoring_proof",
+          "new_mls_generation_history_isolated"
+        ],
         "revocation_model": "current_profile_predicates",
         "authority_generation_independent": true,
         "grantable": false,
@@ -163,8 +172,19 @@
         "wire_ref": "ak.authority.membership_compensation.v1",
         "binding_event_kind": "ak.member.state",
         "binding_ref_role": "membership_compensation_delegation",
-        "action_allowlist": ["ak.member.compensate.leave", "ak.member.compensate.remove"],
-        "activation_checks": ["delegation_core_digest_exact", "actual_join_authoring_signer_exact", "admission_and_membership_incarnation_exact", "executor_did_and_proof_key_exact", "action_branch_closed", "destination_single_use_cas", "current_positive_provenance_is_original_j1_or_signed_no_write"],
+        "action_allowlist": [
+          "ak.member.compensate.leave",
+          "ak.member.compensate.remove"
+        ],
+        "activation_checks": [
+          "delegation_core_digest_exact",
+          "actual_join_authoring_signer_exact",
+          "admission_and_membership_incarnation_exact",
+          "executor_did_and_proof_key_exact",
+          "action_branch_closed",
+          "destination_single_use_cas",
+          "current_positive_provenance_is_original_j1_or_signed_no_write"
+        ],
         "revocation_model": "accepted_at_single_use_until_signed_terminal_outcome",
         "authority_generation_independent": true,
         "grantable": false,
@@ -178,8 +198,16 @@
         "wire_ref": "ak.authority.sidecar_parent_bootstrap.v1",
         "binding_event_kind": "ak.sidecar.create",
         "binding_ref_role": "sidecar_parent_realm",
-        "action_allowlist": ["ak.self.agent.sidecar.command.ensure"],
-        "activation_checks": ["controller_current_and_exact", "parent_realm_current", "sidecar_create_minimal", "first_ensure_exact_create_then_context_attach", "no_preexisting_backing_scope_required"],
+        "action_allowlist": [
+          "ak.self.agent.sidecar.command.ensure"
+        ],
+        "activation_checks": [
+          "controller_current_and_exact",
+          "parent_realm_current",
+          "sidecar_create_minimal",
+          "first_ensure_exact_create_then_context_attach",
+          "no_preexisting_backing_scope_required"
+        ],
         "revocation_model": "one_shot_parent_realm_scoped_bootstrap",
         "authority_generation_independent": false,
         "grantable": false,
@@ -195,14 +223,16 @@
       "actor_private_event": "Persisted actor-private/account-data event; not shared Realm history and not Realm reducer input."
     },
     "admission_class_definitions": {
-      "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
-      "did_root_anchor": "Admitted only by the closed identity-root anchor verifier. v1 permits this class for a self-principal PCR genesis ak.realm.create bound to entry 0 through one critical did_inception ref, and for B-model ak.device.reanchor bound to the accepted registry head through one critical did_recovery_anchor ref. This verifier is the sole exception to generic Event verification_method-controller equality: verification_method MUST instead equal an active controller-proof verification method from the referenced entry, and the verifier validates it against the accepted did:webvh history/update authority without rewriting its did:key controller to actor_id. Root/update authority MUST NOT authorize any other Event kind. Batch shape, DID history, active update authority, full frontier CAS and conflict-slot checks remain mandatory.",
+      "capability_gated": "Gated by capability actions. The authorizing actions are exactly the ones whose target_event_kinds list this kind in capability-action-registry; there is no second per-event list. Reducer MUST verify the actor holds a matching action grant. Fail-closed.",
+      "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
+      "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
       "delegated_pcr_genesis": "Admitted only for a principal_control ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A managed Native Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed principal branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
       "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
-      "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
-      "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed.",
-      "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
-      "capability_gated": "Gated by capability actions. The authorizing actions are exactly the ones whose target_event_kinds list this kind in capability-action-registry; there is no second per-event list. Reducer MUST verify the actor holds a matching action grant. Fail-closed."
+      "did_root_anchor": "Admitted only by the closed identity-root anchor verifier. v1 permits this class for a self-principal PCR genesis ak.realm.create bound to entry 0 through one critical did_inception ref, and for B-model ak.device.reanchor bound to the accepted registry head through one critical did_recovery_anchor ref. This verifier is the sole exception to generic Event verification_method-controller equality: verification_method MUST instead equal an active controller-proof verification method from the referenced entry, and the verifier validates it against the accepted did:webvh history/update authority without rewriting its did:key controller to actor_id. Root/update authority MUST NOT authorize any other Event kind. Batch shape, DID history, active update authority, full frontier CAS and conflict-slot checks remain mandatory.",
+      "direct_conversation_agent_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_agent_provision pointing to an accepted ak.agent.provision Event. Used solely for the controller-to-own-Agent Direct Conversation branch, which has no Contact basis. The verifier cross-binds participants to exactly that controller and Agent, requires the Direct Conversation profile rather than a PCR profile, checks the controller binding is current, and fixes founder = controller so the Agent runtime key never needs Direct Conversation founding scope. This role is structurally exclusive with direct_conversation_basis and with the managed-Agent PCR agent_provision role.",
+      "direct_conversation_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_basis pointing to the portable Contact basis evidence bundle and its continuity chain to the pair's root founder basis. The verifier derives founder from the root basis core (normal branch: the sorted_pair_members entry that is not the request_event_ref issuer, i.e. the responder; glare branch: the requests[0] issuer), then requires created_by == actor_id == founder, recomputes pair_key from sorted_pair_members and the trust domain, and pins the Direct Conversation profile, exact-two participants and the create-locked encryption and history baseline. Accepted-at basis validity and current directional Contact gates are evaluated separately so Event validity never depends on delivery order.",
+      "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
+      "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed."
     },
     "admission_predicate_contract": {
       "closed_world": true,
@@ -1432,7 +1462,20 @@
             "cell_family": "ak.component.contact.fact_log.v1",
             "cell_subject": {
               "kind": "composite",
-              "components": [{"kind":"select","selector":"payload.peer.kind","branches":{"human":{"field":"payload.peer.principal_id"},"agent":{"field":"payload.peer.agent_id"}}}]
+              "components": [
+                {
+                  "kind": "select",
+                  "selector": "payload.peer.kind",
+                  "branches": {
+                    "human": {
+                      "field": "payload.peer.principal_id"
+                    },
+                    "agent": {
+                      "field": "payload.peer.agent_id"
+                    }
+                  }
+                }
+              ]
             },
             "lattice": "ordered_log",
             "bottom": "expose",
@@ -1457,7 +1500,20 @@
             "cell_family": "ak.component.contact.fact_log.v1",
             "cell_subject": {
               "kind": "composite",
-              "components": [{"kind":"select","selector":"payload.peer.kind","branches":{"human":{"field":"payload.peer.principal_id"},"agent":{"field":"payload.peer.agent_id"}}}]
+              "components": [
+                {
+                  "kind": "select",
+                  "selector": "payload.peer.kind",
+                  "branches": {
+                    "human": {
+                      "field": "payload.peer.principal_id"
+                    },
+                    "agent": {
+                      "field": "payload.peer.agent_id"
+                    }
+                  }
+                }
+              ]
             },
             "lattice": "ordered_log",
             "bottom": "expose",
@@ -1482,7 +1538,20 @@
             "cell_family": "ak.component.contact.fact_log.v1",
             "cell_subject": {
               "kind": "composite",
-              "components": [{"kind":"select","selector":"payload.peer.kind","branches":{"human":{"field":"payload.peer.principal_id"},"agent":{"field":"payload.peer.agent_id"}}}]
+              "components": [
+                {
+                  "kind": "select",
+                  "selector": "payload.peer.kind",
+                  "branches": {
+                    "human": {
+                      "field": "payload.peer.principal_id"
+                    },
+                    "agent": {
+                      "field": "payload.peer.agent_id"
+                    }
+                  }
+                }
+              ]
             },
             "lattice": "ordered_log",
             "bottom": "expose",
@@ -1507,7 +1576,20 @@
             "cell_family": "ak.component.contact.fact_log.v1",
             "cell_subject": {
               "kind": "composite",
-              "components": [{"kind":"select","selector":"payload.peer.kind","branches":{"human":{"field":"payload.peer.principal_id"},"agent":{"field":"payload.peer.agent_id"}}}]
+              "components": [
+                {
+                  "kind": "select",
+                  "selector": "payload.peer.kind",
+                  "branches": {
+                    "human": {
+                      "field": "payload.peer.principal_id"
+                    },
+                    "agent": {
+                      "field": "payload.peer.agent_id"
+                    }
+                  }
+                }
+              ]
             },
             "lattice": "ordered_log",
             "bottom": "expose",
@@ -1537,15 +1619,27 @@
                   "kind": "select",
                   "selector": "payload.peer.kind",
                   "branches": {
-                    "human": {"field": "payload.peer.principal_id"},
-                    "agent": {"field": "payload.peer.agent_id"}
+                    "human": {
+                      "field": "payload.peer.principal_id"
+                    },
+                    "agent": {
+                      "field": "payload.peer.agent_id"
+                    }
                   }
                 }
               ]
             },
             "lattice": "ordered_log",
             "bottom": "expose",
-            "effect_projection": {"kind":"append","value":{"field":"payload"},"issuer_seq":{"envelope_field":"actor_seq"}}
+            "effect_projection": {
+              "kind": "append",
+              "value": {
+                "field": "payload"
+              },
+              "issuer_seq": {
+                "envelope_field": "actor_seq"
+              }
+            }
           }
         ],
         "concurrency_class": "merge_safe"
@@ -4716,10 +4810,21 @@
         "cell_writes": [
           {
             "cell_family": "ak.component.sidecar.context.v1",
-            "cell_subject": {"field":"payload.sidecar_id","kind":"id:sidecar"},
+            "cell_subject": {
+              "field": "payload.sidecar_id",
+              "kind": "id:sidecar"
+            },
             "lattice": "ordered_log",
             "bottom": "inert",
-            "effect_projection": {"kind":"append","value":{"field":"payload"},"issuer_seq":{"envelope_field":"actor_seq"}}
+            "effect_projection": {
+              "kind": "append",
+              "value": {
+                "field": "payload"
+              },
+              "issuer_seq": {
+                "envelope_field": "actor_seq"
+              }
+            }
           }
         ],
         "concurrency_class": "security_barrier"
@@ -4730,10 +4835,18 @@
         "cell_writes": [
           {
             "cell_family": "ak.component.sidecar.access.v1",
-            "cell_subject": {"field":"payload.sidecar_id","kind":"id:sidecar"},
+            "cell_subject": {
+              "field": "payload.sidecar_id",
+              "kind": "id:sidecar"
+            },
             "lattice": "cas_register",
             "bottom": "reject",
-            "effect_projection": {"kind":"set","value":{"field":"payload"}}
+            "effect_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload"
+              }
+            }
           }
         ],
         "concurrency_class": "security_barrier"
@@ -5369,6 +5482,22 @@
               "not_const": "principal_control"
             },
             "admission": "capability_gated"
+          },
+          {
+            "when": {
+              "ref_role": "direct_conversation_basis",
+              "ref_critical": true,
+              "ref_exact_count": 1
+            },
+            "admission": "direct_conversation_genesis"
+          },
+          {
+            "when": {
+              "ref_role": "direct_conversation_agent_provision",
+              "ref_critical": true,
+              "ref_exact_count": 1
+            },
+            "admission": "direct_conversation_agent_genesis"
           },
           {
             "when": {
@@ -9860,11 +9989,7 @@
           "ak.self.invite_locator.command.issue",
           "ak.self.invite_locator.command.rotate",
           "ak.self.invite_locator.command.revoke",
-          "ak.self.direct_conversation.command.resolve",
-          "ak.peer.direct_conversation.operation_control.command.submit",
-          "ak.peer.direct_conversation.operation_control.command.deliver",
-          "ak.peer.direct_conversation.operation_control.query.execution_bundle",
-          "ak.peer.direct_conversation.operation_control.query.read_certificate"
+          "ak.self.direct_conversation.query.resolve"
         ],
         "surface_class": "extension"
       },
@@ -11014,7 +11139,9 @@
         "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_request_outcome",
         "durable_effect": {
           "kind": "event_log",
-          "event_kinds": ["ak.contact.requested"]
+          "event_kinds": [
+            "ak.contact.requested"
+          ]
         }
       },
       {
@@ -11031,7 +11158,9 @@
         "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_respond_outcome",
         "durable_effect": {
           "kind": "event_log",
-          "event_kinds": ["ak.contact.accepted"]
+          "event_kinds": [
+            "ak.contact.accepted"
+          ]
         }
       },
       {
@@ -11048,7 +11177,9 @@
         "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_reject_outcome",
         "durable_effect": {
           "kind": "event_log",
-          "event_kinds": ["ak.contact.rejected"]
+          "event_kinds": [
+            "ak.contact.rejected"
+          ]
         }
       },
       {
@@ -11073,7 +11204,12 @@
         "retry_safe": true,
         "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_scope_update_request",
         "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_scope_update_outcome",
-        "durable_effect": {"kind":"event_log","event_kinds":["ak.contact.scope.update"]}
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.contact.scope.update"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.contact.command.tombstone",
@@ -11089,7 +11225,9 @@
         "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_tombstone_outcome",
         "durable_effect": {
           "kind": "event_log",
-          "event_kinds": ["ak.contact.tombstoned"]
+          "event_kinds": [
+            "ak.contact.tombstoned"
+          ]
         }
       },
       {
@@ -11182,73 +11320,15 @@
         }
       },
       {
-        "operation_id": "ak.self.direct_conversation.command.resolve",
+        "operation_id": "ak.self.direct_conversation.query.resolve",
         "http": "POST /_arkret/self/direct-conversations/resolve",
         "grpc": "SelfDirectConversation/Resolve",
-        "mq": "self.direct_conversation.command.resolve",
-        "notes": "Idempotent resolver for the pair's single stable Direct Conversation. Existing bindings return found or suspended without consulting KeyPackage inventory. First creation uses the deterministic coordinator and one durable reserved/materializing/found operation; every retry after external effect retains the same operation, Realm and main Strand identifiers. A permanently cancelled pair slot returns the tombstoned terminal outcome with the frozen operation, attempt and coordinates; every later resolve exact-replays that outcome and MUST NOT create a new attempt or binding for the pair.",
+        "mq": "self.direct_conversation.query.resolve",
+        "notes": "Query-only resolver for the pair's single stable Direct Conversation. It never creates: a Direct Conversation Realm is created solely by the founder derived from the pair's root Contact basis (normal branch takes the responder, glare branch takes the requests[0] issuer) through the direct_conversation_genesis admission variant of ak.realm.create. Outcomes are evaluated in a fixed order and expose creation_required, creation_blocked, awaiting_founder, provisional, found, suspended or temporarily_unavailable. Waiting never grants create authority to the non-founder and there is no timeout fallback or takeover.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "idempotency_key",
-        "retry_safe": true,
         "request_schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_request",
-        "response_schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "the_service_persists_only_the_coordinator_operation_record_and_returns_participant_authoring_material_or_an_existing_projection"
-        }
-      },
-      {
-        "operation_id": "ak.peer.direct_conversation.operation_control.command.submit",
-        "http": "POST /_arkret/peer/direct-conversation-operation-control/messages",
-        "grpc": "PeerDirectConversationOperationControl/Submit",
-        "mq": "peer.direct_conversation.operation_control.command.submit",
-        "notes": "Closed immutable-replica carrier for the domain-root-signed registry, qDA, PBFT, view change and fresh read messages. Source and recipient must be exact immutable replicas. A one-vote slot omits operation_id and compares semantic value/lock digests: different carriers or valid quorum subsets for the same vote replay safely; only a conflicting semantic vote is equivocation. queued requires durable message bytes and typed missing dependencies.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "schema_resource",
-        "idempotency_mechanism": "protocol_sequence",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_message_submit_request",
-        "response_schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_message_receipt",
-        "durable_effect": { "kind": "none", "rationale": "authenticated_replica_protocol_log_only" }
-      },
-      {
-        "operation_id": "ak.peer.direct_conversation.operation_control.command.deliver",
-        "http": "POST /_arkret/peer/direct-conversation-operation-control/execution-bundles",
-        "grpc": "PeerDirectConversationOperationControl/DeliverExecutionBundle",
-        "mq": "peer.direct_conversation.operation_control.command.deliver",
-        "notes": "Delivers one fully certified ExecutionBundle to EffectValueCore.destination. The destination independently validates registry authorization, typed effect, qDA, ancestors, qCOMMIT, journal and complete host DID+epoch fence. Ledger identity is (pair_registry_id,operation_id,attempt_sequence,effect_id) and compares effect_commitment_digest, not full bundle bytes: alternative valid quorum witness subsets are duplicate; only a different semantic commitment is permanent equivocation. submitted_bundle_digest is exact recovery/audit identity. deferred requires durable exact bundle bytes plus named dependencies.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "schema_resource",
-        "idempotency_mechanism": "protocol_sequence",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_delivery_request",
-        "response_schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_delivery_outcome",
-        "durable_effect": { "kind": "none", "rationale": "certified_external_effect_and_destination_ledger_only" }
-      },
-      {
-        "operation_id": "ak.peer.direct_conversation.operation_control.query.execution_bundle",
-        "http": "POST /_arkret/peer/direct-conversation-operation-control/execution-bundles/query",
-        "grpc": "PeerDirectConversationOperationControl/QueryExecutionBundle",
-        "mq": "peer.direct_conversation.operation_control.query.execution_bundle",
-        "notes": "Stable exact recovery query, never a current-head oracle. by_effect requires registry, operation, attempt, effect and expected value/bundle digests; delivery_outcome requires the exact destination and bundle digest. Only an immutable replica, certified destination or the same operation requester may query.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "schema_resource",
-        "request_schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_query_request",
-        "response_schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_query_outcome",
-        "durable_effect": { "kind": "none", "rationale": "read_only_exact_execution_bundle_or_delivery_receipt_lookup" }
-      },
-      {
-        "operation_id": "ak.peer.direct_conversation.operation_control.query.read_certificate",
-        "http": "POST /_arkret/peer/direct-conversation-operation-control/read-certificates/query",
-        "grpc": "PeerDirectConversationOperationControl/ReadCertificate",
-        "mq": "peer.direct_conversation.operation_control.query.read_certificate",
-        "notes": "Produces a fresh quorum read certificate for one exact signed request. The evaluator requires exactly q=2f+1 distinct immutable replicas, canonical order, unexpired receipts and byte-identical request digest and complete genesis|committed head. Without q it fails operation_control_quorum_unavailable; a read certificate never authorizes an effect, transfer or attempt advance.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "schema_resource",
-        "request_schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_read_request",
-        "response_schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_read_certificate",
-        "durable_effect": { "kind": "none", "rationale": "read_only_fresh_quorum_certificate_assembly" }
+        "response_schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome"
       },
       {
         "operation_id": "ak.self.circle.command.create",
@@ -14209,8 +14289,14 @@
         "category": "membership",
         "risk_tier": "high",
         "required_constraints": [],
-        "required_evaluator_checks": ["membership_compensation_delegation_exact", "membership_incarnation_is_original_j1", "destination_single_use_cas"],
-        "target_event_kinds": ["ak.member.state"],
+        "required_evaluator_checks": [
+          "membership_compensation_delegation_exact",
+          "membership_incarnation_is_original_j1",
+          "destination_single_use_cas"
+        ],
+        "target_event_kinds": [
+          "ak.member.state"
+        ],
         "profile": "ak.profile.membership_join_compensation.v1",
         "event_mapping_kind": "scope_suffix_variant",
         "notes": "Accepted-at compensation for a self-authored join only. It authorizes one fresh standard leave transition for the exact admission and old membership incarnation; it cannot be transferred or used as ordinary membership authority."
@@ -14220,8 +14306,14 @@
         "category": "membership",
         "risk_tier": "high",
         "required_constraints": [],
-        "required_evaluator_checks": ["membership_compensation_delegation_exact", "membership_incarnation_is_original_j1", "destination_single_use_cas"],
-        "target_event_kinds": ["ak.member.state"],
+        "required_evaluator_checks": [
+          "membership_compensation_delegation_exact",
+          "membership_incarnation_is_original_j1",
+          "destination_single_use_cas"
+        ],
+        "target_event_kinds": [
+          "ak.member.state"
+        ],
         "profile": "ak.profile.membership_join_compensation.v1",
         "event_mapping_kind": "scope_suffix_variant",
         "notes": "Accepted-at compensation for a delegated/admin-authored join only. It authorizes one fresh standard remove transition for the exact admission and old membership incarnation; it grants no Realm admin capability."
@@ -15531,8 +15623,14 @@
         "category": "management",
         "risk_tier": "high",
         "required_constraints": [],
-        "required_evaluator_checks": ["sidecar_controller_exact", "sidecar_parent_realm_and_backing_circle_exact", "sidecar_access_version_cas"],
-        "target_event_kinds": ["ak.sidecar.access.replace"],
+        "required_evaluator_checks": [
+          "sidecar_controller_exact",
+          "sidecar_parent_realm_and_backing_circle_exact",
+          "sidecar_access_version_cas"
+        ],
+        "target_event_kinds": [
+          "ak.sidecar.access.replace"
+        ],
         "profile": "ak.profile.agent_sidecar.v1",
         "event_mapping_kind": "same_name"
       },
@@ -15541,8 +15639,14 @@
         "category": "management",
         "risk_tier": "medium",
         "required_constraints": [],
-        "required_evaluator_checks": ["contact_holder_exact", "contact_basis_current", "contact_lineage_version_cas"],
-        "target_event_kinds": ["ak.contact.scope.update"],
+        "required_evaluator_checks": [
+          "contact_holder_exact",
+          "contact_basis_current",
+          "contact_lineage_version_cas"
+        ],
+        "target_event_kinds": [
+          "ak.contact.scope.update"
+        ],
         "profile": "ak.profile.direct_conversation_realm.v1",
         "event_mapping_kind": "same_name"
       },

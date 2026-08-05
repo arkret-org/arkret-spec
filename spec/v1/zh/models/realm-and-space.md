@@ -425,7 +425,7 @@ Direct Conversation Realm MUST：
 - participant authority 只在 immutable binding、恰好两个 stable participant、actor active membership、conversation 未 suspended、Realm/Strand/MLS cross-binding、非终态 scope 与 action-specific gate 同时成立时生效。membership、`created_by`、role/projection mirror 与相同 `pair_key` 都不是其替代来源；authority reset 不使 baseline 失效。
 - 基数是同一 trust domain/pair 的 `0..1` stable binding，且一旦 materialize，该 pair 永久复用同一个 Realm 与 main Strand。suspended、rejoin、rekey、恢复或 erasure 都不创建 successor；未完成创建只能恢复已锁定的同一 operation/Realm。
 
-任一参与方主动离开或被移出 DM Realm 后，同一 immutable binding 立即投影为 `suspended`，双方 participant authority 失效，不需要也不得写 retirement fact。后续 `ak.self.direct_conversation.command.resolve(create=true)` MUST 返回同一 `pair_key`、Realm 与 main Strand；只有恢复所需 authorization basis 后，才可在同一 Realm 执行标准 rejoin/rekey 并恢复为 `found`。实现不得创建 successor、predecessor-linked binding、竞争 Realm 或历史 segment；旧 epoch/history key 仍逐次按 event-time visibility 与 history-sharing policy裁决。
+任一参与方主动离开或被移出 DM Realm 后，同一 immutable binding 立即投影为 `suspended`，双方 participant authority 失效，不需要也不得写 retirement fact。后续 `ak.self.direct_conversation.query.resolve` MUST 返回同一 `pair_key`、Realm 与 main Strand；只有恢复所需 authorization basis 后，才可在同一 Realm 执行标准 rejoin/rekey 并恢复为 `found`。resolve 是查询入口，MUST NOT 承载 `create` phase；DM Realm 的唯一创建入口是 [`../identity/contact-and-direct-conversation.md` §5.4](../identity/contact-and-direct-conversation.md) 的 founder-only founding admission。实现不得创建 successor、predecessor-linked binding、竞争 Realm 或历史 segment；旧 epoch/history key 仍逐次按 event-time visibility 与 history-sharing policy裁决。
 
 ## 3. Space
 

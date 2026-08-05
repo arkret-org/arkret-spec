@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-05.1",
+  "version": "2026-08-05.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-05T12:00:00Z",
+  "generated_at": "2026-08-05T18:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -168,11 +168,7 @@
         "ak.self.invite_locator.command.issue",
         "ak.self.invite_locator.command.rotate",
         "ak.self.invite_locator.command.revoke",
-        "ak.self.direct_conversation.command.resolve",
-        "ak.peer.direct_conversation.operation_control.command.submit",
-        "ak.peer.direct_conversation.operation_control.command.deliver",
-        "ak.peer.direct_conversation.operation_control.query.execution_bundle",
-        "ak.peer.direct_conversation.operation_control.query.read_certificate"
+        "ak.self.direct_conversation.query.resolve"
       ],
       "surface_class": "extension"
     },
@@ -1503,85 +1499,15 @@
       }
     },
     {
-      "operation_id": "ak.self.direct_conversation.command.resolve",
+      "operation_id": "ak.self.direct_conversation.query.resolve",
       "http": "POST /_arkret/self/direct-conversations/resolve",
       "grpc": "SelfDirectConversation/Resolve",
-      "mq": "self.direct_conversation.command.resolve",
-      "notes": "Idempotent resolver for the pair's single stable Direct Conversation. Existing bindings return found or suspended without consulting KeyPackage inventory. First creation uses the deterministic coordinator and one durable reserved/materializing/found operation; every retry after external effect retains the same operation, Realm and main Strand identifiers. A permanently cancelled pair slot returns the tombstoned terminal outcome with the frozen operation, attempt and coordinates; every later resolve exact-replays that outcome and MUST NOT create a new attempt or binding for the pair.",
+      "mq": "self.direct_conversation.query.resolve",
+      "notes": "Query-only resolver for the pair's single stable Direct Conversation. It never creates: a Direct Conversation Realm is created solely by the founder derived from the pair's root Contact basis (normal branch takes the responder, glare branch takes the requests[0] issuer) through the direct_conversation_genesis admission variant of ak.realm.create. Outcomes are evaluated in a fixed order and expose creation_required, creation_blocked, awaiting_founder, provisional, found, suspended or temporarily_unavailable. Waiting never grants create authority to the non-founder and there is no timeout fallback or takeover.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "idempotency_key",
-      "retry_safe": true,
       "request_schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_request",
-      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "the_service_persists_only_the_coordinator_operation_record_and_returns_participant_authoring_material_or_an_existing_projection"
-      }
-    },
-    {
-      "operation_id": "ak.peer.direct_conversation.operation_control.command.submit",
-      "http": "POST /_arkret/peer/direct-conversation-operation-control/messages",
-      "grpc": "PeerDirectConversationOperationControl/Submit",
-      "mq": "peer.direct_conversation.operation_control.command.submit",
-      "notes": "Closed immutable-replica carrier for the domain-root-signed registry, qDA, PBFT, view change and fresh read messages. Source and recipient must be exact immutable replicas. A one-vote slot omits operation_id and compares semantic value/lock digests: different carriers or valid quorum subsets for the same vote replay safely; only a conflicting semantic vote is equivocation. queued requires durable message bytes and typed missing dependencies.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "schema_resource",
-      "idempotency_mechanism": "protocol_sequence",
-      "retry_safe": true,
-      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_message_submit_request",
-      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_message_receipt",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "authenticated_replica_protocol_log_only"
-      }
-    },
-    {
-      "operation_id": "ak.peer.direct_conversation.operation_control.command.deliver",
-      "http": "POST /_arkret/peer/direct-conversation-operation-control/execution-bundles",
-      "grpc": "PeerDirectConversationOperationControl/DeliverExecutionBundle",
-      "mq": "peer.direct_conversation.operation_control.command.deliver",
-      "notes": "Delivers one fully certified ExecutionBundle to EffectValueCore.destination. The destination independently validates registry authorization, typed effect, qDA, ancestors, qCOMMIT, journal and complete host DID+epoch fence. Ledger identity is (pair_registry_id,operation_id,attempt_sequence,effect_id) and compares effect_commitment_digest, not full bundle bytes: alternative valid quorum witness subsets are duplicate; only a different semantic commitment is permanent equivocation. submitted_bundle_digest is exact recovery/audit identity. deferred requires durable exact bundle bytes plus named dependencies.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "schema_resource",
-      "idempotency_mechanism": "protocol_sequence",
-      "retry_safe": true,
-      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_delivery_request",
-      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_delivery_outcome",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "certified_external_effect_and_destination_ledger_only"
-      }
-    },
-    {
-      "operation_id": "ak.peer.direct_conversation.operation_control.query.execution_bundle",
-      "http": "POST /_arkret/peer/direct-conversation-operation-control/execution-bundles/query",
-      "grpc": "PeerDirectConversationOperationControl/QueryExecutionBundle",
-      "mq": "peer.direct_conversation.operation_control.query.execution_bundle",
-      "notes": "Stable exact recovery query, never a current-head oracle. by_effect requires registry, operation, attempt, effect and expected value/bundle digests; delivery_outcome requires the exact destination and bundle digest. Only an immutable replica, certified destination or the same operation requester may query.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_query_request",
-      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_query_outcome",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "read_only_exact_execution_bundle_or_delivery_receipt_lookup"
-      }
-    },
-    {
-      "operation_id": "ak.peer.direct_conversation.operation_control.query.read_certificate",
-      "http": "POST /_arkret/peer/direct-conversation-operation-control/read-certificates/query",
-      "grpc": "PeerDirectConversationOperationControl/ReadCertificate",
-      "mq": "peer.direct_conversation.operation_control.query.read_certificate",
-      "notes": "Produces a fresh quorum read certificate for one exact signed request. The evaluator requires exactly q=2f+1 distinct immutable replicas, canonical order, unexpired receipts and byte-identical request digest and complete genesis|committed head. Without q it fails operation_control_quorum_unavailable; a read certificate never authorizes an effect, transfer or attempt advance.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_read_request",
-      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_read_certificate",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "read_only_fresh_quorum_certificate_assembly"
-      }
+      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome"
     },
     {
       "operation_id": "ak.self.circle.command.create",

@@ -100,10 +100,17 @@ current proof；少于两张只能形成非授权的partial/tentative query view
 `ak.contact.requested|accepted|rejected|scope.update|tombstoned`并携该分支exact acceptance receipt与允许的
 current proof。request分支还必须携closed typed private `introduction_evidence`，其registered digest算法结果必须
 逐字等于signed request payload的`introduction_evidence_digest`；该digest固定为
-`H("ak.contact.introduction-evidence.v1", exact_introduction_evidence)`，其中H使用§7的统一定义。receipt中的Event ref/digest、lineage中的
+`H("ak.contact.introduction-evidence.v1", exact_introduction_evidence)`。本文的 domain-separated digest 统一定义为：
+
+```text
+H(label, x) = "sha256:" + lowerhex(SHA256(UTF8(label + "\n") || RFC8785_JCS(x)))
+```
+
+若某字段定义显式指定 decoded ciphertext bytes，则改为 `SHA256(UTF8(label + "\n") || decoded_bytes)` 且不做 JCS。
+receipt中的Event ref/digest、lineage中的
 event ref与current proof head都必须与同一内层Event及分支逐字交叉匹配。carrier只承载
 `ak.contact.*`，不得承载 `ak.direct_conversation.bound` 或 Realm Event；Direct Conversation binding 只能走
-§6–§8 的 materialization admission。carrier 必须使用 peer Message Signature，并逐字保留内层 bytes；relay
+§5–§7 的 founding admission 与 bootstrap authority。carrier 必须使用 peer Message Signature，并逐字保留内层 bytes；relay
 不得重签、改写、拆批或把 tentative 提升为 accepted。其 response 是独立 closed union
 `accepted | duplicate | deferred`。五类 signed Event 分支返回逐字匹配该 Event 的 mirror receipt；`glare_finalize`
 与 `proof_refresh` 没有 signed Event，必须返回各自 request-kind 绑定的 signed control receipt，绝不能伪造或借用
@@ -157,261 +164,257 @@ Message Signature只能额外叠加，不能替代其中任一项。实现 **MUS
 | `ak.self.contact.command.tombstone` | accepted basis terminal，旧 refs永久消费 |
 | `ak.self.contact.query.list` | 从 verified basis与双方 directional current heads投影 |
 | `ak.peer.contacts.command.submit` | closed XOR peer carrier；原 bytes + exact receipt/current proof |
+| `ak.self.direct_conversation.query.resolve` | §9.1 的唯一 DM 查询入口；closed outcome，不携 create phase 分支 |
+
+`ak.self.direct_conversation.command.resolve` 的 untagged 多 phase create 入口 **MUST** 删除：创建由 §5 的
+`ak.realm.create` founding admission 承担，查询由上表的 `query.resolve` 承担，二者 **MUST NOT** 合并为一个
+带 `create=true` 的 operation。
 
 所有 transport binding **MUST** 逐字段等值，不能自行增加 `accepted`、兼容 consent shape、unsigned service row
 或第二轮 assignment。首次接触 message 属于未获同意文本，接受前必须 quarantine/stub，不得把 Contact request
 变成正文投递通道。
 
-## 5. Direct Conversation resolver
+## 5. Direct Conversation founder 派生与创建授权
 
-`ak.self.direct_conversation.command.resolve` 是 unordered stable subject pair 到唯一 DM binding 的入口。
-Resolver 必须分开三个 gate：
+### 5.1 pair identity
 
-1. binding discovery：existing participant或精确 owned-Agent controller可见固定 pair/Realm/Strand/binding；
-2. pre-binding operation discovery：仅原 authenticated requester可按 operation ID读取自己的 reservation/journal；
-3. creation admission：仅 `create=true` 且无 binding时校验 exact pair、双方 current directional Contact heads与
-   source leases、account/Agent/controller lifecycle、policy、operation-control、membership/MLS/KP facts。
-
-discovery 不授予 create/send。existing binding不因 offline、session、presence、KP empty、grant/policy freshness、
-MLS reconcile或 personal blocklist而隐藏。canonical participant membership缺失，或任一 current Contact
-directional head已撤回 exact pair，返回 `suspended` 与原坐标。其余运行时问题返回 `found`、原坐标与 closed
-`send_blockers[]`。personal blocklist是 holder-private blocker，只能对 owner显示 `personal_blocked`，不得伪造
-shared suspension。
-
-permanent cancel accepted后，resolver对有权的原requester及existing participant唯一返回closed
-`{status:"tombstoned",operation_id,attempt_sequence,coordinates}`；`coordinates`仍是首次genesis固定的immutable
-pair/Realm/main Strand/binding坐标，只供审计与确定性发现，不恢复create/send authority。相同请求永远exact replay
-该terminal outcome；任何`create=true`、attempt advance、claim、repair或新operation都不得使该slot复活。无权主体
-仍得到与不存在相同的opaque failure。
-
-`create=false`只需 peer。`create=true` 是唯一两阶段授权入口：`prepare_authorization`携 caller-generated
-`operation_id`与`idempotency_key`，domain authority在 permanent pair slot上执行single-write CAS并返回
-`reservation_handle`、domain-root-signed exact registry statement和固定authorization core；caller只签该core。
-`commit_authorization`必须原样带回handle、statement/core组成的`operation_control_authorization`与requester签名，
-不得修改registry/pair/host/replica/quorum坐标。同 operation/key/phase/canonical bytes回放原outcome；同 identity
-配不同bytes conflict。同 pair并发prepare由permanent pair slot CAS只接受第一份，后续永远返回同一registry。
-已有 operation暂不可用时返回相同 operation ID，禁止生成第二份 draft或跨endpoint server next-action。
-
-v1 只允许双方 locator位于同一 trust domain；不同 trust domain在 reservation前 opaque reject。完整
-`operation_control_domain_policy_statement`携trust-domain ID、policy version、受信domain root及verification method、
-eligible replicas/hosts、N/f/q、epoch policy与时窗，由配置的trust-domain root对exact closed statement签名。
-`pair_slot_id=H("ak.direct-conversation.pair-slot.v1",{trust_domain_id,pair_key})`不含policy version或可变registry选择，
-且`pair_registry_id=pair_slot_id`。replicas机械取policy canonical排序后的前N项，initial host取eligible hosts第一项，
-origin coordinator固定为`replicas[0]`。pair registry statement同时是slot_version=1的永久CAS receipt；requester不能
-缩小replicas/quorum、换host、重签第二core或引入pair generation。
-
-## 6. Permanent pair slot 与 materialization journal
-
-同一 pair 永久只有一个 stable `operation_id`和单调递增的 certified `attempt_sequence`，初始为 1。首个
-q-certified genesis固定 Realm、main Strand与未来 binding坐标。一旦发生 claim、accepted Event或任一 external
-effect，slot不得删除或重分配。成功分支从 `materializing` 单调进入 `found`；失败分支才沿
-`materializing → cleanup → cleanup_complete_retryable`前进。`cleanup_complete_retryable` 只能经 §6 所述
-q-certified `attempt_advance` 打开下一 attempt并回到 `materializing`，不得直接变成 `found`。permanent cancel
-进入唯一名称`status="tombstoned"`的terminal，但仍保留slot与已固定坐标；其后只允许上述terminal exact replay，
-不得回到`creation_required`、`materializing`或`found`。
-
-每个 attempt 使用独立 `(operation_id, attempt_sequence)` journal，并最终绑定 fresh target authorization、
-KP claim、membership Event/version、MLS generation及所有 effects。新 attempt只能由同 operation-control log 的
-q-certified `attempt_advance` successor打开；其 predecessor必须是 current attempt 的
-`cleanup_complete_retryable`。除 operation/host/predecessor cleanup proof等结构字段外，advance只绑定 fresh
-target authorization、未 claimed KP ref与 `claim_request_digest`，禁止预先绑定 accepted claim/receipt、
-membership draft/version或 MLS generation。advance q-COMMIT后，第一 external effect才执行 claim CAS并记录
-receipt，后续 journal successor再绑定 membership/MLS。
-
-唯一 materialization 顺序是：
+同 trust domain 下两个 stable subject DID 按 unsigned UTF-8 bytes 排序为 `[p0, p1]`。`pair_key` **MUST** 在任何 Realm 存在前即可计算，因此固定使用 SHA-256 与 RFC 8785 JCS，**MUST NOT** 读取任何 Realm 自报的 digest suite：
 
 ```text
-participant-authorized reservation + compensation authority
-→ KP claim CAS
-→ durable journal genesis + eligible committer exact commitment
-→ atomic [Realm create Event, peer member join Event]
-→ append accepted frontier
-→ main Strand create Event
-→ MLS genesis + Add Commit + Welcome
-→ recipient durable MLS state
-→ consume original claim
-→ Direct Conversation binding accepted
-→ found
+pair_key = sha256(UTF8("ak.direct-conversation.pair-key.v1\n") ||
+                  JCS({"trust_domain_id": <id>, "participants": [p0, p1]}))
 ```
 
-draft是 closed object且恰有 Realm create、peer join、main Strand create、MLS genesis、MLS Add Commit、MLS Welcome、binding七个 Event slots；它们按 founding unit（前两个，atomic）、main Strand、MLS epoch（genesis + Add Commit）、welcome admission、binding finalize 五步物化。跨 Principal Server claim receipt必填，本地同服分支明确缺省。服务不得添加第八个 Event、
-代签、合成或复制 Event。binding只在 recipient durable且 claim consumed之后创建一次。失败 attempt补偿完成后
-复用已 accepted Realm/Strand坐标，但使用 fresh authorization、未 claimed KP、较高 membership version与新 MLS
-generation；成功前不得报告 existing binding。
+handle、display name、设备 ID、Principal Server endpoint、Realm ID、Strand ID 与 Contact Event ID **MUST NOT** 进入前像。双方 **MUST** 从 Event 中的 exact participants 与 trust domain 重算 `pair_key`，**MUST NOT** 采信 caller 自报值。
 
-跨Principal Server执行membership compensation时，发送方必须在`ak.peer.events.command.submit`对应
-`EventFederationSubmission.membership_compensation_evidence`传递与self admission逐字相同的closed transport
-evidence；该字段不进入Event canonical bytes/event digest。federation receiver不得丢弃、改名、重签、从digest重建
-或降级为普通grant，而必须重验delegation digest/author signature、原join accepted proof、exact admission/cell/
-incarnation/J1 provenance、leave/remove action XOR、executor service/proof key、terminal certificate与destination
-single-use CAS。任何缺失或不匹配均零写入fail closed；同一evidence在self与peer路径必须得到同一admission结果。
+### 5.2 founder 派生（normative）
 
-## 7. Operation-control PBFT、DA 与 host fence
+同一 pair 的 Direct Conversation Realm **MUST** 由且仅由从该 pair 的 **founder basis** 确定性派生出的 `founder` 创建。派生只读 §2 已定义的 basis core，不引入新字段：
 
-本节唯一authority/profile ID是`ak.profile.direct_conversation_operation_control.v1`；transfer、ordinary effect、
-attempt advance与read certificate都复用它，不得登记第二套handoff/manifest authority。
+```text
+founder(basis) =
+    normal 分支 -> sorted_pair_members 中不等于 request_event_ref 之 issuer 的那一方（即 responder）
+    glare  分支 -> requests[0].request_event_ref 之 issuer
+```
 
-pair registry 的 replica set在整个 registry生命周期 immutable；v1不定义 joint migration。domain-root-signed
-`pair_registry_statement`逐字携上述完整policy statement、closed core、stable pair slot/registry ID、registry
-digest、slot version与accepted time；domain root对除`signature`外的完整closed statement签名。它固定canonical
-participant pair/pair key、origin coordinator、initial host DID/epoch 0、canonical replicas、`N=3f+1`、`q=2f+1`
-与epoch policy；同pair slot的第二个不同core必须永久拒绝。每个instance显式使用前一certified head digest；replica one-vote slot固定为
-`(registry_digest,pair_registry_id,pair_key,instance_predecessor_head_digest,view,phase,replica_id)`，不含
-operation ID，因此同一pair/head上两个operation ID是冲突value而非两个独立genesis。proposer严格为
-`replicas[view mod N]`。每个instance使用单调view、PRE-PREPARE/PREPARE/COMMIT、prepared lock与
-VIEW-CHANGE/NEW-VIEW。NEW-VIEW包含
-exact q份 VIEW-CHANGE；存在 prepared时选择其中最高 prepared value。若 q份都无 prepared，当前 view proposer
-在 NEW-VIEW中提出恰一个 fresh合法完整 value；validator只验证该 value与 bundle，不扫描外部候选。空/非法
-proposal只触发下一 view。q-COMMIT前无 canonical effect，q-COMMIT后同一 effect不可 cancel。
+**normal 分支取 responder 而非 requester 是 normative 选择**：basis 由 responder 的 `normal_response_acceptance_receipt` 点亮，该 receipt 证明 responder 在 basis 成立时在线且刚完成签名；requester 可能在数日前发出请求后即长期离线。base v1 不定义 fallback（§5.7），因此把 founder 定为可能不在场的一方会使该 pair 永久无法创建。
 
-requester-signed `operation_control_authorization` 必须内嵌上述完整registry statement；`requester_signature`只签
-exact `operation_control_authorization_core`，verification method必须由`requester_id`控制。该closed core逐字绑定
-registry digest/pair/operation/requester/genesis head；genesis digest按registered transcript绑定registry、pair、
-operation、initial host DID与epoch 0。首次Effect predecessor必须等于它，后续必须等于前一qCOMMIT effect head。
-无法验证domain root、requester属于stable pair、replica排序/阈值、host或任一digest时不得开始qDA。
+glare 分支不存在 responder，`requests[0]` 依 §2 已登记的 canonical ordering 取得，**MUST NOT** 另立排序规则。
 
-业务值与每轮投票信封必须完全分离。无view/certificate的closed `EffectValueCore`内嵌closed
-`ordinary_external|attempt_advance|host_transfer` effect XOR，并绑定registry/pair/operation/attempt/effect、exact
-authenticated plaintext `payload_digest`、
-destination、expected/resulting host DID+epoch、predecessor与journal root。ordinary/attempt advance的host前后
-必须逐字相等；transfer details的from/to必须逐字等于value的expected/resulting fence且`to_epoch=from_epoch+1`。
-`effect_digest`哈希exact closed `{effect_kind,effect_details}`；`value_digest`哈希exact full core，换view不得改变。
-ordinary external只允许`keypackage_claim`映射到`ak.peer.keys.keypackages.command.claim`和`event_admission`映射到
-`ak.peer.events.command.submit`两类closed branch；target operation、request schema、request/authorization digest及
-admitted Event kind allowlist必须逐字段匹配，不能把PBFT当成任意管理operation授权。attempt advance在旧attempt日志
-提交：outer attempt_sequence=from_attempt、inner operation_id=outer operation_id、to_attempt=from_attempt+1；解密
-journal必须给出exact cleanup terminal receipt与fresh peer claim request。host transfer的journal必须给出双方host签名
-的exact manifest，manifest digest、from/to fence与outer value逐字匹配，且destination=to_host。closed encrypted
-journal carrier通过AAD重复绑定effect/payload及全部实例/host坐标；authenticated decrypt后的registered payload必须匹配它们。
+`sorted_pair_members` 不恰为二、request issuer 不属于该 pair、glare requests 未按登记顺序或两个 issuer 不构成该 pair 时，founder 派生 **MUST** 失败并整组拒绝，**MUST NOT** 以补集或本地偏好猜测。
 
-typed payload投影固定如下：`keypackage_claim.request_digest=H("ak.direct-conversation.external-request.v1",
-exact peer_key_packages_claim_request_body)`，其`authorization_digest=H("ak.direct-conversation.external-authorization.v1",
-request.requester_authorization)`；`event_admission.request_digest`同样哈希exact
-`EventsSubmitFederationRequestBody`，`authorization_digest`哈希canonical排序的每条原Event proofs、authorization lease、
-membership compensation evidence及request级CBA bundles的closed授权投影，`admitted_event_kinds`必须等于body实际Event
-kind的canonical-sorted distinct集合。两分支destination必须是目标operation的authenticated destination service，
-journal `plaintext_schema_ref`必须等于branch固定schema。attempt的cleanup/target/claim digests分别对journal中的exact
-receipt、requester_authorization与peer claim request使用对应registered H；transfer
-`manifest_digest=H("ak.direct-conversation.host-transfer-manifest.v1", exact manifest without its two signatures)`，双方
-signature各自覆盖同一exact unsigned manifest。任一projection、digest、destination或schema不等都在qDA前拒绝。
+### 5.3 founder basis 与 recontact continuity
 
-所有摘要统一使用`H(label,x)="sha256:"+lowerhex(SHA256(UTF8(label+"\n") || RFC8785_JCS(x)))`；若字段定义
-指定decoded ciphertext bytes，则改为`SHA256(UTF8(label+"\n")||decoded_bytes)`且不做JCS。registry、authorization、
-value/effect、PRE-PREPARE、message、read request与bundle wire digest分别对各自closed unsigned/full对象取H；
-除另有明确字段名的签名外，signature transcript一律是其对象去掉signature字段后的closed core；pair registry
-root签名覆盖statement除signature外全部字段，requester_signature只覆盖authorization core。qDA/prepared/qCOMMIT certificate digest只对
-不含自身digest及receipts/pre_prepare/prepares/commits witness的semantic core取H，因此不同合法exact-q signer
-subset共享同一semantic digest；完整witness arrays仍必须逐签名、membership、distinct与canonical排序验证。
+founder **MUST** 从该 pair 的**根 founder basis** 派生，而非从 current basis。tombstone 后 recontact 产生的新 basis **MUST** 在其 request/receipt 中承诺 `previous_terminal_basis_id`；receiver **MUST** 沿该链求出唯一根 basis，并从根 basis 派生 founder。
 
-每个 per-view phase envelope是严格 closed XOR，并分别以 domain-separated transcript绑定 registry、view、phase、
-value digest、qDA certificate digest与该 phase的 predecessor/lock facts：PRE-PREPARE不得携后续 phase 字段，
-PREPARE必须绑定 `pre_prepare_digest=H("ak.direct-conversation.pre-prepare.v1", exact signed PRE-PREPARE envelope)`
-（包含PRE-PREPARE自身signature），COMMIT必须绑定 exact prepared certificate digest。签名禁止跨
-phase/view/registry/context复用。`prepared_certificate`逐字包含 exact PRE-PREPARE 与 q份同 view、同 value、
-同 PRE-PREPARE digest 的 PREPARE envelopes；q份同 view、同 value、同 prepared certificate digest 的 COMMIT
-envelopes形成唯一
-point-of-no-return；certificate verifier必须重验 `N=3f+1`、`q=2f+1`、replica membership、distinct signer与
-envelope逐字段一致，不能只信其声明的 `n/f/quorum`。
+断链、多根、成环、跳过非 terminal basis、或两个 directional proof 导出不同根，**MUST** 拒绝创建与回放。current recontact 的 responder 即使与根 basis 的 responder 不同，也 **MUST NOT** 取得创建权。Realm 一经 accepted，founder 身份只保留为 founding 审计与 §7.2 bootstrap authority 的 actor 约束；日常 authority、repair 与 recontact **MUST NOT** 再读取它。
 
-`authenticated_encrypted_journal`固定使用registered RFC9180 base-mode HPKE suite，`info`为domain UTF-8，AAD为exact
-`aad_core`的JCS bytes；nonce由HPKE key schedule按single-shot seq=0内部派生，wire不得携nonce。`journal_root`按
-`H("ak.direct-conversation.journal-envelope.v1", exact closed journal envelope)`计算，因而同时承诺scheme、recipient、
-key ref、enc、plaintext schema、AAD和ciphertext；AAD故意不含journal/value digest或ciphertext，避免自摘要环。
-qCOMMIT中的`effect_head_digest`按closed JCS transcript
-`{registry_digest,pair_registry_id,pair_key,operation_id,attempt_sequence,view,
-predecessor_head_digest,value_digest,qda_certificate_digest}`计算，qCOMMIT certificate或其digest不进入该transcript，
-因此没有自摘要环。
+### 5.4 create 判别与授权
 
-`per_view_certificates[]` 是 `per_view_certificate` closed union的有序数组；每个元素恰为
-`prepared_certificate | view_change_certificate | new_view_certificate`之一；首个 prepared certificate 内含 exact
-PRE-PREPARE，合起来形成从该 instance genesis 到
-最终 q-COMMIT view 的canonical ancestor chain。发生 view change时，先由每个replica产生closed
-`view_change_message`，再由exact q份、目标view一致且signer distinct的messages形成`view_change_certificate`，
-最后由新proposer签closed `new_view_certificate`。view 0的proposal禁止携new-view certificate；view>0必须携且其
-内嵌PRE-PREPARE必须与proposal外层PRE-PREPARE逐字相同。每个`view_change_message`使用`prepared_state=none|prepared`
-closed XOR；prepared分支逐字携本replica的最高`prepared_certificate`，none分支不得携伪造的prepared字段。
-`new_view_certificate`逐字包含exact `view_change_certificate`和proposer的PRE-PREPARE proposal，并选择集合中最高
-view的prepared value；只有q份全部为none时才能提出一个fresh合法完整value。数组按view及该view内
-prepared→view-change→new-view的因果顺序排列，不能跳过影响最终选择的证据，COMMIT只能引用链尾view。
+`ak.realm.create` 的 conditional admission **MUST** 登记两个结构互斥的 Direct Conversation variant，判别器为 critical ref role：
 
-closed `ExecutionBundle={registry_authorization,value_core,qda_certificate,per_view_certificates,qcommit_certificate,
-authenticated_encrypted_journal}` 逐字携带domain-root-signed registry、上述chain与最终q-COMMIT certificate，
-只是传输载体，不创造第二个 PONR。receiver从 immutable registry解析 distinct signers，重算 value/qDA/每轮
-certificate/journal root与 canonical ancestor；`per_view_certificates`缺失、断链或与 q-COMMIT view/value不一致
-均 fail closed。缺 bundle只允许补传同 effect ID。
+| ref role | admission variant | 适用分支 |
+| --- | --- | --- |
+| `direct_conversation_basis` | `direct_conversation_genesis` | human↔human、Agent↔第三方 |
+| `direct_conversation_agent_provision` | `direct_conversation_agent_genesis` | controller↔自己的 owned Agent |
 
-跨服务传输只能使用以下四个registered peer operation，不得借`peer/contacts`、`peer/events`或未登记JSON转发：
+两个 role **MUST** exact XOR，且 **MUST NOT** 复用既有 `agent_provision`（该 role 继续只判别 managed-Agent PCR genesis，见 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md)）。DM variants、PCR variants 与 ordinary Realm 的 `when` 条件 **MUST** 结构互斥；零命中或多命中 **MUST** `schema_violation`，**MUST NOT** 按 registry 顺序取第一条。
 
-1. `ak.peer.direct_conversation.operation_control.command.submit`只在immutable replicas间投递closed tagged
-   registry/qDA/PBFT/view-change/read内部消息。source与recipient都必须属于exact registry，HTTP Message Signature
-   与内层签名分别验证。相同one-vote slot的相同semantic vote可由不同carrier/witness重放；只有同slot不同
-   value/lock digest才是equivocation，不能把不同合法q signer subset或bundle bytes误判冲突。`message_digest`
-   是closed tagged message完整bytes的registered H；`queued`只有消息与typed missing dependency set均durable时合法。
-2. `ak.peer.direct_conversation.operation_control.command.deliver`只把完整ExecutionBundle送到
-   `EffectValueCore.destination`。destination逐项重验后按
-   `(pair_registry_id,operation_id,attempt_sequence,effect_id)`永久CAS，但比较的是registered
-   `effect_commitment_digest={registry,pair,operation,attempt,effect,value,effect_head}`。相同commitment的不同合法
-   ExecutionBundle witness subset是duplicate并返回signed receipt；只有同identity不同commitment才永久
-   `operation_control_equivocation`。`submitted_bundle_digest`只用于精确补取/审计，不是semantic CAS identity。
-   `deferred`表示exact bundle已durable但本地依赖未齐，不表示effect执行成功。
-3. `ak.peer.direct_conversation.operation_control.query.execution_bundle`只按exact effect/value/bundle coordinates，
-   或fresh committed head给出的effect/value/effect-commitment/effect-head/qCOMMIT坐标补取
-   bundle或查询同一destination receipt；禁止“返回当前bundle”式head oracle。仅immutable replica、certified
-   destination或同operation requester可调用。
-4. `ak.peer.direct_conversation.operation_control.query.read_certificate`为一个exact signed read request主动收集fresh
-   q receipts；request必须绑定registry、requester/audience、pair/operation、minimum host epoch；可选
-   `expected_host_service_id`出现时要求exact match，省略时允许fresh certificate发现transfer后的新host DID。且
-   `expires_at-issued_at<=60s`，最大clock skew为5s。certificate内嵌exact signed request与恰`q=2f+1`个distinct、
-   canonical排序、request digest和完整head逐字相同的receipt；observed time必须在request窗口，receipt expiry不得
-   晚于request expiry，consumer观察时全部未过期且observation age<=60s。相同(requester,registry,request_id)
-   相同core回放，不同core conflict；过期必须新request ID。达不到q必须quorum unavailable，不得选本地head。
+`direct_conversation_genesis` **MUST** 逐项验证，任一不符整组零写入：
 
-每次 current-head read都需要上述 fresh q-certified read certificate；head是closed `genesis | committed` XOR，
-必须携registry/pair与完整host DID+epoch，committed分支还携effect ID、effect commitment、predecessor/effect/value/
-qDA/qCOMMIT digest，因此可机械构造`by_committed_head` exact bundle query。certificate只证明读取，不
-授权 effect、transfer或attempt advance。无 fresh proof或
-不完整 authenticated journal时保持 pending/fail closed。transfer是同 PBFT profile上的 effect successor，绑定
-`transfer_id,from_host/from_epoch,to_host/to_epoch,manifest_digest`并令accepted host epoch严格加一；delivery receipt
-的host DID+epoch必须等于value resulting fence；initial host head
-不得携`transfer_id`。claim、recipient delivery、Event admission与binding receipt都携operation、host DID+epoch、`effect_head_ref`及对应q-COMMIT
-proof/bundle。receiver接受 canonical ancestor effect，不因 later transfer/cancel拒绝已 q-committed effect。
+1. 该 ref 指向完整 portable Contact basis evidence bundle 及至根 founder basis 的 continuity chain，`basis_id`、normal/glare core、request/response receipts 或 glare attestations、terminal links 与双方 proofs 均可验证；
+2. 按 §5.2/§5.3 求出 `founder`；
+3. `created_by == actor_id == founder`（追加约束，**不**放松既有 `created_by == actor_id`）；
+4. payload 的 `pair_key` 等于从 basis 的 `sorted_pair_members` 与 trust domain 重算之值；
+5. Realm profile 为 `ak.profile.direct_conversation_realm.v1`，`collaboration_role="direct_conversation"`，effective participants 恰为该 pair；
+6. §6.2 的固定 baseline 投影全部命中；
+7. 该 `realm_id` 无对象身份冲突。
 
-同 attempt已有 claim时不得领取第二 claim。transfer只可按 certified fence将原 claim绑定到新 host/epoch并签新
-receipt；attempt失败先把原 claim推进到 terminal revoke，再由下一 certified attempt使用 fresh未 claimed KP。
-binding found后 operation-control authority永久退出，后续 hosting/failover使用普通 Realm governance。
+**accepted-at 与 current gate MUST 分开求值**：source self admission 在 slot commit 线性化点要求两条 directional current heads 共同引用该 current basis、授予 `direct_message` 且 fresh；peer replay 只验证这些 proof 在 source receipt 的 `accepted_at` 时有效并被 receipt digest 绑定。因此即使 Event 到达时 Contact 已撤回，peer 仍 **MUST** 接受该历史 Realm identity，并以 current gate 投影 `suspended`；否则 Event 有效性会依赖投递顺序。
+
+`direct_conversation_agent_genesis` 改验 participants 恰为该 controller/Agent、profile 为 DM 而非 PCR、`ak.agent.provision` 已 accepted 且 controller binding current，并令 `founder = controller`。Agent 与第三方之间的 DM 仍 **MUST** 使用该 pair 的 current Contact basis，**MUST NOT** 以 provision 绕过第三方 consent。
+
+### 5.5 source 唯一 slot 与 founding acceptance receipt
+
+founder 的 current Principal Server **MUST** 以本地唯一约束保证同一 `(founder_id, trust_domain_id, pair_key)` 至多一组 founding unit 被 accepted。`realm_id` 与 `main_strand_id` **MUST** 在同一 slot 事务内由该服务分配并在重试时原样返回；caller **MUST NOT** 替换任一 ID。
+
+self admission **MUST** 在同一事务内完成：确认该 pair 尚无 accepted DM Realm、CAS 占用 slot、接受三 Event unit、签发 `DirectConversationFoundingAcceptanceReceipt`、写入 peer-delivery outbox。receipt 是该事务的输出，**MUST NOT** 循环要求 caller 预先携带。
+
+receipt **MUST** 绑定 `pair_key`、`founder_id`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 authorization core（human 为 current/根 basis 与 evidence digest；controller↔Agent 为 provision ref/digest 与 controller binding digest）、`slot_committed`、issuer service ID 与其 accepted-at service binding digest、`accepted_at` 与 proof。它 **MUST NOT** 创建 Realm、授权 Message 或充当全局 slot；它只让 peer verifier 确认 founder 当时的 current service 已原子接受该 unit 并关闭本地唯一 slot。
+
+同 digest 的 exact retry **MUST** 返回 byte-identical receipt。相同 pair/founder 但不同 unit 的第二张 receipt 是 §5.7 冲突证据。
+
+### 5.6 联邦例外
+
+Realm 尚不存在时无法取得普通 `federation_peer` authority，因此 [`../sync/federation.md`](../sync/federation.md) **MUST** 登记一条封闭的 DM founding exception：允许 founder 的 current Principal Server 向另一 participant 的 current Principal Server 投递该 pair 的 founding atomic unit、source acceptance receipt 与验证所需的 bounded dependencies。
+
+接收方每次 **MUST** fresh 验证：transport source 当前确实承载 founder（receipt 由迁移前旧 service 签发时还须携完整 accepted-at binding 与 cutover/fence 连续性证明）、destination 承载本地 participant、body 只含该 unit/receipt/dependencies、且 create 通过 §5.4 全部校验。Contact basis 镜像尚未到达时 **MUST** 返回 `dependency_missing` 并重试，**MUST NOT** 放行，也 **MUST NOT** 永久拒绝。
+
+Realm 在对端 accepted 后立即回落普通 federation 规则。因 §5.4 第 3 条已钉死作者，该例外不需要方向性约束。
+
+### 5.7 无 fallback 与 pair materialization conflict
+
+base v1 **MUST NOT** 定义 timeout fallback、takeover lease 或 `founder_fallback_window`。仅凭"本地与对端当前都没看到 Realm"不能证明 founder 没有 accepted 但尚未送达的 Realm；旧 founder 创建权未被全局可验证且不可逆的 fence 关闭前，non-founder 创建可能与迟到的 founder 创建同时合法。因此 timeout、HLC、到达顺序、UUID 大小与一次 negative query **MUST NOT** 改变 founder authority。
+
+若仍观察到同 pair 第二个 **accepted** Realm：
+
+1. 先判定是否只是非 founder、旧 basis 或旧 service 产生的无效 bytes；无效对象 **MUST NOT** 进入 discovery、binding 或 Message authority，也 **MUST NOT** 被称为 candidate；
+2. 若两条都携看似合法的 founder admission 与 source receipt，则受信 service 的 slot、cutover fence 或签名发生 equivocation。pair **MUST** 进入 `direct_conversation_pair_materialization_conflict`，冻结两边新的 Message/membership/policy/MLS/binding；
+3. **MUST** 保留两组 founding unit、receipts、service-binding/cutover proofs 与本地 slot 证据；**MUST NOT** 自动取 min、tombstone 任一 Realm、搬移历史或让 UI 选择一边继续；
+4. 只有另行登记、能证明唯一 canonical founding unit 且不复活已终结历史的 recovery 协议可以解除。本规范不提供该协议。
+
+## 6. Founding unit 与固定 baseline
+
+### 6.1 三 Event atomic unit
+
+founder **MUST** 一次提交恰好三条 Event：
+
+```text
+1. ak.realm.create        携 §5.4 的 critical ref；creator membership 由既有 reducer 派生
+2. ak.member.state{join}  subject 为另一 participant 的显式 canonical membership
+3. ak.strand.create       main Strand，scope_circle_id=null，primary discussion track
+```
+
+三条注册为 `ak.profile.direct_conversation_realm.v1` 的 closed atomic founding unit：按 wire 顺序验证，同一事务零项或三项接受。create-alone、缺 peer join、缺 Strand、乱序、不同 actor/pair/profile/Realm 或出现第四条 Event **MUST** 拒绝整组。三条 **MUST** 由 founder author，并使用同一分支 context（`direct_conversation_basis` 或 `direct_conversation_agent_provision`，exact XOR），叠加同批 staged authority-root proof。
+
+Genesis Seal **MUST** 覆盖三条 Event、普通 Realm create 的全部 required founding writes 与 §6.2 的固定投影；**MUST NOT** 先 Seal create 再补 peer join 与 Strand。
+
+### 6.2 固定 baseline 投影
+
+本 profile **MUST NOT** 让 producer 选择"是否追加 policy Event"。`direct_conversation_genesis` contract **MUST** 从 create 与 basis 机械投影下列 create-locked baseline：
+
+- `join_rule=closed`，不可公开发现或枚举；
+- `content_scheme=mls_exporter_aead_v1`；
+- `content_encryption_floor=e2ee_required` 且 `metadata_encryption_floor=e2ee_required`；
+- `history_visibility=joined` 与 exact-peer-only history sharing。
+
+同批 facet Event 重复或覆盖这些值 **MUST** 拒绝；后续普通 policy Move 试图改变固定 baseline 亦 **MUST** 拒绝。此处的 pre-join 只表示 peer 尚未成为 MLS leaf——§6.1 已使其自 Realm Genesis 起 joined。
+
+notary value 与 CBA profile **MUST** 从 trust domain 已 accepted 的 DM deployment policy 与 founder current service binding 确定性派生，caller **MUST NOT** 自选。单侧创建只保证不依赖 peer 设备与 peer Principal Server；若所选普通 notary profile 本身需要其它不可达 signer，创建仍按普通 CBA 规则 pending。
+
+## 7. 首次物化：bootstrap authority 与 active MLS generation
+
+### 7.1 三种离线必须分开
+
+1. **对方已在 current group、仅设备离线**：MLS 原生异步，用 current epoch 加密提交，对方上线后追 epoch 解密。**MUST NOT** 因对方设备离线而拒绝发送。
+2. **对方尚未入组**：founder **MAY** 建立只含自身 leaf 的 provisional exporter epoch 并产生密文 Message；对方入组后经 `ak.realm_key.share` 取得旧 epoch `history_secret` 解开 `decryption_pending` 历史。
+3. **连 exporter epoch 也无法建立**（Realm 尚不存在）：内容 **MUST** 只进入本地 pending tier，**MUST NOT** 成为任何 Realm 的 shared accepted Message，且 **MUST NOT** 以明文上传、日志或备份形式离开设备保护边界。
+
+任何网络、KeyPackage 或 basis 失败 **MUST NOT** 触发自动明文降级。
+
+### 7.2 bootstrap participant authority
+
+binding 尚不存在时普通 DM participant authority 未激活，因此 **MUST NOT** 以 founder、`created_by` 或技术 root owner 身份暗中放行 Message。本规范登记封闭 authority source `ak.authority.direct_conversation_bootstrap_participant.v1`，只含两个由 verifier 从 accepted facts 重算、producer 不可自选的互斥 phase：
+
+1. `provisional_history_send`：三 Event unit 与 Genesis Seal 已 accepted、active-generation cell 尚未越过 generation 0、对应分支的 current authorization 与 device/account/Agent gates 通过时，**仅对 founder 生效**。允许 sender-only `ak.mls.genesis`、generation-0 activation、founder 自身 leaf 管理、引用 active generation 0 的 exporter Message、exact peer KeyPackage claim/Add/Welcome 准备及必要 history share；**MUST NOT** 放行 policy、grant、第三 participant、其它 Strand 或普通 membership 写。
+2. `exact_pair_founding_completion`：accepted selected group state 已含 exact pair authorized leaves、peer current service 已 durable 接受 Welcome、current authorization 与 device gates 通过、且 binding 尚无合法 endorsement 时生效。只允许从 generation 0 激活 generation 1、提交 `ak.direct_conversation.bound` endorsement 及完成对应 history share；**MUST NOT** 继续创建 sender-only group 或扩大成员。
+
+   该 phase 内两类动作的 author 约束不同：generation-1 activation **MUST** 由 joiner author（§7.3）；binding endorsement 对任一 exact participant 开放（§8.3）。实现 **MUST NOT** 把两者合并为同一条"任一 participant"授权。
+
+每条 Event **MUST** 使用该 source 的 registered `authorization_ref`/proof context 并携 action-specific critical refs；owned Agent 分支仍叠加 controller delegation。首个合法 binding endorsement accepted 后两 phase **MUST** 永久退出，后续动作只走 `ak.authority.direct_conversation_participant.v1`。
+
+### 7.3 active MLS generation
+
+DM Realm **MUST** 登记 singleton control cell `ak.component.direct_conversation.active_mls_generation.v1`（`cas_register`，`bottom=reject`，registry 声明 `initial_value=__unset__`），写入 kind 为 `ak.direct_conversation.mls_generation.activate`，contract concurrency class 为 `security_barrier`。activation **MUST NOT** 创建 group：producer 先用普通 `ak.mls.genesis`/Commit 建立候选 state 并原子保存本端私态，activation 再引用 accepted public state 与 durable facts。未被 cell 选中的 group **MUST NOT** 取得 Message send authority。
+
+- **generation 0**：cell 仍 `__unset__`、predecessor 缺省、`phase=provisional_history_send`，group 恰含 founder 的 authorized current leaves 且不含 peer 或第三方；只有 §7.2 phase 1 可 author。
+- **generation 1**：current 恰为 generation 0，`phase=exact_pair`，selected state 含双方 authorized current leaves 且无第三 participant，`predecessor_active_value_digest` 与 `head_eq` 逐字命中 generation-0 whole value。
+
+  **generation-1 activation MUST 由 joiner（非 founder 的那个 participant）author。** 本规范不定义可移植的"对端已 durable 接受 Welcome"证物——[`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) 的 `peer_claim_receipt` 证明 claim 合法而非 Welcome 已 durable——因此只有 joiner 能真实断言"我的 current service 已 durable 收下该 Welcome 且我已持有 private state"。这与 `consume` 只能由 Welcome 接收方调用、peer surface 不提供代理是同一条原则。joiner 侧 self admission 从本地记录验证该前提；founder 侧只验证 `author == joiner` 这一结构约束。founder author 的 generation-1 activation **MUST** 以 `direct_conversation_activation_author_invalid` 拒绝，即使其它字段全部正确。该约束不引入新等待：generation 1 本就要求 joiner 处理完 Welcome 并持有私态。
+- **generation ≥ 2**：binding 后的 repair，要求 `phase=exact_pair`、`generation = current + 1`、predecessor 逐字命中 current whole value，并走 ordinary participant authority；**MUST NOT** 重新进入 provisional phase。
+
+跳代、回退、把未 active group 当 predecessor、`u64::MAX` 或省略 causal basis **MUST** 拒绝。同一 predecessor 下未 active 的候选 group 硬上限为 16，第 17 个以 `mls_generation_proposal_fanout_exceeded` 拒绝，**MUST NOT** quarantine 整个 pair。
+
+并发 activation **MUST** 逐字复用所选普通 Realm notary profile 的 `security_barrier` 规则；本规范 **MUST NOT** 为 Direct Conversation 新增专属 barrier 或 quorum，也 **MUST NOT** 宣称裸 CAS 自身能自动选出 loser。未获 finality 的 proposal 基于新 head 重建；若 signer equivocation 确实使两个不同值 accepted，cell 进入 `⊥` 并走既有 conflict recovery。
+
+provisional Message **MUST** 引用 Event-time active generation 0；`found` 后的普通 Message **MUST** 引用 Event-time active exact-pair generation。未 active group 上的 Message **MUST** 拒绝。后来的合法 activation **MUST NOT** 追溯否定旧 Message。
+
+### 7.4 exporter scheme 的既有代价
+
+固定 `mls_exporter_aead_v1` 使 per-epoch `history_secret` 可保留、可重新封装，其 FS/PCS 按 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10 退化为限定形态。该取舍 **MUST** 在 profile 中声明并对双方可查。需要更强前向保密的部署 **MUST** 另立 `mls_rfc9420` 变体 profile，并接受后加入设备无法读取历史。
+
+founder **MUST** 在对方 `ak.realm_key.share` durable receipt 到达前保留相关 epoch `history_secret`，**MUST NOT** 按普通 epoch GC。确认丢失后，相关 Message **MUST** 以 `history_key_unavailable` 呈现为永久不可送达，**MUST NOT** 停留在含混的发送中状态。
 
 ## 8. Stable identity、repair 与 participant authority
 
-pair key从同 trust domain下两 stable subject DID按 UTF-8 unsigned-byte排序后对 closed JCS对象计算 SHA-256。
-handle、display name、request、service、Realm或Strand都不得进入前像。同 pair只有一个 immutable binding、Realm
-与main Strand；leave、block、tombstone、terminal、erase或恢复均不得创建 successor。
+### 8.1 稳定坐标
 
-exact-pair repair唯一 carrier是标准 `ak.member.state{join}` `EventInitialSubmission`与
-`ak.profile.direct_conversation_repair.v1`。profile锁定既有 pair/Realm/main Strand和二人 mask。human只能
-self-rejoin；owned Agent使用 `actor_id=agent_id, executed_by=controller_id`及 immutable controller authorization。
-不得加入第三 participant或取得 grant/policy/admin/Strand/binding变更权。repair accepted后重新 MLS reconcile；
-旧 MLS private state不可恢复时可在同 Realm/Strand创建单调新 generation，但不得读取加入前无权解密的历史。
+同 pair 只有一个 immutable Realm 与 main Strand。leave、block、tombstone、scope 撤回、Agent pause、erasure 或恢复 **MUST NOT** 创建 successor Realm、Strand 或 binding。
 
-日常写 authority唯一来自 `ak.authority.direct_conversation_participant.v1`与 current accepted binding、exact
-membership、directional Contact heads、active MLS generation及 action-specific Agent gate的交集。技术 root、
-created_by、membership本身或普通 grant均不能替代该 evaluator。root mask只允许 current materialization的精确
-founding/repair effects；found后不得恢复 owner/admin authority。
+canonical DM Realm **MUST** 拒绝 `ak.realm.destroy` 与任何 `ak.realm.tombstone`（`direct_conversation_terminal_forbidden`）。`ak.realm.archive` 与 `ak.realm.freeze` 是普通可逆 facet：具备合法 authority 与 CAS basis 时可设置，且 **MUST** 保留普通 unarchive/unfreeze 路径；它们只令 resolver 附带 send blocker，**MUST NOT** 产生 successor 或新坐标。
 
-## 9. SDK 本地事实 DAG 与 endpoint 边界
+若错误实现或对象冲突仍使 canonical Realm 进入 terminal 或不可判定状态，pair **MUST** 按 §5.7 `suspended` 并等待显式 recovery；本地 slot **MUST NOT** 回到可创建状态。自动重开会再次允许第二个 Realm，正好破坏 founder-only 唯一性。
 
-服务端不得注册全局 ActivationPlan、跨 endpoint next-action或 workflow/conversation identity。每个 endpoint只
-返回自己的 closed local outcome、local blocker/reason、operation/ref、exact-retry/conflict与本 endpoint expiry。
+### 8.2 repair
 
-SDK planner按四类 typed facts组合并行 `ready_actions[]`：canonical public（Event/Seal/binding）、authenticated
-service durable（reservation、PBFT log/journal、receipts/epoch）、controller-private durable（allocation、
-requested-scope disclosure、canonical authoring bytes）与 local ephemeral（session/presence/timer）。每项携 source
-ref、frontier/epoch、freshness/expiry与privacy label。客户端 bytes仅负责 authoring/exact retry；服务恢复必须依赖
-signed reservation、replicated journal与receipts，digest不能重建私有 bytes。unknown/stale只阻断相关 action，
-不得隐藏 existing DM坐标。
+exact-pair repair 的唯一 carrier 是标准 `ak.member.state{join}` `EventInitialSubmission` 与 `ak.profile.direct_conversation_repair.v1`。profile 锁定既有 pair/Realm/main Strand 与二人 mask。human 只能 self-rejoin；owned Agent 使用 `actor_id=agent_id, executed_by=controller_id` 及 immutable controller authorization。**MUST NOT** 加入第三 participant，也 **MUST NOT** 取得 grant/policy/admin/Strand/binding 变更权。
+
+repair **MUST NOT** 读取 `created_by`、founder 身份或 bootstrap authority。current group 不可恢复时按 §7.3 创建 `generation = current + 1` replacement；回归方 **MUST NOT** 取得加入前无权解密的历史，历史访问仍按 event-time visibility 与 history-sharing policy 裁决。
+
+任一 directional Contact 已撤回时，self-rejoin **MAY** 恢复成员位，但 KeyPackage claim、MLS Add 与发送 **MUST** 保持拒绝，resolver 返回 `suspended`；repair **MUST NOT** 恢复已撤回的同意。
+
+### 8.3 binding 与日常 authority
+
+`ak.direct_conversation.bound` **MUST NOT** 承担阻止第二个 Realm 的职责——唯一性来自 §5.4 的 admission。它是 coordinates 与首次 exact-pair generation 的 participant 可见凭证，至少绑定 `pair_key`、`participants_unordered[2]`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 founding authorization ref、`initial_exact_pair_generation_ref` 与 `binding_digest`。
+
+`binding_digest` **MUST** 在 registered domain 下对排除 `created_at`/`binding_digest` 与 Event author/proof 后的 canonical bytes 计算；receiver **MUST** 从 accepted founding unit、唯一 main Strand 与 generation-1 activation 重算，**MUST NOT** 采信 producer 自报。
+
+binding cell **MUST** 为 `or_set`，contract concurrency class 为 `merge_safe`，element key 固定为 `(binding_digest, envelope.actor_id)`。同一 participant 对同一 digest 的多条 Event 只计一个 endorsement；双方对相同 semantic payload 并发签名是兼容 add，**MUST NOT** 产生 `⊥`；不同 digest **MUST** 在 projection 前拒绝并触发 `suspended` 诊断。`found` 至少需要一份合法 endorsement；部署 **MAY** 登记要求双方 endorsement 的更高 profile，但 base **MUST NOT** 因两人同时 endorse 而失败。
+
+binding **MUST NOT** 携带 `binding_state`、`supersedes_binding_ref`、永久 `mls_group_id` 或 consume receipt，也 **MUST NOT** 改变 membership、MLS、policy 或 Realm 坐标；若未来增加此类字段，**MUST** 拆为独立 `security_barrier` Move。
+
+日常写 authority 唯一来自 `ak.authority.direct_conversation_participant.v1` 与 current accepted binding、exact-two membership、双方 current directional Contact heads、active exact-pair MLS generation 及 action-specific lifecycle gate 的交集。技术 root、`created_by`、founder 身份、本地 slot 与普通 grant **MUST NOT** 替代该 evaluator。root mask 只允许 current materialization 的精确 founding/repair effects；`found` 后 **MUST NOT** 恢复 owner/admin authority。
+
+## 9. Resolver、隐私与 SDK 边界
+
+### 9.1 resolver 状态
+
+`ak.self.direct_conversation.query.resolve` 是唯一查询入口，其 outcome 为封闭判别联合：
+
+| state | 条件 |
+| --- | --- |
+| `creation_required` | 无 accepted DM Realm，本方 `== founder`，且 current gate 允许创建 |
+| `creation_blocked` | 无 accepted DM Realm 且本方 `== founder`，但 current Contact/account/Agent/profile/notary gate 确定性拒绝；**MUST NOT** 分配 UUID 或诱导重试 |
+| `awaiting_founder` | 无 accepted DM Realm 且本方 `!= founder`；等待时长 **MUST NOT** 改变 create authority |
+| `provisional` | 唯一 founding unit 已 accepted 但尚无合法 binding；只可执行 §7.2 的封闭 bootstrap 动作 |
+| `found` | 至少一份合法 binding endorsement、唯一 active exact-pair generation 与普通 participant authority evaluator 均通过 |
+| `suspended` | 已有 Realm 但 materialization/object conflict、terminal fault 或 membership/Contact/Agent/account/MLS/notary/lifecycle gate 阻止继续；blocker **MUST** 可机读 |
+| `temporarily_unavailable` | 必需依赖不可验证，无法安全归类 |
+
+求值优先级固定：依赖不足以验证 current basis 或 founder 时 `temporarily_unavailable`；无 Realm 时区分 `creation_blocked | creation_required | awaiting_founder`；有 Realm 后 identity/materialization/terminal/notary 冲突优先 `suspended`；否则无 binding 为 `provisional`；最后才在 binding、generation 与 daily gates 齐备时 `found`。`retry_after` 只是调度提示，**MUST NOT** 产生 fallback authority。
+
+existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库存、grant/policy freshness 或 MLS reconcile 而被隐藏。
+
+### 9.2 隐私
+
+DM Realm、其成员、Strand、MLS 状态、本地 slot、founder 身份、pending 状态，以及"该 pair 正在创建私聊"这一事实本身，**MUST** 只对两个 participant 及合法 owned-Agent controller 可见。其它任何主体 **MUST** 得到与不存在逐字相同的 opaque failure；不存在、不可见、policy deny、authorization deny 与 quarantined **MUST** 共用同一失败形态。DM Realm **MUST NOT** 出现在 directory、discovery、search、alias 解析或成员枚举中。
+
+### 9.3 SDK 与 endpoint 边界
+
+服务端 **MUST NOT** 注册全局 ActivationPlan、跨 endpoint next-action 或 workflow/conversation identity。每个 endpoint 只返回自己的 closed local outcome、blocker/reason、operation ref、exact-retry/conflict 与本 endpoint expiry。
+
+SDK planner 只组合 canonical public facts（Event/Seal/binding/active-generation cell）、authenticated service durable facts（source acceptance receipt、delivery outbox 状态）、controller-private durable facts 与 local ephemeral 状态；每项携 source ref、frontier/epoch、freshness/expiry 与 privacy label。客户端 bytes 只负责 authoring 与 exact retry。unknown 或 stale 只阻断相关 action，**MUST NOT** 隐藏 existing DM 坐标。
+
+SDK **MUST NOT** 实现事后从多个 binding 中选择 canonical 的逻辑，也 **MUST NOT** 实现任何 fallback、takeover 或 min-UUID selector。
 
 ## 10. 规范性回归边界
 
-Conformance 必须覆盖 response loss、restart、duplicate、reorder、reject replay、glare causal completeness、
-tombstone/recontact、scope narrow/widen、partition、PBFT view change、qDA/qCOMMIT、host transfer、second claim/
-second Realm拒绝、compensation与new MLS generation隔离。synthetic glare accepted Event、跨双方 CAS、server
-next-action、successor Realm/Strand或 view-dependent effect digest必须由负例拒绝。
+Conformance **MUST** 覆盖：
+
+- founder 派生：normal 取 responder、glare 取 `requests[0]` issuer，两侧独立计算一致；把 normal 分支误算为 requester **MUST** 被两侧 admission 拒绝；
+- 非 founder 提交 founding unit 在 self 与 peer 两条路径均拒绝；
+- founder 多设备并发只分配同一 `realm_id/main_strand_id` 并只接受一组 unit；ID 已返回、unit 提交、receipt 落库、outbox 入队与响应丢失各崩溃点均恢复同一结果；
+- recontact continuity：多轮 tombstone/recontact 后仍重算出同一根 founder basis 与同一 founder；缺 `previous_terminal_basis_id`、成环、分叉或两 proof 导出不同根均拒绝；
+- accepted-at 与 current gate 分离：source 在旧 current basis 有效时 accepted 的 unit 延迟到撤回后才到 peer，peer 仍接受历史 identity 并按 current gate 投影 `suspended`；
+- 对方设备离线时 MLS 建立与发送成功；对方服务器不可达时 founder 仍可建 Realm、激活 generation 0 并发出真密文；
+- generation-1 activation 由 founder author **MUST** 以 `direct_conversation_activation_author_invalid` 拒绝，由 joiner author 且前提齐备则接受；
+- 跳代、回退、未 active group 作 predecessor、第 17 个候选 group 的既定错误；
+- 无 fallback：non-founder 无论等待多久、伪造标记、回填时间或携 negative query 结果，create 均拒绝；
+- pair materialization conflict：模拟受信 service 对同 pair 签出两份不同 unit/receipt 时两 Realm 全部冻结，**MUST NOT** 按 UUID 或到达时间选 winner，也 **MUST NOT** 发 tombstone；
+- 同对象 UUID 不同 Genesis 继续走 `object_identity_conflict`，**MUST NOT** 与 pair materialization conflict 合并为一个 selector；
+- 终态：`destroy` 与任意 `tombstone` 拒绝；合法 archive/freeze 及其反向操作沿普通路径生效且坐标不变；违规 terminal 后 slot 保持关闭且 resolver `suspended`；
+- binding：双方并发同 semantic endorsement 得到两个元素且不 `⊥`；同 actor 重复只计一个；不同 semantic digest 在 projection 前拒绝；current Contact/service refresh 不改 binding digest；
+- owned Agent：controller↔own-Agent 只携 `direct_conversation_agent_provision` 时命中 DM variant；改携既有 `agent_provision`、同时携两个 DM roles 或 DM/PCR variants 多命中均零写入拒绝；Agent↔第三方分别覆盖 founder=Agent 与 founder=other；
+- 隐私：非 participant 对任意阶段的 pair 查询与不存在逐字相同。
+
+synthetic glare accepted Event、跨双方 CAS、server next-action、successor Realm/Strand、timeout takeover、min-UUID 归一与 view-dependent effect digest **MUST** 由负例拒绝。

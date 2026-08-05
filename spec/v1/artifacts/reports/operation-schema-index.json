@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-05.1",
+  "version": "2026-08-05.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-05T12:00:00Z",
+  "generated_at": "2026-08-05T18:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2481,303 +2481,38 @@
       }
     },
     {
-      "operation_id": "ak.self.direct_conversation.command.resolve",
+      "operation_id": "ak.self.direct_conversation.query.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_request",
-        "schema_kind": "oneOf",
+        "schema_kind": "object",
         "required": [
-          "peer",
-          "create"
+          "peer"
         ],
         "properties": [
-          "peer",
-          "create",
-          "phase",
-          "operation_id",
-          "idempotency_key",
-          "reservation_handle",
-          "operation_control_authorization",
-          "peer_claim_request",
-          "step_evidence",
-          "signed_stage"
+          "peer"
         ],
-        "closed": true,
-        "variants": [
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_request",
-            "schema_kind": "object",
-            "required": [
-              "peer",
-              "create"
-            ],
-            "properties": [
-              "peer",
-              "create"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_request",
-            "schema_kind": "object",
-            "required": [
-              "peer",
-              "create",
-              "phase",
-              "operation_id",
-              "idempotency_key"
-            ],
-            "properties": [
-              "peer",
-              "create",
-              "phase",
-              "operation_id",
-              "idempotency_key"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_request",
-            "schema_kind": "object",
-            "required": [
-              "peer",
-              "create",
-              "phase",
-              "operation_id",
-              "idempotency_key",
-              "reservation_handle",
-              "operation_control_authorization",
-              "peer_claim_request"
-            ],
-            "properties": [
-              "peer",
-              "create",
-              "phase",
-              "operation_id",
-              "idempotency_key",
-              "reservation_handle",
-              "operation_control_authorization",
-              "peer_claim_request"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_request",
-            "schema_kind": "object",
-            "required": [
-              "peer",
-              "create",
-              "phase",
-              "operation_id",
-              "idempotency_key",
-              "operation_control_authorization",
-              "step_evidence"
-            ],
-            "properties": [
-              "peer",
-              "create",
-              "phase",
-              "operation_id",
-              "idempotency_key",
-              "operation_control_authorization",
-              "step_evidence"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_request",
-            "schema_kind": "object",
-            "required": [
-              "peer",
-              "create",
-              "phase",
-              "operation_id",
-              "idempotency_key",
-              "operation_control_authorization",
-              "reservation_handle",
-              "signed_stage"
-            ],
-            "properties": [
-              "peer",
-              "create",
-              "phase",
-              "operation_id",
-              "idempotency_key",
-              "operation_control_authorization",
-              "reservation_handle",
-              "signed_stage"
-            ],
-            "closed": true
-          }
-        ]
+        "closed": true
       },
       "response": {
         "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
         "schema_kind": "oneOf",
-        "required": [],
+        "required": [
+          "state"
+        ],
         "properties": [
           "state",
-          "operation_id",
-          "reservation_handle",
-          "expires_at",
-          "registry_statement",
-          "materialization_genesis",
-          "authorization_core",
-          "claim_authorization_draft",
-          "operation_control_authorization",
-          "prepared_step",
-          "prepared_step_digest",
-          "step_commit_receipt",
+          "blockers",
+          "retry_after_ms",
           "coordinates",
-          "send_blockers",
-          "suspension_reason",
-          "attempt_sequence",
-          "operation_state",
-          "reason",
-          "status"
+          "active_mls_generation_ref",
+          "send_blockers"
         ],
         "closed": true,
         "variants": [
           {
             "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
-            "schema_kind": "object",
-            "required": [
-              "state",
-              "operation_id",
-              "reservation_handle",
-              "expires_at",
-              "registry_statement",
-              "materialization_genesis",
-              "authorization_core",
-              "claim_authorization_draft"
-            ],
-            "properties": [
-              "state",
-              "operation_id",
-              "reservation_handle",
-              "expires_at",
-              "registry_statement",
-              "materialization_genesis",
-              "authorization_core",
-              "claim_authorization_draft"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
-            "schema_kind": "object",
-            "required": [
-              "state",
-              "operation_id",
-              "operation_control_authorization"
-            ],
-            "properties": [
-              "state",
-              "operation_id",
-              "operation_control_authorization"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
-            "schema_kind": "object",
-            "required": [
-              "state",
-              "operation_id",
-              "reservation_handle",
-              "expires_at",
-              "prepared_step",
-              "prepared_step_digest"
-            ],
-            "properties": [
-              "state",
-              "operation_id",
-              "reservation_handle",
-              "expires_at",
-              "prepared_step",
-              "prepared_step_digest"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
-            "schema_kind": "object",
-            "required": [
-              "state",
-              "operation_id",
-              "step_commit_receipt"
-            ],
-            "properties": [
-              "state",
-              "operation_id",
-              "step_commit_receipt"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
-            "schema_kind": "object",
-            "required": [
-              "state",
-              "coordinates",
-              "send_blockers"
-            ],
-            "properties": [
-              "state",
-              "coordinates",
-              "send_blockers"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
-            "schema_kind": "object",
-            "required": [
-              "state",
-              "coordinates",
-              "suspension_reason"
-            ],
-            "properties": [
-              "state",
-              "coordinates",
-              "suspension_reason"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
-            "schema_kind": "object",
-            "required": [
-              "state",
-              "operation_id",
-              "attempt_sequence",
-              "operation_state"
-            ],
-            "properties": [
-              "state",
-              "operation_id",
-              "attempt_sequence",
-              "operation_state"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
-            "schema_kind": "object",
-            "required": [
-              "state",
-              "reason"
-            ],
-            "properties": [
-              "state",
-              "operation_id",
-              "reason"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
-            "schema_kind": "object",
+            "schema_kind": null,
             "required": [
               "state"
             ],
@@ -2788,353 +2523,88 @@
           },
           {
             "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
-            "schema_kind": "object",
+            "schema_kind": null,
             "required": [
-              "status",
-              "operation_id",
-              "attempt_sequence",
+              "state",
+              "blockers"
+            ],
+            "properties": [
+              "state",
+              "blockers"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_kind": null,
+            "required": [
+              "state"
+            ],
+            "properties": [
+              "state",
+              "retry_after_ms"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_kind": null,
+            "required": [
+              "state",
               "coordinates"
             ],
             "properties": [
-              "status",
-              "operation_id",
-              "attempt_sequence",
-              "coordinates"
-            ],
-            "closed": true
-          }
-        ]
-      }
-    },
-    {
-      "operation_id": "ak.peer.direct_conversation.operation_control.command.submit",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_message_submit_request",
-        "schema_kind": "object",
-        "required": [
-          "recipient_replica_id",
-          "registry_digest",
-          "message"
-        ],
-        "properties": [
-          "recipient_replica_id",
-          "registry_digest",
-          "message"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_message_receipt",
-        "schema_kind": "object",
-        "required": [
-          "domain",
-          "status",
-          "message_digest",
-          "receiver_replica_id",
-          "received_at",
-          "signature"
-        ],
-        "properties": [
-          "domain",
-          "status",
-          "message_digest",
-          "receiver_replica_id",
-          "received_at",
-          "missing_dependency_digests",
-          "signature"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.direct_conversation.operation_control.command.deliver",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_delivery_request",
-        "schema_kind": "object",
-        "required": [
-          "registry_digest",
-          "submitted_bundle_digest",
-          "effect_commitment_digest",
-          "bundle"
-        ],
-        "properties": [
-          "registry_digest",
-          "submitted_bundle_digest",
-          "effect_commitment_digest",
-          "bundle"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_delivery_receipt",
-        "schema_kind": "object",
-        "required": [
-          "domain",
-          "submitted_bundle_digest",
-          "effect_commitment_digest",
-          "value_digest",
-          "effect_head_digest",
-          "effect_id",
-          "disposition",
-          "destination",
-          "host_service_id",
-          "host_epoch",
-          "recorded_at",
-          "signature"
-        ],
-        "properties": [
-          "domain",
-          "submitted_bundle_digest",
-          "effect_commitment_digest",
-          "value_digest",
-          "effect_head_digest",
-          "effect_id",
-          "disposition",
-          "destination",
-          "host_service_id",
-          "host_epoch",
-          "recorded_at",
-          "missing_dependency_digests",
-          "signature"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.direct_conversation.operation_control.query.execution_bundle",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_query_request",
-        "schema_kind": "oneOf",
-        "required": [
-          "query_kind",
-          "registry_digest",
-          "pair_registry_id",
-          "operation_id",
-          "attempt_sequence",
-          "effect_id",
-          "requester_service_id"
-        ],
-        "properties": [
-          "query_kind",
-          "registry_digest",
-          "pair_registry_id",
-          "operation_id",
-          "attempt_sequence",
-          "effect_id",
-          "expected_value_digest",
-          "expected_effect_commitment_digest",
-          "submitted_bundle_digest",
-          "requester_service_id",
-          "value_digest",
-          "effect_commitment_digest",
-          "effect_head_digest",
-          "qcommit_certificate_digest",
-          "destination"
-        ],
-        "closed": true,
-        "variants": [
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_query_request",
-            "schema_kind": "object",
-            "required": [
-              "query_kind",
-              "registry_digest",
-              "pair_registry_id",
-              "operation_id",
-              "attempt_sequence",
-              "effect_id",
-              "expected_value_digest",
-              "expected_effect_commitment_digest",
-              "submitted_bundle_digest",
-              "requester_service_id"
-            ],
-            "properties": [
-              "query_kind",
-              "registry_digest",
-              "pair_registry_id",
-              "operation_id",
-              "attempt_sequence",
-              "effect_id",
-              "expected_value_digest",
-              "expected_effect_commitment_digest",
-              "submitted_bundle_digest",
-              "requester_service_id"
+              "state",
+              "coordinates",
+              "active_mls_generation_ref"
             ],
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_query_request",
-            "schema_kind": "object",
+            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_kind": null,
             "required": [
-              "query_kind",
-              "registry_digest",
-              "pair_registry_id",
-              "operation_id",
-              "attempt_sequence",
-              "effect_id",
-              "value_digest",
-              "effect_commitment_digest",
-              "effect_head_digest",
-              "qcommit_certificate_digest",
-              "requester_service_id"
+              "state",
+              "coordinates",
+              "active_mls_generation_ref",
+              "send_blockers"
             ],
             "properties": [
-              "query_kind",
-              "registry_digest",
-              "pair_registry_id",
-              "operation_id",
-              "attempt_sequence",
-              "effect_id",
-              "value_digest",
-              "effect_commitment_digest",
-              "effect_head_digest",
-              "qcommit_certificate_digest",
-              "requester_service_id"
+              "state",
+              "coordinates",
+              "active_mls_generation_ref",
+              "send_blockers"
             ],
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_query_request",
-            "schema_kind": "object",
+            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_kind": null,
             "required": [
-              "query_kind",
-              "registry_digest",
-              "pair_registry_id",
-              "operation_id",
-              "attempt_sequence",
-              "effect_id",
-              "effect_commitment_digest",
-              "destination",
-              "requester_service_id"
+              "state",
+              "coordinates",
+              "blockers"
             ],
             "properties": [
-              "query_kind",
-              "registry_digest",
-              "pair_registry_id",
-              "operation_id",
-              "attempt_sequence",
-              "effect_id",
-              "effect_commitment_digest",
-              "destination",
-              "requester_service_id"
-            ],
-            "closed": true
-          }
-        ]
-      },
-      "response": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_query_outcome",
-        "schema_kind": "oneOf",
-        "required": [
-          "outcome_kind"
-        ],
-        "properties": [
-          "outcome_kind",
-          "submitted_bundle_digest",
-          "effect_commitment_digest",
-          "bundle",
-          "delivery_receipt"
-        ],
-        "closed": true,
-        "variants": [
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_query_outcome",
-            "schema_kind": "object",
-            "required": [
-              "outcome_kind",
-              "submitted_bundle_digest",
-              "effect_commitment_digest",
-              "bundle"
-            ],
-            "properties": [
-              "outcome_kind",
-              "submitted_bundle_digest",
-              "effect_commitment_digest",
-              "bundle"
+              "state",
+              "coordinates",
+              "blockers"
             ],
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/execution_bundle_query_outcome",
-            "schema_kind": "object",
+            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_kind": null,
             "required": [
-              "outcome_kind",
-              "delivery_receipt"
+              "state"
             ],
             "properties": [
-              "outcome_kind",
-              "delivery_receipt"
+              "state",
+              "retry_after_ms"
             ],
             "closed": true
           }
         ]
-      }
-    },
-    {
-      "operation_id": "ak.peer.direct_conversation.operation_control.query.read_certificate",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_read_request",
-        "schema_kind": "object",
-        "required": [
-          "domain",
-          "registry_digest",
-          "read_request_id",
-          "pair_registry_id",
-          "pair_key",
-          "operation_id",
-          "requester_service_id",
-          "audience",
-          "minimum_host_epoch",
-          "issued_at",
-          "expires_at",
-          "signature"
-        ],
-        "properties": [
-          "domain",
-          "registry_digest",
-          "read_request_id",
-          "pair_registry_id",
-          "pair_key",
-          "operation_id",
-          "requester_service_id",
-          "audience",
-          "expected_host_service_id",
-          "minimum_host_epoch",
-          "known_head_digest",
-          "issued_at",
-          "expires_at",
-          "signature"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/operation_control_read_certificate",
-        "schema_kind": "object",
-        "required": [
-          "domain",
-          "read_request",
-          "request_digest",
-          "head",
-          "n",
-          "f",
-          "quorum",
-          "receipts"
-        ],
-        "properties": [
-          "domain",
-          "read_request",
-          "request_digest",
-          "head",
-          "n",
-          "f",
-          "quorum",
-          "receipts"
-        ],
-        "closed": true
       }
     },
     {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-05.1",
+  "version": "2026-08-05.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-05T12:00:00Z",
+  "generated_at": "2026-08-05T18:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -10,14 +10,16 @@
     "actor_private_event": "Persisted actor-private/account-data event; not shared Realm history and not Realm reducer input."
   },
   "admission_class_definitions": {
-    "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
-    "did_root_anchor": "Admitted only by the closed identity-root anchor verifier. v1 permits this class for a self-principal PCR genesis ak.realm.create bound to entry 0 through one critical did_inception ref, and for B-model ak.device.reanchor bound to the accepted registry head through one critical did_recovery_anchor ref. This verifier is the sole exception to generic Event verification_method-controller equality: verification_method MUST instead equal an active controller-proof verification method from the referenced entry, and the verifier validates it against the accepted did:webvh history/update authority without rewriting its did:key controller to actor_id. Root/update authority MUST NOT authorize any other Event kind. Batch shape, DID history, active update authority, full frontier CAS and conflict-slot checks remain mandatory.",
+    "capability_gated": "Gated by capability actions. The authorizing actions are exactly the ones whose target_event_kinds list this kind in capability-action-registry; there is no second per-event list. Reducer MUST verify the actor holds a matching action grant. Fail-closed.",
+    "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
+    "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
     "delegated_pcr_genesis": "Admitted only for a principal_control ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A managed Native Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed principal branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
     "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
-    "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
-    "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed.",
-    "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
-    "capability_gated": "Gated by capability actions. The authorizing actions are exactly the ones whose target_event_kinds list this kind in capability-action-registry; there is no second per-event list. Reducer MUST verify the actor holds a matching action grant. Fail-closed."
+    "did_root_anchor": "Admitted only by the closed identity-root anchor verifier. v1 permits this class for a self-principal PCR genesis ak.realm.create bound to entry 0 through one critical did_inception ref, and for B-model ak.device.reanchor bound to the accepted registry head through one critical did_recovery_anchor ref. This verifier is the sole exception to generic Event verification_method-controller equality: verification_method MUST instead equal an active controller-proof verification method from the referenced entry, and the verifier validates it against the accepted did:webvh history/update authority without rewriting its did:key controller to actor_id. Root/update authority MUST NOT authorize any other Event kind. Batch shape, DID history, active update authority, full frontier CAS and conflict-slot checks remain mandatory.",
+    "direct_conversation_agent_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_agent_provision pointing to an accepted ak.agent.provision Event. Used solely for the controller-to-own-Agent Direct Conversation branch, which has no Contact basis. The verifier cross-binds participants to exactly that controller and Agent, requires the Direct Conversation profile rather than a PCR profile, checks the controller binding is current, and fixes founder = controller so the Agent runtime key never needs Direct Conversation founding scope. This role is structurally exclusive with direct_conversation_basis and with the managed-Agent PCR agent_provision role.",
+    "direct_conversation_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_basis pointing to the portable Contact basis evidence bundle and its continuity chain to the pair's root founder basis. The verifier derives founder from the root basis core (normal branch: the sorted_pair_members entry that is not the request_event_ref issuer, i.e. the responder; glare branch: the requests[0] issuer), then requires created_by == actor_id == founder, recomputes pair_key from sorted_pair_members and the trust domain, and pins the Direct Conversation profile, exact-two participants and the create-locked encryption and history baseline. Accepted-at basis validity and current directional Contact gates are evaluated separately so Event validity never depends on delivery order.",
+    "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
+    "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed."
   },
   "admission_predicate_contract": {
     "closed_world": true,
@@ -158,6 +160,22 @@
             "not_const": "principal_control"
           },
           "admission": "capability_gated"
+        },
+        {
+          "when": {
+            "ref_role": "direct_conversation_basis",
+            "ref_critical": true,
+            "ref_exact_count": 1
+          },
+          "admission": "direct_conversation_genesis"
+        },
+        {
+          "when": {
+            "ref_role": "direct_conversation_agent_provision",
+            "ref_critical": true,
+            "ref_exact_count": 1
+          },
+          "admission": "direct_conversation_agent_genesis"
         },
         {
           "when": {

@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-03",
+  "version": "2026-08-05.1",
   "kind": "profiles_dependency_graph",
   "source_role": "generated",
-  "generated_at": "2026-08-03T02:00:00Z",
+  "generated_at": "2026-08-05T18:30:00Z",
   "source_of_truth": false,
   "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
   "generated_by": "tools/lint_artifacts.py#check_profile_dependency_graph",
@@ -43,7 +43,6 @@
     "ak.profile.core_event_store.v1",
     "ak.profile.crdt.text.v1",
     "ak.profile.cross_signing.reset.v1",
-    "ak.profile.direct_conversation_operation_control.v1",
     "ak.profile.direct_conversation_realm.v1",
     "ak.profile.direct_conversation_repair.v1",
     "ak.profile.directory_service.v1",
@@ -145,11 +144,6 @@
     {
       "from": "ak.profile.agent_sidecar.v1",
       "to": "ak.profile.personal_agent_provisioning.v1",
-      "kind": "inherits"
-    },
-    {
-      "from": "ak.profile.direct_conversation_operation_control.v1",
-      "to": "ak.profile.direct_conversation_realm.v1",
       "kind": "inherits"
     },
     {

@@ -146,7 +146,8 @@
           "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
           "binding_event_ref": "ak:event:0196419b-0000-7000-8000-000000000309"
         },
-        "send_blockers": []
+        "send_blockers": [],
+        "active_mls_generation_ref": "ak:event:0196419b-0000-7000-8000-00000000030a"
       }
     },
     {
@@ -162,7 +163,9 @@
           "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
           "binding_event_ref": "ak:event:0196419b-0000-7000-8000-000000000309"
         },
-        "suspension_reason": "contact_direction_revoked"
+        "blockers": [
+          "contact_scope_stale"
+        ]
       }
     },
     {

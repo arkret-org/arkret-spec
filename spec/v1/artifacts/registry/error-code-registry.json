@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-03.6",
+  "version": "2026-08-05.2",
   "codes": [
     {
       "code": "bad_json",
@@ -1683,24 +1683,6 @@
       "description": "A Contact fact forks an issuer-local version, skips a version, references a non-current predecessor, reuses a consumed request ref, or attempts to revive a tombstoned generation. The conflicting fact is quarantined."
     },
     {
-      "code": "operation_control_quorum_unavailable",
-      "http_status": 503,
-      "scope": "endpoint",
-      "description": "No fresh q=2f+1 certificate proves the current operation-control head or required journal availability. The operation remains pending/fail closed and no external effect, cancel, transfer or attempt advance is inferred from a local replica head."
-    },
-    {
-      "code": "operation_control_equivocation",
-      "http_status": 409,
-      "scope": "endpoint",
-      "description": "A replica signed conflicting semantic value/lock digests for the same immutable one-vote slot, or one permanent effect-ledger identity was presented with a different effect_commitment_digest. Different carriers or valid quorum witness subsets for the same semantic commitment are duplicates, not equivocation. True conflicting material is quarantined."
-    },
-    {
-      "code": "operation_control_certificate_invalid",
-      "http_status": 422,
-      "scope": "endpoint",
-      "description": "A qDA, PBFT, qCOMMIT, ancestor-chain, ExecutionBundle or read certificate is structurally valid JSON but fails cross-binding, immutable replica membership, distinct-signer, canonical-order, threshold, journal-root, head-transcript or signature validation."
-    },
-    {
       "code": "membership_compensation_conflict",
       "http_status": 409,
       "scope": "endpoint",
@@ -2136,6 +2118,22 @@
         "auth_decision"
       ],
       "description": "A grant was issued from a ref carrying authority_regrant_allowed=false, or declares a max_authority_depth above what its refs leave. With authority_regrant_allowed=false the child's max_authority_depth MUST be 0 and no further grant may name it. See zh/authz/capabilities.md §6 / §10."
+    },
+    {
+      "code": "authority_scope_custom_unsupported",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A grant declared `authority_scope=custom`, which v1 does not define an evaluable semantics for. The reducer MUST reject (schema_violation) until a future profile assigns custom-scope evaluation rules. See zh/authz/constraint-schema.md §7."
+    },
+    {
+      "code": "authority_scope_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A child grant violated its issuer authority's `authority_scope`: `narrowing_only` requires the child resources/actions to be a strict-or-equal subset that narrows at least one axis, and `same_scope` requires the child to match the issuer authority's scope exactly. The reducer MUST reject a child that exceeds or fails to satisfy the declared narrowing discipline. See zh/authz/constraint-schema.md §7."
     },
     {
       "code": "authorized_grant_revoked",
@@ -2659,22 +2657,6 @@
       "description": "An applet/service call used a delegated device session that the deactivation/lock fanout revoked (ak.applet.registration delegated devices). The call MUST fail closed. See zh/identity/account-lifecycle.md §7.1."
     },
     {
-      "code": "authority_scope_custom_unsupported",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "A grant declared `authority_scope=custom`, which v1 does not define an evaluable semantics for. The reducer MUST reject (schema_violation) until a future profile assigns custom-scope evaluation rules. See zh/authz/constraint-schema.md §7."
-    },
-    {
-      "code": "authority_scope_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "A child grant violated its issuer authority's `authority_scope`: `narrowing_only` requires the child resources/actions to be a strict-or-equal subset that narrows at least one axis, and `same_scope` requires the child to match the issuer authority's scope exactly. The reducer MUST reject a child that exceeds or fails to satisfy the declared narrowing discipline. See zh/authz/constraint-schema.md §7."
-    },
-    {
       "code": "delivery_binding_handover_proof_invalid",
       "applies_to": [
         "service_call",
@@ -2807,6 +2789,14 @@
       "description": "A soft-logout recovery DID proof was rejected because expires_at is missing or its freshness window exceeded the bound (expires_at - issued_at > 300s, or issued_at skew beyond tolerance); see account-lifecycle.md §4 and identity-did.md §5.1."
     },
     {
+      "code": "direct_conversation_activation_author_invalid",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An ak.direct_conversation.mls_generation.activate for generation 1 was authored by the founder instead of the joining participant. No portable proof exists that the peer Principal Server durably accepted the Welcome, so only the joiner can truthfully assert it, mirroring the rule that consume is called by the Welcome recipient and never proxied. Rejected even when every other field is correct. See zh/identity/contact-and-direct-conversation.md §7.3."
+    },
+    {
       "code": "direct_conversation_binding_invalid",
       "applies_to": [
         "event_envelope",
@@ -2833,6 +2823,15 @@
       "description": "A Direct Conversation binding or membership projection does not resolve to exactly two distinct principal participants. New writes fail closed; an existing stable conversation is returned as suspended rather than replaced."
     },
     {
+      "code": "direct_conversation_pair_materialization_conflict",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "state_resolution"
+      ],
+      "description": "A second accepted Direct Conversation Realm was observed for the same pair_key while both carried apparently valid founder admission and source acceptance receipts, indicating slot, cutover-fence or signature equivocation by a trusted current Principal Server. Both Realms freeze new Message, membership, policy, MLS and binding writes and all evidence is retained; implementations MUST NOT pick a winner by UUID or arrival order, tombstone either Realm, or migrate history. See zh/identity/contact-and-direct-conversation.md §5.7."
+    },
+    {
       "code": "direct_conversation_participant_authority_denied",
       "applies_to": [
         "event_envelope",
@@ -2856,6 +2855,15 @@
         "auth_decision"
       ],
       "description": "A Space create/update/parent/archive/restore/tombstone operation targeted a Realm carrying ak.profile.direct_conversation_realm.v1. Space containers are not permitted in this constrained Realm role."
+    },
+    {
+      "code": "direct_conversation_terminal_forbidden",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "state_resolution"
+      ],
+      "description": "A canonical Direct Conversation Realm received ak.realm.destroy or any ak.realm.tombstone. DM coordinates are permanent and successor-free, so an irreversible terminal would leave the pair unable to ever hold a Direct Conversation while the resolver still had to return the dead coordinates. Reversible ak.realm.archive / ak.realm.freeze remain allowed through ordinary Realm authority and only surface as send blockers. See zh/identity/contact-and-direct-conversation.md §8.1."
     },
     {
       "code": "direct_conversation_third_party_member_forbidden",
@@ -4437,6 +4445,13 @@
       "description": "A recovery-session submit_proof or a new RecoveryTransaction binding targeted a recovery session that is already in a terminal state (`completed` / `rejected` / `expired`). Terminal recovery sessions are immutable; servers MUST reject with top-level `failed_precondition` carrying this reason_code. Recovery sessions have no public complete operation. See zh/crypto-media/device-lifecycle.md §15 and artifacts/schemas/recovery-session.schema.json."
     },
     {
+      "code": "recovery_stale",
+      "applies_to": [
+        "agent_readiness"
+      ],
+      "description": "Closed generic Agent readiness blocker: the controller-owned PCR recovery material no longer satisfies the current recovery policy or active runtime-key state."
+    },
+    {
       "code": "recovery_target_not_in_bottom",
       "applies_to": [
         "state_resolution",
@@ -4619,6 +4634,13 @@
       "description": "payload.occurrence is neither JSON null nor a canonical instance key (YYYY-MM-DD for all-day, YYYY-MM-DDTHH:MM:SS[Zone] for timed), including when its date component is not a real proleptic-Gregorian date. Receivers MUST reject instead of rewriting the key, since the cell subject derives from the signed value. See zh/models/calendar-event.md."
     },
     {
+      "code": "runtime_key_missing",
+      "applies_to": [
+        "agent_readiness"
+      ],
+      "description": "Closed generic Agent readiness blocker: no active accepted runtime key exists. It is durable subject-level readiness state and MUST NOT be inferred from a missing session or target-Realm grant."
+    },
+    {
       "code": "schedule_frontier_too_large",
       "applies_to": [
         "event_envelope",
@@ -4797,6 +4819,13 @@
         "service_call"
       ],
       "description": "The committed `ak.call.state.session_focus` is authoritative and write-once: once it exists, a connect / token-exchange failure against that focus MUST be surfaced as focus-unavailable (`focus_unavailable_for_client`) and clients MUST NOT silently fall back to a different focus to keep the media path up. Naming the invariant explicitly closes the split-brain attack where two subsets of a conference converge on different SFUs. See zh/crypto-media/media-service-binding.md §5 and §2 (`foci[].health_endpoint`)."
+    },
+    {
+      "code": "session_missing",
+      "applies_to": [
+        "direct_conversation_readiness"
+      ],
+      "description": "Closed target-specific Direct Conversation readiness blocker: the otherwise authorized Agent has no current session for the requested send path. It MUST NOT appear in generic Agent readiness."
     },
     {
       "code": "share_commitment_mismatch",
@@ -5256,21 +5285,6 @@
         "federation_transaction"
       ],
       "description": "Confirmed fork/witness evidence: the same event_id resolves to different event_digest values; a validated per-actor sibling set exceeds the registered single-bucket or per-position limit; a profile declares the observed sibling combination non-joinable; or witnesses required to sign the same complete (realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count) attestation payload return inconsistent values. Different event_id/hash values at the same (realm_id, actor_id, actor_seq) are not by themselves disagreement: event-and-patch.md §2.6 permits a bounded legal sibling set, which peers MUST reconcile by validated set union. Raw frontier_root / heads / range-root differences across different replication, disclosure, or attestation scopes also are not disagreement. The verifier MUST quarantine only the affected evidence scope and fail closed; recovery requires raw replay, an aligned same-scope quorum, or operator-approved fork resolution. See zh/sync/operations-sync.md §6.4.2 / §6.4.4 step 7 and zh/sync/federation.md §4.5.1."
-    },
-    {
-      "code": "runtime_key_missing",
-      "applies_to": ["agent_readiness"],
-      "description": "Closed generic Agent readiness blocker: no active accepted runtime key exists. It is durable subject-level readiness state and MUST NOT be inferred from a missing session or target-Realm grant."
-    },
-    {
-      "code": "recovery_stale",
-      "applies_to": ["agent_readiness"],
-      "description": "Closed generic Agent readiness blocker: the controller-owned PCR recovery material no longer satisfies the current recovery policy or active runtime-key state."
-    },
-    {
-      "code": "session_missing",
-      "applies_to": ["direct_conversation_readiness"],
-      "description": "Closed target-specific Direct Conversation readiness blocker: the otherwise authorized Agent has no current session for the requested send path. It MUST NOT appear in generic Agent readiness."
     }
   ]
 }

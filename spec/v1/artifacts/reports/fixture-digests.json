@@ -106,7 +106,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "9e57971aadb9a4e4c88989a3aa1127ef9c9fbc8a2e69b2d68ea7b19958163af5"
+      "sha256": "e205fbf03011492d17320c8e7963b5e0c0db8c6381f4c4f3f0c915dbbd9bd120"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
@@ -211,10 +211,6 @@
     {
       "path": "spec/v1/artifacts/fixtures/morph-schema-migration-fixture.json",
       "sha256": "9c458bc4b94bf2fcec3919613ac4c19b092066e03083167e605faa233e006ae5"
-    },
-    {
-      "path": "spec/v1/artifacts/fixtures/operation-control-pbft-fixture.json",
-      "sha256": "53285531dec5ef955f88502f10e810c22b629609050f353989f1297e946bfd62"
     },
     {
       "path": "spec/v1/artifacts/fixtures/operation-registry-coverage-fixture.json",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-05.1",
+  "version": "2026-08-05.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-05T12:00:00Z",
+  "generated_at": "2026-08-05T18:30:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5392,38 +5392,6 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/discovery/client-preferences.md"
       ]
-    },
-    {
-      "vector_id": "ak.vector.operation_control.pbft_view_change_value_stability.v1",
-      "status": "active",
-      "domain": "operation_control",
-      "applies_to_fixtures": ["operation-control-pbft-fixture.json"],
-      "description": "View-independent EffectValueCore and phase/view-separated PBFT envelopes preserve one value digest across valid view changes.",
-      "source_refs": ["spec/v1/artifacts/fixtures/operation-control-pbft-fixture.json"]
-    },
-    {
-      "vector_id": "ak.vector.operation_control.qda_qcommit_point_of_no_return.v1",
-      "status": "active",
-      "domain": "operation_control",
-      "applies_to_fixtures": ["operation-control-pbft-fixture.json"],
-      "description": "Canonical qDA plus q COMMIT is the sole point of no return; ExecutionBundle is a non-authoritative carrier and cannot self-reference.",
-      "source_refs": ["spec/v1/artifacts/fixtures/operation-control-pbft-fixture.json"]
-    },
-    {
-      "vector_id": "ak.vector.operation_control.partition_recovery.v1",
-      "status": "active",
-      "domain": "operation_control",
-      "applies_to_fixtures": ["operation-control-pbft-fixture.json"],
-      "description": "Partition denies effect without a fresh quorum head and recovers through valid VIEW-CHANGE/NEW-VIEW without weakening prepared locks.",
-      "source_refs": ["spec/v1/artifacts/fixtures/operation-control-pbft-fixture.json"]
-    },
-    {
-      "vector_id": "ak.vector.operation_control.genesis_and_attempt_uniqueness.v1",
-      "status": "active",
-      "domain": "operation_control",
-      "applies_to_fixtures": ["operation-control-pbft-fixture.json"],
-      "description": "Pre-quorum genesis has no canonical effect; committed operation/coordinates recover, attempt advance precedes claim and each attempt has at most one claim.",
-      "source_refs": ["spec/v1/artifacts/fixtures/operation-control-pbft-fixture.json"]
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-03.5",
+  "version": "2026-08-05.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -559,7 +559,7 @@
       "description": "Repeated revocation by the same principal is idempotent; unknown, consumed, or cross-principal locator ids return not_found."
     },
     {
-      "operation_id": "ak.self.direct_conversation.command.resolve",
+      "operation_id": "ak.self.direct_conversation.query.resolve",
       "http_alias": "POST /_arkret/self/direct-conversations/resolve",
       "operation_specific": [
         "failed_precondition",
@@ -1841,38 +1841,19 @@
     {
       "operation_id": "ak.gate.account.command.cancel_device_bootstrap",
       "http_alias": "POST /_arkret/gate/account/device-bootstrap/cancel",
-      "operation_specific": ["bootstrap_idempotency_conflict"],
+      "operation_specific": [
+        "bootstrap_idempotency_conflict"
+      ],
       "description": "Same transaction/idempotency identity with different closed bytes conflicts; retryable failures remain pending and are not mapped to a fabricated terminal error."
     },
     {
       "operation_id": "ak.self.contact.command.scope_update",
       "http_alias": "POST /_arkret/self/contacts/scope-update",
-      "operation_specific": ["contact_lineage_conflict", "contact_scope_stale"],
+      "operation_specific": [
+        "contact_lineage_conflict",
+        "contact_scope_stale"
+      ],
       "description": "Issuer-local version/predecessor conflicts quarantine; stale current proof cannot authorize an update or subsequent Contact-based create/send."
-    },
-    {
-      "operation_id": "ak.peer.direct_conversation.operation_control.command.submit",
-      "http_alias": "POST /_arkret/peer/direct-conversation-operation-control/messages",
-      "operation_specific": ["operation_control_equivocation", "operation_control_certificate_invalid", "dependency_missing"],
-      "description": "A different signed value in the same immutable protocol slot is equivocation; invalid cross-binding or quorum material is rejected; a durably queued message may report typed missing dependencies."
-    },
-    {
-      "operation_id": "ak.peer.direct_conversation.operation_control.command.deliver",
-      "http_alias": "POST /_arkret/peer/direct-conversation-operation-control/execution-bundles",
-      "operation_specific": ["operation_control_equivocation", "operation_control_certificate_invalid", "dependency_missing", "stale_frontier"],
-      "description": "The destination rejects conflicting permanent effect identities, invalid registry/qDA/PBFT/journal certificates and stale host epochs; deferred exact bytes name durable missing dependencies."
-    },
-    {
-      "operation_id": "ak.peer.direct_conversation.operation_control.query.execution_bundle",
-      "http_alias": "POST /_arkret/peer/direct-conversation-operation-control/execution-bundles/query",
-      "operation_specific": ["operation_control_certificate_invalid"],
-      "description": "Only exact immutable coordinates are queryable; a returned bundle or destination receipt that fails its certified bindings is invalid."
-    },
-    {
-      "operation_id": "ak.peer.direct_conversation.operation_control.query.read_certificate",
-      "http_alias": "POST /_arkret/peer/direct-conversation-operation-control/read-certificates/query",
-      "operation_specific": ["operation_control_quorum_unavailable", "operation_control_certificate_invalid", "stale_frontier"],
-      "description": "A fresh read requires q=2f+1 identical-head receipts; stale, non-canonical or insufficient receipts never select a local or sub-quorum head."
     }
   ],
   "cross_links": {

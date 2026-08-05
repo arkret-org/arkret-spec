@@ -1319,9 +1319,6 @@ components:
               - bootstrap_idempotency_conflict
               - contact_scope_stale
               - contact_lineage_conflict
-              - operation_control_quorum_unavailable
-              - operation_control_equivocation
-              - operation_control_certificate_invalid
               - membership_compensation_conflict
             message:
               type: string
@@ -4691,102 +4688,6 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/operation-control.schema.json#/$defs/peer_contact_submit_outcome
-  /_arkret/peer/direct-conversation-operation-control/messages:
-    post:
-      operationId: ak.peer.direct_conversation.operation_control.command.submit
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Submit one closed qDA/PBFT/view-change/read message to an immutable replica.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/operation-control.schema.json#/$defs/operation_control_message_submit_request
-      responses:
-        '200':
-          description: Signed immutable-replica message receipt.
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/operation-control.schema.json#/$defs/operation_control_message_receipt
-  /_arkret/peer/direct-conversation-operation-control/execution-bundles:
-    post:
-      operationId: ak.peer.direct_conversation.operation_control.command.deliver
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Deliver one fully certified ExecutionBundle to its exact destination.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/operation-control.schema.json#/$defs/execution_bundle_delivery_request
-      responses:
-        '200':
-          description: Destination-signed durable delivery outcome.
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/operation-control.schema.json#/$defs/execution_bundle_delivery_outcome
-  /_arkret/peer/direct-conversation-operation-control/execution-bundles/query:
-    post:
-      operationId: ak.peer.direct_conversation.operation_control.query.execution_bundle
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Recover an exact immutable ExecutionBundle or its destination receipt.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/operation-control.schema.json#/$defs/execution_bundle_query_request
-      responses:
-        '200':
-          description: Exact bundle or exact delivery outcome.
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/operation-control.schema.json#/$defs/execution_bundle_query_outcome
-  /_arkret/peer/direct-conversation-operation-control/read-certificates/query:
-    post:
-      operationId: ak.peer.direct_conversation.operation_control.query.read_certificate
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Produce a fresh q-certified operation-control head read.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/operation-control.schema.json#/$defs/operation_control_read_request
-      responses:
-        '200':
-          description: Fresh read certificate containing q distinct signed receipts.
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/operation-control.schema.json#/$defs/operation_control_read_certificate
   /_arkret/peer/keys/keypackages/claim:
     post:
       operationId: ak.peer.keys.keypackages.command.claim
@@ -5674,21 +5575,22 @@ paths:
                 $ref: '#/components/schemas/InviteLocatorRevokeOutcome'
   /_arkret/self/direct-conversations/resolve:
     post:
-      operationId: ak.self.direct_conversation.command.resolve
+      operationId: ak.self.direct_conversation.query.resolve
       security:
       - bearerAuth: []
         dpopProof: []
-      summary: Resolve or create the pair's single stable 1:1 DM entry.
+      summary: Resolve the pair's single stable 1:1 DM coordinates.
       description: |
-        Existing bindings return the same Realm and main Strand as found or
-        suspended without consulting KeyPackage inventory. First creation uses
-        one deterministic coordinator and one durable reserved/materializing/found
-        operation. Cross-service creation exposes typed remote KeyPackage claim
-        and materialization actions; all retries after external effect retain the
-        same operation, Realm and main Strand identifiers. A permanently
-        cancelled pair slot returns the tombstoned terminal outcome with frozen
-        operation, attempt and coordinates; later resolve calls exact-replay it
-        and cannot create a new attempt or binding for that pair.
+        Query-only. This endpoint never creates: a Direct Conversation Realm is
+        created solely by the founder derived from the pair's root Contact basis
+        (normal branch takes the responder, glare branch takes the requests[0]
+        issuer) through the direct_conversation_genesis admission variant of
+        ak.realm.create. Outcomes are evaluated in a fixed order and expose
+        creation_required, creation_blocked, awaiting_founder, provisional,
+        found, suspended or temporarily_unavailable. Waiting never grants create
+        authority to the non-founder; there is no timeout fallback or takeover.
+        Existing coordinates are never hidden by presence, session, KeyPackage
+        inventory or MLS reconcile state.
       requestBody:
         required: true
         content:

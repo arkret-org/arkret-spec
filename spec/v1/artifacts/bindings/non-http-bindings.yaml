@@ -163,7 +163,7 @@ grpc:
       Get: ak.self.invite_receive_policy.resource.get
       Set: ak.self.invite_receive_policy.resource.replace
     SelfDirectConversation:
-      Resolve: ak.self.direct_conversation.command.resolve
+      Resolve: ak.self.direct_conversation.query.resolve
     FindDirectory:
       Announce: ak.find.directory.command.announce
       Describe: ak.find.directory.query.describe
@@ -211,10 +211,6 @@ grpc:
     PeerContacts:
       Submit: ak.peer.contacts.command.submit
     PeerDirectConversationOperationControl:
-      Submit: ak.peer.direct_conversation.operation_control.command.submit
-      DeliverExecutionBundle: ak.peer.direct_conversation.operation_control.command.deliver
-      QueryExecutionBundle: ak.peer.direct_conversation.operation_control.query.execution_bundle
-      ReadCertificate: ak.peer.direct_conversation.operation_control.query.read_certificate
     PeerKeys:
       KeyPackagesClaim: ak.peer.keys.keypackages.command.claim
       KeyPackagesClaimQuery: ak.peer.keys.keypackages.query.claim
@@ -369,10 +365,6 @@ mq:
     peer.mls.query.group_state_material: ak.peer.mls.query.group_state_material
     peer.invites.command.submit: ak.peer.invites.command.submit
     peer.contacts.command.submit: ak.peer.contacts.command.submit
-    peer.direct_conversation.operation_control.command.submit: ak.peer.direct_conversation.operation_control.command.submit
-    peer.direct_conversation.operation_control.command.deliver: ak.peer.direct_conversation.operation_control.command.deliver
-    peer.direct_conversation.operation_control.query.execution_bundle: ak.peer.direct_conversation.operation_control.query.execution_bundle
-    peer.direct_conversation.operation_control.query.read_certificate: ak.peer.direct_conversation.operation_control.query.read_certificate
     peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim
     peer.keys.keypackages.query.claim: ak.peer.keys.keypackages.query.claim
     peer.snapshot.query.manifest_head: ak.peer.snapshot.query.manifest_head
@@ -409,7 +401,7 @@ mq:
     self.contact.command.scope_update: ak.self.contact.command.scope_update
     self.invite_receive_policy.resource.get: ak.self.invite_receive_policy.resource.get
     self.invite_receive_policy.resource.replace: ak.self.invite_receive_policy.resource.replace
-    self.direct_conversation.command.resolve: ak.self.direct_conversation.command.resolve
+    self.direct_conversation.query.resolve: ak.self.direct_conversation.query.resolve
     self.circle.command.create: ak.self.circle.command.create
     self.circle.query.list: ak.self.circle.query.list
     self.circle.resource.get: ak.self.circle.resource.get

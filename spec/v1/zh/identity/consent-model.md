@@ -297,7 +297,7 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
 
 WebRTC `ak.call.signal{signal_kind=invite}` 在服务端投递与目标客户端展示前都 MUST 校验 `voice_call` / `video_call` consent；无 consent 的 invite MUST 被丢弃或进入 profile 声明的 quarantine，且不得产生 VoIP push / ringing UI。Presence subscription / fanout 由 Sync Service 在每次订阅建立和每次 fanout 前校验 holder 对 observer 的 `presence` consent；无 consent 时不得泄露在线、离线、last active bucket 或订阅是否存在。
 
-`ak.self.direct_conversation.command.resolve`不得查询Consent。普通分支只验证双方current directional Contact heads与source freshness；owned-Agent分支验证immutable controller/provision/runtime binding。无权主体统一opaque unavailable。其它基于Consent的一次性通信若未来需要，必须另行注册operation/profile，不得复用resolver或伪造Contact。
+`ak.self.direct_conversation.query.resolve`与§5.4的DM founding admission均不得查询Consent。普通分支只验证双方current directional Contact heads与source freshness；owned-Agent分支验证immutable controller/provision/runtime binding。无权主体统一opaque unavailable。其它基于Consent的一次性通信若未来需要，必须另行注册operation/profile，不得复用resolver或伪造Contact。
 
 `ak.private_contact_discovery.v1` 返回 PSI set-membership 命中位图时，MAY 附带 holder 当前 consent state hash 或最小 invite/consent handoff stub（不暴露具体 consent 内容，只声明 grant/revoke 状态与下一步引导），让发起方在尝试联系前判断是否需要先请求 consent。该响应 MUST NOT 包含 contact request handoff token、reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。
 
