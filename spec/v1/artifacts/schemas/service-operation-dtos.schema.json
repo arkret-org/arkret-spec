@@ -524,16 +524,97 @@
       },
       "allOf": [
         {
-          "if": { "properties": { "credential_class": { "const": "standard" } }, "required": ["credential_class"] },
-          "then": { "required": ["holder_binding"], "not": { "anyOf": [ { "required": ["recovery_binding"] }, { "required": ["bootstrap_binding"] } ] } }
+          "if": {
+            "properties": {
+              "credential_class": {
+                "const": "standard"
+              }
+            },
+            "required": [
+              "credential_class"
+            ]
+          },
+          "then": {
+            "required": [
+              "holder_binding"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "recovery_binding"
+                  ]
+                },
+                {
+                  "required": [
+                    "bootstrap_binding"
+                  ]
+                }
+              ]
+            }
+          }
         },
         {
-          "if": { "properties": { "credential_class": { "const": "device_bootstrap" } }, "required": ["credential_class"] },
-          "then": { "required": ["bootstrap_binding"], "not": { "anyOf": [ { "required": ["recovery_binding"] }, { "required": ["holder_binding"] } ] } }
+          "if": {
+            "properties": {
+              "credential_class": {
+                "const": "device_bootstrap"
+              }
+            },
+            "required": [
+              "credential_class"
+            ]
+          },
+          "then": {
+            "required": [
+              "bootstrap_binding"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "recovery_binding"
+                  ]
+                },
+                {
+                  "required": [
+                    "holder_binding"
+                  ]
+                }
+              ]
+            }
+          }
         },
         {
-          "if": { "properties": { "credential_class": { "const": "recovery_restricted" } }, "required": ["credential_class"] },
-          "then": { "required": ["recovery_binding"], "not": { "anyOf": [ { "required": ["bootstrap_binding"] }, { "required": ["holder_binding"] } ] } }
+          "if": {
+            "properties": {
+              "credential_class": {
+                "const": "recovery_restricted"
+              }
+            },
+            "required": [
+              "credential_class"
+            ]
+          },
+          "then": {
+            "required": [
+              "recovery_binding"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "bootstrap_binding"
+                  ]
+                },
+                {
+                  "required": [
+                    "holder_binding"
+                  ]
+                }
+              ]
+            }
+          }
         }
       ]
     },
@@ -3934,8 +4015,16 @@
             },
             "not": {
               "anyOf": [
-                { "required": ["holder_binding"] },
-                { "required": ["bootstrap_binding"] }
+                {
+                  "required": [
+                    "holder_binding"
+                  ]
+                },
+                {
+                  "required": [
+                    "bootstrap_binding"
+                  ]
+                }
               ]
             }
           },
@@ -3946,15 +4035,29 @@
                   "const": "device_bootstrap"
                 }
               },
-              "required": ["credential_class"]
+              "required": [
+                "credential_class"
+              ]
             },
             "then": {
-              "required": ["bootstrap_binding"],
-              "not": { "required": ["holder_binding"] }
+              "required": [
+                "bootstrap_binding"
+              ],
+              "not": {
+                "required": [
+                  "holder_binding"
+                ]
+              }
             },
             "else": {
-              "required": ["holder_binding"],
-              "not": { "required": ["bootstrap_binding"] }
+              "required": [
+                "holder_binding"
+              ],
+              "not": {
+                "required": [
+                  "bootstrap_binding"
+                ]
+              }
             }
           }
         }
@@ -4208,7 +4311,9 @@
     "EventInitialSubmission": {
       "type": "object",
       "description": "Initial durable Event publication. Online submission requires only the complete signed Event and performs current-state admission atomically. authorization_lease is optional and valid only for an explicitly requested delayed/offline publication window. Lease and dependency bundles are excluded from the Event digest.",
-      "required": ["event"],
+      "required": [
+        "event"
+      ],
       "properties": {
         "event": {
           "$ref": "#/$defs/EventSubmitEnvelope"
@@ -4228,28 +4333,8 @@
         "control_proposal_receipt": {
           "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt",
           "description": "Required external-authority receipt set when a Control Move is submitted to a receiver that cannot itself produce the complete current authority quorum. Forbidden for DataEvents."
-        },
-        "membership_compensation_evidence": {
-          "$ref": "./principal-operations.schema.json#/$defs/membership_compensation_submission_evidence",
-          "description": "Transport-only accepted-at compensation authority. Allowed only when event.kind is ak.member.state, event.executed_by is present, and event.authorization_ref equals membership_compensation_evidence.delegation.delegation_id. The destination evaluator also requires exact admission/incarnation/action/executor bindings and consumes (admission_id,delegation_digest) by single-write CAS. It is excluded from Event canonical bytes and event_digest."
         }
       },
-      "allOf": [
-        {
-          "if": { "required": ["membership_compensation_evidence"] },
-          "then": {
-            "properties": {
-              "event": {
-                "properties": {
-                  "kind": { "const": "ak.member.state" },
-                  "authorization_ref": { "$ref": "./event-envelope.schema.json#/$defs/membership_compensation_delegation_ref" }
-                },
-                "required": ["kind", "executed_by", "authorization_ref"]
-              }
-            }
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "EventFederationSubmission": {
@@ -4278,10 +4363,6 @@
         "control_proposal_receipt": {
           "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt",
           "description": "Canonical external-authority receipt set for a federated Control Move. Forbidden for DataEvents."
-        },
-        "membership_compensation_evidence": {
-          "$ref": "./principal-operations.schema.json#/$defs/membership_compensation_submission_evidence",
-          "description": "Transport-only accepted-at compensation authority forwarded unchanged with a federated ak.member.state Event. It is excluded from Event canonical bytes and event_digest and is validated by the same exact admission/incarnation/action/executor/single-use evaluator as EventInitialSubmission."
         }
       },
       "allOf": [
@@ -4302,20 +4383,6 @@
             "properties": {
               "ingress_receipts": {
                 "maxItems": 0
-              }
-            }
-          }
-        },
-        {
-          "if": { "required": ["membership_compensation_evidence"] },
-          "then": {
-            "properties": {
-              "event": {
-                "properties": {
-                  "kind": { "const": "ak.member.state" },
-                  "authorization_ref": { "$ref": "./event-envelope.schema.json#/$defs/membership_compensation_delegation_ref" }
-                },
-                "required": ["kind", "executed_by", "authorization_ref"]
               }
             }
           }

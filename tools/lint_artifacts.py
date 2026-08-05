@@ -496,7 +496,43 @@ def ensure_relative_file(lint: Lint, owner: Path, base: Path, ref: str, label: s
         return None
     if not target.exists():
         lint.fail(owner, f"{label} target does not exist: {ref}")
+        return target
+    ensure_cross_file_pointer(lint, owner, target, ref, label)
     return target
+
+
+def ensure_cross_file_pointer(
+    lint: Lint, owner: Path, target: Path, ref: str, label: str
+) -> None:
+    """Resolve the ``#/...`` fragment of a cross-file ``$ref`` inside the target document.
+
+    Checking only that the *file* exists lets a deleted ``$defs`` entry survive every gate and
+    surface much later as a downstream schema-compile failure. Pruning a shared schema is exactly
+    when that happens, so the pointer itself is verified here.
+    """
+    if "#" not in ref or target.suffix != ".json":
+        return
+    fragment = ref.split("#", 1)[1]
+    if not fragment.startswith("/"):
+        return
+    try:
+        document = json.loads(target.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    node: Any = document
+    for raw in fragment.lstrip("/").split("/"):
+        token = raw.replace("~1", "/").replace("~0", "~")
+        if isinstance(node, dict) and token in node:
+            node = node[token]
+            continue
+        if isinstance(node, list) and token.isdigit() and int(token) < len(node):
+            node = node[int(token)]
+            continue
+        lint.fail(
+            owner,
+            f"{label} points at a missing location in {target.name}: {ref}",
+        )
+        return
 
 
 def json_string_tokens(data: Any, regex: re.Pattern[str]) -> set[str]:

@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9219,
+    "total_properties": 9211,
     "total_schema_documents": 155,
     "by_presence_class": {
-      "optional": 2818,
+      "optional": 2816,
       "optional_defaulted": 75,
-      "required": 5961,
+      "required": 5957,
       "required_nullable": 93,
-      "tristate": 272
+      "tristate": 270
     },
-    "tristate_occurrences": 272,
-    "tristate_audit_targets": 165,
+    "tristate_occurrences": 270,
+    "tristate_audit_targets": 163,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 155,
+      "absent_null_equivalent": 153,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -268,8 +268,6 @@
     "service-operation-dtos.schema.json/$defs/DeviceMessagesGetOutcome/allOf/0/if/properties/messages",
     "service-operation-dtos.schema.json/$defs/EventFederationSubmission/allOf/0/else/properties/ingress_receipts",
     "service-operation-dtos.schema.json/$defs/EventFederationSubmission/allOf/0/then/properties/ingress_receipts",
-    "service-operation-dtos.schema.json/$defs/EventFederationSubmission/allOf/1/then/properties/event",
-    "service-operation-dtos.schema.json/$defs/EventInitialSubmission/allOf/0/then/properties/event",
     "service-operation-dtos.schema.json/$defs/EventsDependencyMissingProblem/anyOf/0/properties/missing_event_ids",
     "service-operation-dtos.schema.json/$defs/EventsDependencyMissingProblem/anyOf/1/properties/missing_event_digests",
     "service-operation-dtos.schema.json/$defs/EventsDependencyMissingProblem/anyOf/2/properties/missing_seal_refs",
@@ -1686,30 +1684,10 @@
     {
       "schema_file": "service-operation-dtos.schema.json",
       "shape": "/$defs/EventFederationSubmission",
-      "instance_path": "/event",
-      "occurrences": [
-        "/$defs/EventFederationSubmission/allOf/1/then/properties/event"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
-      "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/EventFederationSubmission",
       "instance_path": "/ingress_receipts",
       "occurrences": [
         "/$defs/EventFederationSubmission/allOf/0/else/properties/ingress_receipts",
         "/$defs/EventFederationSubmission/allOf/0/then/properties/ingress_receipts"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
-      "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/EventInitialSubmission",
-      "instance_path": "/event",
-      "occurrences": [
-        "/$defs/EventInitialSubmission/allOf/0/then/properties/event"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -11690,22 +11668,14 @@
         "/$defs/DirectoryWithdrawRequestBody/properties/resource_id": "required",
         "/$defs/EventFederationSubmission/allOf/0/else/properties/ingress_receipts": "tristate",
         "/$defs/EventFederationSubmission/allOf/0/then/properties/ingress_receipts": "tristate",
-        "/$defs/EventFederationSubmission/allOf/1/then/properties/event": "tristate",
-        "/$defs/EventFederationSubmission/allOf/1/then/properties/event/properties/authorization_ref": "required",
-        "/$defs/EventFederationSubmission/allOf/1/then/properties/event/properties/kind": "required",
         "/$defs/EventFederationSubmission/properties/authorization_lease": "optional",
         "/$defs/EventFederationSubmission/properties/control_proposal_receipt": "optional",
         "/$defs/EventFederationSubmission/properties/event": "required",
         "/$defs/EventFederationSubmission/properties/ingress_receipts": "required",
-        "/$defs/EventFederationSubmission/properties/membership_compensation_evidence": "optional",
-        "/$defs/EventInitialSubmission/allOf/0/then/properties/event": "tristate",
-        "/$defs/EventInitialSubmission/allOf/0/then/properties/event/properties/authorization_ref": "required",
-        "/$defs/EventInitialSubmission/allOf/0/then/properties/event/properties/kind": "required",
         "/$defs/EventInitialSubmission/properties/authorization_lease": "optional",
         "/$defs/EventInitialSubmission/properties/cba_proof_bundles": "optional",
         "/$defs/EventInitialSubmission/properties/control_proposal_receipt": "optional",
         "/$defs/EventInitialSubmission/properties/event": "required",
-        "/$defs/EventInitialSubmission/properties/membership_compensation_evidence": "optional",
         "/$defs/EventSealSubmitOutcome/properties/accepted_event_digests": "required",
         "/$defs/EventSealSubmitOutcome/properties/post_state_root": "required",
         "/$defs/EventSealSubmitOutcome/properties/seal_id": "required",
