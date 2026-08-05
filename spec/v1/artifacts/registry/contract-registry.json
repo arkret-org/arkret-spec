@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-05.3",
+  "version": "2026-08-05.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-05T19:00:00Z",
+  "generated_at": "2026-08-05T20:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -1568,7 +1568,7 @@
         ],
         "concurrency_class": "merge_safe"
       },
-      "ak.contact.tombstoned": {
+      "ak.contact.scope.update": {
         "plane": "control",
         "sealed": true,
         "cell_writes": [
@@ -1606,7 +1606,7 @@
         ],
         "concurrency_class": "merge_safe"
       },
-      "ak.contact.scope.update": {
+      "ak.contact.tombstoned": {
         "plane": "control",
         "sealed": true,
         "cell_writes": [
@@ -1883,20 +1883,39 @@
               "field": "payload.pair_key",
               "kind": "string"
             },
-            "lattice": "ordered_log",
-            "bottom": "expose",
+            "lattice": "or_set",
+            "bottom": "inert",
             "effect_projection": {
-              "kind": "append",
+              "kind": "or_set_add",
+              "tag": {
+                "dot": true
+              },
               "value": {
                 "field": "payload"
-              },
-              "issuer_seq": {
-                "envelope_field": "actor_seq"
               }
             }
           }
         ],
         "concurrency_class": "merge_safe"
+      },
+      "ak.direct_conversation.mls_generation.activate": {
+        "plane": "control",
+        "sealed": true,
+        "cell_writes": [
+          {
+            "cell_family": "ak.component.direct_conversation.active_mls_generation.v1",
+            "cell_subject": null,
+            "lattice": "cas_register",
+            "bottom": "reject",
+            "effect_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload"
+              }
+            }
+          }
+        ],
+        "concurrency_class": "security_barrier"
       },
       "ak.handle.discovery": {
         "plane": "control",
@@ -4782,22 +4801,22 @@
         ],
         "concurrency_class": "security_barrier"
       },
-      "ak.sidecar.create": {
+      "ak.sidecar.access.replace": {
         "plane": "control",
         "sealed": true,
         "cell_writes": [
           {
-            "cell_family": "ak.component.sidecar.create.v1",
-            "cell_subject": null,
-            "lattice": "ordered_log",
-            "bottom": "inert",
+            "cell_family": "ak.component.sidecar.access.v1",
+            "cell_subject": {
+              "field": "payload.sidecar_id",
+              "kind": "id:sidecar"
+            },
+            "lattice": "cas_register",
+            "bottom": "reject",
             "effect_projection": {
-              "kind": "append",
+              "kind": "set",
               "value": {
                 "field": "payload"
-              },
-              "issuer_seq": {
-                "envelope_field": "actor_seq"
               }
             }
           }
@@ -4829,22 +4848,22 @@
         ],
         "concurrency_class": "security_barrier"
       },
-      "ak.sidecar.access.replace": {
+      "ak.sidecar.create": {
         "plane": "control",
         "sealed": true,
         "cell_writes": [
           {
-            "cell_family": "ak.component.sidecar.access.v1",
-            "cell_subject": {
-              "field": "payload.sidecar_id",
-              "kind": "id:sidecar"
-            },
-            "lattice": "cas_register",
-            "bottom": "reject",
+            "cell_family": "ak.component.sidecar.create.v1",
+            "cell_subject": null,
+            "lattice": "ordered_log",
+            "bottom": "inert",
             "effect_projection": {
-              "kind": "set",
+              "kind": "append",
               "value": {
                 "field": "payload"
+              },
+              "issuer_seq": {
+                "envelope_field": "actor_seq"
               }
             }
           }
@@ -6565,7 +6584,16 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Immutable principal-scoped binding from an unordered participant pair to its single stable DM Realm and main Strand; active MLS generation is projected separately."
+        "payload": "Participant endorsement of the settled Direct Conversation coordinates and of the first exact-pair MLS generation. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact basis may author the founding unit. Written once and never retired; the active MLS generation is projected separately and read as the current value, never pinned by this payload."
+      },
+      {
+        "event_kind": "ak.direct_conversation.mls_generation.activate",
+        "category": "contact",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "admission": "self_authored_proof",
+        "payload": "Selects which already-established MLS group currently holds send authority in a Direct Conversation Realm. It never creates a group: the producer first establishes candidate state with ordinary ak.mls.genesis and Add Commit and durably stores its own private state, and the activation then references those accepted public facts. Generation 0 is the founder's sender-only provisional exporter group. Generation 1 MUST be authored by the joiner, because no portable proof exists that the peer Principal Server durably accepted the Welcome and only the joiner can truthfully assert it. Generation 2 and above are post-binding repair and require generation = current + 1 with predecessor_active_value_digest matching the current value."
       },
       {
         "event_kind": "ak.account.status",

@@ -613,6 +613,7 @@
               "ak.device.revoke",
               "ak.did.proof",
               "ak.direct_conversation.bound",
+              "ak.direct_conversation.mls_generation.activate",
               "ak.handle.discovery",
               "ak.identity.accountability_grant",
               "ak.identity.disclosure_policy",
@@ -3582,6 +3583,25 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/direct_conversation_bound_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.direct_conversation.mls_generation.activate"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/direct_conversation_mls_generation_activate_payload"
           }
         }
       }

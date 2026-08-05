@@ -3906,92 +3906,6 @@
       },
       "additionalProperties": false
     },
-    "realm_delivery_binding_policy_payload": {
-      "type": "object",
-      "$comment": "Payload for ak.realm.delivery_binding_policy — the payload IS this flat closed object (not a state_payload wrapper); event-envelope.schema.json dispatches the kind directly to this def, and the def name follows the ak.<x> -> <x>_payload derivation rule. Closed object so that misspelled fields are rejected with schema_violation. The enclosing Event envelope carries realm_id. See zh/governance/member-delivery-binding.md §4.",
-      "description": "Realm-level constraints on member delivery_binding acceptance: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, and who may sign rebind. allowed_recipient_services is fail-closed: empty array [] = reject any recipient service; use the explicit sentinel [\"*\"] to mean unrestricted. minProperties: 1 so an empty {} payload is schema_violation (semantically equivalent to never writing the event).",
-      "minProperties": 1,
-      "properties": {
-        "realm_id": {
-          "type": "string",
-          "description": "Optional echo of the Realm this policy governs; authoritative scope is the enclosing envelope realm_id."
-        },
-        "allowed_binding_sources": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "enum": [
-              "explicit",
-              "did_document_default",
-              "invite",
-              "join_policy",
-              "organization_policy",
-              "realm_policy"
-            ]
-          },
-          "description": "Subset of binding_source values allowed to appear in an accepted binding. Default (when this policy event is absent) is [\"did_document_default\"] for personal / public Realms; organization Realms MUST narrow it explicitly."
-        },
-        "did_document_default_allowed": {
-          "type": "boolean",
-          "description": "Whether binding_source=did_document_default is permitted. Defaults to false. Organization / compliance Realms MUST keep it false."
-        },
-        "allowed_recipient_services": {
-          "oneOf": [
-            {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {
-                "$ref": "#/$defs/did"
-              },
-              "description": "Closed allow-list of recipient_service_id values. Empty array [] = reject any recipient service (fail-closed): the reducer MUST reject routable joins (delivery_binding_policy_mismatch) when the recipient service is neither on this list, nor covered by the [\"*\"] sentinel, nor endorsed via required_endorsers. The empty array MUST NOT be interpreted as 'unrestricted'. Non-empty required_endorsers remains mandatory even when the service is listed here."
-            },
-            {
-              "type": "array",
-              "minItems": 1,
-              "maxItems": 1,
-              "items": {
-                "const": "*"
-              },
-              "description": "The explicit unrestricted sentinel [\"*\"]. Lifts ONLY the recipient-service allow-list dimension; it does NOT exempt required_endorsers or other §2 acceptance criteria. The unrestricted meaning MUST be declared explicitly via this sentinel and never inferred from an empty array."
-            }
-          ],
-          "description": "Either an array of recipient service DIDs (possibly empty = fail-closed reject) or exactly the sentinel [\"*\"] for unrestricted. Defaults to [] (reject / fail-closed) when this field is omitted. See zh/governance/member-delivery-binding.md §2 / §4."
-        },
-        "required_endorsers": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/did"
-          },
-          "description": "When this array is non-empty, the recipient_service_id's service_acceptance_ref MUST be endorsed by one of these governance DIDs, regardless of allowed_recipient_services or the [\"*\"] sentinel. Empty array = no mandatory endorsement requirement."
-        },
-        "unroutable_membership_allowed": {
-          "type": "boolean",
-          "description": "Whether delivery_status=\"unroutable\" members are permitted. Defaults to false."
-        },
-        "rebind_authorization": {
-          "type": "string",
-          "enum": [
-            "member",
-            "member_and_admin",
-            "admin_only",
-            "service_only",
-            "any"
-          ],
-          "description": "Legal signer / endorser set for rebind Control Moves. Defaults to member_and_admin. See §6."
-        },
-        "expires_after_seconds": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "minimum": 1,
-          "description": "Maximum validity of any binding in this Realm; unset/null = no expiry."
-        }
-      },
-      "additionalProperties": false
-    },
     "device_authorize_payload": {
       "type": "object",
       "required": [
@@ -4533,18 +4447,15 @@
     },
     "direct_conversation_bound_payload": {
       "type": "object",
-      "description": "Immutable principal-scoped signed binding from an unordered participant pair to its single stable DM Realm and main Strand. Issuer MUST be one of the participants; the original signed envelope may be mirrored by the other participant. MLS generations are projected separately and are not part of the permanent binding.",
+      "description": "Participant endorsement of the settled Direct Conversation coordinates and of the first exact-pair MLS generation. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact basis may author the founding unit. Written once and never retired, so it carries no binding_state, no supersedes ref and no permanent mls_group_id; participant authority always reads the current active MLS generation.",
       "required": [
         "pair_key",
         "participants_unordered",
         "realm_id",
         "main_strand_id",
+        "founding_unit_digest",
         "authorization_basis",
-        "member_event_refs",
-        "main_strand_create_ref",
-        "mls_genesis_event_ref",
-        "mls_commit_event_ref",
-        "mls_welcome_event_ref",
+        "initial_exact_pair_generation_ref",
         "created_at"
       ],
       "properties": {
@@ -4568,39 +4479,110 @@
         "main_strand_id": {
           "$ref": "#/$defs/strand_id"
         },
+        "founding_unit_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Digest of the accepted three Event atomic founding unit this binding endorses."
+        },
         "authorization_basis": {
           "$ref": "#/$defs/direct_conversation_authorization_basis"
         },
-        "member_event_refs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/event_ref"
-          },
-          "minItems": 2,
-          "maxItems": 2,
-          "uniqueItems": true,
-          "description": "Membership event refs proving both participants are active members of the DM Realm."
-        },
-        "main_strand_create_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "mls_genesis_event_ref": {
+        "initial_exact_pair_generation_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Accepted ak.mls.genesis Event for mls_group_id in realm scope."
-        },
-        "mls_commit_event_ref": {
-          "$ref": "#/$defs/event_ref",
-          "description": "Accepted epoch-0 Add Commit Event that admits the peer KeyPackage."
-        },
-        "mls_welcome_event_ref": {
-          "$ref": "#/$defs/event_ref",
-          "description": "Accepted Welcome Event paired with mls_commit_event_ref."
+          "description": "The generation 1 ak.direct_conversation.mls_generation.activate Event: the first exact-pair active MLS generation. Audit only; evaluators read the current active value."
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
+    },
+    "direct_conversation_mls_generation_activate_payload": {
+      "type": "object",
+      "description": "Selects which already-established MLS group currently holds send authority in a Direct Conversation Realm. It never creates a group. Generation 0 is the founder's sender-only provisional exporter group. Generation 1 MUST be authored by the joiner: no portable proof exists that the peer Principal Server durably accepted the Welcome, so only the joiner can truthfully assert it, mirroring the rule that consume is never proxied. Generation 2 and above are post-binding repair and require generation = current + 1 with predecessor_active_value_digest matching the current value.",
+      "required": [
+        "pair_key",
+        "mls_generation",
+        "phase",
+        "mls_group_id",
+        "genesis_event_ref",
+        "selected_group_state_ref",
+        "main_strand_id"
+      ],
+      "properties": {
+        "pair_key": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Canonical unordered pair key: sha256(JCS({participants:[p0,p1],trust_domain})) where p0/p1 are canonical stable subject DIDs sorted by unsigned UTF-8 byte order. Receivers MUST recompute it exactly as contact-and-direct-conversation.md §7 defines; handles and unresolved pairwise DIDs are forbidden inputs."
+        },
+        "mls_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "phase": {
+          "type": "string",
+          "enum": [
+            "provisional_history_send",
+            "exact_pair"
+          ]
+        },
+        "mls_group_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "genesis_event_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "selected_group_state_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "main_strand_id": {
+          "$ref": "#/$defs/strand_id"
+        },
+        "predecessor_active_value_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Absent for generation 0; otherwise MUST equal the current active value digest."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mls_generation": {
+                "const": 0
+              }
+            },
+            "required": [
+              "mls_generation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "phase": {
+                "const": "provisional_history_send"
+              }
+            },
+            "not": {
+              "required": [
+                "predecessor_active_value_digest"
+              ]
+            }
+          },
+          "else": {
+            "properties": {
+              "phase": {
+                "const": "exact_pair"
+              }
+            },
+            "required": [
+              "predecessor_active_value_digest"
+            ]
+          }
+        }
+      ]
     },
     "effective_scope": {
       "oneOf": [
@@ -4647,36 +4629,6 @@
     },
     "encrypted_metadata": {
       "$ref": "./encrypted-envelope.schema.json"
-    },
-    "message_encrypted_content": {
-      "allOf": [
-        {
-          "$ref": "./encrypted-envelope.schema.json"
-        },
-        {
-          "properties": {
-            "content_type": {
-              "const": "application/vnd.arkret.message+json"
-            }
-          }
-        }
-      ],
-      "description": "MLS-protected Message ContentBlock bound to its one canonical decrypted schema."
-    },
-    "message_encrypted_metadata": {
-      "allOf": [
-        {
-          "$ref": "./encrypted-envelope.schema.json"
-        },
-        {
-          "properties": {
-            "content_type": {
-              "const": "application/vnd.arkret.message-metadata+json"
-            }
-          }
-        }
-      ],
-      "description": "MLS-protected Message metadata bound to its one canonical decrypted schema."
     },
     "encrypted_payload": {
       "$ref": "./encrypted-envelope.schema.json"
@@ -6110,6 +6062,36 @@
         }
       },
       "additionalProperties": false
+    },
+    "message_encrypted_content": {
+      "allOf": [
+        {
+          "$ref": "./encrypted-envelope.schema.json"
+        },
+        {
+          "properties": {
+            "content_type": {
+              "const": "application/vnd.arkret.message+json"
+            }
+          }
+        }
+      ],
+      "description": "MLS-protected Message ContentBlock bound to its one canonical decrypted schema."
+    },
+    "message_encrypted_metadata": {
+      "allOf": [
+        {
+          "$ref": "./encrypted-envelope.schema.json"
+        },
+        {
+          "properties": {
+            "content_type": {
+              "const": "application/vnd.arkret.message-metadata+json"
+            }
+          }
+        }
+      ],
+      "description": "MLS-protected Message metadata bound to its one canonical decrypted schema."
     },
     "message_expiry": {
       "type": "object",
@@ -7782,37 +7764,6 @@
       },
       "additionalProperties": false
     },
-    "realm_update_payload": {
-      "type": "object",
-      "description": "Payload for ak.realm.update. reducer_profile is owned by the Realm reducer-profile singleton control cell and cannot be patched.",
-      "required": [
-        "target_ref",
-        "patch"
-      ],
-      "properties": {
-        "target_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "patch": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/patch"
-            },
-            {
-              "propertyNames": {
-                "not": {
-                  "pattern": "^reducer_profile(?:\\.|$)"
-                }
-              }
-            }
-          ]
-        },
-        "expected_state_digest": {
-          "$ref": "#/$defs/hash"
-        }
-      },
-      "additionalProperties": false
-    },
     "object_ref": {
       "type": "string",
       "pattern": "^(ak:(realm|circle|space|actor_profile|strand|message|morph|relation|view|policy|grant|invite|call|audit_binding|audit_session|audit_release|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
@@ -8789,6 +8740,92 @@
       },
       "additionalProperties": false
     },
+    "realm_delivery_binding_policy_payload": {
+      "type": "object",
+      "$comment": "Payload for ak.realm.delivery_binding_policy — the payload IS this flat closed object (not a state_payload wrapper); event-envelope.schema.json dispatches the kind directly to this def, and the def name follows the ak.<x> -> <x>_payload derivation rule. Closed object so that misspelled fields are rejected with schema_violation. The enclosing Event envelope carries realm_id. See zh/governance/member-delivery-binding.md §4.",
+      "description": "Realm-level constraints on member delivery_binding acceptance: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, and who may sign rebind. allowed_recipient_services is fail-closed: empty array [] = reject any recipient service; use the explicit sentinel [\"*\"] to mean unrestricted. minProperties: 1 so an empty {} payload is schema_violation (semantically equivalent to never writing the event).",
+      "minProperties": 1,
+      "properties": {
+        "realm_id": {
+          "type": "string",
+          "description": "Optional echo of the Realm this policy governs; authoritative scope is the enclosing envelope realm_id."
+        },
+        "allowed_binding_sources": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "explicit",
+              "did_document_default",
+              "invite",
+              "join_policy",
+              "organization_policy",
+              "realm_policy"
+            ]
+          },
+          "description": "Subset of binding_source values allowed to appear in an accepted binding. Default (when this policy event is absent) is [\"did_document_default\"] for personal / public Realms; organization Realms MUST narrow it explicitly."
+        },
+        "did_document_default_allowed": {
+          "type": "boolean",
+          "description": "Whether binding_source=did_document_default is permitted. Defaults to false. Organization / compliance Realms MUST keep it false."
+        },
+        "allowed_recipient_services": {
+          "oneOf": [
+            {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/did"
+              },
+              "description": "Closed allow-list of recipient_service_id values. Empty array [] = reject any recipient service (fail-closed): the reducer MUST reject routable joins (delivery_binding_policy_mismatch) when the recipient service is neither on this list, nor covered by the [\"*\"] sentinel, nor endorsed via required_endorsers. The empty array MUST NOT be interpreted as 'unrestricted'. Non-empty required_endorsers remains mandatory even when the service is listed here."
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "const": "*"
+              },
+              "description": "The explicit unrestricted sentinel [\"*\"]. Lifts ONLY the recipient-service allow-list dimension; it does NOT exempt required_endorsers or other §2 acceptance criteria. The unrestricted meaning MUST be declared explicitly via this sentinel and never inferred from an empty array."
+            }
+          ],
+          "description": "Either an array of recipient service DIDs (possibly empty = fail-closed reject) or exactly the sentinel [\"*\"] for unrestricted. Defaults to [] (reject / fail-closed) when this field is omitted. See zh/governance/member-delivery-binding.md §2 / §4."
+        },
+        "required_endorsers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "description": "When this array is non-empty, the recipient_service_id's service_acceptance_ref MUST be endorsed by one of these governance DIDs, regardless of allowed_recipient_services or the [\"*\"] sentinel. Empty array = no mandatory endorsement requirement."
+        },
+        "unroutable_membership_allowed": {
+          "type": "boolean",
+          "description": "Whether delivery_status=\"unroutable\" members are permitted. Defaults to false."
+        },
+        "rebind_authorization": {
+          "type": "string",
+          "enum": [
+            "member",
+            "member_and_admin",
+            "admin_only",
+            "service_only",
+            "any"
+          ],
+          "description": "Legal signer / endorser set for rebind Control Moves. Defaults to member_and_admin. See §6."
+        },
+        "expires_after_seconds": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "description": "Maximum validity of any binding in this Realm; unset/null = no expiry."
+        }
+      },
+      "additionalProperties": false
+    },
     "realm_destroy_payload": {
       "type": "object",
       "required": [
@@ -9551,92 +9588,6 @@
       },
       "additionalProperties": false
     },
-    "realm_policy_server_declaration_payload": {
-      "type": "object",
-      "required": [
-        "policy_server_did",
-        "policy_server_url"
-      ],
-      "properties": {
-        "policy_server_did": {
-          "$ref": "#/$defs/did"
-        },
-        "policy_server_url": {
-          "type": "string",
-          "format": "uri",
-          "pattern": "^https://[^/?#@]+/_arkret/self/policy/check$"
-        },
-        "public_keys": {
-          "type": "array",
-          "items": {
-            "$ref": "./common-ids.schema.json#/$defs/did_url"
-          },
-          "uniqueItems": true
-        },
-        "applies_to": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": [
-              "join",
-              "invite",
-              "message",
-              "media",
-              "applet",
-              "directory",
-              "call",
-              "federation"
-            ]
-          },
-          "uniqueItems": true
-        },
-        "policy_sources": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": [
-              "kind"
-            ],
-            "properties": {
-              "kind": {
-                "type": "string",
-                "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
-              }
-            },
-            "additionalProperties": false
-          },
-          "uniqueItems": true
-        },
-        "abuse_profile_ref": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "fail_mode": {
-          "type": "string",
-          "enum": [
-            "open",
-            "soft_deny",
-            "quarantine",
-            "closed"
-          ]
-        },
-        "cache_ttl_seconds": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "timeout_ms": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "on_timeout": {
-          "type": "string",
-          "enum": [
-            "fail_closed",
-            "deny"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
     "realm_policy_bundle_payload": {
       "type": "object",
       "$comment": "Payload for ak.realm.policy_bundle — the payload IS this flat closed object (not a state_payload wrapper); event-envelope.schema.json dispatches the kind directly to this def, and the def name follows the ak.<x> -> <x>_payload derivation rule. The closed property set is the complete set of Realm policy components that have no independent facet Event kind. Components that DO have their own kind and cell (ak.realm.join_rule, ak.realm.history_visibility, ak.realm.read_receipt_policy, ak.realm.asset_privacy_policy, ak.realm.delivery_binding_policy, ak.realm.moderation_policy, ak.realm.media_service, ak.realm.plaintext_visible_services, ...) are written by those events and are already covered by policy_root's ak.component.realm.*policy* leaf filter; they MUST NOT be echoed here.",
@@ -9750,6 +9701,92 @@
             "$ref": "#/$defs/did"
           },
           "description": "Complete current allow-set of service DIDs trusted to attest 3PID ownership for ak.invite.third_party / ak.invite.claim. The array is whole-value replacement state in this policy-bundle revision, not an incremental patch. Absence and [] both deny every third-party invite verification service. Removing a DID in a later policy_revision revokes it for every later claim re-check; no separate tombstone exists. Reducers MUST evaluate the current accepted bundle cell on a fresh basis before accepting ak.invite.claim."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_policy_server_declaration_payload": {
+      "type": "object",
+      "required": [
+        "policy_server_did",
+        "policy_server_url"
+      ],
+      "properties": {
+        "policy_server_did": {
+          "$ref": "#/$defs/did"
+        },
+        "policy_server_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://[^/?#@]+/_arkret/self/policy/check$"
+        },
+        "public_keys": {
+          "type": "array",
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/did_url"
+          },
+          "uniqueItems": true
+        },
+        "applies_to": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "join",
+              "invite",
+              "message",
+              "media",
+              "applet",
+              "directory",
+              "call",
+              "federation"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "policy_sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "uniqueItems": true
+        },
+        "abuse_profile_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "fail_mode": {
+          "type": "string",
+          "enum": [
+            "open",
+            "soft_deny",
+            "quarantine",
+            "closed"
+          ]
+        },
+        "cache_ttl_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "on_timeout": {
+          "type": "string",
+          "enum": [
+            "fail_closed",
+            "deny"
+          ]
         }
       },
       "additionalProperties": false
@@ -9892,6 +9929,37 @@
         },
         "replacement_event": {
           "$ref": "#/$defs/event_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_update_payload": {
+      "type": "object",
+      "description": "Payload for ak.realm.update. reducer_profile is owned by the Realm reducer-profile singleton control cell and cannot be patched.",
+      "required": [
+        "target_ref",
+        "patch"
+      ],
+      "properties": {
+        "target_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "patch": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/patch"
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^reducer_profile(?:\\.|$)"
+                }
+              }
+            }
+          ]
+        },
+        "expected_state_digest": {
+          "$ref": "#/$defs/hash"
         }
       },
       "additionalProperties": false
@@ -10220,17 +10288,59 @@
       },
       "additionalProperties": false
     },
-    "sidecar_create_payload": {
+    "sidecar_access_replace_payload": {
       "type": "object",
-      "description": "Create payload uses the Agent Sidecar object schema. It is emitted only by the atomic ak.self.agent.sidecar.command.ensure aggregate after the reducer/service derives and creates backing_circle_id; raw ensure callers never construct or submit this Event directly. The reducer MUST enforce one non-tombstoned Sidecar per (realm_id, controller_id), controller equality with the authenticated principal, exact same-batch backing Circle binding, and effective_scope=circle with circle_id equal to backing_circle_id.",
+      "description": "Controller-signed full-set Sidecar access replacement. Realm and backing-Circle scope are carried by the Event envelope.",
       "required": [
-        "object"
+        "sidecar_id",
+        "selected_agent_ids",
+        "version"
       ],
       "properties": {
-        "object": {
-          "$ref": "./agent-sidecar.schema.json"
+        "sidecar_id": {
+          "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+        },
+        "selected_agent_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "predecessor_event_ref": {
+          "$ref": "#/$defs/event_ref"
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "version": {
+                "const": 1
+              }
+            },
+            "required": [
+              "version"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "predecessor_event_ref"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "predecessor_event_ref"
+            ]
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "sidecar_context_attach_payload": {
@@ -10288,59 +10398,17 @@
       ],
       "additionalProperties": false
     },
-    "sidecar_access_replace_payload": {
+    "sidecar_create_payload": {
       "type": "object",
-      "description": "Controller-signed full-set Sidecar access replacement. Realm and backing-Circle scope are carried by the Event envelope.",
+      "description": "Create payload uses the Agent Sidecar object schema. It is emitted only by the atomic ak.self.agent.sidecar.command.ensure aggregate after the reducer/service derives and creates backing_circle_id; raw ensure callers never construct or submit this Event directly. The reducer MUST enforce one non-tombstoned Sidecar per (realm_id, controller_id), controller equality with the authenticated principal, exact same-batch backing Circle binding, and effective_scope=circle with circle_id equal to backing_circle_id.",
       "required": [
-        "sidecar_id",
-        "selected_agent_ids",
-        "version"
+        "object"
       ],
       "properties": {
-        "sidecar_id": {
-          "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
-        },
-        "selected_agent_ids": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/did"
-          },
-          "uniqueItems": true
-        },
-        "version": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "predecessor_event_ref": {
-          "$ref": "#/$defs/event_ref"
+        "object": {
+          "$ref": "./agent-sidecar.schema.json"
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "version": {
-                "const": 1
-              }
-            },
-            "required": [
-              "version"
-            ]
-          },
-          "then": {
-            "not": {
-              "required": [
-                "predecessor_event_ref"
-              ]
-            }
-          },
-          "else": {
-            "required": [
-              "predecessor_event_ref"
-            ]
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "sidecar_mls_binding": {

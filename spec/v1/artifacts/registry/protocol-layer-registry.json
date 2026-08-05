@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-03",
+  "version": "2026-08-05.1",
   "source_of_truth": true,
   "description": "Exhaustive ownership of every active Arkret v1 Event.kind by Kernel, Collaboration Base, or Extension. Each kind appears exactly once. Layer ownership constrains conformance packaging and dependency direction; it does not change the Event Envelope wire shape.",
   "layer_rules": {
@@ -143,6 +143,7 @@
       "ak.cross_signing.reset",
       "ak.device.push_route",
       "ak.direct_conversation.bound",
+      "ak.direct_conversation.mls_generation.activate",
       "ak.handle.discovery",
       "ak.identity.accountability_grant",
       "ak.identity.disclosure_policy",

@@ -86,15 +86,9 @@
             "ak:event:0196419b-0000-7000-8000-000000000308"
           ]
         },
-        "member_event_refs": [
-          "ak:event:0196419b-0000-7000-8000-000000000302",
-          "ak:event:0196419b-0000-7000-8000-000000000303"
-        ],
-        "main_strand_create_ref": "ak:event:0196419b-0000-7000-8000-000000000304",
-        "mls_genesis_event_ref": "ak:event:0196419b-0000-7000-8000-000000000305",
-        "mls_commit_event_ref": "ak:event:0196419b-0000-7000-8000-000000000306",
-        "mls_welcome_event_ref": "ak:event:0196419b-0000-7000-8000-000000000307",
-        "created_at": "2026-08-02T00:00:00.000Z"
+        "created_at": "2026-08-02T00:00:00.000Z",
+        "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "initial_exact_pair_generation_ref": "ak:event:0196419b-0000-7000-8000-00000000030a"
       }
     },
     {
@@ -119,18 +113,10 @@
             "ak:event:0196419b-0000-7000-8000-000000000308"
           ]
         },
-        "member_event_refs": [
-          "ak:event:0196419b-0000-7000-8000-000000000302",
-          "ak:event:0196419b-0000-7000-8000-000000000303"
-        ],
-        "main_strand_create_ref": "ak:event:0196419b-0000-7000-8000-000000000304",
-        "mls_genesis_event_ref": "ak:event:0196419b-0000-7000-8000-000000000305",
-        "mls_commit_event_ref": "ak:event:0196419b-0000-7000-8000-000000000306",
-        "mls_welcome_event_ref": "ak:event:0196419b-0000-7000-8000-000000000307",
         "created_at": "2026-08-02T00:00:00.000Z",
-        "binding_state": "retired",
-        "mls_group_id": "legacy-group",
-        "predecessor_binding_ref": "ak:event:0196419b-0000-7000-8000-000000000399"
+        "binding_state": "active",
+        "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "initial_exact_pair_generation_ref": "ak:event:0196419b-0000-7000-8000-00000000030a"
       }
     },
     {
