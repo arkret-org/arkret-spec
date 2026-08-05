@@ -130,7 +130,7 @@
       "additionalProperties": false
     },
     "ingress_receipt": {
-      "$ref": "./operation-control.schema.json#/$defs/causal_ingress_receipt"
+      "$ref": "./principal-operations.schema.json#/$defs/causal_ingress_receipt"
     },
     "hash": {
       "type": "string",

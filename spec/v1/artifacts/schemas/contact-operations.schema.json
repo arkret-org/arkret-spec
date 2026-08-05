@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/contact-operations.schema.json",
   "title": "Arkret Contact and Direct Conversation Operation DTOs",
-  "description": "Closed request/response DTOs for contact lifecycle operations and direct conversation resolver.",
+  "description": "Closed request/response DTO bundle for the Contact lifecycle: request, respond, reject, scope replacement, tombstone, the portable basis evidence bundle, acceptance receipts and the peer Contact carrier, plus the contact-list projection.",
   "anyOf": [
     {
       "$ref": "#/$defs/contact_request_request_body"
@@ -38,76 +38,112 @@
       "$ref": "#/$defs/contact_scope_update_outcome"
     },
     {
-      "$ref": "./operation-control.schema.json#/$defs/direct_conversation_resolve_request"
+      "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request"
     },
     {
-      "$ref": "./operation-control.schema.json#/$defs/direct_conversation_resolve_outcome"
+      "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome"
     }
   ],
   "$defs": {
-    "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
-    },
     "blob_ref": {
       "type": "string",
       "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
     },
-    "event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "strand_id": {
-      "type": "string",
-      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "cursor": {
-      "type": "string",
-      "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
-    },
-    "timestamp": {
-      "$ref": "./time.schema.json#/$defs/timestamp"
-    },
-    "non_empty_string": {
-      "type": "string",
-      "minLength": 1
-    },
-    "contact_state": {
-      "type": "string",
-      "enum": [
-        "pending_outgoing",
-        "pending_incoming",
-        "accepted",
-        "rejected",
-        "expired",
-        "tombstoned"
+    "contact_accept_request": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "phase",
+            "operation_id",
+            "idempotency_key",
+            "request_receipt",
+            "action",
+            "granted_to_peer_scopes"
+          ],
+          "properties": {
+            "phase": {
+              "const": "prepare"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "request_receipt": {
+              "$ref": "#/$defs/request_acceptance_receipt"
+            },
+            "action": {
+              "const": "accept"
+            },
+            "granted_to_peer_scopes": {
+              "$ref": "#/$defs/contact_scopes"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "phase",
+            "operation_id",
+            "idempotency_key",
+            "reservation_handle",
+            "signed_event"
+          ],
+          "properties": {
+            "phase": {
+              "const": "commit"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "reservation_handle": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.accepted"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
       ]
     },
-    "direct_conversation_summary": {
+    "contact_address": {
       "type": "object",
-      "description": "Contact-list projection of an already materialized stable Direct Conversation. Coordinates and binding identity are immutable; state only says whether the same conversation is currently sendable. Creation progress is exposed only by direct_conversation_resolve_outcome and its durable operation.",
       "required": [
-        "realm_id",
-        "main_strand_id",
-        "binding_event_ref",
-        "state"
+        "subject_id",
+        "recipient_service_id"
       ],
       "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        "subject_id": {
+          "$ref": "#/$defs/did",
+          "description": "Principal DID whose private Contact projection receives this fact."
         },
-        "main_strand_id": {
-          "$ref": "#/$defs/strand_id"
+        "recipient_service_id": {
+          "$ref": "#/$defs/did",
+          "description": "Principal Server service DID that hosts subject_id and accepts this delivery."
         },
-        "binding_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "state": {
-          "type": "string",
-          "enum": [
-            "found",
-            "suspended"
-          ]
+        "recipient_service_kind": {
+          "const": "principal_server"
         }
       },
       "additionalProperties": false
@@ -141,77 +177,402 @@
       },
       "additionalProperties": false
     },
-    "contact_list_row": {
+    "contact_basis": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "sorted_pair_members",
+            "request_event_ref",
+            "request_acceptance_receipt_digest"
+          ],
+          "properties": {
+            "kind": {
+              "const": "normal"
+            },
+            "sorted_pair_members": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/did"
+              },
+              "minItems": 2,
+              "maxItems": 2,
+              "uniqueItems": true
+            },
+            "request_event_ref": {
+              "$ref": "#/$defs/event_id"
+            },
+            "request_acceptance_receipt_digest": {
+              "$ref": "./principal-operations.schema.json#/$defs/hash"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "sorted_pair_members",
+            "requests"
+          ],
+          "properties": {
+            "kind": {
+              "const": "glare"
+            },
+            "sorted_pair_members": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/did"
+              },
+              "minItems": 2,
+              "maxItems": 2,
+              "uniqueItems": true
+            },
+            "requests": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "request_event_ref",
+                  "request_acceptance_receipt_digest"
+                ],
+                "properties": {
+                  "request_event_ref": {
+                    "$ref": "#/$defs/event_id"
+                  },
+                  "request_acceptance_receipt_digest": {
+                    "$ref": "./principal-operations.schema.json#/$defs/hash"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 2,
+              "maxItems": 2,
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contact_basis_evidence_bundle": {
       "type": "object",
       "required": [
-        "peer",
-        "state",
-        "granted_to_peer_scopes",
-        "granted_by_peer_scopes",
-        "bidirectional_scopes"
+        "basis_id",
+        "basis",
+        "request_receipts",
+        "current_proofs"
       ],
       "properties": {
-        "peer": {
-          "$ref": "./operation-control.schema.json#/$defs/contact_peer"
+        "basis_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
         },
-        "state": {
-          "$ref": "#/$defs/contact_state"
+        "basis": {
+          "$ref": "#/$defs/contact_basis"
         },
-        "request_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "response_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "tombstone_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "granted_to_peer_scopes": {
-          "$ref": "./operation-control.schema.json#/$defs/contact_scopes"
-        },
-        "granted_by_peer_scopes": {
-          "$ref": "./operation-control.schema.json#/$defs/contact_scopes"
-        },
-        "bidirectional_scopes": {
-          "$ref": "./operation-control.schema.json#/$defs/contact_scopes"
-        },
-        "effective_scopes": {
-          "$ref": "./operation-control.schema.json#/$defs/contact_scopes",
-          "description": "Optional shorthand. When present, MUST equal bidirectional_scopes."
-        },
-        "peer_service_id": {
-          "$ref": "#/$defs/did",
-          "description": "Optional. Principal Server service DID hosting the peer, when known (e.g. learned from a cross-Principal-Server contact delivery). Lets the holder address responses/invites to the peer's home server. Omitted for same-Principal-Server contacts."
-        },
-        "direct_conversation": {
-          "$ref": "#/$defs/direct_conversation_summary"
-        },
-        "agents": {
+        "request_receipts": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/contact_agent_projection"
+            "$ref": "#/$defs/request_acceptance_receipt"
+          },
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "normal_response_receipt": {
+          "$ref": "#/$defs/normal_response_acceptance_receipt"
+        },
+        "glare_concurrency_attestations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/glare_concurrency_attestation"
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "current_proofs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contact_current_proof"
+          },
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "basis": {
+                "properties": {
+                  "kind": {
+                    "const": "glare"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "basis"
+            ]
+          },
+          "then": {
+            "required": [
+              "glare_concurrency_attestations"
+            ],
+            "properties": {
+              "request_receipts": {
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "current_proofs": {
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "not": {
+              "required": [
+                "normal_response_receipt"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "normal_response_receipt"
+            ],
+            "properties": {
+              "request_receipts": {
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "current_proofs": {
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "not": {
+              "required": [
+                "glare_concurrency_attestations"
+              ]
+            }
           }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "contact_current_proof": {
+      "type": "object",
+      "required": [
+        "basis_id",
+        "issuer",
+        "head_event_ref",
+        "head_digest",
+        "accepted_frontier",
+        "complete_through",
+        "fresh_until",
+        "signature"
+      ],
+      "properties": {
+        "basis_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "issuer": {
+          "$ref": "#/$defs/did"
+        },
+        "head_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "head_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "accepted_frontier": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "complete_through": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "fresh_until": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "signature": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
         }
       },
       "additionalProperties": false
     },
-    "contact_request_request_body": {
-      "$ref": "./operation-control.schema.json#/$defs/contact_operation_request"
+    "contact_introduction_evidence": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "principal_locator"
+          ],
+          "properties": {
+            "kind": {
+              "const": "locator_ref"
+            },
+            "principal_locator": {
+              "$ref": "./principal-locator.schema.json"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id",
+            "requester_member_ref",
+            "target_member_ref"
+          ],
+          "properties": {
+            "kind": {
+              "const": "shared_realm"
+            },
+            "realm_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/realm_id"
+            },
+            "requester_member_ref": {
+              "$ref": "#/$defs/event_id"
+            },
+            "target_member_ref": {
+              "$ref": "#/$defs/event_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "handle",
+            "handle_claim"
+          ],
+          "properties": {
+            "kind": {
+              "const": "handle_claim"
+            },
+            "handle": {
+              "$ref": "./string-profiles.schema.json#/$defs/canonical_handle"
+            },
+            "handle_claim": {
+              "$ref": "./handle-claim.schema.json"
+            },
+            "resolved_by": {
+              "$ref": "#/$defs/did"
+            },
+            "resolved_at": {
+              "$ref": "#/$defs/timestamp"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "same_principal_server"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "explicit_address"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
-    "contact_request_outcome": {
-      "$ref": "./operation-control.schema.json#/$defs/contact_request_outcome"
-    },
-    "contact_respond_request_body": {
-      "$ref": "./operation-control.schema.json#/$defs/contact_respond_request"
-    },
-    "contact_respond_outcome": {
-      "$ref": "./operation-control.schema.json#/$defs/contact_respond_outcome"
-    },
-    "contact_reject_request_body": {
-      "$ref": "./operation-control.schema.json#/$defs/contact_reject_request"
-    },
-    "contact_reject_outcome": {
-      "$ref": "./operation-control.schema.json#/$defs/contact_reject_outcome"
+    "contact_lineage": {
+      "type": "object",
+      "required": [
+        "basis_id",
+        "issuer",
+        "peer",
+        "version",
+        "event_ref",
+        "granted_to_peer_scopes",
+        "signature"
+      ],
+      "properties": {
+        "basis_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "issuer": {
+          "$ref": "#/$defs/contact_peer"
+        },
+        "peer": {
+          "$ref": "#/$defs/contact_peer"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "predecessor_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "granted_to_peer_scopes": {
+          "$ref": "#/$defs/contact_scopes"
+        },
+        "terminal": {
+          "type": "boolean"
+        },
+        "signature": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "version": {
+                "const": 1
+              }
+            },
+            "required": [
+              "version"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "predecessor_event_ref"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "predecessor_event_ref"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
     },
     "contact_list": {
       "type": "object",
@@ -235,20 +596,2232 @@
       },
       "additionalProperties": false
     },
-    "contact_tombstone_request_body": {
-      "$ref": "./operation-control.schema.json#/$defs/contact_tombstone_request"
+    "contact_list_row": {
+      "type": "object",
+      "required": [
+        "peer",
+        "state",
+        "granted_to_peer_scopes",
+        "granted_by_peer_scopes",
+        "bidirectional_scopes"
+      ],
+      "properties": {
+        "peer": {
+          "$ref": "#/$defs/contact_peer"
+        },
+        "state": {
+          "$ref": "#/$defs/contact_state"
+        },
+        "request_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "response_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "tombstone_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "granted_to_peer_scopes": {
+          "$ref": "#/$defs/contact_scopes"
+        },
+        "granted_by_peer_scopes": {
+          "$ref": "#/$defs/contact_scopes"
+        },
+        "bidirectional_scopes": {
+          "$ref": "#/$defs/contact_scopes"
+        },
+        "effective_scopes": {
+          "$ref": "#/$defs/contact_scopes",
+          "description": "Optional shorthand. When present, MUST equal bidirectional_scopes."
+        },
+        "peer_service_id": {
+          "$ref": "#/$defs/did",
+          "description": "Optional. Principal Server service DID hosting the peer, when known (e.g. learned from a cross-Principal-Server contact delivery). Lets the holder address responses/invites to the peer's home server. Omitted for same-Principal-Server contacts."
+        },
+        "direct_conversation": {
+          "$ref": "#/$defs/direct_conversation_summary"
+        },
+        "agents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contact_agent_projection"
+          }
+        }
+      },
+      "additionalProperties": false
     },
-    "contact_tombstone": {
-      "$ref": "./operation-control.schema.json#/$defs/contact_tombstone_outcome"
+    "contact_operation_outcome": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "result_kind",
+            "operation_id",
+            "reservation_handle",
+            "expires_at",
+            "event_draft"
+          ],
+          "properties": {
+            "status": {
+              "const": "prepared"
+            },
+            "result_kind": {
+              "const": "request"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "reservation_handle": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "expires_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "event_draft": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/contact_prepared_event_draft"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.requested"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "result_kind",
+            "operation_id",
+            "reservation_handle",
+            "expires_at",
+            "event_draft"
+          ],
+          "properties": {
+            "status": {
+              "const": "prepared"
+            },
+            "result_kind": {
+              "const": "response"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "reservation_handle": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "expires_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "event_draft": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/contact_prepared_event_draft"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.accepted"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "result_kind",
+            "operation_id",
+            "reservation_handle",
+            "expires_at",
+            "event_draft"
+          ],
+          "properties": {
+            "status": {
+              "const": "prepared"
+            },
+            "result_kind": {
+              "const": "reject"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "reservation_handle": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "expires_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "event_draft": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/contact_prepared_event_draft"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.rejected"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "result_kind",
+            "operation_id",
+            "reservation_handle",
+            "expires_at",
+            "event_draft"
+          ],
+          "properties": {
+            "status": {
+              "const": "prepared"
+            },
+            "result_kind": {
+              "const": "scope_update"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "reservation_handle": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "expires_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "event_draft": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/contact_prepared_event_draft"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.scope.update"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "result_kind",
+            "operation_id",
+            "reservation_handle",
+            "expires_at",
+            "event_draft"
+          ],
+          "properties": {
+            "status": {
+              "const": "prepared"
+            },
+            "result_kind": {
+              "const": "tombstone"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "reservation_handle": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "expires_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "event_draft": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/contact_prepared_event_draft"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.tombstoned"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "result_kind",
+            "operation_id",
+            "request_acceptance_receipt"
+          ],
+          "properties": {
+            "status": {
+              "const": "accepted"
+            },
+            "result_kind": {
+              "const": "request"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "request_acceptance_receipt": {
+              "$ref": "#/$defs/request_acceptance_receipt"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "result_kind",
+            "operation_id",
+            "normal_response_acceptance_receipt",
+            "lineage",
+            "current_proof"
+          ],
+          "properties": {
+            "status": {
+              "const": "accepted"
+            },
+            "result_kind": {
+              "const": "response"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "normal_response_acceptance_receipt": {
+              "$ref": "#/$defs/normal_response_acceptance_receipt"
+            },
+            "lineage": {
+              "$ref": "#/$defs/contact_lineage"
+            },
+            "current_proof": {
+              "$ref": "#/$defs/contact_current_proof"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "result_kind",
+            "operation_id",
+            "reject_acceptance_receipt"
+          ],
+          "properties": {
+            "status": {
+              "const": "accepted"
+            },
+            "result_kind": {
+              "const": "reject"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "reject_acceptance_receipt": {
+              "$ref": "#/$defs/reject_acceptance_receipt"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "result_kind",
+            "operation_id",
+            "lineage",
+            "current_proof"
+          ],
+          "properties": {
+            "status": {
+              "const": "accepted"
+            },
+            "result_kind": {
+              "const": "scope_update"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "lineage": {
+              "$ref": "#/$defs/contact_lineage"
+            },
+            "current_proof": {
+              "$ref": "#/$defs/contact_current_proof"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "result_kind",
+            "operation_id",
+            "lineage",
+            "current_proof"
+          ],
+          "properties": {
+            "status": {
+              "const": "accepted"
+            },
+            "result_kind": {
+              "const": "tombstone"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "lineage": {
+              "$ref": "#/$defs/contact_lineage"
+            },
+            "current_proof": {
+              "$ref": "#/$defs/contact_current_proof"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "result_kind",
+            "operation_id",
+            "reason"
+          ],
+          "properties": {
+            "status": {
+              "const": "failed"
+            },
+            "result_kind": {
+              "enum": [
+                "request",
+                "response",
+                "reject",
+                "scope_update",
+                "tombstone"
+              ]
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "reason": {
+              "type": "string",
+              "enum": [
+                "contact_idempotency_conflict",
+                "contact_basis_conflict",
+                "contact_lineage_conflict",
+                "contact_terminal",
+                "contact_scope_stale"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
-    "contact_scope_update_request_body": {
-      "$ref": "./operation-control.schema.json#/$defs/contact_scope_update_request"
+    "contact_operation_request": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "phase",
+            "operation_id",
+            "idempotency_key",
+            "peer",
+            "granted_to_peer_scopes",
+            "introduction_evidence"
+          ],
+          "properties": {
+            "phase": {
+              "const": "prepare"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "peer": {
+              "$ref": "#/$defs/contact_peer"
+            },
+            "granted_to_peer_scopes": {
+              "$ref": "#/$defs/contact_scopes"
+            },
+            "introduction_evidence": {
+              "$ref": "#/$defs/contact_introduction_evidence"
+            },
+            "message": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "phase",
+            "operation_id",
+            "idempotency_key",
+            "reservation_handle",
+            "signed_event"
+          ],
+          "properties": {
+            "phase": {
+              "const": "commit"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "reservation_handle": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.requested"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contact_peer": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "principal_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "human"
+            },
+            "principal_id": {
+              "$ref": "#/$defs/did"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "agent_id",
+            "controller_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "agent"
+            },
+            "agent_id": {
+              "$ref": "#/$defs/did"
+            },
+            "controller_id": {
+              "$ref": "#/$defs/did"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contact_prepared_event_draft": {
+      "type": "object",
+      "required": [
+        "event_id",
+        "kind",
+        "unsigned_event_bytes",
+        "event_digest"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "kind": {
+          "enum": [
+            "ak.contact.requested",
+            "ak.contact.accepted",
+            "ak.contact.rejected",
+            "ak.contact.scope.update",
+            "ak.contact.tombstoned"
+          ]
+        },
+        "unsigned_event_bytes": {
+          "$ref": "./principal-operations.schema.json#/$defs/base64url"
+        },
+        "event_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Service-fixed canonical Event bytes without the holder proof. The client may only append the proof; after removing that proof the commit Event must equal these bytes, ID and digest exactly."
+    },
+    "contact_reject_outcome": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/contact_operation_outcome"
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "reject"
+            }
+          }
+        }
+      ]
+    },
+    "contact_reject_request": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "phase",
+            "operation_id",
+            "idempotency_key",
+            "request_receipt",
+            "action"
+          ],
+          "properties": {
+            "phase": {
+              "const": "prepare"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "request_receipt": {
+              "$ref": "#/$defs/request_acceptance_receipt"
+            },
+            "action": {
+              "const": "reject"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "phase",
+            "operation_id",
+            "idempotency_key",
+            "reservation_handle",
+            "signed_event"
+          ],
+          "properties": {
+            "phase": {
+              "const": "commit"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "reservation_handle": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.rejected"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contact_reject_request_body": {
+      "$ref": "#/$defs/contact_reject_request"
+    },
+    "contact_request_outcome": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/contact_operation_outcome"
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "request"
+            }
+          }
+        }
+      ]
+    },
+    "contact_request_request_body": {
+      "$ref": "#/$defs/contact_operation_request"
+    },
+    "contact_respond_outcome": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/contact_operation_outcome"
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "response"
+            }
+          }
+        }
+      ]
+    },
+    "contact_respond_request": {
+      "$ref": "#/$defs/contact_accept_request"
+    },
+    "contact_respond_request_body": {
+      "$ref": "#/$defs/contact_respond_request"
+    },
+    "contact_scope": {
+      "type": "string",
+      "enum": [
+        "invite",
+        "direct_message",
+        "voice_call",
+        "video_call",
+        "presence"
+      ]
     },
     "contact_scope_update_outcome": {
-      "$ref": "./operation-control.schema.json#/$defs/contact_scope_update_outcome"
+      "allOf": [
+        {
+          "$ref": "#/$defs/contact_operation_outcome"
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "scope_update"
+            }
+          }
+        }
+      ]
+    },
+    "contact_scope_update_payload": {
+      "type": "object",
+      "required": [
+        "schema",
+        "peer",
+        "basis_id",
+        "version",
+        "predecessor_event_ref",
+        "granted_to_peer_scopes"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.contact_scope_update.v1"
+        },
+        "peer": {
+          "$ref": "#/$defs/contact_peer"
+        },
+        "basis_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "predecessor_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "granted_to_peer_scopes": {
+          "$ref": "#/$defs/contact_scopes"
+        }
+      },
+      "additionalProperties": false
+    },
+    "contact_scope_update_request": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "phase",
+            "operation_id",
+            "idempotency_key",
+            "peer",
+            "basis_id",
+            "version",
+            "predecessor_event_ref",
+            "granted_to_peer_scopes"
+          ],
+          "properties": {
+            "phase": {
+              "const": "prepare"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "peer": {
+              "$ref": "#/$defs/contact_peer"
+            },
+            "basis_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/hash"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 2
+            },
+            "predecessor_event_ref": {
+              "$ref": "#/$defs/event_id"
+            },
+            "granted_to_peer_scopes": {
+              "$ref": "#/$defs/contact_scopes"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "phase",
+            "operation_id",
+            "idempotency_key",
+            "reservation_handle",
+            "signed_event"
+          ],
+          "properties": {
+            "phase": {
+              "const": "commit"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "reservation_handle": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.scope.update"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contact_scope_update_request_body": {
+      "$ref": "#/$defs/contact_scope_update_request"
+    },
+    "contact_scopes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/contact_scope"
+      },
+      "uniqueItems": true
+    },
+    "contact_state": {
+      "type": "string",
+      "enum": [
+        "pending_outgoing",
+        "pending_incoming",
+        "accepted",
+        "rejected",
+        "expired",
+        "tombstoned"
+      ]
+    },
+    "contact_tombstone": {
+      "$ref": "#/$defs/contact_tombstone_outcome"
+    },
+    "contact_tombstone_outcome": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/contact_operation_outcome"
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "tombstone"
+            }
+          }
+        }
+      ]
+    },
+    "contact_tombstone_request": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "phase",
+            "operation_id",
+            "idempotency_key",
+            "peer",
+            "basis_id",
+            "version",
+            "predecessor_event_ref"
+          ],
+          "properties": {
+            "phase": {
+              "const": "prepare"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "peer": {
+              "$ref": "#/$defs/contact_peer"
+            },
+            "basis_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/hash"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 2
+            },
+            "predecessor_event_ref": {
+              "$ref": "#/$defs/event_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "phase",
+            "operation_id",
+            "idempotency_key",
+            "reservation_handle",
+            "signed_event"
+          ],
+          "properties": {
+            "phase": {
+              "const": "commit"
+            },
+            "operation_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "reservation_handle": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.tombstoned"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "contact_tombstone_request_body": {
+      "$ref": "#/$defs/contact_tombstone_request"
+    },
+    "cursor": {
+      "type": "string",
+      "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
+    },
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "direct_conversation_resolve_request_body": {
-      "$ref": "./operation-control.schema.json#/$defs/direct_conversation_resolve_request"
+      "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request"
+    },
+    "direct_conversation_summary": {
+      "type": "object",
+      "description": "Contact-list projection of an already materialized stable Direct Conversation. Coordinates and binding identity are immutable; state only says whether the same conversation is currently sendable. Creation progress is exposed only by direct_conversation_resolve_outcome and its durable operation.",
+      "required": [
+        "realm_id",
+        "main_strand_id",
+        "binding_event_ref",
+        "state"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "main_strand_id": {
+          "$ref": "#/$defs/strand_id"
+        },
+        "binding_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "found",
+            "suspended"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "glare_concurrency_attestation": {
+      "type": "object",
+      "required": [
+        "issuer",
+        "peer",
+        "request_receipt_digests",
+        "observed_frontier",
+        "complete_through",
+        "unconsumed_slot_checkpoint",
+        "observed_at",
+        "signature"
+      ],
+      "properties": {
+        "issuer": {
+          "$ref": "#/$defs/did"
+        },
+        "peer": {
+          "$ref": "#/$defs/did"
+        },
+        "request_receipt_digests": {
+          "type": "array",
+          "items": {
+            "$ref": "./principal-operations.schema.json#/$defs/hash"
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "observed_frontier": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "complete_through": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "unconsumed_slot_checkpoint": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "signature": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Source-signed evidence that the issuer had accepted both directional request receipts while neither request slot had yet been consumed by a normal response or rejection. Exactly one attestation from each pair member is required by the glare evidence bundle."
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "normal_response_acceptance_receipt": {
+      "type": "object",
+      "required": [
+        "basis_id",
+        "request_receipt",
+        "response_event_ref",
+        "response_digest",
+        "no_outgoing_slot_proof",
+        "accepted_at",
+        "issuer",
+        "signature"
+      ],
+      "properties": {
+        "basis_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "request_receipt": {
+          "$ref": "#/$defs/request_acceptance_receipt"
+        },
+        "response_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "response_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "no_outgoing_slot_proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "issuer": {
+          "$ref": "#/$defs/did"
+        },
+        "signature": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "peer_contact_authoritative_mirror_receipt": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/peer_contact_mirror_receipt"
+        },
+        {
+          "properties": {
+            "disposition": {
+              "type": "string",
+              "enum": [
+                "accepted",
+                "duplicate"
+              ]
+            }
+          },
+          "required": [
+            "disposition"
+          ]
+        }
+      ],
+      "description": "Only an accepted or duplicate mirror receipt proves that the immutable signed Contact fact is durably mirrored. A deferred receipt is never authority for proof refresh or glare finalization."
+    },
+    "peer_contact_control_receipt": {
+      "type": "object",
+      "required": [
+        "domain",
+        "request_kind",
+        "request_digest",
+        "disposition",
+        "recipient_service_id",
+        "received_at",
+        "issuer",
+        "signature"
+      ],
+      "properties": {
+        "domain": {
+          "const": "ak.peer-contact.control-receipt.v1"
+        },
+        "request_kind": {
+          "type": "string",
+          "enum": [
+            "proof_refresh",
+            "glare_finalize"
+          ]
+        },
+        "request_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "disposition": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "duplicate",
+            "deferred"
+          ]
+        },
+        "result_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash",
+          "description": "H('ak.peer-contact.control-result.v1',{request_digest,result_kind,glare_concurrency_attestation?,current_proof?}) over the exact closed successful result."
+        },
+        "recipient_service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "received_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "issuer": {
+          "$ref": "#/$defs/did"
+        },
+        "signature": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "disposition": {
+                "enum": [
+                  "accepted",
+                  "duplicate"
+                ]
+              }
+            },
+            "required": [
+              "disposition"
+            ]
+          },
+          "then": {
+            "required": [
+              "result_digest"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "result_digest"
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": false,
+      "description": "The recipient signs every field except signature. This receipt is only for proof_refresh or glare_finalize and cannot stand in for a signed Event mirror receipt."
+    },
+    "peer_contact_event_submit_outcome": {
+      "type": "object",
+      "required": [
+        "result_kind",
+        "status",
+        "mirror_receipt"
+      ],
+      "properties": {
+        "result_kind": {
+          "type": "string",
+          "enum": [
+            "request",
+            "response",
+            "reject",
+            "scope_update",
+            "tombstone"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "duplicate",
+            "deferred"
+          ]
+        },
+        "mirror_receipt": {
+          "$ref": "#/$defs/peer_contact_mirror_receipt"
+        },
+        "current_proof": {
+          "$ref": "#/$defs/contact_current_proof"
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "accepted"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "mirror_receipt": {
+                "properties": {
+                  "disposition": {
+                    "const": "accepted"
+                  }
+                },
+                "required": [
+                  "disposition"
+                ]
+              }
+            },
+            "not": {
+              "required": [
+                "retry_after_ms"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "duplicate"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "mirror_receipt": {
+                "properties": {
+                  "disposition": {
+                    "const": "duplicate"
+                  }
+                },
+                "required": [
+                  "disposition"
+                ]
+              }
+            },
+            "not": {
+              "required": [
+                "retry_after_ms"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "deferred"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "mirror_receipt": {
+                "properties": {
+                  "disposition": {
+                    "const": "deferred"
+                  }
+                },
+                "required": [
+                  "disposition"
+                ]
+              }
+            },
+            "not": {
+              "required": [
+                "current_proof"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "result_kind": {
+                "const": "reject"
+              }
+            },
+            "required": [
+              "result_kind"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "current_proof"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "result_kind": {
+                "enum": [
+                  "scope_update",
+                  "tombstone"
+                ]
+              },
+              "status": {
+                "enum": [
+                  "accepted",
+                  "duplicate"
+                ]
+              }
+            },
+            "required": [
+              "result_kind",
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "current_proof"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false,
+      "description": "Only the five signed Contact Event request kinds use this branch. The receipt event coordinates and result_kind must match the submitted Event exactly. Request/response may return a current proof; accepted or duplicate scope/tombstone must return one; reject and deferred never do."
+    },
+    "peer_contact_mirror_receipt": {
+      "type": "object",
+      "required": [
+        "domain",
+        "request_digest",
+        "signed_event_ref",
+        "signed_event_digest",
+        "disposition",
+        "recipient_service_id",
+        "received_at",
+        "issuer",
+        "signature"
+      ],
+      "properties": {
+        "domain": {
+          "const": "ak.peer-contact.mirror-receipt.v1"
+        },
+        "request_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "signed_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "signed_event_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "disposition": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "duplicate",
+            "deferred"
+          ]
+        },
+        "recipient_service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "received_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "issuer": {
+          "$ref": "#/$defs/did"
+        },
+        "signature": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "peer_contact_submit_outcome": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/peer_contact_event_submit_outcome"
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind",
+            "status",
+            "control_receipt",
+            "current_proof"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "proof_refresh"
+            },
+            "status": {
+              "const": "accepted"
+            },
+            "control_receipt": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/peer_contact_control_receipt"
+                },
+                {
+                  "properties": {
+                    "request_kind": {
+                      "const": "proof_refresh"
+                    },
+                    "disposition": {
+                      "const": "accepted"
+                    }
+                  },
+                  "required": [
+                    "request_kind",
+                    "disposition"
+                  ]
+                }
+              ]
+            },
+            "current_proof": {
+              "$ref": "#/$defs/contact_current_proof"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind",
+            "status",
+            "control_receipt",
+            "current_proof"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "proof_refresh"
+            },
+            "status": {
+              "const": "duplicate"
+            },
+            "control_receipt": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/peer_contact_control_receipt"
+                },
+                {
+                  "properties": {
+                    "request_kind": {
+                      "const": "proof_refresh"
+                    },
+                    "disposition": {
+                      "const": "duplicate"
+                    }
+                  },
+                  "required": [
+                    "request_kind",
+                    "disposition"
+                  ]
+                }
+              ]
+            },
+            "current_proof": {
+              "$ref": "#/$defs/contact_current_proof"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind",
+            "status",
+            "control_receipt",
+            "glare_concurrency_attestation"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "glare_finalize"
+            },
+            "status": {
+              "const": "accepted"
+            },
+            "control_receipt": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/peer_contact_control_receipt"
+                },
+                {
+                  "properties": {
+                    "request_kind": {
+                      "const": "glare_finalize"
+                    },
+                    "disposition": {
+                      "const": "accepted"
+                    }
+                  },
+                  "required": [
+                    "request_kind",
+                    "disposition"
+                  ]
+                }
+              ]
+            },
+            "glare_concurrency_attestation": {
+              "$ref": "#/$defs/glare_concurrency_attestation"
+            },
+            "current_proof": {
+              "$ref": "#/$defs/contact_current_proof"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind",
+            "status",
+            "control_receipt",
+            "glare_concurrency_attestation"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "glare_finalize"
+            },
+            "status": {
+              "const": "duplicate"
+            },
+            "control_receipt": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/peer_contact_control_receipt"
+                },
+                {
+                  "properties": {
+                    "request_kind": {
+                      "const": "glare_finalize"
+                    },
+                    "disposition": {
+                      "const": "duplicate"
+                    }
+                  },
+                  "required": [
+                    "request_kind",
+                    "disposition"
+                  ]
+                }
+              ]
+            },
+            "glare_concurrency_attestation": {
+              "$ref": "#/$defs/glare_concurrency_attestation"
+            },
+            "current_proof": {
+              "$ref": "#/$defs/contact_current_proof"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind",
+            "status",
+            "request_kind",
+            "control_receipt"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "control_deferred"
+            },
+            "status": {
+              "const": "deferred"
+            },
+            "request_kind": {
+              "const": "proof_refresh"
+            },
+            "control_receipt": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/peer_contact_control_receipt"
+                },
+                {
+                  "properties": {
+                    "request_kind": {
+                      "const": "proof_refresh"
+                    },
+                    "disposition": {
+                      "const": "deferred"
+                    }
+                  },
+                  "required": [
+                    "request_kind",
+                    "disposition"
+                  ]
+                }
+              ]
+            },
+            "retry_after_ms": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind",
+            "status",
+            "request_kind",
+            "control_receipt"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "control_deferred"
+            },
+            "status": {
+              "const": "deferred"
+            },
+            "request_kind": {
+              "const": "glare_finalize"
+            },
+            "control_receipt": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/peer_contact_control_receipt"
+                },
+                {
+                  "properties": {
+                    "request_kind": {
+                      "const": "glare_finalize"
+                    },
+                    "disposition": {
+                      "const": "deferred"
+                    }
+                  },
+                  "required": [
+                    "request_kind",
+                    "disposition"
+                  ]
+                }
+              ]
+            },
+            "retry_after_ms": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "peer_contact_submit_request": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "idempotency_key",
+            "signed_event",
+            "request_receipt",
+            "contact_address",
+            "introduction_evidence"
+          ],
+          "properties": {
+            "kind": {
+              "const": "request"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.requested"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            },
+            "request_receipt": {
+              "$ref": "#/$defs/request_acceptance_receipt"
+            },
+            "contact_address": {
+              "$ref": "#/$defs/contact_address"
+            },
+            "introduction_evidence": {
+              "$ref": "#/$defs/contact_introduction_evidence"
+            },
+            "current_proof": {
+              "$ref": "#/$defs/contact_current_proof"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "idempotency_key",
+            "signed_event",
+            "response_receipt",
+            "contact_address"
+          ],
+          "properties": {
+            "kind": {
+              "const": "response"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.accepted"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            },
+            "response_receipt": {
+              "$ref": "#/$defs/normal_response_acceptance_receipt"
+            },
+            "contact_address": {
+              "$ref": "#/$defs/contact_address"
+            },
+            "current_proof": {
+              "$ref": "#/$defs/contact_current_proof"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "idempotency_key",
+            "signed_event",
+            "reject_receipt",
+            "contact_address"
+          ],
+          "properties": {
+            "kind": {
+              "const": "reject"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.rejected"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            },
+            "reject_receipt": {
+              "$ref": "#/$defs/reject_acceptance_receipt"
+            },
+            "contact_address": {
+              "$ref": "#/$defs/contact_address"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "idempotency_key",
+            "signed_event",
+            "lineage",
+            "current_proof",
+            "contact_address"
+          ],
+          "properties": {
+            "kind": {
+              "const": "scope_update"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.scope.update"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            },
+            "lineage": {
+              "$ref": "#/$defs/contact_lineage"
+            },
+            "current_proof": {
+              "$ref": "#/$defs/contact_current_proof"
+            },
+            "contact_address": {
+              "$ref": "#/$defs/contact_address"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "idempotency_key",
+            "signed_event",
+            "lineage",
+            "current_proof",
+            "contact_address"
+          ],
+          "properties": {
+            "kind": {
+              "const": "tombstone"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.tombstoned"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            },
+            "lineage": {
+              "$ref": "#/$defs/contact_lineage"
+            },
+            "current_proof": {
+              "$ref": "#/$defs/contact_current_proof"
+            },
+            "contact_address": {
+              "$ref": "#/$defs/contact_address"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "idempotency_key",
+            "prior_mirror_receipt",
+            "current_proof",
+            "contact_address"
+          ],
+          "properties": {
+            "kind": {
+              "const": "proof_refresh"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "prior_mirror_receipt": {
+              "$ref": "#/$defs/peer_contact_authoritative_mirror_receipt"
+            },
+            "current_proof": {
+              "$ref": "#/$defs/contact_current_proof"
+            },
+            "contact_address": {
+              "$ref": "#/$defs/contact_address"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "idempotency_key",
+            "basis_id",
+            "basis",
+            "request_receipts",
+            "remote_mirror_receipt",
+            "glare_concurrency_attestation",
+            "contact_address"
+          ],
+          "properties": {
+            "kind": {
+              "const": "glare_finalize"
+            },
+            "idempotency_key": {
+              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+            },
+            "basis_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/hash"
+            },
+            "basis": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/contact_basis"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "glare"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            },
+            "request_receipts": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/request_acceptance_receipt"
+              },
+              "minItems": 2,
+              "maxItems": 2,
+              "uniqueItems": true
+            },
+            "remote_mirror_receipt": {
+              "$ref": "#/$defs/peer_contact_authoritative_mirror_receipt"
+            },
+            "glare_concurrency_attestation": {
+              "$ref": "#/$defs/glare_concurrency_attestation"
+            },
+            "contact_address": {
+              "$ref": "#/$defs/contact_address"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "reject_acceptance_receipt": {
+      "type": "object",
+      "required": [
+        "request_receipt",
+        "reject_event_ref",
+        "reject_digest",
+        "accepted_at",
+        "issuer",
+        "signature"
+      ],
+      "properties": {
+        "request_receipt": {
+          "$ref": "#/$defs/request_acceptance_receipt"
+        },
+        "reject_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "reject_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "issuer": {
+          "$ref": "#/$defs/did"
+        },
+        "signature": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "request_acceptance_receipt": {
+      "type": "object",
+      "required": [
+        "core",
+        "receipt_digest",
+        "signature"
+      ],
+      "properties": {
+        "core": {
+          "$ref": "#/$defs/request_acceptance_receipt_core"
+        },
+        "receipt_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "signature": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "request_acceptance_receipt_core": {
+      "type": "object",
+      "required": [
+        "holder",
+        "peer",
+        "slot_version",
+        "request_event_ref",
+        "request_digest",
+        "source_checkpoint",
+        "accepted_at",
+        "issuer"
+      ],
+      "properties": {
+        "holder": {
+          "$ref": "#/$defs/contact_peer"
+        },
+        "peer": {
+          "$ref": "#/$defs/contact_peer"
+        },
+        "slot_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "slot_predecessor": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "request_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "request_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "source_checkpoint": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "issuer": {
+          "$ref": "#/$defs/did"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "slot_version": {
+                "const": 1
+              }
+            },
+            "required": [
+              "slot_version"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "slot_predecessor"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "slot_predecessor"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "strand_id": {
+      "type": "string",
+      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "timestamp": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
     }
   }
 }

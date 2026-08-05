@@ -3224,7 +3224,7 @@
       ],
       "properties": {
         "peer": {
-          "$ref": "./operation-control.schema.json#/$defs/contact_peer"
+          "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "basis_id": {
           "$ref": "#/$defs/hash"
@@ -3239,7 +3239,7 @@
           "$ref": "#/$defs/hash"
         },
         "granted_to_peer_scopes": {
-          "$ref": "./operation-control.schema.json#/$defs/contact_scopes"
+          "$ref": "./contact-operations.schema.json#/$defs/contact_scopes"
         }
       },
       "additionalProperties": false
@@ -3254,7 +3254,7 @@
       ],
       "properties": {
         "peer": {
-          "$ref": "./operation-control.schema.json#/$defs/contact_peer"
+          "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "request_event_ref": {
           "$ref": "#/$defs/event_ref"
@@ -3278,10 +3278,10 @@
       ],
       "properties": {
         "peer": {
-          "$ref": "./operation-control.schema.json#/$defs/contact_peer"
+          "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "granted_to_peer_scopes": {
-          "$ref": "./operation-control.schema.json#/$defs/contact_scopes"
+          "$ref": "./contact-operations.schema.json#/$defs/contact_scopes"
         },
         "introduction_evidence_digest": {
           "$ref": "#/$defs/hash",
@@ -3294,7 +3294,7 @@
       "additionalProperties": false
     },
     "contact_scope_update_payload": {
-      "$ref": "./operation-control.schema.json#/$defs/contact_scope_update_payload"
+      "$ref": "./contact-operations.schema.json#/$defs/contact_scope_update_payload"
     },
     "contact_tombstoned_payload": {
       "type": "object",
@@ -3307,7 +3307,7 @@
       ],
       "properties": {
         "peer": {
-          "$ref": "./operation-control.schema.json#/$defs/contact_peer"
+          "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "basis_id": {
           "$ref": "#/$defs/hash"

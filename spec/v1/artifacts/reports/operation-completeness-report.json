@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-05.2",
+  "version": "2026-08-05.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-05T18:00:00Z",
+  "generated_at": "2026-08-05T19:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -438,8 +438,8 @@
       "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/device-bootstrap/cancel",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/cancel_device_bootstrap_request",
-      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/cancel_device_bootstrap_outcome",
+      "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/cancel_device_bootstrap_request",
+      "response_schema_ref": "schemas/principal-operations.schema.json#/$defs/cancel_device_bootstrap_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/DeviceBootstrapCancelRequestBody",
         "response": "#/components/schemas/DeviceBootstrapCancelOutcome"
@@ -926,11 +926,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/peer/contacts",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_request",
-      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_outcome",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
       "openapi_component_refs": {
-        "request": "../schemas/operation-control.schema.json#/$defs/peer_contact_submit_request",
-        "response": "../schemas/operation-control.schema.json#/$defs/peer_contact_submit_outcome"
+        "request": "../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+        "response": "../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1576,7 +1576,7 @@
       "surface_class": "extension",
       "http": "PUT /_arkret/self/agents/{agent_id}/participation",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/participation_replace_request",
+      "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/participation_replace_request",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentParticipationReplaceRequestBody",
@@ -1616,8 +1616,8 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/agent-sidecars:ensure",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/sidecar_ensure_request",
-      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/sidecar_ensure_outcome",
+      "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_request",
+      "response_schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentSidecarEnsureRequestBody",
         "response": "#/components/schemas/AgentSidecarEnsureOutcome"
@@ -2034,8 +2034,8 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/reject",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_reject_request",
-      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_reject_outcome",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_request",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/ContactRejectRequestBody",
         "response": "#/components/schemas/ContactRejectOutcome"
@@ -2048,8 +2048,8 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/request",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_operation_request",
-      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_request_outcome",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/ContactRequestRequestBody",
         "response": "#/components/schemas/ContactRequestOutcome"
@@ -2062,8 +2062,8 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/respond",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_respond_request",
-      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_respond_outcome",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/ContactRespondRequestBody",
         "response": "#/components/schemas/ContactRespondOutcome"
@@ -2076,8 +2076,8 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/scope-update",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_scope_update_request",
-      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_scope_update_outcome",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/ContactScopeUpdateRequestBody",
         "response": "#/components/schemas/ContactScopeUpdateOutcome"
@@ -2090,8 +2090,8 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/tombstone",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_tombstone_request",
-      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_tombstone_outcome",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/ContactTombstoneRequestBody",
         "response": "#/components/schemas/ContactTombstone"
@@ -2172,8 +2172,8 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/direct-conversations/resolve",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_request",
-      "response_schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
+      "request_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request",
+      "response_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/DirectConversationResolveRequestBody",
         "response": "#/components/schemas/DirectConversationResolveOutcome"

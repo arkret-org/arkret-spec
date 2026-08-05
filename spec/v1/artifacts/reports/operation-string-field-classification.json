@@ -8,11 +8,11 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 58,
+    "total_fields": 60,
     "by_classification": {
       "bounded_free_text": 7,
-      "closed_enum": 27,
-      "closed_literal": 7,
+      "closed_enum": 28,
+      "closed_literal": 8,
       "validated_open_reason_code": 13,
       "validated_open_token": 4
     },
@@ -163,6 +163,22 @@
       "pointer": "#/$defs/circle_lifecycle_request_body/properties/reason_code",
       "classification": "validated_open_reason_code",
       "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "contact-operations.schema.json",
+      "shape": "contact_scope_update_payload",
+      "field": "schema",
+      "pointer": "#/$defs/contact_scope_update_payload/properties/schema",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "contact-operations.schema.json",
+      "shape": "peer_contact_event_submit_outcome",
+      "field": "status",
+      "pointer": "#/$defs/peer_contact_event_submit_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
     },
     {
       "schema_file": "join-policy-operations.schema.json",

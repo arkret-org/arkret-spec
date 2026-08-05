@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-05.3",
-  "generated_at": "2026-08-05T18:30:00Z",
+  "version": "2026-08-05.4",
+  "generated_at": "2026-08-05T19:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1210,13 +1210,13 @@
         "ak.peer.events.query.resolve"
       ],
       "wire_contract_refs": [
-        "schemas/operation-control.schema.json#/$defs/contact_operation_request",
-        "schemas/operation-control.schema.json#/$defs/contact_respond_request",
-        "schemas/operation-control.schema.json#/$defs/contact_reject_request",
-        "schemas/operation-control.schema.json#/$defs/contact_scope_update_request",
-        "schemas/operation-control.schema.json#/$defs/contact_tombstone_request",
-        "schemas/operation-control.schema.json#/$defs/peer_contact_submit_request",
-        "schemas/operation-control.schema.json#/$defs/peer_contact_submit_outcome"
+        "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
+        "schemas/contact-operations.schema.json#/$defs/contact_respond_request",
+        "schemas/contact-operations.schema.json#/$defs/contact_reject_request",
+        "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",
+        "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
+        "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+        "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -3251,7 +3251,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.agent_sidecar.v1",
-        "ak.schema.operation_control.v1",
+        "ak.schema.principal_operations.v1",
         "ak.schema.agent_sidecar_view_state.v1",
         "ak.schema.agent_sidecar_exchange_projection.v1",
         "ak.schema.agent_sidecar_event_exchange_binding.v1",
@@ -3261,10 +3261,10 @@
         "ak.schema.relation.v1"
       ],
       "wire_contract_refs": [
-        "schemas/operation-control.schema.json#/$defs/sidecar_ensure_request",
-        "schemas/operation-control.schema.json#/$defs/sidecar_ensure_outcome",
-        "schemas/operation-control.schema.json#/$defs/sidecar_access_replace",
-        "schemas/operation-control.schema.json#/$defs/sidecar_control_frontier"
+        "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_request",
+        "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome",
+        "schemas/principal-operations.schema.json#/$defs/sidecar_access_replace",
+        "schemas/principal-operations.schema.json#/$defs/sidecar_control_frontier"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -3313,10 +3313,10 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ak.schema.operation_control.v1"
+        "ak.schema.principal_operations.v1"
       ],
       "wire_contract_refs": [
-        "schemas/operation-control.schema.json#/$defs/participation_replace_request"
+        "schemas/principal-operations.schema.json#/$defs/participation_replace_request"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -3350,7 +3350,7 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ak.schema.operation_control.v1"
+        "ak.schema.principal_operations.v1"
       ],
       "required_fixtures": [
         "direct-conversation-fixture.json"
@@ -3384,7 +3384,7 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ak.schema.operation_control.v1",
+        "ak.schema.principal_operations.v1",
         "ak.schema.service_operation_dtos.v1"
       ],
       "wire_contract_refs": [

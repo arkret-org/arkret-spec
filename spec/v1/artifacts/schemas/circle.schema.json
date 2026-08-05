@@ -94,7 +94,7 @@
       "required": ["native_agent"],
       "properties": {
         "native_agent": {
-          "$ref": "./operation-control.schema.json#/$defs/participation_bits"
+          "$ref": "./principal-operations.schema.json#/$defs/participation_bits"
         }
       },
       "additionalProperties": false

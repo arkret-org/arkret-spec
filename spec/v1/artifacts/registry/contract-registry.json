@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-05.2",
+  "version": "2026-08-05.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-05T18:00:00Z",
+  "generated_at": "2026-08-05T19:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -8483,7 +8483,18 @@
         "schema_id": "ak.schema.contact_operations.v1",
         "file": "schemas/contact-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for contact lifecycle operations and direct conversation resolver."
+        "description": "Closed request/response DTO bundle for the Contact lifecycle: request, respond, reject, scope replacement, tombstone, the portable basis evidence bundle, acceptance receipts and the peer Contact carrier, plus the contact-list projection."
+      },
+      {
+        "schema_id": "ak.schema.direct_conversation_operations.v1",
+        "file": "schemas/direct-conversation-operations.schema.json",
+        "status": "active",
+        "description": "Closed carriers for the Direct Conversation resolver and single-sided founding: the query-only resolve request and tagged outcome, permanent coordinates, the resolver blocker set and the source founding acceptance receipt.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "registered Direct Conversation resolver and founding carriers",
+          "normative_ref": "zh/identity/contact-and-direct-conversation.md"
+        }
       },
       {
         "schema_id": "ak.schema.device_message.v1",
@@ -9293,19 +9304,19 @@
         }
       },
       {
-        "schema_id": "ak.schema.operation_control.v1",
-        "file": "schemas/operation-control.schema.json",
+        "schema_id": "ak.schema.principal_operations.v1",
+        "file": "schemas/principal-operations.schema.json",
         "status": "active",
-        "description": "Closed shared wire carriers for bootstrap, Contact, participation, stable Direct Conversation operation control, membership compensation, history ingress, KeyPackage terminal handling, Sidecar and external execution attestation.",
+        "description": "Closed wire carriers scoped to a single principal: device bootstrap, participation replacement, history ingress contracts, KeyPackage terminal handling, Sidecar staging and the shared identifier, signature and receipt primitives those carriers reuse.",
         "consumer_binding": {
           "kind": "standalone_schema_alias",
-          "selector": "registered operation-control DTO and proof carriers",
+          "selector": "registered principal-scoped operation DTO and proof carriers",
           "normative_ref": "zh/conformance/schema-registry.md"
         }
       },
       {
         "schema_id": "ak.schema.contact_scope_update.v1",
-        "file": "schemas/operation-control.schema.json",
+        "file": "schemas/contact-operations.schema.json",
         "fragment": "#/$defs/contact_scope_update_payload",
         "status": "active",
         "description": "Closed holder-signed Contact scope replacement payload, including the peer XOR, stable basis, version, predecessor and full granted-scope set.",
@@ -10378,8 +10389,8 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
-        "request_schema_ref": "schemas/operation-control.schema.json#/$defs/cancel_device_bootstrap_request",
-        "response_schema_ref": "schemas/operation-control.schema.json#/$defs/cancel_device_bootstrap_outcome",
+        "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/cancel_device_bootstrap_request",
+        "response_schema_ref": "schemas/principal-operations.schema.json#/$defs/cancel_device_bootstrap_outcome",
         "durable_effect": {
           "kind": "none",
           "rationale": "service_local_bootstrap_transaction_terminal_or_replay_only"
@@ -10725,8 +10736,8 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
-        "request_schema_ref": "schemas/operation-control.schema.json#/$defs/sidecar_ensure_request",
-        "response_schema_ref": "schemas/operation-control.schema.json#/$defs/sidecar_ensure_outcome",
+        "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_request",
+        "response_schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome",
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": [
@@ -10765,7 +10776,7 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "notes": "Controller-only full replacement of one Account-Authority-owned per-scope selection. The authenticated bearer+DPoP session is the authority proof. First write uses expected_version=0; each accepted write increments the exact agent/scope slot by one. Governance ceilings and ordinary Agent capabilities are evaluated at action time and are not copied into this record.",
-        "request_schema_ref": "schemas/operation-control.schema.json#/$defs/participation_replace_request",
+        "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/participation_replace_request",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
         "durable_effect": {
           "kind": "none",
@@ -11135,8 +11146,8 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
-        "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_operation_request",
-        "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_request_outcome",
+        "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome",
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": [
@@ -11154,8 +11165,8 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
-        "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_respond_request",
-        "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_respond_outcome",
+        "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request",
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_outcome",
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": [
@@ -11173,8 +11184,8 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
-        "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_reject_request",
-        "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_reject_outcome",
+        "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_request",
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_outcome",
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": [
@@ -11202,8 +11213,8 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
-        "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_scope_update_request",
-        "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_scope_update_outcome",
+        "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_outcome",
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": [
@@ -11221,8 +11232,8 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
-        "request_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_tombstone_request",
-        "response_schema_ref": "schemas/operation-control.schema.json#/$defs/contact_tombstone_outcome",
+        "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_outcome",
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": [
@@ -11327,8 +11338,8 @@
         "notes": "Query-only resolver for the pair's single stable Direct Conversation. It never creates: a Direct Conversation Realm is created solely by the founder derived from the pair's root Contact basis (normal branch takes the responder, glare branch takes the requests[0] issuer) through the direct_conversation_genesis admission variant of ak.realm.create. Outcomes are evaluated in a fixed order and expose creation_required, creation_blocked, awaiting_founder, provisional, found, suspended or temporarily_unavailable. Waiting never grants create authority to the non-founder and there is no timeout fallback or takeover.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
-        "request_schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_request",
-        "response_schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome"
+        "request_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request",
+        "response_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome"
       },
       {
         "operation_id": "ak.self.circle.command.create",
@@ -11989,8 +12000,8 @@
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
-        "request_schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_request",
-        "response_schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_outcome",
+        "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
         "durable_effect": {
           "kind": "none",
           "rationale": "delivers_existing_signed_fact_without_committing_a_local_event"

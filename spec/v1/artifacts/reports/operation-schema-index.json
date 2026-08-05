@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-05.2",
+  "version": "2026-08-05.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-05T18:00:00Z",
+  "generated_at": "2026-08-05T19:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -248,7 +248,7 @@
       "operation_id": "ak.gate.account.command.cancel_device_bootstrap",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/cancel_device_bootstrap_request",
+        "schema_ref": "schemas/principal-operations.schema.json#/$defs/cancel_device_bootstrap_request",
         "schema_kind": "object",
         "required": [
           "transaction_id",
@@ -265,7 +265,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/cancel_device_bootstrap_outcome",
+        "schema_ref": "schemas/principal-operations.schema.json#/$defs/cancel_device_bootstrap_outcome",
         "schema_kind": "oneOf",
         "required": [
           "status",
@@ -283,7 +283,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/cancel_device_bootstrap_outcome",
+            "schema_ref": "schemas/principal-operations.schema.json#/$defs/cancel_device_bootstrap_outcome",
             "schema_kind": "object",
             "required": [
               "status",
@@ -298,7 +298,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/cancel_device_bootstrap_outcome",
+            "schema_ref": "schemas/principal-operations.schema.json#/$defs/cancel_device_bootstrap_outcome",
             "schema_kind": "object",
             "required": [
               "status",
@@ -315,7 +315,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/cancel_device_bootstrap_outcome",
+            "schema_ref": "schemas/principal-operations.schema.json#/$defs/cancel_device_bootstrap_outcome",
             "schema_kind": "object",
             "required": [
               "status",
@@ -993,7 +993,7 @@
       "operation_id": "ak.self.agent.sidecar.command.ensure",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/sidecar_ensure_request",
+        "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_request",
         "schema_kind": "oneOf",
         "required": [
           "phase",
@@ -1014,7 +1014,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/sidecar_ensure_request",
+            "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_request",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -1035,7 +1035,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/sidecar_ensure_request",
+            "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_request",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -1056,7 +1056,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/sidecar_ensure_request",
+            "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_request",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -1077,7 +1077,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/sidecar_ensure_outcome",
+        "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome",
         "schema_kind": "oneOf",
         "required": [
           "status",
@@ -1108,7 +1108,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/sidecar_ensure_outcome",
+            "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome",
             "schema_kind": "object",
             "required": [
               "status",
@@ -1143,7 +1143,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/sidecar_ensure_outcome",
+            "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome",
             "schema_kind": "object",
             "required": [
               "status",
@@ -1174,7 +1174,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/sidecar_ensure_outcome",
+            "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome",
             "schema_kind": "object",
             "required": [
               "status",
@@ -1248,7 +1248,7 @@
       "operation_id": "ak.self.agent.participation.resource.replace",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/participation_replace_request",
+        "schema_ref": "schemas/principal-operations.schema.json#/$defs/participation_replace_request",
         "schema_kind": "object",
         "required": [
           "target_scope",
@@ -1901,7 +1901,7 @@
       "operation_id": "ak.self.contact.command.request",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_operation_request",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
         "schema_kind": "oneOf",
         "required": [
           "phase",
@@ -1922,7 +1922,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_operation_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -1944,7 +1944,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_operation_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -1965,7 +1965,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_request_outcome",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome",
         "schema_kind": null,
         "required": [],
         "properties": [],
@@ -1976,7 +1976,7 @@
       "operation_id": "ak.self.contact.command.respond",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_accept_request",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_accept_request",
         "schema_kind": "oneOf",
         "required": [
           "phase",
@@ -1996,7 +1996,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_accept_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_accept_request",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -2017,7 +2017,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_accept_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_accept_request",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -2038,7 +2038,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_respond_outcome",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_outcome",
         "schema_kind": null,
         "required": [],
         "properties": [],
@@ -2049,7 +2049,7 @@
       "operation_id": "ak.self.contact.command.reject",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_reject_request",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_request",
         "schema_kind": "oneOf",
         "required": [
           "phase",
@@ -2068,7 +2068,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_reject_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_request",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -2087,7 +2087,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_reject_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_request",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -2108,7 +2108,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_reject_outcome",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_outcome",
         "schema_kind": null,
         "required": [],
         "properties": [],
@@ -2137,7 +2137,7 @@
       "operation_id": "ak.self.contact.command.scope_update",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_scope_update_request",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",
         "schema_kind": "oneOf",
         "required": [
           "phase",
@@ -2159,7 +2159,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_scope_update_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -2184,7 +2184,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_scope_update_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -2205,7 +2205,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_scope_update_outcome",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_outcome",
         "schema_kind": null,
         "required": [],
         "properties": [],
@@ -2216,7 +2216,7 @@
       "operation_id": "ak.self.contact.command.tombstone",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_tombstone_request",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
         "schema_kind": "oneOf",
         "required": [
           "phase",
@@ -2237,7 +2237,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_tombstone_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -2260,7 +2260,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_tombstone_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -2281,7 +2281,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/contact_tombstone_outcome",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_outcome",
         "schema_kind": null,
         "required": [],
         "properties": [],
@@ -2484,7 +2484,7 @@
       "operation_id": "ak.self.direct_conversation.query.resolve",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_request",
+        "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request",
         "schema_kind": "object",
         "required": [
           "peer"
@@ -2495,7 +2495,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
+        "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
         "schema_kind": "oneOf",
         "required": [
           "state"
@@ -2511,7 +2511,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
             "schema_kind": null,
             "required": [
               "state"
@@ -2522,7 +2522,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
             "schema_kind": null,
             "required": [
               "state",
@@ -2535,7 +2535,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
             "schema_kind": null,
             "required": [
               "state"
@@ -2547,7 +2547,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
             "schema_kind": null,
             "required": [
               "state",
@@ -2561,7 +2561,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
             "schema_kind": null,
             "required": [
               "state",
@@ -2578,7 +2578,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
             "schema_kind": null,
             "required": [
               "state",
@@ -2593,7 +2593,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
             "schema_kind": null,
             "required": [
               "state"
@@ -4357,7 +4357,7 @@
       "operation_id": "ak.peer.contacts.command.submit",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_request",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
         "schema_kind": "oneOf",
         "required": [
           "kind",
@@ -4385,7 +4385,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
             "schema_kind": "object",
             "required": [
               "kind",
@@ -4407,7 +4407,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
             "schema_kind": "object",
             "required": [
               "kind",
@@ -4427,7 +4427,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
             "schema_kind": "object",
             "required": [
               "kind",
@@ -4446,7 +4446,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
             "schema_kind": "object",
             "required": [
               "kind",
@@ -4467,7 +4467,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
             "schema_kind": "object",
             "required": [
               "kind",
@@ -4488,7 +4488,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
             "schema_kind": "object",
             "required": [
               "kind",
@@ -4507,7 +4507,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
             "schema_kind": "object",
             "required": [
               "kind",
@@ -4534,7 +4534,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_outcome",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
         "schema_kind": "oneOf",
         "required": [
           "result_kind",
@@ -4553,7 +4553,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_event_submit_outcome",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_event_submit_outcome",
             "schema_kind": "object",
             "required": [
               "result_kind",
@@ -4570,7 +4570,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_outcome",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
             "schema_kind": "object",
             "required": [
               "result_kind",
@@ -4587,7 +4587,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_outcome",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
             "schema_kind": "object",
             "required": [
               "result_kind",
@@ -4604,25 +4604,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_outcome",
-            "schema_kind": "object",
-            "required": [
-              "result_kind",
-              "status",
-              "control_receipt",
-              "glare_concurrency_attestation"
-            ],
-            "properties": [
-              "result_kind",
-              "status",
-              "control_receipt",
-              "glare_concurrency_attestation",
-              "current_proof"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_outcome",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
             "schema_kind": "object",
             "required": [
               "result_kind",
@@ -4640,7 +4622,25 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_outcome",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
+            "schema_kind": "object",
+            "required": [
+              "result_kind",
+              "status",
+              "control_receipt",
+              "glare_concurrency_attestation"
+            ],
+            "properties": [
+              "result_kind",
+              "status",
+              "control_receipt",
+              "glare_concurrency_attestation",
+              "current_proof"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
             "schema_kind": "object",
             "required": [
               "result_kind",
@@ -4658,7 +4658,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/operation-control.schema.json#/$defs/peer_contact_submit_outcome",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
             "schema_kind": "object",
             "required": [
               "result_kind",

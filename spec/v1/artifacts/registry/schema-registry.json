@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-05.2",
+  "version": "2026-08-05.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-05T18:00:00Z",
+  "generated_at": "2026-08-05T19:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -428,7 +428,18 @@
       "schema_id": "ak.schema.contact_operations.v1",
       "file": "schemas/contact-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for contact lifecycle operations and direct conversation resolver."
+      "description": "Closed request/response DTO bundle for the Contact lifecycle: request, respond, reject, scope replacement, tombstone, the portable basis evidence bundle, acceptance receipts and the peer Contact carrier, plus the contact-list projection."
+    },
+    {
+      "schema_id": "ak.schema.direct_conversation_operations.v1",
+      "file": "schemas/direct-conversation-operations.schema.json",
+      "status": "active",
+      "description": "Closed carriers for the Direct Conversation resolver and single-sided founding: the query-only resolve request and tagged outcome, permanent coordinates, the resolver blocker set and the source founding acceptance receipt.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "registered Direct Conversation resolver and founding carriers",
+        "normative_ref": "zh/identity/contact-and-direct-conversation.md"
+      }
     },
     {
       "schema_id": "ak.schema.device_message.v1",
@@ -1238,19 +1249,19 @@
       }
     },
     {
-      "schema_id": "ak.schema.operation_control.v1",
-      "file": "schemas/operation-control.schema.json",
+      "schema_id": "ak.schema.principal_operations.v1",
+      "file": "schemas/principal-operations.schema.json",
       "status": "active",
-      "description": "Closed shared wire carriers for bootstrap, Contact, participation, stable Direct Conversation operation control, membership compensation, history ingress, KeyPackage terminal handling, Sidecar and external execution attestation.",
+      "description": "Closed wire carriers scoped to a single principal: device bootstrap, participation replacement, history ingress contracts, KeyPackage terminal handling, Sidecar staging and the shared identifier, signature and receipt primitives those carriers reuse.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
-        "selector": "registered operation-control DTO and proof carriers",
+        "selector": "registered principal-scoped operation DTO and proof carriers",
         "normative_ref": "zh/conformance/schema-registry.md"
       }
     },
     {
       "schema_id": "ak.schema.contact_scope_update.v1",
-      "file": "schemas/operation-control.schema.json",
+      "file": "schemas/contact-operations.schema.json",
       "fragment": "#/$defs/contact_scope_update_payload",
       "status": "active",
       "description": "Closed holder-signed Contact scope replacement payload, including the peer XOR, stable basis, version, predecessor and full granted-scope set.",

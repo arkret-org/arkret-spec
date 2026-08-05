@@ -134,6 +134,40 @@
       "reason": "Closed historical-mode aggregate containing the destination-signed admission receipt and its exact admission-time evidence."
     },
     {
+      "file": "contact-operations.schema.json",
+      "key": "contact_basis_evidence_bundle",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "receipt",
+        "commitment"
+      ],
+      "reason": "Bundles the stable Contact basis, signed acceptance receipts and refreshable current proofs."
+    },
+    {
+      "file": "contact-operations.schema.json",
+      "key": "contact_introduction_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Closed first-contact evidence union for locator, shared-Realm membership, verified handle claim, same-service or explicit-address policy evaluation."
+    },
+    {
+      "file": "contact-operations.schema.json",
+      "key": "introduction_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Carries the exact private first-contact evidence whose digest is committed by the signed request Event."
+    },
+    {
       "file": "did-binding-contracts.schema.json",
       "key": "evidence_dependencies",
       "occurrences": 1,
@@ -161,6 +195,13 @@
         "commitment"
       ],
       "reason": "did:webvh method proof row inside the evidence receipt: witness attestations (witness set sorted by witness_did plus the canonical witness proof set digest) and the verified log head commitment."
+    },
+    {
+      "file": "direct-conversation-operations.schema.json",
+      "key": "accepted_contact_evidence_digest",
+      "occurrences": 1,
+      "disposition": "derived_summary",
+      "reason": "Commits the exact portable Contact basis evidence bundle that the founder's source Principal Server verified when it atomically accepted the Direct Conversation founding unit and closed its local unique slot."
     },
     {
       "file": "event-envelope.schema.json",
@@ -415,47 +456,6 @@
       "occurrences": 8,
       "disposition": "registry_contract",
       "reason": "Declares conformance evidence kinds rather than a wire material instance."
-    },
-    {
-      "file": "operation-control.schema.json",
-      "key": "accepted_contact_evidence_digest",
-      "occurrences": 1,
-      "disposition": "derived_summary",
-      "reason": "Commits the exact portable Contact basis evidence bundle that the founder's source Principal Server verified when it atomically accepted the Direct Conversation founding unit and closed its local unique slot."
-    },
-    {
-      "file": "operation-control.schema.json",
-      "key": "contact_basis_evidence_bundle",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "receipt",
-        "commitment"
-      ],
-      "reason": "Bundles the stable Contact basis, signed acceptance receipts and refreshable current proofs."
-    },
-    {
-      "file": "operation-control.schema.json",
-      "key": "contact_introduction_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Closed first-contact evidence union for locator, shared-Realm membership, verified handle claim, same-service or explicit-address policy evaluation."
-    },
-    {
-      "file": "operation-control.schema.json",
-      "key": "introduction_evidence",
-      "occurrences": 2,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Carries the exact private first-contact evidence whose digest is committed by the signed request Event."
     },
     {
       "file": "sdk-conformance-claim.schema.json",
