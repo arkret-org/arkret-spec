@@ -11,7 +11,10 @@
       "$ref": "#/$defs/consent_cell_list"
     },
     {
-      "$ref": "#/$defs/consent_update_request_body"
+      "$ref": "#/$defs/consent_grant_request_body"
+    },
+    {
+      "$ref": "#/$defs/consent_revoke_request_body"
     },
     {
       "$ref": "#/$defs/consent_request_request_body"
@@ -131,22 +134,74 @@
       },
       "additionalProperties": false
     },
-    "consent_update_request_body": {
+    "consent_grant_request_body": {
       "type": "object",
-      "description": "Body for grant / revoke. The holder is taken from the path; the authenticated actor MUST be authorized to write the holder's consent (holder or an explicitly authorized controller/agent).",
+      "description": "Carries the caller-signed ak.consent.grant Control Move and nothing else. consent_id, peer, consent_scope, not_before and expires_at all live in grant_event.event.payload; the holder is taken from the path. consent_id is producer-allocated, so the caller mints it: it is the cell subject (ak:cell:ak.component.consent.grant.v1:<consent_id>), and the or_set add dot is 'ak:event:<enclosing event_id>:<write_index>' (zh/identity/consent-model.md section 3.2). A service that wrote this element itself would be putting consent into replicated cell state that no Event in the log explains.",
       "required": [
-        "peer_did"
+        "grant_event"
       ],
       "properties": {
-        "peer_did": {
-          "$ref": "#/$defs/did"
-        },
-        "consent_scope": {
-          "$ref": "#/$defs/consent_scope",
-          "default": "direct_message"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
+        "grant_event": {
+          "allOf": [
+            {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.consent.grant"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "realm_id"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ]
+            }
+          ],
+          "description": "Closed ak.consent.grant Event authored and signed by the holder, or by a controller/agent whose authorization scope explicitly covers consent writes and whose payload carries replayable holder approval evidence; a general PCR write capability is never such an authorization. The service MUST submit these exact bytes through ordinary Event admission and MUST NOT co-sign, rebuild or synthesize the Event. Admission MUST verify that event.realm_id is the holder's principal control Realm and that the path holder is the consent holder; a grant submitted by any other actor is rejected unauthorized."
+        }
+      },
+      "additionalProperties": false
+    },
+    "consent_revoke_request_body": {
+      "type": "object",
+      "description": "Carries the caller-signed ak.consent.revoke Control Move and nothing else. Its payload.observed_dots MUST enumerate every active dot that becomes inactive, and the caller reads those dots back from consent_cell_view.active_grant_dots: an observe-remove OR-Set revoker has to name the exact dots or two concurrent revokes race, one removing the old dot and the other the new one while the UI reports success (zh/identity/consent-model.md section 3.2). A consent_scope=any cascade is no exception.",
+      "required": [
+        "revoke_event"
+      ],
+      "properties": {
+        "revoke_event": {
+          "allOf": [
+            {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.consent.revoke"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "realm_id"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ]
+            }
+          ],
+          "description": "Closed ak.consent.revoke Event authored and signed by the holder or an explicitly consent-write-authorized controller/agent. Its payload.consent_id MUST equal the consent_id of the ak.consent.grant being revoked. The service MUST submit these exact bytes through ordinary Event admission and MUST NOT co-sign, rebuild or synthesize the Event."
         }
       },
       "additionalProperties": false

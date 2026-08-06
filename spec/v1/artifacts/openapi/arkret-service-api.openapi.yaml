@@ -870,12 +870,14 @@ components:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_cell_list
     ConsentCellView:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_cell_view
+    ConsentGrantRequestBody:
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_grant_request_body
     ConsentRequestOutcome:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_request_outcome
     ConsentRequestRequestBody:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_request_request_body
-    ConsentUpdateRequestBody:
-      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_update_request_body
+    ConsentRevokeRequestBody:
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body
     ContactList:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_list
     ContactRejectOutcome:
@@ -8594,7 +8596,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ConsentUpdateRequestBody'
+              $ref: '#/components/schemas/ConsentGrantRequestBody'
       responses:
         '200':
           description: Consent granted.
@@ -8619,7 +8621,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ConsentUpdateRequestBody'
+              $ref: '#/components/schemas/ConsentRevokeRequestBody'
       responses:
         '200':
           description: Consent revoked.

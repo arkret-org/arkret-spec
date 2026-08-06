@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.11",
+  "version": "2026-08-06.12",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T19:00:00Z",
+  "generated_at": "2026-08-06T20:30:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7719,15 +7719,13 @@
       "operation_id": "ak.self.consent.command.grant",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_grant_request_body",
         "schema_kind": "object",
         "required": [
-          "peer_did"
+          "grant_event"
         ],
         "properties": [
-          "peer_did",
-          "consent_scope",
-          "expires_at"
+          "grant_event"
         ],
         "closed": true
       },
@@ -7767,15 +7765,13 @@
       "operation_id": "ak.self.consent.command.revoke",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body",
         "schema_kind": "object",
         "required": [
-          "peer_did"
+          "revoke_event"
         ],
         "properties": [
-          "peer_did",
-          "consent_scope",
-          "expires_at"
+          "revoke_event"
         ],
         "closed": true
       },

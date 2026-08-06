@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.11",
+  "version": "2026-08-06.12",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T19:00:00Z",
+  "generated_at": "2026-08-06T20:30:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -1943,10 +1943,10 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/consent/cells/{holder_did}/grant",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
+      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_grant_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
       "openapi_component_refs": {
-        "request": "#/components/schemas/ConsentUpdateRequestBody",
+        "request": "#/components/schemas/ConsentGrantRequestBody",
         "response": "#/components/schemas/ConsentCellView"
       },
       "completeness_class": "typed_schema",
@@ -1971,10 +1971,10 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/consent/cells/{holder_did}/revoke",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
+      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
       "openapi_component_refs": {
-        "request": "#/components/schemas/ConsentUpdateRequestBody",
+        "request": "#/components/schemas/ConsentRevokeRequestBody",
         "response": "#/components/schemas/ConsentCellView"
       },
       "completeness_class": "typed_schema",

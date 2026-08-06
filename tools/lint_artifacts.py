@@ -4037,18 +4037,6 @@ EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
     "ak.self.realm_policy_server.resource.delete": (
         "DELETE with no request body today; shape decided, not landed"
     ),
-    "ak.self.consent.command.grant": (
-        "blocked on a prerequisite, not on the request shape: the or_set add dot MUST be "
-        "'ak:event:<event_id>:<write_index>' (consent-model.md section 3.2) and payload.consent_id "
-        "MUST be an ak:consent:<uuid7>, but soland writes the cell under a digest subject "
-        "(routing/identity/consent.rs consent_cell_id) that consent_cell_view's own cell_id pattern "
-        "already forbids, so no consent_id exists for a caller to author against. Collapse the two "
-        "cell-subject schemes onto <consent_id> first"
-    ),
-    "ak.self.consent.command.revoke": (
-        "same prerequisite as grant, plus payload.observed_dots must name dots the caller can read "
-        "back from consent_cell_view.active_grant_dots"
-    ),
     "ak.self.account.command.update_profile": "needs the caller-signed profile Event",
     "ak.self.moderation.command.report": "needs the caller-signed report Event",
     "ak.self.applet.command.revoke": (

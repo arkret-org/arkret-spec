@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9171,
+    "total_properties": 9174,
     "total_schema_documents": 155,
     "by_presence_class": {
-      "optional": 2832,
-      "optional_defaulted": 71,
-      "required": 5903,
-      "required_nullable": 94,
+      "optional": 2831,
+      "optional_defaulted": 70,
+      "required": 5906,
+      "required_nullable": 96,
       "tristate": 271
     },
     "tristate_occurrences": 271,
@@ -3982,14 +3982,17 @@
         "/$defs/consent_cell_view/properties/revoked_dots": "required",
         "/$defs/consent_cell_view/properties/state": "required",
         "/$defs/consent_cell_view/properties/updated_at": "required",
+        "/$defs/consent_grant_request_body/properties/grant_event": "required",
+        "/$defs/consent_grant_request_body/properties/grant_event/allOf/1/properties/event": "required_nullable",
+        "/$defs/consent_grant_request_body/properties/grant_event/allOf/1/properties/event/properties/kind": "required",
         "/$defs/consent_request_outcome/properties/accepted_for_processing": "required",
         "/$defs/consent_request_outcome/properties/ok": "required",
         "/$defs/consent_request_request_body/properties/consent_scope": "optional_defaulted",
         "/$defs/consent_request_request_body/properties/holder_did": "required",
         "/$defs/consent_request_request_body/properties/peer_did": "optional",
-        "/$defs/consent_update_request_body/properties/consent_scope": "optional_defaulted",
-        "/$defs/consent_update_request_body/properties/expires_at": "optional",
-        "/$defs/consent_update_request_body/properties/peer_did": "required"
+        "/$defs/consent_revoke_request_body/properties/revoke_event": "required",
+        "/$defs/consent_revoke_request_body/properties/revoke_event/allOf/1/properties/event": "required_nullable",
+        "/$defs/consent_revoke_request_body/properties/revoke_event/allOf/1/properties/event/properties/kind": "required"
       }
     },
     "contact-operations.schema.json": {

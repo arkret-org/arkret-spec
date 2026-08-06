@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.11",
+  "version": "2026-08-06.12",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T19:00:00Z",
+  "generated_at": "2026-08-06T20:30:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -3575,7 +3575,7 @@
       "http": "POST /_arkret/self/consent/cells/{holder_did}/grant",
       "grpc": "SelfConsent/Grant",
       "mq": "self.consent.command.grant",
-      "notes": "Builds a ak.consent.grant Control Move on the holder's consent cell. The authenticated actor MUST be authorized to write the holder's consent (holder or an explicitly authorized controller/agent).",
+      "notes": "Submits the caller-signed ak.consent.grant Control Move carried in grant_event through ordinary Event admission. payload.consent_id is the producer-allocated cell subject and the or_set add dot is 'ak:event:<enclosing event_id>:<write_index>', so the service chooses neither and MUST NOT synthesize the Event. The authenticated actor MUST be authorized to write the holder's consent (holder or an explicitly authorized controller/agent).",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
@@ -3584,7 +3584,7 @@
         "strategy": "query_operation",
         "operation_id": "ak.self.consent.query.list"
       },
-      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
+      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_grant_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
       "durable_effect": {
         "kind": "event_log",
@@ -3598,7 +3598,7 @@
       "http": "POST /_arkret/self/consent/cells/{holder_did}/revoke",
       "grpc": "SelfConsent/Revoke",
       "mq": "self.consent.command.revoke",
-      "notes": "Builds a ak.consent.revoke Control Move enumerating the active grant dots for the (consent_id, peer, consent_scope). Revoking consent_scope=any cascades all concrete scopes; revoking a concrete scope leaves others intact.",
+      "notes": "Submits the caller-signed ak.consent.revoke Control Move carried in revoke_event through ordinary Event admission. Its payload.observed_dots MUST enumerate the active grant dots being removed for the (consent_id, peer, consent_scope), read back from consent_cell_view.active_grant_dots. Revoking consent_scope=any cascades all concrete scopes and MUST still enumerate every dot; revoking a concrete scope leaves others intact.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
@@ -3607,7 +3607,7 @@
         "strategy": "query_operation",
         "operation_id": "ak.self.consent.query.list"
       },
-      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
+      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
       "durable_effect": {
         "kind": "event_log",
