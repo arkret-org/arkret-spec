@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.7",
+  "version": "2026-08-06.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T15:00:00Z",
+  "generated_at": "2026-08-06T16:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -10,7 +10,7 @@
     "Storage implementations MAY store raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the ak:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
     "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
     "The <kind> segment is part of the signed/canonical wire value. It MUST NOT be changed, inferred differently, or stripped during verification, forwarding, backfill, or replay.",
-    "The UUID segment MUST be RFC 9562 UUID version 7 (48-bit Unix-millisecond timestamp + 4-bit version=7 + 12-bit rand_a + 2-bit variant=10b + 62-bit rand_b), serialized as the canonical 36-character lowercase hex form `xxxxxxxx-xxxx-7xxx-Nxxx-xxxxxxxxxxxx` where N ∈ {8,9,a,b}."
+    "The UUID segment MUST be an RFC 9562 UUID in exactly one of the two constructions defined by uuid_form_rules, fixed per kind by that kind's id_form column and never chosen per call site: version 7 for producer_allocated, version 8 with the content-bound layout of zh/conformance/encoding.md section 4.0 for event_derived. Both serialize as the canonical 36-character lowercase hex form `xxxxxxxx-xxxx-Vxxx-Nxxx-xxxxxxxxxxxx`, where V is the version nibble the kind's id_form fixes and N ∈ {8,9,a,b}."
   ],
   "special_forms": [
     {
@@ -396,8 +396,8 @@
       "kind": "operation",
       "category": "security",
       "status": "active",
-      "wire_form": "ak:operation:<opaque>",
-      "description": "Opaque identifier for a durable or reserved multi-phase protocol operation instance.",
+      "wire_form": "ak:operation:<uuid>",
+      "description": "Identifier for a durable or reserved multi-phase protocol operation instance. It is allocated at reservation time, before the operation's first Event exists, so it can carry no content binding and MUST NOT be parsed for internal semantics; that is what id_form=producer_allocated means here, not a free-form value space.",
       "id_form": "producer_allocated"
     },
     {

@@ -599,7 +599,7 @@
     },
     "operation_id": {
       "type": "string",
-      "pattern": "^ak:operation:[A-Za-z0-9._:-]+$"
+      "pattern": "^ak:operation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "participation_bits": {
       "type": "object",
