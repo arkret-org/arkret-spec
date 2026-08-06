@@ -18,6 +18,18 @@
     },
     {
       "$ref": "#/$defs/realm_moderation_policy_document"
+    },
+    {
+      "$ref": "#/$defs/realm_archive_request_body"
+    },
+    {
+      "$ref": "#/$defs/realm_freeze_request_body"
+    },
+    {
+      "$ref": "#/$defs/realm_tombstone_request_body"
+    },
+    {
+      "$ref": "#/$defs/realm_destroy_request_body"
     }
   ],
   "$defs": {
@@ -196,6 +208,166 @@
         },
         "updated_at": {
           "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_lifecycle_event_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "required": [
+                "realm_id"
+              ]
+            }
+          },
+          "required": [
+            "event"
+          ]
+        }
+      ],
+      "description": "Shared submission shape for the four Realm lifecycle Moves. These operations used to take the Event payload directly, which left the signature for the service to add: the caller stated what to write and only a service key could sign it, which is exactly what capabilities.md sections 118/361 and key-management.md section 411 forbid. The Realm is single-sourced by event.realm_id and MUST equal the path realm_id. The service MUST submit these exact bytes through ordinary Event admission and MUST NOT co-sign, rebuild or synthesize the Event; admission MUST verify that event.actor_id is the authenticated caller and that the lifecycle transition is admissible from the Realm's current state. Because these payloads describe a transition out of state the caller has to read first, a concurrent lifecycle write makes the later submission fail its precondition rather than silently reordering: that is the intended outcome, not a regression."
+    },
+    "realm_archive_request_body": {
+      "type": "object",
+      "description": "Carries the caller-signed ak.realm.archive Move and nothing else. The archived flag and optional reason live in lifecycle_event.event.payload (realm_archive_payload).",
+      "required": [
+        "lifecycle_event"
+      ],
+      "properties": {
+        "lifecycle_event": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/realm_lifecycle_event_submission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.realm.archive"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ]
+            }
+          ],
+          "description": "Closed ak.realm.archive Event authored and signed by the authenticated caller."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_freeze_request_body": {
+      "type": "object",
+      "description": "Carries the caller-signed ak.realm.freeze Move and nothing else. The frozen flag and optional reason live in lifecycle_event.event.payload (realm_freeze_payload).",
+      "required": [
+        "lifecycle_event"
+      ],
+      "properties": {
+        "lifecycle_event": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/realm_lifecycle_event_submission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.realm.freeze"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ]
+            }
+          ],
+          "description": "Closed ak.realm.freeze Event authored and signed by the authenticated caller."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_tombstone_request_body": {
+      "type": "object",
+      "description": "Carries the caller-signed terminal ak.realm.tombstone Move and nothing else. Its payload (realm_tombstone_payload) requires reason and successor_realm_id, so the signed Event is the whole record of who ended the Realm and where it continues.",
+      "required": [
+        "lifecycle_event"
+      ],
+      "properties": {
+        "lifecycle_event": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/realm_lifecycle_event_submission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.realm.tombstone"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ]
+            }
+          ],
+          "description": "Closed ak.realm.tombstone Event authored and signed by the authenticated caller."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_destroy_request_body": {
+      "type": "object",
+      "description": "Carries the caller-signed terminal ak.realm.destroy Move and nothing else. Its payload (realm_destroy_payload) requires reason and may pin retention_policy_id and verification_stub_required.",
+      "required": [
+        "lifecycle_event"
+      ],
+      "properties": {
+        "lifecycle_event": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/realm_lifecycle_event_submission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.realm.destroy"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ]
+            }
+          ],
+          "description": "Closed ak.realm.destroy Event authored and signed by the authenticated caller."
         }
       },
       "additionalProperties": false

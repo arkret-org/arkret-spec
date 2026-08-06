@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.14",
+  "version": "2026-08-06.15",
   "source_of_truth": true,
-  "generated_at": "2026-08-06T23:00:00Z",
+  "generated_at": "2026-08-07T01:30:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -13455,7 +13455,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/archive",
         "grpc": "SelfRealm/Archive",
         "mq": "self.realm.command.archive",
-        "notes": "Builds a ak.realm.archive Move. The archived facet changes when the lifecycle event is accepted into the Realm event log; archived=false clears the archived facet unless a terminal lifecycle state already applies.",
+        "notes": "Submits the caller-signed ak.realm.archive Move carried in lifecycle_event through ordinary Event admission; event.realm_id MUST equal the path realm_id. The archived facet changes when the lifecycle event is accepted into the Realm event log; archived=false clears the archived facet unless a terminal lifecycle state already applies. The service MUST NOT co-sign, rebuild or synthesize the Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13464,7 +13464,7 @@
           "strategy": "query_operation",
           "operation_id": "ak.self.realm.resource.get"
         },
-        "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+        "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_archive_request_body",
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
         "durable_effect": {
           "kind": "event_log",
@@ -13478,7 +13478,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/freeze",
         "grpc": "SelfRealm/Freeze",
         "mq": "self.realm.command.freeze",
-        "notes": "Builds a ak.realm.freeze Move. The frozen facet changes when the lifecycle event is accepted into the Realm event log; frozen=true rejects ordinary non-exempt writes with realm_frozen and frozen=false clears the freeze facet unless a terminal lifecycle state already applies.",
+        "notes": "Submits the caller-signed ak.realm.freeze Move carried in lifecycle_event through ordinary Event admission; event.realm_id MUST equal the path realm_id. The frozen facet changes when the lifecycle event is accepted into the Realm event log; frozen=true rejects ordinary non-exempt writes with realm_frozen and frozen=false clears the freeze facet unless a terminal lifecycle state already applies. The service MUST NOT co-sign, rebuild or synthesize the Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13487,7 +13487,7 @@
           "strategy": "query_operation",
           "operation_id": "ak.self.realm.resource.get"
         },
-        "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+        "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_freeze_request_body",
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
         "durable_effect": {
           "kind": "event_log",
@@ -13501,7 +13501,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/tombstone",
         "grpc": "SelfRealm/Tombstone",
         "mq": "self.realm.command.tombstone",
-        "notes": "Builds a terminal ak.realm.tombstone Move with a successor_realm_id. The tombstoned state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state.",
+        "notes": "Submits the caller-signed terminal ak.realm.tombstone Move carried in lifecycle_event through ordinary Event admission; event.realm_id MUST equal the path realm_id and payload.successor_realm_id is required. The tombstoned state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state. The service MUST NOT co-sign, rebuild or synthesize the Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13510,7 +13510,7 @@
           "strategy": "query_operation",
           "operation_id": "ak.self.realm.resource.get"
         },
-        "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
+        "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_tombstone_request_body",
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
         "durable_effect": {
           "kind": "event_log",
@@ -13524,7 +13524,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/destroy",
         "grpc": "SelfRealm/Destroy",
         "mq": "self.realm.command.destroy",
-        "notes": "Builds a terminal ak.realm.destroy Move. The destroyed state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state.",
+        "notes": "Submits the caller-signed terminal ak.realm.destroy Move carried in lifecycle_event through ordinary Event admission; event.realm_id MUST equal the path realm_id. The destroyed state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state. The service MUST NOT co-sign, rebuild or synthesize the Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13533,7 +13533,7 @@
           "strategy": "query_operation",
           "operation_id": "ak.self.realm.resource.get"
         },
-        "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
+        "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_destroy_request_body",
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
         "durable_effect": {
           "kind": "event_log",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.14",
+  "version": "2026-08-06.15",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T23:00:00Z",
+  "generated_at": "2026-08-07T01:30:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -2616,10 +2616,10 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/archive",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+      "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_archive_request_body",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
       "openapi_component_refs": {
-        "request": "#/components/schemas/RealmArchivePayload",
+        "request": "#/components/schemas/RealmArchiveRequestBody",
         "response": "#/components/schemas/RealmLifecycleView"
       },
       "completeness_class": "typed_schema",
@@ -2630,10 +2630,10 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/destroy",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
+      "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_destroy_request_body",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
       "openapi_component_refs": {
-        "request": "#/components/schemas/RealmDestroyPayload",
+        "request": "#/components/schemas/RealmDestroyRequestBody",
         "response": "#/components/schemas/RealmLifecycleView"
       },
       "completeness_class": "typed_schema",
@@ -2644,10 +2644,10 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/freeze",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+      "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_freeze_request_body",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
       "openapi_component_refs": {
-        "request": "#/components/schemas/RealmFreezePayload",
+        "request": "#/components/schemas/RealmFreezeRequestBody",
         "response": "#/components/schemas/RealmLifecycleView"
       },
       "completeness_class": "typed_schema",
@@ -2658,10 +2658,10 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/tombstone",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
+      "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_tombstone_request_body",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
       "openapi_component_refs": {
-        "request": "#/components/schemas/RealmTombstonePayload",
+        "request": "#/components/schemas/RealmTombstoneRequestBody",
         "response": "#/components/schemas/RealmLifecycleView"
       },
       "completeness_class": "typed_schema",

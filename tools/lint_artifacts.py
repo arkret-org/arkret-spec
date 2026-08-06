@@ -4040,13 +4040,6 @@ EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
         "same shape as circle.create; soland mints the Realm id this Event would derive"
     ),
     "ak.self.realm_link.resource.delete": "DELETE with no request body today; shape decided, not landed",
-    "ak.self.realm.command.archive": (
-        "the request schema is the Event *payload*, not a signed Event: the caller states what to "
-        "write and the service would have to sign it"
-    ),
-    "ak.self.realm.command.freeze": "payload-only request, as above",
-    "ak.self.realm.command.tombstone": "payload-only request, as above",
-    "ak.self.realm.command.destroy": "payload-only request, as above",
     "ak.self.realm.moderation_policy.resource.replace": "payload-only request",
     "ak.self.realm_policy_server.resource.replace": "payload-only request",
     "ak.self.realm_policy_server.resource.delete": (

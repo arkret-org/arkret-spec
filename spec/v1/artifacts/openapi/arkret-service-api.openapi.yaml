@@ -2178,18 +2178,18 @@ components:
       $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome
     RealmActorFrontierView:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/RealmActorFrontierView
-    RealmArchivePayload:
-      $ref: ../schemas/event-payload.schema.json#/$defs/realm_archive_payload
-    RealmDestroyPayload:
-      $ref: ../schemas/event-payload.schema.json#/$defs/realm_destroy_payload
+    RealmArchiveRequestBody:
+      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_archive_request_body
+    RealmDestroyRequestBody:
+      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_destroy_request_body
     RealmEffectiveModerationPolicy:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy
     RealmEffectivePolicyOutcome:
       $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome
     RealmExport:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_export
-    RealmFreezePayload:
-      $ref: ../schemas/event-payload.schema.json#/$defs/realm_freeze_payload
+    RealmFreezeRequestBody:
+      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_freeze_request_body
     RealmId:
       type: string
       pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
@@ -2213,8 +2213,8 @@ components:
       $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view
     RealmSealFrontierView:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/RealmSealFrontierView
-    RealmTombstonePayload:
-      $ref: ../schemas/event-payload.schema.json#/$defs/realm_tombstone_payload
+    RealmTombstoneRequestBody:
+      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_tombstone_request_body
     RecoveryDeviceAuthorizationOutcome:
       $ref: ../schemas/recovery-authority.schema.json#/$defs/authorize_recovery_device_outcome
     RecoveryDeviceAuthorizationRequestBody:
@@ -8197,7 +8197,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RealmArchivePayload'
+              $ref: '#/components/schemas/RealmArchiveRequestBody'
       responses:
         '200':
           description: Realm lifecycle projection.
@@ -8222,7 +8222,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RealmFreezePayload'
+              $ref: '#/components/schemas/RealmFreezeRequestBody'
       responses:
         '200':
           description: Realm lifecycle projection.
@@ -8247,7 +8247,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RealmTombstonePayload'
+              $ref: '#/components/schemas/RealmTombstoneRequestBody'
       responses:
         '200':
           description: Realm lifecycle projection.
@@ -8272,7 +8272,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RealmDestroyPayload'
+              $ref: '#/components/schemas/RealmDestroyRequestBody'
       responses:
         '200':
           description: Realm lifecycle projection.

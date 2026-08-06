@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9190,
+    "total_properties": 9203,
     "total_schema_documents": 155,
     "by_presence_class": {
       "optional": 2830,
       "optional_defaulted": 69,
-      "required": 5920,
-      "required_nullable": 100,
+      "required": 5928,
+      "required_nullable": 105,
       "tristate": 271
     },
     "tristate_occurrences": 271,
@@ -10121,6 +10121,12 @@
         "ak.schema.realm_read_operations.v1"
       ],
       "properties": {
+        "/$defs/realm_archive_request_body/properties/lifecycle_event": "required",
+        "/$defs/realm_archive_request_body/properties/lifecycle_event/allOf/1/properties/event": "required_nullable",
+        "/$defs/realm_archive_request_body/properties/lifecycle_event/allOf/1/properties/event/properties/kind": "required",
+        "/$defs/realm_destroy_request_body/properties/lifecycle_event": "required",
+        "/$defs/realm_destroy_request_body/properties/lifecycle_event/allOf/1/properties/event": "required_nullable",
+        "/$defs/realm_destroy_request_body/properties/lifecycle_event/allOf/1/properties/event/properties/kind": "required",
         "/$defs/realm_effective_moderation_policy/properties/effective_rules": "required",
         "/$defs/realm_effective_moderation_policy/properties/inheritance_chain": "required",
         "/$defs/realm_effective_moderation_policy/properties/inheritance_mode": "required",
@@ -10133,6 +10139,10 @@
         "/$defs/realm_export/properties/operations": "required",
         "/$defs/realm_export/properties/realm_id": "required",
         "/$defs/realm_export/properties/schema": "required",
+        "/$defs/realm_freeze_request_body/properties/lifecycle_event": "required",
+        "/$defs/realm_freeze_request_body/properties/lifecycle_event/allOf/1/properties/event": "required_nullable",
+        "/$defs/realm_freeze_request_body/properties/lifecycle_event/allOf/1/properties/event/properties/kind": "required",
+        "/$defs/realm_lifecycle_event_submission/allOf/1/properties/event": "required_nullable",
         "/$defs/realm_lifecycle_view/properties/archived": "optional_defaulted",
         "/$defs/realm_lifecycle_view/properties/deleted": "required",
         "/$defs/realm_lifecycle_view/properties/frozen": "optional_defaulted",
@@ -10146,7 +10156,10 @@
         "/$defs/realm_moderation_policy_document/properties/policy": "required",
         "/$defs/realm_moderation_policy_document/properties/realm_id": "required",
         "/$defs/realm_moderation_policy_document/properties/updated_at": "required",
-        "/$defs/realm_moderation_policy_document/properties/updated_by": "required"
+        "/$defs/realm_moderation_policy_document/properties/updated_by": "required",
+        "/$defs/realm_tombstone_request_body/properties/lifecycle_event": "required",
+        "/$defs/realm_tombstone_request_body/properties/lifecycle_event/allOf/1/properties/event": "required_nullable",
+        "/$defs/realm_tombstone_request_body/properties/lifecycle_event/allOf/1/properties/event/properties/kind": "required"
       }
     },
     "realm.schema.json": {

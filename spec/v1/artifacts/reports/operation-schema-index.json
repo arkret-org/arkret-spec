@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.14",
+  "version": "2026-08-06.15",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T23:00:00Z",
+  "generated_at": "2026-08-07T01:30:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7286,14 +7286,13 @@
       "operation_id": "ak.self.realm.command.archive",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_archive_request_body",
         "schema_kind": "object",
         "required": [
-          "archived"
+          "lifecycle_event"
         ],
         "properties": [
-          "archived",
-          "reason"
+          "lifecycle_event"
         ],
         "closed": true
       },
@@ -7325,14 +7324,13 @@
       "operation_id": "ak.self.realm.command.freeze",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_freeze_request_body",
         "schema_kind": "object",
         "required": [
-          "frozen"
+          "lifecycle_event"
         ],
         "properties": [
-          "frozen",
-          "reason"
+          "lifecycle_event"
         ],
         "closed": true
       },
@@ -7364,16 +7362,13 @@
       "operation_id": "ak.self.realm.command.tombstone",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
+        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_tombstone_request_body",
         "schema_kind": "object",
         "required": [
-          "reason",
-          "successor_realm_id"
+          "lifecycle_event"
         ],
         "properties": [
-          "reason",
-          "successor_realm_id",
-          "replacement_event"
+          "lifecycle_event"
         ],
         "closed": true
       },
@@ -7405,15 +7400,13 @@
       "operation_id": "ak.self.realm.command.destroy",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
+        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_destroy_request_body",
         "schema_kind": "object",
         "required": [
-          "reason"
+          "lifecycle_event"
         ],
         "properties": [
-          "reason",
-          "retention_policy_id",
-          "verification_stub_required"
+          "lifecycle_event"
         ],
         "closed": true
       },
