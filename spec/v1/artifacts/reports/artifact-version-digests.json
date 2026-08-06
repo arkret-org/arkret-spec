@@ -135,9 +135,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-08-06.8",
-      "generated_at": "2026-08-06T14:00:00Z",
-      "content_digest": "sha256:7cc92ae98d34724b156da926e0ed45d0b7550d15f292585523a0e0510ae85d17"
+      "version": "2026-08-06.9",
+      "generated_at": "2026-08-06T16:00:00Z",
+      "content_digest": "sha256:48ded2ee8c9f38c4b51fb59dc90fc0078d802be890c8478984f3a9931e573ba8"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-08-06.3",
-      "generated_at": "2026-08-06T15:00:00Z",
-      "content_digest": "sha256:1d2d809232e1282c976a819c14620e5ddbce5237156c26215ba1790d20f54a16"
+      "version": "2026-08-06.4",
+      "generated_at": "2026-08-06T16:00:00Z",
+      "content_digest": "sha256:0c9d35ba0d3b08469dbb2ae9848adad6655dc380de4e3ea087f1a7072129e858"
     }
   ]
 }

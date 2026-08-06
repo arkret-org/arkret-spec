@@ -2647,7 +2647,8 @@
           "type": "array",
           "items": {
             "$ref": "./seal.schema.json"
-          }
+          },
+          "description": "Accepted Seals covering the returned Events: for each Event, the Seal whose delta[] contains that Event's event_digest. Deduplicated and sorted by Seal id; an Event that is accepted but not yet sealed contributes nothing and the service MUST NOT substitute a later descendant Seal. Supplying a Seal here is not an assertion of trust: a client bootstrapping an MLS governance anchor still has to verify the candidate itself under zh/crypto-media/encryption-and-audit.md section 2.5.4."
         },
         "missing": {
           "type": "array",

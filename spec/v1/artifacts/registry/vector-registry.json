@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.3",
+  "version": "2026-08-06.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-06T15:00:00Z",
+  "generated_at": "2026-08-06T16:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3971,7 +3971,7 @@
       "applies_to_fixtures": [
         "mls-governance-proof-fixture.json"
       ],
-      "description": "Byte-level complete_control_state_v1 acquisition KAT and SDK verifier mutations for trust anchors, Seal paths and authority, chunk commitments, covered/state/frontier completeness, Event signatures and scope, governance roots, and commit binding fields.",
+      "description": "Byte-level complete_control_state_v1 acquisition KAT and SDK verifier mutations for trust anchors, Seal paths and authority, chunk commitments, covered/state/frontier completeness, Event signatures and scope, governance roots, and commit binding fields. Also covers encryption-and-audit.md 2.5.4 anchor admission: a service-reported head used as an anchor, a candidate genesis that does not cover the create Event derived from realm_id, and a candidate genesis signed by a notary other than the one named in that create payload MUST all fail before anything is written to the trust store.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

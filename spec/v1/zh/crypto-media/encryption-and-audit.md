@@ -421,7 +421,62 @@ RFC 9420 state 持有。两条材料路径不得合并为服务端选择 leaf se
 断言是“普通 Seal/`seal_ref` 不进入 security frontier，active leaf revoke 必须进入”，不再测试已删除
 的 covered-seals accumulator。
 
-验证顺序是：校验 trusted anchor 与 Seal path → 重算 covered control set 和 joined state → 按 registry closed frontier 过滤 key-access cells → 重算 security_frontier_digest → 比较 GroupContext extension 与 Event payload → 应用 Commit bytes。任一步缺失、歧义或不一致都 fail closed。相同 bundle identity 与 chunks_root 才可复用 cache。
+验证顺序是：确认 request anchor 已在本地 trust store（§2.5.4）→ 校验 bundle 自报 anchor 与请求逐字相等并校验 Seal path → 重算 covered control set 和 joined state → 按 registry closed frontier 过滤 key-access cells → 重算 security_frontier_digest → 比较 GroupContext extension 与 Event payload → 应用 Commit bytes。任一步缺失、歧义或不一致都 fail closed。响应出现与请求不同的 anchor MUST 拒绝，MUST NOT 验证通过后「顺便信任」。相同 bundle identity 与 chunks_root 才可复用 cache。
+
+#### 2.5.4 Anchor 信任来源（normative）
+
+§2.5.3 的验证以 `trusted_anchor` 为根：它只证明「从该锚出发这条 Seal path 自洽」，**不证明锚本身**。
+锚从哪来因此是全部安全性所在，本节封闭定义，适用于所有请求 governance proof 的客户端。
+
+**服务端的报告不产生信任。** 客户端 MUST NOT 仅因下列任一原因把某个 Seal 写入本地 trust store：
+
+- 它出现在 `ak.self.events.read.frontier` 的 `RealmSealFrontierView` 或任何 frontier / head 查询结果里；
+- 它是 proof bundle 自报的 `trusted_anchor_seal_id`；
+- 它在 `mls_governance_anchor_unreachable` 等错误的 detail 里被建议为替代锚。
+
+服务端 MAY 提供**候选**；只有候选通过下面 T1/T2/T3 之一的本地校验后才能采信。这条区分是本节的
+全部要点：「服务端建议、客户端用自己独立已知的事实校验」合法，「服务端断言、客户端接受」不合法。
+在内容绑定 ID（[`../conformance/encoding.md` §4.0](../conformance/encoding.md)）之前客户端没有可用来
+校验的独立事实，只能靠枚举信任来源；现在有了，本节因此以自证判定取代枚举。
+
+**T1 —— event-derived Realm 的 genesis 自证。** 客户端已知 `realm_id`，据此派生
+`create_event_id = retype(realm_id, "event")`（[`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)、
+[`../models/common-fields.md` §6.0](../models/common-fields.md)），取回该 `ak.realm.create` Event `C`
+并按 §4.0 重算其 content-bound `event_id`，MUST 与派生值逐字相等。候选 Seal `S` **MUST** 同时满足
+才可被接纳为该 Realm 的 anchor：
+
+1. `S.realm_id` 等于 `realm_id`；
+2. `S.predecessor_refs` 为空（genesis）；
+3. `S.delta[]` 含 `C` 的 `event_digest`；
+4. `S.notary_signature` 按 [`../authz/event-auth-state-resolution.md` §6.3](../authz/event-auth-state-resolution.md)
+   的 genesis 例外，用 `C.payload.object.notary` 求值的 notary authority 验签通过。
+
+任一条不成立 MUST 拒绝且 MUST NOT pin。`C` 的内容绑定 ID 与 `realm_id` 同源，因此本判定不依赖
+任何一方对「哪个 Seal 是 genesis」的断言：客户端拿 `realm_id` 就能独立认出 `C`。
+
+**T2 —— PCR 的 identity-root 锚。** Principal Control Realm 的 `realm_id` 由 principal DID 派生而
+不由 genesis Event 派生（§2.5.0 例外），T1 的 create 派生不适用。PCR 的候选 genesis Seal MUST 覆盖
+该 principal 唯一 critical `did_inception` root anchor unit
+（[`../identity/key-management.md` §5.0.1](../identity/key-management.md)）；客户端 MUST 用该 principal
+的 DID 与已验证 inception 校验该 anchor Event，再按同一 genesis notary 规则验签。
+
+**T3 —— 已验证后继（pin 前移）。** 客户端已信任锚 `A` 后，任何经完整 Seal path 校验为 `A` 后继的
+Seal（含 compaction Seal）MAY 取代 `A` 成为新 pin。这是唯一合法的换锚路径。anchor 不可达时客户端
+MAY 改用自己 trust store 里更旧的锚重试，或改向另一授权 proof service 请求，MUST NOT 因服务端建议
+换锚。
+
+**三条覆盖全部首次场景**：Realm 创建者、被邀请者、同一 principal 的新设备、以及本地状态丢失后从
+key backup 恢复的设备，都只需要知道 `realm_id`（PCR 则是 principal DID）——它们各自的认证路径本来
+就提供这一项。因此 `ak.mls.welcome`、key backup 与设备配对包 **MUST NOT** 为携带 anchor 而新增
+字段：那会制造第二个信任源，且都弱于 T1/T2 的自证。
+
+取回 `C` 与 `S` 走 `ak.self.events.read.resolve`：按派生的 `create_event_id` 解析 Event，响应的
+`seals[]` 给出覆盖它的 Seal（[`../sync/service-http-binding.md` §4](../sync/service-http-binding.md)）。
+该响应同样不产生信任——它只是候选来源，判定仍在 T1/T2。
+
+本节的 conformance 入口是 `ak.vector.mls.governance_proof.verifier.v1`：其 mutation matrix MUST 覆盖
+「以服务端 observed head 为锚」「候选 genesis 不覆盖派生出的 create Event」「候选 genesis 的 notary
+不是 create payload 指定的 notary」三条负例，且都 MUST 在写入 trust store 前失败。
 ### 2.6 KeyPackage Claim 生命周期
 
 Native Agent 的 claimed-endpoint trust binding 由 conformance vector `ak.vector.agent.mls_keypackage_authorization.v1` 固化。
