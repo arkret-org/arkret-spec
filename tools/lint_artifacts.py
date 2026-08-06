@@ -4002,6 +4002,16 @@ def check_fixture_runner_contract(lint: Lint) -> None:
 # reference (`applet.command.install`'s `registration_event`).
 SIGNED_EVENT_REQUEST_MARKERS = ("EventInitialSubmission", "event-envelope.schema.json")
 
+# `actor_private_event` is in scope for the same reason `event_log` is.
+# `event-and-patch.md` §342 is explicit: actor-private "只表示状态可见性与归属，不表示
+# 可以省略持久化、CAS、签名 envelope 或重放校验". It is still a signed Event, so the
+# service still cannot produce the signature.
+#
+# Scoping this check to `event_log` alone hid `ak.self.account_data.resource.delete`,
+# whose sibling `resource.replace` writes the same `ak.account_data.set` kind — the same
+# "adding is an Event, removing is not" asymmetry the circle and realm_link DELETEs have.
+EVENT_AUTHORING_DURABLE_EFFECT_KINDS = ("event_log", "actor_private_event")
+
 # The operations still in that state, each with what it would take to close it.
 # This list may only shrink: an entry that starts carrying a signed Event fails as
 # stale, and a new event_log operation cannot be added without one.
@@ -4013,6 +4023,29 @@ SIGNED_EVENT_REQUEST_MARKERS = ("EventInitialSubmission", "event-envelope.schema
 # cell/lattice, i.e. it never enters state_root and no peer has to converge on it.
 # See arkret-work/work/active/2026-08-06-event-log-operations-need-a-signed-request.md.
 EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
+<<<<<<< HEAD
+=======
+    # actor_private_event, all three writing a kind whose actor-private cell subject
+    # is composite[envelope.actor_id, ...]. The subject *is* the actor, so the actor
+    # cannot be the service: soland signs these with the service DID and
+    # `payload.owner` (the real user) is not part of the subject, which collapses
+    # every user's account data for one key into a single cell under the service DID,
+    # sharing one `server_revision_cas` counter. See the account_data finding in
+    # arkret-work/work/active/2026-08-06-event-log-operations-need-a-signed-request.md.
+    "ak.self.account_data.resource.replace": (
+        "actor-private subject is composite[envelope.actor_id, payload.key], so the owner must "
+        "sign; soland authors it as the service DID instead"
+    ),
+    "ak.self.account_data.resource.delete": (
+        "same kind and same cell as resource.replace, and a DELETE with no body cannot carry the "
+        "owner's signature at all"
+    ),
+    "ak.self.read_cursor.command.advance": (
+        "actor-private subject includes envelope.actor_id; needs the caller-signed "
+        "ak.read_cursor.advance"
+    ),
+    "ak.self.circle.member.command.add": "needs the caller-signed member Event",
+>>>>>>> 0012d69f (spec: hold actor_private_event to the same signed-request rule)
     "ak.self.circle.member.resource.delete": (
         "DELETE with no request body today; the shape decision is made (give it a body, as "
         "ak.self.keys.backups.resource.delete already does) but not yet landed"
@@ -4106,7 +4139,10 @@ def check_event_log_operations_carry_a_signed_event(lint: Lint) -> None:
         if not isinstance(operation, dict):
             continue
         effect = operation.get("durable_effect")
-        if not isinstance(effect, dict) or effect.get("kind") != "event_log":
+        if (
+            not isinstance(effect, dict)
+            or effect.get("kind") not in EVENT_AUTHORING_DURABLE_EFFECT_KINDS
+        ):
             continue
         operation_id = operation.get("operation_id")
         if not isinstance(operation_id, str):
