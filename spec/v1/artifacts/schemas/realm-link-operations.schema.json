@@ -2,10 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-link-operations.schema.json",
   "title": "Arkret Realm Link Self-Management Operation DTOs",
-  "description": "Closed request/response DTOs for the self-surface cross-Realm link operations (ak.self.realm_link.*). Each write builds a ak.realm.link Move and routes it through the local accept pipeline so the reducer validates self-reference and link kind. General link-graph cycles are legal; traversal uses a visited set and does not reject a write merely for forming a cycle. The durable link payload is the canonical ak.realm.link; see spec/v1/zh/models/realm-links.md.",
+  "description": "Closed request/response DTOs for the self-surface cross-Realm link operations (ak.self.realm_link.*). Each write carries the caller-signed ak.realm.link Move and the service submits those exact bytes through ordinary Event admission, so the reducer still validates self-reference, link kind and the FSM transition. General link-graph cycles are legal; traversal uses a visited set and does not reject a write merely for forming a cycle. The durable link payload is the canonical ak.realm.link; see spec/v1/zh/models/realm-links.md.",
   "anyOf": [
     {
       "$ref": "#/$defs/realm_link_create_request_body"
+    },
+    {
+      "$ref": "#/$defs/realm_link_delete_request_body"
     },
     {
       "$ref": "#/$defs/realm_link_list"
@@ -89,28 +92,86 @@
       },
       "additionalProperties": false
     },
+    "realm_link_event_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.realm.link"
+                }
+              },
+              "required": [
+                "kind",
+                "realm_id"
+              ]
+            }
+          },
+          "required": [
+            "event"
+          ]
+        }
+      ],
+      "description": "Shared submission shape for both cross-Realm link writes. Create and tombstone are the same Event kind writing the same (realm_id, target_realm_id, link_kind) FSM cell, so they share one submission def and differ only in the status their payload names. These operations used to take the edge fields directly, which left the signature for the service to add -- exactly what capabilities.md sections 118/361 and key-management.md section 411 forbid. The source Realm is single-sourced by event.realm_id and MUST equal the path realm_id; the rest of the edge is event.payload (realm_link_payload). The service MUST submit these exact bytes through ordinary Event admission and MUST NOT co-sign, rebuild or synthesize the Event; admission MUST verify that event.actor_id is the authenticated caller, and rejects self-reference with schema_violation + realm_link_self_reference and an illegal FSM transition with failed_precondition + realm_link_invalid_transition. Because the payload names the status the edge is moving to, a concurrent write on the same triple makes the later submission fail its transition check rather than silently overwriting."
+    },
     "realm_link_create_request_body": {
       "type": "object",
+      "description": "Carries the caller-signed ak.realm.link Move and nothing else. target_realm_id, link_kind, status and the optional label / commitment all live in link_event.event.payload.",
       "required": [
-        "target_realm_id",
-        "link_kind"
+        "link_event"
       ],
       "properties": {
-        "target_realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "link_kind": {
-          "$ref": "#/$defs/link_kind"
-        },
-        "status": {
-          "$ref": "#/$defs/link_status",
-          "default": "active"
-        },
-        "label": {
-          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
-        },
-        "commitment": {
-          "type": "string"
+        "link_event": {
+          "$ref": "#/$defs/realm_link_event_submission",
+          "description": "Closed ak.realm.link Event authored and signed by the authenticated caller."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_link_delete_request_body": {
+      "type": "object",
+      "description": "Carries the caller-signed tombstoning ak.realm.link Move and nothing else. The edge is single-sourced by link_event.event.payload: target_realm_id MUST equal the path target_realm_id, and link_kind is named there rather than in a query parameter, because a query parameter is outside the bytes the caller signs. Deleting an edge is the same durable Event kind as creating one -- every peer has to converge on the removal too -- so this operation keeps its event_log effect.",
+      "required": [
+        "link_event"
+      ],
+      "properties": {
+        "link_event": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/realm_link_event_submission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "payload": {
+                      "properties": {
+                        "status": {
+                          "const": "tombstoned"
+                        }
+                      },
+                      "required": [
+                        "target_realm_id",
+                        "link_kind",
+                        "status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "payload"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ]
+            }
+          ],
+          "description": "Closed ak.realm.link Event authored and signed by the authenticated caller, with payload.status pinned to tombstoned."
         }
       },
       "additionalProperties": false

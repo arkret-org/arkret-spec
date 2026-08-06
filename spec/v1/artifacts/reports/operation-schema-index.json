@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.15",
+  "version": "2026-08-06.16",
   "source_of_truth": false,
-  "generated_at": "2026-08-07T01:30:00Z",
+  "generated_at": "2026-08-07T02:30:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7090,15 +7090,10 @@
         "schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body",
         "schema_kind": "object",
         "required": [
-          "target_realm_id",
-          "link_kind"
+          "link_event"
         ],
         "properties": [
-          "target_realm_id",
-          "link_kind",
-          "status",
-          "label",
-          "commitment"
+          "link_event"
         ],
         "closed": true
       },
@@ -7123,6 +7118,17 @@
     {
       "operation_id": "ak.self.realm_link.resource.delete",
       "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_delete_request_body",
+        "schema_kind": "object",
+        "required": [
+          "link_event"
+        ],
+        "properties": [
+          "link_event"
+        ],
+        "closed": true
+      },
       "response": {
         "schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
         "schema_kind": "object",
@@ -7217,15 +7223,10 @@
         "schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body",
         "schema_kind": "object",
         "required": [
-          "policy_server_did",
-          "policy_server_url"
+          "policy_server_event"
         ],
         "properties": [
-          "policy_server_did",
-          "policy_server_url",
-          "cache_ttl_seconds",
-          "timeout_ms",
-          "on_timeout"
+          "policy_server_event"
         ],
         "closed": true
       },
@@ -7251,6 +7252,21 @@
           "on_timeout",
           "updated_at",
           "from_org_fallback"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.realm_policy_server.resource.delete",
+      "success_shape_kind": "empty_response",
+      "request": {
+        "schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_delete_request_body",
+        "schema_kind": "object",
+        "required": [
+          "policy_server_event"
+        ],
+        "properties": [
+          "policy_server_event"
         ],
         "closed": true
       }

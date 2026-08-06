@@ -4036,15 +4036,7 @@ EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
         "DELETE with no request body today; the shape decision is made (give it a body, as "
         "ak.self.keys.backups.resource.delete already does) but not yet landed"
     ),
-    "ak.self.realm_link.command.create": (
-        "same shape as circle.create; soland mints the Realm id this Event would derive"
-    ),
-    "ak.self.realm_link.resource.delete": "DELETE with no request body today; shape decided, not landed",
     "ak.self.realm.moderation_policy.resource.replace": "payload-only request",
-    "ak.self.realm_policy_server.resource.replace": "payload-only request",
-    "ak.self.realm_policy_server.resource.delete": (
-        "DELETE with no request body today; shape decided, not landed"
-    ),
     "ak.self.account.command.update_profile": "needs the caller-signed profile Event",
     "ak.self.moderation.command.report": "needs the caller-signed report Event",
     "ak.self.applet.command.revoke": (

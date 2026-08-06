@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.15",
+  "version": "2026-08-06.16",
   "source_of_truth": false,
-  "generated_at": "2026-08-07T01:30:00Z",
+  "generated_at": "2026-08-07T02:30:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -21,10 +21,9 @@
     "total_operations": 222,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "no_request_body": 1,
       "service_describe": 5,
       "streaming_frame_schema": 3,
-      "typed_schema": 211
+      "typed_schema": 212
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -37,10 +36,9 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "no_request_body": 1,
         "service_describe": 1,
         "streaming_frame_schema": 1,
-        "typed_schema": 142
+        "typed_schema": 143
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -2846,13 +2844,14 @@
       "surface_class": "extension",
       "http": "DELETE /_arkret/self/realms/{realm_id}/links/{target_realm_id}",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
+      "request_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_delete_request_body",
       "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
       "openapi_component_refs": {
+        "request": "#/components/schemas/RealmLinkDeleteRequestBody",
         "response": "#/components/schemas/RealmLinkMutationOutcome"
       },
       "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.realm_organization.query.list",
@@ -2872,11 +2871,13 @@
       "surface_class": "extension",
       "http": "DELETE /_arkret/self/realms/{realm_id}/policy-server",
       "success_shape_kind": "empty_response",
-      "request_schema_ref": null,
+      "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_delete_request_body",
       "response_schema_ref": null,
-      "openapi_component_refs": {},
-      "completeness_class": "no_request_body",
-      "reason": "read-only operation with no request body and no typed JSON response component in OpenAPI."
+      "openapi_component_refs": {
+        "request": "#/components/schemas/RealmPolicyServerDeleteRequestBody"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request."
     },
     {
       "operation_id": "ak.self.realm_policy_server.resource.get",

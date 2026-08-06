@@ -2197,6 +2197,8 @@ components:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view
     RealmLinkCreateRequestBody:
       $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body
+    RealmLinkDeleteRequestBody:
+      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_delete_request_body
     RealmLinkList:
       $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_list
     RealmLinkMutationOutcome:
@@ -2207,6 +2209,8 @@ components:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body
     RealmOrganizationRelationshipList:
       $ref: ../schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list
+    RealmPolicyServerDeleteRequestBody:
+      $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_delete_request_body
     RealmPolicyServerReplaceRequestBody:
       $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body
     RealmPolicyServerView:
@@ -8009,7 +8013,8 @@ paths:
       - bearerAuth: []
       summary: Submit a ak.realm.link Move.
       description: |
-        Builds a ak.realm.link from realm_id to target_realm_id. The reducer
+        Submits the caller-signed ak.realm.link from realm_id to
+        target_realm_id; the service MUST NOT co-sign or rebuild it. The reducer
         runs realm_link_* validators (cycle detection, self-reference, kind
         validation); a rejected payload returns 422 with the canonical reason
         code.
@@ -8039,8 +8044,9 @@ paths:
       - bearerAuth: []
       summary: Tombstone a ak.realm.link.
       description: |
-        Writes a tombstoning Move (status=tombstoned). link_kind defaults to
-        governed_by; override via the link_kind query param.
+        Submits the caller-signed tombstoning Move (payload.status=tombstoned).
+        link_kind is named in the signed payload, not a query parameter: a query
+        parameter is outside the bytes the caller signs.
       parameters:
       - in: path
         name: realm_id
@@ -8052,11 +8058,12 @@ paths:
         required: true
         schema:
           type: string
-      - name: link_kind
-        in: query
-        required: false
-        schema:
-          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmLinkDeleteRequestBody'
       responses:
         '200':
           description: Realm link tombstoned.
@@ -8150,12 +8157,22 @@ paths:
       security:
       - bearerAuth: []
       summary: Submit a durable ak.realm.policy_server Move with payload {tombstone:true}.
+      description: |
+        The removal is a signed Event, so this DELETE carries a request body the
+        way ak.self.keys.backups.resource.delete already does. The caller
+        attaches the head_eq precondition naming the settled declaration.
       parameters:
       - in: path
         name: realm_id
         required: true
         schema:
           type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmPolicyServerDeleteRequestBody'
       responses:
         '200':
           description: Realm policy-server direct config tombstoned, or an existing tombstone replayed idempotently (empty body).

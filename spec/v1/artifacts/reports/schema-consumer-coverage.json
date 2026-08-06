@@ -2639,6 +2639,7 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
+          "ak.self.realm_policy_server.resource.delete",
           "ak.self.realm_policy_server.resource.get",
           "ak.self.realm_policy_server.resource.replace"
         ],

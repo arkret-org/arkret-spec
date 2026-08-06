@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.15",
+  "version": "2026-08-06.16",
   "source_of_truth": true,
-  "generated_at": "2026-08-07T01:30:00Z",
+  "generated_at": "2026-08-07T02:30:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -13338,7 +13338,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/links",
         "grpc": "SelfRealmLink/Create",
         "mq": "self.realm_link.command.create",
-        "notes": "Builds an ak.realm.link Control Move from realm_id -> target_realm_id. General directed cycles are valid and traversal uses a visited set; admission rejects only self-reference, invalid kind, invalid payload, or an illegal FSM transition. Self-reference returns schema_violation with reason_code realm_link_self_reference; an illegal transition returns failed_precondition with reason_code realm_link_invalid_transition.",
+        "notes": "Submits the caller-signed ak.realm.link Control Move from realm_id -> target_realm_id; the service MUST NOT co-sign, rebuild or synthesize it. The edge is event.payload and the source Realm is event.realm_id, which MUST equal the path realm_id. General directed cycles are valid and traversal uses a visited set; admission rejects only self-reference, invalid kind, invalid payload, or an illegal FSM transition. Self-reference returns schema_violation with reason_code realm_link_self_reference; an illegal transition returns failed_precondition with reason_code realm_link_invalid_transition.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13361,11 +13361,12 @@
         "http": "DELETE /_arkret/self/realms/{realm_id}/links/{target_realm_id}",
         "grpc": "SelfRealmLink/Delete",
         "mq": "self.realm_link.resource.delete",
-        "notes": "Writes a tombstoning ak.realm.link Move (status=tombstoned) for the (realm_id, target_realm_id, link_kind) triple. link_kind defaults to governed_by; callers may override via the link_kind query param.",
+        "notes": "Submits the caller-signed tombstoning ak.realm.link Move (payload.status=tombstoned) for the (realm_id, target_realm_id, link_kind) triple; the service MUST NOT co-sign, rebuild or synthesize it. link_kind is named in the signed payload rather than a query parameter, because a query parameter is outside the bytes the caller signs; payload.target_realm_id MUST equal the path target_realm_id. Removing an edge is the same durable Event kind as creating one, so this operation keeps its event_log effect.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
+        "request_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_delete_request_body",
         "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
         "durable_effect": {
           "kind": "event_log",
@@ -13409,7 +13410,7 @@
         "http": "PUT /_arkret/self/realms/{realm_id}/policy-server",
         "grpc": "SelfRealmPolicyServer/Replace",
         "mq": "self.realm_policy_server.resource.replace",
-        "notes": "Builds a durable ak.realm.policy_server Move whose payload is the closed request body (admission capability ak.policy.manage). Reducer validates the DID, canonical HTTPS policy-check URL and on_timeout enum. When the direct cell already has a settled declaration or tombstone, the Move MUST carry head_eq for that complete value; an absent direct cell is the only initial write.",
+        "notes": "Submits the caller-signed durable ak.realm.policy_server declaration Move (admission capability ak.policy.manage); the service MUST NOT co-sign, rebuild or synthesize it. The declaration is event.payload and the Realm is event.realm_id, which MUST equal the path realm_id. Reducer validates the DID, canonical HTTPS policy-check URL and on_timeout enum. When the direct cell already has a settled declaration or tombstone, the Move MUST carry head_eq for that complete value and the caller attaches it, because preconditions are inside the signed bytes; an absent direct cell is the only initial write.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13428,11 +13429,12 @@
         "http": "DELETE /_arkret/self/realms/{realm_id}/policy-server",
         "grpc": "SelfRealmPolicyServer/Delete",
         "mq": "self.realm_policy_server.resource.delete",
-        "notes": "After ak.policy.manage admission, a settled direct declaration is deleted by a durable ak.realm.policy_server Move with the exact payload {\"tombstone\":true} and head_eq for the complete declaration. The registered cas_register effect sets that value in the per-Realm cell; effective reads then ignore the direct binding and resume governed_by fallback or local-only capability evaluation. Repeating DELETE against a settled tombstone is an idempotent empty success and MUST NOT change the cell or state_root. A never-written or inherited-only direct cell returns not_found and MUST NOT mutate an ancestor.",
+        "notes": "After ak.policy.manage admission, a settled direct declaration is deleted by the caller-signed durable ak.realm.policy_server Move with the exact payload {\"tombstone\":true} and head_eq for the complete declaration; the service MUST NOT co-sign, rebuild or synthesize it, which is why this DELETE carries a request body the way ak.self.keys.backups.resource.delete already does. The registered cas_register effect sets that value in the per-Realm cell; effective reads then ignore the direct binding and resume governed_by fallback or local-only capability evaluation. Repeating DELETE against a settled tombstone is an idempotent empty success and MUST NOT change the cell or state_root. A never-written or inherited-only direct cell returns not_found and MUST NOT mutate an ancestor.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "empty_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
+        "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_delete_request_body",
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": [
