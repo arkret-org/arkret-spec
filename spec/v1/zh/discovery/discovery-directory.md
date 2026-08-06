@@ -454,8 +454,8 @@ Directory MUST NOT 索引任何**未通过 §8 ingest protocol opt-in 的**资�
 任何符合 v1 的 Directory 实现 MUST 满足：
 
 1. **Rebuildable**：丢失全部本地索引后，Directory 必须能仅凭 `directory_services` 列出本 DID 的资源 + ingest protocol 重建索引内容。Directory 不得持有任何不可从真相源恢复的"权威"数据。
-2. **Pluralizable**：同一资源 opt-in 多家 Directory 时，针对同一 `(resource_id, source_refs frontier, policy_revision)` 的查询结果 MUST 在 §9.1 normative 字段上一致；不一致 MUST 标记为 `stale=true` 或 `divergent=true`。
-3. **Freshness-tagged**：每条返回结果 MUST 携带 `as_of`、`source_refs`、`policy_revision`；TTL 过期未续约的 entry MUST 标记 `stale=true` 或被移除（见 §8.6）。
+2. **Pluralizable**：同一资源 opt-in 多家 Directory 时，针对同一 `(resource_id, source_refs frontier, policy_revision)` 的查询结果 MUST 在 §9.1 normative 字段上一致；不一致 MUST 标记为 `stale=true` 或 `divergent=true`。缺省的 `source_refs` 在该元组里就是空 frontier，与任何非空 frontier 都不相等——两家 Directory 只有在都不可验证时才算同一 frontier。
+3. **Freshness-tagged**：每条返回结果 MUST 携带 `as_of` 与 `policy_revision`。`source_refs` 是**可验证性**字段，不是格式字段：entry 有 Event 来源时 MUST 携带它，让消费者能回真相源自行验签；没有 Event 来源时 MUST 整个省略该成员。实现 MUST NOT 为一条自己从未 author 的 Event 铸造 id，也 MUST NOT 用空数组冒充（schema 保持 `minItems: 1`，所以"存在但为空"不是一种合规形态）。一个伪造的 `source_refs` 比缺省更坏：它看起来可验证，消费者会拿它去解析一个不存在的 Event。消费者 MUST 把缺省的 `source_refs` 当作"该 entry 此刻不可独立验证"，而不是当作已验证。TTL 过期未续约的 entry MUST 标记 `stale=true` 或被移除（见 §8.6）。
 4. **Withdrawable**：资源 governance 通过 §8.7 撤销 opt-in 后，Directory MUST 在 ≤ 1h 内停止披露该资源。
 5. **Plaintext-free**：Directory MUST NOT 持有或转发 Realm 内 plaintext content、E2EE 密文 payload、私 persona DID、pairwise DID 或 governance 密钥材料。
 6. **No-shadow-grant**：Directory MUST NOT 签发 invite token、capability grant、session credential 或任何能绕过 Realm / Organization policy 的认证材料。

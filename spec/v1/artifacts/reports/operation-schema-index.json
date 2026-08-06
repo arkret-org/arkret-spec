@@ -3373,7 +3373,6 @@
         "required": [
           "target_kind",
           "as_of",
-          "source_refs",
           "policy_revision"
         ],
         "properties": [
