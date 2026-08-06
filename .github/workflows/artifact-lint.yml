@@ -17,6 +17,17 @@ jobs:
           python-version: "3.x"
       - name: Install lint dependencies
         run: python -m pip install jsonschema pyyaml
+      # A gate nobody has seen fail is indistinguishable from a gate that
+      # matches nothing. These are the lints' own mutation tests: each one
+      # corrupts an artifact the way it was really corrupted once and asserts the
+      # lint rejects it. They existed before this step and ran nowhere.
+      - name: Run lint self-tests
+        run: |
+          set -e
+          for test in tools/test_*.py; do
+            echo "=== $test ==="
+            python "$test"
+          done
       - name: Run unified artifact pipeline
         run: python tools/artifact_pipeline.py check
 

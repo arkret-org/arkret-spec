@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import copy
 import argparse
+import binascii
 import json
 import base64
 import hashlib
@@ -1696,29 +1697,128 @@ def lint_conflict_recovery_write(lint, event_path, write_ref, kind, write):
             )
 
 
+# encoding.md §9.5.1 closes the set of Event Envelope fields a registered cell
+# subject may read.
+#
+# `envelope.actor_id` is the accountable actor. `envelope.event_id` is
+# Event-derived object identity: the created object's id is the create Event's
+# own event_id retyped to the kind declared by `cell_subject.kind`
+# (zh/models/common-fields.md), the payload MUST NOT carry the id, so the
+# envelope is the only legal source and no second truth exists.
+#
+# One constant, three consumers: this per-occurrence lint, the prose sentence in
+# §9.5.1, and the set the registry actually uses. `check_envelope_subject_source_whitelist`
+# reconciles all three — §9.5.1 once forbade `envelope.event_id` outright while
+# six registered create kinds were already using it, and both sides passed the
+# release gate.
+ENVELOPE_SUBJECT_SOURCES = ("envelope.actor_id", "envelope.event_id")
+
+# Envelope fields §9.5.1 names as explicitly forbidden. Called out separately
+# because "absent from the whitelist" and "named as a trap" are different
+# statements, and the trap is what the prose spends words on.
+ENVELOPE_SUBJECT_FORBIDDEN = ("envelope.realm_id", "envelope.executed_by")
+
+
 def lint_subject_field_path(lint: Lint, path: Path, ref: str, value: object) -> None:
     """Validate an explicitly sourced cell-subject field path."""
     lint_field_path(lint, path, ref, value)
     if not isinstance(value, str) or FIELD_PATH_RE.fullmatch(value) is None:
         return
-    if value.startswith("payload."):
-        return
-    if value == "envelope.actor_id":
-        return
-    if value == "envelope.event_id":
-        # Event-derived object identity: the created object's id is the create
-        # Event's own event_id retyped to the kind declared by cell_subject.kind
-        # (zh/models/common-fields.md). The payload MUST NOT carry the id, so the
-        # envelope is the only legal source and no second truth exists.
+    if value.startswith("payload.") or value in ENVELOPE_SUBJECT_SOURCES:
         return
     if value.startswith("envelope."):
         lint.fail(path, f"{ref} uses an unregistered envelope source: {value!r}")
         return
     lint.fail(
         path,
-        f"{ref} must use an explicit payload.*, envelope.actor_id or "
-        f"envelope.event_id source: {value!r}",
+        f"{ref} must use an explicit payload.* or "
+        f"{' / '.join(ENVELOPE_SUBJECT_SOURCES)} source: {value!r}",
     )
+
+
+def check_envelope_subject_source_whitelist(lint: Lint) -> None:
+    """Reconcile the §9.5.1 prose whitelist with what the registry actually uses.
+
+    Three statements of the same closed set have to agree: the sentence in
+    `encoding.md` §9.5.1, [`ENVELOPE_SUBJECT_SOURCES`], and the envelope sources
+    the registry really reads. Nothing compared them before, and they diverged:
+    §9.5.1 forbade `envelope.event_id` as a cell subject in prose while six
+    registered create kinds were already using it, and the release gate was green
+    on both sides — the per-occurrence lint only ever checked each registry row
+    against its own hard-coded copy of the list.
+
+    An unused whitelist entry fails too. A permission the registry does not
+    exercise is exactly the state that lets the prose and the registry drift
+    apart unnoticed.
+    """
+    prose_path = SPEC_ROOT / "zh" / "conformance" / "encoding.md"
+    if not prose_path.exists():
+        lint.fail(prose_path, "encoding.md is missing")
+        return
+    text = read_text(prose_path)
+
+    # The sentence that states the whitelist. Anchored on the phrase rather than a
+    # section digest so rewording the surrounding paragraph stays free, while
+    # deleting or renaming the whitelist sentence fails loudly.
+    sentence = next(
+        (line for line in text.splitlines() if "envelope 来源白名单" in line),
+        None,
+    )
+    if sentence is None:
+        lint.fail(
+            prose_path,
+            "§9.5.1 must keep a sentence naming the closed `envelope 来源白名单`; "
+            "the machine check reads its members from there",
+        )
+        return
+    prose_sources = set(re.findall(r"`(envelope\.[A-Za-z0-9_.]+)`", sentence))
+    declared = set(ENVELOPE_SUBJECT_SOURCES)
+    forbidden = set(ENVELOPE_SUBJECT_FORBIDDEN)
+    if prose_sources != declared | forbidden:
+        lint.fail(
+            prose_path,
+            "§9.5.1 whitelist sentence names "
+            f"{sorted(prose_sources)} but the lint declares whitelist="
+            f"{sorted(declared)} forbidden={sorted(forbidden)}",
+        )
+
+    # What the registry actually reads. Only `registry/`: a fixture negative case
+    # legitimately names a forbidden source in order to assert its rejection.
+    used: dict[str, list[str]] = {}
+
+    def collect(node: Any, owner: Path, json_path: str) -> None:
+        if isinstance(node, dict):
+            for key, child in node.items():
+                collect(child, owner, f"{json_path}.{key}")
+        elif isinstance(node, list):
+            for index, child in enumerate(node):
+                collect(child, owner, f"{json_path}[{index}]")
+        elif isinstance(node, str) and node.startswith("envelope."):
+            used.setdefault(node, []).append(f"{owner.name}{json_path}")
+
+    for registry_path in sorted((ARTIFACTS / "registry").glob("*.json")):
+        registry = load_json(lint, registry_path)
+        if registry is not None:
+            collect(registry, registry_path, "$")
+
+    for source, where in sorted(used.items()):
+        if source in forbidden:
+            lint.fail(
+                ARTIFACTS / "registry",
+                f"§9.5.1 forbids {source} as a subject source but the registry reads it at "
+                f"{where[0]}",
+            )
+        elif source not in declared:
+            lint.fail(
+                ARTIFACTS / "registry",
+                f"registry reads unregistered envelope source {source} at {where[0]}",
+            )
+    for source in sorted(declared - set(used)):
+        lint.fail(
+            prose_path,
+            f"§9.5.1 whitelists {source} but no registered cell subject reads it; "
+            "a permission nothing exercises is how the prose and the registry drifted apart",
+        )
 
 
 def lint_cell_write_condition(lint: Lint, path: Path, ref: str, condition: object) -> None:
@@ -8663,6 +8763,96 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
     )
 
 
+# --- stated preimage <-> stated digest ---------------------------------------
+#
+# `(preimage key, digest key, how the preimage is encoded, how the digest is
+# written, domain-separator prefix)`. One row per fixture family that spells out
+# both halves of a hash beside each other.
+#
+# The prefix is part of the check on purpose: for the Applet registration epoch
+# the digest is only reachable through `arkret-applet-registration-epoch-v1\n`,
+# so pinning the pair pins the domain separator too.
+STATED_PREIMAGE_DIGEST_PAIRS: tuple[tuple[str, str, str, str, str], ...] = (
+    ("expected_canonical_bytes_utf8", "expected_subject", "utf8", "base64url", ""),
+    ("expected_canonical_bytes_utf8", "expected_digest", "utf8", "sha256_hex", ""),
+    ("tag_preimage_utf8", "batch_tag", "utf8", "base64url", ""),
+    ("scope_preimage_utf8", "scope_set_component", "utf8", "base64url", ""),
+    ("canonical_event_payload", "event_digest", "utf8", "sha256_hex", ""),
+    ("digest_preimage_canonical_bytes_utf8", "event_digest", "utf8", "sha256_hex", ""),
+    (
+        "canonical_bytes_utf8",
+        "expected_registration_epoch",
+        "utf8",
+        "sha256_hex",
+        "arkret-applet-registration-epoch-v1\n",
+    ),
+    ("canonical_bytes_base64url", "digest", "base64url", "sha256_hex", ""),
+)
+
+# Keys that state canonical bytes but carry no digest the lint can check them
+# against. Every one needs a reason, because "no digest beside it" is also what a
+# silently deleted digest looks like.
+UNPAIRED_STATED_PREIMAGE_KEYS: dict[str, str] = {
+    "canonical_preimage": (
+        "symbolic candidate label ('A', 'B') in the Seal tie-break vector, not bytes"
+    ),
+    "canonical_preimage_equal_to": (
+        "names another candidate's label: an equality assertion between two vector rows"
+    ),
+    "forbidden_legacy_preimage": (
+        "names the retired preimage form a v1 implementation MUST NOT use; hashing it "
+        "is the failure, not the expectation"
+    ),
+    "effect_op_canonical_bytes": (
+        "ordered-log op transcript bytes; the vector pins the op ordering, and no digest "
+        "over these bytes is registered"
+    ),
+    "decoded_payload_canonical_bytes_utf8": (
+        "cursor payload; the sibling `input_cursor` is its base64url encoding, not a digest"
+    ),
+    "expected_metadata_canonical_bytes_utf8": (
+        "the digest beside it is composite (metadata bytes || ciphertext) and is checked "
+        "by check_encrypted_envelope_digest_vector"
+    ),
+    "event_preimage_digest": "a digest field, not a stated preimage",
+    "public_key_canonical_bytes": (
+        "carries the assertion word 'stable' in the device-pairing edge case, not bytes"
+    ),
+}
+
+# `schema-validation-fixture.json` asserts JSON-Schema admissibility and nothing
+# else: every digest in it is a shaped placeholder (`sha256:5555…`), which is
+# correct for its purpose and meaningless to hash-check. Digest relations inside
+# those instances are enforced by implementations at runtime -- e.g. the SDK's
+# `CanonicalPublicMaterial::validate_structural` -- not by this gate.
+PLACEHOLDER_DIGEST_FIXTURES = {"schema-validation-fixture.json"}
+
+# The naming convention for "this string is canonical preimage bytes". The pair
+# table above MAY register key names outside the convention (`canonical_event_payload`);
+# the convention is what the completeness guard enumerates.
+STATED_PREIMAGE_KEY_RE = re.compile(r"preimage|canonical_bytes")
+
+
+def _stated_preimage_bytes(source: str, decoding: str) -> bytes | None:
+    if decoding == "utf8":
+        return source.encode("utf-8")
+    if decoding == "base64url":
+        try:
+            return base64.urlsafe_b64decode(source + "=" * (-len(source) % 4))
+        except (ValueError, binascii.Error):
+            return None
+    raise AssertionError(f"unknown stated-preimage decoding: {decoding}")
+
+
+def _stated_digest(data: bytes, encoding: str) -> str:
+    digest = hashlib.sha256(data).digest()
+    if encoding == "sha256_hex":
+        return "sha256:" + digest.hex()
+    if encoding == "base64url":
+        return base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
+    raise AssertionError(f"unknown stated-digest encoding: {encoding}")
+
+
 def check_stated_preimage_matches_stated_digest(lint: Lint) -> None:
     """Every fixture that spells out a preimage MUST hash to the digest beside it.
 
@@ -8670,16 +8860,23 @@ def check_stated_preimage_matches_stated_digest(lint: Lint) -> None:
     hashes it and compares. When an id inside the preimage changes and the digest
     beside it does not, the vector still *looks* authoritative while pinning a
     value nothing can produce — which is exactly how the v1 id-form change left
-    stale `expected_subject` / `batch_tag` values behind. Checking the pair here
-    makes that state unreachable.
+    stale `expected_subject` / `batch_tag` values behind.
+
+    Checking the two pairs that were caught by hand only made *those two* pairs
+    unreachable. The recurring failure is a fixture family nobody thought to add,
+    so this check has two halves:
+
+    * every registered `(preimage, digest)` pair must agree wherever both keys
+      sit in one node — the same rule extended from 2 to 8 families, including
+      the two Event-digest families (`canonical_event_payload`,
+      `digest_preimage_canonical_bytes_utf8`) where a vector once hashed the
+      envelope instead of the preimage; and
+    * every key that *states* canonical preimage bytes must be registered,
+      either as a pair source or as a documented unpaired key. A new fixture
+      family cannot arrive with an unchecked preimage.
     """
 
-    pairs = (
-        ("expected_canonical_bytes_utf8", "expected_subject"),
-        ("tag_preimage_utf8", "batch_tag"),
-    )
-
-    def walk(node: Any, fixture_path: Path) -> None:
+    def walk(node: Any, fixture_path: Path, placeholder_digests: bool) -> None:
         if isinstance(node, dict):
             components = node.get("components_array")
             if isinstance(components, list) and isinstance(node.get("expected_subject"), str):
@@ -8690,27 +8887,52 @@ def check_stated_preimage_matches_stated_digest(lint: Lint) -> None:
                         f"'expected_subject'={node['expected_subject']} but "
                         f"'components_array' hashes to {recomputed}",
                     )
-            for source_key, digest_key in pairs:
-                source = node.get(source_key)
-                digest = node.get(digest_key)
-                if isinstance(source, str) and isinstance(digest, str):
-                    recomputed = sha256_base64url_text(source)
-                    if recomputed != digest:
+            for key, value in node.items():
+                if not isinstance(value, str) or not STATED_PREIMAGE_KEY_RE.search(key):
+                    continue
+                registered = key in UNPAIRED_STATED_PREIMAGE_KEYS or any(
+                    key == source for source, *_ in STATED_PREIMAGE_DIGEST_PAIRS
+                )
+                if not registered:
+                    lint.fail(
+                        fixture_path,
+                        f"{key!r} states canonical preimage bytes but is not registered: add it to "
+                        "STATED_PREIMAGE_DIGEST_PAIRS with the digest it must hash to, or to "
+                        "UNPAIRED_STATED_PREIMAGE_KEYS with the reason no digest can check it",
+                    )
+            if not placeholder_digests:
+                for source_key, digest_key, decoding, encoding, prefix in (
+                    STATED_PREIMAGE_DIGEST_PAIRS
+                ):
+                    source = node.get(source_key)
+                    digest = node.get(digest_key)
+                    if not isinstance(source, str) or not isinstance(digest, str):
+                        continue
+                    data = _stated_preimage_bytes(source, decoding)
+                    if data is None:
                         lint.fail(
                             fixture_path,
-                            f"{digest_key!r}={digest} but {source_key!r} hashes to "
+                            f"{source_key!r} is not decodable as {decoding}",
+                        )
+                        continue
+                    recomputed = _stated_digest(prefix.encode("utf-8") + data, encoding)
+                    if recomputed != digest:
+                        domain = f" under {prefix!r}" if prefix else ""
+                        lint.fail(
+                            fixture_path,
+                            f"{digest_key!r}={digest} but {source_key!r} hashes{domain} to "
                             f"{recomputed}: the stated preimage and the stated digest disagree",
                         )
             for value in node.values():
-                walk(value, fixture_path)
+                walk(value, fixture_path, placeholder_digests)
         elif isinstance(node, list):
             for value in node:
-                walk(value, fixture_path)
+                walk(value, fixture_path, placeholder_digests)
 
     for fixture_path in sorted((ARTIFACTS / "fixtures").glob("*.json")):
         fixture = load_json(lint, fixture_path)
         if fixture is not None:
-            walk(fixture, fixture_path)
+            walk(fixture, fixture_path, fixture_path.name in PLACEHOLDER_DIGEST_FIXTURES)
 
 
 def check_event_batch_receipt_normalization_vector(lint: Lint) -> None:
@@ -11856,6 +12078,10 @@ def main(argv: list[str] | None = None) -> int:
             ("announce_ids", lambda: check_legacy_announce_id_form(lint)),
             ("directory_fields", lambda: check_directory_field_drift(lint)),
             ("typed_id_prose", lambda: check_typed_id_prose_consistency(lint)),
+            (
+                "envelope_subject_sources",
+                lambda: check_envelope_subject_source_whitelist(lint),
+            ),
             ("join_policy_ids", lambda: check_join_policy_gate_id_uniqueness(lint)),
             ("composite_parts", lambda: check_content_composite_uses_parts(lint)),
             ("release_counts", lambda: check_release_readiness_counts(lint, known)),
