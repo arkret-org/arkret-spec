@@ -3982,6 +3982,157 @@ def check_fixture_runner_contract(lint: Lint) -> None:
                 lint.fail(path, f"morph runner rule coverage mismatch: {sorted(observed_rules)}")
 
 
+# --- event_log operations must carry the signature that makes the Event legal ---
+#
+# `durable_effect.kind = "event_log"` says the operation puts a signed Event into
+# the log. The service MUST NOT produce that signature: `capabilities.md` §118 and
+# §361, `conformance-profiles.md` §638, `applet-schema.md` §234 and
+# `key-management.md` §411 all forbid a service co-signing or synthesizing an
+# Event. So the signature can only come from the request, which means the request
+# schema MUST reach a caller-signed Event.
+#
+# An operation that declares an event_log effect and takes no signed Event is
+# declaring a durable effect it cannot legally produce. soland implements exactly
+# these operations through `accept_local_operations`, which builds no wire Event at
+# all — and five of them went on to mint the object id the missing Event would have
+# derived.
+#
+# Two shapes count, both already in use: the `EventInitialSubmission` wrapper
+# (agent lifecycle, `events.command.submit`) and a bare `event-envelope.schema.json`
+# reference (`applet.command.install`'s `registration_event`).
+SIGNED_EVENT_REQUEST_MARKERS = ("EventInitialSubmission", "event-envelope.schema.json")
+
+# The 21 operations still in that state, each with what it would take to close it.
+# This list may only shrink: an entry that starts carrying a signed Event fails as
+# stale, and a new event_log operation cannot be added without one.
+EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
+    "ak.self.circle.command.create": (
+        "id_kind=circle, id_source=event_derived: the Circle id is retype(create.event_id), so the "
+        "caller must author `ak.circle.create` and the request must carry it"
+    ),
+    "ak.self.circle.member.command.add": "needs the caller-signed member Event",
+    "ak.self.circle.member.resource.delete": (
+        "DELETE with no request body: cannot carry a signature in its current HTTP shape"
+    ),
+    "ak.self.circle.command.archive": "needs the caller-signed lifecycle Event",
+    "ak.self.circle.command.restore": "needs the caller-signed lifecycle Event",
+    "ak.self.circle.command.tombstone": "needs the caller-signed lifecycle Event",
+    "ak.self.realm_link.command.create": (
+        "same shape as circle.create; soland mints the Realm id this Event would derive"
+    ),
+    "ak.self.realm_link.resource.delete": "DELETE with no request body",
+    "ak.self.realm.command.archive": (
+        "the request schema is the Event *payload*, not a signed Event: the caller states what to "
+        "write and the service would have to sign it"
+    ),
+    "ak.self.realm.command.freeze": "payload-only request, as above",
+    "ak.self.realm.command.tombstone": "payload-only request, as above",
+    "ak.self.realm.command.destroy": "payload-only request, as above",
+    "ak.self.realm.moderation_policy.resource.replace": "payload-only request",
+    "ak.self.realm_policy_server.resource.replace": "payload-only request",
+    "ak.self.realm_policy_server.resource.delete": "DELETE with no request body",
+    "ak.self.consent.command.grant": (
+        "soland mints an `ak:event:` for the consent cell dot, so a fabricated id reaches protocol "
+        "state rather than only a local projection row"
+    ),
+    "ak.self.consent.command.revoke": "the same consent cell dot as grant",
+    "ak.self.account.command.update_profile": "needs the caller-signed profile Event",
+    "ak.self.moderation.command.report": "needs the caller-signed report Event",
+    "ak.self.applet.command.revoke": (
+        "install already requires caller-signed `registration_event` + `capability_grant_events`; "
+        "revoke takes none"
+    ),
+    "ak.self.agent.grant.resource.delete": "DELETE with no request body",
+}
+
+
+def _request_schema_reaches_signed_event(
+    lint: Lint, ref: str, depth: int = 0, seen: set[str] | None = None
+) -> bool:
+    """Does a request schema reference reach a caller-signed Event?"""
+    seen = set() if seen is None else seen
+    if depth > 6 or not ref or ref in seen:
+        return False
+    seen.add(ref)
+    file_part, _, fragment = ref.partition("#")
+    relative = file_part.lstrip("./")
+    if relative and not relative.startswith("schemas/"):
+        relative = f"schemas/{relative}"
+    if not relative:
+        return False
+    path = ARTIFACTS / relative
+    if not path.is_file():
+        return False
+    document = load_json(lint, path)
+    if document is None:
+        return False
+    node: Any = document
+    if fragment:
+        try:
+            # `resolve_json_pointer` wants the `#/` form; `partition` dropped the `#`.
+            node = resolve_json_pointer(document, f"#{fragment}")
+        except (KeyError, IndexError, TypeError, ValueError):
+            return False
+
+    def walk(value: Any) -> bool:
+        if isinstance(value, dict):
+            nested = value.get("$ref")
+            if isinstance(nested, str):
+                if any(marker in nested for marker in SIGNED_EVENT_REQUEST_MARKERS):
+                    return True
+                next_ref = nested if ".schema.json" in nested else f"{relative}{nested}"
+                if _request_schema_reaches_signed_event(lint, next_ref, depth + 1, seen):
+                    return True
+            return any(walk(child) for child in value.values())
+        if isinstance(value, list):
+            return any(walk(child) for child in value)
+        return False
+
+    return walk(node)
+
+
+def check_event_log_operations_carry_a_signed_event(lint: Lint) -> None:
+    """An operation that writes an Event MUST take that Event from its caller."""
+    path = ARTIFACTS / "registry" / "operation-registry.json"
+    registry = load_json(lint, path)
+    if not isinstance(registry, dict):
+        return
+    operations = registry.get("operations")
+    if not isinstance(operations, list):
+        return
+
+    unsigned: set[str] = set()
+    for operation in operations:
+        if not isinstance(operation, dict):
+            continue
+        effect = operation.get("durable_effect")
+        if not isinstance(effect, dict) or effect.get("kind") != "event_log":
+            continue
+        operation_id = operation.get("operation_id")
+        if not isinstance(operation_id, str):
+            continue
+        request_ref = operation.get("request_schema_ref")
+        if isinstance(request_ref, str) and _request_schema_reaches_signed_event(lint, request_ref):
+            continue
+        unsigned.add(operation_id)
+        if operation_id not in EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST:
+            lint.fail(
+                path,
+                f"{operation_id} declares a durable event_log effect but its request carries no "
+                "caller-signed Event, and a service MUST NOT sign one on the caller's behalf "
+                "(capabilities.md sections 118/361, key-management.md section 411). Reference "
+                "service-operation-dtos.schema.json#/$defs/EventInitialSubmission (or the Event "
+                "envelope) from the request body, as the agent lifecycle operations and "
+                "applet.command.install already do.",
+            )
+    for stale in sorted(set(EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST) - unsigned):
+        lint.fail(
+            path,
+            f"{stale} now carries a caller-signed Event; drop it from "
+            "EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST",
+        )
+
+
 def check_operation_clause_registry(lint: Lint) -> None:
     clause_path = ARTIFACTS / "registry" / "operation-clause-registry.json"
     operation_path = ARTIFACTS / "registry" / "operation-registry.json"
@@ -12078,6 +12229,10 @@ def main(argv: list[str] | None = None) -> int:
             ("announce_ids", lambda: check_legacy_announce_id_form(lint)),
             ("directory_fields", lambda: check_directory_field_drift(lint)),
             ("typed_id_prose", lambda: check_typed_id_prose_consistency(lint)),
+            (
+                "event_log_signed_request",
+                lambda: check_event_log_operations_carry_a_signed_event(lint),
+            ),
             (
                 "envelope_subject_sources",
                 lambda: check_envelope_subject_source_whitelist(lint),
