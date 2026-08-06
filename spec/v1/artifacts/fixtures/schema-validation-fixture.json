@@ -4045,6 +4045,84 @@
         "ratchet_tree_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "ratchet_tree_bytes_b64": "BAUG"
       }
+    },
+    {
+      "name": "device_reanchor_payload_non_null_pre_fence_basis_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
+      "instance": {
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "did_version_id": "2-recovery",
+        "previous_device_generation": "1-genesis",
+        "new_device_generation": "2-recovery",
+        "pre_fence_basis": {
+          "leaves": [
+            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ],
+          "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "replacement_authorize_payload_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "device_reanchor_payload_pre_fence_basis_leaves_only_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
+      "instance": {
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "did_version_id": "2-recovery",
+        "previous_device_generation": "1-genesis",
+        "new_device_generation": "2-recovery",
+        "pre_fence_basis": {
+          "leaves": [
+            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ]
+        },
+        "replacement_authorize_payload_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      },
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "expect_valid": false
+    },
+    {
+      "name": "device_reanchor_payload_pre_fence_basis_missing_control_event_set_root_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
+      "instance": {
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "did_version_id": "2-recovery",
+        "previous_device_generation": "1-genesis",
+        "new_device_generation": "2-recovery",
+        "pre_fence_basis": {
+          "leaves": [
+            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ],
+          "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "replacement_authorize_payload_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      },
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "expect_valid": false
+    },
+    {
+      "name": "device_reanchor_payload_pre_fence_basis_missing_state_root_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
+      "instance": {
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "did_version_id": "2-recovery",
+        "previous_device_generation": "1-genesis",
+        "new_device_generation": "2-recovery",
+        "pre_fence_basis": {
+          "leaves": [
+            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ],
+          "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "replacement_authorize_payload_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      },
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "expect_valid": false
     }
   ]
 }
