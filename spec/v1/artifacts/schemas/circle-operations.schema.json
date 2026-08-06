@@ -175,73 +175,36 @@
     },
     "circle_create_request_body": {
       "type": "object",
-      "description": "Actor-supplied fields for ak.circle.create. Reducer-locked fields (mls_group_ref, state) MUST NOT appear.",
+      "description": "Carries the caller-signed ak.circle.create Event and nothing else. The Circle id is retype(create_event.event.event_id), so the service cannot name the Circle and MUST NOT synthesize the Event: every actor-supplied field lives in create_event.event.payload.object, and the parent Realm is create_event.event.realm_id. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md.",
       "required": [
-        "realm_id",
-        "title"
+        "create_event"
       ],
       "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "title": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 256
-        },
-        "summary": {
-          "$ref": "string-profiles.schema.json#/$defs/short_text",
-          "maxLength": 2048
-        },
-        "directory_visibility": {
-          "type": "string",
-          "enum": [
-            "members",
-            "realm_members"
+        "create_event": {
+          "allOf": [
+            {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.circle.create"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "realm_id"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ]
+            }
           ],
-          "default": "members"
-        },
-        "join_rule": {
-          "type": "string",
-          "enum": [
-            "invite",
-            "request",
-            "open"
-          ],
-          "default": "invite"
-        },
-        "history_visibility": {
-          "type": "string",
-          "enum": [
-            "world_readable",
-            "shared",
-            "invited",
-            "joined",
-            "restricted"
-          ],
-          "default": "joined"
-        },
-        "content_encryption_floor": {
-          "type": "string",
-          "enum": [
-            "allow_plaintext",
-            "e2ee_required"
-          ]
-        },
-        "metadata_encryption_floor": {
-          "type": "string",
-          "enum": [
-            "allow_plaintext",
-            "e2ee_required"
-          ]
-        },
-        "encryption_profile": {
-          "type": "string",
-          "enum": [
-            "none",
-            "mls_rfc9420"
-          ],
-          "default": "mls_rfc9420"
+          "description": "Closed ak.circle.create Event authored and signed by the authenticated caller. The service MUST submit these exact bytes through ordinary Event admission and MUST NOT co-sign, rebuild or synthesize the Event, nor accept a body-local signature fallback. Admission MUST verify that event.actor_id is the authenticated caller, that event.realm_id names the parent Realm the caller holds ak.circle.create in, and that payload.object carries neither id nor the reducer-derived mls_group_ref. encryption_profile='none' is allowed only when the parent Realm policy floor permits plaintext."
         }
       },
       "additionalProperties": false

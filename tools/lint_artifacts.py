@@ -4002,17 +4002,21 @@ def check_fixture_runner_contract(lint: Lint) -> None:
 # reference (`applet.command.install`'s `registration_event`).
 SIGNED_EVENT_REQUEST_MARKERS = ("EventInitialSubmission", "event-envelope.schema.json")
 
-# The 21 operations still in that state, each with what it would take to close it.
+# The operations still in that state, each with what it would take to close it.
 # This list may only shrink: an entry that starts carrying a signed Event fails as
 # stale, and a new event_log operation cannot be added without one.
+#
+# Downgrading an operation's durable_effect out of event_log is NOT a way off this
+# list. "The handler writes no Event" is true of every entry — accept_local_operations
+# persists nothing unless persist_before_projection is set — so it proves nothing on
+# its own. A downgrade additionally MUST show the state change reaches no replicated
+# cell/lattice, i.e. it never enters state_root and no peer has to converge on it.
+# See arkret-work/work/active/2026-08-06-event-log-operations-need-a-signed-request.md.
 EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
-    "ak.self.circle.command.create": (
-        "id_kind=circle, id_source=event_derived: the Circle id is retype(create.event_id), so the "
-        "caller must author `ak.circle.create` and the request must carry it"
-    ),
     "ak.self.circle.member.command.add": "needs the caller-signed member Event",
     "ak.self.circle.member.resource.delete": (
-        "DELETE with no request body: cannot carry a signature in its current HTTP shape"
+        "DELETE with no request body today; the shape decision is made (give it a body, as "
+        "ak.self.keys.backups.resource.delete already does) but not yet landed"
     ),
     "ak.self.circle.command.archive": "needs the caller-signed lifecycle Event",
     "ak.self.circle.command.restore": "needs the caller-signed lifecycle Event",
@@ -4020,7 +4024,7 @@ EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
     "ak.self.realm_link.command.create": (
         "same shape as circle.create; soland mints the Realm id this Event would derive"
     ),
-    "ak.self.realm_link.resource.delete": "DELETE with no request body",
+    "ak.self.realm_link.resource.delete": "DELETE with no request body today; shape decided, not landed",
     "ak.self.realm.command.archive": (
         "the request schema is the Event *payload*, not a signed Event: the caller states what to "
         "write and the service would have to sign it"
@@ -4030,19 +4034,31 @@ EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
     "ak.self.realm.command.destroy": "payload-only request, as above",
     "ak.self.realm.moderation_policy.resource.replace": "payload-only request",
     "ak.self.realm_policy_server.resource.replace": "payload-only request",
-    "ak.self.realm_policy_server.resource.delete": "DELETE with no request body",
-    "ak.self.consent.command.grant": (
-        "soland mints an `ak:event:` for the consent cell dot, so a fabricated id reaches protocol "
-        "state rather than only a local projection row"
+    "ak.self.realm_policy_server.resource.delete": (
+        "DELETE with no request body today; shape decided, not landed"
     ),
-    "ak.self.consent.command.revoke": "the same consent cell dot as grant",
+    "ak.self.consent.command.grant": (
+        "blocked on a prerequisite, not on the request shape: the or_set add dot MUST be "
+        "'ak:event:<event_id>:<write_index>' (consent-model.md section 3.2) and payload.consent_id "
+        "MUST be an ak:consent:<uuid7>, but soland writes the cell under a digest subject "
+        "(routing/identity/consent.rs consent_cell_id) that consent_cell_view's own cell_id pattern "
+        "already forbids, so no consent_id exists for a caller to author against. Collapse the two "
+        "cell-subject schemes onto <consent_id> first"
+    ),
+    "ak.self.consent.command.revoke": (
+        "same prerequisite as grant, plus payload.observed_dots must name dots the caller can read "
+        "back from consent_cell_view.active_grant_dots"
+    ),
     "ak.self.account.command.update_profile": "needs the caller-signed profile Event",
     "ak.self.moderation.command.report": "needs the caller-signed report Event",
     "ak.self.applet.command.revoke": (
         "install already requires caller-signed `registration_event` + `capability_grant_events`; "
         "revoke takes none"
     ),
-    "ak.self.agent.grant.resource.delete": "DELETE with no request body",
+    "ak.self.agent.grant.resource.delete": (
+        "DELETE with no request body today; soland already hard-refuses it outside development "
+        "mode with agent_grant_fanout_unavailable, so the missing Event is admitted there too"
+    ),
 }
 
 

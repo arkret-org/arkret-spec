@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9177,
+    "total_properties": 9171,
     "total_schema_documents": 155,
     "by_presence_class": {
-      "optional": 2835,
-      "optional_defaulted": 75,
+      "optional": 2832,
+      "optional_defaulted": 71,
       "required": 5903,
-      "required_nullable": 93,
+      "required_nullable": 94,
       "tristate": 271
     },
     "tristate_occurrences": 271,
@@ -3884,15 +3884,9 @@
         "ak.schema.circle_operations.v1"
       ],
       "properties": {
-        "/$defs/circle_create_request_body/properties/content_encryption_floor": "optional",
-        "/$defs/circle_create_request_body/properties/directory_visibility": "optional_defaulted",
-        "/$defs/circle_create_request_body/properties/encryption_profile": "optional_defaulted",
-        "/$defs/circle_create_request_body/properties/history_visibility": "optional_defaulted",
-        "/$defs/circle_create_request_body/properties/join_rule": "optional_defaulted",
-        "/$defs/circle_create_request_body/properties/metadata_encryption_floor": "optional",
-        "/$defs/circle_create_request_body/properties/realm_id": "required",
-        "/$defs/circle_create_request_body/properties/summary": "optional",
-        "/$defs/circle_create_request_body/properties/title": "required",
+        "/$defs/circle_create_request_body/properties/create_event": "required",
+        "/$defs/circle_create_request_body/properties/create_event/allOf/1/properties/event": "required_nullable",
+        "/$defs/circle_create_request_body/properties/create_event/allOf/1/properties/event/properties/kind": "required",
         "/$defs/circle_lifecycle_request_body/properties/reason_code": "optional",
         "/$defs/circle_list/properties/circles": "required",
         "/$defs/circle_list/properties/realm_id": "required",

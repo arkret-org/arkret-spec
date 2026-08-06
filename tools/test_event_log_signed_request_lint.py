@@ -3,9 +3,13 @@
 The state this gate exists to make visible: an operation declares
 `durable_effect.kind = "event_log"` — it writes a signed Event into the log — while
 its request carries no Event to sign with, and the service is forbidden from
-signing one itself. soland implements 21 such operations through
-`accept_local_operations`, which builds no wire Event at all; five of them went on
-to mint the object id the missing Event would have derived.
+signing one itself. soland implements these operations through
+`accept_local_operations`, which builds no wire Event at all; several of them went
+on to mint the object id the missing Event would have derived.
+
+The mutation tests deliberately use synthetic operation ids rather than whichever
+real ones are still listed: the list is designed to shrink to empty, so a test
+pinned to a real entry rots the moment that entry is closed.
 """
 
 from __future__ import annotations
@@ -29,8 +33,11 @@ MODULE_SPEC.loader.exec_module(lint_artifacts)
 REGISTRY = ROOT / "spec" / "v1" / "artifacts" / "registry" / "operation-registry.json"
 
 
+SYNTHETIC_OPERATION_ID = "ak.self.example.command.create"
+
+
 class EventLogSignedRequestLintTest(unittest.TestCase):
-    def _lint(self, mutate=None) -> list[str]:
+    def _lint(self, mutate=None, listed: dict[str, str] | None = None) -> list[str]:
         target = REGISTRY.resolve()
         original = lint_artifacts.load_json
         document = original(lint_artifacts.Lint(), target)
@@ -43,13 +50,20 @@ class EventLogSignedRequestLintTest(unittest.TestCase):
                 return mutated
             return original(lint, path)
 
+        recorded = lint_artifacts.EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST
         lint_artifacts.load_json = load_json_with_mutation
+        if listed is not None:
+            lint_artifacts.EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST = {
+                **recorded,
+                **listed,
+            }
         try:
             lint = lint_artifacts.Lint()
             lint_artifacts.check_event_log_operations_carry_a_signed_event(lint)
             return lint.errors
         finally:
             lint_artifacts.load_json = original
+            lint_artifacts.EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST = recorded
 
     def test_the_recorded_list_matches_the_registry(self) -> None:
         # Passes only when every unsigned event_log operation is recorded and every
@@ -60,7 +74,7 @@ class EventLogSignedRequestLintTest(unittest.TestCase):
         def mutate(registry):
             registry["operations"].append(
                 {
-                    "operation_id": "ak.self.example.command.create",
+                    "operation_id": SYNTHETIC_OPERATION_ID,
                     "http": "POST /_arkret/self/examples",
                     "idempotency_mechanism": "none",
                     "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
@@ -70,27 +84,44 @@ class EventLogSignedRequestLintTest(unittest.TestCase):
 
         errors = self._lint(mutate)
         self.assertTrue(
-            any("ak.self.example.command.create" in error for error in errors),
+            any(SYNTHETIC_OPERATION_ID in error for error in errors),
             errors,
         )
 
     def test_an_operation_that_starts_carrying_an_event_must_be_delisted(self) -> None:
-        # The list may only shrink. Pointing a recorded operation at the submit body
-        # (which carries `EventInitialSubmission`) is what closing one looks like.
+        # The list may only shrink. Pointing a recorded operation at a body that
+        # carries `EventInitialSubmission` is what closing one looks like, and the
+        # gate must then demand the entry be dropped.
         def mutate(registry):
-            for operation in registry["operations"]:
-                if operation.get("operation_id") == "ak.self.circle.command.create":
-                    operation["request_schema_ref"] = (
+            registry["operations"].append(
+                {
+                    "operation_id": SYNTHETIC_OPERATION_ID,
+                    "http": "POST /_arkret/self/examples",
+                    "idempotency_mechanism": "none",
+                    "request_schema_ref": (
                         "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody"
-                    )
+                    ),
+                    "durable_effect": {"kind": "event_log", "event_kinds": ["ak.circle.create"]},
+                }
+            )
 
-        errors = self._lint(mutate)
+        errors = self._lint(mutate, listed={SYNTHETIC_OPERATION_ID: "synthetic entry under test"})
         self.assertTrue(
             any(
-                "ak.self.circle.command.create" in error and "drop it from" in error
+                SYNTHETIC_OPERATION_ID in error and "drop it from" in error
                 for error in errors
             ),
             errors,
+        )
+
+    def test_the_closed_circle_create_shape_is_what_closing_looks_like(self) -> None:
+        # `ak.self.circle.command.create` was the first entry closed: its request body
+        # is now nothing but the caller-signed `ak.circle.create` submission.
+        self.assertTrue(
+            lint_artifacts._request_schema_reaches_signed_event(
+                lint_artifacts.Lint(),
+                "schemas/circle-operations.schema.json#/$defs/circle_create_request_body",
+            )
         )
 
     def test_the_envelope_shape_counts_too(self) -> None:

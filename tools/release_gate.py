@@ -70,7 +70,18 @@ def main(argv: list[str]) -> int:
     for label, cmd in checks:
         print(f"=== release-gate: {label} ===", flush=True)
         try:
-            result = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+            # `text=True` alone decodes with the locale encoding, so a child that
+            # prints any non-ASCII byte (the artifact lint's progress lines are
+            # Chinese) crashes the reader thread and the gate loses that output
+            # entirely. The artifacts and tools are UTF-8; say so.
+            result = subprocess.run(
+                cmd,
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
         except OSError as exc:
             print(f"unable to start {cmd[0]!r} for {label}: {exc}")
             failures.append(label)
