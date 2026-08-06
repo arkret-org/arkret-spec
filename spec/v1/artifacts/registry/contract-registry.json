@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.4",
+  "version": "2026-08-06.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-06T10:00:00Z",
+  "generated_at": "2026-08-06T12:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -5526,7 +5526,8 @@
           }
         ],
         "payload": "Realm create",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "realm"
       },
       {
         "event_kind": "ak.realm.update",
@@ -5815,7 +5816,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5.",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "circle"
       },
       {
         "event_kind": "ak.sidecar.create",
@@ -6119,7 +6121,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Strand create",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "strand"
       },
       {
         "event_kind": "ak.strand.update",
@@ -6202,7 +6205,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space create (board / list / swimlane / calendar bucket / etc.)",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "space"
       },
       {
         "event_kind": "ak.space.update",
@@ -6259,7 +6263,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Message create. Payload MUST omit message_id; reducer materializes Message.id by retyping the UUIDv7 of Event.event_id.",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "message"
       },
       {
         "event_kind": "ak.agent.sidecar.exchange.control",
@@ -6363,7 +6368,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Morph create",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "morph"
       },
       {
         "event_kind": "ak.morph.update",
@@ -6419,7 +6425,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Relation create",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "relation"
       },
       {
         "event_kind": "ak.relation.update",
@@ -6466,7 +6473,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "View create",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "view"
       },
       {
         "event_kind": "ak.view.update",
@@ -6757,7 +6765,8 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Actor profile create",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "actor_profile"
       },
       {
         "event_kind": "ak.profile.update",

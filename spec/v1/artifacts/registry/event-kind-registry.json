@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.4",
+  "version": "2026-08-06.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T10:00:00Z",
+  "generated_at": "2026-08-06T12:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -186,6 +186,7 @@
       ],
       "payload": "Realm create",
       "id_source": "event_derived",
+      "id_kind": "realm",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1153,6 +1154,7 @@
       "reducer_input": true,
       "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5.",
       "id_source": "event_derived",
+      "id_kind": "circle",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2133,6 +2135,7 @@
       "reducer_input": true,
       "payload": "Strand create",
       "id_source": "event_derived",
+      "id_kind": "strand",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2518,6 +2521,7 @@
       "reducer_input": true,
       "payload": "Space create (board / list / swimlane / calendar bucket / etc.)",
       "id_source": "event_derived",
+      "id_kind": "space",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -2714,6 +2718,7 @@
       "reducer_input": true,
       "payload": "Message create. Payload MUST omit message_id; reducer materializes Message.id by retyping the UUIDv7 of Event.event_id.",
       "id_source": "event_derived",
+      "id_kind": "message",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -3073,6 +3078,7 @@
       "reducer_input": true,
       "payload": "Morph create",
       "id_source": "event_derived",
+      "id_kind": "morph",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -3262,6 +3268,7 @@
       "reducer_input": true,
       "payload": "Relation create",
       "id_source": "event_derived",
+      "id_kind": "relation",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -3413,6 +3420,7 @@
       "reducer_input": true,
       "payload": "View create",
       "id_source": "event_derived",
+      "id_kind": "view",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -4377,6 +4385,7 @@
       "admission": "self_authored_proof",
       "payload": "Actor profile create",
       "id_source": "event_derived",
+      "id_kind": "actor_profile",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
