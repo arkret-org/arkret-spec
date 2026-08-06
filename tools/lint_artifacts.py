@@ -4023,8 +4023,6 @@ EVENT_AUTHORING_DURABLE_EFFECT_KINDS = ("event_log", "actor_private_event")
 # cell/lattice, i.e. it never enters state_root and no peer has to converge on it.
 # See arkret-work/work/active/2026-08-06-event-log-operations-need-a-signed-request.md.
 EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
-<<<<<<< HEAD
-=======
     # actor_private_event, all three writing a kind whose actor-private cell subject
     # is composite[envelope.actor_id, ...]. The subject *is* the actor, so the actor
     # cannot be the service: soland signs these with the service DID and
@@ -4044,8 +4042,6 @@ EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
         "actor-private subject includes envelope.actor_id; needs the caller-signed "
         "ak.read_cursor.advance"
     ),
-    "ak.self.circle.member.command.add": "needs the caller-signed member Event",
->>>>>>> 0012d69f (spec: hold actor_private_event to the same signed-request rule)
     "ak.self.circle.member.resource.delete": (
         "DELETE with no request body today; the shape decision is made (give it a body, as "
         "ak.self.keys.backups.resource.delete already does) but not yet landed"
