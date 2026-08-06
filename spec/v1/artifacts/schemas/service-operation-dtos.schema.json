@@ -5359,7 +5359,7 @@
             "type": "object",
             "required": [
               "proposal_digest",
-              "receipt",
+              "control_proposal_ack",
               "decisions",
               "current_decision_due_at",
               "absolute_due_at",
@@ -5371,7 +5371,7 @@
                 "type": "string",
                 "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
               },
-              "receipt": {
+              "control_proposal_ack": {
                 "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack"
               },
               "decisions": {
@@ -5431,7 +5431,7 @@
             "type": "object",
             "required": [
               "proposal_digest",
-              "receipt",
+              "control_proposal_ack",
               "decisions",
               "accepted_seal_id",
               "accepted_at",
@@ -5442,7 +5442,7 @@
                 "type": "string",
                 "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
               },
-              "receipt": {
+              "control_proposal_ack": {
                 "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack"
               },
               "decisions": {
