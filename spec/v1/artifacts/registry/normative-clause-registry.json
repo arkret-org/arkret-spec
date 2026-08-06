@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-06.5",
+  "version": "2026-08-06.6",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -67,7 +67,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#6-signature",
-      "section_digest": "sha256:0c0755c2c22d82749f8219262958118f62c08e48da4b7d3fdff50929ce3c19eb",
+      "section_digest": "sha256:01e74a23452bb6c3957ff34d342de7a078064d7416c19268cc1ef1f4061bfe96",
       "requirement": "The signature carrier MUST cryptographically protect its algorithm selection, and the binding payload MUST bind domain and audience; a signature valid for one algorithm, domain or audience MUST NOT verify for another.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -465,6 +465,18 @@
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.agent.managed_pcr_separation.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-032",
+      "status": "active",
+      "category": "wire",
+      "source_anchor": "spec/v1/zh/conformance/encoding.md#601-原像内禁止承诺-event-标识normative",
+      "section_digest": "sha256:e740d81e8f4377f3ec10d040513562b90718d6e237bca7ff3812231281b5bb98",
+      "requirement": "Fields inside the event_digest preimage MUST NOT commit to the enclosing Event's own event_id or event_digest, nor to the event_id or envelope digest of a not-yet-formed sibling Event in the same atomic unit or ordered submit batch; such a commitment has no fixed point and MUST be rejected as event_id_digest_mismatch. Commitments of that kind MUST instead use the counterpart's payload digest or a structure outside the preimage (proofs, receipts).",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.event_id.content_bound.v1"
       ]
     }
   ]

@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-06.1",
+  "version": "2026-08-06.3",
   "codes": [
     {
       "code": "bad_json",
@@ -2757,7 +2757,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "The atomic replacement ak.device.authorize id/digest, prev_refs, principal, device, session, or enrollment-authority proof does not exactly match the binding in ak.device.reanchor. Dual-registered as a reason_code and a top-level service code (see codes[])."
+      "description": "The atomic replacement ak.device.authorize payload digest, prev_refs, principal, device, session, or enrollment-authority proof does not exactly match the binding in ak.device.reanchor. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "device_reanchor_conflict",
@@ -4620,13 +4620,6 @@
         "service_call"
       ],
       "description": "Ordinary Circle create/update attempted to use the SC- short-name prefix reserved for reducer-managed Agent Sidecar backing Circles. The write is rejected as schema_violation. See zh/models/circle.md §4 and zh/models/sidecar.md §5."
-    },
-    {
-      "code": "reset_event_id_mismatch",
-      "applies_to": [
-        "schema_violation"
-      ],
-      "description": "ak.cross_signing.reset payload's reset_event_id does not match the enclosing Event Envelope's event_id. Binding reset_event_id into proof transcript prevents wrapping the same proof bytes into a different Event shell; receivers MUST reject the reset on any mismatch. See zh/crypto-media/device-lifecycle.md §14.1."
     },
     {
       "code": "revocation_freshness_unknown",

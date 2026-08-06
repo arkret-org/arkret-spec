@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9221,
+    "total_properties": 9218,
     "total_schema_documents": 155,
     "by_presence_class": {
       "optional": 2829,
       "optional_defaulted": 75,
-      "required": 5953,
+      "required": 5950,
       "required_nullable": 93,
       "tristate": 271
     },
@@ -4540,7 +4540,6 @@
         "/properties/previous_generation": "required",
         "/properties/principal_id": "required",
         "/properties/proof": "required",
-        "/properties/reset_event_id": "required",
         "/properties/reset_reason_code": "required",
         "/properties/revoked_device_ids": "optional",
         "/properties/trust_domain": "required"
@@ -6341,7 +6340,6 @@
         "/$defs/cross_signing_reset_payload/properties/principal_id": "required",
         "/$defs/cross_signing_reset_payload/properties/proof": "required",
         "/$defs/cross_signing_reset_payload/properties/proof/properties/kind": "required",
-        "/$defs/cross_signing_reset_payload/properties/reset_event_id": "required",
         "/$defs/cross_signing_reset_payload/properties/reset_reason_code": "required",
         "/$defs/cross_signing_reset_payload/properties/trust_domain": "required",
         "/$defs/device_authorize_payload/properties/algorithms": "required",
@@ -6399,8 +6397,7 @@
         "/$defs/device_reanchor_payload/properties/pre_fence_basis/oneOf/1/properties/state_root": "required",
         "/$defs/device_reanchor_payload/properties/previous_device_generation": "required",
         "/$defs/device_reanchor_payload/properties/principal_id": "required",
-        "/$defs/device_reanchor_payload/properties/replacement_authorize_digest": "required",
-        "/$defs/device_reanchor_payload/properties/replacement_authorize_event_id": "required",
+        "/$defs/device_reanchor_payload/properties/replacement_authorize_payload_digest": "required",
         "/$defs/device_revoke_payload/properties/device_id": "required",
         "/$defs/device_revoke_payload/properties/principal_id": "required",
         "/$defs/device_revoke_payload/properties/proof": "optional",

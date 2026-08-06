@@ -419,6 +419,36 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned`、`actor
 
 **唯一例外是 `ak.realm.create`**：它 MUST 省略 `realm_id` 并使用不含 `realm_id` 的 `{"kind":"realm_genesis"}` scope，receiver 按 §4.0 从 `event_id` 派生 `realm_id`。理由是循环性——`realm_id` 若留在 preimage 内，它既是 digest 的输入又是 digest 的函数，无不动点可解。完整裁决见 [`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)。该例外只作用于 genesis 一条 Event；其后该 Realm 的每条 Event 都照常携带并绑定 `realm_id`。
 
+#### 6.0.1 原像内禁止承诺 Event 标识（normative）
+
+上面 `realm_id` 的循环论证不限于「Event 自己派生出来的 ID」。形态 B 生效后，`event_id` 与
+`event_digest` 互为函数，因此**任何进入 preimage 的字段**（`payload`、`refs`、`prev_refs`、
+`scope_ref`、`preconditions` 等——即除 `proofs` / `unsigned` / `actor_kind` / `event_id` 之外
+的全部 envelope 字段）：
+
+- **MUST NOT** 承诺**本 Event 自己**的 `event_id` 或 `event_digest`；
+- **MUST NOT** 承诺**同一原子 unit / 同一 ordered submit batch 内、尚未成型的兄弟 Event** 的
+  `event_id` 或信封 `event_digest`。
+
+违反任一条即产生无解原像（两侧都是密码学哈希，不存在可迭代的不动点），该 unit 无论实现如何
+排序都不可能构造出通过 §4.0 重算比对的取值，运行期表现为 `event_id_digest_mismatch`。
+
+需要这类承诺时，只有两条合法承载：
+
+1. **对方的 payload digest**——payload 先于两条信封成型，依赖方向因此单向。这是同一 unit 内
+   互相承诺的标准写法，见 [`../identity/key-management.md` §5.0.7](../identity/key-management.md)
+   的 `replacement_authorize_payload_digest`；
+2. **preimage 之外的结构**——`proofs`、receipt、attestation 等在两条 Event 都成型之后由签发方
+   计算的对象，可以自由承诺 `event_id` 与信封 digest（`proof.event_digest` 即如此）。
+
+**已成型的历史 Event 不受本条约束**：`prev_refs`、`refs` 与 payload 引用**已 accepted** 的
+Event id/digest 始终合法——它们的取值在本 Event 构造前已经固定，不参与本 Event 的求解。
+
+本条的封闭例外清单只有一项，即上面 `ak.realm.create` 的 `realm_genesis`（Event 自派生 ID 的
+特例）；新增例外 MUST 在本节显式登记，MUST NOT 由实现自行推断。conformance 入口沿用
+`ak.vector.event_id.content_bound.v1`：每个跨 Event 原子 unit MUST 同时提供按单向顺序可派生的
+正例，与旧互引形状必须被 `event_id_digest_mismatch` 拒绝的负例。
+
 ### 6.1 Signature Suite registered set
 
 签名算法的 canonical 机器来源是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json)(与 §3.2 Hash registered set 对称)，下表是其规范阅读视图。字段命名按对象所有权确定，而不是把外部标准缩写扩散到 Arkret：JWS protected header / JWK 等 JOSE 对象 MUST 保留标准成员 `alg`，其值取 active row 的 `jose_algorithm`；Arkret 自有 raw-signature 对象 MUST 使用完整字段名 `signature_algorithm`，其值取 active row 的 `raw_signature_algorithm`；RFC 9421 `Signature-Input` 的标准 `alg` parameter 必须取 `http_message_signature_algorithm`。三种映射属于不同命名空间，不得相互猜测或替代。schema enum 均须在版本发布时生成并冻结。Arkret 自有对象不得使用 `alg` 作为自定义字段，JOSE / RFC 9421 标准对象也不得把标准成员改名。

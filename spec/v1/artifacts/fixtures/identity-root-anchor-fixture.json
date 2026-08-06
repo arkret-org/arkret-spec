@@ -117,7 +117,8 @@
           "ak.device.reanchor",
           "ak.device.authorize"
         ],
-        "replacement_event_binding_matches": true,
+        "replacement_authorize_payload_digest_matches": true,
+        "authorize_prev_refs_is_reanchor_only": true,
         "previous_generation_matches": true,
         "update_authority_is_current_and_unspent": true,
         "verification_method": "did:key:z6MknoCfkzmsoi3R98zoM8gNdsnQsouJQCaCYoeVJ6VkquSi#z6MknoCfkzmsoi3R98zoM8gNdsnQsouJQCaCYoeVJ6VkquSi",
@@ -140,7 +141,8 @@
           "ak.device.reanchor",
           "ak.device.authorize"
         ],
-        "replacement_event_binding_matches": true,
+        "replacement_authorize_payload_digest_matches": true,
+        "authorize_prev_refs_is_reanchor_only": true,
         "previous_generation_matches": true,
         "update_authority_is_current_and_unspent": true
       },
@@ -235,10 +237,23 @@
       }
     },
     {
-      "name": "reject_replacement_authorize_id_or_digest_mismatch",
+      "name": "reject_replacement_authorize_payload_digest_mismatch",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
-        "replacement_event_binding_matches": false
+        "replacement_authorize_payload_digest_matches": false,
+        "authorize_prev_refs_is_reanchor_only": true
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_reanchor_authorize_mismatch"
+      }
+    },
+    {
+      "name": "reject_authorize_prev_refs_not_reanchor_only",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "replacement_authorize_payload_digest_matches": true,
+        "authorize_prev_refs_is_reanchor_only": false
       },
       "expected": {
         "decision": "reject",

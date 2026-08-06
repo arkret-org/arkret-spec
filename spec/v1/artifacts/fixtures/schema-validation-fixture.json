@@ -3289,8 +3289,7 @@
                 "previous_device_generation": "1-genesis",
                 "new_device_generation": "2-recovery",
                 "pre_fence_basis": null,
-                "replacement_authorize_event_id": "ak:event:019a7360-0000-8000-8000-000000000035",
-                "replacement_authorize_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                "replacement_authorize_payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               },
               "proofs": [
                 {

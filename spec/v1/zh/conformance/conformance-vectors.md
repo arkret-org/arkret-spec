@@ -5341,7 +5341,7 @@ Expected：
 
 ### 22.3 Re-anchor、generation fence 与冲突
 
-`ak.vector.identity.device_reanchor.v1` 同时覆盖零 Seal 与完整 accepted Seal frontier 两个正向入口、最终 authorize event id/digest 的无环双签构造、byte-identical 幂等重试和 accepted-at receipt 历史复验。负向必须覆盖 A 模型混入、live non-head、伪造 previous generation、过旧/不完整/CAS 失配 frontier、replacement event id/digest 不符、拆批、spent root、post-fence 旧 generation Event/Seal，以及首个新 generation Seal 的 predecessor/delta 不匹配。
+`ak.vector.identity.device_reanchor.v1` 同时覆盖零 Seal 与完整 accepted Seal frontier 两个正向入口、`payload digest → re-anchor → authorize` 单向依赖链的无环双签构造（[`../identity/key-management.md` §5.0.7](../identity/key-management.md)）、byte-identical 幂等重试和 accepted-at receipt 历史复验。负向必须覆盖 A 模型混入、live non-head、伪造 previous generation、过旧/不完整/CAS 失配 frontier、replacement authorize payload digest 不符、authorize `prev_refs` 不恰为 `[reanchor event_id]`、拆批、spent root、post-fence 旧 generation Event/Seal，以及首个新 generation Seal 的 predecessor/delta 不匹配。
 
 同 `(principal_id,did_version_number)` 的不同 versionId/digest 或同 entry 的不同 re-anchor unit 必须把全集置于 quarantine 并令 `device_generation_status="conflicted"`；不同到达顺序得到相同结果，禁止 first-seen winner。conflicted 期间普通 admission fail closed；只有下一预承诺 authority 的有效 resolution entry + re-anchor unit 可恢复 `active`。
 

@@ -627,7 +627,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
 #### 5.0.7 B 模型 Recovery Re-anchor Unit
 
-> 本节的 re-anchor unit 是 B 模型 `RecoveryTransaction` 的 `submit_reanchor_unit` 步骤，不是独立流程：create 先固定 typed prepared plan 与 ticket/DID/Event reserved ids；coordinator 依次执行 `issue_authority_ticket → authorize_recovery_device → publish_did_entry → submit_reanchor_unit`。unit 原子覆盖 `reanchor_event_id` 与 `authorize_event_id`，MUST NOT 拆成两个可独立重试、会产生不同 Event id 的步骤。WebVH entry 已接受但 re-anchor response 丢失时，transaction 保持 `running` 并从相同 prepared bytes、reserved ids 与 authority accepted output续跑，不得创建第二 entry。见 [`./security-transactions.md` §2](./security-transactions.md)。
+> 本节的 re-anchor unit 是 B 模型 `RecoveryTransaction` 的 `submit_reanchor_unit` 步骤，不是独立流程：create 先固定 typed prepared plan、ticket/DID ids 与由 prepared bytes 按 [`../conformance/encoding.md` §4.0](../conformance/encoding.md) 派生的两个 Event id；coordinator 依次执行 `issue_authority_ticket → authorize_recovery_device → publish_did_entry → submit_reanchor_unit`。Event id 不是 transaction 自由分配的 reservation，而是 prepared bytes 的函数——同一份 prepared bytes 续跑必然得到同一对 id，这正是幂等续跑的依据。unit 原子覆盖 `reanchor_event_id` 与 `authorize_event_id`，MUST NOT 拆成两个可独立重试、会产生不同 prepared bytes 的步骤。WebVH entry 已接受但 re-anchor response 丢失时，transaction 保持 `running` 并从相同 prepared bytes、reserved ids 与 authority accepted output续跑，不得创建第二 entry。见 [`./security-transactions.md` §2](./security-transactions.md)。
 
 `ak.vector.identity.device_reanchor.v1` 覆盖本节原子 unit、frontier CAS、generation fence、receipt、幂等与冲突 quarantine 的规范执行闭包。
 
@@ -637,10 +637,29 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
 随后客户端 MUST 在一个 `ak.self.events.command.submit` batch 中按顺序原子提交：
 
-1. `ak.device.reanchor`：payload 严格按 `principal_id`、`did_version_id`、`previous_device_generation`、`new_device_generation`、`pre_fence_basis`、`replacement_authorize_event_id`、`replacement_authorize_digest` 排列并 closed；`new_device_generation == did_version_id`。Event 由 entry N controller proof 实际使用的 active update authority 签发，恰有一个 critical `refs[role="did_recovery_anchor"]` 指向 entry N。
-2. `ak.device.authorize#R`：由 entry N delegation 指派的 enrollment authority 签发，使用 `service_attested` + `enrollment_authority_binding`。其 id/digest 必须逐字等于 re-anchor payload 的 replacement fields，`prev_refs` 只含 re-anchor event id。设备行 `authorized_generation_ref` 由 reducer 写成 entry N versionId，producer payload 不得自报。
+1. `ak.device.reanchor`：payload 严格按 `principal_id`、`did_version_id`、`previous_device_generation`、`new_device_generation`、`pre_fence_basis`、`replacement_authorize_payload_digest` 排列并 closed；`new_device_generation == did_version_id`。Event 由 entry N controller proof 实际使用的 active update authority 签发，恰有一个 critical `refs[role="did_recovery_anchor"]` 指向 entry N。
+2. `ak.device.authorize#R`：由 entry N delegation 指派的 enrollment authority 签发，使用 `service_attested` + `enrollment_authority_binding`。其 `payload` 的 canonical digest 必须逐字等于 re-anchor payload 的 `replacement_authorize_payload_digest`，`prev_refs` 只含 re-anchor event id。设备行 `authorized_generation_ref` 由 reducer 写成 entry N versionId，producer payload 不得自报。
 
-构造顺序固定为：先为两条 Event 分配独立 typed UUIDv7 id；authorize 的 `prev_refs` 写 re-anchor id，填完 actor sequence/payload 后计算不含 proofs 的 authorize digest；将 id/digest 写入 re-anchor payload并由 active update authority 签名；最后由 enrollment authority 对 authorize digest 签 proof。authorize 不引用 re-anchor digest，因此不存在 digest cycle。
+**re-anchor 承诺的是 authorize 的 payload digest，不是它的 Event id 或信封 digest（normative）。**
+[`../conformance/encoding.md` §4.0](../conformance/encoding.md) 之后每条 `event_id` 都是自身签名内容的函数，而 authorize 的 `prev_refs` 必须含 re-anchor id（[`../models/event-and-patch.md` §2.5](../models/event-and-patch.md)），因此让 re-anchor 反过来承诺 authorize 的 id 或信封 digest 会使两条 Event 互为原像，无解。承诺 payload digest 把依赖收敛成单向，且不损失任何保护：payload 已经完整刻画“授权哪一台设备、用哪把密钥、由谁背书”，enrollment authority 能改的只剩信封元数据，而 `scope_ref`/`realm_id` 由 [`../conformance/encoding.md` §6](../conformance/encoding.md) 的 Realm 绑定约束、`prev_refs` 与 `actor_seq` 由本节与 §2.5 钉死。
+
+`replacement_authorize_payload_digest ≡ canonical_digest(authorize.payload)`，使用该 Realm 的 live digest suite，编码与其余 digest 字段同规则。
+
+构造顺序固定为单向依赖链：
+
+```text
+1. 构造 ak.device.authorize 的 payload（此步不需要任何 Event id）
+2. payload_digest = canonical_digest(authorize.payload)
+3. 构造 re-anchor：payload.replacement_authorize_payload_digest = payload_digest；
+   prev_refs = preserved closure heads；actor_seq = 1 + max(preserved actor_seq)
+4. 按 §4.0 派生 reanchor event_id，由 active update authority 签名
+5. 构造 authorize 信封：prev_refs = [reanchor event_id]，actor_seq 加一，装入步骤 1 的 payload
+6. 按 §4.0 派生 authorize event_id，由 enrollment authority 签 proof
+```
+
+admission 的 unit 绑定校验因此恰为两条，两个方向都在：`canonical_digest(authorize.payload)` 等于 re-anchor payload 的 `replacement_authorize_payload_digest`（root 对设备的承诺），且 `authorize.prev_refs` 恰为 `[reanchor.event_id]`（authorize 对 re-anchor 的承诺）。任一不成立 MUST 整个 unit 拒绝。
+
+batch receipt `scope.kind="device_reanchor_unit"` 的 `reanchor_digest` / `replacement_authorize_digest` 仍是两条**信封** digest：它们由签发方在两条 Event 都成型之后计算，不进入任何 Event 的原像，不构成循环。
 
 `pre_fence_basis` 是 live admission 的完整 accepted Seal frontier：
 

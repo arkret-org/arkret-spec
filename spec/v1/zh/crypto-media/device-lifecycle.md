@@ -1688,7 +1688,7 @@ to-device 触发消息，与 `ak.key.verification.request` 同类，使用
 
 ### 14.1 Reset Envelope
 
-Reset 操作 MUST 写入一条 `ak.cross_signing.reset` 事件到 principal control stream，并在其后**立即**发布新的 `ak.cross_signing.publish`（§5.1）以使协议状态可恢复。实现还 MUST 生成可审计记录：在同一 ordered submit batch 或在 reset accepted 后的 bounded audit window 内写入 `ak.audit.accessed`，`access_kind="cross_signing_reset"`，`target_ref` 指向 reset event 或 principal control Realm，`purpose` 说明 reset reason；声明 active Audit Applet Binding 或 `ak.profile.attested_audit.e2ee.v1` 的部署 MUST 通过 `refs[role="audit_pair"]` 把 reset 与 audit event 配对，其它高安全部署 SHOULD 配对。
+Reset 操作 MUST 写入一条 `ak.cross_signing.reset` 事件到 principal control stream，并在其后**立即**发布新的 `ak.cross_signing.publish`（§5.1）以使协议状态可恢复。实现还 MUST 生成可审计记录：在同一 ordered submit batch 或在 reset accepted 后的 bounded audit window 内写入 `ak.audit.accessed`，`access_kind="cross_signing_reset"`，`target_ref` 指向 reset event 或 principal control Realm，`purpose` 说明 reset reason；声明 active Audit Applet Binding 或 `ak.profile.attested_audit.e2ee.v1` 的部署 MUST 把 reset 与 audit event 配对，其它高安全部署 SHOULD 配对。配对边**由 audit event 指向 reset event**：audit 的 `refs[]` 携带 `{id: <reset event_id>, role="audit_pair", critical: true}`，`paired_event_id` / `paired_event_digest` 取该 reset 的 id 与 `event_digest`；reset event 自身 MUST NOT 引用 audit 的 id 或 digest（否则两条 Event 互为原像，见 [`../conformance/encoding.md` §6.0.1](../conformance/encoding.md)）。该方向对「同批」与「accepted 后 bounded window」两种写入模式同时成立。
 
 Schema id：`ak.schema.cross_signing_reset.v1`
 
@@ -1701,7 +1701,6 @@ Schema id：`ak.schema.cross_signing_reset.v1`
   "actor_id": "did:webvh:...",
   "payload": {
     "trust_domain": "ak:trust_domain:did.webvh.example",
-    "reset_event_id": "ak:event:0196414c-5000-8000-8000-000000000000",
     "principal_id": "did:webvh:...",
     "previous_generation": 1,
     "new_generation": 2,
@@ -1722,7 +1721,6 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 ```json schema=schemas/cross-signing-reset.schema.json
 {
   "trust_domain": "ak:trust_domain:did.webvh.example",
-  "reset_event_id": "ak:event:0196414c-5000-8000-8000-000000000000",
   "principal_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "previous_generation": 1,
   "new_generation": 2,
@@ -1753,7 +1751,6 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 utf8("ak.cross-signing-reset-v1\n") ||
 canonical_json({
   "trust_domain": trust_domain,
-  "reset_event_id": reset_event_id,
   "principal_id": principal_id,
   "previous_generation": previous_generation,
   "new_generation": new_generation,
@@ -1764,13 +1761,14 @@ canonical_json({
 })
 ```
 
-**`trust_domain` 与 `reset_event_id` 绑定（normative）**：
+**`trust_domain` 绑定（normative）**：
 
 - `trust_domain` 是部署级的 trust 域标识，typed string，形如 `ak:trust_domain:<scope>`。它在每个 deployment 的 `ServiceDescribe.trust_domain` 与 Realm create object 的 `trust_domain` 中声明（详见 [`identity-did.md` §3.6 Trust Domain](../identity/identity-did.md)）。canonical input MUST 把当前 receive context 的 `trust_domain` 嵌入 proof transcript，使同一 principal DID 在 deployment A 签发的 reset proof 无法被 deployment B 重放——B 的 `trust_domain` 字符串不同，proof signature transcript 校验立即失败 (`invalid_signature`)。
-- `reset_event_id` 是承载该 reset 的 Event Envelope 的 `event_id`（typed `ak:event:<uuidv7>`），由 producer 在签名前分配。把它纳入 transcript 确保同一 reset proof 不能复用到另一个 Event shell（不同 `event_id` ⇒ 不同 transcript ⇒ 签名失败）。这关闭了"复制 reset proof bytes，包到新 Event 里重放"的攻击面。
-- 这两个字段同时是 `ak.cross_signing.reset` payload 的必填字段（[`cross-signing-reset.schema.json`](../../artifacts/schemas/cross-signing-reset.schema.json) `trust_domain` / `reset_event_id`）。
-- 接收方验证顺序：(a) 检查 `trust_domain` 与本 receiver 当前 trust 域一致；不一致直接 `cross_domain_replay_rejected`，不进入签名校验。(b) 检查 `reset_event_id == enclosing Event.event_id`；不一致 `reset_event_id_mismatch`。(c) 按上面 canonical input 重算 transcript 并验证每个 proof 的签名；任一不匹配 `invalid_signature`。
-- 多 deployment 部署、sovereign trust domain、recovery service 跨域复用、device quorum 跨 trust domain 都受这两个字段保护——任一变化都会让 transcript 失配。
+- 它是 `ak.cross_signing.reset` payload 的必填字段（[`cross-signing-reset.schema.json`](../../artifacts/schemas/cross-signing-reset.schema.json) `trust_domain`）。
+- 接收方验证顺序：(a) 检查 `trust_domain` 与本 receiver 当前 trust 域一致；不一致直接 `cross_domain_replay_rejected`，不进入签名校验。(b) 按上面 canonical input 重算 transcript 并验证每个 proof 的签名；任一不匹配 `invalid_signature`。
+- 多 deployment 部署、sovereign trust domain、recovery service 跨域复用、device quorum 跨 trust domain 都受该字段保护——任一变化都会让 transcript 失配。
+
+**为什么 transcript 不含 enclosing `event_id`（normative rationale）**：payload 在 `event_digest` 的 preimage 内，而 `event_id` 由该 digest 派生（[`../conformance/encoding.md` §4.0](../conformance/encoding.md)），因此把 enclosing `event_id` 写进 payload 会让它同时是自身的输入与输出，**无解**——这正是 §6.0.1 禁止的自承诺。shell 绑定不需要该字段：envelope 的 `proofs[]` 在 preimage 之外，它对 `event_digest` 的签名已经把这份 payload 钉死在这一个 envelope 上；把同一 payload 连 proof 一起搬进另一个 shell，需要为新 shell 重新产出有效 envelope proof，且 `previous_generation` MUST 等于当前 accepted publish generation 这条前置条件会拒绝重放。transcript 覆盖的 `principal_id` / 两个 generation / `reset_reason_code` / `issued_at` / `proof_body` 已经锁定全部语义字段，改任一项都签名失配。
 
 `recovery_unlock.unlock_commitment` 的派生输入 MUST 避免自引用：其
 `unlock_binding_input_bytes` 使用与上面相同的字段集合，但 `proof_body`

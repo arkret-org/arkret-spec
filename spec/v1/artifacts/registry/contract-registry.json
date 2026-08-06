@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.5",
+  "version": "2026-08-06.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-06T12:00:00Z",
+  "generated_at": "2026-08-06T13:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -6195,7 +6195,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a cas_register cell keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch ak.audit.accessed event with access_kind=watch_set_others. The watches Relation (actor --watches--> strand) is a derived projection of this cell, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
+        "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a cas_register cell keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST be paired with a same-batch ak.audit.accessed event with access_kind=watch_set_others; the audit event carries refs[role=audit_pair] plus paired_event_id/paired_event_digest pointing at the write, and the write MUST NOT reference the audit event (encoding.md 6.0.1 forbids mutual preimages). The watches Relation (actor --watches--> strand) is a derived projection of this cell, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
         "id_source": "reference"
       },
       {

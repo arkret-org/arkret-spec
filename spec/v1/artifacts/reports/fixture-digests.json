@@ -162,7 +162,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json",
-      "sha256": "4fcf3085798df88bea5dfdac40e7f829b0b8f178bb50dfb0b05361d98253ffd4"
+      "sha256": "4e92da2c7eb0a87501a8a3d56462484646ca0945ded628824ba91cdb59e8ee5b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
@@ -274,7 +274,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "c02752617062b55a2b2c5cab6de4740c613a1395c7a0007ca4a4050540c14d3c"
+      "sha256": "d194759ec2304425b1993d8d9f353a6ac676447113af80b0eb31daaa86cb6441"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

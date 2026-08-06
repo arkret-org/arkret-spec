@@ -3857,7 +3857,6 @@
       "type": "object",
       "required": [
         "trust_domain",
-        "reset_event_id",
         "principal_id",
         "previous_generation",
         "new_generation",
@@ -3869,10 +3868,6 @@
         "trust_domain": {
           "type": "string",
           "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
-        },
-        "reset_event_id": {
-          "type": "string",
-          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "principal_id": {
           "$ref": "#/$defs/did"
@@ -4261,15 +4256,14 @@
     },
     "device_reanchor_payload": {
       "type": "object",
-      "description": "Closed payload for the B-model DID-root recovery anchor. Fields are ordered identity, DID generation, accepted pre-fence basis, then the exact replacement authorization binding. Generation projection fields are reducer-managed and MUST NOT be added here.",
+      "description": "Closed payload for the B-model DID-root recovery anchor. Fields are ordered identity, DID generation, accepted pre-fence basis, then the exact replacement authorization binding. The binding commits to the replacement authorize payload digest, never to that Event's id or envelope digest: the authorize envelope carries the re-anchor event_id in prev_refs, and every event_id is a function of its own signed content, so an id or envelope binding would make the two Events preimages of each other. Generation projection fields are reducer-managed and MUST NOT be added here.",
       "required": [
         "principal_id",
         "did_version_id",
         "previous_device_generation",
         "new_device_generation",
         "pre_fence_basis",
-        "replacement_authorize_event_id",
-        "replacement_authorize_digest"
+        "replacement_authorize_payload_digest"
       ],
       "properties": {
         "principal_id": {
@@ -4322,12 +4316,9 @@
             }
           ]
         },
-        "replacement_authorize_event_id": {
-          "type": "string",
-          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "replacement_authorize_digest": {
-          "$ref": "#/$defs/hash"
+        "replacement_authorize_payload_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "canonical_digest of the replacement ak.device.authorize payload object, using the Realm live digest suite."
         }
       },
       "additionalProperties": false
