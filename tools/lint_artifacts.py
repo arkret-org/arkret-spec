@@ -4013,14 +4013,10 @@ SIGNED_EVENT_REQUEST_MARKERS = ("EventInitialSubmission", "event-envelope.schema
 # cell/lattice, i.e. it never enters state_root and no peer has to converge on it.
 # See arkret-work/work/active/2026-08-06-event-log-operations-need-a-signed-request.md.
 EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
-    "ak.self.circle.member.command.add": "needs the caller-signed member Event",
     "ak.self.circle.member.resource.delete": (
         "DELETE with no request body today; the shape decision is made (give it a body, as "
         "ak.self.keys.backups.resource.delete already does) but not yet landed"
     ),
-    "ak.self.circle.command.archive": "needs the caller-signed lifecycle Event",
-    "ak.self.circle.command.restore": "needs the caller-signed lifecycle Event",
-    "ak.self.circle.command.tombstone": "needs the caller-signed lifecycle Event",
     "ak.self.realm_link.command.create": (
         "same shape as circle.create; soland mints the Realm id this Event would derive"
     ),
@@ -6169,9 +6165,12 @@ def check_circle_membership_enum_single_source(lint: Lint) -> None:
         lint.fail(path, "$defs.circle_member_state is a forbidden alias; reference membership_state directly")
 
     canonical_ref = "./event-payload.schema.json#/$defs/membership_state"
+    # Only the response DTOs still name a membership value. The request body carries
+    # the caller-signed `ak.circle.member.state` Event and nothing else, so the
+    # membership on the write path is `circle_member_state_payload.membership`, which
+    # single-sources the same enum from inside event-payload.schema.json.
     fields = (
         ("circle_view", "viewer_membership"),
-        ("circle_member_request_body", "membership"),
         ("circle_membership_outcome", "membership"),
     )
     for def_name, field_name in fields:

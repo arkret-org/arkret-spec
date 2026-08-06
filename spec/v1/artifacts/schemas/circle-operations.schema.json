@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/circle-operations.schema.json",
   "title": "Arkret Circle Self-Management Operation DTOs",
-  "description": "Closed request/response DTOs for the self-surface Circle administration operations (ak.self.circle.*). Each operation builds a canonical ak.circle.* Operation and routes it through the standard local accept pipeline; the durable Circle object model is circle.schema.json. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md.",
+  "description": "Closed request/response DTOs for the self-surface Circle administration operations (ak.self.circle.*). Every write operation carries the caller-signed ak.circle.* Event and the service submits those exact bytes through ordinary Event admission; the durable Circle object model is circle.schema.json. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md.",
   "anyOf": [
     {
       "$ref": "#/$defs/circle_create_request_body"
@@ -23,7 +23,13 @@
       "$ref": "#/$defs/circle_scope_rotate_outcome"
     },
     {
-      "$ref": "#/$defs/circle_lifecycle_request_body"
+      "$ref": "#/$defs/circle_archive_request_body"
+    },
+    {
+      "$ref": "#/$defs/circle_restore_request_body"
+    },
+    {
+      "$ref": "#/$defs/circle_tombstone_request_body"
     }
   ],
   "$defs": {
@@ -230,17 +236,36 @@
     },
     "circle_member_request_body": {
       "type": "object",
+      "description": "Carries the caller-signed ak.circle.member.state Event and nothing else. The target actor and the membership value live in member_event.event.payload; the Circle is payload.circle_id and MUST equal the path circle_id. The service MUST NOT add a capability verdict to the payload it submits: circle_member_state_payload is closed, and the ak.circle.member.manage decision is the admission path's, evaluated against projected grants rather than asserted by the request.",
       "required": [
-        "actor_id"
+        "member_event"
       ],
       "properties": {
-        "actor_id": {
-          "$ref": "#/$defs/did"
-        },
-        "membership": {
-          "$ref": "./event-payload.schema.json#/$defs/membership_state",
-          "default": "join",
-          "description": "Target canonical ak.circle.member.state membership value. Defaults to join. Joining another actor requires ak.circle.member.manage and the target MUST already be a joined parent-Realm member; knock requires join_rule=request."
+        "member_event": {
+          "allOf": [
+            {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.circle.member.state"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "realm_id"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ]
+            }
+          ],
+          "description": "Closed ak.circle.member.state Event authored and signed by the authenticated caller. The service MUST submit these exact bytes through ordinary Event admission and MUST NOT co-sign, rebuild or synthesize the Event. Admission MUST verify that event.actor_id is the authenticated caller and that payload.circle_id names the path Circle. Moving another actor to join requires ak.circle.member.manage narrowed by allowed_circle_ids, and the target MUST already be a joined parent-Realm member; knock requires join_rule=knock. A self-service join is gated on the Circle join_rule instead."
         }
       },
       "additionalProperties": false
@@ -285,16 +310,130 @@
       },
       "additionalProperties": false
     },
-    "circle_lifecycle_request_body": {
+    "circle_archive_request_body": {
       "type": "object",
-      "description": "Optional body for ak.self.circle.command.archive / ak.self.circle.command.restore / ak.self.circle.command.tombstone. The target circle is taken from the path.",
+      "description": "Carries the caller-signed ak.circle.archive Event and nothing else. The target Circle is lifecycle_event.event.payload.target_ref and MUST equal the path circle_id; an optional human-readable reason is payload.reason. Archive, restore and tombstone take separate request defs because each pins its own Event kind.",
+      "required": [
+        "lifecycle_event"
+      ],
       "properties": {
-        "reason_code": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        "lifecycle_event": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/circle_lifecycle_event_submission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.circle.archive"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ]
+            }
+          ],
+          "description": "Closed ak.circle.archive Event authored and signed by the authenticated caller."
         }
       },
       "additionalProperties": false
+    },
+    "circle_restore_request_body": {
+      "type": "object",
+      "description": "Carries the caller-signed ak.circle.restore Event and nothing else. Same shape as circle_archive_request_body with the Event kind pinned to restore.",
+      "required": [
+        "lifecycle_event"
+      ],
+      "properties": {
+        "lifecycle_event": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/circle_lifecycle_event_submission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.circle.restore"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ]
+            }
+          ],
+          "description": "Closed ak.circle.restore Event authored and signed by the authenticated caller."
+        }
+      },
+      "additionalProperties": false
+    },
+    "circle_tombstone_request_body": {
+      "type": "object",
+      "description": "Carries the caller-signed ak.circle.tombstone Event and nothing else. Tombstone is terminal: the lifecycle transition matrix admits no transition out of it, so the Event the caller signs is the whole record of who ended the Circle.",
+      "required": [
+        "lifecycle_event"
+      ],
+      "properties": {
+        "lifecycle_event": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/circle_lifecycle_event_submission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.circle.tombstone"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ]
+            }
+          ],
+          "description": "Closed ak.circle.tombstone Event authored and signed by the authenticated caller."
+        }
+      },
+      "additionalProperties": false
+    },
+    "circle_lifecycle_event_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "required": [
+                "realm_id"
+              ]
+            }
+          },
+          "required": [
+            "event"
+          ]
+        }
+      ],
+      "description": "Shared submission shape for the three Circle lifecycle Events. Its payload is object_lifecycle_payload, so the target Circle is single-sourced by target_ref. The service MUST submit these exact bytes through ordinary Event admission and MUST NOT co-sign, rebuild or synthesize the Event; admission MUST verify that event.actor_id is the authenticated caller, that payload.target_ref names the path Circle, and that the reducer's lifecycle transition matrix admits the transition from the Circle's current state."
     }
   }
 }

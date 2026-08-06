@@ -483,18 +483,22 @@ components:
               pattern: ^sha256:[0-9a-f]{64}$
           additionalProperties: false
       additionalProperties: true
+    CircleArchiveRequestBody:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_archive_request_body
     CircleCreateRequestBody:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_create_request_body
-    CircleLifecycleRequestBody:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body
     CircleList:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_list
     CircleMemberRequestBody:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_member_request_body
     CircleMembershipOutcome:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_membership_outcome
+    CircleRestoreRequestBody:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_restore_request_body
     CircleScopeRotateOutcome:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome
+    CircleTombstoneRequestBody:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_tombstone_request_body
     CircleView:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_view
     CollectionCrosstabGroupSource:
@@ -5603,11 +5607,11 @@ paths:
         schema:
           type: string
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CircleLifecycleRequestBody'
+              $ref: '#/components/schemas/CircleArchiveRequestBody'
       responses:
         '200':
           description: Circle archived.
@@ -5628,11 +5632,11 @@ paths:
         schema:
           type: string
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CircleLifecycleRequestBody'
+              $ref: '#/components/schemas/CircleRestoreRequestBody'
       responses:
         '200':
           description: Circle restored.
@@ -5653,11 +5657,11 @@ paths:
         schema:
           type: string
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CircleLifecycleRequestBody'
+              $ref: '#/components/schemas/CircleTombstoneRequestBody'
       responses:
         '200':
           description: Circle tombstoned (terminal state, empty members).

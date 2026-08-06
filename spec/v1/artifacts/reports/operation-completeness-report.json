@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.12",
+  "version": "2026-08-06.13",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T20:30:00Z",
+  "generated_at": "2026-08-06T22:30:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -1821,10 +1821,10 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/circles/{circle_id}/archive",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_archive_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
       "openapi_component_refs": {
-        "request": "#/components/schemas/CircleLifecycleRequestBody",
+        "request": "#/components/schemas/CircleArchiveRequestBody",
         "response": "#/components/schemas/CircleView"
       },
       "completeness_class": "typed_schema",
@@ -1849,10 +1849,10 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/circles/{circle_id}/restore",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_restore_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
       "openapi_component_refs": {
-        "request": "#/components/schemas/CircleLifecycleRequestBody",
+        "request": "#/components/schemas/CircleRestoreRequestBody",
         "response": "#/components/schemas/CircleView"
       },
       "completeness_class": "typed_schema",
@@ -1876,10 +1876,10 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/circles/{circle_id}/tombstone",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_tombstone_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
       "openapi_component_refs": {
-        "request": "#/components/schemas/CircleLifecycleRequestBody",
+        "request": "#/components/schemas/CircleTombstoneRequestBody",
         "response": "#/components/schemas/CircleView"
       },
       "completeness_class": "typed_schema",

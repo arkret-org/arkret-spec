@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.12",
+  "version": "2026-08-06.13",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T20:30:00Z",
+  "generated_at": "2026-08-06T22:30:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -1555,7 +1555,7 @@
       "http": "POST /_arkret/self/circles/{circle_id}/members",
       "grpc": "SelfCircle/MemberAdd",
       "mq": "self.circle.member.command.add",
-      "notes": "Builds ak.circle.member.state. Activating another actor requires ak.circle.member.manage narrowed to this Circle, and the target MUST already be a joined parent-Realm member (strict-subset invariant); a self-join is gated by join_rule.",
+      "notes": "Submits the caller-signed ak.circle.member.state Event carried in member_event through ordinary Event admission; payload.circle_id MUST equal the path circle_id. Moving another actor to join requires ak.circle.member.manage narrowed to this Circle, evaluated against projected grants rather than asserted by the request, and the target MUST already be a joined parent-Realm member (strict-subset invariant); a self-join is gated by join_rule. The service MUST NOT co-sign, rebuild or synthesize the Event, nor add a capability verdict to the closed payload.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
@@ -1616,7 +1616,7 @@
       "http": "POST /_arkret/self/circles/{circle_id}/archive",
       "grpc": "SelfCircle/Archive",
       "mq": "self.circle.command.archive",
-      "notes": "Builds ak.circle.archive; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_active).",
+      "notes": "Submits the caller-signed ak.circle.archive Event carried in lifecycle_event through ordinary Event admission; payload.target_ref MUST name the path Circle. Transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_active). The service MUST NOT co-sign, rebuild or synthesize the Event.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
@@ -1625,7 +1625,7 @@
         "strategy": "query_operation",
         "operation_id": "ak.self.circle.resource.get"
       },
-      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_archive_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
       "durable_effect": {
         "kind": "event_log",
@@ -1639,7 +1639,7 @@
       "http": "POST /_arkret/self/circles/{circle_id}/restore",
       "grpc": "SelfCircle/Restore",
       "mq": "self.circle.command.restore",
-      "notes": "Builds ak.circle.restore; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_archived). Restore re-enables new writes after pending MLS membership removals are settled.",
+      "notes": "Submits the caller-signed ak.circle.restore Event carried in lifecycle_event through ordinary Event admission; payload.target_ref MUST name the path Circle. Transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_archived). Restore re-enables new writes after pending MLS membership removals are settled. The service MUST NOT co-sign, rebuild or synthesize the Event.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
@@ -1648,7 +1648,7 @@
         "strategy": "query_operation",
         "operation_id": "ak.self.circle.resource.get"
       },
-      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_restore_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
       "durable_effect": {
         "kind": "event_log",
@@ -1662,7 +1662,7 @@
       "http": "POST /_arkret/self/circles/{circle_id}/tombstone",
       "grpc": "SelfCircle/Tombstone",
       "mq": "self.circle.command.tombstone",
-      "notes": "Builds ak.circle.tombstone (terminal). Response surfaces the terminal state with empty members.",
+      "notes": "Submits the caller-signed ak.circle.tombstone Event carried in lifecycle_event through ordinary Event admission; payload.target_ref MUST name the path Circle. Terminal: the lifecycle matrix admits no transition out, so the signed Event is the whole record of who ended the Circle. Response surfaces the terminal state with empty members. The service MUST NOT co-sign, rebuild or synthesize the Event.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
@@ -1671,7 +1671,7 @@
         "strategy": "query_operation",
         "operation_id": "ak.self.circle.resource.get"
       },
-      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_tombstone_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
       "durable_effect": {
         "kind": "event_log",

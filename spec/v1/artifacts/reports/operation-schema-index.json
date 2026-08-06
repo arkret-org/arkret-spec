@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.12",
+  "version": "2026-08-06.13",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T20:30:00Z",
+  "generated_at": "2026-08-06T22:30:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2734,11 +2734,10 @@
         "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_request_body",
         "schema_kind": "object",
         "required": [
-          "actor_id"
+          "member_event"
         ],
         "properties": [
-          "actor_id",
-          "membership"
+          "member_event"
         ],
         "closed": true
       },
@@ -2798,11 +2797,13 @@
       "operation_id": "ak.self.circle.command.archive",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_archive_request_body",
         "schema_kind": "object",
-        "required": [],
+        "required": [
+          "lifecycle_event"
+        ],
         "properties": [
-          "reason_code"
+          "lifecycle_event"
         ],
         "closed": true
       },
@@ -2853,11 +2854,13 @@
       "operation_id": "ak.self.circle.command.restore",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_restore_request_body",
         "schema_kind": "object",
-        "required": [],
+        "required": [
+          "lifecycle_event"
+        ],
         "properties": [
-          "reason_code"
+          "lifecycle_event"
         ],
         "closed": true
       },
@@ -2908,11 +2911,13 @@
       "operation_id": "ak.self.circle.command.tombstone",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_tombstone_request_body",
         "schema_kind": "object",
-        "required": [],
+        "required": [
+          "lifecycle_event"
+        ],
         "properties": [
-          "reason_code"
+          "lifecycle_event"
         ],
         "closed": true
       },
