@@ -4023,21 +4023,11 @@ EVENT_AUTHORING_DURABLE_EFFECT_KINDS = ("event_log", "actor_private_event")
 # cell/lattice, i.e. it never enters state_root and no peer has to converge on it.
 # See arkret-work/work/active/2026-08-06-event-log-operations-need-a-signed-request.md.
 EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
-    # actor_private_event, all three writing a kind whose actor-private cell subject
-    # is composite[envelope.actor_id, ...]. The subject *is* the actor, so the actor
-    # cannot be the service: soland signs these with the service DID and
-    # `payload.owner` (the real user) is not part of the subject, which collapses
-    # every user's account data for one key into a single cell under the service DID,
-    # sharing one `server_revision_cas` counter. See the account_data finding in
+    # The one actor_private_event entry left. Its cell subject is
+    # composite[envelope.actor_id, ...], so the subject *is* the actor and only the
+    # holder can sign it. The account_data pair closed the same way; what that closure
+    # had to fix in soland is recorded in
     # arkret-work/work/active/2026-08-06-event-log-operations-need-a-signed-request.md.
-    "ak.self.account_data.resource.replace": (
-        "actor-private subject is composite[envelope.actor_id, payload.key], so the owner must "
-        "sign; soland authors it as the service DID instead"
-    ),
-    "ak.self.account_data.resource.delete": (
-        "same kind and same cell as resource.replace, and a DELETE with no body cannot carry the "
-        "owner's signature at all"
-    ),
     "ak.self.read_cursor.command.advance": (
         "actor-private subject includes envelope.actor_id; needs the caller-signed "
         "ak.read_cursor.advance"

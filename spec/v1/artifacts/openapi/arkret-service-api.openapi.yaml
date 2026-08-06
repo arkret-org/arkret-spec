@@ -262,6 +262,8 @@ components:
   schemas:
     AccountDataDeleteOutcome:
       $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome
+    AccountDataDeleteRequestBody:
+      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_delete_request_body
     AccountDataList:
       $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_list
     AccountDataReplaceRequestBody:
@@ -8719,13 +8721,12 @@ paths:
         required: true
         schema:
           type: string
-      - name: expected_revision
-        in: query
-        description: Compare-and-set precondition; must equal the accepted per-key revision. See zh/models/account-data.md §5.
+      requestBody:
         required: true
-        schema:
-          type: integer
-          minimum: 0
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountDataDeleteRequestBody'
       responses:
         '200':
           description: Account data entry deleted.

@@ -63,17 +63,88 @@
     },
     "account_data_replace_request_body": {
       "type": "object",
+      "description": "Carries the caller-signed ak.account_data.set Event and nothing else. The actor-private cell subject is composite[envelope.actor_id, payload.key], so the subject *is* the owner: the Event MUST be signed by the holder and the service MUST NOT author it under its own DID. Every field the caller used to send at the top level already lives in set_event.event.payload -- key, expected_revision, and body / encrypted_payload. A tombstone payload is rejected here: erasure goes through ak.self.account_data.resource.delete, which enforces the registered deletion_mode.",
       "required": [
-        "expected_revision",
-        "content"
+        "set_event"
       ],
       "properties": {
-        "expected_revision": {
-          "$ref": "#/$defs/revision",
-          "description": "Compare-and-set precondition: the revision the caller believes is current. Use 0 to create a key that has never been written. A mismatch MUST fail with cas_conflict and MUST NOT store the value."
-        },
-        "content": {
-          "description": "Caller-supplied opaque payload. Server stores it verbatim; canonical encoding and (for sensitive keys) client-side encryption are the client's responsibility. Any JSON value."
+        "set_event": {
+          "allOf": [
+            {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+            },
+            {
+              "type": "object",
+              "required": [
+                "event"
+              ],
+              "properties": {
+                "event": {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "payload"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "const": "ak.account_data.set"
+                    },
+                    "payload": {
+                      "type": "object",
+                      "not": {
+                        "required": [
+                          "tombstone"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_data_delete_request_body": {
+      "type": "object",
+      "description": "Carries the caller-signed tombstone ak.account_data.set Event and nothing else. Same subject rule as the replace body: composite[envelope.actor_id, payload.key] makes the holder the only legal signer. expected_revision is the payload's, not a query parameter -- one CAS precondition, one place. deletion_mode=value_tombstone keys MUST still be refused on this endpoint.",
+      "required": [
+        "set_event"
+      ],
+      "properties": {
+        "set_event": {
+          "allOf": [
+            {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+            },
+            {
+              "type": "object",
+              "required": [
+                "event"
+              ],
+              "properties": {
+                "event": {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "payload"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "const": "ak.account_data.set"
+                    },
+                    "payload": {
+                      "type": "object",
+                      "required": [
+                        "tombstone"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
         }
       },
       "additionalProperties": false

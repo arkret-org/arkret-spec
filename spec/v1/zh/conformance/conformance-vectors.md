@@ -2529,7 +2529,7 @@ Expected：
 - 服务端 MUST NOT 解密、比较或合并 `content`；所有领域合并只发生在客户端明文上。
 - 每个 `(actor_id, account_data_key)` 的 `revision` 单调递增且 MUST NOT 回退；被拒绝的写 MUST NOT 推进它，也 MUST NOT 向其它设备 fanout。
 - 任意投递顺序下，所有设备在耗尽重试循环后 MUST 收敛到同一 `(revision, content)`。
-- 缺少 `expected_revision` 的 `ak.account_data.set` payload、`resource.replace` body 或 `resource.delete` query MUST 在 handler 前以 `schema_violation` 拒绝。
+- `expected_revision` 只有一处真源：`ak.account_data.set` payload。`resource.replace` 与 `resource.delete` 的 body 都只承载那条调用方签名的 Event，因此缺少它 MUST 在 handler 前以 `schema_violation` 拒绝，而不是在三处各校验一遍（`resource.delete` 的 query 参数已随之取消）。
 
 ### 5.11 Vector: Private View 与 Notification 收件箱 account-data 承载
 

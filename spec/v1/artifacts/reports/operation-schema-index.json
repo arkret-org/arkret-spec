@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.13",
+  "version": "2026-08-06.14",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T22:30:00Z",
+  "generated_at": "2026-08-06T23:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7885,12 +7885,10 @@
         "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body",
         "schema_kind": "object",
         "required": [
-          "expected_revision",
-          "content"
+          "set_event"
         ],
         "properties": [
-          "expected_revision",
-          "content"
+          "set_event"
         ],
         "closed": true
       },
@@ -7915,6 +7913,17 @@
     {
       "operation_id": "ak.self.account_data.resource.delete",
       "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_request_body",
+        "schema_kind": "object",
+        "required": [
+          "set_event"
+        ],
+        "properties": [
+          "set_event"
+        ],
+        "closed": true
+      },
       "response": {
         "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome",
         "schema_kind": "object",

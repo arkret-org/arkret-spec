@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.13",
+  "version": "2026-08-06.14",
   "source_of_truth": true,
-  "generated_at": "2026-08-06T22:30:00Z",
+  "generated_at": "2026-08-06T23:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -13791,7 +13791,7 @@
         "http": "DELETE /_arkret/self/account_data/{account_data_key}",
         "grpc": "SelfAccountData/Delete",
         "mq": "self.account_data.resource.delete",
-        "notes": "Stores a versioned tombstone for one account_data entry and fans out an actor-private update to the holder's other devices. The query parameter expected_revision is the same compare-and-set precondition as resource.replace; a mismatch returns cas_conflict and deletes nothing. The per-key revision high-water mark survives tombstone garbage collection, so a stale offline write can never resurrect the value. Key patterns whose deletion_mode is value_tombstone MUST NOT use this operation.",
+        "notes": "Submits the caller-signed tombstone ak.account_data.set Event. The actor-private cell subject is composite[envelope.actor_id, payload.key], so only the holder may sign it and the service MUST NOT author it under its own DID. expected_revision is the Event payload's; it is no longer a query parameter. deletion_mode=value_tombstone keys MUST still be refused here.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -13800,7 +13800,8 @@
         "durable_effect": {
           "kind": "actor_private_event",
           "event_kind": "ak.account_data.set"
-        }
+        },
+        "request_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_request_body"
       },
       {
         "operation_id": "ak.self.read_cursor.command.advance",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.13",
+  "version": "2026-08-06.14",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T22:30:00Z",
+  "generated_at": "2026-08-06T23:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -1403,13 +1403,14 @@
       "surface_class": "extension",
       "http": "DELETE /_arkret/self/account_data/{account_data_key}",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
+      "request_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_request_body",
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome",
       "openapi_component_refs": {
+        "request": "#/components/schemas/AccountDataDeleteRequestBody",
         "response": "#/components/schemas/AccountDataDeleteOutcome"
       },
       "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.account_data.resource.get",

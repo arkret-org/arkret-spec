@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9184,
+    "total_properties": 9190,
     "total_schema_documents": 155,
     "by_presence_class": {
       "optional": 2830,
       "optional_defaulted": 69,
-      "required": 5913,
-      "required_nullable": 101,
+      "required": 5920,
+      "required_nullable": 100,
       "tristate": 271
     },
     "tristate_occurrences": 271,
@@ -2091,13 +2091,19 @@
         "/$defs/account_data_delete_outcome/properties/account_data_key": "required",
         "/$defs/account_data_delete_outcome/properties/ok": "required",
         "/$defs/account_data_delete_outcome/properties/revision": "required",
+        "/$defs/account_data_delete_request_body/properties/set_event": "required",
+        "/$defs/account_data_delete_request_body/properties/set_event/allOf/1/properties/event": "required",
+        "/$defs/account_data_delete_request_body/properties/set_event/allOf/1/properties/event/properties/kind": "required",
+        "/$defs/account_data_delete_request_body/properties/set_event/allOf/1/properties/event/properties/payload": "required",
         "/$defs/account_data_entry/properties/account_data_key": "required",
         "/$defs/account_data_entry/properties/content": "required_nullable",
         "/$defs/account_data_entry/properties/revision": "required",
         "/$defs/account_data_entry/properties/updated_at": "required",
         "/$defs/account_data_list/properties/entries": "required",
-        "/$defs/account_data_replace_request_body/properties/content": "required_nullable",
-        "/$defs/account_data_replace_request_body/properties/expected_revision": "required"
+        "/$defs/account_data_replace_request_body/properties/set_event": "required",
+        "/$defs/account_data_replace_request_body/properties/set_event/allOf/1/properties/event": "required",
+        "/$defs/account_data_replace_request_body/properties/set_event/allOf/1/properties/event/properties/kind": "required",
+        "/$defs/account_data_replace_request_body/properties/set_event/allOf/1/properties/event/properties/payload": "required"
       }
     },
     "account-operations.schema.json": {
