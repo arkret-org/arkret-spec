@@ -3074,6 +3074,7 @@
         },
         "accepted_event_digests": {
           "type": "array",
+          "description": "The Control Events this Seal accepted, as a set: byte-wise ascending and unique, the same normalization Seal.delta carries. Order MUST NOT be read as reducer apply order, which is causal-then-digest-descending and is not observable on this response; a client comparing this array against its own submission order or against a server's apply order is comparing two different sequences.",
           "items": {
             "type": "string",
             "pattern": "^sha256:[0-9a-f]{64}$"
