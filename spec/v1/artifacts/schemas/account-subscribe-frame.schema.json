@@ -56,7 +56,7 @@
     },
     "partial": {
       "type": "boolean",
-      "description": "When true on a `delta` frame, the per-Realm timelines are limited (truncated); client SHOULD backfill via ak.self.events.query.scan for any Realm whose timeline carries `limited=true`."
+      "description": "When true on a `delta` frame, the per-Realm timelines are limited (truncated); client SHOULD backfill via ak.self.events.read.scan for any Realm whose timeline carries `limited=true`."
     },
     "priority": {
       "type": "string",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.3",
+  "version": "2026-08-06.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-06T07:00:00Z",
+  "generated_at": "2026-08-06T10:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -10133,9 +10133,9 @@
       "Each operation MUST declare success_shape_kind so SDKs can determine success handling without endpoint-name hard-coding.",
       "Operations with typed OpenAPI bodies SHOULD declare request_schema_ref and/or response_schema_ref. The referenced schema fragment is the source for generated DTO docs and MUST match the OpenAPI component referenced by the HTTP binding.",
       "Operations that still bind OpenAPI request/response bodies to OperationRequest or OperationResult MUST declare generic_binding with request/response booleans, reason, profile_gate, and migration_plan; core-tier operations MUST NOT use generic bindings.",
-      "operation_id values MUST end with <kind>.<action>. The kind segment MUST be one of query, stream, resource, command, upload, or exchange; the action segment MUST describe protocol semantics and MUST NOT be an HTTP method name.",
+      "operation_id values MUST end with <kind>.<action>. The kind segment MUST be one of read, query, stream, resource, command, upload, or exchange; the action segment MUST describe protocol semantics and MUST NOT be an HTTP method name. read is the canonical safe/idempotent computation kind for surfaces bound to HTTP QUERY; query remains valid for operation families not yet migrated.",
       "resource.replace operations MUST bind to HTTP PUT; resource.delete operations MUST bind to HTTP DELETE; command, upload, exchange, and complex query body operations SHOULD bind to HTTP POST unless their operation notes define a stricter resource URI replacement contract.",
-      "Every write operation (kind command/upload/exchange, and resource.replace / resource.delete) MUST declare idempotency_mechanism (one of idempotency_key, object_id, request_id, canonical_hash, protocol_sequence, none) and retry_safe (boolean). Read-only operations (query/stream/resource.get/resource.head) MUST NOT declare these fields.",
+      "Every write operation (kind command/upload/exchange, and resource.replace / resource.delete) MUST declare idempotency_mechanism (one of idempotency_key, object_id, request_id, canonical_hash, protocol_sequence, none) and retry_safe (boolean). Read-only operations (read/query/stream/resource.get/resource.head) MUST NOT declare these fields.",
       "idempotency_mechanism is the machine-readable source of truth for which idempotency mechanism from api-conventions.md section 6 an operation uses. canonical_hash operations MUST also declare canonical_hash_input as either full_body or an RFC 6901 JSON Pointer. retry_safe=true means a byte-identical full retry of the same request cannot produce duplicate side effects: it returns the original outcome, an equivalent idempotent no-op, or a deterministic conflict. retry_safe=false means blind retries MAY duplicate side effects or consume one-time material; clients MUST NOT retry such operations without out-of-band reconciliation.",
       "Every write operation MUST declare durable_effect. kind=event_log identifies an Arkret Event committed by successful completion and declares either event_kinds[] or an event_kind_source JSON path; kind=actor_private_event declares the actor-private Event kind committed; kind=none declares no Arkret Event and requires a stable rationale. Service-local durable state, identity-method logs, queues, session/material stores, external effects and returned-but-uncommitted Event material all use kind=none with an accurate rationale. Missing, unknown or inactive declared Event kinds fail closed.",
       "Every operation MUST declare body_class, a closed value of non_streaming_json, streaming_ndjson, or binary_stream. body_class=non_streaming_json binds the operation to the general size contract in zh/conformance/scalability-constraints.md section 2.1: canonical request/response body <= 8 MiB, HTTP message content wire bytes <= 16 MiB, Content-Encoding MUST be absent, and every byte overflow maps to payload_too_large. streaming_ndjson and binary_stream operations are excluded from the whole-body limits and MUST define their own per-frame / per-chunk / pending bounds (scalability-constraints section 2.1.7).",
@@ -10195,16 +10195,15 @@
         "operations": [
           "ak.self.control_proposal_receipts.command.issue",
           "ak.self.authorization_leases.command.issue",
-          "ak.self.events.query.describe",
+          "ak.self.events.read.describe",
           "ak.self.events.command.submit",
           "ak.self.events.command.submit_seal",
           "ak.self.events.resource.get",
-          "ak.self.events.query.resolve",
-          "ak.self.events.query.scan",
-          "ak.self.events.query.scan_body",
+          "ak.self.events.read.resolve",
+          "ak.self.events.read.scan",
           "ak.self.events.stream.subscribe",
-          "ak.self.events.query.frontier",
-          "ak.self.events.query.mls_governance_proof",
+          "ak.self.events.read.frontier",
+          "ak.self.events.read.mls_governance_proof",
           "ak.self.account.query.describe",
           "ak.self.account.query.viewer",
           "ak.self.account.command.update_profile",
@@ -10217,15 +10216,14 @@
       {
         "surface": "peer_federation",
         "operations": [
-          "ak.peer.events.query.describe",
+          "ak.peer.events.read.describe",
           "ak.peer.events.command.submit",
           "ak.peer.account_status.query.authoring_basis",
           "ak.peer.account_status.command.submit",
           "ak.peer.mls.query.group_state_material",
-          "ak.peer.events.query.resolve",
-          "ak.peer.events.query.scan",
-          "ak.peer.events.query.scan_body",
-          "ak.peer.events.query.frontier",
+          "ak.peer.events.read.resolve",
+          "ak.peer.events.read.scan",
+          "ak.peer.events.read.frontier",
           "ak.peer.invites.command.submit",
           "ak.peer.contacts.command.submit",
           "ak.peer.keys.keypackages.command.claim",
@@ -11982,27 +11980,47 @@
         }
       },
       {
-        "operation_id": "ak.self.events.query.describe",
-        "http": "GET /_arkret/self/events/describe",
+        "operation_id": "ak.self.events.read.describe",
+        "http": "QUERY /_arkret/self/events/describe",
+        "http_compatibility_bindings": [
+          {
+            "http": "GET /_arkret/self/events/describe",
+            "request_encoding": "query_string"
+          }
+        ],
         "grpc": "SelfEvents/Describe",
-        "mq": "self.events.query.scan.describe",
+        "mq": "self.events.read.describe",
         "body_class": "non_streaming_json",
-        "success_shape_kind": "service_describe"
+        "success_shape_kind": "service_describe",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody"
       },
       {
-        "operation_id": "ak.self.events.query.frontier",
-        "http": "GET /_arkret/self/events/frontier",
+        "operation_id": "ak.self.events.read.frontier",
+        "http": "QUERY /_arkret/self/events/frontier",
+        "http_compatibility_bindings": [
+          {
+            "http": "GET /_arkret/self/events/frontier",
+            "request_encoding": "query_string"
+          }
+        ],
         "grpc": "SelfEvents/Frontier",
-        "mq": "self.events.query.scan.frontier",
+        "mq": "self.events.read.frontier",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState"
       },
       {
-        "operation_id": "ak.self.events.query.mls_governance_proof",
-        "http": "POST /_arkret/self/events/mls-governance-proof",
+        "operation_id": "ak.self.events.read.mls_governance_proof",
+        "http": "QUERY /_arkret/self/events/mls-governance-proof",
+        "http_compatibility_bindings": [
+          {
+            "http": "POST /_arkret/self/events/mls-governance-proof",
+            "request_encoding": "json_body"
+          }
+        ],
         "grpc": "SelfEvents/MlsGovernanceProof",
-        "mq": "self.events.query.mls_governance_proof",
+        "mq": "self.events.read.mls_governance_proof",
         "notes": "Return one bounded, manifest-committed chunk of a complete_control_state_v1 proof bundle for one authenticated, caller-visible Realm/scope. The request MUST name an exact locally trusted_anchor_seal_id and chunk_index; later chunks pin expected_bundle_digest. The service MUST build from that anchor and return mls_governance_anchor_unreachable instead of substituting another anchor. From one accepted Seal view it supplies enough complete state to rederive the closed key-access projection in mls-security-frontier-registry.json; callers cannot supply roots or choose frontier members. Responses bind canonical acquisition identity with proof_request_digest, commit all chunks under chunks_root, and use bundle_digest rather than accepted_seal_id as the logical content address. Each response is at most 4 MiB; the logical bundle is at most 256 MiB, 1024 chunks, 4096 Seals, 1048576 covered digests, 262144 control leaves and 128 frontier Events. Exceeding a total bound returns mls_governance_proof_bounds_exceeded with no partial output. Implementations MUST enforce Realm/scope visibility before materialization and MUST fail closed when any covered Event, control state, Seal path, chunk commitment, signature authority, or reducer profile cannot be reconstructed.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
@@ -12019,31 +12037,38 @@
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventView"
       },
       {
-        "operation_id": "ak.self.events.query.scan",
-        "http": "GET /_arkret/self/events",
-        "grpc": "SelfEvents/Query",
-        "mq": "self.events.query.scan",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome"
-      },
-      {
-        "operation_id": "ak.self.events.query.scan_body",
-        "binding_variant_of": "ak.self.events.query.scan",
-        "http_only_variant": true,
-        "http": "POST /_arkret/self/events/query",
-        "notes": "HTTP-specific POST/body form of ak.events.query. Semantically identical (same selector / cursor / order / filter / include_completeness parameter set, same response shape including optional range_completeness). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. Non-HTTP transports MUST use the canonical ak.self.events.query.scan binding (SelfEvents/Query / self.events.query.scan), not expose this variant as a separate gRPC or MQ operation.",
+        "operation_id": "ak.self.events.read.scan",
+        "http": "QUERY /_arkret/self/events",
+        "http_compatibility_bindings": [
+          {
+            "http": "GET /_arkret/self/events",
+            "request_encoding": "query_string"
+          },
+          {
+            "http": "POST /_arkret/self/events/query",
+            "request_encoding": "json_body"
+          }
+        ],
+        "grpc": "SelfEvents/Scan",
+        "mq": "self.events.read.scan",
+        "notes": "Canonical safe and idempotent Events range scan. HTTP uses RFC 10008 QUERY with JSON content. GET query-string and POST /query are compatibility bindings of this same operation and MUST NOT be advertised as independent operations.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome"
       },
       {
-        "operation_id": "ak.self.events.query.resolve",
-        "http": "POST /_arkret/self/events/resolve",
+        "operation_id": "ak.self.events.read.resolve",
+        "http": "QUERY /_arkret/self/events/resolve",
+        "http_compatibility_bindings": [
+          {
+            "http": "POST /_arkret/self/events/resolve",
+            "request_encoding": "json_body"
+          }
+        ],
         "grpc": "SelfEvents/Resolve",
-        "mq": "self.events.query.scan.resolve",
-        "notes": "Dereference a known set of event_id / event_digest references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use ak.self.events.query.scan for selector-based reads.",
+        "mq": "self.events.read.resolve",
+        "notes": "Dereference a known set of event_id / event_digest references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use ak.self.events.read.scan for selector-based reads.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
@@ -12135,50 +12160,70 @@
         }
       },
       {
-        "operation_id": "ak.peer.events.query.describe",
-        "http": "GET /_arkret/peer/events/describe",
+        "operation_id": "ak.peer.events.read.describe",
+        "http": "QUERY /_arkret/peer/events/describe",
+        "http_compatibility_bindings": [
+          {
+            "http": "GET /_arkret/peer/events/describe",
+            "request_encoding": "query_string"
+          }
+        ],
         "grpc": "PeerEvents/Describe",
-        "mq": "peer.events.query.scan.describe",
+        "mq": "peer.events.read.describe",
         "notes": "Federation peer Events surface describe. This endpoint describes the server-to-server peer event bindings; it is not a client self/events binding.",
         "body_class": "non_streaming_json",
-        "success_shape_kind": "service_describe"
+        "success_shape_kind": "service_describe",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsDescribeRequestBody"
       },
       {
-        "operation_id": "ak.peer.events.query.frontier",
-        "http": "GET /_arkret/peer/events/frontier",
+        "operation_id": "ak.peer.events.read.frontier",
+        "http": "QUERY /_arkret/peer/events/frontier",
+        "http_compatibility_bindings": [
+          {
+            "http": "GET /_arkret/peer/events/frontier",
+            "request_encoding": "query_string"
+          }
+        ],
         "grpc": "PeerEvents/Frontier",
-        "mq": "peer.events.query.scan.frontier",
+        "mq": "peer.events.read.frontier",
         "notes": "Federation peer frontier probe. Requires service-to-service authentication, Source/Destination service DID headers, trust-domain headers, and Realm federation_peer authorization. It returns the federation peer frontier response shape on the dedicated peer trust surface.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsFrontierRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState"
       },
       {
-        "operation_id": "ak.peer.events.query.scan",
-        "http": "GET /_arkret/peer/events",
-        "grpc": "PeerEvents/Query",
-        "mq": "peer.events.query.scan",
-        "notes": "Federation peer pull/backfill query. Uses the same selector, cursor, order, and response semantics as ak.self.events.query.scan, but the HTTP trust surface is peer and the caller MUST be an authorized federation peer service.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome"
-      },
-      {
-        "operation_id": "ak.peer.events.query.scan_body",
-        "binding_variant_of": "ak.peer.events.query.scan",
-        "http_only_variant": true,
-        "http": "POST /_arkret/peer/events/query",
-        "notes": "HTTP-specific POST/body form of ak.peer.events.query.scan. Semantically identical to GET /_arkret/peer/events; use it when federation selectors or filters are too large or sensitive for query strings.",
+        "operation_id": "ak.peer.events.read.scan",
+        "http": "QUERY /_arkret/peer/events",
+        "http_compatibility_bindings": [
+          {
+            "http": "GET /_arkret/peer/events",
+            "request_encoding": "query_string"
+          },
+          {
+            "http": "POST /_arkret/peer/events/query",
+            "request_encoding": "json_body"
+          }
+        ],
+        "grpc": "PeerEvents/Scan",
+        "mq": "peer.events.read.scan",
+        "notes": "Federation peer pull/backfill query. Uses the same selector, cursor, order, and response semantics as ak.self.events.read.scan, but the HTTP trust surface is peer and the caller MUST be an authorized federation peer service.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome"
       },
       {
-        "operation_id": "ak.peer.events.query.resolve",
-        "http": "POST /_arkret/peer/events/resolve",
+        "operation_id": "ak.peer.events.read.resolve",
+        "http": "QUERY /_arkret/peer/events/resolve",
+        "http_compatibility_bindings": [
+          {
+            "http": "POST /_arkret/peer/events/resolve",
+            "request_encoding": "json_body"
+          }
+        ],
         "grpc": "PeerEvents/Resolve",
-        "mq": "peer.events.query.scan.resolve",
+        "mq": "peer.events.read.resolve",
         "notes": "Read-only federation dependency resolution for canonical-bytewise sorted exact Event IDs, Event digests, and Seal refs in one Realm. Returns visible Events and receiver-relative CbaProofBundle values under a caller-selected response budget capped at 8 MiB. It never accepts an Event or Seal and never advances a frontier. Every selector is fully accounted for by a returned object or an indistinguishable same-type missing entry; if complete accounting cannot fit the budget, the whole operation returns limit_exceeded rather than a partial success.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
@@ -15974,7 +16019,7 @@
         "event_mapping_kind": "non_event_surface"
       },
       {
-        "action": "ak.self.events.query.scan",
+        "action": "ak.self.events.read.scan",
         "category": "service",
         "risk_tier": "low",
         "required_constraints": [],

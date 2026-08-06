@@ -330,7 +330,7 @@ controller 离线时 response/control 留在 private history。新设备或 cach
 新 controller 设备不得依赖旧设备保存的 ensure outcome、pending fact、当前 route 或已激活 UI session 来定位 private Strand。它 MUST 对每个可访问 Realm 执行以下完整分页算法：
 
 1. 分页调用 `ak.self.agent.sidecar.query.list`，直到响应不再给出 continuation cursor，或下一 cursor 与已见 cursor 重复（重复 cursor MUST 作为服务端错误 fail closed，不得接受不完整结果）；将每个 view 的 `(realm_id, controller_id, sidecar_id, backing_circle_id)` 建成只读候选表。同一 `(realm_id, controller_id, backing_circle_id)` 映射到多个 `sidecar_id` 时，该候选冲突且不得恢复。
-2. 对候选表涉及的每个 Realm 分页调用 `ak.self.events.query.scan`，使用同一 verified controller self session，直到 continuation cursor 缺席；cursor 重复、页缺失、鉴权变化、限额中断或无法证明最后一页时，该 Realm 标记 `backfill_pending`，不得从部分 history 启用 echo。
+2. 对候选表涉及的每个 Realm 分页调用 `ak.self.events.read.scan`，使用同一 verified controller self session，直到 continuation cursor 缺席；cursor 重复、页缺失、鉴权变化、限额中断或无法证明最后一页时，该 Realm 标记 `backfill_pending`，不得从部分 history 启用 echo。
 3. 只考虑完整 accepted Event Envelope。候选 `ak.strand.create` 的 effective scope MUST 精确为候选 backing Circle，actor MUST 是 controller，Realm MUST 匹配，且 payload 必须描述 private Strand。候选 `ak.relation.create` 必须位于同一 effective scope，actor/controller/Realm 全部匹配，`kind=agent_sidecar_of`，`from_ref` 指向该 private Strand，`to_ref` 是 canonical source context ref。
 4. `ak.strand.create` 与 `ak.relation.create` 必须同时存在于同一已接受 aggregate/history，并且 Relation 因果上引用或覆盖 Strand creation；缺一、多个 Relation 指向不同 source、多个 private Strand 指向同一 source，或任何 scope/controller/Realm 不匹配都使该候选保持 unresolved。
 5. 唯一有效配对恢复 `(sidecar_id, backing_circle_id, private_strand_id, source_context_ref)`。完成全部页并验证唯一性之前，该 Sidecar 的 Message/control Event 一律 non-echo、non-terminal 且不得触发 Agent 再投递。

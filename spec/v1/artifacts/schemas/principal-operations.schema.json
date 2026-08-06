@@ -568,7 +568,7 @@
           "const": "ak.self.events.command.submit"
         },
         {
-          "const": "ak.self.events.query.resolve"
+          "const": "ak.self.events.read.resolve"
         }
       ],
       "items": false,

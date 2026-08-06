@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.3",
+  "version": "2026-08-06.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T07:00:00Z",
+  "generated_at": "2026-08-06T10:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1994,7 +1994,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.events.query.scan",
+      "action": "ak.self.events.read.scan",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],

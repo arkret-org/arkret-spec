@@ -101,6 +101,18 @@
       "$ref": "#/$defs/EventsFrontierState"
     },
     {
+      "$ref": "#/$defs/EventsDescribeRequestBody"
+    },
+    {
+      "$ref": "#/$defs/EventsFrontierRequestBody"
+    },
+    {
+      "$ref": "#/$defs/PeerEventsDescribeRequestBody"
+    },
+    {
+      "$ref": "#/$defs/PeerEventsFrontierRequestBody"
+    },
+    {
       "$ref": "#/$defs/EventsQueryPostRequestBody"
     },
     {
@@ -2383,8 +2395,70 @@
     "EventsFrontierState": {
       "$ref": "#/$defs/EventsFrontierAccountClientState"
     },
+    "EventsDescribeRequestBody": {
+      "type": "object",
+      "description": "Canonical QUERY content for ak.self.events.read.describe. GET compatibility bindings map the same properties to URI query parameters.",
+      "properties": {
+        "actor_id": {
+          "$ref": "#/$defs/ActorDid"
+        },
+        "realm_id": {
+          "$ref": "#/$defs/RealmId"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventsFrontierRequestBody": {
+      "type": "object",
+      "description": "Canonical QUERY content for ak.self.events.read.frontier. Exactly the same selector semantics apply to the GET compatibility binding.",
+      "anyOf": [
+        {
+          "required": [
+            "actor_id"
+          ]
+        },
+        {
+          "required": [
+            "realm_id"
+          ]
+        }
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "#/$defs/ActorDid"
+        },
+        "realm_id": {
+          "$ref": "#/$defs/RealmId"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PeerEventsDescribeRequestBody": {
+      "type": "object",
+      "description": "Canonical QUERY content for ak.peer.events.read.describe.",
+      "properties": {
+        "realm_id": {
+          "$ref": "#/$defs/RealmId"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PeerEventsFrontierRequestBody": {
+      "type": "object",
+      "description": "Canonical QUERY content for ak.peer.events.read.frontier.",
+      "required": [
+        "realm_id"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "#/$defs/RealmId"
+        }
+      },
+      "additionalProperties": false
+    },
     "EventsQueryPostRequestBody": {
       "type": "object",
+      "description": "Canonical QUERY content for ak.self.events.read.scan and ak.peer.events.read.scan. The historical name is retained as a schema identifier for generated-code compatibility; POST is only a compatibility binding.",
       "additionalProperties": false,
       "anyOf": [
         {
@@ -2450,7 +2524,7 @@
     },
     "EventsQueryOutcome": {
       "type": "object",
-      "description": "Result of ak.self.events.query.scan (GET form) and ak.self.events.query.scan_body (POST/body\nform). Ordering follows the \"近邻先返回\" rule unless `order` was\nexplicitly set on the request; see service-http-binding.md §3.3.3.\n",
+      "description": "Result of ak.self.events.read.scan across its canonical QUERY binding and GET/POST compatibility bindings. Ordering follows the \"近邻先返回\" rule unless `order` was explicitly set on the request; see service-http-binding.md §3.3.3.",
       "required": [
         "events",
         "has_more"
@@ -2524,7 +2598,7 @@
     },
     "EventsResolveRequestBody": {
       "type": "object",
-      "description": "ak.self.events.query.resolve request body. At least one of event_ids, event_digests, or seal_refs MUST be non-empty.",
+      "description": "ak.self.events.read.resolve request body. At least one of event_ids, event_digests, or seal_refs MUST be non-empty.",
       "properties": {
         "event_ids": {
           "type": "array",
@@ -2557,7 +2631,7 @@
     },
     "EventsResolveOutcome": {
       "type": "object",
-      "description": "ak.self.events.query.resolve result. `events[]`, optional `seals[]`, and `missing[]` plus optional `unauthorized[]` form a partition of the requested selectors.",
+      "description": "ak.self.events.read.resolve result. `events[]`, optional `seals[]`, and `missing[]` plus optional `unauthorized[]` form a partition of the requested selectors.",
       "required": [
         "events",
         "missing"
@@ -4679,7 +4753,7 @@
     },
     "EventsFrontierAccountClientState": {
       "type": "object",
-      "description": "Account-client ak.self.events.query.frontier response. For a managed Agent PCR whose accepted Events are ahead of its accepted Seal, frontier remains the last accepted controller-device-signed Seal and receipts includes `{kind: ak.managed_agent_pcr.seal_head.v1, seal: Seal}` so the controller can author the successor; the service must never synthesize that device Seal.",
+      "description": "Account-client ak.self.events.read.frontier response. For a managed Agent PCR whose accepted Events are ahead of its accepted Seal, frontier remains the last accepted controller-device-signed Seal and receipts includes `{kind: ak.managed_agent_pcr.seal_head.v1, seal: Seal}` so the controller can author the successor; the service must never synthesize that device Seal.",
       "required": [
         "frontier"
       ],
@@ -4715,7 +4789,7 @@
     },
     "EventsFrontierFederationPeerState": {
       "type": "object",
-      "description": "Federation peer ak.peer.events.query.frontier response. Requires S2S signed trust-domain headers.",
+      "description": "Federation peer ak.peer.events.read.frontier response. Requires S2S signed trust-domain headers.",
       "required": [
         "realm_id",
         "heads",
@@ -5403,7 +5477,7 @@
     },
     "SnapshotBootstrap": {
       "type": "object",
-      "description": "Optional ak.self.events.query.scan acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).",
+      "description": "Optional ak.self.events.read.scan acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).",
       "required": [
         "snapshot_ref",
         "state_digest",

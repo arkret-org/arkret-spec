@@ -83,15 +83,14 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.root.identity.command.submit_did_operation` | 提交 DID 更新操作。 |
 | `ak.self.events.command.submit` | 提交 signed Event Envelope。 |
 | `ak.self.events.resource.get` | 按 ID 读取单个 Event。 |
-| `ak.self.events.query.resolve` | 批量读取 Event。 |
-| `ak.self.events.query.scan` | 按 actor / Realm / cursor 双向查询 Event。 |
+| `ak.self.events.read.resolve` | 批量读取 Event。 |
+| `ak.self.events.read.scan` | 按 actor / Realm / cursor 双向查询 Event。 |
 | `ak.self.events.stream.subscribe` | 订阅 Realm / actor 增量流，可选 bounded catch-up replay。 |
-| `ak.self.events.query.frontier` | 获取 actor 或 Realm 的可见 Event frontier。 |
+| `ak.self.events.read.frontier` | 获取 actor 或 Realm 的可见 Event frontier。 |
 | `ak.peer.events.command.submit` | federation peer 推送 signed Event Envelope 批次。 |
-| `ak.peer.events.query.resolve` | federation peer 按 event id / digest 补洞解析 Event。 |
-| `ak.peer.events.query.scan` | federation peer 按 Realm / actor / cursor 拉取或回填 Event。 |
-| `ak.peer.events.query.scan_body` | `ak.peer.events.query.scan` 的 HTTP POST/body binding variant。 |
-| `ak.peer.events.query.frontier` | federation peer 查询 Realm frontier 以检测 fork / stale peer。 |
+| `ak.peer.events.read.resolve` | federation peer 按 event id / digest 补洞解析 Event。 |
+| `ak.peer.events.read.scan` | federation peer 按 Realm / actor / cursor 拉取或回填 Event。 |
+| `ak.peer.events.read.frontier` | federation peer 查询 Realm frontier 以检测 fork / stale peer。 |
 | `ak.peer.contacts.command.submit` | federation peer以closed XOR投递原签名`ak.contact.*` fact、对应source-signed acceptance receipt与可刷新current proof；不得承载`ak.direct_conversation.bound`、共享Realm Event或unsigned service row。 |
 | `ak.gate.account.command.cancel_device_bootstrap` | 取消同一typed bootstrap transaction；bootstrap bearer+DPoP、closed response、exact replay/conflict。 |
 | `ak.self.contact.command.scope_update` | Contact issuer-local signed full-set scope replacement，固定`phase=prepare|commit`。 |

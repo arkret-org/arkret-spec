@@ -46,7 +46,7 @@
         ],
         "supported_operations": [
           "ak.server.query.describe",
-          "ak.self.events.query.scan"
+          "ak.self.events.read.scan"
         ],
         "supported_bindings": [
           {

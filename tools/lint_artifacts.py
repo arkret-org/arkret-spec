@@ -54,7 +54,7 @@ ARTIFACTS = SPEC_ROOT / "artifacts"
 EVENT_KIND_TOKEN_RE = re.compile(r"\bak\.[a-z0-9_]+(?:\.[a-z0-9_]+)+\b")
 OPERATION_ID_RE = re.compile(r"^ak\.[a-z0-9_]+(?:\.[a-z0-9_]+)+$")
 # zh/sync/api-conventions.md §2.4: ak.<surface>.<domain...>.<kind>.<action>.
-OPERATION_KINDS = frozenset({"query", "stream", "resource", "command", "upload", "exchange"})
+OPERATION_KINDS = frozenset({"read", "query", "stream", "resource", "command", "upload", "exchange"})
 # HTTP method names describe transport, not protocol effect; get/delete stay legal
 # because they are the canonical resource-kind actions.
 FORBIDDEN_OPERATION_ACTIONS = frozenset({"post", "put", "patch"})
@@ -2927,6 +2927,32 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             lint.fail(operation_path, f"{operation_id} missing http binding")
         else:
             operation_http_map[operation_id] = http
+        compatibility_bindings = row.get("http_compatibility_bindings")
+        if compatibility_bindings is not None:
+            if not isinstance(http, str) or not http.startswith("QUERY "):
+                lint.fail(operation_path, f"{operation_id} compatibility bindings require a canonical QUERY binding")
+            if not isinstance(compatibility_bindings, list) or not compatibility_bindings:
+                lint.fail(operation_path, f"{operation_id}.http_compatibility_bindings must be a non-empty array")
+            else:
+                seen_compatibility_http: set[str] = set()
+                for binding in compatibility_bindings:
+                    if not isinstance(binding, dict):
+                        lint.fail(operation_path, f"{operation_id}.http_compatibility_bindings entries must be objects")
+                        continue
+                    compatibility_http = binding.get("http")
+                    request_encoding = binding.get("request_encoding")
+                    if not isinstance(compatibility_http, str) or not re.fullmatch(r"(?:GET|POST) /\S+", compatibility_http):
+                        lint.fail(operation_path, f"{operation_id} has invalid compatibility HTTP binding {compatibility_http!r}")
+                    elif compatibility_http in seen_compatibility_http:
+                        lint.fail(operation_path, f"{operation_id} repeats compatibility HTTP binding {compatibility_http!r}")
+                    else:
+                        seen_compatibility_http.add(compatibility_http)
+                    if request_encoding not in {"query_string", "json_body"}:
+                        lint.fail(operation_path, f"{operation_id} has invalid compatibility request_encoding {request_encoding!r}")
+                    if isinstance(compatibility_http, str) and compatibility_http.startswith("GET ") and request_encoding != "query_string":
+                        lint.fail(operation_path, f"{operation_id} GET compatibility binding must use query_string")
+                    if isinstance(compatibility_http, str) and compatibility_http.startswith("POST ") and request_encoding != "json_body":
+                        lint.fail(operation_path, f"{operation_id} POST compatibility binding must use json_body")
         if http_only_variant:
             if grpc is not None:
                 lint.fail(operation_path, f"{operation_id} is http_only_variant and must not declare grpc binding")
@@ -4931,7 +4957,7 @@ def parse_openapi_operation_http_map(text: str) -> tuple[dict[str, str], list[st
             current_method = None
             continue
 
-        method_match = re.match(r"^    (get|post|put|patch|delete|head|options|trace):\s*$", line)
+        method_match = re.match(r"^    (get|post|put|patch|delete|head|options|trace|query):\s*$", line)
         if method_match and current_path is not None:
             current_method = method_match.group(1).upper()
             continue
@@ -4959,7 +4985,7 @@ def check_openapi_contract_shape(lint: Lint, path: Path, text: str) -> None:
     has_request_body = False
 
     def finish_operation(line_no: int) -> None:
-        if current_method in {"post", "put", "patch"} and not has_request_body:
+        if current_method in {"post", "put", "patch", "query"} and not has_request_body:
             label = current_operation_id or f"{current_method.upper()} {current_path}"
             lint.fail(path, f"line {line_no}: write operation missing requestBody: {label}")
 
@@ -4981,7 +5007,7 @@ def check_openapi_contract_shape(lint: Lint, path: Path, text: str) -> None:
             has_request_body = False
             continue
 
-        method_match = re.match(r"^    (get|post|put|patch|delete|head|options|trace):\s*$", line)
+        method_match = re.match(r"^    (get|post|put|patch|delete|head|options|trace|query):\s*$", line)
         if method_match and current_path is not None:
             finish_operation(line_no)
             current_method = method_match.group(1)
@@ -5061,6 +5087,36 @@ def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
                 f"operationId HTTP binding mismatch for {operation_id}: "
                 f"registry={expected_http!r}, openapi={actual_http!r}",
             )
+
+    openapi = load_yaml(lint, openapi_path)
+    operation_registry = load_json(lint, ARTIFACTS / "registry" / "operation-registry.json")
+    if isinstance(openapi, dict) and isinstance(operation_registry, dict):
+        if openapi.get("openapi") != "3.2.0":
+            lint.fail(openapi_path, "Arkret OpenAPI must use 3.2.0 so RFC 10008 QUERY is represented by the standard query field")
+        paths = openapi.get("paths")
+        if isinstance(paths, dict):
+            for row in operation_registry.get("operations", []):
+                if not isinstance(row, dict):
+                    continue
+                operation_id = row.get("operation_id")
+                compatibility_bindings = row.get("http_compatibility_bindings")
+                if not isinstance(operation_id, str) or not isinstance(compatibility_bindings, list):
+                    continue
+                for binding in compatibility_bindings:
+                    if not isinstance(binding, dict) or not isinstance(binding.get("http"), str):
+                        continue
+                    method, _, path_name = binding["http"].partition(" ")
+                    path_item = paths.get(path_name)
+                    operation = path_item.get(method.lower()) if isinstance(path_item, dict) else None
+                    if not isinstance(operation, dict):
+                        lint.fail(openapi_path, f"compatibility binding missing from OpenAPI: {binding['http']}")
+                        continue
+                    if operation.get("operationId") is not None:
+                        lint.fail(openapi_path, f"compatibility binding must not declare operationId: {binding['http']}")
+                    if operation.get("deprecated") is not True:
+                        lint.fail(openapi_path, f"compatibility binding must declare deprecated=true: {binding['http']}")
+                    if operation.get("x-arkret-compatibility-binding-of") != operation_id:
+                        lint.fail(openapi_path, f"compatibility binding must point to {operation_id}: {binding['http']}")
 
     binding_path = ARTIFACTS / "bindings" / "non-http-bindings.yaml"
     binding = load_yaml(lint, binding_path)
@@ -5213,7 +5269,7 @@ def openapi_operations_by_id(openapi: dict[str, Any]) -> dict[str, dict[str, Any
     for path_item in paths.values():
         if not isinstance(path_item, dict):
             continue
-        for method in ("get", "post", "put", "patch", "delete", "head"):
+        for method in ("get", "post", "put", "patch", "delete", "head", "query"):
             operation = path_item.get(method)
             if not isinstance(operation, dict):
                 continue
@@ -5265,7 +5321,7 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         for path_item in paths.values():
             if not isinstance(path_item, dict):
                 continue
-            for method in ("get", "post", "put", "patch", "delete", "head"):
+            for method in ("get", "post", "put", "patch", "delete", "head", "query"):
                 operation = path_item.get(method)
                 if isinstance(operation, dict) and operation.get("operationId") == operation_id:
                     return operation
@@ -5324,7 +5380,7 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
     for path_item in paths.values():
         if not isinstance(path_item, dict):
             continue
-        for method in ("get", "post", "put", "patch", "delete", "head"):
+        for method in ("get", "post", "put", "patch", "delete", "head", "query"):
             operation = path_item.get(method)
             if not isinstance(operation, dict):
                 continue
@@ -5421,32 +5477,25 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
         if not isinstance(schema, dict) or schema.get("$ref") != ref:
             lint.fail(openapi_path, f"{operation_id}.{name} parameter must reference {ref}")
 
-    expect_any_of("ak.self.events.query.scan", [["realms"], ["actors"]])
     expect_any_of("ak.self.events.stream.subscribe", [["realms"], ["actors"]])
-    expect_any_of("ak.self.events.query.frontier", [["actor_id"], ["realm_id"]])
-    for operation_id in ("ak.self.events.query.scan", "ak.self.events.stream.subscribe"):
-        expect_array_param(operation_id, "realms", "#/components/schemas/RealmId")
-        expect_array_param(operation_id, "actors", "#/components/schemas/ActorDid")
-    for name in ("before", "after"):
-        expect_param_ref("ak.self.events.query.scan", name, "#/components/schemas/Cursor")
+    expect_array_param("ak.self.events.stream.subscribe", "realms", "#/components/schemas/RealmId")
+    expect_array_param("ak.self.events.stream.subscribe", "actors", "#/components/schemas/ActorDid")
     expect_param_ref("ak.self.events.stream.subscribe", "after", "#/components/schemas/Cursor")
     expect_param_ref("ak.self.events.resource.get", "event_id", "#/components/schemas/EventId")
-    expect_param_ref("ak.self.events.query.frontier", "actor_id", "#/components/schemas/ActorDid")
-    expect_param_ref("ak.self.events.query.frontier", "realm_id", "#/components/schemas/RealmId")
     expect_param_ref("ak.self.snapshot.query.manifest_head", "realm_id", "#/components/schemas/RealmId")
 
-    query_body = op("ak.self.events.query.scan_body")
+    query_body = op("ak.self.events.read.scan")
     if query_body is not None:
         schema = resolve_openapi_schema_node(lint, openapi_path, openapi.get("components", {}).get("schemas", {}), openapi_request_schema(query_body))
         if not isinstance(schema, dict):
-            lint.fail(openapi_path, "ak.self.events.query.scan_body requestBody schema missing")
+            lint.fail(openapi_path, "ak.self.events.read.scan requestBody schema missing")
         else:
             expected_any_of = [{"required": ["realms"]}, {"required": ["actors"]}]
             if schema.get("anyOf") != expected_any_of:
-                lint.fail(openapi_path, "ak.self.events.query.scan_body requestBody must require realms or actors")
+                lint.fail(openapi_path, "ak.self.events.read.scan requestBody must require realms or actors")
             properties = schema.get("properties")
             if not isinstance(properties, dict):
-                lint.fail(openapi_path, "ak.self.events.query.scan_body requestBody properties missing")
+                lint.fail(openapi_path, "ak.self.events.read.scan requestBody properties missing")
             else:
                 for name, ref in (
                     ("realms", "#/components/schemas/RealmId"),
@@ -5454,19 +5503,19 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
                 ):
                     property_schema = properties.get(name)
                     if not isinstance(property_schema, dict):
-                        lint.fail(openapi_path, f"ak.events.query.scan_body.{name} property missing")
+                        lint.fail(openapi_path, f"ak.self.events.read.scan.{name} property missing")
                         continue
                     if property_schema.get("type") != "array" or property_schema.get("minItems") != 1:
-                        lint.fail(openapi_path, f"ak.events.query.scan_body.{name} must be a non-empty array")
+                        lint.fail(openapi_path, f"ak.self.events.read.scan.{name} must be a non-empty array")
                     items = property_schema.get("items")
                     if not isinstance(items, dict) or not (
                         items.get("$ref") == ref or schema_ref_targets(items, ref.rsplit("/", 1)[-1])
                     ):
-                        lint.fail(openapi_path, f"ak.events.query.scan_body.{name}.items must reference {ref}")
+                        lint.fail(openapi_path, f"ak.self.events.read.scan.{name}.items must reference {ref}")
                 for name in ("before", "after"):
                     property_schema = properties.get(name)
                     if not schema_ref_targets(property_schema, "Cursor"):
-                        lint.fail(openapi_path, f"ak.events.query.scan_body.{name} must reference Cursor")
+                        lint.fail(openapi_path, f"ak.self.events.read.scan.{name} must reference Cursor")
 
 
 def check_openapi_auth_semantics(lint: Lint) -> None:
@@ -5478,8 +5527,8 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
     operations = openapi_operations_by_id(openapi)
     public_metadata_operations = {
         "ak.server.query.describe",
-        "ak.self.events.query.describe",
-        "ak.peer.events.query.describe",
+        "ak.self.events.read.describe",
+        "ak.peer.events.read.describe",
         "ak.open.mimi.query.provider_directory",
         "ak.root.identity.registry.query.describe",
         "ak.self.account.query.describe",
@@ -6248,7 +6297,7 @@ def collect_openapi_operation_facts(lint: Lint, openapi_path: Path) -> dict[str,
     for path_item in paths.values():
         if not isinstance(path_item, dict):
             continue
-        for method in ("get", "post", "put", "patch", "delete", "head"):
+        for method in ("get", "post", "put", "patch", "delete", "head", "query"):
             operation = path_item.get(method)
             if not isinstance(operation, dict):
                 continue
@@ -9976,7 +10025,7 @@ def check_mls_governance_proof_fixture(lint: Lint) -> None:
         else {}
     )
     required_profile_refs = {
-        "required_endpoints": "ak.self.events.query.mls_governance_proof",
+        "required_endpoints": "ak.self.events.read.mls_governance_proof",
         "required_schemas": "ak.schema.mls_governance_proof_bundle.v1",
         "required_fixtures": path.name,
     }

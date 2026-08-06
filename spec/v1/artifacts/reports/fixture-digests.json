@@ -22,7 +22,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "3432eca275fa2808bd91d74f5ef3213af1319649002cc2e120229491fabc47c9"
+      "sha256": "fc7a1cf25fc3dfd2b67ef883ee56a1ab5703ee9e5aef864c78f556f34d56b73b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
@@ -50,7 +50,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/calendar-notification-fixture.json",
-      "sha256": "b115fa67a27bcb42995f8566411a12e5e5896535abb9f35e953d74d106b092e3"
+      "sha256": "f153e0c98d0ba84609e34d276e8cc117ccc57e3cfb5f38b37325423badd9baee"
     },
     {
       "path": "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
@@ -270,7 +270,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
-      "sha256": "c14a244e735599a59b1a8afee1c07ab0867d018e5ff407094184ae153df11fe0"
+      "sha256": "faa08777e7ac1ddad28287d006f2b5fa0f7343aa2423c8ca9dcf7c11d26dd971"
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
@@ -318,7 +318,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "efbd9e7a00483bc8a1bd31c3bd0e96d98b71d2b5f49cf2db5013fc65570ca1f2"
+      "sha256": "d0a0a21ba5606e14ef3ed879f4381bcbe97f3bf3fa9c6136ed71b354e873f21c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",

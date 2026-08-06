@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-05.4",
-  "generated_at": "2026-08-05T19:00:00Z",
+  "version": "2026-08-06.1",
+  "generated_at": "2026-08-06T10:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -956,7 +956,7 @@
     "ak.vector_group.federation.v1": {
       "required_endpoints": [
         "ak.peer.events.command.submit",
-        "ak.peer.events.query.resolve"
+        "ak.peer.events.read.resolve"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1015,7 +1015,7 @@
     "ak.vector_group.reaction.v1": {
       "required_endpoints": [
         "ak.self.events.command.submit",
-        "ak.self.events.query.scan"
+        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.message.create",
@@ -1045,7 +1045,7 @@
     "ak.vector_group.redaction.v1": {
       "required_endpoints": [
         "ak.self.events.command.submit",
-        "ak.self.events.query.scan"
+        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.message.create",
@@ -1072,7 +1072,7 @@
     "ak.vector_group.sync.v1": {
       "required_endpoints": [
         "ak.self.account.stream.subscribe",
-        "ak.self.events.query.scan",
+        "ak.self.events.read.scan",
         "ak.self.snapshot.query.manifest_head"
       ],
       "required_event_kinds": [
@@ -1206,8 +1206,8 @@
         "ak.peer.keys.keypackages.command.claim",
         "ak.peer.keys.keypackages.query.claim",
         "ak.peer.events.command.submit",
-        "ak.peer.events.query.scan",
-        "ak.peer.events.query.resolve"
+        "ak.peer.events.read.scan",
+        "ak.peer.events.read.resolve"
       ],
       "wire_contract_refs": [
         "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
@@ -1379,7 +1379,7 @@
       "description": "Realm profile for a principal-scoped durable control stream (the Principal Control Realm role; see zh/models/realm-and-space.md §2.7). It is an ordinary Collaboration Realm at the envelope level, but reducers MUST treat fields.purpose=principal_control + this schema_ref as an allowlist-bound control stream, not as a user collaboration space.",
       "required_endpoints": [
         "ak.self.events.command.submit",
-        "ak.self.events.query.scan",
+        "ak.self.events.read.scan",
         "ak.self.events.resource.get",
         "ak.self.keys.keypackages.upload.create",
         "ak.self.keys.keypackages.command.claim",
@@ -1593,12 +1593,12 @@
     "ak.profile.core_event_store.v1": {
       "required_endpoints": [
         "ak.server.query.describe",
-        "ak.self.events.query.describe",
+        "ak.self.events.read.describe",
         "ak.self.events.command.submit",
         "ak.self.events.resource.get",
-        "ak.self.events.query.resolve",
-        "ak.self.events.query.scan",
-        "ak.self.events.query.frontier"
+        "ak.self.events.read.resolve",
+        "ak.self.events.read.scan",
+        "ak.self.events.read.frontier"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1653,7 +1653,7 @@
       ],
       "required_endpoints": [
         "ak.self.account.stream.subscribe",
-        "ak.self.events.query.scan"
+        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1742,7 +1742,7 @@
         "ak.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "ak.self.events.query.scan"
+        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1789,7 +1789,7 @@
       "required_endpoints": [
         "ak.server.query.describe",
         "ak.self.events.resource.get",
-        "ak.self.events.query.scan"
+        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -2162,12 +2162,12 @@
         "ak.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "ak.self.events.query.describe",
+        "ak.self.events.read.describe",
         "ak.self.events.command.submit",
         "ak.self.events.resource.get",
-        "ak.self.events.query.resolve",
-        "ak.self.events.query.scan",
-        "ak.self.events.query.frontier"
+        "ak.self.events.read.resolve",
+        "ak.self.events.read.scan",
+        "ak.self.events.read.frontier"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -2211,7 +2211,7 @@
         "ak.self.account.query.describe",
         "ak.self.account.stream.subscribe",
         "ak.self.events.stream.subscribe",
-        "ak.self.events.query.scan",
+        "ak.self.events.read.scan",
         "ak.self.snapshot.query.manifest_head",
         "ak.self.authz.query.check",
         "ak.peer.account_status.query.authoring_basis",
@@ -2276,9 +2276,9 @@
       ],
       "required_endpoints": [
         "ak.peer.events.command.submit",
-        "ak.peer.events.query.scan",
-        "ak.peer.events.query.resolve",
-        "ak.peer.events.query.frontier"
+        "ak.peer.events.read.scan",
+        "ak.peer.events.read.resolve",
+        "ak.peer.events.read.frontier"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -2324,8 +2324,8 @@
         {
           "requirement": "dependency missing pull/backfill recovery",
           "coverage": [
-            "ak.peer.events.query.scan",
-            "ak.peer.events.query.resolve",
+            "ak.peer.events.read.scan",
+            "ak.peer.events.read.resolve",
             "sync-fixture.json"
           ]
         },
@@ -2474,7 +2474,7 @@
       ],
       "description": "High-assurance / sovereign / regulated / multi-writer federation profile. Adds mandatory proactive frontier exchange with fail-state semantics on top of the ak.profile.federation_minimal.v1 baseline. See zh/sync/federation.md §4.5.3 and zh/sync/sovereign-deployment.md §11.1.",
       "required_endpoints": [
-        "ak.peer.events.query.frontier"
+        "ak.peer.events.read.frontier"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -3067,7 +3067,7 @@
       "required_endpoints": [
         "ak.server.query.describe",
         "ak.self.events.command.submit",
-        "ak.self.events.query.scan",
+        "ak.self.events.read.scan",
         "ak.self.authz.query.check",
         "ak.self.keys.keypackages.upload.create",
         "ak.self.keys.keypackages.command.consume",
@@ -3110,7 +3110,7 @@
         "ak.self.keys.backups.query.list",
         "ak.self.keys.backups.command.unlock",
         "ak.self.events.command.submit",
-        "ak.self.events.query.scan"
+        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.profile.create",
@@ -3239,7 +3239,7 @@
         "ak.self.agent.sidecar.resource.get",
         "ak.self.agent.sidecar.query.list",
         "ak.self.events.command.submit",
-        "ak.self.events.query.scan"
+        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.sidecar.create",
@@ -4102,8 +4102,8 @@
       "required_endpoints": [
         "ak.self.keys.keypackages.command.claim",
         "ak.self.keys.keypackages.command.consume",
-        "ak.self.events.query.scan",
-        "ak.self.events.query.mls_governance_proof",
+        "ak.self.events.read.scan",
+        "ak.self.events.read.mls_governance_proof",
         "ak.peer.mls.query.group_state_material"
       ],
       "required_event_kinds": [
@@ -4174,7 +4174,7 @@
       "description": "Hardening profile for E2EE Realms that route by Realm-scoped pairwise DID and keep principal DID, device identity, display profile, and relationship graph inside encrypted identity_link payloads.",
       "required_endpoints": [
         "ak.self.events.command.submit",
-        "ak.self.events.query.scan"
+        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.mls.commit",
@@ -4757,7 +4757,7 @@
       "description": "Conformance profile pinning the machine-contract surface for Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md). Splits actor content payload (`scope_circle_id` where that object schema defines it), the signed Event `scope_ref`, and the materialized object's `effective_scope`; it also pins the Circle event-kind family, member-state transition table, encryption-profile compatibility, and scope-rebind reducer-reject semantics. Required by implementations that emit or consume Circle events or that materialize Circle-scoped Strand / Message / Morph / Relation / Space objects.",
       "required_endpoints": [
         "ak.self.events.command.submit",
-        "ak.self.events.query.scan"
+        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.circle.create",
@@ -4815,7 +4815,7 @@
       "description": "Client profile for principal-private reminders, scheduled send, snooze, and saved items backed by encrypted account data.",
       "required_endpoints": [
         "ak.self.account.stream.subscribe",
-        "ak.self.events.query.scan",
+        "ak.self.events.read.scan",
         "ak.self.events.command.submit"
       ],
       "required_event_kinds": [
@@ -4904,7 +4904,7 @@
       "description": "Message expiry profile with Realm policy, projection stubs, and fail-closed handling for derived plaintext.",
       "required_endpoints": [
         "ak.self.events.command.submit",
-        "ak.self.events.query.scan"
+        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.message.create",
@@ -4938,7 +4938,7 @@
       "description": "Client profile for authoring calendar-event Strands, expanding recurrence, and converging RSVP. Schedule-change notification dispatch is a separate server profile.",
       "required_endpoints": [
         "ak.self.events.command.submit",
-        "ak.self.events.query.scan"
+        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.strand.create",
@@ -4971,7 +4971,7 @@
       "description": "Principal Server profile for deriving notification_kind=schedule from calendar schedule changes, including the blind-wakeup path for encrypted schedules. Provider delivery stays governed by the Push Gateway profiles.",
       "required_endpoints": [
         "ak.server.query.describe",
-        "ak.self.events.query.scan"
+        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.strand.update"
@@ -5001,7 +5001,7 @@
       "description": "Shared pin profile for Strand/Realm/Circle/Space projection homes using ak.pin.* events.",
       "required_endpoints": [
         "ak.self.events.command.submit",
-        "ak.self.events.query.scan"
+        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.pin.add",
@@ -5058,7 +5058,7 @@
       "description": "Server-assisted blind-index search profile with HMAC tokens, scope/epoch binding, and fail-closed stale posting behavior.",
       "required_endpoints": [
         "ak.server.query.describe",
-        "ak.self.events.query.scan"
+        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.realm.search_policy"
@@ -5089,7 +5089,7 @@
       ],
       "required_endpoints": [
         "ak.server.query.describe",
-        "ak.self.events.query.scan"
+        "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
         "ak.realm.search_policy"

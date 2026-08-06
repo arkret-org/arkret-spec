@@ -445,7 +445,7 @@ MUST 在发送 DataEvent 前等待/取得协议有效的 compacted Seal，或通
 
 **partial accept 后的 retry 边界（normative）**：任何已收到的 submit 响应都终结该请求的 `Idempotency-Key`。sender 收到仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未被确认且仍需投递的 Event；不得原样重放包含已确认 Event 的旧 `events[]` 来“补齐失败项”。内容完全相同的幂等重复项 MUST 列入 `duplicate[]`（幂等 no-op），MUST NOT 当作 `rejected[]`。补齐依赖后的下一次 submit 即使 Event body 未变，也 MUST 使用新的 `Idempotency-Key`（或省略），并重新计算外层 `Content-Digest` 与 HTTP signature transcript；MUST NOT 以旧 key 期待重新求值，幂等缓存命中的旧 partial / error outcome 也不得被当作新 retry 的成功证明。接收方 MUST 在 `rejected[]` 项内携带原数组 `index` 与 `id`，使 sender 能机械求差。只有**未收到任何响应**（超时 / transport failure）时，逐字节相同请求的全量重试 MUST 复用同一 `Idempotency-Key`，见 [`api-conventions.md` §6.2](./api-conventions.md)。
 
-**标准 dependency resolve（normative）**：`POST /_arkret/peer/events/resolve` 是缺失
+**标准 dependency resolve（normative）**：`QUERY /_arkret/peer/events/resolve` 是缺失
 Event/CBA 材料的唯一 peer read/fetch surface；它不是写入轨，不接受 Seal 提交，也不推进
 Event、Seal、actor 或 Realm frontier。请求使用 `PeerEventsResolveRequestBody`，在单一
 `realm_id` 内按 `event_ids[]`、`event_digests[]`、`seal_refs[]` 精确求值；响应使用
@@ -474,7 +474,7 @@ proof。receiver 可缓存已独立验证但尚未形成完整 closure 的对象
 - **fork-detection quarantine（§4.5.1）**：probe / 提交路径检出同一 `event_id` 对应不同 canonical hash、合法 sibling 集超过 §2.6 的单桶 / 跨桶上限、领域规则声明的不可 join sibling 冲突，或同一完整 attestation scope 的 witness quorum 无法签署一致 payload（`witness_disagreement`）的项。它是 fail-closed 安全态，**可长驻留**，依赖 raw replay / quorum witness / operator-approved fork resolution（驻留语义见 §4.5.1）。sender **MUST NOT** 对这类 quarantine 做无界自动重交——简单重发不能解除 fork，重交只会放大；sender 收到 fork-class quarantine（如 `duplicate_conflict` probe-detected）时 MUST 停止自动重交并进入 operator diagnostic。仅同一 `(realm_id, actor_id, actor_seq)` 出现不同 `event_id` / hash **不是**充分条件：该位置按 [`../models/event-and-patch.md` §2.6](../models/event-and-patch.md) 是最多包含 64 个合法 sibling 的集合。
 - **dependency / proof quarantine（`dependency_missing` / `stale_seal_ref` / 缺 proof / 缺可用性）**：这类项是**可收敛**的——缺的依赖 / 更新的 Seal basis backfill 到位后即可被接受。对这类 quarantine：
   - sender MUST 使用**有界重交**：指数退避（建议起始 ≥ 1s，上界 ≥ 60s，加 jitter），对同一 `(event_id, 依赖 frontier)` 的重交次数设上限；超过上限 MUST 停止自动重交并进入 operator diagnostic，不得无限轮询。
-  - 重交前 sender SHOULD 先通过标准 `ak.peer.events.query.resolve` 补齐缺失 Event / Seal / proof 材料；若缺的是尚未投递的独立 Control Event，才通过 `ak.peer.events.command.submit` 的正常 Event 写轨投递。Seal 与 proof 不得作为 submit 的独立写入对象。随后按 [`operations-sync.md` §5](./operations-sync.md) 的“`accepted ∪ duplicate` 求差后重提”组装新 batch，而不是原样重放旧 `events[]`。
+  - 重交前 sender SHOULD 先通过标准 `ak.peer.events.read.resolve` 补齐缺失 Event / Seal / proof 材料；若缺的是尚未投递的独立 Control Event，才通过 `ak.peer.events.command.submit` 的正常 Event 写轨投递。Seal 与 proof 不得作为 submit 的独立写入对象。随后按 [`operations-sync.md` §5](./operations-sync.md) 的“`accepted ∪ duplicate` 求差后重提”组装新 batch，而不是原样重放旧 `events[]`。
   - 接收方 SHOULD 在 quarantine 项的诊断中暴露**缺依赖 backfill 提示**（缺的 `prev_refs` / `seal_ref` / proof 引用），使 sender 的 backfill 有界收敛；接收方 MAY 对长期无法补齐依赖的 dependency/proof quarantine 项给出 GC 提示（声明该项将被本地清退），但清退不改变该 Event 的签名事实，sender 仍可在补齐依赖后重新提交。
 
 该划分与 operations-sync §5 的逐项失败原因（`dependency_missing` / `causal_conflict` / `capability_denied` / `soft_failed`）对齐：可收敛类走有界重交 + backfill，fork 类走带外 resolution，不混用同一套自动重试。
@@ -578,14 +578,17 @@ Arkret v1 联邦推送使用 `POST /_arkret/peer/events`（`ak.peer.events.comma
 - 幂等以 `(Source-Service-ID, Destination-Service-ID, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 在 `duplicate[]` 中确认（幂等 no-op）而非报错，内容不一致 MUST 以 `duplicate_conflict`（409）拒绝（参见 §4.3）。
 - 批次级重放检测使用 receiver 从已验证 exact body bytes 计算的 canonical digest 与签名覆盖的 `Idempotency-Key`；不引入额外 path 事务 ID。
 - `quarantine[]` 是 `EventsSubmitOutcome` 的独立响应字段；实现 MUST NOT 把隔离项折叠进 `rejected[]`。非协议 adapter 的本地展示行为不改变 wire outcome。
-- 持续同步、批量重试和 frontier 交换通过组合 `ak.peer.events.command.submit`（推送，本节）、`ak.peer.events.query.scan` / `ak.peer.events.query.resolve`（拉取 / backfill / 补洞，§4.2）与 `ak.peer.events.query.frontier`（§4.5）完成；无需额外的有状态事务 endpoint。
+- 持续同步、批量重试和 frontier 交换通过组合 `ak.peer.events.command.submit`（推送，本节）、`ak.peer.events.read.scan` / `ak.peer.events.read.resolve`（拉取 / backfill / 补洞，§4.2）与 `ak.peer.events.read.frontier`（§4.5）完成；无需额外的有状态事务 endpoint。
 
 ### 4.2 拉取模式 (Pull / Backfill)
 
-当节点发现自己的验证图中存在缺失（`prev_refs` 引用了本地没有的 Event，或 `refs[role=authorized_by]` 所指 grant record 无法从本地 sealed control history 重建）时，可以主动向源 Principal Server 的 peer surface 拉取对应历史。`authorized_by` 仍保留 `ak:grant:` id，不得改写为承载 Event alias；接收方从回填的 control Event 与 Seal 重建 grant record 后继续验证。v1 联邦 Event pull 使用 `ak.peer.events.query.scan`（`GET /_arkret/peer/events`），通过 `before=<cursor>` 表示历史回填（取该 cursor 之前最近一批），认证使用与 §4.1 同一套 service signature header：
+当节点发现自己的验证图中存在缺失（`prev_refs` 引用了本地没有的 Event，或 `refs[role=authorized_by]` 所指 grant record 无法从本地 sealed control history 重建）时，可以主动向源 Principal Server 的 peer surface 拉取对应历史。`authorized_by` 仍保留 `ak:grant:` id，不得改写为承载 Event alias；接收方从回填的 control Event 与 Seal 重建 grant record 后继续验证。v1 联邦 Event pull 使用 `ak.peer.events.read.scan`（`QUERY /_arkret/peer/events`），JSON content 的 `before` 表示历史回填（取该 cursor 之前最近一批），认证使用与 §4.1 同一套 service signature header：
 
 ```
-GET /_arkret/peer/events?realms=ak:realm:...&before=<cursor>&limit=100
+QUERY /_arkret/peer/events
+Content-Type: application/json
+
+{"realms":["ak:realm:..."],"before":"<cursor>","limit":100}
 Host: server-alpha.com
 Source-Service-ID: did:webvh:z2z1rvs6FuSuJWQcRMn6p8K3m:server-beta.com
 Destination-Service-ID: did:webvh:z4YZEfM4SYVUdnZbosrGu69JK:server-alpha.com
@@ -605,7 +608,7 @@ GET pull 无 body，但签名 transcript MUST 覆盖 §3.2 中适用于无 body 
 | `order` | query | `enum(default, ascending, descending)` | optional | 联邦 pull 默认沿用 §3.3 "近邻先返回" 规则——仅 `before` 时 descending，仅 `after` 时 ascending；reducer-导向场景显式 `order=ascending`。 |
 | `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值（见 [`scalability-constraints.md`](../conformance/scalability-constraints.md)）。 |
 
-响应字段（与 `ak.peer.events.query.scan` 响应同源；`snapshot_bootstrap` 是 optional 加速返回）：
+响应字段（与 `ak.peer.events.read.scan` 响应同源；`snapshot_bootstrap` 是 optional 加速返回）：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
@@ -615,7 +618,7 @@ GET pull 无 body，但签名 transcript MUST 覆盖 §3.2 中适用于无 body 
 | `next_cursor` | `cursor` | optional | 朝**更新事件**方向的延续位置；下次请求传入 `after=<next_cursor>` 继续 catch-up。 |
 | `has_more` | `boolean` | required | 是否仍有可拉取的 Event；客户端到达 oldest accessible event 时 `false`。 |
 
-> `snapshot_bootstrap` 字段以 optional 形式出现在 `ak.peer.events.query.scan` 响应中（仅 Realm policy 显式允许时）。若接收方需要直接按 event id / digest 补洞，必须使用 `POST /_arkret/peer/events/resolve`（`ak.peer.events.query.resolve`），不得改用 self surface。
+> `snapshot_bootstrap` 字段以 optional 形式出现在 `ak.peer.events.read.scan` 响应中（仅 Realm policy 显式允许时）。若接收方需要直接按 event id / digest 补洞，必须使用 `QUERY /_arkret/peer/events/resolve`（`ak.peer.events.read.resolve`），不得改用 self surface。
 
 **Pull 授权 freshness（normative，与 §8.5.1 互补）**：§8.5.1 处理的是 push 路径——把 service key state 一起进入 idempotency cache key，从而在 cache hit 时仍重做授权检查；而 pull 路径根本**不进幂等缓存**：无 body 的 `GET` pull 省略 `Content-Digest`（§3.2），因此不像 push 那样把 receiver-computed canonical body digest 纳入幂等缓存键。两条路径用**不同机制**关闭同一个"撤销后重放"窗口（push 靠 cache-key 绑定 + cache hit 重校验，pull 靠每次请求强制重新解析 service binding freshness），互为补充而非镜像对称。每次 pull 请求，接收方（被拉取的源服务）MUST 在返回事件前重新解析并校验请求方 `Source-Service-ID` 的 service binding freshness——当前 `verification_method` 仍 active、未 revoke，且该 source 在目标 Realm policy 下仍持有 `federation_peer` 角色——并 MUST NOT 因 `(Source-Service-ID, query)` 命中任何幂等 / 响应缓存而豁免该重新授权检查。请求方 service key 已 revoke 或 service binding 已被 Realm policy 移除时，MUST 返回 `capability_denied` / `policy_denied`，不得从缓存回放历史事件批次给已失权的 puller。
 
@@ -667,7 +670,7 @@ GET pull 无 body，但签名 transcript MUST 覆盖 §3.2 中适用于无 body 
 
 #### 4.5.1 Frontier Probe 能力 (MUST)
 
-每个参与 Realm S 的 federation peer **MUST** 暴露 `GET /_arkret/peer/events/frontier`（`ak.peer.events.query.frontier`），使被 Realm S policy 授权的对端 peer 可以按需查询当前 frontier。该 endpoint 只承接 federation peer probe 调用面：调用方必须是被 Realm service binding（`sync_endpoints` 或等价 policy facet）授权的 federation peer 服务 DID，鉴权必须满足 §3 节点间认证，响应形态是完整 `(heads, max_hlc, frontier_root, actor_seq_upper_bounds, witness_receipts, signature)`。
+每个参与 Realm S 的 federation peer **MUST** 暴露 `QUERY /_arkret/peer/events/frontier`（`ak.peer.events.read.frontier`），使被 Realm S policy 授权的对端 peer 可以按需查询当前 frontier。该 endpoint 只承接 federation peer probe 调用面：调用方必须是被 Realm service binding（`sync_endpoints` 或等价 policy facet）授权的 federation peer 服务 DID，鉴权必须满足 §3 节点间认证，响应形态是完整 `(heads, max_hlc, frontier_root, actor_seq_upper_bounds, witness_receipts, signature)`。
 
 Probe **MUST** 是 capability-gated：
 
@@ -714,7 +717,7 @@ Probe 响应 payload：
 - 若冲突来自同一 actor 的不同签名 frontier，接收方 SHOULD 保留最小证据集：冲突 event id、hash、签名 key id、source service DID、收到时间和相关 frontier。证据集不得包含未授权明文 payload。
 - 可疑 remote 输入 MAY 在 quarantine 队列中暂存，直到签名、schema、capability、fork resolution 与 operator policy 全部通过。
 - **quarantine 驻留语义（normative 澄清）**：quarantine 是 fail-closed 安全态——quarantined 输入 MUST NOT 推进本地 frontier、MUST NOT 进入 joined view 或授权判定，因此长时间驻留**不影响互操作正确性或一致性**。协议**不**为 quarantine 设 wire 级最大驻留时长或自动转 `rejected` 的超时:fork resolution 依赖 raw replay / quorum witness / operator-approved resolution 等可能耗时的带外动作，设硬超时反而会丢弃合法但解析较慢的分叉。最大驻留时长、是否以及何时人工清退，属 **operator policy**，不在 wire conformance 范围。实现 SHOULD 对超过部署声明阈值仍未解析的 quarantine 条目触发治理健康告警（运维可见)，但 MUST NOT 据此自动接受或静默丢弃。high-assurance profile MAY 声明更严格的 operator-side resolution SLA，但该 SLA 是运营承诺，不改变上述 wire 语义。
-- `actor_seq_upper_bounds` 差异本身不是冲突证据（合法 partial replication 也会出现差异），但 SHOULD 触发 `ak.peer.events.query.scan` per-actor backfill，并在 backfill 后仍存在差异时升级为 fork suspect。
+- `actor_seq_upper_bounds` 差异本身不是冲突证据（合法 partial replication 也会出现差异），但 SHOULD 触发 `ak.peer.events.read.scan` per-actor backfill，并在 backfill 后仍存在差异时升级为 fork suspect。
 - 普通 peer probe 的聚合承诺（`frontier_root` / `heads[]` / `range-completeness root`）取值不一致本身 **MUST NOT** 单独构成 `witness_disagreement`——合法 partial replication / scope 裁剪以及尚未补齐的合法 sibling 都会使之诚实地不同。接收方 MUST 先按上一条对双方已复制 / 披露 actor 交集做 per-actor sibling-set challenge / backfill；合法且未超限的 sibling union 正常 accepted。只有确认同一 `event_id` 不同 digest、over-fork、领域特定不可 join sibling 冲突，或同一完整 scope 的 witness attestation payload 不一致时，才记录 `witness_disagreement` / 对应更具体 reason 并 quarantine 受影响 range / peer。该状态不是普通网络分歧，不能通过“最后写入者”或本地接收顺序解决；必须走 raw replay、quorum witness 或 operator-approved fork resolution。不同完整 scope 的 range attestation 是两个独立证明，不直接互比；同一 witness quorum 被要求签署同一 `(realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count)` payload 时的不一致仍按 [`operations-sync.md` §6.4.2](./operations-sync.md) fail closed。
 
 #### 4.5.2 Baseline 主动交换 (SHOULD)
@@ -859,11 +862,11 @@ v1 联邦与单域 client 请求不共享 HTTP attack surface：federation serve
 | 联邦行为 | peer endpoint | 认证模式 |
 | --- | --- | --- |
 | 跨域推送 Event（含批处理） | `POST /_arkret/peer/events`（`ak.peer.events.command.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-ID` / `Destination-Service-ID` / `Source-Trust-Domain` / `Destination-Trust-Domain` / `Content-Digest` header；Realm policy 必须列出 source service DID 为合法 federation peer。 |
-| 跨域 backfill / 拉取缺失历史 | `GET /_arkret/peer/events?before=<cursor>`（`ak.peer.events.query.scan`） | 同一 service signature 规则；无 body 的 pull 请求不携带 `Content-Digest`（`Signature-Input` 也不绑定 `content-digest`），但仍 MUST 绑定 source/destination service DID 与 trust domain。 |
-| 跨域按 id / digest 补洞 | `POST /_arkret/peer/events/resolve`（`ak.peer.events.query.resolve`） | 同上；服务端按 Realm policy、history visibility 与 reference disclosure 裁剪响应。 |
+| 跨域 backfill / 拉取缺失历史 | `QUERY /_arkret/peer/events` + JSON content `before`（`ak.peer.events.read.scan`） | 同一 service signature 规则；canonical QUERY 携带 JSON content，因此 MUST 携带并签入 `Content-Digest`。GET compatibility binding 无 body，才省略 `Content-Digest`。 |
+| 跨域按 id / digest 补洞 | `QUERY /_arkret/peer/events/resolve`（`ak.peer.events.read.resolve`） | 同上；服务端按 Realm policy、history visibility 与 reference disclosure 裁剪响应。 |
 | Account Authority 获取 PCR authoring basis | `POST /_arkret/peer/account-status/authoring-basis`（`ak.peer.account_status.query.authoring_basis`） | 完整 service signature + Content-Digest；Source-Service-ID 必须等于 authority evidence issuer，receiver 在披露 actor/Seal frontier 前验证当前 account/principal/PCR/delegation binding。 |
 | 获取 MLS epoch-0 public group state | `POST /_arkret/peer/mls/group-state-material`（`ak.peer.mls.query.group_state_material`） | 完整 service signature + Content-Digest；调用方须获目标 Realm 授权，provider 必须按 accepted genesis 验证 selector、content-addressed refs、raw-byte digests 与 RFC 9420 GroupInfo/tree 一致性。 |
-| 跨域 Realm 成员视图 | `GET /_arkret/peer/events`（`ak.peer.events.query.scan`） + `ak.member.state` 过滤 | 同上；服务端按 Realm policy 决定哪些成员对该 service DID 可见。 |
+| 跨域 Realm 成员视图 | `QUERY /_arkret/peer/events`（`ak.peer.events.read.scan`）+ `ak.member.state` 过滤 | 同上；服务端按 Realm policy 决定哪些成员对该 service DID 可见。 |
 | 跨域 snapshot-assisted bootstrap | `GET /_arkret/peer/snapshot/head`（`ak.peer.snapshot.query.manifest_head`） | 同上；manifest 必须签名并绑定 authority_binding。 |
 | 跨域 actor / DID 验证 | `POST /_arkret/root/identity/resolve`（`ak.root.identity.query.resolve`） | 该端点本就是公共服务面；联邦请求按调用方信任策略缓存。 |
 
@@ -887,19 +890,23 @@ Signature: sig1=:<base64>:
 ### 7.2 跨域 Backfill
 
 ```
-GET /_arkret/peer/events?realms=<id>&before=<cursor>&limit=<n>
+QUERY /_arkret/peer/events
+
+{"realms":["<id>"],"before":"<cursor>","limit":<n>}
 Signature-Input: sig1=("@method" "@target-uri" "@authority" "source-service-id" "destination-service-id" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain");created=...;expires=...
 Signature: sig1=:<base64>:
 ```
 
-字段定义见 §4.2；service operation id 为 `ak.peer.events.query.scan`，`before=<cursor>` 用于回填历史（取 cursor 之前最近一批，默认 descending）。空间历史按 Realm policy 与 history visibility 过滤；snapshot bootstrap 通过 `/_arkret/peer/snapshot/head` 获取，或作为 `ak.peer.events.query.scan` 的 `snapshot_bootstrap` 加速字段返回。
+字段定义见 §4.2；service operation id 为 `ak.peer.events.read.scan`，`before=<cursor>` 用于回填历史（取 cursor 之前最近一批，默认 descending）。空间历史按 Realm policy 与 history visibility 过滤；snapshot bootstrap 通过 `/_arkret/peer/snapshot/head` 获取，或作为 `ak.peer.events.read.scan` 的 `snapshot_bootstrap` 加速字段返回。
 
 ### 7.3 查询 Realm 成员
 
-跨域参与方查询某 Realm 成员视图时，使用 `ak.peer.events.query.scan` 并过滤 `kind=ak.member.state`：
+跨域参与方查询某 Realm 成员视图时，使用 `ak.peer.events.read.scan` 并过滤 `kind=ak.member.state`：
 
 ```
-GET /_arkret/peer/events?realms=<id>&kinds=ak.member.state&after=<cursor>&limit=<n>
+QUERY /_arkret/peer/events
+
+{"realms":["<id>"],"filters":{"kinds":["ak.member.state"]},"after":"<cursor>","limit":<n>}
 Signature-Input: sig1=("@method" "@target-uri" "@authority" "source-service-id" "destination-service-id" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain");created=...;expires=...
 Signature: sig1=:<base64>:
 ```
@@ -1014,7 +1021,7 @@ peer接收 ordinary Native Agent Event时，MUST使用与本地sync完全相同�
 - 先执行低成本 envelope / size / signature transcript 校验，再进入昂贵的 DID resolution、auth chain 展开和 reducer 预演
 - 对连续失败来源使用有界队列和 `Retry-After`，不得让失败请求触发无限 backfill 或 retry fanout
 
-**Pull 路径反枚举 / anti-amplification（normative）**：push（§4.1）已有重放 cache、批次大小上限与 §8.5 回压窗口，但 pull（GET scan）/ resolve 路径的反洪泛与枚举防护此前弱于 push。为对齐，`ak.peer.events.query.scan`（`GET /_arkret/peer/events`）与 `ak.peer.events.query.resolve`（`POST /_arkret/peer/events/resolve`）MUST 与 §4.5.1 frontier probe **同口径**按 `(realm_id, peer_service_id)` 限速：
+**Pull 路径反枚举 / anti-amplification（normative）**：push（§4.1）已有重放 cache、批次大小上限与 §8.5 回压窗口，但 pull（QUERY scan）/ resolve 路径的反洪泛与枚举防护此前弱于 push。为对齐，`ak.peer.events.read.scan`（`QUERY /_arkret/peer/events`）与 `ak.peer.events.read.resolve`（`QUERY /_arkret/peer/events/resolve`）MUST 与 §4.5.1 frontier probe **同口径**按 `(realm_id, peer_service_id)` 限速：
 
 - 接收方 MUST 维护 per-`(realm_id, peer_service_id)` 的请求计数 / 速率窗口，并在超过部署声明上限时返回 `rate_limited`（附 `retry_after_ms` / HTTP `Retry-After`）或 `temporarily_unavailable`；该限速维度与 frontier probe 的 `(realm_id, peer_service_id)` 限速一致，使授权 peer 无法通过高频 scan / resolve 枚举 Realm 内容或推断活跃度时间序列。
 - 该上限独立于 §8.5 的失败率熔断：scan / resolve 即便每次都成功返回事件，也 MUST 受 per-`(realm_id, peer_service_id)` 速率约束，不得让"全部成功"的高频拉取绕过 anti-amplification。
@@ -1046,7 +1053,7 @@ peer接收 ordinary Native Agent Event时，MUST使用与本地sync完全相同�
 - 单事件级别仍以 `event_id` 去重，规则见 4.3 节；`event_id` 去重是 durable Event 语义的一部分，不受上述幂等记录保留窗口限制；
 - 对同一 `(Source-Service-ID, Destination-Service-ID, endpoint, realm_id?)` 计数窗口，若 60 秒内相同 canonical request hash 被拒绝 ≥ 3 次，或 5 分钟内总请求数 ≥ 10 且失败率 ≥ 50%，接收方 MUST 将该来源在该 endpoint / Realm 范围内暂停至少 60 秒，并返回 `rate_limited`（可附 `retry_after_ms` / HTTP `Retry-After`）或 `temporarily_unavailable`。
 
-**该回压窗口同样覆盖 pull 路径（normative）**：上面的失败率熔断与暂停窗口不仅适用于 push（`POST /_arkret/peer/events`），也 MUST 适用于 pull / resolve（`GET /_arkret/peer/events` 的 `ak.peer.events.query.scan`、`POST /_arkret/peer/events/resolve` 的 `ak.peer.events.query.resolve`）。无 body 的 GET pull 没有 body digest，其相同 request key 使用 `(@method, @target-uri, source/destination service DID, trust domain, endpoint digest)` 规范化键（§3.2 GET pull transcript 绑定的同一组件集），其余熔断阈值、暂停时长与 `Retry-After` 语义与 push 一致。这与 §8.1 的 per-`(realm_id, peer_service_id)` 速率上限互补：§8.1 限稳态速率，本条限失败放大与抖动。
+**该回压窗口同样覆盖 pull 路径（normative）**：上面的失败率熔断与暂停窗口不仅适用于 push（`POST /_arkret/peer/events`），也 MUST 适用于 pull / resolve（`QUERY /_arkret/peer/events` 的 `ak.peer.events.read.scan`、`QUERY /_arkret/peer/events/resolve` 的 `ak.peer.events.read.resolve`）。canonical QUERY 的相同 request key 必须覆盖 body digest；GET compatibility binding 才使用无 body 的 `(@method, @target-uri, source/destination service DID, trust domain, endpoint digest)` 规范化键。其余熔断阈值、暂停时长与 `Retry-After` 语义与 push 一致。
 
 #### 8.5.1 Idempotency cache 绑定 service key state（normative）
 
@@ -1077,7 +1084,7 @@ peer接收 ordinary Native Agent Event时，MUST使用与本地sync完全相同�
 
 联邦场景下，Principal Server 之间应支持基于快照的快速恢复（snapshot-assisted bootstrap），否则首次加入或大范围缺失时会退化为全量历史回放，影响可用性。实现层面：
 
-在 `GET /_arkret/peer/events?before=<cursor>`（`ak.peer.events.query.scan`）响应中，服务端 SHOULD 在可用时提供 `snapshot_bootstrap`（可选字段）；需要单独读取 manifest head 时使用 `GET /_arkret/peer/snapshot/head`（`ak.peer.snapshot.query.manifest_head`）：
+在 `QUERY /_arkret/peer/events`（JSON content 携带 `before`，`ak.peer.events.read.scan`）响应中，服务端 SHOULD 在可用时提供 `snapshot_bootstrap`（可选字段）；需要单独读取 manifest head 时使用 `GET /_arkret/peer/snapshot/head`（`ak.peer.snapshot.query.manifest_head`）：
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |

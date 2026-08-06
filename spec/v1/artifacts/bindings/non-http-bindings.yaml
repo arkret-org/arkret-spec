@@ -186,20 +186,20 @@ grpc:
     SelfControlProposalReceipts:
       Issue: ak.self.control_proposal_receipts.command.issue
     SelfEvents:
-      Describe: ak.self.events.query.describe
-      Frontier: ak.self.events.query.frontier
-      MlsGovernanceProof: ak.self.events.query.mls_governance_proof
+      Describe: ak.self.events.read.describe
+      Frontier: ak.self.events.read.frontier
+      MlsGovernanceProof: ak.self.events.read.mls_governance_proof
       Get: ak.self.events.resource.get
-      Query: ak.self.events.query.scan
-      Resolve: ak.self.events.query.resolve
+      Query: ak.self.events.read.scan
+      Resolve: ak.self.events.read.resolve
       Subscribe: ak.self.events.stream.subscribe
       Submit: ak.self.events.command.submit
       SubmitSeal: ak.self.events.command.submit_seal
     PeerEvents:
-      Describe: ak.peer.events.query.describe
-      Frontier: ak.peer.events.query.frontier
-      Query: ak.peer.events.query.scan
-      Resolve: ak.peer.events.query.resolve
+      Describe: ak.peer.events.read.describe
+      Frontier: ak.peer.events.read.frontier
+      Query: ak.peer.events.read.scan
+      Resolve: ak.peer.events.read.resolve
       Submit: ak.peer.events.command.submit
     PeerAccountStatus:
       AuthoringBasis: ak.peer.account_status.query.authoring_basis
@@ -351,16 +351,16 @@ mq:
     self.authorization_leases.command.issue: ak.self.authorization_leases.command.issue
     self.events.command.submit: ak.self.events.command.submit
     self.events.command.submit_seal: ak.self.events.command.submit_seal
-    self.events.query.mls_governance_proof: ak.self.events.query.mls_governance_proof
-    self.events.query.scan.resolve: ak.self.events.query.resolve
-    self.events.query.scan: ak.self.events.query.scan
+    self.events.read.mls_governance_proof: ak.self.events.read.mls_governance_proof
+    self.events.read.scan.resolve: ak.self.events.read.resolve
+    self.events.read.scan: ak.self.events.read.scan
     self.events.stream.subscribe: ak.self.events.stream.subscribe
     self.keys.backup_series.command.erase: ak.self.keys.backup_series.command.erase
-    peer.events.query.scan.describe: ak.peer.events.query.describe
+    peer.events.read.scan.describe: ak.peer.events.read.describe
     peer.events.command.submit: ak.peer.events.command.submit
-    peer.events.query.scan.resolve: ak.peer.events.query.resolve
-    peer.events.query.scan: ak.peer.events.query.scan
-    peer.events.query.scan.frontier: ak.peer.events.query.frontier
+    peer.events.read.scan.resolve: ak.peer.events.read.resolve
+    peer.events.read.scan: ak.peer.events.read.scan
+    peer.events.read.scan.frontier: ak.peer.events.read.frontier
     peer.account_status.query.authoring_basis: ak.peer.account_status.query.authoring_basis
     peer.mls.query.group_state_material: ak.peer.mls.query.group_state_material
     peer.invites.command.submit: ak.peer.invites.command.submit

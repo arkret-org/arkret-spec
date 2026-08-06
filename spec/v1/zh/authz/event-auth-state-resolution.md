@@ -231,7 +231,7 @@ ControlMove {
 Control Move 规则：
 
 1. `seal_basis.leaves[]` 进入 canonical Event bytes，并由 `event_digest` / `proofs[]` 覆盖。producer 不复制 `control_event_set_root` 或 `state_root`。
-2. `leaves[]` MUST 只引用 accepted Seal，按 unsigned-byte order 严格排序、去重。单 leaf basis 是轻 producer 的默认形态。account client 从 `ak.self.events.query.frontier` 取得 signed Seal id；该来源不可用时 MUST fail closed。
+2. `leaves[]` MUST 只引用 accepted Seal，按 unsigned-byte order 严格排序、去重。单 leaf basis 是轻 producer 的默认形态。account client 从 `ak.self.events.read.frontier` 取得 signed Seal id；该来源不可用时 MUST fail closed。
 3. 多 leaf basis 只有已验证每个 Seal signature、predecessor closure、control covered set 与 joined state 的 producer MAY 签；轻客户端 MUST NOT 签自己无法验证的 multi-leaf union。旁路 proof bundle只补依赖，不进入 Event digest。
 4. reducer contract 的派生写 MUST 只引用 control plane cell。若需同时写 data cell，必须拆成后续 DataEvent。
 5. `preconditions[]` 与全部派生写是原子集合；任一 precondition 不成立，整个 Control Move 失败。
@@ -591,7 +591,7 @@ authority 给出有界、可验证的决议，并为失约提供 health/fault/re
 上述 receipt、两次 defer 上界、绝对期限与迟到 Seal 规则由 conformance vector
 `ak.vector.cba.proposal_bounded_decision.v1` 固定。
 
-`ak.self.events.query.frontier` 的 `RealmSealFrontierView.governance_health` MUST 从已验证的
+`ak.self.events.read.frontier` 的 `RealmSealFrontierView.governance_health` MUST 从已验证的
 receipt / decision chain 与 accepted Seal covered set 派生；pending 明细最多返回 128 项，
 按 `(absolute_due_at, proposal_digest)` canonical 升序。超过读取上限时 readiness MUST
 fail closed，不能静默截断后报告 `healthy`。该 View 不是新的可写真相源。

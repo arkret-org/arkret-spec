@@ -1,4 +1,4 @@
-openapi: 3.1.0
+openapi: 3.2.0
 info:
   title: Arkret Service API
   version: 1.0.0
@@ -25,10 +25,10 @@ info:
 
     operation-specific required fields directly from OpenAPI without consulting
 
-    prose. The typed surface currently covers `ak.self.events.{command.submit, resource.get, query.resolve,
+    prose. The typed surface currently covers `ak.self.events.{command.submit, resource.get, read.resolve,
 
-    query.scan, query.scan_body, query.frontier}`, `ak.peer.events.{command.submit, query.resolve, query.scan,
-    query.scan_body, query.frontier}`, `ak.self.account.{query.viewer, stream.subscribe,
+    read.scan, read.frontier}`, `ak.peer.events.{command.submit, read.resolve, read.scan,
+    read.frontier}`, `ak.self.account.{query.viewer, stream.subscribe,
     command.update_profile}`, `ak.gate.account.{command.register, command.revoke_session}`, `ak.self.snapshot.query.manifest_head`,
     `ak.peer.snapshot.query.manifest_head`,
 
@@ -2797,7 +2797,7 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SignalSubmitOutcome
     SnapshotBootstrap:
       type: object
-      description: Optional ak.peer.events.query.scan acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).
+      description: Optional ak.peer.events.read.scan acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).
       required:
       - snapshot_ref
       - state_digest
@@ -3859,6 +3859,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthorizationLeaseIssueOutcome'
   /_arkret/self/events:
+    query:
+      operationId: ak.self.events.read.scan
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Read a filtered Event range with cursor pagination.
+      description: |
+        Canonical RFC 10008 QUERY binding for `ak.self.events.read.scan`.
+        The JSON content carries the selector, cursor, ordering, filter, and
+        completeness inputs. GET and POST are compatibility bindings only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody
+      responses:
+        '200':
+          description: Event read page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsQueryOutcome'
+        '400':
+          description: '`invalid_param` — unrecognized `order` value, malformed cursor, or invalid selector.'
     post:
       operationId: ak.self.events.command.submit
       security:
@@ -3888,7 +3918,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventsSubmitOutcome'
     get:
-      operationId: ak.self.events.query.scan
+      deprecated: true
+      x-arkret-compatibility-binding-of: ak.self.events.read.scan
       x-arkret-required-any-of:
       - - realms
       - - actors
@@ -3899,7 +3930,7 @@ paths:
         destinationServiceId: []
         sourceTrustDomain: []
         destinationTrustDomain: []
-      summary: Query / backfill events with cursor pagination.
+      summary: Compatibility GET binding for ak.self.events.read.scan.
       description: |
         Returns a page of events according to `before` / `after` cursor seals.
 
@@ -3994,7 +4025,8 @@ paths:
             `invalid_param` — unrecognized `order` enum value or malformed cursor.
   /_arkret/self/events/query:
     post:
-      operationId: ak.self.events.query.scan_body
+      deprecated: true
+      x-arkret-compatibility-binding-of: ak.self.events.read.scan
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4003,11 +4035,11 @@ paths:
         sourceTrustDomain: []
         destinationTrustDomain: []
         contentDigest: []
-      summary: ak.self.events.query.scan in HTTP POST body form (for long/complex queries).
+      summary: ak.self.events.read.scan in HTTP POST body form (for long/complex queries).
       description: |
-        Semantically identical to `GET /_arkret/self/events` (`ak.self.events.query.scan`); the same
-        selector / cursor / order / filter parameter set is transported as a
-        JSON request body instead of URL query parameters. Use this form when
+        Compatibility binding of `QUERY /_arkret/self/events`
+        (`ak.self.events.read.scan`); the same selector / cursor / order /
+        filter content is transported as a JSON request body. Use this form when
         any of:
 
           - The URL would exceed the deployment's practical limit (proxies /
@@ -4017,13 +4049,12 @@ paths:
             inadvertently capture sensitive filter contents in access logs).
 
         The response shape (`events[]`, `prev_cursor`, `next_cursor`,
-        `has_more`) matches the GET form exactly. Cursor pagination semantics
+        `has_more`) matches the canonical QUERY form exactly. Cursor pagination semantics
         (proximity-to-seal default order, absolute prev / next directions)
         come from the same source — see zh/sync/service-http-binding.md §3.3.
 
-        gRPC / MQ bindings reuse the canonical `SelfEvents/Query` channel; this
-        operation_id is a HTTP-only binding variant of `ak.self.events.query.scan` to keep
-        OpenAPI / SDK generators round-trippable.
+        This is a compatibility binding of `ak.self.events.read.scan`; it is
+        not an independent operation. New clients use `QUERY /_arkret/self/events`.
       requestBody:
         required: true
         content:
@@ -4032,7 +4063,7 @@ paths:
               $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody
       responses:
         '200':
-          description: Event query page (same shape as GET /_arkret/self/events response)
+          description: Event query page (same shape as the canonical QUERY response)
           content:
             application/json:
               schema:
@@ -4064,7 +4095,7 @@ paths:
         the bounded catch-up range from that cursor up to the current frontier,
         then emits `catchup_complete` per Realm and continues with live frames.
         This is not a request for all historical events; full history is read
-        through `GET /_arkret/self/events` pagination / range queries.
+        through `QUERY /_arkret/self/events` pagination / range queries.
       parameters:
       - name: realms
         in: query
@@ -4088,7 +4119,7 @@ paths:
         explode: true
       - name: after
         in: query
-        description: Subscription start cursor (exclusive). Same semantics as ak.self.events.query.scan's `after=` parameter.
+        description: Subscription start cursor (exclusive). Same semantics as ak.self.events.read.scan's `after=` parameter.
         schema:
           $ref: '#/components/schemas/Cursor'
       - name: catchup
@@ -4105,8 +4136,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventsSubscribeFrame'
   /_arkret/self/events/describe:
+    query:
+      operationId: ak.self.events.read.describe
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody
+      responses:
+        '200':
+          description: Events API capabilities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDescribe'
     get:
-      operationId: ak.self.events.query.describe
+      deprecated: true
+      x-arkret-compatibility-binding-of: ak.self.events.read.describe
       security: []
       responses:
         '200':
@@ -4142,8 +4190,30 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventView'
   /_arkret/self/events/resolve:
+    query:
+      operationId: ak.self.events.read.resolve
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventsResolveRequestBody'
+      responses:
+        '200':
+          description: Resolved events keyed by event_id / event_digest
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsResolveOutcome'
     post:
-      operationId: ak.self.events.query.resolve
+      deprecated: true
+      x-arkret-compatibility-binding-of: ak.self.events.read.resolve
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4164,8 +4234,30 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventsResolveOutcome'
   /_arkret/self/events/frontier:
+    query:
+      operationId: ak.self.events.read.frontier
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierRequestBody
+      responses:
+        '200':
+          description: Event frontier visible to caller
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsFrontierState'
     get:
-      operationId: ak.self.events.query.frontier
+      deprecated: true
+      x-arkret-compatibility-binding-of: ak.self.events.read.frontier
       x-arkret-required-any-of:
       - - actor_id
       - - realm_id
@@ -4210,8 +4302,27 @@ paths:
               schema:
                 $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventSealSubmitOutcome
   /_arkret/self/events/mls-governance-proof:
+    query:
+      operationId: ak.self.events.read.mls_governance_proof
+      security:
+      - bearerAuth: []
+      summary: Materialize a verifiable full-profile MLS governance binding.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MlsGovernanceProofRequestBodyBody'
+      responses:
+        '200':
+          description: One manifest-committed governance proof bundle chunk
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MlsGovernanceProofBundle'
     post:
-      operationId: ak.self.events.query.mls_governance_proof
+      deprecated: true
+      x-arkret-compatibility-binding-of: ak.self.events.read.mls_governance_proof
       security:
       - bearerAuth: []
       summary: Materialize a verifiable full-profile MLS governance binding.
@@ -4390,8 +4501,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
   /_arkret/peer/events/describe:
+    query:
+      operationId: ak.peer.events.read.describe
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsDescribeRequestBody
+      responses:
+        '200':
+          description: Federation peer Events API capabilities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDescribe'
     get:
-      operationId: ak.peer.events.query.describe
+      deprecated: true
+      x-arkret-compatibility-binding-of: ak.peer.events.read.describe
       security: []
       responses:
         '200':
@@ -4401,6 +4529,29 @@ paths:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/peer/events:
+    query:
+      operationId: ak.peer.events.read.scan
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Read a federation peer Event range with cursor pagination.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody
+      responses:
+        '200':
+          description: Federation peer Event read page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsQueryOutcome'
     post:
       operationId: ak.peer.events.command.submit
       security:
@@ -4466,7 +4617,8 @@ paths:
                         details:
                           $ref: '#/components/schemas/EventsDependencyMissingProblem'
     get:
-      operationId: ak.peer.events.query.scan
+      deprecated: true
+      x-arkret-compatibility-binding-of: ak.peer.events.read.scan
       x-arkret-required-any-of:
       - - realms
       - - actors
@@ -4479,7 +4631,7 @@ paths:
       summary: Federation peer event pull / backfill query.
       description: |
         Returns a page of events visible to the authenticated federation peer.
-        Cursor, selector, order, and response semantics match `ak.self.events.query.scan`,
+        Cursor, selector, order, and response semantics match `ak.self.events.read.scan`,
         but this binding is the server-to-server peer trust surface.
       parameters:
       - name: realms
@@ -4544,7 +4696,8 @@ paths:
                 $ref: '#/components/schemas/EventsQueryOutcome'
   /_arkret/peer/events/query:
     post:
-      operationId: ak.peer.events.query.scan_body
+      deprecated: true
+      x-arkret-compatibility-binding-of: ak.peer.events.read.scan
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -4552,10 +4705,10 @@ paths:
         sourceTrustDomain: []
         destinationTrustDomain: []
         contentDigest: []
-      summary: ak.peer.events.query.scan in HTTP POST body form.
+      summary: ak.peer.events.read.scan in HTTP POST body form.
       description: |
-        Semantically identical to `GET /_arkret/peer/events`; transports the
-        selector / cursor / order / filter parameter set as a JSON body.
+        Compatibility binding of `QUERY /_arkret/peer/events`; transports the
+        same selector / cursor / order / filter content as a JSON body.
       requestBody:
         required: true
         content:
@@ -4570,8 +4723,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventsQueryOutcome'
   /_arkret/peer/events/resolve:
+    query:
+      operationId: ak.peer.events.read.resolve
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeerEventsResolveRequestBody'
+      responses:
+        '200':
+          description: Resolved Events and CBA proof bundles visible to the authenticated federation peer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeerEventsResolveOutcome'
     post:
-      operationId: ak.peer.events.query.resolve
+      deprecated: true
+      x-arkret-compatibility-binding-of: ak.peer.events.read.resolve
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -4603,8 +4779,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/PeerEventsResolveOutcome'
   /_arkret/peer/events/frontier:
+    query:
+      operationId: ak.peer.events.read.frontier
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsFrontierRequestBody
+      responses:
+        '200':
+          description: Federation peer frontier response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsFrontierFederationPeerState'
     get:
-      operationId: ak.peer.events.query.frontier
+      deprecated: true
+      x-arkret-compatibility-binding-of: ak.peer.events.read.frontier
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -5003,7 +5202,7 @@ paths:
           and `after` is omitted, this is initial account sync: server first
           emits a current baseline delta, then `catchup_complete`, then
           real-time push. This parameter never means "return all history";
-          complete event history is retrieved via `GET /_arkret/self/events`.
+          complete event history is retrieved via `QUERY /_arkret/self/events`.
         schema:
           type: boolean
           default: false

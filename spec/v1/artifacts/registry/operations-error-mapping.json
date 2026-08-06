@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-05.1",
+  "version": "2026-08-06.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -695,21 +695,21 @@
       "description": "Resource-side appeal against an operator takedown (discovery-directory.md §8.7). not_found covers an unknown takedown_id; directory_not_authorized / governance_key_invalid / signature_invalid / signature_stale cover an appellant whose governance key or authorized-advocate signature does not validate against the resource the takedown targets; takedown_in_force is returned while the takedown remains effective and the appeal has not been overturned. The Directory returns a signed decision receipt on success."
     },
     {
-      "operation_id": "ak.self.events.query.describe",
-      "http_alias": "GET /_arkret/self/events/describe",
+      "operation_id": "ak.self.events.read.describe",
+      "http_alias": "QUERY /_arkret/self/events/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.events.query.frontier",
-      "http_alias": "GET /_arkret/self/events/frontier",
+      "operation_id": "ak.self.events.read.frontier",
+      "http_alias": "QUERY /_arkret/self/events/frontier",
       "operation_specific": [
         "frontier_unavailable"
       ]
     },
     {
-      "operation_id": "ak.self.events.query.mls_governance_proof",
-      "http_alias": "POST /_arkret/self/events/mls-governance-proof",
+      "operation_id": "ak.self.events.read.mls_governance_proof",
+      "http_alias": "QUERY /_arkret/self/events/mls-governance-proof",
       "operation_specific": [
         "not_found",
         "mls_governance_anchor_unreachable",
@@ -730,24 +730,16 @@
       "description": "not_found is returned both for nonexistent events and for events hidden by visibility (uniform failure surface)."
     },
     {
-      "operation_id": "ak.self.events.query.scan",
-      "http_alias": "GET /_arkret/self/events",
+      "operation_id": "ak.self.events.read.scan",
+      "http_alias": "QUERY /_arkret/self/events",
       "operation_specific": [
         "cursor_invalid",
         "cursor_revoked"
       ]
     },
     {
-      "operation_id": "ak.self.events.query.scan_body",
-      "http_alias": "POST /_arkret/self/events/query",
-      "operation_specific": [
-        "cursor_invalid",
-        "cursor_revoked"
-      ]
-    },
-    {
-      "operation_id": "ak.self.events.query.resolve",
-      "http_alias": "POST /_arkret/self/events/resolve",
+      "operation_id": "ak.self.events.read.resolve",
+      "http_alias": "QUERY /_arkret/self/events/resolve",
       "operation_specific": [
         "not_found"
       ]
@@ -814,37 +806,29 @@
       "description": "Client-signed Seal submission. The receiver recomputes coverage, completeness and state roots; verifies signer authority against the predecessor notary cell; rejects stale generation, partial bootstrap coverage or frontier races; and holds future-skewed Seals for retry instead of permanently rejecting them."
     },
     {
-      "operation_id": "ak.peer.events.query.describe",
-      "http_alias": "GET /_arkret/peer/events/describe",
+      "operation_id": "ak.peer.events.read.describe",
+      "http_alias": "QUERY /_arkret/peer/events/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.peer.events.query.frontier",
-      "http_alias": "GET /_arkret/peer/events/frontier",
+      "operation_id": "ak.peer.events.read.frontier",
+      "http_alias": "QUERY /_arkret/peer/events/frontier",
       "operation_specific": [
         "frontier_unavailable"
       ]
     },
     {
-      "operation_id": "ak.peer.events.query.scan",
-      "http_alias": "GET /_arkret/peer/events",
+      "operation_id": "ak.peer.events.read.scan",
+      "http_alias": "QUERY /_arkret/peer/events",
       "operation_specific": [
         "cursor_invalid",
         "cursor_revoked"
       ]
     },
     {
-      "operation_id": "ak.peer.events.query.scan_body",
-      "http_alias": "POST /_arkret/peer/events/query",
-      "operation_specific": [
-        "cursor_invalid",
-        "cursor_revoked"
-      ]
-    },
-    {
-      "operation_id": "ak.peer.events.query.resolve",
-      "http_alias": "POST /_arkret/peer/events/resolve",
+      "operation_id": "ak.peer.events.read.resolve",
+      "http_alias": "QUERY /_arkret/peer/events/resolve",
       "operation_specific": [
         "limit_exceeded"
       ],

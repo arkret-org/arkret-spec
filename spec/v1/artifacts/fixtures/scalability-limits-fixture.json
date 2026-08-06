@@ -886,7 +886,7 @@
       "input": {
         "generator": {
           "kind": "mls_governance_proof_limit_matrix",
-          "operation_id": "ak.self.events.query.mls_governance_proof",
+          "operation_id": "ak.self.events.read.mls_governance_proof",
           "schema_ref": "schemas/mls-governance-proof-bundle.schema.json",
           "dimensions": [
             {

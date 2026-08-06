@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.3",
+  "version": "2026-08-06.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T07:00:00Z",
+  "generated_at": "2026-08-06T10:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,17 +18,17 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 224,
+    "total_operations": 222,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
-      "service_describe": 7,
+      "service_describe": 5,
       "streaming_frame_schema": 3,
       "typed_schema": 211
     },
     "by_surface_class_and_completeness_class": {
       "core": {
-        "service_describe": 4,
+        "service_describe": 3,
         "streaming_frame_schema": 2,
         "typed_schema": 35
       },
@@ -38,7 +38,7 @@
       "extension": {
         "binary_or_redirect": 2,
         "no_request_body": 1,
-        "service_describe": 2,
+        "service_describe": 1,
         "streaming_frame_schema": 1,
         "typed_schema": 142
       },
@@ -950,69 +950,46 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.peer.events.query.describe",
+      "operation_id": "ak.peer.events.read.describe",
       "surface_class": "extension",
-      "http": "GET /_arkret/peer/events/describe",
+      "http": "QUERY /_arkret/peer/events/describe",
       "success_shape_kind": "service_describe",
-      "request_schema_ref": null,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsDescribeRequestBody",
       "response_schema_ref": null,
-      "openapi_component_refs": {
-        "response": "#/components/schemas/ServiceDescribe"
-      },
-      "completeness_class": "service_describe",
-      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
-    },
-    {
-      "operation_id": "ak.peer.events.query.frontier",
-      "surface_class": "extension",
-      "http": "GET /_arkret/peer/events/frontier",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/EventsFrontierFederationPeerState"
-      },
+      "openapi_component_refs": {},
       "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
+      "reason": "registry declares artifact schema ref(s) for request."
     },
     {
-      "operation_id": "ak.peer.events.query.resolve",
+      "operation_id": "ak.peer.events.read.frontier",
       "surface_class": "extension",
-      "http": "POST /_arkret/peer/events/resolve",
+      "http": "QUERY /_arkret/peer/events/frontier",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveOutcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/PeerEventsResolveRequestBody",
-        "response": "#/components/schemas/PeerEventsResolveOutcome"
-      },
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsFrontierRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState",
+      "openapi_component_refs": {},
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.peer.events.query.scan",
+      "operation_id": "ak.peer.events.read.resolve",
       "surface_class": "extension",
-      "http": "GET /_arkret/peer/events",
+      "http": "QUERY /_arkret/peer/events/resolve",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/EventsQueryOutcome"
-      },
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveOutcome",
+      "openapi_component_refs": {},
       "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.peer.events.query.scan_body",
+      "operation_id": "ak.peer.events.read.scan",
       "surface_class": "extension",
-      "http": "POST /_arkret/peer/events/query",
+      "http": "QUERY /_arkret/peer/events",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
-      "openapi_component_refs": {
-        "request": "../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
-        "response": "#/components/schemas/EventsQueryOutcome"
-      },
+      "openapi_component_refs": {},
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
@@ -2210,83 +2187,57 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.self.events.query.describe",
+      "operation_id": "ak.self.events.read.describe",
       "surface_class": "core",
-      "http": "GET /_arkret/self/events/describe",
+      "http": "QUERY /_arkret/self/events/describe",
       "success_shape_kind": "service_describe",
-      "request_schema_ref": null,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody",
       "response_schema_ref": null,
-      "openapi_component_refs": {
-        "response": "#/components/schemas/ServiceDescribe"
-      },
-      "completeness_class": "service_describe",
-      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
-    },
-    {
-      "operation_id": "ak.self.events.query.frontier",
-      "surface_class": "core",
-      "http": "GET /_arkret/self/events/frontier",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/EventsFrontierState"
-      },
+      "openapi_component_refs": {},
       "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
+      "reason": "registry declares artifact schema ref(s) for request."
     },
     {
-      "operation_id": "ak.self.events.query.mls_governance_proof",
+      "operation_id": "ak.self.events.read.frontier",
       "surface_class": "core",
-      "http": "POST /_arkret/self/events/mls-governance-proof",
+      "http": "QUERY /_arkret/self/events/frontier",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState",
+      "openapi_component_refs": {},
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.events.read.mls_governance_proof",
+      "surface_class": "core",
+      "http": "QUERY /_arkret/self/events/mls-governance-proof",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request",
       "response_schema_ref": "schemas/mls-governance-proof-bundle.schema.json",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/MlsGovernanceProofRequestBodyBody",
-        "response": "#/components/schemas/MlsGovernanceProofBundle"
-      },
+      "openapi_component_refs": {},
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.self.events.query.resolve",
+      "operation_id": "ak.self.events.read.resolve",
       "surface_class": "core",
-      "http": "POST /_arkret/self/events/resolve",
+      "http": "QUERY /_arkret/self/events/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/EventsResolveRequestBody",
-        "response": "#/components/schemas/EventsResolveOutcome"
-      },
+      "openapi_component_refs": {},
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.self.events.query.scan",
+      "operation_id": "ak.self.events.read.scan",
       "surface_class": "core",
-      "http": "GET /_arkret/self/events",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/EventsQueryOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ak.self.events.query.scan_body",
-      "surface_class": "core",
-      "http": "POST /_arkret/self/events/query",
+      "http": "QUERY /_arkret/self/events",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
-      "openapi_component_refs": {
-        "request": "../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
-        "response": "#/components/schemas/EventsQueryOutcome"
-      },
+      "openapi_component_refs": {},
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },

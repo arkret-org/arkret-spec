@@ -70,7 +70,7 @@ Arkret DID method adapter SHOULD 暴露某个 principal 或服务是否支持 TS
   "supported_modes": ["direct", "routed", "nested"],
   "supported_payloads": [
     "ak.self.events.command.submit",
-    "ak.self.events.query.scan",
+    "ak.self.events.read.scan",
     "ak.identity.presentation_request",
     "ak.identity.presentation_response"
   ],

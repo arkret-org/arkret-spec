@@ -152,11 +152,11 @@ GET /_arkret/describe
   "supported_operations": [
     "ak.server.query.describe",
     "ak.self.events.command.submit",
-    "ak.self.events.query.scan",
+    "ak.self.events.read.scan",
     "ak.peer.events.command.submit",
-    "ak.peer.events.query.scan",
-    "ak.peer.events.query.resolve",
-    "ak.peer.events.query.frontier",
+    "ak.peer.events.read.scan",
+    "ak.peer.events.read.resolve",
+    "ak.peer.events.read.frontier",
     "ak.peer.invites.command.submit",
     "ak.peer.snapshot.query.manifest_head",
     "ak.self.invite_locator.command.issue",
@@ -466,7 +466,10 @@ Events API 至少应提供以下语义：
 ### 4.1 描述 Events API
 
 ```text
-GET /_arkret/self/events/describe
+QUERY /_arkret/self/events/describe
+Content-Type: application/json
+
+{}
 ```
 
 返回：
@@ -506,7 +509,7 @@ GET /_arkret/self/events/{event_id}
 ### 4.4 批量获取 Event
 
 ```text
-POST /_arkret/self/events/resolve
+QUERY /_arkret/self/events/resolve
 ```
 
 请求体可携带一组 `event_ids` 或 `event_digests`。响应按 Realm policy、history visibility、E2EE envelope policy 和 redaction policy 过滤 payload。
@@ -514,8 +517,10 @@ POST /_arkret/self/events/resolve
 ### 4.5 列出 / 回填 Event
 
 ```text
-GET /_arkret/self/events?actors=<did>&realms=<id>&before=<cursor>&limit=<n>    # 历史 backfill
-GET /_arkret/self/events?actors=<did>&realms=<id>&after=<cursor>&limit=<n>     # catch-up
+QUERY /_arkret/self/events
+Content-Type: application/json
+
+{"actors":["did:web:..."],"realms":["ak:realm:..."],"before":"ak:cursor:...","limit":100}
 ```
 
 参数完整定义与"近邻先返回"默认顺序规则见 [`service-http-binding.md` §3.3](./service-http-binding.md)。
@@ -530,15 +535,17 @@ GET /_arkret/self/events?actors=<did>&realms=<id>&after=<cursor>&limit=<n>     #
 ### 4.6 获取 Event frontier
 
 ```text
-GET /_arkret/self/events/frontier?actor_id=<did>
-GET /_arkret/self/events/frontier?realm_id=<id>
+QUERY /_arkret/self/events/frontier
+Content-Type: application/json
+
+{"actor_id":"did:web:..."}
 ```
 
 返回调用方可见范围内的 actor frontier、Realm frontier、latest HLC、可选 witness receipt / event batch receipt。frontier 只用于同步和强一致读取，不能替代 Event 集合本身。
 
 ## 5. Account Aggregate / Snapshot Surface
 
-Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`ak.self.events.query.scan` / `ak.self.events.stream.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 unread / notification counts 的视图；presence 是有界 TTL 的 encrypted Signal，走 Signal live rail，不进入该聚合。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared notary / Sync Service。
+Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`ak.self.events.read.scan` / `ak.self.events.stream.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 unread / notification counts 的视图；presence 是有界 TTL 的 encrypted Signal，走 Signal live rail，不进入该聚合。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared notary / Sync Service。
 
 本节定义 account 与 snapshot 两类操作（事件流读取请到 Events Surface）：
 
@@ -553,7 +560,7 @@ Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视�
 
 事件流读取统一在：
 
-- `GET /_arkret/self/events?realms=...&before=...` 或 `&after=...`（`ak.self.events.query.scan`，双向 cursor；`before` 取历史方向，`after` 取未来方向。详见 [`service-http-binding.md` §3.3](./service-http-binding.md)）
+- `QUERY /_arkret/self/events` + JSON content（`ak.self.events.read.scan`，双向 cursor；`before` 取历史方向，`after` 取未来方向。详见 [`service-http-binding.md` §3.3](./service-http-binding.md)）
 - `GET /_arkret/self/events/subscribe?realms=...&catchup=...`（`ak.self.events.stream.subscribe`，可从 `after=` 追赶到当前 frontier，并支持多 realm 一次订阅）
 
 实现不得把账号聚合 (`/_arkret/self/account/subscribe`) 和裸事件读 (`/_arkret/self/events`) 合并成语义不明的单一“stream”接口；它们的 selector、auth、frame schema、freshness 行为都不同。其他 transport MAY 使用不同帧名，但必须映射到上述 canonical operation。
@@ -867,7 +874,7 @@ Arkret v1 的首次加入流程：
 3. 从 DID Document 和 Realm policy 发现 Principal Server / identity registry / events / account / snapshot / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Realm metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。high-assurance profile 下，`authority_binding.witness_attestations[]` 或等价 quorum proof 必须可验证；缺失时不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /_arkret/self/events?before=<cursor>`（`ak.self.events.query.scan`）进行原始 Event 历史回放。
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。high-assurance profile 下，`authority_binding.witness_attestations[]` 或等价 quorum proof 必须可验证；缺失时不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `QUERY /_arkret/self/events`（`ak.self.events.read.scan`，JSON content 携带 `before`）进行原始 Event 历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read cursor、notification cursor 等个人状态

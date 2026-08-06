@@ -225,7 +225,7 @@ Kernel 硬上限：
 `missing_event_ids[]`。对象完整但授权失败使用已登记的最窄 capability/policy reason（无更窄
 reason 时才用 `policy_denied`），不得新增含混的泛化“authorization rejected”reason，也不得与缺依赖混淆。
 
-peer dependency fetch 复用 `POST /_arkret/peer/events/resolve` 的只读
+peer dependency fetch 复用 `QUERY /_arkret/peer/events/resolve` 的只读
 `PeerEventsResolveRequestBody` / `PeerEventsResolveOutcome`。resolve 响应不得直接接受 Event 或
 Seal；闭包补齐后仍须通过新的 peer submit 请求重新求值。收到任何 submit 响应后，后续求值必须
 使用新的 `Idempotency-Key`；只有完全未收到响应的逐字节 transport retry 才复用原 key。

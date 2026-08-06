@@ -88,7 +88,8 @@ ak.<surface>.<domain-or-subject...>.<kind>.<action>
 
 | kind | 语义边界 | HTTP/JSON binding 关系 |
 | --- | --- | --- |
-| `query` | 只读查询、解析、枚举、frontier/head/effective/viewer 投影、policy check。不得产生 server-side mutation。 | 通常 `GET`；复杂 selector、隐私敏感参数、批量解析或 proof body 可用 `POST`。 |
+| `read` | 安全、幂等的只读计算：扫描、批量解析、frontier/head 投影、proof materialization。不得产生 server-side mutation。 | canonical binding 使用 RFC 10008 `QUERY` 与 typed request content；`GET` / `POST` 仅可作为显式登记的 compatibility binding。 |
+| `query` | 尚未迁移到 `read` 的既有只读 operation kind。语义仍不得产生 server-side mutation。 | 迁移前保持其既有 GET / POST binding；新建的 RFC 10008 QUERY-bound operation MUST 使用 `read`，不得继续扩展此 kind。 |
 | `stream` | 长连接、live tail、增量同步或 bounded catch-up stream。 | 通常 `GET`；响应可以是 NDJSON、SSE、WebSocket frame 或等价 stream。 |
 | `resource` | URI 明确标识一个资源、binding 或 slot；请求语义围绕该 URI 的当前表示。 | `resource.get` 使用 `GET`/`HEAD`；`resource.replace` 使用 `PUT`；`resource.delete` 使用 `DELETE`。 |
 | `command` | 触发协议动作、状态推进、发布、入队、fanout、ack、领取、消费、授权、撤销、注册或流程推进。 | 通常 `POST`。命令可通过 idempotency key、对象 id、序列号或签名 transcript 实现幂等，但不因此变成 `PUT`。 |
@@ -101,9 +102,9 @@ ak.<surface>.<domain-or-subject...>.<kind>.<action>
 - `command.publish` 表示发布调用方签名的 policy / identity state / 权威文档，由服务端按签名、版本和 `supersedes` 链验证后接受；除非目标 URI 本身就是可完整替换的 slot，否则 MUST 使用 `POST`。
 - `command.send` / `command.notify` 表示投递、入队或 fanout；即使有幂等键，也不是 `resource.replace`。
 - `command.ack` 表示对已投递数据做显式确认；天然幂等，但不得被 cursor 推进隐式替代。
-- `query.scan_body` 只允许作为 HTTP-only companion binding，MUST 声明 `binding_variant_of` 指向同语义的 canonical `query.scan` operation；非 HTTP transport MUST 使用 canonical operation，不得把 body variant 暴露为独立能力。
+- `read` operation 的 GET / POST 兼容形态不得拥有独立 `operation_id`，也不得进入 `supported_operations`；它们必须在 canonical operation 的 `http_compatibility_bindings[]` 中登记。
 
-HTTP method 不是 operation action 的来源：同一 `query.scan` 语义可以有 GET query string 与 POST/body 两种 HTTP binding；这种情况必须标记为 binding variant，而不是发明新的协议操作。`ak.self.events.query.scan_body` 必须声明 `binding_variant_of="ak.self.events.query.scan"`，非 HTTP transport 仍使用 canonical `ak.self.events.query.scan`。
+HTTP method 不是 operation action 的来源。以 `ak.self.events.read.scan` 为例，canonical HTTP binding 是 `QUERY /_arkret/self/events`；`GET /_arkret/self/events` 与 `POST /_arkret/self/events/query` 只是同一 operation 的退化兼容形态。OpenAPI 3.2 的 `query:` Operation Object 持有唯一 `operationId`；GET / POST Operation Object 必须省略 `operationId`，声明 `deprecated: true` 与 `x-arkret-compatibility-binding-of`。gRPC / MQ 只暴露 canonical operation。
 
 ### 2.4.1 写操作的 durable effect 闭包（normative）
 
@@ -414,21 +415,21 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 | `purpose` | 用途 | 出现位置 |
 | --- | --- | --- |
-| `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_arkret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见本文 §7.0 与 [`client-sync.md` §2](./client-sync.md)）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ak.self.events.query.scan` 与 federation peer `ak.peer.events.query.scan`（`GET /_arkret/peer/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
+| `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_arkret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见本文 §7.0 与 [`client-sync.md` §2](./client-sync.md)）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ak.self.events.read.scan` 与 federation peer `ak.peer.events.read.scan`（canonical `QUERY` JSON content 中的 `before` / `after`）的请求 cursor 与响应 `prev_cursor` / `next_cursor`——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
 | `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Arkret-Wait-For` header。 |
 
 ### 7.0 `prev_cursor` / `next_cursor` 含义（绝对方向）
 
-任何返回 cursor 对的响应（`ak.self.events.query.scan`、列表分页等）使用统一的**绝对方向**约定；`/_arkret/self/account/subscribe` frame 只返回单个 account stream cursor,用于下一次 `after=` 重连：
+任何返回 cursor 对的响应（`ak.self.events.read.scan`、列表分页等）使用统一的**绝对方向**约定；`/_arkret/self/account/subscribe` frame 只返回单个 account stream cursor,用于下一次 `after=` 重连：
 
 | 响应字段 | 含义 | 回传给下一次请求 |
 | --- | --- | --- |
-| `prev_cursor` | 朝**更旧事件 / 更早历史**方向的延续位置 | `ak.self.events.query.scan` 的 `before=` 参数；分页 `before=<prev_cursor>` 取更旧一批 |
-| `next_cursor` | 朝**更新事件 / 更晚未来**方向的延续位置 | `ak.self.events.query.scan` 的 `after=` 参数；分页 `after=<next_cursor>` 取更新一批 |
+| `prev_cursor` | 朝**更旧事件 / 更早历史**方向的延续位置 | `ak.self.events.read.scan` 的 `before=` 参数；分页 `before=<prev_cursor>` 取更旧一批 |
+| `next_cursor` | 朝**更新事件 / 更晚未来**方向的延续位置 | `ak.self.events.read.scan` 的 `after=` 参数；分页 `after=<next_cursor>` 取更新一批 |
 
 绝对方向与请求时所用的参数（`before` / `after` / `order`）和 selector 无关；服务端 MUST 始终按上述含义填充。客户端因此**不**需要记录"上一次请求的 direction"才能正确解释响应 cursor。
 
-HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_arkret/self/account/subscribe` 的 `after=`、`ak.self.events.query.scan` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在本文 §8 定义的 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Arkret-Wait-For` header 或等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `invalid_param`。
+HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_arkret/self/account/subscribe` 的 `after=`、`ak.self.events.read.scan` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在本文 §8 定义的 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Arkret-Wait-For` header 或等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `invalid_param`。
 
 规则：
 
@@ -437,7 +438,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 - 同一字符串 cursor 在不同 issuing 服务间不可移植；跨服务复用 MUST `invalid_param`。
 - TTL 硬上限：barrier cursor 与 stream cursor 的 `expires_at - issued_at` 硬上限的**唯一 canonical 数值定义点**见 [`encoding.md` §8.3 规则 9](../conformance/encoding.md)；本节不重复字面毫秒数值。
 - 声明 `cursor_revoke_high_assurance` feature 的服务必须实现 [`client-sync.md` §12.2.1](./client-sync.md) 的 revocation set。已撤销但仍在 TTL 内的 cursor MUST 返回 `cursor_revoked`；完整性失败仍返回 `cursor_integrity_invalid`，不得泄露 revocation set。
-- 声明 `events_query_range_completeness` feature 的服务必须实现 [`service-http-binding.md` §3.3.6](./service-http-binding.md)：`ak.self.events.query.scan` 接受 `include_completeness=true` 并返回覆盖该页范围的 `ak.attestation.range_completeness` 引用。未声明该 feature 的服务 MUST 忽略 `include_completeness` 参数。
+- 声明 `events_query_range_completeness` feature 的服务必须实现 [`service-http-binding.md` §3.3.6](./service-http-binding.md)：`ak.self.events.read.scan` 接受 `include_completeness=true` 并返回覆盖该页范围的 `ak.attestation.range_completeness` 引用。未声明该 feature 的服务 MUST 忽略 `include_completeness` 参数。
 
 ### 7.1 列表分页（normative）
 
@@ -462,7 +463,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 - `has_more: boolean` MUST 出现：客户端 MUST 仅按 `has_more` 决定是否继续翻页；不得仅靠 `next_cursor` 是否存在做判断（实现可能在末尾仍返回 `next_cursor` 用作 long-poll resume token）。
 
 本小节的三字段合同适用于资源列表接口，不适用于双向 Event range scan。
-`ak.self.events.query.scan` / `ak.peer.events.query.scan` 按绝对方向分别返回
+`ak.self.events.read.scan` / `ak.peer.events.read.scan` 按绝对方向分别返回
 `has_more_before` 与 `has_more_after`：沿 `before=<prev_cursor>` 补更旧历史时只看
 `has_more_before`，沿 `after=<next_cursor>` 追更新事件时只看 `has_more_after`。scan client
 不得把其中任一字段重命名为通用 `has_more`，也不得在向后补历史时用

@@ -3579,10 +3579,10 @@ Expected：
 
 Steps：
 
-1. `ak.device.revoke` 作为 Control Move 提交，信封携带有效 `seal_basis`（单 leaf，取自 `ak.self.events.query.frontier` 的 Realm Seal view），随后被 principal control stream 的 accepted Seal S 覆盖（`control_sealed`）。
+1. `ak.device.revoke` 作为 Control Move 提交，信封携带有效 `seal_basis`（单 leaf，取自 `ak.self.events.read.frontier` 的 Realm Seal view），随后被 principal control stream 的 accepted Seal S 覆盖（`control_sealed`）。
 2. 攻击者重放该设备在 S 之后（以 S 或其后继 Seal view 判定）签发的 session grant、KeyPackage publish 或 to-device write。
 3. 某 E2EE Realm 提交 MLS Remove，但其 `governance_binding.security_frontier_digest` 不是从包含该 device revoke/leaf remove 的 accepted state 重算所得。
-4. 客户端在 `ak.self.events.query.frontier` 来源不可用（错误或缺 `seal_id`）时尝试提交 `ak.device.revoke`。
+4. 客户端在 `ak.self.events.read.frontier` 来源不可用（错误或缺 `seal_id`）时尝试提交 `ak.device.revoke`。
 
 Expected：
 
@@ -3700,7 +3700,7 @@ Expected：
 
 Steps：
 
-1. 客户端因 `dropped` / cursor 失效按 [`client-sync.md` §12.3](../sync/client-sync.md) 恢复，调用 `ak.self.events.query.scan`（`include_completeness=true`）backfill 区间 `(F1, F2]`。
+1. 客户端因 `dropped` / cursor 失效按 [`client-sync.md` §12.3](../sync/client-sync.md) 恢复，调用 `ak.self.events.read.scan`（`include_completeness=true`）backfill 区间 `(F1, F2]`。
 2. 服务端返回完整事件页 + `range_completeness.attestation_refs[]`；客户端按 [`operations-sync.md` §6.4.4](../sync/operations-sync.md) 重算 Merkle root 并核对 `actor_seq_ranges[]`。
 3. 变体 A：服务端从响应中扣下 Bob `seq 14..16` 的事件，但返回同一 attestation。
 4. 变体 B：服务端未声明该 feature，收到 `include_completeness=true`。
@@ -4023,7 +4023,7 @@ Steps:
 
 1. Realm A 中存在 weak semantic Relation `R1`，目标指向 Realm B 内对象；调用者 C 可读 Realm A，但不能 discover / reference Realm B。
 2. Realm A 中存在形态相同的 Relation `R2`，目标指向不存在或不可发现的 Realm / object id。
-3. C 分别调用 Relation projection query、`ak.self.events.query.scan` raw event API、backfill pull 与 federation peer fanout 视图。
+3. C 分别调用 Relation projection query、`ak.self.events.read.scan` raw event API、backfill pull 与 federation peer fanout 视图。
 4. 在同一服务端测量点、同一请求类别与同一部署 profile 下，对 `R1` / `R2` 每类至少采样 30 次。
 5. Auditor D 同时持有 source + target disclosure，读取 `R1` 的完整 canonical event。
 
@@ -4100,7 +4100,7 @@ Expected:
 
 Steps（均以 Sidecar access 之外 caller 视角）:
 
-1. `ak.self.events.stream.subscribe` / `ak.self.events.query.scan` 目标 Realm。
+1. `ak.self.events.stream.subscribe` / `ak.self.events.read.scan` 目标 Realm。
 2. 对 `to_ref=<target_message_id>` 的 relation query。
 3. Realm directory 调用。
 4. 触发目标 Strand 的 notification fanout。

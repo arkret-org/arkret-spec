@@ -12,7 +12,7 @@ updated: 2026-07-29
 
 ## 1. 目标
 
-Client Sync 是客户端 **账号视角聚合** 同步协议。它在 Events API 之上提供跨 Realm 的稳定 delta 视图（包含 to_device、account_data、device_lists、unread / notification counts），由服务端通过 `ak.self.account.stream.subscribe` 的有界长轮询按需返回。它不是裸事件读取——逐 Realm 的事件查询和实时订阅请使用 `ak.self.events.query.scan` / `ak.self.events.stream.subscribe`。
+Client Sync 是客户端 **账号视角聚合** 同步协议。它在 Events API 之上提供跨 Realm 的稳定 delta 视图（包含 to_device、account_data、device_lists、unread / notification counts），由服务端通过 `ak.self.account.stream.subscribe` 的有界长轮询按需返回。它不是裸事件读取——逐 Realm 的事件查询和实时订阅请使用 `ak.self.events.read.scan` / `ak.self.events.stream.subscribe`。
 
 `ak.self.account.stream.subscribe` 与 `ak.self.events.stream.subscribe` 是对称的两类 streaming 订阅:
 - `ak.self.events.stream.subscribe` 是**逐 Realm / actor 的事件流**(selector 范围内的每条 Event)
@@ -34,7 +34,7 @@ Accept: application/x-ndjson
 
 上面是 **initial account sync** 的 canonical frame 调用：不带 `after`，显式设置 `catchup=true`。这里的 `catchup` 不是"返回全部历史记录"，而是要求服务端先发送当前账号 baseline（有限 timeline + 必要 state + account-scoped 当前位置），再发送 `catchup_complete`。后续请求使用 `GET /_arkret/self/account/subscribe?after=<cursor>&catchup=true` 进入有界长轮询；收到 `dropped` frame 后的补洞重连使用同一方式。
 
-该端点对应 `ak.self.account.stream.subscribe`，HTTP binding 返回 `application/x-ndjson` 的 `AccountSubscribeFrame` 有界响应。Initial sync 立即返回；带 `after` 的请求若已有可见 delta 也立即返回；否则服务端 MUST 等待数据或部署默认窗口（v1 默认 30 秒）到期，期间不得先发送空 `delta` / `catchup_complete` 使客户端误判本轮已完成。数据到达时返回 delta；窗口到期仍无数据时返回仅推进 cursor 的 `frontier`。`catchup=true` 时本轮数据 frame 后发送 `catchup_complete`，随后关闭本轮响应；客户端持久化 cursor 后立即发起下一轮长轮询。客户端 MUST 把 cursor-bearing frame 的 `cursor` 作为下一次 `after=` 起点。该端点聚合跨 Realm delta、to_device、account_data、device_lists 与 notifications；不同于 `GET /_arkret/self/events/subscribe`(按 selector 的事件流订阅)、`GET /_arkret/self/events?before=...` / `?after=...`(按 selector 的双向历史查询)以及独立的加密 Signal rail。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `ak.self.account.*`，snapshot 入口在 `ak.self.snapshot.*`，事件读取在 `ak.self.events.*`（权威 operation namespace 以 [`../../artifacts/registry/operation-registry.json`](../../artifacts/registry/operation-registry.json) 为准，canonical 均带 `ak.self.*` 信任面前缀；`ak.account.*` / `ak.snapshot.*` / `ak.events.*` 只是 surface-group 口语简称，不是 wire operation_id）。
+该端点对应 `ak.self.account.stream.subscribe`，HTTP binding 返回 `application/x-ndjson` 的 `AccountSubscribeFrame` 有界响应。Initial sync 立即返回；带 `after` 的请求若已有可见 delta 也立即返回；否则服务端 MUST 等待数据或部署默认窗口（v1 默认 30 秒）到期，期间不得先发送空 `delta` / `catchup_complete` 使客户端误判本轮已完成。数据到达时返回 delta；窗口到期仍无数据时返回仅推进 cursor 的 `frontier`。`catchup=true` 时本轮数据 frame 后发送 `catchup_complete`，随后关闭本轮响应；客户端持久化 cursor 后立即发起下一轮长轮询。客户端 MUST 把 cursor-bearing frame 的 `cursor` 作为下一次 `after=` 起点。该端点聚合跨 Realm delta、to_device、account_data、device_lists 与 notifications；不同于 `GET /_arkret/self/events/subscribe`（按 selector 的事件流订阅）、`QUERY /_arkret/self/events`（JSON content 携带 `before` / `after` 的双向历史读取）以及独立的加密 Signal rail。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `ak.self.account.*`，snapshot 入口在 `ak.self.snapshot.*`，事件读取在 `ak.self.events.*`（权威 operation namespace 以 [`../../artifacts/registry/operation-registry.json`](../../artifacts/registry/operation-registry.json) 为准，canonical 均带 `ak.self.*` 信任面前缀；`ak.account.*` / `ak.snapshot.*` / `ak.events.*` 只是 surface-group 口语简称，不是 wire operation_id）。
 
 Account subscribe 的服务边界是当前 authenticated session 绑定的 Principal Server service DID。若同一 principal DID 同时在个人 Principal Server 与组织 Principal Server 上有账号/设备上下文，客户端必须分别维护 session、cursor、to-device queue 和 push registration,并对每个上下文建立独立的 `/_arkret/self/account/subscribe` 长轮询序列。某个 Realm 的 timeline / notification delta 只应出现在该成员 effective `delivery_binding.recipient_service_id` 指向的服务上;DID Document 中的默认 Principal Server 不得把其它 Realm-scoped delivery binding 的 delta 聚合进自己的 `/_arkret/self/account/subscribe` 流。
 
@@ -64,7 +64,7 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 | `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前 principal / device。 |
 | `X-Arkret-Wait-For` | header | `cursor` | optional | RYW barrier（purpose=`barrier`）。服务端在发送本轮第一个 account frame 前 MUST 等待 account projection frontier 覆盖 cursor 绑定 target；最长等待当前长轮询窗口（v1 默认 30 秒）。窗口内未覆盖时返回 `temporarily_unavailable` / `timeout` 与当前 frontier，不得先发送会被误认为满足 barrier 的 `delta` / `frontier`。WebSocket profile 的 account `parameters.wait_for` 是本 header 的等价投影。 |
 | `after` | query | `cursor` | optional | 订阅起点 cursor(purpose=`stream`,排除语义),从此 cursor *之后* 开始接收 frame。缺省表示没有可恢复账号 cursor。 |
-| `catchup` | query | `boolean` | optional | 默认 `false`。`after` 存在时,`true` 表示服务端返回 `after=` 之后到当前 frontier 的账号聚合 delta,再发 `catchup_complete` frame并结束本轮响应；这不是全量历史。`after` 缺省且 `catchup=true` 是 **initial account sync**:服务端 MUST 先发送覆盖当前账号 baseline 的 `delta` frame(Realm 摘要、必要首屏 state、device list baseline、to_device/account_data/notification 当前位置),再发送 `catchup_complete`。完整历史必须通过 `ak.self.events.query.scan` 分页/区间读取。 |
+| `catchup` | query | `boolean` | optional | 默认 `false`。`after` 存在时,`true` 表示服务端返回 `after=` 之后到当前 frontier 的账号聚合 delta,再发 `catchup_complete` frame并结束本轮响应；这不是全量历史。`after` 缺省且 `catchup=true` 是 **initial account sync**:服务端 MUST 先发送覆盖当前账号 baseline 的 `delta` frame(Realm 摘要、必要首屏 state、device list baseline、to_device/account_data/notification 当前位置),再发送 `catchup_complete`。完整历史必须通过 `ak.self.events.read.scan` 分页/区间读取。 |
 | `filter` | query (deepObject) | `object` | optional | 过滤条件。语义同 self.events.stream.subscribe。 |
 | `filter.realms` | query | `id[]` | optional | 限制返回 Realm。 |
 | `filter.timeline_limit` | query | `int` | optional | 每个 Realm timeline 数量上限(per-frame)。 |
@@ -85,7 +85,7 @@ NDJSON 响应 frame 形态(`application/x-ndjson`,每行一个 JSON 对象):
 | `catchup_complete` | required | catch-up replay 或 initial baseline 完成；本轮有界响应随后结束。`catchup=true` 才会出现;`catchup=false` 时不会出现。 |
 | `frontier` | required | 仅推进 cursor,不带数据；用于带 `after` 的长轮询在默认 30 秒窗口无变化时完成本轮响应。 |
 | `heartbeat` | absent | 防中间层断流的 keepalive。 |
-| `dropped` | required | 服务端无法从当前 cursor 继续推送(buffer 溢出 / 服务重启等),`cursor` 是建议的 account catch-up 起点。`dropped` frame 的 `cursor` 为 REQUIRED;服务端没有可用补齐 cursor 时 MUST 改发 `resync_required`,不得发送无 cursor 的 `dropped`。客户端 MUST 重新建立 `ak.self.account.stream.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;若重放后的某个 Realm timeline 仍标记 `limited=true`,再用 `ak.self.events.query.scan` 按该 Realm 的 `prev_cursor` / `next_cursor` 补齐裸 Event 缺口。MAY 携带 `reconnect_after_ms`。 |
+| `dropped` | required | 服务端无法从当前 cursor 继续推送(buffer 溢出 / 服务重启等),`cursor` 是建议的 account catch-up 起点。`dropped` frame 的 `cursor` 为 REQUIRED;服务端没有可用补齐 cursor 时 MUST 改发 `resync_required`,不得发送无 cursor 的 `dropped`。客户端 MUST 重新建立 `ak.self.account.stream.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;若重放后的某个 Realm timeline 仍标记 `limited=true`,再用 `ak.self.events.read.scan` 按该 Realm 的 `prev_cursor` / `next_cursor` 补齐裸 Event 缺口。MAY 携带 `reconnect_after_ms`。 |
 | `resync_required` | absent | 服务端无法定位任何可用 catch-up 起点(本地状态彻底失效)。客户端 MUST 清空本地 cursor 缓存，从零重新建立订阅。MAY 携带 `reconnect_after_ms`。 |
 | `unauthorized` | absent | 当前 session 不再有权限消费该流；客户端 MUST 重新认证或退出。 |
 
@@ -151,7 +151,7 @@ attempt 选择与 final 替换 MUST 按 [`signal.md` §7](./signal.md#7-message-
 
 1. **原子持久化 frame 与 cursor**: 客户端 MUST 在同一本地事务中持久化 frame payload(timeline 事件、state、account_data、device_lists 等)与该 frame 的 `cursor`,之后才把它用作重连 `after=` 起点;MUST NOT 在 payload 落盘前单独推进本地 cursor 高水位。"先存 cursor、后落数据"的实现会在崩溃时产生本地静默缺口——其中 `device_lists` 缺口只能靠重做 initial sync 恢复。to-device 消息的投递安全由 §10.1 显式 ack 在协议层保证，不依赖本条；但 SHOULD 同样与 cursor 同事务落盘以减少重连后的重复处理。仅带 cursor 不带数据的 frame(`frontier` / `catchup_complete`)直接更新本地高水位即可。
 2. **正常续轮与网络断开**: 正常收到 `delta` / `frontier` 并完成本轮响应后，若没有服务端 `reconnect_after_ms` 或 HTTP `Retry-After` 指令，MUST 立即用最近 `cursor` 作为 `after=` 发起下一轮请求，并设置 `catchup=true`；网络断开时使用相同规则重连，确保断线期间的账号聚合 delta 不被跳过。若服务端返回 `cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized`,按 §12.3 恢复。客户端 MUST NOT 在服务端 30 秒等待窗口之外再固定 sleep 5 秒，否则会平白增加实时延迟。
-3. **`dropped` frame**: 用 frame 自带的 `cursor` 重新建立 `GET /_arkret/self/account/subscribe?after=<cursor>&catchup=true`,让服务端重放账号聚合 delta；若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。不得只用 `ak.self.events.query.scan` 恢复，因为 `to_device`、`account_data`、`device_lists` 与 notifications 不属于裸 Realm Event 查询面。
+3. **`dropped` frame**: 用 frame 自带的 `cursor` 重新建立 `GET /_arkret/self/account/subscribe?after=<cursor>&catchup=true`,让服务端重放账号聚合 delta；若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。不得只用 `ak.self.events.read.scan` 恢复，因为 `to_device`、`account_data`、`device_lists` 与 notifications 不属于裸 Realm Event 查询面。
 4. **`resync_required` frame**: 清空本地 cursor 缓存，重新建立连接(`after=` 缺省 + `catchup=true`)执行 initial account sync;若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。大型 Realm 的当前态可走 snapshot bootstrap,见 §12.3 与 §13。
 5. **`unauthorized` frame**: 关闭连接，触发 session 刷新或退出登录。
 6. **建议 reconnect 退避**: 指数退避，起始 1s,最大 60s;`dropped` / `resync_required` 未携带 `reconnect_after_ms` 时可立即重连以缩短数据不一致窗口。客户端收到 `reconnect_after_ms`、HTTP `Retry-After` 或错误 body `retry_after_ms` 时，MUST 优先遵守服务端指令，并 SHOULD 加 jitter 避免同批客户端同步重连。
@@ -381,7 +381,7 @@ event_id ASC
 当 `lazy_load_members=true`：
 
 - 服务器 SHOULD 只返回 timeline 中 sender、被 mention actor、membership changed actor 和 required_state 指定 actor 的 `ak.member.state`。
-- 客户端遇到未知 actor 时 MAY 通过 `ak.self.events.query.scan` 补拉当前 effective `ak.member.state` / `ak.member.identity.update` events；需要当前 handle 展示时，MUST 使用本节定义的 handle-claim source（roster 内联或 `ak.find.directory.query.list_handles_for_subject`），不得把 profile / identity event 中的 handle 字符串当作授权事实。
+- 客户端遇到未知 actor 时 MAY 通过 `ak.self.events.read.scan` 补拉当前 effective `ak.member.state` / `ak.member.identity.update` events；需要当前 handle 展示时，MUST 使用本节定义的 handle-claim source（roster 内联或 `ak.find.directory.query.list_handles_for_subject`），不得把 profile / identity event 中的 handle 字符串当作授权事实。
 - 如果 `include_redundant_members=false`，服务器 SHOULD 避免重复发送客户端已知且未变化的 member state。
 
 ### 8.1 Member Roster, Identity Projection, and Handle Claims
@@ -648,7 +648,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 ### 11.1 Events 面的 query-scope digest（normative）
 
-`ak.self.events.query.scan`、`ak.self.events.stream.subscribe`、`ak.peer.events.query.scan`（含各 binding variant，如 `ak.self.events.query.scan_body`）签发的 stream cursor，其绑定中的 `filter_digest` MUST 覆盖**完整查询作用域**，不只是 `filters`：
+`ak.self.events.read.scan`、`ak.self.events.stream.subscribe`、`ak.peer.events.read.scan`（包括 canonical QUERY 与其 GET/POST compatibility bindings）签发的 stream cursor，其绑定中的 `filter_digest` MUST 覆盖**完整查询作用域**，不只是 `filters`：
 
 1. normalized scope object 包含全部**非位置性**、决定结果集合或结果形状的请求参数：selector（`realms`、`actors`）、`filters` object、`order`，以及 profile 引入的等价参数。
 2. 位置性参数（`before` / `after` / `limit` / cursor 本身）与认证材料 MUST NOT 进入 digest——它们随每次调用变化，不属于作用域身份。
@@ -718,7 +718,7 @@ Cursor revoke 不能替代 cursor integrity：服务端仍必须先做 §12.2 �
 
 恢复流程按触发原因分成两类互斥分支，客户端 MUST 先按 §4 的分类判定原因再进入对应分支；两类分支对"旧 cursor 是否可继续复用"的处理**根本不同**，不得混用同一套 `after=` 取值。
 
-> **frontier 不是 cursor（前置约定）**：`account/describe`（`ServiceDescribe` 私有 frontier 扩展字段）与 `snapshot/head`（`ak.schema.snapshot.v1` manifest 的 `frontier.event_ids`）返回的 frontier 是 **boundary head event id 集合**，不是 stream cursor（`ak:cursor:<base64url>`）。`ak.self.events.query.scan` / `ak.self.account.stream.subscribe` 的 `before=` / `after=` 参数类型严格是 `cursor`（见 [`service-http-binding.md` §3.3.2](./service-http-binding.md)），任何其它边界参数 MUST 触发 `invalid_param`。因此客户端 **MUST NOT** 把 frontier event id 直接填入 `after=` / `before=`；frontier 在恢复中只作为 backfill 的**集合停止判据**：必须命中 `frontier.event_ids` 中的每一个 head，且已拉窗口内所有可见事件的 `prev_refs` / critical refs 因果闭包要么已解析、要么落在已验证的 `event_set_commitment` 覆盖集内，才算接上当前态。续传位置由 `events.query` 响应返回的 `prev_cursor` / `next_cursor` 决定。
+> **frontier 不是 cursor（前置约定）**：`account/describe`（`ServiceDescribe` 私有 frontier 扩展字段）与 `snapshot/head`（`ak.schema.snapshot.v1` manifest 的 `frontier.event_ids`）返回的 frontier 是 **boundary head event id 集合**，不是 stream cursor（`ak:cursor:<base64url>`）。`ak.self.events.read.scan` / `ak.self.account.stream.subscribe` 的 `before=` / `after=` 参数类型严格是 `cursor`（见 [`service-http-binding.md` §3.3.2](./service-http-binding.md)），任何其它边界参数 MUST 触发 `invalid_param`。因此客户端 **MUST NOT** 把 frontier event id 直接填入 `after=` / `before=`；frontier 在恢复中只作为 backfill 的**集合停止判据**：必须命中 `frontier.event_ids` 中的每一个 head，且已拉窗口内所有可见事件的 `prev_refs` / critical refs 因果闭包要么已解析、要么落在已验证的 `event_set_commitment` 覆盖集内，才算接上当前态。续传位置由 `events.query` 响应返回的 `prev_cursor` / `next_cursor` 决定。
 
 上述“命中 frontier head”不要求 caller 获得无权查看的完整 Event。每个 head 必须以以下三种可验证形态之一命中：(a) 完整 Event Envelope；(b) 保留 `event_id`、digest、scope 与必要因果引用的 `RedactedEventView`；(c) `ReferenceLockedEventStub`，携带服务签名并证明该 id 因 visibility 被裁剪。三者都必须能与 manifest 的 `frontier.event_ids` 和 `event_set_commitment` 验证绑定；服务端 MUST 对 caller 不可见的 head 返回 (b)/(c) 或等价 membership proof，MUST NOT 令客户端无限 backfill 等待永不可见的完整 Event。客户端不得从 stub 推断被裁剪 payload，但验证全部 head 已由上述形态覆盖后可满足停止判据。
 
@@ -729,7 +729,7 @@ cursor 本端状态失效（TTL 超时，或 tamper / 未知 handle / cross-bind
 1. 客户端 MUST 清空本地 cursor 缓存（含该流的 `after=` 高水位）；**MUST NOT** 把已失效的旧 cursor 复用为任何 `after=` / `before=` 起点或 backfill 续传位置。`filter_digest`、未确认写入和最后可验证 frontier 可保留用于 backfill 停止判定，但 frontier 不得当作 cursor 使用。
 2. 客户端从下列两条合法新起点二选一，二者都不复用旧 cursor：
    - **(A) 重做 initial sync**：无 `after` 重新建立 `ak.self.account.stream.subscribe?catchup=true`（`after=` 缺省 + `catchup=true`），由服务端发 baseline `delta` 重新签发新 cursor。
-   - **(B) snapshot 加速 bootstrap**：调用 `ak.self.snapshot.query.manifest_head` 取 `ak.schema.snapshot.v1` manifest，MUST 先验证签名、签名者授权、`state_digest`、`frontier`、`event_set_commitment` 和每个 chunk digest（[`service-http-binding.md` §6.1](./service-http-binding.md)、§13）。验证通过后把 `frontier.event_ids` 作为该 Realm 已知态边界，再以 `ak.self.events.query.scan` **从 server head 向更旧方向 backfill**（省略 `after`，即隐式 `before=<server_head>`，并用响应 `prev_cursor` 作为下一页 `before=`），直到 `frontier.event_ids` 中每一个 head 都已在本地命中，且窗口内所有已拉事件的 `prev_refs` / critical refs 因果闭包要么已解析、要么落在已验证的 `event_set_commitment` 覆盖集内；在此之前 timeline MUST 保持 `limited` / provisional，不得声称历史完整。账号聚合面仍按 (A) 重新建立 subscribe 取得新 cursor。
+   - **(B) snapshot 加速 bootstrap**：调用 `ak.self.snapshot.query.manifest_head` 取 `ak.schema.snapshot.v1` manifest，MUST 先验证签名、签名者授权、`state_digest`、`frontier`、`event_set_commitment` 和每个 chunk digest（[`service-http-binding.md` §6.1](./service-http-binding.md)、§13）。验证通过后把 `frontier.event_ids` 作为该 Realm 已知态边界，再以 `ak.self.events.read.scan` **从 server head 向更旧方向 backfill**（省略 `after`，即隐式 `before=<server_head>`，并用响应 `prev_cursor` 作为下一页 `before=`），直到 `frontier.event_ids` 中每一个 head 都已在本地命中，且窗口内所有已拉事件的 `prev_refs` / critical refs 因果闭包要么已解析、要么落在已验证的 `event_set_commitment` 覆盖集内；在此之前 timeline MUST 保持 `limited` / provisional，不得声称历史完整。账号聚合面仍按 (A) 重新建立 subscribe 取得新 cursor。
 3. 若 snapshot 校验失败、manifest 不可用或服务端未宣告 `ak.self.snapshot.query.manifest_head`，客户端 MUST 回退到 (A) 的 initial sync 或纯 Event history replay，**不得**把未验证 snapshot 作为 accepted state，也不得退回复用旧 cursor。
 
 #### 12.3.2 `stale_frontier`（旧 cursor 仍有效，可继续 backfill）
@@ -737,11 +737,11 @@ cursor 本端状态失效（TTL 超时，或 tamper / 未知 handle / cross-bind
 cursor 本身仍有效，只是服务 frontier 落后于请求所需 causal frontier。此分支 **MUST NOT** 清 cursor 重做 initial sync：
 
 1. 客户端保留本地 `cursor`、`filter_digest`、未确认写入和最后可验证 frontier。
-2. 按 `retry_after_ms` / `Retry-After` 退避后，用**现有 cursor** 重试 / 等待 frontier 推进；需要补洞时，可先调用 `account/describe` 或 `snapshot/head` 读当前 frontier 作为停止判据，再用**现有 cursor** 的 `prev_cursor` / `next_cursor` 续传 `ak.self.events.query.scan` 补齐缺口。snapshot 采用前同样 MUST 完成上述全部校验。
+2. 按 `retry_after_ms` / `Retry-After` 退避后，用**现有 cursor** 重试 / 等待 frontier 推进；需要补洞时，可先调用 `account/describe` 或 `snapshot/head` 读当前 frontier 作为停止判据，再用**现有 cursor** 的 `prev_cursor` / `next_cursor` 续传 `ak.self.events.read.scan` 补齐缺口。snapshot 采用前同样 MUST 完成上述全部校验。
 
 #### 12.3.3 Range completeness（两分支共用）
 
-服务端声明 `events_query_range_completeness` feature 时，客户端 SHOULD 在恢复 backfill 的 `ak.self.events.query.scan` 调用上设置 `include_completeness=true`，并在补齐后按 [`service-http-binding.md` §3.3.6](./service-http-binding.md) 验证覆盖该缺口区间的 `ak.attestation.range_completeness`——cursor + `has_more` 只证明"拿到了页"，attestation 才证明"该区间没有事件被静默扣下"。验证失败（`range_completeness_root_mismatch` / `range_completeness_actor_seq_gap` / `witness_disagreement`）时 MUST 把该区间标记 degraded 并 fail closed，不得向用户展示"历史完整"。high-assurance Realm（`security_class=high_assurance` 或 `ak.profile.federation.high_assurance.v1`）下该 SHOULD 升级为 MUST。
+服务端声明 `events_query_range_completeness` feature 时，客户端 SHOULD 在恢复 backfill 的 `ak.self.events.read.scan` 调用上设置 `include_completeness=true`，并在补齐后按 [`service-http-binding.md` §3.3.6](./service-http-binding.md) 验证覆盖该缺口区间的 `ak.attestation.range_completeness`——cursor + `has_more` 只证明"拿到了页"，attestation 才证明"该区间没有事件被静默扣下"。验证失败（`range_completeness_root_mismatch` / `range_completeness_actor_seq_gap` / `witness_disagreement`）时 MUST 把该区间标记 degraded 并 fail closed，不得向用户展示"历史完整"。high-assurance Realm（`security_class=high_assurance` 或 `ak.profile.federation.high_assurance.v1`）下该 SHOULD 升级为 MUST。
 
 ## 13. Initial Sync
 
@@ -767,7 +767,7 @@ notification 历史受限也不得截断该子集。
 
 大型账户 MAY 使用 sliding window subscriptions，避免一次性返回所有 Realm。
 
-大型 Realm 的当前态 MAY 在 initial sync 中通过 snapshot bootstrap 加速：客户端先调用 `ak.self.snapshot.query.manifest_head` 获取 `ak.schema.snapshot.v1` manifest，完成签名、authority binding、`event_set_commitment`、`state_digest` 与 chunk digest 校验后，把 snapshot frontier 作为该 Realm 的恢复起点；随后仍 MUST 从该 frontier 之后继续执行 `ak.self.events.query.scan` / backfill，直至账号 baseline 与 Realm event stream 收敛。snapshot 校验失败、manifest 不可用或服务端未宣告 `ak.self.snapshot.query.manifest_head` 时，客户端 MUST 回退到原始 Event history replay，不得把未验证 snapshot 作为 accepted state。
+大型 Realm 的当前态 MAY 在 initial sync 中通过 snapshot bootstrap 加速：客户端先调用 `ak.self.snapshot.query.manifest_head` 获取 `ak.schema.snapshot.v1` manifest，完成签名、authority binding、`event_set_commitment`、`state_digest` 与 chunk digest 校验后，把 snapshot frontier 作为该 Realm 的恢复起点；随后仍 MUST 从该 frontier 之后继续执行 `ak.self.events.read.scan` / backfill，直至账号 baseline 与 Realm event stream 收敛。snapshot 校验失败、manifest 不可用或服务端未宣告 `ak.self.snapshot.query.manifest_head` 时，客户端 MUST 回退到原始 Event history replay，不得把未验证 snapshot 作为 accepted state。
 
 ## 14. E2EE Requirements
 

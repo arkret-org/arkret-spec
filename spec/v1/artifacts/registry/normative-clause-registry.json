@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-06.4",
+  "version": "2026-08-06.5",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -123,7 +123,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#2-http-传输与编码",
-      "section_digest": "sha256:f44e8ffe2002619451a2c01a98212235ede95cfc84d8135b1fc90ccdec9b9317",
+      "section_digest": "sha256:3ec23767b36add0e8fa7298bc664c428a061a5ad620bb029dc6f2777a9651e44",
       "requirement": "Transport encoding bounds: Content-Encoding is forbidden on non-streaming JSON operations and every size limit MUST be enforced before the body is fully buffered or parsed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -138,7 +138,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#24-operation-id-kindaction-taxonomy",
-      "section_digest": "sha256:1fa17bd38467444878fc869c96265566e0d71d23f13c197be055084ea326980a",
+      "section_digest": "sha256:c9084fb95911bc5228214304d2b483eefce5bd8338c669c5eab208bd9a585976",
       "requirement": "Every operation_id ends with <kind>.<action> drawn from the closed kind set, and the action MUST describe a protocol effect rather than an HTTP method name.",
       "testability_grade": "api_shape",
       "test_plan": "Enforced mechanically by tools/lint_artifacts.py: every operation_id in operation-registry.json is checked against the closed kind set and against forbidden HTTP-method action names. There is no runtime vector because the obligation is on the published contract, not on request handling."
@@ -224,7 +224,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#5-control-move",
-      "section_digest": "sha256:7d4852d141715fe85ab0791f4ef9ec74577b01f8bcf0072f5402ee3dc7b7ad5d",
+      "section_digest": "sha256:bf159a0cd993919e4b638434a35c83787487890d5ae143bc96f15eb7ffc94ecf",
       "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with proposal receipts and pending-index obligations.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -438,7 +438,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-receipt-与-inclusion-obligation",
-      "section_digest": "sha256:7fdb48cd301fcda0f94e1cc30ba18ae0a8a1769328d445e45ad02d7259554293",
+      "section_digest": "sha256:3d853eb4f557e67113b16673cfb6f26f67df8c2be851643d080cb8cc2c11f064",
       "requirement": "Realm proposal configuration must leave a realizable decision schedule: decision window does not exceed the absolute deadline, equality is valid only when deferral is disabled, and invalid create/update writes reject without state change.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -460,7 +460,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-receipt-与-inclusion-obligation",
-      "section_digest": "sha256:7fdb48cd301fcda0f94e1cc30ba18ae0a8a1769328d445e45ad02d7259554293",
+      "section_digest": "sha256:3d853eb4f557e67113b16673cfb6f26f67df8c2be851643d080cb8cc2c11f064",
       "requirement": "An accepted closed-anchor Control Move, its proposal receipt and pending index are committed atomically; the covering Seal atomically applies lineage and cell effects and marks every covered pending digest sealed, rolling back if any digest is absent.",
       "testability_grade": "vector",
       "evidence_refs": [

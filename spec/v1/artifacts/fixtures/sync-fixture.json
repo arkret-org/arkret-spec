@@ -443,13 +443,13 @@
       "forbidden_recovery": [
         {
           "branch": "reuse_failed_cursor",
-          "call": "ak.self.events.query.scan",
+          "call": "ak.self.events.read.scan",
           "after": "ak:cursor:eyJleHBpcmVzX2F0IjoiMjAyNi0wMS0wMVQwMDowMDowMC4wMDBaIiwiaCI6IlpYaHdhWEpsWkMxemRISmxZVzB0YUdGdVpHeGwiLCJpc3N1ZWRfYXQiOiIyMDI1LTEyLTMxVDIzOjU5OjU5LjAwMFoiLCJwdXJwb3NlIjoic3RyZWFtIiwidiI6IjEifQ",
           "reject_reason": "failed cursor reused as after="
         },
         {
           "branch": "frontier_as_cursor",
-          "call": "ak.self.events.query.scan",
+          "call": "ak.self.events.read.scan",
           "after": "ak:event:019640ed-8000-8000-8000-000000000000",
           "reject_reason": "invalid_param: snapshot frontier event_id is not a cursor"
         }
@@ -476,7 +476,7 @@
     "expected": {
       "verify_signature": true,
       "verify_event_set_commitment": true,
-      "backfill_call": "ak.self.events.query.scan",
+      "backfill_call": "ak.self.events.read.scan",
       "backfill_direction": "from_head_toward_older",
       "backfill_after_present": false,
       "backfill_stop_frontier": [

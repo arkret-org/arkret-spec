@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.3",
+  "version": "2026-08-06.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T07:00:00Z",
+  "generated_at": "2026-08-06T10:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3626,8 +3626,32 @@
       }
     },
     {
-      "operation_id": "ak.self.events.query.frontier",
+      "operation_id": "ak.self.events.read.describe",
+      "success_shape_kind": "service_describe",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "actor_id",
+          "realm_id"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.events.read.frontier",
       "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierRequestBody",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "actor_id",
+          "realm_id"
+        ],
+        "closed": true
+      },
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierAccountClientState",
         "schema_kind": "object",
@@ -3642,7 +3666,7 @@
       }
     },
     {
-      "operation_id": "ak.self.events.query.mls_governance_proof",
+      "operation_id": "ak.self.events.read.mls_governance_proof",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request",
@@ -3722,28 +3746,7 @@
       }
     },
     {
-      "operation_id": "ak.self.events.query.scan",
-      "success_shape_kind": "typed_response",
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
-        "schema_kind": "object",
-        "required": [
-          "events",
-          "has_more"
-        ],
-        "properties": [
-          "events",
-          "prev_cursor",
-          "next_cursor",
-          "has_more",
-          "snapshot_bootstrap",
-          "range_completeness"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.events.query.scan_body",
+      "operation_id": "ak.self.events.read.scan",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
@@ -3780,7 +3783,7 @@
       }
     },
     {
-      "operation_id": "ak.self.events.query.resolve",
+      "operation_id": "ak.self.events.read.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
@@ -4005,8 +4008,32 @@
       }
     },
     {
-      "operation_id": "ak.peer.events.query.frontier",
+      "operation_id": "ak.peer.events.read.describe",
+      "success_shape_kind": "service_describe",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsDescribeRequestBody",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "realm_id"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.events.read.frontier",
       "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsFrontierRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "realm_id"
+        ],
+        "properties": [
+          "realm_id"
+        ],
+        "closed": true
+      },
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState",
         "schema_kind": "object",
@@ -4033,28 +4060,7 @@
       }
     },
     {
-      "operation_id": "ak.peer.events.query.scan",
-      "success_shape_kind": "typed_response",
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
-        "schema_kind": "object",
-        "required": [
-          "events",
-          "has_more"
-        ],
-        "properties": [
-          "events",
-          "prev_cursor",
-          "next_cursor",
-          "has_more",
-          "snapshot_bootstrap",
-          "range_completeness"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.events.query.scan_body",
+      "operation_id": "ak.peer.events.read.scan",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
@@ -4091,7 +4097,7 @@
       }
     },
     {
-      "operation_id": "ak.peer.events.query.resolve",
+      "operation_id": "ak.peer.events.read.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveRequestBody",
