@@ -449,6 +449,11 @@ Event id/digest 始终合法——它们的取值在本 Event 构造前已经固
 `ak.vector.event_id.content_bound.v1`：每个跨 Event 原子 unit MUST 同时提供按单向顺序可派生的
 正例，与旧互引形状必须被 `event_id_digest_mismatch` 拒绝的负例。
 
+机器门禁是 `tools/lint_artifacts.py` 的 `preimage_event_identity`：schema 中凡
+`event_id` / `*_event_id` / `*_event_ref` / `*_event_digest` 字段，其 description 若声明指向
+enclosing Event 或同 unit / 同 batch 的兄弟 Event，即失败。它拦的是**声明出来的语义**，因此新增
+承载时 description 必须如实写明指向谁——用含糊措辞绕过该 lint 等同于绕过本节。
+
 ### 6.1 Signature Suite registered set
 
 签名算法的 canonical 机器来源是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json)(与 §3.2 Hash registered set 对称)，下表是其规范阅读视图。字段命名按对象所有权确定，而不是把外部标准缩写扩散到 Arkret：JWS protected header / JWK 等 JOSE 对象 MUST 保留标准成员 `alg`，其值取 active row 的 `jose_algorithm`；Arkret 自有 raw-signature 对象 MUST 使用完整字段名 `signature_algorithm`，其值取 active row 的 `raw_signature_algorithm`；RFC 9421 `Signature-Input` 的标准 `alg` parameter 必须取 `http_message_signature_algorithm`。三种映射属于不同命名空间，不得相互猜测或替代。schema enum 均须在版本发布时生成并冻结。Arkret 自有对象不得使用 `alg` 作为自定义字段，JOSE / RFC 9421 标准对象也不得把标准成员改名。

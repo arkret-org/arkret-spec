@@ -5779,6 +5779,73 @@ def check_openapi_error_enum_alignment(lint: Lint) -> None:
         )
 
 
+PREIMAGE_SELF_REFERENCE_PHRASES = (
+    "enclosing event",
+    "carrying this",
+    "this event's own",
+    "same atomic unit",
+    "same submit batch",
+    "same ordered submit batch",
+    "same batch",
+    "sibling event",
+)
+
+# encoding.md 6.0.1 registers exactly one exemption, and it is an omission
+# (ak.realm.create drops realm_id/scope_ref), not a property. Any future exemption
+# belongs here AND in that section; an entry here alone is not a ruling.
+PREIMAGE_EVENT_IDENTITY_EXEMPTIONS: set[tuple[str, str]] = set()
+
+
+def check_preimage_event_identity_commitments(lint: Lint) -> None:
+    """No payload field may commit to an Event identity that the preimage decides.
+
+    encoding.md 6.0.1: `event_id` is a function of `event_digest`, whose preimage holds
+    `payload` and `refs`. A field naming the enclosing Event, or a sibling of the same
+    atomic unit that is not formed yet, therefore has no fixed point — the unit is
+    unconstructible and fails at runtime as `event_id_digest_mismatch`. Commit to the
+    counterpart's payload digest, or put the commitment outside the preimage (proofs,
+    receipts).
+
+    The signal is the declared meaning, so this reads descriptions: a field is only
+    reachable by this rule if it says it names the enclosing Event or a same-unit sibling.
+    """
+    for path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
+        data = load_json(lint, path)
+        if not isinstance(data, dict):
+            continue
+        for json_path, value, key in walk_json(data):
+            if key != "properties" or not isinstance(value, dict):
+                continue
+            for name, field in value.items():
+                if not isinstance(field, dict):
+                    continue
+                if not (
+                    name.endswith("_event_id")
+                    or name.endswith("_event_ref")
+                    or name.endswith("_event_digest")
+                    or name == "event_id"
+                ):
+                    continue
+                if (path.name, name) in PREIMAGE_EVENT_IDENTITY_EXEMPTIONS:
+                    continue
+                description = str(field.get("description", "")).lower()
+                hit = next(
+                    (phrase for phrase in PREIMAGE_SELF_REFERENCE_PHRASES if phrase in description),
+                    None,
+                )
+                if hit is None:
+                    continue
+                if "not the enclosing" in description or "outside the preimage" in description:
+                    continue
+                lint.fail(
+                    path,
+                    f"{json_path}.{name} declares an Event identity of the {hit!r} inside the "
+                    "digest preimage; encoding.md 6.0.1 forbids it because event_id derives "
+                    "from that preimage. Commit to the counterpart's payload digest, or move "
+                    "the commitment into proofs/receipts.",
+                )
+
+
 def check_wire_schema_no_bare_scope(lint: Lint) -> None:
     """Wire schemas must use bare scope only for an object's own boundary field."""
     allowed = {
@@ -11689,6 +11756,10 @@ def main(argv: list[str] | None = None) -> int:
             ("vector_groups", lambda: check_vector_group_requirements(lint, known)),
             ("event_schema_coverage", lambda: check_event_schema_coverage(lint, known)),
             ("wire_scope", lambda: check_wire_schema_no_bare_scope(lint)),
+            (
+                "preimage_event_identity",
+                lambda: check_preimage_event_identity_commitments(lint),
+            ),
             ("read_scope", lambda: check_read_scope_schema_closure(lint)),
             ("signed_objects", lambda: check_signed_object_closure(lint)),
             ("reducer_payloads", lambda: check_reducer_payload_closure(lint)),
