@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.2",
+  "version": "2026-08-06.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-06T13:00:00Z",
+  "generated_at": "2026-08-06T15:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1234,17 +1234,17 @@
       ]
     },
     {
-      "vector_id": "ak.vector.cba.external_proposal_receipt_quorum.v1",
+      "vector_id": "ak.vector.cba.external_control_proposal_ack_quorum.v1",
       "status": "active",
       "domain": "cba",
       "applies_to_fixtures": [
-        "control-proposal-receipt-fixture.json"
+        "control-proposal-ack-fixture.json"
       ],
       "source_refs": [
         "spec/v1/zh/authz/event-auth-state-resolution.md",
-        "spec/v1/artifacts/fixtures/control-proposal-receipt-fixture.json"
+        "spec/v1/artifacts/fixtures/control-proposal-ack-fixture.json"
       ],
-      "description": "External authority member receipt issuance, canonical receipt-set assembly, common-window calculation, threshold deduplication, exact replay and decision-chain binding."
+      "description": "External authority authority Ack issuance, canonical receipt-set assembly, common-window calculation, threshold deduplication, exact replay and decision-chain binding."
     },
     {
       "vector_id": "ak.vector.cba.proposal_bounded_decision.v1",
@@ -1257,17 +1257,17 @@
         "spec/v1/zh/authz/event-auth-state-resolution.md",
         "spec/v1/artifacts/fixtures/seal-submit-fixture.json"
       ],
-      "description": "Proposal receipt deadlines, at most two immutable-horizon signed defers, decision-overdue evidence, and acceptance of a later cryptographically valid Seal."
+      "description": "Control Proposal Ack deadlines, at most two immutable-horizon signed defers, decision-overdue evidence, and acceptance of a later cryptographically valid Seal."
     },
     {
       "vector_id": "ak.vector.cba.proposal_window_configuration.v1",
       "status": "active",
       "domain": "cba",
       "applies_to_fixtures": [
-        "control-proposal-receipt-fixture.json"
+        "control-proposal-ack-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/control-proposal-receipt-fixture.json"
+        "spec/v1/artifacts/fixtures/control-proposal-ack-fixture.json"
       ],
       "description": "Realm proposal decision windows are ordered and realizable: decision <= absolute, equality is accepted only with zero defers, and invalid configurations fail before any Realm state write."
     },

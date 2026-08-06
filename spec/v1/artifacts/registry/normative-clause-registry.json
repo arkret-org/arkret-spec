@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-06.7",
+  "version": "2026-08-06.8",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -224,8 +224,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#5-control-move",
-      "section_digest": "sha256:bf159a0cd993919e4b638434a35c83787487890d5ae143bc96f15eb7ffc94ecf",
-      "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with proposal receipts and pending-index obligations.",
+      "section_digest": "sha256:30b75c0a8f98d7335b95501cedb1d22072d760d316caa665bd90792ae950cf91",
+      "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with Control Proposal Acks and pending-index obligations.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1",
@@ -241,7 +241,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:be848d3a6b2ac716e198d0760a1c028ed3c3f468f78db8969a41e596438505b6",
+      "section_digest": "sha256:cb98df65336d726d9a350fdda3fba3ee89d0eb15fd5384d7ce959d9ad413f485",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, and equivocating notaries are quarantined instead of silently merged.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -437,8 +437,8 @@
       "clause_id": "AK-NC-029",
       "status": "active",
       "category": "state_machine",
-      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-receipt-与-inclusion-obligation",
-      "section_digest": "sha256:3d853eb4f557e67113b16673cfb6f26f67df8c2be851643d080cb8cc2c11f064",
+      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
+      "section_digest": "sha256:20d0b7da61dfdca9f10e72c0c5c640c143d806a668d0ca865848bb193cf3f32a",
       "requirement": "Realm proposal configuration must leave a realizable decision schedule: decision window does not exceed the absolute deadline, equality is valid only when deferral is disabled, and invalid create/update writes reject without state change.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -459,9 +459,9 @@
       "clause_id": "AK-NC-031",
       "status": "active",
       "category": "state_machine",
-      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-receipt-与-inclusion-obligation",
-      "section_digest": "sha256:3d853eb4f557e67113b16673cfb6f26f67df8c2be851643d080cb8cc2c11f064",
-      "requirement": "An accepted closed-anchor Control Move, its proposal receipt and pending index are committed atomically; the covering Seal atomically applies lineage and cell effects and marks every covered pending digest sealed, rolling back if any digest is absent.",
+      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
+      "section_digest": "sha256:20d0b7da61dfdca9f10e72c0c5c640c143d806a668d0ca865848bb193cf3f32a",
+      "requirement": "An accepted closed-anchor Control Move, its Control Proposal Ack and pending index are committed atomically; the covering Seal atomically applies lineage and cell effects and marks every covered pending digest sealed, rolling back if any digest is absent.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.agent.managed_pcr_separation.v1"

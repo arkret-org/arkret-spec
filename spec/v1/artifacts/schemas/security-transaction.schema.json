@@ -521,8 +521,8 @@
             "$ref": "./cba-proof-bundle.schema.json"
           }
         },
-        "control_proposal_receipt": {
-          "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt"
+        "control_proposal_ack": {
+          "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack"
         }
       },
       "additionalProperties": false

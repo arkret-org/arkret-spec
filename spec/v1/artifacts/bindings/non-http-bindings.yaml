@@ -183,8 +183,8 @@ grpc:
       TakedownAppeal: ak.find.directory.command.takedown_appeal
     SelfAuthorizationLeases:
       Issue: ak.self.authorization_leases.command.issue
-    SelfControlProposalReceipts:
-      Issue: ak.self.control_proposal_receipts.command.issue
+    SelfControlProposalAcks:
+      Issue: ak.self.control_proposal_acks.command.issue
     SelfEvents:
       Describe: ak.self.events.read.describe
       Frontier: ak.self.events.read.frontier
@@ -347,7 +347,7 @@ mq:
     self.security_transaction.command.create: ak.self.security_transaction.command.create
     self.security_transaction.resource.get: ak.self.security_transaction.resource.get
     self.security_transaction.command.continue: ak.self.security_transaction.command.continue
-    self.control_proposal_receipts.command.issue: ak.self.control_proposal_receipts.command.issue
+    self.control_proposal_acks.command.issue: ak.self.control_proposal_acks.command.issue
     self.authorization_leases.command.issue: ak.self.authorization_leases.command.issue
     self.events.command.submit: ak.self.events.command.submit
     self.events.command.submit_seal: ak.self.events.command.submit_seal

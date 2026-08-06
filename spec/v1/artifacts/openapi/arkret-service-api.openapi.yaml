@@ -3814,9 +3814,9 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/security-transaction.schema.json
-  /_arkret/self/control-proposal-receipts:
+  /_arkret/self/control-proposal-acks:
     post:
-      operationId: ak.self.control_proposal_receipts.command.issue
+      operationId: ak.self.control_proposal_acks.command.issue
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3827,14 +3827,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_request
+              $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_request
       responses:
         '200':
-          description: Immutable member receipt signed by one current Control authority.
+          description: Immutable authority Ack signed by one current Control authority.
           content:
             application/json:
               schema:
-                $ref: ../schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_outcome
+                $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_outcome
   /_arkret/self/authorization-leases:
     post:
       operationId: ak.self.authorization_leases.command.issue

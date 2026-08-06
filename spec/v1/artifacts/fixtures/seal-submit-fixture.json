@@ -236,12 +236,12 @@
       }
     },
     {
-      "name": "proposal_receipt_commits_initial_and_absolute_deadlines",
+      "name": "control_proposal_ack_commits_initial_and_absolute_deadlines",
       "schema_ref": "schemas/control-proposal-decision.schema.json",
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
-        "kind": "proposal_receipt",
+        "kind": "signed_ack",
         "realm_id": "ak:realm:018f6b1d-7a20-8abc-8def-0123456789ab",
         "proposal_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "received_at": "2026-07-28T00:00:00.000Z",
@@ -249,7 +249,7 @@
         "absolute_due_at": "2026-07-28T00:01:30.000Z",
         "defer_count": 0,
         "authority_set_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-        "member_receipts": [
+        "authority_acks": [
           {
             "realm_id": "ak:realm:018f6b1d-7a20-8abc-8def-0123456789ab",
             "proposal_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
@@ -276,7 +276,7 @@
         "kind": "signed_defer",
         "realm_id": "ak:realm:018f6b1d-7a20-8abc-8def-0123456789ab",
         "proposal_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-        "receipt_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "proposal_ack_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
         "decided_at": "2026-07-28T00:01:00.000Z",
         "decision_due_at": "2026-07-28T00:01:30.000Z",
         "absolute_due_at": "2026-07-28T00:01:30.000Z",
@@ -304,7 +304,7 @@
         "kind": "signed_defer",
         "realm_id": "ak:realm:018f6b1d-7a20-8abc-8def-0123456789ab",
         "proposal_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-        "receipt_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "proposal_ack_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
         "decided_at": "2026-07-28T00:01:30.000Z",
         "decision_due_at": "2026-07-28T00:02:00.000Z",
         "absolute_due_at": "2026-07-28T00:02:00.000Z",
@@ -337,7 +337,7 @@
         "kind": "signed_defer",
         "realm_id": "ak:realm:018f6b1d-7a20-8abc-8def-0123456789ab",
         "proposal_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-        "receipt_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "proposal_ack_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
         "decided_at": "2026-07-28T00:00:31.000Z",
         "decision_due_at": "2026-07-28T00:01:00.000Z",
         "absolute_due_at": "2026-07-28T00:01:30.000Z",

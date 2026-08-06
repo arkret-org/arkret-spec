@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.6",
+  "version": "2026-08-06.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T13:00:00Z",
+  "generated_at": "2026-08-06T15:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3814,10 +3814,10 @@
       }
     },
     {
-      "operation_id": "ak.self.control_proposal_receipts.command.issue",
+      "operation_id": "ak.self.control_proposal_acks.command.issue",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_request",
+        "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_request",
         "schema_kind": "object",
         "required": [
           "event",
@@ -3831,13 +3831,13 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_outcome",
+        "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_outcome",
         "schema_kind": "object",
         "required": [
-          "member_receipt"
+          "authority_ack"
         ],
         "properties": [
-          "member_receipt"
+          "authority_ack"
         ],
         "closed": true
       }
@@ -3895,7 +3895,7 @@
           "event",
           "authorization_lease",
           "cba_proof_bundles",
-          "control_proposal_receipt",
+          "control_proposal_ack",
           "events"
         ],
         "closed": true,
@@ -3910,7 +3910,7 @@
               "event",
               "authorization_lease",
               "cba_proof_bundles",
-              "control_proposal_receipt"
+              "control_proposal_ack"
             ],
             "closed": true
           },
@@ -3938,7 +3938,7 @@
           "status",
           "accepted",
           "ingress_receipts",
-          "control_proposal_receipts",
+          "control_proposal_acks",
           "duplicate",
           "rejected",
           "quarantine",
@@ -4228,7 +4228,7 @@
           "status",
           "accepted",
           "ingress_receipts",
-          "control_proposal_receipts",
+          "control_proposal_acks",
           "duplicate",
           "rejected",
           "quarantine",

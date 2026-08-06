@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.6",
+  "version": "2026-08-06.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-06T13:00:00Z",
+  "generated_at": "2026-08-06T15:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -2090,15 +2090,15 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ak.self.control_proposal_receipts.command.issue",
+      "operation_id": "ak.self.control_proposal_acks.command.issue",
       "surface_class": "core",
-      "http": "POST /_arkret/self/control-proposal-receipts",
+      "http": "POST /_arkret/self/control-proposal-acks",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_request",
-      "response_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_outcome",
+      "request_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_request",
+      "response_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_outcome",
       "openapi_component_refs": {
-        "request": "../schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_request",
-        "response": "../schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_outcome"
+        "request": "../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_request",
+        "response": "../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

@@ -1,18 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/control-proposal-decision.schema.json",
-  "title": "Arkret Control Proposal Receipt and Decision",
-  "description": "Quorum-capable proposal-ingress receipt sets and signed reject/defer decisions for CBA Control Moves. Deadlines provide bounded authority decisions, never acceptance or Seal finality.",
+  "title": "Arkret Control Proposal Ack and Decision",
+  "description": "Quorum-capable Control Proposal Acks and signed reject/defer decisions for CBA Control Moves. Deadlines provide bounded authority decisions, never acceptance or Seal finality.",
   "oneOf": [
     {
-      "$ref": "#/$defs/proposal_receipt"
+      "$ref": "#/$defs/control_proposal_ack"
     },
     {
       "$ref": "#/$defs/proposal_decision"
     }
   ],
   "$defs": {
-    "proposal_receipt": {
+    "control_proposal_ack": {
       "type": "object",
       "required": [
         "kind",
@@ -23,11 +23,11 @@
         "absolute_due_at",
         "defer_count",
         "authority_set_ref",
-        "member_receipts"
+        "authority_acks"
       ],
       "properties": {
         "kind": {
-          "const": "proposal_receipt"
+          "const": "signed_ack"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -50,20 +50,20 @@
         "authority_set_ref": {
           "$ref": "#/$defs/hash"
         },
-        "member_receipts": {
+        "authority_acks": {
           "type": "array",
           "minItems": 1,
           "maxItems": 32,
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/proposal_member_receipt"
+            "$ref": "#/$defs/control_proposal_authority_ack"
           },
           "description": "Canonical ascending verification_method order. Distinct valid members, not array length, determine quorum."
         }
       },
       "additionalProperties": false
     },
-    "proposal_member_receipt": {
+    "control_proposal_authority_ack": {
       "type": "object",
       "required": [
         "realm_id",
@@ -105,7 +105,7 @@
         "kind",
         "realm_id",
         "proposal_digest",
-        "receipt_digest",
+        "proposal_ack_digest",
         "decided_at",
         "decision_due_at",
         "absolute_due_at",
@@ -127,7 +127,7 @@
         "proposal_digest": {
           "$ref": "#/$defs/hash"
         },
-        "receipt_digest": {
+        "proposal_ack_digest": {
           "$ref": "#/$defs/hash"
         },
         "decided_at": {
@@ -161,7 +161,7 @@
           "items": {
             "$ref": "#/$defs/proof"
           },
-          "description": "Canonical ascending verification_method order. Every proof signs the same decision payload and the set independently satisfies the receipt authority quorum."
+          "description": "Canonical ascending verification_method order. Every proof signs the same decision payload and the set independently satisfies the Control Proposal Ack authority quorum."
         }
       },
       "allOf": [
@@ -234,9 +234,9 @@
         }
       ]
     },
-    "proposal_receipt_issue_request": {
+    "control_proposal_ack_issue_request": {
       "type": "object",
-      "description": "Typed authority input used by a local signer or the registered HTTP operation to issue one immutable member receipt.",
+      "description": "Typed authority input used by a local signer or the registered HTTP operation to issue one immutable authority Ack.",
       "required": [
         "event",
         "authorization_lease"
@@ -259,14 +259,14 @@
       },
       "additionalProperties": false
     },
-    "proposal_receipt_issue_outcome": {
+    "control_proposal_ack_issue_outcome": {
       "type": "object",
       "required": [
-        "member_receipt"
+        "authority_ack"
       ],
       "properties": {
-        "member_receipt": {
-          "$ref": "#/$defs/proposal_member_receipt"
+        "authority_ack": {
+          "$ref": "#/$defs/control_proposal_authority_ack"
         }
       },
       "additionalProperties": false

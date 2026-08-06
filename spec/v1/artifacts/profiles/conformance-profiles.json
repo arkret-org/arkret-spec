@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-06.1",
-  "generated_at": "2026-08-06T10:00:00Z",
+  "version": "2026-08-06.2",
+  "generated_at": "2026-08-06T14:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -800,7 +800,7 @@
     },
     "ak.vector_group.event_envelope_negative.v1": {
       "required_endpoints": [
-        "ak.self.control_proposal_receipts.command.issue",
+        "ak.self.control_proposal_acks.command.issue",
         "ak.self.events.command.submit"
       ],
       "required_event_kinds": [
@@ -1141,7 +1141,7 @@
       ],
       "required_fixtures": [
         "cba-lattice-fixture.json",
-        "control-proposal-receipt-fixture.json"
+        "control-proposal-ack-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {

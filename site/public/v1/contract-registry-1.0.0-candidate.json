@@ -10193,7 +10193,7 @@
       {
         "surface": "events_sync",
         "operations": [
-          "ak.self.control_proposal_receipts.command.issue",
+          "ak.self.control_proposal_acks.command.issue",
           "ak.self.authorization_leases.command.issue",
           "ak.self.events.read.describe",
           "ak.self.events.command.submit",
@@ -12084,18 +12084,18 @@
         "success_shape_kind": "event_stream"
       },
       {
-        "operation_id": "ak.self.control_proposal_receipts.command.issue",
-        "http": "POST /_arkret/self/control-proposal-receipts",
-        "grpc": "SelfControlProposalReceipts/Issue",
-        "mq": "self.control_proposal_receipts.command.issue",
-        "notes": "Issue one immutable current-authority member receipt for a fully signed Control Move. Local device/Agent authorities use the same typed request and outcome without an HTTP hop. A caller canonically sorts distinct member receipts and may submit the resulting receipt set only when the current notary profile quorum and common-window rules are satisfied.",
+        "operation_id": "ak.self.control_proposal_acks.command.issue",
+        "http": "POST /_arkret/self/control-proposal-acks",
+        "grpc": "SelfControlProposalAcks/Issue",
+        "mq": "self.control_proposal_acks.command.issue",
+        "notes": "Issue one immutable current-authority authority Ack for a fully signed Control Move. Local device/Agent authorities use the same typed request and outcome without an HTTP hop. A caller canonically sorts distinct authority Acks and may submit the resulting receipt set only when the current notary profile quorum and common-window rules are satisfied.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "canonical_hash",
         "canonical_hash_input": "/event",
         "retry_safe": true,
-        "request_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_request",
-        "response_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_outcome",
+        "request_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_request",
+        "response_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_outcome",
         "durable_effect": {
           "kind": "none",
           "rationale": "pre_admission_receipt_only_no_event_commit"

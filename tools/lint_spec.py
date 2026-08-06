@@ -51,6 +51,32 @@ ALLOWED_PROPOSAL_STATUS = {"draft", "review"}
 
 SECOND_PERSON_RE = re.compile(r"[你您]的?|我们")
 
+# Control Proposal Ack naming guard (RC001 / RC002).
+CONTROL_PLANE_SECTION_FILE = SPEC_ZH / "authz" / "event-auth-state-resolution.md"
+CONTROL_PLANE_SECTION_HEADING = "### 7.2 控制面 Control Proposal Ack 与 inclusion obligation"
+SECTION_HEADING_RE = re.compile(r"^#{2,3} ")
+RETIRED_RECEIPT_RE = re.compile(
+    r"(?i)"
+    r"proposal[_ \-]receipts?"
+    r"|member[_ \-]receipts?"
+    r"|ControlProposalReceipt"
+    r"|ProposalMemberReceipt"
+    r"|receipt_sla"
+    r"|control-proposal-receipts?"
+    r"|control-proposal-member-receipt-proof"
+)
+# Receipt families that keep their qualified names; see glossary and the
+# "Receipt 保留给可独立验证的事实凭证" rule.
+QUALIFIED_RECEIPT_RE = re.compile(
+    r"(?i)"
+    r"(?:ingress|event[_ \-]?batch|batch|read|audit[_ \-]?ryw|ryw|identity|recovery"
+    r"|erasure|availability|terminal|consume|application|review|cancel|request)"
+    r"[_ \-]?receipts?"
+    r"|receipt[_\-](?:digest|hash|proof|item|sla)"
+    r"|ak\.receipt\.[a-z_]+"
+)
+BARE_RECEIPT_RE = re.compile(r"(?i)receipts?")
+
 CASUAL_HEADING_PATTERNS = [
     r"一句话理解",
     r"一句话总结",
@@ -257,6 +283,79 @@ def lint_table_blocks(path: Path, text: str, body_offset: int) -> list[Finding]:
     return findings
 
 
+def lint_control_plane_receipt(path: Path, text: str, body_offset: int) -> list[Finding]:
+    """Control Proposal Ack naming guard.
+
+    Two rules, both mechanical:
+
+    RC001 forbids the retired Control Proposal Receipt vocabulary anywhere in
+    normative prose. The object is `Control Proposal Ack` / `control_proposal_ack`
+    and its per-signer part is `Control Proposal Authority Ack` /
+    `control_proposal_authority_ack`.
+
+    RC002 forbids an unqualified `receipt` inside the control-plane section that
+    defines the object, because `receipt` alone cannot be told apart from the
+    six other receipt families the spec defines. Other families keep their
+    qualified `*Receipt` names (see the glossary); only bare, unqualified uses
+    inside the control-plane section are rejected.
+    """
+    findings: list[Finding] = []
+    lines = text.splitlines()
+
+    for offset, raw in enumerate(lines[body_offset:], start=body_offset):
+        for match in RETIRED_RECEIPT_RE.finditer(raw):
+            findings.append(
+                Finding(
+                    path,
+                    offset + 1,
+                    "RC001",
+                    f"retired control-proposal vocabulary '{match.group(0)}'; use the Control Proposal Ack names",
+                    "error",
+                )
+            )
+
+    if path.resolve() != CONTROL_PLANE_SECTION_FILE.resolve():
+        return findings
+
+    start = next(
+        (i for i, line in enumerate(lines) if line.startswith(CONTROL_PLANE_SECTION_HEADING)),
+        None,
+    )
+    if start is None:
+        findings.append(
+            Finding(
+                path,
+                1,
+                "RC002",
+                f"control-plane section heading '{CONTROL_PLANE_SECTION_HEADING}' not found; "
+                "the RC002 guard cannot locate its scope",
+                "error",
+            )
+        )
+        return findings
+    end = next(
+        (i for i in range(start + 1, len(lines)) if SECTION_HEADING_RE.match(lines[i])),
+        len(lines),
+    )
+
+    for offset in range(start, end):
+        raw = lines[offset]
+        masked = QUALIFIED_RECEIPT_RE.sub("", raw)
+        if BARE_RECEIPT_RE.search(masked):
+            findings.append(
+                Finding(
+                    path,
+                    offset + 1,
+                    "RC002",
+                    "unqualified 'receipt' in the control-plane section; write "
+                    "'Control Proposal Ack' (or 'Ack' after the first qualified use), "
+                    "or qualify the other receipt family by name",
+                    "error",
+                )
+            )
+    return findings
+
+
 def lint_file(path: Path) -> list[Finding]:
     findings: list[Finding] = []
     text = path.read_text(encoding="utf-8")
@@ -373,6 +472,7 @@ def lint_file(path: Path) -> list[Finding]:
                 )
 
     findings.extend(lint_table_blocks(path, text, body_offset))
+    findings.extend(lint_control_plane_receipt(path, text, body_offset))
 
     all_lines = text.splitlines()
     previous_nonblank_by_line: list[str] = []

@@ -207,9 +207,9 @@ Control Move 是写 control plane cell 的 Event，通常 MUST 携带 `seal_basi
 这两个例外不得推广到 batch 外、普通设备入册或其他 Control Move。机器执行闭包分别由 `ak.vector.identity.root_anchor_exclusivity.v1` 与 `ak.vector.identity.device_reanchor.v1` 覆盖。
 
 **无 basis 不等于 DataEvent（normative）**：上述 caller-proven closed anchor unit 中的 Event 仍是
-Control Move，并进入 §7.2 的 proposal receipt / pending / bounded-decision 轨道；只有在
+Control Move，并进入 §7.2 的 Control Proposal Ack / pending / bounded-decision 轨道；只有在
 `EventSubmitContext=AnchorUnit` 已验证整个封闭有序单元时，wire validator 才可允许
-`seal_basis` 缺失而 `control_proposal_receipt` 存在。标准上下文中无 `seal_basis` 的 DataEvent
+`seal_basis` 缺失而 `control_proposal_ack` 存在。标准上下文中无 `seal_basis` 的 DataEvent
 仍 MUST 拒绝该 receipt。实现不得用“anchor 禁止 receipt”或“只有存在 `seal_basis` 才写 pending
 Control index”的启发式替代这个上下文判定。
 
@@ -292,7 +292,7 @@ Seal {
 }
 ```
 
-`completeness_root` 是控制面 **listed-set + actor-seq envelope** 承诺，MUST 使用 §6.2.2 的统一 Seal Merkle 组合规则。leaf 集合为当前 `covered_set(S)` 中每个 control-plane actor 的 actor_seq 包络区间；每个 leaf 的 `leaf_data = canonical_json({ "actor_id": <did>, "from_seq": <integer>, "to_seq": <integer>, "event_digests": [<digest>...] })` 的 UTF-8 字节，其中 `event_digests[]` 是该 actor 在 `[from_seq,to_seq]` 内按 `actor_seq ASC, event_digest ASC` 排列的**已列出控制面 Event** digest。leaf 按 `(actor_id, from_seq, to_seq)` canonical code point / integer 顺序排列。对同一 actor，任一 Seal 相对其**每个 predecessor** 的 interval set MUST 单调：已承诺包络不得收缩，`to_seq` 只能非降，已列 digest 不得删除；DAG 上互不可达的并发 leaf 之间不要求可比。compaction Seal MAY 合并相邻包络，但已列 digest 集合必须逐字节等价。空控制面覆盖集的 `completeness_root` 为 §6.2.2 空树 root。由于 actor_seq 链可混合 data/control event，区间内未列 seq **不声明其 plane，也不证明不存在被扣发的 Control Move**；验证者不得把该 root 单独宣传为 range completeness proof。控制面扣发检测依赖 §7.2 receipt obligation / inclusion list 与独立 range-bound attestation。Auditor 的 `completeness_monotonic` 只沿每条 Seal predecessor edge 验证包络与 listed-set 非缩，不得把未列 seq 当作可机械验证的 gap，也不得按 transparency `log_index` 相邻项误作线性比较。
+`completeness_root` 是控制面 **listed-set + actor-seq envelope** 承诺，MUST 使用 §6.2.2 的统一 Seal Merkle 组合规则。leaf 集合为当前 `covered_set(S)` 中每个 control-plane actor 的 actor_seq 包络区间；每个 leaf 的 `leaf_data = canonical_json({ "actor_id": <did>, "from_seq": <integer>, "to_seq": <integer>, "event_digests": [<digest>...] })` 的 UTF-8 字节，其中 `event_digests[]` 是该 actor 在 `[from_seq,to_seq]` 内按 `actor_seq ASC, event_digest ASC` 排列的**已列出控制面 Event** digest。leaf 按 `(actor_id, from_seq, to_seq)` canonical code point / integer 顺序排列。对同一 actor，任一 Seal 相对其**每个 predecessor** 的 interval set MUST 单调：已承诺包络不得收缩，`to_seq` 只能非降，已列 digest 不得删除；DAG 上互不可达的并发 leaf 之间不要求可比。compaction Seal MAY 合并相邻包络，但已列 digest 集合必须逐字节等价。空控制面覆盖集的 `completeness_root` 为 §6.2.2 空树 root。由于 actor_seq 链可混合 data/control event，区间内未列 seq **不声明其 plane，也不证明不存在被扣发的 Control Move**；验证者不得把该 root 单独宣传为 range completeness proof。控制面扣发检测依赖 §7.2 Control Proposal Ack obligation / inclusion list 与独立 range-bound attestation。Auditor 的 `completeness_monotonic` 只沿每条 Seal predecessor edge 验证包络与 listed-set 非缩，不得把未列 seq 当作可机械验证的 gap，也不得按 transparency `log_index` 相邻项误作线性比较。
 
 ### 6.1 Seal id 与签名 transcript
 
@@ -473,23 +473,23 @@ Equivocation evidence 是普通 Control Move，event kind 为 **`ak.notary.fault
 
 Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名的 quorum 交集可指认至少一个双签成员；否则部署 policy MUST 声明放弃自动指认。该声明是机器可校验项：threshold notary 的 Realm create payload MUST 携带 `notary.forensic_attribution ∈ {quorum_intersection, waived}`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)），且取值与 `2k>n` 的算术关系由 reducer 校验、由 conformance vector `ak.vector.cba_lattice.threshold_forensic_attribution.v1` 固定。
 
-### 7.2 控制面 receipt 与 inclusion obligation
+### 7.2 控制面 Control Proposal Ack 与 inclusion obligation
 
-控制面 pending Control Move MUST 在 `receipt_sla_ms` 内得到签名 receipt 或签名 rejection。`receipt_sla_ms` 的权威字段是 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `receipt_sla_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`，v1 wire hard `maximum 86400000`），与 `seal_compaction_max_interval_ms`（§6.2）同量级；其 wire 上限登记于 [`scalability-constraints.md`](../conformance/scalability-constraints.md) §4。SLA 计时以 notary 签署的提交时间为准（与 §4.3 `distance` 同源），不用本地接收时间。
+控制面 pending Control Move MUST 在 `proposal_intake_sla_ms` 内得到签名 Control Proposal Ack（控制提案签收）或签名 rejection。`proposal_intake_sla_ms` 的权威字段是 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `proposal_intake_sla_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`，v1 wire hard `maximum 86400000`），与 `seal_compaction_max_interval_ms`（§6.2）同量级；其 wire 上限登记于 [`scalability-constraints.md`](../conformance/scalability-constraints.md) §4。SLA 计时以 notary 签署的提交时间为准（与 §4.3 `distance` 同源），不用本地接收时间。
 
-**Proposal 有界决议（normative）**：`receipt_sla_ms` 只管「多久确认收到」。authority
-接受 proposal ingress 后签发的 receipt 还 MUST 承诺：
+**Proposal 有界决议（normative）**：`proposal_intake_sla_ms` 只管「多久确认收到」。authority
+接受 proposal ingress 后签发的 Ack 还 MUST 承诺：
 
 ```text
 proposal_digest, received_at, decision_due_at, absolute_due_at,
-defer_count=0, authority_set_ref, member_receipts[]
+defer_count=0, authority_set_ref, authority_acks[]
 ```
 
 机读合同为
 [`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。
 `ak.self.events.command.submit` / `ak.peer.events.command.submit` 对 accepted 或 byte-identical
-duplicate Control Move MUST 在 `EventsSubmitOutcome.control_proposal_receipts[]` 返回已持久化的
-原 receipt；DataEvent 不得进入该数组。重复提交不得重签或延长任何 deadline。
+duplicate Control Move MUST 在 `EventsSubmitOutcome.control_proposal_acks[]` 返回已持久化的
+原 Ack；DataEvent 不得进入该数组。重复提交不得重签或延长任何 deadline。
 Realm 的 `proposal_decision_window_ms` 给出首个决议窗口（default 30,000ms，协议硬上限
 24h），`proposal_absolute_deadline_ms` 给出从 signed `received_at` 起不可延长的绝对窗口
 （default 90,000ms，协议硬上限 72h），`max_proposal_defers` 给出 defer 次数上限
@@ -501,53 +501,53 @@ MUST 以 `schema_violation` 拒绝。若 `max_proposal_defers > 0`，两者 MUST
 `max_proposal_defers` MUST 为 `0`。该判定基于签名 payload 与冻结 basis，是所有 reducer
 必须执行的确定性跨字段校验。
 
-**外部 authority receipt set（normative）**：当接收 Event 的 Principal Server 不持有当前
+**外部 authority Ack set（normative）**：当接收 Event 的 Principal Server 不持有当前
 notary authority，或单个 signer 不能满足 threshold/mixed quorum 时，它不得用服务密钥代签。
 proposal author 必须对每个真实 authority 使用
-`ak.self.control_proposal_receipts.command.issue` 的 typed request；本地 Agent/device signer
+`ak.self.control_proposal_acks.command.issue` 的 typed request；本地 Agent/device signer
 使用完全相同的 request、canonical digest 与 outcome transcript，只省略 HTTP hop。每个
 authority 独立验证最终签名 Event、AuthorizationLease、genesis/basis 当前 notary policy、
 Realm、`proposal_digest`、signer membership 与 deadlines，随后签发一次
-`ProposalMemberReceipt`。同一 `(proposal_digest, authority_set_ref, verification_method)` 的
-byte-identical retry MUST 返回首次持久化的 member receipt；不同 Event bytes、authority set
+`ControlProposalAuthorityAck`。同一 `(proposal_digest, authority_set_ref, verification_method)` 的
+byte-identical retry MUST 返回首次持久化的 authority Ack；不同 Event bytes、authority set
 或时间字段 MUST `duplicate_conflict`，不得重签延长期限。
 
 member签名 transcript 是
-`JCS({context:"ak.control-proposal-member-receipt-proof-v1",
-payload_digest:SHA-256(JCS(member_receipt_without_signature)),verification_method,
+`JCS({context:"ak.control-proposal-authority-ack-proof-v1",
+payload_digest:SHA-256(JCS(authority_ack_without_signature)),verification_method,
 created_at:received_at})`；proof的`payload_digest`与`created_at`必须逐字匹配，禁止签任意摘要后
 只比较字段。每个member的`decision_due_at`必须恰等于
 `received_at + proposal_decision_window_ms`，`absolute_due_at`必须恰等于
 `received_at + proposal_absolute_deadline_ms`；所有加法按UTC instant计算，溢出或超协议上限拒绝。
 
-author 将互异 member receipt 按 `signature.verification_method` canonical 升序组装为唯一
-`ProposalReceipt`。receiver 必须：
+author 将互异 authority Ack 按 `signature.verification_method` canonical 升序组装为唯一
+`ControlProposalAck`。receiver 必须：
 
 1. 逐项重算 member statement digest并验真实签名，按 verification method 去重，只把 genesis
    或 Event basis 解析出的当前 authority member计入 quorum；
 2. 要求所有 member 的 Realm、proposal digest与authority-set ref逐字一致，且
-   `max(received_at)-min(received_at) <= receipt_sla_ms`；
+   `max(received_at)-min(received_at) <= proposal_intake_sla_ms`；
 3. 令set级 `received_at=max(member.received_at)`、
    `decision_due_at=min(member.decision_due_at)`、
    `absolute_due_at=min(member.absolute_due_at)`，并要求
    `received_at <= decision_due_at <= absolute_due_at`；set级字段与该计算不一致即拒绝；
 4. 按`single_did` / `threshold` / `mixed`当前profile计算互异member quorum；open-set按
-   `(Realm, signer slot)`独立receipt，不得把互不相干leaves拼成threshold；
-5. 把canonical receipt set、accepted Event、pending index与wakeup原子提交。closed anchor Event
+   `(Realm, signer slot)`独立authority Ack，不得把互不相干leaves拼成threshold；
+5. 把canonical Ack set、accepted Event、pending index与wakeup原子提交。closed anchor Event
    不能因无 `seal_basis` 跳过该 pending index；覆盖它的 accepted Seal 必须在同一原子事务写入
    Seal lineage / cell effects 并把每个 `delta[]` digest 从 pending 标记为 sealed，任一 digest
    不存在时整笔 Seal 提交回滚。duplicate Event
-   返回byte-identical receipt set；receipt集合、成员时间、顺序或签名不同均不得覆盖首次事实。
+   返回byte-identical Ack set；Ack集合、成员时间、顺序或签名不同均不得覆盖首次事实。
 
-`EventInitialSubmission.control_proposal_receipt` 与
-`EventFederationSubmission.control_proposal_receipt` 是该证据的唯一输入位置，只允许 Control
+`EventInitialSubmission.control_proposal_ack` 与
+`EventFederationSubmission.control_proposal_ack` 是该证据的唯一输入位置，只允许 Control
 Move；DataEvent携带时必须 schema/admission拒绝。`cba_proof_bundles[]`只补basis closure，不得
-承载或替代receipt。收集未在共同窗口内达到quorum时，本proposal永久不能以零散receipt入库；
+承载或替代Ack。收集未在共同窗口内达到quorum时，本proposal永久不能以零散authority Ack入库；
 producer必须author并签署新的Control Move Event，authority不得为旧digest重新计时。
-`receipt_digest = SHA-256(JCS(the complete canonical ProposalReceipt including member
-signatures))`；同一有效member集合只有一种排序和一种digest。
+`proposal_ack_digest = SHA-256(JCS(the complete canonical ControlProposalAck including
+authority signatures))`；同一有效authority集合只有一种排序和一种digest。
 该外部成员签发、共同窗口、quorum、duplicate/equivocation与decision-set binding由
-`ak.vector.cba.external_proposal_receipt_quorum.v1`固定。
+`ak.vector.cba.external_control_proposal_ack_quorum.v1`固定。
 
 每个决议窗口到期前，authority MUST 产生以下之一：
 
@@ -562,22 +562,22 @@ signatures))`；同一有效member集合只有一种排序和一种digest。
 `temporarily_unavailable`。实现不得接受
 未登记字符串，也不得把 defer 原因用于 terminal reject。
 
-每个 defer MUST 引用完整 canonical receipt-set digest，绑定同一 proposal、Realm 与 authority
-set，并由当前 receipt quorum 对同一 decision payload 产生按 verification method canonical
+每个 defer MUST 引用完整 canonical Ack-set digest，绑定同一 proposal、Realm 与 authority
+set，并由当前 Ack quorum 对同一 decision payload 产生按 verification method canonical
 排序的 `proofs[]`。`decision_digest=SHA-256(JCS(decision_without_proofs))`，每个proof的
 `payload_digest`必须等于该值、`created_at`必须等于`decided_at`，签名transcript固定为
 `JCS({context:"ak.control-proposal-decision-proof-v1",payload_digest,
-verification_method,created_at})`；proof不得跨 receipt set、decision kind 或 defer count拼接。它还必须
+verification_method,created_at})`；proof不得跨 Ack set、decision kind 或 defer count拼接。它还必须
 原样保留 `absolute_due_at`。`signed_reject` 与 `signed_defer` 是可验证的 authority
 决议，**不是** proposal 被接受，也不提供 finality；只有第 1 项中的 accepted Seal 提供
 控制面 finality。该义务不得命名为“接受 SLA”，也不得声称 deadline 本身提供 finality。
-receiver 本地收到 Event、receipt、decision 或 Seal 的时间 MUST NOT 进入规范计算。
+receiver 本地收到 Event、Ack、decision 或 Seal 的时间 MUST NOT 进入规范计算。
 
 **逾期是治理健康 fault，不改变密码学接受结果（normative）**：在当前
 `decision_due_at` 前没有上述三者，或到达 `absolute_due_at` / defer 上限后仍未 include /
 signed-reject 时：
 
-1. Realm governance health 投影进入 `degraded`，记录 proposal digest、receipt、当前
+1. Realm governance health 投影进入 `degraded`，记录 proposal digest、Ack、当前
    decision chain 与 deadline；
 2. 产生稳定诊断 `control_proposal_decision_overdue`，并允许形成 censorship evidence；
 3. 依赖该 pending Move 的 authoring/readiness，以及无法证明旧授权在 pending revoke /
@@ -588,15 +588,15 @@ signed-reject 时：
 不得因“迟到”把同一 cryptographically valid Seal 在不同 receiver 上分成 accepted /
 rejected 两种终态。协议不能强迫停机或恶意 authority 接受 proposal；它能保证的是合规
 authority 给出有界、可验证的决议，并为失约提供 health/fault/recovery/rotation 入口。
-上述 receipt、两次 defer 上界、绝对期限与迟到 Seal 规则由 conformance vector
+上述 Ack、两次 defer 上界、绝对期限与迟到 Seal 规则由 conformance vector
 `ak.vector.cba.proposal_bounded_decision.v1` 固定。
 
 `ak.self.events.read.frontier` 的 `RealmSealFrontierView.governance_health` MUST 从已验证的
-receipt / decision chain 与 accepted Seal covered set 派生；pending 明细最多返回 128 项，
+Ack / decision chain 与 accepted Seal covered set 派生；pending 明细最多返回 128 项，
 按 `(absolute_due_at, proposal_digest)` canonical 升序。超过读取上限时 readiness MUST
 fail closed，不能静默截断后报告 `healthy`。该 View 不是新的可写真相源。
 迟到但合法的 Seal 覆盖 proposal 后，proposal 从 `pending_proposals[]` 移除，但失约证据
-MUST 进入 `retained_faults[]`，携带原 receipt、完整 signed-defer chain、accepted Seal id
+MUST 进入 `retained_faults[]`，携带原 Ack、完整 signed-defer chain、accepted Seal id
 与其签名 `sealed_at`；按 `(accepted_at, proposal_digest)` canonical 升序，最多 128 项，
 超限同样 fail closed。只要 pending overdue 或 retained fault 非空，`status` MUST 为
 `degraded`，不得因 proposal 后来取得 finality 而把已发生的 deadline fault 抹除。
@@ -609,7 +609,7 @@ compaction 成功 **MUST NOT** 作为普通 pending Move 已按期取得 proposa
 
 ```text
 CensorshipEvidence {
-  receipt
+  control_proposal_ack
   seal_ref
   control_event_set_root_non_membership_proof
   missing_rejection_or_defer_proof
@@ -620,7 +620,7 @@ Censorship evidence 是普通 Control Move，event kind 为 **`ak.notary.fault.c
 
 **问责闭环与 recovery 路径的绑定（normative）**：被告 notary 可能审查针对自己的 fault / censorship evidence。为此：
 
-1. fault evidence Move 持有的 receipt（或经 federation probe 传播的副本）对 **recovery notary**（genesis `recovery_members` / `mixed` profile 的 fallback notary）构成与 inclusion list 等同的收录义务：recovery notary 签发任何 recovery / fork-resolution Seal 时，MUST include、signed-reject 或证明验证失败所有其已知的、处于义务窗口内的 fault evidence Move；
+1. fault evidence Move 持有的 Control Proposal Ack（或经 federation probe 传播的副本）对 **recovery notary**（genesis `recovery_members` / `mixed` profile 的 fallback notary）构成与 inclusion list 等同的收录义务：recovery notary 签发任何 recovery / fork-resolution Seal 时，MUST include、signed-reject 或证明验证失败所有其已知的、处于义务窗口内的 fault evidence Move；
 2. `single_did` 下，evidence 经 federation probe / Event Batch Receipt 渠道流转至 recovery notary；若 Realm 未声明可用 recovery 路径，问责退化为"证据可流转但不可生效"的审计态——这是 `single_did` 的诚实限制，也是 genesis 强制 `recovery_members` 组织分离的理由之一；
 3. multi-signer profile 下，任何非 fault 方 signer 都可把 evidence 列入 inclusion list（§7.3），不必等待 recovery 路径。
 

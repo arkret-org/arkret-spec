@@ -99,21 +99,21 @@ authority（含 authority-root cell），均为 `invalid_genesis_seal`。MLS epo
 
 ## 4. Proposal 有界决议
 
-authority 接受 proposal ingress 时签发的 proposal receipt MUST 包含：
+authority 接受 proposal ingress 时签发的 Control Proposal Ack MUST 包含：
 
 ```text
 proposal_digest, received_at, decision_due_at, absolute_due_at,
-defer_count, authority_set_ref, member_receipts[]
+defer_count, authority_set_ref, authority_acks[]
 ```
 
 **闭合 genesis 的 ingress authority**：普通路径中的 `authority_set_ref` 来自已经生效的
 Realm authority set。登记的完整闭合 genesis 单元（ordinary Realm、self-principal PCR、
 managed Agent PCR）中的每条 Event 虽然免 `seal_basis`，仍是 Control Move，因而在 durable
-proposal ingress 时 **MUST 各自具有 proposal receipt**；`AnchorUnit` transport context 只证明
+proposal ingress 时 **MUST 各自具有 Control Proposal Ack**；`AnchorUnit` transport context 只证明
 无 basis 单元的闭合形态，不得据此让 durable ingress 省略 receipt。receipt、canonical Event、
 pending Control index 与 wakeup MUST 按本文件的统一提交规则原子落库，不能先接受 Event 再等待
 首 Seal 时补 pending row。这里的“具有”约束的是 durable ingress 事务，不等于所有来源都必须在
-`EventInitialSubmission.control_proposal_receipt` 中预先携带 receipt；wire 责任由下列两个来源决定。
+`EventInitialSubmission.control_proposal_ack` 中预先携带 Control Proposal Ack；wire 责任由下列两个来源决定。
 
 该 authority set 正由单元创建，不能循环要求尚未生效的 founding notary state 作为 receipt
 验证前提，但允许以下两个互斥且可独立验证的 ingress authority 来源：
@@ -126,8 +126,8 @@ pending Control index 与 wakeup MUST 按本文件的统一提交规则原子落
 2. 否则，完成全量预准入并为同一有序单元签发 `AuthorizationLease` 的 Principal Server MAY
    签发 receipt；receipt 的 `authority_set_ref` MUST 等于这些 lease 的
    `authority_set_digest`，且每个 receipt 仍逐一绑定 exact Event digest，并以自身真实 admission
-   verification method 产生唯一 `member_receipts[0]`。此路径的 caller MUST 为完整单元逐项携带
-   同序 lease，MUST NOT 预填 `control_proposal_receipt`；admitting Principal Server 在重新验证
+   verification method 产生唯一 `authority_acks[0]`。此路径的 caller MUST 为完整单元逐项携带
+   同序 lease，MUST NOT 预填 `control_proposal_ack`；admitting Principal Server 在重新验证
    完整 lease-bound unit 后、提交事务内签发 receipt。这样 receipt 时间与 durable ingress 是同一
    事实，也避免单 Event receipt 请求无法独立重建完整 genesis unit 的循环。
 
@@ -137,7 +137,7 @@ Seal 仍 MUST 由单元声明的 founding notary 签署并独立重算 genesis s
 authority、reanchor、recovery 或普通 Control Move 不得使用第二条例外。
 
 两条来源在 wire 上互斥：来源 1 的 caller 携带 authority-signed
-`control_proposal_receipt`；来源 2 的 caller 携带完整 anchor-unit lease set 且 receipt 字段为空，
+`control_proposal_ack`；来源 2 的 caller 携带完整 anchor-unit lease set 且 Ack 字段为空，
 由同一 admitting server 在原子 ingress 中产生并返回 receipt。实现不得同时接受两种证据，也不得
 把来源 2 的 lease 当作可调用单 Event receipt endpoint 的凭据。
 
@@ -154,7 +154,7 @@ Realm 可通过 `proposal_decision_window_ms`、`proposal_absolute_deadline_ms` 
   `max_proposal_defers` MUST 为 `0`。Realm create / policy reducer 必须在写入前校验，
   违反时以 `schema_violation` 拒绝整个 Control Move。
 
-每个 defer MUST 引用完整canonical receipt-set digest，绑定同一 proposal / Realm /
+每个 defer MUST 引用完整canonical Ack-set digest，绑定同一 proposal / Realm /
 authority set，并由该receipt set要求的quorum对同一payload产生canonical `proofs[]`；
 `defer_count` 恰好加一，且不得改变 `absolute_due_at`。期限内必须出现 include in
 accepted Seal、signed reject 或 signed defer。reject 与 defer 只是
@@ -238,5 +238,5 @@ Seal；闭包补齐后仍须通过新的 peer submit 请求重新求值。收到
 反例：open-set 高风险 membership Move 只有不相交的两个少数签名集合。即使两个分支各自形成
 普通 Seal，也必须拒绝，不能用本地到达顺序选 winner。
 
-反例：proposal receipt 到期但未进 Seal。该 proposal 仍未接受；客户端只产生 fault evidence，
+反例：Control Proposal Ack 到期但未进 Seal。该 proposal 仍未接受；客户端只产生 fault evidence，
 不得把 receipt 投影成治理状态。

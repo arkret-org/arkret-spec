@@ -3834,7 +3834,7 @@ Expected:
 - `PCR_A != PCR_C`，且 receiver 必须从 Agent DID accepted-at history 验证 service entry 的 PCR/controller/authorization/digest 四元组，再验证 controller-signed private disclosure 后使用 scope；不得验证实现私有派生算法或信任服务本地 scope row。
 - `PCR_A.created_by == PCR_A.notary == A`，purpose/profile/history/encryption floor 全部满足 PCR invariant。
 - Controller 写 Agent PCR 时 `actor_id=A`、`executed_by=C`，proof method 属于 C，delegation 覆盖目标 kind；不得伪造 A 签名。
-- basis-free create 仍必须返回并持久化 controller-device proposal receipt；首 Seal 提交前 pending
+- basis-free create 仍必须返回并持久化 controller-device Control Proposal Ack；首 Seal 提交前 pending
   index 必须存在同一 digest，提交后该 digest、Seal lineage 与 registered effects 必须在同一事务
   转为 sealed/accepted。memory 与 PostgreSQL adapter 必须产生相同结果。
 - Agent profile、key authorize/revoke、lifecycle 只进入 `PCR_A`；单一 provision Event及其 accountability/selector projections 只进入 `PCR_C`；Realm-specific capability grant 只进入其所治理 Realm；pairing request/notification 不进入任一 PCR。

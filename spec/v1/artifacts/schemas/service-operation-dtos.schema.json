@@ -3004,12 +3004,12 @@
           },
           "description": "Newly issued or byte-identical previously issued receipts for accepted/duplicate Event digests. A service MUST return the stored receipt for an idempotent duplicate; it MUST NOT mint a receipt with a later received_at."
         },
-        "control_proposal_receipts": {
+        "control_proposal_acks": {
           "type": "array",
           "maxItems": 500,
           "uniqueItems": true,
           "items": {
-            "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt"
+            "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack"
           },
           "description": "Signed bounded-decision receipts for accepted or duplicate Control Move proposal digests. A duplicate MUST return the originally stored byte-identical receipt; a service MUST NOT mint later deadlines. DataEvents never appear in this array."
         },
@@ -4404,8 +4404,8 @@
           },
           "description": "Optional receiver-relative dependency bundles for the Event seal_ref or seal_basis. Bundles are transport evidence, not Event fields."
         },
-        "control_proposal_receipt": {
-          "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt",
+        "control_proposal_ack": {
+          "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
           "description": "Required external-authority receipt set when a Control Move is submitted to a receiver that cannot itself produce the complete current authority quorum. Forbidden for DataEvents."
         }
       },
@@ -4434,8 +4434,8 @@
             "$ref": "./offline-publication.schema.json#/$defs/ingress_receipt"
           }
         },
-        "control_proposal_receipt": {
-          "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt",
+        "control_proposal_ack": {
+          "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
           "description": "Canonical external-authority receipt set for a federated Control Move. Forbidden for DataEvents."
         }
       },
@@ -4688,7 +4688,7 @@
         },
         "governance_health": {
           "$ref": "#/$defs/ControlGovernanceHealth",
-          "description": "Readiness projection derived only from verified proposal receipts/decisions and accepted Seals. It is not a second control-plane truth source."
+          "description": "Readiness projection derived only from verified Control Proposal Acks/decisions and accepted Seals. It is not a second control-plane truth source."
         },
         "hlc": {
           "type": "string"
@@ -5370,7 +5370,7 @@
                 "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
               },
               "receipt": {
-                "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt"
+                "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack"
               },
               "decisions": {
                 "type": "array",
@@ -5441,7 +5441,7 @@
                 "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
               },
               "receipt": {
-                "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt"
+                "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack"
               },
               "decisions": {
                 "type": "array",

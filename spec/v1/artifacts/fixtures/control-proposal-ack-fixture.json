@@ -1,21 +1,21 @@
 {
   "profile": "ak.vector_group.cba_lattice.v1",
   "version": "2026-07-30",
-  "suite": "control_proposal_receipt",
+  "suite": "control_proposal_ack",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "ak.suite.cba.control_proposal_receipt.v1"
+    "entrypoint": "ak.suite.cba.control_proposal_ack.v1"
   },
   "covers_vectors": [
-    "ak.vector.cba.external_proposal_receipt_quorum.v1",
+    "ak.vector.cba.external_control_proposal_ack_quorum.v1",
     "ak.vector.cba.proposal_window_configuration.v1"
   ],
   "cases": [
     {
-      "name": "threshold_receipt_set_uses_distinct_current_members",
+      "name": "threshold_ack_set_uses_distinct_current_members",
       "profile": "threshold",
       "threshold": 2,
-      "member_receipts": [
+      "authority_acks": [
         {
           "verification_method": "did:webvh:z6mkfixture:authority-a.example#notary",
           "received_at": "2026-07-29T00:00:00.000Z",
@@ -59,24 +59,24 @@
         "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
       ],
       "received_at_span_ms": 60001,
-      "receipt_sla_ms": 60000,
+      "proposal_intake_sla_ms": 60000,
       "expected": {
         "decision": "reject",
         "reason": "failed_precondition"
       }
     },
     {
-      "name": "receipt_sla_wire_maximum_is_inclusive",
+      "name": "proposal_intake_sla_wire_maximum_is_inclusive",
       "received_at_span_ms": 86400000,
-      "receipt_sla_ms": 86400000,
+      "proposal_intake_sla_ms": 86400000,
       "expected": {
         "decision": "accept"
       }
     },
     {
-      "name": "receipt_sla_above_wire_maximum_is_rejected",
+      "name": "proposal_intake_sla_above_wire_maximum_is_rejected",
       "received_at_span_ms": 86400001,
-      "receipt_sla_ms": 86400001,
+      "proposal_intake_sla_ms": 86400001,
       "expected": {
         "decision": "reject",
         "reason": "schema_violation"
@@ -89,15 +89,15 @@
       "second_request_bytes_equal": true,
       "conflicting_second_deadline": "2026-07-29T00:02:00.000Z",
       "expected": {
-        "exact_retry": "original_member_receipt",
+        "exact_retry": "original_authority_ack",
         "conflicting_retry": "duplicate_conflict",
         "deadline_extended": false
       }
     },
     {
-      "name": "decision_proofs_cannot_cross_receipt_sets",
-      "receipt_set_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-      "decision_proof_receipt_digests": [
+      "name": "decision_proofs_cannot_cross_ack_sets",
+      "ack_set_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "decision_proof_proposal_ack_digests": [
         "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
       ],

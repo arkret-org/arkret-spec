@@ -207,7 +207,7 @@ EventInitialSubmission {
   event,
   authorization_lease?,
   cba_proof_bundles?,
-  control_proposal_receipt?
+  control_proposal_ack?
 }
 ```
 
@@ -222,7 +222,7 @@ EventFederationSubmission {
   event,
   authorization_lease?,
   ingress_receipts[], // online 必须为空；delayed/offline 必须非空
-  control_proposal_receipt?
+  control_proposal_ack?
 }
 ```
 
@@ -232,7 +232,7 @@ EventFederationSubmission {
 只负责补齐 basis closure。任何服务都不得把这些
 传输证据复制进 Event，或因本地较晚首次见到而改写 `received_at`。
 
-`control_proposal_receipt` 只允许 Control Move，且必须是
+`control_proposal_ack` 只允许 Control Move，且必须是
 [`event-auth-state-resolution.md` §7.2](./event-auth-state-resolution.md) 的 canonical
 authority receipt set；DataEvent携带该字段必须拒绝。它不属于通用CBA bundle，也不能由接收
 Principal Server在不持有真实authority key时补签。

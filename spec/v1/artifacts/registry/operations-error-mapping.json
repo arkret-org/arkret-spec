@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-06.1",
+  "version": "2026-08-06.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -755,8 +755,8 @@
       ]
     },
     {
-      "operation_id": "ak.self.control_proposal_receipts.command.issue",
-      "http_alias": "POST /_arkret/self/control-proposal-receipts",
+      "operation_id": "ak.self.control_proposal_acks.command.issue",
+      "http_alias": "POST /_arkret/self/control-proposal-acks",
       "operation_specific": [
         "duplicate_conflict",
         "failed_precondition",
@@ -764,7 +764,7 @@
         "seal_ref_unknown",
         "quorum_unreachable"
       ],
-      "description": "A current Control authority issues one immutable member receipt after independently validating the proposal and authority basis."
+      "description": "A current Control authority issues one immutable authority Ack after independently validating the proposal and authority basis."
     },
     {
       "operation_id": "ak.self.authorization_leases.command.issue",

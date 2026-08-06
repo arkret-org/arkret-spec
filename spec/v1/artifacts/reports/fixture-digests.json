@@ -81,8 +81,8 @@
       "sha256": "c2bf2363757a38c20ba63cff5c9e7d95ee61d3f019335542ff0ee1c44c7f1a4a"
     },
     {
-      "path": "spec/v1/artifacts/fixtures/control-proposal-receipt-fixture.json",
-      "sha256": "7849844daf15646e4818679e9122b05b6d1a9595728d8a4014646a0055745bb7"
+      "path": "spec/v1/artifacts/fixtures/control-proposal-ack-fixture.json",
+      "sha256": "0e0985a30e833c0cdf94e9393b20c0a4f7d0bc2a1d066f9ff7461b19200dbdfe"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cross-signing-binding-fixture.json",
@@ -286,7 +286,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/seal-submit-fixture.json",
-      "sha256": "832da48344e7542ea582cab1c0b620f21ce3ee87a2a91d7f043221995f1e0c90"
+      "sha256": "c22d5a5b92c081fe96e1bb45fde3ccad2bd03ac0d29f6ad8bc05cb576b71b595"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-fixture.json",

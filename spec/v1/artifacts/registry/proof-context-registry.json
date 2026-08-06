@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-02",
+  "version": "2026-08-06",
   "source_of_truth": true,
   "description": "Canonical domain-separation contexts for Arkret detached proofs. Context is part of the canonical signing binding object and is not a wire field in the generic proof shape.",
   "registry_rules": [
@@ -137,19 +137,19 @@
         "verification_method",
         "created_at"
       ],
-      "defined_in": "zh/authz/event-auth-state-resolution.md#72-控制面-receipt-与-inclusion-obligation",
+      "defined_in": "zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
       "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_decision"
     },
     {
-      "context": "ak.control-proposal-member-receipt-proof-v1",
-      "object_family": "control_proposal_member_receipt",
+      "context": "ak.control-proposal-authority-ack-proof-v1",
+      "object_family": "control_proposal_authority_ack",
       "binding_fields": [
         "payload_digest",
         "verification_method",
         "created_at"
       ],
-      "defined_in": "zh/authz/event-auth-state-resolution.md#72-控制面-receipt-与-inclusion-obligation",
-      "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_member_receipt"
+      "defined_in": "zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
+      "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_authority_ack"
     },
     {
       "context": "ak.did-continuity-proof-v1",

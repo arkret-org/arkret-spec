@@ -7672,7 +7672,7 @@
         },
         "receipt": {
           "type": "object",
-          "description": "The signed control-plane receipt issued under receipt_sla_ms (event_digest, received_at, receipt_seq, issuer, signature).",
+          "description": "The signed control-plane receipt issued under proposal_intake_sla_ms (event_digest, received_at, receipt_seq, issuer, signature).",
           "required": [
             "event_digest",
             "received_at",

@@ -412,10 +412,10 @@ Agent PCR 的 Event Seal 仍由 `POST /_arkret/self/events/seals` 提交。若 a
 
 Managed Agent PCR 的单条 create 虽无 `seal_basis`，仍是 closed-anchor Control Move。Controller
 client MUST 从该候选 create 重算完整 founding notary authority，并由 accepted delegation 下的
-当前 controller device 为 exact create digest 签 proposal receipt；Principal Server MUST 在同一
+当前 controller device 为 exact create digest 签 Control Proposal Ack；Principal Server MUST 在同一
 事务提交 receipt、canonical create 与 pending Control index。首 Seal 的原子提交再把同一 digest
 标记 sealed，并同时提交 Seal lineage 与 registered cell effects；不得出现“Event log 已有 create，
-但 pending store 无该 digest”或以 service key/无 receipt 绕过 proposal 轨道的中间状态。
+但 pending store 无该 digest”或以 service key/无 Control Proposal Ack 绕过 proposal 轨道的中间状态。
 
 Native Personal Agent 不建立独立的面向用户 Recovery Key，也不得要求用户为每个 Agent 保存另一套 24 词。Agent DID / PCR 管理连续性来自当前 controller delegation；Agent PCR 内容可恢复性来自 §7.5.6 的 controller-owned `mls_history` backup。二者是不同权力：解开 Agent PCR 历史密钥不授予 Agent DID 控制、agent-control authoring 或业务 capability；任何恢复后的写入仍必须验证当前 Agent DID delegation、controller 状态与目标 Event authorization。
 
