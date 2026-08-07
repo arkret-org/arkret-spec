@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9279,
+    "total_properties": 9280,
     "total_schema_documents": 155,
     "by_presence_class": {
       "optional": 2815,
       "optional_defaulted": 67,
-      "required": 6016,
+      "required": 6017,
       "required_nullable": 112,
       "tristate": 269
     },
@@ -5506,6 +5506,7 @@
         "/allOf/13/then/oneOf/3/properties/kind": "required",
         "/allOf/13/then/oneOf/4/properties/kind": "required",
         "/allOf/13/then/oneOf/5/properties/kind": "required",
+        "/allOf/13/then/oneOf/6/properties/kind": "required",
         "/allOf/130/if/properties/kind": "required",
         "/allOf/130/then/properties/payload": "optional",
         "/allOf/131/if/properties/kind": "required",

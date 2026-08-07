@@ -890,6 +890,36 @@
             }
           },
           {
+            "$comment": "ak.strand.create may be the third item of the exact Direct Conversation founding unit, where it is that Realm's main Strand and no accepted Seal exists yet to reference. JSON Schema permits the no-basis shape; batch admission MUST reject it anywhere else, so every ordinary Strand still carries seal_ref and auth_context.",
+            "properties": {
+              "kind": {
+                "const": "ak.strand.create"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "seal_ref"
+                  ]
+                },
+                {
+                  "required": [
+                    "auth_context"
+                  ]
+                },
+                {
+                  "required": [
+                    "seal_basis"
+                  ]
+                }
+              ]
+            }
+          },
+          {
             "$comment": "ak.device.authorize may be the second item of the exact PCR bootstrap or device re-anchor atomic unit. JSON Schema permits the no-basis shape; batch admission MUST reject it anywhere else.",
             "properties": {
               "kind": {

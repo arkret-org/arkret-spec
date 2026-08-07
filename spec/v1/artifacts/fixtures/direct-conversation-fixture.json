@@ -422,6 +422,17 @@
       ]
     },
     {
+      "name": "founding_unit_strand_uses_bootstrap_no_basis_shape",
+      "precondition": "the third Event of the founding unit is the Realm's main ak.strand.create and the Genesis Seal covers all three Events",
+      "action": "admit the unit",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "the Strand carries neither seal_ref, auth_context nor seal_basis and rides the same-batch staged authority-root proof",
+        "a no-basis ak.strand.create outside this exact unit is rejected by batch admission",
+        "the same Strand carrying seal_ref, auth_context or seal_basis inside the unit is rejected"
+      ]
+    },
+    {
       "name": "server_allocated_founding_identifier_rejected",
       "precondition": "a submission asserts a service-allocated realm_id, a reservation handle or a materialization draft",
       "action": "submit the founding unit",
