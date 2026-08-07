@@ -110,7 +110,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "c6a16ef3db08f598fccc376e6ec30a5639bf0a6a5fb4a51e85c8d1b123c6c589"
+      "sha256": "31d2bf6edc562f21e553f054f4f05eb715b0b5a060f236f01c5ba40eeb8f70ad"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
@@ -118,7 +118,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "b441cb112b2e7ab1ee5f523da260b5c43e11c96128e11bbb6808a8326de2dd8b"
+      "sha256": "d97c6c7309c1e3b4e5349a4dd14f38ef8085bcf605a53db8dec667d6caf2d595"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",

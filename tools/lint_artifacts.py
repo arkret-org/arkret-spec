@@ -8915,13 +8915,204 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
                         f"canonical bytes mismatch: {input_key!r} produces {canonical!r} "
                         f"but expected_canonical_bytes_utf8={expected_canonical!r}",
                     )
-                recomputed = sha256_text(canonical)
+                domain_separator = case.get("domain_separator_utf8", "")
+                if not isinstance(domain_separator, str):
+                    lint.fail(
+                        fixture_path,
+                        "domain_separator_utf8 must be a string when present",
+                    )
+                    continue
+                digest_input = domain_separator + canonical
+                digest_input_hex = case.get("digest_input_hex")
+                if isinstance(digest_input_hex, str) and digest_input_hex != digest_input.encode("utf-8").hex():
+                    lint.fail(
+                        fixture_path,
+                        f"digest_input_hex does not match domain_separator_utf8 || {input_key!r} canonical bytes",
+                    )
+                recomputed = sha256_text(digest_input)
                 if recomputed != expected:
                     lint.fail(
                         fixture_path,
-                        f"digest mismatch: {input_key!r} canonical bytes produce "
+                        f"digest mismatch: domain separator plus {input_key!r} canonical bytes produce "
                         f"{recomputed} but {digest_key!r}={expected}",
+                    )
+
+
+def check_direct_conversation_digest_vectors(lint: Lint) -> None:
+    """Pin the two domain-separated Direct Conversation identity digests."""
+
+    fixture_path = ARTIFACTS / "fixtures" / "encoding-fixture.json"
+    fixture = load_json(lint, fixture_path)
+    if not isinstance(fixture, dict) or not isinstance(fixture.get("vectors"), list):
+        return
+
+    vectors = {
+        vector.get("vector_id"): vector
+        for vector in fixture["vectors"]
+        if isinstance(vector, dict) and isinstance(vector.get("vector_id"), str)
+    }
+    pair = vectors.get("ak.vector.direct_conversation.pair_key.v1")
+    binding = vectors.get("ak.vector.direct_conversation.binding_digest.v1")
+    if not isinstance(pair, dict):
+        lint.fail(fixture_path, "missing direct-conversation pair_key KAT")
+        return
+    if not isinstance(binding, dict):
+        lint.fail(fixture_path, "missing direct-conversation binding_digest KAT")
+        return
+
+    expected_pair_domain = "ak.direct-conversation.pair-key.v1\n"
+    if pair.get("domain_separator_utf8") != expected_pair_domain:
+        lint.fail(fixture_path, "direct-conversation pair_key KAT has the wrong domain separator")
+    pair_input = pair.get("input")
+    if not isinstance(pair_input, dict) or set(pair_input) != {"participants", "trust_domain_id"}:
+        lint.fail(
+            fixture_path,
+            "direct-conversation pair_key input must be exactly {participants, trust_domain_id}",
+        )
+
+    expected_binding_domain = "ak.direct-conversation.binding-digest.v1\n"
+    if binding.get("domain_separator_utf8") != expected_binding_domain:
+        lint.fail(fixture_path, "direct-conversation binding_digest KAT has the wrong domain separator")
+    canonical_binding = binding.get("input")
+    valid_digest = binding.get("expected_digest")
+    if not isinstance(canonical_binding, dict) or not isinstance(valid_digest, str):
+        lint.fail(fixture_path, "direct-conversation binding_digest KAT lacks input or digest")
+        return
+
+    expected_binding_fields = {
+        "pair_key",
+        "participants_unordered",
+        "realm_id",
+        "main_strand_id",
+        "founding_unit_digest",
+        "authorization_basis",
+        "initial_exact_pair_generation_ref",
+    }
+    if set(canonical_binding) != expected_binding_fields:
+        lint.fail(fixture_path, "binding_digest canonical object has the wrong closed field set")
+
+    def normalize_payload(payload: Any, label: str) -> dict[str, Any] | None:
+        if not isinstance(payload, dict):
+            lint.fail(fixture_path, f"{label}.payload must be an object")
+            return None
+        if "binding_digest" in payload:
+            lint.fail(fixture_path, f"{label}.payload must not carry binding_digest")
+        basis = payload.get("authorization_basis")
+        participants = payload.get("participants_unordered")
+        refs = basis.get("event_refs") if isinstance(basis, dict) else None
+        if (
+            not isinstance(participants, list)
+            or len(participants) != 2
+            or not all(isinstance(value, str) for value in participants)
+            or len(set(participants)) != 2
+            or not isinstance(basis, dict)
+            or set(basis) != {"kind", "event_refs"}
+            or not isinstance(basis.get("kind"), str)
+            or not isinstance(refs, list)
+            or len(refs) != 2
+            or not all(isinstance(value, str) for value in refs)
+            or len(set(refs)) != 2
+        ):
+            lint.fail(fixture_path, f"{label}.payload has invalid unordered binding inputs")
+            return None
+        missing = expected_binding_fields - set(payload)
+        if missing:
+            lint.fail(fixture_path, f"{label}.payload misses binding fields: {sorted(missing)}")
+            return None
+        return {
+            "pair_key": payload["pair_key"],
+            "participants_unordered": sorted(participants, key=lambda value: value.encode("utf-8")),
+            "realm_id": payload["realm_id"],
+            "main_strand_id": payload["main_strand_id"],
+            "founding_unit_digest": payload["founding_unit_digest"],
+            "authorization_basis": {
+                "kind": basis["kind"],
+                "event_refs": sorted(refs, key=lambda value: value.encode("utf-8")),
+            },
+            "initial_exact_pair_generation_ref": payload[
+                "initial_exact_pair_generation_ref"
+            ],
+        }
+
+    normalization_cases = binding.get("normalization_cases")
+    if not isinstance(normalization_cases, list) or not normalization_cases:
+        lint.fail(fixture_path, "binding_digest KAT must include normalization cases")
+    else:
+        for index, case in enumerate(normalization_cases):
+            label = f"binding normalization_cases[{index}]"
+            if not isinstance(case, dict):
+                lint.fail(fixture_path, f"{label} must be an object")
+                continue
+            normalized = normalize_payload(case.get("payload"), label)
+            if normalized is None:
+                continue
+            if normalized != canonical_binding:
+                lint.fail(fixture_path, f"{label} does not normalize to the canonical binding object")
+            recomputed = sha256_text(expected_binding_domain + canonical_json(normalized))
+            if case.get("expected_digest") != recomputed or recomputed != valid_digest:
+                lint.fail(fixture_path, f"{label} does not preserve the binding digest")
+            event_context = case.get("event_context")
+            if not isinstance(event_context, dict) or not {"actor_id", "proof"} <= set(event_context):
+                lint.fail(fixture_path, f"{label} must cover excluded Event actor/proof context")
+
+    mutations = binding.get("mutation_cases")
+    if not isinstance(mutations, list):
+        lint.fail(fixture_path, "binding_digest KAT must include mutation_cases")
+    else:
+        mutation_by_name = {
+            case.get("name"): case for case in mutations if isinstance(case, dict)
+        }
+        omitted = mutation_by_name.get("omit_domain_separator")
+        if not isinstance(omitted, dict):
+            lint.fail(fixture_path, "binding_digest KAT misses omit_domain_separator")
+        else:
+            canonical_bytes = canonical_json(canonical_binding).encode("utf-8")
+            if omitted.get("digest_input_hex") != canonical_bytes.hex():
+                lint.fail(fixture_path, "omit_domain_separator does not hash bare canonical bytes")
+            omitted_digest = "sha256:" + hashlib.sha256(canonical_bytes).hexdigest()
+            if (
+                omitted.get("expected_digest") != omitted_digest
+                or omitted.get("must_not_equal_valid") is not True
+                or omitted_digest == valid_digest
+            ):
+                lint.fail(fixture_path, "omit_domain_separator is not a strict negative")
+        changed = mutation_by_name.get("semantic_main_strand_change")
+        if (
+            not isinstance(changed, dict)
+            or changed.get("must_not_equal_valid") is not True
+            or changed.get("expected_digest") == valid_digest
+        ):
+            lint.fail(fixture_path, "semantic binding mutation is not a strict negative")
+
+    schema_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
+    schema = load_json(lint, schema_path)
+    bound_payload = (
+        schema.get("$defs", {}).get("direct_conversation_bound_payload", {})
+        if isinstance(schema, dict)
+        else {}
     )
+    properties = bound_payload.get("properties", {}) if isinstance(bound_payload, dict) else {}
+    if "binding_digest" in properties or bound_payload.get("additionalProperties") is not False:
+        lint.fail(schema_path, "binding_digest must remain derived and off-wire in the closed payload")
+
+    registry_path = ARTIFACTS / "registry" / "contract-registry.json"
+    registry = load_json(lint, registry_path)
+    try:
+        projection = registry["event_kind_registry"]["cell_contracts"][
+            "ak.direct_conversation.bound"
+        ]["cell_writes"][0]["effect_projection"]
+    except (KeyError, IndexError, TypeError):
+        projection = None
+    expected_projection = {
+        "kind": "or_set_add",
+        "tag": {"dot": True},
+        "value": {"field": "payload"},
+    }
+    if projection != expected_projection:
+        lint.fail(
+            registry_path,
+            "direct-conversation binding core OR-Set projection must remain dot + full payload",
+        )
 
 
 # --- stated preimage <-> stated digest ---------------------------------------
@@ -9076,9 +9267,15 @@ def check_stated_preimage_matches_stated_digest(lint: Lint) -> None:
                             f"{source_key!r} is not decodable as {decoding}",
                         )
                         continue
-                    recomputed = _stated_digest(prefix.encode("utf-8") + data, encoding)
+                    declared_prefix = node.get("domain_separator_utf8")
+                    effective_prefix = (
+                        declared_prefix
+                        if not prefix and isinstance(declared_prefix, str)
+                        else prefix
+                    )
+                    recomputed = _stated_digest(effective_prefix.encode("utf-8") + data, encoding)
                     if recomputed != digest:
-                        domain = f" under {prefix!r}" if prefix else ""
+                        domain = f" under {effective_prefix!r}" if effective_prefix else ""
                         lint.fail(
                             fixture_path,
                             f"{digest_key!r}={digest} but {source_key!r} hashes{domain} to "
@@ -12205,6 +12402,10 @@ def main(argv: list[str] | None = None) -> int:
             ("websocket_binding", lambda: check_websocket_binding_fixture(lint)),
             ("crypto_signatures", lambda: check_crypto_signature_fixture(lint)),
             ("canonical_digests", lambda: check_canonical_digest_fixtures(lint)),
+            (
+                "direct_conversation_digests",
+                lambda: check_direct_conversation_digest_vectors(lint),
+            ),
             ("batch_receipt", lambda: check_event_batch_receipt_normalization_vector(lint)),
             (
                 "stated_preimage_digest",

@@ -185,7 +185,7 @@ pair_key = sha256(UTF8("ak.direct-conversation.pair-key.v1\n") ||
                   JCS({"trust_domain_id": <id>, "participants": [p0, p1]}))
 ```
 
-handle、display name、设备 ID、Principal Server endpoint、Realm ID、Strand ID 与 Contact Event ID **MUST NOT** 进入前像。双方 **MUST** 从 Event 中的 exact participants 与 trust domain 重算 `pair_key`，**MUST NOT** 采信 caller 自报值。
+handle、display name、设备 ID、Principal Server endpoint、Realm ID、Strand ID 与 Contact Event ID **MUST NOT** 进入前像。双方 **MUST** 从 Event 中的 exact participants 与 trust domain 重算 `pair_key`，**MUST NOT** 采信 caller 自报值。实现 **MUST** 执行 [`ak.vector.direct_conversation.pair_key.v1`](../../artifacts/registry/vector-registry.json) 的逐字节 KAT；无 domain separator 或把 `trust_domain_id` 改名为 `trust_domain` 的旧前像均不是 v1 `pair_key`。
 
 ### 5.2 founder 派生（normative）
 
@@ -355,11 +355,30 @@ repair **MUST NOT** 读取 `created_by`、founder 身份或 bootstrap authority�
 
 ### 8.3 binding 与日常 authority
 
-`ak.direct_conversation.bound` **MUST NOT** 承担阻止第二个 Realm 的职责——唯一性来自 §5.4 的 admission。它是 coordinates 与首次 exact-pair generation 的 participant 可见凭证，至少绑定 `pair_key`、`participants_unordered[2]`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 founding authorization ref、`initial_exact_pair_generation_ref` 与 `binding_digest`。
+`ak.direct_conversation.bound` **MUST NOT** 承担阻止第二个 Realm 的职责——唯一性来自 §5.4 的 admission。它是 coordinates 与首次 exact-pair generation 的 participant 可见凭证，wire payload 绑定 `pair_key`、`participants_unordered[2]`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 `authorization_basis` 与 `initial_exact_pair_generation_ref`。`binding_digest` 是下述内容的 receiver-derived semantic digest，**不是 wire 字段**；producer **MUST NOT** 在 payload 中携带它，receiver 也 **MUST NOT** 从任何上游值采信它。
 
-`binding_digest` **MUST** 在 registered domain 下对排除 `created_at`/`binding_digest` 与 Event author/proof 后的 canonical bytes 计算；receiver **MUST** 从 accepted founding unit、唯一 main Strand 与 generation-1 activation 重算，**MUST NOT** 采信 producer 自报。
+receiver 先必须验证 payload 的每个字段与 accepted founding unit、唯一 main Strand、该 pair 的 canonical authorization basis 及 generation-1 activation 一致，再构造以下唯一 closed object。`p0/p1` 是 `participants_unordered` 中两个 canonical stable subject DID 按 unsigned UTF-8 bytes 升序排列的结果；`e0/e1` 是 `authorization_basis.event_refs` 中两个 accepted Event ref 按同一顺序排列的结果。排序只用于此派生对象，**MUST NOT** 改写已签名 Event bytes。
 
-binding cell **MUST** 为 `or_set`，contract concurrency class 为 `merge_safe`，element key 固定为 `(binding_digest, envelope.actor_id)`。同一 participant 对同一 digest 的多条 Event 只计一个 endorsement；双方对相同 semantic payload 并发签名是兼容 add，**MUST NOT** 产生 `⊥`；不同 digest **MUST** 在 projection 前拒绝并触发 `suspended` 诊断。`found` 至少需要一份合法 endorsement；部署 **MAY** 登记要求双方 endorsement 的更高 profile，但 base **MUST NOT** 因两人同时 endorse 而失败。
+```text
+binding_object = {
+  "pair_key": pair_key,
+  "participants_unordered": [p0, p1],
+  "realm_id": realm_id,
+  "main_strand_id": main_strand_id,
+  "founding_unit_digest": founding_unit_digest,
+  "authorization_basis": {
+    "kind": authorization_basis.kind,
+    "event_refs": [e0, e1]
+  },
+  "initial_exact_pair_generation_ref": initial_exact_pair_generation_ref
+}
+
+binding_digest = H("ak.direct-conversation.binding-digest.v1", binding_object)
+```
+
+`H` 的精确定义见 §2：实际前像为 `UTF8("ak.direct-conversation.binding-digest.v1\n") || RFC8785_JCS(binding_object)`，结果为 `sha256:<lowercase-hex>`。`created_at`、Event envelope 的 author/proof 与 `binding_digest` 本身都不在 `binding_object` 中，因而不存在“先放入再排除”或自指前像。实现 **MUST** 执行 [`ak.vector.direct_conversation.binding_digest.v1`](../../artifacts/registry/vector-registry.json) 的逐字节 KAT，**MUST NOT** 使用无 domain 的 `SHA256(JCS(payload - created_at))`。
+
+binding cell **MUST** 为 `or_set`，contract concurrency class 为 `merge_safe`。core OR-Set 元素身份仍是 [`../models/event-and-patch.md` §2.4.2](../models/event-and-patch.md) 定义的 Event dot，registry 仍精确投影 `tag={dot:true}, value=payload`；`(binding_digest, envelope.actor_id)` 是 Direct Conversation 领域视图的 **endorsement identity / 去重键**，不是 core OR-Set tag，也不是 wire 字段。同一 participant 对同一 digest 的多条 Event 在领域视图只计一个 endorsement；双方对相同 semantic payload 并发签名是两个兼容 add，**MUST NOT** 产生 `⊥`；不同 digest **MUST** 在 effect projection 前拒绝并触发 `suspended` 诊断。`found` 至少需要一份合法 endorsement；部署 **MAY** 登记要求双方 endorsement 的更高 profile，但 base **MUST NOT** 因两人同时 endorse 而失败。
 
 binding **MUST NOT** 携带 `binding_state`、`supersedes_binding_ref`、永久 `mls_group_id` 或 consume receipt，也 **MUST NOT** 改变 membership、MLS、policy 或 Realm 坐标；若未来增加此类字段，**MUST** 拆为独立 `security_barrier` Move。
 
@@ -413,7 +432,7 @@ Conformance **MUST** 覆盖：
 - pair materialization conflict：模拟受信 service 对同 pair 签出两份不同 unit/receipt 时两 Realm 全部冻结，**MUST NOT** 按 UUID 或到达时间选 winner，也 **MUST NOT** 发 tombstone；
 - 同对象 UUID 不同 Genesis 继续走 `object_identity_conflict`，**MUST NOT** 与 pair materialization conflict 合并为一个 selector；
 - 终态：`destroy` 与任意 `tombstone` 拒绝；合法 archive/freeze 及其反向操作沿普通路径生效且坐标不变；违规 terminal 后 slot 保持关闭且 resolver `suspended`；
-- binding：双方并发同 semantic endorsement 得到两个元素且不 `⊥`；同 actor 重复只计一个；不同 semantic digest 在 projection 前拒绝；current Contact/service refresh 不改 binding digest；
+- binding：逐字节 KAT 覆盖固定 domain、closed `binding_object`、participants / authorization refs 换序归一、`created_at` 与 Event author/proof 排除，任一语义字段改变必须产生不同 digest；双方并发同 semantic endorsement 得到两个 core OR-Set dot 且不 `⊥`；同 actor 重复在领域视图只计一个；不同 semantic digest 在 effect projection 前拒绝；current Contact/service refresh 不改 binding digest；
 - owned Agent：controller↔own-Agent 只携 `direct_conversation_agent_provision` 时命中 DM variant；改携既有 `agent_provision`、同时携两个 DM roles 或 DM/PCR variants 多命中均零写入拒绝；Agent↔第三方分别覆盖 founder=Agent 与 founder=other；
 - 隐私：非 participant 对任意阶段的 pair 查询与不存在逐字相同。
 

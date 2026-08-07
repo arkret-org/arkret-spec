@@ -4450,7 +4450,7 @@
     },
     "direct_conversation_bound_payload": {
       "type": "object",
-      "description": "Participant endorsement of the settled Direct Conversation coordinates and of the first exact-pair MLS generation. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact basis may author the founding unit. Written once and never retired, so it carries no binding_state, no supersedes ref and no permanent mls_group_id; participant authority always reads the current active MLS generation.",
+      "description": "Participant endorsement of the settled Direct Conversation coordinates and of the first exact-pair MLS generation. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact basis may author the founding unit. Written once and never retired, so it carries no binding_state, no supersedes ref and no permanent mls_group_id; participant authority always reads the current active MLS generation. binding_digest is a receiver-derived off-wire semantic digest over the closed normalized binding object defined by contact-and-direct-conversation.md section 8.3 and MUST NOT be added to this payload.",
       "required": [
         "pair_key",
         "participants_unordered",
@@ -4465,7 +4465,7 @@
         "pair_key": {
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Canonical unordered pair key: sha256(JCS({participants:[p0,p1],trust_domain})) where p0/p1 are canonical stable subject DIDs sorted by unsigned UTF-8 byte order. Receivers MUST recompute it exactly as contact-and-direct-conversation.md §7 defines; handles and unresolved pairwise DIDs are forbidden inputs."
+          "description": "Canonical unordered pair key: SHA-256(UTF8(ak.direct-conversation.pair-key.v1 followed by LF) || JCS({participants:[p0,p1],trust_domain_id})) where p0/p1 are canonical stable subject DIDs sorted by unsigned UTF-8 byte order. Receivers MUST recompute it exactly as contact-and-direct-conversation.md section 5.1 defines; handles and unresolved pairwise DIDs are forbidden inputs."
         },
         "participants_unordered": {
           "type": "array",
@@ -4516,7 +4516,7 @@
         "pair_key": {
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Canonical unordered pair key: sha256(JCS({participants:[p0,p1],trust_domain})) where p0/p1 are canonical stable subject DIDs sorted by unsigned UTF-8 byte order. Receivers MUST recompute it exactly as contact-and-direct-conversation.md §7 defines; handles and unresolved pairwise DIDs are forbidden inputs."
+          "description": "Canonical unordered pair key: SHA-256(UTF8(ak.direct-conversation.pair-key.v1 followed by LF) || JCS({participants:[p0,p1],trust_domain_id})) where p0/p1 are canonical stable subject DIDs sorted by unsigned UTF-8 byte order. Receivers MUST recompute it exactly as contact-and-direct-conversation.md section 5.1 defines; handles and unresolved pairwise DIDs are forbidden inputs."
         },
         "mls_generation": {
           "type": "integer",

@@ -7,7 +7,7 @@
     "ak.vector.direct_conversation.stable_allocation.v1",
     "ak.vector.direct_conversation.suspend_rejoin.v1"
   ],
-  "version": "2026-08-02",
+  "version": "2026-08-07",
   "spec_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#6-direct-conversation-resolver",
   "source_refs": [
     "spec/v1/zh/identity/contact-and-direct-conversation.md",
@@ -72,7 +72,7 @@
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
-        "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
+        "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
         "participants_unordered": [
           "did:webvh:z6mkfixture:alice.example",
           "did:webvh:z6mkfixture:bob.example"
@@ -99,7 +99,7 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
-        "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
+        "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
         "participants_unordered": [
           "did:webvh:z6mkfixture:alice.example",
           "did:webvh:z6mkfixture:bob.example"
@@ -127,7 +127,7 @@
       "instance": {
         "state": "found",
         "coordinates": {
-          "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
+          "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
           "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
           "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
           "binding_event_ref": "ak:event:0196419b-0000-8000-8000-000000000309"
@@ -144,7 +144,7 @@
       "instance": {
         "state": "suspended",
         "coordinates": {
-          "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
+          "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
           "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
           "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
           "binding_event_ref": "ak:event:0196419b-0000-8000-8000-000000000309"
@@ -189,7 +189,7 @@
       "expected_reason_code": "schema_violation",
       "instance": {
         "state": "found",
-        "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
+        "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
         "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
         "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
         "binding_event_ref": "ak:event:0196419b-0000-8000-8000-000000000309",

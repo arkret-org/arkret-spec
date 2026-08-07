@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.encoding.core.v1"
   },
   "profile": "ak.vector_group.encoding.v1",
-  "version": "2026-07-30",
+  "version": "2026-08-07",
   "description": "Machine-readable encoding & crypto vectors mirrored from zh/conformance/conformance-vectors.md §1.3-§1.13. Conformance runners MUST execute every vector and compare canonical_bytes / digest / order outputs. The crypto.ed25519_detached_jws vector lives separately in crypto-signature-fixture.json; the rank_order vector covers hex-Base32 rank string ordering (LIST item placement).",
   "generator_semantics": "Vectors of kind *_reject_generated carry a `generator` object instead of literal input bytes: the runner MUST construct the input at execution time from the generator parameters (e.g. nesting_depth, array_item_count) following the generator.rule text, so the fixture never stores megabyte-scale literals. Rejection is asserted exactly as for literal-input vectors.",
   "vectors": [
@@ -690,21 +690,117 @@
     },
     {
       "vector_id": "ak.vector.direct_conversation.pair_key.v1",
-      "kind": "canonical_json_digest",
+      "kind": "domain_separated_canonical_json_digest",
+      "domain_separator_utf8": "ak.direct-conversation.pair-key.v1\n",
       "input": {
         "participants": [
           "did:webvh:z6mkfixture:alice.example",
           "did:webvh:z6mkfixture:bob.example"
         ],
-        "trust_domain": "ak:trust_domain:example.test"
+        "trust_domain_id": "ak:trust_domain:example.test"
       },
-      "expected_canonical_bytes_utf8": "{\"participants\":[\"did:webvh:z6mkfixture:alice.example\",\"did:webvh:z6mkfixture:bob.example\"],\"trust_domain\":\"ak:trust_domain:example.test\"}",
-      "expected_digest": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
+      "expected_canonical_bytes_utf8": "{\"participants\":[\"did:webvh:z6mkfixture:alice.example\",\"did:webvh:z6mkfixture:bob.example\"],\"trust_domain_id\":\"ak:trust_domain:example.test\"}",
+      "digest_input_hex": "616b2e6469726563742d636f6e766572736174696f6e2e706169722d6b65792e76310a7b227061727469636970616e7473223a5b226469643a77656276683a7a366d6b666978747572653a616c6963652e6578616d706c65222c226469643a77656276683a7a366d6b666978747572653a626f622e6578616d706c65225d2c2274727573745f646f6d61696e5f6964223a22616b3a74727573745f646f6d61696e3a6578616d706c652e74657374227d",
+      "expected_digest": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
       "rules": [
         "resolve every participant identifier to its stable subject DID before constructing the input; an unresolved pairwise DID fails closed",
         "sort the two normalized stable subject DIDs by unsigned UTF-8 byte order before constructing participants",
-        "canonicalize exactly {participants:[p0,p1],trust_domain:realm_trust_domain} with JCS and compute SHA-256; the resulting sha256:<lowercase-hex> value is pair_key",
+        "canonicalize exactly {participants:[p0,p1],trust_domain_id:realm_trust_domain_id} with JCS and compute SHA-256 over UTF8(ak.direct-conversation.pair-key.v1 followed by LF) concatenated with those canonical bytes; the resulting sha256:<lowercase-hex> value is pair_key",
         "reversing the caller-supplied participant order MUST yield the same pair_key after the required sort"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.binding_digest.v1",
+      "kind": "domain_separated_canonical_json_digest",
+      "domain_separator_utf8": "ak.direct-conversation.binding-digest.v1\n",
+      "input": {
+        "authorization_basis": {
+          "event_refs": [
+            "ak:event:0196419b-0000-8000-8000-000000000301",
+            "ak:event:0196419b-0000-8000-8000-000000000308"
+          ],
+          "kind": "accepted_contact"
+        },
+        "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "initial_exact_pair_generation_ref": "ak:event:0196419b-0000-8000-8000-00000000030a",
+        "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
+        "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
+        "participants_unordered": [
+          "did:webvh:z6mkfixture:alice.example",
+          "did:webvh:z6mkfixture:bob.example"
+        ],
+        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101"
+      },
+      "expected_canonical_bytes_utf8": "{\"authorization_basis\":{\"event_refs\":[\"ak:event:0196419b-0000-8000-8000-000000000301\",\"ak:event:0196419b-0000-8000-8000-000000000308\"],\"kind\":\"accepted_contact\"},\"founding_unit_digest\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"initial_exact_pair_generation_ref\":\"ak:event:0196419b-0000-8000-8000-00000000030a\",\"main_strand_id\":\"ak:strand:0196419b-0000-8000-8000-000000000201\",\"pair_key\":\"sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5\",\"participants_unordered\":[\"did:webvh:z6mkfixture:alice.example\",\"did:webvh:z6mkfixture:bob.example\"],\"realm_id\":\"ak:realm:0196419b-0000-8000-8000-000000000101\"}",
+      "digest_input_hex": "616b2e6469726563742d636f6e766572736174696f6e2e62696e64696e672d6469676573742e76310a7b22617574686f72697a6174696f6e5f6261736973223a7b226576656e745f72656673223a5b22616b3a6576656e743a30313936343139622d303030302d383030302d383030302d303030303030303030333031222c22616b3a6576656e743a30313936343139622d303030302d383030302d383030302d303030303030303030333038225d2c226b696e64223a2261636365707465645f636f6e74616374227d2c22666f756e64696e675f756e69745f646967657374223a227368613235363a62626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262222c22696e697469616c5f65786163745f706169725f67656e65726174696f6e5f726566223a22616b3a6576656e743a30313936343139622d303030302d383030302d383030302d303030303030303030333061222c226d61696e5f737472616e645f6964223a22616b3a737472616e643a30313936343139622d303030302d383030302d383030302d303030303030303030323031222c22706169725f6b6579223a227368613235363a65386332346331626164633438656566613437326131373030653837613635393761393561656466616238636265333137336631363232623961643432376235222c227061727469636970616e74735f756e6f726465726564223a5b226469643a77656276683a7a366d6b666978747572653a616c6963652e6578616d706c65222c226469643a77656276683a7a366d6b666978747572653a626f622e6578616d706c65225d2c227265616c6d5f6964223a22616b3a7265616c6d3a30313936343139622d303030302d383030302d383030302d303030303030303030313031227d",
+      "expected_digest": "sha256:bda6045ed2af5f51dc19296b3c1f906f415a329c9d65c3da40b1d063b68773a8",
+      "normalization_cases": [
+        {
+          "name": "unordered_inputs_created_at_and_event_context_do_not_change_digest",
+          "payload": {
+            "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
+            "participants_unordered": [
+              "did:webvh:z6mkfixture:bob.example",
+              "did:webvh:z6mkfixture:alice.example"
+            ],
+            "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
+            "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
+            "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "authorization_basis": {
+              "kind": "accepted_contact",
+              "event_refs": [
+                "ak:event:0196419b-0000-8000-8000-000000000308",
+                "ak:event:0196419b-0000-8000-8000-000000000301"
+              ]
+            },
+            "initial_exact_pair_generation_ref": "ak:event:0196419b-0000-8000-8000-00000000030a",
+            "created_at": "2026-08-07T12:34:56.000Z"
+          },
+          "event_context": {
+            "actor_id": "did:webvh:z6mkfixture:bob.example",
+            "proof": "not-part-of-binding-object"
+          },
+          "expected_digest": "sha256:bda6045ed2af5f51dc19296b3c1f906f415a329c9d65c3da40b1d063b68773a8"
+        }
+      ],
+      "mutation_cases": [
+        {
+          "name": "omit_domain_separator",
+          "digest_input_hex": "7b22617574686f72697a6174696f6e5f6261736973223a7b226576656e745f72656673223a5b22616b3a6576656e743a30313936343139622d303030302d383030302d383030302d303030303030303030333031222c22616b3a6576656e743a30313936343139622d303030302d383030302d383030302d303030303030303030333038225d2c226b696e64223a2261636365707465645f636f6e74616374227d2c22666f756e64696e675f756e69745f646967657374223a227368613235363a62626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262222c22696e697469616c5f65786163745f706169725f67656e65726174696f6e5f726566223a22616b3a6576656e743a30313936343139622d303030302d383030302d383030302d303030303030303030333061222c226d61696e5f737472616e645f6964223a22616b3a737472616e643a30313936343139622d303030302d383030302d383030302d303030303030303030323031222c22706169725f6b6579223a227368613235363a65386332346331626164633438656566613437326131373030653837613635393761393561656466616238636265333137336631363232623961643432376235222c227061727469636970616e74735f756e6f726465726564223a5b226469643a77656276683a7a366d6b666978747572653a616c6963652e6578616d706c65222c226469643a77656276683a7a366d6b666978747572653a626f622e6578616d706c65225d2c227265616c6d5f6964223a22616b3a7265616c6d3a30313936343139622d303030302d383030302d383030302d303030303030303030313031227d",
+          "expected_digest": "sha256:cfca27711f2a5cbe127a439742536b33ed016f986a58827129aa7943f6a2fc3b",
+          "must_not_equal_valid": true
+        },
+        {
+          "name": "semantic_main_strand_change",
+          "domain_separator_utf8": "ak.direct-conversation.binding-digest.v1\n",
+          "input": {
+            "authorization_basis": {
+              "event_refs": [
+                "ak:event:0196419b-0000-8000-8000-000000000301",
+                "ak:event:0196419b-0000-8000-8000-000000000308"
+              ],
+              "kind": "accepted_contact"
+            },
+            "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "initial_exact_pair_generation_ref": "ak:event:0196419b-0000-8000-8000-00000000030a",
+            "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000202",
+            "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
+            "participants_unordered": [
+              "did:webvh:z6mkfixture:alice.example",
+              "did:webvh:z6mkfixture:bob.example"
+            ],
+            "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101"
+          },
+          "expected_canonical_bytes_utf8": "{\"authorization_basis\":{\"event_refs\":[\"ak:event:0196419b-0000-8000-8000-000000000301\",\"ak:event:0196419b-0000-8000-8000-000000000308\"],\"kind\":\"accepted_contact\"},\"founding_unit_digest\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"initial_exact_pair_generation_ref\":\"ak:event:0196419b-0000-8000-8000-00000000030a\",\"main_strand_id\":\"ak:strand:0196419b-0000-8000-8000-000000000202\",\"pair_key\":\"sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5\",\"participants_unordered\":[\"did:webvh:z6mkfixture:alice.example\",\"did:webvh:z6mkfixture:bob.example\"],\"realm_id\":\"ak:realm:0196419b-0000-8000-8000-000000000101\"}",
+          "expected_digest": "sha256:5c33f6fdb6b91503ba85f6e9487aa3877b2044b643ed8832425bd344298f070a",
+          "must_not_equal_valid": true
+        }
+      ],
+      "rules": [
+        "binding_digest is receiver-derived and MUST NOT appear in direct_conversation_bound_payload",
+        "sort participants_unordered and authorization_basis.event_refs by unsigned UTF-8 bytes before constructing the closed binding object",
+        "created_at and Event author/proof are absent from the binding object and therefore cannot affect the digest",
+        "the core OR-Set tag remains the canonical Event dot; (binding_digest, actor_id) is the domain-view endorsement identity only"
       ]
     },
     {

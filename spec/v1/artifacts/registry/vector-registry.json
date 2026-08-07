@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.4",
+  "version": "2026-08-07",
   "source_of_truth": true,
-  "generated_at": "2026-08-06T16:00:00Z",
+  "generated_at": "2026-08-07T00:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1743,6 +1743,19 @@
       ],
       "description": "Canonical direct-conversation pair_key KAT over sorted stable subject DIDs and the Realm trust domain, including order-independence and unresolved-pairwise-DID rejection rules.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.binding_digest.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
+      "description": "Byte-exact KAT for the receiver-derived off-wire Direct Conversation binding digest: fixed v1 domain separator, closed normalized binding object, unordered participant and authorization-ref normalization, created_at and Event-context exclusion, and semantic-field mutation separation.",
+      "source_refs": [
+        "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
     },
