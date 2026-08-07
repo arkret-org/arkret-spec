@@ -160,6 +160,17 @@
       }
     },
     {
+      "name": "full_digest_single_bit_difference_changes_event_id",
+      "vector_id": "ak.vector.event_id.content_bound.v1",
+      "first_event_id": "ak:event:AUkO_nXXo-Wk_xfqrNVTjCRCKLK_dvLWxAu4HvQLQFnV",
+      "second_event_id": "ak:event:AUkO_nXXo-Wk_xfqrNVTjCRCKLK_dvLWxAu4HvQLQFnU",
+      "expected": {
+        "outcome": "accepted",
+        "ids_equal": false,
+        "differing_digest_bits": 1
+      }
+    },
+    {
       "name": "suite_code_mismatch_rejected",
       "vector_id": "ak.vector.event_id.content_bound.v1",
       "mutation": "replace 0x01 with active 0x02 while retaining sha256 digest",

@@ -2546,7 +2546,7 @@ holder 客户端校验"三点。服务端只见 key 与密文。
 Cases：
 
 1. **key pattern 闭合**：两个 namespace MUST 只接受完整 typed id 尾缀
-   （`ak.views.private.ak:view:<content-bound-uuidv8>`、`ak.notifications.inbox.ak:notification:<uuidv7>`）。
+   （`ak.views.private.ak:view:<44-char-event-token>`、`ak.notifications.inbox.ak:notification:<uuidv7>`）。
    裸 namespace（`ak.views.private`）、空尾缀（`ak.views.private.`）、非 typed id 尾缀与
    跨 kind 尾缀 MUST 拒绝；实现 MUST NOT 让它们落到未注册 key 的宽松兜底分支。
 2. **storage=encrypted_account_data**：把 `ak.schema.view.v1` 明文（含 `title` / `query` /
@@ -4081,7 +4081,7 @@ Steps:
 Expected:
 
 - 并发 create MUST 收敛到唯一 Sidecar；`sidecar_id` MUST 等于从胜出 create Event 的 `event_id` 按
-  `id_kind=sidecar` 派生的 UUIDv8 typed ID。调用方不得提交或覆盖 `sidecar_id`。
+  `id_kind=sidecar` 重类型得到的同一 44 字符 Event token。调用方不得提交或覆盖 `sidecar_id`。
 - exact draft 可接受；任一被变异的 draft MUST conflict 且零写入。重放已接受 draft MUST 幂等返回同一 Sidecar。
 - context attach 只投影 `(sidecar_id, source_context_ref)` 映射，不创建 Circle、membership、Strand 或 Relation。
   同一映射重放幂等；另一来源上下文产生另一映射，但仍复用同一 Sidecar。

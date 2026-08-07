@@ -3724,6 +3724,7 @@ def check_content_bound_event_id_fixture(lint: Lint) -> None:
     if data.get("generated_by") != "tools/generate_content_bound_event_id_fixture.py":
         lint.fail(path, "suite-tagged Event-ID fixture must name its deterministic generator")
     required = {
+        "full_digest_single_bit_difference_changes_event_id",
         "suite_code_mismatch_rejected",
         "invalid_zero_suite_code_rejected",
         "reserved_suite_code_rejected",
@@ -3761,7 +3762,26 @@ def check_content_bound_event_id_fixture(lint: Lint) -> None:
             if hashlib.sha256(preimage.encode("utf-8")).digest() != digest:
                 lint.fail(path, f"{name}: stated SHA-256 digest preimage mismatch")
     for name in sorted(required - names):
-        lint.fail(path, f"missing Event-ID negative case {name}")
+        lint.fail(path, f"missing required Event-ID case {name}")
+    single_bit_case = next(
+        (
+            case
+            for case in data.get("cases", [])
+            if isinstance(case, dict)
+            and case.get("name") == "full_digest_single_bit_difference_changes_event_id"
+        ),
+        None,
+    )
+    if isinstance(single_bit_case, dict):
+        try:
+            first = base64.urlsafe_b64decode(single_bit_case["first_event_id"].split(":", 2)[2] + "==")
+            second = base64.urlsafe_b64decode(single_bit_case["second_event_id"].split(":", 2)[2] + "==")
+        except (KeyError, ValueError):
+            lint.fail(path, "single-bit Event-ID case contains an invalid typed ID")
+        else:
+            differing_bits = sum((left ^ right).bit_count() for left, right in zip(first, second, strict=True))
+            if len(first) != 33 or len(second) != 33 or first[0] != second[0] or differing_bits != 1:
+                lint.fail(path, "single-bit Event-ID case must differ by exactly one digest bit")
 
 
 def check_event_reference_inventory(lint: Lint) -> None:
@@ -3792,9 +3812,9 @@ def check_event_reference_inventory(lint: Lint) -> None:
 def check_retired_event_id_contract(lint: Lint) -> None:
     retired = re.compile(r"UUIDv8|uuidv8|34[- ]bit|88[- ]bit|11[- ]octet|248[- ]bit|31[- ]octet prefix|公元 2514|时间戳段")
     owners = [
-        SPEC_ROOT / "zh/conformance/encoding.md",
-        SPEC_ROOT / "zh/conformance/scalability-constraints.md",
-        SPEC_ROOT / "zh/models/common-fields.md",
+        *sorted((SPEC_ROOT / "zh").rglob("*.md")),
+        *sorted((ARTIFACTS / "schemas").glob("*.json")),
+        ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml",
         ARTIFACTS / "registry/digest-suite-registry.json",
         ARTIFACTS / "registry/id-kind-registry.json",
         ARTIFACTS / "registry/vector-registry.json",
@@ -3804,7 +3824,16 @@ def check_retired_event_id_contract(lint: Lint) -> None:
         if match:
             lint.fail(path, f"retired Event-ID contract term remains: {match.group(0)!r}")
     old_pattern = "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"
-    retired_event_derived_kinds = {"actor_profile", "circle", "message", "morph", "relation", "space", "strand", "view"}
+    id_registry_path = ARTIFACTS / "registry" / "id-kind-registry.json"
+    id_registry = load_json(lint, id_registry_path)
+    id_rows = id_registry.get("id_kinds", []) if isinstance(id_registry, dict) else []
+    retired_event_derived_kinds = {
+        row.get("kind")
+        for row in id_rows
+        if isinstance(row, dict)
+        and row.get("id_form") == "event_derived"
+        and isinstance(row.get("kind"), str)
+    }
     for path in sorted((ARTIFACTS / "schemas").glob("*.json")):
         schema_text = read_text(path)
         if old_pattern in schema_text:

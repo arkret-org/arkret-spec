@@ -46,7 +46,7 @@ Schema id：`ak.schema.agent_sidecar.v1`。
 
 | 字段 | 必填 | 类型 | 约束 |
 | --- | --- | --- | --- |
-| `id` | yes | `id:sidecar` | Event-derived UUIDv8；`retype(create_event.event_id,"sidecar")` |
+| `id` | yes | `id:sidecar` | Event-derived 44 字符 token；`retype(create_event.event_id,"sidecar")` |
 | `schema` | yes | const | `ak.schema.agent_sidecar.v1` |
 | `realm_id` | yes | `id:realm` | 从 create Event scope 派生，create-locked |
 | `controller_id` | yes | DID | 等于 create Event `actor_id`，create-locked |
@@ -66,7 +66,7 @@ Schema id：`ak.schema.agent_sidecar.v1`。
 `ak.sidecar.create` 是 Sidecar 唯一 genesis Event：
 
 ```text
-sidecar_id = retype_uuidv8(event.event_id, "sidecar")
+sidecar_id = retype_event_token(event.event_id, "sidecar")
 realm_id = event.scope_ref.realm_id
 controller_id = event.actor_id
 created_at = event.created_at

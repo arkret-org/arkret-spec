@@ -82,7 +82,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "03d5026fb5abb4f237175160c3497be51832885a66fbbb6e5fa85b370c6413aa"
+      "sha256": "15437a68ccef73863594fdb8a2f4e622079b0b501d9acf893b7ae98f3aac94f9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/control-proposal-ack-fixture.json",

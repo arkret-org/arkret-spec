@@ -55,7 +55,7 @@ Authorization condition: Claim / Attestation
 
 ID 语义：
 
-- `ak:grant:<uuidv8>` 是 durable Capability Grant fact 的规范 ID，由 `ak.capability.grant` Event ID 重类型派生。create payload 同时省略顶层 `grant_id` 和 `grant.id`；reducer 在 `ak.schema.capability.v1` 投影中插入 `id`。grant reference 和 revoke payload 使用该派生 ID；body 本身无签名，签名位于承载它的 Event envelope proof。
+- `ak:grant:<44-char-event-token>` 是 durable Capability Grant fact 的规范 ID，由 `ak.capability.grant` Event ID 重类型派生。create payload 同时省略顶层 `grant_id` 和 `grant.id`；reducer 在 `ak.schema.capability.v1` 投影中插入 `id`。grant reference 和 revoke payload 使用该派生 ID；body 本身无签名，签名位于承载它的 Event envelope proof。
 - `ak:capability:<uuid>` 只表示抽象 capability definition 引用；MUST NOT 作为 durable grant fact ID 使用。
 
 下例是 reducer 物化后的完整 Grant 对象，不是 create Event payload：

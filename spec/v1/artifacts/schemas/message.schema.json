@@ -107,7 +107,7 @@
     "id": {
       "type": "string",
       "pattern": "^ak:message:[A-Za-z0-9_-]{44}$",
-      "description": "For ak.message.create, the reducer derives this value by retyping the content-bound UUIDv8 of the creating Event.event_id from ak:event: to ak:message:. It is not independently producer-chosen."
+      "description": "For ak.message.create, the reducer derives this value by retyping the creating Event.event_id's full 33-byte / 44-character token from ak:event: to ak:message:. It is not independently producer-chosen."
     },
     "schema": {
       "const": "ak.schema.message.v1"

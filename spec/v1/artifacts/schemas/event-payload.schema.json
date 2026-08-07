@@ -6141,7 +6141,7 @@
           }
         },
         {
-          "$comment": "ak.message.create payload MUST NOT carry message_id. The materialized Message.id is obtained by retyping the content-bound UUIDv8 of Event.event_id; a second identity would create a conflicting truth source. See zh/models/strand-and-message.md §9 and forbidden-wire-fields.json `message_id/message_create_payload`.",
+          "$comment": "ak.message.create payload MUST NOT carry message_id. The materialized Message.id is obtained by retyping the creating Event.event_id's full 33-byte / 44-character token; a second identity would create a conflicting truth source. See zh/models/strand-and-message.md §9 and forbidden-wire-fields.json `message_id/message_create_payload`.",
           "not": {
             "required": [
               "message_id"

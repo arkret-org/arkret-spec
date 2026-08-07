@@ -70,6 +70,22 @@ def main() -> int:
     names = {case.get("name") for case in data["cases"]}
     for missing in sorted(required_negative_cases - names):
         errors.append(f"missing negative case: {missing}")
+    single_bit_case = next(
+        (case for case in data["cases"] if case.get("name") == "full_digest_single_bit_difference_changes_event_id"),
+        None,
+    )
+    if not isinstance(single_bit_case, dict):
+        errors.append("missing positive case: full_digest_single_bit_difference_changes_event_id")
+    else:
+        try:
+            first = base64.urlsafe_b64decode(single_bit_case["first_event_id"].split(":", 2)[2] + "==")
+            second = base64.urlsafe_b64decode(single_bit_case["second_event_id"].split(":", 2)[2] + "==")
+        except (KeyError, ValueError):
+            errors.append("single-bit Event-ID case contains an invalid typed ID")
+        else:
+            differing_bits = sum((left ^ right).bit_count() for left, right in zip(first, second, strict=True))
+            if len(first) != 33 or len(second) != 33 or first[0] != second[0] or differing_bits != 1:
+                errors.append("single-bit Event-ID case must differ by exactly one digest bit")
     for error in errors:
         print(error)
     if errors:
