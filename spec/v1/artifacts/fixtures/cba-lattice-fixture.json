@@ -708,6 +708,54 @@
       "vector_id": "ak.vector.cba_lattice.notary_fault_equivocation_quarantine.v1"
     },
     {
+      "name": "sealed_control_move_full_digest_collision",
+      "description": "Two different canonical preimages recompute to the same event_id under one suite, and the colliding Control Move is already covered by an accepted Seal. Unlike notary equivocation, the sibling event_digest values are byte-identical, so no digest can name the winner.",
+      "vector_id": "ak.vector.cba_lattice.sealed_control_move_full_digest_collision.v1",
+      "colliding_identity": {
+        "event_id": "ak:event:AUl7i16DNG_PX5V_-ud5fDx65PwcMpaj4uSW2K4C0Ev9",
+        "digest_suite": "sha256",
+        "note": "variant_a and variant_b share this event_id and event_digest byte for byte"
+      },
+      "sealed_state": {
+        "seal_covered_variant": "variant_a",
+        "materialized_reducer_output_from": "variant_a_canonical_bytes"
+      },
+      "expected": {
+        "quarantine_group": [
+          "variant_a",
+          "variant_b",
+          "event_derived_objects_of_either_variant",
+          "non_final_writes_of_either_variant",
+          "successors_referencing_the_event_id"
+        ],
+        "subsequent_control_moves_for_actor": "fail_closed",
+        "accepted_seal_commitments": "unchanged",
+        "recompute_sealed_state_root": "forbidden",
+        "receiver_without_retained_canonical_bytes": "range_unverifiable_fail_closed",
+        "compaction_across_unresolved_range": "forbidden"
+      },
+      "resolution_cases": [
+        {
+          "name": "resolution_names_winner_by_digest_only",
+          "fork_resolution_identifies_winner_by": "event_digest",
+          "expected": "reject",
+          "reason_code": "witness_disagreement"
+        },
+        {
+          "name": "resolution_names_winner_by_canonical_bytes",
+          "fork_resolution_identifies_winner_by": "canonical_bytes",
+          "expected": "accept"
+        },
+        {
+          "name": "cross_suite_discriminator_is_diagnostic_only",
+          "fork_resolution_identifies_winner_by": "blake3_digest_of_same_preimage",
+          "expected": "reject",
+          "reason_code": "witness_disagreement",
+          "note": "blake3 is profile-gated v1_optional_interop, so a peer may be unable to verify it"
+        }
+      ]
+    },
+    {
       "name": "threshold_forensic_attribution",
       "description": "Threshold notary forensic_attribution must match the quorum-intersection arithmetic rule.",
       "cases": [

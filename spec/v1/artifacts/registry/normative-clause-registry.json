@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.3",
+  "version": "2026-08-08.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T10:00:00Z",
+  "generated_at": "2026-08-08T11:00:00Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -230,7 +230,7 @@
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1",
-      "ak.vector.direct_conversation.founding_unit.v1",
+        "ak.vector.direct_conversation.founding_unit.v1",
         "ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1",
         "ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1",
         "ak.vector.identity.root_anchor_exclusivity.v1",
@@ -243,15 +243,16 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:cb98df65336d726d9a350fdda3fba3ee89d0eb15fd5384d7ce959d9ad413f485",
-      "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, and equivocating notaries are quarantined instead of silently merged.",
+      "section_digest": "sha256:8bb4ced0803a8561f1dff92dcb23b35d98c48ecf099ee2c916d608c799b21efc",
+      "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.cba_lattice.seal_canonical_no_self_reference.v1",
         "ak.vector.cba_lattice.seal_delta_excludes_data_event_digest.v1",
         "ak.vector.cba_lattice.open_set_compaction_preserves_control_roots.v1",
         "ak.vector.cba_lattice.notary_fault_equivocation_quarantine.v1",
-        "ak.vector.federation.reducer_profile_resolution.v1"
+        "ak.vector.federation.reducer_profile_resolution.v1",
+        "ak.vector.cba_lattice.sealed_control_move_full_digest_collision.v1"
       ]
     },
     {

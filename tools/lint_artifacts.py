@@ -9954,6 +9954,15 @@ UNPAIRED_STATED_PREIMAGE_KEYS: dict[str, str] = {
         "the digest beside it is composite (metadata bytes || ciphertext) and is checked "
         "by check_encrypted_envelope_digest_vector"
     ),
+    "receiver_without_retained_canonical_bytes": (
+        "names the receiver behaviour when the bytes are absent; under a full-digest "
+        "collision no digest can identify which preimage the Seal covered, which is the "
+        "point of the vector"
+    ),
+    "materialized_reducer_output_from": (
+        "names which colliding variant's bytes the receiver already applied; the two "
+        "variants share one digest, so no digest can distinguish them"
+    ),
     "event_preimage_digest": "a digest field, not a stated preimage",
     "public_key_canonical_bytes": (
         "carries the assertion word 'stable' in the device-pairing edge case, not bytes"

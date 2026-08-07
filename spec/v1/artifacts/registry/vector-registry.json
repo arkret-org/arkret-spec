@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.4",
+  "version": "2026-08-08.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T07:00:00Z",
+  "generated_at": "2026-08-08T11:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1454,6 +1454,17 @@
       ]
     },
     {
+      "vector_id": "ak.vector.cba_lattice.sealed_control_move_full_digest_collision.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.cba_lattice.threshold_forensic_attribution.v1",
       "status": "active",
       "domain": "cba_lattice",
@@ -1748,18 +1759,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.direct_conversation.pair_key.v1",
-      "status": "active",
-      "domain": "direct_conversation",
-      "applies_to_fixtures": [
-        "encoding-fixture.json"
-      ],
-      "description": "Canonical direct-conversation pair_key KAT over sorted stable subject DIDs and the Realm trust domain, including order-independence and unresolved-pairwise-DID rejection rules.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/encoding-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.direct_conversation.binding_digest.v1",
       "status": "active",
       "domain": "direct_conversation",
@@ -1773,14 +1772,15 @@
       ]
     },
     {
-      "vector_id": "ak.vector.direct_conversation.realm_shape.v1",
+      "vector_id": "ak.vector.direct_conversation.founding_admission.v1",
       "status": "active",
       "domain": "direct_conversation",
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "Direct Conversation Realm profile/discriminator bidirectional schema guard, MLS and closed-join shape, exact-two membership, no-Space policy and main-Strand invariants.",
+      "description": "One accepted founding unit per (founder_id, trust_domain_id, pair_key) slot across same-Principal-Server, dual-Principal-Server and founder multi-device concurrency: first valid unit wins, the loser gets direct_conversation_slot_already_committed with zero writes, exact replay returns the byte-identical receipt without advancing accepted_at, the same idempotency key with a different unit is duplicate_conflict, every crash point converges to the same coordinates, and the federation branch reports a missing bounded dependency as a top-level retryable dependency_missing rather than a partial.",
       "source_refs": [
+        "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
       ]
     },
@@ -1798,15 +1798,26 @@
       ]
     },
     {
-      "vector_id": "ak.vector.direct_conversation.founding_admission.v1",
+      "vector_id": "ak.vector.direct_conversation.pair_key.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
+      "description": "Canonical direct-conversation pair_key KAT over sorted stable subject DIDs and the Realm trust domain, including order-independence and unresolved-pairwise-DID rejection rules.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.realm_shape.v1",
       "status": "active",
       "domain": "direct_conversation",
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "One accepted founding unit per (founder_id, trust_domain_id, pair_key) slot across same-Principal-Server, dual-Principal-Server and founder multi-device concurrency: first valid unit wins, the loser gets direct_conversation_slot_already_committed with zero writes, exact replay returns the byte-identical receipt without advancing accepted_at, the same idempotency key with a different unit is duplicate_conflict, every crash point converges to the same coordinates, and the federation branch reports a missing bounded dependency as a top-level retryable dependency_missing rather than a partial.",
+      "description": "Direct Conversation Realm profile/discriminator bidirectional schema guard, MLS and closed-join shape, exact-two membership, no-Space policy and main-Strand invariants.",
       "source_refs": [
-        "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
       ]
     },

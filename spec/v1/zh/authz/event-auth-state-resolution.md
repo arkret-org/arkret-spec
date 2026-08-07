@@ -411,6 +411,17 @@ accepted Seal 的 `covered_set`、`control_event_set_root`、`completeness_root`
 
 该状态下 receiver MUST 对受影响 `(actor_id, actor_seq)` 之后的 Control Move fail closed，直到有 fork-resolution capability 的主体按 federation §4.5 证据签发 recovery / fork-resolution compaction Seal。该 Seal MUST 显式列出冲突 sibling digest 集、选定 canonical digest 或“全部作废”的归一裁决、所依据 witness / operator authorization，并从 predecessor 已承诺状态写入后继归一结果；它不能声称旧 Seal 从未覆盖原 Move。notary 在签发普通 Seal 前 SHOULD 检查 `delta[]` 中每个 Move 的已知 sibling 桶和跨桶累计计数，已越界者 MUST NOT 纳入普通 Seal。
 
+#### 6.3.3 已 Seal Control Move 的完整 digest collision（normative）
+
+上一节按 sibling **digest 可区分**书写：actor over-fork 的各 sibling 有不同 `event_digest`，因此“列出冲突 sibling digest 集、选定 canonical digest”是可执行的。同一 suite 下两个不同 canonical preimage 重算出同一
+`event_id`（[`operations-sync.md` §12](../sync/operations-sync.md)）时该前提不成立：两个变体的
+`event_digest` 逐字节相同，`covered_set`、`control_event_set_root` 与 `completeness_root` 里的 digest 无法指认 Seal 当初覆盖的是哪一个 preimage。因此本节在 §6.3.2 之上补充：
+
+1. **归一裁决 MUST 按 canonical bytes 指认，不得按 digest 指认。** fork-resolution Seal 的裁决对象 MUST 是被选中变体的完整 digest-preimage canonical bytes（内联，或经该 Seal 签名覆盖的 evidence record 引用）。receiver MUST 拒绝仅以 `event_id` / `event_digest` 指认胜出变体的 fork-resolution Seal，reason code `witness_disagreement`：在碰撞 suite 下这样的裁决没有指称。
+2. **不得事后重算历史 Seal 输入。** receiver MUST 把该 Seal 已物化的确定性 reducer 输出与它当初实际应用的 canonical bytes 一起钉住，并 MUST NOT 在检出碰撞后用任一变体重新推导它。未保留当初 bytes 的 receiver MUST 把该 Seal 覆盖区间视为不可验证并 fail closed，直到归一裁决到达；它 MUST NOT 用任取一个变体重算出的 `state_root` 冒充原承诺。
+3. **碰撞区间不得被 compaction 跨越。** compaction Seal 的意义是给新 verifier 一个有界 bootstrap 物化点（§6.2）。区间内存在未归一的完整 digest collision 时，notary MUST NOT 签发跨越该区间的 compaction Seal——新 verifier 无法从 digest 重建被覆盖的 preimage，物化点因此不可复现。归一裁决自身承载 canonical bytes，可以是 compaction Seal。
+4. **跨 suite discriminator 只是诊断。** 实现 MAY 对同一 canonical preimage 另算一个**不同** active suite 的 digest 作为紧凑区分符；由于 `blake3` 是 profile-gated 的 `v1_optional_interop`（[`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json)），它 MUST NOT 成为裁决的唯一指称，也 MUST NOT 成为对端验证该裁决的前提。
+
 ### 6.4 数据面观测承诺
 
 Seal MAY 附带：

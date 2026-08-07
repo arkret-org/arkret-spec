@@ -385,7 +385,7 @@ Snapshot 后续恢复流程：
 - `event_id` 的 raw 33-octet token（suite wire_code + full 32-octet event_digest）是 Event 相等、exact replay、canonical store 与最终去重真相源。
 - 只有相同 `event_id` 且相同 canonical preimage 的重复投递才是 exact duplicate，并 MAY 作为幂等成功处理。携带相同 ID 但重算结果不同是 `event_id_digest_mismatch`，必须在进入 ID bucket 前拒绝，不能影响既有 accepted Event。
 - 若两个不同 canonical preimage 在同一 suite 下重算出同一个 `event_id`，这是完整 hash collision evidence。提交响应 MUST 拒绝新到变体；本地状态处置 MUST 把该 ID 的全部已验证变体作为一组进入 quarantine，包括此前已 accepted 的变体、由任一变体创建的 Event-derived object、未 final writes，以及引用该 ID 的后继。先到顺序、较早 accepted 或字典序都不能证明哪一变体“正确”。
-- 节点 MUST 从所有 data cell join 输入移除这些变体经 reducer 派生的 writes；尚未被 accepted Seal 覆盖的 Control Move 同样移除。已被 accepted Seal 覆盖的控制面事实不得从 `covered_set` / `state_root` 追溯删除，按 [`event-auth-state-resolution.md` §6.3.2](../authz/event-auth-state-resolution.md) 等待 fork-resolution compaction Seal；相关 actor 的后续控制写入在归一前 fail closed。
+- 节点 MUST 从所有 data cell join 输入移除这些变体经 reducer 派生的 writes；尚未被 accepted Seal 覆盖的 Control Move 同样移除。已被 accepted Seal 覆盖的控制面事实不得从 `covered_set` / `state_root` 追溯删除，按 [`event-auth-state-resolution.md` §6.3.2](../authz/event-auth-state-resolution.md) 等待 fork-resolution compaction Seal；相关 actor 的后续控制写入在归一前 fail closed。碰撞下两个变体的 `event_digest` 相同，Seal 承诺无法指认覆盖的是哪一个 preimage，因此归一裁决按 canonical bytes 指认、历史 Seal 输入不得事后重算、碰撞区间不得被 compaction 跨越——见 [`event-auth-state-resolution.md` §6.3.3](../authz/event-auth-state-resolution.md)。
 - submit、probe、backfill 或本地审计任一路径发现完整 hash collision，都 MUST 执行同一整组 quarantine。raw/quarantine 查询以完整 Event ID 定位碰撞 bucket，并返回全部已知 canonical 变体，不得 first-row-wins。解除 quarantine 只允许走 [`federation.md` §4.5](./federation.md) 的 raw replay、quorum witness 或 operator-approved fork resolution。
 
 ## 13. 授权时序

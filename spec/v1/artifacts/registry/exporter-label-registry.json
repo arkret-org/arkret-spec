@@ -1,5 +1,5 @@
 {
-  "version": "2026-06-10",
+  "version": "2026-08-08",
   "source_of_truth": true,
   "description": "Canonical registry of all normative MLS-Exporter and MLS ExpandWithLabel domain-separation labels in Arkret v1. Each label is a wire-breaking security parameter: implementations MUST use the exact label string, primitive, and Context field shape, and MUST NOT migrate or reuse keys across distinct labels without a new profile. MLS-Exporter entries MUST NOT derive with an empty Context; an ExpandWithLabel entry follows its registered context_encoding, including an explicitly registered empty context. Domain separation is defined by exact label inequality; forbid_reuse_with is a non-exhaustive human/tooling hint and MUST NOT be interpreted as an allow-list or require symmetric closure. Per-entry defined_in points to the normative source. See zh/crypto-media/media-service-binding.md §8 and conformance/conformance-vectors.md §12.7.",
   "labels": [

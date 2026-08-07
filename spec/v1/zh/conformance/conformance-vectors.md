@@ -1308,6 +1308,35 @@ ak.vector.cba_lattice.notary_fault_equivocation_quarantine.v1
 
 失败条件：要求提交者持有 capability；fault 后整 Realm 无差别 pause；合法并发 leaf 被误判为 fault。
 
+### 2.17.1 Vector: 已 Seal Control Move 的完整 digest collision
+
+向量名称：
+
+```text
+ak.vector.cba_lattice.sealed_control_move_full_digest_collision.v1
+```
+
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6.3.3 与
+[`operations-sync.md`](../sync/operations-sync.md) §12 在**同一 suite 下两个不同 canonical preimage
+重算出同一 `event_id`** 时的处置。它与 §2.17 的分叉不同：那里各 sibling 的 `event_digest` 不同，这里逐字节相同。
+
+输入：
+
+- accepted Seal `S` 的 `covered_set` 覆盖 Control Move `M`，receiver 已按 `M` 的 canonical bytes `B_a` 物化 reducer 输出。
+- 随后经 submit / probe / backfill 任一路径出现 `B_b`：`B_b != B_a`，但同 suite 下 `event_digest(B_b) == event_digest(B_a)`，因此 `event_id` 相同。
+- 归一裁决候选两份：`R_digest` 只以 `event_id` / `event_digest` 指认胜出变体；`R_bytes` 承载被选中变体的完整 canonical bytes。
+
+期望：
+
+- `B_a`、`B_b` 与由任一变体创建的 Event-derived object、未 final writes 及引用该 ID 的后继一起整组 quarantine；受影响 `(actor_id, actor_seq)` 之后的 Control Move fail closed。
+- `S` 的 `covered_set` / `control_event_set_root` / `state_root` 保持原承诺，不被追溯删除；receiver 保留它当初按 `B_a` 物化的 reducer 输出，MUST NOT 用 `B_a` 或 `B_b` 重新推导它。
+- 未保留 `B_a` 的 receiver 把 `S` 覆盖区间标为不可验证并 fail closed，而不是用任取一变体重算的 `state_root` 冒充原承诺。
+- `R_digest` MUST 被拒绝，reason code `witness_disagreement`；`R_bytes` 才能归一。
+- 该区间未归一时，notary MUST NOT 签发跨越它的 compaction Seal。
+- 跨 suite discriminator（同一 preimage 的 `blake3` digest）MAY 作为诊断出现，但对端验证 `R_bytes` MUST NOT 以它为前提。
+
+失败条件：first-row-wins 或较早 accepted 者胜出；接受只按 digest 指认的归一裁决；碰撞区间被 compaction 跨越；把重算的 `state_root` 当作原 Seal 承诺。
+
 ### 2.18 Vector: threshold forensic attribution 声明
 
 向量名称：

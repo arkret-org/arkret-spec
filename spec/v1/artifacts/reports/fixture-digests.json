@@ -34,7 +34,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json",
-      "sha256": "59b3bf2ad16560ebb97c4cb8a351f4fbcad416d268a02628dc4aaa7a42b68dfc"
+      "sha256": "9e121fc0f219c5c790588952f9367fda550619bdd8dea2eb193154b4c9ec3235"
     },
     {
       "path": "spec/v1/artifacts/fixtures/audit-release-fixture.json",
@@ -74,7 +74,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "a11775c52f64ce03e74b7ddf1917c32c16f41335f05d69d597ebdea0b4a0132f"
+      "sha256": "40b1c0ddb83f5e2f18adaa03df81cb0a443ea33d8f5993b6458ddceef55e3e52"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -319,6 +319,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/signal-message-stream-fixture.json",
       "sha256": "489f2ee9fa8a7700ab2c337c98bbb172c3fae15c6bbcaa052c9de940f01fd92b"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/signal-sequence-high-water-fixture.json",
+      "sha256": "6300c7a49823ea6c39732bd8fffcd48ed1d10b4ad027f961f18db034c4972f8a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",
