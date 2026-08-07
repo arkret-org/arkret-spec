@@ -8,12 +8,12 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 58,
+    "total_fields": 65,
     "by_classification": {
       "bounded_free_text": 7,
-      "closed_enum": 27,
+      "closed_enum": 29,
       "closed_literal": 8,
-      "validated_open_reason_code": 12,
+      "validated_open_reason_code": 17,
       "validated_open_token": 4
     },
     "unclassified": 0
@@ -142,11 +142,67 @@
     },
     {
       "schema_file": "applet-install-operations.schema.json",
+      "shape": "applet_capability_revoke_intent",
+      "field": "reason_code",
+      "pointer": "#/$defs/applet_capability_revoke_intent/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "applet-install-operations.schema.json",
+      "shape": "applet_membership_remove_intent",
+      "field": "reason_code",
+      "pointer": "#/$defs/applet_membership_remove_intent/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "applet-install-operations.schema.json",
+      "shape": "applet_revoke_outcome",
+      "field": "status",
+      "pointer": "#/$defs/applet_revoke_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "applet-install-operations.schema.json",
+      "shape": "applet_revoke_plan",
+      "field": "reason_code",
+      "pointer": "#/$defs/applet_revoke_plan/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "applet-install-operations.schema.json",
+      "shape": "applet_revoke_preview_request_body",
+      "field": "reason_code",
+      "pointer": "#/$defs/applet_revoke_preview_request_body/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "applet-install-operations.schema.json",
       "shape": "applet_revoke_request_body",
       "field": "reason_code",
       "pointer": "#/$defs/applet_revoke_request_body/properties/reason_code",
       "classification": "validated_open_reason_code",
       "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "applet-install-operations.schema.json",
+      "shape": "applet_revoke_step",
+      "field": "reason_code",
+      "pointer": "#/$defs/applet_revoke_step/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "applet-install-operations.schema.json",
+      "shape": "applet_revoke_step",
+      "field": "status",
+      "pointer": "#/$defs/applet_revoke_step/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
     },
     {
       "schema_file": "applet-install-operations.schema.json",

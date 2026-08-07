@@ -86,6 +86,7 @@ grpc:
     SelfApplet:
       InstallPreview: ak.self.applet.install.command.preview
       Install: ak.self.applet.command.install
+      RevokePreview: ak.self.applet.revoke.command.preview
       Revoke: ak.self.applet.command.revoke
       GhostProvision: ak.self.applet.ghost.command.provision
     SelfAuthz:

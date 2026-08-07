@@ -407,6 +407,10 @@ components:
       $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view
     AppletRevokeOutcome:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome
+    AppletRevokePreviewOutcome:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_outcome
+    AppletRevokePreviewRequestBody:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_request_body
     AppletRevokeRequestBody:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body
     AppletThirdPartyLocationList:
@@ -7527,6 +7531,35 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AppletRevokeRequestBody'
+  /_arkret/self/applets/{applet_id}/revoke/preview:
+    post:
+      operationId: ak.self.applet.revoke.command.preview
+      summary: Recompute the exact caller-authored Applet revoke plan.
+      description: |
+        Read-only preview over the current effective install. The returned
+        canonical plan enumerates every active grant, managed membership,
+        widget token, and delegated session that the commit saga must process.
+      security:
+      - bearerAuth: []
+      parameters:
+      - in: path
+        name: applet_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Canonical Applet revoke plan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppletRevokePreviewOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppletRevokePreviewRequestBody'
   /_arkret/self/policy/check:
     post:
       operationId: ak.self.policy.read.check

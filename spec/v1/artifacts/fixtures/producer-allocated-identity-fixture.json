@@ -1,0 +1,111 @@
+{
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.identity.producer_allocated_collision.v1"
+  },
+  "suite": "producer_allocated_identity",
+  "vector_id": "ak.vector.identity.producer_allocated_collision.v1",
+  "driver": {
+    "registry_ref": "registry/id-kind-registry.json#/id_kinds",
+    "selector": {
+      "id_form": "producer_allocated",
+      "identity_authority": "producer_signature"
+    },
+    "selected_id_kinds": [
+      "announce",
+      "applet",
+      "attestation",
+      "authorization_lease",
+      "backup",
+      "backup_series",
+      "batch",
+      "blob",
+      "block",
+      "capability",
+      "chunk",
+      "claim",
+      "consent",
+      "device",
+      "device_message",
+      "filter",
+      "frame",
+      "franking_proof",
+      "invite_locator",
+      "key_event",
+      "message_stream",
+      "notification",
+      "operation",
+      "policy",
+      "presentation",
+      "read_cursor",
+      "receipt",
+      "recovery_authority_ticket",
+      "recovery_session",
+      "request",
+      "rtc_participant",
+      "scheduled_send",
+      "snapshot",
+      "subscription",
+      "transaction"
+    ]
+  },
+  "parameters": {
+    "uuid": "019b5c20-0000-7000-8000-000000000001",
+    "typed_id_template": "ak:{kind}:019b5c20-0000-7000-8000-000000000001",
+    "authority_a": "did:webvh:z6mkfixture:producer-a.example",
+    "authority_b": "did:webvh:z6mkfixture:producer-b.example",
+    "binding_a": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "binding_b": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "cases": [
+    {
+      "name": "authorized_first_reservation_accepted",
+      "mint_authority": "$authority_a",
+      "typed_id": "$typed_id_template",
+      "canonical_binding": "$binding_a",
+      "proof_signer": "$authority_a",
+      "expected": "accepted"
+    },
+    {
+      "name": "same_authority_exact_replay_idempotent",
+      "mint_authority": "$authority_a",
+      "typed_id": "$typed_id_template",
+      "canonical_binding": "$binding_a",
+      "proof_signer": "$authority_a",
+      "expected": "idempotent"
+    },
+    {
+      "name": "same_authority_conflicting_binding_quarantined",
+      "mint_authority": "$authority_a",
+      "typed_id": "$typed_id_template",
+      "canonical_binding": "$binding_b",
+      "proof_signer": "$authority_a",
+      "expected": "reject_and_quarantine",
+      "overwrite": false,
+      "merge": false,
+      "last_writer_wins": false
+    },
+    {
+      "name": "cross_authority_same_uuid_distinct",
+      "mint_authority": "$authority_b",
+      "typed_id": "$typed_id_template",
+      "canonical_binding": "$binding_b",
+      "proof_signer": "$authority_b",
+      "expected": "distinct_identity",
+      "identity_key_template": [
+        "$authority_b",
+        "$typed_id_template"
+      ]
+    },
+    {
+      "name": "bare_lookup_or_unauthorized_allocator_rejected",
+      "typed_id": "$typed_id_template",
+      "canonical_binding": "$binding_a",
+      "proof_signer": "$authority_b",
+      "lookup_key": [
+        "$typed_id_template"
+      ],
+      "expected": "rejected"
+    }
+  ]
+}

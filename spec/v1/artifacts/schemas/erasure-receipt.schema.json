@@ -28,69 +28,11 @@
       "$ref": "#/$defs/did"
     },
     "subject": {
-      "type": "object",
-      "required": [
-        "kind",
-        "subject_ref"
-      ],
-      "properties": {
-        "kind": {
-          "type": "string",
-          "enum": [
-            "principal",
-            "realm",
-            "event",
-            "blob",
-            "device",
-            "account_private_state"
-          ]
-        },
-        "subject_ref": {
-          "$ref": "#/$defs/subject_ref"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./erasure-verification-stub.schema.json#/$defs/subject"
     },
     "scope": {
-      "type": "object",
       "description": "Boundary in which deletion was attempted. This MUST be narrow enough for an auditor to tell which service/storage class made the claim.",
-      "required": [
-        "storage_boundary"
-      ],
-      "properties": {
-        "storage_boundary": {
-          "type": "string",
-          "enum": [
-            "canonical_log_minimization",
-            "blob_store",
-            "projection_store",
-            "account_private_store",
-            "search_index",
-            "push_routes",
-            "device_secret_store",
-            "media_derivatives",
-            "service_defined"
-          ]
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "target_refs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/subject_ref"
-          },
-          "uniqueItems": true
-        },
-        "retention_policy_id": {
-          "$ref": "#/$defs/policy_id"
-        },
-        "service_scope": {
-          "type": "string",
-          "minLength": 1
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./erasure-verification-stub.schema.json#/$defs/scope"
     },
     "outcome": {
       "type": "string",
@@ -120,10 +62,10 @@
     },
     "retained_stub_digest": {
       "$ref": "#/$defs/hash",
-      "description": "Hash of the retained verification stub after erasure: hash(canonical_json(retained_stub)). The stub must be sufficient to verify event id/digest, proof event_digest, redaction authorization, seal inclusion, target id, legal-hold state, and receipt linkage without retaining erased plaintext."
+      "description": "Hash of the retained verification stub after erasure: hash(canonical_json(retained_stub)). The stub verifies typed-reference structure, redundant digest consistency, receipt/stub binding, and linkage to retained external proof, Seal, redaction-authorization, and legal-hold evidence. It does not independently verify erased canonical Event bytes."
     },
     "retained_stub": {
-      "$ref": "#/$defs/verification_stub",
+      "$ref": "./erasure-verification-stub.schema.json",
       "description": "Optional in-band verification stub. When omitted, the issuer MUST expose the same canonical stub via its erasure receipt endpoint; retained_stub_digest still binds the exact bytes."
     },
     "legal_hold_ref": {
@@ -251,140 +193,6 @@
     "policy_id": {
       "type": "string",
       "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "subject_ref": {
-      "type": "string",
-      "pattern": "^(did:[^\\s]+|ak:(realm|event|message|strand|morph|relation|view):[A-Za-z0-9_-]{44}|ak:(seal|blob|device|policy|snapshot|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:blob:sha256:[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
-    },
-    "verification_stub": {
-      "type": "object",
-      "required": [
-        "stub_schema",
-        "subject",
-        "scope",
-        "receipt_id",
-        "completed_at"
-      ],
-      "properties": {
-        "stub_schema": {
-          "const": "ak.schema.erasure_verification_stub.v1"
-        },
-        "subject": {
-          "type": "object",
-          "required": [
-            "kind",
-            "subject_ref"
-          ],
-          "properties": {
-            "kind": {
-              "type": "string",
-              "enum": [
-                "principal",
-                "realm",
-                "event",
-                "blob",
-                "device",
-                "account_private_state"
-              ]
-            },
-            "subject_ref": {
-              "$ref": "#/$defs/subject_ref"
-            }
-          },
-          "additionalProperties": false
-        },
-        "scope": {
-          "type": "object",
-          "required": [
-            "storage_boundary"
-          ],
-          "properties": {
-            "storage_boundary": {
-              "type": "string",
-              "enum": [
-                "canonical_log_minimization",
-                "blob_store",
-                "projection_store",
-                "account_private_store",
-                "search_index",
-                "push_routes",
-                "device_secret_store",
-                "media_derivatives",
-                "service_defined"
-              ]
-            },
-            "realm_id": {
-              "$ref": "./common-ids.schema.json#/$defs/realm_id"
-            },
-            "target_refs": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/subject_ref"
-              },
-              "uniqueItems": true
-            },
-            "retention_policy_id": {
-              "$ref": "#/$defs/policy_id"
-            },
-            "service_scope": {
-              "type": "string",
-              "minLength": 1
-            }
-          },
-          "additionalProperties": false
-        },
-        "event_digest": {
-          "$ref": "#/$defs/hash",
-          "description": "Optional redundant digest of the original Event envelope or durable object metadata. For subject.kind=event, subject_ref already carries the suite wire_code and complete 32-octet digest; when event_digest is retained, its suite and all digest bytes MUST exactly match subject_ref. Neither form can re-prove erased canonical bytes."
-        },
-        "retained_digests": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/hash"
-          },
-          "uniqueItems": true,
-          "description": "Event digest / object payload digests retained for signature verification. MUST NOT be a bare digest of erased low-entropy plaintext."
-        },
-        "seal_inclusion": {
-          "type": "object",
-          "properties": {
-            "seal_ref": {
-              "$ref": "#/$defs/subject_ref"
-            },
-            "frontier_digest": {
-              "$ref": "#/$defs/hash"
-            },
-            "state_root": {
-              "$ref": "#/$defs/hash"
-            }
-          },
-          "additionalProperties": false
-        },
-        "redaction_authorization_ref": {
-          "$ref": "#/$defs/subject_ref"
-        },
-        "legal_hold_ref": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "$ref": "#/$defs/policy_id"
-            },
-            {
-              "$ref": "#/$defs/hash"
-            }
-          ]
-        },
-        "receipt_id": {
-          "type": "string",
-          "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "completed_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
     }
   }
 }

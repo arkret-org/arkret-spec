@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07.11",
+  "version": "2026-08-08.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T00:30:00Z",
+  "generated_at": "2026-08-08T01:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -370,6 +370,7 @@
       "operations": [
         "ak.self.applet.install.command.preview",
         "ak.self.applet.command.install",
+        "ak.self.applet.revoke.command.preview",
         "ak.self.applet.command.revoke"
       ],
       "surface_class": "extension"
@@ -1069,6 +1070,22 @@
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view"
     },
     {
+      "operation_id": "ak.self.applet.revoke.command.preview",
+      "http": "POST /_arkret/self/applets/{applet_id}/revoke/preview",
+      "grpc": "SelfApplet/RevokePreview",
+      "mq": "self.applet.revoke.command.preview",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_request_body",
+      "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "query_only_recomputed_revoke_plan"
+      }
+    },
+    {
       "operation_id": "ak.self.applet.command.revoke",
       "http": "POST /_arkret/self/applets/{applet_id}/revoke",
       "grpc": "SelfApplet/Revoke",
@@ -1085,6 +1102,25 @@
           "ak.capability.revoke",
           "ak.member.state"
         ]
+      },
+      "saga_contract": {
+        "ledger": "durable_before_first_effect",
+        "step_states": [
+          "pending",
+          "accepted",
+          "duplicate",
+          "rejected"
+        ],
+        "external_effects": [
+          "account_authority_delegated_session_revocation"
+        ],
+        "local_effects": [
+          "widget_token_invalidation",
+          "applet_write_fence"
+        ],
+        "completion_condition": "all_required_events_accepted_or_duplicate_and_all_external_local_steps_accepted",
+        "restart_recovery": "resume_exact_persisted_submissions_and_pending_steps",
+        "first_revoke_acceptance_fences_future_writes": true
       }
     },
     {

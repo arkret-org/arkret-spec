@@ -4300,10 +4300,6 @@ EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
     "ak.self.realm.moderation_policy.resource.replace": "payload-only request",
     "ak.self.account.command.update_profile": "needs the caller-signed profile Event",
     "ak.self.moderation.command.report": "needs the caller-signed report Event",
-    "ak.self.applet.command.revoke": (
-        "install already requires caller-signed `registration_event` + `capability_grant_events`; "
-        "revoke takes none"
-    ),
     "ak.self.agent.grant.resource.delete": (
         "DELETE with no request body today; soland already hard-refuses it outside development "
         "mode with agent_grant_fanout_unavailable, so the missing Event is admitted there too"
@@ -6394,6 +6390,395 @@ def check_wire_schema_no_bare_scope(lint: Lint) -> None:
                 if (path.name, json_path) in allowed:
                     continue
                 lint.fail(path, f"{json_path}.scope uses bare wire field `scope`; use a domain-prefixed name")
+
+
+def check_erasure_verification_contract(lint: Lint) -> None:
+    """Verify hard-erasure structure, digest consistency, and proof boundary vectors."""
+    fixture_path = ARTIFACTS / "fixtures" / "redaction-fixture.json"
+    fixture = load_json(lint, fixture_path)
+    if not isinstance(fixture, dict):
+        return
+    cases = fixture.get("cases")
+    case_rows = cases if isinstance(cases, list) else []
+    hard_erasure = next(
+        (
+            case
+            for case in case_rows if isinstance(case, dict)
+            if case.get("name") == "hard_erasure_receipt"
+        ),
+        None,
+    )
+    if not isinstance(hard_erasure, dict):
+        lint.fail(fixture_path, "missing hard_erasure_receipt case")
+        return
+
+    receipt = hard_erasure.get("redaction_receipt")
+    expected_projection = hard_erasure.get("expected_projection")
+    if not isinstance(receipt, dict) or not isinstance(expected_projection, dict):
+        lint.fail(fixture_path, "hard_erasure_receipt must contain receipt and expected_projection")
+        return
+    stub = receipt.get("retained_stub")
+    stated_stub_digest = receipt.get("retained_stub_digest")
+    if not isinstance(stub, dict) or not isinstance(stated_stub_digest, str):
+        lint.fail(fixture_path, "hard-erasure receipt must contain retained_stub and its digest")
+        return
+    recomputed_stub_digest = "sha256:" + hashlib.sha256(
+        canonical_json(stub).encode("utf-8")
+    ).hexdigest()
+    if stated_stub_digest != recomputed_stub_digest:
+        lint.fail(
+            fixture_path,
+            "hard-erasure retained_stub_digest does not equal sha256(canonical_json(retained_stub))",
+        )
+    if expected_projection.get("retained_stub_digest") != stated_stub_digest:
+        lint.fail(fixture_path, "hard-erasure projection must expose the bound retained_stub_digest")
+    if expected_projection.get("original_preimage_verified") is not False:
+        lint.fail(fixture_path, "hard-erasure positive vector must state original_preimage_verified=false")
+
+    suite_registry_path = ARTIFACTS / "registry" / "digest-suite-registry.json"
+    suite_registry = load_json(lint, suite_registry_path)
+    active_suites = {
+        row.get("wire_code"): row.get("canonical_id")
+        for row in (suite_registry.get("suites", []) if isinstance(suite_registry, dict) else [])
+        if isinstance(row, dict) and row.get("status") == "active"
+    }
+    kind_prefixes = {
+        "principal": "did:",
+        "realm": "ak:realm:",
+        "event": "ak:event:",
+        "blob": "ak:blob:",
+        "device": "ak:device:",
+        "account_private_state": "sha256:",
+    }
+
+    def verdict(vector: dict[str, Any]) -> str:
+        subject = vector.get("subject")
+        if not isinstance(subject, dict):
+            return "schema_violation"
+        kind = subject.get("kind")
+        subject_ref = subject.get("subject_ref")
+        expected_prefix = kind_prefixes.get(kind)
+        if not isinstance(subject_ref, str) or expected_prefix is None or not subject_ref.startswith(expected_prefix):
+            return "schema_violation"
+        if kind != "event":
+            return "accepted"
+        suffix = subject_ref.removeprefix("ak:event:")
+        if not re.fullmatch(r"[A-Za-z0-9_-]{44}", suffix):
+            return "schema_violation"
+        try:
+            decoded = base64.urlsafe_b64decode(suffix + "==")
+        except (ValueError, binascii.Error):
+            return "schema_violation"
+        if len(decoded) != 33 or base64.urlsafe_b64encode(decoded).decode("ascii").rstrip("=") != suffix:
+            return "schema_violation"
+        suite_id = active_suites.get(decoded[0])
+        if not isinstance(suite_id, str):
+            return "unsupported_digest_algorithm"
+        event_digest = vector.get("event_digest")
+        if event_digest is not None and event_digest != f"{suite_id}:{decoded[1:].hex()}":
+            return "event_id_digest_mismatch"
+        if vector.get("retained_stub_digest") != recomputed_stub_digest:
+            return "erasure_receipt_stub_digest_mismatch"
+        return "accepted"
+
+    vectors = hard_erasure.get("verification_cases")
+    if not isinstance(vectors, list) or len(vectors) < 5:
+        lint.fail(fixture_path, "hard-erasure verification_cases must cover at least five cases")
+        return
+    required = {
+        "structure_digest_and_stub_binding_valid",
+        "wrong_kind_ref_namespace_rejected",
+        "invalid_event_id_suite_rejected",
+        "event_id_digest_mismatch_rejected",
+        "stub_digest_mismatch_rejected",
+    }
+    names = {vector.get("name") for vector in vectors if isinstance(vector, dict)}
+    if names != required:
+        lint.fail(fixture_path, f"hard-erasure verification case names drifted: {sorted(names)}")
+    for vector in vectors:
+        if not isinstance(vector, dict):
+            lint.fail(fixture_path, "hard-erasure verification case must be an object")
+            continue
+        if verdict(vector) != vector.get("expected"):
+            lint.fail(
+                fixture_path,
+                f"hard-erasure case {vector.get('name')!r} expected {vector.get('expected')!r} "
+                f"but evaluates to {verdict(vector)!r}",
+            )
+        if vector.get("expected") == "accepted" and vector.get("original_preimage_verified") is not False:
+            lint.fail(fixture_path, "accepted hard-erasure vector must deny original preimage verification")
+
+    receipt_schema_path = ARTIFACTS / "schemas" / "erasure-receipt.schema.json"
+    receipt_schema = load_json(lint, receipt_schema_path)
+    if isinstance(receipt_schema, dict):
+        defs = receipt_schema.get("$defs", {})
+        retained_stub = receipt_schema.get("properties", {}).get("retained_stub", {})
+        if isinstance(defs, dict) and "verification_stub" in defs:
+            lint.fail(receipt_schema_path, "receipt schema must not copy the verification stub definition")
+        if not isinstance(retained_stub, dict) or retained_stub.get("$ref") != "./erasure-verification-stub.schema.json":
+            lint.fail(receipt_schema_path, "retained_stub must reference the standalone schema truth source")
+
+
+def check_id_form_wire_schema_alignment(lint: Lint) -> None:
+    """Join ID classification, derived wire forms, schema regexes, and storage rules."""
+    registry_path = ARTIFACTS / "registry" / "id-kind-registry.json"
+    registry = load_json(lint, registry_path)
+    if not isinstance(registry, dict):
+        return
+    rows = registry.get("id_kinds")
+    if not isinstance(rows, list):
+        return
+    storage_rules = registry.get("storage_rules")
+    if not isinstance(storage_rules, list) or not all(isinstance(rule, str) for rule in storage_rules):
+        lint.fail(registry_path, "storage_rules must be a string array")
+        return
+    storage_text = "\n".join(storage_rules).lower()
+    for forbidden in ("uuidv8", "version 8", "raw 16-byte uuid values"):
+        if forbidden in storage_text:
+            lint.fail(registry_path, f"storage_rules retain forbidden Event-derived UUID wording {forbidden!r}")
+    if "raw 33-byte token" not in storage_text or "must not use a native uuid column" not in storage_text:
+        lint.fail(registry_path, "storage_rules must require 33-byte Event tokens outside native UUID columns")
+
+    pattern_rows: list[tuple[Path, str]] = []
+    for schema_path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
+        schema = load_json(lint, schema_path)
+        if not isinstance(schema, dict):
+            continue
+        for _json_path, value, key in walk_json(schema):
+            if key == "pattern" and isinstance(value, str):
+                pattern_rows.append((schema_path, value))
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        kind = row.get("kind")
+        id_form = row.get("id_form")
+        wire_form = row.get("wire_form")
+        if not isinstance(kind, str):
+            continue
+        if id_form == "event_derived":
+            expected_wire = f"ak:{kind}:<event-token>"
+            if wire_form != expected_wire:
+                lint.fail(registry_path, f"{kind} event-derived wire_form must equal {expected_wire!r}")
+            matching = [
+                (path, pattern)
+                for path, pattern in pattern_rows
+                if pattern.startswith(f"^ak:{kind}:")
+            ]
+            if not matching:
+                lint.fail(registry_path, f"{kind} event-derived ID has no schema regex")
+            if matching and not any("{44}" in pattern for _, pattern in matching):
+                lint.fail(registry_path, f"event-derived {kind} schemas never require a 44-character token")
+            for schema_path, pattern in matching:
+                if "{44}" not in pattern and "-7[0-9a-f]{3}-" in pattern:
+                    lint.fail(schema_path, f"event-derived {kind} schema retains a UUID-only pattern")
+        elif id_form == "producer_allocated":
+            expected_wire = f"ak:{kind}:<uuidv7>"
+            if wire_form != expected_wire:
+                lint.fail(registry_path, f"{kind} producer wire_form must equal {expected_wire!r}")
+            matching = [
+                (path, pattern)
+                for path, pattern in pattern_rows
+                if pattern.startswith(f"^ak:{kind}:")
+            ]
+            if matching and not any("-7[0-9a-f]{3}-" in pattern for _, pattern in matching):
+                lint.fail(registry_path, f"producer-allocated {kind} schemas never require UUIDv7")
+
+
+def check_producer_allocated_identity_vectors(lint: Lint) -> None:
+    """Require the registry-driven five-case collision suite for every producer ID kind."""
+    registry_path = ARTIFACTS / "registry" / "id-kind-registry.json"
+    fixture_path = ARTIFACTS / "fixtures" / "producer-allocated-identity-fixture.json"
+    registry = load_json(lint, registry_path)
+    fixture = load_json(lint, fixture_path)
+    if not isinstance(registry, dict) or not isinstance(fixture, dict):
+        return
+    expected_kinds = sorted(
+        row["kind"]
+        for row in registry.get("id_kinds", [])
+        if isinstance(row, dict)
+        and row.get("id_form") == "producer_allocated"
+        and row.get("identity_authority") == "producer_signature"
+        and isinstance(row.get("kind"), str)
+    )
+    driver = fixture.get("driver")
+    if not isinstance(driver, dict):
+        lint.fail(fixture_path, "producer identity fixture missing registry driver")
+        return
+    if driver.get("selected_id_kinds") != expected_kinds:
+        lint.fail(fixture_path, "producer identity fixture selected_id_kinds drifted from registry")
+    if driver.get("registry_ref") != "registry/id-kind-registry.json#/id_kinds":
+        lint.fail(fixture_path, "producer identity fixture must consume the generated ID registry")
+    expected_cases = {
+        "authorized_first_reservation_accepted": "accepted",
+        "same_authority_exact_replay_idempotent": "idempotent",
+        "same_authority_conflicting_binding_quarantined": "reject_and_quarantine",
+        "cross_authority_same_uuid_distinct": "distinct_identity",
+        "bare_lookup_or_unauthorized_allocator_rejected": "rejected",
+    }
+    cases = fixture.get("cases")
+    case_rows = cases if isinstance(cases, list) else []
+    actual_cases = {
+        case.get("name"): case.get("expected")
+        for case in case_rows if isinstance(case, dict)
+    }
+    if actual_cases != expected_cases:
+        lint.fail(fixture_path, "producer identity fixture must contain the closed five-case matrix")
+
+
+def check_applet_revoke_saga_contract(lint: Lint) -> None:
+    """Pin the executable revoke saga matrix to its schema and operation contract."""
+    fixture_path = ARTIFACTS / "fixtures" / "applet-revoke-saga-fixture.json"
+    operation_path = ARTIFACTS / "registry" / "operation-registry.json"
+    schema_path = ARTIFACTS / "schemas" / "applet-install-operations.schema.json"
+    fixture = load_json(lint, fixture_path)
+    operations = load_json(lint, operation_path)
+    schema = load_json(lint, schema_path)
+    if not all(isinstance(value, dict) for value in (fixture, operations, schema)):
+        return
+
+    runner = fixture.get("runner", {})
+    if runner != {
+        "kind": "named_suite",
+        "entrypoint": "ak.suite.applet.revoke_saga.v1",
+    }:
+        lint.fail(fixture_path, "revoke saga fixture must expose the canonical named suite")
+    if fixture.get("covers_vectors") != ["ak.vector.applet.revoke_saga.v1"]:
+        lint.fail(fixture_path, "revoke saga fixture must cover exactly its registered vector")
+
+    required_invariants = {
+        "persist_ledger_before_first_effect",
+        "ledger_binds_principal_service_and_admin_actor",
+        "exact_replay_resumes_same_ledger",
+        "conflicting_replay_has_no_effect",
+        "accepted_or_duplicate_steps_are_never_reexecuted",
+        "rejected_step_cannot_be_skipped",
+        "first_accepted_revoke_event_fences_future_applet_writes",
+        "complete_requires_every_planned_step_terminal_success",
+    }
+    if set(fixture.get("invariants", [])) != required_invariants:
+        lint.fail(fixture_path, "revoke saga fixture invariants are incomplete or drifted")
+
+    plan = fixture.get("plan", {})
+    steps = plan.get("steps", []) if isinstance(plan, dict) else []
+    step_ids = {
+        step.get("step_id")
+        for step in steps
+        if isinstance(step, dict) and isinstance(step.get("step_id"), str)
+    }
+    if len(step_ids) != len(steps) or not {
+        "capability:0",
+        "membership:0",
+        "delegated_session:0",
+        "widget_token:0",
+    }.issubset(step_ids):
+        lint.fail(fixture_path, "revoke saga plan must contain unique Event, external, and local steps")
+
+    cases = fixture.get("cases", [])
+    case_by_name = {
+        case.get("name"): case
+        for case in cases
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+    required_cases = {
+        "complete_exact_plan",
+        "event_rejected_without_skip",
+        "crash_after_first_acceptance_then_exact_restart",
+        "same_key_different_body_conflicts",
+        "same_key_different_actor_or_service_conflicts",
+        "external_effect_partial_then_restart",
+        "plan_or_submission_mismatch_is_pre_effect",
+    }
+    if set(case_by_name) != required_cases:
+        lint.fail(fixture_path, "revoke saga fixture must contain the closed seven-case matrix")
+        return
+
+    effect_prefixes = ("accepted:", "duplicate:", "rejected:")
+    for name, case in case_by_name.items():
+        for field in ("timeline", "first_attempt", "restart_timeline"):
+            timeline = case.get(field)
+            if not isinstance(timeline, list):
+                continue
+            effect_indexes = [
+                index
+                for index, action in enumerate(timeline)
+                if isinstance(action, str) and action.startswith(effect_prefixes)
+            ]
+            if field != "restart_timeline" and effect_indexes:
+                persist_index = timeline.index("persist_ledger") if "persist_ledger" in timeline else -1
+                if persist_index < 0 or persist_index > effect_indexes[0]:
+                    lint.fail(fixture_path, f"{name}.{field} performs an effect before ledger persistence")
+            for action in timeline:
+                if not isinstance(action, str) or not action.startswith(effect_prefixes):
+                    continue
+                step_id = action.split(":", 1)[1]
+                if step_id not in step_ids:
+                    lint.fail(fixture_path, f"{name}.{field} references unknown saga step {step_id!r}")
+
+    complete = case_by_name["complete_exact_plan"]["timeline"]
+    first_event = complete.index("accepted:capability:0")
+    if complete[first_event + 1] != "fence_applet_writes":
+        lint.fail(fixture_path, "first accepted revoke Event must immediately fence Applet writes")
+    rejected = case_by_name["event_rejected_without_skip"]
+    if rejected.get("expected_pending_steps") != [
+        "membership:0",
+        "delegated_session:0",
+        "widget_token:0",
+    ]:
+        lint.fail(fixture_path, "a rejected Event must preserve every later step as pending")
+    restart = case_by_name["crash_after_first_acceptance_then_exact_restart"]
+    if restart.get("request_binding") != restart.get("restart_request_binding"):
+        lint.fail(fixture_path, "restart case must replay the exact request binding")
+    if "accepted:capability:0" in restart.get("restart_timeline", []):
+        lint.fail(fixture_path, "restart must not re-execute an already accepted Event")
+    conflict = case_by_name["same_key_different_body_conflicts"]
+    if (
+        conflict.get("request_binding") == conflict.get("replay_request_binding")
+        or conflict.get("expected_new_effect_count") != 0
+    ):
+        lint.fail(fixture_path, "conflicting idempotency replay must have zero new effects")
+    principal_conflict = case_by_name["same_key_different_actor_or_service_conflicts"]
+    if (
+        len(principal_conflict.get("replay_request_bindings", [])) != 2
+        or principal_conflict.get("expected_new_effect_count") != 0
+    ):
+        lint.fail(fixture_path, "revoke ledger must bind both principal service and admin actor")
+    mismatch = case_by_name["plan_or_submission_mismatch_is_pre_effect"]
+    if mismatch.get("timeline") != ["reject_plan_or_submission_mismatch"]:
+        lint.fail(fixture_path, "plan/submission mismatch must fail before ledger or effects")
+
+    rows = operations.get("operations", [])
+    revoke = next(
+        (
+            row
+            for row in rows
+            if isinstance(row, dict)
+            and row.get("operation_id") == "ak.self.applet.command.revoke"
+        ),
+        {},
+    )
+    saga = revoke.get("saga_contract", {}) if isinstance(revoke, dict) else {}
+    if (
+        saga.get("ledger") != "durable_before_first_effect"
+        or saga.get("restart_recovery")
+        != "resume_exact_persisted_submissions_and_pending_steps"
+        or saga.get("first_revoke_acceptance_fences_future_writes") is not True
+    ):
+        lint.fail(operation_path, "Applet revoke operation saga contract drifted from its vector")
+
+    defs = schema.get("$defs", {})
+    request = defs.get("applet_revoke_request_body", {}) if isinstance(defs, dict) else {}
+    required = set(request.get("required", [])) if isinstance(request, dict) else set()
+    carrier_fields = {
+        "effective_scope",
+        "reason_code",
+        "revoke_mode",
+        "revoke_plan_digest",
+        "capability_revoke_events",
+        "membership_state_events",
+    }
+    if not carrier_fields.issubset(required):
+        lint.fail(schema_path, "Applet revoke commit schema is missing its exact signed carrier")
 
 
 def check_reducer_payload_closure(lint: Lint) -> None:
@@ -12585,6 +12970,7 @@ def main(argv: list[str] | None = None) -> int:
             ("event_id_suite_registry", lambda: check_event_id_suite_registry(lint)),
             ("retired_event_id_contract", lambda: check_retired_event_id_contract(lint)),
             ("registries", lambda: check_registries(lint)),
+            ("id_form_wire_schema", lambda: check_id_form_wire_schema_alignment(lint)),
             ("state_contract_closure", lambda: check_state_contract_closure(lint)),
             ("protocol_layers", lambda: check_protocol_layer_registry(lint)),
         ],
@@ -12668,6 +13054,9 @@ def main(argv: list[str] | None = None) -> int:
             ("security_fixture", lambda: check_security_closure_fixture(lint)),
             ("fixtures", lambda: check_fixtures(lint, known)),
             ("event_id_fixture", lambda: check_content_bound_event_id_fixture(lint)),
+            ("erasure_verification", lambda: check_erasure_verification_contract(lint)),
+            ("producer_id_vectors", lambda: check_producer_allocated_identity_vectors(lint)),
+            ("applet_revoke_saga", lambda: check_applet_revoke_saga_contract(lint)),
             ("snapshot_merkle", lambda: check_snapshot_merkle_fixture(lint)),
             ("fixture_runner", lambda: check_fixture_runner_contract(lint)),
             ("websocket_binding", lambda: check_websocket_binding_fixture(lint)),

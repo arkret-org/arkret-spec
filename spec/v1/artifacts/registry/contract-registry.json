@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07.11",
+  "version": "2026-08-08.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T00:30:00Z",
+  "generated_at": "2026-08-08T01:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -9731,15 +9731,12 @@
   "id_kind_registry": {
     "namespace": "ak.",
     "storage_rules": [
-      "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form ak:<kind>:<uuid> unless a special form below applies.",
-      "Storage implementations MAY store raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the ak:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
-      "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
-      "The <kind> segment is part of the signed/canonical wire value. It MUST NOT be changed, inferred differently, or stripped during verification, forwarding, backfill, or replay.",
-      "The UUID segment MUST use the construction fixed by that kind's id_form and identity_authority columns, never one chosen per call site: version 7 for producer_allocated, version 8 with the content-bound layout of zh/conformance/encoding.md section 4.0 for event_derived, and the registered Realm exception where a principal_control create selects DID-transcript-derived UUIDv7. All serialize as canonical lowercase `xxxxxxxx-xxxx-Vxxx-Nxxx-xxxxxxxxxxxx`, N ∈ {8,9,a,b}; a version nibble alone never proves identity authority.",
-      "A producer_allocated UUIDv7 is never a globally sufficient protocol identity. Its canonical identity key is (mint_authority, typed_id), where mint_authority is the DID whose accepted proof authorized the first durable appearance of that ID. Bare typed-ID lookup, cross-authority deduplication, and last-writer-wins collision repair are forbidden.",
       "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form declared by each id_kind row.",
-      "Storage implementations MAY store producer_allocated UUID values as raw 16-byte UUIDs. Event-derived IDs MUST instead store their raw 33-byte token (suite wire_code plus all 32 digest octets); they MUST NOT use a native UUID column.",
-      "The id_form is fixed by registry kind and never chosen per call site: producer_allocated uses RFC 9562 UUIDv7; event_derived uses the same canonical 33-byte token as its creating Event ID and serializes as 44 unpadded Base64URL characters."
+      "Storage implementations MAY store producer_allocated UUIDv7 values as raw 16-byte UUIDs. Event-derived IDs MUST instead store their raw 33-byte token (suite wire_code plus all 32 digest octets); they MUST NOT use a native UUID column.",
+      "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, Event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
+      "The <kind> segment is part of the signed/canonical wire value. It MUST NOT be changed, inferred differently, or stripped during verification, forwarding, backfill, or replay.",
+      "The id_form is fixed by registry kind and never chosen per call site: producer_allocated uses RFC 9562 UUIDv7; event_derived uses the same canonical 33-byte token as its creating Event ID and serializes as 44 unpadded Base64URL characters.",
+      "A producer_allocated UUIDv7 is never a globally sufficient protocol identity. Its canonical identity key is (mint_authority, typed_id), where mint_authority is the DID whose accepted proof authorized the first durable appearance of that ID. Bare typed-ID lookup, cross-authority deduplication, and last-writer-wins collision repair are forbidden."
     ],
     "producer_allocated_identity_contract": {
       "identity_key": [
@@ -9847,7 +9844,7 @@
         "kind": "appeal",
         "category": "moderation",
         "status": "active",
-        "wire_form": "ak:appeal:<uuid>",
+        "wire_form": "ak:appeal:<event-token>",
         "description": "Moderation appeal ID derived from ak.moderation.appeal.submit and referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5.",
         "id_form": "event_derived",
         "identity_authority": "event",
@@ -9859,7 +9856,7 @@
         "kind": "announce",
         "category": "discovery",
         "status": "active",
-        "wire_form": "ak:announce:<uuid>",
+        "wire_form": "ak:announce:<uuidv7>",
         "description": "Directory-local announce ingest record ID. It is typed and UUIDv7-shaped for validator consistency, but it is scoped to the issuing Directory and is not a global federated object authority.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -9868,7 +9865,7 @@
         "kind": "applet",
         "category": "extension",
         "status": "active",
-        "wire_form": "ak:applet:<uuid>",
+        "wire_form": "ak:applet:<uuidv7>",
         "description": "Applet registration/service ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -9877,7 +9874,7 @@
         "kind": "audit_binding",
         "category": "audit",
         "status": "active",
-        "wire_form": "ak:audit_binding:<uuid>",
+        "wire_form": "ak:audit_binding:<event-token>",
         "description": "Audit Applet Binding ID derived from ak.audit.applet_binding.create and referenced by binding state and audit session events.",
         "id_form": "event_derived",
         "identity_authority": "event",
@@ -9889,7 +9886,7 @@
         "kind": "audit_session",
         "category": "audit",
         "status": "active",
-        "wire_form": "ak:audit_session:<uuid>",
+        "wire_form": "ak:audit_session:<event-token>",
         "description": "Audit release session ID derived from ak.audit.session.request. Threads request, authorize, notice, release, and close events for one bounded historical audit window.",
         "id_form": "event_derived",
         "identity_authority": "event",
@@ -9901,7 +9898,7 @@
         "kind": "audit_release",
         "category": "audit",
         "status": "active",
-        "wire_form": "ak:audit_release:<uuid>",
+        "wire_form": "ak:audit_release:<event-token>",
         "description": "Audit release manifest ID derived from ak.audit.release for a sealed historical release under an active audit binding/session.",
         "id_form": "event_derived",
         "identity_authority": "event",
@@ -9913,7 +9910,7 @@
         "kind": "backup",
         "category": "identity",
         "status": "active",
-        "wire_form": "ak:backup:<uuid>",
+        "wire_form": "ak:backup:<uuidv7>",
         "description": "Encrypted backup object ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -9922,7 +9919,7 @@
         "kind": "backup_series",
         "category": "identity",
         "status": "active",
-        "wire_form": "ak:backup_series:<uuid>",
+        "wire_form": "ak:backup_series:<uuidv7>",
         "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_kind). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ak.schema.key_backup.v1.series_id and recovery strands to detect rollback. See identity/key-management.md §7.6.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -9931,7 +9928,7 @@
         "kind": "batch",
         "category": "discovery",
         "status": "active",
-        "wire_form": "ak:batch:<uuid>",
+        "wire_form": "ak:batch:<uuidv7>",
         "description": "Discovery/private-contact batch ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -9940,7 +9937,7 @@
         "kind": "blob",
         "category": "core_object",
         "status": "active",
-        "wire_form": "ak:blob:<uuid>",
+        "wire_form": "ak:blob:<uuidv7>",
         "referenceability": [
           "relation_endpoint",
           "notification_source"
@@ -9953,7 +9950,7 @@
         "kind": "block",
         "category": "account_private",
         "status": "active",
-        "wire_form": "ak:block:<uuid>",
+        "wire_form": "ak:block:<uuidv7>",
         "description": "Actor-private blocklist entry ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -9962,7 +9959,7 @@
         "kind": "call",
         "category": "media",
         "status": "active",
-        "wire_form": "ak:call:<uuid>",
+        "wire_form": "ak:call:<event-token>",
         "description": "Call/session ID derived from the accepted ak.call.create genesis Event.",
         "id_form": "event_derived",
         "identity_authority": "event",
@@ -9974,7 +9971,7 @@
         "kind": "rtc_participant",
         "category": "media",
         "status": "active",
-        "wire_form": "ak:rtc_participant:<uuid>",
+        "wire_form": "ak:rtc_participant:<uuidv7>",
         "description": "SFU-local participant handle. Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_id, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in an `ak.call.state.roster_delta` join participant value and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -9983,7 +9980,7 @@
         "kind": "capability",
         "category": "authz",
         "status": "active",
-        "wire_form": "ak:capability:<uuid>",
+        "wire_form": "ak:capability:<uuidv7>",
         "description": "Abstract capability definition reference ID; signed grant objects use ak:grant:<uuid>.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10007,7 +10004,7 @@
         "kind": "sidecar",
         "category": "core_object",
         "status": "active",
-        "wire_form": "ak:sidecar:<uuid>",
+        "wire_form": "ak:sidecar:<event-token>",
         "description": "Agent Sidecar object ID — controller-owned private AI workspace, singleton per (realm_id, controller_id), with derived eligible-Agent access. See zh/models/sidecar.md.",
         "id_form": "event_derived",
         "identity_authority": "event",
@@ -10019,7 +10016,7 @@
         "kind": "consent",
         "category": "identity_authz",
         "status": "active",
-        "wire_form": "ak:consent:<uuid>",
+        "wire_form": "ak:consent:<uuidv7>",
         "description": "Consent grant/revoke/request identifier shared by Arkret consent events and MIMI interop DTOs.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10045,7 +10042,7 @@
         "kind": "chunk",
         "category": "snapshot",
         "status": "active",
-        "wire_form": "ak:chunk:<uuid>",
+        "wire_form": "ak:chunk:<uuidv7>",
         "description": "Snapshot/blob chunk ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10054,7 +10051,7 @@
         "kind": "claim",
         "category": "identity_authz",
         "status": "active",
-        "wire_form": "ak:claim:<uuid>",
+        "wire_form": "ak:claim:<uuidv7>",
         "description": "Claim or attestation ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10063,7 +10060,7 @@
         "kind": "device",
         "category": "identity",
         "status": "active",
-        "wire_form": "ak:device:<uuid>",
+        "wire_form": "ak:device:<uuidv7>",
         "description": "Device identifier (ak:device:<uuid>). A device is a typed ID scoped to an owning principal, NOT a DID and NOT an actor principal. Device keys are registered as verification methods under the owning principal DID via ak.device.authorize.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10072,7 +10069,7 @@
         "kind": "device_message",
         "category": "sync",
         "status": "active",
-        "wire_form": "ak:device_message:<uuid>",
+        "wire_form": "ak:device_message:<uuidv7>",
         "description": "To-device message queue ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10093,7 +10090,7 @@
         "kind": "filter",
         "category": "policy",
         "status": "active",
-        "wire_form": "ak:filter:<uuid>",
+        "wire_form": "ak:filter:<uuidv7>",
         "description": "Moderation/filter rule ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10102,7 +10099,7 @@
         "kind": "frame",
         "category": "transport",
         "status": "active",
-        "wire_form": "ak:frame:<uuid>",
+        "wire_form": "ak:frame:<uuidv7>",
         "description": "Non-HTTP stream frame ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10111,7 +10108,7 @@
         "kind": "franking_proof",
         "category": "moderation",
         "status": "active",
-        "wire_form": "ak:franking_proof:<uuid>",
+        "wire_form": "ak:franking_proof:<uuidv7>",
         "description": "Message franking proof ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10120,7 +10117,7 @@
         "kind": "grant",
         "category": "authz",
         "status": "active",
-        "wire_form": "ak:grant:<uuid>",
+        "wire_form": "ak:grant:<event-token>",
         "description": "Durable signed capability Grant ID derived from the accepted ak.capability.grant genesis Event; distinct from short-lived SessionGrant credentials.",
         "id_form": "event_derived",
         "identity_authority": "event",
@@ -10132,7 +10129,7 @@
         "kind": "session_grant",
         "category": "authz",
         "status": "active",
-        "wire_form": "ak:session_grant:<uuid>",
+        "wire_form": "ak:session_grant:<event-token>",
         "description": "Short-lived signed SessionGrant credential ID derived from ak.session.grant. JWT jti carries this typed ID; it is never an ak:grant capability ID.",
         "id_form": "event_derived",
         "identity_authority": "event",
@@ -10144,7 +10141,7 @@
         "kind": "invite",
         "category": "authz",
         "status": "active",
-        "wire_form": "ak:invite:<uuid>",
+        "wire_form": "ak:invite:<event-token>",
         "description": "Invite object ID derived from either directed ak.invite.create or third-party ak.invite.third_party genesis.",
         "id_form": "event_derived",
         "identity_authority": "event",
@@ -10157,7 +10154,7 @@
         "kind": "invite_locator",
         "category": "account_private",
         "status": "active",
-        "wire_form": "ak:invite_locator:<uuid>",
+        "wire_form": "ak:invite_locator:<uuidv7>",
         "description": "Non-secret Principal Server administrative ID for one account-owned online invite locator. The ID is exposed only on the authenticated self management surface and is distinct from the opaque bearer locator_token.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10166,7 +10163,7 @@
         "kind": "key_event",
         "category": "identity",
         "status": "active",
-        "wire_form": "ak:key_event:<uuid>",
+        "wire_form": "ak:key_event:<uuidv7>",
         "description": "DID/key log event ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10192,7 +10189,7 @@
         "kind": "message_stream",
         "category": "sync",
         "status": "active",
-        "wire_form": "ak:message_stream:<uuid>",
+        "wire_form": "ak:message_stream:<uuidv7>",
         "description": "Transient Signal Message preview stream instance ID; never a durable object or Event identity",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10217,7 +10214,7 @@
         "kind": "notification",
         "category": "derived_projection",
         "status": "active",
-        "wire_form": "ak:notification:<uuid>",
+        "wire_form": "ak:notification:<uuidv7>",
         "description": "Notification projection ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10226,7 +10223,7 @@
         "kind": "operation",
         "category": "security",
         "status": "active",
-        "wire_form": "ak:operation:<uuid>",
+        "wire_form": "ak:operation:<uuidv7>",
         "description": "Identifier for a durable or reserved multi-phase protocol operation instance. It is allocated at reservation time, before the operation's first Event exists, so it can carry no content binding and MUST NOT be parsed for internal semantics; that is what id_form=producer_allocated means here, not a free-form value space.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10235,7 +10232,7 @@
         "kind": "read_cursor",
         "category": "account_private",
         "status": "active",
-        "wire_form": "ak:read_cursor:<uuid>",
+        "wire_form": "ak:read_cursor:<uuidv7>",
         "description": "Actor-private read cursor ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10244,7 +10241,7 @@
         "kind": "policy",
         "category": "policy",
         "status": "active",
-        "wire_form": "ak:policy:<uuid>",
+        "wire_form": "ak:policy:<uuidv7>",
         "description": "Policy object ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10253,7 +10250,7 @@
         "kind": "presentation",
         "category": "identity",
         "status": "active",
-        "wire_form": "ak:presentation:<uuid>",
+        "wire_form": "ak:presentation:<uuidv7>",
         "description": "Presentation/proof exchange ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10262,7 +10259,7 @@
         "kind": "receipt",
         "category": "receipt",
         "status": "active",
-        "wire_form": "ak:receipt:<uuid>",
+        "wire_form": "ak:receipt:<uuidv7>",
         "description": "Receipt object ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10271,7 +10268,7 @@
         "kind": "authorization_lease",
         "category": "authz",
         "status": "active",
-        "wire_form": "ak:authorization_lease:<uuid>",
+        "wire_form": "ak:authorization_lease:<uuidv7>",
         "description": "Basis-bound AuthorizationLease identifier.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10280,7 +10277,7 @@
         "kind": "recovery_session",
         "category": "identity",
         "status": "active",
-        "wire_form": "ak:recovery_session:<uuid>",
+        "wire_form": "ak:recovery_session:<uuidv7>",
         "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery strand. Referenced by ak.schema.recovery_receipt.v1 and by §15 recovery proofs. See crypto-media/device-lifecycle.md §15.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10289,7 +10286,7 @@
         "kind": "attestation",
         "category": "audit",
         "status": "active",
-        "wire_form": "ak:attestation:<uuid>",
+        "wire_form": "ak:attestation:<uuidv7>",
         "description": "Attestation object ID (e.g. ak.attestation.range_completeness).",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10314,7 +10311,7 @@
         "kind": "report",
         "category": "moderation",
         "status": "active",
-        "wire_form": "ak:report:<uuid>",
+        "wire_form": "ak:report:<event-token>",
         "description": "Moderation report ID derived from the accepted ak.self.moderation.report Event.",
         "id_form": "event_derived",
         "identity_authority": "event",
@@ -10326,7 +10323,7 @@
         "kind": "moderation_queue_item",
         "category": "moderation",
         "status": "active",
-        "wire_form": "ak:moderation_queue_item:<uuid>",
+        "wire_form": "ak:moderation_queue_item:<event-token>",
         "description": "Moderation queue item ID derived as a second, distinct typed output of the accepted ak.self.moderation.report Event.",
         "id_form": "event_derived",
         "identity_authority": "event",
@@ -10338,7 +10335,7 @@
         "kind": "request",
         "category": "transport",
         "status": "active",
-        "wire_form": "ak:request:<uuid>",
+        "wire_form": "ak:request:<uuidv7>",
         "description": "Request/correlation ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10347,7 +10344,7 @@
         "kind": "snapshot",
         "category": "snapshot",
         "status": "active",
-        "wire_form": "ak:snapshot:<uuid>",
+        "wire_form": "ak:snapshot:<uuidv7>",
         "description": "Snapshot manifest ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10372,7 +10369,7 @@
         "kind": "subscription",
         "category": "discovery",
         "status": "active",
-        "wire_form": "ak:subscription:<uuid>",
+        "wire_form": "ak:subscription:<uuidv7>",
         "description": "Directory notification subscription identifier.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10398,7 +10395,7 @@
         "kind": "transaction",
         "category": "security",
         "status": "active",
-        "wire_form": "ak:transaction:<uuid>",
+        "wire_form": "ak:transaction:<uuidv7>",
         "description": "Durable RecoveryTransaction, SecurityRotationTransaction, federation, or applet transaction identifier.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10407,7 +10404,7 @@
         "kind": "recovery_authority_ticket",
         "category": "security",
         "status": "active",
-        "wire_form": "ak:recovery_authority_ticket:<uuid>",
+        "wire_form": "ak:recovery_authority_ticket:<uuidv7>",
         "description": "Reserved UUIDv7 identity of the Principal Server signed, RecoveryTransaction-bound one-time Account Authority ticket. The id is fixed at transaction create; signed ticket bytes are issued only after the transaction is durable.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10432,7 +10429,7 @@
         "kind": "scheduled_send",
         "category": "account_private",
         "status": "active",
-        "wire_form": "ak:scheduled_send:<uuid>",
+        "wire_form": "ak:scheduled_send:<uuidv7>",
         "description": "Producer-allocated identity of a principal-private scheduled-send plan. It is not an Event or Message identity and MUST NOT be retyped into either one.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
@@ -10443,8 +10440,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (uint8 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-08-07.11",
-    "generated_at": "2026-08-08T00:30:00Z"
+    "version": "2026-08-08.1",
+    "generated_at": "2026-08-08T01:00:00Z"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -10813,6 +10810,7 @@
         "operations": [
           "ak.self.applet.install.command.preview",
           "ak.self.applet.command.install",
+          "ak.self.applet.revoke.command.preview",
           "ak.self.applet.command.revoke"
         ],
         "surface_class": "extension"
@@ -11512,6 +11510,22 @@
         "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view"
       },
       {
+        "operation_id": "ak.self.applet.revoke.command.preview",
+        "http": "POST /_arkret/self/applets/{applet_id}/revoke/preview",
+        "grpc": "SelfApplet/RevokePreview",
+        "mq": "self.applet.revoke.command.preview",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "none",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_request_body",
+        "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "query_only_recomputed_revoke_plan"
+        }
+      },
+      {
         "operation_id": "ak.self.applet.command.revoke",
         "http": "POST /_arkret/self/applets/{applet_id}/revoke",
         "grpc": "SelfApplet/Revoke",
@@ -11528,6 +11542,25 @@
             "ak.capability.revoke",
             "ak.member.state"
           ]
+        },
+        "saga_contract": {
+          "ledger": "durable_before_first_effect",
+          "step_states": [
+            "pending",
+            "accepted",
+            "duplicate",
+            "rejected"
+          ],
+          "external_effects": [
+            "account_authority_delegated_session_revocation"
+          ],
+          "local_effects": [
+            "widget_token_invalidation",
+            "applet_write_fence"
+          ],
+          "completion_condition": "all_required_events_accepted_or_duplicate_and_all_external_local_steps_accepted",
+          "restart_recovery": "resume_exact_persisted_submissions_and_pending_steps",
+          "first_revoke_acceptance_fences_future_writes": true
         }
       },
       {

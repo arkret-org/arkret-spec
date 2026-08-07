@@ -49,7 +49,7 @@
       "outbound": 45,
       "prose": 109,
       "prose_only": 2,
-      "schema_reference": 104,
+      "schema_reference": 105,
       "startup_compile": 181,
       "vectors": 114
     },
@@ -595,7 +595,8 @@
         "owners": [
           "ak.self.applet.command.install",
           "ak.self.applet.command.revoke",
-          "ak.self.applet.install.command.preview"
+          "ak.self.applet.install.command.preview",
+          "ak.self.applet.revoke.command.preview"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -1517,6 +1518,7 @@
       "consumers": {
         "declared_wire": "standalone_schema_alias",
         "prose": "normative_text",
+        "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "fixture"
       },

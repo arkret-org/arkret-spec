@@ -29,6 +29,10 @@
       "sha256": "0c4bc5b0a03e72423699f4de6eb42d9dbaa3f4aae185e2a7d7193833d75355b4"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/applet-revoke-saga-fixture.json",
+      "sha256": "33b71af6ea6276b758273c7a1d3d903d128e31c79a6bc36103e82d03924d313d"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json",
       "sha256": "59b3bf2ad16560ebb97c4cb8a351f4fbcad416d268a02628dc4aaa7a42b68dfc"
     },
@@ -237,6 +241,10 @@
       "sha256": "7dfe81a2abc94c49a803aae78a22f360f7e3d0d720620d51598b1206b2da1ec2"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/producer-allocated-identity-fixture.json",
+      "sha256": "24824bcd629b2550221807c3270483c8fcdc3b0d59a9c8d6f6624cca159bc28f"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
       "sha256": "d31ff8de83150a2c2483ebfd390828017ae251ca4309ee778b2b8c49e87bbeae"
     },
@@ -266,7 +274,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
-      "sha256": "1afaa292b0199585fd7b6103818f2a23ba245820c9899fb8200ee3179df738a9"
+      "sha256": "8af9c01df6f172a53d312200bdc6f99d6cff560b7e30b93b6d12df953e4be87c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",

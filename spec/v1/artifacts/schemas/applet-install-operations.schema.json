@@ -17,6 +17,12 @@
       "$ref": "#/$defs/applet_install_outcome"
     },
     {
+      "$ref": "#/$defs/applet_revoke_preview_request_body"
+    },
+    {
+      "$ref": "#/$defs/applet_revoke_preview_outcome"
+    },
+    {
       "$ref": "#/$defs/applet_revoke_request_body"
     },
     {
@@ -344,6 +350,115 @@
     "applet_revoke_request_body": {
       "type": "object",
       "required": [
+        "revoke_plan_digest",
+        "effective_scope",
+        "reason_code",
+        "revoke_mode",
+        "capability_revoke_events",
+        "membership_state_events"
+      ],
+      "properties": {
+        "revoke_plan_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "effective_scope": {
+          "$ref": "#/$defs/effective_scope"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "revoke_mode": {
+          "type": "string",
+          "enum": [
+            "revoke_all",
+            "revoke_runtime_only",
+            "revoke_widget_only",
+            "revoke_delegated_sessions"
+          ]
+        },
+        "capability_revoke_events": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "allOf": [
+              {
+                "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "event": {
+                    "allOf": [
+                      {
+                        "$ref": "./service-operation-dtos.schema.json#/$defs/EventSubmitEnvelope"
+                      },
+                      {
+                        "type": "object",
+                        "required": [
+                          "kind"
+                        ],
+                        "properties": {
+                          "kind": {
+                            "const": "ak.capability.revoke"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "description": "Exactly one caller-signed ak.capability.revoke initial submission for every active grant in the recomputed plan."
+        },
+        "membership_state_events": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "allOf": [
+              {
+                "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "event": {
+                    "allOf": [
+                      {
+                        "$ref": "./service-operation-dtos.schema.json#/$defs/EventSubmitEnvelope"
+                      },
+                      {
+                        "type": "object",
+                        "required": [
+                          "kind"
+                        ],
+                        "properties": {
+                          "kind": {
+                            "const": "ak.member.state"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "description": "Caller-signed membership removals in the plan, or an empty array when the install owns no managed membership."
+        },
+        "proof": {
+          "$ref": "../schemas/account-operations.schema.json#/$defs/account_lifecycle_proof",
+          "description": "Required when revoke_mode includes delegated session revocation in production. The proof signs the canonical ak.gate.account.command.revoke_session transcript reconstructed from the active applet install selector."
+        }
+      },
+      "additionalProperties": false
+    },
+    "applet_revoke_preview_request_body": {
+      "type": "object",
+      "required": [
         "effective_scope",
         "reason_code",
         "revoke_mode"
@@ -364,10 +479,184 @@
             "revoke_widget_only",
             "revoke_delegated_sessions"
           ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "applet_revoke_plan": {
+      "type": "object",
+      "required": [
+        "applet_id",
+        "effective_scope",
+        "registration_epoch",
+        "reason_code",
+        "revoke_mode",
+        "capability_revocations",
+        "membership_removals",
+        "widget_token_refs",
+        "delegated_session_refs"
+      ],
+      "properties": {
+        "applet_id": {
+          "$ref": "#/$defs/applet_id"
         },
-        "proof": {
-          "$ref": "../schemas/account-operations.schema.json#/$defs/account_lifecycle_proof",
-          "description": "Required when revoke_mode includes delegated session revocation in production. The proof signs the canonical ak.gate.account.command.revoke_session transcript reconstructed from the active applet install selector."
+        "effective_scope": {
+          "$ref": "#/$defs/effective_scope"
+        },
+        "registration_epoch": {
+          "$ref": "#/$defs/hash"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "revoke_mode": {
+          "type": "string",
+          "enum": [
+            "revoke_all",
+            "revoke_runtime_only",
+            "revoke_widget_only",
+            "revoke_delegated_sessions"
+          ]
+        },
+        "capability_revocations": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/applet_capability_revoke_intent"
+          }
+        },
+        "membership_removals": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/applet_membership_remove_intent"
+          }
+        },
+        "widget_token_refs": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/typed_ref"
+          }
+        },
+        "delegated_session_refs": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/typed_ref"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "applet_capability_revoke_intent": {
+      "type": "object",
+      "required": [
+        "event_kind",
+        "grant_id",
+        "registration_epoch",
+        "reason_code"
+      ],
+      "properties": {
+        "event_kind": {
+          "const": "ak.capability.revoke"
+        },
+        "grant_id": {
+          "$ref": "#/$defs/grant_id"
+        },
+        "registration_epoch": {
+          "$ref": "#/$defs/hash"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "applet_membership_remove_intent": {
+      "type": "object",
+      "required": [
+        "event_kind",
+        "member_id",
+        "membership",
+        "reason_code"
+      ],
+      "properties": {
+        "event_kind": {
+          "const": "ak.member.state"
+        },
+        "member_id": {
+          "$ref": "#/$defs/did"
+        },
+        "membership": {
+          "type": "string",
+          "enum": [
+            "leave",
+            "remove"
+          ]
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "applet_revoke_preview_outcome": {
+      "type": "object",
+      "required": [
+        "revoke_plan_digest",
+        "revoke_plan"
+      ],
+      "properties": {
+        "revoke_plan_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "revoke_plan": {
+          "$ref": "#/$defs/applet_revoke_plan"
+        }
+      },
+      "additionalProperties": false
+    },
+    "applet_revoke_step": {
+      "type": "object",
+      "required": [
+        "effect_kind",
+        "effect_ref",
+        "status"
+      ],
+      "properties": {
+        "effect_kind": {
+          "type": "string",
+          "enum": [
+            "capability_revoke_event",
+            "membership_state_event",
+            "widget_token_invalidation",
+            "delegated_session_revocation",
+            "local_applet_fence"
+          ]
+        },
+        "effect_ref": {
+          "$ref": "#/$defs/typed_ref"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "accepted",
+            "duplicate",
+            "rejected"
+          ]
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
         }
       },
       "additionalProperties": false
@@ -375,11 +664,38 @@
     "applet_revoke_outcome": {
       "type": "object",
       "required": [
-        "ok"
+        "ok",
+        "operation_id",
+        "revoke_plan_digest",
+        "status",
+        "steps"
       ],
       "properties": {
         "ok": {
           "type": "boolean"
+        },
+        "operation_id": {
+          "type": "string",
+          "pattern": "^ak:operation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "revoke_plan_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "in_progress",
+            "partially_completed"
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1024,
+          "items": {
+            "$ref": "#/$defs/applet_revoke_step"
+          }
         },
         "revoked_refs": {
           "type": "array",

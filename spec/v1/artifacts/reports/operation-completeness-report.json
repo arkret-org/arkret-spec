@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07.11",
+  "version": "2026-08-08.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T00:30:00Z",
+  "generated_at": "2026-08-08T01:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,12 +18,12 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 222,
+    "total_operations": 223,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "service_describe": 5,
       "streaming_frame_schema": 3,
-      "typed_schema": 212
+      "typed_schema": 213
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -38,7 +38,7 @@
         "binary_or_redirect": 2,
         "service_describe": 1,
         "streaming_frame_schema": 1,
-        "typed_schema": 143
+        "typed_schema": 144
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -1693,6 +1693,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AppletInstallPreviewRequestBody",
         "response": "#/components/schemas/AppletInstallPlan"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.applet.revoke.command.preview",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/applets/{applet_id}/revoke/preview",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_request_body",
+      "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AppletRevokePreviewRequestBody",
+        "response": "#/components/schemas/AppletRevokePreviewOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07.5",
+  "version": "2026-08-08.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T00:30:00Z",
+  "generated_at": "2026-08-08T01:10:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -402,6 +402,19 @@
       "description": "Deterministic Applet registration_epoch recomputation from the closed normalized transcript, UTF-8 domain separator, JCS bytes, and SHA-256; covers set sorting and duplicate rejection, optional omission, DID method version evidence, and security-field rotation.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.applet.revoke_saga.v1",
+      "status": "active",
+      "domain": "applet",
+      "applies_to_fixtures": [
+        "applet-revoke-saga-fixture.json"
+      ],
+      "description": "Caller-signed Applet revoke plan binding, durable pre-effect ledger bound to principal service and admin actor, exact replay, conflict rejection, non-skip partial outcomes, restart recovery, and first-accepted-event write fencing.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/applet-revoke-saga-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -3134,6 +3147,19 @@
         "spec/v1/zh/identity/identity-did.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/organization-registration-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.producer_allocated_collision.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "producer-allocated-identity-fixture.json"
+      ],
+      "description": "Registry-parameterized producer UUIDv7 identity suite. Every producer_signature ID kind executes authorized first reservation, exact replay, same-authority conflicting binding quarantine, cross-authority same-UUID separation, and bare lookup or unauthorized allocation rejection.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/producer-allocated-identity-fixture.json"
       ]
     },
     {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07.11",
+  "version": "2026-08-08.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T00:30:00Z",
+  "generated_at": "2026-08-08T01:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1507,10 +1507,10 @@
       }
     },
     {
-      "operation_id": "ak.self.applet.command.revoke",
+      "operation_id": "ak.self.applet.revoke.command.preview",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body",
+        "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_request_body",
         "schema_kind": "object",
         "required": [
           "effective_scope",
@@ -1520,7 +1520,45 @@
         "properties": [
           "effective_scope",
           "reason_code",
+          "revoke_mode"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_outcome",
+        "schema_kind": "object",
+        "required": [
+          "revoke_plan_digest",
+          "revoke_plan"
+        ],
+        "properties": [
+          "revoke_plan_digest",
+          "revoke_plan"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.applet.command.revoke",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body",
+        "schema_kind": "object",
+        "required": [
+          "revoke_plan_digest",
+          "effective_scope",
+          "reason_code",
           "revoke_mode",
+          "capability_revoke_events",
+          "membership_state_events"
+        ],
+        "properties": [
+          "revoke_plan_digest",
+          "effective_scope",
+          "reason_code",
+          "revoke_mode",
+          "capability_revoke_events",
+          "membership_state_events",
           "proof"
         ],
         "closed": true
@@ -1529,10 +1567,18 @@
         "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome",
         "schema_kind": "object",
         "required": [
-          "ok"
+          "ok",
+          "operation_id",
+          "revoke_plan_digest",
+          "status",
+          "steps"
         ],
         "properties": [
           "ok",
+          "operation_id",
+          "revoke_plan_digest",
+          "status",
+          "steps",
           "revoked_refs",
           "rejected"
         ],

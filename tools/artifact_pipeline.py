@@ -292,6 +292,60 @@ def check_capability_action_derivations() -> list[str]:
     return errors
 
 
+def derived_id_wire_form(row: dict[str, Any]) -> str | None:
+    kind = row.get("kind")
+    id_form = row.get("id_form")
+    if not isinstance(kind, str) or not kind:
+        return None
+    if id_form == "event_derived":
+        return f"ak:{kind}:<event-token>"
+    if id_form == "producer_allocated":
+        return f"ak:{kind}:<uuidv7>"
+    return None
+
+
+def write_id_wire_form_derivations() -> None:
+    catalog = load_contract_registry()
+    section = catalog.get("id_kind_registry")
+    rows = section.get("id_kinds") if isinstance(section, dict) else None
+    if not isinstance(rows, list):
+        raise SystemExit("contract registry missing id_kind_registry.id_kinds")
+    changed: list[str] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        expected = derived_id_wire_form(row)
+        if expected is not None and row.get("wire_form") != expected:
+            row["wire_form"] = expected
+            changed.append(str(row.get("kind")))
+    if not changed:
+        return
+    CONTRACT_REGISTRY_PATH.write_text(dump_json(catalog), encoding="utf-8", newline="\n")
+    print(
+        f"updated {CONTRACT_REGISTRY_PATH.relative_to(ROOT).as_posix()} "
+        f"(derived ID wire forms: {', '.join(changed)})"
+    )
+
+
+def check_id_wire_form_derivations() -> list[str]:
+    catalog = load_contract_registry()
+    section = catalog.get("id_kind_registry")
+    rows = section.get("id_kinds") if isinstance(section, dict) else None
+    if not isinstance(rows, list):
+        return ["contract registry missing id_kind_registry.id_kinds"]
+    errors: list[str] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        expected = derived_id_wire_form(row)
+        if expected is not None and row.get("wire_form") != expected:
+            errors.append(
+                f"derived ID wire-form drift: {row.get('kind')}.wire_form must equal {expected!r} "
+                "(run python tools/artifact_pipeline.py generate)"
+            )
+    return errors
+
+
 def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str, Any]]:
     version, generated_at = registry_generation_metadata(catalog)
     generated = catalog.get("derived_registry_views")
@@ -954,6 +1008,7 @@ def run_operation_string_classification(mode: str) -> int:
 
 def cmd_generate(_: argparse.Namespace) -> int:
     write_capability_action_derivations()
+    write_id_wire_form_derivations()
     write_derived_registry_views()
     write_operation_schema_index()
     completeness_status = run_operation_completeness_report("generate")
@@ -971,6 +1026,7 @@ def cmd_generate(_: argparse.Namespace) -> int:
 
 def cmd_check(_: argparse.Namespace) -> int:
     errors = check_capability_action_derivations()
+    errors.extend(check_id_wire_form_derivations())
     errors.extend(check_derived_registry_views())
     errors.extend(check_operation_schema_index())
     errors.extend(check_classification_discipline())

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07.11",
+  "version": "2026-08-08.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T00:30:00Z",
+  "generated_at": "2026-08-08T01:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

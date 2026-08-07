@@ -16,71 +16,14 @@
       "const": "ak.schema.erasure_verification_stub.v1"
     },
     "subject": {
-      "type": "object",
-      "required": [
-        "kind",
-        "subject_ref"
-      ],
-      "properties": {
-        "kind": {
-          "type": "string",
-          "enum": [
-            "principal",
-            "realm",
-            "event",
-            "blob",
-            "device",
-            "account_private_state"
-          ]
-        },
-        "subject_ref": {
-          "$ref": "#/$defs/subject_ref"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "#/$defs/subject"
     },
     "scope": {
-      "type": "object",
-      "required": [
-        "storage_boundary"
-      ],
-      "properties": {
-        "storage_boundary": {
-          "type": "string",
-          "enum": [
-            "canonical_log_minimization",
-            "blob_store",
-            "projection_store",
-            "account_private_store",
-            "search_index",
-            "push_routes",
-            "device_secret_store",
-            "media_derivatives",
-            "service_defined"
-          ]
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "target_refs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/subject_ref"
-          },
-          "uniqueItems": true
-        },
-        "retention_policy_id": {
-          "$ref": "#/$defs/policy_id"
-        },
-        "service_scope": {
-          "type": "string",
-          "minLength": 1
-        }
-      },
-      "additionalProperties": false
+      "$ref": "#/$defs/scope"
     },
     "event_digest": {
-      "$ref": "#/$defs/hash"
+      "$ref": "#/$defs/hash",
+      "description": "Optional redundant digest for an Event subject. Its suite and all 32 digest octets MUST exactly match the suite wire code and digest carried by subject.subject_ref. If omitted, the suite and digest are recovered from the Event ID. This field and the Event ID preserve consistency evidence; neither independently verifies erased canonical Event bytes."
     },
     "retained_digests": {
       "type": "array",
@@ -130,6 +73,168 @@
   },
   "additionalProperties": false,
   "$defs": {
+    "subject": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/principal_subject"
+        },
+        {
+          "$ref": "#/$defs/realm_subject"
+        },
+        {
+          "$ref": "#/$defs/event_subject"
+        },
+        {
+          "$ref": "#/$defs/blob_subject"
+        },
+        {
+          "$ref": "#/$defs/device_subject"
+        },
+        {
+          "$ref": "#/$defs/account_private_state_subject"
+        }
+      ]
+    },
+    "principal_subject": {
+      "type": "object",
+      "required": [
+        "kind",
+        "subject_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "principal"
+        },
+        "subject_ref": {
+          "$ref": "#/$defs/did"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_subject": {
+      "type": "object",
+      "required": [
+        "kind",
+        "subject_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm"
+        },
+        "subject_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "event_subject": {
+      "type": "object",
+      "required": [
+        "kind",
+        "subject_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "event"
+        },
+        "subject_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "blob_subject": {
+      "type": "object",
+      "required": [
+        "kind",
+        "subject_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "blob"
+        },
+        "subject_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_subject": {
+      "type": "object",
+      "required": [
+        "kind",
+        "subject_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "device"
+        },
+        "subject_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_private_state_subject": {
+      "type": "object",
+      "required": [
+        "kind",
+        "subject_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "account_private_state"
+        },
+        "subject_ref": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scope": {
+      "type": "object",
+      "required": [
+        "storage_boundary"
+      ],
+      "properties": {
+        "storage_boundary": {
+          "type": "string",
+          "enum": [
+            "canonical_log_minimization",
+            "blob_store",
+            "projection_store",
+            "account_private_store",
+            "search_index",
+            "push_routes",
+            "device_secret_store",
+            "media_derivatives",
+            "service_defined"
+          ]
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "target_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/subject_ref"
+          },
+          "uniqueItems": true
+        },
+        "retention_policy_id": {
+          "$ref": "#/$defs/policy_id"
+        },
+        "service_scope": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },

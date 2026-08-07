@@ -224,7 +224,8 @@ Applet 安装使用 self/admin aggregate operation。它不创建 install 专用
 | --- | --- | --- |
 | `ak.self.applet.install.command.preview` | `POST /_arkret/self/applets/install/preview` | 只读预览，返回 canonical `InstallPlan` 与 `plan_digest`。 |
 | `ak.self.applet.command.install` | `POST /_arkret/self/applets/install` | 提交安装，必须带 `Idempotency-Key`、preview 得到的 `plan_digest`，以及管理员已签名的 formal registration/grant Events。 |
-| `ak.self.applet.command.revoke` | `POST /_arkret/self/applets/{applet_id}/revoke` | 撤销 effective install。 |
+| `ak.self.applet.revoke.command.preview` | `POST /_arkret/self/applets/{applet_id}/revoke/preview` | 只读重算 active install，返回 canonical `AppletRevokePlan` 与 `revoke_plan_digest`。 |
+| `ak.self.applet.command.revoke` | `POST /_arkret/self/applets/{applet_id}/revoke` | 提交 caller-signed revoke saga，必须带 `Idempotency-Key` 与 preview digest。 |
 
 `effective_scope` 是单次 install 的唯一目标:
 
@@ -264,7 +265,36 @@ Commit MUST 执行：
 
 多事件 fan-out 不是分布式原子事务；安全性依赖 registration 无 grant 即无授权。preview-time reject MUST NOT 提交任何 durable event。reduce-time reject MUST 把 accepted refs 与 rejected refs 写入 install execution record 和 audit/projection。registration 成功但所有 grant 失败时 MUST 返回 rejected，标记 registration 无 effective install，并在 local projection / audit 显式显示 orphan registration。
 
-Revoke MUST 撤销绑定到 applet + effective_scope + registration_epoch 的全部 active grant、撤销 widget scoped token、撤销 delegated session/device（若有），并在需要时触发 bot/ghost membership leave/remove 与 MLS epoch rotation requirement。涉及 delegated session revoke 时，请求 MUST 携带 `proof: AccountLifecycleProof`；Principal Server MUST 用 active install 重建 `ak.gate.account.command.revoke_session` applet selector（`applet_id`、`effective_scope`、`registration_epoch`、`service_id`、`capability_grant_refs`）并转发给 Account Authority，Account Authority MUST 按该 selector 撤销授权侧 session grant。`remove_ghost_membership` 依赖 active ghost projection 能枚举该 effective_scope 下仍 active 的 applet-managed ghost member；若 projection 不完整，MUST fail closed 并要求先重建 projection，不得按 namespace pattern 猜测成员。revoked effective install 继续尝试未来写入或调用 MUST fail closed，reason=`applet_revoked` 或更细 reason。
+Revoke 使用 caller-signed event-log saga。preview MUST 从 current effective install 精确枚举每个 active
+grant、applet-managed bot/ghost membership、widget scoped token 与 delegated session，返回 canonical
+`AppletRevokePlan` 及 `revoke_plan_digest=sha256(canonical_json(plan))`。plan 中每个 grant 对应一条
+`ak.capability.revoke` intent；每个需要离开/移除的 managed member 对应一条 `ak.member.state` intent。
+projection 不完整时 MUST fail closed 并要求先重建 projection，不得按 namespace pattern、旧 request 或
+本地默认值猜测 grant/member/token/session。
+
+Commit MUST 携 `revoke_plan_digest`、与每个 grant intent 一一对应的 caller-signed
+`capability_revoke_events: EventInitialSubmission[]`，以及与 membership intent 一一对应的 caller-signed
+`membership_state_events: EventInitialSubmission[]`。服务端必须在首个副作用前重算 plan，并逐字节验证
+Event kind、scope、registration epoch、grant/member target、membership transition 与 reason；任何遗漏、
+多余或不匹配均 fail closed。服务端不得代签、补写或重建 Event，也不得以本地 grant row / revoked flag
+替代正式 Event admission。Event 的 canonical bytes 完成后才能派生 Event ID；不明结果与 retry 只能重放
+request 中相同的 signed Event bytes。
+
+Commit 在首个副作用前 MUST 持久化 saga ledger：绑定
+`(principal_service_id, admin_actor_id, Idempotency-Key, canonical_request_digest,
+revoke_plan_digest, exact_event_submissions, status, steps[])`。每个 step 的状态固定为
+`pending|accepted|duplicate|rejected`，并在继续下一步前持久化。Event admission、Account Authority delegated
+session revoke、widget token 作废与本地 applet fence 可以跨服务执行，不得声称分布式原子；restart MUST
+从 ledger 恢复同一 submissions 与尚未完成步骤。只有全部 required replicated Events 已
+accepted/duplicate、widget token 已作废、delegated-session 子操作完成且 local fence durable 后才返回
+`status=complete, ok=true`。部分成功返回 `in_progress|partially_completed` 与精确 steps/rejected refs；已
+accepted Event 不回滚、不重签，只继续缺失步骤。
+
+从第一条相关 `ak.capability.revoke` 或 `ak.member.state` 被 accepted 起，未来 Applet writes MUST 立即
+fail closed，reason=`applet_revoked` 或更细 reason，不能等待 saga 全部完成。涉及 delegated session
+revoke 时，请求还 MUST 携 `proof: AccountLifecycleProof`；Principal Server MUST 用 active install 重建
+`ak.gate.account.command.revoke_session` applet selector（`applet_id`、`effective_scope`、
+`registration_epoch`、`service_id`、`capability_grant_refs`）并转发给 Account Authority。
 
 ### 4b.1 术语:Effective Install 与 Orphan Registration
 
@@ -365,7 +395,7 @@ Base URL 来自 registration 的 `base_url`。
 **`ak.applet.*` 标识符的两类用途（normative 区分）**：`ak.applet.*` 前缀的标识符根据上下文分属两个互不混淆的命名空间，实现不得把二者当作同一对象：
 
 - **Event kind（进 Realm history）**：`ak.applet.registration` 与 `ak.applet.bridge_error`。这些是 durable Arkret Event，进入 Realm history，由 reducer 按 schema 校验；`ak.applet.bridge_error` payload 以 `artifacts/schemas/event-payload.schema.json` 与 `applet-schema.md` §7 为权威。Applet runtime 的调用进度、私有 session id、opaque params/detail 与实现状态只属于 operation response/stream 或部署本地状态，MUST NOT 写入共享 Realm history；跨实现有意义的业务结果必须落为既有 Event、Strand、Message、Morph、Relation 或封闭的 result artifact。
-- **operation_id（HTTP，不进 history）**：本节表中的 `ak.edge.applet.read.ping`、`ak.edge.applet.read.describe`、`ak.edge.applet.command.transaction`、`ak.edge.applet.actor.read.resolve`、`ak.edge.applet.realm.read.resolve`、`ak.edge.applet.read.protocol_metadata`、`ak.edge.applet.third_party_users.read.list`、`ak.edge.applet.third_party_locations.read.list`、§4b 的 `ak.self.applet.install.command.preview` / `ak.self.applet.command.install` / `ak.self.applet.command.revoke` 以及 §9.1 的 `ak.self.applet.ghost.command.provision` 是 HTTP API operation 标识符，只描述 Arkret 节点 ↔ Applet 或 self/admin aggregate operation 的请求/响应绑定，本身不是 wire Event，不进入 Realm history。
+- **operation_id（HTTP，不进 history）**：本节表中的 `ak.edge.applet.read.ping`、`ak.edge.applet.read.describe`、`ak.edge.applet.command.transaction`、`ak.edge.applet.actor.read.resolve`、`ak.edge.applet.realm.read.resolve`、`ak.edge.applet.read.protocol_metadata`、`ak.edge.applet.third_party_users.read.list`、`ak.edge.applet.third_party_locations.read.list`、§4b 的 `ak.self.applet.install.command.preview` / `ak.self.applet.command.install` / `ak.self.applet.revoke.command.preview` / `ak.self.applet.command.revoke` 以及 §9.1 的 `ak.self.applet.ghost.command.provision` 是 HTTP API operation 标识符，只描述 Arkret 节点 ↔ Applet 或 self/admin aggregate operation 的请求/响应绑定，本身不是 wire Event，不进入 Realm history。
 
 `ak.edge.applet.command.transaction` 在 v1 artifacts 中只作为 operation_id 存在，指 §7.3 的 transaction push HTTP 调用；它 MUST NOT 作为 durable Event kind 或 transaction-origin Event 写入 Realm history。transaction push 的幂等记录属于 Applet service / transport audit log；Applet 写入 Arkret 的事实由具体 Event Envelope 的 signed `applet_id`、`external_ref`、`authorization_ref`、event signature 与 capability grant 表达。
 
@@ -385,7 +415,8 @@ Base URL 来自 registration 的 `base_url`。
 | `ak.edge.applet.third_party_locations.read.list` | edge（节点→Applet） | `query.protocol: string`; 外部 ID query 字段 | 无 | `realm_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
 | `ak.self.applet.install.command.preview` | self（管理员→Principal Server） | `applet_package`; `effective_scope`; `approval_request`（字段见 [`applet-schema.md` §1b](./applet-schema.md)） | 无 | `InstallPlan` + `plan_digest`（契约 `applet-install-plan.schema.json`） | 只读预览；字段定义见 §4b 与 `applet-schema.md` §1b。 |
 | `ak.self.applet.command.install` | self（管理员→Principal Server） | `Idempotency-Key`; `plan_digest`; `applet_package`; `effective_scope`; `approval_request`（见 [`applet-schema.md` §1b](./applet-schema.md)） | 无 | install / commit response 的完整 required 字段集合以 [`applet-schema.md` §1b](./applet-schema.md) 与契约 `applet-install-operations.schema.json` 为权威源（本表不再部分罗列） | 提交安装；字段定义见 §4b 与 `applet-schema.md` §1b。 |
-| `ak.self.applet.command.revoke` | self（管理员→Principal Server） | `path.applet_id`; `effective_scope` | 无 | revoke 结果（撤销的 grant / membership / token refs） | 撤销 effective install；见 §4b。 |
+| `ak.self.applet.revoke.command.preview` | self（管理员→Principal Server） | `path.applet_id`; `effective_scope`; `reason_code`; `revoke_mode` | 无 | `revoke_plan_digest`; `revoke_plan` | 只读枚举 exact revoke intents；见 §4b。 |
+| `ak.self.applet.command.revoke` | self（管理员→Principal Server） | `header.Idempotency-Key`; `path.applet_id`; `revoke_plan_digest`; `effective_scope`; `reason_code`; `revoke_mode`; `capability_revoke_events[]`; `membership_state_events[]` | `proof?: AccountLifecycleProof` | `ok`; `operation_id`; `revoke_plan_digest`; `status`; `steps[]`; `revoked_refs[]?`; `rejected[]?` | caller-signed event-log saga；见 §4b。 |
 | `ak.self.applet.ghost.command.provision` | self（已安装 Applet service→Principal Server） | `header.Idempotency-Key`; `path.applet_id`; `schema`; `applet_id`; `service_id`; `ghost_actor_id`; `protocol`; `tenant`; `external_user_id`; `realm_id`; `external_ref`; `accountability_grant_event: Event`; `profile_event: Event` | `display_name` | `ghost_actor_id: did`; `profile_event_ref: ref`; `accountability_grant_ref: ref`; `authorization_ref: ref`; `display_name: string?` | bridge Applet 为单个外部用户提交闭合的 caller-signed Event 对并原子 provision Ghost Actor；字段、proof 与幂等规则见 §9.1，契约 `applet-ghost-operations.schema.json`。 |
 
 ### 7.1 Ping

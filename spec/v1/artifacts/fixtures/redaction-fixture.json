@@ -83,7 +83,7 @@
               "storage_boundary": "projection_store",
               "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v"
             },
-            "event_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+            "event_digest": "sha256:2d324e295c440ae7ff7f098415cb3899675086d2b9f3db32b35540673d795a45",
             "redaction_authorization_ref": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka",
             "receipt_id": "ak:receipt:01970e58-0004-7000-8000-0000000005a3",
             "completed_at": "2026-04-26T00:05:00.000Z"
@@ -175,7 +175,7 @@
           "canonical_payload_bytes",
           "derived_plaintext"
         ],
-        "retained_stub_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "retained_stub_digest": "sha256:5fb5d9ef3ac649062ec2acc391fc57c5d3188f460316f14ddc3878b61813d509",
         "retained_stub": {
           "stub_schema": "ak.schema.erasure_verification_stub.v1",
           "subject": {
@@ -186,7 +186,7 @@
             "storage_boundary": "canonical_log_minimization",
             "realm_id": "ak:realm:ATB8eFsjx2SsBFehta_0LQT_Gm9Fe3YTrFRzNi9_ve_v"
           },
-          "event_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "event_digest": "sha256:55e1b55dbbe657751ac5c17203918579058c6bfddf391356b5a55b5d0c484a91",
           "redaction_authorization_ref": "ak:event:AcVVEibvnVimp5bR79tEvSHK7IVPLHvRdRcmGTQMHEIl",
           "receipt_id": "ak:receipt:01970e58-0004-7000-8000-0000000004b3",
           "completed_at": "2026-04-26T00:05:00.000Z"
@@ -222,10 +222,64 @@
         "content_present": false,
         "proofs_present": false,
         "erasure_receipt_outcome": "completed",
-        "retained_stub_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "retained_stub_digest": "sha256:5fb5d9ef3ac649062ec2acc391fc57c5d3188f460316f14ddc3878b61813d509",
         "verification_stub_retained": true,
-        "plaintext_fingerprint_present": false
-      }
+        "plaintext_fingerprint_present": false,
+        "original_preimage_verified": false
+      },
+      "verification_cases": [
+        {
+          "name": "structure_digest_and_stub_binding_valid",
+          "subject": {
+            "kind": "event",
+            "subject_ref": "ak:event:AVXhtV275ld1GsXBcgORhXkFjGv93zkTVrWlW10MSEqR"
+          },
+          "event_digest": "sha256:55e1b55dbbe657751ac5c17203918579058c6bfddf391356b5a55b5d0c484a91",
+          "retained_stub_digest": "sha256:5fb5d9ef3ac649062ec2acc391fc57c5d3188f460316f14ddc3878b61813d509",
+          "expected": "accepted",
+          "original_preimage_verified": false
+        },
+        {
+          "name": "wrong_kind_ref_namespace_rejected",
+          "subject": {
+            "kind": "device",
+            "subject_ref": "ak:event:AVXhtV275ld1GsXBcgORhXkFjGv93zkTVrWlW10MSEqR"
+          },
+          "event_digest": "sha256:55e1b55dbbe657751ac5c17203918579058c6bfddf391356b5a55b5d0c484a91",
+          "retained_stub_digest": "sha256:5fb5d9ef3ac649062ec2acc391fc57c5d3188f460316f14ddc3878b61813d509",
+          "expected": "schema_violation"
+        },
+        {
+          "name": "invalid_event_id_suite_rejected",
+          "subject": {
+            "kind": "event",
+            "subject_ref": "ak:event:AFXhtV275ld1GsXBcgORhXkFjGv93zkTVrWlW10MSEqR"
+          },
+          "event_digest": "sha256:55e1b55dbbe657751ac5c17203918579058c6bfddf391356b5a55b5d0c484a91",
+          "retained_stub_digest": "sha256:5fb5d9ef3ac649062ec2acc391fc57c5d3188f460316f14ddc3878b61813d509",
+          "expected": "unsupported_digest_algorithm"
+        },
+        {
+          "name": "event_id_digest_mismatch_rejected",
+          "subject": {
+            "kind": "event",
+            "subject_ref": "ak:event:AVXhtV275ld1GsXBcgORhXkFjGv93zkTVrWlW10MSEqR"
+          },
+          "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "retained_stub_digest": "sha256:5fb5d9ef3ac649062ec2acc391fc57c5d3188f460316f14ddc3878b61813d509",
+          "expected": "event_id_digest_mismatch"
+        },
+        {
+          "name": "stub_digest_mismatch_rejected",
+          "subject": {
+            "kind": "event",
+            "subject_ref": "ak:event:AVXhtV275ld1GsXBcgORhXkFjGv93zkTVrWlW10MSEqR"
+          },
+          "event_digest": "sha256:55e1b55dbbe657751ac5c17203918579058c6bfddf391356b5a55b5d0c484a91",
+          "retained_stub_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "expected": "erasure_receipt_stub_digest_mismatch"
+        }
+      ]
     }
   ]
 }

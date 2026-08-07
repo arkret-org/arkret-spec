@@ -1,0 +1,158 @@
+{
+  "profile": "ak.profile.applet_service.v1",
+  "version": "2026-08-08",
+  "suite": "applet_revoke_saga",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.applet.revoke_saga.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.applet.revoke_saga.v1"
+  ],
+  "operation_id": "ak.self.applet.command.revoke",
+  "preview_operation_id": "ak.self.applet.revoke.command.preview",
+  "plan": {
+    "revoke_plan_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "steps": [
+      {
+        "step_id": "capability:0",
+        "kind": "event",
+        "event_kind": "ak.capability.revoke",
+        "submission_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      {
+        "step_id": "membership:0",
+        "kind": "event",
+        "event_kind": "ak.member.state",
+        "submission_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      {
+        "step_id": "delegated_session:0",
+        "kind": "external",
+        "effect": "account_authority_delegated_session_revocation"
+      },
+      {
+        "step_id": "widget_token:0",
+        "kind": "local",
+        "effect": "widget_token_invalidation"
+      }
+    ]
+  },
+  "invariants": [
+    "persist_ledger_before_first_effect",
+    "ledger_binds_principal_service_and_admin_actor",
+    "exact_replay_resumes_same_ledger",
+    "conflicting_replay_has_no_effect",
+    "accepted_or_duplicate_steps_are_never_reexecuted",
+    "rejected_step_cannot_be_skipped",
+    "first_accepted_revoke_event_fences_future_applet_writes",
+    "complete_requires_every_planned_step_terminal_success"
+  ],
+  "cases": [
+    {
+      "name": "complete_exact_plan",
+      "request_binding": "key-1/body-a",
+      "timeline": [
+        "persist_ledger",
+        "accepted:capability:0",
+        "fence_applet_writes",
+        "accepted:membership:0",
+        "accepted:delegated_session:0",
+        "accepted:widget_token:0",
+        "persist_outcome"
+      ],
+      "expected_status": "complete"
+    },
+    {
+      "name": "event_rejected_without_skip",
+      "request_binding": "key-2/body-a",
+      "timeline": [
+        "persist_ledger",
+        "rejected:capability:0",
+        "persist_outcome"
+      ],
+      "expected_status": "partially_completed",
+      "expected_pending_steps": [
+        "membership:0",
+        "delegated_session:0",
+        "widget_token:0"
+      ]
+    },
+    {
+      "name": "crash_after_first_acceptance_then_exact_restart",
+      "request_binding": "key-3/body-a",
+      "first_attempt": [
+        "persist_ledger",
+        "accepted:capability:0",
+        "fence_applet_writes",
+        "crash"
+      ],
+      "restart_request_binding": "key-3/body-a",
+      "restart_timeline": [
+        "load_ledger",
+        "observe_terminal:capability:0",
+        "accepted:membership:0",
+        "accepted:delegated_session:0",
+        "accepted:widget_token:0",
+        "persist_outcome"
+      ],
+      "expected_status": "complete"
+    },
+    {
+      "name": "same_key_different_body_conflicts",
+      "request_binding": "key-4/body-a",
+      "replay_request_binding": "key-4/body-b",
+      "timeline": [
+        "load_ledger",
+        "duplicate_conflict"
+      ],
+      "expected_status": "duplicate_conflict",
+      "expected_new_effect_count": 0
+    },
+    {
+      "name": "same_key_different_actor_or_service_conflicts",
+      "request_binding": "service-a/admin-a/key-4b/body-a",
+      "replay_request_bindings": [
+        "service-a/admin-b/key-4b/body-a",
+        "service-b/admin-a/key-4b/body-a"
+      ],
+      "timeline": [
+        "load_ledger",
+        "duplicate_conflict"
+      ],
+      "expected_status": "duplicate_conflict",
+      "expected_new_effect_count": 0
+    },
+    {
+      "name": "external_effect_partial_then_restart",
+      "request_binding": "key-5/body-a",
+      "first_attempt": [
+        "persist_ledger",
+        "accepted:capability:0",
+        "fence_applet_writes",
+        "accepted:membership:0",
+        "rejected:delegated_session:0",
+        "persist_outcome"
+      ],
+      "expected_first_status": "partially_completed",
+      "restart_timeline": [
+        "load_ledger",
+        "observe_terminal:capability:0",
+        "observe_terminal:membership:0",
+        "accepted:delegated_session:0",
+        "accepted:widget_token:0",
+        "persist_outcome"
+      ],
+      "expected_status": "complete"
+    },
+    {
+      "name": "plan_or_submission_mismatch_is_pre_effect",
+      "request_binding": "key-6/body-a",
+      "timeline": [
+        "reject_plan_or_submission_mismatch"
+      ],
+      "expected_status": "invalid_param",
+      "expected_new_effect_count": 0
+    }
+  ]
+}

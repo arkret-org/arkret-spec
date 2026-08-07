@@ -1687,7 +1687,7 @@ ak.vector.redaction.hard_erasure_receipt.v1
 期望：
 
 - hard erasure 在被测存储边界内删除 payload bytes 与派生明文。
-- 实现保留 verification stub：原始 event id、验证事件图所需的 Event envelope digest / proof `event_digest`、redaction event id、erasure reason、执行服务 DID、执行时间和签名 receipt。签名 receipt MUST 符合 `ak.schema.erasure_receipt.v1`；若作为历史事件发布，Event.kind MUST 为 `ak.audit.erasure_receipt`。
+- 实现保留 verification stub：原始 Event ID、用于结构与冗余一致性校验的 Event digest / proof `event_digest`、redaction Event ID、erasure reason、执行服务 DID、执行时间和签名 receipt。签名 receipt MUST 符合 `ak.schema.erasure_receipt.v1`；若作为历史事件发布，Event.kind MUST 为 `ak.audit.erasure_receipt`。正例 MUST 明确输出 `original_preimage_verified=false`；Event ID 与 digest、stub canonical digest、subject kind 与 ref namespace 任一不一致均 MUST fail closed。
 - stub 不得额外保留已擦除明文字段的 standalone content hash、payload-only digest 或未加盐搜索 fingerprint；若审计必须保留内容承诺，必须使用每事件 salt 或 HMAC/pepper commitment，并把 secret 留在 legal-hold 边界或按 erasure policy 销毁。
 - backfill 返回 redacted / erased stub，不伪造替代事件，也不静默造成历史缺口。
 - legal hold 存在时阻止 hard erasure，但默认展示仍应用 redaction。
@@ -3489,6 +3489,19 @@ Expected：
 Runner 必须分别测试“用户输入 preparation”和“canonical receiver validation”：前者可把 width/case 与 domain U-label 转为 canonical 值，后者必须拒绝任何仍需改写的 wire 值。localpart / Agent slug 使用登记版本的 RFC 8265 derived profile；domain 使用 UTS #46 Nontransitional + STD3/Bidi/Joiner/hyphen/DNS-length/round-trip 完整校验。`title` 等单行显示文本必须允许多语言、emoji 与合理混合脚本，同时拒绝 non-NFC、CR/LF、C0/C1、BOM、bidi format control 和纯空白。
 
 UTS #39 skeleton 只在同一 authority、同一 namespace 的注册事务中作为派生冲突索引。同一 authority 的 handle skeleton 冲突返回 `failed_precondition` + `handle_homograph_forbidden`；不同 authority 或 handle/realm-alias 跨 namespace 不得冲突。Runner 必须断言 skeleton 不参与 canonical equality、签名或 wire 编码；Unicode/UTS #39 数据升级只重建派生索引，不得改写既有 canonical 标识符。DID 和 email local-part 的比较仍由各自 method/provider profile 决定，不得被 Arkret generic normalizer 合并。
+
+### 10.4.3 Vector：producer-allocated UUIDv7 身份冲突
+
+`vector_id`: `ak.vector.identity.producer_allocated_collision.v1`
+
+Runner MUST 从 `id-kind-registry.id_kinds[]` 动态选择全部
+`id_form="producer_allocated" && identity_authority="producer_signature"` 行，并对每一行执行
+[`producer-allocated-identity-fixture.json`](../../artifacts/fixtures/producer-allocated-identity-fixture.json)
+的同一五例：合法 authority 首次原子 reservation、同 authority 与相同 canonical binding 的 exact replay、
+同 authority 与不同 binding 的 reject-and-quarantine、不同 authority 复用同一 UUID 时按
+`(mint_authority, typed_id)` 分成两个身份，以及 bare typed-ID lookup / 未授权 allocator 拒绝。Runner
+不得维护手写 kind allowlist；fixture 的 `selected_id_kinds` 只是由 lint 对 registry 重算的漂移哨兵。
+冲突例必须断言没有 overwrite、merge 或 last-writer-wins。
 
 ### 10.5 Vector: Session Grant Audience Binding
 
@@ -6057,3 +6070,19 @@ Runner MUST 加载 [`event-kind-payload-coverage-fixture.json`](../../artifacts/
 ## Personal blocklist revision and delivery semantics
 
 `ak.vector.account.blocklist_projection.v1` MUST 覆盖：version 1 加入 actor block 后，共享 Realm Message 仍被收取、验签、存储并进入 canonical history，但 holder projection/notification/read-receipt/presence side effect 被抑制；version 2 省略该 entry 后，retention 仍保留的历史重新可见。并发 version 2、跳到 version 3、owner/actor 不同、同一 normalized target+applies_to 重叠 entry 与 target discriminator/承载不匹配均拒绝。`entries=[]` 清空规则。仅写 personal blocklist 不得撤销 Direct Conversation participant authority；任一方 Contact tombstone accepted 后 conversation 即 suspended，Consent grant/revoke 对 Personal DM authority无效。服务端无权读取 blocklist 时仍转发加密材料给 holder 设备并由端侧过滤；有权读取时可在 holder surface 前 drop，但两条路径对发送方的 response bytes、错误类别与 timing bucket 不可区分。
+
+## Applet revoke saga closure
+
+`ak.vector.applet.revoke_saga.v1` MUST 加载
+[`applet-revoke-saga-fixture.json`](../../artifacts/fixtures/applet-revoke-saga-fixture.json)，并执行
+`ak.suite.applet.revoke_saga.v1`。Runner 必须证明 preview 重算的 exact plan 与 commit 的
+`revoke_plan_digest`、caller-signed capability / membership submissions 逐项一致；任何遗漏、额外或
+篡改 submission 都在首个 effect 前失败。Saga ledger 必须先于首个 Event admission / external / local
+effect 持久化；第一条相关 revoke Event accepted 后立即 fence 后续 Applet writes。
+
+逐字节相同 request 与同一 Idempotency-Key 在 crash / response loss 后必须加载同一 ledger，只恢复
+`pending` / `rejected` 的必要步骤，不重新执行 `accepted` / `duplicate` 步骤，也不得跳过失败步骤；同 key
+异 body 必须 `duplicate_conflict` 且零新 effect。只有所有计划步骤均为 terminal success 才可报告
+`complete`；Event 或外部撤销失败时必须返回并持久化 `partially_completed`，重启后继续同一 saga。
+相同 key/body 从不同 `principal_service_id` 或 `admin_actor_id` 重放也必须 `duplicate_conflict` 且零新
+effect，不能把另一个管理员或服务当成同一 saga owner。
