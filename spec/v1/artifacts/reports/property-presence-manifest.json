@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9280,
+    "total_properties": 9281,
     "total_schema_documents": 155,
     "by_presence_class": {
       "optional": 2815,
       "optional_defaulted": 67,
-      "required": 6017,
+      "required": 6018,
       "required_nullable": 112,
       "tristate": 269
     },
@@ -9961,9 +9961,10 @@
         "ak.schema.read_cursor_operations.v1"
       ],
       "properties": {
-        "/$defs/read_cursor_advance_request_body/properties/position": "required",
-        "/$defs/read_cursor_advance_request_body/properties/read_scope": "required",
-        "/$defs/read_cursor_advance_request_body/properties/realm_id": "required",
+        "/$defs/read_cursor_advance_request_body/properties/advance_event": "required",
+        "/$defs/read_cursor_advance_request_body/properties/advance_event/allOf/1/properties/event": "required",
+        "/$defs/read_cursor_advance_request_body/properties/advance_event/allOf/1/properties/event/properties/kind": "required",
+        "/$defs/read_cursor_advance_request_body/properties/advance_event/allOf/1/properties/event/properties/payload": "required",
         "/$defs/read_cursor_list/properties/markers": "required",
         "/$defs/read_marker_outcome/properties/actor_id": "required",
         "/$defs/read_marker_outcome/properties/device_id": "required",

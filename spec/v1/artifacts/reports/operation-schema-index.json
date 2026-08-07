@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.7",
+  "version": "2026-08-08.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T08:00:00Z",
+  "generated_at": "2026-08-08T08:08:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -8087,14 +8087,10 @@
         "schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body",
         "schema_kind": "object",
         "required": [
-          "realm_id",
-          "read_scope",
-          "position"
+          "advance_event"
         ],
         "properties": [
-          "realm_id",
-          "read_scope",
-          "position"
+          "advance_event"
         ],
         "closed": true
       },

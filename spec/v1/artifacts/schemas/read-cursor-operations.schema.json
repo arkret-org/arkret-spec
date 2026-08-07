@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/read-cursor-operations.schema.json",
   "title": "Arkret Read Cursor Self-Management Operation DTOs",
-  "description": "Closed request/response DTOs for the self-surface read cursor operations (ak.self.read_cursor.*). set builds a ak.read_cursor.advance actor-private write; the durable cursor object model and read_scope / position field shapes are read-cursor.schema.json. See spec/v1/zh/discovery/read-receipts.md.",
+  "description": "Closed request/response DTOs for the self-surface read cursor operations (ak.self.read_cursor.*). Advance carries the authenticated holder's exact signed ak.read_cursor.advance actor-private Event; the service validates and forwards it without rebuilding or co-signing. The durable cursor object model and read_scope / position field shapes are read-cursor.schema.json. See spec/v1/zh/discovery/read-receipts.md.",
   "anyOf": [
     {
       "$ref": "#/$defs/read_cursor_advance_request_body"
@@ -25,20 +25,40 @@
     },
     "read_cursor_advance_request_body": {
       "type": "object",
+      "description": "Carries one caller-signed ak.read_cursor.advance Event and nothing else. The Event payload is the complete ak.schema.read_cursor.v1 object; actor_id is both envelope ownership and payload ownership, while payload device_id must equal the authenticated session device. The service MUST submit these exact bytes through ordinary Event admission and MUST NOT mint the cursor id, choose updated_at, rebuild the payload, or sign under a service identity.",
       "required": [
-        "realm_id",
-        "read_scope",
-        "position"
+        "advance_event"
       ],
       "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "read_scope": {
-          "$ref": "./read-cursor.schema.json#/$defs/read_scope"
-        },
-        "position": {
-          "$ref": "./read-cursor.schema.json#/$defs/position"
+        "advance_event": {
+          "allOf": [
+            {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+            },
+            {
+              "type": "object",
+              "required": [
+                "event"
+              ],
+              "properties": {
+                "event": {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "payload"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "const": "ak.read_cursor.advance"
+                    },
+                    "payload": {
+                      "$ref": "./read-cursor.schema.json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
         }
       },
       "additionalProperties": false

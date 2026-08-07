@@ -286,7 +286,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "9863c093614d83c6aad672ba9b5de88f1842f73d195536d84a015aa49a2f523e"
+      "sha256": "a7107cb85300ede84136b4d04b5e5398de78c9b981fb7ea0b84debb4f5ef08d9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

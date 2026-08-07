@@ -4380,15 +4380,6 @@ EVENT_AUTHORING_DURABLE_EFFECT_KINDS = ("event_log", "actor_private_event")
 # cell/lattice, i.e. it never enters state_root and no peer has to converge on it.
 # See arkret-work/work/active/2026-08-06-event-log-operations-need-a-signed-request.md.
 EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
-    # The one actor_private_event entry left. Its cell subject is
-    # composite[envelope.actor_id, ...], so the subject *is* the actor and only the
-    # holder can sign it. The account_data pair closed the same way; what that closure
-    # had to fix in soland is recorded in
-    # arkret-work/work/active/2026-08-06-event-log-operations-need-a-signed-request.md.
-    "ak.self.read_cursor.command.advance": (
-        "actor-private subject includes envelope.actor_id; needs the caller-signed "
-        "ak.read_cursor.advance"
-    ),
     "ak.self.circle.member.resource.delete": (
         "DELETE with no request body today; the shape decision is made (give it a body, as "
         "ak.self.keys.backups.resource.delete already does) but not yet landed"
@@ -9969,11 +9960,10 @@ UNPAIRED_STATED_PREIMAGE_KEYS: dict[str, str] = {
     ),
 }
 
-# `schema-validation-fixture.json` asserts JSON-Schema admissibility and nothing
-# else: every digest in it is a shaped placeholder (`sha256:5555…`), which is
-# correct for its purpose and meaningless to hash-check. Digest relations inside
-# those instances are enforced by implementations at runtime -- e.g. the SDK's
-# `CanonicalPublicMaterial::validate_structural` -- not by this gate.
+# `schema-validation-fixture.json` primarily asserts JSON-Schema admissibility,
+# so ordinary digest fields remain shaped placeholders. CanonicalPublicMaterial
+# is the exception: its value/bytes/digest relationship is the type's defining
+# structural contract and is checked explicitly below.
 PLACEHOLDER_DIGEST_FIXTURES = {"schema-validation-fixture.json"}
 
 # The naming convention for "this string is canonical preimage bytes". The pair
@@ -10000,6 +9990,41 @@ def _stated_digest(data: bytes, encoding: str) -> str:
     if encoding == "base64url":
         return base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
     raise AssertionError(f"unknown stated-digest encoding: {encoding}")
+
+
+def check_schema_fixture_canonical_public_material(lint: Lint) -> None:
+    """Keep CanonicalPublicMaterial fixtures internally reproducible."""
+    fixture_path = ARTIFACTS / "fixtures" / "schema-validation-fixture.json"
+    fixture = load_json(lint, fixture_path)
+    if fixture is None:
+        return
+
+    found = 0
+    required = {"canonical_encoding", "value", "canonical_bytes_base64url", "digest"}
+    for json_path, node, _ in walk_json(fixture):
+        if not isinstance(node, dict) or not required.issubset(node):
+            continue
+        found += 1
+        if node["canonical_encoding"] != "canonical_json":
+            continue
+        canonical_bytes = canonical_json(node["value"]).encode("utf-8")
+        encoded = base64.urlsafe_b64encode(canonical_bytes).rstrip(b"=").decode("ascii")
+        digest = "sha256:" + hashlib.sha256(canonical_bytes).hexdigest()
+        if node["canonical_bytes_base64url"] != encoded:
+            lint.fail(
+                fixture_path,
+                f"{json_path}.canonical_bytes_base64url does not encode canonical JSON of value",
+            )
+        if node["digest"] != digest:
+            lint.fail(
+                fixture_path,
+                f"{json_path}.digest={node['digest']} but canonical JSON of value hashes to {digest}",
+            )
+    if found == 0:
+        lint.fail(
+            fixture_path,
+            "schema fixture must retain a CanonicalPublicMaterial structural case",
+        )
 
 
 def check_stated_preimage_matches_stated_digest(lint: Lint) -> None:
@@ -13215,6 +13240,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "stated_preimage_digest",
                 lambda: check_stated_preimage_matches_stated_digest(lint),
+            ),
+            (
+                "canonical_public_material",
+                lambda: check_schema_fixture_canonical_public_material(lint),
             ),
             ("encrypted_digest", lambda: check_encrypted_envelope_digest_vector(lint)),
             ("string_profiles", lambda: check_string_profile_format_vectors(lint)),
