@@ -28,7 +28,7 @@
       "type": "object",
       "description": "Per-Realm map on `delta` frames. Keys are `ak:realm:*`; values are that Realm's aggregate timeline/state/account-data entry. Membership lifecycle (`join` / `invite` / `knock` / `leave`) is carried by the events inside the Realm entry.",
       "patternProperties": {
-        "^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$": {
+        "^ak:realm:(?:[A-Za-z0-9_-]{44}|[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$": {
           "$ref": "#/$defs/realm_sync_entry"
         }
       },
@@ -472,7 +472,7 @@
             "properties": {
               "event_id": {
                 "type": "string",
-                "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
               },
               "event_state": {
                 "type": "string",
@@ -676,7 +676,7 @@
           "description": "Effective ak.member.identity.update event ids for this actor after replacement refs are applied.",
           "items": {
             "type": "string",
-            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
           },
           "uniqueItems": true
         },

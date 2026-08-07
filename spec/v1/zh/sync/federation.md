@@ -268,13 +268,13 @@ Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 p
 ```json schema=openapi/arkret-service-api.openapi.yaml#/components/schemas/EventsSubmitFederationRequestBody
 {
   "service_binding_ref": {
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "realm_policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "membership_frontier": [
-      "ak:event:0196419b-1000-8000-8000-000000000001"
+      "ak:event:AffhBiSDZ9SByAez6zjpaNh0mFYTgamP3EuZvo54lyDG"
     ],
     "delivery_binding_frontier": [
-      "ak:event:0196419b-1000-8000-8000-000000000002"
+      "ak:event:AROgLJa60o1xdlWoFA55k7xfhbQYkZbGNzZiQNh359uw"
     ],
     "delivery_binding_diagnostics": {
       "basis": ["member_delivery_binding"]
@@ -284,12 +284,12 @@ Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 p
   "events": [
     {
       "event": {
-        "event_id": "ak:event:0196419b-2000-8000-8000-000000000001",
+        "event_id": "ak:event:AcfNFwmlCjb6jhzJg9PDKF3uJjVmLKCezqLYMCn_V01W",
         "kind": "ak.message.create",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "scope_ref": {
           "kind": "realm",
-          "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
         },
         "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
         "actor_seq": 42,
@@ -303,7 +303,7 @@ Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 p
           "key_epoch": 1
         },
         "payload": {
-          "strand_id": "ak:strand:0196419b-3000-8000-8000-000000000003",
+          "strand_id": "ak:strand:AdDHPcj3G5feMVDn_nWfwKjwO4_IckvZY8uktJFsBBh6",
           "track_name": "discussion",
           "content": {
             "kind": "ak.content.text",
@@ -327,7 +327,7 @@ Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 p
         "device_id": "ak:device:0196419b-2050-7000-8000-000000000001",
         "scope_ref": {
           "kind": "realm",
-          "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
         },
         "action": "ak.message.create",
         "authorization_rule_id": "realm_admission",
@@ -344,11 +344,11 @@ Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 p
           "policy_kind": "realm_admission",
           "scope_ref": {
             "kind": "realm",
-            "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
           },
           "source": {
             "source_kind": "realm_control",
-            "source_ref": "ak:event:0196419b-0000-8000-8000-000000000002",
+            "source_ref": "ak:event:AYqLR5FWUtAxcyq2GwRsmHAf_zMFkYrFScSs4ouycARM",
             "source_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "generation_ref": "1"
           },
@@ -385,7 +385,7 @@ Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 p
           "qualified_ingress_id": "ingress:alpha.example:primary",
           "received_at": "2026-04-26T00:00:01.000Z",
           "ingress_frontier": [
-            "ak:event:0196419b-2000-8000-8000-000000000001"
+            "ak:event:AcfNFwmlCjb6jhzJg9PDKF3uJjVmLKCezqLYMCn_V01W"
           ],
           "issuer": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alpha.example",
           "signature": {
@@ -683,7 +683,7 @@ Probe 响应 payload：
 
 ```json
 {
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "heads": ["sha256:..."],
   "max_hlc": "01970e589d21-0004-a13f9c2e",
   "frontier_root": "sha256:...",
@@ -802,7 +802,7 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ak.realm.join
 
 ```json
 {
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "sync_endpoints": [
     {
       "did": "did:webvh:z4YZEfM4SYVUdnZbosrGu69JK:server-alpha.com",

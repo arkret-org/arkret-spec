@@ -16,7 +16,7 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:relation:[A-Za-z0-9_-]{44}$"
     },
     "schema": {
       "const": "ak.schema.relation.v1"
@@ -142,7 +142,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^((?:ak:(realm|space|actor_profile|strand|message|morph|relation|event|view):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:(blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:.+)$",
+      "pattern": "^((?:ak:(realm|space|actor_profile|strand|message|morph|relation|event|view):[A-Za-z0-9_-]{44}|ak:(blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:.+)$",
       "description": "Typed canonical reference. Allowed kinds: realm, space, actor_profile, strand, message, morph, relation, event, view, blob metadata ID, content-addressed blob ref (active digest suites per artifacts/registry/digest-suite-registry.json; v1: sha256 / blake3), or DID. Space is a valid Relation endpoint (board/list containers, e.g. board --contains--> list). The blob ref suite set is aligned with blob.schema.json and notification.schema.json so any content-addressed blob ref accepted in those schemas is also accepted as a Relation endpoint."
     },
     "rank": {
@@ -193,7 +193,7 @@
       "properties": {
         "event_id": {
           "type": "string",
-          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
         },
         "event_digest": {
           "type": "string",

@@ -129,7 +129,7 @@ Schema id: `ak.schema.capability.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:grant` | `ak:grant:<uuidv7>`；不得使用 `ak:capability:`，后者只表示抽象 capability definition 引用。 | Grant ID。 |
+| `id` | yes | `id:grant` | `ak:grant:<44-char-suite-tagged-full-digest-token>`；不得使用 `ak:capability:`，后者只表示抽象 capability definition 引用。 | Grant ID。 |
 | `schema` | yes | `ak.schema.capability.v1` |  | Schema ID。 |
 | `realm_id` | no | `id:realm` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
 | `issuer` | yes | `did` | 必须持有授予权限。 | 授权方。 |

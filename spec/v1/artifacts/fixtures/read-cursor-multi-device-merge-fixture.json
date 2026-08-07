@@ -12,7 +12,7 @@
   "shared": {
     "schema": "ak.schema.read_cursor.v1",
     "actor_id": "did:webvh:z6mkalice:alice.example",
-    "realm_id": "ak:realm:01964137-0000-8000-8000-000000000001",
+    "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
     "read_scope": {
       "kind": "realm"
     },
@@ -24,13 +24,13 @@
       "a": {
         "id": "ak:read_cursor:01964137-0000-7000-8000-000000000101",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000101",
-        "event_id": "ak:event:01964137-0000-8000-8000-000000000101",
+        "event_id": "ak:event:AUyGUTgvBPI81S3q9YvKzHFI1AQKINvcgg8pctTNOUmN",
         "hlc": "01970e589d21-0002-a13f9c2e"
       },
       "b": {
         "id": "ak:read_cursor:01964137-0000-7000-8000-000000000102",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000102",
-        "event_id": "ak:event:01964137-0000-8000-8000-000000000102",
+        "event_id": "ak:event:ASNmR1T9eHJh7vvzFU0ak_2WZyLqbFJX9RSwIuX2QTlG",
         "hlc": "01970e589d21-0001-a13f9c2e"
       },
       "causal_relation": "a_dominates_b",
@@ -44,13 +44,13 @@
       "a": {
         "id": "ak:read_cursor:01964137-0000-7000-8000-000000000201",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000201",
-        "event_id": "ak:event:01964137-0000-8000-8000-000000000201",
+        "event_id": "ak:event:Aadxn3EUQTmleKS6AgQRDe1LSUrcsAu8cayWThJPetiF",
         "hlc": "01970e589d21-0001-a13f9c2e"
       },
       "b": {
         "id": "ak:read_cursor:01964137-0000-7000-8000-000000000202",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000202",
-        "event_id": "ak:event:01964137-0000-8000-8000-000000000202",
+        "event_id": "ak:event:AWZovVCHfgEVxTOm3v7j0jmcQN6jGlez05vJS9AcWmR8",
         "hlc": "01970e589d21-0002-a13f9c2e"
       },
       "causal_relation": "a_dominates_b",
@@ -64,13 +64,13 @@
       "a": {
         "id": "ak:read_cursor:01964137-0000-7000-8000-000000000301",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000301",
-        "event_id": "ak:event:01964137-0000-8000-8000-000000000301",
+        "event_id": "ak:event:AX6IdM4CCa-2CBZCDEf6949B2av2M1XgTFFjH-xvCX6V",
         "hlc": "01970e589d21-0001-a13f9c2e"
       },
       "b": {
         "id": "ak:read_cursor:01964137-0000-7000-8000-000000000302",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000302",
-        "event_id": "ak:event:01964137-0000-8000-8000-000000000302",
+        "event_id": "ak:event:AfA6klVY9cQpQUCIdPmy8KFHc8soASq7ap4PiGo8u009",
         "hlc": "01970e589d21-0002-a13f9c2e"
       },
       "causal_relation": "concurrent",
@@ -84,13 +84,13 @@
       "a": {
         "id": "ak:read_cursor:01964137-0000-7000-8000-000000000401",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000401",
-        "event_id": "ak:event:01964137-0000-8000-8000-000000000401",
+        "event_id": "ak:event:AX3NcwxpCS_kBz0O5Z4nM-_l_dCw8iPWA0XyKtcskMjJ",
         "hlc": "01970e589d21-0001-a13f9c2e"
       },
       "b": {
         "id": "ak:read_cursor:01964137-0000-7000-8000-000000000402",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000402",
-        "event_id": "ak:event:01964137-0000-8000-8000-000000000402",
+        "event_id": "ak:event:AfLDaEqYK88rLmlaUCMrrdC2gQSZLQsil4XX695Z_lXc",
         "hlc": "01970e589d21-0001-a13f9c2e"
       },
       "causal_relation": "concurrent",
@@ -104,13 +104,13 @@
       "a": {
         "id": "ak:read_cursor:01964137-0000-7000-8000-000000000501",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000501",
-        "event_id": "ak:event:01964137-0000-8000-8000-000000000501",
+        "event_id": "ak:event:AV31AtrNGTjjMtDo2JK9FWGNLmilp42sooDJCA5Pr2Vv",
         "hlc": "01970e589d21-0001-a13f9c2e"
       },
       "b": {
         "id": "ak:read_cursor:01964137-0000-7000-8000-000000000502",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000502",
-        "event_id": "ak:event:01964137-0000-8000-8000-000000000502",
+        "event_id": "ak:event:AYLTDVdQzsn4QefeR9Y9nMG1y0lWT27yAVFu2oxB-l2X",
         "hlc": "01970e589d21-0002-a13f9c2e"
       },
       "causal_relation": "undecidable",

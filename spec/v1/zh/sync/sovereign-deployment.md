@@ -207,7 +207,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
   "kind": "ak.realm.create",
   "payload": {
     "object": {
-      "id": "ak:realm:019640ea-8000-8000-8000-000000000000",
+      "id": "ak:realm:AT_SiZlQ_-94UNHCwJMH62ckd3G0BPmq-EeRbqXfjh-W",
       "schema": "ak.schema.realm.v1",
       "reducer_profile": "ak.reducer.core.v1",
       "security_class": "high_assurance",
@@ -280,7 +280,7 @@ Sovereign 部署默认采用 **single_did Notary profile**：每个 Realm 由组
   "issuer": "did:webvh:zGsmzvyUSDby8As5bHG3kAtWL:defense.example",
   "subject": "did:webvh:zGTog8Hi4N3h8YrvWRQ2Lr3RP:contractor.example",
   "claim_scope": {
-    "realm_id": "ak:realm:400d7400-0000-8000-8000-000000000000",
+    "realm_id": "ak:realm:AdWzSfd6qUSWZ7yTEm3s-ICCpjkzBWzz2DrtY8FQvjIv",
     "roles": ["contractor_reviewer"],
     "max_members": 20
   },

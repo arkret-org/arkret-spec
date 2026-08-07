@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07.3",
+  "version": "2026-08-07.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-07T10:00:00Z",
+  "generated_at": "2026-08-08T00:30:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2759,7 +2759,7 @@
       "applies_to_fixtures": [
         "content-bound-event-id-fixture.json"
       ],
-      "description": "Content-bound event_id: 34-bit created_at second segment plus 88 bits from the leftmost 11 octets of the Event's own event_digest, with the digest preimage excluding event_id. Covers the bit layout KAT, the mandatory recompute-and-compare with reason_code event_id_digest_mismatch, and that the carried value is unusable before comparison. It also covers encoding.md 6.0.1: for every cross-Event atomic unit, a positive case derivable in one direction, and a negative case where a preimage field commits to a sibling's event_id or envelope digest (or to the enclosing Event's own event_id) and MUST be rejected as event_id_digest_mismatch.",
+      "description": "Suite-tagged 264-bit complete event_id identity: one explicit active digest-suite wire_code octet plus all 32 octets of the Event's unchanged event_digest preimage result. Covers SHA-256/BLAKE3 bytes, canonical 44-char unpadded Base64URL, code/full-digest recompute-and-compare, unknown/invalid/reserved suite, padding/length rejection, complete-hash collision quarantine, and that the carried ID cannot drive accepted-state side effects before comparison. It also covers encoding.md 6.0.1 one-way construction and self/sibling preimage-reference rejection.",
       "source_refs": [
         "spec/v1/zh/conformance/encoding.md",
         "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json"
@@ -4190,7 +4190,7 @@
       "applies_to_fixtures": [
         "content-bound-event-id-fixture.json"
       ],
-      "description": "Principal Control Realm ids are deterministically derived as UUIDv8 from the registered domain separator plus canonical principal DID. All 122 usable bits come from the transcript hash; the create Event still omits realm_id, and receivers select and recompute this layout from purpose=principal_control.",
+      "description": "Principal Control Realm ids are deterministically derived as UUIDv7 from the registered domain separator plus canonical principal DID. All 122 usable bits come from the transcript hash; the create Event still omits realm_id, and receivers select and recompute this layout from purpose=principal_control.",
       "source_refs": [
         "spec/v1/zh/models/realm-and-space.md",
         "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json"

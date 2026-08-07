@@ -81,7 +81,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 {
   "kind": "ak.call.signal",
   "payload_sequence": 60,
-  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+  "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "moderation",
   "seq": 30,
   "data": {
@@ -135,7 +135,7 @@ Content-Type: application/json
 ```json
 {
   "realm_id": "ak:realm:...",
-  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+  "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "actor_id": "did:webvh:...",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "mode": "p2p"
@@ -170,8 +170,8 @@ Content-Type: application/json
 
 ```json
 {
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+  "call_id": "ak:call:AZ3zJ_lO73PnD-ttYUcaM8mzk0oqoKhTUrelyYjrz9Ww",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "ttl_seconds": 600,
@@ -294,7 +294,7 @@ Invite payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 30,
-  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+  "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "invite",
   "seq": 12,
   "data": {
@@ -319,7 +319,7 @@ Answer payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 31,
-  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+  "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "answer",
   "seq": 13,
   "data": {
@@ -341,7 +341,7 @@ Candidate payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 32,
-  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+  "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "candidate",
   "seq": 14,
   "data": {
@@ -368,7 +368,7 @@ Candidate payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 40,
-  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+  "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "renegotiate",
   "seq": 20,
   "data": {
@@ -397,7 +397,7 @@ Candidate payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 41,
-  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+  "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "mute_state",
   "seq": 21,
   "data": {
@@ -415,7 +415,7 @@ Candidate payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 42,
-  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+  "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "mute_state",
   "seq": 22,
   "data": {
@@ -434,7 +434,7 @@ Candidate payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 43,
-  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+  "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "speaking",
   "seq": 23,
   "data": {
@@ -468,7 +468,7 @@ Candidate payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 50,
-  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+  "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "media_state",
   "seq": 7,
   "data": {

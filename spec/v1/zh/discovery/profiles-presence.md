@@ -27,9 +27,9 @@ updated: 2026-07-03
 
 ```json
 {
-  "id": "ak:actor_profile:019640ab-0000-8000-8000-000000000000",
+  "id": "ak:actor_profile:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
   "schema": "ak.schema.actor_profile.v1",
-  "realm_id": "ak:realm:01964166-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
   "principal_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_kind": "user",
   "display_name": "Alice Chen",
@@ -78,9 +78,9 @@ Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到
 
 ```json
 {
-  "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
+  "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
   "kind": "ak.profile.create",
-  "realm_id": "ak:realm:01964166-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_seq": 1,
   "created_at": "2026-04-26T00:00:00Z",
@@ -89,9 +89,9 @@ Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到
   "refs": [],
   "payload": {
     "object": {
-      "id": "ak:actor_profile:019640ab-0000-8000-8000-000000000000",
+      "id": "ak:actor_profile:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
       "schema": "ak.schema.actor_profile.v1",
-      "realm_id": "ak:realm:01964166-0000-8000-8000-000000000000",
+      "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
       "principal_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
       "actor_kind": "user",
       "display_name": "Alice Chen",
@@ -121,25 +121,25 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
 
 ```json
 {
-  "event_id": "ak:event:019640ed-8400-8000-8000-000000000000",
+  "event_id": "ak:event:AWxu9WEa6ZSBa79XtJFqrj3WsshthqPPUDPk-cMq5gZM",
   "kind": "ak.profile.update",
-  "realm_id": "ak:realm:01964166-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_seq": 2,
   "created_at": "2026-04-26T00:01:00Z",
   "hlc": "01970e598d21-0001-a13f9c2e",
   "prev_refs": [
-    "ak:event:019640ed-8000-8000-8000-000000000000"
+    "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
   ],
   "refs": [
     {
-      "id": "ak:grant:019640ed-8400-8000-8000-000000000000",
+      "id": "ak:grant:AT-1QUIBViI1bcGaLssADWkxqZ9bCtHDhnKqduYlKaQz",
       "role": "authorized_by",
       "critical": true
     }
   ],
   "payload": {
-    "target_ref": "ak:actor_profile:019640ab-0000-8000-8000-000000000000",
+    "target_ref": "ak:actor_profile:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
     "patch": {
       "display_name": "Alice C.",
       "profile_fields.status_message": "Back at work!"
@@ -171,26 +171,26 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
 
 ```json
 {
-  "event_id": "ak:event:019640ed-8800-8000-8000-000000000000",
+  "event_id": "ak:event:AcWdky_9bM7PKl17K1UxMcj72H3_Ny9PoMhexJ2S-sK0",
   "kind": "ak.profile.realm_override",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_seq": 3,
   "created_at": "2026-04-26T00:02:00Z",
   "hlc": "01970e5a8d21-0001-a13f9c2e",
   "prev_refs": [
-    "ak:event:019640ed-8400-8000-8000-000000000000"
+    "ak:event:AWxu9WEa6ZSBa79XtJFqrj3WsshthqPPUDPk-cMq5gZM"
   ],
   "refs": [
     {
-      "id": "ak:grant:019640ed-8400-8000-8000-000000000000",
+      "id": "ak:grant:AT-1QUIBViI1bcGaLssADWkxqZ9bCtHDhnKqduYlKaQz",
       "role": "authorized_by",
       "critical": true
     }
   ],
   "payload": {
-    "target_ref": "ak:actor_profile:019640ab-0000-8000-8000-000000000000",
-    "target_realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+    "target_ref": "ak:actor_profile:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+    "target_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "patch": {
       "display_name": "alice-oss",
       "avatar_blob_ref": {

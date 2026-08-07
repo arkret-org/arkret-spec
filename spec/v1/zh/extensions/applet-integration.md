@@ -329,7 +329,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
   "subject": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:bot",
   "claim_scope": {
     "realm_ids": [
-      "ak:realm:0196419b-0000-8000-8000-000000000000"
+      "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
     ],
     "actions": [
       "ak.strand.create",
@@ -429,8 +429,8 @@ Arkret Sync Service / Events API 向 Applet 推送事件批次。
   "source_service_id": "did:webvh:z7SrvceTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:server.example",
   "events": [
     {
-      "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
-      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "kind": "ak.message.create",
       "actor_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example",
       "payload": {}
@@ -438,8 +438,8 @@ Arkret Sync Service / Events API 向 Applet 推送事件批次。
   ],
   "signals": [
     {
-      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-      "scope_ref": "ak:realm:0196419b-0000-8000-8000-000000000000",
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "scope_ref": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "sender_actor_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example",
       "sender_device_id": "ak:device:019640ed-8000-7000-8000-000000000001",
       "seal_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
@@ -450,7 +450,7 @@ Arkret Sync Service / Events API 向 Applet 推送事件批次。
         "scheme": "ak.signal_exporter_aead.v1",
         "key_ref": {
           "algorithm": "MLS-EXPORTER-AEAD",
-          "group_state_ref": "ak:event:019640ed-8000-8000-8000-000000000003"
+          "group_state_ref": "ak:event:AWn8zXw0Iuqoi0snySz3P5bT_ssUZS1nwhpXchPIvk48"
         },
         "purpose": "ak.signal.v1",
         "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
@@ -569,7 +569,7 @@ GET /_arkret/edge/applet/realms/{realm_id_or_alias}
 ```json
 {
   "exists": true,
-  "realm_id": "ak:realm:c0c69410-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Adoyg50aOV537gzxNy87EOdUlHiIujznqwZcMLSGFmzg",
   "title": "#release on Slack",
   "external_ref": {
     "protocol": "slack",
@@ -645,13 +645,13 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
 
 ```json
 {
-  "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
-  "realm_id": "ak:realm:c0c69410-0000-8000-8000-000000000000",
+  "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+  "realm_id": "ak:realm:Adoyg50aOV537gzxNy87EOdUlHiIujznqwZcMLSGFmzg",
   "actor_id": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123",
   "actor_seq": 17,
   "kind": "ak.message.create",
   "applet_id": "ak:applet:21532600-0000-7000-8000-000000000000",
-  "authorization_ref": "ak:grant:0196410c-0000-8000-8000-000000000000",
+  "authorization_ref": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ",
   "external_ref": {
     "protocol": "slack",
     "network_id": "T123",
@@ -661,7 +661,7 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
   "prev_refs": [],
   "refs": [],
   "payload": {
-    "strand_id": "ak:strand:c0c69410-0000-8000-8000-000000000001",
+    "strand_id": "ak:strand:AUPkhcWNNoG21KvR89voO-SRUnh1ZFG80N_5xygyYq0O",
     "track_name": "discussion",
     "content": {
       "kind": "ak.content.text",
@@ -690,7 +690,7 @@ Ghost Actor profile SHOULD 包含（以下为 schema 合法形态；字段与约
 
 ```json
 {
-  "id": "ak:actor_profile:21532600-0000-8000-8000-000000000000",
+  "id": "ak:actor_profile:ARqc1CPEkB79f9R5Lv-dwsj7VZbUKXbAYPl3sEhUufeZ",
   "schema": "ak.schema.actor_profile.v1",
   "principal_id": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123",
   "actor_kind": "integration",
@@ -787,7 +787,7 @@ Alice via Calendar Applet
 {
   "actor_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example",
   "executed_by": "did:webvh:z9CalAppTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:calendar-applet.example#agent",
-  "authorization_ref": "ak:grant:0196410c-0000-8000-8000-000000000000",
+  "authorization_ref": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ",
   "applet_id": "ak:applet:8a0baad5-6000-7000-8000-000000000000"
 }
 ```

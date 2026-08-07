@@ -127,7 +127,7 @@
     },
     "call_id": {
       "type": "string",
-      "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
     },
     "recording_id": {
       "type": "string",
@@ -135,7 +135,7 @@
     },
     "event_ref": {
       "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "blob_ref": {
       "type": "string",
@@ -143,7 +143,7 @@
     },
     "grant_ref": {
       "type": "string",
-      "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:grant:[A-Za-z0-9_-]{44}$"
     },
     "policy_id": {
       "type": "string",
@@ -151,7 +151,7 @@
     },
     "audit_ref": {
       "type": "string",
-      "pattern": "^((?:ak:(event):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:(receipt|policy):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|(?:sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^((?:ak:(event):[A-Za-z0-9_-]{44}|ak:(receipt|policy):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "recording_encryption": {
       "type": "object",

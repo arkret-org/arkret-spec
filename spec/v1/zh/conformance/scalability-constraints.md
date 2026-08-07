@@ -45,8 +45,9 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | `ak.schema.patch.v1` patch path | 16 段；1024 UTF-8 bytes | 超过任一上限 MUST reject（`schema_violation`，`reason_code=patch_path_invalid`）。段数由 `patch.schema.json#/propertyNames/pattern`、长度由同一节点的 `maxLength` 机读承载；因 grammar 仅允许 ASCII，两种长度度量一致。见 [event-and-patch.md](../models/event-and-patch.md) §4.2. |
 | 单个 Event `refs[]` 中 `role="authorized_by"` 的条目数量 | 64 | 超过时 MUST reject；authorized_by refs 必须是最小授权状态集合（见 [event-and-patch.md](../models/event-and-patch.md) §2.2）。 |
 | 单个 Event 的 `refs[]` 总条目数量 | 128 | 涵盖 `authorized_by` / `attestation` / `parent_event` / `after` / `recovery_capability` / `state_witness` / `inclusion_proof` 等所有 role；超过时 MUST reject（`schema_violation`，`reason_code=refs_too_large`）或拆分。 |
-| content-bound `event_id` 的时间戳段可表示上限 | 公元 2514（34 位秒，Unix epoch） | [`encoding.md` §4.0](./encoding.md) 的 UUIDv8 布局以 34 位秒表示 `created_at`。`created_at` 早于 `1970-01-01T00:00:00Z` 或不早于该上限 MUST `schema_violation`。这是硬边界：耗尽前 MUST 改版 ID 布局，MUST NOT wrap 或复用。 |
-| content-bound `event_id` 取用的 digest 前缀 | 11 octets（88 位） | 同上。digest 短于 11 octets 的 suite MUST NOT 注册为 active；遇到时 MUST `unsupported_digest_algorithm` fail closed，MUST NOT 补零或换 suite。 |
+| suite-tagged `event_id` decoded body | 33 octets | [`encoding.md` §4.0](./encoding.md)：1-octet registered active suite wire code + 完整 32-octet digest。不得补零、fold、二次 hash 或截断。 |
+| suite-tagged `event_id` wire length | 44-char unpadded Base64URL suffix；53-char typed ID | receiver MUST decode 并 canonical re-encode；regex 只作词法预检，padding与错误长度一律拒绝。 |
+| suite-tagged `event_id` digest strength | 完整 256 digest bits | 同一 suite 下保留底层 digest 的指定目标与碰撞强度；suite octet 用于算法域分离，不额外增加 hash 强度。 |
 | 同一 `(realm_id, actor_id, actor_seq, prev_frontier_digest)` sibling fork 数 | 16 | 超过时 receiver MUST quarantine 或要求 actor chain repair；不同 Realm 独立计数，见 [event-and-patch.md](../models/event-and-patch.md) §2.6。 |
 | 同一 `(realm_id, actor_id, actor_seq)` 跨全部 `prev_frontier_digest` 桶的 sibling fork 累计数 | 64 | 超过时该 Realm 中该高度全部 sibling MUST 进入与单桶 over-fork 相同的 quarantine / repair 终局；producer 不得通过变换 `prev_refs` 子集绕过单桶上限。 |
 | 单个 Relation / View / Morph `fields` canonical size | 256 KiB | 更大内容必须放入 Blob 或加密 payload。Morph `facets` map 与 `labels` 数组（[common-fields.md](../models/common-fields.md) §3.1）计入同一对象 256 KiB budget，不另设独立条数上限；见 [morph.md](../models/morph.md) §2。 |

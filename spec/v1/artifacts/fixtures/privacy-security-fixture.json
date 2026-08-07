@@ -52,21 +52,21 @@
         {
           "label": "missing",
           "body": {
-            "realm_id": "ak:realm:019640a5-0000-8000-8000-000000000000",
+            "realm_id": "ak:realm:AUluXL7CRrekD0AIypsGAQgY9zjTsBHlvN2r6jtPI8Lz",
             "requester": "did:webvh:z6mkfixture:mallory.example"
           }
         },
         {
           "label": "hidden",
           "body": {
-            "realm_id": "ak:realm:019640b5-8000-8000-8000-000000000000",
+            "realm_id": "ak:realm:AYYgLvwSNGGLJgZP4-vIp98a14ou-Q6vcd5Aa3dk7UdV",
             "requester": "did:webvh:z6mkfixture:mallory.example"
           }
         },
         {
           "label": "invite_only_without_proof",
           "body": {
-            "realm_id": "ak:realm:019640c6-0000-8000-8000-000000000000",
+            "realm_id": "ak:realm:AUb7xUm8TEEX2FHiygiVYAzc82hEvM7dO9I2PpEMhDxU",
             "requester": "did:webvh:z6mkfixture:mallory.example"
           }
         }
@@ -562,12 +562,12 @@
             "profile": "ak.profile.directory_service.v1",
             "operation_id": "ak.find.directory.read.search_realms",
             "payload": {
-              "realm_id": "ak:realm:01970e58-9d26-8000-8000-000000000001",
+              "realm_id": "ak:realm:AXHSTVD5ytlxxQe9ylL4IJEfvL9QDJ0A6XqSjW8G2tBI",
               "title": "Launch calendar",
               "summary": "Public discovery metadata only",
               "as_of": "2026-05-02T00:00:00.000Z",
               "source_refs": [
-                "ak:event:01970e58-9d26-8000-8000-000000000101"
+                "ak:event:AaUJiCU-JUNsjdd0UdUOZsTKXp2FHI0hH6JBpxHn0QEO"
               ],
               "policy_revision": "dir-rev-1"
             }
@@ -578,7 +578,7 @@
             "payload": {
               "effective_scope": {
                 "kind": "realm",
-                "realm_id": "ak:realm:01970e58-9d26-8000-8000-000000000001"
+                "realm_id": "ak:realm:AXHSTVD5ytlxxQe9ylL4IJEfvL9QDJ0A6XqSjW8G2tBI"
               },
               "index_generation": 7,
               "epoch_id": 3,
@@ -782,7 +782,7 @@
         "actor_id": "did:key:z6MkpairwiseAlice",
         "group_id": "Zml4dHVyZS1yZWFsbQ",
         "epoch": 7,
-        "group_state_ref": "ak:event:01970e58-9d27-8000-8000-000000000001",
+        "group_state_ref": "ak:event:AeokPrzFQ8NLAFkDrZpaSc1OWCv-2K-iqs7fkp0OHo3W",
         "leaf": {
           "leaf_index": 3,
           "credential_type": "basic",

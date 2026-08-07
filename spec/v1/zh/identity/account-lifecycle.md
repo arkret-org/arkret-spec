@@ -132,12 +132,12 @@ Account Authority 与客户端 UI MUST 把 service-account 认证凭据（密码
 
 ```json
 {
-  "event_id": "ak:event:019b5c20-0000-8000-8000-000000000001",
+  "event_id": "ak:event:Aaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
   "kind": "ak.account.status",
-  "realm_id": "ak:realm:019b5c20-0000-8000-8000-000000000002",
+  "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe",
   "scope_ref": {
     "kind": "realm",
-    "realm_id": "ak:realm:019b5c20-0000-8000-8000-000000000002"
+    "realm_id": "ak:realm:AZCGyNJicm4u8jUY2OGd52Dj8JvlbxtGx3rDYQWAMPGe"
   },
   "actor_id": "did:webvh:zGtABZixoZZ3m4cFx3E65LCmg:auth.example",
   "actor_seq": 7,
@@ -213,7 +213,7 @@ Current account status projection 是 ordered_log 上的确定性派生值，而
 1. 严格度高者优先：`erasure_pending` > `deactivated` > `suspended` > `locked` > `soft_logged_out` > `active`。
 2. 降低严格度的状态（例如 appeal 后回到 `active`）MUST 在 payload 的 `supersedes_status_event_id` 字段（见 [`event-payload.schema.json#/$defs/account_status_payload`](../../artifacts/schemas/event-payload.schema.json)）引用被解除的 status event id，且该引用必须在当前 Seal view 可见；否则它只是并发候选，不能覆盖更严格状态。
 3. **`erasure_pending` 是 terminal 状态（normative，不可逆）**：一旦某 `account_id` 的 account status projection 进入 `erasure_pending`，它 MUST NOT 被任何 `supersedes_status_event_id` 引用降级回 `deactivated` / `suspended` / `locked` / `soft_logged_out` / `active` 中的任意一个。任何声称把 `erasure_pending` superseded 为较低严格度状态的 `ak.account.status` event MUST 被 reducer / projection 拒绝（`erasure_pending_is_terminal`），并保持 `erasure_pending` 为 current。理由：擦除流程一旦开始即对 blob bytes、account private state、受托 projection 执行不可逆的物理删除/最小化，把状态"恢复"为 active 会产生一个数据已被销毁却显示为正常的不一致账号。需要在擦除真正执行前撤销的，应在进入 `erasure_pending` 之前用较低严格度状态处理；进入 `erasure_pending` 之后只能继续完成擦除并发布 erasure receipt（§8）。`erasure_pending` 之上没有更严格状态，故规则 2 的"降低严格度"路径对它不适用。
-4. 同严格度并发时，先按 domain 语义主键 `effective_at` 取较晚者；`effective_at` 仍相等的并发 head，最终消歧 MUST 落到 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的统一 canonical tie-break（`event_digest` bytewise 最大值），而**不**用 `event_id`——content-bound UUIDv8 `event_id` 只截取 digest 的 88 位并带 `created_at` 派生时间段，不是完整内容指纹。被选中者为 projection current，其他 head 仍保留在 ordered_log conflict/audit view 中。
+4. 同严格度并发时，先按 domain 语义主键 `effective_at` 取较晚者；`effective_at` 仍相等的并发 head，最终消歧 MUST 落到 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的统一 canonical tie-break（`event_digest` decoded bytes 最大值）。`event_id` 虽已无损携带 suite code 与完整 digest，但本规则仍直接按该节规定的 digest comparator 实现，不得改用 HLC、`created_at`、接收顺序或其它墙钟相关字段。被选中者为 projection current，其他 head 仍保留在 ordered_log conflict/audit view 中。
 
 **Deactivation 进度 flag（normative）**：`status` 是封闭 6 值枚举（不含下列 token）。`deactivation_partial`（§7.1）与 `deactivation_federation_incomplete`（§7 末）**不是** `status` 值，而是 `deactivated` 状态下叠加的**独立服务侧 flag**，表达 deactivation fanout 的完成进度：
 

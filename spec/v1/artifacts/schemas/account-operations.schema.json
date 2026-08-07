@@ -4,23 +4,57 @@
   "title": "Arkret Account Operation DTOs",
   "description": "Closed request and response DTOs for account self-service operations, service-authenticated Account Authority PCR authoring basis discovery, and Account Authority to Principal Server account-status publication.",
   "anyOf": [
-    { "$ref": "#/$defs/account_view" },
-    { "$ref": "#/$defs/account_handoff_request_body" },
-    { "$ref": "#/$defs/account_handoff_outcome" },
-    { "$ref": "#/$defs/identity_binding_challenge_request_body" },
-    { "$ref": "#/$defs/identity_binding_challenge_outcome" },
-    { "$ref": "#/$defs/account_register_request_body" },
-    { "$ref": "#/$defs/account_register_outcome" },
-    { "$ref": "#/$defs/account_update_profile_request_body" },
-    { "$ref": "#/$defs/account_update_profile_outcome" },
-    { "$ref": "#/$defs/account_status_authority_evidence" },
-    { "$ref": "#/$defs/account_status_receipt" },
-    { "$ref": "#/$defs/account_status_authoring_basis_request_body" },
-    { "$ref": "#/$defs/account_status_authoring_basis_outcome" },
-    { "$ref": "#/$defs/account_status_publication_request_body" },
-    { "$ref": "#/$defs/account_status_publication_outcome" },
-    { "$ref": "#/$defs/session_revoke_request_body" },
-    { "$ref": "#/$defs/session_revoke_outcome" }
+    {
+      "$ref": "#/$defs/account_view"
+    },
+    {
+      "$ref": "#/$defs/account_handoff_request_body"
+    },
+    {
+      "$ref": "#/$defs/account_handoff_outcome"
+    },
+    {
+      "$ref": "#/$defs/identity_binding_challenge_request_body"
+    },
+    {
+      "$ref": "#/$defs/identity_binding_challenge_outcome"
+    },
+    {
+      "$ref": "#/$defs/account_register_request_body"
+    },
+    {
+      "$ref": "#/$defs/account_register_outcome"
+    },
+    {
+      "$ref": "#/$defs/account_update_profile_request_body"
+    },
+    {
+      "$ref": "#/$defs/account_update_profile_outcome"
+    },
+    {
+      "$ref": "#/$defs/account_status_authority_evidence"
+    },
+    {
+      "$ref": "#/$defs/account_status_receipt"
+    },
+    {
+      "$ref": "#/$defs/account_status_authoring_basis_request_body"
+    },
+    {
+      "$ref": "#/$defs/account_status_authoring_basis_outcome"
+    },
+    {
+      "$ref": "#/$defs/account_status_publication_request_body"
+    },
+    {
+      "$ref": "#/$defs/account_status_publication_outcome"
+    },
+    {
+      "$ref": "#/$defs/session_revoke_request_body"
+    },
+    {
+      "$ref": "#/$defs/session_revoke_outcome"
+    }
   ],
   "$defs": {
     "did": {
@@ -37,11 +71,11 @@
     },
     "event_id": {
       "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "grant_id": {
       "type": "string",
-      "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:grant:[A-Za-z0-9_-]{44}$"
     },
     "applet_id": {
       "oneOf": [
@@ -109,8 +143,12 @@
         "status"
       ],
       "properties": {
-        "device_id": { "$ref": "#/$defs/device_id" },
-        "display_name": { "$ref": "#/$defs/display_name" },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "display_name": {
+          "$ref": "#/$defs/display_name"
+        },
         "status": {
           "type": "string",
           "enum": [
@@ -119,16 +157,26 @@
             "unknown"
           ]
         },
-        "authorized_event_ref": { "$ref": "#/$defs/event_id" },
-        "authorized_at": { "$ref": "#/$defs/timestamp" },
-        "last_seen_at": { "$ref": "#/$defs/timestamp" },
-        "revoked_at": { "$ref": "#/$defs/timestamp" }
+        "authorized_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "authorized_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "last_seen_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "revoked_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
     "device_summaries": {
       "type": "array",
-      "items": { "$ref": "#/$defs/device_summary" },
+      "items": {
+        "$ref": "#/$defs/device_summary"
+      },
       "uniqueItems": true
     },
     "handle_claim_ref": {
@@ -138,7 +186,9 @@
     },
     "handle_claim_digests": {
       "type": "array",
-      "items": { "$ref": "#/$defs/hash" },
+      "items": {
+        "$ref": "#/$defs/hash"
+      },
       "uniqueItems": true
     },
     "account_lifecycle_proof": {
@@ -167,22 +217,34 @@
           "type": "string",
           "minLength": 16
         },
-        "request_canonical_digest": { "$ref": "#/$defs/sha256_digest" },
-        "audience": { "$ref": "#/$defs/non_empty_string" },
-        "issued_at": { "$ref": "#/$defs/timestamp" },
+        "request_canonical_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "audience": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
           "description": "Lease expiry. Issued lifetime MUST be no greater than 15 minutes; 15 minutes is also the v1 default."
         },
-        "verification_method": { "$ref": "#/$defs/did_url" },
-        "signature": { "$ref": "#/$defs/non_empty_string" }
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "signature": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
     "account_registration_control_proof": {
       "description": "Control proof for binding an already-published DID through account register. OIDC, passkey, or agent authentication alone is insufficient to establish DID control; account-first inception instead uses identity_creation_control_proof.",
       "allOf": [
-        { "$ref": "#/$defs/account_lifecycle_proof" },
+        {
+          "$ref": "#/$defs/account_lifecycle_proof"
+        },
         {
           "properties": {
             "proof_kind": {
@@ -214,7 +276,9 @@
         "signature"
       ],
       "properties": {
-        "proof_kind": { "const": "oidc_code_exchange" },
+        "proof_kind": {
+          "const": "oidc_code_exchange"
+        },
         "challenge": {
           "type": "string",
           "minLength": 16,
@@ -224,12 +288,16 @@
           "$ref": "#/$defs/sha256_digest",
           "description": "sha256:<lowercase-hex> of SHA-256 over RFC 8785 JCS bytes of the complete account_handoff_request_body with proof.request_canonical_digest and proof.signature omitted."
         },
-        "audience": { "$ref": "#/$defs/did" },
+        "audience": {
+          "$ref": "#/$defs/did"
+        },
         "issuer": {
           "type": "string",
           "format": "uri"
         },
-        "client_id": { "$ref": "#/$defs/non_empty_string" },
+        "client_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
         "redirect_uri": {
           "type": "string",
           "format": "uri"
@@ -242,7 +310,9 @@
           "type": "string",
           "minLength": 16
         },
-        "authorization_code": { "$ref": "#/$defs/non_empty_string" },
+        "authorization_code": {
+          "$ref": "#/$defs/non_empty_string"
+        },
         "code_verifier": {
           "type": "string",
           "minLength": 43,
@@ -265,7 +335,9 @@
         "did_operation"
       ],
       "properties": {
-        "principal_id": { "$ref": "#/$defs/did" },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
         "operation_digest": {
           "$ref": "#/$defs/sha256_digest",
           "description": "sha256:<lowercase-hex> of SHA-256 over RFC 8785 JCS bytes of the complete did_operation object."
@@ -284,7 +356,9 @@
         "expires_at"
       ],
       "properties": {
-        "identity_creation_lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "identity_creation_lease_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
         "fence": {
           "type": "integer",
           "minimum": 1
@@ -293,7 +367,9 @@
           "$ref": "#/$defs/timestamp",
           "description": "Handoff expiry. Issued lifetime MUST be no greater than 1 hour; 1 hour is also the v1 default."
         },
-        "reserved_identity": { "$ref": "#/$defs/reserved_identity_creation" }
+        "reserved_identity": {
+          "$ref": "#/$defs/reserved_identity_creation"
+        }
       },
       "additionalProperties": false
     },
@@ -306,8 +382,12 @@
             "identity_creation_lease"
           ],
           "properties": {
-            "state": { "const": "identity_creation_active" },
-            "identity_creation_lease": { "$ref": "#/$defs/identity_creation_lease" }
+            "state": {
+              "const": "identity_creation_active"
+            },
+            "identity_creation_lease": {
+              "$ref": "#/$defs/identity_creation_lease"
+            }
           },
           "additionalProperties": false
         },
@@ -318,7 +398,9 @@
             "retry_after_ms"
           ],
           "properties": {
-            "state": { "const": "identity_creation_busy" },
+            "state": {
+              "const": "identity_creation_busy"
+            },
             "retry_after_ms": {
               "type": "integer",
               "minimum": 1
@@ -333,8 +415,12 @@
             "principal_id"
           ],
           "properties": {
-            "state": { "const": "bound" },
-            "principal_id": { "$ref": "#/$defs/did" }
+            "state": {
+              "const": "bound"
+            },
+            "principal_id": {
+              "$ref": "#/$defs/did"
+            }
           },
           "additionalProperties": false
         }
@@ -347,8 +433,12 @@
         "proof"
       ],
       "properties": {
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "proof": { "$ref": "#/$defs/account_handoff_authentication_proof" }
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "proof": {
+          "$ref": "#/$defs/account_handoff_authentication_proof"
+        }
       },
       "additionalProperties": false
     },
@@ -363,14 +453,19 @@
         "binding"
       ],
       "properties": {
-        "request_id": { "$ref": "#/$defs/request_id" },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
         "account_handle": {
           "$ref": "./handle-claim.schema.json#/properties/handle",
           "description": "Canonical handle of the authenticated service account. This unsigned UX hint is only for display and local artifact naming; it MUST NOT be treated as principal identity evidence, authorization, or a service-account-to-principal binding."
         },
         "preferred_locale": {
           "type": "string",
-          "enum": ["en", "zh"],
+          "enum": [
+            "en",
+            "zh"
+          ],
           "description": "Optional private UI-language preference of the authenticated service account. It is returned only in this DPoP-bound handoff response so the client can continue the just-completed authentication flow in the selected language; it MUST NOT be copied into a public actor profile."
         },
         "account_handoff_grant": {
@@ -378,7 +473,9 @@
           "minLength": 32,
           "description": "Opaque, short-lived credential bound to the request DPoP key. It is not ak.session.grant and has no refresh-token semantics."
         },
-        "expires_at": { "$ref": "#/$defs/timestamp" },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
         "allowed_operations": {
           "const": [
             "ak.gate.account.command.issue_identity_binding_challenge",
@@ -386,7 +483,9 @@
             "ak.gate.account.command.issue_session_grant"
           ]
         },
-        "binding": { "$ref": "#/$defs/account_handoff_binding" }
+        "binding": {
+          "$ref": "#/$defs/account_handoff_binding"
+        }
       },
       "additionalProperties": false
     },
@@ -399,8 +498,12 @@
         "did_operation"
       ],
       "properties": {
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "identity_creation_lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "identity_creation_lease_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
         "lease_fence": {
           "type": "integer",
           "minimum": 1
@@ -431,25 +534,39 @@
         "expires_at"
       ],
       "properties": {
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "challenge_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "challenge_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
         "challenge": {
           "type": "string",
           "minLength": 22
         },
-        "purpose": { "const": "account_binding" },
-        "principal_id": { "$ref": "#/$defs/did" },
+        "purpose": {
+          "const": "account_binding"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
         "operation_digest": {
           "$ref": "#/$defs/sha256_digest",
           "description": "sha256:<lowercase-hex> of SHA-256 over RFC 8785 JCS bytes of the complete request did_operation object."
         },
-        "identity_creation_lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "identity_creation_lease_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
         "lease_fence": {
           "type": "integer",
           "minimum": 1
         },
-        "dpop_jkt": { "$ref": "#/$defs/dpop_jkt" },
-        "audience": { "$ref": "#/$defs/did" },
+        "dpop_jkt": {
+          "$ref": "#/$defs/dpop_jkt"
+        },
+        "audience": {
+          "$ref": "#/$defs/did"
+        },
         "origin": {
           "type": "string",
           "format": "uri"
@@ -457,8 +574,12 @@
         "trust_domain": {
           "$ref": "./common-ids.schema.json#/$defs/trust_domain"
         },
-        "issued_at": { "$ref": "#/$defs/timestamp" },
-        "expires_at": { "$ref": "#/$defs/timestamp" }
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
@@ -484,22 +605,38 @@
         "signature"
       ],
       "properties": {
-        "proof_kind": { "const": "did_webvh_inception_update_key" },
-        "challenge_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "proof_kind": {
+          "const": "did_webvh_inception_update_key"
+        },
+        "challenge_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
         "challenge": {
           "type": "string",
           "minLength": 22
         },
-        "purpose": { "const": "account_binding" },
-        "principal_id": { "$ref": "#/$defs/did" },
-        "operation_digest": { "$ref": "#/$defs/sha256_digest" },
-        "identity_creation_lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "purpose": {
+          "const": "account_binding"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "operation_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "identity_creation_lease_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
         "lease_fence": {
           "type": "integer",
           "minimum": 1
         },
-        "dpop_jkt": { "$ref": "#/$defs/dpop_jkt" },
-        "audience": { "$ref": "#/$defs/did" },
+        "dpop_jkt": {
+          "$ref": "#/$defs/dpop_jkt"
+        },
+        "audience": {
+          "$ref": "#/$defs/did"
+        },
         "origin": {
           "type": "string",
           "format": "uri"
@@ -507,8 +644,12 @@
         "trust_domain": {
           "$ref": "./common-ids.schema.json#/$defs/trust_domain"
         },
-        "issued_at": { "$ref": "#/$defs/timestamp" },
-        "expires_at": { "$ref": "#/$defs/timestamp" },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
         "verification_key_multibase": {
           "type": "string",
           "pattern": "^z[1-9A-HJ-NP-Za-km-z]+$"
@@ -530,7 +671,9 @@
         "control_proof"
       ],
       "properties": {
-        "identity_creation_lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "identity_creation_lease_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
         "lease_fence": {
           "type": "integer",
           "minimum": 1
@@ -538,7 +681,9 @@
         "did_operation": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody"
         },
-        "control_proof": { "$ref": "#/$defs/identity_creation_control_proof" }
+        "control_proof": {
+          "$ref": "#/$defs/identity_creation_control_proof"
+        }
       },
       "additionalProperties": false
     },
@@ -553,8 +698,12 @@
         "head_event_digest"
       ],
       "properties": {
-        "binding_state": { "const": "bound" },
-        "identity_creation_lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "binding_state": {
+          "const": "bound"
+        },
+        "identity_creation_lease_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
         "lease_fence": {
           "type": "integer",
           "minimum": 1
@@ -566,8 +715,12 @@
             "duplicate"
           ]
         },
-        "operation_digest": { "$ref": "#/$defs/sha256_digest" },
-        "head_event_digest": { "$ref": "#/$defs/sha256_digest" }
+        "operation_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "head_event_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        }
       },
       "additionalProperties": false
     },
@@ -578,7 +731,9 @@
           "type": "boolean",
           "default": false
         },
-        "code_digest": { "$ref": "#/$defs/hash" }
+        "code_digest": {
+          "$ref": "#/$defs/hash"
+        }
       },
       "additionalProperties": false
     },
@@ -591,7 +746,9 @@
         },
         "token_digests": {
           "type": "array",
-          "items": { "$ref": "#/$defs/hash" },
+          "items": {
+            "$ref": "#/$defs/hash"
+          },
           "uniqueItems": true
         }
       },
@@ -627,7 +784,9 @@
         },
         "organization_allowlist": {
           "type": "array",
-          "items": { "$ref": "#/$defs/non_empty_string" },
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
           "uniqueItems": true
         },
         "invitation": {
@@ -642,9 +801,15 @@
     "account_registration_policy_evidence": {
       "type": "object",
       "properties": {
-        "verification_code": { "$ref": "#/$defs/non_empty_string" },
-        "organization": { "$ref": "#/$defs/non_empty_string" },
-        "invitation_token": { "$ref": "#/$defs/non_empty_string" }
+        "verification_code": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "organization": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "invitation_token": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
@@ -673,7 +838,9 @@
           "type": "boolean",
           "default": false
         },
-        "organization": { "$ref": "#/$defs/non_empty_string" }
+        "organization": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
@@ -685,9 +852,15 @@
         "evidence"
       ],
       "properties": {
-        "outcome": { "$ref": "#/$defs/account_registration_audit_outcome" },
-        "policy_digest": { "$ref": "#/$defs/hash" },
-        "evidence": { "$ref": "#/$defs/account_registration_evidence_summary" },
+        "outcome": {
+          "$ref": "#/$defs/account_registration_audit_outcome"
+        },
+        "policy_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "evidence": {
+          "$ref": "#/$defs/account_registration_evidence_summary"
+        },
         "retry_after_ms": {
           "type": "integer",
           "minimum": 0
@@ -697,7 +870,9 @@
     },
     "profile_patch": {
       "allOf": [
-        { "$ref": "./patch.schema.json" }
+        {
+          "$ref": "./patch.schema.json"
+        }
       ],
       "propertyNames": {
         "type": "string",
@@ -713,13 +888,27 @@
         "devices"
       ],
       "properties": {
-        "principal_id": { "$ref": "#/$defs/did" },
-        "primary_handle_claim": { "$ref": "./handle-claim.schema.json" },
-        "primary_handle_claim_ref": { "$ref": "#/$defs/handle_claim_ref" },
-        "handle_claim_digests": { "$ref": "#/$defs/handle_claim_digests" },
-        "state": { "$ref": "#/$defs/account_state" },
-        "devices": { "$ref": "#/$defs/device_summaries" },
-        "profile": { "$ref": "./actor-profile.schema.json" },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "primary_handle_claim": {
+          "$ref": "./handle-claim.schema.json"
+        },
+        "primary_handle_claim_ref": {
+          "$ref": "#/$defs/handle_claim_ref"
+        },
+        "handle_claim_digests": {
+          "$ref": "#/$defs/handle_claim_digests"
+        },
+        "state": {
+          "$ref": "#/$defs/account_state"
+        },
+        "devices": {
+          "$ref": "#/$defs/device_summaries"
+        },
+        "profile": {
+          "$ref": "./actor-profile.schema.json"
+        },
         "is_server_admin": {
           "type": "boolean",
           "description": "True when the authenticated principal is a deployment server administrator (the server's configured admin principal set). Operator-only product surfaces (e.g. organization creation) gate their UI on this. Reducer/config-derived, not a stored account field; absent or false means non-admin."
@@ -739,12 +928,24 @@
         "principal_id"
       ],
       "properties": {
-        "principal_id": { "$ref": "#/$defs/did" },
-        "display_name": { "$ref": "#/$defs/display_name" },
-        "device_id": { "$ref": "#/$defs/device_id" },
-        "proof": { "$ref": "#/$defs/account_registration_control_proof" },
-        "identity_creation": { "$ref": "#/$defs/identity_creation_registration" },
-        "policy_evidence": { "$ref": "#/$defs/account_registration_policy_evidence" }
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "display_name": {
+          "$ref": "#/$defs/display_name"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "proof": {
+          "$ref": "#/$defs/account_registration_control_proof"
+        },
+        "identity_creation": {
+          "$ref": "#/$defs/identity_creation_registration"
+        },
+        "policy_evidence": {
+          "$ref": "#/$defs/account_registration_policy_evidence"
+        }
       },
       "not": {
         "required": [
@@ -762,15 +963,33 @@
         "devices"
       ],
       "properties": {
-        "principal_id": { "$ref": "#/$defs/did" },
-        "state": { "$ref": "#/$defs/account_state" },
-        "devices": { "$ref": "#/$defs/device_summaries" },
-        "primary_handle_claim": { "$ref": "./handle-claim.schema.json" },
-        "primary_handle_claim_ref": { "$ref": "#/$defs/handle_claim_ref" },
-        "handle_claim_digests": { "$ref": "#/$defs/handle_claim_digests" },
-        "profile": { "$ref": "./actor-profile.schema.json" },
-        "registration_audit": { "$ref": "#/$defs/account_registration_audit" },
-        "binding_receipt": { "$ref": "#/$defs/account_binding_receipt" }
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "state": {
+          "$ref": "#/$defs/account_state"
+        },
+        "devices": {
+          "$ref": "#/$defs/device_summaries"
+        },
+        "primary_handle_claim": {
+          "$ref": "./handle-claim.schema.json"
+        },
+        "primary_handle_claim_ref": {
+          "$ref": "#/$defs/handle_claim_ref"
+        },
+        "handle_claim_digests": {
+          "$ref": "#/$defs/handle_claim_digests"
+        },
+        "profile": {
+          "$ref": "./actor-profile.schema.json"
+        },
+        "registration_audit": {
+          "$ref": "#/$defs/account_registration_audit"
+        },
+        "binding_receipt": {
+          "$ref": "#/$defs/account_binding_receipt"
+        }
       },
       "not": {
         "required": [
@@ -786,7 +1005,9 @@
         "patch"
       ],
       "properties": {
-        "patch": { "$ref": "#/$defs/profile_patch" }
+        "patch": {
+          "$ref": "#/$defs/profile_patch"
+        }
       },
       "additionalProperties": false
     },
@@ -796,7 +1017,9 @@
         "profile"
       ],
       "properties": {
-        "profile": { "$ref": "./actor-profile.schema.json" }
+        "profile": {
+          "$ref": "./actor-profile.schema.json"
+        }
       },
       "additionalProperties": false
     },
@@ -816,15 +1039,23 @@
         "proof"
       ],
       "properties": {
-        "account_authority_id": { "$ref": "#/$defs/did" },
-        "issuer_service_id": { "$ref": "#/$defs/did" },
-        "principal_control_realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
+        "account_authority_id": {
+          "$ref": "#/$defs/did"
+        },
+        "issuer_service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
         "account_id": {
           "type": "string",
           "minLength": 1,
           "maxLength": 255
         },
-        "principal_id": { "$ref": "#/$defs/did" },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
         "binding_version": {
           "type": "integer",
           "minimum": 1,
@@ -834,9 +1065,15 @@
           "$ref": "#/$defs/did_url",
           "description": "Account Authority DID service/delegation URL authorizing issuer_service_id to sign ak.account.status for this account. For a direct Account Authority issuer this is its own account-authority service entry; for a delegated Principal Server it is the live delegation entry."
         },
-        "issued_at": { "$ref": "#/$defs/timestamp" },
-        "expires_at": { "$ref": "#/$defs/timestamp" },
-        "proof": { "$ref": "./event-envelope.schema.json#/$defs/proof" }
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof"
+        }
       },
       "additionalProperties": false
     },
@@ -845,23 +1082,34 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["event"],
+          "required": [
+            "event"
+          ],
           "properties": {
-            "event": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventSubmitEnvelope" }
+            "event": {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventSubmitEnvelope"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["event", "account_status_receipts"],
+          "required": [
+            "event",
+            "account_status_receipts"
+          ],
           "properties": {
-            "event": { "$ref": "./service-operation-dtos.schema.json#/$defs/EventSubmitEnvelope" },
+            "event": {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventSubmitEnvelope"
+            },
             "account_status_receipts": {
               "type": "array",
               "minItems": 1,
               "maxItems": 32,
               "uniqueItems": true,
-              "items": { "$ref": "#/$defs/account_status_receipt" }
+              "items": {
+                "$ref": "#/$defs/account_status_receipt"
+              }
             }
           },
           "additionalProperties": false
@@ -888,19 +1136,35 @@
           "type": "string",
           "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "event_id": { "$ref": "#/$defs/event_id" },
-        "event_digest": { "$ref": "#/$defs/hash" },
+        "event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "event_digest": {
+          "$ref": "#/$defs/hash"
+        },
         "account_id": {
           "type": "string",
           "minLength": 1,
           "maxLength": 255
         },
-        "principal_id": { "$ref": "#/$defs/did" },
-        "principal_control_realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
-        "receiver_service_id": { "$ref": "#/$defs/did" },
-        "account_status_frontier_digest": { "$ref": "#/$defs/hash" },
-        "accepted_at": { "$ref": "#/$defs/timestamp" },
-        "proof": { "$ref": "./event-envelope.schema.json#/$defs/proof" }
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "receiver_service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "account_status_frontier_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof"
+        }
       },
       "additionalProperties": false
     },
@@ -911,13 +1175,19 @@
         "publication"
       ],
       "properties": {
-        "authority_evidence": { "$ref": "#/$defs/account_status_authority_evidence" },
-        "publication": { "$ref": "#/$defs/account_status_publication" },
+        "authority_evidence": {
+          "$ref": "#/$defs/account_status_authority_evidence"
+        },
+        "publication": {
+          "$ref": "#/$defs/account_status_publication"
+        },
         "cba_proof_bundles": {
           "type": "array",
           "maxItems": 64,
           "uniqueItems": true,
-          "items": { "$ref": "./cba-proof-bundle.schema.json" },
+          "items": {
+            "$ref": "./cba-proof-bundle.schema.json"
+          },
           "description": "Receiver-relative Principal Control Realm CBA closure for receipted fanout. Initial publication MAY omit it when the destination already has the current PCR dependencies."
         }
       },
@@ -931,8 +1201,12 @@
         "event_kind"
       ],
       "properties": {
-        "authority_evidence": { "$ref": "#/$defs/account_status_authority_evidence" },
-        "event_kind": { "const": "ak.account.status" }
+        "authority_evidence": {
+          "$ref": "#/$defs/account_status_authority_evidence"
+        },
+        "event_kind": {
+          "const": "ak.account.status"
+        }
       },
       "additionalProperties": false
     },
@@ -953,20 +1227,34 @@
           "minLength": 1,
           "maxLength": 255
         },
-        "principal_id": { "$ref": "#/$defs/did" },
-        "principal_control_realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
-        "issuer_service_id": { "$ref": "#/$defs/did" },
-        "actor_frontier": { "$ref": "./service-operation-dtos.schema.json#/$defs/RealmActorFrontierView" },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "issuer_service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "actor_frontier": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/RealmActorFrontierView"
+        },
         "seal_frontier": {
           "allOf": [
-            { "$ref": "./service-operation-dtos.schema.json#/$defs/RealmSealFrontierView" },
+            {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/RealmSealFrontierView"
+            },
             {
               "properties": {
                 "governance_health": {
                   "properties": {
-                    "status": { "const": "healthy" }
+                    "status": {
+                      "const": "healthy"
+                    }
                   },
-                  "required": ["status"]
+                  "required": [
+                    "status"
+                  ]
                 }
               }
             }
@@ -988,21 +1276,40 @@
       "properties": {
         "status": {
           "type": "string",
-          "enum": ["pending_seal", "accepted", "duplicate"]
+          "enum": [
+            "pending_seal",
+            "accepted",
+            "duplicate"
+          ]
         },
-        "event_id": { "$ref": "#/$defs/event_id" },
+        "event_id": {
+          "$ref": "#/$defs/event_id"
+        },
         "account_id": {
           "type": "string",
           "minLength": 1,
           "maxLength": 255
         },
-        "principal_id": { "$ref": "#/$defs/did" },
-        "effective_status_event_id": { "$ref": "#/$defs/event_id" },
-        "account_status_frontier_digest": { "$ref": "#/$defs/hash" },
-        "barrier_cursor": { "$ref": "./cursor.schema.json" },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "effective_status_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "account_status_frontier_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "barrier_cursor": {
+          "$ref": "./cursor.schema.json"
+        },
         "propagation_state": {
           "type": "string",
-          "enum": ["not_required", "scheduled", "complete", "incomplete"]
+          "enum": [
+            "not_required",
+            "scheduled",
+            "complete",
+            "incomplete"
+          ]
         },
         "pending_destination_count": {
           "type": "integer",
@@ -1018,21 +1325,37 @@
     "session_revoke_request_body": {
       "type": "object",
       "properties": {
-        "target_grant_id": { "$ref": "#/$defs/grant_id" },
-        "target_device_id": { "$ref": "#/$defs/device_id" },
-        "all_sessions": { "const": true },
-        "applet_id": { "$ref": "#/$defs/applet_id" },
+        "target_grant_id": {
+          "$ref": "#/$defs/grant_id"
+        },
+        "target_device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "all_sessions": {
+          "const": true
+        },
+        "applet_id": {
+          "$ref": "#/$defs/applet_id"
+        },
         "effective_scope": {
           "$ref": "../schemas/applet-install-plan.schema.json#/$defs/effective_scope"
         },
-        "registration_epoch": { "$ref": "#/$defs/hash" },
-        "service_id": { "$ref": "#/$defs/did" },
+        "registration_epoch": {
+          "$ref": "#/$defs/hash"
+        },
+        "service_id": {
+          "$ref": "#/$defs/did"
+        },
         "capability_grant_refs": {
           "type": "array",
-          "items": { "$ref": "#/$defs/typed_ref" },
+          "items": {
+            "$ref": "#/$defs/typed_ref"
+          },
           "uniqueItems": true
         },
-        "proof": { "$ref": "#/$defs/account_lifecycle_proof" }
+        "proof": {
+          "$ref": "#/$defs/account_lifecycle_proof"
+        }
       },
       "dependentRequired": {
         "applet_id": [
@@ -1112,7 +1435,9 @@
         },
         "revoked_grant_ids": {
           "type": "array",
-          "items": { "$ref": "#/$defs/grant_id" },
+          "items": {
+            "$ref": "#/$defs/grant_id"
+          },
           "uniqueItems": true
         }
       },

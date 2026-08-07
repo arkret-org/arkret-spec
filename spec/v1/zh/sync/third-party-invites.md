@@ -117,7 +117,7 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
 
 ```json schema=schemas/event-payload.schema.json#/$defs/invite_claim_payload
 {
-  "invite_id": "ak:invite:0196419b-1000-8000-8000-000000000000",
+  "invite_id": "ak:invite:AfVi-FmTYttG2uQeB67y7GdHhOrWGxBe0QaDAOwYnK01",
   "subject_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
   "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
@@ -125,7 +125,7 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
     "verification_service_id": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example",
     "verification_method": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example#invite-001",
     "subject_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "audience": "arkret.invite.claim",
     "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
     "expires_at": "2026-05-05T00:00:00.000Z",

@@ -23,7 +23,7 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
 ```json
 {
   "id": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "reducer_profile": "ak.reducer.core.v1",
   "security_class": "high_assurance",
   "schema_profile_refs": [
@@ -31,7 +31,7 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
   ],
   "frontier": {
     "event_ids": [
-      "ak:event:019640ed-8000-8000-8000-000000000000"
+      "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
     ],
     "timeline_hlc": "01970e589d21-0004-a13f9c2e"
   },
@@ -40,7 +40,7 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
     "root": "sha256:...",
     "covered_event_count": 42000,
     "covered_event_ids": [
-      "ak:event:019640ed-8000-8000-8000-000000000000"
+      "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
     ]
   },
   "state_digest": "sha256:...",
@@ -67,7 +67,7 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
     "authority_kind": "realm_policy_snapshot_issuer",
     "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "auth_frontier": [
-      "ak:event:019640ed-8000-8000-8000-000000000000"
+      "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
     ],
     "checked_at": "2026-04-26T00:00:00Z"
   },
@@ -102,13 +102,13 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
   "items": [
     {
       "kind": "strand",
-      "id": "ak:strand:019640c5-0000-8000-8000-000000000000",
+      "id": "ak:strand:AVgnD-1YLmV6g-_RiZro8Yzmydn3Q8upFMpAgJW9bsbj",
       "object": {
-        "id": "ak:strand:019640c5-0000-8000-8000-000000000000",
+        "id": "ak:strand:AVgnD-1YLmV6g-_RiZro8Yzmydn3Q8upFMpAgJW9bsbj",
         "kind": "strand",
         "schema": "ak.schema.strand.v1"
       },
-      "source_event_id": "ak:event:019640ed-8000-8000-8000-000000000000"
+      "source_event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
     }
   ],
   "conflict_records": [],
@@ -207,7 +207,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
   "samples": [
     {
       "kind": "event_id",
-      "event_ids": ["ak:event:019640ed-8000-8000-8000-000000000000", "ak:event:019640ed-8000-8000-8000-000000000001"]
+      "event_ids": ["ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-", "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"]
     },
     {
       "kind": "actor_seq_range",
@@ -231,13 +231,13 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
   "proofs": [
     {
       "kind": "event_id",
-      "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
+      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
       "merkle_branch": [
         "sha256:...",
         "sha256:..."
       ],
       "leaf_canonical_entry": {
-        "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
+        "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
         "event_digest": "sha256:...",
         "actor_id": "did:webvh:...:alice.example",
         "actor_seq": 100,
@@ -309,7 +309,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
   "ciphertext": "base64url",
   "aad_visibility_event_id": "routing_digest",
   "aad": {
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "event_kind": "ak.message.create",
     "event_ref_digest": "sha256:..."
   },

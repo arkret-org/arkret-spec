@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07.9",
+  "version": "2026-08-07.11",
   "source_of_truth": true,
-  "generated_at": "2026-08-07T17:00:00Z",
+  "generated_at": "2026-08-08T00:30:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -9736,7 +9736,10 @@
       "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
       "The <kind> segment is part of the signed/canonical wire value. It MUST NOT be changed, inferred differently, or stripped during verification, forwarding, backfill, or replay.",
       "The UUID segment MUST use the construction fixed by that kind's id_form and identity_authority columns, never one chosen per call site: version 7 for producer_allocated, version 8 with the content-bound layout of zh/conformance/encoding.md section 4.0 for event_derived, and the registered Realm exception where a principal_control create selects DID-transcript-derived UUIDv7. All serialize as canonical lowercase `xxxxxxxx-xxxx-Vxxx-Nxxx-xxxxxxxxxxxx`, N ∈ {8,9,a,b}; a version nibble alone never proves identity authority.",
-      "A producer_allocated UUIDv7 is never a globally sufficient protocol identity. Its canonical identity key is (mint_authority, typed_id), where mint_authority is the DID whose accepted proof authorized the first durable appearance of that ID. Bare typed-ID lookup, cross-authority deduplication, and last-writer-wins collision repair are forbidden."
+      "A producer_allocated UUIDv7 is never a globally sufficient protocol identity. Its canonical identity key is (mint_authority, typed_id), where mint_authority is the DID whose accepted proof authorized the first durable appearance of that ID. Bare typed-ID lookup, cross-authority deduplication, and last-writer-wins collision repair are forbidden.",
+      "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form declared by each id_kind row.",
+      "Storage implementations MAY store producer_allocated UUID values as raw 16-byte UUIDs. Event-derived IDs MUST instead store their raw 33-byte token (suite wire_code plus all 32 digest octets); they MUST NOT use a native UUID column.",
+      "The id_form is fixed by registry kind and never chosen per call site: producer_allocated uses RFC 9562 UUIDv7; event_derived uses the same canonical 33-byte token as its creating Event ID and serializes as 44 unpadded Base64URL characters."
     ],
     "producer_allocated_identity_contract": {
       "identity_key": [
@@ -9829,7 +9832,7 @@
         "kind": "actor_profile",
         "category": "core_object",
         "status": "active",
-        "wire_form": "ak:actor_profile:<uuid>",
+        "wire_form": "ak:actor_profile:<event-token>",
         "referenceability": [
           "relation_endpoint"
         ],
@@ -9989,7 +9992,7 @@
         "kind": "circle",
         "category": "core_object",
         "status": "active",
-        "wire_form": "ak:circle:<uuid>",
+        "wire_form": "ak:circle:<event-token>",
         "referenceability": [
           "read_cursor_scope_ref"
         ],
@@ -10025,7 +10028,7 @@
         "kind": "strand",
         "category": "core_object",
         "status": "active",
-        "wire_form": "ak:strand:<uuid>",
+        "wire_form": "ak:strand:<event-token>",
         "referenceability": [
           "relation_endpoint",
           "notification_source",
@@ -10078,7 +10081,7 @@
         "kind": "event",
         "category": "event_history",
         "status": "active",
-        "wire_form": "ak:event:<uuid>",
+        "wire_form": "ak:event:<event-token>",
         "referenceability": [
           "relation_endpoint"
         ],
@@ -10172,7 +10175,7 @@
         "kind": "message",
         "category": "core_object",
         "status": "active",
-        "wire_form": "ak:message:<uuid>",
+        "wire_form": "ak:message:<event-token>",
         "referenceability": [
           "relation_endpoint",
           "notification_source",
@@ -10198,7 +10201,7 @@
         "kind": "morph",
         "category": "core_object",
         "status": "active",
-        "wire_form": "ak:morph:<uuid>",
+        "wire_form": "ak:morph:<event-token>",
         "referenceability": [
           "relation_endpoint",
           "notification_source"
@@ -10295,7 +10298,7 @@
         "kind": "relation",
         "category": "core_object",
         "status": "active",
-        "wire_form": "ak:relation:<uuid>",
+        "wire_form": "ak:relation:<event-token>",
         "referenceability": [
           "relation_endpoint",
           "notification_source"
@@ -10353,7 +10356,7 @@
         "kind": "space",
         "category": "core_object",
         "status": "active",
-        "wire_form": "ak:space:<uuid>",
+        "wire_form": "ak:space:<event-token>",
         "referenceability": [
           "relation_endpoint",
           "read_cursor_scope_ref"
@@ -10389,7 +10392,7 @@
         "genesis_event_kinds": [
           "ak.realm.create"
         ],
-        "id_form_note": "Collaboration Realms are event-derived UUIDv8 (encoding.md section 4.0). Principal Control Realms use the registered subject-derived UUIDv7 layout H(UTF8(\"ak:realm:principal-control:v1:\") || UTF8(canonical_principal_did)); their identity anchor is did_inception, not the genesis Event. Both forms have no producer-selected bits, and the branch is fixed by the create's purpose."
+        "id_form_note": "Collaboration Realms are event-derived and retype their creating Event's 33-byte token (encoding.md section 4.0). Principal Control Realms are subject-derived from the principal DID (H(\"ak:realm:principal-control:v1:\" || did), UUIDv7 layout) so the address stays computable from the DID alone; their identity anchor is did_inception, not the genesis Event. Neither form is producer-chosen and the branch is fixed by the create's purpose."
       },
       {
         "kind": "transaction",
@@ -10413,7 +10416,7 @@
         "kind": "view",
         "category": "core_object",
         "status": "active",
-        "wire_form": "ak:view:<uuid>",
+        "wire_form": "ak:view:<event-token>",
         "referenceability": [
           "relation_endpoint",
           "notification_source"
@@ -10424,13 +10427,24 @@
         "genesis_event_kinds": [
           "ak.view.create"
         ]
+      },
+      {
+        "kind": "scheduled_send",
+        "category": "account_private",
+        "status": "active",
+        "wire_form": "ak:scheduled_send:<uuid>",
+        "description": "Producer-allocated identity of a principal-private scheduled-send plan. It is not an Event or Message identity and MUST NOT be retyped into either one.",
+        "id_form": "producer_allocated",
+        "identity_authority": "producer_signature"
       }
     ],
     "uuid_pattern_producer_allocated": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-    "uuid_pattern_event_derived": "^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
     "typed_uuid_pattern_producer_allocated": "^ak:<kind>:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-    "typed_uuid_pattern_event_derived": "^ak:<kind>:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-    "uuid_form_rules": "Every typed ak:<kind>:<uuid> uses the construction declared by id_form and identity_authority. producer_allocated = RFC 9562 UUIDv7 assigned by the service/client and therefore not self-certifying. event_derived = UUIDv8 with the content-bound layout of zh/conformance/encoding.md section 4.0: 34-bit created_at seconds plus 88 event_digest bits. The sole conditional kind is realm: collaboration Realm is event-derived UUIDv8; principal_control Realm is UUIDv7 whose usable bits are deterministically derived from the registered DID transcript, not producer-selected. A nibble/regex check is only wire validation; admission MUST recompute the declared authority transcript. Implementations MUST NOT choose the form per site."
+    "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (uint8 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
+    "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
+    "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
+    "version": "2026-08-07.11",
+    "generated_at": "2026-08-08T00:30:00Z"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",

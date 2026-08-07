@@ -15,23 +15,23 @@
       "name": "or_set_basic_add_then_remove",
       "events": [
         {
-          "event_id": "ak:event:01964185-0400-8000-8000-000000000000",
+          "event_id": "ak:event:AZwvW3iEuBDjklBhqPTd1nmetaHgvhyZPMRSw1O0Lo09",
           "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "👍"
           }
         },
         {
-          "event_id": "ak:event:0196418c-0400-8000-8000-000000000000",
+          "event_id": "ak:event:AUf2xtyE57ZZaohpZd5c4pauIAY-llOyiouTwQ3ACbKx",
           "kind": "ak.reaction.remove",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "causal_refs": [
-            "ak:event:01964185-0400-8000-8000-000000000000"
+            "ak:event:AZwvW3iEuBDjklBhqPTd1nmetaHgvhyZPMRSw1O0Lo09"
           ],
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "👍"
           }
         }
@@ -39,7 +39,7 @@
       "expected": {
         "summary": [
           {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "👍",
             "members": []
           }
@@ -51,20 +51,20 @@
       "notes": "Two add events from the same actor with the same key collapse to one OR-Set membership entry; the per-event audit log retains both.",
       "events": [
         {
-          "event_id": "ak:event:01964185-0800-8000-8000-000000000000",
+          "event_id": "ak:event:Acz5Z8v9_m87mYgXuhD1Plz2pKlHEaA-NeuC0Q0XfR_B",
           "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "🎉"
           }
         },
         {
-          "event_id": "ak:event:01964185-0800-8000-8000-000000000001",
+          "event_id": "ak:event:ARSnYXotPDAESkfwMfQamRRQ29hjc5ru079X2_dAns5K",
           "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "🎉"
           }
         }
@@ -72,7 +72,7 @@
       "expected": {
         "summary": [
           {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "🎉",
             "members": [
               "did:webvh:z6mkfixture:alice.example"
@@ -81,8 +81,8 @@
           }
         ],
         "audit_event_ids": [
-          "ak:event:01964185-0800-8000-8000-000000000000",
-          "ak:event:01964185-0800-8000-8000-000000000001"
+          "ak:event:Acz5Z8v9_m87mYgXuhD1Plz2pKlHEaA-NeuC0Q0XfR_B",
+          "ak:event:ARSnYXotPDAESkfwMfQamRRQ29hjc5ru079X2_dAns5K"
         ]
       }
     },
@@ -91,20 +91,20 @@
       "notes": "Two events from the same actor with no causal_refs between them; default view applies per-actor causal closure — concurrent (add, remove) collapses to the remove because the remove is itself a tombstone for the actor's adds in the concurrent past per OR-Set semantics chosen for ak.reaction.",
       "events": [
         {
-          "event_id": "ak:event:01964185-0c00-8000-8000-000000000000",
+          "event_id": "ak:event:AS3J3pVVS_mtaooCzDPBcqiIE1lZHsmTvtJczt7p11-O",
           "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:bob.example",
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "🚀"
           }
         },
         {
-          "event_id": "ak:event:0196418c-0c00-8000-8000-000000000000",
+          "event_id": "ak:event:ATf1dS9sHhqKJ60v8d-rImWMx2yJPtCFDAOicBsENUya",
           "kind": "ak.reaction.remove",
           "actor_id": "did:webvh:z6mkfixture:bob.example",
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "🚀"
           }
         }
@@ -112,7 +112,7 @@
       "expected": {
         "summary": [
           {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "🚀",
             "members": []
           }
@@ -124,20 +124,20 @@
       "name": "different_actors_independent_or_set",
       "events": [
         {
-          "event_id": "ak:event:01964185-1000-8000-8000-000000000000",
+          "event_id": "ak:event:AVW2YMCjH96Ya0tidiRb5_GzVRoKuwweJPiMlyg-BYg-",
           "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "👍"
           }
         },
         {
-          "event_id": "ak:event:01964185-1000-8000-8000-000000000001",
+          "event_id": "ak:event:AUZzEfOZbaaGO3O08psLOtE3SWBybiMko8PkSCauHhco",
           "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:bob.example",
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "👍"
           }
         }
@@ -145,7 +145,7 @@
       "expected": {
         "summary": [
           {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "👍",
             "members": [
               "did:webvh:z6mkfixture:alice.example",
@@ -161,11 +161,11 @@
       "notes": "Reaction whose target_ref has not been observed yet MUST be held in pending; reducer materialises the OR-Set entry only after the target message becomes available.",
       "events": [
         {
-          "event_id": "ak:event:01964185-1400-8000-8000-000000000000",
+          "event_id": "ak:event:AXbGyPkOSwVefaHhuAZUP7OiiZidG2qv23w805mFGLp5",
           "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
-            "target_ref": "ak:message:8238ad61-2055-8c9d-a502-b4e7844047ce",
+            "target_ref": "ak:message:AUSTGOjTqqpFAsG015mTJNnUTIcgVjKsuwTzMUBdYSoS",
             "key": "👀"
           }
         }
@@ -173,8 +173,8 @@
       "expected": {
         "pending_reactions": [
           {
-            "target_ref": "ak:message:8238ad61-2055-8c9d-a502-b4e7844047ce",
-            "event_id": "ak:event:01964185-1400-8000-8000-000000000000",
+            "target_ref": "ak:message:AUSTGOjTqqpFAsG015mTJNnUTIcgVjKsuwTzMUBdYSoS",
+            "event_id": "ak:event:AXbGyPkOSwVefaHhuAZUP7OiiZidG2qv23w805mFGLp5",
             "reason": "dependency_missing"
           }
         ],
@@ -186,28 +186,28 @@
       "notes": "When the target message is redacted, the default view summary MUST NOT expose reaction members; the audit view retains the reaction events under the redaction stub.",
       "events": [
         {
-          "event_id": "ak:event:01964185-1800-8000-8000-000000000000",
+          "event_id": "ak:event:AXFMw3CuLIsP_lZE6AHYq6g2qif47n2_tMTfgKyGSJi0",
           "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "❤"
           }
         },
         {
-          "event_id": "ak:event:01964147-0000-8000-8000-000000000129",
+          "event_id": "ak:event:AbXtVFmOCReAby3wmBtjunNM7eQaf6djQ2v4dOl9tnR5",
           "kind": "ak.message.redact",
           "actor_id": "did:webvh:z6mkfixture:owner.example",
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000"
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3"
           }
         }
       ],
       "expected": {
         "default_view_summary": [],
         "audit_view_event_ids": [
-          "ak:event:01964185-1800-8000-8000-000000000000",
-          "ak:event:01964147-0000-8000-8000-000000000129"
+          "ak:event:AXFMw3CuLIsP_lZE6AHYq6g2qif47n2_tMTfgKyGSJi0",
+          "ak:event:AbXtVFmOCReAby3wmBtjunNM7eQaf6djQ2v4dOl9tnR5"
         ]
       }
     },
@@ -215,7 +215,7 @@
       "name": "e2ee_routing_digest_dedup",
       "notes": "In an E2EE realm the plaintext key is the v1 keyed-HMAC routing tag: HMAC-SHA256(key = MLS-Exporter(\"arkret-reaction-routing-v1\", context = realm_id), data = NFC(canonical_emoji)); see zh/crypto-media/encryption-and-audit.md §2.9. The 32-byte tag is carried in `key` as a 256-bit hex digest (the sha256: prefix below denotes the digest wire-encoding, not the derivation). Two adds with the same routing tag from the same actor in the same epoch collapse to one OR-Set membership; the tag differs in a different epoch because the MLS exporter secret rotates on every commit, so it does not dedup across epochs. realm_id is bound via the exporter context, providing defense-in-depth even if mls_group_id is reused across deployments.",
       "context": {
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000129",
+        "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
         "aad_visibility": {
           "event_id": "routing_digest"
         },
@@ -224,11 +224,11 @@
       },
       "events": [
         {
-          "event_id": "ak:event:01964185-1c00-8000-8000-000000000000",
+          "event_id": "ak:event:AUtzHR4G9bSwLz3EzNQ0CON1Wr1uL7fpC6nYUvJpP_zd",
           "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000020",
+            "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "encrypted_payload": {
               "scheme": "mls_rfc9420",
@@ -239,13 +239,13 @@
               "ciphertext": "reactionAlpha",
               "aad_visibility_event_id": "routing_digest",
               "aad": {
-                "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000129",
+                "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
                 "event_kind": "ak.reaction.add",
                 "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
               },
               "key_ref": {
                 "algorithm": "MLS",
-                "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
+                "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
               },
               "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
               "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
@@ -253,11 +253,11 @@
           }
         },
         {
-          "event_id": "ak:event:01964185-1c00-8000-8000-000000000001",
+          "event_id": "ak:event:AaIAXJ4uHhAQKSRb9ktqvm5RSMqQBaqMI7_UW6nuV1C_",
           "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000020",
+            "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "encrypted_payload": {
               "scheme": "mls_rfc9420",
@@ -268,13 +268,13 @@
               "ciphertext": "reactionAlphaDup",
               "aad_visibility_event_id": "routing_digest",
               "aad": {
-                "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000129",
+                "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
                 "event_kind": "ak.reaction.add",
                 "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
               },
               "key_ref": {
                 "algorithm": "MLS",
-                "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
+                "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
               },
               "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
               "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
@@ -285,7 +285,7 @@
       "expected": {
         "server_side_summary": [
           {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000020",
+            "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
             "routing_digest_key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "members": [
               "did:webvh:z6mkfixture:alice.example"
@@ -301,7 +301,7 @@
       "name": "e2ee_epoch_rotation_breaks_dedup",
       "notes": "Same canonical emoji yields a different routing hash after MLS epoch rotation; the new add is a fresh OR-Set entry, not a duplicate of the pre-rotation one.",
       "context": {
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000129",
+        "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
         "aad_visibility": {
           "event_id": "hidden"
         },
@@ -311,11 +311,11 @@
       },
       "events": [
         {
-          "event_id": "ak:event:01964185-2000-8000-8000-000000000000",
+          "event_id": "ak:event:AV6hyUZOXOouTOW6R1l5DrVQTrYqiQL2_ay5zJ7zIvRU",
           "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000020",
+            "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "encrypted_payload": {
               "scheme": "mls_rfc9420",
@@ -326,12 +326,12 @@
               "ciphertext": "reactionEpoch7",
               "aad_visibility_event_id": "hidden",
               "aad": {
-                "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000129",
+                "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
                 "event_kind": "ak.reaction.add"
               },
               "key_ref": {
                 "algorithm": "MLS",
-                "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
+                "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
               },
               "payload_digest": "sha256:cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333",
               "aad_digest": "sha256:dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444"
@@ -339,11 +339,11 @@
           }
         },
         {
-          "event_id": "ak:event:01964185-2000-8000-8000-000000000001",
+          "event_id": "ak:event:AefVwdo4QXWyQpDPe0xNTZt8YPExzBxckc7ZLvKlJmiM",
           "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000020",
+            "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
             "key": "sha256:222222222222222222222222222222222222222222222222222222222222222b",
             "encrypted_payload": {
               "scheme": "mls_rfc9420",
@@ -354,12 +354,12 @@
               "ciphertext": "reactionEpoch8",
               "aad_visibility_event_id": "hidden",
               "aad": {
-                "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000129",
+                "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
                 "event_kind": "ak.reaction.add"
               },
               "key_ref": {
                 "algorithm": "MLS",
-                "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000001"
+                "group_state_ref": "ak:event:AYiqYUPqcfS5F7GWp1FwCOLhlvApOKQLYgruaNIjzAn9"
               },
               "payload_digest": "sha256:eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555",
               "aad_digest": "sha256:ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666"
@@ -371,7 +371,7 @@
         "server_side_summary_distinct_keys": 2,
         "after_client_decryption_summary": [
           {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000020",
+            "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
             "decrypted_key": "👍",
             "members": [
               "did:webvh:z6mkfixture:alice.example"
@@ -386,16 +386,16 @@
       "notes": "After ak.capability.revoke removes the actor's ak.reaction.add capability, the next add MUST be rejected before reducer state changes; in-flight events accepted before the revoke causal frontier remain in OR-Set state.",
       "events": [
         {
-          "event_id": "ak:event:01964185-2400-8000-8000-000000000000",
+          "event_id": "ak:event:AeQYV30t2Xu5gqopm9uNamXn_eJzYH7Uhb-IseTF8fat",
           "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "👍"
           }
         },
         {
-          "event_id": "ak:event:0196418d-a400-8000-8000-000000000000",
+          "event_id": "ak:event:AV4IwCEFsx6wjVui14P0fQsw9_lBVvUa501yWAT_SYQh",
           "kind": "ak.capability.revoke",
           "actor_id": "did:webvh:z6mkfixture:owner.example",
           "payload": {
@@ -406,26 +406,26 @@
           }
         },
         {
-          "event_id": "ak:event:01964185-2400-8000-8000-000000000001",
+          "event_id": "ak:event:AVM45xX11CYLpPFetDHI8y1zfThVwEt12DZ0xn-0asiA",
           "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "causal_refs": [
-            "ak:event:0196418d-a400-8000-8000-000000000000"
+            "ak:event:AV4IwCEFsx6wjVui14P0fQsw9_lBVvUa501yWAT_SYQh"
           ],
           "payload": {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "🎉"
           }
         }
       ],
       "expected": {
         "rejected_event_ids": [
-          "ak:event:01964185-2400-8000-8000-000000000001"
+          "ak:event:AVM45xX11CYLpPFetDHI8y1zfThVwEt12DZ0xn-0asiA"
         ],
         "rejection_reason_code": "capability_denied",
         "summary": [
           {
-            "target_ref": "ak:message:01964147-0000-8000-8000-000000000000",
+            "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "👍",
             "members": [
               "did:webvh:z6mkfixture:alice.example"

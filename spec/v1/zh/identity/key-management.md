@@ -195,7 +195,7 @@ v1 不定义独立的 agent key rotate 事件：key 替换统一通过 §3.6.1 �
 
 ##### Agent signing-key binding 与 portable signer evidence（normative）
 
-每次首次 pairing、replacement pairing 或 same-key re-authorization 接受时，controller MUST 在同一批准动作中签发 `ak.schema.agent_signing_key_binding.v1`。其公开字段只允许 `agent_id`、与 authorize payload byte-identical 的 `agent_key_id`、完整 `verification_method`、raw Ed25519 `public_key`、`public_key_digest`、`agent_key_authorize_event_id`、`issued_at`、仅在授权实际有期限时出现的 `expires_at`、`controller_id` 与 `controller_proof`。requested scope、`agent_key_scope`、audience selector、pairing code/request、runtime PoP、attestation、session 与 capability material 不得进入公开 binding。
+每次首次 pairing、replacement pairing 或 same-key re-authorization 接受时，controller MUST 在同一批准动作中签发 `ak.schema.agent_signing_key_binding.v1`。其公开字段只允许 `agent_id`、与 authorize payload byte-identical 的 `agent_key_id`、完整 `verification_method`、raw Ed25519 `public_key`、`public_key_digest`、`agent_key_authorize_event_id`（完整 Event ID）、`issued_at`、仅在授权实际有期限时出现的 `expires_at`、`controller_id` 与 `controller_proof`。authorize Event 的 payload 只承诺排除 `agent_key_authorize_event_id` 与 `controller_proof` 的 binding core digest；receiver 接受并得到完整 Event identity 后才 materialize 这两个字段，禁止在 Event authoring 前预铸本 Event ID。requested scope、`agent_key_scope`、audience selector、pairing code/request、runtime PoP、attestation、session 与 capability material 不得进入公开 binding。
 
 controller proof 的 signing input 固定为：
 
@@ -210,8 +210,7 @@ JCS(binding object with controller_proof.jws omitted)
 authorize payload 的 `key_id`；`verification_method` 去除 fragment/query 后 MUST 与 `agent_id` byte-identical；
 raw key必须解码为恰好32 bytes。authorize payload、公开 binding 与 runtime 审批状态中的
 `public_key_digest` MUST 只对这32-byte raw Ed25519 key调用 SDK唯一
-`agent_signing_public_key_digest` helper计算，不得hash PublicKey DTO、JWK、multibase或hex文本。`signing_key_binding_digest`只对**包含
-完整 controller proof 的整个 binding object**做RFC8785/JCS后SHA-256；controller proof签名transcript则使用上文
+`agent_signing_public_key_digest` helper计算，不得hash PublicKey DTO、JWK、multibase或hex文本。`signing_key_binding_digest`只对**排除 `agent_key_authorize_event_id` 与 `controller_proof` 的 binding core**做RFC8785/JCS后SHA-256；controller proof签名transcript则使用上文
 独立domain tag并省略`controller_proof.jws`。两种digest与proof transcript是三个互斥domain，不得交换、二次
 hash或形成自引用。对应authorize payload必须分别承诺两digest；Event/key/method/controller/time/expiry或任一
 digest不一致必须拒绝，service不得替换disclosure或代controller补签。
@@ -379,7 +378,7 @@ MLS KeyPackage key 用于加入加密 Realm。
   "device_key_format": "Multikey",
   "created_at": "2026-04-26T00:00:00Z",
   "authorized_by": "ak:device:01964136-8000-7000-8000-000000000000",
-  "authorization_ref": "ak:event:01964137-8000-8000-8000-000000000000",
+  "authorization_ref": "ak:event:AeIDJcHD1Li18FoX3Nti6o-PayZ07cEjUQhzn6cyY6Z_",
   "status": "active",
   "last_seen_at": "2026-04-26T08:00:00Z",
   "revocation_ref": null
@@ -737,6 +736,7 @@ Arkret v1 使用 `ak.session.grant` 作为 principal control stream 中的标准
 
 ```json
 {
+
   "issuer": "did:webvh:z99jGJ9cd12QASVtC6r35kV5q:auth-gateway.example.com",
   "subject": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "session_public_key": "z6Mss...",

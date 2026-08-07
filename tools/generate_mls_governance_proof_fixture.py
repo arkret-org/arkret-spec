@@ -106,33 +106,30 @@ def four_leaf_root_and_proofs(digests: list[str]) -> tuple[str, list[list[str]]]
     return as_wire(root), proofs
 
 
-def derive_event_id_uuid(created_at: str, digest_wire: str) -> str:
-    """zh/conformance/encoding.md section 4.0 content-bound UUIDv8.
+def derive_event_id(digest_wire: str) -> str:
+    """encoding.md section 4.0: suite code plus all 32 digest octets."""
+    suite, digest_hex = digest_wire.split(":", 1)
+    suite_code = {"sha256": 0x01, "blake3": 0x02}.get(suite)
+    digest = bytes.fromhex(digest_hex)
+    if suite_code is None or len(digest) != 32:
+        raise ValueError("v1 Event ID requires an active suite and 32-byte digest")
+    body = bytes((suite_code,)) + digest
+    token = base64.urlsafe_b64encode(body).rstrip(b"=").decode("ascii")
+    if len(body) != 33 or len(token) != 44:
+        raise AssertionError("Event ID encoding length drift")
+    return token
 
-    34-bit second timestamp from created_at, then 88 bits taken from the
-    leftmost 11 octets of the Event's own event_digest.
-    """
-    from datetime import datetime, timezone
 
-    stamp = int(
-        datetime.fromisoformat(created_at.replace("Z", "+00:00"))
-        .astimezone(timezone.utc)
-        .timestamp()
-    )
-    material = int.from_bytes(bytes.fromhex(digest_wire.split(":", 1)[1])[:11], "big")
-    value = (stamp & ((1 << 34) - 1)) << 94
-    value |= ((material >> 74) & 0x3FFF) << 80
-    value |= 0x8 << 76
-    value |= ((material >> 62) & 0xFFF) << 64
-    value |= 0b10 << 62
-    value |= material & ((1 << 62) - 1)
-    raw = f"{value:032x}"
-    return f"{raw[0:8]}-{raw[8:12]}-{raw[12:16]}-{raw[16:20]}-{raw[20:32]}"
+def fixture_derived_id(kind: str, label: str) -> str:
+    """Build a stable suite-tagged Event-derived identifier for fixture context."""
+    digest = "sha256:" + hashlib.sha256(
+        b"ak.mls-governance-proof.fixture-id.v1\n" + label.encode("utf-8")
+    ).hexdigest()
+    return f"ak:{kind}:{derive_event_id(digest)}"
 
 
 def build_event(
     *,
-    event_id: str,
     actor_seq: int,
     member_did: str,
     previous_event_id: str | None,
@@ -145,7 +142,6 @@ def build_event(
     cell_subject = member_did.replace(":", "%3A")
     state_cell = f"ak:cell:ak.component.member.state.v1:{cell_subject}"
     producer_event: dict[str, Any] = {
-        "event_id": event_id,
         "kind": "ak.member.state",
         "realm_id": realm_id,
         "scope_ref": deepcopy(scope_ref),
@@ -164,11 +160,9 @@ def build_event(
     }
     # section 6: the digest preimage removes proofs/unsigned/actor_kind/event_id;
     # section 4.0 then derives event_id from that digest, so compute in that order.
-    digest_source = {k: v for k, v in producer_event.items() if k != "event_id"}
+    digest_source = deepcopy(producer_event)
     event_digest = wire_digest(canonical_bytes(digest_source))
-    producer_event["event_id"] = "ak:event:" + derive_event_id_uuid(
-        producer_event["created_at"], event_digest
-    )
+    producer_event["event_id"] = "ak:event:" + derive_event_id(event_digest)
     event_id = producer_event["event_id"]
     proof_created_at = producer_event["created_at"]
     binding = {
@@ -254,37 +248,28 @@ def build_fixture() -> dict[str, Any]:
     actor_vm = actor_did + "#key-1"
     notary_did = "did:webvh:zfixture:notary.example"
     notary_vm = notary_did + "#key-1"
-    realm_id = "ak:realm:019809f4-a800-8000-8000-000000000001"
+    realm_id = fixture_derived_id("realm", "governance-realm")
     effective_scope = {"kind": "realm", "realm_id": realm_id}
 
     event_specs = [
-        (
-            "ak:event:019809f4-a800-8000-8000-000000000101",
-            0,
-            "did:webvh:zfixture:bob.example",
-            None,
-        ),
-        (
-            "ak:event:019809f4-a801-8000-8000-000000000102",
-            1,
-            "did:webvh:zfixture:carol.example",
-            "ak:event:019809f4-a800-8000-8000-000000000101",
-        ),
+        (0, "did:webvh:zfixture:bob.example"),
+        (1, "did:webvh:zfixture:carol.example"),
     ]
-    event_rows = [
-        build_event(
-            event_id=event_id,
+    event_rows = []
+    previous_event_id = None
+    for actor_seq, member_did in event_specs:
+        event_row = build_event(
             actor_seq=actor_seq,
             member_did=member_did,
-            previous_event_id=previous,
+            previous_event_id=previous_event_id,
             realm_id=realm_id,
             scope_ref=effective_scope,
             actor_did=actor_did,
             verification_method=actor_vm,
             signing_key=actor_key,
         )
-        for event_id, actor_seq, member_did, previous in event_specs
-    ]
+        event_rows.append(event_row)
+        previous_event_id = event_row[0]["event_id"]
     events_by_digest = sorted(
         [(digest, event, extra) for event, digest, extra in event_rows],
         key=lambda row: row[0],
@@ -314,7 +299,7 @@ def build_fixture() -> dict[str, Any]:
                 "principal_id": member_did,
                 "credential_ref": f"{member_did}#device-1",
             }
-            for index, (_, _, member_did, _) in enumerate(event_specs)
+            for index, (_, member_did) in enumerate(event_specs)
         ],
         key=canonical_bytes,
     )
@@ -326,7 +311,7 @@ def build_fixture() -> dict[str, Any]:
                 "cell_subject": member_did,
                 "projected_value_digest": wire_digest(canonical_bytes("join")),
             }
-            for _, _, member_did, _ in event_specs
+            for _, member_did in event_specs
         ],
         key=lambda row: (
             row["cell_family"].encode("utf-8"),
@@ -466,7 +451,7 @@ def build_fixture() -> dict[str, Any]:
 
     unknown_seal = "ak:seal:sha256:" + "f0" * 32
     extra_digest = "sha256:" + "f1" * 32
-    extra_event_id = "ak:event:019809f4-a802-8000-8000-000000000103"
+    extra_event_id = fixture_derived_id("event", "extra-frontier-event")
     verifier_cases = [
         {
             "name": "valid_complete_bundle",
@@ -496,7 +481,7 @@ def build_fixture() -> dict[str, Any]:
         mutation_case("extra_frontier_event", "append_frontier_event", "membership_frontier", "state_mismatch", parameters={"event_id": extra_event_id}),
         mutation_case("duplicate_frontier_event", "duplicate_collection_item", "membership_frontier", "state_mismatch", parameters={"collection": "frontier_events", "index": 0}),
         mutation_case("frontier_event_order", "reverse_collection", "membership_frontier", "state_mismatch", parameters={"collection": "frontier_events"}),
-        mutation_case("frontier_cross_realm_scope", "replace_frontier_effective_scope", "membership_frontier", "state_mismatch", parameters={"realm_id": "ak:realm:019809f4-a800-8000-8000-000000000099"}),
+        mutation_case("frontier_cross_realm_scope", "replace_frontier_effective_scope", "membership_frontier", "state_mismatch", parameters={"realm_id": fixture_derived_id("realm", "foreign-governance-realm")}),
         mutation_case("frontier_event_proof_invalid", "flip_frontier_signature_bit", "membership_frontier", "signature_invalid"),
         mutation_case("chunks_root_mismatch", "flip_chunks_root_bit", "chunk_commitment", "digest_mismatch", recommit="none"),
         mutation_case("missing_chunk", "remove_chunk", "chunk_sequence", "state_mismatch", parameters={"chunk_index": 2}, recommit="none"),

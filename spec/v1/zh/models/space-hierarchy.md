@@ -32,8 +32,8 @@ Space hierarchy 可以跨 Realm 导航，但不改变 Realm 边界。Realm 决�
 {
   "kind": "ak.space.parent",
   "payload": {
-    "space_id": "ak:space:019640c0-8000-8000-8000-000000000000",
-    "parent_space_id": "ak:space:019640a0-8000-8000-8000-000000000000",
+    "space_id": "ak:space:AScD0xd0vWSGWhC2n9BZHco7N_jYnNgmEIifpAo_uxUJ",
+    "parent_space_id": "ak:space:AUwbeCUMZI_GuEADljowhvFwzl6wIkaSiCDhu2oaOqTg",
     "expected_parent_space_id": null
   }
 }

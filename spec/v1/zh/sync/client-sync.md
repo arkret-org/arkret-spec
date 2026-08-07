@@ -100,7 +100,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
   "kind": "delta",
   "cursor": "ak:cursor:<opaque-valid-stream-cursor>",
   "realms": {
-    "ak:realm:0196419b-0000-8000-8000-000000000000": {
+    "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5": {
       "timeline": {
         "events": [],
         "limited": false
@@ -411,7 +411,7 @@ event_id ASC
       "actor_id": "did:key:z6MkRealmPairwise...",
       "membership": "join",
       "identity_event_ids": [
-        "ak:event:0196419b-0000-8000-8000-000000000001"
+        "ak:event:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6"
       ],
       "handle_claim_digests": [
         "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -465,12 +465,12 @@ event_id ASC
 
 ```json
 {
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "actor_id": "did:key:z6MkRealmPairwise...",
   "segment": "member_identity",
   "replaces": [
     {
-      "event_id": "ak:event:0196419a-0000-8000-8000-000000000001",
+      "event_id": "ak:event:AbAwFrBpyl1m3hDxTuNCwawM5w8GGXya0t7ZG85Tl57t",
       "payload_digest": "sha256:..."
     }
   ],
@@ -484,13 +484,13 @@ event_id ASC
       "ciphertext": "base64url",
       "aad_visibility_event_id": "routing_digest",
       "aad": {
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "event_kind": "ak.member.identity.update",
         "event_ref_digest": "sha256:..."
       },
       "key_ref": {
         "algorithm": "MLS",
-        "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
+        "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
       },
       "payload_digest": "sha256:...",
       "aad_digest": "sha256:..."
@@ -517,7 +517,7 @@ MemberIdentity 明文对象形态（`identity_payload.member_identity`，或 `en
 ```json
 {
   "schema": "ak.schema.member_identity.v1",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "actor_id": "did:key:z6MkRealmPairwise...",
   "subject_id": "did:webvh:zQmPr8...",
   "display_profile": {

@@ -372,7 +372,7 @@
     },
     "actor_profile_id": {
       "type": "string",
-      "pattern": "^ak:actor_profile:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:actor_profile:[A-Za-z0-9_-]{44}$"
     },
     "agent_action_approve_payload": {
       "type": "object",
@@ -746,7 +746,7 @@
         },
         "signing_key_binding_digest": {
           "$ref": "#/$defs/hash",
-          "description": "sha256 over the canonical ak.schema.agent_signing_key_binding.v1 object. This commitment makes the controller-authorized Event and the minimal public disclosure inseparable; a service MUST NOT substitute another disclosure."
+          "description": "sha256 over the canonical agent-signing binding core containing schema, agent_id, agent_key_id, verification_method, public_key, public_key_digest, issued_at, optional expires_at, and controller_id, but excluding agent_key_authorize_event_id and controller_proof. The complete accepted Event ID and controller proof are appended only when materializing the public ak.schema.agent_signing_key_binding.v1 object. Including this Event's not-yet-derived identity would create an impossible digest fixed point. A service MUST recompute the core digest before appending the verified accepted Event identity and MUST NOT substitute another disclosure."
         },
         "accountable_principal_id": {
           "$ref": "#/$defs/did"
@@ -1691,7 +1691,7 @@
     },
     "audit_binding_id": {
       "type": "string",
-      "pattern": "^ak:audit_binding:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:audit_binding:[A-Za-z0-9_-]{44}$"
     },
     "audit_payload": {
       "type": "object",
@@ -1714,7 +1714,7 @@
     },
     "audit_release_id": {
       "type": "string",
-      "pattern": "^ak:audit_release:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:audit_release:[A-Za-z0-9_-]{44}$"
     },
     "audit_release_payload": {
       "type": "object",
@@ -1956,7 +1956,7 @@
     },
     "audit_session_id": {
       "type": "string",
-      "pattern": "^ak:audit_session:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:audit_session:[A-Za-z0-9_-]{44}$"
     },
     "audit_session_notice_payload": {
       "allOf": [
@@ -2171,7 +2171,7 @@
     },
     "board_space_id": {
       "type": "string",
-      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:space:[A-Za-z0-9_-]{44}$",
       "description": "A Space with kind=board. Pattern matches any ak:space:; kind invariant enforced by reducer/profile."
     },
     "call_capture_failure_reason_code": {
@@ -2262,7 +2262,7 @@
       "properties": {
         "call_id": {
           "type": "string",
-          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
         },
         "recording_id": {
           "type": "string",
@@ -2293,17 +2293,11 @@
         },
         "result": {
           "type": "object",
-          "description": "Initial immutable capture evidence. The start-event reference MUST equal this Event's event_id; retention.consent_confirmed=true closes the pre-capture consent gate before the FSM enters a capturing state.",
+          "description": "Initial immutable capture evidence. retention.consent_confirmed=true closes the pre-capture consent gate before the FSM enters a capturing state. This wire payload MUST NOT carry recording_start_event_id or transcript_start_event_id: the accepted Event identity is derived only after digesting this payload, and the reducer stamps that identity into the projected result cell.",
           "required": [
             "retention"
           ],
           "properties": {
-            "recording_start_event_id": {
-              "$ref": "#/$defs/event_ref"
-            },
-            "transcript_start_event_id": {
-              "$ref": "#/$defs/event_ref"
-            },
             "retention": {
               "allOf": [
                 {
@@ -2325,49 +2319,7 @@
           "additionalProperties": false
         }
       },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "capture_kind": {
-                "const": "recording"
-              }
-            },
-            "required": [
-              "capture_kind"
-            ]
-          },
-          "then": {
-            "properties": {
-              "result": {
-                "required": [
-                  "recording_start_event_id"
-                ],
-                "not": {
-                  "required": [
-                    "transcript_start_event_id"
-                  ]
-                }
-              }
-            }
-          },
-          "else": {
-            "properties": {
-              "result": {
-                "required": [
-                  "transcript_start_event_id"
-                ],
-                "not": {
-                  "required": [
-                    "recording_start_event_id"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      ]
+      "additionalProperties": false
     },
     "call_create_payload": {
       "type": "object",
@@ -2433,7 +2385,7 @@
       "properties": {
         "call_id": {
           "type": "string",
-          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
         },
         "state_transition": {
           "type": "object",
@@ -2915,7 +2867,7 @@
       "properties": {
         "call_id": {
           "type": "string",
-          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
         },
         "final_state": {
           "type": "string",
@@ -4753,7 +4705,7 @@
     },
     "event_ref": {
       "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "generic_standard_payload": {
       "type": "object",
@@ -4768,7 +4720,7 @@
     },
     "grant_id": {
       "type": "string",
-      "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:grant:[A-Za-z0-9_-]{44}$"
     },
     "hash": {
       "type": "string",
@@ -5101,7 +5053,7 @@
     },
     "invite_id": {
       "type": "string",
-      "pattern": "^ak:invite:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:invite:[A-Za-z0-9_-]{44}$"
     },
     "invite_create_payload": {
       "type": "object",
@@ -5730,7 +5682,7 @@
     },
     "list_space_id": {
       "type": "string",
-      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:space:[A-Za-z0-9_-]{44}$",
       "description": "A Space with kind=list."
     },
     "member_delivery_binding": {
@@ -6331,7 +6283,7 @@
     },
     "message_id": {
       "type": "string",
-      "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:message:[A-Za-z0-9_-]{44}$"
     },
     "message_metadata": {
       "type": "object",
@@ -7727,7 +7679,7 @@
     },
     "morph_id": {
       "type": "string",
-      "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:morph:[A-Za-z0-9_-]{44}$"
     },
     "morph_schema_migrate_payload": {
       "type": "object",
@@ -7741,7 +7693,7 @@
       "properties": {
         "morph_id": {
           "type": "string",
-          "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:morph:[A-Za-z0-9_-]{44}$"
         },
         "from_schema_refs": {
           "type": "array",
@@ -7796,7 +7748,7 @@
       "properties": {
         "morph_id": {
           "type": "string",
-          "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:morph:[A-Za-z0-9_-]{44}$"
         },
         "stage": {
           "type": "string",
@@ -8026,7 +7978,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^((?:ak:(realm|circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:(policy|blob|snapshot|franking_proof):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^((?:ak:realm:(?:[A-Za-z0-9_-]{44}|[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob|snapshot|franking_proof):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
     },
     "object_snapshot": {
       "type": "object",
@@ -8121,7 +8073,7 @@
     },
     "or_set_dot": {
       "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:[0-9]+$",
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}:[0-9]+$",
       "description": "Canonical OR-Set dot: \"ak:event:\" + event_id + \":\" + write_index, where write_index is the 0-based index of the write in the event kind's registry cell_writes[]. See zh/models/event-and-patch.md section 2.4.2."
     },
     "organization_discovery_state_payload": {
@@ -8212,7 +8164,7 @@
         },
         "call_id": {
           "type": "string",
-          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
         },
         "focus_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -10269,7 +10221,7 @@
     },
     "relation_id": {
       "type": "string",
-      "pattern": "^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:relation:[A-Za-z0-9_-]{44}$"
     },
     "relation_tombstone_payload": {
       "type": "object",
@@ -10831,7 +10783,7 @@
     },
     "space_id": {
       "type": "string",
-      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:space:[A-Za-z0-9_-]{44}$"
     },
     "space_object_tombstone_payload": {
       "type": "object",
@@ -10999,7 +10951,7 @@
     },
     "strand_id": {
       "type": "string",
-      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
     },
     "strand_move_payload": {
       "type": "object",
@@ -11322,7 +11274,7 @@
         },
         "view_id": {
           "type": "string",
-          "pattern": "^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:view:[A-Za-z0-9_-]{44}$"
         }
       },
       "additionalProperties": false
@@ -11337,7 +11289,7 @@
       "properties": {
         "view_id": {
           "type": "string",
-          "pattern": "^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:view:[A-Za-z0-9_-]{44}$"
         },
         "definition": {
           "$ref": "./view.schema.json"

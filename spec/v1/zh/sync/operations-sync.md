@@ -382,11 +382,11 @@ Snapshot 后续恢复流程：
 
 重复提交与重复投递是正常情况：
 
-- `event_id` MUST 全局稳定。
-- 同一个 `event_id` 的完全相同 canonical bytes MAY 被重复接收，并作为幂等成功处理。
-- 同一个 `event_id` 对应不同 canonical bytes 时，提交响应 MUST 拒绝新到变体并返回 `duplicate_conflict`；本地状态处置则 MUST 把该 `event_id` 的全部已知变体作为一组进入 quarantine，包括此前已 accepted 的变体。节点 MUST 从所有 data cell join 输入移除这些变体经 reducer 派生的 writes；尚未被 accepted Seal 覆盖的 Control Move 同样移除。依赖任一变体的后续 Event 转为 `dependency_missing` / pending。已被 accepted Seal 覆盖的 Control Move 不得从其 `covered_set` / `state_root` 追溯删除，按 [`event-auth-state-resolution.md` §6.3.2](../authz/event-auth-state-resolution.md) 等待 fork-resolution compaction Seal；相关 actor 的后续控制写入在归一前 fail closed。节点同时保留最小冲突证据。
-- submit、probe、backfill 或本地审计任一路径发现双变体，都 MUST 执行同一整组 quarantine 处置；wire `duplicate_conflict` 只是当前调用的响应语义，不能替代本地追溯状态转换。解除 quarantine 只允许走 [`federation.md` §4.5](./federation.md) 的 raw replay、quorum witness 或 operator-approved fork resolution。
-- Sync Service SHOULD 以 `event_id` 与 `event_digest` 去重，而不是以到达次数计数。
+- `event_id` 的 raw 33-octet token（suite wire_code + full 32-octet event_digest）是 Event 相等、exact replay、canonical store 与最终去重真相源。
+- 只有相同 `event_id` 且相同 canonical preimage 的重复投递才是 exact duplicate，并 MAY 作为幂等成功处理。携带相同 ID 但重算结果不同是 `event_id_digest_mismatch`，必须在进入 ID bucket 前拒绝，不能影响既有 accepted Event。
+- 若两个不同 canonical preimage 在同一 suite 下重算出同一个 `event_id`，这是完整 hash collision evidence。提交响应 MUST 拒绝新到变体；本地状态处置 MUST 把该 ID 的全部已验证变体作为一组进入 quarantine，包括此前已 accepted 的变体、由任一变体创建的 Event-derived object、未 final writes，以及引用该 ID 的后继。先到顺序、较早 accepted 或字典序都不能证明哪一变体“正确”。
+- 节点 MUST 从所有 data cell join 输入移除这些变体经 reducer 派生的 writes；尚未被 accepted Seal 覆盖的 Control Move 同样移除。已被 accepted Seal 覆盖的控制面事实不得从 `covered_set` / `state_root` 追溯删除，按 [`event-auth-state-resolution.md` §6.3.2](../authz/event-auth-state-resolution.md) 等待 fork-resolution compaction Seal；相关 actor 的后续控制写入在归一前 fail closed。
+- submit、probe、backfill 或本地审计任一路径发现完整 hash collision，都 MUST 执行同一整组 quarantine。raw/quarantine 查询以完整 Event ID 定位碰撞 bucket，并返回全部已知 canonical 变体，不得 first-row-wins。解除 quarantine 只允许走 [`federation.md` §4.5](./federation.md) 的 raw replay、quorum witness 或 operator-approved fork resolution。
 
 ## 13. 授权时序
 
@@ -422,7 +422,7 @@ Arkret v1 固定：
   resolution 只在身份 / key binding 建立、变更或显式 freshness 触发时执行。
 - 数据面的核心分布式问题是冲突、可用性、可见性与观测证明；冲突由 Lattice / CRDT / bottom diagnostic 解决。
 - 密文负载可以由不解密的 Sync Service 转发。
-- hard erasure 只能删除本地 payload / blob / 派生内容，并保留事件图验证所需的最小 verification stub；不得重写 Event hash 或伪装事件从未存在。
+- hard erasure 只能删除本地 payload / blob / 派生内容，并保留事件图验证所需的最小 verification stub；Event subject 的 `event_id` 本身保留完整 `(digest suite wire_code, event_digest)`。这只能保留已记录的身份，不能在 canonical bytes 已擦除后重新证明原 hash 正确。不得重写 Event hash 或伪装事件从未存在。
 
 ## 16. 规范性引用
 

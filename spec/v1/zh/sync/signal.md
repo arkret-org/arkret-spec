@@ -233,7 +233,7 @@ request 是闭合对象：
 
 ```json
 {
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "signals": [
     {}
   ]
@@ -458,8 +458,8 @@ reorder buffer；service MUST NOT 保存 stream `seq`、attempt、正文、final
 receiver 只有在以下条件全部成立时才把 durable final 绑定并替换 preview：
 
 1. Event kind 为 `ak.message.create`，其 schema、proof、authorization 与 reducer 全部通过；
-2. payload 不携带 `message_id`，物化 `Message.id` 等于把 `Event.event_id` 的 UUIDv7 重类型为
-   `ak:message:`，且与 preview `message_id` 相等；
+2. payload 不携带 `message_id`，物化 `Message.id` 等于把 `Event.event_id` 的完整33-octet token
+   重类型为 `ak:message:`，且与 preview `message_id` 相等；
 3. final Event 不含 `executed_by`；preview 的 `sender_actor_id == Event.actor_id`，且
    `sender_device_id` 等于从 final proof 的已验证 `verification_method` 解析并授权的设备；
 4. preview/final 的 Realm、由 `scope_ref` 确定的 security scope、Strand 与 discussion track

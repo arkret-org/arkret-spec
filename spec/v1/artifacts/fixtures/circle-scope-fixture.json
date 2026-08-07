@@ -96,11 +96,11 @@
       },
       "from_expected_scope_ref": {
         "kind": "realm",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
       "to_expected_scope_ref": {
         "kind": "realm",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
       "expect_reducer_result": "accepted",
       "rebind_classification": "same_scope_noop"
@@ -109,20 +109,20 @@
       "name": "same_circle_to_same_circle_noop",
       "description": "scope_circle_id=Some(A) -> scope_circle_id=Some(A). No-op rebind; reducer MUST accept.",
       "from_submit_payload": {
-        "scope_circle_id": "ak:circle:0196419c-0000-8000-8000-000000000000"
+        "scope_circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
       },
       "to_submit_payload": {
-        "scope_circle_id": "ak:circle:0196419c-0000-8000-8000-000000000000"
+        "scope_circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
       },
       "from_expected_scope_ref": {
         "kind": "circle",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-        "circle_id": "ak:circle:0196419c-0000-8000-8000-000000000000"
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
       },
       "to_expected_scope_ref": {
         "kind": "circle",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-        "circle_id": "ak:circle:0196419c-0000-8000-8000-000000000000"
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
       },
       "expect_reducer_result": "accepted",
       "rebind_classification": "same_scope_noop"
@@ -134,16 +134,16 @@
         "scope_circle_id": null
       },
       "to_submit_payload": {
-        "scope_circle_id": "ak:circle:0196419c-0000-8000-8000-000000000000"
+        "scope_circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
       },
       "from_expected_scope_ref": {
         "kind": "realm",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
       "to_expected_scope_ref_when_profile_allows": {
         "kind": "circle",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-        "circle_id": "ak:circle:0196419c-0000-8000-8000-000000000000"
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
       },
       "expect_reducer_result": "failed_precondition",
       "reason": "scope_rebind_forbidden",
@@ -153,19 +153,19 @@
       "name": "circle_to_none_default_reject",
       "description": "scope_circle_id=Some(A) -> scope_circle_id=null. True rebind; default reducer MUST reject with failed_precondition reason=scope_rebind_forbidden. Profile MAY enable audit-paired high-risk update.",
       "from_submit_payload": {
-        "scope_circle_id": "ak:circle:0196419c-0000-8000-8000-000000000000"
+        "scope_circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
       },
       "to_submit_payload": {
         "scope_circle_id": null
       },
       "from_expected_scope_ref": {
         "kind": "circle",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-        "circle_id": "ak:circle:0196419c-0000-8000-8000-000000000000"
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
       },
       "to_expected_scope_ref_when_profile_allows": {
         "kind": "realm",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
       "expect_reducer_result": "failed_precondition",
       "reason": "scope_rebind_forbidden",
@@ -175,20 +175,20 @@
       "name": "circle_a_to_circle_b_default_reject",
       "description": "scope_circle_id=Some(A) -> scope_circle_id=Some(B). True rebind across circles; default reducer MUST reject with failed_precondition reason=scope_rebind_forbidden. Profile MAY enable audit-paired high-risk update.",
       "from_submit_payload": {
-        "scope_circle_id": "ak:circle:0196419c-0000-8000-8000-000000000000"
+        "scope_circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
       },
       "to_submit_payload": {
-        "scope_circle_id": "ak:circle:0196419d-0000-8000-8000-000000000000"
+        "scope_circle_id": "ak:circle:AWwD26ex2jRitAs0OO1COUaLQKJDMq8Yc76L6p1s-xv4"
       },
       "from_expected_scope_ref": {
         "kind": "circle",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-        "circle_id": "ak:circle:0196419c-0000-8000-8000-000000000000"
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
       },
       "to_expected_scope_ref_when_profile_allows": {
         "kind": "circle",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-        "circle_id": "ak:circle:0196419d-0000-8000-8000-000000000000"
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AWwD26ex2jRitAs0OO1COUaLQKJDMq8Yc76L6p1s-xv4"
       },
       "expect_reducer_result": "failed_precondition",
       "reason": "scope_rebind_forbidden",
@@ -316,7 +316,7 @@
         "scope_circle_id": null,
         "effective_scope": {
           "kind": "realm",
-          "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
         }
       },
       "expect_reducer_result": "schema_violation",
@@ -326,7 +326,7 @@
       "name": "scope_circle_id_targets_inactive_circle",
       "description": "scope_circle_id references a Circle with state != active. Reducer MUST failed_precondition reason=circle_not_active.",
       "submit_payload": {
-        "scope_circle_id": "ak:circle:0196419e-0000-8000-8000-000000000000"
+        "scope_circle_id": "ak:circle:ARIX4vc1ols6WN2zOl0pErTLRQ9yyeQPcYXkJltQEKu2"
       },
       "circle_state_at_evaluation": "archived",
       "expect_reducer_result": "failed_precondition",
@@ -336,10 +336,10 @@
       "name": "scope_circle_id_realm_mismatch",
       "description": "scope_circle_id references a Circle whose realm_id != object.realm_id. Reducer MUST schema_violation reason=circle_realm_mismatch.",
       "submit_payload": {
-        "scope_circle_id": "ak:circle:0196419f-0000-8000-8000-000000000000"
+        "scope_circle_id": "ak:circle:AQ9JFziUVelZxS6Sx2gAnWIBPpQeAKnqsPet6TAytb8q"
       },
-      "object_realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-      "circle_realm_id_at_evaluation": "ak:realm:01964200-0000-8000-8000-000000000000",
+      "object_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "circle_realm_id_at_evaluation": "ak:realm:AbhmeQ4M4-eW5loBbZkKXaGD-nYJmCb0CFGR5f42neL-",
       "expect_reducer_result": "schema_violation",
       "reason": "circle_realm_mismatch"
     },
@@ -347,7 +347,7 @@
       "name": "event_missing_scope_ref_rejected_at_schema",
       "description": "Every Event, including an ak.message.create derived from a Circle-scoped Strand, MUST carry signed scope_ref before reducer admission. Schema validation rejects a missing scope_ref; no receiver may accept first and later add or infer a wire field.",
       "event_kind": "ak.message.create",
-      "object_scope_circle_id": "ak:circle:0196419c-0000-8000-8000-000000000000",
+      "object_scope_circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
       "accepted_event_scope_ref": null,
       "expect_validation_result": "schema_violation",
       "invariant": "accepted_circle_event_requires_scope_ref"
@@ -356,11 +356,11 @@
       "name": "scope_ref_mismatches_scope_circle_id",
       "description": "The signed Event scope_ref MUST equal the scope derived from the target object's accepted projection: scope_circle_id=null -> {kind:realm}; scope_circle_id=C -> {kind:circle, circle_id:C}. Receiver MUST reject a mismatch and MUST NOT rewrite the signed field. A separately materialized object effective_scope is projection output and must copy the verified scope_ref.",
       "event_kind": "ak.message.create",
-      "object_scope_circle_id": "ak:circle:0196419c-0000-8000-8000-000000000000",
+      "object_scope_circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
       "signed_scope_ref": {
         "kind": "circle",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-        "circle_id": "ak:circle:0196419d-0000-8000-8000-000000000000"
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AWwD26ex2jRitAs0OO1COUaLQKJDMq8Yc76L6p1s-xv4"
       },
       "expect_reducer_result": "schema_violation",
       "reason": "scope_ref_mismatch"
@@ -371,12 +371,12 @@
       "event_kind": "ak.message.create",
       "original_scope_ref": {
         "kind": "circle",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-        "circle_id": "ak:circle:0196419c-0000-8000-8000-000000000000"
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
       },
       "tampered_scope_ref": {
         "kind": "realm",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
       "expect_verification_result": "reject",
       "reason": "digest_mismatch"

@@ -1,0 +1,1224 @@
+{
+  "version": "2026-08-07",
+  "generated_by": "tools/gen_event_reference_inventory.py",
+  "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
+  "counts": {
+    "digest_copy_or_commitment": 38,
+    "complete_event_id": 163,
+    "external_event_namespace": 1
+  },
+  "fields": [
+    {
+      "schema": "account-operations.schema.json",
+      "json_pointer": "/$defs/account_binding_receipt/properties/head_event_digest",
+      "field": "head_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "account-operations.schema.json",
+      "json_pointer": "/$defs/account_status_publication_outcome/properties/effective_status_event_id",
+      "field": "effective_status_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "account-operations.schema.json",
+      "json_pointer": "/$defs/account_status_publication_outcome/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "account-operations.schema.json",
+      "json_pointer": "/$defs/account_status_receipt/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "account-operations.schema.json",
+      "json_pointer": "/$defs/account_status_receipt/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "account-operations.schema.json",
+      "json_pointer": "/$defs/device_summary/properties/authorized_event_ref",
+      "field": "authorized_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "account-subscribe-frame.schema.json",
+      "json_pointer": "/$defs/member_roster_entry/properties/identity_event_ids",
+      "field": "identity_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "account-subscribe-frame.schema.json",
+      "json_pointer": "/$defs/ordered_log_conflict_diagnostic/properties/loser_event_digests",
+      "field": "loser_event_digests",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "account-subscribe-frame.schema.json",
+      "json_pointer": "/$defs/ordered_log_conflict_diagnostic/properties/loser_event_ids",
+      "field": "loser_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "account-subscribe-frame.schema.json",
+      "json_pointer": "/$defs/ordered_log_conflict_diagnostic/properties/winner_event_digest",
+      "field": "winner_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "account-subscribe-frame.schema.json",
+      "json_pointer": "/$defs/ordered_log_conflict_diagnostic/properties/winner_event_id",
+      "field": "winner_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "account-subscribe-frame.schema.json",
+      "json_pointer": "/$defs/realm_sync_entry/properties/event_states/items/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-operations.schema.json",
+      "json_pointer": "/$defs/account_device_enroll_outcome/properties/authorized_event_digest",
+      "field": "authorized_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "agent-operations.schema.json",
+      "json_pointer": "/$defs/account_device_enroll_outcome/properties/authorized_event_id",
+      "field": "authorized_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-operations.schema.json",
+      "json_pointer": "/$defs/account_device_enroll_request_body/properties/bootstrap_create_event_id",
+      "field": "bootstrap_create_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-operations.schema.json",
+      "json_pointer": "/$defs/account_device_pair_outcome/properties/authorized_event_ref",
+      "field": "authorized_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-operations.schema.json",
+      "json_pointer": "/$defs/agent_key_authorization_state/properties/authorized_event_ref",
+      "field": "authorized_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-operations.schema.json",
+      "json_pointer": "/$defs/agent_key_pair_outcome/properties/authorize_event_ref",
+      "field": "authorize_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-operations.schema.json",
+      "json_pointer": "/$defs/agent_runtime_approval_status_outcome/properties/authorized_event_ref",
+      "field": "authorized_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-operations.schema.json",
+      "json_pointer": "/$defs/agent_sidecar_mls_context/properties/genesis_event_ref",
+      "field": "genesis_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-operations.schema.json",
+      "json_pointer": "/$defs/key_state/properties/authorized_event_ref",
+      "field": "authorized_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-sidecar-event-exchange-binding.schema.json",
+      "json_pointer": "/properties/coordinator_assignment_event_id",
+      "field": "coordinator_assignment_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-sidecar-event-exchange-binding.schema.json",
+      "json_pointer": "/properties/request_event_id",
+      "field": "request_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-sidecar-exchange-control.schema.json",
+      "json_pointer": "/properties/basis_event_ids",
+      "field": "basis_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-sidecar-exchange-control.schema.json",
+      "json_pointer": "/properties/request_event_id",
+      "field": "request_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-sidecar-exchange-control.schema.json",
+      "json_pointer": "/properties/response_event_ids",
+      "field": "response_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-sidecar-exchange-projection.schema.json",
+      "json_pointer": "/allOf/0/then/properties/user_facing_response_event_ids",
+      "field": "user_facing_response_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-sidecar-exchange-projection.schema.json",
+      "json_pointer": "/allOf/1/then/properties/user_facing_response_event_ids",
+      "field": "user_facing_response_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-sidecar-exchange-projection.schema.json",
+      "json_pointer": "/allOf/3/then/properties/user_facing_response_event_ids",
+      "field": "user_facing_response_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-sidecar-exchange-projection.schema.json",
+      "json_pointer": "/properties/coordinator_assignment_event_id",
+      "field": "coordinator_assignment_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-sidecar-exchange-projection.schema.json",
+      "json_pointer": "/properties/private_request_event_id",
+      "field": "private_request_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-sidecar-exchange-projection.schema.json",
+      "json_pointer": "/properties/terminal_event_id",
+      "field": "terminal_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-sidecar-exchange-projection.schema.json",
+      "json_pointer": "/properties/user_facing_response_event_ids",
+      "field": "user_facing_response_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence-operations.schema.json",
+      "json_pointer": "/$defs/historical_query_selector/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "agent-signer-evidence-operations.schema.json",
+      "json_pointer": "/$defs/historical_query_selector/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/account_status_event_basis/properties/status_event_digest",
+      "field": "status_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/account_status_event_basis/properties/status_event_id",
+      "field": "status_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/agent_deactivate_provenance/properties/deactivate_event_id",
+      "field": "deactivate_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/agent_deactivate_provenance/properties/predecessor_status_event_id",
+      "field": "predecessor_status_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/agent_genesis_provenance/properties/agent_provision_event_id",
+      "field": "agent_provision_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/agent_genesis_provenance/properties/realm_create_event_id",
+      "field": "realm_create_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/agent_pause_provenance/properties/pause_event_id",
+      "field": "pause_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/agent_pause_provenance/properties/predecessor_active_event_id",
+      "field": "predecessor_active_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/agent_resume_provenance/properties/predecessor_pause_event_id",
+      "field": "predecessor_pause_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/agent_resume_provenance/properties/resume_event_id",
+      "field": "resume_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/authorization/properties/authorized_event_id",
+      "field": "authorized_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/authorization/properties/transition_event_id",
+      "field": "transition_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/event_admission_receipt/properties/agent_key_authorize_event_id",
+      "field": "agent_key_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/event_admission_receipt/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/event_admission_receipt/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/key_state_witness/properties/authorization_event_id",
+      "field": "authorization_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/key_transition_witness/properties/authorization_event_id",
+      "field": "authorization_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signer-evidence.schema.json",
+      "json_pointer": "/$defs/key_transition_witness/properties/transition_event_id",
+      "field": "transition_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-signing-key-binding.schema.json",
+      "json_pointer": "/properties/agent_key_authorize_event_id",
+      "field": "agent_key_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "applet-edge-operations.schema.json",
+      "json_pointer": "/$defs/rejected_item/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "applet-ghost-operations.schema.json",
+      "json_pointer": "/$defs/ghost_actor_provision_outcome/properties/profile_event_ref",
+      "field": "profile_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "applet-install-operations.schema.json",
+      "json_pointer": "/$defs/applet_install_outcome/properties/membership_event_refs",
+      "field": "membership_event_refs",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "applet-install-operations.schema.json",
+      "json_pointer": "/$defs/applet_install_outcome/properties/registration_event_ref",
+      "field": "registration_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "applet-install-plan.schema.json",
+      "json_pointer": "/$defs/widget_effect/properties/policy_event_ref",
+      "field": "policy_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "audit-ryw-receipt.schema.json",
+      "json_pointer": "/properties/audit_event_digest",
+      "field": "audit_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "audit-ryw-receipt.schema.json",
+      "json_pointer": "/properties/audit_event_id",
+      "field": "audit_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "audit-ryw-receipt.schema.json",
+      "json_pointer": "/properties/frontier/properties/actor_frontier/additionalProperties/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "availability-receipt.schema.json",
+      "json_pointer": "/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "call-recording-artifact.schema.json",
+      "json_pointer": "/$defs/call_recording_deletion_audit/properties/trigger_event_id",
+      "field": "trigger_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "call-recording-artifact.schema.json",
+      "json_pointer": "/$defs/recording_encryption/properties/context/properties/recording_start_event_id",
+      "field": "recording_start_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "call-recording-artifact.schema.json",
+      "json_pointer": "/properties/recording_start_event_id",
+      "field": "recording_start_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_basis/oneOf/0/properties/request_event_ref",
+      "field": "request_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_basis/oneOf/1/properties/requests/items/properties/request_event_ref",
+      "field": "request_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_current_proof/properties/head_event_ref",
+      "field": "head_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_lineage/properties/predecessor_event_ref",
+      "field": "predecessor_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_list_row/properties/request_event_ref",
+      "field": "request_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_list_row/properties/response_event_ref",
+      "field": "response_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_list_row/properties/tombstone_event_ref",
+      "field": "tombstone_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_prepared_event_draft/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_prepared_event_draft/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_scope_update_payload/properties/predecessor_event_ref",
+      "field": "predecessor_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_scope_update_request/oneOf/0/properties/predecessor_event_ref",
+      "field": "predecessor_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_tombstone_request/oneOf/0/properties/predecessor_event_ref",
+      "field": "predecessor_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/direct_conversation_summary/properties/binding_event_ref",
+      "field": "binding_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/normal_response_acceptance_receipt/properties/response_event_ref",
+      "field": "response_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/peer_contact_mirror_receipt/properties/signed_event_digest",
+      "field": "signed_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/peer_contact_mirror_receipt/properties/signed_event_ref",
+      "field": "signed_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/reject_acceptance_receipt/properties/reject_event_ref",
+      "field": "reject_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/request_acceptance_receipt_core/properties/request_event_ref",
+      "field": "request_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "device-pairing.schema.json",
+      "json_pointer": "/$defs/device_pairing_status_outcome/properties/authorized_event_ref",
+      "field": "authorized_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "did-key-log-entry.schema.json",
+      "json_pointer": "/properties/head_event_digest",
+      "field": "head_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "did-key-log-entry.schema.json",
+      "json_pointer": "/properties/prev_event_digest",
+      "field": "prev_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "direct-conversation-operations.schema.json",
+      "json_pointer": "/$defs/direct_conversation_coordinates/properties/binding_event_ref",
+      "field": "binding_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "encrypted-envelope.schema.json",
+      "json_pointer": "/allOf/2/if/properties/aad_visibility_event_id",
+      "field": "aad_visibility_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "encrypted-envelope.schema.json",
+      "json_pointer": "/allOf/3/if/properties/aad_visibility_event_id",
+      "field": "aad_visibility_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "encrypted-envelope.schema.json",
+      "json_pointer": "/allOf/4/if/properties/aad_visibility_event_id",
+      "field": "aad_visibility_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "encrypted-envelope.schema.json",
+      "json_pointer": "/properties/aad/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "encrypted-envelope.schema.json",
+      "json_pointer": "/properties/aad_visibility_event_id",
+      "field": "aad_visibility_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "erasure-receipt.schema.json",
+      "json_pointer": "/$defs/verification_stub/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "erasure-verification-stub.schema.json",
+      "json_pointer": "/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "event-batch-receipt.schema.json",
+      "json_pointer": "/$defs/event_receipt_item/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "event-batch-receipt.schema.json",
+      "json_pointer": "/$defs/event_receipt_item/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-batch-receipt.schema.json",
+      "json_pointer": "/properties/frontier/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "event-batch-receipt.schema.json",
+      "json_pointer": "/properties/frontier/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-envelope.schema.json",
+      "json_pointer": "/$defs/event_proof/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "event-envelope.schema.json",
+      "json_pointer": "/$defs/external_ref/properties/event_id",
+      "field": "event_id",
+      "classification": "external_event_namespace"
+    },
+    {
+      "schema": "event-envelope.schema.json",
+      "json_pointer": "/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-envelope.schema.json",
+      "json_pointer": "/properties/prev_refs",
+      "field": "prev_refs",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/account_status_payload/properties/supersedes_status_event_id",
+      "field": "supersedes_status_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/agent_key_authorize_payload/properties/supersedes/items/properties/authorized_event_ref",
+      "field": "authorized_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/audit_accessed_payload/properties/late_recovery_original_event_id",
+      "field": "late_recovery_original_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/audit_accessed_payload/properties/paired_event_digest",
+      "field": "paired_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/audit_accessed_payload/properties/paired_event_id",
+      "field": "paired_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/call_state_payload/properties/recording_transition/properties/result/properties/recording_start_event_id",
+      "field": "recording_start_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/call_state_payload/properties/transcript_transition/properties/result/properties/transcript_start_event_id",
+      "field": "transcript_start_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/contact_accepted_payload/properties/request_event_ref",
+      "field": "request_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/contact_rejected_payload/properties/request_event_ref",
+      "field": "request_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/contact_tombstoned_payload/properties/predecessor_event_ref",
+      "field": "predecessor_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/direct_conversation_mls_generation_activate_payload/properties/genesis_event_ref",
+      "field": "genesis_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/member_delivery_binding/properties/policy_event_ref",
+      "field": "policy_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/member_identity_update_payload/properties/replaces/items/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/message_redact_payload/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/message_redact_payload/properties/target_event_id",
+      "field": "target_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/mls_welcome_payload/properties/claim_ref/properties/agent_key_authorize_event_id",
+      "field": "agent_key_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/mls_welcome_payload/properties/claim_ref/properties/device_authorize_event_id",
+      "field": "device_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/reaction_encrypted_payload_plaintext/properties/remove_add_event_ids",
+      "field": "remove_add_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/realm_key_share_audit_payload/properties/share_event_ref",
+      "field": "share_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/realm_link_payload/properties/counterpart_event_ref",
+      "field": "counterpart_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/realm_policy_bundle_payload/properties/aad_visibility/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/sidecar_context_attach_payload/properties/predecessor_event_ref",
+      "field": "predecessor_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "handle-claim.schema.json",
+      "json_pointer": "/properties/member_delivery_binding/properties/policy_event_ref",
+      "field": "policy_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "identity-receipt.schema.json",
+      "json_pointer": "/properties/head_event_digest",
+      "field": "head_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "key-backup-active-series.schema.json",
+      "json_pointer": "/properties/auth_data/properties/device_authorize_event_id",
+      "field": "device_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "key-backup-plaintext.schema.json",
+      "json_pointer": "/$defs/plaintext_item/properties/first_event_id",
+      "field": "first_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "key-backup-plaintext.schema.json",
+      "json_pointer": "/$defs/plaintext_item/properties/last_event_id",
+      "field": "last_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "key-backup.schema.json",
+      "json_pointer": "/properties/auth_data/properties/device_authorize_event_id",
+      "field": "device_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "key-backup.schema.json",
+      "json_pointer": "/properties/contents/items/properties/first_event_id",
+      "field": "first_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "key-backup.schema.json",
+      "json_pointer": "/properties/contents/items/properties/last_event_id",
+      "field": "last_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "keypackage-operations.schema.json",
+      "json_pointer": "/$defs/keypackage_claim_record/properties/agent_key_authorize_event_id",
+      "field": "agent_key_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "keypackage-operations.schema.json",
+      "json_pointer": "/$defs/keypackage_claim_record/properties/device_authorize_event_id",
+      "field": "device_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "keypackage-operations.schema.json",
+      "json_pointer": "/$defs/requester_authorization/properties/device_authorize_event_id",
+      "field": "device_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "keys-operations.schema.json",
+      "json_pointer": "/$defs/query_device_record/properties/device_authorize_event_id",
+      "field": "device_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "member-delivery-binding-candidate.schema.json",
+      "json_pointer": "/properties/member_delivery_binding/properties/policy_event_ref",
+      "field": "policy_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mimi-interop.schema.json",
+      "json_pointer": "/$defs/content_mapping_receipt/properties/arkret_event_id",
+      "field": "arkret_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mls-governance-proof-bundle.schema.json",
+      "json_pointer": "/$defs/chunk_item_limits/properties/covered_event_digests",
+      "field": "covered_event_digests",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "mls-governance-proof-bundle.schema.json",
+      "json_pointer": "/$defs/collection_totals/properties/covered_event_digests",
+      "field": "covered_event_digests",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "moderation-report.schema.json",
+      "json_pointer": "/$defs/franking_proof/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "notification.schema.json",
+      "json_pointer": "/properties/source_event_id",
+      "field": "source_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "principal-operations.schema.json",
+      "json_pointer": "/$defs/causal_ingress_receipt/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "principal-operations.schema.json",
+      "json_pointer": "/$defs/device_bootstrap_credential/oneOf/0/properties/founding_event_ids",
+      "field": "founding_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "principal-operations.schema.json",
+      "json_pointer": "/$defs/sidecar_control_frontier/properties/create_event_ref",
+      "field": "create_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "principal-operations.schema.json",
+      "json_pointer": "/$defs/sidecar_ensure_outcome/oneOf/0/properties/context_attach_event_id",
+      "field": "context_attach_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "principal-operations.schema.json",
+      "json_pointer": "/$defs/sidecar_ensure_outcome/oneOf/0/properties/create_event_id",
+      "field": "create_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "principal-operations.schema.json",
+      "json_pointer": "/$defs/sidecar_ensure_outcome/oneOf/1/properties/context_attach_event_id",
+      "field": "context_attach_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "principal-operations.schema.json",
+      "json_pointer": "/$defs/sidecar_prepared_event_draft/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "principal-operations.schema.json",
+      "json_pointer": "/$defs/sidecar_prepared_event_draft/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "push-operations.schema.json",
+      "json_pointer": "/$defs/audit_envelope/properties/late_recovery_original_event_id",
+      "field": "late_recovery_original_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "push-operations.schema.json",
+      "json_pointer": "/$defs/visible_notification/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "read-cursor.schema.json",
+      "json_pointer": "/$defs/position/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "read-receipt.schema.json",
+      "json_pointer": "/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "recovery-authority.schema.json",
+      "json_pointer": "/$defs/authorization_preimage/properties/authorize_event_id",
+      "field": "authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "recovery-authority.schema.json",
+      "json_pointer": "/$defs/authorization_preimage/properties/reanchor_event_id",
+      "field": "reanchor_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "recovery-authority.schema.json",
+      "json_pointer": "/$defs/authorize_event_publication_intent/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "recovery-authority.schema.json",
+      "json_pointer": "/$defs/authorize_recovery_device_outcome/properties/authorize_event_id",
+      "field": "authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "recovery-authority.schema.json",
+      "json_pointer": "/$defs/authorize_recovery_device_outcome/properties/authorized_event_digest",
+      "field": "authorized_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "recovery-authority.schema.json",
+      "json_pointer": "/$defs/promote_recovery_session_grant_request/properties/device_authorization_event_id",
+      "field": "device_authorization_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "recovery-authority.schema.json",
+      "json_pointer": "/$defs/recovery_authority_ticket/properties/authorize_event_id",
+      "field": "authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "recovery-authority.schema.json",
+      "json_pointer": "/$defs/recovery_authority_ticket/properties/reanchor_event_id",
+      "field": "reanchor_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "recovery-authority.schema.json",
+      "json_pointer": "/$defs/recovery_completion_attestation/properties/device_authorization_event_digest",
+      "field": "device_authorization_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "recovery-authority.schema.json",
+      "json_pointer": "/$defs/recovery_completion_attestation/properties/device_authorization_event_id",
+      "field": "device_authorization_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "recovery-receipt.schema.json",
+      "json_pointer": "/properties/authorization_event_id",
+      "field": "authorization_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "recovery-receipt.schema.json",
+      "json_pointer": "/properties/device_list_update_event_id",
+      "field": "device_list_update_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "recovery-receipt.schema.json",
+      "json_pointer": "/properties/reanchor_event_id",
+      "field": "reanchor_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "relation.schema.json",
+      "json_pointer": "/$defs/relation_conflict_candidate/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "relation.schema.json",
+      "json_pointer": "/$defs/relation_conflict_candidate/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "resource-selector.schema.json",
+      "json_pointer": "/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "seal.schema.json",
+      "json_pointer": "/properties/covered_event_digests",
+      "field": "covered_event_digests",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "security-transaction.schema.json",
+      "json_pointer": "/$defs/backup_rotation_binding/properties/active_series_event_id",
+      "field": "active_series_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "security-transaction.schema.json",
+      "json_pointer": "/$defs/cross_signing_recovery_binding/properties/authorize_event_id",
+      "field": "authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "security-transaction.schema.json",
+      "json_pointer": "/$defs/cross_signing_recovery_binding/properties/device_list_update_event_id",
+      "field": "device_list_update_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "security-transaction.schema.json",
+      "json_pointer": "/$defs/enrollment_authority_recovery_binding/properties/authorize_event_id",
+      "field": "authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "security-transaction.schema.json",
+      "json_pointer": "/$defs/enrollment_authority_recovery_binding/properties/reanchor_event_id",
+      "field": "reanchor_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "security-transaction.schema.json",
+      "json_pointer": "/$defs/security_rotation_binding/properties/revoke_event_id",
+      "field": "revoke_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "service-describe.schema.json",
+      "json_pointer": "/properties/limits/properties/mls_governance_proof/properties/max_covered_event_digests",
+      "field": "max_covered_event_digests",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/DidOperationSubmitOutcome/properties/head_event_digest",
+      "field": "head_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/DidOperationSubmitRequestBody/properties/prev_event_digest",
+      "field": "prev_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/EventSealSubmitOutcome/properties/accepted_event_digests",
+      "field": "accepted_event_digests",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/EventsDependencyMissingProblem/anyOf/0/properties/missing_event_ids",
+      "field": "missing_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/EventsDependencyMissingProblem/anyOf/1/properties/missing_event_digests",
+      "field": "missing_event_digests",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/EventsDependencyMissingProblem/properties/missing_event_digests",
+      "field": "missing_event_digests",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/EventsDependencyMissingProblem/properties/missing_event_ids",
+      "field": "missing_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/EventsSubmitRejectedItem/properties/missing_event_digests",
+      "field": "missing_event_digests",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/EventsSubmitRejectedItem/properties/missing_event_ids",
+      "field": "missing_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/MlsGroupStateMaterialOutcome/properties/group_state_event_id",
+      "field": "group_state_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/MlsGroupStateMaterialRequestBody/properties/group_state_event_id",
+      "field": "group_state_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/PeerEventsResolveOutcome/properties/missing_event_digests",
+      "field": "missing_event_digests",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/PeerEventsResolveOutcome/properties/missing_event_ids",
+      "field": "missing_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/RealmActorFrontierView/allOf/0/else/properties/frontier_event_ids",
+      "field": "frontier_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/RealmActorFrontierView/allOf/0/then/properties/frontier_event_ids",
+      "field": "frontier_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/RealmActorFrontierView/properties/frontier_event_ids",
+      "field": "frontier_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/RedactedEventView/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/RedactedEventView/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/ReferenceLockedEventStub/properties/event_digest",
+      "field": "event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/ReferenceLockedEventStub/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/SessionGrantDeviceBinding/properties/authorization_event_id",
+      "field": "authorization_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "snapshot.schema.json",
+      "json_pointer": "/properties/event_set_commitment/properties/covered_event_ids",
+      "field": "covered_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "view.schema.json",
+      "json_pointer": "/$defs/state_frontier/properties/actor_frontiers/items/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    }
+  ]
+}

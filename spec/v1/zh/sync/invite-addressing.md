@@ -268,7 +268,7 @@ effective_receive_policy =
 
 ```json
 {
-  "invite_id": "ak:invite:0196419b-0000-8000-8000-000000000010",
+  "invite_id": "ak:invite:Abj5gHx39exHIgzuk86fNT8bpu2gCRDb7GNYroQrpLi_",
   "invitee": "did:webvh:z2dmjBobExample:users.bob.example:bob",
   "invite_delivery_target": {
     "recipient_service_id": "did:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc:ps.bob.example"

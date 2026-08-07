@@ -254,7 +254,7 @@
     },
     "subject_ref": {
       "type": "string",
-      "pattern": "^(did:[^\\s]+|(?:ak:(realm|event|message|strand|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:(seal|blob|device|policy|snapshot|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:sha256:[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
+      "pattern": "^(did:[^\\s]+|ak:(realm|event|message|strand|morph|relation|view):[A-Za-z0-9_-]{44}|ak:(seal|blob|device|policy|snapshot|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:blob:sha256:[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
     },
     "verification_stub": {
       "type": "object",
@@ -335,7 +335,7 @@
         },
         "event_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Digest of the original Event envelope or durable object metadata, when the erased subject was event-backed."
+          "description": "Optional redundant digest of the original Event envelope or durable object metadata. For subject.kind=event, subject_ref already carries the suite wire_code and complete 32-octet digest; when event_digest is retained, its suite and all digest bytes MUST exactly match subject_ref. Neither form can re-prove erased canonical bytes."
         },
         "retained_digests": {
           "type": "array",

@@ -42,7 +42,7 @@ sidebar:
   "realm_id": "ak:realm:...",
   "title": "Design review",
   "fields": {
-    "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+    "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
     "mode": "sfu",
     "state": "ringing",
     "started_at": null,
@@ -89,7 +89,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
   "kind": "ak.call.state",
   "realm_id": "ak:realm:...",
   "payload": {
-    "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+    "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
     "state_transition": {
       "from": "connecting",
       "to": "active"
@@ -109,7 +109,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
         "participant_binding": {
           "scheme": "ak.media.participant_binding.v1",
           "realm_id": "ak:realm:...",
-          "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+          "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
           "focus_id": "fra-1",
           "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
@@ -231,7 +231,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
   "kind": "ak.call.recording.start",
   "realm_id": "ak:realm:...",
   "payload": {
-    "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+    "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
     "recording_id": "rtc-recording-0196441d-0000-7000-8000-000000000000",
     "recording_agent": "did:webvh:zCYG7PrN3Yt1TdX4X8gfYFA4R:recorder.example",
     "capture_kind": "recording",
@@ -246,7 +246,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 - 需要 `ak.call.record` capability。`ak.call.recording.start` 通过 **required** `capture_kind`(`recording` / `transcript`)区分录制与转写两条平行生命周期(转写见 §5.1)；它选择目标 cell family(`ak.component.call.recording.v1` / `ak.component.call.transcript.v1`)，因此 MUST 显式携带，缺失 MUST `schema_violation`，MUST NOT 由 missing-field default 推断。
 - `payload.mode` MUST 显式携带，封闭为 `audio` / `audio_video`；无缺省值，缺失 MUST `schema_violation`。
 - `payload.visible_notice` MUST 显式为 `true`；客户端 MUST 对所有参会者显示录制中。
-- `payload.result` MUST 携带与 `capture_kind` 对应的 `recording_start_event_id` 或 `transcript_start_event_id`，且该值 MUST 逐字节等于本 Event 的 `event_id`；另一种 start ref MUST 缺省。`result.retention.consent_confirmed` MUST 为 `true`，否则 reducer 在创建 capture FSM cell 前拒绝 `recording_consent_required`。start event 原子写入 capture FSM 与独立 result cell，不能先进入捕获态再补交同意事实。
+- `payload.result` MUST NOT 携带 `recording_start_event_id` 或 `transcript_start_event_id`：本 Event 的 ID 依赖 payload digest，写入自身 ID 会形成无解自引用。`result.retention.consent_confirmed` MUST 为 `true`，否则 reducer 在创建 capture FSM cell 前拒绝 `recording_consent_required`。Event 完成 digest / ID 校验后，reducer 按 `capture_kind` 把完整 accepted Event identity 写入对应 projected result cell；该 receiver-derived 字段不属于原 Event preimage。start event 原子写入 capture FSM 与独立 result cell，不能先进入捕获态再补交同意事实。
 - `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 opaque string，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。它不是 `ak:*` typed ID；最终持久化产物仍通过 Arkret blob / Morph / artifact 引用暴露。由于 `recording_id` 是跨实现密钥派生输入（进入 §5 第 3 步的 `Context`），其 canonical 形态 MUST 由 `ak.call.state` recording start event 一次性固定并逐字节保留：取值 MUST 为 ASCII 子集 `[A-Za-z0-9._-]`、长度 1–128 字节；发送方写入后该字符串即为 canonical，**接收方 MUST NOT 做任何 normalize**（大小写折叠、Unicode NFC/NFKC、trim、re-encode 等），并 MUST 在所有引用该录制的 event / key 派生中逐字节复用 start event 的原值。任何对 `recording_id` 的本地规范化都会令派生出的 recording key 与发送方分裂、导致解密失败。
 - 手动停止录制不注册独立 `ak.call.recording.stop` event；holder of `ak.call.record` 通过 `ak.call.state` 写 `recording_transition={recording_id,from:"recording",to:"stopped"}`。若同时携带 `recording_transition.result`，其中的 `recording_start_event_id` 继续指向该段的 `ak.call.recording.start` 作为 provenance；该 result 写入独立 result cell，不进入 FSM transition op。`stopped` 是该录制段的终态，不要求产生 artifact；若 backend 已经产出可用 artifact，后续 MAY 以同一 `recording_start_event_id` 写 `to="ready"`，否则保持 `stopped`。
 - 同一通话允许多段录制。`ready` / `failed` / `stopped` 之后再次进入 `recording` 时，MUST 先接受新的 `ak.call.recording.start`，且新的 `recording_id` MUST 不同于该 call 任何既有 recording start 的 `recording_id`。物化投影 MAY 只展示最新捕获态，但历史段以各自 `ak.call.recording.start` 与后续 `ak.call.state` event 保持可审计。
@@ -313,7 +313,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
   "kind": "ak.call.summary",
   "realm_id": "ak:realm:...",
   "payload": {
-    "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+    "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
     "final_state": "ended",
     "mode": "sfu",
     "started_at": "2026-04-26T00:00:00Z",

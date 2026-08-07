@@ -522,16 +522,19 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 object_id ≡ retype(create_event.event_id, object_kind)
 ```
 
-即被创建对象的 ID 与创建它的 Event 的 `event_id` 共享同一段 UUID，只更换 typed 前缀（`ak:event:<U>` → `ak:<object_kind>:<U>`）。该 UUID 段本身按 [`../conformance/encoding.md` §4.0](../conformance/encoding.md) 由 Event 内容绑定，因此对象 ID 的每一位都由签名内容决定。
+即被创建对象的 ID 与创建它的 Event 的 `event_id` 共享同一个 33-octet token，只更换 typed 前缀（`ak:event:<T>` → `ak:<object_kind>:<T>`）。`T` 是 suite wire code 与完整 32-octet Event digest 的 canonical Base64URL 编码，按 [`../conformance/encoding.md` §4.0](../conformance/encoding.md) 由 Event 内容绑定；它不是 UUID，也不得存入 native UUID 列。
 
 规则：
 
 - **create payload MUST NOT 携带该 ID 字段。**携带即 `schema_violation`，`reason_code=object_id_not_event_derived`。reducer 在物化对象时派生它。
-- **一个 create Event 对同一 typed ID kind 最多派生一个 create-once 对象 ID。**对象身份键是完整的 `ak:<kind>:<uuid>`，不是裸 UUID；因此同一 `event_id` 可以按 registry 的封闭声明分别重标为多个不同 kind，且这些对象 ID 不相等。registry MUST 使用唯一的 `id_kind` 或非空、去重的 `id_kinds[]` 声明全部派生目标；同一 kind 需要两个或更多独立对象时 MUST 使用不同的 create Event，不得给同一前缀重复使用该 `event_id`。
-- **`event_id` 的唯一性作用域 MUST 保持全局。**它 MUST NOT 被收窄为 `(realm_id, actor_id)`：那样两个 actor 可以派生出同名对象，正是本规则要消除的情形。
+- **一条 create Event 对同一 typed kind 最多派生一个 create-once 对象 ID。**同一 Event MAY 按
+  registry 的封闭 `id_kind` / `id_kinds[]` 声明，把相同 33-octet token 重类型到多个不同 typed
+  namespace；例如一个 Event 可同时派生 `ak:report:<T>` 与 `ak:moderation_queue_item:<T>`，二者不是同一
+  完整 typed ID。未在 registry 登记的额外派生、同一 kind 的多个对象或 caller 自选 ID 一律禁止。
+- **`event_id` 是完整密码学身份。**canonical Event store 必须保存完整 33-octet raw token 或等价 typed string；重算验证通过前不得物化对象。
 - `ak.realm.create` 的 wire envelope 与 payload 都省略 `realm_id`，receiver 按 `purpose` 选择 event-derived Collaboration Realm 或 subject-derived PCR 规则；见 [`realm-and-space.md` §2.5](./realm-and-space.md)。
 
-**这是构造性约束，不是检测规则。**对任一固定 typed kind，两条不同的 create Event 必然有不同的 `event_id`，因而必然命名两个不同的对象；同一 Event 向不同 kind 重标得到的完整 typed ID 也必然不同。"同一个 typed 对象 ID 对应两份不同 Genesis"在 v1 中不可表达，因此不需要冲突检测、隔离或恢复机制。要伪造一个与既有对象同名的 create，攻击者必须同时命中该对象 kind 与 `event_id`，后者是 §4.0 的 2^88。
+若两个不同 canonical create Event 在同一 suite 下发生完整 256-bit hash collision，它们会得到同一 Event ID，重类型后也争用同一对象 ID。此时必须按 [`../sync/operations-sync.md` §12](../sync/operations-sync.md) 隔离两条 Event、其派生对象与未 final writes，在协议外裁决前不得物化任一对象。
 
 本节的 conformance 入口是 `ak.vector.object_identity.event_derived.v1`（机读 fixture 见 [`content-bound-event-id-fixture.json`](../../artifacts/fixtures/content-bound-event-id-fixture.json)）：它固定 `retype(event_id)` 的 KAT、`realm_id` 的自证校验，以及 `object_id_not_event_derived` / `realm_id_not_event_derived` 两条拒绝路径。
 
@@ -540,15 +543,15 @@ object_id ≡ retype(create_event.event_id, object_kind)
 Protocol typed identifier / reference 的 wire value MUST 使用带类型前缀的稳定字符串：
 
 ```text
-ak:realm:<uuid>
-ak:space:<uuid>
-ak:strand:<uuid>
-ak:message:<uuid>
-ak:morph:<uuid>
-ak:relation:<uuid>
-ak:actor_profile:<uuid>
-ak:event:<uuid>
-ak:view:<uuid>
+ak:realm:<event-token-or-subject-derived-uuidv7>
+ak:space:<event-token>
+ak:strand:<event-token>
+ak:message:<event-token>
+ak:morph:<event-token>
+ak:relation:<event-token>
+ak:actor_profile:<event-token>
+ak:event:<event-token>
+ak:view:<event-token>
 ak:policy:<uuid>
 ak:capability:<uuid>     # abstract capability definition reference（非签名 grant；签名 grant 用 ak:grant:）；真源 artifacts/registry/id-kind-registry.json `capability` 条目
 ak:grant:<uuid>
@@ -560,20 +563,20 @@ ak:receipt:<uuid>
 ak:trust_domain:<trust_domain_label>   # 非 UUID 形态，见下方说明
 ```
 
-UUID 部分的构造 MUST 由
+typed ID 的 token 构造 MUST 由
 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 中该 kind 的 `id_form`
 唯一固定：`producer_allocated` 使用 UUIDv7（time-ordered），`event_derived` 使用
-[`../conformance/encoding.md` §4.0](../conformance/encoding.md) 定义的 content-bound UUIDv8；
+[`../conformance/encoding.md` §4.0](../conformance/encoding.md) 定义的 33-octet suite-tagged 完整 digest token；
 `event_derived_or_subject_derived` 的分支由 registry 的 kind 级规则固定。调用点 MUST NOT 自行选择
-UUIDv7 / UUIDv8，也不得把 Event 或 Event-derived typed ID 降级为 UUIDv7。content-addressed form
+UUIDv7 / Event-derived token，也不得把 Event 或 Event-derived typed ID 降级为 UUIDv7。content-addressed form
 使用对应 digest。
 
-所有 typed ID 的总表是 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)；它同时列出 `id_form`、`identity_authority` 和 `genesis_event_kinds`，实现 MUST NOT 在各 schema / reducer 中另建一份手写分类。其中 `ak:audit_binding:`、`ak:call:`、`ak:grant:` 和 `ak:session_grant:` 都是 `event_derived`；分别从 `ak.audit.applet_binding.create`、`ak.call.create`、`ak.capability.grant` 和 `ak.session.grant` 的 Event ID 重类型化为 UUIDv8。
+所有 typed ID 的总表是 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)；它同时列出 `id_form`、`identity_authority` 和 `genesis_event_kinds`，实现 MUST NOT 在各 schema / reducer 中另建一份手写分类。其中 `ak:audit_binding:`、`ak:call:`、`ak:grant:` 和 `ak:session_grant:` 都是 `event_derived`；分别从 `ak.audit.applet_binding.create`、`ak.call.create`、`ak.capability.grant` 和 `ak.session.grant` 的 Event ID 重类型化为相同 33-octet token。
 
 `producer_allocated` UUIDv7 只提供时间排序与随机冲突概率，**不证明谁有权分配该 ID**。其协议身份键 MUST 是 `(mint_authority, typed_id)`，`mint_authority` 是该 ID 首次持久出现时通过接收校验的 genesis proof signer DID。存储与索引 MUST 原子保留这个二元组：同 authority + 同 ID + 同内容是幂等重放；同 authority + 同 ID + 不同内容 MUST 拒绝并隔离；不同 authority 即使 UUID 相同也是不同身份。裸 typed-ID 查找、跨 authority 去重、last-writer-wins 修复以及未绑定签名的预占位都 MUST fail closed。该规则由 ID registry 顶层 `producer_allocated_identity_contract` 机读定义，所有 `identity_authority="producer_signature"` 行统一继承。
 
 并非所有 ID kind 都是 producer-allocated `ak:<kind>:<uuidv7>`。Event-derived kind 使用上述
-UUIDv8，此外 `ak:trust_domain:` 是 deployment-scoped replay boundary 标识：其 wire form 为
+suite-tagged 完整 digest token，此外 `ak:trust_domain:` 是 deployment-scoped replay boundary 标识：其 wire form 为
 `ak:trust_domain:<trust_domain_label>`，`<trust_domain_label>` 是稳定的部署信任域标签（例如
 `ak:trust_domain:did.webvh.acme.example`），不是 UUID。它 create-locked 在 Realm `trust_domain`
 字段上，MUST 匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context（见
@@ -596,9 +599,9 @@ UUIDv8，此外 `ak:trust_domain:` 是 deployment-scoped replay boundary 标识�
 
 ```json
 {
-  "id": "ak:strand:01964137-0000-8000-8000-000000000000",
+  "id": "ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
   "schema": "ak.schema.strand.v1",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "created_by": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "created_at": "2026-04-26T00:00:00Z",
   "updated_by": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",

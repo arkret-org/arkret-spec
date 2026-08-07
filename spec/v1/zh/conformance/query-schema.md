@@ -20,11 +20,11 @@ updated: 2026-07-02
 
 ```json
 {
-  "realm_ids": ["ak:realm:0196419b-0000-8000-8000-000000000000"],
+  "realm_ids": ["ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"],
   "object_kinds": ["strand", "message", "morph"],
   "morph_kinds": ["customer_case"],
   "facets": ["assignable"],
-  "context_ref": "ak:strand:019640c5-61a0-8000-8000-000000000000",
+  "context_ref": "ak:strand:ATnpmocFhz_fKex3WQSfweBfBfLKp8y4i_EfWE_daew7",
   "filters": [],
   "relation": null,
   "order_by": [],

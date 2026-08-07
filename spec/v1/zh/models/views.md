@@ -204,9 +204,9 @@ reconcile 同样 MUST NOT 写入被投影对象的任何 canonical state（§2.1
 
 ```json
 {
-  "id": "ak:view:019641be-0000-8000-8000-000000000000",
+  "id": "ak:view:AT3Im0B7Kp3uhOc9ZgnAPWE0qkuAJ_fcxz8Tv7vEwFem",
   "schema": "ak.schema.view.v1",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "created_by": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
   "created_at": "2026-04-26T00:00:00Z",
   "kind": "collection",
@@ -222,7 +222,7 @@ reconcile 同样 MUST NOT 写入被投影对象的任何 canonical state（§2.1
     "relation": {
       "kind": "contains",
       "direction": "out",
-      "source_ref": "ak:space:019640b6-8000-8000-8000-000000000000",
+      "source_ref": "ak:space:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-",
       "depth": 2
     }
   },
@@ -234,7 +234,7 @@ reconcile 同样 MUST NOT 写入被投影对象的任何 canonical state（§2.1
     ],
     "grouping": {
       "mode": "relation_container",
-      "board_space_id": "ak:space:019640b6-8000-8000-8000-000000000000",
+      "board_space_id": "ak:space:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-",
       "container_relation_kind": "contains",
       "item_relation_kind": "contains",
       "hidden_count_policy": "omit"
@@ -301,7 +301,7 @@ View 应通过结构化 query 表达对象范围。
   "relation": {
     "kind": "contains",
     "direction": "out",
-    "source_ref": "ak:space:019640b6-8000-8000-8000-000000000000",
+    "source_ref": "ak:space:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-",
     "depth": 2
   }
 }
@@ -314,7 +314,7 @@ View 应通过结构化 query 表达对象范围。
   "object_kinds": ["message"],
   "filters": [
     { "field": "state", "op": "eq", "value": "active" },
-    { "field": "strand_id", "op": "eq", "value": "ak:strand:01964200-0000-8000-8000-000000000000" },
+    { "field": "strand_id", "op": "eq", "value": "ak:strand:AbhmeQ4M4-eW5loBbZkKXaGD-nYJmCb0CFGR5f42neL-" },
     { "field": "track_name", "op": "eq", "value": "discussion" }
   ],
   "order_by": [
@@ -327,7 +327,7 @@ View 应通过结构化 query 表达对象范围。
 
 ```json
 {
-  "context_ref": "ak:strand:019640f9-8000-8000-8000-000000000000",
+  "context_ref": "ak:strand:AVK8GYTWvWfnkNjO2MMRJaNYukVBNiB0s6v8tdxK1nmu",
   "include": [
     "relations",
     "synthesis",
@@ -374,30 +374,30 @@ Board projection MUST NOT 默认显示 Realm 中的全部 Strand。实现 MUST �
 {
   "projection": "collection",
   "renderer": "board",
-  "view_id": "ak:view:019641be-0000-8000-8000-000000000000",
+  "view_id": "ak:view:AT3Im0B7Kp3uhOc9ZgnAPWE0qkuAJ_fcxz8Tv7vEwFem",
   "frontier": {
     "state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "event_ids": ["ak:event:019641be-0000-8000-8000-000000000001"]
+    "event_ids": ["ak:event:AXwng-3vLj-z3_-67errHE5HBB9YT0a7gKGanmTg6vIk"]
   },
   "groups": [
     {
-      "key": "ak:space:019641be-0000-8000-8000-000000000010",
+      "key": "ak:space:AUN0Iz6xJMZJX5AOvIXKM2Ayq0Qa5m8xybogwxSPdxpS",
       "title": "Review",
       "rank": "mV",
       "limited": false,
       "items": [
         {
           "object": {
-            "id": "ak:strand:019641be-0000-8000-8000-000000000011",
+            "id": "ak:strand:ATFOTQ67EuMWGb8uu8VejrvkcjhmtL20pi7W5Zpv7gbn",
             "type": "strand",
             "title": "Legal review"
           },
           "position": {
             "model": "derived_relation",
-            "scope_container_id": "ak:space:019641be-0000-8000-8000-000000000009",
-            "container_id": "ak:space:019641be-0000-8000-8000-000000000010",
+            "scope_container_id": "ak:space:ASr12ACZ8H3vqMXwTyuR7CusgUHyeCODljAcLlc7h2kG",
+            "container_id": "ak:space:AUN0Iz6xJMZJX5AOvIXKM2Ayq0Qa5m8xybogwxSPdxpS",
             "relation_kind": "contains",
-            "source_cell_id": "ak:cell:ak.component.strand.position.v1:ak:space:019641be-0000-8000-8000-000000000009:ak:strand:019641be-0000-8000-8000-000000000011",
+            "source_cell_id": "ak:cell:ak.component.strand.position.v1:ak:space:ASr12ACZ8H3vqMXwTyuR7CusgUHyeCODljAcLlc7h2kG:ak:strand:ATFOTQ67EuMWGb8uu8VejrvkcjhmtL20pi7W5Zpv7gbn",
             "rank": "mV"
           },
           "state": {

@@ -3,7 +3,7 @@ title: Personal Productivity
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-29
+updated: 2026-08-07
 see_also:
   - private-objects.md
   - strand-and-message.md
@@ -41,24 +41,29 @@ see_also:
 
 ## 4. Scheduled Send
 
-定时发送写入 `ak.scheduled_send.v1:<planned_message_id>`。值必须验证为
-`ak.schema.personal_productivity.v1` 中的 scheduled-send plaintext value，并在写入
-account-data 前加密。`planned_message_id=ak:message:<uuidv7>` MUST 在创建计划时固定；dispatch
-把同一 UUIDv7 重类型为 `planned_event_id=ak:event:<uuidv7>`，并把它作为最终
-`ak.message.create` 的 `event_id`。`message_payload` MUST 省略 `message_id`；Message ID 由
-[`strand-and-message.md` §9.1](./strand-and-message.md#91-概览) 的 reducer 规则从 Event ID
-确定性派生。计划只持久化一个 UUID identity，不得保存第二份可写身份。
+定时发送写入 `ak.scheduled_send.v1:<scheduled_send_id>`。`scheduled_send_id` MUST 是创建计划时
+分配并固定的 `ak:scheduled_send:<uuidv7>`；它只标识 principal-private 计划，MUST NOT 重类型为
+Event ID 或 Message ID。值必须验证为 `ak.schema.personal_productivity.v1` 中的 scheduled-send
+plaintext value，并在写入 account-data 前加密。`message_payload` MUST 同时省略 `event_id` 与
+`message_id`，计划中不得预铸、缓存或暗示未来的最终 Event / Message 身份。
 
-同一 `planned_message_id` 的计划更新完全沿用 encrypted account-data `cas_register`：
+同一 `scheduled_send_id` 的计划更新完全沿用 encrypted account-data `cas_register`：
 写入方携带 `expected_revision`，revision 不匹配返回 `cas_conflict` 并由客户端解密、
 合并后重试；服务端不得解密或比较 `message_payload_digest`，也不得为该 key 另造
-`duplicate_conflict`。只有到期提交共享 Event 时，同一 `planned_event_id` 的不同 canonical
-Event bytes 才按 Event identity 规则返回 `duplicate_conflict`，且不得替换已接受的消息。
+`duplicate_conflict`。
 
-`message_payload_digest` MUST 是 canonical `message_payload` 的 `sha256:<hex>` digest。到期
-提交的网络重试 MUST 重用相同 `planned_event_id` 与 canonical Event bytes；同一 Event ID 的
-不同 bytes 走 Event identity conflict，不由 scheduled-send 另建覆盖语义。定时发送计划不是
-共享事实。只有到期并成功提交的 `ak.message.create` 才进入共享 Realm history。
+`message_payload_digest` MUST 是 canonical `message_payload` 的 `sha256:<hex>` digest。到期 dispatch
+MUST 先完成 `ak.message.create` 除 `event_id`、`proofs` 外的全部 producer-authored envelope 字段，
+再按 Event digest 规则派生完整 `EventId`，并由同一 33-byte token 派生 `MessageId`。只有此时最终
+Event / Message 身份才存在。
+
+dispatch 实现 MUST 在第一次网络提交前，持久保存 `scheduled_send_id`、最终 `event_id`、派生
+`message_id` 与完整 canonical signed Event bytes；提交结果不明或网络重试时 MUST 原样复用这些
+bytes 和 ID，不得从仍可编辑的计划重新 author。若完成后的 bytes 尚未 durable 保存，dispatch
+MUST NOT 开始网络提交。重试时出现不同 signed Event bytes 是本地 dispatch invariant 破坏，MUST
+在提交前失败；只有两个不同 digest preimage 独立重算出同一完整 Event ID 时才按 Event identity
+collision 规则处理，不由 scheduled-send 另建覆盖语义。定时发送计划不是共享事实；只有成功
+提交的 `ak.message.create` 才进入共享 Realm history。
 
 ## 5. Snooze
 

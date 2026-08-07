@@ -59,7 +59,7 @@ Schema id: `ak.schema.event.v1`
 | `actor_seq` | yes | `integer` | 同一 `(realm_id, actor_id)` 因果路径上严格递增；actor 在每个 Realm 各有独立链，首个事件从 `0` 开始；并发 sibling fork 可出现相同高度。 | Realm-scoped Actor 链高度 / 防回退索引。 |
 | `created_at` | yes | `timestamp` | MUST 使用 canonical RFC 3339 UTC 毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`（整秒也写 `.000Z`）；微秒/纳秒输入必须在计算 Event digest 与签名之前截断到毫秒，不得使用 `+00:00`；不能单独决定因果。 | 创建时间。 |
 | `hlc` | no | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。**Advisory 字段** — 进入 canonical bytes 与签名以防被中间方重写，但语义上只是 timeline display tie-breaker，不参与 authorization、Lattice join、Control Move precondition 或 Seal finality。详见 `encoding.md` §7。 | HLC（advisory）。 |
-| `prev_refs` | yes | `array<id:event>` | 可为空。仅承载 actor event chain causal predecessors。 | Actor event chain 前序。 |
+| `prev_refs` | yes | `array<EventId>` | 可为空。每项是完整 suite-tagged Event ID，仅承载 actor event chain causal predecessors；suite code 与全部 digest bytes 进入本 Event digest preimage。 | Actor event chain 前序的完整密码学身份。 |
 | `causal_refs` | conditional | `array<hash>` | 携带 `payload.patch` 的 DataEvent MUST 为每个 registry 目标 cell 精确引用一个 accepted base-head event digest，见 §4.3.1；其余 DataEvent 可用于声明业务因果。它不提供全局完整性证明。 | 数据面因果前驱。 |
 | `refs` | yes | `array<SemanticRef>` | 默认 `[]`。每项 `{id, role, critical?}`；常见 `role` 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`recovery_capability`、`state_witness`、`inclusion_proof`。`critical` 默认 `true`；未识别 critical role MUST fail closed，未识别非 critical role MAY 被忽略。 | 语义引用集合。 |
 | `requirements` | no | `object` | `requirements.{schema[], features[], critical_extensions[]}` 全部进入 canonical bytes 与 event digest；接收方 MUST fail closed 对未知 critical 项。`critical_extensions[]` 每项必须有 `id`、`extension_scope`、`fail_closed=true`，且 entry 顶层是 closed object；extension-specific data 必须放入 `parameters` 或用 `material_digest` 指向外部材料。 | 事件依赖声明（schema profile / feature / critical extension）。Reducer profile 从 Event 的 CBA governance basis 读取，不在 Event 中声明。 |
@@ -142,22 +142,20 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
 
 ```json schema=schemas/event-envelope.schema.json
 {
-  "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
+  "event_id": "ak:event:AUkO_nXXo-Wk_xfqrNVTjCRCKLK_dvLWxAu4HvQLQFnV",
   "kind": "ak.strand.update",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV",
   "scope_ref": {
     "kind": "realm",
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+    "realm_id": "ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV"
   },
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 4,
   "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
-  "prev_refs": [
-    "ak:event:019640ed-0000-8000-8000-000000000000"
-  ],
+  "prev_refs": ["ak:event:AQuJKOT-cW0pWsEr_gaQ5xFAv7BkJgCVolUYAgYYkHM3"],
   "refs": [
-    { "id": "ak:grant:0196410c-0000-8000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": [
     "sha256:3333333333333333333333333333333333333333333333333333333333333333"
@@ -169,7 +167,7 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
     "key_epoch": 7
   },
   "payload": {
-    "target_ref": "ak:strand:019640c6-8000-8000-8000-000000000000",
+    "target_ref": "ak:strand:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV",
     "patch": {
       "metadata.fields.review_status": "approved"
     }
@@ -431,7 +429,7 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 
 ### 2.5.1 `created_at` 下界（normative）
 
-[`../conformance/encoding.md` §4.0](../conformance/encoding.md) 把 `event_id` 的时间戳段绑定到 `created_at`，因此伪造一个与既有 Event 碰撞的 `event_id` 要求攻击者声称一个落在**目标同一秒**的 `created_at`——而那一秒必然在过去。对回填加下界，使离线 grinding 变成有截止时间的在线攻击。
+`event_id` 不再包含时间段。本节下界仅证明因果单调性、CBA basis 时序与 future-skew admission，不给完整 256-bit digest 增加额外密码学位数，也不能阻止攻击者为可预测的未来时间预计算。真正限制预计算需要事前不可预测的 recent Seal/head/beacon 加可信首次准入窗口；本节不声称单独提供该性质。
 
 判据全部是**签名值对签名值的比较，不使用本地时钟**，因此无时钟依赖、跨 receiver 收敛、与到达顺序无关，且对经 submit 还是 federation 路径到达的 Event 一律成立：
 
@@ -446,10 +444,10 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 ```
 
 - **(a)** 的输入是 `prev_refs`——因果前沿，其中每条在因果上都早于本 Event，取 `max` 天然正确。它同时消除了 `actor_seq-1` 处存在 sibling fork（§2.6 单桶上限 16）时"以哪一条为准"的歧义：producer 按 §2.6 必须把观察到的完整 frontier 合入 `prev_refs`，所以 `max` 的输入集合就是签名覆盖的那个集合。`prev_refs` 为空（genesis）时本条不适用。
-- **(b)** 绑定所有主体，包括在该 Realm 内 `actor_seq=0` 的新成员——他们仍然必须绑定一个已接受的 Seal。攻击者因此被夹在两头：要声称 `created_at = T` 就必须绑一个 `sealed_at ≤ T` 的旧 Seal，而 `revocation_freshness_window_ms` 禁止高风险写入绑定过旧的 Seal。**攻击窗口 = 撤销新鲜度窗口。**该窗口的取值因此直接是一个安全参数：放宽它等于同比例放宽伪造预算；部署 SHOULD 对 create-once 的 create kind 单独收紧，并 MUST 把这些 kind 计入高风险写入集合，否则夹逼不生效。
+- **(b)** 绑定所有主体，包括在该 Realm 内 `actor_seq=0` 的新成员——他们仍然必须绑定一个已接受的 Seal。`revocation_freshness_window_ms` 约束授权 basis 的陈旧程度；若 Seal 在 Event 产生前不可预测且 admission 同时拒绝过期首次注入，它 MAY 形成额外在线攻击期限，但这不是 Event-ID 位布局提供的强度。
 - **(b)** 的比较跨两台机器的墙钟，MUST 允许 `hard_future_skew_ms` 的对称容差；MUST NOT 为此新增阈值。
 
-**anchor unit 例外与其代价（normative）**：`ak.realm.create` 与 `ak.device.reanchor` 无 `seal_ref` / `seal_basis`，(b) 不适用；`ak.realm.create` 的 `prev_refs` 为空，(a) 也不适用。因此这两类 Event 的 `event_id` 伪造是**无时限的离线 2^88**，不受本节窗口压缩。这是有意接受的边界，实现 MUST NOT 把它实现成"静默跳过"，规范读者也 MUST NOT 认为本节覆盖全部 Event。genesis 批次内免 `seal_basis` 的白名单 follow-up 因 `actor_seq > 0` 且 `prev_refs` 非空，仍受 (a) 覆盖。
+**anchor unit 例外（normative）**：`ak.realm.create` 与 `ak.device.reanchor` 无 `seal_ref` / `seal_basis`，(b) 不适用；`ak.realm.create` 的 `prev_refs` 为空，(a) 也不适用。这只是因果/CBA 时间约束例外，不改变 §4.0 的完整 256-bit digest identity 强度。genesis 批次内免 `seal_basis` 的白名单 follow-up 因 `actor_seq > 0` 且 `prev_refs` 非空，仍受 (a) 覆盖。
 
 **producer 义务**：
 
@@ -638,20 +636,20 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
+  "event_id": "ak:event:AUkO_nXXo-Wk_xfqrNVTjCRCKLK_dvLWxAu4HvQLQFnV",
   "kind": "ak.strand.update",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV",
   "scope_ref": {
     "kind": "realm",
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+    "realm_id": "ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV"
   },
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 5,
   "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
-  "prev_refs": ["ak:event:019640ed-7000-8000-8000-000000000000"],
+  "prev_refs": ["ak:event:AQuJKOT-cW0pWsEr_gaQ5xFAv7BkJgCVolUYAgYYkHM3"],
   "refs": [
-    { "id": "ak:grant:0196410c-0000-8000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": ["sha256:3333333333333333333333333333333333333333333333333333333333333333"],
   "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
@@ -661,7 +659,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
     "key_epoch": 7
   },
   "payload": {
-    "target_ref": "ak:strand:019640c6-8000-8000-8000-000000000000",
+    "target_ref": "ak:strand:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV",
     "patch": {
       "metadata.fields.review_status": { "$op": "set", "value": "approved" },
       "metadata.fields.due_date": { "$op": "set", "value": "2026-06-01" }

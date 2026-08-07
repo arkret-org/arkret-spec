@@ -68,6 +68,7 @@ VECTOR_GROUP_ID_RE = re.compile(r"^ak\.vector_group\.[a-z0-9][a-z0-9_.-]*\.v[0-9
 TYPED_ID_TOKEN_RE = re.compile(r"\bak:([a-z0-9_]+):([A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*)")
 UUID7_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 UUID8_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
+EVENT_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{44}$")
 SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 OPENAPI_OPERATION_ID_RE = re.compile(r"^\s*operationId:\s*([A-Za-z0-9_.-]+)\s*$", re.MULTILINE)
 YAML_REF_RE = re.compile(r"\$ref:\s*['\"]?([^'\"\s#]+(?:#[^'\"\s]+)?)")
@@ -3622,6 +3623,131 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     }
 
 
+def check_event_id_suite_registry(lint: Lint) -> None:
+    path = ARTIFACTS / "registry" / "digest-suite-registry.json"
+    data = load_json(lint, path)
+    rows = data.get("suites", []) if isinstance(data, dict) else []
+    expected_codes = {"sha256": 0x01, "blake3": 0x02, "cbor.sha256": 0x03}
+    seen: dict[int, str] = {}
+    for row in rows if isinstance(rows, list) else []:
+        if not isinstance(row, dict):
+            continue
+        suite_id = row.get("canonical_id")
+        code = row.get("wire_code")
+        if not isinstance(code, int) or not 0 < code < 0xF0:
+            lint.fail(path, f"{suite_id!r} must declare assigned uint8 wire_code 0x01..0xEF")
+            continue
+        if code in seen:
+            lint.fail(path, f"wire_code 0x{code:02x} reused by {seen[code]!r} and {suite_id!r}")
+        seen[code] = str(suite_id)
+        if row.get("digest_length_bytes") != 32:
+            lint.fail(path, f"{suite_id!r} cannot use v1 Event-ID format with non-32-byte digest")
+        if suite_id in expected_codes and code != expected_codes[suite_id]:
+            lint.fail(path, f"{suite_id} wire_code must remain 0x{expected_codes[suite_id]:02x}")
+    for suite_id, code in expected_codes.items():
+        if seen.get(code) != suite_id:
+            lint.fail(path, f"wire_code 0x{code:02x} must be assigned to {suite_id}")
+
+
+def check_content_bound_event_id_fixture(lint: Lint) -> None:
+    path = ARTIFACTS / "fixtures" / "content-bound-event-id-fixture.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+    if data.get("generated_by") != "tools/generate_content_bound_event_id_fixture.py":
+        lint.fail(path, "suite-tagged Event-ID fixture must name its deterministic generator")
+    required = {
+        "suite_code_mismatch_rejected",
+        "invalid_zero_suite_code_rejected",
+        "reserved_suite_code_rejected",
+        "unknown_suite_code_rejected",
+        "padding_rejected",
+        "wrong_decoded_length_rejected",
+        "same_event_id_different_canonical_bytes_is_hash_collision",
+    }
+    names: set[str] = set()
+    for case in data.get("cases", []):
+        if not isinstance(case, dict):
+            continue
+        name = case.get("name")
+        if isinstance(name, str):
+            names.add(name)
+        digest_wire = case.get("event_digest")
+        suite_code = case.get("suite_wire_code")
+        expected_id = case.get("derived_event_id")
+        if not (isinstance(digest_wire, str) and isinstance(suite_code, int) and isinstance(expected_id, str)):
+            continue
+        try:
+            digest = bytes.fromhex(digest_wire.split(":", 1)[1])
+        except (IndexError, ValueError):
+            lint.fail(path, f"{name}: invalid event_digest")
+            continue
+        body = bytes((suite_code,)) + digest
+        token = base64.urlsafe_b64encode(body).rstrip(b"=").decode("ascii")
+        if len(digest) != 32 or len(body) != 33 or len(token) != 44:
+            lint.fail(path, f"{name}: Event-ID byte/encoding length mismatch")
+            continue
+        if case.get("event_id_bytes_hex") != body.hex() or expected_id != "ak:event:" + token:
+            lint.fail(path, f"{name}: suite-tagged Event-ID KAT mismatch")
+        preimage = case.get("digest_preimage_canonical_bytes_utf8")
+        if isinstance(preimage, str) and digest_wire.startswith("sha256:"):
+            if hashlib.sha256(preimage.encode("utf-8")).digest() != digest:
+                lint.fail(path, f"{name}: stated SHA-256 digest preimage mismatch")
+    for name in sorted(required - names):
+        lint.fail(path, f"missing Event-ID negative case {name}")
+
+
+def check_event_reference_inventory(lint: Lint) -> None:
+    path = ARTIFACTS / "reports" / "event-reference-field-inventory.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+    if data.get("generated_by") != "tools/gen_event_reference_inventory.py":
+        lint.fail(path, "Event reference inventory must name its generator")
+    rows = data.get("fields", [])
+    if not isinstance(rows, list):
+        lint.fail(path, "Event reference inventory fields must be an array")
+        return
+    prev_refs = [
+        row for row in rows
+        if isinstance(row, dict)
+        and row.get("schema") == "event-envelope.schema.json"
+        and row.get("field") == "prev_refs"
+    ]
+    if len(prev_refs) != 1 or prev_refs[0].get("classification") != "complete_event_id":
+        lint.fail(path, "event-envelope.prev_refs must be inventoried as complete_event_id")
+    valid = {"complete_event_id", "digest_copy_or_commitment", "external_event_namespace"}
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict) or row.get("classification") not in valid:
+            lint.fail(path, f"fields[{index}] has invalid classification")
+
+
+def check_retired_event_id_contract(lint: Lint) -> None:
+    retired = re.compile(r"UUIDv8|uuidv8|34[- ]bit|88[- ]bit|11[- ]octet|248[- ]bit|31[- ]octet prefix|公元 2514|时间戳段")
+    owners = [
+        SPEC_ROOT / "zh/conformance/encoding.md",
+        SPEC_ROOT / "zh/conformance/scalability-constraints.md",
+        SPEC_ROOT / "zh/models/common-fields.md",
+        ARTIFACTS / "registry/digest-suite-registry.json",
+        ARTIFACTS / "registry/id-kind-registry.json",
+        ARTIFACTS / "registry/vector-registry.json",
+    ]
+    for path in owners:
+        match = retired.search(read_text(path))
+        if match:
+            lint.fail(path, f"retired Event-ID contract term remains: {match.group(0)!r}")
+    old_pattern = "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"
+    retired_event_derived_kinds = {"actor_profile", "circle", "message", "morph", "relation", "space", "strand", "view"}
+    for path in sorted((ARTIFACTS / "schemas").glob("*.json")):
+        schema_text = read_text(path)
+        if old_pattern in schema_text:
+            lint.fail(path, "schema retains retired UUIDv8 Event-ID pattern")
+        for kind in retired_event_derived_kinds:
+            derived_old_pattern = f"^ak:{kind}:[0-9a-f]{{8}}-[0-9a-f]{{4}}-8[0-9a-f]{{3}}-[89ab][0-9a-f]{{3}}-[0-9a-f]{{12}}"
+            if derived_old_pattern in schema_text:
+                lint.fail(path, f"schema retains retired UUIDv8 pattern for event-derived ak:{kind} ID")
+
+
 def check_protocol_layer_registry(lint: Lint) -> None:
     """Require an exhaustive, single-owner layer classification for active Event kinds."""
     path = ARTIFACTS / "registry" / "protocol-layer-registry.json"
@@ -6068,7 +6194,7 @@ def check_typed_id_prose_consistency(lint: Lint) -> None:
     for required_rule in (
         "`producer_allocated` 使用 UUIDv7",
         "`event_derived` 使用",
-        "content-bound UUIDv8",
+        "33-octet suite-tagged 完整 digest token",
         "调用点 MUST NOT 自行选择",
     ):
         if required_rule not in common_text:
@@ -6081,11 +6207,11 @@ def check_typed_id_prose_consistency(lint: Lint) -> None:
         (ARTIFACTS / "schemas" / "signal-message-stream.schema.json").resolve(),
     }
     event_uuidv7 = re.compile(
-        r"(?:event_id.{0,120}UUIDv7|UUIDv7.{0,120}event_id)",
+        r"event_id[^。\n]{0,40}(?:使用|为|是|=)[^。\n]{0,20}UUIDv7",
         flags=re.IGNORECASE,
     )
     event_derived_uuidv7 = re.compile(
-        r"ak:(?:space|circle|strand|message|morph|relation|view):<uuidv7>",
+        r"ak:(?:actor_profile|appeal|audit_binding|audit_session|audit_release|call|circle|grant|invite|message|moderation_queue_item|morph|relation|report|session_grant|sidecar|space|strand|view):<uuidv7>",
         flags=re.IGNORECASE,
     )
     for path in [*markdown_files(), *all_json_files()]:
@@ -6093,9 +6219,9 @@ def check_typed_id_prose_consistency(lint: Lint) -> None:
             continue
         text = path.read_text(encoding="utf-8")
         if event_uuidv7.search(text):
-            lint.fail(path, "non-planned Event ID prose must use content-bound UUIDv8, not UUIDv7")
+            lint.fail(path, "non-planned Event ID prose must use the suite-tagged full-digest token, not UUIDv7")
         if event_derived_uuidv7.search(text):
-            lint.fail(path, "event-derived object ID prose must use content-bound UUIDv8, not UUIDv7")
+            lint.fail(path, "event-derived object ID prose must use the suite-tagged full-digest token, not UUIDv7")
 
     encoding_text = encoding.read_text(encoding="utf-8")
     if "`txn`" in encoding_text:
@@ -7876,29 +8002,21 @@ def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str
             lint.fail(path, f"{json_path} has invalid ak:blob:sha256 reference")
         return
     if token_kind in known["id_kinds"]:
-        candidate = rest[:36]
-        # zh/conformance/encoding.md section 4: the UUID construction is fixed per
-        # kind by id-kind-registry id_form. event_derived kinds carry the UUIDv8
-        # content-bound layout of section 4.0; producer allocations use UUIDv7.
-        # Realm is the registered exception: collaboration uses event-derived
-        # v8 while PCR uses a DID-transcript-derived v7 layout.
+        candidate = rest[:44] if token_kind in known.get("event_derived_id_kinds", set()) or token_kind == "realm" else rest[:36]
+        # encoding.md section 4: the construction is fixed per registry kind.
+        # event_derived kinds carry a canonical 33-byte suite-tagged token;
+        # producer_allocated kinds stay UUIDv7.
         if token_kind == "realm":
-            # zh/models/realm-and-space.md section 2.5.0: `ak:realm:` is the one
-            # kind with two registered layouts — collaboration Realms are
-            # event-derived v8, Principal Control Realms are subject-derived v7
-            # from the principal DID. Neither is producer-chosen. Fixture token
-            # lint checks the shared shape; semantic runners must select and
-            # recompute the layout from genesis purpose.
-            if not (UUID7_RE.fullmatch(candidate) or UUID8_RE.fullmatch(candidate)):
+            if not (EVENT_TOKEN_RE.fullmatch(candidate) or UUID7_RE.fullmatch(rest[:36])):
                 lint.fail(
                     path,
-                    f"{json_path} has invalid ak:realm: expected registered UUIDv7/v8 layout",
+                    f"{json_path} has invalid ak:realm: expected Event-derived token or subject-derived UUIDv7",
                 )
         elif token_kind in known.get("event_derived_id_kinds", set()):
-            if not UUID8_RE.fullmatch(candidate):
+            if not EVENT_TOKEN_RE.fullmatch(candidate):
                 lint.fail(
                     path,
-                    f"{json_path} has invalid ak:{token_kind}: expected content-bound typed UUIDv8",
+                    f"{json_path} has invalid ak:{token_kind}: expected canonical 44-char Event-derived token",
                 )
         elif not UUID7_RE.fullmatch(candidate):
             lint.fail(path, f"{json_path} has invalid ak:{token_kind}: typed UUIDv7 reference")
@@ -12464,6 +12582,8 @@ def main(argv: list[str] | None = None) -> int:
             ("registry_manifest", lambda: check_registry_manifest(lint)),
             ("timestamp_profile", lambda: check_timestamp_profile_single_source(lint)),
             ("proof_contexts", lambda: check_proof_context_registry(lint)),
+            ("event_id_suite_registry", lambda: check_event_id_suite_registry(lint)),
+            ("retired_event_id_contract", lambda: check_retired_event_id_contract(lint)),
             ("registries", lambda: check_registries(lint)),
             ("state_contract_closure", lambda: check_state_contract_closure(lint)),
             ("protocol_layers", lambda: check_protocol_layer_registry(lint)),
@@ -12484,6 +12604,7 @@ def main(argv: list[str] | None = None) -> int:
             ("operation_clauses", lambda: check_operation_clause_registry(lint)),
             ("vector_groups", lambda: check_vector_group_requirements(lint, known)),
             ("event_schema_coverage", lambda: check_event_schema_coverage(lint, known)),
+            ("event_reference_inventory", lambda: check_event_reference_inventory(lint)),
             ("wire_scope", lambda: check_wire_schema_no_bare_scope(lint)),
             (
                 "preimage_event_identity",
@@ -12546,6 +12667,7 @@ def main(argv: list[str] | None = None) -> int:
             ("vector_refs", lambda: check_vector_reference_closure(lint)),
             ("security_fixture", lambda: check_security_closure_fixture(lint)),
             ("fixtures", lambda: check_fixtures(lint, known)),
+            ("event_id_fixture", lambda: check_content_bound_event_id_fixture(lint)),
             ("snapshot_merkle", lambda: check_snapshot_merkle_fixture(lint)),
             ("fixture_runner", lambda: check_fixture_runner_contract(lint)),
             ("websocket_binding", lambda: check_websocket_binding_fixture(lint)),

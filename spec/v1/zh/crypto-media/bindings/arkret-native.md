@@ -61,7 +61,7 @@ base64url-编码的 detached JWS，由 token issuer 用 service DID 的 `asserti
 
 ```json
 {
-  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
+  "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "realm_id": "ak:realm:...",
   "focus_id": "fra-1",
   "participant_binding": { "scheme": "ak.media.participant_binding.v1", "...": "..." },

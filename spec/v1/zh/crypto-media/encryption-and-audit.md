@@ -124,13 +124,13 @@ Realm policy MUST 通过 Event kind `ak.realm.policy_bundle` 的 payload path `m
     "ciphertext": "base64url",
     "aad_visibility_event_id": "routing_digest",
     "aad": {
-      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "event_kind": "ak.message.create",
       "event_ref_digest": "sha256:..."
     },
     "key_ref": {
       "algorithm": "MLS",
-      "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
+      "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
     },
     "payload_digest": "sha256:...",
     "aad_digest": "sha256:..."
@@ -180,17 +180,17 @@ AAD 字段集合受 Realm 的 `aad_visibility` policy 组件约束（承载与�
   )
   ```
 
-  其中 `ak.aad-event-ref-v1` 是固定的 ASCII 域分隔常量（逐字节等于该字符串），字段间以单字节 `0x00` 分隔以消除拼接歧义。`event_id` 取 `ak:event:<content-bound-uuidv8>` 的 canonical UTF-8 typed-id 字符串；`realm_id` 取 registry-valid canonical typed-id 字符串，其中 Collaboration Realm 为 Event-derived UUIDv8，PCR 为从 principal DID transcript 重算的 subject-derived v7 layout。输入**只有**这两个 typed id 与域分隔常量：content-bound `event_id` 含 34-bit 秒时间段与 88-bit digest material，不存在 producer-allocated form 的独立随机段；对未知 Event 的盲枚举成本来自该 88-bit 内容摘要。`realm_id` 绑定 Realm 阻止跨 Realm 重放。**诚实边界**：本 digest 是 `(event_id, realm_id)` 的**确定性无密钥函数**，因此它是**稳定伪名**——任何已持有候选 `event_id` 的一方都可逐字节重算并据此确认 / 链接该事件；本机制只提供对"未知 `event_id` 的盲枚举"的抗性，**不**提供对"已知 `event_id` 的确认 / 链接"的保密。需要抵抗候选确认的 Realm MUST 使用 `aad_visibility_event_id="hidden"`；v1 不把 MLS secret 引入跨 provider 必须稳定可重算的 routing digest。该常量与公式是 wire-breaking 的安全域分隔参数，实现 MUST 逐字节一致构造，MUST NOT 引入私有前缀、额外输入、改变字段顺序或省略 `0x00` 分隔；逐字节 KAT 与 mutation case 固化在 [conformance-vectors.md](../conformance/conformance-vectors.md) §1.12。**接收方语义**：`event_ref_digest` 是明文但受外层 AEAD 认证的字段——AEAD 解密本身直接使用 wire 字节、不重算该 digest；需要做反欺骗绑定校验或跨 provider 去重的 router / verifier **MAY** 按上式重算并与 wire 值 bytewise 比对，不一致时 **MUST** 视为绑定失效并拒绝据其路由 / 去重。
+  其中 `ak.aad-event-ref-v1` 是固定的 ASCII 域分隔常量（逐字节等于该字符串），字段间以单字节 `0x00` 分隔以消除拼接歧义；`event_id` / `realm_id` 取其 canonical typed-id 字符串（`ak:event:<44-char-suite-tagged-full-digest-token>` / schema-discriminated `ak:realm:<event-token-or-subject-derived-uuidv7>`）的 UTF-8 字节，二者都是已在 wire 上、双方可逐字节获得的权威字段。输入**只有**这两个 typed id 与域分隔常量：未知 Event token 携完整 256-bit digest，盲枚举 token 的量级约 `2^256`，无需额外 nonce；`realm_id` 绑定 Realm 阻止跨 Realm 重放。**诚实边界**：本 digest 是 `(event_id, realm_id)` 的**确定性无密钥函数**，因此它是**稳定伪名**——任何已持有候选 `event_id`，或能猜中低熵 Event preimage 并自行派生候选 ID 的一方，都可逐字节重算并据此确认 / 链接该事件；本机制只提供对未知候选 token 的盲枚举抗性，**不**提供对候选内容字典攻击或已知 ID 确认 / 链接的保密（后者需 keyed 构造，v1 在此不引入）。v1 **不**在本 digest 引入任何未在 registry / schema 定义 canonical wire 来源的额外 nonce 输入。该常量与公式是 wire-breaking 的安全域分隔参数，实现 MUST 逐字节一致构造，MUST NOT 引入私有前缀、额外输入、改变字段顺序或省略 `0x00` 分隔；逐字节 KAT 与 mutation case 固化在 [conformance-vectors.md](../conformance/conformance-vectors.md) §1.12。**接收方语义**：`event_ref_digest` 是明文但受外层 AEAD 认证的字段——AEAD 解密本身直接使用 wire 字节、不重算该 digest；需要做反欺骗绑定校验或跨 provider 去重的 router / verifier **MAY** 按上式重算并与 wire 值 bytewise 比对，不一致时 **MUST** 视为绑定失效并拒绝据其路由 / 去重。
 - `hidden`：AAD MUST 同时省略 `event_id` 与 `event_ref_digest`；去重只能依赖外层 Event Envelope、transport receipt 或 receiver-local cache。
 
 AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 
 ```json
 {
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "event_kind": "ak.message.create",
   "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-  "causal_refs": ["ak:event:019640ed-0000-8000-8000-000000000000"]
+  "causal_refs": ["ak:event:Ae0kN-KHls3vjqQ9FHo4P_2uAhcMVu8dI8qHcFsqGn5d"]
 }
 ```
 
@@ -217,13 +217,13 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
   "content_type": "application/json",
   "aad_visibility_event_id": "routing_digest",
   "aad": {
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "event_kind": "ak.message.create",
     "event_ref_digest": "sha256:..."
   },
   "key_ref": {
     "algorithm": "MLS",
-    "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
+    "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
   }
 }
 ```
@@ -630,7 +630,7 @@ Profile 规则：
   "pairwise_did": "did:key:z6Mkpseudonymous",
   "principal_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "device_id": "ak:device:019a6aa0-0000-7000-8000-000000000000",
-  "realm_id": "ak:realm:019a7360-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
   "trust_domain": "ak:trust_domain:did.webvh.example",
   "mls_group_id": "mls-group-019a7360",
   "mls_leaf_index": 0,
@@ -791,14 +791,14 @@ scheme 选择是 Realm policy 字段 `content_scheme`（经 `ak.realm.policy_bun
   "scheme": "mls_exporter_aead_v1",
   "key_ref": {
     "algorithm": "MLS-EXPORTER-AEAD",
-    "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
+    "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
   },
   "epoch": 42,
   "nonce": "base64url...",
   "purpose": "mls_exporter_aead_content",
   "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
   "aad": {
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "event_kind": "ak.message.create",
     "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
   }

@@ -414,20 +414,20 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "scope_ref": {
     "kind": "realm",
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
   },
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 4,
   "kind": "ak.message.create",
   "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
-  "prev_refs": ["ak:event:019640ed-0000-8000-8000-000000000000"],
+  "prev_refs": ["ak:event:Ae0kN-KHls3vjqQ9FHo4P_2uAhcMVu8dI8qHcFsqGn5d"],
   "refs": [
-    { "id": "ak:grant:0196410c-2000-8000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:grant:AaRSy9srXE6AYwaAorjFWZcR6bXwbk7PDHWQxu11tTLR", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": ["sha256:3333333333333333333333333333333333333333333333333333333333333333"],
   "seal_ref": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
@@ -437,7 +437,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
     "key_epoch": 1
   },
   "payload": {
-    "strand_id": "ak:strand:019640c6-8000-8000-8000-000000000000",
+    "strand_id": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
     "track_name": "discussion",
     "content": { "kind": "ak.content.text", "body": "Sample message" }
   },
@@ -457,20 +457,20 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ak:event:019640ed-9000-8000-8000-000000000000",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "event_id": "ak:event:AZet3XWvSRcqbhqClDZrTvO3iB2U8jLvJdHGJaZD4ZTa",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "scope_ref": {
     "kind": "realm",
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
   },
   "actor_id": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
   "actor_seq": 7,
   "kind": "ak.message.create",
   "created_at": "2026-04-26T00:01:00.000Z",
   "hlc": "01970e589d34-0001-c00ff00f",
-  "prev_refs": ["ak:event:019640ed-8500-8000-8000-000000000000"],
+  "prev_refs": ["ak:event:AeEcdsZsYBqFM00EEabvm9ccMkYXucSBv-rtg3vXuNP1"],
   "refs": [
-    { "id": "ak:grant:0196410c-2000-8000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:grant:AaRSy9srXE6AYwaAorjFWZcR6bXwbk7PDHWQxu11tTLR", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
   "seal_ref": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
@@ -480,7 +480,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
     "key_epoch": 1
   },
   "payload": {
-    "strand_id": "ak:strand:019640c6-8000-8000-8000-000000000000",
+    "strand_id": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
     "track_name": "discussion",
     "content": { "kind": "ak.content.text", "body": "Reply" }
   },
@@ -504,21 +504,21 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ak:event:019640ee-0000-8000-8000-000000000000",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "event_id": "ak:event:AbxXq2kgnCNX8X5eerT7jjvw-n-ylkJEhAuk2jGoe6CJ",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "scope_ref": {
     "kind": "realm",
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
   },
   "actor_id": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example",
   "actor_seq": 12,
   "kind": "ak.reaction.add",
   "created_at": "2026-04-26T00:02:00.000Z",
   "hlc": "01970e589d40-0002-c00fbeef",
-  "prev_refs": ["ak:event:019640ed-9000-8000-8000-000000000000"],
+  "prev_refs": ["ak:event:AZet3XWvSRcqbhqClDZrTvO3iB2U8jLvJdHGJaZD4ZTa"],
   "refs": [
-    { "id": "ak:grant:0196410c-2000-8000-8000-000000000000", "role": "authorized_by", "critical": true },
-    { "id": "ak:event:019640ed-8000-8000-8000-000000000000", "role": "parent_event", "critical": false }
+    { "id": "ak:grant:AQLzWI2nuJ6SbrmK3EJ2JAFxIKISNnw_uzwhLshIDJRk", "role": "authorized_by", "critical": true },
+    { "id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-", "role": "parent_event", "critical": false }
   ],
   "causal_refs": ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
   "seal_ref": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
@@ -528,7 +528,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
     "key_epoch": 1
   },
   "payload": {
-    "target_ref": "ak:message:019640ed-8000-8000-8000-000000000000",
+    "target_ref": "ak:message:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
     "key": "+1"
   },
   "proofs": [
@@ -587,7 +587,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 | `ak.self.events.read.describe` | JSON content `{actor_id?: did, realm_id?: id}` | 无 | `ServiceDescribe` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody。HTTP binding 使用 QUERY。 |
 | `ak.self.control_proposal_acks.command.issue` | `event: EventEnvelope`; `authorization_lease: AuthorizationLease` | `cba_proof_bundles: CbaProofBundle[]?` | `authority_ack: ControlProposalAuthorityAck` | request_schema_ref=schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_request；response_schema_ref=schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_outcome。只为最终签名 Control Move 签发一个当前 authority authority Ack；本地 Agent/device signer 使用相同 typed transcript。精确重放返回原 authority Ack。 |
 | `ak.self.authorization_leases.command.issue` | `events: Event[1..500]` 或 `intents: AuthorizationLeaseIssueIntent[1..500]`，必须二选一 | `header.Idempotency-Key: string`；相同 key + canonical request 逐字节 replay，不同 request 为 `duplicate_conflict`。 | `authorization_leases: AuthorizationLease[1..500]` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequest；response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueOutcome。Event 执行与正式 submit 相同的只读 admission；non-Event intent 仅为已注册空 `target_event_kinds` action，并重算当前 basis/scope/risk/authority policy；均不产生持久 Event side effect。详见 [offline-publication.md](../authz/offline-publication.md) §2.2。 |
-| `ak.self.events.command.submit` | 单事件 body 是 `EventInitialSubmission {event, authorization_lease?, cba_proof_bundles[]?, control_proposal_ack?}`；批量 body 是 `{events: EventInitialSubmission[]}`。Event 本身不含 reducer-managed accepted-output 字段，发布证据不进入 Event digest。 | 不存在 body `idempotency_key` 或 `expected_frontier`；HTTP 幂等键只在 header。 | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `ingress_receipts: IngressReceipt[]?`; `control_proposal_acks: ControlProposalAck[]?`; `duplicate: id[]?`; `rejected: object[]?`; `quarantine: id[]?`; `realm_actor_frontiers: RealmActorFrontierView[]?`; `realm_frontiers: RealmSealFrontierView[]?`; `cursor: cursor?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome。MUST 验证 Event signature、DID、当前 CBA basis，并在可选 lease 出现时验证其离线窗口、capability、Realm policy、`actor_seq`、`prev_refs` 和 `refs[role=authorized_by]`；外部 Control receipt set还必须满足当前authority quorum、canonical member排序、共同窗口与proposal binding。caller-proven closed anchor unit 的 basis-free Event 在 durable ingress 仍须具有 receipt，且与 canonical Event/pending index 原子提交；来源 1 在 request 携带 receipt，来源 2 在 request 携带完整 anchor-unit lease set且省略 receipt，由 admitting server 在事务内签发；实现不得按 `seal_basis` 是否存在决定是否写 pending index。在线提交直接原子接受；离线提交在lease到期前持久化IngressReceipt。相同canonical Event的重复提交返回原receipt，不得用新时间重签。同一`event_id`对应不同canonical内容时MUST先于actor CAS判定并以`duplicate_conflict`（409）拒绝（见[operations-sync.md](./operations-sync.md) §12），不得退化为`causal_conflict` / `state_mismatch`。`cursor`是barrier purpose（read-your-writes）。 |
+| `ak.self.events.command.submit` | 单事件 body 是 `EventInitialSubmission {event, authorization_lease?, cba_proof_bundles[]?, control_proposal_ack?}`；批量 body 是 `{events: EventInitialSubmission[]}`。Event 本身不含 reducer-managed accepted-output 字段，发布证据不进入 Event digest。 | 不存在 body `idempotency_key` 或 `expected_frontier`；HTTP 幂等键只在 header。 | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `ingress_receipts: IngressReceipt[]?`; `control_proposal_acks: ControlProposalAck[]?`; `duplicate: id[]?`; `rejected: object[]?`; `quarantine: id[]?`; `realm_actor_frontiers: RealmActorFrontierView[]?`; `realm_frontiers: RealmSealFrontierView[]?`; `cursor: cursor?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome。MUST 验证 Event signature、DID、当前 CBA basis，并在可选 lease 出现时验证其离线窗口、capability、Realm policy、`actor_seq`、`prev_refs` 和 `refs[role=authorized_by]`；外部 Control receipt set还必须满足当前authority quorum、canonical member排序、共同窗口与proposal binding。caller-proven closed anchor unit 的 basis-free Event 在 durable ingress 仍须具有 receipt，且与 canonical Event/pending index 原子提交；来源 1 在 request 携带 receipt，来源 2 在 request 携带完整 anchor-unit lease set且省略 receipt，由 admitting server 在事务内签发；实现不得按 `seal_basis` 是否存在决定是否写 pending index。在线提交直接原子接受；离线提交在lease到期前持久化IngressReceipt。相同digest-preimage canonical bytes的重复提交返回原receipt，不得用新时间重签；仅excluded字段不同不构成hash collision，仍按各字段合同验证。同一`event_id`对应不同digest-preimage canonical bytes时MUST先于actor CAS判定，原子整组quarantine并返回`witness_disagreement`（见[operations-sync.md](./operations-sync.md) §12），不得退化为`duplicate_conflict` / `causal_conflict` / `state_mismatch`。`cursor`是barrier purpose（read-your-writes）。 |
 | `ak.self.events.command.submit_seal` | body `Seal` | 无 | `seal_id: seal-id`; `accepted_event_digests: string[]`; `post_state_root: string` | request_schema_ref=schemas/seal.schema.json; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventSealSubmitOutcome。认证 session 只能对可见 Realm 提交 Seal，且 signer MUST 满足 predecessor `ak.component.notary.v1` authority；managed Agent PCR 可按 `key-management.md` §4.1 的闭合 delegation 由 controller 当前设备签署，service 不得代签。receiver MUST 重算全部 signed body、coverage、completeness 与 state。B 模型 principal-control Realm 的首个 Seal必须由 bootstrap device #1 签名并完整覆盖 bootstrap unit；managed Agent PCR 首个/后继 Seal分别完整覆盖 create 与 effectless MLS genesis。`accepted_event_digests` 按 byte-wise 升序去重返回，与 `Seal.delta` 相同，不表达 apply order。 |
 | `ak.self.events.resource.get` | `path.event_id: id` | `query.include_payload: boolean` | `event: object`; `visibility: object?`; `receipts: object[]?` | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventView。不可见时返回 `not_found`。 |
 | `ak.self.events.read.resolve` | 至少一个：`event_ids: id[]` 或 `event_digests: string[]` | `include_payload: boolean` | `events: object[]`; `seals: object[]`; `missing: id[]`; `unauthorized: id[]?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome。payload 可见性按 Realm policy / E2EE envelope 判断。`seals[]` 是**封闭派生集**：对每条返回的 Event，取其 `event_digest` 出现在 `delta[]` 中的那个 accepted Seal；按 Seal id canonical 升序去重；尚未被 Seal 覆盖的 Event 不贡献条目，服务端 MUST NOT 补一个后继 Seal 顶替。它不产生信任——[`../crypto-media/encryption-and-audit.md` §2.5.4](../crypto-media/encryption-and-audit.md) 的 anchor 判定仍由客户端自证完成。 |
@@ -839,11 +839,11 @@ POST /_arkret/self/events
 ```json
 {
   "event": {
-    "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+    "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "scope_ref": {
       "kind": "realm",
-      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
     },
     "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
     "actor_seq": 42,
@@ -877,15 +877,15 @@ POST /_arkret/self/events
 ```json
 {
   "status": "accepted",
-  "accepted": ["ak:event:019640ed-8000-8000-8000-000000000000"],
+  "accepted": ["ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"],
   "realm_actor_frontiers": [{
     "kind": "realm_actor",
-    "realm_id": "ak:realm:01904100-0000-8000-8000-000000000001",
+    "realm_id": "ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
     "actor_id": "did:web:alice.example",
     "next_actor_seq": 43,
     "frontier_event_ids": [
-      "ak:event:01904100-0000-8000-8000-000000000001",
-      "ak:event:01904100-0000-8000-8000-000000000002"
+      "ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
+      "ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe"
     ],
     "frontier_digest": "sha256:4f928af58951a0a04f532b272fe6c45b371d33e932d0a15a8df84725a5efe1cf"
   }],
@@ -917,7 +917,7 @@ QUERY /_arkret/self/events/resolve
 
 ```json
 {
-  "event_ids": ["ak:event:019640ed-8000-8000-8000-000000000000"],
+  "event_ids": ["ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"],
   "include_payload": true
 }
 ```

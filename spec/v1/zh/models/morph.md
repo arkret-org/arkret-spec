@@ -71,9 +71,9 @@ Schema id: `ak.schema.morph.v1`
 
 ```json schema=schemas/morph.schema.json
 {
-  "id": "ak:morph:0196414b-0000-8000-8000-000000000000",
+  "id": "ak:morph:AUou5-JrNP1W6Qhnuc2zBUyVzxpczt67dSwhviS8m2TC",
   "schema": "ak.schema.morph.v1",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "schema_refs": ["ak.schema.morph.customer_risk.v1"],
   "morph_kind": "customer_risk",
   "metadata": {

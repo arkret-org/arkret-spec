@@ -118,8 +118,8 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 {
   "sidebar_collapsed": false,
   "recent_realms": [
-    "ak:realm:01964195-0000-8000-8000-000000000000",
-    "ak:realm:01964195-8000-8000-8000-000000000000"
+    "ak:realm:AdHing2meouJofkXXyApJTyFCo7SNoZHrSjQHaitT3D8",
+    "ak:realm:AbFCxTyW_gTLgSNJVZge-vUGLGIA_xSq6UixRuoPDk-W"
   ],
   "language": "zh-CN"
 }
@@ -265,7 +265,7 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
   "version": 1,
   "subject": {
     "kind": "realm",
-    "id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+    "id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
   },
   "local_name": "Acme 内部 · 工程",
   "note": "和外包侧 Engineering Realm 同名，注意区分",
@@ -319,12 +319,12 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
     "display": true
   },
   "realms": {
-    "ak:realm:0196419b-0000-8000-8000-000000000000": {
+    "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5": {
       "send": false
     }
   },
   "strands": {
-    "ak:strand:01964200-0000-8000-8000-000000000001": {
+    "ak:strand:AaalePlTK6W4ZKrbKyKzlmmcdhXVx-InxeWY4ul69tiN": {
       "send": true
     }
   }

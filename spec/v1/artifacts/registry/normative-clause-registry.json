@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07.3",
+  "version": "2026-08-07.7",
   "source_of_truth": true,
-  "generated_at": "2026-08-07T16:00:00Z",
+  "generated_at": "2026-08-08T00:30:00Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -28,7 +28,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#2-canonical-json",
-      "section_digest": "sha256:23c56b94a7c83535de10a4a653e00749ce9c18d207bf7f3dbd040768869b9487",
+      "section_digest": "sha256:a25a3e3a9dba232d039efdd3a0a9fe0e945a48d8389ea2a187d1237a89803041",
       "requirement": "Canonical JSON serialization (key order, number form, NFC strings, duplicate-key rejection) is the single encoding used for every digest, signature and canonical comparison.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -68,7 +68,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#6-signature",
-      "section_digest": "sha256:a6f17edd22946c05ac0cae1d1e6a56e2cc8d7445f39b7ee9aad7ce5cc732378b",
+      "section_digest": "sha256:7eb2627d700dd303d8aaf8321153d5944b487b9e8f9aead9e421bb61e3bead8a",
       "requirement": "The signature carrier MUST cryptographically protect its algorithm selection, and the binding payload MUST bind domain and audience; a signature valid for one algorithm, domain or audience MUST NOT verify for another.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -149,7 +149,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#6-幂等",
-      "section_digest": "sha256:4b6fbd155c97b397921a377a98e227afa1c3516e7821ba94cd7b86889a45f0e7",
+      "section_digest": "sha256:6866a113981a1a13b5b62edc5333889e3b2444350baad97953823961477492ad",
       "requirement": "Every write operation declares a machine-readable idempotency mechanism and retry safety; clients MUST NOT be left to guess the recovery path of an uncertain outcome.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -176,7 +176,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:1160c2f7e9c349fdfab16a3546260012dfbf192b27dc405821520e3aaf6c6a12",
+      "section_digest": "sha256:8f411fcd73ea7955a0ec030f5875e9d2d9e620a75c92660d07993a0abca05481",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, encryption floors MUST NOT be downgraded, an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling, every MLS epoch MUST bind the independently re-derived security frontier for its accepted key-access state, and epoch-0 leaf indices MUST be recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -273,7 +273,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#12-revocation",
-      "section_digest": "sha256:0859e2a7a7071d26d316c220a047e96fc834913f5e8292d2b1112b7577b844ee",
+      "section_digest": "sha256:98fbfe34fbe40d24bf619c2c512f5e1e2935d7e85ec83da597afe8e9402d9559",
       "requirement": "Revocation rolls back downstream grants and forces a re-check of dependent decisions; a revoked grant MUST NOT keep authorizing pending or cached writes.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -305,7 +305,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
-      "section_digest": "sha256:c358168a6689010623b7679f4c325df3dd09ccf13b3eff1acd68a03e65355299",
+      "section_digest": "sha256:6b388344e77866f9256e74c2befbf17b82998326d36fabd9eb7490af0e2d03b2",
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -334,7 +334,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
-      "section_digest": "sha256:733ba0f4daf7324e4bfc06adba407abc7017fc5f3f557f65e3cae8b083893bb6",
+      "section_digest": "sha256:903aed065f6bcf0f177b0305b5a93b386a1f63dba7f6063e92aacd8fa01f3b53",
       "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, replaying the same state is a no-op, and concurrent siblings resolve to bottom.",
       "testability_grade": "vector",
       "evidence_refs": [

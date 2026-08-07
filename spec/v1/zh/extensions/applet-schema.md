@@ -175,7 +175,7 @@ Install preview request:
   "applet_package": {},
   "effective_scope": {
     "kind": "realm",
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
   },
   "approval_request": {
     "approve_actions": ["ak.message.create"],
@@ -197,7 +197,7 @@ Install commit request:
   "applet_package": {},
   "effective_scope": {
     "kind": "realm",
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
   },
   "registration_event": {
     "kind": "ak.applet.registration",
@@ -210,7 +210,7 @@ Install commit request:
       "kind": "ak.capability.grant",
       "actor_id": "did:webvh:z6MkAdmin:acme.example",
       "payload": {
-        "grant_id": "ak:grant:0196419b-0000-8000-8000-000000000001",
+        "grant_id": "ak:grant:ATpeQcWXS2c6ZR28oxVkSy6uGn4PeNX-6DLuDY50EDTS",
         "grant": {}
       },
       "proofs": []
@@ -344,7 +344,7 @@ GET /_arkret/edge/applet/realms/{realm_id_or_alias}
 ```json
 {
   "exists": true,
-  "realm_id": "ak:realm:c0c69410-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Adoyg50aOV537gzxNy87EOdUlHiIujznqwZcMLSGFmzg",
   "title": "#general",
   "external_ref": {}
 }
@@ -375,8 +375,8 @@ GET /_arkret/edge/applet/protocols/{protocol}
 {
   "kind": "ak.applet.bridge_error",
   "applet_id": "ak:applet:dd552c17-0000-7000-8000-000000000000",
-  "realm_id": "ak:realm:c0c69410-0000-8000-8000-000000000000",
-  "failed_transaction_ref": "ak:event:019640ed-8000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Adoyg50aOV537gzxNy87EOdUlHiIujznqwZcMLSGFmzg",
+  "failed_transaction_ref": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
   "error_class": "external_network",
   "error_code": "external_rate_limited",
   "retriable": true,

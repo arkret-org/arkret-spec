@@ -165,8 +165,8 @@ signature 合法但 directory JWS 无效（及反向）等负向量。
     "profile": "ak.profile.mimi_interop.v1",
     "mimi_room_uri": "mimi://example.com/rooms/01JSMIMI...",
     "binding_scope": {
-      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-      "strand_id": "ak:strand:01964137-0000-8000-8000-000000000000"
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "strand_id": "ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"
     },
     "hub_provider": "did:webvh:z5dPBhAYJdfYhFqD3peyGJcxj:mimi.example.com",
     "local_provider_role": "hub",

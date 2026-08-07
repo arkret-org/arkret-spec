@@ -28,7 +28,7 @@
       "scenarios": [
         {
           "name": "visible_at_t0_post_ban_still_recoverable",
-          "event_id": "ak:event:0196419b-0000-8000-8000-000000005001",
+          "event_id": "ak:event:AUdE2zhXd0lntgHQeE19ZjdPdxBByiW_E2MrxdxeIf72",
           "receiver": "did:webvh:z6mkfixture:bob.example",
           "t0_visible": true,
           "t0_member": true,
@@ -54,7 +54,7 @@
         },
         {
           "name": "not_visible_at_t0_rejected",
-          "event_id": "ak:event:0196419b-0000-8000-8000-000000005002",
+          "event_id": "ak:event:AQ2m4BnNqhMa9oSEDUOMln4VCq335wtQNf-m8DkB31Ai",
           "receiver": "did:webvh:z6mkfixture:bob.example",
           "t0_visible": false,
           "t0_member": false,
@@ -69,7 +69,7 @@
         },
         {
           "name": "source_without_recheck_rejected",
-          "event_id": "ak:event:0196419b-0000-8000-8000-000000005003",
+          "event_id": "ak:event:AcCsaxV9bUi2UuZF8QlQC-_kgvrklP7Di9_a60uP8oR4",
           "receiver": "did:webvh:z6mkfixture:bob.example",
           "t0_visible": true,
           "t0_member": true,
@@ -92,7 +92,7 @@
         "reader_identity_and_counts_not_leaked"
       ],
       "message": {
-        "message_id": "ak:message:0196419b-0000-8000-8000-000000006001",
+        "message_id": "ak:message:Ado75u2MuJ1Wmu8DWkhVMLgetu0_u2o4042nTBcwe9xm",
         "trigger": "on_first_read",
         "ttl_ms": 60000,
         "grace_ms": 5000,
@@ -140,13 +140,13 @@
         "duplicate_replay_does_not_refresh_anchor",
         "cross_message_replay_fails_closed"
       ],
-      "message_id": "ak:message:0196419b-0000-8000-8000-000000006201",
+      "message_id": "ak:message:ASLABl2ntA2a7jNCeqq9HcQELB9bs4s0vuWyGzrcEj6X",
       "send_seal_hlc": "01970e589d21-0001-a13f9c2e",
       "accepted_anchor_hlc": "01970e589d21-0001-a13f9c2e",
       "contributions": [
         {
           "label": "bob_phone",
-          "message_id": "ak:message:0196419b-0000-8000-8000-000000006201",
+          "message_id": "ak:message:ASLABl2ntA2a7jNCeqq9HcQELB9bs4s0vuWyGzrcEj6X",
           "principal_id": "did:webvh:z6mkfixture:bob.example",
           "device_id": "ak:device:0196419b-0000-7000-8000-000000006202",
           "hlc": "01970e589d21-0001-a13f9c2e",
@@ -154,7 +154,7 @@
         },
         {
           "label": "bob_desktop_later",
-          "message_id": "ak:message:0196419b-0000-8000-8000-000000006201",
+          "message_id": "ak:message:ASLABl2ntA2a7jNCeqq9HcQELB9bs4s0vuWyGzrcEj6X",
           "principal_id": "did:webvh:z6mkfixture:bob.example",
           "device_id": "ak:device:0196419b-0000-7000-8000-000000006203",
           "hlc": "01970e589d22-0001-a13f9c2e",
@@ -162,7 +162,7 @@
         },
         {
           "label": "invalid_before_send_replay",
-          "message_id": "ak:message:0196419b-0000-8000-8000-000000006201",
+          "message_id": "ak:message:ASLABl2ntA2a7jNCeqq9HcQELB9bs4s0vuWyGzrcEj6X",
           "principal_id": "did:webvh:z6mkfixture:bob.example",
           "device_id": "ak:device:0196419b-0000-7000-8000-000000006202",
           "hlc": "01970e589d20-0001-a13f9c2e",
@@ -170,7 +170,7 @@
         },
         {
           "label": "cross_message_replay",
-          "message_id": "ak:message:0196419b-0000-8000-8000-000000006299",
+          "message_id": "ak:message:AYXg-_NuKt-H2NVuprDGcCSE2rcHRGG_avlU4D2Mgr0u",
           "principal_id": "did:webvh:z6mkfixture:bob.example",
           "device_id": "ak:device:0196419b-0000-7000-8000-000000006202",
           "hlc": "01970e589d23-0001-a13f9c2e",
@@ -195,7 +195,7 @@
         "late_earlier_candidate_only_moves_expiry_earlier",
         "shredded_key_never_recovers"
       ],
-      "message_id": "ak:message:0196419b-0000-8000-8000-000000006251",
+      "message_id": "ak:message:AekGL-vNnUXAm0ExiuKyRzOWDn-nepKr6M0idVh7Q8mf",
       "send_seal_hlc": "01970e589d20-0001-a13f9c2e",
       "contributions": [
         {
@@ -245,7 +245,7 @@
         "offline_device_receives_stub_and_shreds_keys",
         "late_recovery_does_not_restore_expired_plaintext"
       ],
-      "message_id": "ak:message:0196419b-0000-8000-8000-000000006301",
+      "message_id": "ak:message:AdkSyT9HhYzsEtFf-5YsJK-z6R8Ime5KR0amOKMJGVbJ",
       "trigger": "on_last_read",
       "eligible_principals": [
         "did:webvh:z6mkfixture:bob.example",

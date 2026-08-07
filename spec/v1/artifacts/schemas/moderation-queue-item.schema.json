@@ -18,7 +18,7 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^ak:moderation_queue_item:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:moderation_queue_item:[A-Za-z0-9_-]{44}$"
     },
     "report": {
       "$ref": "./moderation-report.schema.json"
@@ -69,7 +69,9 @@
         "franking_proof_verification_required": {
           "type": "boolean"
         },
-        "retention_expires_at": { "$ref": "#/$defs/timestamp" },
+        "retention_expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
         "legal_hold": {
           "type": "boolean"
         }
@@ -80,11 +82,15 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
       }
     },
-    "created_at": { "$ref": "#/$defs/timestamp" },
-    "updated_at": { "$ref": "#/$defs/timestamp" }
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "updated_at": {
+      "$ref": "#/$defs/timestamp"
+    }
   },
   "additionalProperties": false
 }

@@ -16,12 +16,12 @@
       "expect_valid": true,
       "instance": {
         "event": {
-          "event_id": "ak:event:019a8200-0000-8000-8000-000000000001",
+          "event_id": "ak:event:AStrwWuEhE4vocFwGLkvCMfXLyqIH4AACzJ06y1U_hD1",
           "kind": "ak.policy.set",
-          "realm_id": "ak:realm:019a8200-0000-8000-8000-000000000002",
+          "realm_id": "ak:realm:AXtxKIJQOEbsj64qEDHyTFTAvWbj5-6ahXYDh50NuJQM",
           "scope_ref": {
             "kind": "realm",
-            "realm_id": "ak:realm:019a8200-0000-8000-8000-000000000002"
+            "realm_id": "ak:realm:AXtxKIJQOEbsj64qEDHyTFTAvWbj5-6ahXYDh50NuJQM"
           },
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "actor_seq": 3,
@@ -86,7 +86,7 @@
           "device_id": "ak:device:019a8200-0000-7000-8000-000000000004",
           "scope_ref": {
             "kind": "realm",
-            "realm_id": "ak:realm:019a8200-0000-8000-8000-000000000002"
+            "realm_id": "ak:realm:AXtxKIJQOEbsj64qEDHyTFTAvWbj5-6ahXYDh50NuJQM"
           },
           "action": "ak.policy.set",
           "authorization_rule_id": "policy_set",
@@ -103,11 +103,11 @@
             "policy_kind": "principal_control",
             "scope_ref": {
               "kind": "realm",
-              "realm_id": "ak:realm:019a8200-0000-8000-8000-000000000002"
+              "realm_id": "ak:realm:AXtxKIJQOEbsj64qEDHyTFTAvWbj5-6ahXYDh50NuJQM"
             },
             "source": {
               "source_kind": "realm_control",
-              "source_ref": "ak:realm:019a8200-0000-8000-8000-000000000002",
+              "source_ref": "ak:realm:AXtxKIJQOEbsj64qEDHyTFTAvWbj5-6ahXYDh50NuJQM",
               "source_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
               "generation_ref": "3"
             },

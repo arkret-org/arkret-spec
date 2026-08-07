@@ -234,11 +234,11 @@
         },
         "view_id": {
           "type": "string",
-          "pattern": "^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:view:[A-Za-z0-9_-]{44}$"
         },
         "context_ref": {
           "type": "string",
-          "pattern": "^(ak:(realm|space|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$",
+          "pattern": "^(ak:(realm|space|strand|message|morph|relation|view):[A-Za-z0-9_-]{44}|did:.+)$",
           "description": "Optional timeline / renderer context object reference. This is not a Seal."
         },
         "projection": {

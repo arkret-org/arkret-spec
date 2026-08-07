@@ -139,13 +139,13 @@ POST /_arkret/self/moderation/report
 
 ```json
 {
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "effective_scope": {
     "kind": "circle",
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-    "circle_id": "ak:circle:01964200-0000-8000-8000-000000000001"
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+    "circle_id": "ak:circle:AaalePlTK6W4ZKrbKyKzlmmcdhXVx-InxeWY4ul69tiN"
   },
-  "target_ref": "ak:message:01964200-0000-8000-8000-000000000002",
+  "target_ref": "ak:message:AfslM_DNod70pfu-VkH6C2UTYa4N7qqqTljZ_MYLBciF",
   "report_reason_code": "harassment",
   "description": "This message contains targeted personal attacks.",
   "reporter": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com"
@@ -217,8 +217,8 @@ Canonical franking proof 结构（示例中的 digest / signature 字节以 `...
 {
   "kind": "ak.moderation.franking_proof",
   "franking_proof_id": "ak:franking_proof:0196425b-0000-7000-8000-000000000000",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-  "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+  "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
   "routing_metadata_digest": "sha256:...",
   "ciphertext_digest": "sha256:...",
   "aad_digest": "sha256:...",
@@ -384,7 +384,7 @@ Realm MAY 使用 `ak.realm.moderation_policy` state event 声明黑名单、允�
     ],
     "appeal": {
       "enabled": true,
-      "endpoint": "ak:strand:56b39410-0000-8000-8000-000000000000"
+      "endpoint": "ak:strand:AVJXk6oAyn0y1KTd0hdGIZQYhpTQR2lTDsGRVSzvQJg7"
     }
   }
 }
@@ -599,7 +599,7 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
   "organization_did": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
   "policy_id": "ak:org-policy:abuse-v1",
   "policy_scope": {
-    "realm_ids": ["ak:realm:01964280-0000-8000-8000-000000000000"],
+    "realm_ids": ["ak:realm:AcNT448P7qPaGrcUoLXxUyutbNGE4ZXv8UN835EnK4Wp"],
     "service_ids": [
       "did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example",
       "did:webvh:z9hEFwrg1A6sjcDxhuzWJGKhe:policy.acme.example"

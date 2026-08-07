@@ -174,7 +174,7 @@ Schema id: `ak.schema.realm.v1`
 
 ```json schema=schemas/realm.schema.json
 {
-  "id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "schema": "ak.schema.realm.v1",
   "title": "Launch Plan Confidential Realm",
   "trust_domain": "ak:trust_domain:did.webvh.acme.example",
@@ -226,11 +226,11 @@ uuid = H[0..16]，并置 UUID version=7、variant=10
 PCR_DOMAIN = UTF8("ak" ":" "realm" ":" "principal-control" ":" "v1" ":")
 ```
 
+理由是**可寻址性**：任何一方拿到某个 principal 的 DID 就能直接算出其 PCR 地址，不需要先取得 genesis Event；collaboration Realm 的 Event-derived token 则必须先知道 create Event 的完整 digest。PCR 的身份锚本来也不是 genesis Event，而是 [`../identity/key-management.md` §5.0.1](../identity/key-management.md) 的唯一 critical `did_inception` root anchor——那比 genesis Event 更强。
+
+因此 `ak:realm:` 是**唯一同时接受两种确定性形态**的 typed kind：collaboration Realm 重类型其 create Event 的 suite-tagged 33-octet token，PCR 使用 subject-derived UUIDv7 布局。两者都不是 producer 自选，分支由 create 的 `purpose` 决定，实现 MUST NOT 逐调用点自选，也不得用一个通用 UUID accessor / 数据库列承载两种分支。
+
 固定 KAT 与负例由 `ak.vector.object_identity.subject_derived_realm.v1` 承载。
-
-理由是**可寻址性**：任何一方拿到某个 principal 的 DID 就能直接算出其 PCR 地址，不需要查询；而带时间戳段的 event-derived 形态无法从 DID 单独算出。PCR 的身份锚本来也不是 genesis Event，而是 [`../identity/key-management.md` §5.0.1](../identity/key-management.md) 的唯一 critical `did_inception` root anchor——那比 genesis Event 更强。
-
-因此 `ak:realm:` 是唯一同时接受两种确定性形态的 typed kind：Collaboration Realm 使用 §4.0 的 event-derived content-bound UUIDv8；PCR 使用本节的 subject-derived UUIDv7 布局。PCR 的全部可用位来自带独立 domain separator 的 DID transcript，version nibble 只表达已登记的布局分支，不表示 producer 分配，也不携带真实时间戳。两者都不是 producer 自选，分支由 create 的 `purpose` 决定；实现 MUST NOT 只检查 version nibble，也不得逐调用点自选布局。
 
 **首次接触校验义务（normative）**：receiver 首次接触某个 `realm_id` 时 MUST：
 
@@ -247,7 +247,11 @@ PCR_DOMAIN = UTF8("ak" ":" "realm" ":" "principal-control" ":" "v1" ":")
 
 > **边界：identity 自证，naming 不自证。**攻击者仍可创建一个 `realm_id` 完全合法自证的 Realm，再去抢注一个像样的 alias。alias 抢注与目录投毒是独立问题，本节不解决，也 MUST NOT 被表述为已解决。
 
-对 Collaboration Realm，两条不同 create 必然有不同 `event_id`、因而必然是两个不同 Realm；伪造同一 Realm ID 需要攻击 §4.0 的 88-bit content-bound 截断。对 PCR，Realm ID 唯一绑定 principal DID；不同 DID 伪造同一 ID 需要攻击本节 122-bit subject-derived 截断，而同一 DID 的第二条 genesis 由唯一 root anchor 与永久 genesis binding 拒绝。下文的 `realm_already_exists` 是两条路径共同的 fail-closed 防线。
+除非底层 256-bit digest 发生完整 hash collision，两条不同 digest preimage 的 create 必然有不同
+`event_id`、因而是两个不同的 Realm。"同一 Realm id 的第二条 create"要么是携带 ID 与重算 digest
+不符的伪造输入（必须在 lookup 前以 `event_id_digest_mismatch` 拒绝），要么是约 `2^128` 通用复杂度的
+完整 collision evidence（必须整组 quarantine）。下文步骤 3 的 `realm_already_exists` 因此是防御性
+剩余分支，不是常规路径，也不得退化为 first-create-wins。
 
 #### 2.5.1 Bootstrap 步骤
 
@@ -610,10 +614,10 @@ Project Space：
 
 ```json schema=schemas/space.schema.json
 {
-  "id": "ak:space:019640b6-8000-8000-8000-000000000000",
+  "id": "ak:space:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-",
   "schema": "ak.schema.space.v1",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-  "default_realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+  "default_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "kind": "project",
   "title": "Website Redesign",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
@@ -625,11 +629,11 @@ Confidential sibling Space：
 
 ```json schema=schemas/space.schema.json
 {
-  "id": "ak:space:019640c0-8000-8000-8000-000000000000",
+  "id": "ak:space:AScD0xd0vWSGWhC2n9BZHco7N_jYnNgmEIifpAo_uxUJ",
   "schema": "ak.schema.space.v1",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-  "default_realm_id": "ak:realm:019641aa-0000-8000-8000-000000000000",
-  "parent_space_id": "ak:space:019640a0-8000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+  "default_realm_id": "ak:realm:AZUa8SJ6PUaPKeLjKKRW64JmDpKE7X-1KZHajF0_it8p",
+  "parent_space_id": "ak:space:AUwbeCUMZI_GuEADljowhvFwzl6wIkaSiCDhu2oaOqTg",
   "kind": "project",
   "title": "Pricing Strategy",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",

@@ -13,7 +13,7 @@
       "expect_valid": true,
       "instance": {
         "target_principal_id": "did:webvh:z6mkfixture:bob.example",
-        "intended_realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+        "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "requester": "did:webvh:z6mkfixture:alice.example",
         "required_capabilities": [
           "mls"
@@ -38,7 +38,7 @@
       "first_expected_error": "contains:holder_acceptance_proof",
       "instance": {
         "target_principal_id": "did:webvh:z6mkfixture:bob.example",
-        "intended_realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+        "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "requester": "did:webvh:z6mkfixture:alice.example",
         "required_capabilities": [
           "mls"
@@ -54,7 +54,7 @@
       "first_expected_error": "contains:holder_acceptance_proof",
       "instance": {
         "target_principal_id": "did:webvh:z6mkfixture:bob.example",
-        "intended_realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+        "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "requester": "did:webvh:z6mkfixture:alice.example",
         "required_capabilities": [
           "mls"
@@ -90,7 +90,7 @@
       "first_expected_error": "contains:claim_nonce",
       "instance": {
         "target_principal_id": "did:webvh:z6mkfixture:bob.example",
-        "intended_realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+        "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "requester": "did:webvh:z6mkfixture:alice.example",
         "required_capabilities": [
           "mls"
@@ -127,7 +127,7 @@
       "target_principal_id": "did:webvh:z6mkfixture:alice.example",
       "requester_service_id": "did:webvh:z6mkfixture:ps.example",
       "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
-      "intended_realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+      "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "keypackage_min_available": 2,
       "available_count": 1,
       "claim_rate_limit": {
@@ -178,7 +178,7 @@
       "feature": "ak.feature.mls_last_resort_keypackage.v1",
       "target_principal_id": "did:webvh:z6mkfixture:alice.example",
       "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
-      "intended_realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+      "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "normal_keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
       "last_resort_keypackage_ref": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
       "last_resort_claim_ids": [
@@ -233,8 +233,8 @@
       "vector_id": "ak.vector.keypackage.last_resort_affinity_and_optionality.v1",
       "kind": "last_resort_affinity_optionality",
       "feature": "ak.feature.mls_last_resort_keypackage.v1",
-      "realm_r1": "ak:realm:0196419b-0000-8000-8000-000000000000",
-      "realm_r2": "ak:realm:0196419b-0000-8000-8000-000000000002",
+      "realm_r1": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "realm_r2": "ak:realm:AYqLR5FWUtAxcyq2GwRsmHAf_zMFkYrFScSs4ouycARM",
       "last_resort_keypackage_ref": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
       "expected": {
         "cross_realm_reason": "last_resort_realm_affinity_violation",
@@ -295,7 +295,7 @@
       "authority_service_id": "did:webvh:z6mkfixture:ps.example",
       "proof_free_request": {
         "target_principal_id": "did:webvh:z6mkfixture:bob.example",
-        "intended_realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+        "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "requester": "did:webvh:z6mkfixture:alice.example",
         "required_capabilities": [
           "mls"
@@ -303,9 +303,9 @@
         "claim_nonce": "AAAAAAAAAAAAAAAAAAAAAA",
         "expires_at": "2026-07-31T00:05:00.000Z"
       },
-      "canonical_proof_free_request_json": "{\"claim_nonce\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"expires_at\":\"2026-07-31T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:0196419b-0000-8000-8000-000000000000\",\"requester\":\"did:webvh:z6mkfixture:alice.example\",\"required_capabilities\":[\"mls\"],\"target_principal_id\":\"did:webvh:z6mkfixture:bob.example\"}",
+      "canonical_proof_free_request_json": "{\"claim_nonce\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"expires_at\":\"2026-07-31T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"requester\":\"did:webvh:z6mkfixture:alice.example\",\"required_capabilities\":[\"mls\"],\"target_principal_id\":\"did:webvh:z6mkfixture:bob.example\"}",
       "payload_digest": "sha256:6dea2ecbd89f7ffe2f330d5f679a3b735c576f0c221fad0a8a96627eb327e166",
-      "canonical_proof_binding_json": "{\"audience\":\"did:webvh:z6mkfixture:ps.example\",\"claim_nonce\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"context\":\"ak.keypackage-claim-request-proof-v1\",\"created_at\":\"2026-07-31T00:00:00.000Z\",\"intended_realm_id\":\"ak:realm:0196419b-0000-8000-8000-000000000000\",\"payload_digest\":\"sha256:6dea2ecbd89f7ffe2f330d5f679a3b735c576f0c221fad0a8a96627eb327e166\",\"proof_purpose\":\"holder_acceptance\",\"requester\":\"did:webvh:z6mkfixture:alice.example\",\"target_principal_id\":\"did:webvh:z6mkfixture:bob.example\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ak_self_signing_v1\"}",
+      "canonical_proof_binding_json": "{\"audience\":\"did:webvh:z6mkfixture:ps.example\",\"claim_nonce\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"context\":\"ak.keypackage-claim-request-proof-v1\",\"created_at\":\"2026-07-31T00:00:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"payload_digest\":\"sha256:6dea2ecbd89f7ffe2f330d5f679a3b735c576f0c221fad0a8a96627eb327e166\",\"proof_purpose\":\"holder_acceptance\",\"requester\":\"did:webvh:z6mkfixture:alice.example\",\"target_principal_id\":\"did:webvh:z6mkfixture:bob.example\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ak_self_signing_v1\"}",
       "proof_binding_digest": "sha256:ce49ba361d7f133f9a8fd1c99141fb75ae78262a0badb054bb14a08c5c878e8c",
       "object_identity": {
         "requester": "did:webvh:z6mkfixture:alice.example",
@@ -358,8 +358,8 @@
       "requester": "did:webvh:z6mkfixture:alice.example",
       "target_principal_id": "did:webvh:z6mkfixture:bob.example",
       "pair_key": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
-      "intended_realm_id": "ak:realm:0196419b-0000-8000-8000-000000000010",
-      "strand_id": "ak:strand:0196419b-0000-8000-8000-000000000011",
+      "intended_realm_id": "ak:realm:AS-0RWJz6zv6mr92HyIWAP4vU2xUwY46P0DKOC-3MxLT",
+      "strand_id": "ak:strand:AYmiUmxJsrv2V7hZQD_aDNP3rUe8_9sFQPkW2-tYFaKp",
       "mls_group_id": "fixture-dm-group-1",
       "last_resort_allowed": false,
       "negative_mutations": [
@@ -401,7 +401,7 @@
       "mismatched_keypackage_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "capabilities_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "claim_id": "mls-keypackage-claim-normal-1",
-      "intended_realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+      "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "requester_did": "did:webvh:z6mkfixture:alice.example",
       "claim_nonce": "claim-nonce-01",
       "welcome_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",

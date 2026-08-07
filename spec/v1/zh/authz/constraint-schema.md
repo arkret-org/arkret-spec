@@ -228,11 +228,11 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "constraint_kind": "scope_limitation",
   "effect": "allow",
   "allowed_strand_ids": [
-    "ak:strand:01964180-0280-8000-8000-000000000000"
+    "ak:strand:Aa-h0nYxlvhQk1U9H0yQTY4hZEVTz0be75pj6U70n7qy"
   ],
   "allowed_tracks": ["discussion"],
   "denied_strand_ids": [
-    "ak:strand:01964180-0289-8a52-94a5-294a5294a400"
+    "ak:strand:AUn3I-TLWcdn7paR20z6uNnICjLMBH8G42CHOKW27jCs"
   ]
 }
 ```
@@ -267,9 +267,9 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "constraint_kind": "scope_limitation",
   "effect": "allow",
   "allowed_relation_kinds": ["contains"],
-  "allowed_view_ids": ["ak:view:019641be-0000-8000-8000-000000000000"],
-  "allowed_from_container_refs": ["ak:space:019640c0-8000-8000-8000-000000000000"],
-  "allowed_to_container_refs": ["ak:space:019640c1-0000-8000-8000-000000000000"],
+  "allowed_view_ids": ["ak:view:AT3Im0B7Kp3uhOc9ZgnAPWE0qkuAJ_fcxz8Tv7vEwFem"],
+  "allowed_from_container_refs": ["ak:space:AScD0xd0vWSGWhC2n9BZHco7N_jYnNgmEIifpAo_uxUJ"],
+  "allowed_to_container_refs": ["ak:space:AUJj_lxym4uQ6rpZYTU9hptahzikdCscH2kDhIFurbHE"],
   "wip_limit_override": false
 }
 ```
@@ -286,7 +286,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "effect": "allow",
   "blob_presign_scope": {
     "allowed_purposes": ["media_inline", "thumbnail"],
-    "realm_ids": ["ak:realm:0196419b-0000-8000-8000-000000000000"]
+    "realm_ids": ["ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"]
   },
   "allowed_endpoints": ["https://api.trusted.example"],
   "allowed_data_labels": ["public", "internal"]
@@ -1135,9 +1135,9 @@ Child grant MUST 等于或窄于其 issuer-authority grants。`max_authority_dep
   "constraint_kind": "scope_limitation",
   "effect": "allow",
   "allowed_relation_kinds": ["contains"],
-  "allowed_view_ids": ["ak:view:019641be-0000-8000-8000-000000000000"],
-  "allowed_from_container_refs": ["ak:space:019640c0-8000-8000-8000-000000000000"],
-  "allowed_to_container_refs": ["ak:space:019640c1-0000-8000-8000-000000000000"],
+  "allowed_view_ids": ["ak:view:AT3Im0B7Kp3uhOc9ZgnAPWE0qkuAJ_fcxz8Tv7vEwFem"],
+  "allowed_from_container_refs": ["ak:space:AScD0xd0vWSGWhC2n9BZHco7N_jYnNgmEIifpAo_uxUJ"],
+  "allowed_to_container_refs": ["ak:space:AUJj_lxym4uQ6rpZYTU9hptahzikdCscH2kDhIFurbHE"],
   "wip_limit_override": false
 }
 ```

@@ -4,17 +4,22 @@
   "title": "Arkret Common ID and Reference Definitions",
   "description": "Shared ID and reference pattern $defs referenced cross-file by multiple object schemas so a single form change propagates without inline drift. Defs-only: not an object or event schema. See zh/models/common-fields.md and artifacts/registry/id-kind-registry.json for the authoritative ID kind registry.",
   "$defs": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
+      "description": "Complete Arkret Event cryptographic identity. The suffix is the canonical unpadded Base64URL encoding of exactly 33 octets: one registered active digest-suite wire_code followed by all 32 octets of the Event digest. Regex validation is only lexical; receivers MUST decode, require 33 octets, canonical re-encode, and verify the suite code and full digest before use."
+    },
     "realm_id": {
       "type": "string",
-      "pattern": "^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:realm:(?:[A-Za-z0-9_-]{44}|[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
     },
     "circle_id": {
       "type": "string",
-      "pattern": "^ak:circle:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:circle:[A-Za-z0-9_-]{44}$"
     },
     "sidecar_id": {
       "type": "string",
-      "pattern": "^ak:sidecar:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:sidecar:[A-Za-z0-9_-]{44}$"
     },
     "device_id": {
       "type": "string",
@@ -22,11 +27,11 @@
     },
     "grant_id": {
       "type": "string",
-      "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:grant:[A-Za-z0-9_-]{44}$"
     },
     "session_grant_id": {
       "type": "string",
-      "pattern": "^ak:session_grant:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:session_grant:[A-Za-z0-9_-]{44}$"
     },
     "blob_ref": {
       "type": "string",

@@ -13,7 +13,7 @@
     "agent_id": "did:webvh:z6mkagent:agent.example",
     "controller_id": "did:webvh:z6mkcontroller:controller.example",
     "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
-    "agent_key_authorize_event_id": "ak:event:01964137-0000-8000-8000-000000000001",
+    "agent_key_authorize_event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
     "public_key": "6kpsY-KcUgq-9VB7Ey7F-ZVHdq6-vnuSQh7qaRRG0iw",
     "public_key_digest": "sha256:fe812c12f3ab4ce6ac5db69ac352f906cb1b11ef43fb33e252ef7ff552263889",
     "runtime_request_public_key_digest": "sha256:bbeb7e8a892586b86114ab88cc60807dc588f3f5f29a428e69b46808f573bfa3",
@@ -139,13 +139,13 @@
     },
     {
       "name": "state_witness_uses_canonical_event_dot",
-      "key_state_tag": "ak:event:01964137-0000-8000-8000-000000000001:0",
+      "key_state_tag": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g:0",
       "state_root_recomputed": true,
       "expected": "verified"
     },
     {
       "name": "bare_event_id_state_tag_rejected",
-      "key_state_tag": "ak:event:01964137-0000-8000-8000-000000000001",
+      "key_state_tag": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
       "expected": "rejected",
       "reason": "agent_signing_key_mismatch"
     },

@@ -33,16 +33,16 @@ schema、wire grant 与 conformance 测试 MUST 以本节定义的 JSON 形态�
   "resources": [
     {
       "kind": "realm",
-      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
     },
     {
       "kind": "strand",
-      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-      "strand_id": "ak:strand:019640c5-0400-8000-8000-000000000000"
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "strand_id": "ak:strand:AUOjN8M8xm-W1G1Ve9UR6sHKJh7JPG7bM8ZDnzcGJ2Vh"
     },
     {
       "kind": "morph",
-      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "morph_kind": "customer_case"
     }
   ],
@@ -66,7 +66,7 @@ Board 与 List 使用 `kind="space"` 选择器，配合 `allowed_space_kinds` �
   "resources": [
     {
       "kind": "space",
-      "space_id": "ak:space:019640b6-8000-8000-8000-000000000000"
+      "space_id": "ak:space:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-"
     }
   ],
   "constraints": [
@@ -90,15 +90,15 @@ Circle 使用 `kind="circle"` 选择器，配合 `allowed_circle_ids` constraint
   "resources": [
     {
       "kind": "circle",
-      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-      "circle_id": "ak:circle:019640d0-0000-8000-8000-000000000000"
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "circle_id": "ak:circle:AdYzZqwOV7QGAA-4lkcJ7t3e37ykrejD-IweH6iPy9vz"
     }
   ],
   "constraints": [
     {
       "constraint_kind": "kind_restriction",
       "effect": "allow",
-      "allowed_circle_ids": ["ak:circle:019640d0-0000-8000-8000-000000000000"]
+      "allowed_circle_ids": ["ak:circle:AdYzZqwOV7QGAA-4lkcJ7t3e37ykrejD-IweH6iPy9vz"]
     }
   ]
 }
@@ -113,8 +113,8 @@ Strand 的 synthesis / discussion 能力面使用 `kind="strand"` 选择器，�
   "resources": [
     {
       "kind": "strand",
-      "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-      "strand_id": "ak:strand:019640c5-0400-8000-8000-000000000000"
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "strand_id": "ak:strand:AUOjN8M8xm-W1G1Ve9UR6sHKJh7JPG7bM8ZDnzcGJ2Vh"
     }
   ],
   "constraints": [
@@ -211,17 +211,12 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 
 ### 3.2 词法规则（reference）
 
-- `realm_id`：`ak:realm:` 后接 registry 为 Realm purpose 固定的 event-derived UUIDv8 或 subject-derived UUIDv8；二者 version 相同但 transcript/layout 不同，必须按 genesis purpose 重算。
-- `space_id`：`ak:space:` 后接 event-derived content-bound UUIDv8。
-- `circle_id`：`ak:circle:` 后接 event-derived content-bound UUIDv8。
-- `strand_id`：`ak:strand:` 后接 event-derived content-bound UUIDv8。
-- `message_id`：`ak:message:` 后接 event-derived content-bound UUIDv8。
-- `morph_id`：`ak:morph:` 后接 event-derived content-bound UUIDv8。
-- `relation_id`：`ak:relation:` 后接 event-derived content-bound UUIDv8。
-- `view_id`：`ak:view:` 后接 event-derived content-bound UUIDv8。
-- `event_id`：`ak:event:` 后接 §4.0 content-bound UUIDv8。
+- `realm_id`：`ak:realm:` 后接 Collaboration Realm 的 44-char suite-tagged 完整 digest token，或 Principal Control Realm 的 subject-derived UUIDv7；具体分支由 genesis `purpose` 固定。
+- `space_id`、`circle_id`、`strand_id`、`message_id`、`morph_id`、`relation_id`、`view_id`：
+  对应 typed prefix 后接创建 Event 的 44-char suite-tagged完整digest token。
+- `event_id`：`ak:event:` 后接44-char suite-tagged完整digest token。
 - `policy_id`：`ak:policy:` 后接 UUIDv7。
-- `invite_id`：`ak:invite:` 后接 UUIDv7。
+- `invite_id`：`ak:invite:` 后接创建 Event 的44-char suite-tagged完整digest token。
 - `schema_ref`：schema registry id，例如 `ak.schema.strand.v1` 或反向域名 schema id。Shorthand 与 canonical JSON 都只使用 `schema_ref`；parser MUST 拒绝 `schema_id` 等未声明 token。
 - `did`：DID URI。
 - `blob_ref`：Blob typed ID，wire form 为 `ak:blob:` 前缀后接 UUIDv7（blob metadata ID），或 `ak:blob:<suite>:<hex>` content-addressed ref（suite ∈ digest-suite registry active rows，v1 即 `sha256` / `blake3`）。
@@ -257,7 +252,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 
 ### 4.1 Realm 选择器
 
-`realm:ak:realm:0196419b-0000-8000-8000-000000000000`
+`realm:ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5`
 
 - 匹配：特定 Realm。
 - 适用：该 Realm 中的对象、Event、View、policy、invite、read cursor、notification 和 Blob 引用。
@@ -270,13 +265,13 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 
 ### 4.2 Space 选择器
 
-`space:ak:realm:0196419b-0000-8000-8000-000000000000:ak:space:019640b6-8000-8000-8000-000000000000`
+`space:ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5:ak:space:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-`
 
 - 匹配：特定结构 Space。
 - 适用：Space metadata、Space lifecycle、Space parent、board/list 类 workflow container 操作。
 - 不含义：不自动授予该 Space `default_realm_id` 指向 Realm 的 membership、history 或 E2EE key；也不自动授予 Space 下资源的读取权，除非资源 selector / action / constraint 同时命中。
 
-`space:ak:realm:0196419b-0000-8000-8000-000000000000:*`
+`space:ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5:*`
 
 - 匹配：指定 Realm 内所有可评估 Space。
 - 要求：MUST 携带 `realm_id`；SHOULD 配合 `allowed_space_kinds`、短有效期和审计理由。
@@ -288,7 +283,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 - 匹配：该 Realm 中所有 Strand。
 - 若只允许某个 track 范围，必须使用 `allowed_tracks`。
 
-`strand:ak:realm:...:ak:strand:019640c5-0400-8000-8000-000000000000`
+`strand:ak:realm:...:ak:strand:AUOjN8M8xm-W1G1Ve9UR6sHKJh7JPG7bM8ZDnzcGJ2Vh`
 
 - 匹配：特定 Strand。
 - 不匹配：Message、Morph、Relation、View 或 Board/List 容器。
@@ -308,7 +303,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 - 匹配：该 Realm 中所有 `morph_kind=customer_case` 的 Morph。
 - 不匹配：标准 Strand、Message 或 Relation。
 
-`morph:ak:realm:...:ak:morph:01964140-0000-8000-8000-000000000000`
+`morph:ak:realm:...:ak:morph:AWOZnZvfpzdypVtN7GT9F1dDSLqJnxvaK-XfzeYpx6II`
 
 - 匹配：特定 Morph。
 
@@ -321,7 +316,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 - 匹配：该 Realm 中所有 `type=strand` 的对象。
 - 若只允许某个 track 范围，必须额外使用 `allowed_tracks`。
 
-`object:ak:realm:...:ak:strand:019640c5-0400-8000-8000-000000000000`
+`object:ak:realm:...:ak:strand:AUOjN8M8xm-W1G1Ve9UR6sHKJh7JPG7bM8ZDnzcGJ2Vh`
 
 - 匹配：给定对象引用。
 
@@ -332,7 +327,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 - 匹配：该 Realm 中所有 `contains` 关系。
 - 不授予被 relation 指向对象的读取权；跨 Realm 展开必须重新执行目标 Realm 授权。
 
-`view:ak:realm:...:ak:view:019641be-0000-8000-8000-000000000000`
+`view:ak:realm:...:ak:view:AT3Im0B7Kp3uhOc9ZgnAPWE0qkuAJ_fcxz8Tv7vEwFem`
 
 - 匹配：特定 View 定义。
 - 查询结果仍按底层对象授权裁剪。
@@ -357,7 +352,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 
 ### 5.2 析取 (,)
 
-`realm:ak:realm:01964195-0000-8000-8000-000000000000,realm:ak:realm:01964195-8000-8000-8000-000000000000`
+`realm:ak:realm:AdHing2meouJofkXXyApJTyFCo7SNoZHrSjQHaitT3D8,realm:ak:realm:AbFCxTyW_gTLgSNJVZge-vUGLGIA_xSq6UixRuoPDk-W`
 
 - 表示任一 selector 命中即可。
 

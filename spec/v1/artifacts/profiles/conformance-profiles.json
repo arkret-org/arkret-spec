@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-07.3",
-  "generated_at": "2026-08-07T16:00:00Z",
+  "version": "2026-08-07.4",
+  "generated_at": "2026-08-07T18:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -4833,7 +4833,7 @@
       "feature_discovery": {
         "required": [
           "personal_productivity_account_data",
-          "scheduled_send_message_id_idempotency"
+          "scheduled_send_content_bound_dispatch"
         ],
         "unsupported_optional": "return unsupported_feature for productivity account-data keys without writing shared Realm history"
       }

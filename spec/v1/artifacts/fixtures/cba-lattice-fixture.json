@@ -149,7 +149,7 @@
       "name": "data_event_accepts_without_seal_finality",
       "description": "A message DataEvent is locally accepted when signature, actor chain, seal_ref, auth_context, capability and data-plane Lattice validation pass. It does not wait for Seal coverage.",
       "event": {
-        "id": "ak:event:6b5ad6b5-ad6b-8ad6-b5ad-6b5ad6b5ad6b",
+        "id": "ak:event:AUl7i16DNG_PX5V_-ud5fDx65PwcMpaj4uSW2K4C0Ev9",
         "plane": "data",
         "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "auth_context": {
@@ -164,7 +164,7 @@
               "kind": "append",
               "issuer_seq": 0,
               "value": {
-                "message_id": "ak:message:019640ed-8000-8000-8000-000000000000"
+                "message_id": "ak:message:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
               }
             }
           }
@@ -210,7 +210,7 @@
         "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
       },
       "control_move": {
-        "id": "ak:event:84210842-1084-8108-8210-842108421084",
+        "id": "ak:event:AaVTW5LHERC89IehLtiCF0SiaUsWozAu4mUQzt6JFoB1",
         "plane": "control",
         "preconditions": [
           {
@@ -248,13 +248,13 @@
       "description": "An Event earlier in the same submit batch may resolve bytes and causal refs for later Events, but it cannot create a grant used by a later Event in the same batch.",
       "batch": [
         {
-          "id": "ak:event:a5294a52-94a5-894a-9294-a5294a5294a5",
+          "id": "ak:event:AYdKcd4Mb1IzAPoctcZYEVvHLuvqQFdhPu0jBrZv-M0Q",
           "kind": "ak.capability.grant",
           "plane": "control",
           "state": "control_pending"
         },
         {
-          "id": "ak:event:c6318c63-18c6-818c-a318-c6318c6318c6",
+          "id": "ak:event:Ab7eb0Tjjy_Z3hqSiIz4dhHXnGbiRO-pvXw_EOjPNQO2",
           "kind": "ak.message.create",
           "plane": "data",
           "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -282,8 +282,8 @@
         "bottom": "reject"
       },
       "data_events": [
-        "ak:event:20080200-8020-8802-8080-200802008020",
-        "ak:event:40100401-0040-8004-8100-401004010040"
+        "ak:event:AWBXj0zw0Z1o7IvjCb_0yBDtqhtrzu_ZSCNIe0Tr9vZt",
+        "ak:event:AdjJRTzdCl1vn2KfFaA-ny4hJDOiZnXaz550z7Eg55Qi"
       ],
       "expected": {
         "query": {
@@ -294,8 +294,8 @@
               "ak:cell:ak.component.strand.position.v1:ak.strand.0196419b-0000-7000-8000-000000000000"
             ],
             "event_ids": [
-              "ak:event:20080200-8020-8802-8080-200802008020",
-              "ak:event:40100401-0040-8004-8100-401004010040"
+              "ak:event:AWBXj0zw0Z1o7IvjCb_0yBDtqhtrzu_ZSCNIe0Tr9vZt",
+              "ak:event:AdjJRTzdCl1vn2KfFaA-ny4hJDOiZnXaz550z7Eg55Qi"
             ]
           }
         },
@@ -353,7 +353,7 @@
       "name": "seal_canonical_no_self_reference",
       "description": "Seal canonical bytes are computed from signed top-level body fields only. The Seal id and notary_signature are excluded from the transcript.",
       "seal_body": {
-        "realm_id": "ak:realm:019641c6-8000-8000-8000-000000000000",
+        "realm_id": "ak:realm:AdbrvqPXnyWuzHszTKHBTzBht7dhJzgDbqa5RxOlifAo",
         "predecessor_refs": [
           "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         ],
@@ -422,7 +422,7 @@
         {
           "name": "blind_write_without_basis",
           "event": {
-            "id": "ak:event:019641c6-8000-8000-8000-000000000101",
+            "id": "ak:event:AZqPTsZD6L2d8rgSljZyE1RGiJxXKbHQanDF4Sj1U3kE",
             "plane": "data",
             "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "projected_writes": [
@@ -446,7 +446,7 @@
         {
           "name": "control_move_with_head_eq_basis",
           "control_move": {
-            "id": "ak:event:019641c6-8000-8000-8000-000000000102",
+            "id": "ak:event:AeaeicCk67PpTYiIvF-BvVd3TUktGqz3d9DhGtTf_YzV",
             "plane": "control",
             "preconditions": [
               {
@@ -539,7 +539,7 @@
       "name": "seal_compaction_interval_enforced",
       "description": "Realm seal_compaction_max_interval_ms is a structural obligation: valid full-coverage compaction enables bootstrap, mismatched coverage rejects, and overdue compaction raises health alarms.",
       "realm": {
-        "id": "ak:realm:019641c6-8000-8000-8000-000000000000",
+        "id": "ak:realm:AdbrvqPXnyWuzHszTKHBTzBht7dhJzgDbqa5RxOlifAo",
         "notary": {
           "kind": "open_set"
         },
@@ -605,7 +605,7 @@
         "kind": "threshold"
       },
       "inclusion_list": {
-        "realm_id": "ak:realm:019641c6-8000-8000-8000-000000000000",
+        "realm_id": "ak:realm:AdbrvqPXnyWuzHszTKHBTzBht7dhJzgDbqa5RxOlifAo",
         "signer_id": "did:webvh:z6mkfixture:notary-signer.example",
         "list_seq": 7,
         "event_digests": [
@@ -668,7 +668,7 @@
       "name": "notary_fault_equivocation_quarantine",
       "description": "Two different Seals signed by the same notary in the same slot authorize public equivocation evidence, quarantine the fork, and reject later Seals from that signer.",
       "fault_pair": {
-        "realm_id": "ak:realm:019641c6-8000-8000-8000-000000000000",
+        "realm_id": "ak:realm:AdbrvqPXnyWuzHszTKHBTzBht7dhJzgDbqa5RxOlifAo",
         "signer_id": "did:webvh:z6mkfixture:notary.example",
         "notary_seq": 42,
         "seal_a": {
@@ -794,7 +794,7 @@
         "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
       ],
       "data_event": {
-        "id": "ak:event:019641d2-0000-8000-8000-000000000000",
+        "id": "ak:event:Aa3sQafomIX7BjgTvHzCTpGqIqsCtEI6Gfod5-xug1up",
         "plane": "data",
         "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "auth_context": {
@@ -808,7 +808,7 @@
           "name": "concurrent_revoke_branch",
           "concurrent_control_move": {
             "kind": "ak.capability.revoke",
-            "grant_id": "ak:grant:019641d2-2000-8000-8000-000000000000",
+            "grant_id": "ak:grant:AXikJ_OppAbhG0I7SBWrKFxHynEEyYO8-IZ1Lsd9SVu-",
             "covered_by": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
           },
           "joined_control_view": {
@@ -846,9 +846,9 @@
           "name": "late_revocation_leaf_retroactive_removal",
           "description": "Ordered sequence, not a single joined-view snapshot: E is first accepted and its reducer-projected write is materialized into data cell X under the initial joined view that has NOT yet joined the revoke leaf R. Dependent event D is then accepted with E as a critical causal dependency and materializes a projected write into data cell Y. R arrives later; once joined, E loses seal_ref authorization, so E and the complete direct/indirect dependency closure rooted at E MUST leave accepted projection inputs. The final state MUST equal that of a receiver that joined {S0,R} from the start, independent of arrival order.",
           "dependent_data_event": {
-            "id": "ak:event:019641d2-0001-8000-8000-000000000000",
+            "id": "ak:event:AaFd64dGxtrDPbCq0cu8KtFv-Ga-z7dOzhEHsiP2eaS7",
             "plane": "data",
-            "critical_causal_ref": "ak:event:019641d2-0000-8000-8000-000000000000",
+            "critical_causal_ref": "ak:event:Aa3sQafomIX7BjgTvHzCTpGqIqsCtEI6Gfod5-xug1up",
             "projected_cell": "data_cell_y"
           },
           "sequence": [
@@ -920,12 +920,12 @@
           "name": "same_actor_and_seq_across_realms",
           "events": [
             {
-              "realm_id": "ak:realm:019641d2-3000-8000-8000-000000000001",
+              "realm_id": "ak:realm:AUJb1l01XJ9H1Bqc0JpiLtLC50P6Nl7sU0UwhMi2t0N_",
               "actor_seq": 7,
               "event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
             },
             {
-              "realm_id": "ak:realm:019641d2-3000-8000-8000-000000000002",
+              "realm_id": "ak:realm:AcF9fonEvHJPJ8-Fx8411QUzaGnZd64xptcL3srBqR9V",
               "actor_seq": 7,
               "event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
             }
@@ -939,7 +939,7 @@
           "name": "same_actor_and_seq_in_one_realm",
           "events": [
             {
-              "realm_id": "ak:realm:019641d2-3000-8000-8000-000000000001",
+              "realm_id": "ak:realm:AUJb1l01XJ9H1Bqc0JpiLtLC50P6Nl7sU0UwhMi2t0N_",
               "actor_seq": 8,
               "prev_refs": [
                 "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -947,7 +947,7 @@
               "event_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
             },
             {
-              "realm_id": "ak:realm:019641d2-3000-8000-8000-000000000001",
+              "realm_id": "ak:realm:AUJb1l01XJ9H1Bqc0JpiLtLC50P6Nl7sU0UwhMi2t0N_",
               "actor_seq": 8,
               "prev_refs": [
                 "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -969,19 +969,19 @@
           "name": "realm_bootstrap_transaction_chain",
           "events": [
             {
-              "event_id": "ak:event:019641d2-3000-8000-8000-000000000101",
-              "realm_id": "ak:realm:019641d2-3000-8000-8000-000000000003",
+              "event_id": "ak:event:AUIJZGKr-nxfr5BDyAhhdVTZpqHaASTnEcSRJIph3iRQ",
+              "realm_id": "ak:realm:Ae28wXbm9Juy5sS43CvX0rcRddRFOUfUhkTSPZ05VMSr",
               "kind": "ak.realm.create",
               "actor_seq": 0,
               "prev_refs": []
             },
             {
-              "event_id": "ak:event:019641d2-3000-8000-8000-000000000102",
-              "realm_id": "ak:realm:019641d2-3000-8000-8000-000000000003",
+              "event_id": "ak:event:AYZLQW_yEaPiC32WJDQILqImzCyp8MvvP9uEKvAS5fkz",
+              "realm_id": "ak:realm:Ae28wXbm9Juy5sS43CvX0rcRddRFOUfUhkTSPZ05VMSr",
               "kind": "ak.capability.grant",
               "actor_seq": 1,
               "prev_refs": [
-                "ak:event:019641d2-3000-8000-8000-000000000101"
+                "ak:event:AUIJZGKr-nxfr5BDyAhhdVTZpqHaASTnEcSRJIph3iRQ"
               ]
             }
           ],
@@ -992,8 +992,8 @@
         },
         {
           "name": "cross_realm_predecessor",
-          "event_realm_id": "ak:realm:019641d2-3000-8000-8000-000000000001",
-          "predecessor_realm_id": "ak:realm:019641d2-3000-8000-8000-000000000002",
+          "event_realm_id": "ak:realm:AUJb1l01XJ9H1Bqc0JpiLtLC50P6Nl7sU0UwhMi2t0N_",
+          "predecessor_realm_id": "ak:realm:AcF9fonEvHJPJ8-Fx8411QUzaGnZd64xptcL3srBqR9V",
           "expected": {
             "result": "reject",
             "reason": "schema_violation"
@@ -1026,7 +1026,7 @@
           {
             "role": "recovery_capability",
             "critical": true,
-            "id": "ak:grant:019641d2-2000-8000-8000-000000000000"
+            "id": "ak:grant:AXikJ_OppAbhG0I7SBWrKFxHynEEyYO8-IZ1Lsd9SVu-"
           },
           {
             "role": "state_witness",

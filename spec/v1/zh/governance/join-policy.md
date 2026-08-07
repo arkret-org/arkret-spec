@@ -257,7 +257,7 @@ applicant 直接提交：
 {
   "kind": "ak.member.state",
   "payload": {
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "actor_id": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:bob",
     "membership": "join",
     "delivery_status": "routable",
@@ -267,7 +267,7 @@ applicant 直接提交：
       "binding_scope": "realm",
       "binding_source": "explicit",
       "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
-      "service_acceptance_ref": "ak:event:0196419b-0000-8000-8000-000000000001"
+      "service_acceptance_ref": "ak:event:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6"
     },
     "gate_proofs": [
       {
@@ -459,7 +459,7 @@ Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
 {
   "encryption_envelope": {
     "scheme": "ak.hpke_x25519_aead_chacha20poly1305.v1",
-    "info": "ak.realm.member_application.envelope.v1 || 0x00 || ak:realm:0196419b-0000-8000-8000-000000000000 || 0x00 || sha256:...",
+    "info": "ak.realm.member_application.envelope.v1 || 0x00 || ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5 || 0x00 || sha256:...",
     "ciphertext": "base64url:...",
     "recipients": [
       {"reviewer_did": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ak_device_01HV_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."},
@@ -577,7 +577,7 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
 {
   "candidate_kind": "realm.join_policy",
   "payload": {
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "value": {
       "combinator": "any",
       "gates": [

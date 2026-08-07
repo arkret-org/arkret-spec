@@ -46,13 +46,22 @@ def update_file(path: Path) -> int:
             if input_key not in node or not isinstance(digest, str) or not digest.startswith("sha256:"):
                 continue
             canonical = canonical_json(node[input_key])
-            expected = "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+            domain_separator = node.get("domain_separator_utf8", "")
+            if not isinstance(domain_separator, str):
+                continue
+            digest_input = domain_separator + canonical
+            expected = "sha256:" + hashlib.sha256(digest_input.encode("utf-8")).hexdigest()
             if node[digest_key] != expected:
                 node[digest_key] = expected
                 updates += 1
             if isinstance(node.get("expected_canonical_bytes_utf8"), str):
                 if node["expected_canonical_bytes_utf8"] != canonical:
                     node["expected_canonical_bytes_utf8"] = canonical
+                    updates += 1
+            if isinstance(node.get("digest_input_hex"), str):
+                expected_hex = digest_input.encode("utf-8").hex()
+                if node["digest_input_hex"] != expected_hex:
+                    node["digest_input_hex"] = expected_hex
                     updates += 1
     if updates:
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")

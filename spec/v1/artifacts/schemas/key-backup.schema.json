@@ -585,11 +585,11 @@
           },
           "first_event_id": {
             "type": "string",
-            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
           },
           "last_event_id": {
             "type": "string",
-            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
           },
           "secret_id": {
             "type": "string",
@@ -741,7 +741,7 @@
         },
         "device_authorize_event_id": {
           "type": "string",
-          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+"pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
           "description": "Accepted ak.device.authorize event id anchoring the service_attested/enrollment-authority device signing this backup. Exactly one of auth_data.ssk_generation and auth_data.device_authorize_event_id identifies the device trust root."
         }
       },

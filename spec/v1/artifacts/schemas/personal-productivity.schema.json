@@ -59,7 +59,7 @@
       "type": "object",
       "required": [
         "kind",
-        "planned_message_id",
+        "scheduled_send_id",
         "send_at",
         "message_payload",
         "message_payload_digest",
@@ -69,16 +69,16 @@
         "kind": {
           "const": "scheduled_send"
         },
-        "planned_message_id": {
+        "scheduled_send_id": {
           "type": "string",
-          "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:scheduled_send:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "send_at": {
           "$ref": "#/$defs/timestamp"
         },
         "message_payload": {
           "$ref": "./event-payload.schema.json#/$defs/message_create_payload",
-          "description": "Canonical future ak.message.create payload. It MUST omit message_id; dispatch derives Event.event_id by retyping planned_message_id and the Message id is then retyped back from that Event id."
+          "description": "Canonical future ak.message.create payload. It MUST omit message_id and event_id. Dispatch first completes the Event canonical preimage, derives its content-bound EventId, and then retypes that same 33-byte token into MessageId."
         },
         "message_payload_digest": {
           "type": "string",

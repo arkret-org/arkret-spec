@@ -78,7 +78,7 @@ bottom   = inert  // or_set join never produces ⊥
 
 ```text
 ControlMove(ak.consent.grant) {
-  event_id      = ak:event:019640ed-7000-8000-8000-000000000001
+  event_id      = ak:event:AfumWbbDTAdHm6EJcwrgFczGIei511I72WryaaMIPtpV
   kind          = ak.consent.grant
   realm_id      = holder principal control Realm
   scope_ref     = {kind: "realm", realm_id: <holder PCR>}
@@ -89,11 +89,11 @@ ControlMove(ak.consent.grant) {
     consent_scope: "invite",
     not_before: "2026-05-07T00:00:00Z",
     expires_at: "2026-12-31T00:00:00Z",
-    evidence_ref: "ak:event:019640e0-0000-8000-8000-000000000002",
+    evidence_ref: "ak:event:AbrLG_RrXje1gI-BHa-0mIIb4PC0jTvW-mBnXJu6WTgT",
     reason: "Bob completed verified contact discovery"
   }
   preconditions = []
-  refs          = [(id="ak:grant:0196411c-b000-8000-8000-000000000000", role="authorized_by")]
+  refs          = [(id="ak:grant:AYATq7mU7m9Q7AWf6OW2_Qo-yToeIo7cGEVJ7O4dyc0f", role="authorized_by")]
   seal_basis    = <holder principal control Realm 的当前 Seal basis>
 }
 
@@ -121,7 +121,7 @@ Payload-only schema 示例：
   "consent_scope": "invite",
   "not_before": "2026-05-07T00:00:00.000Z",
   "expires_at": "2026-12-31T00:00:00.000Z",
-  "evidence_ref": "ak:event:019640e0-0000-8000-8000-000000000002",
+  "evidence_ref": "ak:event:AbrLG_RrXje1gI-BHa-0mIIb4PC0jTvW-mBnXJu6WTgT",
   "reason": "Bob completed verified contact discovery"
 }
 ```
@@ -134,23 +134,23 @@ Issuer MUST 是 holder 自己（或 holder DID Document 显式授权的 controll
 
 ```text
 ControlMove(ak.consent.revoke) {
-  event_id      = ak:event:0196414c-3000-8000-8000-000000000003
+  event_id      = ak:event:AdOBf6fvL9Q7FrkkRwDrquZ52Nky2-aShGC7r3Pl6WsP
   kind          = ak.consent.revoke
   realm_id      = holder principal control Realm
   scope_ref     = {kind: "realm", realm_id: <holder PCR>}
   actor_id      = holder DID
   payload       = {
     consent_id: <consent_id>,
-    observed_dots: ["ak:event:019640ed-7000-8000-8000-000000000001:0"],
+    observed_dots: ["ak:event:AfumWbbDTAdHm6EJcwrgFczGIei511I72WryaaMIPtpV:0"],
     revoked_at: "2026-06-15T10:00:00Z",
     reason: "Bob harassment incident #4711"
   }
   preconditions = [
     (ak:cell:ak.component.consent.grant.v1:<consent_id>,
      {op: "contains_dots",
-      dots: ["ak:event:019640ed-7000-8000-8000-000000000001:0"]})
+      dots: ["ak:event:AfumWbbDTAdHm6EJcwrgFczGIei511I72WryaaMIPtpV:0"]})
   ]
-  refs          = [(id="ak:grant:0196411c-b000-8000-8000-000000000000", role="authorized_by")]
+  refs          = [(id="ak:grant:AYATq7mU7m9Q7AWf6OW2_Qo-yToeIo7cGEVJ7O4dyc0f", role="authorized_by")]
   seal_basis    = <holder principal control Realm 的当前 Seal basis>
 }
 
@@ -167,7 +167,7 @@ Payload-only schema 示例：
 {
   "consent_id": "ak:consent:019640ed-6000-7000-8000-000000000001",
   "observed_dots": [
-    "ak:event:019640ed-7000-8000-8000-000000000001:0"
+    "ak:event:AfumWbbDTAdHm6EJcwrgFczGIei511I72WryaaMIPtpV:0"
   ],
   "revoked_at": "2026-06-15T10:00:00.000Z",
   "reason": "Bob harassment incident #4711"

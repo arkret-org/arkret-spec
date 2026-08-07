@@ -39,7 +39,7 @@
     },
     "event_id": {
       "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

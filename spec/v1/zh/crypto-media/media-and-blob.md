@@ -20,7 +20,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 {
   "blob_ref": "ak:blob:sha256:...",
   "schema": "ak.schema.blob.v1",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "content_digest": "sha256:...",
   "size_bytes": 1234,
   "media_type": "image/png",
@@ -112,7 +112,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
   "encrypted": true,
   "key_ref": {
     "algorithm": "MLS",
-    "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
+    "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
   },
   "epoch": 42,
   "nonce": "base64url...",
@@ -249,7 +249,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
   "scheme": "ak.blob.stream_aead.v1",
   "key_ref": {
     "algorithm": "MLS",
-    "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
+    "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
   },
   "epoch": 42,
   "nonce_prefix": "base64url-N_AEAD-minus-5-bytes",
@@ -458,7 +458,7 @@ Cache-Control: public, immutable, max-age=31536000
 {
   "scheme": "ak.blob.presign.v1",
   "blob_ref": "ak:blob:sha256:0123456789abcdef...",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "issuer_service_id": "did:webvh:z9L9sKcFqigzdgN2ucF1V6ztq:blob.acme.example",
   "issued_at": "2026-05-18T10:00:00Z",
   "expires_at": "2026-05-18T10:05:00Z",

@@ -28,7 +28,7 @@
       "vector_id": "ak.vector.mls_exporter_aead.content_key_derivation.v1",
       "input": {
         "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-        "realm_id_utf8": "ak:realm:019a7360-0000-8000-8000-000000000000",
+        "realm_id_utf8": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
         "history_label": "ak.history-v1",
         "content_label": "ak.content-v1",
         "content_context_hex": "",
@@ -37,9 +37,9 @@
         "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
       },
       "expected": {
-        "history_secret_hex": "c23c438ea6324409174e5fe5c330199fe511c44eca88f0100cc40eca29a84d2a",
+        "history_secret_hex": "f9e39ba45ff2ba26a1e430c0df76bf7b56737a5c1ad9d103b3c07ca205e1963d",
         "content_expand_with_label_info_hex": "0010154d4c5320312e3020616b2e636f6e74656e742d763100",
-        "content_key_hex": "86fe11a399474afc8d9a81b2f5a961bf"
+        "content_key_hex": "9f6840122a5aa8a3c1a76fff0e02511b"
       },
       "note": "aead_nk is AEAD.Nk of the ciphersuite the group actually negotiated, per encryption-and-audit.md 2.10.1, and 2.10.2 requires aead_profile to be an ACTIVE canonical_id of mls-ciphersuite-registry.json. The only active row is AES-128-GCM, so Nk is 16. The length is an ExpandWithLabel input, so a 16-byte key is not a prefix of a 32-byte one - an implementation following the normative text can never reproduce the latter."
     },
@@ -55,21 +55,21 @@
           "scheme": "mls_exporter_aead_v1",
           "key_ref": {
             "algorithm": "MLS-EXPORTER-AEAD",
-            "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
+            "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
           },
           "epoch": 42,
           "nonce": "cUNyogAAAAAAAAAH",
           "purpose": "mls_exporter_aead_content",
           "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
           "aad": {
-            "realm_id": "ak:realm:01904100-0000-8000-8000-000000000042",
+            "realm_id": "ak:realm:AaWnYbjtomNOLOpuefTZzVyoFKF4V-Vbj2yAPDP0aZTj",
             "event_kind": "ak.message.create"
           }
         }
       },
       "expected": {
-        "aead_aad_canonical_json": "{\"aad\":{\"event_kind\":\"ak.message.create\",\"realm_id\":\"ak:realm:01904100-0000-8000-8000-000000000042\"},\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"epoch\":42,\"key_ref\":{\"algorithm\":\"MLS-EXPORTER-AEAD\",\"group_state_ref\":\"ak:event:01964148-0000-8000-8000-000000000000\"},\"nonce\":\"cUNyogAAAAAAAAAH\",\"purpose\":\"mls_exporter_aead_content\",\"scheme\":\"mls_exporter_aead_v1\"}",
-        "ciphertext_with_tag_hex": "e758b2f7d462d5170fe80aa7daee698cbdef6d5247cdd6cfc71e311632aa1707ab9014cfad44fcf2803521107ae3c0",
+        "aead_aad_canonical_json": "{\"aad\":{\"event_kind\":\"ak.message.create\",\"realm_id\":\"ak:realm:AaWnYbjtomNOLOpuefTZzVyoFKF4V-Vbj2yAPDP0aZTj\"},\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"epoch\":42,\"key_ref\":{\"algorithm\":\"MLS-EXPORTER-AEAD\",\"group_state_ref\":\"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix\"},\"nonce\":\"cUNyogAAAAAAAAAH\",\"purpose\":\"mls_exporter_aead_content\",\"scheme\":\"mls_exporter_aead_v1\"}",
+        "ciphertext_with_tag_hex": "e758b2f7d462d5170fe80aa7daee698cbdef6d5247cdd6cfc71e311632aa17dbbfcdd3ff3a61a9f2928d4357d4c126",
         "opened_plaintext_hex": "6578706f727465722d616561642072656772657373696f6e20616e63686f72",
         "negative_mutations": [
           "aad.event_kind",
@@ -86,7 +86,7 @@
       "vector_id": "ak.vector.signal.exporter_key_kat.v1",
       "input": {
         "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-        "realm_id_utf8": "ak:realm:019a7360-0000-8000-8000-000000000000",
+        "realm_id_utf8": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
         "history_label": "ak.history-v1",
         "signal_label": "ak.signal-v1",
         "signal_context_hex": "",
@@ -94,9 +94,9 @@
         "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
       },
       "expected": {
-        "history_secret_hex": "c23c438ea6324409174e5fe5c330199fe511c44eca88f0100cc40eca29a84d2a",
+        "history_secret_hex": "f9e39ba45ff2ba26a1e430c0df76bf7b56737a5c1ad9d103b3c07ca205e1963d",
         "signal_expand_with_label_info_hex": "0010144d4c5320312e3020616b2e7369676e616c2d763100",
-        "signal_key_hex": "abebd3fc1a745ef76b9d33f02b030898",
+        "signal_key_hex": "a8dc8c9d501257bd1d75b5b39faf1de0",
         "negative_mutations": [
           "signal_label=ak.content-v1",
           "signal_context=realm_id",
@@ -114,7 +114,7 @@
         "context": {
           "key_ref": {
             "algorithm": "MLS-EXPORTER-AEAD",
-            "group_state_ref": "ak:event:01964148-0000-8000-8000-000000000000"
+            "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
           },
           "epoch": 42,
           "device_id": "ak:device:019a7360-0000-7000-8000-000000000001",
@@ -125,9 +125,9 @@
         "counter_be64_hex": "0000000000000007"
       },
       "expected": {
-        "context_canonical_json": "{\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"device_id\":\"ak:device:019a7360-0000-7000-8000-000000000001\",\"epoch\":42,\"key_ref\":{\"algorithm\":\"MLS-EXPORTER-AEAD\",\"group_state_ref\":\"ak:event:01964148-0000-8000-8000-000000000000\"},\"purpose\":\"mls_exporter_aead_content\"}",
-        "sender_nonce_prefix_hex": "0775006d",
-        "nonce_hex": "0775006d0000000000000007",
+        "context_canonical_json": "{\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"device_id\":\"ak:device:019a7360-0000-7000-8000-000000000001\",\"epoch\":42,\"key_ref\":{\"algorithm\":\"MLS-EXPORTER-AEAD\",\"group_state_ref\":\"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix\"},\"purpose\":\"mls_exporter_aead_content\"}",
+        "sender_nonce_prefix_hex": "b0e8fb2e",
+        "nonce_hex": "b0e8fb2e0000000000000007",
         "negative_mutations": [
           "omit_device_id",
           "epoch=43",
@@ -142,13 +142,13 @@
       "vector_id": "ak.vector.mention.routing_hmac_kat.v1",
       "input": {
         "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-        "realm_id_utf8": "ak:realm:019a7360-0000-8000-8000-000000000000",
+        "realm_id_utf8": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
         "exporter_label": "arkret-mention-routing-v1",
         "mentioned_did_utf8": "did:webvh:z6MkhAlice:example.com"
       },
       "expected": {
-        "routing_hmac_key_hex": "1feb18f3cdcbc0a0e72a67f152703f30bae3f1ea80e66d37cfac5a9c676af021",
-        "routing_tag_hex": "03ffd6b4b4157d5531667612850162e1290a5de71fafba15c4e84e0f2165ec4b",
+        "routing_hmac_key_hex": "3eb90476761b95c057f01070c5e741a3b3a8dc2cc3abd869976e2e1da7a57194",
+        "routing_tag_hex": "993b42fc498587aabe27b0a9b9f1c266ee1c0fac45951d04a715252129f3abea",
         "negative_mutations": [
           "wrong_exporter_label",
           "different_realm_id",
@@ -162,7 +162,7 @@
       "name": "content_key_derivation_fail_closed_negatives",
       "vector_id": "ak.vector.mls_exporter_aead.content_key_derivation.v1",
       "input": {
-        "base_case": "content_key_derivation_sha256_aes256gcm",
+        "base_case": "content_key_derivation_sha256_aes128gcm",
         "mutations": [
           "history_label=ak.content-v1",
           "content_label=ak.history-v1",
@@ -184,7 +184,7 @@
       "vector_id": "ak.vector.reaction.routing_hmac_kat.v1",
       "input": {
         "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-        "realm_id_utf8": "ak:realm:019a7360-0000-8000-8000-000000000000",
+        "realm_id_utf8": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
         "exporter_label": "arkret-reaction-routing-v1",
         "emoji_cases": [
           {
@@ -210,11 +210,11 @@
         ]
       },
       "expected": {
-        "routing_hmac_key_hex": "244a59a03373c720511c54b7c85908c159528f568f6e2de7611e3f42ec87a17f",
+        "routing_hmac_key_hex": "711d0bc874fcd94f6a06e8e038c9a2da68b03a68aba6a453d2600f4ba588cbd1",
         "tags_hex": [
-          "cbac3b71116b816d484fe544fe4772053ff28d94a6c5f800b5e65454ae1f4e70",
-          "cbac3b71116b816d484fe544fe4772053ff28d94a6c5f800b5e65454ae1f4e70",
-          "59f575c6c0ac29c5c1656659dfa52ec3db597993173e6aa9f7da7b2e29e6759a"
+          "575d723918414eba1872188d449bce23e0812dbd3c5d8774c1144574b945d437",
+          "575d723918414eba1872188d449bce23e0812dbd3c5d8774c1144574b945d437",
+          "6bc2c742240591717aa0f27e7ffb823455702ef6d0002aafbd1b70223bbd3abf"
         ],
         "negative_mutations": [
           "skip_NFC",

@@ -17,7 +17,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/relation_tombstone_payload",
       "expect_valid": true,
       "instance": {
-        "relation_id": "ak:relation:01964180-0000-8000-8000-000000000000",
+        "relation_id": "ak:relation:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
         "reason": "relationship no longer applies"
       }
     },
@@ -27,7 +27,7 @@
       "expect_valid": false,
       "first_expected_error": "contains:relation_id",
       "instance": {
-        "target_ref": "ak:relation:01964180-0000-8000-8000-000000000000",
+        "target_ref": "ak:relation:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
         "patch": []
       }
     },
@@ -38,8 +38,8 @@
       "instance": {
         "kind": "ak.moderation.franking_proof",
         "franking_proof_id": "ak:franking_proof:0196425b-0000-7000-8000-000000000000",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-        "event_id": "ak:event:019640ed-8000-8000-8000-000000000000",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
         "routing_metadata_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "aad_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
@@ -60,8 +60,8 @@
       "expect_valid": false,
       "first_expected_error": "contains:kind",
       "instance": {
-        "report_id": "ak:report:0196425b-0000-8000-8000-000000000000",
-        "target_ref": "ak:event:019640ed-8000-8000-8000-000000000000"
+        "report_id": "ak:report:ATAqsVFFwxiA6K_flXOCz1_jv_uczcCC90q5dqT7DLm3",
+        "target_ref": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
       }
     }
   ],

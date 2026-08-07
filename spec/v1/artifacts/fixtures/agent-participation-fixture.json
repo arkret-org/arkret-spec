@@ -146,7 +146,7 @@
       "kind": "selection_cas",
       "target_scope": {
         "kind": "realm",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
       "initial_expected_version": 0,
       "governance_ceiling": {
@@ -188,7 +188,7 @@
       "kind": "session_scope_details",
       "target_scope": {
         "kind": "realm",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
       "selection": {
         "reply_message": true,

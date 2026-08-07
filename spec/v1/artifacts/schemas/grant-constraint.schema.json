@@ -302,14 +302,14 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:view:[A-Za-z0-9_-]{44}$"
       }
     },
     "allowed_strand_ids": {
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
       },
       "uniqueItems": true
     },
@@ -317,7 +317,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
       },
       "uniqueItems": true
     },
@@ -325,7 +325,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:space:[A-Za-z0-9_-]{44}$"
       },
       "uniqueItems": true
     },
@@ -333,7 +333,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:space:[A-Za-z0-9_-]{44}$"
       },
       "uniqueItems": true
     },
@@ -392,14 +392,14 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ak:(space|strand|morph):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:(space|strand|morph):[A-Za-z0-9_-]{44}$"
       }
     },
     "allowed_to_container_refs": {
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ak:(space|strand|morph):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:(space|strand|morph):[A-Za-z0-9_-]{44}$"
       }
     },
     "wip_limit_override": {

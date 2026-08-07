@@ -26,7 +26,7 @@
         "public_failure_shape_is_not_found_equivalent"
       ],
       "state": {
-        "invite_id": "ak:invite:0196419b-0000-8000-8000-000000001001",
+        "invite_id": "ak:invite:AQSdMSVYQP78xQTP7_xycpRF0LZ8BTOV1U1lNLZqz2PL",
         "claim_nonce": "nonce-001",
         "subject_id": "did:webvh:z6mkfixture:alice.example",
         "binding_proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -57,7 +57,7 @@
       "reducer_event": {
         "kind": "ak.invite.claim",
         "subject_id": "did:webvh:z6mkfixture:mallory.example",
-        "invite_id": "ak:invite:0196419b-0000-8000-8000-000000001001",
+        "invite_id": "ak:invite:AQSdMSVYQP78xQTP7_xycpRF0LZ8BTOV1U1lNLZqz2PL",
         "claim_nonce": "nonce-001",
         "expected": {
           "decision": "reject",
@@ -146,7 +146,7 @@
         {
           "name": "first_page",
           "items": [
-            "ak:space:0196419b-0000-8000-8000-000000002001"
+            "ak:space:AVSQkv3cqhukYpD6Ci1524xZ6VvR-KzZwp9NVQX9AWR5"
           ],
           "has_more": true,
           "next_cursor": "ak:cursor:projection-page-1",
@@ -162,7 +162,7 @@
         {
           "name": "last_page",
           "items": [
-            "ak:space:0196419b-0000-8000-8000-000000002002"
+            "ak:space:AZLU1pNyUJ7cfMCB3o4cJZC6kseZEqTvAWUPYGUcancW"
           ],
           "has_more": false,
           "expected": {
@@ -218,14 +218,14 @@
           "witnesses": [
             {
               "witness_id": "did:webvh:z6mkfixture:witness-a.example",
-              "realm_id": "ak:realm:0196419b-0000-8000-8000-000000003001",
+              "realm_id": "ak:realm:AdYSFbfyN8gSP0coWuZi_vu3NVmR3SR6UfZquaYJiKsn",
               "actor_id": "did:webvh:z6mkfixture:alice.example",
               "actor_seq": 7,
               "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
             },
             {
               "witness_id": "did:webvh:z6mkfixture:witness-b.example",
-              "realm_id": "ak:realm:0196419b-0000-8000-8000-000000003001",
+              "realm_id": "ak:realm:AdYSFbfyN8gSP0coWuZi_vu3NVmR3SR6UfZquaYJiKsn",
               "actor_id": "did:webvh:z6mkfixture:alice.example",
               "actor_seq": 7,
               "event_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"

@@ -16,30 +16,30 @@
       "name": "request_digest_recompute",
       "vector_id": "ak.vector.policy_server.request_digest_recompute.v1",
       "request_b1": {
-        "realm_id": "ak:realm:0196414c-8000-8000-8000-000000000000",
+        "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
         "actor_id": "did:webvh:z6mkfixture:alice.example.com",
         "action": "ak.message.create",
         "context": {
-          "strand_id": "ak:strand:0196418d-cc00-8000-8000-000000000000",
+          "strand_id": "ak:strand:Ae9FKI-adZOvEof5zBY1v2PJYeqAmPAKj9s4TgyujhGW",
           "content_kind": "text"
         }
       },
       "request_b2": {
-        "realm_id": "ak:realm:0196414c-8000-8000-8000-000000000000",
+        "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
         "actor_id": "did:webvh:z6mkfixture:alice.example.com",
         "action": "ak.message.create",
         "context": {
-          "strand_id": "ak:strand:0196418d-cc00-8000-8000-000000000000",
+          "strand_id": "ak:strand:Ae9FKI-adZOvEof5zBY1v2PJYeqAmPAKj9s4TgyujhGW",
           "content_kind": "attachment"
         }
       },
       "bound_to": {
-        "realm_id": "ak:realm:0196414c-8000-8000-8000-000000000000",
+        "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
         "actor_id": "did:webvh:z6mkfixture:alice.example.com",
         "action": "ak.message.create"
       },
       "cross_context_bound_to": {
-        "realm_id": "ak:realm:0196414c-8000-8000-8000-000000000000",
+        "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
         "actor_id": "did:webvh:z6mkfixture:mallory.example.com",
         "action": "ak.message.create"
       },
@@ -82,8 +82,8 @@
     {
       "name": "binding_tombstone_and_repeat",
       "vector_id": "ak.vector.policy_server.binding_tombstone.v1",
-      "realm_id": "ak:realm:0196414c-8000-8000-8000-000000000000",
-      "governed_by_realm_id": "ak:realm:0196414c-8000-8000-8000-000000000001",
+      "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
+      "governed_by_realm_id": "ak:realm:AQGYtXwDUDY6pCrdmDbp9HPHZk9qb41QQThmW5tNcovT",
       "direct_value": {
         "policy_server_did": "did:webvh:z6mkfixture:realm-policy.example",
         "policy_server_url": "https://realm-policy.example/_arkret/self/policy/check",
@@ -205,7 +205,7 @@
       "name": "tombstone_federation_replay_and_seal",
       "vector_id": "ak.vector.policy_server.tombstone_federation_replay.v1",
       "event": {
-        "event_id": "ak:event:0196414c-8000-8000-8000-000000000010",
+        "event_id": "ak:event:AUOH4deAcgsPn4EzVKWzcZpEF6mblVeTgIc7g8dDodAY",
         "kind": "ak.realm.policy_server",
         "payload": {
           "tombstone": true

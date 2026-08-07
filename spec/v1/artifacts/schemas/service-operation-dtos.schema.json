@@ -922,7 +922,7 @@
         },
         "call_id": {
           "type": "string",
-          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did"
@@ -941,7 +941,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ak:grant:[A-Za-z0-9_-]{44}$"
           }
         },
         "desired_media": {
@@ -1019,7 +1019,7 @@
             },
             "call_id": {
               "type": "string",
-              "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
             },
             "focus_id": {
               "type": "string",
@@ -2126,7 +2126,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^(?:ak:(realm):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:(applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+              "pattern": "^(?:ak:(realm):[A-Za-z0-9_-]{44}|ak:(applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
             },
             {
               "$ref": "#/$defs/ActorDid"
@@ -2209,7 +2209,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^(?:ak:(realm):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:(applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+              "pattern": "^(?:ak:(realm):[A-Za-z0-9_-]{44}|ak:(applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
             },
             {
               "$ref": "#/$defs/ActorDid"
@@ -2275,7 +2275,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^(?:ak:(realm):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:(applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+              "pattern": "^(?:ak:(realm):[A-Za-z0-9_-]{44}|ak:(applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
             },
             {
               "$ref": "#/$defs/ActorDid"
@@ -2564,7 +2564,7 @@
               "description": "Event ids of ak.attestation.range_completeness events whose union of scopes covers the returned page. Over-coverage is legal; clients intersect scopes during verification.",
               "items": {
                 "type": "string",
-                "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
               },
               "uniqueItems": true
             },
@@ -3231,7 +3231,7 @@
       "properties": {
         "report_id": {
           "type": "string",
-          "pattern": "^ak:report:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:report:[A-Za-z0-9_-]{44}$"
         },
         "status": {
           "type": "string",
@@ -3556,7 +3556,7 @@
         "agent_key_authorization_ref": {
           "type": "string",
           "description": "`ak.profile.agent_auth.v1` overlay. Event ref of the accepted\n`ak.agent.key.authorize` that authorized the runtime key. REQUIRED when\n`proof.proof_kind=\"agent_key_proof\"`; MUST be omitted for human session grants.\n",
-          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
         },
         "agent_scope_request": {
           "type": "object",
@@ -3573,7 +3573,7 @@
               "type": "array",
               "items": {
                 "type": "string",
-                "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
               }
             },
             "track_names": {
@@ -3949,7 +3949,7 @@
         },
         "authorization_event_id": {
           "type": "string",
-          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
         },
         "model_generation_ref": {
           "oneOf": [
@@ -4207,7 +4207,7 @@
               "type": "array",
               "items": {
                 "type": "string",
-                "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
               }
             },
             "track_names": {
@@ -4269,7 +4269,7 @@
     },
     "EventId": {
       "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "EventSubmitEnvelope": {
       "allOf": [
@@ -5078,14 +5078,14 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
           }
         },
         "delivery_binding_frontier": {
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
           }
         },
         "delivery_binding_diagnostics": {
@@ -5109,7 +5109,7 @@
       "properties": {
         "relation_id": {
           "type": "string",
-          "pattern": "^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:relation:[A-Za-z0-9_-]{44}$"
         },
         "actor_id": {
           "type": "string",
@@ -5129,7 +5129,7 @@
       "properties": {
         "strand_id": {
           "type": "string",
-          "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -5173,7 +5173,7 @@
             "string",
             "null"
           ],
-          "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "pattern": "^ak:space:[A-Za-z0-9_-]{44}$",
           "description": "Derived board Space id from ak.component.strand.position.v1; not canonical Strand object state."
         },
         "list_space_id": {
@@ -5181,7 +5181,7 @@
             "string",
             "null"
           ],
-          "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "pattern": "^ak:space:[A-Za-z0-9_-]{44}$",
           "description": "Derived list Space id from ak.component.strand.position.v1; not canonical Strand object state."
         },
         "rank": {
@@ -5242,7 +5242,7 @@
       "properties": {
         "morph_id": {
           "type": "string",
-          "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:morph:[A-Za-z0-9_-]{44}$"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -5298,7 +5298,7 @@
       "properties": {
         "space_id": {
           "type": "string",
-          "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:space:[A-Za-z0-9_-]{44}$"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"

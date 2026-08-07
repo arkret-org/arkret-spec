@@ -486,12 +486,14 @@ POST /_arkret/self/events
 ```
 
 请求体是一个 `EventInitialSubmission {event, authorization_lease?, cba_proof_bundles[]?}`，
-或 `{events: EventInitialSubmission[]}`。发布证据不进入 Event canonical bytes。
+或 `{events: EventInitialSubmission[]}`。发布证据不进入 Event digest-preimage canonical bytes。
 
 要求：
 
-- 同一个 `event_id` 重复提交相同 canonical bytes MUST 幂等成功。
-- 同一个 `event_id` 若内容不同 MUST 拒绝并记录冲突。
+- 同一个 `event_id` 重复提交相同 digest-preimage canonical bytes MUST 幂等成功；仅
+  `proofs` / `unsigned` 等 excluded 字段不同不构成 hash collision，仍须按各自字段合同验证。
+- 同一个 `event_id` 若 digest-preimage canonical bytes 不同 MUST 整组 quarantine，并以
+  `witness_disagreement` 记录完整 hash collision evidence。
 - 服务 MUST 验证 Event 签名、actor DID、device/session、AuthorizationLease、CBA basis、
   capability、Realm policy、`actor_seq` 和因果依赖，并在 lease 到期前持久化签发 IngressReceipt。
 - 服务 SHOULD 返回 accepted event、当前 actor frontier、Realm frontier 以及 read-your-writes barrier `cursor`（schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)，purpose=`barrier`）。
@@ -596,8 +598,8 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
     "kind": "conflict",
     "cells": ["ak:cell:ak.component.realm.policy.v1:null"],
     "event_ids": [
-      "ak:event:84210000-0000-8000-8000-000000000000…",
-      "ak:event:a5294000-0000-8000-8000-000000000000…"
+      "ak:event:AZX1GsdimKJVck-Bj3-kzDNnYkXrZ76QLZGeTiOWlbBR…",
+      "ak:event:ARs--JcXpC9xvf_GqjOGJpBUzlc1X5_5KkF53AKeLGQF…"
     ],
     "basis": {
       "leaves": ["ak:seal:sha256:dddd…"],
@@ -668,7 +670,7 @@ Inbox 和 notification 可以由客户端从本地 Event、read cursor、mention
 ```json
 {
   "query": "legal review",
-  "realm_ids": ["ak:realm:0196419b-0000-8000-8000-000000000000"],
+  "realm_ids": ["ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"],
   "object_kinds": ["message", "strand", "morph"],
   "morph_kinds": ["comment"],
   "sender_actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",

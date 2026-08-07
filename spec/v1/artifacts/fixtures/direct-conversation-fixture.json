@@ -45,8 +45,8 @@
       "instance": {
         "kind": "managed_agent_controller",
         "event_refs": [
-          "ak:event:0196419b-0000-8000-8000-000000000311",
-          "ak:event:0196419b-0000-8000-8000-000000000313"
+          "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+          "ak:event:AYfTCWV0E89xVyBGDdUxp2r9d3MQJAcRVbZC9QZPVXYK"
         ]
       }
     },
@@ -60,9 +60,9 @@
       "instance": {
         "kind": "managed_agent_controller",
         "event_refs": [
-          "ak:event:0196419b-0000-8000-8000-000000000311",
-          "ak:event:0196419b-0000-8000-8000-000000000312",
-          "ak:event:0196419b-0000-8000-8000-000000000313"
+          "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+          "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",
+          "ak:event:AYfTCWV0E89xVyBGDdUxp2r9d3MQJAcRVbZC9QZPVXYK"
         ]
       }
     },
@@ -77,18 +77,18 @@
           "did:webvh:z6mkfixture:alice.example",
           "did:webvh:z6mkfixture:bob.example"
         ],
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
-        "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
+        "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
         "authorization_basis": {
           "kind": "accepted_contact",
           "event_refs": [
-            "ak:event:0196419b-0000-8000-8000-000000000301",
-            "ak:event:0196419b-0000-8000-8000-000000000308"
+            "ak:event:AXhk7Ny8Zgsc-d45iY2WrvJm9nC0KURoF_kO7xIcp59r",
+            "ak:event:ASB1fZyHdGBhnTgzaHG5YjG4Gum3odC1Au9Au-6QzDEC"
           ]
         },
         "created_at": "2026-08-02T00:00:00.000Z",
         "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "initial_exact_pair_generation_ref": "ak:event:0196419b-0000-8000-8000-00000000030a"
+        "initial_exact_pair_generation_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y"
       }
     },
     {
@@ -104,19 +104,19 @@
           "did:webvh:z6mkfixture:alice.example",
           "did:webvh:z6mkfixture:bob.example"
         ],
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
-        "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
+        "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
         "authorization_basis": {
           "kind": "accepted_contact",
           "event_refs": [
-            "ak:event:0196419b-0000-8000-8000-000000000301",
-            "ak:event:0196419b-0000-8000-8000-000000000308"
+            "ak:event:AXhk7Ny8Zgsc-d45iY2WrvJm9nC0KURoF_kO7xIcp59r",
+            "ak:event:ASB1fZyHdGBhnTgzaHG5YjG4Gum3odC1Au9Au-6QzDEC"
           ]
         },
         "created_at": "2026-08-02T00:00:00.000Z",
         "binding_state": "active",
         "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "initial_exact_pair_generation_ref": "ak:event:0196419b-0000-8000-8000-00000000030a"
+        "initial_exact_pair_generation_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y"
       }
     },
     {
@@ -128,12 +128,12 @@
         "state": "found",
         "coordinates": {
           "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
-          "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
-          "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
-          "binding_event_ref": "ak:event:0196419b-0000-8000-8000-000000000309"
+          "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+          "binding_event_ref": "ak:event:Aci8tEQxldhmJuDsi_caXxu_rN07TGxrWiNcxyJLPBCc"
         },
         "send_blockers": [],
-        "active_mls_generation_ref": "ak:event:0196419b-0000-8000-8000-00000000030a"
+        "active_mls_generation_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y"
       }
     },
     {
@@ -145,9 +145,9 @@
         "state": "suspended",
         "coordinates": {
           "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
-          "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
-          "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
-          "binding_event_ref": "ak:event:0196419b-0000-8000-8000-000000000309"
+          "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+          "binding_event_ref": "ak:event:Aci8tEQxldhmJuDsi_caXxu_rN07TGxrWiNcxyJLPBCc"
         },
         "blockers": [
           "contact_scope_stale"
@@ -160,9 +160,9 @@
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
-        "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
-        "binding_event_ref": "ak:event:0196419b-0000-8000-8000-000000000309",
+        "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+        "binding_event_ref": "ak:event:Aci8tEQxldhmJuDsi_caXxu_rN07TGxrWiNcxyJLPBCc",
         "state": "found"
       }
     },
@@ -174,9 +174,9 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
-        "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
-        "binding_event_ref": "ak:event:0196419b-0000-8000-8000-000000000309",
+        "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+        "binding_event_ref": "ak:event:Aci8tEQxldhmJuDsi_caXxu_rN07TGxrWiNcxyJLPBCc",
         "state": "retired"
       }
     },
@@ -190,9 +190,9 @@
       "instance": {
         "state": "found",
         "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000101",
-        "main_strand_id": "ak:strand:0196419b-0000-8000-8000-000000000201",
-        "binding_event_ref": "ak:event:0196419b-0000-8000-8000-000000000309",
+        "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+        "binding_event_ref": "ak:event:Aci8tEQxldhmJuDsi_caXxu_rN07TGxrWiNcxyJLPBCc",
         "send_blockers": []
       }
     }

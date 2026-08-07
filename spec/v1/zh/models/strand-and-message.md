@@ -79,9 +79,9 @@ Schema id: `ak.schema.strand.v1`
 
 ```json schema=schemas/strand.schema.json
 {
-  "id": "ak:strand:019640f9-8000-8000-8000-000000000000",
+  "id": "ak:strand:AVK8GYTWvWfnkNjO2MMRJaNYukVBNiB0s6v8tdxK1nmu",
   "schema": "ak.schema.strand.v1",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "metadata": {
     "title": "支付重构",
     "summary": "统一支付链路、风控回调和退款状态机；同步 owner、决策与 blocker。",
@@ -101,7 +101,7 @@ Schema id: `ak.schema.strand.v1`
     "synthesis": { "is_primary": true },
     "discussion": { "profile": "review" }
   },
-  "scope_circle_id": "ak:circle:019640dc-8000-8000-8000-000000000000",
+  "scope_circle_id": "ak:circle:ARXbvtRVuDBYaF4WF9z-UaI6zlszC0W60gTZIVJDcvFR",
   "state": "active",
   "stage": "in_progress",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
@@ -325,7 +325,7 @@ Strand 永远只有**一个** effective scope。整个 Strand（含所有 track�
     "synthesis": { "is_primary": true },
     "discussion": { "profile": "review" }
   },
-  "scope_circle_id": "ak:circle:019640dc-8000-8000-8000-000000000000"
+  "scope_circle_id": "ak:circle:ARXbvtRVuDBYaF4WF9z-UaI6zlszC0W60gTZIVJDcvFR"
 }
 ```
 
@@ -347,7 +347,7 @@ flowchart LR
     subgraph Realm ["ak:realm: — 父 Realm（federation / policy / capability registry）"]
         direction TB
         StrandA["ak:strand: F_A<br/>scope_circle_id = null"]
-        StrandB["ak:strand: F_B<br/>scope_circle_id = ak:circle:0196419c-0000-8000-8000-000000000000"]
+        StrandB["ak:strand: F_B<br/>scope_circle_id = ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"]
         RealmScope["Realm-default scope<br/>+ Realm membership"]
         subgraph Circle ["ak:circle: C — 子事件边界"]
             direction TB
@@ -570,12 +570,12 @@ Message 是 Strand `discussion` track 时间线中的原子消息对象。
 
 Message 创建是 append-only。编辑通过 revision chain；撤回通过 redaction/tombstone。
 
-`ak.message.create` 只有一个由签名内容确定的创建 UUID：Event wire 的
-`event_id=ak:event:<content-bound-uuidv8>`。reducer MUST 把同一 UUIDv8 重类型为
-`Message.id=ak:message:<content-bound-uuidv8>`；create payload MUST NOT 携带 `message_id`。两个 typed ID
+`ak.message.create` 只有一个内容派生创建身份：Event wire 的
+`event_id=ak:event:<44-char-suite-tagged-full-digest-token>`。reducer MUST 把同一33-octet token重类型为
+`Message.id=ak:message:<same-token>`；create payload MUST NOT 携带 `message_id`。两个 typed ID
 分别寻址 durable 创建事实与物化 Message 对象，但不得成为两个可独立选择的 identity。网络重试
-MUST 重发相同 canonical Event；相同 `event_id` 的不同 canonical bytes 按 Event identity
-conflict 处理，新 `event_id` 则必然创建新的 Message。
+MUST 重发相同 digest-preimage canonical Event；相同 `event_id` 的不同 digest-preimage canonical
+bytes 是完整 hash collision evidence，按整组 quarantine 处理；新 `event_id` 则创建新的 Message。
 
 未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。Event wire 上，`ak.message.create` / `ak.message.revise` 的正文位于 Event Envelope 的 `payload.content`，E2EE 对偶位于 `payload.encrypted_content`；物化 Message 对象的字段名分别是顶层 `content` / `encrypted_content`。`strand_id` 等字段只表达归属或目标（Message 主键是顶层 `id`，不是 `message_id`）；物化 Message 对象的回复关系不走标量字段，由 `replies_to` 关系表达（`ak.message.create` payload 可携带 `reply_to` 创建便利，reducer 据此记录回复指向并投影为 `replies_to` 关系，不要求单独的 canonical `ak.relation` 事件）。Message 的用户可读扩展 metadata 使用 `metadata` / `encrypted_metadata`。
 
@@ -587,7 +587,7 @@ Schema id: `ak.schema.message.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:message` | 以 `ak:message:` 开头；创建时 MUST 等于把 `ak.message.create` Event 的 content-bound UUIDv8 `event_id` 重类型为 `ak:message:`。 | Message ID。 |
+| `id` | yes | `id:message` | 以 `ak:message:` 开头；创建时 MUST 等于把 `ak.message.create` Event 的完整33-octet token重类型为 `ak:message:`。 | Message ID。 |
 | `schema` | yes | `ak.schema.message.v1` | const。 | Schema ID。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `strand_id` | yes | `id:strand` |  | 所属 Strand。 |
@@ -620,10 +620,10 @@ Schema id: `ak.schema.message.v1`
 
 ```json schema=schemas/message.schema.json
 {
-  "id": "ak:message:0196414c-8000-8000-8000-000000000000",
+  "id": "ak:message:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
   "schema": "ak.schema.message.v1",
-  "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-  "strand_id": "ak:strand:019640f9-8000-8000-8000-000000000000",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+  "strand_id": "ak:strand:AVK8GYTWvWfnkNjO2MMRJaNYukVBNiB0s6v8tdxK1nmu",
   "track_name": "discussion",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "content": {
@@ -633,7 +633,7 @@ Schema id: `ak.schema.message.v1`
     "formatted_body": "<mention did=\"did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
   },
   "state": "active",
-  "revision_root": "ak:message:0196414c-8000-8000-8000-000000000000",
+  "revision_root": "ak:message:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
   "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
@@ -650,9 +650,9 @@ Schema id: `ak.schema.message.v1`
     "kind": "ak.strand.create",
     "payload": {
       "object": {
-        "id": "ak:strand:019640f9-8000-8000-8000-000000000000",
+        "id": "ak:strand:AVK8GYTWvWfnkNjO2MMRJaNYukVBNiB0s6v8tdxK1nmu",
         "schema": "ak.schema.strand.v1",
-        "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "metadata": {
           "title": "项目同步"
         },
@@ -668,7 +668,7 @@ Schema id: `ak.schema.message.v1`
   {
     "kind": "ak.message.create",
     "payload": {
-      "strand_id": "ak:strand:019640f9-8000-8000-8000-000000000000",
+      "strand_id": "ak:strand:AVK8GYTWvWfnkNjO2MMRJaNYukVBNiB0s6v8tdxK1nmu",
       "track_name": "discussion",
       "content": {
         "kind": "ak.content.text",

@@ -449,7 +449,7 @@
             "cell_subject_field": "payload.strand_id"
           }
         ],
-        "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:0196419b-0000-8000-8000-000000000901",
+        "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
         "base_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "base_post_state": {
           "metadata": {
@@ -465,7 +465,7 @@
           }
         },
         "derived_effect": {
-          "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:0196419b-0000-8000-8000-000000000901",
+          "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
           "op": {
             "kind": "set",
             "value": {
@@ -527,7 +527,7 @@
               "sha256:1111111111111111111111111111111111111111111111111111111111111111"
             ],
             "wire_effect": {
-              "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:0196419b-0000-8000-8000-000000000901",
+              "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
               "op": {
                 "kind": "set",
                 "value": {
@@ -553,7 +553,7 @@
         "selector_segment_rejects_schema_violation"
       ],
       "input": {
-        "strand_id": "ak:strand:0196419b-0000-8000-8000-000000000901",
+        "strand_id": "ak:strand:AenmSbojleR5cqC2y21484Vhl7RyxXY0e7TOOEy9wcly",
         "cell_id": "ak:cell:ak.component.strand.tracks.v1:ak.strand.0196419b-0000-7000-8000-000000000901",
         "initial_tracks": {
           "synthesis": {
