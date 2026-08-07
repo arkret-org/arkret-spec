@@ -737,8 +737,6 @@ Arkret v1 使用 `ak.session.grant` 作为 principal control stream 中的标准
 
 ```json
 {
-  "grant_id": "ak:grant:01964198-0000-8000-8000-000000000000",
-  "realm_id": "ak:realm:01964198-7000-8000-8000-000000000000",
   "issuer": "did:webvh:z99jGJ9cd12QASVtC6r35kV5q:auth-gateway.example.com",
   "subject": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "session_public_key": "z6Mss...",
@@ -755,9 +753,10 @@ Arkret v1 使用 `ak.session.grant` 作为 principal control stream 中的标准
 }
 ```
 
-> 注：`ak.session.grant` 是 principal control stream 事件，`realm_id` MUST 等于 subject 的
-> principal control realm（§4.1）。本字段是 control event 必填项；省略 MUST 被 reducer
-> 以 `schema_violation` 拒绝。
+> 注：`ak.session.grant` 是 principal control stream 事件，Event Envelope 的 `realm_id` MUST 等于
+> subject 的 principal control realm（§4.1）。该 envelope 字段是 control Event 必填项；省略 MUST
+> 被 reducer 以 `schema_violation` 拒绝。genesis payload 不携带 `grant_id` / `session_grant_id` 或
+> `realm_id`；receiver 从 accepted Event ID 派生 `ak:session_grant:` ID，JWT `jti` 使用该派生值。
 
 规则：
 
