@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 102,
+  "audited_occurrence_count": 106,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -513,13 +513,37 @@
     {
       "file": "service-operation-dtos.schema.json",
       "key": "signer_key_evidence",
-      "occurrences": 1,
+      "occurrences": 2,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
         "attestation"
       ],
-      "reason": "Combines original device authorization Event proofs with source-service active-key attestations."
+      "reason": "Combines original device authorization Event proofs with source-service active-key attestations. Registered on both the ordinary federation batch body and the Direct Conversation founding federation branch."
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
+      "key": "founder_basis_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Closed XOR authorization evidence for one Direct Conversation founding unit: the human branch carries Contact acceptance receipts and current proofs, the controller_agent branch carries provision and controller-binding commitments."
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
+      "key": "basis_evidence_bundle",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Portable Contact basis evidence bundle reused verbatim from contact-operations.schema.json; it bundles acceptance receipts, glare concurrency attestations and derived basis commitments."
     }
   ]
 }

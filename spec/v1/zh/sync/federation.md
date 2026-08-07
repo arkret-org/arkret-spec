@@ -179,7 +179,7 @@ Fail-closed 条件：
 
 ### 4.0.2 Principal-private peer 投递与 KeyPackage command 不是共享 Event 接收轨（normative）
 
-`/_arkret/peer/invites`（`ak.peer.invites.command.submit`）与 `/_arkret/peer/contacts`（`ak.peer.contacts.command.submit`）是 Principal-private 事实投递面：前者承载目标 holder 的 invite command submit envelope；后者只承载联系人请求 / 响应 / scope replacement / tombstone 的原签名 `ak.contact.*` envelope，用于把 principal-scoped Contact fact 投递到对端 Principal Server。`/_arkret/peer/keys/keypackages/claim` 与 `/_arkret/peer/keys/keypackages/claims/query` 则是目标 KeyPackage authority 的原子 command / outcome-query 面，不承载 Event。三类 surface **MUST NOT** 接受共享 Realm durable Event，**MUST NOT** 推进共享 Realm reducer、Seal、CBA frontier 或 state root，也 **MUST NOT** 被实现当作 `/_arkret/peer/events` 的并行替代 fanout 通道。Direct Conversation 的 binding、Realm、member、Strand 与 MLS Event 只能走参与方 PCR 上的通用 `ak.peer.events.command.submit`；`/_arkret/peer/contacts` 不得镜像或夹带 `ak.direct_conversation.bound`；KeyPackage surface 只改变目标 authority 的 KeyPackage lifecycle 与幂等 ledger。
+`/_arkret/peer/invites`（`ak.peer.invites.command.submit`）与 `/_arkret/peer/contacts`（`ak.peer.contacts.command.submit`）是 Principal-private 事实投递面：前者承载目标 holder 的 invite command submit envelope；后者只承载联系人请求 / 响应 / scope replacement / tombstone 的原签名 `ak.contact.*` envelope，用于把 principal-scoped Contact fact 投递到对端 Principal Server。`/_arkret/peer/keys/keypackages/claim` 与 `/_arkret/peer/keys/keypackages/claims/query` 则是目标 KeyPackage authority 的原子 command / outcome-query 面，不承载 Event。三类 surface **MUST NOT** 接受共享 Realm durable Event，**MUST NOT** 推进共享 Realm reducer、Seal、CBA frontier 或 state root，也 **MUST NOT** 被实现当作 `/_arkret/peer/events` 的并行替代 fanout 通道。Direct Conversation 的 binding、Realm、member、Strand 与 MLS Event 只能走 `ak.peer.events.command.submit`——founding 三 Event unit 走 §4.0.4 的 `direct_conversation_founding` branch，其余走通用 branch；`/_arkret/peer/contacts` 不得镜像或夹带 `ak.direct_conversation.bound`；KeyPackage surface 只改变目标 authority 的 KeyPackage lifecycle 与幂等 ledger。
 
 这些 endpoint 仍属于 `/_arkret/peer/*` 联邦协议面，因而 MUST 复用 §3 的 service-to-service HTTP Message Signature、trust-domain、destination binding、body digest、最小披露错误和 replay 防护。invite / contact 接收方只把 payload 投影进目标 holder 的 principal control / account-private 处理路径；KeyPackage authority 还 MUST 执行 [`../crypto-media/device-lifecycle.md` §9.2](../crypto-media/device-lifecycle.md) 的 participant authorization、唯一 CAS、幂等 ledger 与反枚举 gate。任何尝试在这些 endpoint 中夹带共享 Realm Event Envelope 的请求 MUST fail closed（`schema_violation` 或 `capability_denied`，对外仍遵守最小披露）。
 
@@ -207,6 +207,41 @@ delivery binding 不成立，或所有 signal 都过期、重复、不可见、p
 recipient，也只返回 opaque `{"accepted":true}`；只有外层 peer auth、跨 Realm batch 及
 body/schema/count/byte 失败才拒绝。完整 batch、签名窗口、重复/乱序、资源隔离与 conformance
 合同以 [`signal.md` §4](./signal.md) 为准。
+
+### 4.0.4 Direct Conversation founding exception（normative）
+
+Direct Conversation Realm 尚不存在时无法取得普通 `federation_peer` authority，因此
+[`../identity/contact-and-direct-conversation.md` §5.6](../identity/contact-and-direct-conversation.md)
+要求的那条封闭例外在此登记：`ak.peer.events.command.submit` 的 request union MUST 包含 discriminated
+branch `DirectConversationFoundingFederationSubmission`（discriminator
+`unit_kind="direct_conversation_founding"`）。这不是新 endpoint，也不是私有轨；§4.0 的单轨结论不变。
+
+该 branch MUST 精确承载：
+
+- 恰好三条按 `contact-and-direct-conversation.md` §6.1 wire 顺序排列的 `EventFederationSubmission`
+  （`ak.realm.create` → 另一 participant 的 `ak.member.state{join}` → `ak.strand.create`）；
+- 一张 source `DirectConversationFoundingAcceptanceReceipt`；
+- 验证该 unit 所需的 bounded dependencies（`cba_proof_bundles`、`signer_key_evidence`、
+  Contact basis evidence bundle 及其至根 founder basis 的 continuity chain）。
+
+该 branch MUST NOT 携带 `service_binding_ref`：Realm 在接收方尚不存在，普通 Realm-scoped service binding
+快照无从计算；destination 绑定改由 §3 的 service DID / trust-domain header 与下述 receipt 校验承担。
+
+接收方每次 MUST 按固定顺序 fresh 验证，任一步失败即整组零写入：
+
+1. §3 的 service-to-service 认证、`Source`/`Destination` service DID 与 trust-domain header 成立；
+2. transport source 当前确实承载 `receipt.founder_id`；receipt 由迁移前旧 service 签发时，还 MUST 携带完整
+   accepted-at service binding 与 cutover/fence 连续性证明；
+3. `Destination` 承载本地 participant，且该 participant 恰为该 pair 中非 founder 的一方；
+4. body 只含该 unit、该 receipt 与 bounded dependencies，无第四条 Event、无其它 Realm 的 Event；
+5. 重算 `founding_unit_digest` 并与 `receipt.founding_unit_digest` 逐字比对，重算 `realm_id` /
+   `main_strand_id` 并与 receipt 逐字比对；
+6. 该 create 通过 `contact-and-direct-conversation.md` §5.4 的全部 admission 校验与 §6.2 的固定 baseline 投影。
+
+该 branch 是 registered atomic unit：Contact basis 镜像或其它 bounded dependency 尚未到达时 MUST 返回
+top-level HTTP 409 `dependency_missing` 与 `EventsDependencyMissingProblem` 并零写入，随后可重试；
+MUST NOT 放行、MUST NOT 永久拒绝、MUST NOT 退化为 per-item partial，也 MUST NOT 只接受其中一或两条 Event。
+Realm 在接收方 accepted 后，该 pair 的后续 Event 立即回落普通 federation 规则与普通 batch 分支。
 
 ### 4.1 推送模式 (Push)
 

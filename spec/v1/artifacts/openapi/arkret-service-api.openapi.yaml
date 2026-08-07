@@ -1376,6 +1376,8 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody
     EventsSubmitOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome
+    EventsSubmitResponseBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponseBody
     EventsSubscribeFrame:
       $ref: ../schemas/events-subscribe-frame.schema.json
     EventStateView:
@@ -3928,6 +3930,15 @@ paths:
           application/json:
             schema:
               $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody
+      description: |
+        Ordinary Event publication plus the discriminated
+        `direct_conversation_founding` branch, which is the only carrier for a
+        Direct Conversation founding unit (zh/identity/contact-and-direct-conversation.md
+        §5.5). That branch carries exactly three founder-authored Events in fixed
+        wire order, closed XOR founder basis evidence and an `idempotency_key`,
+        and returns `DirectConversationFoundingAcceptanceOutcome` with the
+        source-signed receipt. The service allocates no identifier: `realm_id`
+        and `main_strand_id` are retyped from the first and third Event IDs.
       responses:
         '200':
           description: Event accepted (or duplicate / partial; see status field)
@@ -3939,7 +3950,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsSubmitOutcome'
+                $ref: '#/components/schemas/EventsSubmitResponseBody'
+        '409':
+          description: |
+            `duplicate_conflict` — the same `idempotency_key` was reused with a
+            different founding unit; or `conflict` with reason_code
+            `direct_conversation_slot_already_committed` — the pair's founding
+            slot was already closed by a different unit. Both write zero Events.
   /_arkret/self/events/subscribe:
     get:
       operationId: ak.self.events.stream.subscribe
@@ -4325,7 +4342,13 @@ paths:
         `ak.member.state` compensation submission carries the unchanged
         transport-only `membership_compensation_evidence`; the receiver applies
         the same exact admission, incarnation, action, executor and single-use
-        checks as initial submission.
+        checks as initial submission. The request union also registers the
+        discriminated `direct_conversation_founding` branch for the Direct
+        Conversation founding exception (zh/sync/federation.md §4.0.4): it carries
+        exactly three ordered Events, the source founding acceptance receipt and
+        bounded dependencies, omits `service_binding_ref` because the Realm does
+        not yet exist at the receiver, and reports a missing dependency as the
+        top-level 409 below rather than a per-item partial.
       parameters:
       - in: header
         name: Idempotency-Key

@@ -58,10 +58,13 @@
           "$ref": "#/$defs/direct_conversation_participant_authority_ref"
         },
         {
+          "$ref": "#/$defs/direct_conversation_bootstrap_authority_ref"
+        },
+        {
           "$ref": "#/$defs/membership_compensation_delegation_ref"
         }
       ],
-      "description": "Optional. Required when executed_by is present. Prefer a materialized ak:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization; a DID-document delegation URL (did_delegation_ref) is allowed when the delegation is expressed in the principal DID document; realm_authority_root_ref designates this Realm's registered authority-root cell. The sole non-grant profile source admitted here is the exact direct_conversation_participant_authority_ref constant, paired with one critical refs[] role=direct_conversation_binding Event reference and the registered profile evaluator. An arbitrary Event/cell MUST NOT be treated as participant authority. When executed_by is present, authorization_ref binds the executor delegation instead and the DM participant source is evaluated as an independent conjunctive profile gate."
+      "description": "Optional. Required when executed_by is present. Prefer a materialized ak:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization; a DID-document delegation URL (did_delegation_ref) is allowed when the delegation is expressed in the principal DID document; realm_authority_root_ref designates this Realm's registered authority-root cell. Exactly two non-grant profile sources are admitted here: direct_conversation_participant_authority_ref, paired with one critical refs[] role=direct_conversation_binding Event reference, and direct_conversation_bootstrap_authority_ref, paired with one critical refs[] role=direct_conversation_founding_unit Event reference for the pre-binding founding phase. An arbitrary Event/cell MUST NOT be treated as participant authority. When executed_by is present, authorization_ref binds the executor delegation instead and the DM profile source is evaluated as an independent conjunctive profile gate."
     },
     "applet_id": {
       "$ref": "#/$defs/applet_id",
@@ -336,6 +339,49 @@
           "required": [
             "executed_by"
           ]
+        }
+      }
+    },
+    {
+      "$comment": "Closed direct-conversation bootstrap authority reference. Pre-binding founding-phase writes cite the registered bootstrap source token and one exact critical founding-unit Event evidence ref, because no binding Event exists yet to cite.",
+      "if": {
+        "properties": {
+          "authorization_ref": {
+            "const": "ak.authority.direct_conversation_bootstrap_participant.v1"
+          }
+        },
+        "required": [
+          "authorization_ref"
+        ]
+      },
+      "then": {
+        "required": [
+          "refs"
+        ],
+        "properties": {
+          "refs": {
+            "contains": {
+              "type": "object",
+              "required": [
+                "id",
+                "role",
+                "critical"
+              ],
+              "properties": {
+                "id": {
+                  "$ref": "#/$defs/event_ref"
+                },
+                "role": {
+                  "const": "direct_conversation_founding_unit"
+                },
+                "critical": {
+                  "const": true
+                }
+              }
+            },
+            "minContains": 1,
+            "maxContains": 1
+          }
         }
       }
     },
@@ -4837,7 +4883,12 @@
     "direct_conversation_participant_authority_ref": {
       "type": "string",
       "const": "ak.authority.direct_conversation_participant.v1",
-      "description": "The only profile-scoped non-grant authorization source accepted by Event.authorization_ref. It is meaningful solely in ak.profile.direct_conversation_realm.v1 and requires one critical refs[] role=direct_conversation_binding Event reference. The evaluator rederives the pair's unique immutable binding, exact-two participant membership, Realm/Strand/MLS cross-binding, lifecycle, both directional Contact heads/scopes and action-specific gates without consulting Consent; this constant never authorizes arbitrary Realm or third-party writes."
+      "description": "The daily profile-scoped non-grant authorization source accepted by Event.authorization_ref. It is meaningful solely in ak.profile.direct_conversation_realm.v1 and requires one critical refs[] role=direct_conversation_binding Event reference. The evaluator rederives the pair's unique immutable binding, exact-two participant membership, Realm/Strand/MLS cross-binding, lifecycle, both directional Contact heads/scopes and action-specific gates without consulting Consent; this constant never authorizes arbitrary Realm or third-party writes."
+    },
+    "direct_conversation_bootstrap_authority_ref": {
+      "type": "string",
+      "const": "ak.authority.direct_conversation_bootstrap_participant.v1",
+      "description": "The pre-binding profile-scoped non-grant authorization source accepted by Event.authorization_ref, meaningful solely in ak.profile.direct_conversation_realm.v1 between an accepted founding unit and the first legal binding endorsement. It requires one critical refs[] role=direct_conversation_founding_unit Event reference pointing at the accepted ak.realm.create of that unit. The verifier recomputes which of the two mutually exclusive phases applies from accepted facts and MUST NOT let the producer choose: provisional_history_send applies only to the founder while the active-generation cell has not passed generation 0, and exact_pair_founding_completion applies once the selected group state holds exactly the pair's authorized leaves and no legal endorsement exists yet. Both phases permanently retire once the first legal ak.direct_conversation.bound endorsement is accepted, after which only direct_conversation_participant_authority_ref remains. Neither phase authorizes policy, grant, a third participant, another Strand or ordinary membership writes. See zh/identity/contact-and-direct-conversation.md section 7.2."
     },
     "membership_compensation_delegation_ref": {
       "type": "string",

@@ -165,6 +165,8 @@ Message Signature只能额外叠加，不能替代其中任一项。实现 **MUS
 | `ak.self.contact.read.list` | 从 verified basis与双方 directional current heads投影 |
 | `ak.peer.contacts.command.submit` | closed XOR peer carrier；原 bytes + exact receipt/current proof |
 | `ak.self.direct_conversation.read.resolve` | §9.1 的唯一 DM 查询入口；closed outcome，不携 create phase 分支 |
+| `ak.self.events.command.submit` | 其 `direct_conversation_founding` branch 是 §5.5 的唯一 DM founding 提交入口 |
+| `ak.peer.events.command.submit` | 其 `direct_conversation_founding` branch 是 §5.6 的唯一 DM founding 联邦入口 |
 
 `ak.self.direct_conversation.command.resolve` 的 untagged 多 phase create 入口 **MUST** 删除：创建由 §5 的
 `ak.realm.create` founding admission 承担，查询由上表的 `query.resolve` 承担，二者 **MUST NOT** 合并为一个
@@ -234,21 +236,68 @@ founder **MUST** 从该 pair 的**根 founder basis** 派生，而非从 current
 
 `direct_conversation_agent_genesis` 改验 participants 恰为该 controller/Agent、profile 为 DM 而非 PCR、`ak.agent.provision` 已 accepted 且 controller binding current，并令 `founder = controller`。Agent 与第三方之间的 DM 仍 **MUST** 使用该 pair 的 current Contact basis，**MUST NOT** 以 provision 绕过第三方 consent。
 
-### 5.5 source 唯一 slot 与 founding acceptance receipt
+### 5.5 caller-authored founding unit、source 唯一 slot 与 acceptance receipt
 
-founder 的 current Principal Server **MUST** 以本地唯一约束保证同一 `(founder_id, trust_domain_id, pair_key)` 至多一组 founding unit 被 accepted。`realm_id` 与 `main_strand_id` **MUST** 在同一 slot 事务内由该服务分配并在重试时原样返回；caller **MUST NOT** 替换任一 ID。
+三条 Event 的 ID 都是各自 canonical Event preimage 的完整 digest（[`../conformance/encoding.md` §4.0](../conformance/encoding.md)），`realm_id` 与 `main_strand_id` 又分别是第一条与第三条 Event ID 的重类型（[`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)、[`../models/common-fields.md` §6.0](../models/common-fields.md)）。因此在 canonical preimage 完成之前**没有任何主体能"分配"这两个 ID**：服务端预分配、reserved/materializing draft、coordinator 选举与 caller 自选 ID 全部 **MUST NOT** 出现在本流程。founding **MUST** 采用 caller-authored first-valid unit：
 
-self admission **MUST** 在同一事务内完成：确认该 pair 尚无 accepted DM Realm、CAS 占用 slot、接受三 Event unit、签发 `DirectConversationFoundingAcceptanceReceipt`、写入 peer-delivery outbox。receipt 是该事务的输出，**MUST NOT** 循环要求 caller 预先携带。
+1. founder caller author `ak.realm.create`（envelope 省略 `realm_id`、`scope_ref` 为 `{"kind":"realm_genesis"}`，payload 省略 object id），完成 canonical preimage 后派生其 Event ID，并重类型得到 `realm_id`；
+2. 以该 `realm_id` author 另一 participant 的 `ak.member.state{join}`；
+3. author `ak.strand.create`（payload 不携 `strand_id`），由其 Event ID 重类型得到 `main_strand_id`；
+4. 三条全部由 founder 签名，按该 wire 顺序构成 exact ordered unit 一次提交；不存在 server-created draft、reserved Event ID 或第二次 authoring 机会；
+5. 网络结果不明时 caller **MUST** 重放逐字节相同的 signed bytes，**MUST NOT** 重新 author 另一组 Event。
+
+`founding_unit_digest` 是该 unit 的唯一稳定标识，按 §2 的 `H` 定义为：
+
+```text
+founding_unit_digest = H("ak.direct-conversation.founding-unit.v1",
+                         {"event_ids": [realm_create_event_id,
+                                        peer_member_join_event_id,
+                                        strand_create_event_id]})
+```
+
+三个 Event ID **MUST** 按 §6.1 的 wire 顺序列出，**MUST NOT** 排序、去重或替换为 digest。该值不进入任一 unit Event 的 preimage，因此不存在自指；receipt 与 `ak.direct_conversation.bound` 只引用它。实现 **MUST** 执行 [`ak.vector.direct_conversation.founding_unit.v1`](../../artifacts/registry/vector-registry.json) 的逐字节 KAT。
+
+founder 的 current Principal Server **MUST** 以本地唯一约束保证同一 `(founder_id, trust_domain_id, pair_key)` 至多一组 founding unit 被 accepted。self admission **MUST** 在同一事务内完成：确认该 pair 尚无 accepted DM Realm、CAS 占用 slot、按 §5.4 与 §6 完整验证三条 Event、basis 与派生坐标、零项或三项原子接受、签发 `DirectConversationFoundingAcceptanceReceipt`、写入 peer-delivery outbox。acceptance **只固定 caller 已派生的坐标**，**MUST NOT** 分配、替换或重新协商任一 ID；receipt 是该事务的输出，**MUST NOT** 循环要求 caller 预先携带。
 
 receipt **MUST** 绑定 `pair_key`、`founder_id`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 authorization core（human 为 current/根 basis 与 evidence digest；controller↔Agent 为 provision ref/digest 与 controller binding digest）、`slot_committed`、issuer service ID 与其 accepted-at service binding digest、`accepted_at` 与 proof。它 **MUST NOT** 创建 Realm、授权 Message 或充当全局 slot；它只让 peer verifier 确认 founder 当时的 current service 已原子接受该 unit 并关闭本地唯一 slot。
 
-同 digest 的 exact retry **MUST** 返回 byte-identical receipt。相同 pair/founder 但不同 unit 的第二张 receipt 是 §5.7 冲突证据。
+`proof` 的签名 transcript 是唯一封闭前像，按 §2 的 `H` 固定为：
+
+```text
+founding_receipt_transcript = H("ak.direct-conversation.founding-receipt.v1",
+                                receipt 去掉 proof 后的完整 closed object)
+```
+
+`proof.verification_method` **MUST** 解析为 `issuer_service_id` 在 `accepted_at` 时的 current service key，
+`proof.created_at` **MUST** 等于 `accepted_at`。receiver **MUST** 从 receipt 自身字段重算该 transcript 再验签，
+**MUST NOT** 采信任何随 receipt 传来的预算 digest；这使 byte-identical retry 与两个独立实现必然得到同一
+transcript 与同一签名输入。
+
+carrier 是 `ak.self.events.command.submit` request union 中显式登记的 discriminated branch
+`DirectConversationFoundingUnitSubmission`（discriminator `unit_kind="direct_conversation_founding"`）：它精确要求恰好三条按 §6.1 顺序排列的 `EventInitialSubmission`、分支化 founder basis evidence 与 `idempotency_key`，并在 response union `EventsSubmitResponseBody` 中返回 `DirectConversationFoundingAcceptanceOutcome`。实现 **MUST NOT** 新增私有 endpoint、复用普通 batch 分支，也 **MUST NOT** 用本地 DTO 猜测该合同；`ak.self.direct_conversation.read.resolve` 继续 query-only，**MUST NOT** 承载 create。
+
+幂等与 crash/restart 语义 **MUST** 如下封闭：
+
+- 同 `idempotency_key` 且同 `founding_unit_digest` 的 exact retry 返回 byte-identical receipt 与相同 `event_ids`，且 **MUST NOT** 推进 `accepted_at`；
+- 同 `idempotency_key` 但不同 `founding_unit_digest` 返回 `duplicate_conflict` 且零写入；
+- 本地 slot 已被同 pair 的另一组 unit 关闭时返回 `conflict` 与 `direct_conversation_slot_already_committed` 且零写入，caller **MUST** 改用 §9.1 resolver 取回既有坐标；服务 **MUST NOT** 接受第二组 unit，也 **MUST NOT** 把它降级为 partial 或 quarantine；
+- 客户端已派生 ID、unit 已提交、三 Event 已落库、receipt 已签发、outbox 已入队与响应丢失这些崩溃点，重放同一 signed bytes **MUST** 收敛到同一 receipt、同一坐标与同一 outbox 条目，**MUST NOT** 产生第二组 Event、第二张 receipt 或第二个 slot。
+
+相同 pair/founder 但不同 unit 的第二张 receipt 是 §5.7 冲突证据。
 
 ### 5.6 联邦例外
 
 Realm 尚不存在时无法取得普通 `federation_peer` authority，因此 [`../sync/federation.md`](../sync/federation.md) **MUST** 登记一条封闭的 DM founding exception：允许 founder 的 current Principal Server 向另一 participant 的 current Principal Server 投递该 pair 的 founding atomic unit、source acceptance receipt 与验证所需的 bounded dependencies。
 
 接收方每次 **MUST** fresh 验证：transport source 当前确实承载 founder（receipt 由迁移前旧 service 签发时还须携完整 accepted-at binding 与 cutover/fence 连续性证明）、destination 承载本地 participant、body 只含该 unit/receipt/dependencies、且 create 通过 §5.4 全部校验。Contact basis 镜像尚未到达时 **MUST** 返回 `dependency_missing` 并重试，**MUST NOT** 放行，也 **MUST NOT** 永久拒绝。
+
+该例外的 carrier **MUST** 是 `ak.peer.events.command.submit` request union 中显式登记的 discriminated
+branch `DirectConversationFoundingFederationSubmission`（discriminator
+`unit_kind="direct_conversation_founding"`），承载恰好三条按 §6.1 顺序排列的 `EventFederationSubmission`、
+source `DirectConversationFoundingAcceptanceReceipt` 与 bounded dependencies；实现 **MUST NOT** 新增私有 peer
+endpoint，也 **MUST NOT** 用普通 Realm batch 分支夹带该 unit。该 branch 是 registered atomic unit：dependency
+不足时 **MUST** 用 top-level HTTP 409 `dependency_missing` 与 `EventsDependencyMissingProblem` 并零写入，
+**MUST NOT** 退化为 per-item partial，也 **MUST NOT** 只接受其中一或两条。
 
 Realm 在对端 accepted 后立即回落普通 federation 规则。因 §5.4 第 3 条已钉死作者，该例外不需要方向性约束。
 
@@ -276,6 +325,12 @@ founder **MUST** 一次提交恰好三条 Event：
 ```
 
 三条注册为 `ak.profile.direct_conversation_realm.v1` 的 closed atomic founding unit：按 wire 顺序验证，同一事务零项或三项接受。create-alone、缺 peer join、缺 Strand、乱序、不同 actor/pair/profile/Realm 或出现第四条 Event **MUST** 拒绝整组。三条 **MUST** 由 founder author，并使用同一分支 context（`direct_conversation_basis` 或 `direct_conversation_agent_provision`，exact XOR），叠加同批 staged authority-root proof。
+
+该顺序同时是 §5.5 的派生顺序，不是可选排版：第 2、3 条的 `envelope.realm_id` **MUST** 逐字等于
+`retype(第 1 条 event_id, "realm")`，`main_strand_id` **MUST** 逐字等于 `retype(第 3 条 event_id, "strand")`，
+第 2 条的 `prev_refs` **MUST** 引用第 1 条、第 3 条 **MUST** 引用第 2 条。验证方 **MUST** 从 unit 自身 bytes
+重算这两个坐标，**MUST NOT** 采信请求中另行携带的坐标字段，也 **MUST NOT** 接受任何声称先分配后签名的
+提交形态。本段任一条件不成立 **MUST** 以 `direct_conversation_founding_unit_invalid` 整组零写入拒绝。
 
 Genesis Seal **MUST** 覆盖三条 Event、普通 Realm create 的全部 required founding writes 与 §6.2 的固定投影；**MUST NOT** 先 Seal create 再补 peer join 与 Strand。
 
@@ -311,7 +366,13 @@ binding 尚不存在时普通 DM participant authority 未激活，因此 **MUST
 
    该 phase 内两类动作的 author 约束不同：generation-1 activation **MUST** 由 joiner author（§7.3）；binding endorsement 对任一 exact participant 开放（§8.3）。实现 **MUST NOT** 把两者合并为同一条"任一 participant"授权。
 
-每条 Event **MUST** 使用该 source 的 registered `authorization_ref`/proof context 并携 action-specific critical refs；owned Agent 分支仍叠加 controller delegation。首个合法 binding endorsement accepted 后两 phase **MUST** 永久退出，后续动作只走 `ak.authority.direct_conversation_participant.v1`。
+每条 Event **MUST** 使用该 source 的 registered `authorization_ref`/proof context 并携 action-specific critical refs；owned Agent 分支仍叠加 controller delegation。wire 承载是 `authorization_ref` 的封闭常量
+`direct_conversation_bootstrap_authority_ref`（值为 `ak.authority.direct_conversation_bootstrap_participant.v1`），
+**MUST** 恰好配一条 critical `refs[role=direct_conversation_founding_unit]` 指向该 unit 的 accepted
+`ak.realm.create`；binding 尚不存在，因此该阶段 **MUST NOT** 使用 `direct_conversation_binding` ref role 或
+`ak.authority.direct_conversation_participant.v1`。phase 由 verifier 从 accepted facts 重算，producer 不得在 wire
+上声明。首个合法 binding endorsement accepted 后两 phase **MUST** 永久退出，后续动作只走
+`ak.authority.direct_conversation_participant.v1`。
 
 ### 7.3 active MLS generation
 
@@ -418,11 +479,19 @@ SDK **MUST NOT** 实现事后从多个 binding 中选择 canonical 的逻辑，�
 
 ## 10. 规范性回归边界
 
+founding 相关的机读入口是 [`ak.vector.direct_conversation.founding_unit.v1`](../../artifacts/registry/vector-registry.json)
+与 [`ak.vector.direct_conversation.founding_admission.v1`](../../artifacts/registry/vector-registry.json)，
+机读 fixture 见 [`direct-conversation-fixture.json`](../../artifacts/fixtures/direct-conversation-fixture.json)。
+
 Conformance **MUST** 覆盖：
 
 - founder 派生：normal 取 responder、glare 取 `requests[0]` issuer，两侧独立计算一致；把 normal 分支误算为 requester **MUST** 被两侧 admission 拒绝；
 - 非 founder 提交 founding unit 在 self 与 peer 两条路径均拒绝；
-- founder 多设备并发只分配同一 `realm_id/main_strand_id` 并只接受一组 unit；ID 已返回、unit 提交、receipt 落库、outbox 入队与响应丢失各崩溃点均恢复同一结果；
+- caller-authored 派生：`realm_id`、`main_strand_id` 与 `founding_unit_digest` 由两个独立实现从同一 unit bytes 重算得到逐字节相同结果；请求另行携带坐标、服务端预分配 ID、reserved/materializing draft 与 coordinator 选举形态 **MUST** 被拒绝；
+- founder 多设备并发各自 author 出不同 unit 时，同一 Principal Server 的唯一 slot **MUST** 只接受先到的合法 unit，后到者返回 `slot_already_committed` 且零写入，两台设备随后从 resolver 得到同一组坐标；
+- founder 与 peer 位于同一 Principal Server 与位于两台 Principal Server 两种部署下，self 路径与 §5.6 peer 路径 **MUST** 得到相同 unit digest、相同 receipt 语义与相同 admission verdict；
+- 幂等与崩溃恢复：同 `idempotency_key` 同 unit 的 exact retry 返回 byte-identical receipt 且 `accepted_at` 不变，同 key 不同 unit 返回 `duplicate_conflict`；unit 提交、receipt 落库、outbox 入队与响应丢失各崩溃点重放同一 signed bytes 均恢复同一结果，且不产生第二组 Event；
+- §5.6 branch 的 dependency 不足 **MUST** 是 top-level 409 `dependency_missing` 加零写入，**MUST NOT** 出现只接受一或两条 Event 的 partial；
 - recontact continuity：多轮 tombstone/recontact 后仍重算出同一根 founder basis 与同一 founder；缺 `previous_terminal_basis_id`、成环、分叉或两 proof 导出不同根均拒绝；
 - accepted-at 与 current gate 分离：source 在旧 current basis 有效时 accepted 的 unit 延迟到撤回后才到 peer，peer 仍接受历史 identity 并按 current gate 投影 `suspended`；
 - 对方设备离线时 MLS 建立与发送成功；对方服务器不可达时 founder 仍可建 Realm、激活 generation 0 并发出真密文；
@@ -436,4 +505,4 @@ Conformance **MUST** 覆盖：
 - owned Agent：controller↔own-Agent 只携 `direct_conversation_agent_provision` 时命中 DM variant；改携既有 `agent_provision`、同时携两个 DM roles 或 DM/PCR variants 多命中均零写入拒绝；Agent↔第三方分别覆盖 founder=Agent 与 founder=other；
 - 隐私：非 participant 对任意阶段的 pair 查询与不存在逐字相同。
 
-synthetic glare accepted Event、跨双方 CAS、server next-action、successor Realm/Strand、timeout takeover、min-UUID 归一与 view-dependent effect digest **MUST** 由负例拒绝。
+synthetic glare accepted Event、跨双方 CAS、server next-action、successor Realm/Strand、timeout takeover、min-UUID 归一、server-allocated founding ID、reserved/materializing draft、min-service-DID coordinator 与 view-dependent effect digest **MUST** 由负例拒绝。

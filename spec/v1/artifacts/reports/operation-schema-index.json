@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.5",
+  "version": "2026-08-08.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T06:00:00Z",
+  "generated_at": "2026-08-08T08:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3919,7 +3919,10 @@
           "authorization_lease",
           "cba_proof_bundles",
           "control_proposal_ack",
-          "events"
+          "events",
+          "unit_kind",
+          "idempotency_key",
+          "founder_basis_evidence"
         ],
         "closed": true,
         "variants": [
@@ -3947,15 +3950,32 @@
               "events"
             ],
             "closed": true
+          },
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectConversationFoundingUnitSubmission",
+            "schema_kind": "object",
+            "required": [
+              "unit_kind",
+              "idempotency_key",
+              "events",
+              "founder_basis_evidence"
+            ],
+            "properties": [
+              "unit_kind",
+              "idempotency_key",
+              "events",
+              "founder_basis_evidence",
+              "cba_proof_bundles"
+            ],
+            "closed": true
           }
         ]
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome",
-        "schema_kind": "object",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponseBody",
+        "schema_kind": "oneOf",
         "required": [
-          "status",
-          "accepted"
+          "status"
         ],
         "properties": [
           "status",
@@ -3968,9 +3988,53 @@
           "realm_actor_frontiers",
           "realm_frontiers",
           "cursor",
-          "original_outcome"
+          "original_outcome",
+          "unit_kind",
+          "event_ids",
+          "receipt"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "accepted"
+            ],
+            "properties": [
+              "status",
+              "accepted",
+              "ingress_receipts",
+              "control_proposal_acks",
+              "duplicate",
+              "rejected",
+              "quarantine",
+              "realm_actor_frontiers",
+              "realm_frontiers",
+              "cursor",
+              "original_outcome"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectConversationFoundingAcceptanceOutcome",
+            "schema_kind": "object",
+            "required": [
+              "unit_kind",
+              "status",
+              "event_ids",
+              "receipt"
+            ],
+            "properties": [
+              "unit_kind",
+              "status",
+              "event_ids",
+              "receipt"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {
@@ -4226,9 +4290,8 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody",
-        "schema_kind": "object",
+        "schema_kind": "oneOf",
         "required": [
-          "service_binding_ref",
           "events"
         ],
         "properties": [
@@ -4236,9 +4299,49 @@
           "events",
           "cba_proof_bundles",
           "signer_key_evidence",
-          "agent_signer_evidence_bundle"
+          "agent_signer_evidence_bundle",
+          "unit_kind",
+          "source_acceptance_receipt",
+          "founder_basis_evidence"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationBatchRequestBody",
+            "schema_kind": "object",
+            "required": [
+              "service_binding_ref",
+              "events"
+            ],
+            "properties": [
+              "service_binding_ref",
+              "events",
+              "cba_proof_bundles",
+              "signer_key_evidence",
+              "agent_signer_evidence_bundle"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectConversationFoundingFederationSubmission",
+            "schema_kind": "object",
+            "required": [
+              "unit_kind",
+              "events",
+              "source_acceptance_receipt",
+              "founder_basis_evidence"
+            ],
+            "properties": [
+              "unit_kind",
+              "events",
+              "source_acceptance_receipt",
+              "founder_basis_evidence",
+              "cba_proof_bundles",
+              "signer_key_evidence"
+            ],
+            "closed": true
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome",

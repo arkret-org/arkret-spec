@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.5",
+  "version": "2026-08-08.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T06:00:00Z",
+  "generated_at": "2026-08-08T08:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -2177,10 +2177,10 @@
       "http": "POST /_arkret/self/events",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponseBody",
       "openapi_component_refs": {
         "request": "../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody",
-        "response": "#/components/schemas/EventsSubmitOutcome"
+        "response": "#/components/schemas/EventsSubmitResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.5",
+  "version": "2026-08-08.7",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T06:00:00Z",
+  "generated_at": "2026-08-08T08:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -97,6 +97,67 @@
       "When an Event is directly participant-authored, authorization_ref uses the source wire_ref and refs contains the registered binding_ref_role. When executed_by is present, authorization_ref continues to bind the delegated executor grant/delegation; the profile source is an independent conjunctive evaluator gate and is never replaced by that delegation."
     ],
     "sources": [
+      {
+        "authority_source_id": "ak.authority.direct_conversation_bootstrap_participant.v1",
+        "status": "active",
+        "profile": "ak.profile.direct_conversation_realm.v1",
+        "wire_ref": "ak.authority.direct_conversation_bootstrap_participant.v1",
+        "binding_event_kind": "ak.realm.create",
+        "binding_ref_role": "direct_conversation_founding_unit",
+        "phases": [
+          {
+            "phase": "provisional_history_send",
+            "actor_rule": "founder_only",
+            "action_allowlist": [
+              "ak.mls.genesis",
+              "ak.mls.commit",
+              "ak.mls.welcome.own_device",
+              "ak.direct_conversation.mls_generation.activate",
+              "ak.message.create",
+              "ak.realm_key.share"
+            ],
+            "activation_checks": [
+              "founding_unit_and_genesis_seal_accepted",
+              "active_mls_generation_cell_not_past_generation_zero",
+              "branch_current_authorization_valid",
+              "device_account_or_agent_gates_pass",
+              "sender_only_group_holds_founder_leaves_only",
+              "exact_peer_keypackage_claim_add_and_welcome_preparation_only"
+            ]
+          },
+          {
+            "phase": "exact_pair_founding_completion",
+            "actor_rule": "generation_one_activation_by_joiner_and_binding_endorsement_by_either_exact_participant",
+            "action_allowlist": [
+              "ak.direct_conversation.mls_generation.activate",
+              "ak.direct_conversation.bound",
+              "ak.realm_key.share"
+            ],
+            "activation_checks": [
+              "accepted_selected_group_state_holds_exact_pair_authorized_leaves",
+              "peer_current_service_durably_accepted_welcome",
+              "branch_current_authorization_valid",
+              "device_gates_pass",
+              "no_legal_binding_endorsement_exists_yet",
+              "generation_one_predecessor_is_generation_zero_whole_value"
+            ]
+          }
+        ],
+        "phase_selection": "verifier_recomputed_mutually_exclusive_from_accepted_facts",
+        "forbidden_actions": [
+          "ak.capability.grant",
+          "ak.capability.revoke",
+          "ak.realm.owner",
+          "ak.realm.admin",
+          "ak.member.state.third_participant",
+          "ak.strand.create.non_main"
+        ],
+        "revocation_model": "permanent_retirement_on_first_legal_binding_endorsement",
+        "authority_generation_independent": true,
+        "grantable": false,
+        "delegated_event_rule": "owned_agent_branch_adds_controller_delegation",
+        "failure_mode": "fail_closed_or_dependency_pending"
+      },
       {
         "authority_source_id": "ak.authority.direct_conversation_participant.v1",
         "status": "active",
@@ -12509,14 +12570,14 @@
         "http": "POST /_arkret/self/events",
         "grpc": "SelfEvents/Submit",
         "mq": "self.events.command.submit",
-        "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbaProofBundle values are independently verified publication evidence outside the Event digest. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state.",
+        "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbaProofBundle values are independently verified publication evidence outside the Event digest. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state. The request union additionally registers the discriminated direct_conversation_founding branch, the only carrier for a Direct Conversation founding unit: the founder authors all three Events itself, realm_id and main_strand_id are retyped from the first and third Event IDs, and the service allocates no identifier and issues no draft. That branch requires exactly three ordered EventInitialSubmission items, closed XOR founder basis evidence and an idempotency_key, accepts zero or three Events inside one slot transaction, and returns DirectConversationFoundingAcceptanceOutcome with the source-signed receipt. Same key plus the same unit replays the byte-identical receipt without advancing accepted_at; same key plus a different unit is duplicate_conflict; a slot already closed by another unit for the same pair is slot_already_committed. All four outcomes write zero Events on failure.",
         "body_class": "non_streaming_json",
         "max_items": 1000,
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponseBody",
         "durable_effect": {
           "kind": "event_log",
           "event_kind_sources": [
@@ -12602,7 +12663,7 @@
         "http": "POST /_arkret/peer/events",
         "grpc": "PeerEvents/Submit",
         "mq": "peer.events.command.submit",
-        "notes": "Federation peer Event publication. Each EventFederationSubmission carries the original signed Event. Ordinary online publication omits AuthorizationLease and uses an empty ingress_receipts array; explicit delayed/offline publication carries the lease and at least one original lease-bound IngressReceipt. An ak.member.state compensation publication additionally carries the unchanged transport-only membership_compensation_evidence and the receiver applies the same exact admission/incarnation/action/executor/single-use evaluator as initial submission. Request-level CbaProofBundle values provide receiver-relative dependency closure. The receiver independently validates every Event, optional lease, receipt threshold, compensation evidence, bundle object and reducer result. Ordinary missing dependencies use HTTP 200 partial items with reason_code=dependency_missing and non-empty typed missing sets; registered atomic units use top-level HTTP 409 dependency_missing with EventsDependencyMissingProblem and zero writes. A received response terminates that Idempotency-Key; a post-backfill submit uses a fresh key. The caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ak.invite.claim remains decided by the destination Realm reducer.",
+        "notes": "Federation peer Event publication. Each EventFederationSubmission carries the original signed Event. Ordinary online publication omits AuthorizationLease and uses an empty ingress_receipts array; explicit delayed/offline publication carries the lease and at least one original lease-bound IngressReceipt. An ak.member.state compensation publication additionally carries the unchanged transport-only membership_compensation_evidence and the receiver applies the same exact admission/incarnation/action/executor/single-use evaluator as initial submission. Request-level CbaProofBundle values provide receiver-relative dependency closure. The receiver independently validates every Event, optional lease, receipt threshold, compensation evidence, bundle object and reducer result. Ordinary missing dependencies use HTTP 200 partial items with reason_code=dependency_missing and non-empty typed missing sets; registered atomic units use top-level HTTP 409 dependency_missing with EventsDependencyMissingProblem and zero writes. A received response terminates that Idempotency-Key; a post-backfill submit uses a fresh key. The caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ak.invite.claim remains decided by the destination Realm reducer. The request union additionally registers the discriminated direct_conversation_founding branch for the Direct Conversation founding exception of zh/sync/federation.md section 4.0.4: it carries exactly three ordered EventFederationSubmission items, the source DirectConversationFoundingAcceptanceReceipt and bounded dependencies, and it omits service_binding_ref because the Realm does not yet exist at the receiver. The receiver freshly verifies transport source authority over founder_id, cutover/fence continuity when the receipt came from a pre-migration service, destination binding to the local participant, body closure, recomputed founding_unit_digest and coordinates, and the full direct_conversation_genesis admission before admitting the unit at one atomic boundary. A missing Contact basis mirror or other bounded dependency is a retryable top-level HTTP 409 dependency_missing with zero writes, never a per-item partial and never a permanent rejection.",
         "body_class": "non_streaming_json",
         "max_items": 500,
         "success_shape_kind": "typed_response",

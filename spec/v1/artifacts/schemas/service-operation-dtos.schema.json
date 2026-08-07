@@ -2790,14 +2790,211 @@
       "additionalProperties": false
     },
     "EventsSubmitRequestBody": {
+      "description": "Closed request union for ak.self.events.command.submit. The single and batch branches carry ordinary Events; the direct_conversation_founding branch is the only carrier for the Direct Conversation founding unit and is discriminated by unit_kind, which the other two branches forbid through additionalProperties:false.",
       "oneOf": [
         {
           "$ref": "#/$defs/EventInitialSubmission"
         },
         {
           "$ref": "#/$defs/EventsSubmitBatchRequestBody"
+        },
+        {
+          "$ref": "#/$defs/DirectConversationFoundingUnitSubmission"
         }
       ]
+    },
+    "EventsSubmitResponseBody": {
+      "description": "Closed response union for ak.self.events.command.submit. Ordinary submissions return EventsSubmitOutcome; the direct_conversation_founding request branch returns DirectConversationFoundingAcceptanceOutcome, which carries the source-signed founding acceptance receipt.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/EventsSubmitOutcome"
+        },
+        {
+          "$ref": "#/$defs/DirectConversationFoundingAcceptanceOutcome"
+        }
+      ]
+    },
+    "DirectConversationFoundingUnitSubmission": {
+      "type": "object",
+      "description": "Caller-authored Direct Conversation founding unit submitted to the founder's current Principal Server. The founder authors all three Events itself: realm_id is retype(events[0] Event ID) and main_strand_id is retype(events[2] Event ID), so no party can allocate either coordinate before the canonical preimage exists. The service never allocates, replaces or renegotiates an ID; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or three Events atomically. See zh/identity/contact-and-direct-conversation.md sections 5.5 and 6.1.",
+      "required": [
+        "unit_kind",
+        "idempotency_key",
+        "events",
+        "founder_basis_evidence"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "direct_conversation_founding",
+          "description": "Explicit discriminator. Ordinary single and batch submissions forbid this property, so the three request branches are an exact XOR."
+        },
+        "idempotency_key": {
+          "$ref": "./principal-operations.schema.json#/$defs/opaque_id",
+          "description": "Caller-chosen key. The same key with the same founding unit replays the byte-identical receipt without advancing accepted_at; the same key with a different unit is duplicate_conflict with zero writes."
+        },
+        "events": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/EventInitialSubmission"
+          },
+          "description": "Exactly three founder-signed Events in fixed wire order: ak.realm.create with an omitted realm_id and a realm_genesis scope_ref, the peer participant's ak.member.state{join}, then ak.strand.create with an omitted strand_id. Reordering, a fourth Event, a missing member join and a missing Strand each reject the whole unit."
+        },
+        "founder_basis_evidence": {
+          "$ref": "#/$defs/DirectConversationFounderBasisEvidence"
+        },
+        "cba_proof_bundles": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./cba-proof-bundle.schema.json"
+          },
+          "description": "Optional receiver-relative dependency bundles for the unit's seal_ref or seal_basis leaves. Bundles are transport evidence, not Event fields."
+        }
+      },
+      "additionalProperties": false
+    },
+    "DirectConversationFounderBasisEvidence": {
+      "description": "Closed XOR authorization evidence for one Direct Conversation founding unit, matching the two registered ak.realm.create admission variants. The human branch feeds direct_conversation_genesis; the controller_agent branch feeds direct_conversation_agent_genesis. Carrying both, neither, or mixed branch fields rejects the whole unit.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "basis_evidence_bundle",
+            "root_basis_continuity_chain"
+          ],
+          "properties": {
+            "kind": {
+              "const": "human"
+            },
+            "basis_evidence_bundle": {
+              "$ref": "./contact-operations.schema.json#/$defs/contact_basis_evidence_bundle",
+              "description": "Portable evidence for the pair's current Contact basis. The verifier re-derives founder from the root basis, never from this current basis."
+            },
+            "root_basis_continuity_chain": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "./contact-operations.schema.json#/$defs/contact_basis_evidence_bundle"
+              },
+              "description": "Ordered tombstone/recontact predecessors from the current basis back to the pair's unique root founder basis, each linked by previous_terminal_basis_id. An empty array means the current basis is itself the root. A break, a cycle, multiple roots or two directional proofs yielding different roots reject the unit."
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "agent_provision_ref",
+            "agent_provision_digest",
+            "controller_binding_digest"
+          ],
+          "properties": {
+            "kind": {
+              "const": "controller_agent"
+            },
+            "agent_provision_ref": {
+              "$ref": "./principal-operations.schema.json#/$defs/event_id"
+            },
+            "agent_provision_digest": {
+              "$ref": "./principal-operations.schema.json#/$defs/hash"
+            },
+            "controller_binding_digest": {
+              "$ref": "./principal-operations.schema.json#/$defs/hash"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "DirectConversationFoundingAcceptanceOutcome": {
+      "type": "object",
+      "description": "Closed outcome of the direct_conversation_founding request branch. status is accepted for the first admission of this unit and duplicate for a byte-identical replay; partial is structurally impossible because the unit is atomic. A slot already closed by a different unit for the same pair returns the slot_already_committed error instead of this outcome.",
+      "required": [
+        "unit_kind",
+        "status",
+        "event_ids",
+        "receipt"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "direct_conversation_founding"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "duplicate"
+          ]
+        },
+        "event_ids": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/EventId"
+          },
+          "description": "The three accepted Event IDs in the same wire order as the request. They are the exact preimage of receipt.founding_unit_digest."
+        },
+        "receipt": {
+          "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DirectConversationFoundingFederationSubmission": {
+      "type": "object",
+      "description": "Direct Conversation founding exception branch of ak.peer.events.command.submit (zh/sync/federation.md section 4.0.4). The Realm does not yet exist at the receiver, so no ordinary federation_peer authority and no Realm-scoped service_binding_ref can be computed; destination binding comes from the section 3 service DID and trust-domain headers plus the source acceptance receipt. This is a registered atomic unit: a missing bounded dependency returns top-level HTTP 409 dependency_missing with zero writes and never a per-item partial.",
+      "required": [
+        "unit_kind",
+        "events",
+        "source_acceptance_receipt",
+        "founder_basis_evidence"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "direct_conversation_founding"
+        },
+        "events": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/EventFederationSubmission"
+          },
+          "description": "The same three founder-signed Events in the same fixed wire order, byte-identical to what the source accepted."
+        },
+        "source_acceptance_receipt": {
+          "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt"
+        },
+        "founder_basis_evidence": {
+          "$ref": "#/$defs/DirectConversationFounderBasisEvidence"
+        },
+        "cba_proof_bundles": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./cba-proof-bundle.schema.json"
+          }
+        },
+        "signer_key_evidence": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "./federated-device-signing-key-evidence.schema.json"
+          },
+          "description": "Source-Principal-Server attestation of the founder device keys needed to verify the three original Event proofs. Transport-only evidence covered by the outer HTTP Message Signature."
+        }
+      },
+      "additionalProperties": false
     },
     "EventsSubmitRejectedItem": {
       "type": "object",
@@ -5013,8 +5210,19 @@
       "additionalProperties": false
     },
     "EventsSubmitFederationRequestBody": {
+      "description": "Closed request union for ak.peer.events.command.submit. The ordinary branch carries a Realm-scoped federation transaction; the direct_conversation_founding branch carries the Direct Conversation founding exception and is discriminated by unit_kind, which the ordinary branch forbids through additionalProperties:false.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/EventsSubmitFederationBatchRequestBody"
+        },
+        {
+          "$ref": "#/$defs/DirectConversationFoundingFederationSubmission"
+        }
+      ]
+    },
+    "EventsSubmitFederationBatchRequestBody": {
       "type": "object",
-      "description": "Federation service-to-service ak.peer.events.command.submit request body.",
+      "description": "Ordinary Realm-scoped federation service-to-service ak.peer.events.command.submit request body.",
       "required": [
         "service_binding_ref",
         "events"

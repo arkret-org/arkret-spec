@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-07.4",
-  "generated_at": "2026-08-07T18:00:00Z",
+  "version": "2026-08-08.3",
+  "generated_at": "2026-08-08T09:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1266,7 +1266,7 @@
         "required": [
           "direct_conversation_realm_role",
           "direct_conversation_stable_binding_reducer",
-          "direct_conversation_durable_creation_operation",
+          "direct_conversation_founding_unit_admission",
           "direct_conversation_suspend_rejoin",
           "direct_conversation_participant_authority",
           "direct_conversation_root_owner_mask"
@@ -1288,9 +1288,11 @@
         "Exactly the two stable subject DIDs in the immutable binding may be Realm principal members; any third-party join or invite MUST be rejected.",
         "Space events are forbidden in a Direct Conversation Realm with direct_conversation_space_forbidden; additional ordinary Strands remain allowed.",
         "The canonical main Strand MUST be active, belong to the Realm, have no Circle scope, and expose an active primary discussion track.",
-        "First creation MUST use the deterministic coordinator and one durable reserved/materializing/found operation. The coordinator commits materializing and locks operation, Realm and main Strand identifiers before KeyPackage claim or any founding Event; materializing never expires or reallocates.",
-        "A permanently cancelled pair slot MUST return the tombstoned terminal resolver outcome with frozen operation, attempt and coordinates. Every later resolve exact-replays that outcome; the slot MUST NOT enter creation_required, allocate another attempt, or form another binding.",
-        "Cross-Principal-Server creation MUST complete participant-authorized peer KeyPackage claim before materialization; Direct Conversation claims bind operation, pair, intended Realm, main Strand and initial MLS group and MUST NOT use a last-resort KeyPackage.",
+        "First creation MUST be the founder's caller-authored three-Event unit submitted through the direct_conversation_founding branch of ak.self.events.command.submit. realm_id and main_strand_id are retyped from the first and third Event IDs, so the service MUST NOT allocate an identifier, issue a reserved or materializing draft, or elect a coordinator; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or three Events atomically.",
+        "The founding slot admits the first valid unit only. A second unit for the same pair MUST be refused with direct_conversation_slot_already_committed and zero writes; a byte-identical replay MUST return the stored receipt without advancing accepted_at; the same idempotency key with a different unit MUST be duplicate_conflict. The slot MUST NOT reopen into creation_required after a committed unit.",
+        "Cross-Principal-Server founding MUST NOT depend on the peer service: the founder creates the Realm, activates generation 0 and sends real ciphertext alone. Peer KeyPackage claim is participant-authorized, binds the accepted pair, Realm, main Strand and MLS group, and MUST NOT use a last-resort KeyPackage. Federated delivery of the unit uses the direct_conversation_founding branch of ak.peer.events.command.submit and reports a missing bounded dependency as a top-level retryable dependency_missing with zero writes.",
+        "The unit's Genesis Seal MUST cover all three Events, every required founding write of an ordinary Realm create, and the create-locked baseline projection of join_rule=closed, content_scheme=mls_exporter_aead_v1, both e2ee_required floors and history_visibility=joined with exact-peer-only sharing. Sealing the create first and appending the peer join or the Strand afterwards MUST be rejected, and a same-batch facet Event that repeats or overrides a baseline value MUST be rejected.",
+        "Between the accepted founding unit and the first legal binding endorsement, pre-binding writes MUST cite authorization_ref=ak.authority.direct_conversation_bootstrap_participant.v1 with exactly one critical refs[] role=direct_conversation_founding_unit reference to the accepted ak.realm.create. The verifier recomputes the mutually exclusive phase from accepted facts; the producer MUST NOT declare it. Both phases retire permanently once the first legal endorsement is accepted.",
         "The binding is immutable and fixes pair_key, participant pair, Realm and main Strand exactly once. It carries no authored lifecycle state or MLS group; current MLS generation is a separate accepted-history projection.",
         "Leave, ban, block, either directional Contact terminal and participant terminal state suspend new writes without destroying the binding or creating a successor Realm. Consent changes never affect Personal DM authority. Recovery reuses the same Realm and MUST NOT automatically redeliver old epoch keys or history secrets.",
         "Principal-private deletion and global content/key erasure retain stable pair, Realm and main Strand identity. The resolver never returns a competing candidate or performs winner selection.",
@@ -1341,7 +1343,7 @@
             "ak.mls.commit",
             "ak.mls.welcome"
           ],
-          "binding_rule": "exact_nonexpiring_materializing_operation_draft_only",
+          "binding_rule": "exact_accepted_caller_authored_founding_unit_only",
           "user_content_forbidden": true
         },
         "stable_phase": {

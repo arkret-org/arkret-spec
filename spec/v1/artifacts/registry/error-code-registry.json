@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-08.1",
+  "version": "2026-08-08.2",
   "codes": [
     {
       "code": "bad_json",
@@ -2817,7 +2817,16 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "An authored immutable Direct Conversation binding fact has an invalid issuer, pair key, authorization basis, Realm role, exact two-member set, main Strand, founding MLS references, or stable coordinator-operation cross-binding."
+      "description": "An authored immutable Direct Conversation binding fact has an invalid issuer, pair key, authorization basis, Realm role, exact two-member set, main Strand, founding unit digest, or founding MLS references."
+    },
+    {
+      "code": "direct_conversation_founding_unit_invalid",
+      "applies_to": [
+        "event_envelope",
+        "service_call",
+        "federation_transaction"
+      ],
+      "description": "A Direct Conversation founding unit is not the closed caller-authored three-Event unit. Causes include a count other than three, wrong wire order, a missing peer ak.member.state{join} or ak.strand.create, a fourth Event, a mixed actor/pair/profile/Realm, prev_refs that do not chain the three Events, an envelope realm_id that is not retype(events[0] event_id), a main_strand_id that is not retype(events[2] event_id), a founding_unit_digest that does not match the recomputed value, or any request field asserting a service-allocated identifier, reservation handle or materialization draft. The whole unit is rejected with zero writes. See zh/identity/contact-and-direct-conversation.md sections 5.5 and 6.1."
     },
     {
       "code": "direct_conversation_invite_forbidden",
@@ -2861,6 +2870,14 @@
         "auth_decision"
       ],
       "description": "The technical authority-root controller attempted an operational, grant, member-governance, policy or terminal action outside the Direct Conversation profile phase mask. Root owner aggregation cannot bypass the participant authority or target the other participant."
+    },
+    {
+      "code": "direct_conversation_slot_already_committed",
+      "applies_to": [
+        "service_call",
+        "federation_transaction"
+      ],
+      "description": "The founder's current Principal Server already closed its local (founder_id, trust_domain_id, pair_key) founding slot with a different unit, so this unit is refused with zero writes. Carried under conflict. The caller MUST re-resolve the existing coordinates through ak.self.direct_conversation.read.resolve instead of authoring another unit; the service MUST NOT accept a second unit, degrade it to a partial acceptance or quarantine it. A byte-identical replay of the committed unit is not this code: it returns the stored byte-identical receipt. See zh/identity/contact-and-direct-conversation.md section 5.5."
     },
     {
       "code": "direct_conversation_space_forbidden",

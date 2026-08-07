@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.5",
+  "version": "2026-08-08.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T06:00:00Z",
+  "generated_at": "2026-08-08T08:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
@@ -12,6 +12,67 @@
     "When an Event is directly participant-authored, authorization_ref uses the source wire_ref and refs contains the registered binding_ref_role. When executed_by is present, authorization_ref continues to bind the delegated executor grant/delegation; the profile source is an independent conjunctive evaluator gate and is never replaced by that delegation."
   ],
   "sources": [
+    {
+      "authority_source_id": "ak.authority.direct_conversation_bootstrap_participant.v1",
+      "status": "active",
+      "profile": "ak.profile.direct_conversation_realm.v1",
+      "wire_ref": "ak.authority.direct_conversation_bootstrap_participant.v1",
+      "binding_event_kind": "ak.realm.create",
+      "binding_ref_role": "direct_conversation_founding_unit",
+      "phases": [
+        {
+          "phase": "provisional_history_send",
+          "actor_rule": "founder_only",
+          "action_allowlist": [
+            "ak.mls.genesis",
+            "ak.mls.commit",
+            "ak.mls.welcome.own_device",
+            "ak.direct_conversation.mls_generation.activate",
+            "ak.message.create",
+            "ak.realm_key.share"
+          ],
+          "activation_checks": [
+            "founding_unit_and_genesis_seal_accepted",
+            "active_mls_generation_cell_not_past_generation_zero",
+            "branch_current_authorization_valid",
+            "device_account_or_agent_gates_pass",
+            "sender_only_group_holds_founder_leaves_only",
+            "exact_peer_keypackage_claim_add_and_welcome_preparation_only"
+          ]
+        },
+        {
+          "phase": "exact_pair_founding_completion",
+          "actor_rule": "generation_one_activation_by_joiner_and_binding_endorsement_by_either_exact_participant",
+          "action_allowlist": [
+            "ak.direct_conversation.mls_generation.activate",
+            "ak.direct_conversation.bound",
+            "ak.realm_key.share"
+          ],
+          "activation_checks": [
+            "accepted_selected_group_state_holds_exact_pair_authorized_leaves",
+            "peer_current_service_durably_accepted_welcome",
+            "branch_current_authorization_valid",
+            "device_gates_pass",
+            "no_legal_binding_endorsement_exists_yet",
+            "generation_one_predecessor_is_generation_zero_whole_value"
+          ]
+        }
+      ],
+      "phase_selection": "verifier_recomputed_mutually_exclusive_from_accepted_facts",
+      "forbidden_actions": [
+        "ak.capability.grant",
+        "ak.capability.revoke",
+        "ak.realm.owner",
+        "ak.realm.admin",
+        "ak.member.state.third_participant",
+        "ak.strand.create.non_main"
+      ],
+      "revocation_model": "permanent_retirement_on_first_legal_binding_endorsement",
+      "authority_generation_independent": true,
+      "grantable": false,
+      "delegated_event_rule": "owned_agent_branch_adds_controller_delegation",
+      "failure_mode": "fail_closed_or_dependency_pending"
+    },
     {
       "authority_source_id": "ak.authority.direct_conversation_participant.v1",
       "status": "active",
