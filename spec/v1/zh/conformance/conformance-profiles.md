@@ -679,48 +679,33 @@ MUST NOT:
 
 ### 18.4 Agent Sidecar
 
-`ak.profile.agent_sidecar.v1` 注册独立 `ak.schema.agent_sidecar.v1` 对象及其 controller-owned private AI workspace 行为。它依赖 Circle backing-scope、MLS、personal agent provisioning 与 auth profiles，但 Sidecar 本身不是 Circle profile。
+`ak.profile.agent_sidecar.v1` 注册独立 `ak.schema.agent_sidecar.v1` 对象、native Sidecar scope 与
+controller-owned private AI workspace 行为。它依赖 personal agent provisioning、auth 与 MLS profiles，
+不继承 Circle conformance。
 
-MUST 支持:
-- `POST /_arkret/self/agent-sidecars:ensure`（`ak.self.agent.sidecar.command.ensure`）是 closed 三阶段 surface。
-  `prepare{phase="prepare",operation_id,idempotency_key,source_realm_id,controller_id,context_ref}` 只建立 private durable reservation，
-  返回 closed branch XOR：`branch="new"` 固定 Sidecar/backing Circle/Strand/Relation/create Event/attach Event IDs
-  并返回两份 `{event_id,kind,unsigned_event_bytes,event_digest}` canonical draft；`branch="existing"` 固定已有
-  Sidecar/backing Circle与新Strand/Relation/attach Event ID并只返回attach draft。首次创建使用
-  `commit{phase="commit",operation_id,idempotency_key,reservation_handle,create_event,context_attach_event}`，existing
-  Sidecar只使用`attach{phase="attach",operation_id,idempotency_key,reservation_handle,context_attach_event}`。
-  `commit|attach` 成功才返回 accepted outcome；其closed字段为`operation_id`、
-  `accepted_phase=commit|attach`、`ok`、三个预分配ID、`access_readiness`与`pending_access_reconciliations`，其中 pending
-  数组始终存在。三阶段的同 operation/key/exact bytes必须回放原 outcome；handle过期、branch错配或 bytes变化必须
-  fail closed，prepare不得提前写 canonical Sidecar/Strand/Relation
-- `GET /_arkret/self/agent-sidecars/{sidecar_id}` 与 list query 作为唯一 canonical read surface，返回强类型 Sidecar + desired/effective access；普通 Circle API 不得代替
-- `context_ref` 是closed XOR descriptor：`{kind:"relation",relation_id}`或`{kind:"strand",strand_id}`；两分支不得
-  同时出现、全部缺失或携未知字段。Track/Message coordinate MUST NOT 进入 private Strand reuse key
-- Closed request schema(reject unknown top-level fields)
-- Fixed reuse：Sidecar `(realm_id, controller_id)`；private Strand `(sidecar_id, normalized_context_ref)`
-- prepare 返回的 `reservation_handle` 固定全部IDs、`new|existing` branch、两类Event去除proof后的canonical bytes及digest；首次ensure的controller-signed minimal `ak.sidecar.create`使用parent-Realm bootstrap exception且只投影Sidecar/backing Circle/controller初始membership；独立controller-signed `ak.sidecar.context.attach`只投影private Strand/Relation并以`EventRef{role="after"}`引用同一reservation的create Event。客户端只能在exact draft上追加controller proof。首次`commit` staged atomic admission一次提交`[create,context.attach]`，任一失败全回滚；existing Sidecar的`attach`不得携create Event。prepare caller不提供Circle shape/ID、Event ID或payload，commit/attach也不得绕过或替换prepare固定的bytes、ID、context与branch
-- 唯一access authority Event为controller-signed versioned full-set `ak.sidecar.access.replace`；desired access是`{controller} ∪ (current selection ∩ current eligible owned Agents)`，effective access再与policy/lifecycle/participation/backing membership/MLS求交。`control_frontier`只含create、current access selection和current正/负backing membership refs，context attach排除；MLS security digest独立按标准Seal+leaf/proof重算
-- desired access、effective access、backing membership、MLS/device readiness 分离投影；发送只在安全交集 ready 后开放
-- desired Agent full-set只能由`ak.sidecar.access.replace`表达，单次exchange寻址走Sidecar private Event binding，不进入ensure reservation
-- 历史 backfill 经由 application-level resend（显式 plaintext 披露）；不得使用 MLS exporter secret / past commit secret
-- Cross-Realm fan-out：Agent deactivate 只影响该 Agent 实际进入 desired access 的 Sidecars 及其 backing scopes
-- `agent_sidecar_of` relation kind(weak-semantic、non-structural、non-cascading);`fields` 不含 `target_realm_id`
-- Sidecar 及其 backing Circle/private Strand 不出现在普通 Circle、Realm-wide navigation、board/list、public search 或 scope picker
-- 多 agent publish 时 `actor_id` / `executed_by` MUST 是单一签发 agent principal
-- Retention 继承目标 Realm,profile 可收紧不可放宽
-- `ak.agent.sidecar_view_state.v1` 是唯一 Sidecar controller-private Account Data；`ak.schema.agent_sidecar_exchange_projection.v1` 只能作为设备本地 Event-fold cache/SDK DTO，不得注册 account-data key、上传或进入 account stream
-- 主 Strand 寄宿 surface、`context_merged|sidecar_only` Strand-level mode、多 Track private write target、timeline deterministic merge/source-anchor 与 Event-id 去重
-- Routed exchange 走 Event-truth 闭环（[`sidecar.md`](../models/sidecar.md) §7.2.1–§7.2.5）：request/Agent Message 使用 typed binding；coordinator/reassign/terminal state 使用 controller-authored `ak.agent.sidecar.exchange.control`；projection 只从 accepted private history 确定性 fold
-- binding 只能位于 Sidecar-scoped Event 的 encrypted metadata plaintext；明文/共享 scope 出现按 `forbidden-wire-fields.json` hard reject
+MUST 支持：
 
-MUST NOT:
-- 在目标公开 Strand 写 target-side reverse `agent_sidecar_of` relation
-- 修改目标 Strand `tracks` map 或写入 target-side metadata / Relation / watch / unread / search / notification state
-- 建立独立 Sidecar route/page/drawer/deep link，或把 Sidecar 呈现为 Strand Track Tab/普通 Circle
-- 因 private Track 尚未建立而回退读取或写入来源 shared Track
-- 以 `reply_to`、到达顺序、actor kind、内容或超时推断回显资格/exchange 状态，把本地 exchange projection 当作 wire truth，或向 Agent runtime 返回 controller-owned Sidecar Account Data
-- 接受 caller-provided `participant_model`、member list、Circle title/display/join rule 或 backing Circle id
-- 为同一 `(realm_id, controller_id)` 创建第二个 non-tombstoned Sidecar 或第二个 active backing Circle
+- `ak.sidecar.create` 唯一创世身份：`sidecar_id=retype(event_id,"sidecar")`；payload 只携
+  `encryption_profile=mls_rfc9420`，不携完整对象或 reducer-derived 字段。
+- `POST /_arkret/self/agent-sidecars:ensure` 的 closed prepare/commit/attach 三阶段；prepare 固定 exact Event
+  drafts，new 分支返回 create + context attach，existing 分支只返回 attach；同 operation/key/exact bytes 幂等。
+- singleton key `(realm_id,controller_id)` 原子保留；不同 genesis Event 争用同一 key 必须 fail closed。
+- native `{kind:"sidecar",realm_id,sidecar_id}` scope 进入 Event digest、AAD、query/delivery 与 Seal 验证。
+- `ak.sidecar.context.attach` 只登记一个已存在的 source Strand/Relation context，不创建 Strand 或 Relation。
+- read surface 返回 `owned_agent_ids` 与 `effective_agent_ids`；前者只从 ownership graph 派生，后者再与
+  lifecycle、authorization、Realm participation、policy 与 MLS/key readiness 求交。
+- Sidecar MLS 直接绑定 `sidecar_id` 和 participant authority frontier，不依赖 Circle membership。
+- Sidecar-private view 可寄宿普通 Strand shell，但不得改变 shared history、计数、未读、搜索、通知或权限。
+- 显式 publish 由 controller 确认并创建一条新的普通 Event，不复制 private envelope 或 identifier。
+- exchange projection 仅从 accepted native-Sidecar-scoped private history 确定性 fold。
+
+MUST NOT：
+
+- 接受或实现 `ak.sidecar.access.replace`、Sidecar member/invite/join/role/admin surface；
+- 创建 backing Circle、Circle membership、private Strand 或 `agent_sidecar_of` Relation；
+- 允许 caller 提供 participant/member/Agent selection；
+- 将 source Strand 当作 Sidecar security scope，或向 shared surface泄漏 Sidecar private activity；
+- 为同一 `(realm_id,controller_id)` 创建第二个 non-tombstoned Sidecar。
 
 ### 18.5 Agent Participation Policy
 

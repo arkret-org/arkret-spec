@@ -1124,7 +1124,7 @@
         "refs": [],
         "preconditions": [
           {
-            "cell": "ak:cell:ak.component.audit.session.v1:ak:audit_session:019a6aa0-5000-7000-8000-000000000000",
+            "cell": "ak:cell:ak.component.audit.session.v1:ak:audit_session:019a6aa0-5000-8000-8000-000000000000",
             "predicate": {
               "op": "head_eq",
               "value": null
@@ -1137,7 +1137,7 @@
           ]
         },
         "payload": {
-          "session_id": "ak:audit_session:019a6aa0-5000-7000-8000-000000000000",
+          "session_id": "ak:audit_session:019a6aa0-5000-8000-8000-000000000000",
           "binding_id": "ak:audit_binding:019a6aa0-6000-7000-8000-000000000000",
           "realm_id": "ak:realm:019a7360-0000-8000-8000-000000000000",
           "effective_scope": {
@@ -1513,7 +1513,7 @@
       "schema_ref": "schemas/invite.schema.json",
       "expect_valid": true,
       "instance": {
-        "id": "ak:invite:019a6aa0-0000-7000-8000-000000000000",
+        "id": "ak:invite:019a6aa0-0000-8000-8000-000000000000",
         "schema": "ak.schema.invite.v1",
         "realm_id": "ak:realm:019a7360-0000-8000-8000-000000000000",
         "inviter": "did:webvh:z6mkfixture:alice.example",

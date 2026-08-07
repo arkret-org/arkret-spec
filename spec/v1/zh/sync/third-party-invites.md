@@ -41,29 +41,17 @@ updated: 2026-07-02
 2. **生成邀请令牌**：验证服务生成至少 128 bit 熵的随机 `invite_token`，并生成独立 `token_salt`。`invite_token` MUST 只通过外部通知渠道发送给被邀请人，不得写入公开 Event。
 3. **写入占位符 Event**：Alice 向 Realm 提交一个特殊的 `ak.invite.third_party` Event，其 `payload` 为：
 
-```json schema=schemas/event-payload.schema.json#/$defs/invite_payload
+```json schema=schemas/event-payload.schema.json#/$defs/invite_third_party_create_payload
 {
-  "invite": {
-    "id": "ak:invite:0196419b-1000-7000-8000-000000000000",
-    "schema": "ak.schema.invite.v1",
-    "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-    "inviter": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-    "third_party_id": {
-      "display_name_hint": "external invite",
-      "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      "token_salt_id": "salt-2026-04-28-invite-001",
-      "oob_code_kind": "offline_token",
-      "token_entropy_bits": 128,
-      "verification_service_id": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example",
-      "verification_public_key": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example#invite-001",
-      "max_claims": 1
-    },
-    "join_rule_snapshot": {
-      "join_rule": "invite"
-    },
-    "expires_at": "2026-05-05T00:00:00.000Z",
-    "state": "pending",
-    "created_at": "2026-04-28T00:00:00.000Z"
+  "third_party_id": {
+    "display_name_hint": "external invite",
+    "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "token_salt_id": "salt-2026-04-28-invite-001",
+    "oob_code_kind": "offline_token",
+    "token_entropy_bits": 128,
+    "verification_service_id": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example",
+    "verification_public_key": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example#invite-001",
+    "max_claims": 1
   },
   "expires_at": "2026-05-05T00:00:00.000Z"
 }
@@ -127,9 +115,9 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
 
 身份验证服务（或 Bob 代理）将该证明连同 Bob 的签名，打包成一个 `ak.invite.claim` Event 提交到 Realm。`payload` 为：
 
-```json schema=schemas/event-payload.schema.json#/$defs/invite_payload
+```json schema=schemas/event-payload.schema.json#/$defs/invite_claim_payload
 {
-  "invite_id": "ak:invite:0196419b-1000-7000-8000-000000000000",
+  "invite_id": "ak:invite:0196419b-1000-8000-8000-000000000000",
   "subject_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
   "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",

@@ -60,7 +60,7 @@
       "expect_valid": false,
       "first_expected_error": "contains:kind",
       "instance": {
-        "report_id": "ak:report:0196425b-0000-7000-8000-000000000000",
+        "report_id": "ak:report:0196425b-0000-8000-8000-000000000000",
         "target_ref": "ak:event:019640ed-8000-8000-8000-000000000000"
       }
     }

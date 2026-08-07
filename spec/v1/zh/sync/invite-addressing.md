@@ -268,7 +268,7 @@ effective_receive_policy =
 
 ```json
 {
-  "invite_id": "ak:invite:0196419b-0000-7000-8000-000000000010",
+  "invite_id": "ak:invite:0196419b-0000-8000-8000-000000000010",
   "invitee": "did:webvh:z2dmjBobExample:users.bob.example:bob",
   "invite_delivery_target": {
     "recipient_service_id": "did:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc:ps.bob.example"
@@ -284,7 +284,7 @@ Rules:
 - `payload.invite_delivery_target.recipient_service_id` MUST equal `invite_address.recipient_service_id`.
 - `payload.invite_delivery_target.recipient_service_kind` MAY appear; if present, it MUST be `principal_server`.
 - `introduction_evidence_digest = digest(canonical_json(private_delivery_introduction_evidence))`，用于审计关联，不得泄露 raw locator token。
-- 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel`，payload 使用 `invite_payload` 的引用形态：`invite_id`、与目标 invite 逐字节相等的 `invitee`，以及可选 `reason`。被邀请者本人提交时表示拒绝并写入 `rejected`；邀请者或 Realm 管理 actor 提交时表示撤销尚未接受的 pending invite 并写入 `revoked`。reducer MUST 先从持久化 Invite 前态确认 `invitee` 存在；第三方/token invite 或无 `invitee` 前态必须以 `failed_precondition` / `invite_kind_requires_revoke` 拒绝，不能信任请求补出的 `invitee`。同一 Move 的 registered reducer contract MUST 同时投影 `member.state:<invitee>` 的 `invite -> leave`，见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)。
+- 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel`，payload 使用 `invite_cancel_payload`：`invite_id`、与目标 invite 逐字节相等的 `invitee`、`target_state`，以及可选 `reason`。被邀请者本人提交时表示拒绝并写入 `rejected`；邀请者或 Realm 管理 actor 提交时表示撤销尚未接受的 pending invite 并写入 `revoked`。reducer MUST 先从持久化 Invite 前态确认 `invitee` 存在；第三方/token invite 或无 `invitee` 前态必须以 `failed_precondition` / `invite_kind_requires_revoke` 拒绝，不能信任请求补出的 `invitee`。同一 Move 的 registered reducer contract MUST 同时投影 `member.state:<invitee>` 的 `invite -> leave`，见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)。
 - `ak.invite.revoke` MUST 用于第三方/token invite 的撤销或等价高风险撤销路径，payload 使用同一引用形态；指向定向 DID invite 时 `invitee` 必填并原子写入 `invite -> leave`，指向尚无 DID 主体的 3PID placeholder 时不得携带 `invitee`、也不得写 member cell。reducer MUST 将 live invite 写入对应终态，并清除可认领 token material。直接 DID 邀请不需要通过 `ak.invite.revoke` 才能从成员管理 UI 撤销。
 
 ## 7. 私有 Invite Delivery

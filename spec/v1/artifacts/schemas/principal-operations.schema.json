@@ -835,76 +835,6 @@
       "minItems": 4,
       "maxItems": 4
     },
-    "sidecar_access_replace": {
-      "type": "object",
-      "required": [
-        "kind",
-        "realm_id",
-        "scope_ref",
-        "sidecar_id",
-        "selected_agent_ids",
-        "version",
-        "controller_signature"
-      ],
-      "properties": {
-        "kind": {
-          "const": "ak.sidecar.access.replace"
-        },
-        "realm_id": {
-          "$ref": "#/$defs/realm_id"
-        },
-        "scope_ref": {
-          "$ref": "#/$defs/sidecar_scope_ref"
-        },
-        "sidecar_id": {
-          "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
-        },
-        "selected_agent_ids": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/did"
-          },
-          "uniqueItems": true
-        },
-        "version": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "predecessor_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "controller_signature": {
-          "$ref": "#/$defs/signature"
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "version": {
-                "const": 1
-              }
-            },
-            "required": [
-              "version"
-            ]
-          },
-          "then": {
-            "not": {
-              "required": [
-                "predecessor_event_ref"
-              ]
-            }
-          },
-          "else": {
-            "required": [
-              "predecessor_event_ref"
-            ]
-          }
-        }
-      ],
-      "additionalProperties": false
-    },
     "sidecar_context_attach_event": {
       "allOf": [
         {
@@ -963,38 +893,19 @@
       "type": "object",
       "required": [
         "create_event_ref",
-        "access_event_ref",
-        "membership_refs"
+        "authority_refs"
       ],
       "properties": {
         "create_event_ref": {
           "$ref": "#/$defs/event_id"
         },
-        "access_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "membership_refs": {
+        "authority_refs": {
           "type": "array",
           "items": {
-            "type": "object",
-            "required": [
-              "polarity",
-              "event_ref"
-            ],
-            "properties": {
-              "polarity": {
-                "enum": [
-                  "positive",
-                  "negative"
-                ]
-              },
-              "event_ref": {
-                "$ref": "#/$defs/event_id"
-              }
-            },
-            "additionalProperties": false
+            "$ref": "#/$defs/event_id"
           },
-          "minItems": 1
+          "uniqueItems": true,
+          "description": "Sorted ownership, Agent lifecycle, authorization, Realm participation and key-readiness refs. Circle membership and Sidecar selection refs are forbidden."
         }
       },
       "additionalProperties": false
@@ -1028,9 +939,6 @@
             "reservation_handle",
             "expires_at",
             "sidecar_id",
-            "backing_circle_id",
-            "private_strand_id",
-            "private_relation_id",
             "create_event_id",
             "context_attach_event_id",
             "create_event_draft",
@@ -1054,15 +962,6 @@
             },
             "sidecar_id": {
               "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
-            },
-            "backing_circle_id": {
-              "$ref": "#/$defs/circle_id"
-            },
-            "private_strand_id": {
-              "$ref": "#/$defs/strand_id"
-            },
-            "private_relation_id": {
-              "$ref": "./event-payload.schema.json#/$defs/relation_id"
             },
             "create_event_id": {
               "$ref": "#/$defs/event_id"
@@ -1116,9 +1015,6 @@
             "reservation_handle",
             "expires_at",
             "sidecar_id",
-            "backing_circle_id",
-            "private_strand_id",
-            "private_relation_id",
             "context_attach_event_id",
             "context_attach_event_draft"
           ],
@@ -1140,15 +1036,6 @@
             },
             "sidecar_id": {
               "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
-            },
-            "backing_circle_id": {
-              "$ref": "#/$defs/circle_id"
-            },
-            "private_strand_id": {
-              "$ref": "#/$defs/strand_id"
-            },
-            "private_relation_id": {
-              "$ref": "./event-payload.schema.json#/$defs/relation_id"
             },
             "context_attach_event_id": {
               "$ref": "#/$defs/event_id"
@@ -1181,8 +1068,7 @@
             "accepted_phase",
             "ok",
             "sidecar_id",
-            "private_strand_id",
-            "private_relation_id",
+            "source_context_ref",
             "access_readiness",
             "pending_access_reconciliations"
           ],
@@ -1206,11 +1092,8 @@
             "sidecar_id": {
               "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
             },
-            "private_strand_id": {
-              "$ref": "#/$defs/strand_id"
-            },
-            "private_relation_id": {
-              "$ref": "./event-payload.schema.json#/$defs/relation_id"
+            "source_context_ref": {
+              "$ref": "#/$defs/sidecar_context_ref"
             },
             "access_readiness": {
               "$ref": "./agent-operations.schema.json#/$defs/agent_sidecar_access_readiness"
@@ -1357,17 +1240,17 @@
       "required": [
         "kind",
         "realm_id",
-        "circle_id"
+        "sidecar_id"
       ],
       "properties": {
         "kind": {
-          "const": "circle"
+          "const": "sidecar"
         },
         "realm_id": {
           "$ref": "#/$defs/realm_id"
         },
-        "circle_id": {
-          "$ref": "#/$defs/circle_id"
+        "sidecar_id": {
+          "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
         }
       },
       "additionalProperties": false

@@ -1,7 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-07",
-  "generated_at": "2026-08-07T05:33:31Z",
+  "version": "2026-08-07.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -258,7 +257,7 @@
         "agent_deactivated",
         "failed_precondition"
       ],
-      "description": "Idempotent ensure: server-derived dedupe keys are `(realm_id, controller_id)` for the Agent Sidecar and `(sidecar_id, normalized_context_ref)` for the private Strand. `agent_id` is not part of either key. The backing Circle is reducer-derived and never caller-selected or returned as a normal Circle. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic existence-privacy precondition."
+      "description": "Idempotent ensure: the protocol identity key is `(realm_id, controller_id)` for the Agent Sidecar; `(sidecar_id, normalized_source_context_ref)` deduplicates context mappings without creating another protocol object. `agent_id` is not part of either key. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic existence-privacy precondition."
     },
     {
       "operation_id": "ak.self.agent.sidecar.resource.get",

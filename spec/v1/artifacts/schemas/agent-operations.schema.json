@@ -1685,7 +1685,7 @@
     },
     "agent_sidecar_context_ref": {
       "type": "object",
-      "description": "Canonical Strand-level Sidecar context identity. Track and Message coordinates are exchange/projection sub-keys and MUST NOT participate in private Strand reuse.",
+      "description": "Existing shared Strand or Relation used only as the UI/source context for a native Sidecar projection. It does not create or identify a private Strand.",
       "required": [
         "realm_id"
       ],
@@ -1741,7 +1741,7 @@
         "provisioning_phase": {
           "type": "string",
           "enum": [
-            "backing_scope_membership",
+            "ownership_authority",
             "mls_welcome",
             "mls_remove",
             "epoch_rotation",
@@ -1771,12 +1771,12 @@
     "agent_sidecar_mls_context": {
       "type": "object",
       "required": [
-        "desired_access_digest",
+        "participant_authority_digest",
         "control_frontier",
         "current_controller_device_ready"
       ],
       "properties": {
-        "desired_access_digest": {
+        "participant_authority_digest": {
           "$ref": "#/$defs/hash"
         },
         "control_frontier": {
@@ -1786,7 +1786,7 @@
           },
           "minItems": 1,
           "uniqueItems": true,
-          "description": "UTF-8 byte-lexicographically sorted accepted control refs that materialize the Sidecar and exact desired backing membership."
+          "description": "UTF-8 byte-lexicographically sorted accepted refs for Sidecar genesis, ownership, lifecycle, authorization, Realm participation and key readiness."
         },
         "mls_group_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -1823,7 +1823,7 @@
       "type": "object",
       "required": [
         "sidecar",
-        "desired_agent_ids",
+        "owned_agent_ids",
         "effective_agent_ids",
         "mls_context",
         "access_readiness",
@@ -1833,9 +1833,9 @@
         "sidecar": {
           "$ref": "./agent-sidecar.schema.json"
         },
-        "desired_agent_ids": {
+        "owned_agent_ids": {
           "type": "array",
-          "description": "Eligible owned Agent principals in the Sidecar desired access set. The controller is represented by sidecar.controller_id and is not duplicated here.",
+          "description": "Complete read-only set of Agent principals currently owned by the Sidecar controller. It is derived from the ownership truth source and cannot be edited through Sidecar operations.",
           "items": {
             "$ref": "#/$defs/did"
           },
@@ -1843,7 +1843,7 @@
         },
         "effective_agent_ids": {
           "type": "array",
-          "description": "Agent principals whose backing-scope membership and current MLS readiness have completed. Reducer/service MUST enforce this set is a subset of desired_agent_ids. The controller is represented by sidecar.controller_id and is not duplicated in either Agent array.",
+          "description": "Owned Agent principals that are also active, authorized, Realm-participating and MLS/key ready. Reducer/service MUST enforce this set is a subset of owned_agent_ids. The controller is represented by sidecar.controller_id and is not duplicated in either Agent array.",
           "items": {
             "$ref": "#/$defs/did"
           },

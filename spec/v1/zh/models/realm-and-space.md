@@ -221,21 +221,25 @@ Realm 之外的 create-once 对象没有这个问题：它们的 ID 只出现在
 **Principal Control Realm 是本节的例外（normative）**：PCR 的 `realm_id` 不由 genesis Event 派生，而由 principal DID 确定性派生：
 
 ```text
-uuid = truncate16( SHA-256( PCR_DOMAIN || principal_did ) )   并置 UUIDv7 的 version / variant 位
-PCR_DOMAIN = UTF8("ak" ":" "realm" ":" "principal-control:v1:")
+H = SHA-256( PCR_DOMAIN || UTF8(canonical_principal_did) )
+uuid = H[0..16]，并置 UUID version=7、variant=10
+PCR_DOMAIN = UTF8("ak" ":" "realm" ":" "principal-control" ":" "v1" ":")
 ```
+
+固定 KAT 与负例由 `ak.vector.object_identity.subject_derived_realm.v1` 承载。
 
 理由是**可寻址性**：任何一方拿到某个 principal 的 DID 就能直接算出其 PCR 地址，不需要查询；而带时间戳段的 event-derived 形态无法从 DID 单独算出。PCR 的身份锚本来也不是 genesis Event，而是 [`../identity/key-management.md` §5.0.1](../identity/key-management.md) 的唯一 critical `did_inception` root anchor——那比 genesis Event 更强。
 
-因此 `ak:realm:` 是**唯一同时接受两种内容绑定形态**的 typed kind：collaboration Realm 用 event-derived UUIDv8，PCR 用 subject-derived UUIDv7 布局。两者都不是 producer 自选，分支由 create 的 `purpose` 决定，实现 MUST NOT 逐调用点自选。
+因此 `ak:realm:` 是唯一同时接受两种确定性形态的 typed kind：Collaboration Realm 使用 §4.0 的 event-derived content-bound UUIDv8；PCR 使用本节的 subject-derived UUIDv7 布局。PCR 的全部可用位来自带独立 domain separator 的 DID transcript，version nibble 只表达已登记的布局分支，不表示 producer 分配，也不携带真实时间戳。两者都不是 producer 自选，分支由 create 的 `purpose` 决定；实现 MUST NOT 只检查 version nibble，也不得逐调用点自选布局。
 
 **首次接触校验义务（normative）**：receiver 首次接触某个 `realm_id` 时 MUST：
 
 1. 先定位该 Realm 的 `ak.realm.create` 并取得其完整 canonical bytes；
-2. 重算 `event_id` 并校验 `retype(event_id) == realm_id`；
-3. **校验通过前 MUST NOT 接受该 Realm 的任何 Event 或 Seal**；
-4. 把该 genesis 持久化为该 `realm_id` 的永久本地绑定；
-5. 此后出现的任何不同 genesis MUST 拒绝，MUST NOT 因为它先到、更新、或来自"更权威"的 peer 而覆盖。
+2. 对所有分支重算并校验 `event_id`；
+3. 若 `purpose="principal_control"`，从签名 Event 的 canonical `actor_id` / `created_by` principal DID 按本节 transcript 派生 `realm_id`，并校验两字段相等及唯一 `did_inception` root anchor；否则校验 `retype(event_id) == realm_id`；
+4. **校验通过前 MUST NOT 接受该 Realm 的任何 Event 或 Seal**；
+5. 把该 genesis 持久化为该 `realm_id` 的永久本地绑定；
+6. 此后出现的任何不同 genesis MUST 拒绝，MUST NOT 因为它先到、更新、或来自"更权威"的 peer 而覆盖。
 
 上面第 3 条大体已被现有机制隐含——Control Move 要 `seal_basis`、DataEvent 要 `seal_ref`，Seal 链最终 root 在 genesis Seal——但仍 MUST 显式执行，否则实现会在 backfill 乱序时先落一半状态。
 
@@ -243,7 +247,7 @@ PCR_DOMAIN = UTF8("ak" ":" "realm" ":" "principal-control:v1:")
 
 > **边界：identity 自证，naming 不自证。**攻击者仍可创建一个 `realm_id` 完全合法自证的 Realm，再去抢注一个像样的 alias。alias 抢注与目录投毒是独立问题，本节不解决，也 MUST NOT 被表述为已解决。
 
-由于两条不同的 create 必然有不同 `event_id`、因而必然是两个不同的 Realm，"同一 Realm id 的第二条 create"只可能来自伪造 `event_id`（§4.0 的 2^88）。下文步骤 3 的 `realm_already_exists` 因此成为一条防御性剩余分支，而不是常规路径。
+对 Collaboration Realm，两条不同 create 必然有不同 `event_id`、因而必然是两个不同 Realm；伪造同一 Realm ID 需要攻击 §4.0 的 88-bit content-bound 截断。对 PCR，Realm ID 唯一绑定 principal DID；不同 DID 伪造同一 ID 需要攻击本节 122-bit subject-derived 截断，而同一 DID 的第二条 genesis 由唯一 root anchor 与永久 genesis binding 拒绝。下文的 `realm_already_exists` 是两条路径共同的 fail-closed 防线。
 
 #### 2.5.1 Bootstrap 步骤
 

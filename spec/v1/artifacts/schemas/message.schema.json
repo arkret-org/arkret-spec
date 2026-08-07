@@ -107,7 +107,7 @@
     "id": {
       "type": "string",
       "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "For ak.message.create, the reducer derives this value by retyping the UUIDv7 of the creating Event.event_id from ak:event: to ak:message:. It is not independently producer-chosen."
+      "description": "For ak.message.create, the reducer derives this value by retyping the content-bound UUIDv8 of the creating Event.event_id from ak:event: to ak:message:. It is not independently producer-chosen."
     },
     "schema": {
       "const": "ak.schema.message.v1"
@@ -694,7 +694,7 @@
         },
         "sidecar_exchange_binding": {
           "$ref": "./agent-sidecar-event-exchange-binding.schema.json",
-          "description": "Agent Sidecar exchange binding. Legal only inside encrypted_metadata plaintext of an event whose effective scope is the Sidecar backing Circle; forbidden in plaintext metadata and in shared Realm/Circle events (see forbidden-wire-fields.json and zh/models/sidecar.md §7.2)."
+          "description": "Agent Sidecar exchange binding. Legal only inside encrypted_metadata plaintext of an event whose signed scope_ref.kind is sidecar; forbidden in plaintext metadata and shared Realm/Circle events."
         }
       },
       "not": {

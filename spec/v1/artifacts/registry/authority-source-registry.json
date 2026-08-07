@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07",
+  "version": "2026-08-07.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-07T05:33:31Z",
+  "generated_at": "2026-08-07T10:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
@@ -121,7 +121,7 @@
         "parent_realm_current",
         "sidecar_create_minimal",
         "first_ensure_exact_create_then_context_attach",
-        "no_preexisting_backing_scope_required"
+        "native_sidecar_scope_reserved"
       ],
       "revocation_model": "one_shot_parent_realm_scoped_bootstrap",
       "authority_generation_independent": false,

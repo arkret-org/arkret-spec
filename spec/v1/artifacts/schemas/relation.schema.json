@@ -26,7 +26,7 @@
     },
     "scope_circle_id": {
       "$ref": "./common-ids.schema.json#/$defs/circle_id",
-      "description": "Optional intra-Realm Circle (models/circle.md) defining this Relation fact's effective scope, supplied in the submit payload. For confidential_discussion_of it points to the private Strand's Circle. For agent_sidecar_of it MUST equal the owning Agent Sidecar object's reducer-derived backing_circle_id and callers cannot choose another Circle (models/sidecar.md). The resulting effective_scope=circle prevents non-members from enumerating the edge from the public endpoint. For structural relations the resulting effective_scope MUST NOT be wider than the narrowest participating endpoint scope (circle.md §6.1)."
+      "description": "Optional intra-Realm Circle (models/circle.md) defining this Relation fact's effective scope, supplied in the submit payload. For confidential_discussion_of it points to the private Strand's Circle. For structural relations the resulting effective_scope MUST NOT be wider than the narrowest participating endpoint scope (circle.md §6.1). Sidecar context mappings are native sidecar.context cells, not Relation objects."
     },
     "effective_scope": {
       "$ref": "#/$defs/effective_scope",

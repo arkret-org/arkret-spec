@@ -714,7 +714,6 @@
               "ak.self.agent.resume",
               "ak.self.moderation.report",
               "ak.session.grant",
-              "ak.sidecar.access.replace",
               "ak.sidecar.context.attach",
               "ak.sidecar.create",
               "ak.sovereign.did_policy",
@@ -1485,25 +1484,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/sidecar_context_attach_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.sidecar.access.replace"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/sidecar_access_replace_payload"
           }
         }
       }
@@ -2957,14 +2937,7 @@
       "if": {
         "properties": {
           "kind": {
-            "enum": [
-              "ak.invite.create",
-              "ak.invite.cancel",
-              "ak.invite.accept",
-              "ak.invite.third_party",
-              "ak.invite.claim",
-              "ak.invite.revoke"
-            ]
+            "const": "ak.invite.create"
           }
         },
         "required": [
@@ -2974,7 +2947,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/invite_payload"
+            "$ref": "./event-payload.schema.json#/$defs/invite_create_payload"
           }
         }
       }
@@ -2983,10 +2956,7 @@
       "if": {
         "properties": {
           "kind": {
-            "enum": [
-              "ak.invite.create",
-              "ak.invite.third_party"
-            ]
+            "const": "ak.invite.third_party"
           }
         },
         "required": [
@@ -2996,26 +2966,83 @@
       "then": {
         "properties": {
           "payload": {
-            "anyOf": [
-              {
-                "required": [
-                  "expires_at"
-                ]
-              },
-              {
-                "required": [
-                  "invite"
-                ],
-                "properties": {
-                  "invite": {
-                    "type": "object",
-                    "required": [
-                      "expires_at"
-                    ]
-                  }
-                }
-              }
-            ]
+            "$ref": "./event-payload.schema.json#/$defs/invite_third_party_create_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.invite.accept"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/invite_accept_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.invite.cancel"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/invite_cancel_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.invite.revoke"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/invite_revoke_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.invite.claim"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/invite_claim_payload"
           }
         }
       }
@@ -4454,7 +4481,7 @@
       }
     },
     {
-      "$comment": "zh/models/realm-and-space.md section 2.5.0: ak.realm.create MUST omit realm_id and use the realm_genesis scope, because realm_id is derived from this Event's own event_id and would otherwise be a function of the digest inside the digest preimage. Every other kind MUST carry realm_id.",
+      "$comment": "zh/models/realm-and-space.md section 2.5.0: ak.realm.create MUST omit realm_id and use the realm_genesis scope. Collaboration realm_id is derived from this Event's event_id; PCR realm_id is derived from the signed actor DID. The uniform omission leaves one receiver-derived genesis form and avoids the collaboration digest cycle. Every other kind MUST carry realm_id.",
       "if": {
         "required": [
           "kind"
@@ -4604,6 +4631,27 @@
         {
           "type": "object",
           "required": [
+            "kind",
+            "realm_id",
+            "sidecar_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "sidecar"
+            },
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            },
+            "sidecar_id": {
+              "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Native controller-and-owned-Agents private scope. It is not a Circle and has no editable membership."
+        },
+        {
+          "type": "object",
+          "required": [
             "kind"
           ],
           "properties": {
@@ -4612,7 +4660,7 @@
             }
           },
           "additionalProperties": false,
-          "description": "Genesis scope for ak.realm.create only. It carries no realm_id because the Realm's own id is derived from this Event: zh/models/realm-and-space.md section 2.5.0. Embedding realm_id here would put a function of the digest inside the digest preimage, which is circular."
+          "description": "Genesis scope for ak.realm.create only. It carries no realm_id because the receiver derives the Realm id: from this Event for collaboration, or from the signed actor DID for PCR (zh/models/realm-and-space.md section 2.5.0). The uniform omission also prevents the collaboration digest cycle."
         }
       ]
     },

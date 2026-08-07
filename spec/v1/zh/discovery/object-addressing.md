@@ -14,7 +14,9 @@ updated: 2026-07-02
 
 本文定义 Arkret 的**客户端无关可分享对象地址**：用户把一个 Strand（或 Strand 内某条 Message、或 Realm）通过一串链接分享出去，接收方的任意 Arkret 客户端都能解析并在自己 UI 里打开。
 
-它解决的具体问题：`ak:strand:<uuid>` 是全局唯一 UUIDv7，但**不可路由**——光有 strand_id 不知道它属于哪个 Realm、由哪台 server 托管，因此各客户端只能各自拼私有 URL，换个客户端就打不开。
+它解决的具体问题：`ak:strand:<uuid>` 是全局唯一的 event-derived content-bound UUIDv8，但
+**不可路由**——光有 strand_id 不知道它属于哪个 Realm、由哪台 server 托管，因此各客户端
+只能各自拼私有 URL，换个客户端就打不开。
 
 地址层**只负责寻址**。授权不是地址的一部分，而是挂在地址上的、有 expiry、audience-bound、可吊销的签名 token。**寻址 ≠ 授权**：裸地址解析仍受 [`discovery-directory.md` §2/§3](./discovery-directory.md) 的 discoverability / join / history 三 gate 约束，请求方看不见的资源 MUST 解析为与不存在不可区分的 `not_found`。
 
@@ -57,7 +59,16 @@ web+arkret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 
 - **realm 是身份，进 path；join routing 不进 URL query。** realm 脱离 path 则 strand 无法定位（授权 / 解析以 Realm 为根，见 [`models/circle.md`](../models/circle.md)）；加入时可用的 Realm ingress service 由 `resolve_realm` / `resolve_target` 返回的 `join_candidates[]` 给出，不写入地址本体。
 - **Strand / Message 地址 MUST 携带 `realm/<realm>`**；缺少 Realm 根时解析方 MUST fail closed（返回 `not_found`），不得做全网 strand_id 猜测。
-- **`<realm>` 段消歧（normative）**：该段匹配 UUIDv7 文本形态时解释为 `realm_id`；否则解释为 **realm alias**（canonical grammar `<localpart>:<domain>`，见 §3.3）。判据等价：裸 UUID → `realm_id`，含 `:` 而非 UUIDv7 文本 → alias。`<strand>` / `<msg>` 段**只**接受裸 UUID。path 内裸 UUID 是 URI 压缩形态；进入 token target descriptor（§4）或下游比对前，解析方 MUST 按 path keyword 重建 typed canonical ID（`ak:realm:<uuid>` / `ak:strand:<uuid>` / `ak:message:<uuid>`）。alias 仅作为解析输入形态，MUST 先经常规 Realm 解析路径规范化为 canonical `realm_id`，后续身份比对一律绑定 `realm_id` 而非 alias 字符串。
+- **`<realm>` 段消歧（normative）**：该段匹配 canonical 裸 UUID 文本时解释为
+  `realm_id`，并在重建 `ak:realm:<uuid>` 后按 id-kind registry 校验：collaboration Realm 接受
+  event-derived UUIDv8，Principal Control Realm 接受 subject-derived UUIDv8；否则该段必须匹配
+  **realm alias** 的 canonical grammar `<localpart>:<domain>`（见 §3.3）。判据等价：合法裸 UUID
+  → `realm_id`，含 `:` 且符合 alias grammar → alias。`<strand>` / `<msg>` 段**只**接受各自
+  event-derived UUIDv8 的裸 UUID。path 内裸 UUID 是 URI 压缩形态；进入 token target descriptor
+  （§4）或下游比对前，解析方 MUST 按 path keyword 重建 typed canonical ID
+  （`ak:realm:<uuid>` / `ak:strand:<uuid>` / `ak:message:<uuid>`）并按该 kind 的 `id_form`
+  校验。alias 仅作为解析输入形态，MUST 先经常规 Realm 解析路径规范化为 canonical
+  `realm_id`，后续身份比对一律绑定 `realm_id` 而非 alias 字符串。
 - **未知 path keyword fail-closed**：v1 合法 keyword 只有 `realm` / `strand` / `m`，且层级顺序 MUST 为 `realm` ⊃ `strand` ⊃ `m`。解析方遇到未注册 keyword、顺序错乱或缺中间层级时 MUST 返回 `not_found`，不得猜测。未来扩展对象类型（如 `morph` / `space` / `circle`）MUST 显式扩 keyword 表；旧客户端遇到未知 keyword 一律按 fail-closed 处理，保证 forward-compat 下不分叉。
 - Message 锚点 keyword 固定为 `m/`（对齐协议层 [Message 对象](../models/strand-and-message.md#9-message)，而非底层 event envelope）。在 v1 中，`m/<msg>` 只寻址 Strand discussion track 内的 `ak:message:` 对象；synthesis track 的结构化内容应通过 Strand / Morph / Relation 等对象地址或 profile 显式注册的未来 keyword 寻址，不得把 `m/` 解释为任意 track-local item。
 - **Circle-scoped Strand**（`Strand.scope_circle_id != null`）的地址形态**不**额外暴露 circle id：scope 由解析后的访问判定决定，地址层不泄露 Circle 存在性（见 §6）。

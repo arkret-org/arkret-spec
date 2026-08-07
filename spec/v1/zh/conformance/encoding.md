@@ -225,14 +225,15 @@ ak:<kind>:<uuid>
 
 `<kind>` 是 canonical bytes 的一部分。实现 MUST NOT 把 `ak:receipt:<id>` 改写成 `ak:event:<id>`，也 MUST NOT 因为字段名叫 `receipt_id` 就在验证时补前缀。字段名可以辅助 schema 校验，但不能替代 signed wire ID。
 
-v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中的 `<uuid>` 段 MUST 是 [RFC 9562](https://datatracker.ietf.org/doc/html/rfc9562) UUID，且**只允许以下两种构造**：
+v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中的 `<uuid>` 段 MUST 是 [RFC 9562](https://datatracker.ietf.org/doc/html/rfc9562) UUID，且**只允许以下三种注册构造**：
 
 - **形态 A — UUIDv7（producer-allocated）**：48-bit Unix-millisecond timestamp（big-endian）+ 4-bit version=`0111` + 12-bit `rand_a` + 2-bit variant=`10` + 62-bit `rand_b`。用于**不由 Event 派生**的 typed ID——`receipt`、`snapshot`、`attestation`、`backup`、`device`、`request`、`operation` 等由服务或客户端自行分配的标识。同一 producer 在同一 millisecond 内连续产出 SHOULD 使用 RFC 9562 §6.2 列出的 monotonic 方法之一（推荐 Method 1：单调随机段递增）以保证字典序稳定且与时间序一致；producer SHOULD 拒绝产出 timestamp 段明显畸形（远未来或远过去于本地时钟超过实现声明阈值）的 ID，并 SHOULD 在生成时检测同 actor 时钟回退导致的非单调情况。receiver 对形态 A 的校验以正则 + 长度 + version/variant nibble 为准，不对 timestamp 段做语义解析。
 - **形态 B — UUIDv8 content-bound（§4.0）**：`event_id`，以及全部由 `event_id` 派生的 create-once 对象 ID，MUST 使用本形态。其 122 个可用位**全部由该 Event 的签名内容决定，不含任何自由位**；timestamp 段 MUST 按 §4.0 语义校验。
+- **形态 C — UUIDv8 subject-derived**：仅用于 registry 明确登记的 subject-derived kind/branch。v1 当前唯一实例是 Principal Control Realm：按 [`realm-and-space.md` §2.5.0](../models/realm-and-space.md) 的独立 domain separator 与 canonical principal DID transcript 派生。其 122 个可用位全部来自 transcript hash，不含 producer 可选的时间戳或随机位，也不得按 §4.0 的 Event 布局解释。
 
 两种形态都按 RFC 9562 §4 的 canonical 36-character lowercase hex 形式 `xxxxxxxx-xxxx-Vxxx-Nxxx-xxxxxxxxxxxx` 序列化（`V ∈ {7, 8}`；`N ∈ {8, 9, a, b}`，对应 RFC 4122 variant 1）。外部导入数据若是大写或带 URN/Microsoft braces 等变体形式，MUST 在生成 v1 Event Envelope、object id、cursor payload 或 proof `event_digest` 前规范化为小写无前缀的 36-char hyphen-separated 形式。已经进入签名 canonical bytes 的 ID MUST NOT 在验证、转发、backfill 或审计回放时重写大小写或形式。
 
-**v1 wire MUST NOT 接受其他 UUID version 替代**——v1（基于 MAC + 时间戳）、v3/v5（命名空间 hash）、v4（纯随机）、v6（重排时间戳）以及任何非 UUID 格式的等价 ID（KSUID、Snowflake、TSID、CUID）即使经过 hex 重编码并伪造 version nibble，也 MUST NOT 作为 typed `ak:<kind>:<uuid>` 的 ID 段使用。**version=8 仅在逐位符合 §4.0 布局时合法**：RFC 9562 的 v8 是自由格式，若不把布局锁死，它会成为比 v4 更宽的后门；任何不满足 §4.0 的 v8 MUST 按未知 critical wire type 拒绝。每个 typed ID kind 使用哪种形态由 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 逐 kind 声明，实现 MUST NOT 自行选择。
+**v1 wire MUST NOT 接受其他 UUID version 替代**——v1（基于 MAC + 时间戳）、v3/v5（命名空间 hash）、v4（纯随机）、v6（重排时间戳）以及任何非 UUID 格式的等价 ID（KSUID、Snowflake、TSID、CUID）即使经过 hex 重编码并伪造 version nibble，也 MUST NOT 作为 typed `ak:<kind>:<uuid>` 的 ID 段使用。**version=8 只有在逐位符合该 kind/branch 已注册的形态 B 或形态 C 布局时合法**：RFC 9562 的 v8 是自由格式，若不把 transcript 与布局锁死，它会成为比 v4 更宽的后门；只检查 version/variant 而不重算派生值不合规。每个 typed ID kind 使用哪种形态由 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 逐 kind 声明，实现 MUST NOT 自行选择。
 
 ### 4.0 UUIDv8 content-bound 布局（normative）
 
@@ -285,17 +286,28 @@ MUST 校验；不符 MUST `schema_violation`。`created_at` 早于 `1970-01-01T0
 
 由于 §4.0 使 `event_id` 与内容绑定，"相同 `event_id` 配不同 canonical hash"要求一次 2^88 的碰撞，因此 §12 的 `duplicate_conflict` 追溯隔离在 v1 下**退化为 fail-closed 兜底路径**，不是常规路径：同一 actor 签出的两条不同内容 Event 现在必然得到两个不同 `event_id`，属于 [`../models/event-and-patch.md` §2.6](../models/event-and-patch.md) 的 sibling fork，由该节的单桶 16 / 跨桶 64 机制处理。
 
-本节定义的 UUIDv7 构造、编码、单调性、receiver 校验规则 MUST 应用于 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) `id_kinds[]` 中**全部** typed kind（包括但不限于 `realm`、`strand`、`space`、`morph`、`message`、`relation`、`view`、`actor_profile`、`device`、`capability`、`grant`、`invite`、`receipt`、`snapshot`、`transaction` 等），event 不是特例。新 kind 注册 MUST 遵循同一规则；只有 registry `special_forms[]` 中已列出的形态（opaque cursor、content-addressed blob / seal、canonical cell tuple、MLS profile-scoped 引用、Realm-scoped pseudonym、trust domain）才允许偏离 typed-UUIDv7 pattern，并各自由对应 schema / profile 单独校验。未在 registry 注册的非 typed-UUIDv7 前缀形态 MUST 按未知 critical wire type 拒绝。
+UUID 构造 MUST 逐 kind 服从
+[`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `id_form`：
+`producer_allocated` 使用本节形态 A 的 UUIDv7；`event_derived`（包括 `event`、`strand`、
+`space`、`circle`、`morph`、`message`、`relation`、`view`、`actor_profile`、`appeal`、
+`audit_session`、`audit_release`、`invite`、`report`、`moderation_queue_item` 与 collaboration `realm`）使用
+§4.0 的 content-bound UUIDv8；`event_derived_or_subject_derived` 的具体分支按该 registry 的
+kind 级规则判定：v1 的两个 Realm 分支均为 UUIDv8，但 transcript/layout 不同。新 kind 注册 MUST 先固定 `id_form` 与派生 transcript，调用点 MUST NOT 自行选择 producer-allocated / event-derived / subject-derived 形态。
+同一 Event 可以向多个不同的 typed ID kind 重标同一个 UUID payload；完整 `ak:<kind>:<uuid>` 才是对象身份键，因此这些 ID 不碰撞。此类 Event MUST 在 event registry 以去重、非空的 `id_kinds[]` 封闭列出全部派生 kind；对同一 kind 最多派生一个对象，单目标 Event 继续使用 `id_kind`。
+只有 registry `special_forms[]` 中已列出的形态（opaque cursor、content-addressed blob / seal、
+canonical cell tuple、MLS profile-scoped 引用、Realm-scoped pseudonym、trust domain）才允许偏离
+typed UUID pattern，并各自由对应 schema / profile 单独校验。未在 registry 注册的非 typed UUID
+前缀形态 MUST 按未知 critical wire type 拒绝。
 
 特殊 ID/ref 形式（与 [`id-kind-registry.json` `special_forms[]`](../../artifacts/registry/id-kind-registry.json) 一一对应）：
 
-- `ak:cursor:<base64url>` 是 opaque token，不是 typed UUIDv7 object ID。
+- `ak:cursor:<base64url>` 是 opaque token，不是 typed UUID object ID。
 - `ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`ak:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者 MUST NOT 混用。
 - `ak:seal:sha256:<digest>` 是内容寻址 Seal hash（active special form；见 `id-kind-registry.json`）。
 - `ak:cell:<component>:<subject>` 是 canonical cell tuple 引用（active special form；`component` MUST 是从 cell-component registry 取得并原样嵌入的完整 `ak.component.<facet-path>.v<n>` family 标识符，`subject` 是 cell 的 subject key）。subject 内来自 canonical URI / DID 的 percent-encoded octet MUST 保持 `%HH` 形态，不得因嵌入 cell tuple 再次编码或解码。因此标准实例形如 `ak:cell:ak.component.strand.position.v1:<subject>`；`ak:cell:component.*`、`ak:cell:<裸 family>`、旧命名空间 family、截断/非十六进制 percent escape 或任何未完整携带 `ak.component.*.v<n>` 的形态 MUST 拒绝。
   - **Null subject（per-Realm / per-envelope 单例 cell，normative）**：registry 中 `cell_subject` 声明为 JSON `null` 的 cell family，其 canonical wire subject 段固定为字面 ASCII 四字符 `null`，即 `ak:cell:<component>:null`。选定字面 `null` 而非空串或省略末段，是因为 `ak:cell:<component>:` 的空末段无法与“末段被截断”区分，而截断形态本身必须拒绝。这类 cell 由 Event envelope 的 `realm_id` 定位（Realm-scoped 单例）；实现 MUST NOT 把 `realm_id`、Realm 角色分类（`collaboration` / `principal_control` / `managed_agent_principal_control` 等 [`../models/realm-and-space.md` §2.8.3](../models/realm-and-space.md) 的 prose 层术语）或任何 payload 派生值写进该 subject 段，也 MUST NOT 从 payload 重复字段派生第二个 cell key。任何偏离字面 `null` 的写法 MUST 拒绝（`schema_violation`）——subject 既进入 `state_root` leaf preimage、又是 leaf 的排序键（[`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md)），编码分歧会直接导致跨实现 `rejected_seal`。若某个 family 确实需要区分同一 Realm 内的多个实例，它 MUST 在 registry 中声明非 null 的 `cell_subject`，而不是把区分值塞进 null subject 段。
 - `ak:mls:<profile>:<profile_id>`、`ak:pseudonym:<scope_id>:<random>` 等 profile-scoped form 必须由对应 profile 注册和校验。
-- `ak:trust_domain:<scope>` 是部署 / 联邦信任域 ref，不是 typed UUIDv7 object ID；`<scope>` 的 profile 与匹配规则由 Realm / federation policy 声明。
+- `ak:trust_domain:<scope>` 是部署 / 联邦信任域 ref，不是 typed UUID object ID；`<scope>` 的 profile 与匹配规则由 Realm / federation policy 声明。
 
 自定义 profile 若新增 `ak:<kind>:` 前缀，MUST 在 profile registry 或扩展 registry 中声明 kind、wire form、存储边界和校验规则。未注册的 `ak:<kind>:` typed ID MUST 被视为未知 critical wire type，除非所在字段明确允许 opaque string。
 
@@ -324,7 +336,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 
 - **最终 tie-break 键固定为 `event_digest`**：候选各自产生 Event 的 canonical `event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`，§6）。digest preimage MUST 逐字使用 §2 / §6 的权威集合——从 envelope 移除 `proofs`、`unsigned`、`actor_kind` 与 `event_id` 后再 canonicalize；签名 `scope_ref` 不得移除。它是签名覆盖的内容指纹，对所有 verifier 唯一确定。
 - **方向固定为 bytewise 最大（lexicographically-greatest）**：winner = 候选集中 `event_digest` 最大者。比较对象 MUST 是**解码后的 digest octets**，不是 typed wire string：wire 形态 `<canonical_suite_id>:<lowercase_hex>`（§3.1）若整串按 UTF-8 比较，suite 名会先于内容决定 winner。规则固定为——先按 §3.2 确认候选 suite 对该 Event basis 合法，再把 hex 解码为 octets，以 unsigned lexicographic order 比较；长度不同且短者是长者前缀时短者较小。**仅当** octets 完全相同而 suite 不同时，才以 canonical suite id 的 unsigned UTF-8 bytewise 顺序作第二键，使全序完备。选最大是 LWW-register 的惯例方向，跨全协议统一。
-- **禁止的 tie-break 键**：winner 选择 MUST NOT 使用 `created_at` / HLC / `actor_id` / `actor_seq` / `event_id` / 本地接收顺序 / 数据库 ID / 服务端插入顺序中的任何一个。注意 **`event_id` 也被禁用**：它是 UUIDv7，其时间戳前缀是 producer 设定的墙钟量，用作 tie-break 会重新引入被本规则排除的墙钟依赖。
+- **禁止的 tie-break 键**：winner 选择 MUST NOT 使用 `created_at` / HLC / `actor_id` / `actor_seq` / `event_id` / 本地接收顺序 / 数据库 ID / 服务端插入顺序中的任何一个。注意 **`event_id` 也被禁用**：它是 §4.0 的 content-bound UUIDv8，只截取 `event_digest` 的 88 位并带 `created_at` 派生时间段，不是完整内容指纹；用它替代完整 `event_digest` 会降低碰撞安全边际并把时间段引入排序。
 - **复合排序的 domain 语义键**：某些 domain 在 tie-break 之前**先**按一个或多个有 domain 语义的有序键排序（如 account status 先按严格度、再按 `effective_at`）。这类 domain-semantic 主排序键是各 domain 的合法设计；但当主排序键全部相等仍并发时，**最终的并发消歧 MUST 落到本节的 bytewise-greatest `event_digest`**，不得用 `event_id` 或墙钟量收尾。
 - **collision fail closed**：两个候选的 canonical digest preimage bytes 不同却得到完全相同的 typed digest（同 suite、同 octets）时 MUST fail closed，MUST NOT 回退到任何禁止键或实现私有 ID。反之，preimage bytes 逐字相同而仅 `proofs`、`unsigned` 或 `actor_kind` 不同的，是同一 producer-signed Event 内容，分别按 proof profile 与 actor-kind 投影验证处理，MUST NOT 误报 collision。
 
@@ -823,7 +835,7 @@ rank_between(left, right):
 - `recovery_recipient_id` 作为 component 时 MUST 使用 payload 中经 JSON 解码得到的原始 Unicode scalar sequence，由 canonical JSON 负责转义；MUST NOT 做 NFKC / NFC、case folding 或 trim。
 - receiver MUST 独立校验 `effective_scope.realm_id` 等于 Event `realm_id`，Circle 分支还 MUST 校验该 `circle_id` 属于该 Realm。
 
-`ak.component.calendar.rsvp.v1` 的三元组固定 arity 3；`envelope.actor_id` 是 accountable responder，delegated execution 下不得改用 `executed_by`。实例级 RSVP 的 `payload.occurrence` 是 [`calendar-event.md` §8](../models/calendar-event.md) 的 canonical string——all-day 为 `YYYY-MM-DD`，timed 为整秒 `YYYY-MM-DDTHH:mm:ss[Zone]`，其中 Zone 是已签名的 canonical IANA Zone name。v1 的 timed local anchor 与 occurrence key 都收窄到整秒，因此不存在两个不同 subsecond occurrence 折叠到同一 key 的情况；实现 MUST NOT 接受带小数秒、offset 或 `Z` 的 occurrence，也 MUST NOT 在 receiver 侧把非 canonical 值改写后再派生 subject——cell 地址来自**已签名的原值**，非 canonical 输入 MUST 以 `rsvp_occurrence_not_canonical` 拒绝。series 级 RSVP 的 digest preimage 固定保留 JSON null，例如 `["ak:strand:<uuidv7>",null,"did:..."]`。实现 MUST NOT 把 null 改写成字符串 `"null"`、空串或 `"series"` sentinel。payload 中即使出现同名 `actor_id` 也不得遮蔽 `envelope.actor_id`。`payload.entry` 是该 cell 的 lattice value（见 [`calendar-event.md` §8.3](../models/calendar-event.md)），不参与 subject 派生。
+`ak.component.calendar.rsvp.v1` 的三元组固定 arity 3；`envelope.actor_id` 是 accountable responder，delegated execution 下不得改用 `executed_by`。实例级 RSVP 的 `payload.occurrence` 是 [`calendar-event.md` §8](../models/calendar-event.md) 的 canonical string——all-day 为 `YYYY-MM-DD`，timed 为整秒 `YYYY-MM-DDTHH:mm:ss[Zone]`，其中 Zone 是已签名的 canonical IANA Zone name。v1 的 timed local anchor 与 occurrence key 都收窄到整秒，因此不存在两个不同 subsecond occurrence 折叠到同一 key 的情况；实现 MUST NOT 接受带小数秒、offset 或 `Z` 的 occurrence，也 MUST NOT 在 receiver 侧把非 canonical 值改写后再派生 subject——cell 地址来自**已签名的原值**，非 canonical 输入 MUST 以 `rsvp_occurrence_not_canonical` 拒绝。series 级 RSVP 的 digest preimage 固定保留 JSON null，例如 `["ak:strand:<content-bound-uuidv8>",null,"did:..."]`。实现 MUST NOT 把 null 改写成字符串 `"null"`、空串或 `"series"` sentinel。payload 中即使出现同名 `actor_id` 也不得遮蔽 `envelope.actor_id`。`payload.entry` 是该 cell 的 lattice value（见 [`calendar-event.md` §8.3](../models/calendar-event.md)），不参与 subject 派生。
 
 `ak.component.identity.accountability.v1` 的第三个 component 固定使用 `context="ak.accountability-scope-set-v1"` 的 `string_set_digest`。`accountability_scope` 的 string 与 singleton-array 写法、以及同一合法 array 的任意排列，MUST 命中同一 cell；不同 exact scope set MUST 命中不同 cell。`active` 与 `revoked` 状态不进入 subject，因此同一 exact set 的撤销写回同一 `cas_register`。子集 revoke 只命中子集自己的 cell，不得对超集做隐式集合差；同一 issuer/subject 可同时有多个 active exact-set cell，其 projection scope 是所有当前 active cell 的集合并集。
 

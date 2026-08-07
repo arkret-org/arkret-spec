@@ -105,8 +105,8 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | `ak.schema.agent_sidecar.v1` | Agent Sidecar (controller-owned private AI workspace; see [`../models/sidecar.md`](../models/sidecar.md)) |
 | `ak.schema.agent_sidecar_view_state.v1` | Controller-private encrypted per-context Sidecar display/view state (see [`../models/sidecar.md` §7](../models/sidecar.md)) |
 | `ak.schema.agent_sidecar_exchange_projection.v1` | Controller-device-local source-routed exchange Event-fold cache/SDK DTO；非 Account Data / wire truth（见 [`../models/sidecar.md` §7](../models/sidecar.md)） |
-| `ak.schema.agent_sidecar_event_exchange_binding.v1` | Sidecar-scoped Message encrypted metadata 内的 closed exchange producer binding（见 [`../models/sidecar.md` §7.2.1](../models/sidecar.md)） |
-| `ak.schema.agent_sidecar_exchange_control.v1` | `ak.agent.sidecar.exchange.control` 的加密明文；coordinator 重分配与终态的 durable truth（见 [`../models/sidecar.md` §7.2.3](../models/sidecar.md)） |
+| `ak.schema.agent_sidecar_event_exchange_binding.v1` | Sidecar-scoped Message encrypted metadata 内的 closed exchange producer binding（见 [`../models/sidecar.md` §8](../models/sidecar.md)） |
+| `ak.schema.agent_sidecar_exchange_control.v1` | `ak.agent.sidecar.exchange.control` 的加密明文；coordinator 重分配与终态的 durable truth（见 [`../models/sidecar.md` §8](../models/sidecar.md)） |
 | `ak.schema.strand.v1` | Strand |
 | `ak.schema.message.v1` | Message |
 | `ak.schema.content_block_poll.v1` | Poll Content Block |
@@ -297,7 +297,7 @@ Schema evolution MUST：
 - reducer 行为变化需提供变更说明
 - 若变更授权、可见性、排序或收敛语义，需声明新 schema 或 reducer profile
 
-v1 canonical object（Event Envelope / Operation / Event Batch Receipt / Snapshot / Grant / encrypted envelope）的 schema 是封闭的（`additionalProperties: false`）：schema 未声明的未知字段 MUST 被 schema validation 以 `schema_violation` 拒绝，**不存在**“接受并保留任意未知字段”的隐式路径（与 [`../models/event-and-patch.md` §2.2](../models/event-and-patch.md) 的 Event Envelope 封闭规则和 [`../models/common-fields.md`](../models/common-fields.md) 的字段默认规则同源）。前向兼容扩展只能通过 schema 显式声明的扩展位承载：已声明 `x_*` patternProperties 扩展槽的 payload kind（现仅 `invite_payload`）、`requirements.critical_extensions[].parameters`，以及不进入 canonical bytes 的 `unsigned`。对 schema 允许但实现未识别的扩展位内容，接收方 MUST 在存储、转发、backfill 与 hash / 签名校验的 canonical bytes 中原样保留；reducer 可忽略其语义，但不得剔除。
+v1 canonical object（Event Envelope / Operation / Event Batch Receipt / Snapshot / Grant / encrypted envelope）的 schema 是封闭的（`additionalProperties: false`）：schema 未声明的未知字段 MUST 被 schema validation 以 `schema_violation` 拒绝，**不存在**“接受并保留任意未知字段”的隐式路径（与 [`../models/event-and-patch.md` §2.2](../models/event-and-patch.md) 的 Event Envelope 封闭规则和 [`../models/common-fields.md`](../models/common-fields.md) 的字段默认规则同源）。前向兼容扩展只能通过 schema 显式声明的扩展位承载：已显式声明 `x_*` patternProperties 的逐 Event Invite payload schema、`requirements.critical_extensions[].parameters`，以及不进入 canonical bytes 的 `unsigned`。对 schema 允许但实现未识别的扩展位内容，接收方 MUST 在存储、转发、backfill 与 hash / 签名校验的 canonical bytes 中原样保留；reducer 可忽略其语义，但不得剔除。
 
 未知 critical feature MUST fail closed。Event Envelope 的 `requirements` 对象（含 `schema[]` / `features[]` / `critical_extensions[]`）是 v1 固定的扩展声明位置，全部进入 canonical bytes 并参与 `event_digest`。Reducer profile 从 Event 的 CBA governance basis 读取，不在 `requirements` 中重复声明。`requirements.critical_extensions[]` 每项必须包含 `id`、`extension_scope` 和 `fail_closed=true`；entry 顶层不得携带未声明字段，扩展参数必须放入 `parameters`，大对象必须用 `material_digest` 绑定。
 

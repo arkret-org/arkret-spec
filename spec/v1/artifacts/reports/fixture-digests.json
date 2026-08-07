@@ -14,7 +14,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json",
-      "sha256": "b5a1809eb1191ad93bcf6b044e56177fd5475496908ba770fac07aa12bffabed"
+      "sha256": "8140d41b5051dafdc39bddcb82f52d424f738f6ea83991eaf4c5ee2fb6dd721f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
@@ -78,7 +78,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "c2bf2363757a38c20ba63cff5c9e7d95ee61d3f019335542ff0ee1c44c7f1a4a"
+      "sha256": "ad6c8746cfadfd4881cd017529138007fbbf244f378e2f72fe8488b3eaa0c563"
     },
     {
       "path": "spec/v1/artifacts/fixtures/control-proposal-ack-fixture.json",
@@ -134,7 +134,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-      "sha256": "cc39dbbdc1b80c09a8e873b7e9f3d3d192ab8fdb2e27cfc4daa7c572ce870587"
+      "sha256": "75c754f89d2f6cc94fbfc90497482be81a0b148b3230601a4b167d81577082aa"
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
@@ -270,11 +270,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
-      "sha256": "faa08777e7ac1ddad28287d006f2b5fa0f7343aa2423c8ca9dcf7c11d26dd971"
+      "sha256": "50beb003f23c645fd7a23678ea67a844bcb28d848d9e93ca25d28e368583897f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "14619880cde08e47c621078cb34c96725ef55fdb8ca25fc29dd93bcd5dee3adf"
+      "sha256": "cc15ab0e9a1f4a57330fa46e83623f7fedbea185881bea913cb84b2e3a5fe798"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -298,7 +298,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
-      "sha256": "a693a97d2a19d7a70b314d524c09ec58fef43e44ba85141877f4ba65fcf46988"
+      "sha256": "6952269b55a4454e00b92c31568eade50c12927f0df88cb9f30c48f949631c77"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",

@@ -211,15 +211,15 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 
 ### 3.2 词法规则（reference）
 
-- `realm_id`：`ak:realm:` 后接 UUIDv7。
-- `space_id`：`ak:space:` 后接 UUIDv7。
-- `circle_id`：`ak:circle:` 后接 UUIDv7。
-- `strand_id`：`ak:strand:` 后接 UUIDv7。
-- `message_id`：`ak:message:` 后接 UUIDv7。
-- `morph_id`：`ak:morph:` 后接 UUIDv7。
-- `relation_id`：`ak:relation:` 后接 UUIDv7。
-- `view_id`：`ak:view:` 后接 UUIDv7。
-- `event_id`：`ak:event:` 后接 UUIDv7。
+- `realm_id`：`ak:realm:` 后接 registry 为 Realm purpose 固定的 event-derived UUIDv8 或 subject-derived UUIDv8；二者 version 相同但 transcript/layout 不同，必须按 genesis purpose 重算。
+- `space_id`：`ak:space:` 后接 event-derived content-bound UUIDv8。
+- `circle_id`：`ak:circle:` 后接 event-derived content-bound UUIDv8。
+- `strand_id`：`ak:strand:` 后接 event-derived content-bound UUIDv8。
+- `message_id`：`ak:message:` 后接 event-derived content-bound UUIDv8。
+- `morph_id`：`ak:morph:` 后接 event-derived content-bound UUIDv8。
+- `relation_id`：`ak:relation:` 后接 event-derived content-bound UUIDv8。
+- `view_id`：`ak:view:` 后接 event-derived content-bound UUIDv8。
+- `event_id`：`ak:event:` 后接 §4.0 content-bound UUIDv8。
 - `policy_id`：`ak:policy:` 后接 UUIDv7。
 - `invite_id`：`ak:invite:` 后接 UUIDv7。
 - `schema_ref`：schema registry id，例如 `ak.schema.strand.v1` 或反向域名 schema id。Shorthand 与 canonical JSON 都只使用 `schema_ref`；parser MUST 拒绝 `schema_id` 等未声明 token。
@@ -243,7 +243,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 | Disjunction 分支数 | 16 项 | 逗号分隔的 top-level alternative 数量；超过即 `selector_too_complex`。|
 | Conjunction 展开后总项数 | 64 项 | JSON selector 或 shorthand 归一化后的 AND 项总数；防止嵌套组合指数展开。|
 | 嵌套深度（任意 selector 树） | 8 层 | 包括逗号 / 加号 / 引用 / 子 selector 嵌套；canonical 上限单一真相源见 [`scalability-constraints.md` §3](../conformance/scalability-constraints.md)。|
-| 单个 `selector_term` 字段值长度 | 1024 字节 | DID、URL、UUIDv7、复合 id 都包含在内。|
+| 单个 `selector_term` 字段值长度 | 1024 字节 | DID、URL、UUIDv7 / UUIDv8、复合 id 都包含在内。|
 | `required_claims[]` 在 subject selector 中的项数 | 32 项 | 每个 claim object 内部字段亦受单字段上限；`grant-constraint.schema.json` 的 `required_claims` 已用 `maxItems:32` 静态强制本上限。|
 | `required_claims[]` 内 DID / 列表字段长度（`trusted_issuers[]` / `roles[]` 等；schema 无 `subjects[]` 字段） | 16 项 | 任一 claim object 内 DID 列表（`trusted_issuers`）或角色列表（`roles`）等展开的对象数量；`grant-constraint.schema.json` 对 `trusted_issuers` / `roles` 强制 `maxItems:16`。|
 | Constraint object 内嵌套层级 | 4 层 | approval / claim object 内部最多 4 层嵌套。|

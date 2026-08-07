@@ -2,13 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-sidecar-exchange-projection.schema.json",
   "title": "Arkret Agent Sidecar Exchange Projection",
-  "description": "Disposable controller-device-local cache for one source-routed Sidecar exchange. Every field is a deterministic fold of accepted private-Strand Events. This object is not wire truth, is not Account Data, is never merged across devices, and may always be deleted and rebuilt.",
+  "description": "Disposable controller-device-local cache for one source-routed native Sidecar exchange. Every field is a deterministic fold of accepted Sidecar-scoped Events. This object is not wire truth, is not Account Data, is never merged across devices, and may always be deleted and rebuilt.",
   "type": "object",
   "required": [
     "schema",
     "controller_id",
     "sidecar_id",
-    "private_strand_id",
     "exchange_id",
     "origin",
     "source_track_ref",
@@ -33,9 +32,6 @@
     },
     "sidecar_id": {
       "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
-    },
-    "private_strand_id": {
-      "$ref": "#/$defs/strand_id"
     },
     "exchange_id": {
       "$ref": "#/$defs/exchange_id"

@@ -180,7 +180,7 @@ AAD 字段集合受 Realm 的 `aad_visibility` policy 组件约束（承载与�
   )
   ```
 
-  其中 `ak.aad-event-ref-v1` 是固定的 ASCII 域分隔常量（逐字节等于该字符串），字段间以单字节 `0x00` 分隔以消除拼接歧义；`event_id` / `realm_id` 取其 canonical typed-id 字符串（event-derived ID 为 §4.0 的 UUIDv8；producer-allocated ID 为 UUIDv7）的 UTF-8 字节，二者都是已在 wire 上、双方可逐字节获得的权威字段。输入**只有**这两个 typed id 与域分隔常量：content-bound `event_id` 含 34-bit 秒时间段与 88-bit digest material，不存在旧 UUIDv7 所称的 74-bit 独立随机段；对未知 Event 的盲枚举成本来自该 88-bit 内容摘要，而不是时间戳。`realm_id` 绑定 Realm 阻止跨 Realm 重放。**诚实边界**：本 digest 是 `(event_id, realm_id)` 的**确定性无密钥函数**，因此它是**稳定伪名**——任何已持有候选 `event_id` 的一方都可逐字节重算并据此确认 / 链接该事件；本机制只提供对"未知 `event_id` 的盲枚举"的抗性，**不**提供对"已知 `event_id` 的确认 / 链接"的保密。需要抵抗候选确认的 Realm MUST 使用 `aad_visibility_event_id="hidden"`；v1 不把 MLS secret 引入跨 provider 必须稳定可重算的 routing digest。该常量与公式是 wire-breaking 的安全域分隔参数，实现 MUST 逐字节一致构造，MUST NOT 引入私有前缀、额外输入、改变字段顺序或省略 `0x00` 分隔；逐字节 KAT 与 mutation case 固化在 [conformance-vectors.md](../conformance/conformance-vectors.md) §1.12。**接收方语义**：`event_ref_digest` 是明文但受外层 AEAD 认证的字段——AEAD 解密本身直接使用 wire 字节、不重算该 digest；需要做反欺骗绑定校验或跨 provider 去重的 router / verifier **MAY** 按上式重算并与 wire 值 bytewise 比对，不一致时 **MUST** 视为绑定失效并拒绝据其路由 / 去重。
+  其中 `ak.aad-event-ref-v1` 是固定的 ASCII 域分隔常量（逐字节等于该字符串），字段间以单字节 `0x00` 分隔以消除拼接歧义。`event_id` 取 `ak:event:<content-bound-uuidv8>` 的 canonical UTF-8 typed-id 字符串；`realm_id` 取 registry-valid canonical typed-id 字符串，其中 Collaboration Realm 为 Event-derived UUIDv8，PCR 为从 principal DID transcript 重算的 subject-derived v7 layout。输入**只有**这两个 typed id 与域分隔常量：content-bound `event_id` 含 34-bit 秒时间段与 88-bit digest material，不存在 producer-allocated form 的独立随机段；对未知 Event 的盲枚举成本来自该 88-bit 内容摘要。`realm_id` 绑定 Realm 阻止跨 Realm 重放。**诚实边界**：本 digest 是 `(event_id, realm_id)` 的**确定性无密钥函数**，因此它是**稳定伪名**——任何已持有候选 `event_id` 的一方都可逐字节重算并据此确认 / 链接该事件；本机制只提供对"未知 `event_id` 的盲枚举"的抗性，**不**提供对"已知 `event_id` 的确认 / 链接"的保密。需要抵抗候选确认的 Realm MUST 使用 `aad_visibility_event_id="hidden"`；v1 不把 MLS secret 引入跨 provider 必须稳定可重算的 routing digest。该常量与公式是 wire-breaking 的安全域分隔参数，实现 MUST 逐字节一致构造，MUST NOT 引入私有前缀、额外输入、改变字段顺序或省略 `0x00` 分隔；逐字节 KAT 与 mutation case 固化在 [conformance-vectors.md](../conformance/conformance-vectors.md) §1.12。**接收方语义**：`event_ref_digest` 是明文但受外层 AEAD 认证的字段——AEAD 解密本身直接使用 wire 字节、不重算该 digest；需要做反欺骗绑定校验或跨 provider 去重的 router / verifier **MAY** 按上式重算并与 wire 值 bytewise 比对，不一致时 **MUST** 视为绑定失效并拒绝据其路由 / 去重。
 - `hidden`：AAD MUST 同时省略 `event_id` 与 `event_ref_digest`；去重只能依赖外层 Event Envelope、transport receipt 或 receiver-local cache。
 
 AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
@@ -382,12 +382,12 @@ ak.mls.genesis、ak.mls.commit、需要绑定当前 epoch 的 ak.mls.welcome 与
 | --- | --- |
 | binding_version | 固定 1 |
 | encoding_profile | 固定 cbor-deterministic-rfc8949-v1 |
-| realm_id / effective_scope / circle_id? | 精确标识 Realm-default 或 Circle MLS scope |
+| realm_id / effective_scope / circle_id? / sidecar_id? | 精确标识 Realm-default、Circle 或 native Sidecar MLS scope |
 | mls_group_id | 目标 group |
 | previous_epoch / next_epoch | genesis 为 0/0；Commit 必须 next=previous+1 |
 | security_frontier_digest | 按 §2.5 的闭合集合重算 |
 | binding_profile / reducer_profile | 显式解释 profile；缺失或不支持 fail closed |
-| sidecar_binding? | 只在 Agent Sidecar backing Circle 中出现 |
+| sidecar_binding? | 只在 `effective_scope.kind="sidecar"` 中出现，绑定 ownership-derived participant authority |
 
 membership_frontier、covered_seal_refs、policy_root、capability_root 与 discussion_metadata_digest 不再是 wire 字段。它们把同一 accepted state 重复拆成多个 producer-supplied commitments，并导致无关治理变化阻断消息；receiver 改为从 Seal state 直接重算唯一 security_frontier_digest。
 
@@ -999,7 +999,7 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 `ak.mls.genesis.payload` MUST 至少包含：
 
 - `mls_group_id`
-- `effective_scope`：tagged scope —— `{kind:"realm", realm_id}` 表示 Realm-default MLS group；`{kind:"circle", realm_id, circle_id}` 表示 Realm 内 MLS-backed [Circle](../models/circle.md) 的独立 MLS group。MLS group 的 scope 绑定到 `(realm_id, circle_id?)` 复合 key；MUST NOT 从 `strand_id` 或 track 推断 genesis scope。
+- `effective_scope`：tagged scope —— `{kind:"realm", realm_id}` 表示 Realm-default MLS group；`{kind:"circle", realm_id, circle_id}` 表示 MLS-backed [Circle](../models/circle.md)；`{kind:"sidecar", realm_id, sidecar_id}` 表示 native Sidecar MLS group。MUST NOT 从 `strand_id`、track 或隐藏 Circle 推断 genesis scope。
 - `epoch`：MUST 为 `0`。
 - `creator_principal_id`
 - `creator_device_id`

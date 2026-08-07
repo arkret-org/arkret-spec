@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07",
+  "version": "2026-08-07.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-07T05:33:31Z",
+  "generated_at": "2026-08-07T10:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -928,7 +928,7 @@
       "http": "GET /_arkret/self/agent-sidecars/{sidecar_id}",
       "grpc": "SelfAgent/SidecarGet",
       "mq": "self.agent.sidecar.resource.get",
-      "notes": "Controller-only dedicated Sidecar read surface. Returns the typed Sidecar plus desired/effective Agent access and reconciliation readiness. Unauthorized, nonexistent, and foreign-controller IDs use one indistinguishable not_found envelope. The backing Circle is included only as the Sidecar object's reducer-managed security binding and never as an ordinary Circle resource.",
+      "notes": "Controller-only dedicated Sidecar read surface. Returns the typed Sidecar plus read-only owned/effective Agent sets, native MLS context and reconciliation readiness. Unauthorized, nonexistent, and foreign-controller IDs use one indistinguishable not_found envelope.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_view"

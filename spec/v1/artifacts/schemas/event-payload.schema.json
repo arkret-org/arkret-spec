@@ -1159,14 +1159,18 @@
     },
     "agent_sidecar_exchange_control_payload": {
       "type": "object",
-      "description": "Outer payload for ak.agent.sidecar.exchange.control. The service-visible strand_id routes the Event inside the Sidecar backing Circle; encrypted_payload plaintext MUST validate as agent-sidecar-exchange-control.schema.json. Admission MUST require that the effective scope is the matching Sidecar backing Circle and actor_id is that Sidecar's controller.",
+      "description": "Outer payload for ak.agent.sidecar.exchange.control. sidecar_id and source_context_ref route the Event inside a native Sidecar scope; encrypted_payload plaintext MUST validate as agent-sidecar-exchange-control.schema.json. Admission MUST require matching scope_ref.kind=sidecar and actor_id equal to the Sidecar controller.",
       "required": [
-        "strand_id",
+        "sidecar_id",
+        "source_context_ref",
         "encrypted_payload"
       ],
       "properties": {
-        "strand_id": {
-          "$ref": "#/$defs/strand_id"
+        "sidecar_id": {
+          "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+        },
+        "source_context_ref": {
+          "$ref": "#/$defs/sidecar_context_attach_payload/properties/source_context_ref"
         },
         "encrypted_payload": {
           "$ref": "#/$defs/encrypted_payload"
@@ -1176,7 +1180,7 @@
     },
     "agent_sidecar_exposure_ack": {
       "type": "object",
-      "description": "Controller acknowledgement of Agent Sidecar objects that entered the Agent's derived exposure set while the Agent was paused. This acknowledgement changes desired access only; effective access still requires backing-scope and MLS reconciliation.",
+      "description": "Controller acknowledgement of Agent Sidecar objects that entered the Agent's ownership-derived exposure set while the Agent was paused. It may satisfy one authorization/readiness gate but cannot add or remove Sidecar participants; effective access still requires all current lifecycle, Realm participation and MLS checks.",
       "required": [
         "acknowledged_at",
         "acknowledged_by",
@@ -1697,13 +1701,12 @@
     },
     "audit_release_id": {
       "type": "string",
-      "pattern": "^ak:audit_release:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:audit_release:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "audit_release_payload": {
       "type": "object",
       "description": "Payload for ak.audit.release. A sealed audit release manifest for a bounded historical window. It appends to the control-plane ordered log ak.component.audit.release.v1 keyed by session_id only while the accepted session FSM head is notice. Same-basis close dominates and rejects the release. The payload records release metadata and wrapped material digests only; plaintext MUST NOT be inlined.",
       "required": [
-        "release_id",
         "session_id",
         "binding_id",
         "realm_id",
@@ -1724,9 +1727,6 @@
         "released_at"
       ],
       "properties": {
-        "release_id": {
-          "$ref": "#/$defs/audit_release_id"
-        },
         "session_id": {
           "$ref": "#/$defs/audit_session_id"
         },
@@ -1892,6 +1892,7 @@
         },
         {
           "required": [
+            "session_id",
             "request_ref",
             "approver_actor_id",
             "approved_recipient_audit_actor_id",
@@ -1927,6 +1928,7 @@
         },
         {
           "required": [
+            "session_id",
             "closer_actor_id",
             "close_reason",
             "release_refs"
@@ -1941,7 +1943,7 @@
     },
     "audit_session_id": {
       "type": "string",
-      "pattern": "^ak:audit_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:audit_session:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "audit_session_notice_payload": {
       "allOf": [
@@ -1950,6 +1952,7 @@
         },
         {
           "required": [
+            "session_id",
             "authorize_ref",
             "service_id",
             "purpose_kind",
@@ -1981,7 +1984,6 @@
       "type": "object",
       "description": "Shared payload class for ak.audit.session.request / authorize / notice / close. The session_state field is the target state of the control-plane FSM cell ak.component.audit.session.v1 keyed by session_id. Initial state is request; legal main-path transitions are request->authorize->notice->close, with request->close and authorize->close allowed for aborted sessions. Close is terminal; same-basis conflicting siblings produce Bottom.",
       "required": [
-        "session_id",
         "binding_id",
         "realm_id",
         "effective_scope",
@@ -2129,6 +2131,11 @@
             "requested_release_mode",
             "request_digest"
           ],
+          "not": {
+            "required": [
+              "session_id"
+            ]
+          },
           "properties": {
             "session_state": {
               "const": "request"
@@ -4624,6 +4631,26 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id",
+            "sidecar_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "sidecar"
+            },
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            },
+            "sidecar_id": {
+              "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -4989,71 +5016,24 @@
     },
     "invite_id": {
       "type": "string",
-      "pattern": "^ak:invite:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:invite:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "invite_payload": {
+    "invite_create_payload": {
       "type": "object",
-      "anyOf": [
-        {
-          "required": [
-            "invite"
-          ]
-        },
-        {
-          "required": [
-            "invite_id"
-          ]
-        },
-        {
-          "required": [
-            "invitee",
-            "invite_delivery_target",
-            "introduction_evidence_digest",
-            "expires_at"
-          ]
-        },
-        {
-          "required": [
-            "third_party_id"
-          ]
-        },
-        {
-          "required": [
-            "invite_id",
-            "subject_id",
-            "token_commitment",
-            "claim_nonce",
-            "binding_proof",
-            "subject_proof"
-          ]
-        }
+      "required": [
+        "invitee",
+        "invite_delivery_target",
+        "introduction_evidence_digest",
+        "expires_at"
       ],
       "properties": {
-        "invite": {
-          "$ref": "./invite.schema.json"
-        },
-        "invite_id": {
-          "$ref": "#/$defs/invite_id"
-        },
         "invitee": {
           "$ref": "#/$defs/did",
-          "description": "Directed invite subject DID. On ak.invite.create it selects the directed branch and carries the conditional ak.component.member.state.v1 leave -> invite effect. On ak.invite.cancel / ak.invite.revoke targeting a directed DID invite it is REQUIRED and MUST equal the invitee recorded on the target invite cell; the same Control Move then carries the atomic invite -> leave member.state effect. 3PID placeholder invites carry no invitee and MUST NOT produce a member.state effect."
+          "description": "Directed invite subject DID. The Invite id is derived from this Event's event_id and MUST NOT be carried in the genesis payload."
         },
         "invite_delivery_target": {
           "$ref": "./invite-delivery-request.schema.json#/$defs/invite_delivery_target",
           "description": "Public durable target for private invite delivery. payload.invitee is the subject; this object carries only the recipient Principal Server service DID."
-        },
-        "delivery_status": {
-          "type": "string",
-          "enum": [
-            "routable",
-            "unroutable"
-          ],
-          "description": "Required on ak.invite.accept. Initial effective member delivery status; subject is the accepting invitee."
-        },
-        "delivery_binding": {
-          "$ref": "#/$defs/member_delivery_binding",
-          "description": "Required on routable ak.invite.accept. Establishes the invitee's effective member delivery binding atomically with invite -> join."
         },
         "introduction_evidence_digest": {
           "$ref": "#/$defs/hash",
@@ -5062,9 +5042,164 @@
         "expires_at": {
           "$ref": "#/$defs/timestamp",
           "description": "Invite expiry timestamp. Directed v1 invite creates MUST carry it; reducers MUST NOT infer indefinite validity."
-        },
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    },
+    "invite_third_party_create_payload": {
+      "type": "object",
+      "required": [
+        "third_party_id",
+        "expires_at"
+      ],
+      "properties": {
         "third_party_id": {
-          "$ref": "./invite.schema.json#/$defs/third_party_invite"
+          "$ref": "./invite.schema.json#/$defs/third_party_invite",
+          "description": "Third-party invite genesis material. The Invite id is derived from this Event's event_id and MUST NOT be carried in the payload."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    },
+    "invite_accept_payload": {
+      "type": "object",
+      "required": [
+        "invite_id",
+        "delivery_status"
+      ],
+      "properties": {
+        "invite_id": {
+          "$ref": "#/$defs/invite_id"
+        },
+        "delivery_status": {
+          "type": "string",
+          "enum": [
+            "routable",
+            "unroutable"
+          ],
+          "description": "Initial effective member delivery status; subject is the accepting Event actor."
+        },
+        "delivery_binding": {
+          "$ref": "#/$defs/member_delivery_binding",
+          "description": "Required exactly when delivery_status=routable."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "delivery_status": {
+                "const": "routable"
+              }
+            },
+            "required": [
+              "delivery_status"
+            ]
+          },
+          "then": {
+            "required": [
+              "delivery_binding"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "delivery_binding"
+              ]
+            }
+          }
+        }
+      ],
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    },
+    "invite_cancel_payload": {
+      "type": "object",
+      "required": [
+        "invite_id",
+        "invitee",
+        "target_state"
+      ],
+      "properties": {
+        "invite_id": {
+          "$ref": "#/$defs/invite_id"
+        },
+        "invitee": {
+          "$ref": "#/$defs/did",
+          "description": "MUST equal the directed invite's stored invitee so invite.lifecycle and member.state move atomically."
+        },
+        "target_state": {
+          "type": "string",
+          "enum": [
+            "rejected",
+            "revoked"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    },
+    "invite_revoke_payload": {
+      "type": "object",
+      "required": [
+        "invite_id",
+        "target_state"
+      ],
+      "properties": {
+        "invite_id": {
+          "$ref": "#/$defs/invite_id"
+        },
+        "invitee": {
+          "$ref": "#/$defs/did",
+          "description": "Required for a directed invite and forbidden by semantic admission for a 3PID placeholder."
+        },
+        "target_state": {
+          "type": "string",
+          "enum": [
+            "revoked",
+            "expired",
+            "revoked_by_capability_loss",
+            "revoked_by_inviter_left",
+            "invalidated_by_rate_limit"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    },
+    "invite_claim_payload": {
+      "type": "object",
+      "required": [
+        "invite_id",
+        "subject_id",
+        "token_commitment",
+        "claim_nonce",
+        "binding_proof",
+        "subject_proof"
+      ],
+      "properties": {
+        "invite_id": {
+          "$ref": "#/$defs/invite_id"
         },
         "subject_id": {
           "$ref": "#/$defs/did",
@@ -5164,21 +5299,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "reason": {
-          "type": "string"
-        },
-        "target_state": {
-          "type": "string",
-          "enum": [
-            "rejected",
-            "revoked",
-            "expired",
-            "revoked_by_capability_loss",
-            "revoked_by_inviter_left",
-            "invalidated_by_rate_limit"
-          ],
-          "description": "Required on ak.invite.cancel and ak.invite.revoke. It is the signed target state consumed by the invite.lifecycle transition_to projection; per-kind restrictions are enforced by event-envelope.schema.json."
         }
       },
       "patternProperties": {
@@ -5984,7 +6104,7 @@
           }
         },
         {
-          "$comment": "ak.message.create payload MUST NOT carry message_id. The materialized Message.id is obtained by retyping the UUIDv7 of Event.event_id; a second producer-chosen identity would create a conflicting truth source. See zh/models/strand-and-message.md §9 and forbidden-wire-fields.json `message_id/message_create_payload`.",
+          "$comment": "ak.message.create payload MUST NOT carry message_id. The materialized Message.id is obtained by retyping the content-bound UUIDv8 of Event.event_id; a second identity would create a conflicting truth source. See zh/models/strand-and-message.md §9 and forbidden-wire-fields.json `message_id/message_create_payload`.",
           "not": {
             "required": [
               "message_id"
@@ -6745,9 +6865,13 @@
           "$ref": "./common-ids.schema.json#/$defs/circle_id",
           "description": "Present only when effective_scope.kind='circle'. MUST equal effective_scope.circle_id."
         },
+        "sidecar_id": {
+          "$ref": "./common-ids.schema.json#/$defs/sidecar_id",
+          "description": "Present only when effective_scope.kind='sidecar'. MUST equal effective_scope.sidecar_id."
+        },
         "effective_scope": {
           "$ref": "#/$defs/effective_scope",
-          "description": "Tagged MLS governance scope. Realm-default groups use {kind:'realm', realm_id}; Circle groups use {kind:'circle', realm_id, circle_id}. This field, not Strand id or track, determines key and membership scope."
+          "description": "Tagged MLS governance scope. Realm-default groups use {kind:'realm', realm_id}; Circle groups use {kind:'circle', realm_id, circle_id}; Sidecar groups use {kind:'sidecar', realm_id, sidecar_id}. This field, not Strand id or track, determines key and participant scope."
         },
         "mls_group_id": {
           "type": "string",
@@ -6767,7 +6891,7 @@
         },
         "sidecar_binding": {
           "$ref": "#/$defs/sidecar_mls_binding",
-          "description": "Required by semantic admission when effective_scope is the reducer-managed backing Circle of an Agent Sidecar; forbidden for all other MLS scopes."
+          "description": "Required exactly for effective_scope.kind='sidecar'; forbidden for Realm and Circle MLS scopes."
         },
         "binding_profile": {
           "type": "string",
@@ -6792,7 +6916,7 @@
               "effective_scope": {
                 "properties": {
                   "kind": {
-                    "const": "circle"
+                    "const": "sidecar"
                   }
                 },
                 "required": [
@@ -6823,7 +6947,8 @@
           "then": {
             "not": {
               "required": [
-                "circle_id"
+                "circle_id",
+                "sidecar_id"
               ]
             }
           }
@@ -6849,11 +6974,46 @@
           "then": {
             "required": [
               "circle_id"
+            ],
+            "not": {
+              "required": [
+                "sidecar_id"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "effective_scope": {
+                "properties": {
+                  "kind": {
+                    "const": "sidecar"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "effective_scope"
             ]
+          },
+          "then": {
+            "required": [
+              "sidecar_id",
+              "sidecar_binding"
+            ],
+            "not": {
+              "required": [
+                "circle_id"
+              ]
+            }
           }
         }
       ],
-      "$comment": "Schema requires the tagged scope and circle_id presence rules. Reducers/verifiers must additionally compare realm_id == effective_scope.realm_id and, for circle scope, circle_id == effective_scope.circle_id; JSON Schema cannot express cross-field equality for these string values.",
+      "$comment": "Schema requires tagged scope ID presence rules. Reducers/verifiers additionally compare realm_id and the circle_id/sidecar_id value against effective_scope; JSON Schema cannot express those cross-field string equalities.",
       "additionalProperties": false
     },
     "mls_keypackage_payload": {
@@ -10315,79 +10475,53 @@
       },
       "additionalProperties": false
     },
-    "sidecar_access_replace_payload": {
-      "type": "object",
-      "description": "Controller-signed full-set Sidecar access replacement. Realm and backing-Circle scope are carried by the Event envelope.",
-      "required": [
-        "sidecar_id",
-        "selected_agent_ids",
-        "version"
-      ],
-      "properties": {
-        "sidecar_id": {
-          "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
-        },
-        "selected_agent_ids": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/did"
-          },
-          "uniqueItems": true
-        },
-        "version": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "predecessor_event_ref": {
-          "$ref": "#/$defs/event_ref"
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "version": {
-                "const": 1
-              }
-            },
-            "required": [
-              "version"
-            ]
-          },
-          "then": {
-            "not": {
-              "required": [
-                "predecessor_event_ref"
-              ]
-            }
-          },
-          "else": {
-            "required": [
-              "predecessor_event_ref"
-            ]
-          }
-        }
-      ],
-      "additionalProperties": false
-    },
     "sidecar_context_attach_payload": {
       "type": "object",
-      "description": "Controller-signed versioned attachment that projects one private Strand and its agent_sidecar_of Relation for an existing Sidecar.",
+      "description": "Controller-signed versioned attachment of a source Realm context to an existing native Sidecar. It creates no Strand or Relation protocol object.",
       "required": [
         "sidecar_id",
-        "private_strand",
-        "relation",
+        "source_context_ref",
         "version"
       ],
       "properties": {
         "sidecar_id": {
           "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
         },
-        "private_strand": {
-          "$ref": "./strand.schema.json"
-        },
-        "relation": {
-          "$ref": "./relation.schema.json"
+        "source_context_ref": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "strand_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "strand"
+                },
+                "strand_id": {
+                  "$ref": "#/$defs/strand_id"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "relation_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "relation"
+                },
+                "relation_id": {
+                  "$ref": "#/$defs/relation_id"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         },
         "version": {
           "type": "integer",
@@ -10427,13 +10561,13 @@
     },
     "sidecar_create_payload": {
       "type": "object",
-      "description": "Create payload uses the Agent Sidecar object schema. It is emitted only by the atomic ak.self.agent.sidecar.command.ensure aggregate after the reducer/service derives and creates backing_circle_id; raw ensure callers never construct or submit this Event directly. The reducer MUST enforce one non-tombstoned Sidecar per (realm_id, controller_id), controller equality with the authenticated principal, exact same-batch backing Circle binding, and effective_scope=circle with circle_id equal to backing_circle_id.",
+      "description": "Minimal native Sidecar genesis intent. sidecar_id is derived from the Event id; realm_id, controller_id, state and timestamps are reducer-derived from the accepted envelope and MUST NOT appear here.",
       "required": [
-        "object"
+        "encryption_profile"
       ],
       "properties": {
-        "object": {
-          "$ref": "./agent-sidecar.schema.json"
+        "encryption_profile": {
+          "const": "mls_rfc9420"
         }
       },
       "additionalProperties": false
@@ -10442,15 +10576,16 @@
       "type": "object",
       "required": [
         "sidecar_id",
-        "desired_access_digest",
+        "participant_authority_digest",
         "control_frontier"
       ],
       "properties": {
         "sidecar_id": {
           "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
         },
-        "desired_access_digest": {
-          "$ref": "#/$defs/hash"
+        "participant_authority_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Digest of controller plus the current owned-Agent authority set and the lifecycle/authorization facts that narrow effective access."
         },
         "control_frontier": {
           "type": "array",
@@ -10459,7 +10594,7 @@
           },
           "minItems": 1,
           "uniqueItems": true,
-          "description": "Sorted accepted control refs that materialize the Sidecar and exact desired backing membership. Semantic validation requires UTF-8 byte-lexicographic order and equality with the current server-derived Sidecar MLS context."
+          "description": "Sorted accepted refs that materialize Sidecar genesis, ownership, lifecycle, authorization, Realm participation and key readiness. No Circle membership or Sidecar selection Event may appear."
         }
       },
       "additionalProperties": false

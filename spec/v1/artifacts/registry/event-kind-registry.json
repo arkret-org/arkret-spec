@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07",
+  "version": "2026-08-07.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-07T05:33:31Z",
+  "generated_at": "2026-08-07T10:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -185,8 +185,25 @@
         }
       ],
       "payload": "Realm create",
-      "id_source": "event_derived",
+      "id_source": "event_derived_or_subject_derived",
       "id_kind": "realm",
+      "id_source_variants": [
+        {
+          "when": {
+            "payload_path": "object.fields.purpose",
+            "const": "principal_control"
+          },
+          "id_source": "subject_derived",
+          "subject_field": "actor_id",
+          "derivation": "pcr_subject_uuidv7_v1"
+        },
+        {
+          "when": {
+            "otherwise": true
+          },
+          "id_source": "event_derived"
+        }
+      ],
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -1183,14 +1200,19 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Controller-signed minimal Sidecar creation intent. Under the registered parent-Realm bootstrap authority it projects exactly the Sidecar, backing Circle and controller initial backing membership; context objects are excluded. First ensure admits it atomically with ak.sidecar.context.attach. See zh/models/sidecar.md §2-§5.",
-      "id_source": "not_an_object_id",
+      "payload": "Controller-signed minimal native Sidecar creation intent. The Sidecar id is derived from the Event id; controller, Realm, lifecycle and timestamps are reducer-derived. It creates no Circle, membership, Strand or Relation object. See zh/models/sidecar.md §2-§5.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_create_payload",
+      "id_source": "event_derived",
+      "id_kind": "sidecar",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
         {
           "cell_family": "ak.component.sidecar.create.v1",
-          "cell_subject": null,
+          "cell_subject": {
+            "field": "envelope.event_id",
+            "kind": "id:sidecar"
+          },
           "lattice": "ordered_log",
           "bottom": "inert",
           "effect_projection": {
@@ -1213,7 +1235,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Controller-signed versioned context attachment. It projects only the private Strand and Relation and contains a required EventRef role=after to the Sidecar create Event. It is excluded from the Sidecar control frontier and MLS security frontier input.",
+      "payload": "Controller-signed versioned binding between a native Sidecar and an existing source Strand or Relation used as UI context. It creates no Strand or Relation object and contains a required EventRef role=after to the Sidecar create Event.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_context_attach_payload",
       "id_source": "reference",
       "plane": "control",
@@ -1234,37 +1256,6 @@
             },
             "issuer_seq": {
               "envelope_field": "actor_seq"
-            }
-          }
-        }
-      ],
-      "concurrency_class": "security_barrier"
-    },
-    {
-      "event_kind": "ak.sidecar.access.replace",
-      "category": "sidecar",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "admission": "self_authored_proof",
-      "payload": "Controller-signed full-set access replacement fixed to the parent Realm and backing Circle scope. Version 1 omits predecessor; each successor increments exactly once and references the current head. Delivery receipts are evidence only and never authority.",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_access_replace_payload",
-      "id_source": "reference",
-      "plane": "control",
-      "sealed": true,
-      "cell_writes": [
-        {
-          "cell_family": "ak.component.sidecar.access.v1",
-          "cell_subject": {
-            "field": "payload.sidecar_id",
-            "kind": "id:sidecar"
-          },
-          "lattice": "cas_register",
-          "bottom": "reject",
-          "effect_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload"
             }
           }
         }
@@ -2716,7 +2707,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Message create. Payload MUST omit message_id; reducer materializes Message.id by retyping the UUIDv7 of Event.event_id.",
+      "payload": "Message create. Payload MUST omit message_id; reducer materializes Message.id by retyping the content-bound UUIDv8 of Event.event_id.",
       "id_source": "event_derived",
       "id_kind": "message",
       "plane": "data",
@@ -2748,16 +2739,16 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Controller-authored durable Sidecar exchange control. The outer payload exposes only private Strand routing plus an MLS encrypted payload whose plaintext validates as ak.schema.agent_sidecar_exchange_control.v1. It is accepted only in the matching Sidecar backing Circle from that Sidecar controller and is the sole truth source for coordinator reassignment and terminal exchange state.",
+      "payload": "Controller-authored durable Sidecar exchange control. The outer payload binds the native Sidecar and source context plus an MLS encrypted payload whose plaintext validates as ak.schema.agent_sidecar_exchange_control.v1. It is accepted only in the matching native Sidecar scope from that Sidecar controller and is the sole truth source for coordinator reassignment and terminal exchange state.",
       "id_source": "reference",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
         {
-          "cell_family": "ak.component.strand.discussion.timeline.v1",
+          "cell_family": "ak.component.sidecar.exchange.v1",
           "cell_subject": {
-            "field": "payload.strand_id",
-            "kind": "id:strand"
+            "field": "payload.sidecar_id",
+            "kind": "id:sidecar"
           },
           "lattice": "ordered_log",
           "bottom": "expose",
@@ -5360,16 +5351,17 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Audit release session request. Must reference an active ak.audit.applet_binding and a bounded historical target range or target_refs.",
-      "id_source": "reference",
+      "payload": "Audit release session request. Must reference an active ak.audit.applet_binding and a bounded historical target range or target_refs. session_id is omitted and derived by retyping this Event's event_id.",
+      "id_source": "event_derived",
+      "id_kind": "audit_session",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
         {
           "cell_family": "ak.component.audit.session.v1",
           "cell_subject": {
-            "field": "payload.session_id",
-            "kind": "typed_id"
+            "field": "envelope.event_id",
+            "kind": "id:audit_session"
           },
           "lattice": "fsm",
           "bottom": "reject",
@@ -5453,7 +5445,8 @@
         "same_basis_close_vs_release": "close_wins_release_rejected",
         "within_seal_order": "event_digest_lexicographic"
       },
-      "id_source": "reference",
+      "id_source": "event_derived",
+      "id_kind": "audit_release",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5556,8 +5549,12 @@
           "admission": "self_authored_proof"
         }
       ],
-      "payload": "Moderation report. A report authored by the reporter's own device admits as self_authored_proof (actor == subject == payload.reporter). An inbound MIMI report mapped by the provider facade sets payload.provenance=mimi_facade and admits as service_attested: the envelope actor is the facade service DID, payload.reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 10/11 consent and holder-claim rules, payload.source_provider carries the origin MIMI provider, and the reducer MUST verify the actor service operates the MIMI facade for payload.realm_id. The facade MUST NOT author actor_id as the reporter principal.",
-      "id_source": "not_an_object_id",
+      "payload": "Moderation report. A report authored by the reporter's own device admits as self_authored_proof (actor == subject == payload.reporter). An inbound MIMI report mapped by the provider facade sets payload.provenance=mimi_facade and admits as service_attested: the envelope actor is the facade service DID, payload.reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 10/11 consent and holder-claim rules, payload.source_provider carries the origin MIMI provider, and the reducer MUST verify the actor service operates the MIMI facade for payload.realm_id. The facade MUST NOT author actor_id as the reporter principal. One accepted Event derives exactly one report and one moderation_queue_item; their full typed IDs differ although both retype the same event_id UUID payload.",
+      "id_source": "event_derived",
+      "id_kinds": [
+        "report",
+        "moderation_queue_item"
+      ],
       "plane": "data",
       "sealed": false,
       "cell_writes": [
@@ -5681,16 +5678,17 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Submit an appeal against an existing ak.moderation.decision. Writes the appeal cell to state=submitted. Schema: ak.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal strand).",
-      "id_source": "not_an_object_id",
+      "payload": "Submit an appeal against an existing ak.moderation.decision. Writes the appeal cell to state=submitted. appeal_id is omitted and derived by retyping this Event's event_id. Schema: ak.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal strand).",
+      "id_source": "event_derived",
+      "id_kind": "appeal",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
         {
           "cell_family": "ak.component.moderation.appeal.v1",
           "cell_subject": {
-            "field": "payload.appeal_id",
-            "kind": "string"
+            "field": "envelope.event_id",
+            "kind": "id:appeal"
           },
           "lattice": "fsm",
           "bottom": "reject",
@@ -5714,7 +5712,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: ak.schema.moderation_appeal.v1.",
-      "id_source": "not_an_object_id",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5746,7 +5744,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits ak.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: ak.schema.moderation_appeal.v1.",
-      "id_source": "not_an_object_id",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5778,7 +5776,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Closes the appeal from submitted / under_review / decided via reviewer close, appellant withdrawal, or a deployment's authorized close service. close is a manual/authorized action; the protocol does not mandate any auto-close timer or cool-off duration (deployment/Realm policy decides). Schema: ak.schema.moderation_appeal.v1.",
-      "id_source": "not_an_object_id",
+      "id_source": "reference",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5815,19 +5813,17 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite create. Directed v1 invite payloads carry invitee plus invite_delivery_target and introduction_evidence_digest; raw locator tokens and invite_receive_policy state are private and MUST NOT enter the durable Realm event.",
-      "id_source": "not_an_object_id",
+      "payload": "Invite create. Directed v1 genesis payloads omit invite/invite_id and carry invitee plus invite_delivery_target, introduction_evidence_digest and expires_at; the Invite ID is derived from this Event. Raw locator tokens and invite_receive_policy state are private and MUST NOT enter the durable Realm event.",
+      "id_source": "event_derived",
+      "id_kind": "invite",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
         {
           "cell_family": "ak.component.invite.lifecycle.v1",
           "cell_subject": {
-            "kind": "coalesce",
-            "fields": [
-              "payload.invite.id",
-              "payload.invite_id"
-            ]
+            "kind": "id:invite",
+            "field": "envelope.event_id"
           },
           "lattice": "fsm",
           "bottom": "reject",
@@ -5844,11 +5840,8 @@
         {
           "cell_family": "ak.component.member.state.v1",
           "cell_subject": {
-            "kind": "coalesce",
-            "fields": [
-              "payload.invite.invitee",
-              "payload.invitee"
-            ]
+            "kind": "did",
+            "field": "payload.invitee"
           },
           "lattice": "fsm",
           "bottom": "reject",
@@ -5859,11 +5852,8 @@
             }
           },
           "condition": {
-            "kind": "any_field_present",
-            "fields": [
-              "payload.invite.invitee",
-              "payload.invitee"
-            ]
+            "kind": "field_present",
+            "field": "payload.invitee"
           }
         }
       ],
@@ -5998,19 +5988,17 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Third-party identifier pending invite",
-      "id_source": "not_an_object_id",
+      "payload": "Third-party identifier pending invite. Genesis payload omits invite/invite_id; the Invite ID is derived from this Event.",
+      "id_source": "event_derived",
+      "id_kind": "invite",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
         {
           "cell_family": "ak.component.invite.lifecycle.v1",
           "cell_subject": {
-            "kind": "coalesce",
-            "fields": [
-              "payload.invite.id",
-              "payload.invite_id"
-            ]
+            "kind": "id:invite",
+            "field": "envelope.event_id"
           },
           "lattice": "fsm",
           "bottom": "reject",

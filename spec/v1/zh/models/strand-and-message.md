@@ -570,9 +570,9 @@ Message 是 Strand `discussion` track 时间线中的原子消息对象。
 
 Message 创建是 append-only。编辑通过 revision chain；撤回通过 redaction/tombstone。
 
-`ak.message.create` 只有一个 producer-chosen 创建 UUID：Event wire 的
-`event_id=ak:event:<uuidv7>`。reducer MUST 把同一 UUIDv7 重类型为
-`Message.id=ak:message:<uuidv7>`；create payload MUST NOT 携带 `message_id`。两个 typed ID
+`ak.message.create` 只有一个由签名内容确定的创建 UUID：Event wire 的
+`event_id=ak:event:<content-bound-uuidv8>`。reducer MUST 把同一 UUIDv8 重类型为
+`Message.id=ak:message:<content-bound-uuidv8>`；create payload MUST NOT 携带 `message_id`。两个 typed ID
 分别寻址 durable 创建事实与物化 Message 对象，但不得成为两个可独立选择的 identity。网络重试
 MUST 重发相同 canonical Event；相同 `event_id` 的不同 canonical bytes 按 Event identity
 conflict 处理，新 `event_id` 则必然创建新的 Message。
@@ -587,14 +587,14 @@ Schema id: `ak.schema.message.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:message` | 以 `ak:message:` 开头；创建时 MUST 等于把 `ak.message.create` Event 的 `event_id` UUIDv7 重类型为 `ak:message:`。 | Message ID。 |
+| `id` | yes | `id:message` | 以 `ak:message:` 开头；创建时 MUST 等于把 `ak.message.create` Event 的 content-bound UUIDv8 `event_id` 重类型为 `ak:message:`。 | Message ID。 |
 | `schema` | yes | `ak.schema.message.v1` | const。 | Schema ID。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `strand_id` | yes | `id:strand` |  | 所属 Strand。 |
 | `track_name` | yes | `const("discussion")` | v1 Message 只属于目标 Strand 的 `discussion` track，且该 track 必须当前 active。需要其它 timeline 语义的 profile MUST 注册独立对象 / event profile，不得复用 Message.track_name 扩展出第二类消息时间线。 | 所属 Strand track key。 |
 | `content` | conditional | `object` | 富文本/parts 见 `content-types.md`；`state=active` 且未加密时必填。effective `content_encryption_floor=e2ee_required` scope 下 MUST 改用 `encrypted_content`,plaintext `content` 由 reducer 拒绝(`content_encryption_floor_violation`)——单对象 schema 不感知 Realm floor，通过校验不代表合法。 | 消息正文。 |
 | `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；`content_type` MUST 精确为 `application/vnd.arkret.message+json`，见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹消息正文与附件 ContentBlock。 |
-| `metadata` | no | `object` | MAY contain `fields` and profile-defined keys. `sidecar_exchange_binding`（`ak.schema.agent_sidecar_event_exchange_binding.v1`）只能出现在 Sidecar-scoped Event 的 `encrypted_metadata` plaintext 中；明文 `metadata` 或 shared scope 携带 MUST `schema_violation` 拒绝（见 [`sidecar.md` §7.2.1](./sidecar.md) 与 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 | 用户可读 Message metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
+| `metadata` | no | `object` | MAY contain `fields` and profile-defined keys. `sidecar_exchange_binding`（`ak.schema.agent_sidecar_event_exchange_binding.v1`）只能出现在 Sidecar-scoped Event 的 `encrypted_metadata` plaintext 中；明文 `metadata` 或 shared scope 携带 MUST `schema_violation` 拒绝（见 [`sidecar.md` §8](./sidecar.md) 与 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 | 用户可读 Message metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
 | `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Message metadata object，`content_type` MUST 精确为 `application/vnd.arkret.message-metadata+json`。不得用 ContentBlock 的 `application/vnd.arkret.message+json` wrapper 携带。 | E2EE 场景下包裹 Message metadata。 |
 | `state` | yes | `enum(active, redacted)` | 新建时 MUST 显式写 `active`(`state` 为 required，不靠默认补齐)。`redacted` 由 `ak.message.redact` reducer 设置（content / encrypted_content 被清空或替换为 redaction tombstone，但消息槽和审计元数据保留）。Message 不定义单独 `deleted` 终态；治理、retention 或 moderation 清除均落到 `redacted`。Message lifecycle 使用顶层 `state` 字段表达可见性。 | 消息生命周期状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |

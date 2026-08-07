@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-sidecar-event-exchange-binding.schema.json",
   "title": "Arkret Agent Sidecar Event Exchange Binding",
-  "description": "Closed typed binding that ties one Sidecar-scoped Message event to one source-routed exchange. It is legal only inside the encrypted metadata plaintext (message_metadata.sidecar_exchange_binding) of an event whose effective scope is the Sidecar backing Circle. It is the only normative way to declare an explicit user-facing response; any event without a valid binding, with an unknown role, or with a schema mismatch MUST be treated as non-echo. See zh/models/sidecar.md §7.2.",
+  "description": "Closed typed binding that ties one native-Sidecar-scoped Message event to one source-routed exchange. It is legal only inside encrypted metadata plaintext of an event whose scope_ref.kind is sidecar. It is the only normative way to declare an explicit user-facing response; invalid or absent bindings are non-echo. See zh/models/sidecar.md.",
   "type": "object",
   "required": [
     "schema",

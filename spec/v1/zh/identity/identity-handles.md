@@ -246,7 +246,7 @@ claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
   | `claims` | 可选，VC inner claims | **顺序是语义的一部分**——issuer 控制，中间方 reorder 会破坏原 proof，因此 digest 直接按 issuer 提供顺序 canonicalize |
   | `created_at` | 必填，签发时刻 | — |
   | `expires_at` | 可选/条件必填 | — |
-  | `source_refs` | 可选，上游真相源 event 引用 | MUST 按 event_ref 字符串 lexicographic 排序后参与 canonicalization(UUIDv7 字典序对应签发时序，排序结果对 audit 也友好) |
+  | `source_refs` | 可选，上游真相源 event 引用 | MUST 按 event_ref 字符串 lexicographic 排序后参与 canonicalization；排序只用于确定性 canonicalization，不表达签发时序。 |
 
   其它字段一律 MUST NOT 进入 `semantic_projection(c)`，即使 wire claim 通过 `additionalProperties: true` 通道携带。
 
@@ -276,7 +276,7 @@ JCS（RFC 8785）按 issuer 提供顺序保留数组元素，不做重排。`sem
 | 数组字段 | 排序规则 | 排序粒度 |
 | --- | --- | --- |
 | `handle_aliases` | 元素字符串 lexicographic ascending（UTF-8 byte order，与 JCS 字符串排序保持一致） | 顶层数组元素 |
-| `source_refs` | 元素 event_ref 字符串 lexicographic ascending（UUIDv7 字典序与签发时序对齐） | 顶层数组元素 |
+| `source_refs` | 元素 event_ref 字符串 lexicographic ascending（仅用于确定性 canonicalization，不表达签发时序） | 顶层数组元素 |
 | `member_delivery_binding.delivery_modes` | 元素枚举字符串 lexicographic ascending（例如 `events` < `key_packages` < `push` < `sync` < `to_device`） | 嵌套数组元素 |
 
 **Order-is-semantic 数组**（保留 issuer 给定顺序，不重排）：

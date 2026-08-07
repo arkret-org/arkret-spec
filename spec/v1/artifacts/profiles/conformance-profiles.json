@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-07",
-  "generated_at": "2026-08-07T05:33:31Z",
+  "version": "2026-08-07.2",
+  "generated_at": "2026-08-07T10:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -3231,8 +3231,7 @@
     },
     "ak.profile.agent_sidecar.v1": {
       "inherits": [
-        "ak.profile.personal_agent_provisioning.v1",
-        "ak.profile.circle_conformance.v1"
+        "ak.profile.personal_agent_provisioning.v1"
       ],
       "required_endpoints": [
         "ak.self.agent.sidecar.command.ensure",
@@ -3244,7 +3243,6 @@
       "required_event_kinds": [
         "ak.sidecar.create",
         "ak.sidecar.context.attach",
-        "ak.sidecar.access.replace",
         "ak.message.create",
         "ak.agent.sidecar.exchange.control"
       ],
@@ -3255,15 +3253,11 @@
         "ak.schema.agent_sidecar_view_state.v1",
         "ak.schema.agent_sidecar_exchange_projection.v1",
         "ak.schema.agent_sidecar_event_exchange_binding.v1",
-        "ak.schema.agent_sidecar_exchange_control.v1",
-        "ak.schema.circle.v1",
-        "ak.schema.strand.v1",
-        "ak.schema.relation.v1"
+        "ak.schema.agent_sidecar_exchange_control.v1"
       ],
       "wire_contract_refs": [
         "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_request",
         "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome",
-        "schemas/principal-operations.schema.json#/$defs/sidecar_access_replace",
         "schemas/principal-operations.schema.json#/$defs/sidecar_control_frontier"
       ],
       "required_fixtures": [
@@ -3275,18 +3269,18 @@
       "feature_discovery": {
         "required": [
           "sidecar_singleton_identity",
-          "eligible_sidecar_agent_predicate",
-          "backing_circle_always_mls",
-          "backing_circle_canonical_shape",
-          "desired_effective_access_separation",
+          "event_derived_sidecar_identity",
+          "native_sidecar_scope",
+          "ownership_derived_participants",
+          "owned_effective_access_separation",
           "pending_access_reconciliations",
           "addressed_agents_not_a_boundary",
-          "agent_sidecar_of_relation",
+          "context_mapping_without_relation",
           "navigation_visibility_scope_only",
           "hosted_strand_sidecar_surface",
           "strand_level_context_identity",
           "sidecar_display_modes",
-          "multi_track_private_write_target",
+          "multi_track_native_sidecar_write_target",
           "source_anchor_deterministic_merge",
           "private_event_echo_deduplication",
           "exchange_binding_closed_loop",
@@ -3297,9 +3291,9 @@
           "single_executed_by_on_publish",
           "first_ensure_exact_create_then_context_attach",
           "sidecar_context_excluded_from_control_frontier",
-          "sidecar_access_event_is_authority"
+          "ownership_lifecycle_authority_frontier"
         ],
-        "unsupported_optional": "fail closed; do not create multiple Sidecars or backing Circles for one (realm_id, controller_id)"
+        "unsupported_optional": "fail closed; do not create multiple Sidecars or synthesize Circle/member/Strand/Relation objects for one (realm_id, controller_id)"
       }
     },
     "ak.profile.agent_participation_policy.v1": {

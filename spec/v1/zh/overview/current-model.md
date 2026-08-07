@@ -26,7 +26,7 @@ Arkret 不是把某个产品的对象名搬进协议，而是把常见协作产�
 | Jira issue / workflow status / issue links | `Strand` / `stage` + workflow profile / `Relation(depends_on, blocks, assigned_to, references...)` | Jira-style workflow status 不等于 `state`；`metadata.fields.status` 也不是互操作真相。 |
 | Watchers、订阅、勿扰 | `ak.strand.watch.set` cell + actor-private push rules / DND | Watch 不是访问权；静音不改变别人是否能读对象。 |
 | 小程序 / Bot / 集成服务 | Applet、Agent、Ghost Actor、Morph / Relation 扩展 | 安装一个客户端或插件不等于创建 protocol principal。 |
-| 用户与自己 AI Agents 的 Realm-context 私密工作区 | 独立 `Agent Sidecar` 对象 + private Strands；访问集合由 controller 与 eligible owned Agents 派生，安全 scope 由 reducer-managed backing Circle/MLS 承载 | Sidecar 不是普通 Circle、Circle profile、Direct Conversation 或第四个 Track。 |
+| 用户与自己 AI Agents 的 Realm-context 私密工作区 | 独立 `Agent Sidecar` 对象与 native Sidecar scope；访问集合由 controller 与 owned Agents 派生，独立 MLS 直接绑定 Sidecar | Sidecar 不是普通 Circle、Circle profile、Direct Conversation 或第四个 Track。 |
 
 ## 2. Strand 是统一协作对象
 

@@ -32,7 +32,7 @@ see_also:
 6. `delivery_binding.delivery_modes` 是该 binding 的**显式**模式集合；空集合或缺失等价于 schema violation。普通"全功能"成员 SHOULD 列出 `["events", "sync", "to_device", "push", "key_packages"]`。
 
 上述准则同样适用于把 member cell 从 `invite` 原子推进到 `join` 的
-`ak.invite.accept`。该 event 的 `invite_payload` MUST 携带 `delivery_status`，routable 时
+`ak.invite.accept`。该 event 的 `invite_accept_payload` MUST 携带 `delivery_status`，routable 时
 MUST 同时携带 `delivery_binding`；reducer 在同一 Control Move 内验证并物化它们。invite
 原先的 `invite_delivery_target` 只可作为候选提示，不得自动充当 member binding 或绕过
 本节 evidence / policy 校验。

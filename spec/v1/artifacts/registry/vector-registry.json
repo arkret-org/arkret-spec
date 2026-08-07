@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07.1",
+  "version": "2026-08-07.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-07T06:13:07Z",
+  "generated_at": "2026-08-07T10:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4177,9 +4177,22 @@
       "applies_to_fixtures": [
         "content-bound-event-id-fixture.json"
       ],
-      "description": "Create-once object ids are retyped from the create Event's own event_id: create payloads omit the id, ak.realm.create omits realm_id and uses the realm_genesis scope, and receivers derive both. Covers the self-certifying realm_id check and the two rejection reason codes.",
+      "description": "Event-derived create-once object ids are retyped from the create Event's own event_id: create payloads omit the id, Collaboration Realm ak.realm.create omits realm_id and uses the realm_genesis scope, and receivers derive both. The complete typed ID is the identity key: one Event may derive at most one object per registered kind and may derive several different kinds without collision; ak.self.moderation.report fixes the two-output report + moderation_queue_item KAT. Principal Control Realm uses the separate subject-derived vector.",
       "source_refs": [
         "spec/v1/zh/models/common-fields.md",
+        "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.object_identity.subject_derived_realm.v1",
+      "status": "active",
+      "domain": "object_identity",
+      "applies_to_fixtures": [
+        "content-bound-event-id-fixture.json"
+      ],
+      "description": "Principal Control Realm ids are deterministically derived as UUIDv8 from the registered domain separator plus canonical principal DID. All 122 usable bits come from the transcript hash; the create Event still omits realm_id, and receivers select and recompute this layout from purpose=principal_control.",
+      "source_refs": [
+        "spec/v1/zh/models/realm-and-space.md",
         "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json"
       ]
     },

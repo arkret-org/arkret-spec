@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-05.1",
+  "version": "2026-08-07.1",
   "kind": "profiles_dependency_graph",
   "source_role": "generated",
-  "generated_at": "2026-08-05T18:30:00Z",
+  "generated_at": "2026-08-07T08:00:00Z",
   "source_of_truth": false,
   "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
   "generated_by": "tools/lint_artifacts.py#check_profile_dependency_graph",
@@ -134,11 +134,6 @@
     {
       "from": "ak.profile.agent_participation_policy.v1",
       "to": "ak.profile.personal_agent_provisioning.v1",
-      "kind": "inherits"
-    },
-    {
-      "from": "ak.profile.agent_sidecar.v1",
-      "to": "ak.profile.circle_conformance.v1",
       "kind": "inherits"
     },
     {

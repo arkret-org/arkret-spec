@@ -21,7 +21,7 @@
   "$defs": {
     "appeal_id": {
       "type": "string",
-      "pattern": "^ak:appeal:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:appeal:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "decision_ref": {
       "type": "string",
@@ -53,7 +53,6 @@
       "type": "object",
       "description": "ak.moderation.appeal.submit — opens the appeal. Writes appeal cell (state=submitted). MUST be issued by an appellant who is the original moderation target's controller (member appealing their own ban / message removal) or by an authorized advocate listed in Realm policy. A Realm member appellant is admitted by baseline membership; a non-member advocate MUST be authorized by Realm policy / ak.moderation.appeal.submit capability.",
       "required": [
-        "appeal_id",
         "realm_id",
         "decision_ref",
         "target_ref",
@@ -62,9 +61,6 @@
         "created_at"
       ],
       "properties": {
-        "appeal_id": {
-          "$ref": "#/$defs/appeal_id"
-        },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },

@@ -2546,7 +2546,7 @@ holder 客户端校验"三点。服务端只见 key 与密文。
 Cases：
 
 1. **key pattern 闭合**：两个 namespace MUST 只接受完整 typed id 尾缀
-   （`ak.views.private.ak:view:<uuidv7>`、`ak.notifications.inbox.ak:notification:<uuidv7>`）。
+   （`ak.views.private.ak:view:<content-bound-uuidv8>`、`ak.notifications.inbox.ak:notification:<uuidv7>`）。
    裸 namespace（`ak.views.private`）、空尾缀（`ak.views.private.`）、非 typed id 尾缀与
    跨 kind 尾缀 MUST 拒绝；实现 MUST NOT 让它们落到未注册 key 的宽松兜底分支。
 2. **storage=encrypted_account_data**：把 `ak.schema.view.v1` 明文（含 `title` / `query` /
@@ -3986,7 +3986,7 @@ Expected:
 
 - A 的 active session `S` MUST 在 revocation freshness window(≤ session TTL)内 fail closed。
 - A 后续任何 `ak.gate.account.command.issue_session_grant` MUST fail closed。
-- A MUST 立即离开相关 Sidecar desired access；服务端停止投递，并对每个 backing Circle 主动 fan-out `ak.circle.member.state -> leave` 与 MLS remove/epoch rotation。
+- A MUST 立即离开相关 Sidecar effective access；服务端停止投递，并为每个受影响的 native Sidecar MLS group 建立 durable remove/epoch-rotation obligation。
 
 同一 vector 还必须覆盖 Agent 自身的 terminal deactivation：request 只携带一个 controller-signed
 `ak.self.agent.deactivate` lifecycle submission；accepted 后全部 runtime key、session、pairing handle、
@@ -4060,21 +4060,18 @@ Expected:
 
 Steps:
 
-1. Alice 的两台设备并发以不同operation调用 `prepare`，目标是同一 `context_ref`；两者均取得服务端固定的
-   Sidecar/backing Circle/Strand/Relation与create/attach Event draft。
-2. 一台设备只在exact draft上追加controller proof后`commit`；另一台分别尝试变更backing Circle、Event ID、payload、
-   `refs.after`与unsigned bytes，并重放自己的reservation。
-3. Alice 对同一context再次prepare，再对另一context prepare（同Realm）。
+1. Alice 的两台设备并发对同一 `(realm_id, controller_id)` 调用 `prepare`，并请求映射同一 `source_context_ref`。
+2. 一台设备对服务端返回的 exact `ak.sidecar.create` draft 签名并提交；另一台分别变异 Event ID、payload、
+   `refs.after` 与 unsigned bytes，再重放自己的 reservation。
+3. 两台设备并发提交同一 `ak.sidecar.context.attach`；随后 Alice 对另一来源上下文再次 attach。
 
 Expected:
 
-- 第 1 步并发 MUST 收敛到单一 `sidecar_id`、单一 reducer-managed backing Circle 与单一 private Strand；reservation
-  固定的typed IDs与canonical draft bit-identical。
-- 第 2 步exact signed drafts MUST staged atomic接受`[ak.sidecar.create,ak.sidecar.context.attach]`；任一变异都必须
-  conflict且零写入。create投影backing Circle/initial access，attach投影Strand/Relation并引用同一create Event。
-- backing Circle shape MUST 与 `sidecar.md` §5 bit-identical；普通 Circle create/update 使用 `SC-` short-name 前缀 MUST 以 `reserved_circle_short_name` 拒绝。
-- 第 3 步同context MUST返回`branch=existing`并复用既有Sidecar、backing Circle与Strand；另一context也复用
-  `(realm_id,controller_id)` Sidecar/backing Circle，但固定新的context-private Strand与唯一attach draft。
+- 并发 create MUST 收敛到唯一 Sidecar；`sidecar_id` MUST 等于从胜出 create Event 的 `event_id` 按
+  `id_kind=sidecar` 派生的 UUIDv8 typed ID。调用方不得提交或覆盖 `sidecar_id`。
+- exact draft 可接受；任一被变异的 draft MUST conflict 且零写入。重放已接受 draft MUST 幂等返回同一 Sidecar。
+- context attach 只投影 `(sidecar_id, source_context_ref)` 映射，不创建 Circle、membership、Strand 或 Relation。
+  同一映射重放幂等；另一来源上下文产生另一映射，但仍复用同一 Sidecar。
 
 ### 11.8.1 Vector: Sidecar MLS Bootstrap Binding
 
@@ -4082,23 +4079,28 @@ Expected:
 
 Steps:
 
-1. Alice ensure 一个包含 eligible Agent A 的 Sidecar，读取服务端派生的 `mls_context.{desired_access_digest,control_frontier}`。
-2. Alice 当前设备用真实 OpenMLS state 创建 Circle-scoped `ak.mls.genesis`，提交前持久化 `(sidecar_id, genesis_event_id, mls_group_id, provisional_snapshot)`，并在 governance binding 中携带精确 `sidecar_binding`。
-3. 第二设备并发提交另一 `mls_group_id` 的 genesis；再分别变异 `sidecar_id`、digest、frontier 顺序/成员、backing Circle 与 creator device proof。
+1. Alice ensure Sidecar；ownership authority 当前给出 owned Agents `{A}`，读取服务端派生的
+   `mls_context.{participant_authority_digest, control_frontier}`。
+2. Alice 当前设备用真实 OpenMLS state 创建 native Sidecar-scoped `ak.mls.genesis`，提交前持久化
+   `(sidecar_id, genesis_event_id, mls_group_id, provisional_snapshot)`，并携带精确 `sidecar_binding`。
+3. 第二设备并发提交另一 `mls_group_id` 的 genesis；再分别变异 `sidecar_id`、authority digest、frontier
+   顺序/成员与 creator device proof。
 4. 模拟第一设备在 Event response 返回前崩溃并重启。
 
 Expected:
 
-- fixture transcript 的 RFC 8785 JCS digest MUST 为 `sha256:a8c91fc896c6c19179770fdd629ca3fd24acbb8a3d824b0d76c6ad77f3a5767a`；controller 必须包含在排序去重的 principal set 中。
+- participant set MUST 精确等于 controller + 当前 owned Agents，排序去重后的 authority transcript digest
+  必须与 `participant_authority_digest` 一致。
 - 只有一个 genesis 通过标准 Event admission/CAS 成为 canonical winner；服务端不得生成 MLS private state、伪造 GroupInfo/ratchet-tree digest 或提供绕过 Event proof 的 bootstrap endpoint。
-- 所有 binding 变异 MUST fail closed；Sidecar backing Circle 缺失 `sidecar_binding`、普通 Realm/Circle 携带该字段也必须拒绝。
+- 所有 binding 变异 MUST fail closed；native Sidecar scope 缺失 matching `sidecar_binding`、普通 Realm/Circle
+  携带该字段也必须拒绝。
 - 崩溃恢复重放 bit-identical Event id/bytes，并把已接受 provisional snapshot 激活；loser snapshot 必须销毁并通过 winner group 的 KeyPackage/Welcome 加入。
 
 ### 11.9 Vector: Existence Privacy
 
 `vector_id`: `ak.vector.sidecar.existence_privacy.v1`
 
-Steps（均以 Sidecar access 之外 caller 视角）:
+Steps（均以非 controller 且非其 owned Agent 的 caller 视角）:
 
 1. `ak.self.events.stream.subscribe` / `ak.self.events.read.scan` 目标 Realm。
 2. 对 `to_ref=<target_message_id>` 的 relation query。
@@ -4108,28 +4110,30 @@ Steps（均以 Sidecar access 之外 caller 视角）:
 
 Expected:
 
-- 第 1 步返回 zero events referencing Sidecar / backing Circle / private Strand / private Relation。
-- 第 2 步看不到 `agent_sidecar_of` 边。
-- 第 3 步对 `sidecar_id`、backing Circle title/display/short_name/member_count 均 zero hits。
-- 第 4 步 sidecar 内 `ak.message.create` 不触发任何 target Strand member 的 notification。
-- 第 5 步 sidecar `effective_scope=circle` event 不出现在 default seal leaf 明文中；只能作为 opaque commitment。
+- 第 1 步返回 zero events referencing Sidecar native scope。
+- 第 2 步不存在任何协议 Relation 可用于枚举 Sidecar 或 source-context mapping。
+- 第 3 步对 `sidecar_id` 与 controller 映射均 zero hits。
+- 第 4 步 Sidecar 内 Event 不触发 source Strand 参与者的 notification。
+- 第 5 步 Sidecar-scoped Event 不出现在 Realm default seal leaf 明文中；只能作为 opaque commitment。
 
-### 11.10 Vector: Desired/Effective Access + Revocation 闭环
+### 11.10 Vector: Ownership/Effective Access + Revocation 闭环
 
 `vector_id`: `ak.vector.sidecar.eligibility_states.v1`
 
 Steps:
 
-1. Alice 有 Agents `{S, R}`。S 已 paired/MLS-ready；R 满足 eligibility 但未发布 KeyPackage。
+1. Alice ownership authority 中有 Agents `{S, R}`。S 已 paired/MLS-ready；R 尚未发布 KeyPackage。
 2. Alice 调用 ensure。
 3. R 发布 KeyPackage，服务端 async reconcile。
 4. Alice 调用 `ak.self.agent.command.deactivate` 对 R。
 
 Expected:
 
-- 第 2 步 ensure SHOULD succeed，返回 `access_readiness=key_material_pending` 与 `pending_access_reconciliations: [{agent_id: R, stage: device_key_material, reason: missing_mls_keypackage}]`。R 在 desired access 中、尚不在 effective access，不能收取或解密消息。Sidecar 不存在 plaintext 分支。
-- 第 3 步 R 经 backing Circle MLS Welcome 加入，只获得 join 后 future epoch keys（MUST NOT 获得 join 前 epoch keys）；reconciliation 完成后才进入 effective access。
-- 第 4 步 R 立即离开 desired access并停止投递；reducer/service 在同一 control apply 中生成 backing `ak.circle.member.state=leave` 与 durable pending MLS removal obligation，eligible controller/key-service committer 随后提交真实 remove/rotation。后续 R 的 proof、Sidecar write 与 query MUST fail closed。
+- 第 2 步 ensure SHOULD succeed，返回 `access_readiness=key_material_pending` 与 R 的 key-material pending 状态。
+  R 属于 owned Agent 集但尚不属于 effective access，不能收取或解密消息。Sidecar 不存在 plaintext 分支。
+- 第 3 步 R 经 native Sidecar MLS Welcome 加入，只获得 join 后 future epoch keys；完整 readiness 证据成立后才进入 effective access。
+- 第 4 步 ownership authority 移除 R 后，服务端立即停止寻址/投递并产生 durable MLS removal obligation；
+  eligible controller/key-service committer 随后提交真实 remove/rotation。后续 R 的 proof、Sidecar write 与 query MUST fail closed。
 
 ### 11.10.1 Vector: Sidecar MLS Effective Access Evidence
 
@@ -4137,16 +4141,18 @@ Expected:
 
 Steps:
 
-1. A 已有 backing Circle membership，但尚无 Add Commit/Welcome/consume；随后分别只补齐其中一部分证据。
+1. A 是 owned Agent，但尚无 Add Commit/Welcome/consume；随后分别只补齐其中一部分证据。
 2. 对 A 的 active device D 提交 accepted Add Commit、引用该 Commit 且 binding 匹配的 accepted Welcome，并由 D 的 authenticated session consume 同一 claim/KeyPackage。
-3. 对 controller 的第二设备重复 join；随后撤销 A eligibility，使 backing membership leave 与 pending removal obligation accepted，但暂不提交 Remove Commit。
+3. 对 controller 的第二设备重复 join；随后从 ownership authority 移除 A，使 pending removal obligation accepted，
+   但暂不提交 Remove Commit。
 4. eligible committer drain obligation 并提交真实 Remove proposal/Commit；再用旧 Welcome/consume 记录尝试恢复 A effective 状态。
 
 Expected:
 
-- 第 1 步任何不完整组合均保持 pending；Circle membership、delivered Welcome 或 claimed KeyPackage 单独都不是 effective 证据。
+- 第 1 步任何不完整组合均保持 pending；ownership、delivered Welcome 或 claimed KeyPackage 单独都不是 effective 证据。
 - 第 2 步 D 成为有效设备，A 进入 `effective_agent_ids`；同 principal 的其它设备不会自动拿到密钥。controller 当前 session device readiness 独立计算。
-- 第 3 步服务端立即停止 A 的寻址/投递并移除 desired/effective access，且只产生 durable removal obligation；不持有 MLS private state的 Principal Server 不得伪造 Commit。新发送保持 fail closed。
+- 第 3 步服务端立即停止 A 的寻址/投递并移除 effective access，且只产生 durable removal obligation；
+  不持有 MLS private state 的 Principal Server 不得伪造 Commit。新发送保持 fail closed。
 - 第 4 步真实 Remove Commit 推进 epoch；旧 Welcome/consume 不能使已移除设备复活。
 
 ### 11.10.2 Vector: Hosted Multi-Track Projection and Private Echo
@@ -4156,18 +4162,21 @@ Expected:
 Steps:
 
 1. Alice 在来源 Strand `F` 的 `discussion` Track 以 owned-Agent selector 提交 routed request，当前已见 shared frontier 为 Event `E0`。
-2. 客户端以 `{realm_id, strand_id=F}` ensure Sidecar；分别以额外 `track_name` 与 `message_id` 构造两个 negative ensure request。
-3. private request Event `P1` 被接受后，客户端 fold 出 `exchange_id=X1` 的本地 `ak.schema.agent_sidecar_exchange_projection.v1` cache；删除该 cache 后从 private history 重建。
+2. 客户端 ensure Sidecar，并提交 `ak.sidecar.context.attach{sidecar_id,source_context_ref=F}`；分别以额外
+   `track_name` 与 `message_id` 构造两个 negative attach request。
+3. Sidecar request Event `P1` 被接受后，客户端 fold 出 `exchange_id=X1` 的本地
+   `ak.schema.agent_sidecar_exchange_projection.v1` cache；删除该 cache 后从 Sidecar history 重建。
 4. Alice 激活主 Strand 寄宿 Sidecar，在 `context_merged` 下依次切换 `discussion`、`synthesis`，再切换为 `sidecar_only`；`synthesis` private Track 尚未建立。
 5. Agent 在同一 exchange 产生内部协作 Event `I1`（binding `role=internal`）与明确 user-facing response Event `R1`（binding `role=user_facing_response`，`request_event_id=P1`）；随后 Alice 在 active Sidecar 内直接创建 native Event `N1`（无 binding）。
 6. 第二设备从 account stream 恢复 view state，并从 Sidecar private Event history 独立 fold exchange projection。
 
 Expected:
 
-- 第 2 步所有合法 Track 共用同一 private Strand；带 `track_name`/`message_id` 的 ensure request closed-schema reject，不能创建第二条 private Strand。
-- 第 3 步 cache 删除/重建不重复 private request 或 Agent execution；echo 位于 `E0` 后，同 anchor 按 `(source_hlc, exchange_id)` 排序。
-- 第 4 步主 Strand title/breadcrumb/Track tabs 保持可见，scope bar 位于 header 与 tabs 之间；两种 mode 对后续 Track 生效，所有 active writes 指向 private Track。缺失 private `synthesis` 显示 private empty state，不回退 shared write/read。
-- merged `discussion` 按 private Event id 去重，`P1` 不因 private fold 与 echo projection 重复显示；shared/private provenance 与 controller-only 可见性标识持续可见。
+- 第 2 步 attach 只建立来源上下文映射；额外 `track_name`/`message_id` closed-schema reject，且不创建 Strand/Relation。
+- 第 3 步 cache 删除/重建不重复 request 或 Agent execution；echo 位于 `E0` 后，同 anchor 按 `(source_hlc, exchange_id)` 排序。
+- 第 4 步主 Strand title/breadcrumb/Track tabs 保持可见；两种 mode 只控制 UI 投影和后续写入目的 scope。
+  缺失 Sidecar `synthesis` 视图显示 private empty state，不回退 shared write/read。
+- merged `discussion` 按 Sidecar Event id 去重；shared/Sidecar provenance 与 controller-only 可见性标识持续可见。
 - 只有 `P1` 与 `R1` 可进入 echo；`I1` 与 `N1` 不创建 source echo。第二设备得到相同排序、状态与去重结果，且无需来源 Realm 重放 private Event。
 
 ### 11.10.3 Vector: Sidecar Exchange Binding Closed Loop
@@ -4176,9 +4185,11 @@ Expected:
 
 Steps:
 
-1. Alice 提交 routed request：`P1` 携带 `role=request` binding，`addressed_agent_ids=[S,T]`、`completion_policy=coordinator`、`coordinator_agent_id=S`。非 addressed backing member U 同样解密到 `P1`。
+1. Alice 提交 routed request：`P1` 携带 `role=request` binding，`addressed_agent_ids=[S,T]`、
+   `completion_policy=coordinator`、`coordinator_agent_id=S`。另一个 owned Agent U 未被 addressed。
 2. S 通过 runtime 消费门后产生 `I1` 与 user-facing `R1`；runtime 重启并再次收到 `P1`。controller 又 author 不同 request Event `P_dup` 复用同一 `exchange_id=X1`。T 产生 user-facing `R_noncoord` 且错误声明 `completes_exchange=true`；U 尝试执行同一 request。
-3. 构造变异响应：wrong exchange/request/private Strand、actor U、unknown role、missing binding、缺少顶层 `refs[role=after]`、以及 `ak:message:` shaped request id；另由 T 发送携带 `role=request` 的 Event `F1`。
+3. 构造变异响应：wrong exchange/request/sidecar scope、actor U、unknown role、missing binding、缺少顶层
+   `refs[role=after]`、以及 `ak:message:` shaped request id；另由 T 发送携带 `role=request` 的 Event `F1`。
 4. `R1` 重复投递同一设备两次。
 5. S 发送 `R2`（`role=user_facing_response`, `completes_exchange=true`, `coordinator_assignment_event_id=P1`）；controller 验证后 author `C1=ak.agent.sidecar.exchange.control{action=close,response_event_ids=[R1,R_noncoord,R2]}`。
 
@@ -4186,7 +4197,8 @@ Expected:
 
 - 第 1 步 runtime 只从 `P1` binding 获得 `X1`；不存在 Account Data projection 读写路径。S/T 可继续消费，U 必须把 request 当作不存在。
 - 第 2 步 runtime 持久化 `X1 → P1`，restart 不得重复执行；`P_dup` 即使拥有不同 Event id 也因复用 `X1` fail closed。已接受的 canonical `P1` 已处于 delivered，`I1` 只推进 participating 且不改变状态；`R1` 推进 responding；T 的正文可回显，但非 coordinator completion 请求不得产生 control Event；U 不执行。
-- 第 3 步全部变异 fail closed 为 non-echo；missing binding 是安全缺省而不是 schema error；`R_msgid` 是 closed-schema reject；wrong Strand/actor/ref 不进入 fold；`F1` 因 actor 非 controller 整体无效。
+- 第 3 步全部变异 fail closed 为 non-echo；missing binding 是安全缺省而不是 schema error；`R_msgid` 是
+  closed-schema reject；wrong Sidecar scope/actor/ref 不进入 fold；`F1` 因 actor 非 controller 整体无效。
 - 第 4 步重复到达幂等：`user_facing_response_event_ids` 只含一次 `R1`。
 - 第 5 步 `R2` 本身仍只推进 responding；accepted `C1` 才推进 complete。response 集按 `(Event HLC, Event id)` 排序且至少一项；不得由时间流逝、Event 缺席或内容直接推断终态。
 
@@ -4196,7 +4208,7 @@ Expected:
 
 Steps:
 
-1. `P1` accepted 后本地 cache 与 intent 都丢失；重启扫描 private Strand history，从 controller-authored request binding 重建。
+1. `P1` accepted 后本地 cache 与 intent 都丢失；重启扫描 Sidecar history，从 controller-authored request binding 重建。
 2. Alice 全部设备离线期间，S 发送 user-facing responses `R1`、`R2`。设备 D1 重连并验证追加；随后 D2 独立重连重放同一流程。
 3. D1 暂时只见 `R1`，D2 只见 `R2`，两者 `folded_frontier` 不可比较；随后各自补齐 history。
 4. 分别 author terminal controls：`close+[R1]`、`cancel+[R1]`、`close+[]`、`cancel+[]`、`fail(agent_deactivated)+[]`。验证每个 action × response-set 组合。
@@ -4218,8 +4230,9 @@ Expected:
 
 Steps:
 
-1. 构造明文 `metadata.sidecar_exchange_binding` 的 Sidecar `ak.message.create`。
-2. 构造 shared Realm/Circle scope 的 `ak.message.create` binding，以及 shared scope 的 `ak.agent.sidecar.exchange.control`/control schema plaintext。
+1. 构造明文 `metadata.sidecar_exchange_binding` 的 Sidecar-scoped `ak.message.create`。
+2. 构造 shared Realm/Circle scope 的 `ak.message.create` binding，以及 shared scope 的
+   `ak.agent.sidecar.exchange.control`/control schema plaintext。
 3. Alice 从 Sidecar 显式 publish 一条内容到目标 shared Strand。
 4. 扫描 publish 产物、shared history、push preview、notification 与公开 telemetry surface。
 
@@ -4236,7 +4249,7 @@ Expected:
 
 Steps:
 
-1. Sidecar desired/effective access 为 Alice + `{S, R}`，且 S/R 都在 private Strand 中产生协作内容。
+1. Sidecar participants/effective access 为 Alice + owned Agents `{S, R}`，且 S/R 都在 native Sidecar scope 中产生协作内容。
 2. S 调用 publish capability action，生成目标 Strand `ak.message.create`,attribution 设 `executed_by=S` + `authorization_ref=G_S`。
 3. R 同时尝试 publish 含 S 部分内容的另一条消息。
 

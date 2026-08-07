@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07",
+  "version": "2026-08-07.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-07T05:33:31Z",
+  "generated_at": "2026-08-07T10:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1082,9 +1082,7 @@
         "required": [
           "status",
           "operation_id",
-          "sidecar_id",
-          "private_strand_id",
-          "private_relation_id"
+          "sidecar_id"
         ],
         "properties": [
           "status",
@@ -1093,15 +1091,13 @@
           "reservation_handle",
           "expires_at",
           "sidecar_id",
-          "backing_circle_id",
-          "private_strand_id",
-          "private_relation_id",
           "create_event_id",
           "context_attach_event_id",
           "create_event_draft",
           "context_attach_event_draft",
           "accepted_phase",
           "ok",
+          "source_context_ref",
           "access_readiness",
           "pending_access_reconciliations"
         ],
@@ -1117,9 +1113,6 @@
               "reservation_handle",
               "expires_at",
               "sidecar_id",
-              "backing_circle_id",
-              "private_strand_id",
-              "private_relation_id",
               "create_event_id",
               "context_attach_event_id",
               "create_event_draft",
@@ -1132,9 +1125,6 @@
               "reservation_handle",
               "expires_at",
               "sidecar_id",
-              "backing_circle_id",
-              "private_strand_id",
-              "private_relation_id",
               "create_event_id",
               "context_attach_event_id",
               "create_event_draft",
@@ -1152,9 +1142,6 @@
               "reservation_handle",
               "expires_at",
               "sidecar_id",
-              "backing_circle_id",
-              "private_strand_id",
-              "private_relation_id",
               "context_attach_event_id",
               "context_attach_event_draft"
             ],
@@ -1165,9 +1152,6 @@
               "reservation_handle",
               "expires_at",
               "sidecar_id",
-              "backing_circle_id",
-              "private_strand_id",
-              "private_relation_id",
               "context_attach_event_id",
               "context_attach_event_draft"
             ],
@@ -1182,8 +1166,7 @@
               "accepted_phase",
               "ok",
               "sidecar_id",
-              "private_strand_id",
-              "private_relation_id",
+              "source_context_ref",
               "access_readiness",
               "pending_access_reconciliations"
             ],
@@ -1193,8 +1176,7 @@
               "accepted_phase",
               "ok",
               "sidecar_id",
-              "private_strand_id",
-              "private_relation_id",
+              "source_context_ref",
               "access_readiness",
               "pending_access_reconciliations"
             ],
@@ -1211,7 +1193,7 @@
         "schema_kind": "object",
         "required": [
           "sidecar",
-          "desired_agent_ids",
+          "owned_agent_ids",
           "effective_agent_ids",
           "mls_context",
           "access_readiness",
@@ -1219,7 +1201,7 @@
         ],
         "properties": [
           "sidecar",
-          "desired_agent_ids",
+          "owned_agent_ids",
           "effective_agent_ids",
           "mls_context",
           "access_readiness",

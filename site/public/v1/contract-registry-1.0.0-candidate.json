@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.4",
+  "version": "2026-08-07.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-06T10:00:00Z",
+  "generated_at": "2026-08-07T09:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -206,7 +206,7 @@
           "parent_realm_current",
           "sidecar_create_minimal",
           "first_ensure_exact_create_then_context_attach",
-          "no_preexisting_backing_scope_required"
+          "native_sidecar_scope_reserved"
         ],
         "revocation_model": "one_shot_parent_realm_scoped_bootstrap",
         "authority_generation_independent": false,
@@ -544,10 +544,10 @@
         "sealed": false,
         "cell_writes": [
           {
-            "cell_family": "ak.component.strand.discussion.timeline.v1",
+            "cell_family": "ak.component.sidecar.exchange.v1",
             "cell_subject": {
-              "field": "payload.strand_id",
-              "kind": "id:strand"
+              "field": "payload.sidecar_id",
+              "kind": "id:sidecar"
             },
             "lattice": "ordered_log",
             "bottom": "expose",
@@ -780,8 +780,8 @@
           {
             "cell_family": "ak.component.audit.session.v1",
             "cell_subject": {
-              "field": "payload.session_id",
-              "kind": "typed_id"
+              "field": "envelope.event_id",
+              "kind": "id:audit_session"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -2225,11 +2225,8 @@
           {
             "cell_family": "ak.component.invite.lifecycle.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.invite.id",
-                "payload.invite_id"
-              ]
+              "kind": "id:invite",
+              "field": "envelope.event_id"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -2246,11 +2243,8 @@
           {
             "cell_family": "ak.component.member.state.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.invite.invitee",
-                "payload.invitee"
-              ]
+              "kind": "did",
+              "field": "payload.invitee"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -2261,11 +2255,8 @@
               }
             },
             "condition": {
-              "kind": "any_field_present",
-              "fields": [
-                "payload.invite.invitee",
-                "payload.invitee"
-              ]
+              "kind": "field_present",
+              "field": "payload.invitee"
             }
           }
         ],
@@ -2319,11 +2310,8 @@
           {
             "cell_family": "ak.component.invite.lifecycle.v1",
             "cell_subject": {
-              "kind": "coalesce",
-              "fields": [
-                "payload.invite.id",
-                "payload.invite_id"
-              ]
+              "kind": "id:invite",
+              "field": "envelope.event_id"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -2785,8 +2773,8 @@
           {
             "cell_family": "ak.component.moderation.appeal.v1",
             "cell_subject": {
-              "field": "payload.appeal_id",
-              "kind": "string"
+              "field": "envelope.event_id",
+              "kind": "id:appeal"
             },
             "lattice": "fsm",
             "bottom": "reject",
@@ -4801,28 +4789,6 @@
         ],
         "concurrency_class": "security_barrier"
       },
-      "ak.sidecar.access.replace": {
-        "plane": "control",
-        "sealed": true,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.sidecar.access.v1",
-            "cell_subject": {
-              "field": "payload.sidecar_id",
-              "kind": "id:sidecar"
-            },
-            "lattice": "cas_register",
-            "bottom": "reject",
-            "effect_projection": {
-              "kind": "set",
-              "value": {
-                "field": "payload"
-              }
-            }
-          }
-        ],
-        "concurrency_class": "security_barrier"
-      },
       "ak.sidecar.context.attach": {
         "plane": "control",
         "sealed": true,
@@ -4854,7 +4820,10 @@
         "cell_writes": [
           {
             "cell_family": "ak.component.sidecar.create.v1",
-            "cell_subject": null,
+            "cell_subject": {
+              "field": "envelope.event_id",
+              "kind": "id:sidecar"
+            },
             "lattice": "ordered_log",
             "bottom": "inert",
             "effect_projection": {
@@ -5526,7 +5495,25 @@
           }
         ],
         "payload": "Realm create",
-        "id_source": "event_derived"
+        "id_source": "event_derived_or_subject_derived",
+        "id_kind": "realm",
+        "id_source_variants": [
+          {
+            "when": {
+              "payload_path": "object.fields.purpose",
+              "const": "principal_control"
+            },
+            "id_source": "subject_derived",
+            "subject_field": "actor_id",
+            "derivation": "pcr_subject_uuidv7_v1"
+          },
+          {
+            "when": {
+              "otherwise": true
+            },
+            "id_source": "event_derived"
+          }
+        ]
       },
       {
         "event_kind": "ak.realm.update",
@@ -5815,7 +5802,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5.",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "circle"
       },
       {
         "event_kind": "ak.sidecar.create",
@@ -5824,8 +5812,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Controller-signed minimal Sidecar creation intent. Under the registered parent-Realm bootstrap authority it projects exactly the Sidecar, backing Circle and controller initial backing membership; context objects are excluded. First ensure admits it atomically with ak.sidecar.context.attach. See zh/models/sidecar.md §2-§5.",
-        "id_source": "not_an_object_id"
+        "payload": "Controller-signed minimal native Sidecar creation intent. The Sidecar id is derived from the Event id; controller, Realm, lifecycle and timestamps are reducer-derived. It creates no Circle, membership, Strand or Relation object. See zh/models/sidecar.md §2-§5.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_create_payload",
+        "id_source": "event_derived",
+        "id_kind": "sidecar"
       },
       {
         "event_kind": "ak.sidecar.context.attach",
@@ -5834,19 +5824,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Controller-signed versioned context attachment. It projects only the private Strand and Relation and contains a required EventRef role=after to the Sidecar create Event. It is excluded from the Sidecar control frontier and MLS security frontier input.",
+        "payload": "Controller-signed versioned binding between a native Sidecar and an existing source Strand or Relation used as UI context. It creates no Strand or Relation object and contains a required EventRef role=after to the Sidecar create Event.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_context_attach_payload",
-        "id_source": "reference"
-      },
-      {
-        "event_kind": "ak.sidecar.access.replace",
-        "category": "sidecar",
-        "status": "active",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "admission": "self_authored_proof",
-        "payload": "Controller-signed full-set access replacement fixed to the parent Realm and backing Circle scope. Version 1 omits predecessor; each successor increments exactly once and references the current head. Delivery receipts are evidence only and never authority.",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_access_replace_payload",
         "id_source": "reference"
       },
       {
@@ -6119,7 +6098,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Strand create",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "strand"
       },
       {
         "event_kind": "ak.strand.update",
@@ -6192,7 +6172,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a cas_register cell keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch ak.audit.accessed event with access_kind=watch_set_others. The watches Relation (actor --watches--> strand) is a derived projection of this cell, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
+        "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a cas_register cell keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST be paired with a same-batch ak.audit.accessed event with access_kind=watch_set_others; the audit event carries refs[role=audit_pair] plus paired_event_id/paired_event_digest pointing at the write, and the write MUST NOT reference the audit event (encoding.md 6.0.1 forbids mutual preimages). The watches Relation (actor --watches--> strand) is a derived projection of this cell, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
         "id_source": "reference"
       },
       {
@@ -6202,7 +6182,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space create (board / list / swimlane / calendar bucket / etc.)",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "space"
       },
       {
         "event_kind": "ak.space.update",
@@ -6258,8 +6239,9 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Message create. Payload MUST omit message_id; reducer materializes Message.id by retyping the UUIDv7 of Event.event_id.",
-        "id_source": "event_derived"
+        "payload": "Message create. Payload MUST omit message_id; reducer materializes Message.id by retyping the content-bound UUIDv8 of Event.event_id.",
+        "id_source": "event_derived",
+        "id_kind": "message"
       },
       {
         "event_kind": "ak.agent.sidecar.exchange.control",
@@ -6267,7 +6249,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Controller-authored durable Sidecar exchange control. The outer payload exposes only private Strand routing plus an MLS encrypted payload whose plaintext validates as ak.schema.agent_sidecar_exchange_control.v1. It is accepted only in the matching Sidecar backing Circle from that Sidecar controller and is the sole truth source for coordinator reassignment and terminal exchange state.",
+        "payload": "Controller-authored durable Sidecar exchange control. The outer payload binds the native Sidecar and source context plus an MLS encrypted payload whose plaintext validates as ak.schema.agent_sidecar_exchange_control.v1. It is accepted only in the matching native Sidecar scope from that Sidecar controller and is the sole truth source for coordinator reassignment and terminal exchange state.",
         "id_source": "reference"
       },
       {
@@ -6363,7 +6345,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Morph create",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "morph"
       },
       {
         "event_kind": "ak.morph.update",
@@ -6419,7 +6402,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Relation create",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "relation"
       },
       {
         "event_kind": "ak.relation.update",
@@ -6466,7 +6450,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "View create",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "view"
       },
       {
         "event_kind": "ak.view.update",
@@ -6757,7 +6742,8 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Actor profile create",
-        "id_source": "event_derived"
+        "id_source": "event_derived",
+        "id_kind": "actor_profile"
       },
       {
         "event_kind": "ak.profile.update",
@@ -6970,8 +6956,9 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Audit release session request. Must reference an active ak.audit.applet_binding and a bounded historical target range or target_refs.",
-        "id_source": "reference"
+        "payload": "Audit release session request. Must reference an active ak.audit.applet_binding and a bounded historical target range or target_refs. session_id is omitted and derived by retyping this Event's event_id.",
+        "id_source": "event_derived",
+        "id_kind": "audit_session"
       },
       {
         "event_kind": "ak.audit.session.authorize",
@@ -7003,7 +6990,8 @@
           "same_basis_close_vs_release": "close_wins_release_rejected",
           "within_seal_order": "event_digest_lexicographic"
         },
-        "id_source": "reference"
+        "id_source": "event_derived",
+        "id_kind": "audit_release"
       },
       {
         "event_kind": "ak.audit.session.close",
@@ -7063,8 +7051,12 @@
             "admission": "self_authored_proof"
           }
         ],
-        "payload": "Moderation report. A report authored by the reporter's own device admits as self_authored_proof (actor == subject == payload.reporter). An inbound MIMI report mapped by the provider facade sets payload.provenance=mimi_facade and admits as service_attested: the envelope actor is the facade service DID, payload.reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 10/11 consent and holder-claim rules, payload.source_provider carries the origin MIMI provider, and the reducer MUST verify the actor service operates the MIMI facade for payload.realm_id. The facade MUST NOT author actor_id as the reporter principal.",
-        "id_source": "not_an_object_id"
+        "payload": "Moderation report. A report authored by the reporter's own device admits as self_authored_proof (actor == subject == payload.reporter). An inbound MIMI report mapped by the provider facade sets payload.provenance=mimi_facade and admits as service_attested: the envelope actor is the facade service DID, payload.reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 10/11 consent and holder-claim rules, payload.source_provider carries the origin MIMI provider, and the reducer MUST verify the actor service operates the MIMI facade for payload.realm_id. The facade MUST NOT author actor_id as the reporter principal. One accepted Event derives exactly one report and one moderation_queue_item; their full typed IDs differ although both retype the same event_id UUID payload.",
+        "id_source": "event_derived",
+        "id_kinds": [
+          "report",
+          "moderation_queue_item"
+        ]
       },
       {
         "event_kind": "ak.moderation.franking_proof",
@@ -7101,8 +7093,9 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Submit an appeal against an existing ak.moderation.decision. Writes the appeal cell to state=submitted. Schema: ak.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal strand).",
-        "id_source": "not_an_object_id"
+        "payload": "Submit an appeal against an existing ak.moderation.decision. Writes the appeal cell to state=submitted. appeal_id is omitted and derived by retyping this Event's event_id. Schema: ak.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal strand).",
+        "id_source": "event_derived",
+        "id_kind": "appeal"
       },
       {
         "event_kind": "ak.moderation.appeal.review",
@@ -7111,7 +7104,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: ak.schema.moderation_appeal.v1.",
-        "id_source": "not_an_object_id"
+        "id_source": "reference"
       },
       {
         "event_kind": "ak.moderation.appeal.decision",
@@ -7120,7 +7113,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits ak.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: ak.schema.moderation_appeal.v1.",
-        "id_source": "not_an_object_id"
+        "id_source": "reference"
       },
       {
         "event_kind": "ak.moderation.appeal.close",
@@ -7129,7 +7122,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Closes the appeal from submitted / under_review / decided via reviewer close, appellant withdrawal, or a deployment's authorized close service. close is a manual/authorized action; the protocol does not mandate any auto-close timer or cool-off duration (deployment/Realm policy decides). Schema: ak.schema.moderation_appeal.v1.",
-        "id_source": "not_an_object_id"
+        "id_source": "reference"
       },
       {
         "event_kind": "ak.read_cursor.advance",
@@ -7146,8 +7139,9 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Invite create. Directed v1 invite payloads carry invitee plus invite_delivery_target and introduction_evidence_digest; raw locator tokens and invite_receive_policy state are private and MUST NOT enter the durable Realm event.",
-        "id_source": "not_an_object_id"
+        "payload": "Invite create. Directed v1 genesis payloads omit invite/invite_id and carry invitee plus invite_delivery_target, introduction_evidence_digest and expires_at; the Invite ID is derived from this Event. Raw locator tokens and invite_receive_policy state are private and MUST NOT enter the durable Realm event.",
+        "id_source": "event_derived",
+        "id_kind": "invite"
       },
       {
         "event_kind": "ak.invite.cancel",
@@ -7173,8 +7167,9 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Third-party identifier pending invite",
-        "id_source": "not_an_object_id"
+        "payload": "Third-party identifier pending invite. Genesis payload omits invite/invite_id; the Invite ID is derived from this Event.",
+        "id_source": "event_derived",
+        "id_kind": "invite"
       },
       {
         "event_kind": "ak.invite.claim",
@@ -8378,7 +8373,7 @@
         "schema_id": "ak.schema.agent_sidecar.v1",
         "file": "schemas/agent-sidecar.schema.json",
         "status": "active",
-        "description": "Controller-owned private AI workspace with derived Agent access and a reducer-managed backing Circle/MLS scope. It is not a Circle profile. See zh/models/sidecar.md."
+        "description": "Controller-owned private AI workspace with native Sidecar scope and ownership-derived Agent access. It is not a Circle profile and has no backing Circle or editable membership. See zh/models/sidecar.md."
       },
       {
         "schema_id": "ak.schema.agent_sidecar_view_state.v1",
@@ -9548,7 +9543,7 @@
       "Storage implementations MAY store raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the ak:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
       "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
       "The <kind> segment is part of the signed/canonical wire value. It MUST NOT be changed, inferred differently, or stripped during verification, forwarding, backfill, or replay.",
-      "The UUID segment MUST be RFC 9562 UUID version 7 (48-bit Unix-millisecond timestamp + 4-bit version=7 + 12-bit rand_a + 2-bit variant=10b + 62-bit rand_b), serialized as the canonical 36-character lowercase hex form `xxxxxxxx-xxxx-7xxx-Nxxx-xxxxxxxxxxxx` where N ∈ {8,9,a,b}."
+      "The UUID segment MUST use the construction fixed by that kind's id_form and identity_authority columns, never one chosen per call site: version 7 for producer_allocated, version 8 with the content-bound layout of zh/conformance/encoding.md section 4.0 for event_derived, and the registered Realm exception where a principal_control create selects DID-transcript-derived UUIDv7. All serialize as canonical lowercase `xxxxxxxx-xxxx-Vxxx-Nxxx-xxxxxxxxxxxx`, N ∈ {8,9,a,b}; a version nibble alone never proves identity authority."
     ],
     "special_forms": [
       {
@@ -9632,15 +9627,23 @@
           "relation_endpoint"
         ],
         "description": "Actor profile object ID",
-        "id_form": "event_derived"
+        "id_form": "event_derived",
+        "identity_authority": "event",
+        "genesis_event_kinds": [
+          "ak.profile.create"
+        ]
       },
       {
         "kind": "appeal",
         "category": "moderation",
         "status": "active",
         "wire_form": "ak:appeal:<uuid>",
-        "description": "Moderation appeal ID — opaque key for the ak.component.moderation.appeal.v1 cell. Created by ak.moderation.appeal.submit; referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5.",
-        "id_form": "producer_allocated"
+        "description": "Moderation appeal ID derived from ak.moderation.appeal.submit and referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5.",
+        "id_form": "event_derived",
+        "identity_authority": "event",
+        "genesis_event_kinds": [
+          "ak.moderation.appeal.submit"
+        ]
       },
       {
         "kind": "announce",
@@ -9671,16 +9674,24 @@
         "category": "audit",
         "status": "active",
         "wire_form": "ak:audit_session:<uuid>",
-        "description": "Audit release session ID. Threads ak.audit.session.request, authorize, notice, release, and close events for one bounded historical audit window.",
-        "id_form": "producer_allocated"
+        "description": "Audit release session ID derived from ak.audit.session.request. Threads request, authorize, notice, release, and close events for one bounded historical audit window.",
+        "id_form": "event_derived",
+        "identity_authority": "event",
+        "genesis_event_kinds": [
+          "ak.audit.session.request"
+        ]
       },
       {
         "kind": "audit_release",
         "category": "audit",
         "status": "active",
         "wire_form": "ak:audit_release:<uuid>",
-        "description": "Audit release manifest ID. Created by ak.audit.release for a sealed historical release under an active audit binding/session.",
-        "id_form": "producer_allocated"
+        "description": "Audit release manifest ID derived from ak.audit.release for a sealed historical release under an active audit binding/session.",
+        "id_form": "event_derived",
+        "identity_authority": "event",
+        "genesis_event_kinds": [
+          "ak.audit.release"
+        ]
       },
       {
         "kind": "backup",
@@ -9759,7 +9770,11 @@
           "read_cursor_scope_ref"
         ],
         "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md.",
-        "id_form": "event_derived"
+        "id_form": "event_derived",
+        "identity_authority": "event",
+        "genesis_event_kinds": [
+          "ak.circle.create"
+        ]
       },
       {
         "kind": "sidecar",
@@ -9767,7 +9782,11 @@
         "status": "active",
         "wire_form": "ak:sidecar:<uuid>",
         "description": "Agent Sidecar object ID — controller-owned private AI workspace, singleton per (realm_id, controller_id), with derived eligible-Agent access. See zh/models/sidecar.md.",
-        "id_form": "producer_allocated"
+        "id_form": "event_derived",
+        "identity_authority": "event",
+        "genesis_event_kinds": [
+          "ak.sidecar.create"
+        ]
       },
       {
         "kind": "consent",
@@ -9788,7 +9807,11 @@
           "read_cursor_scope_ref"
         ],
         "description": "Strand object ID",
-        "id_form": "event_derived"
+        "id_form": "event_derived",
+        "identity_authority": "event",
+        "genesis_event_kinds": [
+          "ak.strand.create"
+        ]
       },
       {
         "kind": "chunk",
@@ -9831,7 +9854,8 @@
           "relation_endpoint"
         ],
         "description": "Event Envelope ID",
-        "id_form": "event_derived"
+        "id_form": "event_derived",
+        "identity_authority": "canonical_event_content"
       },
       {
         "kind": "filter",
@@ -9870,8 +9894,13 @@
         "category": "authz",
         "status": "active",
         "wire_form": "ak:invite:<uuid>",
-        "description": "Invite object ID",
-        "id_form": "producer_allocated"
+        "description": "Invite object ID derived from either directed ak.invite.create or third-party ak.invite.third_party genesis.",
+        "id_form": "event_derived",
+        "identity_authority": "event",
+        "genesis_event_kinds": [
+          "ak.invite.create",
+          "ak.invite.third_party"
+        ]
       },
       {
         "kind": "invite_locator",
@@ -9900,7 +9929,11 @@
           "read_cursor_thread_root"
         ],
         "description": "Message object ID",
-        "id_form": "event_derived"
+        "id_form": "event_derived",
+        "identity_authority": "event",
+        "genesis_event_kinds": [
+          "ak.message.create"
+        ]
       },
       {
         "kind": "message_stream",
@@ -9920,7 +9953,11 @@
           "notification_source"
         ],
         "description": "Morph object ID",
-        "id_form": "event_derived"
+        "id_form": "event_derived",
+        "identity_authority": "event",
+        "genesis_event_kinds": [
+          "ak.morph.create"
+        ]
       },
       {
         "kind": "notification",
@@ -9934,8 +9971,8 @@
         "kind": "operation",
         "category": "security",
         "status": "active",
-        "wire_form": "ak:operation:<opaque>",
-        "description": "Opaque identifier for a durable or reserved multi-phase protocol operation instance.",
+        "wire_form": "ak:operation:<uuid>",
+        "description": "Identifier for a durable or reserved multi-phase protocol operation instance. It is allocated at reservation time, before the operation's first Event exists, so it can carry no content binding and MUST NOT be parsed for internal semantics; that is what id_form=producer_allocated means here, not a free-form value space.",
         "id_form": "producer_allocated"
       },
       {
@@ -10004,23 +10041,35 @@
           "notification_source"
         ],
         "description": "Relation object ID",
-        "id_form": "event_derived"
+        "id_form": "event_derived",
+        "identity_authority": "event",
+        "genesis_event_kinds": [
+          "ak.relation.create"
+        ]
       },
       {
         "kind": "report",
         "category": "moderation",
         "status": "active",
         "wire_form": "ak:report:<uuid>",
-        "description": "Moderation report ID",
-        "id_form": "producer_allocated"
+        "description": "Moderation report ID derived from the accepted ak.self.moderation.report Event.",
+        "id_form": "event_derived",
+        "identity_authority": "event",
+        "genesis_event_kinds": [
+          "ak.self.moderation.report"
+        ]
       },
       {
         "kind": "moderation_queue_item",
         "category": "moderation",
         "status": "active",
         "wire_form": "ak:moderation_queue_item:<uuid>",
-        "description": "Moderation queue item ID",
-        "id_form": "producer_allocated"
+        "description": "Moderation queue item ID derived as a second, distinct typed output of the accepted ak.self.moderation.report Event.",
+        "id_form": "event_derived",
+        "identity_authority": "event",
+        "genesis_event_kinds": [
+          "ak.self.moderation.report"
+        ]
       },
       {
         "kind": "request",
@@ -10048,7 +10097,11 @@
           "read_cursor_scope_ref"
         ],
         "description": "Space object ID — structural grouping object inside a Realm (board, list, swimlane, calendar bucket, etc.). Authorization-transparent: never carries its own membership / policy / E2EE group; resolves to the containing Realm.",
-        "id_form": "event_derived"
+        "id_form": "event_derived",
+        "identity_authority": "event",
+        "genesis_event_kinds": [
+          "ak.space.create"
+        ]
       },
       {
         "kind": "subscription",
@@ -10069,7 +10122,11 @@
         ],
         "description": "Realm object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy.",
         "id_form": "event_derived_or_subject_derived",
-        "id_form_note": "Collaboration Realms are event-derived (UUIDv8, encoding.md section 4.0). Principal Control Realms are subject-derived from the principal DID (H(\"ak:realm:principal-control:v1:\" || did), UUIDv7 layout) so the address stays computable from the DID alone; their identity anchor is did_inception, not the genesis Event. Neither form is producer-chosen and the branch is fixed by the create's purpose."
+        "identity_authority": "event_or_subject_transcript",
+        "genesis_event_kinds": [
+          "ak.realm.create"
+        ],
+        "id_form_note": "Collaboration Realms are event-derived UUIDv8 (encoding.md section 4.0). Principal Control Realms use the registered subject-derived UUIDv7 layout H(UTF8(\"ak:realm:principal-control:v1:\") || UTF8(canonical_principal_did)); their identity anchor is did_inception, not the genesis Event. Both forms have no producer-selected bits, and the branch is fixed by the create's purpose."
       },
       {
         "kind": "transaction",
@@ -10097,14 +10154,18 @@
           "notification_source"
         ],
         "description": "View object ID",
-        "id_form": "event_derived"
+        "id_form": "event_derived",
+        "identity_authority": "event",
+        "genesis_event_kinds": [
+          "ak.view.create"
+        ]
       }
     ],
     "uuid_pattern_producer_allocated": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
     "uuid_pattern_event_derived": "^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
     "typed_uuid_pattern_producer_allocated": "^ak:<kind>:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
     "typed_uuid_pattern_event_derived": "^ak:<kind>:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-    "uuid_form_rules": "Every typed ak:<kind>:<uuid> uses exactly one of two constructions, declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7, assigned by the service or client that mints the identifier. event_derived = RFC 9562 UUIDv8 with the content-bound layout of zh/conformance/encoding.md section 4.0: 34-bit second timestamp derived from created_at plus 88 bits taken from the leftmost 11 octets of the creating Event's event_digest. An event_derived id has no producer-chosen bits, so forging one that collides with an existing object requires 2^88 hash operations instead of typing a string. Implementations MUST NOT choose the form per site; it is fixed by this registry."
+    "uuid_form_rules": "Every typed ak:<kind>:<uuid> uses the construction declared by id_form and identity_authority. producer_allocated = RFC 9562 UUIDv7 assigned by the service/client and therefore not self-certifying. event_derived = UUIDv8 with the content-bound layout of zh/conformance/encoding.md section 4.0: 34-bit created_at seconds plus 88 event_digest bits. The sole conditional kind is realm: collaboration Realm is event-derived UUIDv8; principal_control Realm is UUIDv7 whose usable bits are deterministically derived from the registered DID transcript, not producer-selected. A nibble/regex check is only wire validation; admission MUST recompute the declared authority transcript. Implementations MUST NOT choose the form per site."
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -11020,7 +11081,7 @@
         "http": "GET /_arkret/self/agent-sidecars/{sidecar_id}",
         "grpc": "SelfAgent/SidecarGet",
         "mq": "self.agent.sidecar.resource.get",
-        "notes": "Controller-only dedicated Sidecar read surface. Returns the typed Sidecar plus desired/effective Agent access and reconciliation readiness. Unauthorized, nonexistent, and foreign-controller IDs use one indistinguishable not_found envelope. The backing Circle is included only as the Sidecar object's reducer-managed security binding and never as an ordinary Circle resource.",
+        "notes": "Controller-only dedicated Sidecar read surface. Returns the typed Sidecar plus read-only owned/effective Agent sets, native MLS context and reconciliation readiness. Unauthorized, nonexistent, and foreign-controller IDs use one indistinguishable not_found envelope.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_view"
@@ -11615,7 +11676,7 @@
         "http": "POST /_arkret/self/circles",
         "grpc": "SelfCircle/Create",
         "mq": "self.circle.command.create",
-        "notes": "Builds a ak.circle.create Operation in the named parent Realm and routes it through the local accept pipeline. Reducer-locked fields (mls_group_ref, state) MUST NOT be actor-supplied; encryption_profile='none' is allowed only when the parent Realm policy floor permits plaintext.",
+        "notes": "Submits the caller-signed ak.circle.create Event carried in create_event through ordinary Event admission; the parent Realm is create_event.event.realm_id. The Circle id is retype(create_event.event.event_id), so the service MUST NOT mint it, and MUST NOT co-sign, rebuild or synthesize the Event. Reducer-locked fields (mls_group_ref, state) MUST NOT be actor-supplied; encryption_profile='none' is allowed only when the parent Realm policy floor permits plaintext.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
@@ -11658,7 +11719,7 @@
         "http": "POST /_arkret/self/circles/{circle_id}/members",
         "grpc": "SelfCircle/MemberAdd",
         "mq": "self.circle.member.command.add",
-        "notes": "Builds ak.circle.member.state. Activating another actor requires ak.circle.member.manage narrowed to this Circle, and the target MUST already be a joined parent-Realm member (strict-subset invariant); a self-join is gated by join_rule.",
+        "notes": "Submits the caller-signed ak.circle.member.state Event carried in member_event through ordinary Event admission; payload.circle_id MUST equal the path circle_id. Moving another actor to join requires ak.circle.member.manage narrowed to this Circle, evaluated against projected grants rather than asserted by the request, and the target MUST already be a joined parent-Realm member (strict-subset invariant); a self-join is gated by join_rule. The service MUST NOT co-sign, rebuild or synthesize the Event, nor add a capability verdict to the closed payload.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -11719,7 +11780,7 @@
         "http": "POST /_arkret/self/circles/{circle_id}/archive",
         "grpc": "SelfCircle/Archive",
         "mq": "self.circle.command.archive",
-        "notes": "Builds ak.circle.archive; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_active).",
+        "notes": "Submits the caller-signed ak.circle.archive Event carried in lifecycle_event through ordinary Event admission; payload.target_ref MUST name the path Circle. Transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_active). The service MUST NOT co-sign, rebuild or synthesize the Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -11728,7 +11789,7 @@
           "strategy": "query_operation",
           "operation_id": "ak.self.circle.resource.get"
         },
-        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_archive_request_body",
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
         "durable_effect": {
           "kind": "event_log",
@@ -11742,7 +11803,7 @@
         "http": "POST /_arkret/self/circles/{circle_id}/restore",
         "grpc": "SelfCircle/Restore",
         "mq": "self.circle.command.restore",
-        "notes": "Builds ak.circle.restore; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_archived). Restore re-enables new writes after pending MLS membership removals are settled.",
+        "notes": "Submits the caller-signed ak.circle.restore Event carried in lifecycle_event through ordinary Event admission; payload.target_ref MUST name the path Circle. Transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_archived). Restore re-enables new writes after pending MLS membership removals are settled. The service MUST NOT co-sign, rebuild or synthesize the Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -11751,7 +11812,7 @@
           "strategy": "query_operation",
           "operation_id": "ak.self.circle.resource.get"
         },
-        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_restore_request_body",
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
         "durable_effect": {
           "kind": "event_log",
@@ -11765,7 +11826,7 @@
         "http": "POST /_arkret/self/circles/{circle_id}/tombstone",
         "grpc": "SelfCircle/Tombstone",
         "mq": "self.circle.command.tombstone",
-        "notes": "Builds ak.circle.tombstone (terminal). Response surfaces the terminal state with empty members.",
+        "notes": "Submits the caller-signed ak.circle.tombstone Event carried in lifecycle_event through ordinary Event admission; payload.target_ref MUST name the path Circle. Terminal: the lifecycle matrix admits no transition out, so the signed Event is the whole record of who ended the Circle. Response surfaces the terminal state with empty members. The service MUST NOT co-sign, rebuild or synthesize the Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -11774,7 +11835,7 @@
           "strategy": "query_operation",
           "operation_id": "ak.self.circle.resource.get"
         },
-        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_tombstone_request_body",
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
         "durable_effect": {
           "kind": "event_log",
@@ -13329,7 +13390,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/links",
         "grpc": "SelfRealmLink/Create",
         "mq": "self.realm_link.command.create",
-        "notes": "Builds an ak.realm.link Control Move from realm_id -> target_realm_id. General directed cycles are valid and traversal uses a visited set; admission rejects only self-reference, invalid kind, invalid payload, or an illegal FSM transition. Self-reference returns schema_violation with reason_code realm_link_self_reference; an illegal transition returns failed_precondition with reason_code realm_link_invalid_transition.",
+        "notes": "Submits the caller-signed ak.realm.link Control Move from realm_id -> target_realm_id; the service MUST NOT co-sign, rebuild or synthesize it. The edge is event.payload and the source Realm is event.realm_id, which MUST equal the path realm_id. General directed cycles are valid and traversal uses a visited set; admission rejects only self-reference, invalid kind, invalid payload, or an illegal FSM transition. Self-reference returns schema_violation with reason_code realm_link_self_reference; an illegal transition returns failed_precondition with reason_code realm_link_invalid_transition.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13352,11 +13413,12 @@
         "http": "DELETE /_arkret/self/realms/{realm_id}/links/{target_realm_id}",
         "grpc": "SelfRealmLink/Delete",
         "mq": "self.realm_link.resource.delete",
-        "notes": "Writes a tombstoning ak.realm.link Move (status=tombstoned) for the (realm_id, target_realm_id, link_kind) triple. link_kind defaults to governed_by; callers may override via the link_kind query param.",
+        "notes": "Submits the caller-signed tombstoning ak.realm.link Move (payload.status=tombstoned) for the (realm_id, target_realm_id, link_kind) triple; the service MUST NOT co-sign, rebuild or synthesize it. link_kind is named in the signed payload rather than a query parameter, because a query parameter is outside the bytes the caller signs; payload.target_realm_id MUST equal the path target_realm_id. Removing an edge is the same durable Event kind as creating one, so this operation keeps its event_log effect.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
+        "request_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_delete_request_body",
         "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
         "durable_effect": {
           "kind": "event_log",
@@ -13400,7 +13462,7 @@
         "http": "PUT /_arkret/self/realms/{realm_id}/policy-server",
         "grpc": "SelfRealmPolicyServer/Replace",
         "mq": "self.realm_policy_server.resource.replace",
-        "notes": "Builds a durable ak.realm.policy_server Move whose payload is the closed request body (admission capability ak.policy.manage). Reducer validates the DID, canonical HTTPS policy-check URL and on_timeout enum. When the direct cell already has a settled declaration or tombstone, the Move MUST carry head_eq for that complete value; an absent direct cell is the only initial write.",
+        "notes": "Submits the caller-signed durable ak.realm.policy_server declaration Move (admission capability ak.policy.manage); the service MUST NOT co-sign, rebuild or synthesize it. The declaration is event.payload and the Realm is event.realm_id, which MUST equal the path realm_id. Reducer validates the DID, canonical HTTPS policy-check URL and on_timeout enum. When the direct cell already has a settled declaration or tombstone, the Move MUST carry head_eq for that complete value and the caller attaches it, because preconditions are inside the signed bytes; an absent direct cell is the only initial write.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13419,11 +13481,12 @@
         "http": "DELETE /_arkret/self/realms/{realm_id}/policy-server",
         "grpc": "SelfRealmPolicyServer/Delete",
         "mq": "self.realm_policy_server.resource.delete",
-        "notes": "After ak.policy.manage admission, a settled direct declaration is deleted by a durable ak.realm.policy_server Move with the exact payload {\"tombstone\":true} and head_eq for the complete declaration. The registered cas_register effect sets that value in the per-Realm cell; effective reads then ignore the direct binding and resume governed_by fallback or local-only capability evaluation. Repeating DELETE against a settled tombstone is an idempotent empty success and MUST NOT change the cell or state_root. A never-written or inherited-only direct cell returns not_found and MUST NOT mutate an ancestor.",
+        "notes": "After ak.policy.manage admission, a settled direct declaration is deleted by the caller-signed durable ak.realm.policy_server Move with the exact payload {\"tombstone\":true} and head_eq for the complete declaration; the service MUST NOT co-sign, rebuild or synthesize it, which is why this DELETE carries a request body the way ak.self.keys.backups.resource.delete already does. The registered cas_register effect sets that value in the per-Realm cell; effective reads then ignore the direct binding and resume governed_by fallback or local-only capability evaluation. Repeating DELETE against a settled tombstone is an idempotent empty success and MUST NOT change the cell or state_root. A never-written or inherited-only direct cell returns not_found and MUST NOT mutate an ancestor.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "empty_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
+        "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_delete_request_body",
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": [
@@ -13446,7 +13509,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/archive",
         "grpc": "SelfRealm/Archive",
         "mq": "self.realm.command.archive",
-        "notes": "Builds a ak.realm.archive Move. The archived facet changes when the lifecycle event is accepted into the Realm event log; archived=false clears the archived facet unless a terminal lifecycle state already applies.",
+        "notes": "Submits the caller-signed ak.realm.archive Move carried in lifecycle_event through ordinary Event admission; event.realm_id MUST equal the path realm_id. The archived facet changes when the lifecycle event is accepted into the Realm event log; archived=false clears the archived facet unless a terminal lifecycle state already applies. The service MUST NOT co-sign, rebuild or synthesize the Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13455,7 +13518,7 @@
           "strategy": "query_operation",
           "operation_id": "ak.self.realm.resource.get"
         },
-        "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+        "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_archive_request_body",
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
         "durable_effect": {
           "kind": "event_log",
@@ -13469,7 +13532,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/freeze",
         "grpc": "SelfRealm/Freeze",
         "mq": "self.realm.command.freeze",
-        "notes": "Builds a ak.realm.freeze Move. The frozen facet changes when the lifecycle event is accepted into the Realm event log; frozen=true rejects ordinary non-exempt writes with realm_frozen and frozen=false clears the freeze facet unless a terminal lifecycle state already applies.",
+        "notes": "Submits the caller-signed ak.realm.freeze Move carried in lifecycle_event through ordinary Event admission; event.realm_id MUST equal the path realm_id. The frozen facet changes when the lifecycle event is accepted into the Realm event log; frozen=true rejects ordinary non-exempt writes with realm_frozen and frozen=false clears the freeze facet unless a terminal lifecycle state already applies. The service MUST NOT co-sign, rebuild or synthesize the Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13478,7 +13541,7 @@
           "strategy": "query_operation",
           "operation_id": "ak.self.realm.resource.get"
         },
-        "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+        "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_freeze_request_body",
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
         "durable_effect": {
           "kind": "event_log",
@@ -13492,7 +13555,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/tombstone",
         "grpc": "SelfRealm/Tombstone",
         "mq": "self.realm.command.tombstone",
-        "notes": "Builds a terminal ak.realm.tombstone Move with a successor_realm_id. The tombstoned state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state.",
+        "notes": "Submits the caller-signed terminal ak.realm.tombstone Move carried in lifecycle_event through ordinary Event admission; event.realm_id MUST equal the path realm_id and payload.successor_realm_id is required. The tombstoned state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state. The service MUST NOT co-sign, rebuild or synthesize the Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13501,7 +13564,7 @@
           "strategy": "query_operation",
           "operation_id": "ak.self.realm.resource.get"
         },
-        "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
+        "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_tombstone_request_body",
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
         "durable_effect": {
           "kind": "event_log",
@@ -13515,7 +13578,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/destroy",
         "grpc": "SelfRealm/Destroy",
         "mq": "self.realm.command.destroy",
-        "notes": "Builds a terminal ak.realm.destroy Move. The destroyed state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state.",
+        "notes": "Submits the caller-signed terminal ak.realm.destroy Move carried in lifecycle_event through ordinary Event admission; event.realm_id MUST equal the path realm_id. The destroyed state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state. The service MUST NOT co-sign, rebuild or synthesize the Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13524,7 +13587,7 @@
           "strategy": "query_operation",
           "operation_id": "ak.self.realm.resource.get"
         },
-        "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
+        "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_destroy_request_body",
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
         "durable_effect": {
           "kind": "event_log",
@@ -13678,7 +13741,7 @@
         "http": "POST /_arkret/self/consent/cells/{holder_did}/grant",
         "grpc": "SelfConsent/Grant",
         "mq": "self.consent.command.grant",
-        "notes": "Builds a ak.consent.grant Control Move on the holder's consent cell. The authenticated actor MUST be authorized to write the holder's consent (holder or an explicitly authorized controller/agent).",
+        "notes": "Submits the caller-signed ak.consent.grant Control Move carried in grant_event through ordinary Event admission. payload.consent_id is the producer-allocated cell subject and the or_set add dot is 'ak:event:<enclosing event_id>:<write_index>', so the service chooses neither and MUST NOT synthesize the Event. The authenticated actor MUST be authorized to write the holder's consent (holder or an explicitly authorized controller/agent).",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13687,7 +13750,7 @@
           "strategy": "query_operation",
           "operation_id": "ak.self.consent.read.list"
         },
-        "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
+        "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_grant_request_body",
         "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
         "durable_effect": {
           "kind": "event_log",
@@ -13701,7 +13764,7 @@
         "http": "POST /_arkret/self/consent/cells/{holder_did}/revoke",
         "grpc": "SelfConsent/Revoke",
         "mq": "self.consent.command.revoke",
-        "notes": "Builds a ak.consent.revoke Control Move enumerating the active grant dots for the (consent_id, peer, consent_scope). Revoking consent_scope=any cascades all concrete scopes; revoking a concrete scope leaves others intact.",
+        "notes": "Submits the caller-signed ak.consent.revoke Control Move carried in revoke_event through ordinary Event admission. Its payload.observed_dots MUST enumerate the active grant dots being removed for the (consent_id, peer, consent_scope), read back from consent_cell_view.active_grant_dots. Revoking consent_scope=any cascades all concrete scopes and MUST still enumerate every dot; revoking a concrete scope leaves others intact.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13710,7 +13773,7 @@
           "strategy": "query_operation",
           "operation_id": "ak.self.consent.read.list"
         },
-        "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
+        "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body",
         "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
         "durable_effect": {
           "kind": "event_log",
@@ -13782,7 +13845,7 @@
         "http": "DELETE /_arkret/self/account_data/{account_data_key}",
         "grpc": "SelfAccountData/Delete",
         "mq": "self.account_data.resource.delete",
-        "notes": "Stores a versioned tombstone for one account_data entry and fans out an actor-private update to the holder's other devices. The query parameter expected_revision is the same compare-and-set precondition as resource.replace; a mismatch returns cas_conflict and deletes nothing. The per-key revision high-water mark survives tombstone garbage collection, so a stale offline write can never resurrect the value. Key patterns whose deletion_mode is value_tombstone MUST NOT use this operation.",
+        "notes": "Submits the caller-signed tombstone ak.account_data.set Event. The actor-private cell subject is composite[envelope.actor_id, payload.key], so only the holder may sign it and the service MUST NOT author it under its own DID. expected_revision is the Event payload's; it is no longer a query parameter. deletion_mode=value_tombstone keys MUST still be refused here.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -13791,7 +13854,8 @@
         "durable_effect": {
           "kind": "actor_private_event",
           "event_kind": "ak.account_data.set"
-        }
+        },
+        "request_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_request_body"
       },
       {
         "operation_id": "ak.self.read_cursor.command.advance",
@@ -15944,22 +16008,6 @@
         "profile": "ak.profile.agent_sidecar.v1",
         "migration_group": "ak._0009_sidecar_ensure",
         "event_mapping_kind": "aggregate_admin"
-      },
-      {
-        "action": "ak.sidecar.access.replace",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "required_evaluator_checks": [
-          "sidecar_controller_exact",
-          "sidecar_parent_realm_and_backing_circle_exact",
-          "sidecar_access_version_cas"
-        ],
-        "target_event_kinds": [
-          "ak.sidecar.access.replace"
-        ],
-        "profile": "ak.profile.agent_sidecar.v1",
-        "event_mapping_kind": "same_name"
       },
       {
         "action": "ak.contact.scope.update",

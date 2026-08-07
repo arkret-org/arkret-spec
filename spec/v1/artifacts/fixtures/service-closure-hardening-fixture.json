@@ -26,7 +26,7 @@
         "public_failure_shape_is_not_found_equivalent"
       ],
       "state": {
-        "invite_id": "ak:invite:0196419b-0000-7000-8000-000000001001",
+        "invite_id": "ak:invite:0196419b-0000-8000-8000-000000001001",
         "claim_nonce": "nonce-001",
         "subject_id": "did:webvh:z6mkfixture:alice.example",
         "binding_proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -57,7 +57,7 @@
       "reducer_event": {
         "kind": "ak.invite.claim",
         "subject_id": "did:webvh:z6mkfixture:mallory.example",
-        "invite_id": "ak:invite:0196419b-0000-7000-8000-000000001001",
+        "invite_id": "ak:invite:0196419b-0000-8000-8000-000000001001",
         "claim_nonce": "nonce-001",
         "expected": {
           "decision": "reject",

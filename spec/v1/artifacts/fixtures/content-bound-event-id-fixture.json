@@ -1,15 +1,36 @@
 {
-  "version": "2026-08-06",
+  "version": "2026-08-07",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.encoding.content_bound_event_id.v1"
   },
   "covers_vectors": [
     "ak.vector.event_id.content_bound.v1",
-    "ak.vector.object_identity.event_derived.v1"
+    "ak.vector.object_identity.event_derived.v1",
+    "ak.vector.object_identity.subject_derived_realm.v1"
   ],
   "description": "Known-answer vectors for the content-bound event_id layout (zh/conformance/encoding.md section 4.0) and for object ids derived from it (zh/models/common-fields.md section 6.0).",
   "cases": [
+    {
+      "name": "principal_control_realm_id_is_subject_derived_uuidv7",
+      "vector_id": "ak.vector.object_identity.subject_derived_realm.v1",
+      "principal_id": "did:webvh:z6mkfixture:alice.example",
+      "domain_utf8_hex": "616b3a7265616c6d3a7072696e636970616c2d636f6e74726f6c3a76313a",
+      "sha256_digest": "984ba56e2ecf486cfbe0cab2c7a30677848ab632b02dcd0ed4f2bf01bdba5712",
+      "derived_realm_id": "ak:realm:984ba56e-2ecf-786c-bbe0-cab2c7a30677",
+      "layout": {
+        "hash_octets": "digest[0..16]",
+        "version": 7,
+        "variant_bits": "10",
+        "producer_selected_bits": 0
+      },
+      "expected": {
+        "outcome": "accepted",
+        "realm_id_source": "subject_derived_from_canonical_principal_did",
+        "different_principal_same_realm_id": "rejected",
+        "same_principal_second_genesis": "rejected"
+      }
+    },
     {
       "name": "realm_genesis_id_is_derived_and_self_certifying",
       "vector_id": "ak.vector.object_identity.event_derived.v1",
@@ -39,6 +60,39 @@
       "expected": {
         "outcome": "accepted",
         "object_id_source": "retype(event_id)"
+      }
+    },
+    {
+      "name": "one_event_derives_distinct_report_and_queue_item_typed_ids",
+      "vector_id": "ak.vector.object_identity.event_derived.v1",
+      "event_kind": "ak.self.moderation.report",
+      "derived_event_id": "ak:event:1a9cf3a0-1243-8bf9-b5d7-a3e5a4ff17ea",
+      "derived_object_ids": [
+        "ak:report:1a9cf3a0-1243-8bf9-b5d7-a3e5a4ff17ea",
+        "ak:moderation_queue_item:1a9cf3a0-1243-8bf9-b5d7-a3e5a4ff17ea"
+      ],
+      "identity_key": "full_typed_id",
+      "expected": {
+        "outcome": "accepted",
+        "all_uuid_payloads_equal_event_id": true,
+        "full_typed_ids_unique": true,
+        "maximum_objects_per_typed_kind": 1
+      }
+    },
+    {
+      "name": "closed_single_genesis_kinds_retype_the_event_id",
+      "vector_id": "ak.vector.object_identity.event_derived.v1",
+      "derived_event_id": "ak:event:1a9cf3a0-1243-8bf9-b5d7-a3e5a4ff17ea",
+      "event_kind_to_object_id": {
+        "ak.moderation.appeal.submit": "ak:appeal:1a9cf3a0-1243-8bf9-b5d7-a3e5a4ff17ea",
+        "ak.audit.session.request": "ak:audit_session:1a9cf3a0-1243-8bf9-b5d7-a3e5a4ff17ea",
+        "ak.audit.release": "ak:audit_release:1a9cf3a0-1243-8bf9-b5d7-a3e5a4ff17ea",
+        "ak.invite.create": "ak:invite:1a9cf3a0-1243-8bf9-b5d7-a3e5a4ff17ea",
+        "ak.invite.third_party": "ak:invite:1a9cf3a0-1243-8bf9-b5d7-a3e5a4ff17ea"
+      },
+      "expected": {
+        "outcome": "accepted",
+        "all_object_ids_equal_retype_event_id": true
       }
     },
     {

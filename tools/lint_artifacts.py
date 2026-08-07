@@ -2975,6 +2975,11 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         for row in (id_rows if isinstance(id_rows, list) else [])
         if isinstance(row, dict) and row.get("id_form") == "event_derived"
     }
+    id_by_kind = {
+        row.get("kind"): row
+        for row in (id_rows if isinstance(id_rows, list) else [])
+        if isinstance(row, dict) and isinstance(row.get("kind"), str)
+    }
     for row in id_rows if isinstance(id_rows, list) else []:
         if not isinstance(row, dict):
             continue
@@ -2984,6 +2989,111 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             lint.fail(id_path, f"id kind has invalid format: {kind}")
         if isinstance(kind, str) and isinstance(wire_form, str) and not wire_form.startswith(f"ak:{kind}:"):
             lint.fail(id_path, f"{kind} wire_form must start with ak:{kind}:")
+
+    # zh/models/common-fields.md section 6.0: an event-derived Event may
+    # retype its event_id into more than one *different* typed ID kind.  The
+    # full `ak:<kind>:<uuid>` is the identity key, so this is collision-free;
+    # however the target set must be closed and one-per-kind.  Single-output
+    # rows retain `id_kind`; multi-output rows use `id_kinds[]`.
+    for event_kind, row in event_by_kind.items():
+        single_target = row.get("id_kind")
+        multiple_targets = row.get("id_kinds")
+        if row.get("id_source") != "event_derived":
+            # Conditional event/subject-derived rows (currently Realm) retain
+            # a single shared id_kind and validate their branch table
+            # separately.  Multi-output is defined only for event_derived.
+            if multiple_targets is not None:
+                lint.fail(event_path, f"{event_kind} id_kinds requires id_source=event_derived")
+            continue
+        if (single_target is None) == (multiple_targets is None):
+            lint.fail(
+                event_path,
+                f"{event_kind} event_derived row must declare exactly one of id_kind or id_kinds",
+            )
+            continue
+        if single_target is not None:
+            targets = [single_target]
+            if not isinstance(single_target, str) or not single_target:
+                lint.fail(event_path, f"{event_kind} id_kind must be a non-empty string")
+                continue
+        else:
+            if (
+                not isinstance(multiple_targets, list)
+                or not multiple_targets
+                or not all(isinstance(target, str) and target for target in multiple_targets)
+            ):
+                lint.fail(event_path, f"{event_kind} id_kinds must be a non-empty string array")
+                continue
+            targets = multiple_targets
+            if len(set(targets)) != len(targets):
+                lint.fail(event_path, f"{event_kind} id_kinds must not repeat a typed ID kind")
+        for target in targets:
+            if target not in id_kinds:
+                lint.fail(event_path, f"{event_kind} derives unregistered id kind {target!r}")
+            elif target not in event_derived_id_kinds:
+                lint.fail(
+                    event_path,
+                    f"{event_kind} derives {target!r}, whose id-kind row is not event_derived",
+                )
+            elif event_kind not in (id_by_kind[target].get("genesis_event_kinds") or []):
+                lint.fail(
+                    event_path,
+                    f"{event_kind} -> {target!r} is missing from that id kind's genesis_event_kinds",
+                )
+
+    # The ID registry is the object-side join table.  Every Event-derived
+    # object names all of its genesis Event kinds, and every such Event must
+    # point back through id_kind/id_kinds.  This makes the mapping queryable in
+    # either direction without prose search or two drifting hand-maintained
+    # tables.  `event` is the sole self-content-derived kind rather than an
+    # object created by a particular Event kind.
+    for id_kind, row in id_by_kind.items():
+        id_form = row.get("id_form")
+        authority = row.get("identity_authority")
+        genesis_kinds = row.get("genesis_event_kinds")
+        if id_form == "event_derived" and id_kind == "event":
+            if authority != "canonical_event_content" or genesis_kinds is not None:
+                lint.fail(id_path, "event must use canonical_event_content and omit genesis_event_kinds")
+            continue
+        if id_form == "event_derived":
+            if authority != "event":
+                lint.fail(id_path, f"{id_kind} event_derived row must declare identity_authority=event")
+            if (
+                not isinstance(genesis_kinds, list)
+                or not genesis_kinds
+                or not all(isinstance(value, str) and value for value in genesis_kinds)
+                or len(set(genesis_kinds)) != len(genesis_kinds)
+            ):
+                lint.fail(id_path, f"{id_kind} must declare unique non-empty genesis_event_kinds")
+                continue
+            for genesis_kind in genesis_kinds:
+                genesis_row = event_by_kind.get(genesis_kind)
+                if genesis_row is None:
+                    lint.fail(id_path, f"{id_kind} names unknown genesis Event {genesis_kind}")
+                    continue
+                declared_targets = []
+                if isinstance(genesis_row.get("id_kind"), str):
+                    declared_targets.append(genesis_row["id_kind"])
+                if isinstance(genesis_row.get("id_kinds"), list):
+                    declared_targets.extend(genesis_row["id_kinds"])
+                if genesis_row.get("id_source") != "event_derived" or id_kind not in declared_targets:
+                    lint.fail(
+                        id_path,
+                        f"{id_kind} genesis Event {genesis_kind} does not point back to this id kind",
+                    )
+        elif id_form == "event_derived_or_subject_derived":
+            if authority != "event_or_subject_transcript":
+                lint.fail(
+                    id_path,
+                    f"{id_kind} conditional row must declare identity_authority=event_or_subject_transcript",
+                )
+            if not isinstance(genesis_kinds, list) or not genesis_kinds:
+                lint.fail(id_path, f"{id_kind} conditional row must declare genesis_event_kinds")
+        elif authority is not None or genesis_kinds is not None:
+            lint.fail(
+                id_path,
+                f"{id_kind} non-derived row must not declare derived identity authority/genesis fields",
+            )
 
     special_id_kinds = unique_values(lint, id_path, id_registry.get("special_forms", []), "kind")
 
@@ -4425,12 +4535,12 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.identity.disclosure_receipt", "state_payload"),
     ("ak.identity.presentation_request", "state_payload"),
     ("ak.identity.presentation_response", "state_payload"),
-    ("ak.invite.accept", "invite_payload"),
-    ("ak.invite.cancel", "invite_payload"),
-    ("ak.invite.claim", "invite_payload"),
-    ("ak.invite.create", "invite_payload"),
-    ("ak.invite.revoke", "invite_payload"),
-    ("ak.invite.third_party", "invite_payload"),
+    ("ak.invite.accept", "invite_accept_payload"),
+    ("ak.invite.cancel", "invite_cancel_payload"),
+    ("ak.invite.claim", "invite_claim_payload"),
+    ("ak.invite.create", "invite_create_payload"),
+    ("ak.invite.revoke", "invite_revoke_payload"),
+    ("ak.invite.third_party", "invite_third_party_create_payload"),
     ("ak.morph.archive", "object_lifecycle_payload"),
     ("ak.morph.restore", "object_lifecycle_payload"),
     ("ak.morph.update", "object_patch_payload"),
@@ -5921,6 +6031,39 @@ def check_typed_id_prose_consistency(lint: Lint) -> None:
         lint.fail(common_fields, "typed identifier wire value must be MUST, not SHOULD")
     if "UUID 部分 SHOULD" in common_text:
         lint.fail(common_fields, "typed identifier UUIDv7 rule must be MUST, not SHOULD")
+    if "UUID 部分 MUST 使用 UUIDv7（time-ordered）" in common_text:
+        lint.fail(common_fields, "typed identifier prose must not require UUIDv7 for event-derived kinds")
+    for required_rule in (
+        "`producer_allocated` 使用 UUIDv7",
+        "`event_derived` 使用",
+        "content-bound UUIDv8",
+        "调用点 MUST NOT 自行选择",
+    ):
+        if required_rule not in common_text:
+            lint.fail(common_fields, f"typed identifier dual-form rule missing: {required_rule}")
+
+    planned_id_decision_paths = {
+        (SPEC_ROOT / "zh" / "sync" / "signal.md").resolve(),
+        (SPEC_ROOT / "zh" / "models" / "personal-productivity.md").resolve(),
+        (ARTIFACTS / "registry" / "account-data-key-registry.json").resolve(),
+        (ARTIFACTS / "schemas" / "signal-message-stream.schema.json").resolve(),
+    }
+    event_uuidv7 = re.compile(
+        r"(?:event_id.{0,120}UUIDv7|UUIDv7.{0,120}event_id)",
+        flags=re.IGNORECASE,
+    )
+    event_derived_uuidv7 = re.compile(
+        r"ak:(?:space|circle|strand|message|morph|relation|view):<uuidv7>",
+        flags=re.IGNORECASE,
+    )
+    for path in [*markdown_files(), *all_json_files()]:
+        if path.resolve() in planned_id_decision_paths:
+            continue
+        text = path.read_text(encoding="utf-8")
+        if event_uuidv7.search(text):
+            lint.fail(path, "non-planned Event ID prose must use content-bound UUIDv8, not UUIDv7")
+        if event_derived_uuidv7.search(text):
+            lint.fail(path, "event-derived object ID prose must use content-bound UUIDv8, not UUIDv7")
 
     encoding_text = encoding.read_text(encoding="utf-8")
     if "`txn`" in encoding_text:
@@ -7704,17 +7847,20 @@ def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str
         candidate = rest[:36]
         # zh/conformance/encoding.md section 4: the UUID construction is fixed per
         # kind by id-kind-registry id_form. event_derived kinds carry the UUIDv8
-        # content-bound layout of section 4.0; everything else stays UUIDv7.
+        # content-bound layout of section 4.0; producer allocations use UUIDv7.
+        # Realm is the registered exception: collaboration uses event-derived
+        # v8 while PCR uses a DID-transcript-derived v7 layout.
         if token_kind == "realm":
             # zh/models/realm-and-space.md section 2.5.0: `ak:realm:` is the one
-            # kind with two content-bound forms — collaboration Realms are
-            # event-derived (v8), Principal Control Realms are subject-derived
-            # from the principal DID (v7 layout) so they stay computable from
-            # the DID alone. Neither is producer-chosen.
-            if not (UUID8_RE.fullmatch(candidate) or UUID7_RE.fullmatch(candidate)):
+            # kind with two registered layouts — collaboration Realms are
+            # event-derived v8, Principal Control Realms are subject-derived v7
+            # from the principal DID. Neither is producer-chosen. Fixture token
+            # lint checks the shared shape; semantic runners must select and
+            # recompute the layout from genesis purpose.
+            if not (UUID7_RE.fullmatch(candidate) or UUID8_RE.fullmatch(candidate)):
                 lint.fail(
                     path,
-                    f"{json_path} has invalid ak:realm: expected a content-bound typed uuid",
+                    f"{json_path} has invalid ak:realm: expected registered UUIDv7/v8 layout",
                 )
         elif token_kind in known.get("event_derived_id_kinds", set()):
             if not UUID8_RE.fullmatch(candidate):

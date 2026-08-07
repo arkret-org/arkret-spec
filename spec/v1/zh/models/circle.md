@@ -35,7 +35,7 @@ Schema id: `ak.schema.circle.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:circle` | `ak:circle:<uuid>`(UUIDv7) | Circle ID。 |
+| `id` | yes | `id:circle` | `ak:circle:<uuid>`（event-derived content-bound UUIDv8） | Circle ID。 |
 | `schema` | yes | `ak.schema.circle.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | create-locked;Circle 永远属于一个 Realm，不可改绑。 | 归属 Realm(父安全/联邦边界)。 |
 | `profile_ref` | no | `profile id` | create-locked；必须匹配 `^ak\.profile\.[a-z0-9_.-]+\.v1$`。普通 Circle 省略；profile-specific 创建路径必须写入其规范注册的 profile id。 | Circle 的语义 profile 判别器；目录、查询与客户端用它执行 profile-specific fail-closed 过滤，不得依赖 title、short_name 或 relation 推断。Agent Sidecar 是独立对象，不使用 Circle `profile_ref` 表达。 |
@@ -65,7 +65,7 @@ Schema id: `ak.schema.circle.v1`
 
 | 子字段 | 必填 | 类型 | 约束 |
 | --- | --- | --- | --- |
-| `short_name` | yes | `string` | `^[A-Z][A-Za-z0-9 _-]{0,23}$`；在 `(realm_id, short_name)` 上 reducer 强制唯一(case-insensitive)。`SC-` 前缀由 [`sidecar.md` §5](./sidecar.md) 保留，普通 Circle create/update MUST `schema_violation`(`reason=reserved_circle_short_name`)。其它普通 Circle 冲突 MUST `failed_precondition`(`reason=circle_short_name_taken`，见 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json))。Sidecar backing Circle 的 short name 由 reducer canonical 派生，任何冲突只返回通用 `sidecar_create_denied`。 |
+| `short_name` | yes | `string` | `^[A-Z][A-Za-z0-9 _-]{0,23}$`；在 `(realm_id, short_name)` 上 reducer 强制唯一(case-insensitive)。冲突 MUST `failed_precondition`（`reason=circle_short_name_taken`，见 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）。Circle 名称空间不为 Sidecar 保留前缀。 |
 | `color_token` | yes | `string` | 从 `circle.schema.json#/$defs/display/properties/color_token/enum` 的受控 palette 选；该 schema enum 是 canonical 机器真源。客户端 MUST 映射 token → 主题颜色(浅/深/高对比),**不**得自行重分配 token。`gray_high_contrast` 是承载无障碍/高对比语义的特例 token，并非纯色相；客户端 MUST 把它映射为高对比中性灰主题色。 |
 | `symbol` | yes | `object` | `{emoji?: string, glyph?: enum}`；二选一。`glyph` 取 `circle.schema.json#/$defs/display/properties/symbol/properties/glyph/enum` 的受控 snake_case 枚举；该 schema enum 是 canonical 机器真源。客户端 MUST 把 glyph token 映射为本地 icon,MUST NOT 自行扩展未注册 token。 |
 
@@ -366,7 +366,7 @@ tombstone / destroy 时，即使 Circle canonical state 仍为 `active`，receiv
 > **Scope 投递不变量**:对任意事件 `E` 满足 `E.effective_scope.kind="circle"` 且 `E.effective_scope.circle_id=C`,Sync Service MUST NOT 向不属于 `C.members(at causal frontier of E)` 的 actor 投递 `E` 的 envelope 或 payload。订阅 Realm R 等价于订阅 (R 的 Realm-level events) ∪ (∀C ∈ R.circles, 若 actor ∈ C.members 则 C 的 scoped events，否则 ∅)。
 
 特例:
-- `ak.circle.create` 的 authorization shell 是 Realm-level event，但 projection MUST 按 `directory_visibility` 裁剪。`directory_visibility=members` 时，非成员不得看到 Circle title、display、member_count、created_by 或可区分存在性的错误；最多只能看到不可枚举的 opaque commitment。非成员 Circle stub 的 shape MUST 固定为 `{ "visibility": "locked", "opaque_commitment": "<digest-or-fixed-placeholder>" }` 或等价字段集合；`opaque_commitment` MUST 是固定长度、不可逆、不可按 Circle title / short_name / member set 枚举的 digest，且不可见与不存在 Circle 的 list / get / search 响应 MUST 使用同一错误 envelope、同一字段集合和同一 timing bucket。普通 Circle 的该隐私要求由 `ak.vector.circle.directory_visibility_members_indistinguishable.v1` 覆盖；独立 Sidecar 及其 backing Circle 还需额外满足 `ak.vector.sidecar.existence_privacy.v1`。
+- `ak.circle.create` 的 authorization shell 是 Realm-level event，但 projection MUST 按 `directory_visibility` 裁剪。`directory_visibility=members` 时，非成员不得看到 Circle title、display、member_count、created_by 或可区分存在性的错误；最多只能看到不可枚举的 opaque commitment。非成员 Circle stub 的 shape MUST 固定为 `{ "visibility": "locked", "opaque_commitment": "<digest-or-fixed-placeholder>" }` 或等价字段集合；`opaque_commitment` MUST 是固定长度、不可逆、不可按 Circle title / short_name / member set 枚举的 digest，且不可见与不存在 Circle 的 list / get / search 响应 MUST 使用同一错误 envelope、同一字段集合和同一 timing bucket。普通 Circle 的该隐私要求由 `ak.vector.circle.directory_visibility_members_indistinguishable.v1` 覆盖；原生 Sidecar 的独立存在性隐私由 `ak.vector.sidecar.existence_privacy.v1` 覆盖。
 - `directory_visibility=realm_members` 时，属于父 Realm 但不属于该 Circle 的 caller 只能看到固定预览白名单：`circle_id`、`realm_id`、`visibility="realm_members"`、`display.color_token`、`display.symbol`、`member_count_bucket`、`join_rule` 与 `opaque_commitment`。不得向非 Circle 成员暴露 title、summary、raw member_count、成员 DID、created_by、join history 或 Circle 私有事件引用。非 Realm 成员与未授权 caller 必须收到与 `directory_visibility=members` 相同的 locked stub / not_found envelope 和 timing bucket。该要求由 `ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1` 覆盖。
 - `ak.circle.member.state` 仅投递给该 Circle 的成员 + 完成 `ak.circle.audit` / `ak.audit.accessed` 配对的 audit reader。
 - `ak.circle.seal_commit` 是 Realm-level event，但只携带 opaque digest(见 §10)，且触发节奏不得泄露 Circle 活动频率。
@@ -418,11 +418,12 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 5. 跨 Circle 引用必须标识为“另一 Circle / 另一协作圈 / 另一作用域”或等价语义，**不得**使用“信任圈”措辞，且不得预览调用者无权访问的内容。
 6. "宽 seal Strand + 窄 discussion Strand" 的组合形态(§7.2)在 UI 上 MAY 渲染为同一工作 surface,**但**两个 Strand 之间的切换 MUST 表现为跨 scope 转场，不得表现为同一 Strand 内不同视图。
 
-### 11.1 Agent Sidecar backing Circle
+### 11.1 Agent Sidecar 与 Circle 的强制分离
 
-Agent Sidecar 是 [`sidecar.md`](./sidecar.md) 定义的独立 `ak:sidecar:` 对象，不是 Circle profile。Sidecar reducer/service 为它派生一个系统管理的 backing Circle，以复用本文件的 scoped delivery、query/projection、sub-seal 与独立 MLS group 语义。
-
-普通 Circle create/list/get/update/member/lifecycle API MUST 排除所有被 Sidecar `backing_circle_id` 引用的 Circle。Backing Circle 的 shape、访问 fan-out、MLS readiness、存在性隐私、private Strand projection 与 lifecycle 只服从 `sidecar.md`；caller 不得通过 `profile_ref`、title、short_name、member set 或 Relation 猜测或管理它。
+Agent Sidecar 使用 [`sidecar.md`](./sidecar.md) 定义的原生 `scope_ref.kind="sidecar"`。Circle reducer、
+membership、MLS group、目录与 lifecycle 均不得为 Sidecar 创建隐藏或系统管理对象。Sidecar 的 private-view
+映射与显式发布规则也不得用于 Circle 内容；Circle scope 的信息只能按本文件定义的 membership/history/
+delivery 边界流动。
 
 ## 12. 与既有概念的区分
 

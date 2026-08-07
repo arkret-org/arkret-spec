@@ -52,7 +52,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 
 - 未标记 optional 的字段为 required。
 - `null` 只有在类型中明确写出时才允许。
-- Event Envelope 顶层未知字段 MUST 被 schema validation 拒绝；非关键扩展只能放入 `payload.x_*`，且仅当该 payload kind 的 schema 显式声明 `x_*` patternProperties 扩展槽时才可使用——未声明扩展槽的 payload kind 不接受任何未知字段（payload schema 的 `additionalProperties: false` 即权威判定）。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的 `x_*` 字段，但 MUST NOT 让 `x_*` 字段绕过 capability、schema、policy 或加密约束。需要扩展槽的 payload kind SHOULD 先在对应 schema 登记 `x_*` patternProperties 槽再使用；当前已声明扩展槽的 payload kind 以 schema 为准（现仅 `invite_payload`）。未知 critical extension MUST fail closed。
+- Event Envelope 顶层未知字段 MUST 被 schema validation 拒绝；非关键扩展只能放入 `payload.x_*`，且仅当该 payload kind 的 schema 显式声明 `x_*` patternProperties 扩展槽时才可使用——未声明扩展槽的 payload kind 不接受任何未知字段（payload schema 的 `additionalProperties: false` 即权威判定）。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的 `x_*` 字段，但 MUST NOT 让 `x_*` 字段绕过 capability、schema、policy 或加密约束。需要扩展槽的 payload kind SHOULD 先在对应 schema 登记 `x_*` patternProperties 槽再使用；当前已声明扩展槽的 payload kind 以 schema 为准（Invite 的六个逐 Event payload schema 各自声明该槽）。未知 critical extension MUST fail closed。
 - 签名和 hash 输入 MUST 使用 canonical JSON。
 - `id:<kind>` 在 wire、canonical object、fixture、签名和跨服务引用中 MUST 使用完整 typed ID。数据库内部 MAY 只存 raw id，但在序列化、签名、hash、联邦、sync cursor 和审计回放前必须恢复 `ak:<kind>:` 前缀；不得把数据库主键或表名当作协议 ID 的替代品。
 - 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `ak:device:<uuid>`，MUST NOT 写成局部别名如 `dev_a` 或 `a`。
@@ -231,7 +231,7 @@ Service identity 字段统一使用 `service_id` / `<role>_service_id`，即使 
 - `fields` 是协作对象的扩展容器；Strand / Message 的用户可读扩展放入 `metadata.fields` 或 `encrypted_metadata`，不得作为顶层 `fields`；View / Policy / Blob meta / Capability Grant / Invite / Read Cursor / Notification 不暴露开放扩展容器。
 - **View 终态复用 update**：共享 View 通过 `ak.view.update` patch `state="tombstoned"` 进入 durable terminal state；不另注册平行的 `ak.view.tombstone` event kind。Reducer 派生 `state_changed_at`，终态后的 update / reconcile 用 `view_already_terminal` 拒绝；见 [`views.md` §3.1](./views.md)。
 - **Realm 无 materialized `state` 字段**：Realm 的 `archived` / `frozen` / `tombstoned` / `destroyed` 由 `ak.component.realm.*` lifecycle facet 表达，`realm.schema.json` 拒绝 `state` / `state_changed_at`。Projection MAY 把 `ak.realm.tombstone` 与 `ak.realm.destroy` 均显示为 `realm_terminal_state`，并用 `terminal_kind=tombstone|destroy` 或同等字段区分 successor 迁移与永久退役；不得把该 projection 状态写回 Realm 对象。
-- **Agent Sidecar（`ak:sidecar:`）authorship 与 state 特例**：Sidecar 不使用通用 `created_by` / `updated_by`；其 authorship 是 controller（`controller_id`，create-locked、必为父 Realm active member），create / update 主体由 reducer 从 controller account / Realm membership / lifecycle frontier 派生（`agent-sidecar.schema.json` 无 `created_by` / `updated_by`）。本表对应格写"—"与 Capability Grant / Invite 同理——不表示没有创建主体记录。Sidecar 的 `state`（`active` / `suspended` / `tombstoned`）是**reducer-derived 特例生命周期轴**：`suspended` 不属于 §5 通用物理 lifecycle 枚举（见 §5 附注），无 actor-authored `ak.sidecar.update/archive/restore`；`state_changed_at` 取触发派生转换的已接受 Event timestamp。合法 / 非法迁移封闭表见 [`sidecar.md` §3.3](./sidecar.md)。Sidecar 无 `labels` / `stage` / `stage_changed_at` / 顶层 `fields` 扩展容器。
+- **Agent Sidecar（`ak:sidecar:`）authorship 与 state 特例**：Sidecar 不使用通用 `created_by` / `updated_by`；其 authorship 是 controller（`controller_id`，create-locked、必为父 Realm active member），create / update 主体由 reducer 从 controller account / Realm membership / lifecycle frontier 派生（`agent-sidecar.schema.json` 无 `created_by` / `updated_by`）。本表对应格写"—"与 Capability Grant / Invite 同理——不表示没有创建主体记录。Sidecar 的 `state`（`active` / `suspended` / `tombstoned`）是**reducer-derived 特例生命周期轴**：`suspended` 不属于 §5 通用物理 lifecycle 枚举（见 §5 附注），无 actor-authored `ak.sidecar.update/archive/restore`；`state_changed_at` 取触发派生转换的已接受 Event timestamp。合法 / 非法迁移封闭表见 [`sidecar.md` §7](./sidecar.md)。Sidecar 无 `labels` / `stage` / `stage_changed_at` / 顶层 `fields` 扩展容器。
 
 ### 3.2 字段声明 / 展示顺序约定（normative reference）
 
@@ -404,7 +404,7 @@ Realm 与 Circle membership 共用本节唯一的状态图。`initial_state=leav
 
 - 写入路径 MUST 来自对应 reducer-input event（`ak.<kind>.archive` / `ak.<kind>.restore` / `ak.<kind>.tombstone` / `ak.<kind>.redact` 或等价命名）；不得直接 PATCH 对象顶层 state。`archived -> active` 是显式的可逆转换，由 `ak.<kind>.restore`（Strand、Circle、Space、Morph 均已注册对应 restore event）承担；`tombstoned` / `deleted` / `redacted` 是不可逆终态，MUST NOT 被 restore。
 - `state != active` 时 MUST 写入 `state_changed_at`（§3 / §3.1 统一标记为 `R when state≠active`：reducer-derived、actor MUST NOT 携带）。
-- **Agent Sidecar（`ak:sidecar:`）特例 state 轴**：Sidecar 的 `state` 为 `active` / `suspended` / `tombstoned`。它**不**由 §5.1 的 `ak.<kind>.archive/restore/tombstone` 事件驱动，而是由已接受的 controller account / Realm membership / lifecycle frontier **reducer-derived** 的 canonical projection（无 actor-authored lifecycle event）。`suspended`（controller 暂时失去 Realm access / account 临时冻结 / 密钥恢复未 ready）是本轴独有的可逆中间态，不属于上表通用 `archived` 语义；`tombstoned` 为不可逆终态。合法 / 非法迁移封闭表与派生条件见 [`sidecar.md` §3.3](./sidecar.md)。与 Notification / Invite 的特例 `state` 轴（§3.1 附注）并列，均不落入本节通用协作对象物理 lifecycle 状态机。
+- **Agent Sidecar（`ak:sidecar:`）特例 state 轴**：Sidecar 的 `state` 为 `active` / `suspended` / `tombstoned`。它**不**由 §5.1 的 `ak.<kind>.archive/restore/tombstone` 事件驱动，而是由已接受的 controller account / Realm membership / lifecycle frontier **reducer-derived** 的 canonical projection（无 actor-authored lifecycle event）。`suspended`（controller 暂时失去 Realm access / account 临时冻结 / 密钥恢复未 ready）是本轴独有的可逆中间态，不属于上表通用 `archived` 语义；`tombstoned` 为不可逆终态。合法 / 非法迁移封闭表与派生条件见 [`sidecar.md` §7](./sidecar.md)。与 Notification / Invite 的特例 `state` 轴（§3.1 附注）并列，均不落入本节通用协作对象物理 lifecycle 状态机。
 
 #### 5.1 Canonical state-transition table
 
@@ -527,15 +527,15 @@ object_id ≡ retype(create_event.event_id, object_kind)
 规则：
 
 - **create payload MUST NOT 携带该 ID 字段。**携带即 `schema_violation`，`reason_code=object_id_not_event_derived`。reducer 在物化对象时派生它。
-- **一条 create Event 只派生一个 create-once 对象 ID。**一个 `event_id` 只能命名一个对象；需要一次原子创建两个带独立 ID 的对象的 kind 在 v1 中不存在，新增此类 kind MUST 先解决命名冲突，不得复用同一 `event_id`。
+- **一个 create Event 对同一 typed ID kind 最多派生一个 create-once 对象 ID。**对象身份键是完整的 `ak:<kind>:<uuid>`，不是裸 UUID；因此同一 `event_id` 可以按 registry 的封闭声明分别重标为多个不同 kind，且这些对象 ID 不相等。registry MUST 使用唯一的 `id_kind` 或非空、去重的 `id_kinds[]` 声明全部派生目标；同一 kind 需要两个或更多独立对象时 MUST 使用不同的 create Event，不得给同一前缀重复使用该 `event_id`。
 - **`event_id` 的唯一性作用域 MUST 保持全局。**它 MUST NOT 被收窄为 `(realm_id, actor_id)`：那样两个 actor 可以派生出同名对象，正是本规则要消除的情形。
-- `ak.realm.create` 的 `realm_id` 在 Event Envelope 而不在 payload，其形态见 [`realm-and-space.md` §2.5](./realm-and-space.md)。
+- `ak.realm.create` 的 wire envelope 与 payload 都省略 `realm_id`，receiver 按 `purpose` 选择 event-derived Collaboration Realm 或 subject-derived PCR 规则；见 [`realm-and-space.md` §2.5](./realm-and-space.md)。
 
-**这是构造性约束，不是检测规则。**两条不同的 create Event 必然有不同的 `event_id`，因而必然命名两个不同的对象；"同一个对象 ID 对应两份不同 Genesis"在 v1 中不可表达，因此不需要冲突检测、隔离或恢复机制。要伪造一个与既有对象同名的 create，攻击者必须先伪造 `event_id`，那是 §4.0 的 2^88。
+**这是构造性约束，不是检测规则。**对任一固定 typed kind，两条不同的 create Event 必然有不同的 `event_id`，因而必然命名两个不同的对象；同一 Event 向不同 kind 重标得到的完整 typed ID 也必然不同。"同一个 typed 对象 ID 对应两份不同 Genesis"在 v1 中不可表达，因此不需要冲突检测、隔离或恢复机制。要伪造一个与既有对象同名的 create，攻击者必须同时命中该对象 kind 与 `event_id`，后者是 §4.0 的 2^88。
 
 本节的 conformance 入口是 `ak.vector.object_identity.event_derived.v1`（机读 fixture 见 [`content-bound-event-id-fixture.json`](../../artifacts/fixtures/content-bound-event-id-fixture.json)）：它固定 `retype(event_id)` 的 KAT、`realm_id` 的自证校验，以及 `object_id_not_event_derived` / `realm_id_not_event_derived` 两条拒绝路径。
 
-`id_source` 的另两个取值：`reference` 表示该 kind 引用一个别处创建的对象；`not_an_object_id` 表示该字段不是 typed 对象 ID（DID、命名空间字符串、profile-scoped form）。**每个 active kind MUST 声明其一**，registry lint 在缺声明时失败——覆盖面由机器保证，不依赖人工枚举。
+`id_source` 的其它取值：`subject_derived` 表示从 registry 固定的 canonical subject transcript 派生；`event_derived_or_subject_derived` 表示由机器可读 `id_source_variants[]` 按签名 payload 选择互斥分支；`reference` 表示该 kind 引用一个别处创建的对象；`not_an_object_id` 表示该字段不是 typed 对象 ID（DID、命名空间字符串、profile-scoped form）。**每个 active kind MUST 声明其一**，registry lint 在缺声明时失败——覆盖面由机器保证，不依赖人工枚举。
 
 Protocol typed identifier / reference 的 wire value MUST 使用带类型前缀的稳定字符串：
 
@@ -560,9 +560,20 @@ ak:receipt:<uuid>
 ak:trust_domain:<trust_domain_label>   # 非 UUID 形态，见下方说明
 ```
 
-UUID 部分 MUST 使用 UUIDv7（time-ordered），便于审计与排序；content-addressed form 使用对应 digest。
+UUID 部分的构造 MUST 由
+[`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 中该 kind 的 `id_form`
+唯一固定：`producer_allocated` 使用 UUIDv7（time-ordered），`event_derived` 使用
+[`../conformance/encoding.md` §4.0](../conformance/encoding.md) 定义的 content-bound UUIDv8；
+`event_derived_or_subject_derived` 的分支由 registry 的 kind 级规则固定。调用点 MUST NOT 自行选择
+UUIDv7 / UUIDv8，也不得把 Event 或 Event-derived typed ID 降级为 UUIDv7。content-addressed form
+使用对应 digest。
 
-并非所有 ID kind 都是 `ak:<kind>:<uuidv7>`。`ak:trust_domain:` 是 deployment-scoped replay boundary 标识：其 wire form 为 `ak:trust_domain:<trust_domain_label>`，`<trust_domain_label>` 是稳定的部署信任域标签（例如 `ak:trust_domain:did.webvh.acme.example`），不是 UUID。它 create-locked 在 Realm `trust_domain` 字段上，MUST 匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context（见 [`realm-and-space.md` §2.3](./realm-and-space.md)）。
+并非所有 ID kind 都是 producer-allocated `ak:<kind>:<uuidv7>`。Event-derived kind 使用上述
+UUIDv8，此外 `ak:trust_domain:` 是 deployment-scoped replay boundary 标识：其 wire form 为
+`ak:trust_domain:<trust_domain_label>`，`<trust_domain_label>` 是稳定的部署信任域标签（例如
+`ak:trust_domain:did.webvh.acme.example`），不是 UUID。它 create-locked 在 Realm `trust_domain`
+字段上，MUST 匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context（见
+[`realm-and-space.md` §2.3](./realm-and-space.md)）。
 
 `ak:cell:` / `ak:cursor:` / `ak:seal:` 等同步 / 状态原语的 wire form 见各自章节与 `artifacts/registry/id-kind-registry.json`，不在本协作图对象 ID 约定表内。上表只是常见 wire value 形态摘要，完整 ID kind 注册表及唯一真源见 `artifacts/registry/id-kind-registry.json`。本节不决定字段名：普通 canonical object 主键仍是 `id`，Event / Receipt / Backup 等 artifact 可用 `<artifact>_id`，Blob / Snapshot / MLS 等 reference 形态按 §2.1 使用 `_ref`。
 

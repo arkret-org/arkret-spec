@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07",
+  "version": "2026-08-07.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-07T05:33:31Z",
+  "generated_at": "2026-08-07T10:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -10,7 +10,7 @@
     "Storage implementations MAY store raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the ak:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
     "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
     "The <kind> segment is part of the signed/canonical wire value. It MUST NOT be changed, inferred differently, or stripped during verification, forwarding, backfill, or replay.",
-    "The UUID segment MUST be an RFC 9562 UUID in exactly one of the two constructions defined by uuid_form_rules, fixed per kind by that kind's id_form column and never chosen per call site: version 7 for producer_allocated, version 8 with the content-bound layout of zh/conformance/encoding.md section 4.0 for event_derived. Both serialize as the canonical 36-character lowercase hex form `xxxxxxxx-xxxx-Vxxx-Nxxx-xxxxxxxxxxxx`, where V is the version nibble the kind's id_form fixes and N ∈ {8,9,a,b}."
+    "The UUID segment MUST use the construction fixed by that kind's id_form and identity_authority columns, never one chosen per call site: version 7 for producer_allocated, version 8 with the content-bound layout of zh/conformance/encoding.md section 4.0 for event_derived, and the registered Realm exception where a principal_control create selects DID-transcript-derived UUIDv7. All serialize as canonical lowercase `xxxxxxxx-xxxx-Vxxx-Nxxx-xxxxxxxxxxxx`, N ∈ {8,9,a,b}; a version nibble alone never proves identity authority."
   ],
   "special_forms": [
     {
@@ -94,15 +94,23 @@
         "relation_endpoint"
       ],
       "description": "Actor profile object ID",
-      "id_form": "event_derived"
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.profile.create"
+      ]
     },
     {
       "kind": "appeal",
       "category": "moderation",
       "status": "active",
       "wire_form": "ak:appeal:<uuid>",
-      "description": "Moderation appeal ID — opaque key for the ak.component.moderation.appeal.v1 cell. Created by ak.moderation.appeal.submit; referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5.",
-      "id_form": "producer_allocated"
+      "description": "Moderation appeal ID derived from ak.moderation.appeal.submit and referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5.",
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.moderation.appeal.submit"
+      ]
     },
     {
       "kind": "announce",
@@ -133,16 +141,24 @@
       "category": "audit",
       "status": "active",
       "wire_form": "ak:audit_session:<uuid>",
-      "description": "Audit release session ID. Threads ak.audit.session.request, authorize, notice, release, and close events for one bounded historical audit window.",
-      "id_form": "producer_allocated"
+      "description": "Audit release session ID derived from ak.audit.session.request. Threads request, authorize, notice, release, and close events for one bounded historical audit window.",
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.audit.session.request"
+      ]
     },
     {
       "kind": "audit_release",
       "category": "audit",
       "status": "active",
       "wire_form": "ak:audit_release:<uuid>",
-      "description": "Audit release manifest ID. Created by ak.audit.release for a sealed historical release under an active audit binding/session.",
-      "id_form": "producer_allocated"
+      "description": "Audit release manifest ID derived from ak.audit.release for a sealed historical release under an active audit binding/session.",
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.audit.release"
+      ]
     },
     {
       "kind": "backup",
@@ -221,7 +237,11 @@
         "read_cursor_scope_ref"
       ],
       "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md.",
-      "id_form": "event_derived"
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.circle.create"
+      ]
     },
     {
       "kind": "sidecar",
@@ -229,7 +249,11 @@
       "status": "active",
       "wire_form": "ak:sidecar:<uuid>",
       "description": "Agent Sidecar object ID — controller-owned private AI workspace, singleton per (realm_id, controller_id), with derived eligible-Agent access. See zh/models/sidecar.md.",
-      "id_form": "producer_allocated"
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.sidecar.create"
+      ]
     },
     {
       "kind": "consent",
@@ -250,7 +274,11 @@
         "read_cursor_scope_ref"
       ],
       "description": "Strand object ID",
-      "id_form": "event_derived"
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.strand.create"
+      ]
     },
     {
       "kind": "chunk",
@@ -293,7 +321,8 @@
         "relation_endpoint"
       ],
       "description": "Event Envelope ID",
-      "id_form": "event_derived"
+      "id_form": "event_derived",
+      "identity_authority": "canonical_event_content"
     },
     {
       "kind": "filter",
@@ -332,8 +361,13 @@
       "category": "authz",
       "status": "active",
       "wire_form": "ak:invite:<uuid>",
-      "description": "Invite object ID",
-      "id_form": "producer_allocated"
+      "description": "Invite object ID derived from either directed ak.invite.create or third-party ak.invite.third_party genesis.",
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.invite.create",
+        "ak.invite.third_party"
+      ]
     },
     {
       "kind": "invite_locator",
@@ -362,7 +396,11 @@
         "read_cursor_thread_root"
       ],
       "description": "Message object ID",
-      "id_form": "event_derived"
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.message.create"
+      ]
     },
     {
       "kind": "message_stream",
@@ -382,7 +420,11 @@
         "notification_source"
       ],
       "description": "Morph object ID",
-      "id_form": "event_derived"
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.morph.create"
+      ]
     },
     {
       "kind": "notification",
@@ -466,23 +508,35 @@
         "notification_source"
       ],
       "description": "Relation object ID",
-      "id_form": "event_derived"
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.relation.create"
+      ]
     },
     {
       "kind": "report",
       "category": "moderation",
       "status": "active",
       "wire_form": "ak:report:<uuid>",
-      "description": "Moderation report ID",
-      "id_form": "producer_allocated"
+      "description": "Moderation report ID derived from the accepted ak.self.moderation.report Event.",
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.self.moderation.report"
+      ]
     },
     {
       "kind": "moderation_queue_item",
       "category": "moderation",
       "status": "active",
       "wire_form": "ak:moderation_queue_item:<uuid>",
-      "description": "Moderation queue item ID",
-      "id_form": "producer_allocated"
+      "description": "Moderation queue item ID derived as a second, distinct typed output of the accepted ak.self.moderation.report Event.",
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.self.moderation.report"
+      ]
     },
     {
       "kind": "request",
@@ -510,7 +564,11 @@
         "read_cursor_scope_ref"
       ],
       "description": "Space object ID — structural grouping object inside a Realm (board, list, swimlane, calendar bucket, etc.). Authorization-transparent: never carries its own membership / policy / E2EE group; resolves to the containing Realm.",
-      "id_form": "event_derived"
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.space.create"
+      ]
     },
     {
       "kind": "subscription",
@@ -531,7 +589,11 @@
       ],
       "description": "Realm object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy.",
       "id_form": "event_derived_or_subject_derived",
-      "id_form_note": "Collaboration Realms are event-derived (UUIDv8, encoding.md section 4.0). Principal Control Realms are subject-derived from the principal DID (H(\"ak:realm:principal-control:v1:\" || did), UUIDv7 layout) so the address stays computable from the DID alone; their identity anchor is did_inception, not the genesis Event. Neither form is producer-chosen and the branch is fixed by the create's purpose."
+      "identity_authority": "event_or_subject_transcript",
+      "genesis_event_kinds": [
+        "ak.realm.create"
+      ],
+      "id_form_note": "Collaboration Realms are event-derived UUIDv8 (encoding.md section 4.0). Principal Control Realms use the registered subject-derived UUIDv7 layout H(UTF8(\"ak:realm:principal-control:v1:\") || UTF8(canonical_principal_did)); their identity anchor is did_inception, not the genesis Event. Both forms have no producer-selected bits, and the branch is fixed by the create's purpose."
     },
     {
       "kind": "transaction",
@@ -559,12 +621,16 @@
         "notification_source"
       ],
       "description": "View object ID",
-      "id_form": "event_derived"
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.view.create"
+      ]
     }
   ],
   "uuid_pattern_producer_allocated": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
   "uuid_pattern_event_derived": "^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
   "typed_uuid_pattern_producer_allocated": "^ak:<kind>:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
   "typed_uuid_pattern_event_derived": "^ak:<kind>:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-  "uuid_form_rules": "Every typed ak:<kind>:<uuid> uses exactly one of two constructions, declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7, assigned by the service or client that mints the identifier. event_derived = RFC 9562 UUIDv8 with the content-bound layout of zh/conformance/encoding.md section 4.0: 34-bit second timestamp derived from created_at plus 88 bits taken from the leftmost 11 octets of the creating Event's event_digest. An event_derived id has no producer-chosen bits, so forging one that collides with an existing object requires 2^88 hash operations instead of typing a string. Implementations MUST NOT choose the form per site; it is fixed by this registry."
+  "uuid_form_rules": "Every typed ak:<kind>:<uuid> uses the construction declared by id_form and identity_authority. producer_allocated = RFC 9562 UUIDv7 assigned by the service/client and therefore not self-certifying. event_derived = UUIDv8 with the content-bound layout of zh/conformance/encoding.md section 4.0: 34-bit created_at seconds plus 88 event_digest bits. The sole conditional kind is realm: collaboration Realm is event-derived UUIDv8; principal_control Realm is UUIDv7 whose usable bits are deterministically derived from the registered DID transcript, not producer-selected. A nibble/regex check is only wire validation; admission MUST recompute the declared authority transcript. Implementations MUST NOT choose the form per site."
 }

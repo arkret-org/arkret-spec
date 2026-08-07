@@ -9130,14 +9130,14 @@ paths:
     post:
       operationId: ak.self.agent.sidecar.command.ensure
       description: |
-        Prepare persists only a private reservation. First commit atomically accepts
-        exactly the controller-signed ak.sidecar.create and
-        ak.sidecar.context.attach Events: create projects the Sidecar, backing Circle
-        and controller membership; attach projects the private Strand and Relation.
+        Prepare persists only a private reservation. First commit accepts exactly
+        the controller-signed ak.sidecar.create Event; sidecar_id is UUIDv8-derived
+        from that Event. A separate ak.sidecar.context.attach Event records only a
+        source-context mapping and creates no Circle, membership, Strand or Relation.
         An existing Sidecar uses the attach branch only. The closed prepared/accepted
         outcome maps all three request phases without inventing another state.
-        Context is never part of the
-        MLS control frontier or security-frontier digest.
+        Source context is never part of the MLS control frontier or
+        security-frontier digest.
       security:
       - bearerAuth: []
         dpopProof: []

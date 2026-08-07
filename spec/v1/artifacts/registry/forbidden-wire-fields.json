@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 4,
+  "version": 6,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -338,7 +338,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "ak.message.create payload MUST NOT carry a second producer-chosen identity. The reducer materializes Message.id by retyping the UUIDv7 of Event.event_id. See zh/models/strand-and-message.md §9."
+      "notes": "ak.message.create payload MUST NOT carry a second identity. The reducer materializes Message.id by retyping the content-bound UUIDv8 of Event.event_id. See zh/models/strand-and-message.md §9."
     },
     {
       "id": "sidecar_exchange_binding",
@@ -350,7 +350,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The Agent Sidecar exchange binding (ak.schema.agent_sidecar_event_exchange_binding.v1), exchange control plaintext (ak.schema.agent_sidecar_exchange_control.v1), and exchange_id are legal only inside MLS-encrypted payload/metadata of events whose effective scope is the Sidecar backing Circle. They MUST NOT appear in plaintext metadata, account-data keys, shared Realm/Circle event payloads, publish output, push previews, notifications, telemetry, or any other shared/public surface. Shared-wire-visible occurrences are schema_violation; material decrypted from a non-Sidecar scope is invalid and never rendered or folded. See zh/models/sidecar.md §7.2."
+      "notes": "The Agent Sidecar exchange binding (ak.schema.agent_sidecar_event_exchange_binding.v1), exchange control plaintext (ak.schema.agent_sidecar_exchange_control.v1), and exchange_id are legal only inside MLS-encrypted payload/metadata of events whose effective scope is the native Sidecar. They MUST NOT appear in plaintext metadata, account-data keys, shared Realm/Circle event payloads, publish output, push previews, notifications, telemetry, or any other shared/public surface. Shared-wire-visible occurrences are schema_violation; material decrypted from a non-Sidecar scope is invalid and never rendered or folded. See zh/models/sidecar.md §7.2."
     },
     {
       "id": "blocks",

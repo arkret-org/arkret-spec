@@ -197,7 +197,7 @@
         "short_name": {
           "type": "string",
           "pattern": "^[A-Z][A-Za-z0-9 _-]{0,23}$",
-          "description": "Human-facing short name. Unique per (realm_id, short_name) case-insensitive — reducer-enforced. Prefix SC- is reserved for reducer-managed Agent Sidecar backing Circles; ordinary Circle create/update MUST reject it with reserved_circle_short_name."
+          "description": "Human-facing short name. Unique per (realm_id, short_name) case-insensitive — reducer-enforced. Circle naming has no Sidecar-reserved prefix because Sidecar is a separate native scope."
         },
         "color_token": {
           "type": "string",

@@ -2,14 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-sidecar.schema.json",
   "title": "Arkret Agent Sidecar",
-  "description": "Controller-owned private AI workspace bound one-to-one to (realm_id, controller_id). Agent Sidecar is a first-class protocol object, not a Circle profile or editable membership container. Its backing_circle_id is reducer-derived and system-managed solely as the private delivery/MLS scope. See spec/v1/zh/models/sidecar.md.",
+  "description": "Controller-owned private AI workspace bound one-to-one to (realm_id, controller_id). Agent Sidecar is a first-class native protocol scope, not a Circle profile, backing Circle, or editable membership container. See spec/v1/zh/models/sidecar.md.",
   "type": "object",
   "required": [
     "id",
     "schema",
     "realm_id",
     "controller_id",
-    "backing_circle_id",
     "encryption_profile",
     "state",
     "created_at"
@@ -26,10 +25,6 @@
     },
     "controller_id": {
       "$ref": "./common-ids.schema.json#/$defs/did"
-    },
-    "backing_circle_id": {
-      "$ref": "./common-ids.schema.json#/$defs/circle_id",
-      "description": "Reducer-derived system-managed private delivery/MLS scope. Raw ensure callers MUST NOT supply or mutate this field; the service-built canonical ak.sidecar.create payload MUST materialize it. Ordinary Circle APIs MUST NOT expose or manage the referenced Circle."
     },
     "encryption_profile": {
       "const": "mls_rfc9420",
