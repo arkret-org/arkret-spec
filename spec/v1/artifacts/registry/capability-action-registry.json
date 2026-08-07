@@ -1,7 +1,7 @@
 {
   "version": "2026-08-08.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T08:08:00Z",
+  "generated_at": "2026-08-08T12:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1426,11 +1426,11 @@
         "ak.realm.policy_bundle",
         "ak.realm.policy_server",
         "ak.realm.preview_policy",
+        "ak.realm.profile",
         "ak.realm.read_receipt_policy",
         "ak.realm.schema",
         "ak.realm.search_policy",
         "ak.realm.set_default_strand",
-        "ak.realm.update",
         "ak.realm.upgrade",
         "ak.redaction",
         "ak.relation.create",
@@ -1542,8 +1542,8 @@
         "ak.realm.owner",
         "ak.realm.plaintext_visible_services",
         "ak.realm.preview_policy",
+        "ak.realm.profile",
         "ak.realm.set_default_strand",
-        "ak.realm.update",
         "ak.realm.upgrade",
         "ak.realm_key.share",
         "ak.receipt.broadcast",
@@ -1691,14 +1691,14 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.realm.update",
+      "action": "ak.realm.profile",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [
         "allowed_write_fields"
       ],
       "target_event_kinds": [
-        "ak.realm.update"
+        "ak.realm.profile"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"

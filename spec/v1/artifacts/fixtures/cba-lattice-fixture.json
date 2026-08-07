@@ -1228,7 +1228,7 @@
     {
       "name": "realm_alias_single_carrier",
       "vector_id": "ak.vector.event_kind.realm_alias_single_carrier.v1",
-      "description": "A Realm alias has exactly one wire carrier. ak.realm.alias sets ak.component.realm.alias.v1 (cas_register, cell_subject=null, bottom=reject); the closed realm.schema.json object and the ak.realm.create / ak.realm.update payloads carry no alias, and no implementation may keep a fallback input chain over several shapes.",
+      "description": "A Realm alias has exactly one wire carrier. ak.realm.alias sets ak.component.realm.alias.v1 (cas_register, cell_subject=null, bottom=reject); the closed realm genesis/profile objects carry no alias, and no implementation may keep a fallback input chain over several shapes.",
       "required_projected_writes": [
         {
           "cell": "ak:cell:ak.component.realm.alias.v1:null",
@@ -1239,7 +1239,7 @@
         "declaration_payload": {
           "alias": "general:acme.example"
         },
-        "create_time_alias_shape": "same ordered submit batch after ak.realm.create and the founding grant, seal_basis exempt as a registered bootstrap follow-up",
+        "create_time_alias_shape": "registered conditional alias slot in the same ordered atomic Realm bootstrap unit",
         "post_bootstrap_alias_shape": "ordinary Control Move carrying seal_basis",
         "rename_shape": "successor set on the same cell carrying whole-value head_eq",
         "release_shape": "explicit {tombstone:true} set; effective resolution treats it as absence and the Realm stays addressable only by realm_id",
@@ -1256,8 +1256,8 @@
           "expected": "schema_violation (realm.schema.json is closed and explicitly forbids alias)"
         },
         {
-          "name": "alias_in_realm_patch",
-          "mutation": "ak.realm.update carries payload.patch.alias",
+          "name": "alias_in_realm_profile",
+          "mutation": "ak.realm.profile carries payload.object.alias",
           "expected": "schema_violation"
         },
         {
@@ -1295,17 +1295,11 @@
     {
       "name": "realm_create_projection_closure",
       "vector_id": "ak.vector.event_kind.realm_create_projection_closure.v1",
-      "description": "ak.realm.create deterministically projects all four registered writes, so two independent implementations recompute a byte-identical genesis state_root without producer-supplied reducer state.",
+      "description": "ak.realm.create deterministically projects all five registered writes, while profile and membership remain explicit ordered bootstrap facets, so two independent implementations recompute a byte-identical genesis state_root without producer-supplied reducer state.",
       "required_projected_writes": [
         {
-          "cell": "ak:cell:ak.component.realm.metadata.v1:null",
+          "cell": "ak:cell:ak.component.realm.genesis.v1:null",
           "op_kind": "set"
-        },
-        {
-          "cell": "ak:cell:ak.component.member.state.v1:<payload.object.created_by>",
-          "op_kind": "transition",
-          "from": "leave",
-          "to": "join"
         },
         {
           "cell": "ak:cell:ak.component.realm.create.v1:null",
@@ -1315,12 +1309,20 @@
         {
           "cell": "ak:cell:ak.component.notary.v1:null",
           "op_kind": "set"
+        },
+        {
+          "cell": "ak:cell:ak.component.realm.reducer_profile.v1:null",
+          "op_kind": "set"
+        },
+        {
+          "cell": "ak:cell:ak.component.realm.authority_root.v1:null",
+          "op_kind": "set"
         }
       ],
       "expected": {
         "genesis_state_root": "byte_identical_across_independent_implementations",
-        "creator_member_cell_proof": "inclusion",
-        "realm_metadata_cell_present_in_genesis_leaf_set": true,
+        "creator_member_cell_proof": "inclusion from the explicit final ak.member.state bootstrap facet",
+        "realm_genesis_and_profile_cells_present_in_genesis_leaf_set": true,
         "branches_covered": [
           "collaboration",
           "principal_control",
@@ -1329,8 +1331,8 @@
       },
       "negative_cases": [
         {
-          "name": "missing_member_state_projection",
-          "mutation": "implement a reducer that omits the registered ak.component.member.state.v1 projected write",
+          "name": "implicit_member_state_projection",
+          "mutation": "implement create reducer with an unregistered ak.component.member.state.v1 projected write",
           "expected": "state_root differs from the positive case and apply_seal step 11 rejects with rejected_seal"
         },
         {
@@ -1339,13 +1341,13 @@
           "expected": "proof MUST fail"
         },
         {
-          "name": "metadata_cell_only_after_first_update",
-          "mutation": "omit the registered realm metadata projection at genesis and write it only on the first ak.realm.update",
+          "name": "profile_cell_after_bootstrap",
+          "mutation": "omit the required profile facet from the atomic bootstrap unit and write it later",
           "expected": "non_compliant"
         },
         {
           "name": "extra_unregistered_projection",
-          "mutation": "implement a reducer that adds a fifth projected write not present in cell_writes[]",
+          "mutation": "implement a reducer that adds a sixth projected write not present in cell_writes[]",
           "expected": "reducer_projection_failed"
         }
       ]

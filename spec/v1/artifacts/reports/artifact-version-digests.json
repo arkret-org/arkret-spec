@@ -22,26 +22,26 @@
     {
       "path": "spec/v1/artifacts/registry/authority-source-registry.json",
       "version": "2026-08-08.8",
-      "generated_at": "2026-08-08T08:08:00Z",
+      "generated_at": "2026-08-08T12:00:00Z",
       "content_digest": "sha256:365237b9e79bce19cdf7d39843a3de37348e1e0c4a5288e240bc5c7b3e599ec2"
     },
     {
       "path": "spec/v1/artifacts/registry/binding-kind-registry.json",
       "version": "2026-08-08.8",
-      "generated_at": "2026-08-08T08:08:00Z",
+      "generated_at": "2026-08-08T12:00:00Z",
       "content_digest": "sha256:dfb055a9e4c061b8b6eba878f56b4c32b7ed27e6c3560f2342f3dc32844eeddf"
     },
     {
       "path": "spec/v1/artifacts/registry/calendar-timezone-registry.json",
       "version": "2026-08-08.8",
-      "generated_at": "2026-08-08T08:08:00Z",
+      "generated_at": "2026-08-08T12:00:00Z",
       "content_digest": "sha256:f540c35cee7467fdb38a280b5d4baae5cf078d7c565228f860fa1d47b008e392"
     },
     {
       "path": "spec/v1/artifacts/registry/capability-action-registry.json",
       "version": "2026-08-08.8",
-      "generated_at": "2026-08-08T08:08:00Z",
-      "content_digest": "sha256:e8761733601d8333dfdab14fb0823aed8a640e077c5ba38213de802e396e6f54"
+      "generated_at": "2026-08-08T12:00:00Z",
+      "content_digest": "sha256:49315b3abc8515ef46b2ff0841f697c8302f4fe99e7d7e9a18327375e3c4667e"
     },
     {
       "path": "spec/v1/artifacts/registry/classification-field-registry.json",
@@ -52,8 +52,8 @@
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
       "version": "2026-08-08.8",
-      "generated_at": "2026-08-08T08:08:00Z",
-      "content_digest": "sha256:c1c8d7d3bd1562c091712e7848be3c74de148ad43697f14a434f7b800227a661"
+      "generated_at": "2026-08-08T12:00:00Z",
+      "content_digest": "sha256:2fe1311d2bbde85f36bbc335c5edabffa91ccfdcc71bae0996ab2bb119763109"
     },
     {
       "path": "spec/v1/artifacts/registry/did-freshness-profile-registry.json",
@@ -69,15 +69,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-08-08.2",
+      "version": "2026-08-08.3",
       "generated_at": null,
-      "content_digest": "sha256:55a347679504f03282313e4dc457978f320c52a09b34de952d5ff3a309f7cba9"
+      "content_digest": "sha256:7f7177e3d8ca2c209d09a1679a6115eab1e8dacc8fe04a37bb918f7ac81c1e3b"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
       "version": "2026-08-08.8",
-      "generated_at": "2026-08-08T08:08:00Z",
-      "content_digest": "sha256:33c445528d80a2ac542adacaec49bc4c1e84e0d70a2a38392b1ed0f8388f4306"
+      "generated_at": "2026-08-08T12:00:00Z",
+      "content_digest": "sha256:20b8cd7444aafbb9fa8cfd53d4c8390c19383e4d367fe0661d43c1efbaa20b4f"
     },
     {
       "path": "spec/v1/artifacts/registry/exporter-label-registry.json",
@@ -93,9 +93,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/forbidden-wire-fields.json",
-      "version": 7,
+      "version": 8,
       "generated_at": null,
-      "content_digest": "sha256:729c0c1806d262bb1929e3ed681a25e24683fccbb97c287aa3da87b06c573f2e"
+      "content_digest": "sha256:ab206d4cc1806bd68493704dbecac67f8c0e74d50cd9fa30fcf058c99d863c35"
     },
     {
       "path": "spec/v1/artifacts/registry/hpke-suite-registry.json",
@@ -135,9 +135,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-08-08.4",
-      "generated_at": "2026-08-08T11:00:00Z",
-      "content_digest": "sha256:bb4192e3a5805d67caf7e80e4dfb196ba445311211276ec3ae952c3ce1d3dd94"
+      "version": "2026-08-08.6",
+      "generated_at": "2026-08-08T13:00:00Z",
+      "content_digest": "sha256:d41466c069fd878066f3fe4193f6a6b32ddbcedd3f49f26addff38110fc3d543"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
@@ -148,8 +148,8 @@
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
       "version": "2026-08-08.8",
-      "generated_at": "2026-08-08T08:08:00Z",
-      "content_digest": "sha256:fb6bd20d84c4e809eb6a1ddd781be09c916452de6211576f06260ffa49012743"
+      "generated_at": "2026-08-08T12:00:00Z",
+      "content_digest": "sha256:df2a0462d16c4456eac1889a8d5b614faf54e61b35f107d88bd5f34409c7e980"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
@@ -171,9 +171,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",
-      "version": "2026-08-07.3",
+      "version": "2026-08-08.1",
       "generated_at": null,
-      "content_digest": "sha256:b59ab1d56ba17df2b2b6f223baef22796b83e8f39aba1b8dc40147c2e040d42b"
+      "content_digest": "sha256:2e14aa1002880626e3ce72215f64ea57880d6d3ae970c2fc07e81569ca2cf9b5"
     },
     {
       "path": "spec/v1/artifacts/registry/reducer-profile-registry.json",
@@ -202,8 +202,8 @@
     {
       "path": "spec/v1/artifacts/registry/schema-registry.json",
       "version": "2026-08-08.8",
-      "generated_at": "2026-08-08T08:08:00Z",
-      "content_digest": "sha256:1221829622a5a8e453c0d9b5a899c32301dd068bc0eef5b29145eb632e06d15a"
+      "generated_at": "2026-08-08T12:00:00Z",
+      "content_digest": "sha256:953b00bef6577f92fc9a0fdde726ae4d2dac9ed32b2fbc64ab34cfd0cd1eb97c"
     },
     {
       "path": "spec/v1/artifacts/registry/service-kind-registry.json",
@@ -226,7 +226,7 @@
     {
       "path": "spec/v1/artifacts/registry/track-name-registry.json",
       "version": "2026-08-08.8",
-      "generated_at": "2026-08-08T08:08:00Z",
+      "generated_at": "2026-08-08T12:00:00Z",
       "content_digest": "sha256:931cd839a81f5f04e6286b9f2980de2202b267cf1084dc28a9a449ffa52f14b9"
     },
     {

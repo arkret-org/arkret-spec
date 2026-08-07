@@ -8820,7 +8820,7 @@
       "additionalProperties": false
     },
     "realm_alias_payload": {
-      "description": "Closed payload for ak.realm.alias, the ONLY wire carrier of a Realm alias. A declaration writes the complete canonical alias; {tombstone:true} is a durable value tombstone that removes the alias from effective resolution without erasing the cell history. realm.schema.json is closed and has no alias property, and ak.realm.create / ak.realm.update payloads MUST NOT carry one.",
+      "description": "Closed payload for ak.realm.alias, the ONLY wire carrier of a Realm alias. A declaration writes the complete canonical alias; {tombstone:true} is a durable value tombstone that removes the alias from effective resolution without erasing the cell history. realm-genesis.schema.json and realm-profile.schema.json are closed and have no alias property, and ak.realm.create / ak.realm.profile payloads MUST NOT carry one.",
       "oneOf": [
         {
           "$ref": "#/$defs/realm_alias_declaration_payload"
@@ -8935,34 +8935,19 @@
     },
     "realm_create_payload": {
       "type": "object",
-      "description": "Create payload uses the full Realm object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance. payload.object.capability_action_registry_digest MUST resolve to a retrievable capability-action-registry.json snapshot whose RFC 8785 JCS recomputation matches. payload.object.reducer_profile is the genesis value of the Realm reducer-profile singleton control cell. All registered cell writes defined by zh/models/realm-and-space.md section 2.5 are one atomic unit; any of them failing rejects the whole create.",
+      "description": "Minimal identity and security-root payload for ak.realm.create. User-visible, mutable, policy and reducer-derived Realm state is carried only by registered bootstrap facets. Event-derived branches require a canonical 32-octet genesis_salt; subject-derived Principal Control Realm branches forbid it.",
       "required": [
         "object"
       ],
       "properties": {
         "object": {
-          "allOf": [
-            {
-              "$ref": "./realm.schema.json"
-            },
-            {
-              "not": {
-                "required": [
-                  "id"
-                ],
-                "$comment": "zh/models/common-fields.md: the object id is derived from this create Event's own event_id; carrying it in the payload is schema_violation reason object_id_not_event_derived."
-              }
-            }
-          ]
-        },
-        "initial_relations": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
+          "$ref": "./realm-genesis.schema.json"
         }
       },
       "additionalProperties": false
+    },
+    "realm_profile_payload": {
+      "$ref": "./realm-profile.schema.json"
     },
     "realm_delivery_binding_policy_payload": {
       "type": "object",
@@ -9835,6 +9820,10 @@
         "metadata_encryption_floor": {
           "$ref": "./realm.schema.json#/properties/metadata_encryption_floor"
         },
+        "federation_policy": {
+          "$ref": "./realm.schema.json#/properties/federation_policy",
+          "description": "The sole producer carrier of the effective Realm federation policy. High-assurance Realm reducers require closed, restricted, or quarantine and reject open."
+        },
         "aad_visibility": {
           "type": "object",
           "$comment": "One registered axis in v1. The AAD field set has exactly one wire discriminator, encrypted-envelope.schema.json#/properties/aad_visibility_event_id; the object shape leaves room for a second registered axis without renaming the component, and additionalProperties=false hard-rejects unregistered axis names at wire parse time.",
@@ -10153,37 +10142,6 @@
         },
         "replacement_event": {
           "$ref": "#/$defs/event_ref"
-        }
-      },
-      "additionalProperties": false
-    },
-    "realm_update_payload": {
-      "type": "object",
-      "description": "Payload for ak.realm.update. reducer_profile is owned by the Realm reducer-profile singleton control cell and cannot be patched.",
-      "required": [
-        "target_ref",
-        "patch"
-      ],
-      "properties": {
-        "target_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "patch": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/patch"
-            },
-            {
-              "propertyNames": {
-                "not": {
-                  "pattern": "^reducer_profile(?:\\.|$)"
-                }
-              }
-            }
-          ]
-        },
-        "expected_state_digest": {
-          "$ref": "#/$defs/hash"
         }
       },
       "additionalProperties": false

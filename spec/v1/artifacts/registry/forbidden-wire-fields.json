@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 7,
+  "version": 8,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -254,7 +254,7 @@
       "context": "space_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ak.realm.create / ak.realm.update payload",
+      "replacement": "ak.realm.create genesis or dedicated Realm security facet",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3276,7 +3276,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "realm.schema.json is a closed object (unevaluatedProperties:false) and has no alias property. A Realm alias has exactly one wire carrier: the ak.realm.alias Event. ak.realm.create payload.object.alias, ak.realm.update payload.patch.alias, and a payload top-level alias / realm_alias on any Realm lifecycle Event MUST all be rejected; accepting several input shapes for one fact is how create-time alias diverged from the closed schema. See zh/discovery/object-addressing.md §3.3."
+      "notes": "realm-genesis.schema.json and realm-profile.schema.json are closed objects and have no alias property. A Realm alias has exactly one wire carrier: the ak.realm.alias Event. ak.realm.create payload.object.alias, ak.realm.profile payload.object.alias, and a payload top-level alias / realm_alias on any Realm lifecycle Event MUST all be rejected; accepting several input shapes for one fact is how create-time alias diverged from the closed schema. See zh/discovery/object-addressing.md §3.3."
     },
     {
       "id": "realm_alias",

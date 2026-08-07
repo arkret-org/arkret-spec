@@ -89,7 +89,7 @@ Realm history SHOULD NOT 写入受限组织 handle 明文。需要审计时，Co
 
 #### 3.1.1 Realm bootstrap 与初始成员（normative）
 
-`ak.realm.create` 的 creator membership 由 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 步骤 2 的**注册 create reducer projection** 建立（`ak.component.member.state.v1:<created_by>` 的 `leave -> join`），而**不是**一条客户端另行提交的 `ak.member.state{membership="join"}` Event——wire 上仍只有一条 create Event。实现 MUST NOT 为这条 creator membership 伪造 `binding_source="invite"`、`service_acceptance_ref` 或其它不存在的 join evidence。若 creator 需要在创建批次内立即成为 routable member，同一 `ak.self.events.command.submit` 批次 MAY 在 `ak.realm.create` 之后、由同一 `actor_id` 提交一条 `ak.member.state{membership="join"}` 同状态 self-transition（前态为 create projection 已建立的 `join`），专门物化 `delivery_binding`；该 binding MUST 使用本节已有来源之一，并携带对应真实证据：
+creator membership 是 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) bootstrap registry 的最后一个 required slot：由 creator 提交唯一的 `ak.member.state{membership="join"}` Event，执行 `leave -> join` 并同时物化 delivery binding。`ak.realm.create` reducer 不隐式写 membership，也不存在随后 `join -> join` 的第二种 wire 形态。该 binding MUST 使用本节已有来源之一，并携带对应真实证据：
 
 - `did_document_default`：必须携带 `did_document_digest`，且 Realm policy 显式允许 DID Document fallback；
 - `explicit` / `organization_policy`：必须携带真实 `service_acceptance_ref`（以及 `organization_policy` 的 `policy_event_ref`）；

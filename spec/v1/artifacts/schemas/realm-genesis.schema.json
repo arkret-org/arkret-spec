@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/realm-genesis.schema.json",
+  "title": "Arkret Realm Genesis",
+  "type": "object",
+  "required": [
+    "schema",
+    "purpose",
+    "trust_domain",
+    "schema_refs",
+    "reducer_profile",
+    "digest_algorithm",
+    "security_class",
+    "encryption_profile",
+    "notary_profile",
+    "notary",
+    "capability_action_registry_digest"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.realm_genesis.v1"
+    },
+    "purpose": {
+      "type": "string",
+      "enum": [
+        "collaboration",
+        "direct_conversation",
+        "principal_control"
+      ]
+    },
+    "genesis_salt": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{43}$",
+      "description": "Canonical unpadded Base64URL encoding of exactly 32 CSPRNG octets. It distinguishes event-derived creation intents and has no replay, ordering, authorization, freshness, or winner semantics."
+    },
+    "trust_domain": {
+      "$ref": "./realm.schema.json#/$defs/trust_domain"
+    },
+    "schema_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "reducer_profile": {
+      "$ref": "./realm.schema.json#/properties/reducer_profile"
+    },
+    "digest_algorithm": {
+      "$ref": "./realm.schema.json#/properties/digest_algorithm"
+    },
+    "security_class": {
+      "$ref": "./realm.schema.json#/properties/security_class"
+    },
+    "encryption_profile": {
+      "$ref": "./realm.schema.json#/properties/encryption_profile"
+    },
+    "notary_profile": {
+      "$ref": "./realm.schema.json#/properties/notary_profile"
+    },
+    "notary": {
+      "$ref": "./realm.schema.json#/properties/notary"
+    },
+    "capability_action_registry_digest": {
+      "$ref": "./realm.schema.json#/properties/capability_action_registry_digest"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "purpose": {
+            "const": "principal_control"
+          }
+        },
+        "required": [
+          "purpose"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "genesis_salt"
+          ]
+        }
+      },
+      "else": {
+        "required": [
+          "genesis_salt"
+        ]
+      }
+    }
+  ],
+  "additionalProperties": false
+}

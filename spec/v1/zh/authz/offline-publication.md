@@ -46,11 +46,11 @@ authorization。verifier MUST 从 accepted CBA basis
 
 三个已注册的 closed genesis family（ordinary Realm founding unit、self-principal PCR
 bootstrap unit 与 accepted controller delegation 精确绑定的 managed Agent PCR create）
-没有先验 Seal。ordinary Realm founding unit 的 wire 必需项**只有** `ak.realm.create` 一条 Event：
-Realm metadata、creator membership、create 审计日志、founding notary 与 founding authority root
-cell（`ak.component.realm.authority_root.v1`）这五条由该 Event 的注册 reducer contract 投影原子承担
+没有先验 Seal。ordinary Realm founding unit 的 wire 必需项是 bootstrap registry 的完整有序闭包。
+其中 create 只投影 genesis intent、create 审计日志、founding notary、reducer profile 与 founding authority root
+cell（`ak.component.realm.authority_root.v1`）五项；profile、policy 与 creator membership 都由独立签名 facet 承担
 （[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative)），
-unit 内除 create 外只可含该节封闭白名单内的同批 follow-up，且**不含**任何 founding
+unit 内除 create 外只可含该节 registry 登记的 required/conditional/optional slots，且**不含**任何 founding
 `ak.capability.grant`。仅对这些完整 unit，`basis_ref` MAY 是
 `{anchor_unit:{realm_id,event_digests[],unit_digest}}`，其中 event digest 按 unit 必需顺序排列，
 `unit_digest = sha256(canonical_json({realm_id,event_digests}))`。issuer MUST 在签发前验证完整

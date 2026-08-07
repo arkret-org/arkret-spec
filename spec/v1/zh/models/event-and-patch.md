@@ -419,11 +419,11 @@ Move 不得产生任何 cell write。实现不能用请求另传的同名字段�
 
 ### 2.5 Create 类 Event 的跨字段语义校验
 
-Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire validation，但接收方在进入 accepted set 前还必须执行跨字段语义校验：
+Create 类 Event 的 `payload.object` MAY 使用其登记的对象或 genesis schema 做 wire validation，但接收方在进入 accepted set 前还必须执行跨字段语义校验：
 
-- `ak.realm.create.payload.object.created_by` MUST 等于顶层 `actor_id`。
+- `ak.realm.create` 的 founding controller MUST 从顶层 `actor_id` 派生；`payload.object` 是闭合 `realm-genesis.schema.json`，不得携带 `created_by`。
 - `ak.strand.create` / `ak.morph.create` / `ak.profile.create` 中的 `payload.object.created_by` 或 `principal_id` MUST 等于顶层 `actor_id` 或被该 profile 明确授权的 controller。
-- `payload.object.created_at` MUST 等于顶层 `created_at`。
+- 对登记了对象内 `created_at` 的其它 create payload，`payload.object.created_at` MUST 等于顶层 `created_at`；Realm genesis 不重复携带该字段。
 
 校验失败 MUST `schema_violation` 或 `capability_denied`，不得把 payload 中的创建者字段当作 proof、capability 或审计归属的替代来源。
 

@@ -1911,13 +1911,27 @@ def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) 
             lint.fail(path, f"{member_ref}.name duplicates another member")
         else:
             seen_names.add(name)
-        sources = [key for key in ("literal", "field", "select", "digest_of") if key in member]
+        sources = [
+            key
+            for key in ("literal", "field", "envelope_field", "select", "digest_of")
+            if key in member
+        ]
         if len(sources) != 1:
-            lint.fail(path, f"{member_ref} must declare exactly one of literal/field/select/digest_of")
+            lint.fail(
+                path,
+                f"{member_ref} must declare exactly one of "
+                "literal/field/envelope_field/select/digest_of",
+            )
             continue
         source = sources[0]
         if source == "field":
             lint_field_path(lint, path, f"{member_ref}.field", member["field"])
+        elif source == "envelope_field":
+            if member["envelope_field"] not in {"actor_id", "created_at", "realm_id"}:
+                lint.fail(
+                    path,
+                    f"{member_ref}.envelope_field must be actor_id, created_at, or realm_id",
+                )
         elif source == "select":
             lint_select_component(lint, path, f"{member_ref}.select", member["select"])
         elif source == "digest_of":
@@ -4804,7 +4818,7 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.realm.policy_bundle", "state_payload"),
     ("ak.realm.policy_server", "state_payload"),
     ("ak.realm.schema", "state_payload"),
-    ("ak.realm.update", "object_patch_payload"),
+    ("ak.realm.profile", "realm_profile_payload"),
     ("ak.redaction", "message_redact_payload"),
     ("ak.schema.define", "state_payload"),
     ("ak.schema.update", "state_payload"),

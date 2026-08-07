@@ -744,7 +744,7 @@
               "ak.realm.search_policy",
               "ak.realm.set_default_strand",
               "ak.realm.tombstone",
-              "ak.realm.update",
+              "ak.realm.profile",
               "ak.realm.upgrade",
               "ak.realm_key.share",
               "ak.realm_key.share_audit",
@@ -1646,7 +1646,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.realm.update"
+            "const": "ak.realm.profile"
           }
         },
         "required": [
@@ -1656,7 +1656,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/realm_update_payload"
+            "$ref": "./event-payload.schema.json#/$defs/realm_profile_payload"
           }
         }
       }
@@ -3274,20 +3274,12 @@
               "object": {
                 "type": "object",
                 "properties": {
-                  "fields": {
-                    "type": "object",
-                    "properties": {
-                      "purpose": {
-                        "const": "principal_control"
-                      }
-                    },
-                    "required": [
-                      "purpose"
-                    ]
+                  "purpose": {
+                    "const": "principal_control"
                   }
                 },
                 "required": [
-                  "fields"
+                  "purpose"
                 ]
               }
             },
@@ -3367,20 +3359,12 @@
               "object": {
                 "type": "object",
                 "properties": {
-                  "fields": {
-                    "type": "object",
-                    "properties": {
-                      "purpose": {
-                        "const": "principal_control"
-                      }
-                    },
-                    "required": [
-                      "purpose"
-                    ]
+                  "purpose": {
+                    "const": "principal_control"
                   }
                 },
                 "required": [
-                  "fields"
+                  "purpose"
                 ]
               }
             },
@@ -3457,20 +3441,12 @@
               "object": {
                 "type": "object",
                 "properties": {
-                  "fields": {
-                    "type": "object",
-                    "properties": {
-                      "purpose": {
-                        "const": "principal_control"
-                      }
-                    },
-                    "required": [
-                      "purpose"
-                    ]
+                  "purpose": {
+                    "const": "principal_control"
                   }
                 },
                 "required": [
-                  "fields"
+                  "purpose"
                 ]
               }
             },

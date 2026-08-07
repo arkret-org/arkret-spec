@@ -1,7 +1,7 @@
 {
   "version": "2026-08-08.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T08:08:00Z",
+  "generated_at": "2026-08-08T12:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -14,7 +14,18 @@
   "schemas": [
     {
       "schema_id": "ak.schema.realm.v1",
-      "file": "schemas/realm.schema.json"
+      "file": "schemas/realm.schema.json",
+      "status": "active"
+    },
+    {
+      "schema_id": "ak.schema.realm_genesis.v1",
+      "file": "schemas/realm-genesis.schema.json",
+      "status": "active"
+    },
+    {
+      "schema_id": "ak.schema.realm_profile.v1",
+      "file": "schemas/realm-profile.schema.json",
+      "status": "active"
     },
     {
       "schema_id": "ak.schema.space.v1",

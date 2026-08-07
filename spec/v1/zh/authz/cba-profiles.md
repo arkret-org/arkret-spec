@@ -71,17 +71,19 @@ submitted、pending、receipt、transparency entry、availability receipt、snap
 均不改变控制状态。只有 Control Move 进入一个密码学有效、其 covered set 与 `state_root`
 重算一致的 accepted Seal 后才生效。
 
-空 genesis Seal 非法。首 Seal MUST 原子覆盖并物化 `ak.realm.create` 的**五条 registered write**，
+空 genesis Seal 非法。首 Seal MUST 原子覆盖完整 Realm bootstrap unit。该 unit 内的 `ak.realm.create` MUST 物化**五条 registered write**，
 逐条与 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative)
 的注册投影一致（该节是唯一权威来源，本清单不得与其漂移）：
 
-1. Realm metadata（`ak.component.realm.metadata.v1`）；
-2. creator joined membership（`ak.component.member.state.v1`，`cell_subject` = `payload.object.created_by`）；
-3. create 审计日志条目（`ak.component.realm.create.v1`，`issuer_seq=0`）；
-4. founding notary（`ak.component.notary.v1`）；
+1. signed genesis intent（`ak.component.realm.genesis.v1`）；
+2. create 审计日志条目（`ak.component.realm.create.v1`，`issuer_seq=0`）；
+3. founding notary（`ak.component.notary.v1`）；
+4. reducer profile（`ak.component.realm.reducer_profile.v1`）；
 5. founding authority root cell（`ak.component.realm.authority_root.v1`），其
    `controller_id` / `controller_epoch` / `authority_generation` / `capability_action_registry_digest`
-   由注册 `value_projection` 从 create payload 确定性派生。
+   分别由 create envelope 的 `actor_id` 与 create payload 确定性派生。
+
+profile、policy bundle、join rule、history visibility、条件 sharing/discovery/alias/plaintext/delivery 与 creator membership 是同一 bootstrap registry 中按序签名的显式 facet；它们不是 create reducer 的隐式写入。缺槽、错序或条件槽不闭合时整个 unit MUST 原子拒绝。
 
 对 MLS-backed scope，首 Seal 还 MUST 声明将由后续 `ak.mls.genesis` 建立 epoch-0 binding 的
 bootstrap requirement；epoch-0 binding 本身由首个覆盖 `ak.mls.genesis` 的 Seal 验证。
@@ -89,9 +91,7 @@ bootstrap requirement；epoch-0 binding 本身由首个覆盖 `ak.mls.genesis` �
 创建者的 root authority 只来自第 5 条 authority-root cell。v1 **没有** founding
 `ak.capability.grant`：不得要求、也不得接受"紧随 create 的封闭 self grant"作为 genesis 必需项；
 缺少该 cell 时整个 bootstrap unit MUST 原子拒绝（`failed_precondition`，
-`reason="realm_authority_root_missing"`）。base policy（`ak.realm.policy_bundle`）与其它初始
-facet 是 §2.5 白名单内的 **MAY** 同批 follow-up，不是 genesis Seal 的 MUST 物化项；genesis 不得因
-缺少 policy bundle 判 `invalid_genesis_seal`。
+`reason="realm_authority_root_missing"`）。base policy（`ak.realm.policy_bundle`）与其它初始 facet 的必选/条件规则由 §2.5 的 bootstrap registry 唯一决定；实现不得把它们降级成 create 后可补写的普通 follow-up。
 
 缺少任一 founding required cell、使用空 `control_event_set_root`、或先接受空 Seal 再补
 authority（含 authority-root cell），均为 `invalid_genesis_seal`。MLS epoch-0 binding 不属于可在 `ak.mls.genesis`

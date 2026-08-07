@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.4",
+  "version": "2026-08-08.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T11:00:00Z",
+  "generated_at": "2026-08-08T13:00:00Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -176,7 +176,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:a36bfafe90c92c8b2d1dc1c1f463bce82686788a46d60851172c24158c4fa069",
+      "section_digest": "sha256:d8c0295613e1da4d59d0527046b1114a8c530c8fc39c82084519395525382e31",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, encryption floors MUST NOT be downgraded, an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling, every MLS epoch MUST bind the independently re-derived security frontier for its accepted key-access state, and epoch-0 leaf indices MUST be recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -225,8 +225,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#5-control-move",
-      "section_digest": "sha256:d433c371a6b7be36c2b0004fc2d2ebed2c2dd2a53f9e5b2e4f8e1e3efa5facf4",
-      "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with Control Proposal Acks and pending-index obligations. The Realm bootstrap whitelist is closed and additionally admits one basis-free DataEvent, the third ak.strand.create of a Direct Conversation founding unit, because the Genesis Seal covers that Event and it cannot reference a Seal that does not yet exist; batch admission MUST reject that no-basis shape anywhere else.",
+      "section_digest": "sha256:7af5501ddb027ecc2db0f4fab49d8966a0541b15d219d9dbf62ae44c2d965d2b",
+      "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with Control Proposal Acks and pending-index obligations. The Realm bootstrap whitelist is the ordered machine registry closure with no implicit creator membership; a Direct Conversation founding unit additionally admits its explicit peer membership and one basis-free main ak.strand.create because the Genesis Seal covers that Event and it cannot reference a Seal that does not yet exist. Batch admission MUST reject those no-basis shapes anywhere else.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1",
@@ -243,7 +243,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:8bb4ced0803a8561f1dff92dcb23b35d98c48ecf099ee2c916d608c799b21efc",
+      "section_digest": "sha256:9288abf1af8d2fa9a0eb01f54df90fa238ba7365051b391e2c1ed87de4aba0d3",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest.",
       "testability_grade": "vector",
       "evidence_refs": [

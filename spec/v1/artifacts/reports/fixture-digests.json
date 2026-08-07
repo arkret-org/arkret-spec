@@ -74,7 +74,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "40b1c0ddb83f5e2f18adaa03df81cb0a443ea33d8f5993b6458ddceef55e3e52"
+      "sha256": "b8c6e4b2655c1b5382fd902b53de5304caa1f6e184219486dd228e533d749fb2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -286,7 +286,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "a7107cb85300ede84136b4d04b5e5398de78c9b981fb7ea0b84debb4f5ef08d9"
+      "sha256": "01c8ec54cd53fcbb8aa3159b169b9cc292cfc2cea6e1f18865ff09f80cd8d5f6"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

@@ -264,7 +264,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 
 - `ak.realm.discover`
 - `ak.realm.create`
-- `ak.realm.update`
+- `ak.realm.profile`
 - `ak.realm.archive`
 - `ak.realm.freeze`
 - `ak.realm.tombstone`

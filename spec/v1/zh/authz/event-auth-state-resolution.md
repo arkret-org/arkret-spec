@@ -196,11 +196,11 @@ Event Batch Receipt 只证明"issuer 看见并承诺所列事件集合的 integr
 
 Control Move 是写 control plane cell 的 Event，通常 MUST 携带 `seal_basis` 且 MUST NOT 携带 `seal_ref`。v1 只有两个封闭 anchor-unit 例外：
 
-1. [`ak.realm.create`](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) bootstrap。自体 principal PCR 是 root-signed create + delegated first `ak.device.authorize`；普通 Realm 只有 create 一条必需 Event，加上下列**封闭 follow-up 白名单**——v1 **没有**"紧随 create 的封闭 self founding grant"槽位。创建者的 root authority 来自 create 注册 reducer contract 写入的 `ak.component.realm.authority_root.v1` cell；同批 create 之后的 Event MAY 使用绑定同批前序 `ak.realm.create.event_id` 的 staged authority-root proof，batch 之外一律要求 accepted Seal 下的 root-cell inclusion proof（[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative)）。两条分支互斥。免 `seal_basis` 的普通 Realm bootstrap **封闭列表逐条列举**如下，与 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 使用同一句：
+1. [`ak.realm.create`](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) bootstrap。自体 principal PCR 是 root-signed create + delegated first `ak.device.authorize`；普通 Realm 必须提交 bootstrap registry 的完整有序闭包——v1 **没有**"紧随 create 的封闭 self founding grant"槽位。创建者的 root authority 来自 create 注册 reducer contract 写入的 `ak.component.realm.authority_root.v1` cell；同批 create 之后的 Event MAY 使用绑定同批前序 `ak.realm.create.event_id` 的 staged authority-root proof，batch 之外一律要求 accepted Seal 下的 root-cell inclusion proof（[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative)）。两条分支互斥。免 `seal_basis` 的普通 Realm bootstrap **封闭列表逐条列举**如下，与机器 registry 使用同一顺序：
    - `ak.realm.create` 自身；
-   - 同批同 actor 的初始 facet follow-up：`ak.realm.join_rule`、`ak.realm.history_visibility`、`ak.realm.discovery`、`ak.realm.policy_bundle`、`ak.realm.plaintext_visible_services`、`ak.realm.history_sharing_policy`、`ak.realm.delivery_binding_policy`、`ak.realm.alias`。后三项在本列表内是**必需**而非便利：`history_visibility=restricted` 的 effective state 要求同批前序已接受一份 `ak.realm.history_sharing_policy`（[`../governance/history-visibility.md` §3](../governance/history-visibility.md)）；creator 的 `binding_source="realm_policy"` delivery binding 要求真实 `policy_event_ref`，该 policy Event 只能在同批（[`../governance/member-delivery-binding.md` §3.1.1](../governance/member-delivery-binding.md)）；alias 是 Realm 的唯一 wire 承载且不在 Realm object 内（[`../discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)），创建时命名只能走同批 follow-up。该封闭列表与 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json) 的 bootstrap follow-up 免 basis 分支 MUST 逐条一致；
-   - 同批由 creator 写入的 **bootstrap 初始成员 `ak.member.state{join}`**，含 1:1 Direct Conversation Realm 的 peer join（[`../identity/contact-and-direct-conversation.md` §6](../identity/contact-and-direct-conversation.md)）与 [`../governance/member-delivery-binding.md` §3.1.1](../governance/member-delivery-binding.md) 的 creator `join -> join` delivery-binding self-transition。
-   - 1:1 Direct Conversation Realm founding unit 的第三条 `ak.strand.create`（该 Realm 的 main Strand）。它是 DataEvent，正常携 `seal_ref + auth_context`；但 founding unit 的 Genesis Seal 按 [`../identity/contact-and-direct-conversation.md` §6.1](../identity/contact-and-direct-conversation.md) 必须同时覆盖这三条，Strand 无法引用一个尚不存在的 Seal。因此它在该 exact unit 内免 basis，**batch admission MUST 在其它任何位置拒绝该 no-basis 形态**；普通 Strand 一律照常携 `seal_ref + auth_context`。
+   - 同批同 actor 的初始 facet slots：required `ak.realm.profile`、`ak.realm.policy_bundle`、`ak.realm.join_rule`、`ak.realm.history_visibility`，conditional `ak.realm.history_sharing_policy`，required `ak.realm.discovery`，optional `ak.realm.alias`，conditional `ak.realm.plaintext_visible_services`，required `ak.realm.delivery_binding_policy`；
+   - 同批最后由 creator 写入的 required **bootstrap 初始成员 `ak.member.state{join}`**。该单一 Event 同时承载真实 delivery binding，不存在 create 隐式 join 后再做 `join -> join` 的第二形态；
+   - 1:1 Direct Conversation Realm founding unit 在上述完整 closure 后追加 peer 的显式 `ak.member.state{join}` 与 main `ak.strand.create`。Strand 是 DataEvent，正常携 `seal_ref + auth_context`；但 founding unit 的 Genesis Seal 必须覆盖完整 closure，无法引用一张尚不存在的 Seal。因此它在该 exact unit 内免 basis，**batch admission MUST 在其它任何位置拒绝该 no-basis 形态**；普通 Strand 一律照常携 `seal_ref + auth_context`。
 
    不在该列表内的 Control Move 一律要求 `seal_basis`。
 2. B 模型 [`ak.device.reanchor`](../identity/key-management.md#507-b-模型-recovery-re-anchor-unit) + replacement authorize 原子 unit。它不携带 `seal_basis`，而在 payload 的 `pre_fence_basis` 固定完整当前 accepted Seal frontier，并由 RecoveryTransaction 对 frontier digest 做 CAS。授权 fence 在完整 unit 验证/提交后立即生效；确定性治理写由首个新-generation Seal 覆盖。
@@ -261,11 +261,10 @@ Seal 是唯一控制状态接受事实。submitted/pending/receipt、snapshot、
 availability 与 compaction 均不得创建第二种 finality。
 
 Genesis Seal 的 `predecessor_refs` 必须为空，但 covered set 不得为空。它必须原子覆盖完整 founding
-anchor unit，使 Realm metadata、creator membership、create 审计日志、founding notary 与 founding
-authority root cell（`ak.component.realm.authority_root.v1`）同时可从该 Seal 验证；这五条即
+anchor unit，使 create 的 genesis intent、create 审计日志、founding notary、reducer profile 与 founding
+authority root cell（`ak.component.realm.authority_root.v1`）五条投影，以及 profile/policy/membership 显式 facet 同时可从该 Seal 验证；create 的五条即
 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative)
-登记的 `ak.realm.create` registered write 全集，v1 不含任何 founding `ak.capability.grant`，base
-policy 也只是白名单内的可选同批 follow-up。MLS-backed scope 的 `ak.mls.genesis` 以该 accepted Genesis
+登记的 `ak.realm.create` registered write 全集，v1 不含任何 founding `ak.capability.grant`。MLS-backed scope 的 `ak.mls.genesis` 以该 accepted Genesis
 Seal 为 `seal_basis`；**首个覆盖该 Move 的后继 Seal** MUST 验证并物化 epoch-0 governance
 binding，在该 Seal 之前不得接受 MLS application DataEvent。先接受空 Seal 再补 founding
 authority（含 authority-root cell）仍一律 `invalid_genesis_seal`；epoch-0 binding 的这一后继时序不是 founding repair。

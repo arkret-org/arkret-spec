@@ -2094,7 +2094,7 @@ ak.vector.capability.membership_is_not_baseline.v1
 ak.vector.realm.authority_root_bootstrap.v1
 ```
 
-本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` MUST 在同一原子 unit 内物化五条 registered cell write，其中第五条是唯一的 `ak.component.realm.authority_root.v1:null` cell，值恰为 `{controller_id = payload.object.created_by, controller_epoch = 0, authority_generation = 0, capability_action_registry_digest = payload.object.capability_action_registry_digest}`。
+本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` MUST 在同一原子 unit 内物化五条 registered cell write，其中第五条是唯一的 `ak.component.realm.authority_root.v1:null` cell，值恰为 `{controller_id = envelope.actor_id, controller_epoch = 0, authority_generation = 0, capability_action_registry_digest = payload.object.capability_action_registry_digest}`。
 
 正例：五条 registered write 全部落入 genesis `state_root`，创建者在 genesis Seal 下即具有 effective `ak.realm.owner`；该批 accepted 后，创建者凭 accepted-Seal root-cell inclusion proof 可直接 author `ak.strand.create`（该 kind 在 owner operational coverage 内），也可在 owner 的 `grant_authority_actions` 上界内向成员签发 strand grant。实现升级 current capability-action registry 后，使用 append-only 归档中一个已发布 predecessor digest 创建的既有 Realm MUST 仍可精确解析该旧 snapshot、重算 digest 并得到与升级前相同的 owner coverage。
 
@@ -2107,7 +2107,7 @@ ak.vector.realm.authority_root_bootstrap.v1
 - 夹带旧四项 / 五项 / 三项 founding-grant shape 的 self grant MUST NOT 被识别为 authority root，仍按 §3.2 普通 issuer 上界判定为 `grant_exceeds_issuer_authority`；
 - staged root proof 在 genesis batch 之外重放，或在 batch 内改用 accepted-Seal inclusion proof（此时尚无 accepted Seal）→ `realm_authority_controller_mismatch`。
 
-只有 `ak.member.state{join}`、没有任何显式 grant 的成员仍 MUST `missing_capability`：authority root 只为 root controller 建立 authority，MUST NOT 为普通成员建立 baseline capability，也 MUST NOT 由 `created_by`、membership 或 `realm_state.owner` 投影镜像回退推导。
+只有 `ak.member.state{join}`、没有任何显式 grant 的成员仍 MUST `missing_capability`：authority root 只为 root controller 建立 authority，MUST NOT 为普通成员建立 baseline capability，也 MUST NOT 由 membership 或 `realm_state.owner` 投影镜像回退推导。
 
 ### 4.7 Vector: Quota Linearizable Authority
 
@@ -5508,16 +5508,16 @@ Expected:
 
 Steps:
 
-1. 提交普通 Realm 的 bootstrap batch：`ak.realm.create`（wire 上唯一必需 Event，v1 无 founding grant 槽位），可选跟随 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 白名单内的同批 follow-up facet。
+1. 提交普通 Realm 的完整 bootstrap unit：按 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 登记顺序包含 create、profile、policy、admission/history、条件 facet 与 creator membership；v1 无 founding grant 槽位。
 2. 两个独立实现各自按 `contract-registry.json` 的 `ak.realm.create` `cell_writes[]` 派生并应用 reducer projection，再重算 genesis Seal 的治理 `state_root`。
 
 Expected:
 
-- create Event 的 reducer 输出 MUST 恰好含五条：`ak.component.realm.metadata.v1:null`（`set`）、`ak.component.member.state.v1:<created_by>`（`transition` `leave -> join`）、`ak.component.realm.create.v1:null`（`append`，`issuer_seq=0`）、`ak.component.notary.v1:null`（`set`）、`ak.component.realm.authority_root.v1:null`（`set`，值由注册 `value_projection` 从 create payload 派生）。少一条或多一条表示 registry/vector drift，门禁 MUST 失败。
+- create Event 的 reducer 输出 MUST 恰好含五条：`ak.component.realm.genesis.v1:null`（`set`）、`ak.component.realm.create.v1:null`（`append`，`issuer_seq=0`）、`ak.component.notary.v1:null`（`set`）、`ak.component.realm.reducer_profile.v1:null`（`set`）、`ak.component.realm.authority_root.v1:null`（`set`，controller 由 envelope `actor_id` 派生）。少一条或多一条表示 registry/vector drift，门禁 MUST 失败。
 - 两个实现的 genesis `state_root` MUST 逐字节相同（KAT）。
-- `ak:cell:ak.component.member.state.v1:<created_by>` MUST 有 inclusion proof；对同一 cell 求 non-membership proof MUST 失败（负例）。
-- `ak.component.realm.metadata.v1` MUST 在 genesis Seal 即出现在 leaf 集合中；"仅在首次 `ak.realm.update` 之后才出现"视为不合规（负例）。
-- PCR 与 Direct Conversation 两条 bootstrap 分支使用同一 registered projection 集合。
+- creator membership 必须来自 bootstrap unit 末尾的显式 `ak.member.state{join}`，其 cell MUST 有 inclusion proof；create reducer 自行隐式写 membership 视为额外未登记投影。
+- `ak.component.realm.genesis.v1`、`ak.component.realm.profile.v1` 与所有 required bootstrap facet MUST 在 genesis Seal 即出现在 leaf 集合中；事后补写视为不合规（负例）。
+- PCR 与 Direct Conversation 两条 bootstrap 分支使用同一 create projection 集合；PCR genesis 明确不得携带 `genesis_salt`，event-derived Realm 必须携带。
 - 负例：实现漏执行任一已登记 write 后重算 `state_root`，MUST 与正例不同并被 `apply_seal` step 11 拒为 `rejected_seal`。
 
 ### 23.3 Null cell subject 的 wire 形态与 leaf 顺序

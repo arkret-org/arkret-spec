@@ -177,7 +177,7 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | event type | payload |
 | --- | --- |
 | `ak.realm.create` | Realm create |
-| `ak.realm.update` | Realm patch |
+| `ak.realm.profile` | Realm profile facet |
 | `ak.realm.alias` | Realm alias declaration or durable value tombstone（alias 的唯一 wire 承载） |
 | `ak.realm.upgrade` | Realm reducer profile upgrade |
 | `ak.realm.organization` | Organization-authorized Realm relationship statement or revocation |

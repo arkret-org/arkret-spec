@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/realm-profile.schema.json",
+  "title": "Arkret Realm Profile",
+  "type": "object",
+  "required": [
+    "schema",
+    "title"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.realm_profile.v1"
+    },
+    "title": {
+      "$ref": "./string-profiles.schema.json#/$defs/display_text_256"
+    },
+    "summary": {
+      "$ref": "./string-profiles.schema.json#/$defs/short_text",
+      "maxLength": 2048
+    },
+    "avatar_blob_ref": {
+      "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+    }
+  },
+  "additionalProperties": false
+}

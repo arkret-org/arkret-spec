@@ -1,8 +1,70 @@
 {
   "version": "2026-08-08.8",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T08:08:00Z",
+  "generated_at": "2026-08-08T12:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
+  "realm_bootstrap_registry": {
+    "version": "v1",
+    "ordinary_collaboration": {
+      "atomic": true,
+      "all_or_nothing": true,
+      "genesis_seal_covers_complete_unit": true,
+      "ordered_slots": [
+        {
+          "event_kind": "ak.realm.create",
+          "presence": "required"
+        },
+        {
+          "event_kind": "ak.realm.profile",
+          "presence": "required"
+        },
+        {
+          "event_kind": "ak.realm.policy_bundle",
+          "presence": "required"
+        },
+        {
+          "event_kind": "ak.realm.join_rule",
+          "presence": "required"
+        },
+        {
+          "event_kind": "ak.realm.history_visibility",
+          "presence": "required"
+        },
+        {
+          "event_kind": "ak.realm.history_sharing_policy",
+          "presence": "conditional",
+          "condition": "effective_history_profile_requires_key_sharing"
+        },
+        {
+          "event_kind": "ak.realm.discovery",
+          "presence": "required"
+        },
+        {
+          "event_kind": "ak.realm.alias",
+          "presence": "optional"
+        },
+        {
+          "event_kind": "ak.realm.plaintext_visible_services",
+          "presence": "conditional",
+          "condition": "declared_plaintext_service_visibility"
+        },
+        {
+          "event_kind": "ak.realm.delivery_binding_policy",
+          "presence": "required"
+        },
+        {
+          "event_kind": "ak.member.state",
+          "presence": "required",
+          "condition": "subject_is_genesis_actor_and_membership_is_join"
+        }
+      ]
+    },
+    "first_contact": {
+      "require_create_derived_realm_id": true,
+      "require_complete_genesis_state_commitment": true,
+      "fail_closed_until_complete": true
+    }
+  },
   "derived_registry_views": [
     {
       "name": "event_kinds",
@@ -3638,7 +3700,7 @@
         "sealed": true,
         "cell_writes": [
           {
-            "cell_family": "ak.component.realm.metadata.v1",
+            "cell_family": "ak.component.realm.genesis.v1",
             "cell_subject": null,
             "lattice": "cas_register",
             "bottom": "reject",
@@ -3647,24 +3709,6 @@
               "kind": "set",
               "value": {
                 "field": "payload.object"
-              }
-            }
-          },
-          {
-            "cell_family": "ak.component.member.state.v1",
-            "cell_subject": {
-              "kind": "did",
-              "field": "payload.object.created_by"
-            },
-            "lattice": "fsm",
-            "bottom": "reject",
-            "effect_projection": {
-              "kind": "transition",
-              "from": {
-                "const": "leave"
-              },
-              "to": {
-                "const": "join"
               }
             }
           },
@@ -3720,7 +3764,7 @@
               "members": [
                 {
                   "name": "controller_id",
-                  "field": "payload.object.created_by"
+                  "envelope_field": "actor_id"
                 },
                 {
                   "name": "controller_epoch",
@@ -3742,32 +3786,28 @@
                 "projected_value": true
               }
             }
-          },
+          }
+        ],
+        "concurrency_class": "security_barrier"
+      },
+      "ak.realm.profile": {
+        "plane": "control",
+        "sealed": true,
+        "cell_writes": [
           {
-            "cell_family": "ak.component.agent.status.v1",
-            "cell_subject": {
-              "kind": "did",
-              "field": "payload.object.created_by"
-            },
-            "lattice": "fsm",
+            "cell_family": "ak.component.realm.profile.v1",
+            "cell_subject": null,
+            "lattice": "cas_register",
             "bottom": "reject",
-            "condition": {
-              "kind": "critical_ref_role_exact_count",
-              "role": "agent_provision",
-              "count": 1
-            },
             "effect_projection": {
-              "kind": "transition",
-              "from": {
-                "const": "uninitialized"
-              },
-              "to": {
-                "const": "active"
+              "kind": "set",
+              "value": {
+                "field": "payload"
               }
             }
           }
         ],
-        "concurrency_class": "security_barrier"
+        "concurrency_class": "exclusive"
       },
       "ak.realm.delivery_binding_policy": {
         "plane": "control",
@@ -4291,28 +4331,6 @@
               "kind": "set",
               "value": {
                 "field": "payload"
-              }
-            }
-          }
-        ],
-        "concurrency_class": "security_barrier"
-      },
-      "ak.realm.update": {
-        "plane": "control",
-        "sealed": true,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.realm.metadata.v1",
-            "cell_subject": null,
-            "lattice": "cas_register",
-            "bottom": "reject",
-            "effect_projection": {
-              "kind": "apply_patch",
-              "patch": {
-                "field": "payload.patch"
-              },
-              "expected_prestate": {
-                "field": "payload.expected_state_digest"
               }
             }
           }
@@ -5621,7 +5639,7 @@
         "admission_variants": [
           {
             "when": {
-              "payload_path": "object.fields.purpose",
+              "payload_path": "object.purpose",
               "const": "principal_control",
               "ref_role": "did_inception",
               "ref_critical": true,
@@ -5631,7 +5649,7 @@
           },
           {
             "when": {
-              "payload_path": "object.fields.purpose",
+              "payload_path": "object.purpose",
               "const": "principal_control",
               "ref_role": "agent_provision",
               "ref_critical": true,
@@ -5645,7 +5663,7 @@
           },
           {
             "when": {
-              "payload_path": "object.fields.purpose",
+              "payload_path": "object.purpose",
               "const": "principal_control",
               "ref_role": "agent_provision",
               "ref_exact_count": 0,
@@ -5658,13 +5676,8 @@
           },
           {
             "when": {
-              "payload_path": "object.fields.purpose",
-              "not_const": "principal_control"
-            },
-            "admission": "capability_gated"
-          },
-          {
-            "when": {
+              "payload_path": "object.purpose",
+              "const": "direct_conversation",
               "ref_role": "direct_conversation_basis",
               "ref_critical": true,
               "ref_exact_count": 1
@@ -5673,11 +5686,20 @@
           },
           {
             "when": {
+              "payload_path": "object.purpose",
+              "const": "direct_conversation",
               "ref_role": "direct_conversation_agent_provision",
               "ref_critical": true,
               "ref_exact_count": 1
             },
             "admission": "direct_conversation_agent_genesis"
+          },
+          {
+            "when": {
+              "payload_path": "object.purpose",
+              "const": "collaboration"
+            },
+            "admission": "capability_gated"
           },
           {
             "when": {
@@ -5687,12 +5709,13 @@
           }
         ],
         "payload": "Realm create",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_create_payload",
         "id_source": "event_derived_or_subject_derived",
         "id_kind": "realm",
         "id_source_variants": [
           {
             "when": {
-              "payload_path": "object.fields.purpose",
+              "payload_path": "object.purpose",
               "const": "principal_control"
             },
             "id_source": "subject_derived",
@@ -5708,12 +5731,13 @@
         ]
       },
       {
-        "event_kind": "ak.realm.update",
+        "event_kind": "ak.realm.profile",
         "category": "realm",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Realm metadata patch. target_ref MUST identify a Realm, and patch paths beginning with reducer_profile are forbidden because only ak.realm.upgrade writes the reducer-profile singleton control cell.",
+        "payload": "The only reducer input for Realm title, summary and avatar. The complete closed profile value replaces the ak.component.realm.profile.v1 singleton; create and policy Events cannot carry these fields.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_profile_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5722,7 +5746,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Realm alias declaration or durable value tombstone. The declaration is the ONLY wire carrier of a Realm alias: realm.schema.json is closed and carries no alias property, and ak.realm.create / ak.realm.update payloads MUST NOT carry one. Declaration payloads and {tombstone:true} both set ak.component.realm.alias.v1 through the registered cas_register effect; effective resolution treats the tombstone as absence of an alias and falls back to realm_id-only addressing.",
+        "payload": "Realm alias declaration or durable value tombstone. The declaration is the ONLY wire carrier of a Realm alias: realm genesis and profile schemas are closed and carry no alias property. Declaration payloads and {tombstone:true} both set ak.component.realm.alias.v1 through the registered cas_register effect; effective resolution treats the tombstone as absence of an alias and falls back to realm_id-only addressing.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_alias_payload",
         "id_source": "not_an_object_id"
       },
@@ -8530,7 +8554,18 @@
     "schemas": [
       {
         "schema_id": "ak.schema.realm.v1",
-        "file": "schemas/realm.schema.json"
+        "file": "schemas/realm.schema.json",
+        "status": "active"
+      },
+      {
+        "schema_id": "ak.schema.realm_genesis.v1",
+        "file": "schemas/realm-genesis.schema.json",
+        "status": "active"
+      },
+      {
+        "schema_id": "ak.schema.realm_profile.v1",
+        "file": "schemas/realm-profile.schema.json",
+        "status": "active"
       },
       {
         "schema_id": "ak.schema.space.v1",
@@ -15871,11 +15906,11 @@
           "ak.realm.policy_bundle",
           "ak.realm.policy_server",
           "ak.realm.preview_policy",
+          "ak.realm.profile",
           "ak.realm.read_receipt_policy",
           "ak.realm.schema",
           "ak.realm.search_policy",
           "ak.realm.set_default_strand",
-          "ak.realm.update",
           "ak.realm.upgrade",
           "ak.redaction",
           "ak.relation.create",
@@ -15987,8 +16022,8 @@
           "ak.realm.owner",
           "ak.realm.plaintext_visible_services",
           "ak.realm.preview_policy",
+          "ak.realm.profile",
           "ak.realm.set_default_strand",
-          "ak.realm.update",
           "ak.realm.upgrade",
           "ak.realm_key.share",
           "ak.receipt.broadcast",
@@ -16136,14 +16171,14 @@
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ak.realm.update",
+        "action": "ak.realm.profile",
         "category": "general",
         "risk_tier": "medium",
         "required_constraints": [
           "allowed_write_fields"
         ],
         "target_event_kinds": [
-          "ak.realm.update"
+          "ak.realm.profile"
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
