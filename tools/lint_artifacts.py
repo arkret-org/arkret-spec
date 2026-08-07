@@ -2970,6 +2970,30 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
 
     id_rows = id_registry.get("id_kinds", [])
     id_kinds = unique_values(lint, id_path, id_rows, "kind")
+    producer_contract = id_registry.get("producer_allocated_identity_contract")
+    expected_producer_contract = {
+        "identity_key": ["mint_authority", "typed_id"],
+        "mint_authority_source": "accepted_genesis_proof_signer_did",
+        "bare_typed_id_resolution": "forbidden",
+        "same_authority_exact_replay": "idempotent",
+        "same_authority_conflicting_binding": "reject_and_quarantine",
+        "cross_authority_same_uuid": "distinct_identity",
+        "atomic_reservation_required": True,
+        "signature_binding_required": True,
+    }
+    if not isinstance(producer_contract, dict):
+        lint.fail(id_path, "producer_allocated_identity_contract must be an object")
+    else:
+        for field, expected in expected_producer_contract.items():
+            if producer_contract.get(field) != expected:
+                lint.fail(
+                    id_path,
+                    f"producer_allocated_identity_contract.{field} must equal {expected!r}",
+                )
+        if not isinstance(producer_contract.get("security_rationale"), str) or not producer_contract[
+            "security_rationale"
+        ]:
+            lint.fail(id_path, "producer_allocated_identity_contract.security_rationale is required")
     event_derived_id_kinds = {
         row.get("kind")
         for row in (id_rows if isinstance(id_rows, list) else [])
@@ -3089,6 +3113,14 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 )
             if not isinstance(genesis_kinds, list) or not genesis_kinds:
                 lint.fail(id_path, f"{id_kind} conditional row must declare genesis_event_kinds")
+        elif id_form == "producer_allocated":
+            if authority != "producer_signature":
+                lint.fail(
+                    id_path,
+                    f"{id_kind} producer_allocated row must declare identity_authority=producer_signature",
+                )
+            if genesis_kinds is not None:
+                lint.fail(id_path, f"{id_kind} producer_allocated row must omit genesis_event_kinds")
         elif authority is not None or genesis_kinds is not None:
             lint.fail(
                 id_path,

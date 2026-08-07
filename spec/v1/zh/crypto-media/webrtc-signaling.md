@@ -53,7 +53,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 标准 actions（canonical 命名以 capability registry / `contract-registry.json` 为唯一真源；正文与实现 MUST 使用带 `ak.` 前缀的形态，MUST NOT 接受裸 `call.*` 名）：
 
-- `ak.call.join` —— 加入并发起 call。v1 不注册独立的 `call.start`：call 的发起由首个具备 `ak.call.join` 的 actor 写入首个 `ak.call.state` 完成。
+- `ak.call.join` —— 创建或加入 call。发起方必须先提交 `ak.call.create`，由其 Event ID 派生 `call_id`；后续所有 `ak.call.state` 与信令只能引用已 accepted 的 create。
 - `ak.call.signal.send` —— 发送 call signaling frame，含邀请（`ak.call.signal{kind=invite}`）。v1 不注册独立的 `call.invite`，邀请通过该 signaling action 表达。
 - `ak.call.screen_share`
 - `ak.call.record`
@@ -63,6 +63,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 默认规则：
 
+- offer / answer / candidate / invite / focus_join 发送、push 响铃、ICE/TURN 凭证与媒体 token 签发都 MUST 在服务端解析到同 Realm 的 accepted `ak.call.create` 后才可执行；裸 `call_id` 不能创建会话占位。
 - Realm 成员不自动拥有 `ak.call.record`。
 - `ak.call.screen_share` SHOULD 独立授权。
 - `ak.realm.media_service` 只应授予管理员或受信服务。
@@ -80,7 +81,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 {
   "kind": "ak.call.signal",
   "payload_sequence": 60,
-  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
   "signal_kind": "moderation",
   "seq": 30,
   "data": {
@@ -134,7 +135,7 @@ Content-Type: application/json
 ```json
 {
   "realm_id": "ak:realm:...",
-  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
   "actor_id": "did:webvh:...",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "mode": "p2p"
@@ -170,7 +171,7 @@ Content-Type: application/json
 ```json
 {
   "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
-  "call_id": "ak:call:0196419c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "ttl_seconds": 600,
@@ -293,7 +294,7 @@ Invite payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 30,
-  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
   "signal_kind": "invite",
   "seq": 12,
   "data": {
@@ -318,7 +319,7 @@ Answer payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 31,
-  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
   "signal_kind": "answer",
   "seq": 13,
   "data": {
@@ -340,7 +341,7 @@ Candidate payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 32,
-  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
   "signal_kind": "candidate",
   "seq": 14,
   "data": {
@@ -367,7 +368,7 @@ Candidate payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 40,
-  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
   "signal_kind": "renegotiate",
   "seq": 20,
   "data": {
@@ -396,7 +397,7 @@ Candidate payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 41,
-  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
   "signal_kind": "mute_state",
   "seq": 21,
   "data": {
@@ -414,7 +415,7 @@ Candidate payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 42,
-  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
   "signal_kind": "mute_state",
   "seq": 22,
   "data": {
@@ -433,7 +434,7 @@ Candidate payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 43,
-  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
   "signal_kind": "speaking",
   "seq": 23,
   "data": {
@@ -467,7 +468,7 @@ Candidate payload:
 {
   "kind": "ak.call.signal",
   "payload_sequence": 50,
-  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
   "signal_kind": "media_state",
   "seq": 7,
   "data": {

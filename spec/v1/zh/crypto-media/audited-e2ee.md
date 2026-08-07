@@ -8,7 +8,7 @@ sidebar:
   label: Audited E2EE
 ---
 
-> **状态：可选 hardening profile**。本文档定义 Arkret v1 中面向政府 / 企业合规的 **Audit Applet Binding + sealed release session** 审计模型。v1 core 互操作 **不要求** 实现本 profile；只有 Realm 或 Circle 显式存在 active `ak.audit.applet_binding` 时才启用。基础 MLS / E2EE 架构见 [`encryption-and-audit.md`](./encryption-and-audit.md)。
+> **状态：可选 hardening profile**。本文档定义 Arkret v1 中面向政府 / 企业合规的 **Audit Applet Binding + sealed release session** 审计模型。v1 core 互操作 **不要求** 实现本 profile；只有 Realm 或 Circle 显式存在 active `ak.audit.applet_binding.create/state` 投影时才启用。基础 MLS / E2EE 架构见 [`encryption-and-audit.md`](./encryption-and-audit.md)。
 >
 > 本 profile 不定义常驻审计成员。审计 applet **不是** MLS 成员，**不是**实时 sync 订阅者，**不会**因为被绑定就持续收到所有聊天信息或历史密钥。
 
@@ -44,15 +44,13 @@ Arkret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明�
 
 ## 3. Audit Applet Binding
 
-`ak.audit.applet_binding` 是审计 applet 在某个 Realm / Circle 中具有协议级审计资格的唯一入口。Binding 是 durable reducer-input Event，payload 至少包含：
+`ak.audit.applet_binding.create` 是审计 applet 在某个 Realm / Circle 中具有协议级审计资格的唯一创世入口。`binding_id = retype(create_event.event_id, "audit_binding")`，是 content-bound UUIDv8；create payload MUST 省略 `binding_id`、`status` 和 `created_at`，三者由 reducer 从 Event 派生。payload 包含：
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `binding_id` | yes | `ak:audit_binding:<uuid>`，binding 的稳定 ID。 |
 | `realm_id` | yes | 父 Realm。 |
 | `effective_scope` | yes | `{kind:"realm", realm_id}` 或 `{kind:"circle", realm_id, circle_id}`。Realm-scope binding 只覆盖 Realm-default history；Circle history MUST 有 Circle-scoped binding。 |
 | `applet_id` / `service_id` | yes | 审计 applet 与承载服务身份。 |
-| `status` | yes | `active` / `suspended` / `revoked`。只有 `active` 可授权新 session。 |
 | `purpose_kinds` | yes | 允许的审计目的，例如 `legal_compliance`、`regulatory_audit`、`incident_investigation`。 |
 | `allowed_release_modes` | yes | 允许的 release mode；默认 SHOULD 仅含 `targeted_evidence_release`。 |
 | `audit_assurance_class` | yes | `attested_hardware` 或 `disclosed_policy`。 |
@@ -65,23 +63,23 @@ Arkret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明�
 
 ### 3.1 Binding FSM（normative）
 
-每个 `binding_id` 唯一对应 control-plane cell `ak.component.audit.binding.v1/<binding_id>`；该 cell 使用 `fsm` lattice，初始状态只能是 `active`，合法迁移只有 `active -> suspended`、`suspended -> active`、`active -> revoked`、`suspended -> revoked`。`revoked` 是 terminal，不能重新激活；需要新的资格时必须创建新的 `binding_id` 并重新经过 activation frontier 与成员可见流程。同一 `seal_basis` 的同状态重放是 no-op；同一 basis 的不同目标状态 sibling 产生 Bottom 并拒绝，不得按到达时间挑选 winner。
+每个 `binding_id` 对应两个正交的 control-plane cell：`ak.component.audit.binding.v1/<binding_id>` 是 write-once `cas_register`，保存 create Event 声明的不可变 scope、release policy 和 activation 配置；`ak.component.audit.binding_state.v1/<binding_id>` 是 `fsm`，只保存生命周期。两者共享同一个从 create Event 派生的 AuditBindingId，不是两个实体。初始状态只能是 `active`，合法迁移只有 `active -> suspended`、`suspended -> active`、`active -> revoked`、`suspended -> revoked`。`revoked` 是 terminal，不能重新激活；需要新的资格或修改不可变配置时，必须创建新的 `binding_id` 并重新经过 activation frontier 与成员可见流程。同一 `seal_basis` 的同状态重放是 no-op；同一 basis 的不同目标状态 sibling 产生 Bottom 并拒绝，不得按到达时间挑选 winner。
 
-Binding Event 必须作为 Control Move 写入上述 cell，信封携带 `seal_basis`，且 payload 的 `status` 必须等于 registered reducer projection 的目标状态。Reducer 在接受任何 session 或 release 时必须读取 accepted current binding head；仅 `active` 可创建 request/authorize/release，`suspended` 与 `revoked` 均 fail closed。策略收窄或扩大除了更新同一 binding cell 外，仍受下一节的 epoch 覆盖与不可追溯规则约束。
+Create Event 作为 Control Move 以 `from=null,to=active` 初始化 cell。后续 `ak.audit.applet_binding.state` payload 只允许 `{binding_id,from,to}`，不得携带或修改范围与策略字段。Reducer 在接受任何 session 或 release 时必须读取 accepted current binding head；仅 `active` 可创建 request/authorize/release，`suspended` 与 `revoked` 均 fail closed。范围、purpose、assurance、notice 或 release policy 变更 MUST 新建另一个 Binding，不得把同一 ID 重解释成新策略。
 
 ### 3.2 Activation Frontier 与不可追溯性
 
 Binding 生效必须经过两个步骤：
 
-1. `ak.audit.applet_binding` 进入对应 Realm / Circle 的 durable history，并对该 scope 的当前成员可见；
+1. `ak.audit.applet_binding.create` 进入对应 Realm / Circle 的 durable history，并对该 scope 的当前成员可见；
 2. 一个新的 `ak.mls.commit` 覆盖包含该 binding 的 governance / policy frontier，推进到 `first_auditable_epoch`。
 
 在这两个条件同时满足之前，客户端 MUST 把 E2EE application message 发送视为 `epoch_update_required` / `encryption_transition_pending`。`first_auditable_epoch` 之前的消息、epoch 和 event，即使随后变成历史窗口，也 MUST NOT 被 `ak.audit.session.request`、`ak.audit.session.authorize` 或 `ak.audit.release` 覆盖。Reducer 发现 request / authorize / release 试图覆盖该边界之前的材料时，MUST 以 `audit_release_retroactive_scope_forbidden` 拒绝。
 
-Binding 或 policy 的后续变更遵守同一规则：
+Binding policy 的后续变更通过新的 create Event 表达，并遵守同一规则：
 
-- 管理员 MAY 收窄 release window、暂停 / revoke binding、删除 release mode 或降低最大回看范围；收窄可以从新的 accepted policy frontier 起生效。
-- 管理员 MAY 扩大未来窗口（例如从 30 天改为 90 天），但扩大只适用于被该变更后的 `ak.mls.commit` 覆盖并在之后加密的消息；已经加密的消息继续使用其加密时的 eligibility snapshot。
+- 管理员 MAY 用 state Event 暂停 / revoke 旧 binding；删除 release mode、收窄 release window 或降低最大回看范围也必须创建新 binding，并在新策略生效时 suspend/revoke 旧 binding。
+- 管理员 MAY 用新 binding 扩大未来窗口（例如从 30 天改为 90 天），但扩大只适用于被新 create 后的 `ak.mls.commit` 覆盖并在之后加密的消息；已经加密的消息继续使用其加密时的 eligibility snapshot。
 - 任何改变 `effective_scope`、`release_window_policy`、`allowed_release_modes`、`notice_policy`、`purpose_kinds` 或 `audit_assurance_class` 的事件 MUST 对受影响 scope 的成员可见，并 MUST 触发新的 MLS epoch 覆盖；在覆盖前不得发送新的 application messages。
 
 因此，成员在某一天看到 Realm / Circle 没有 active Audit Applet Binding 时，该状态下发送的 E2EE 消息获得永久的协议级承诺：未来新增审计 applet 不得追溯审计这些消息。需要处理 binding 之前材料的政府 / 企业流程必须走协议外的 legal hold / export / enterprise archive 机制，不能用本 profile 的 `ak.audit.release` 表达。

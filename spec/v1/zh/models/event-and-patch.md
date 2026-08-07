@@ -157,7 +157,7 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
     "ak:event:019640ed-0000-8000-8000-000000000000"
   ],
   "refs": [
-    { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:grant:0196410c-0000-8000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": [
     "sha256:3333333333333333333333333333333333333333333333333333333333333333"
@@ -651,7 +651,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": ["ak:event:019640ed-7000-8000-8000-000000000000"],
   "refs": [
-    { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:grant:0196410c-0000-8000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": ["sha256:3333333333333333333333333333333333333333333333333333333333333333"],
   "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",

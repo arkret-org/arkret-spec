@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07.7",
+  "version": "2026-08-07.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-07T10:00:00Z",
+  "generated_at": "2026-08-07T16:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -186,10 +186,11 @@
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.audit.applet_binding"
+        "ak.audit.applet_binding.create",
+        "ak.audit.applet_binding.state"
       ],
       "profile": null,
-      "event_mapping_kind": "same_name"
+      "event_mapping_kind": "scope_suffix_variant"
     },
     {
       "action": "ak.audit.export",
@@ -270,6 +271,7 @@
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
+        "ak.call.create",
         "ak.call.state",
         "ak.call.summary"
       ],
@@ -1347,12 +1349,14 @@
         "ak.agent.key.revoke",
         "ak.applet.registration",
         "ak.audit.accessed",
-        "ak.audit.applet_binding",
+        "ak.audit.applet_binding.create",
+        "ak.audit.applet_binding.state",
         "ak.audit.release",
         "ak.audit.session.authorize",
         "ak.audit.session.close",
         "ak.audit.session.notice",
         "ak.audit.session.request",
+        "ak.call.create",
         "ak.call.recording.start",
         "ak.call.state",
         "ak.call.summary",

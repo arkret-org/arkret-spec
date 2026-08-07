@@ -427,7 +427,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": ["ak:event:019640ed-0000-8000-8000-000000000000"],
   "refs": [
-    { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:grant:0196410c-2000-8000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": ["sha256:3333333333333333333333333333333333333333333333333333333333333333"],
   "seal_ref": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
@@ -470,7 +470,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
   "hlc": "01970e589d34-0001-c00ff00f",
   "prev_refs": ["ak:event:019640ed-8500-8000-8000-000000000000"],
   "refs": [
-    { "id": "ak:grant:0196410c-1000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:grant:0196410c-2000-8000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
   "seal_ref": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
@@ -517,7 +517,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
   "hlc": "01970e589d40-0002-c00fbeef",
   "prev_refs": ["ak:event:019640ed-9000-8000-8000-000000000000"],
   "refs": [
-    { "id": "ak:grant:0196410c-2000-7000-8000-000000000000", "role": "authorized_by", "critical": true },
+    { "id": "ak:grant:0196410c-2000-8000-8000-000000000000", "role": "authorized_by", "critical": true },
     { "id": "ak:event:019640ed-8000-8000-8000-000000000000", "role": "parent_event", "critical": false }
   ],
   "causal_refs": ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],

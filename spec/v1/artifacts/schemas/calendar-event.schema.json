@@ -73,7 +73,7 @@
     },
     "call_id": {
       "type": "string",
-      "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Soft reference to an Arkret call session. It never widens access: an unresolvable or invisible call_id MUST NOT leak call state."
     },
     "attendees": {

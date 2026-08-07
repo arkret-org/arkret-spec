@@ -1533,16 +1533,14 @@
       ],
       "additionalProperties": false
     },
-    "audit_applet_binding_payload": {
+    "audit_applet_binding_create_payload": {
       "type": "object",
-      "description": "Payload for ak.audit.applet_binding. Writes the control-plane FSM cell ak.component.audit.binding.v1 keyed by binding_id. Initial status is active; legal transitions are active->suspended, suspended->active, active->revoked, and suspended->revoked; revoked is terminal. The binding is non-retroactive and does not make the applet an MLS member or signal sync recipient. Messages encrypted before activation_frontier_digest / first_auditable_epoch are never eligible for this binding's ak.audit.release.",
+      "description": "Genesis payload for ak.audit.applet_binding.create. binding_id, initial active status, creator, and creation time are derived from the accepted Event envelope. Policy fields are immutable; changing them creates a new binding so historical release eligibility cannot be silently expanded.",
       "required": [
-        "binding_id",
         "realm_id",
         "effective_scope",
         "applet_id",
         "service_id",
-        "status",
         "purpose_kinds",
         "allowed_release_modes",
         "audit_assurance_class",
@@ -1550,13 +1548,9 @@
         "activation_frontier_digest",
         "first_auditable_epoch",
         "release_window_policy",
-        "policy_version_digest",
-        "created_at"
+        "policy_version_digest"
       ],
       "properties": {
-        "binding_id": {
-          "$ref": "#/$defs/audit_binding_id"
-        },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
@@ -1576,14 +1570,6 @@
         },
         "service_id": {
           "$ref": "#/$defs/did"
-        },
-        "status": {
-          "type": "string",
-          "enum": [
-            "active",
-            "suspended",
-            "revoked"
-          ]
         },
         "purpose_kinds": {
           "$ref": "#/$defs/string_list"
@@ -1669,16 +1655,43 @@
         },
         "expires_at": {
           "$ref": "#/$defs/nullable_timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "audit_applet_binding_state_payload": {
+      "type": "object",
+      "description": "Lifecycle-only transition for an existing Audit Applet Binding. Scope and release policy cannot be edited by this Event; a policy change requires a new binding genesis.",
+      "required": [
+        "binding_id",
+        "from",
+        "to"
+      ],
+      "properties": {
+        "binding_id": {
+          "$ref": "#/$defs/audit_binding_id"
         },
-        "created_at": {
-          "$ref": "#/$defs/timestamp"
+        "from": {
+          "type": "string",
+          "enum": [
+            "active",
+            "suspended"
+          ]
+        },
+        "to": {
+          "type": "string",
+          "enum": [
+            "active",
+            "suspended",
+            "revoked"
+          ]
         }
       },
       "additionalProperties": false
     },
     "audit_binding_id": {
       "type": "string",
-      "pattern": "^ak:audit_binding:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:audit_binding:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "audit_payload": {
       "type": "object",
@@ -2249,7 +2262,7 @@
       "properties": {
         "call_id": {
           "type": "string",
-          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "recording_id": {
           "type": "string",
@@ -2356,6 +2369,24 @@
         }
       ]
     },
+    "call_create_payload": {
+      "type": "object",
+      "description": "Genesis payload for ak.call.create. call_id is omitted and derived by retyping the accepted Event id. Signaling, media tokens, Morph bindings, and state deltas MUST reference only an already accepted create.",
+      "required": [
+        "initial_state"
+      ],
+      "properties": {
+        "initial_state": {
+          "type": "string",
+          "enum": [
+            "scheduled",
+            "ringing",
+            "connecting"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "call_state_payload": {
       "type": "object",
       "description": "Typed delta payload for ak.call.state. Every present field maps to one or two explicit registered cell effects; omitted axes produce no effect.",
@@ -2402,7 +2433,7 @@
       "properties": {
         "call_id": {
           "type": "string",
-          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "state_transition": {
           "type": "object",
@@ -2412,23 +2443,16 @@
           ],
           "properties": {
             "from": {
-              "oneOf": [
-                {
-                  "type": "null"
-                },
-                {
-                  "type": "string",
-                  "enum": [
-                    "scheduled",
-                    "ringing",
-                    "connecting",
-                    "active",
-                    "ended",
-                    "missed",
-                    "failed",
-                    "cancelled"
-                  ]
-                }
+              "type": "string",
+              "enum": [
+                "scheduled",
+                "ringing",
+                "connecting",
+                "active",
+                "ended",
+                "missed",
+                "failed",
+                "cancelled"
               ]
             },
             "to": {
@@ -2891,7 +2915,7 @@
       "properties": {
         "call_id": {
           "type": "string",
-          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "final_state": {
           "type": "string",
@@ -2961,10 +2985,71 @@
     "capability_grant_payload": {
       "type": "object",
       "required": [
+        "grant"
+      ],
+      "description": "Canonical ak.capability.grant genesis payload. Both top-level grant_id and grant.id are forbidden because the durable GrantId is derived by retyping this Event's event_id. The reducer inserts the derived id into the projected CapabilityGrant. The Event envelope proof is the sole durable issuer signature.",
+      "properties": {
+        "grant": {
+          "type": "object",
+          "required": [
+            "schema",
+            "issuer",
+            "subject",
+            "actions",
+            "resources",
+            "issued_at",
+            "issuer_authority_refs"
+          ],
+          "properties": {
+            "schema": {
+              "$ref": "./capability-grant.schema.json#/properties/schema"
+            },
+            "realm_id": {
+              "$ref": "./capability-grant.schema.json#/properties/realm_id"
+            },
+            "issuer": {
+              "$ref": "./capability-grant.schema.json#/properties/issuer"
+            },
+            "subject": {
+              "$ref": "./capability-grant.schema.json#/properties/subject"
+            },
+            "actions": {
+              "$ref": "./capability-grant.schema.json#/properties/actions"
+            },
+            "resources": {
+              "$ref": "./capability-grant.schema.json#/properties/resources"
+            },
+            "capability_action_registry_digest": {
+              "$ref": "./capability-grant.schema.json#/properties/capability_action_registry_digest"
+            },
+            "constraints": {
+              "$ref": "./capability-grant.schema.json#/properties/constraints"
+            },
+            "issued_at": {
+              "$ref": "./capability-grant.schema.json#/properties/issued_at"
+            },
+            "not_before": {
+              "$ref": "./capability-grant.schema.json#/properties/not_before"
+            },
+            "expires_at": {
+              "$ref": "./capability-grant.schema.json#/properties/expires_at"
+            },
+            "issuer_authority_refs": {
+              "$ref": "./capability-grant.schema.json#/properties/issuer_authority_refs"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "capability_derived_payload": {
+      "type": "object",
+      "required": [
         "grant_id",
         "grant"
       ],
-      "description": "Canonical ak.capability.grant payload. grant is a closed CapabilityGrantBody without an inner proof. The Event envelope proof is the sole durable issuer signature and covers actor, scope, typed authority refs, payload and time. This kind MUST NOT use executed_by; cases with a different executor/issuer require a separately registered payload-proof shape.",
+      "description": "Reducer-authored cross-Realm capability derivation. Unlike capability genesis this references an existing Grant and therefore carries the already-derived grant_id and complete projected grant body.",
       "properties": {
         "grant": {
           "$ref": "./capability-grant.schema.json"
@@ -4683,7 +4768,7 @@
     },
     "grant_id": {
       "type": "string",
-      "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "hash": {
       "type": "string",
@@ -7941,7 +8026,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^((?:ak:(realm|circle|space|actor_profile|strand|message|morph|relation|view|event):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:(policy|grant|invite|call|audit_binding|audit_session|audit_release|blob|snapshot|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^((?:ak:(realm|circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:(policy|blob|snapshot|franking_proof):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
     },
     "object_snapshot": {
       "type": "object",
@@ -8127,7 +8212,7 @@
         },
         "call_id": {
           "type": "string",
-          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "focus_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -10415,8 +10500,8 @@
     },
     "session_grant_payload": {
       "type": "object",
+      "description": "Genesis claims for ak.session.grant. session_grant_id is omitted and derived from the Event id. A JWT is signed only after derivation and its jti MUST equal that typed ID.",
       "required": [
-        "grant_id",
         "issuer",
         "subject",
         "session_public_key",
@@ -10426,9 +10511,6 @@
         "expires_at"
       ],
       "properties": {
-        "grant_id": {
-          "$ref": "#/$defs/grant_id"
-        },
         "issuer": {
           "$ref": "#/$defs/did"
         },

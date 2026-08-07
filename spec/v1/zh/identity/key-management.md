@@ -737,7 +737,7 @@ Arkret v1 使用 `ak.session.grant` 作为 principal control stream 中的标准
 
 ```json
 {
-  "grant_id": "ak:grant:01964198-0000-7000-8000-000000000000",
+  "grant_id": "ak:grant:01964198-0000-8000-8000-000000000000",
   "realm_id": "ak:realm:01964198-7000-8000-8000-000000000000",
   "issuer": "did:webvh:z99jGJ9cd12QASVtC6r35kV5q:auth-gateway.example.com",
   "subject": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",

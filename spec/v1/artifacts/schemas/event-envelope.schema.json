@@ -576,12 +576,14 @@
               "ak.applet.discovery",
               "ak.applet.registration",
               "ak.audit.accessed",
-              "ak.audit.applet_binding",
+              "ak.audit.applet_binding.create",
+              "ak.audit.applet_binding.state",
               "ak.audit.release",
               "ak.audit.session.authorize",
               "ak.audit.session.close",
               "ak.audit.session.notice",
               "ak.audit.session.request",
+              "ak.call.create",
               "ak.call.recording.start",
               "ak.call.state",
               "ak.call.summary",
@@ -2896,10 +2898,7 @@
       "if": {
         "properties": {
           "kind": {
-            "enum": [
-              "ak.capability.grant",
-              "ak.capability.derived"
-            ]
+            "const": "ak.capability.grant"
           }
         },
         "required": [
@@ -2910,6 +2909,25 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/capability_grant_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.capability.derived"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/capability_derived_payload"
           }
         }
       }
@@ -4073,7 +4091,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.audit.applet_binding"
+            "const": "ak.audit.applet_binding.create"
           }
         },
         "required": [
@@ -4083,7 +4101,26 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/audit_applet_binding_payload"
+            "$ref": "./event-payload.schema.json#/$defs/audit_applet_binding_create_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.audit.applet_binding.state"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/audit_applet_binding_state_payload"
           }
         }
       }
@@ -4220,6 +4257,25 @@
         "properties": {
           "payload": {
             "$ref": "./moderation-report.schema.json#/$defs/franking_proof"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.call.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/call_create_payload"
           }
         }
       }
@@ -4746,7 +4802,7 @@
     },
     "grant_ref": {
       "type": "string",
-      "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "did_delegation_ref": {
       "type": "string",

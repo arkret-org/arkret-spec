@@ -651,7 +651,7 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
   "actor_seq": 17,
   "kind": "ak.message.create",
   "applet_id": "ak:applet:21532600-0000-7000-8000-000000000000",
-  "authorization_ref": "ak:grant:0196410c-0000-7000-8000-000000000000",
+  "authorization_ref": "ak:grant:0196410c-0000-8000-8000-000000000000",
   "external_ref": {
     "protocol": "slack",
     "network_id": "T123",
@@ -787,7 +787,7 @@ Alice via Calendar Applet
 {
   "actor_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example",
   "executed_by": "did:webvh:z9CalAppTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:calendar-applet.example#agent",
-  "authorization_ref": "ak:grant:0196410c-0000-7000-8000-000000000000",
+  "authorization_ref": "ak:grant:0196410c-0000-8000-8000-000000000000",
   "applet_id": "ak:applet:8a0baad5-6000-7000-8000-000000000000"
 }
 ```

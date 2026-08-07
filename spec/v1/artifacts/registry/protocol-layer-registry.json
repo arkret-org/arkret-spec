@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-07.1",
+  "version": "2026-08-07.2",
   "source_of_truth": true,
   "description": "Exhaustive ownership of every active Arkret v1 Event.kind by Kernel, Collaboration Base, or Extension. Each kind appears exactly once. Layer ownership constrains conformance packaging and dependency direction; it does not change the Event Envelope wire shape.",
   "layer_rules": {
@@ -12,7 +12,8 @@
       "ak.account.status",
       "ak.attestation.range_completeness",
       "ak.audit.accessed",
-      "ak.audit.applet_binding",
+      "ak.audit.applet_binding.create",
+      "ak.audit.applet_binding.state",
       "ak.audit.erasure_receipt",
       "ak.audit.release",
       "ak.audit.ryw_receipt",
@@ -129,6 +130,7 @@
       "ak.applet.bridge_error",
       "ak.applet.discovery",
       "ak.applet.registration",
+      "ak.call.create",
       "ak.call.recording.start",
       "ak.call.state",
       "ak.call.summary",

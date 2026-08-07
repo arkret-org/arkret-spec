@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 目标与范围
 
-本文件定义通话 / 会议的 **durable 真源**：通话模型与状态机、`ak.call.state` payload 字段语义与 reducer 校验规则、participant 绑定的落地校验，以及录制 / 转写的生命周期。实时媒体本身不进入 Realm Event history；高频信令走 ephemeral 通道。
+本文件定义通话 / 会议的 **durable 真源**：`ak.call.create` 创世、通话模型与状态机、`ak.call.state` payload 字段语义与 reducer 校验规则、participant 绑定的落地校验，以及录制 / 转写的生命周期。实时媒体本身不进入 Realm Event history；高频信令走 ephemeral 通道，但它们只能引用已 accepted 的 Call。
 
 边界：
 
@@ -42,7 +42,7 @@ sidebar:
   "realm_id": "ak:realm:...",
   "title": "Design review",
   "fields": {
-    "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+    "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
     "mode": "sfu",
     "state": "ringing",
     "started_at": null,
@@ -50,6 +50,8 @@ sidebar:
   }
 }
 ```
+
+Morph 中的 `call_id` 只是对已创建 Call 的引用；Morph 不创建 Call，也不得在 `ak.call.create` accepted 前先行发布。
 
 `state`（通话生命周期，完整枚举、合法转换与终态见 §4.2）：
 
@@ -66,14 +68,28 @@ sidebar:
 
 ## 4. 会议状态事件
 
-会议状态可作为 durable event 记录：
+每个 Call 首先由一条 accepted `ak.call.create` 创建：
+
+```json
+{
+  "kind": "ak.call.create",
+  "realm_id": "ak:realm:...",
+  "payload": {
+    "initial_state": "ringing"
+  }
+}
+```
+
+create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，因而使用 content-bound UUIDv8。只有在这条 Event accepted 后，才能签发媒体 token、发送 offer/answer/candidate/focus_join 信令、创建引用该 Call 的 Morph，或提交 `ak.call.state`。接收方对未解析到 accepted create 的任何引用 MUST fail closed，不得为裸 `call_id` 自动建立占位 Call。
+
+后续状态以 durable event 记录：
 
 ```json
 {
   "kind": "ak.call.state",
   "realm_id": "ak:realm:...",
   "payload": {
-    "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+    "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
     "state_transition": {
       "from": "connecting",
       "to": "active"
@@ -93,7 +109,7 @@ sidebar:
         "participant_binding": {
           "scheme": "ak.media.participant_binding.v1",
           "realm_id": "ak:realm:...",
-          "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+          "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
           "focus_id": "fra-1",
           "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
@@ -174,7 +190,7 @@ sidebar:
 | `failed` | 出错失败 | —（终态） | **是** |
 | `cancelled` | 连接前取消 | —（终态） | **是** |
 
-- **初始 state 集合**：某 `call_id` 的**首条** `ak.call.state` 事件 MUST 携带 `state`（其余轴可选，但首条不得只写别的轴而让 `state` 轴 cell 保持未初始化），且其 `state` MUST ∈ `{ scheduled, ringing, connecting }`——`scheduled` 对应预先排期，`ringing` 对应即时呼叫发起，`connecting` 对应无振铃阶段的直接加入（如会议直连）。首条事件携带其它取值（`active` 或任一终态）MUST `failed_precondition`，`reason_code="call_state_transition_invalid"`。
+- **初始 state 集合**：`ak.call.create.payload.initial_state` MUST ∈ `{ scheduled, ringing, connecting }`，并以 `from=null` 初始化 `ak.component.call.state.v1`。`ak.call.state.state_transition.from` 不再允许 `null`；它必须匹配已 accepted head。创世直接进入 `active` 或任一终态 MUST `failed_precondition`，`reason_code="call_state_transition_invalid"`。
 - **终态集合**：`{ ended, missed, failed, cancelled }`。reducer MUST 拒绝从任一终态转出（单调推进），违反用 `failed_precondition` `reason="call_state_terminal"`。
 - **非法转换通用规则**：源 state 为非终态时，任何不在上表"合法后继"列内的 `state` 转换 MUST `failed_precondition`，`reason_code="call_state_transition_invalid"`（见 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；源为终态时用 `call_state_terminal`，二者不混用。
 - **同状态重放**：同一 basis 上重复提交相同 `from -> to` 转换是幂等 no-op；reducer MUST 不产生新的分叉 head，也不得把同值重放当成非法转换。
@@ -215,7 +231,7 @@ sidebar:
   "kind": "ak.call.recording.start",
   "realm_id": "ak:realm:...",
   "payload": {
-    "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+    "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
     "recording_id": "rtc-recording-0196441d-0000-7000-8000-000000000000",
     "recording_agent": "did:webvh:zCYG7PrN3Yt1TdX4X8gfYFA4R:recorder.example",
     "capture_kind": "recording",
@@ -297,7 +313,7 @@ sidebar:
   "kind": "ak.call.summary",
   "realm_id": "ak:realm:...",
   "payload": {
-    "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+    "call_id": "ak:call:0196441c-0000-8000-8000-000000000000",
     "final_state": "ended",
     "mode": "sfu",
     "started_at": "2026-04-26T00:00:00Z",

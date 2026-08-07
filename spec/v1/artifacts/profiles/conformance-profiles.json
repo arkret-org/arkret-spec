@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-07.2",
-  "generated_at": "2026-08-07T10:00:00Z",
+  "version": "2026-08-07.3",
+  "generated_at": "2026-08-07T16:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -4309,7 +4309,8 @@
         "ak.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
-        "ak.audit.applet_binding",
+        "ak.audit.applet_binding.create",
+        "ak.audit.applet_binding.state",
         "ak.audit.session.request",
         "ak.audit.session.authorize",
         "ak.audit.session.notice",
@@ -4353,7 +4354,8 @@
         "ak.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
-        "ak.audit.applet_binding",
+        "ak.audit.applet_binding.create",
+        "ak.audit.applet_binding.state",
         "ak.audit.session.request",
         "ak.audit.session.authorize",
         "ak.audit.session.notice",

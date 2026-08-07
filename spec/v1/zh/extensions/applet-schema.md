@@ -210,7 +210,7 @@ Install commit request:
       "kind": "ak.capability.grant",
       "actor_id": "did:webvh:z6MkAdmin:acme.example",
       "payload": {
-        "grant_id": "ak:grant:0196419b-0000-7000-8000-000000000001",
+        "grant_id": "ak:grant:0196419b-0000-8000-8000-000000000001",
         "grant": {}
       },
       "proofs": []

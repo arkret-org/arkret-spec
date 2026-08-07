@@ -285,7 +285,7 @@
       ],
       "properties": {
         "grant_id": {
-          "$ref": "./common-ids.schema.json#/$defs/grant_id"
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
         },
         "grant_jwt": {
           "type": "string",
@@ -313,7 +313,7 @@
           "description": "RFC 7638 thumbprint of the holder key (equals the grant's cnf.jkt)."
         },
         "previous_grant_id": {
-          "$ref": "./common-ids.schema.json#/$defs/grant_id",
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id",
           "description": "The prior grant, single-use revoked on success."
         }
       }
@@ -388,7 +388,7 @@
       ],
       "properties": {
         "id": {
-          "$ref": "./common-ids.schema.json#/$defs/grant_id",
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id",
           "description": "Grant id. Mutually exclusive with grant_jwt."
         },
         "grant_jwt": {
@@ -479,7 +479,7 @@
       ],
       "properties": {
         "id": {
-          "$ref": "./common-ids.schema.json#/$defs/grant_id"
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
         },
         "issuer": {
           "type": "string"
@@ -922,7 +922,7 @@
         },
         "call_id": {
           "type": "string",
-          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did"
@@ -941,7 +941,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           }
         },
         "desired_media": {
@@ -1019,7 +1019,7 @@
             },
             "call_id": {
               "type": "string",
-              "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
             "focus_id": {
               "type": "string",
@@ -3987,7 +3987,7 @@
           "const": "ak.session.grant"
         },
         "grant_id": {
-          "$ref": "./common-ids.schema.json#/$defs/grant_id"
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
         },
         "subject": {
           "$ref": "./common-ids.schema.json#/$defs/did"
@@ -4165,7 +4165,7 @@
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "grant_id": {
-          "$ref": "./common-ids.schema.json#/$defs/grant_id",
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id",
           "description": "Stable id of the issued session grant. Returned for every grant (human and agent) so the client can reference, refresh, introspect or revoke this exact grant without re-parsing the opaque session_grant. Mirrors SessionGrantRefreshOutcome.grant_id."
         },
         "session_public_key": {

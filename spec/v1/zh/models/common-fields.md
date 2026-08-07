@@ -568,6 +568,10 @@ UUID 部分的构造 MUST 由
 UUIDv7 / UUIDv8，也不得把 Event 或 Event-derived typed ID 降级为 UUIDv7。content-addressed form
 使用对应 digest。
 
+所有 typed ID 的总表是 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)；它同时列出 `id_form`、`identity_authority` 和 `genesis_event_kinds`，实现 MUST NOT 在各 schema / reducer 中另建一份手写分类。其中 `ak:audit_binding:`、`ak:call:`、`ak:grant:` 和 `ak:session_grant:` 都是 `event_derived`；分别从 `ak.audit.applet_binding.create`、`ak.call.create`、`ak.capability.grant` 和 `ak.session.grant` 的 Event ID 重类型化为 UUIDv8。
+
+`producer_allocated` UUIDv7 只提供时间排序与随机冲突概率，**不证明谁有权分配该 ID**。其协议身份键 MUST 是 `(mint_authority, typed_id)`，`mint_authority` 是该 ID 首次持久出现时通过接收校验的 genesis proof signer DID。存储与索引 MUST 原子保留这个二元组：同 authority + 同 ID + 同内容是幂等重放；同 authority + 同 ID + 不同内容 MUST 拒绝并隔离；不同 authority 即使 UUID 相同也是不同身份。裸 typed-ID 查找、跨 authority 去重、last-writer-wins 修复以及未绑定签名的预占位都 MUST fail closed。该规则由 ID registry 顶层 `producer_allocated_identity_contract` 机读定义，所有 `identity_authority="producer_signature"` 行统一继承。
+
 并非所有 ID kind 都是 producer-allocated `ak:<kind>:<uuidv7>`。Event-derived kind 使用上述
 UUIDv8，此外 `ak:trust_domain:` 是 deployment-scoped replay boundary 标识：其 wire form 为
 `ak:trust_domain:<trust_domain_label>`，`<trust_domain_label>` 是稳定的部署信任域标签（例如

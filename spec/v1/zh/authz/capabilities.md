@@ -55,14 +55,14 @@ Authorization condition: Claim / Attestation
 
 ID 语义：
 
-- `ak:grant:<uuid>` 是 durable Capability Grant fact 的规范 ID，`ak.schema.capability.v1` body 的 `id`、grant reference 和 revoke payload 均使用它；body 本身无签名，签名位于承载它的 Event envelope proof。
+- `ak:grant:<uuidv8>` 是 durable Capability Grant fact 的规范 ID，由 `ak.capability.grant` Event ID 重类型派生。create payload 同时省略顶层 `grant_id` 和 `grant.id`；reducer 在 `ak.schema.capability.v1` 投影中插入 `id`。grant reference 和 revoke payload 使用该派生 ID；body 本身无签名，签名位于承载它的 Event envelope proof。
 - `ak:capability:<uuid>` 只表示抽象 capability definition 引用；MUST NOT 作为 durable grant fact ID 使用。
 
-示例：
+下例是 reducer 物化后的完整 Grant 对象，不是 create Event payload：
 
 ```json schema=schemas/capability-grant.schema.json
 {
-  "id": "ak:grant:0196410c-0000-7000-8000-000000000000",
+  "id": "ak:grant:0196410c-0000-8000-8000-000000000000",
   "schema": "ak.schema.capability.v1",
   "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000",
   "issuer": "did:webvh:z6qRDFWgaBgTY3UGDLivJztno:acme.example.com",
@@ -115,7 +115,7 @@ ID 语义：
 
 ### 3.0.1 单一 durable signature（normative）
 
-`ak.capability.grant` 的 `grant` 是无内层 proof 的 closed `CapabilityGrantBody`。唯一 durable issuer signature 是承载该 payload 的 Event envelope proof；它同时覆盖 actor、scope、typed authority refs、完整 grant body 与时间。该 Event 的 actor MUST 等于 `grant.issuer`，且本 kind MUST NOT 使用 `executed_by`，从而不存在 executor 与 issuer 不同却遗漏第二签名的问题。需要独立携带、不同 signer、quorum/threshold 或独立密码学 transcript 的证明必须使用另行注册的 typed payload，不得把通用 `proofs[]` 加回 grant body。服务端不得代签或补造 Event proof。
+`ak.capability.grant` 的 `grant` 是无 `id`、无内层 proof 的 closed create body。唯一 durable issuer signature 是承载该 payload 的 Event envelope proof；它同时覆盖 actor、scope、typed authority refs、完整 create body 与时间。Event accepted 后 reducer MUST 以 `retype(event_id,"grant")` 同时作为 cell subject 和投影 `grant.id`。该 Event 的 actor MUST 等于 `grant.issuer`，且本 kind MUST NOT 使用 `executed_by`，从而不存在 executor 与 issuer 不同却遗漏第二签名的问题。需要独立携带、不同 signer、quorum/threshold 或独立密码学 transcript 的证明必须使用另行注册的 typed payload，不得把通用 `proofs[]` 加回 grant body。服务端不得代签或补造 Event proof。
 
 ### 3.1 条件化 Grant
 
@@ -240,7 +240,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 | --- | --- | --- |
 | **聚合 admin 动作** | 一个 action 覆盖多条 Realm policy facet event kinds | `ak.realm.admin` → registry 中声明的 Realm policy facet events；`ak.policy.manage` → `ak.policy.*` 与 `ak.realm.policy_*` 系列 |
 | **polymorphic 对象动作** | 一个 action 同时覆盖 Strand / Morph / Space 等同语义 event | `ak.object.archive` → `{ak.strand.archive, ak.morph.archive}`；`ak.object.restore` → `{ak.strand.restore, ak.morph.restore, ak.space.restore}`；`ak.object.stage.set` → `{ak.strand.stage.set, ak.morph.stage.set}` |
-| **scope 后缀变体** | action 按主体、目标子集或语义相邻的 event 子集细分授权；可映射到一个异名 event，也可映射到多个紧密相关 event | `ak.message.revise.own` → `ak.message.revise`；`ak.call.join` → `{ak.call.state, ak.call.summary}`；`ak.circle.member.add` → `ak.circle.member.state` |
+| **scope 后缀变体** | action 按主体、目标子集或语义相邻的 event 子集细分授权；可映射到一个异名 event，也可映射到多个紧密相关 event | `ak.message.revise.own` → `ak.message.revise`；`ak.call.join` → `{ak.call.create, ak.call.state, ak.call.summary}`；`ak.circle.member.add` → `ak.circle.member.state` |
 | **操作动词动作（`event_mapping_kind="operation_verb"`）** | action token 命名为操作 / 命令动词，与 target event kind 名形态不同；reducer admission 经 `target_event_kinds` 解析，逐字命中 `actions[]` 规则照常适用，且不带聚合 admin 语义 | `ak.message.redact` → `{ak.message.redact, ak.redaction}` |
 
 `ak.mls.commit` action → `{ak.mls.commit, ak.mls.commit_failed}`、`ak.moderation.appeal.review` → `{ak.moderation.appeal.review, ak.moderation.appeal.decision, ak.moderation.appeal.close}` 等"同一 action 同时覆盖正常 event 与诊断 / 派生 event"的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
@@ -336,7 +336,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.realm.admin`
 - `ak.realm.owner`（high risk；Realm 内最高显式授权聚合。两个来源见 §3.2：authority-root cell 的 current controller，或一条 active 的普通 co-owner grant。它同时携带两个由 registry 规则派生的集合——`target_event_kinds` 只用于直接 Event admission，`grant_authority_actions` 只用于 §3.2 的 issuer 上界；两者 MUST NOT 互换使用。`root_control_only` / `subject_only` / `reducer_only` 的 action 不在任一集合内，因此 owner 既不能直接 author 也不能签发它们）
 - `ak.applet.ghost.provision`（high risk、profile=`ak.profile.applet_bridge.v1`、`target_event_kinds=[]`、`event_mapping_kind=non_event_surface`；授权 installed Applet service 调用闭合的 Ghost Actor provisioning aggregate；grant MUST 以 `applet_id`、`executed_by`、`registration_epoch` 约束绑定 active registration，且不得解释为对 `ak.identity.accountability_grant` 或 `ak.profile.create` 的通用授权）
-- `ak.audit.applet_binding`（high risk；新增、暂停或撤销 Audit Applet Binding；target=`ak.audit.applet_binding`）
+- `ak.audit.applet_binding`（high risk；新增、暂停或撤销 Audit Applet Binding；target=`{ak.audit.applet_binding.create, ak.audit.applet_binding.state}`）
 - `ak.audit.session.authorize`（high risk；授权某个 Audit Applet release session；Circle-scoped session 必须由覆盖该 Circle 的 grant 授权）
 - `ak.realm.link`（管理 Realm 间关系图，target=`ak.realm.link`）
 - `ak.realm.alias`（high risk；占用、改名或 tombstone Realm 的人类可读 alias，target=`ak.realm.alias`；alias 是用户会键入和转发的地址，夺取或改指它是钓鱼 / 冒名原语，见 [`../discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)）
@@ -416,7 +416,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.typing.broadcast`
 - `ak.receipt.broadcast`
 - `ak.call.signal.send`
-- `ak.call.join`（risk_tier=medium；加入通话，scope_suffix_variant，target=`{ak.call.state, ak.call.summary}`）
+- `ak.call.join`（risk_tier=medium；创建/加入通话，scope_suffix_variant，target=`{ak.call.create, ak.call.state, ak.call.summary}`）
 - `ak.call.screen_share`（risk_tier=medium；屏幕共享，scope_suffix_variant，target=`ak.call.state`）
 - `ak.call.record`（**high risk**；录制通话，aggregate admin action，target=`{ak.call.recording.start, ak.call.state}`；MUST 按 high-risk 规则携带 `expires_at`、resource selector narrowing 与审计证据）
 - `ak.call.transcribe`（**high risk**；转写通话，scope_suffix_variant，target=`ak.call.state`；同 high-risk 约束要求）
@@ -424,7 +424,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 
 v1 不注册独立的 `ak.mls.epoch` event；每个 group 的当前 epoch 由 accepted `ak.mls.commit` payload 中的 `next_epoch` 和对应 `ak.component.mls.epoch.v1` cell reducer 结果直接表达，没有"推进 epoch"这个独立可授权动作。
 
-Audit action 只授权受控审计 applet / release service 执行绑定、阶段性 session、成员通知、sealed historical release、审计视图读取或审计材料导出。审计 applet 不是 MLS group 成员，也不会因 capability 获得实时消息 fanout；E2EE 合规 release 必须走 active `ak.audit.applet_binding`、`ak.audit.session.*`、`ak.audit.release` 和 RYW receipt。普通 Realm/Circle 治理举报不使用这些 action，举报只路由给 scoped 管理员 / moderator。
+Audit action 只授权受控审计 applet / release service 执行绑定、阶段性 session、成员通知、sealed historical release、审计视图读取或审计材料导出。审计 applet 不是 MLS group 成员，也不会因 capability 获得实时消息 fanout；E2EE 合规 release 必须走 active `ak.audit.applet_binding.create/state`、`ak.audit.session.*`、`ak.audit.release` 和 RYW receipt。普通 Realm/Circle 治理举报不使用这些 action，举报只路由给 scoped 管理员 / moderator。
 
 ### 5.6 人类界面与个人状态动作
 
@@ -827,7 +827,7 @@ Arkret v1 采用 allow-grant + explicit revoke 模型。
 {
   "kind": "ak.capability.revoke",
   "payload": {
-    "grant_id": "ak:grant:0196410c-0000-7000-8000-000000000000",
+    "grant_id": "ak:grant:0196410c-0000-8000-8000-000000000000",
     "reason": "contract ended"
   }
 }
@@ -839,7 +839,7 @@ v1 canonical `ak.capability.revoke` payload MUST 携带顶层 `grant_id`；regis
 
 ### 12.1 Grant cell 的确定性收敛（normative）
 
-capability 授权状态投影到 cell family `ak.component.capability.grant.v1`（见 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的 `ak.capability.grant` / `ak.capability.revoke`），`cell_subject` 从 `payload.grant_id` 派生（每个 `grant_id` 一个 cell），`lattice = or_set`。v1 只有这一个 capability cell family：再授予不是另一种 Event，而是同一个 `ak.capability.grant` 携带 `kind="grant"` 的 `issuer_authority_refs[]`（见 §10），因此不存在第二个被写入却无人读取的 family。收敛规则：
+capability 授权状态投影到 cell family `ak.component.capability.grant.v1`（见 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的 `ak.capability.grant` / `ak.capability.revoke`）。grant create 的 `cell_subject` 从 `envelope.event_id` 重类型派生；revoke / relinquish 从 `payload.grant_id` 引用同一 cell（每个 `grant_id` 一个 cell），`lattice = or_set`。v1 只有这一个 capability cell family：再授予不是另一种 Event，而是同一个 `ak.capability.grant` 携带 `kind="grant"` 的 `issuer_authority_refs[]`（见 §10），因此不存在第二个被写入却无人读取的 family。收敛规则：
 
 - **grant** = 对该 grant cell 的 or_set **add**：add dot = 该 `ak.capability.grant` 事件的 `ak:event:<event_id>:<write_index>`（dot 的规范定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2），value = grant 的 canonical 快照。
 - **revoke** = 对**同一** grant cell 的 or_set **remove**，observe 该 grant 的 add dot（与 [`../identity/consent-model.md`](../identity/consent-model.md) 的 consent revoke `observed_dots` 语义一致）。`ak.capability.revoke` 以顶层 `grant_id` 定位目标 cell；reducer **MUST** 在该 revoke Control Move 的 `seal_basis` view 下把目标 grant 的 add dot 解析为合法 add op 后再 supersede。已被 observe-remove 的 add **MUST NOT** 因同 `grant_id` 的后续 re-add / 重放而复活（remove-after-observed-add 为终态）；多 issuer 并发 revoke 同一 grant 收敛于 or_set 的去重语义。

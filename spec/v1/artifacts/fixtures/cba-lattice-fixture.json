@@ -808,7 +808,7 @@
           "name": "concurrent_revoke_branch",
           "concurrent_control_move": {
             "kind": "ak.capability.revoke",
-            "grant_id": "ak:grant:0196410c-2000-7000-8000-000000000000",
+            "grant_id": "ak:grant:019641d2-2000-8000-8000-000000000000",
             "covered_by": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
           },
           "joined_control_view": {
@@ -1026,7 +1026,7 @@
           {
             "role": "recovery_capability",
             "critical": true,
-            "id": "ak:grant:019641d2-2000-7000-8000-000000000000"
+            "id": "ak:grant:019641d2-2000-8000-8000-000000000000"
           },
           {
             "role": "state_witness",

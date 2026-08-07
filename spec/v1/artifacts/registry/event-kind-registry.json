@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07.7",
+  "version": "2026-08-07.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-07T10:00:00Z",
+  "generated_at": "2026-08-07T16:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -3831,16 +3831,17 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Capability grant",
-      "id_source": "not_an_object_id",
+      "payload": "Capability Grant genesis. grant.id is omitted; GrantId is derived by retyping this Event's event_id and inserted only in the reducer projection.",
+      "id_source": "event_derived",
+      "id_kind": "grant",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
         {
           "cell_family": "ak.component.capability.grant.v1",
           "cell_subject": {
-            "field": "payload.grant_id",
-            "kind": "string"
+            "field": "envelope.event_id",
+            "kind": "id:grant"
           },
           "lattice": "or_set",
           "bottom": "inert",
@@ -3932,16 +3933,17 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "service_attested",
-      "payload": "Session grant",
-      "id_source": "not_an_object_id",
+      "payload": "Session Grant genesis. session_grant_id is omitted from the Event payload and derived by retyping event_id. JWT jti MUST equal the derived typed ID and is signed only after event_id is known.",
+      "id_source": "event_derived",
+      "id_kind": "session_grant",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
         {
           "cell_family": "ak.component.session.grant.v1",
           "cell_subject": {
-            "field": "payload.grant_id",
-            "kind": "string"
+            "field": "envelope.event_id",
+            "kind": "id:session_grant"
           },
           "lattice": "or_set",
           "bottom": "inert",
@@ -5317,28 +5319,79 @@
       "concurrency_class": "merge_safe"
     },
     {
-      "event_kind": "ak.audit.applet_binding",
+      "event_kind": "ak.audit.applet_binding.create",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Audit Applet Binding. Declares that an audit applet/service may request staged historical release sessions for a specific Realm or Circle effective_scope. Binding is control-plane only: it does not add the applet to MLS, does not subscribe it to signal sync, and does not grant plaintext/history keys. Bindings are non-retroactive: activation_frontier_digest / first_auditable_epoch define the earliest eligible material, and later policy changes MUST NOT expand eligibility for already encrypted messages.",
-      "id_source": "reference",
+      "payload": "Audit Applet Binding genesis. binding_id is omitted and derived by retyping event_id. Declares immutable scope and release policy; initial lifecycle state is active.",
+      "id_source": "event_derived",
+      "id_kind": "audit_binding",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
         {
           "cell_family": "ak.component.audit.binding.v1",
           "cell_subject": {
-            "field": "payload.binding_id",
-            "kind": "typed_id"
+            "field": "envelope.event_id",
+            "kind": "id:audit_binding"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
+        },
+        {
+          "cell_family": "ak.component.audit.binding_state.v1",
+          "cell_subject": {
+            "field": "envelope.event_id",
+            "kind": "id:audit_binding"
           },
           "lattice": "fsm",
           "bottom": "reject",
           "effect_projection": {
-            "kind": "transition_to",
+            "kind": "transition",
+            "from": {
+              "const": null
+            },
             "to": {
-              "field": "payload.status"
+              "const": "active"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier"
+    },
+    {
+      "event_kind": "ak.audit.applet_binding.state",
+      "category": "audit",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Audit Applet Binding lifecycle transition. Policy or scope changes require a new binding create so non-retroactive eligibility remains unambiguous.",
+      "id_source": "reference",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.audit.binding_state.v1",
+          "cell_subject": {
+            "field": "payload.binding_id",
+            "kind": "id:audit_binding"
+          },
+          "lattice": "fsm",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "field": "payload.from"
+            },
+            "to": {
+              "field": "payload.to"
             }
           }
         }
@@ -6222,6 +6275,59 @@
       "concurrency_class": "merge_safe"
     },
     {
+      "event_kind": "ak.call.create",
+      "category": "call",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Call genesis. call_id is omitted and derived by retyping event_id. This Event MUST be accepted before signaling, token issuance, Morph binding, or any ak.call.state Event references the call.",
+      "id_source": "event_derived",
+      "id_kind": "call",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.call.state.v1",
+          "cell_subject": {
+            "kind": "id:call",
+            "field": "envelope.event_id"
+          },
+          "lattice": "fsm",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "field": "payload.initial_state"
+            }
+          }
+        },
+        {
+          "cell_family": "ak.component.call.focus.v1",
+          "cell_subject": {
+            "kind": "id:call",
+            "field": "envelope.event_id"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "initial_value": "__unset__",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.focus"
+            }
+          },
+          "condition": {
+            "kind": "field_present",
+            "field": "payload.focus"
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier"
+    },
+    {
       "event_kind": "ak.call.state",
       "category": "call",
       "status": "active",
@@ -6886,7 +6992,7 @@
       ],
       "initial_state": "uninitialized"
     },
-    "ak.component.audit.binding.v1": {
+    "ak.component.audit.binding_state.v1": {
       "axis": "audit",
       "states": [
         "active",

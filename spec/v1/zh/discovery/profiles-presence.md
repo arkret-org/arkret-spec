@@ -133,7 +133,7 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
   ],
   "refs": [
     {
-      "id": "ak:grant:019640ed-8000-7000-8000-000000000000",
+      "id": "ak:grant:019640ed-8400-8000-8000-000000000000",
       "role": "authorized_by",
       "critical": true
     }
@@ -183,7 +183,7 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
   ],
   "refs": [
     {
-      "id": "ak:grant:019640ed-8400-7000-8000-000000000000",
+      "id": "ak:grant:019640ed-8400-8000-8000-000000000000",
       "role": "authorized_by",
       "critical": true
     }

@@ -93,7 +93,7 @@ ControlMove(ak.consent.grant) {
     reason: "Bob completed verified contact discovery"
   }
   preconditions = []
-  refs          = [(id="ak:grant:0196411c-b000-7000-8000-000000000000", role="authorized_by")]
+  refs          = [(id="ak:grant:0196411c-b000-8000-8000-000000000000", role="authorized_by")]
   seal_basis    = <holder principal control Realm 的当前 Seal basis>
 }
 
@@ -150,7 +150,7 @@ ControlMove(ak.consent.revoke) {
      {op: "contains_dots",
       dots: ["ak:event:019640ed-7000-8000-8000-000000000001:0"]})
   ]
-  refs          = [(id="ak:grant:0196411c-b000-7000-8000-000000000000", role="authorized_by")]
+  refs          = [(id="ak:grant:0196411c-b000-8000-8000-000000000000", role="authorized_by")]
   seal_basis    = <holder principal control Realm 的当前 Seal basis>
 }
 

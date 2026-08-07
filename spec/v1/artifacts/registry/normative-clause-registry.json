@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07.2",
+  "version": "2026-08-07.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-07T10:00:00Z",
+  "generated_at": "2026-08-07T16:00:00Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -273,7 +273,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#12-revocation",
-      "section_digest": "sha256:e4827ed60948c8b46fcbfa6157cc2eb0695d45f4c59fb2014025e7150c388d5d",
+      "section_digest": "sha256:0859e2a7a7071d26d316c220a047e96fc834913f5e8292d2b1112b7577b844ee",
       "requirement": "Revocation rolls back downstream grants and forces a re-check of dependent decisions; a revoked grant MUST NOT keep authorizing pending or cached writes.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -305,7 +305,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
-      "section_digest": "sha256:3f35e33c87f9d002656863fbe1e15ee3ae48990276d27d3a5e7482d47e09e37d",
+      "section_digest": "sha256:c358168a6689010623b7679f4c325df3dd09ccf13b3eff1acd68a03e65355299",
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -334,7 +334,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
-      "section_digest": "sha256:eac10589b03eb95ea3a4fdac42b7d14e0e112c01b695db124635ce2e5c38dd6e",
+      "section_digest": "sha256:733ba0f4daf7324e4bfc06adba407abc7017fc5f3f557f65e3cae8b083893bb6",
       "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, replaying the same state is a no-op, and concurrent siblings resolve to bottom.",
       "testability_grade": "vector",
       "evidence_refs": [

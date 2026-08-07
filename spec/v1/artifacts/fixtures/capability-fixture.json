@@ -10,7 +10,7 @@
       "name": "direct_card_update_grant_allows_update",
       "grants": [
         {
-          "id": "ak:grant:0196410c-0000-7000-8000-000000000000",
+          "id": "ak:grant:01964110-0400-8000-8000-000000000000",
           "issuer": "did:webvh:z6mkfixture:owner.example",
           "subject": "did:webvh:z6mkfixture:alice.example",
           "actions": [
@@ -38,7 +38,7 @@
       "expected": {
         "decision": "allow",
         "matched_grants": [
-          "ak:grant:0196410c-0000-7000-8000-000000000000"
+          "ak:grant:01964110-0400-8000-8000-000000000000"
         ]
       }
     },
@@ -46,7 +46,7 @@
       "name": "linked_discussion_realm_permission_is_not_inherited_from_strand",
       "grants": [
         {
-          "id": "ak:grant:0196410c-0400-7000-8000-000000000000",
+          "id": "ak:grant:01964110-0400-8000-8000-000000000000",
           "issuer": "did:webvh:z6mkfixture:owner.example",
           "subject": "did:webvh:z6mkfixture:alice.example",
           "actions": [
@@ -182,7 +182,7 @@
           "kind": "ak.capability.grant",
           "hlc": "01970e589d21-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ak:grant:0196410c-0800-7000-8000-000000000000",
+            "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000",
             "subject": "did:webvh:z6mkfixture:alice.example",
             "actions": [
               "ak.strand.update"
@@ -200,7 +200,7 @@
           "kind": "ak.capability.revoke",
           "hlc": "01970e589d22-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ak:grant:0196410c-0800-7000-8000-000000000000"
+            "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000"
           }
         },
         {
@@ -209,7 +209,7 @@
           "hlc": "01970e589d23-0001-a13f9c2e",
           "refs": [
             {
-              "id": "ak:grant:0196410c-0800-7000-8000-000000000000",
+              "id": "ak:grant:01964110-0400-8000-8000-000000000000",
               "role": "authorized_by",
               "critical": true
             }
@@ -239,7 +239,7 @@
           "kind": "ak.capability.grant",
           "hlc": "01970e589d30-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ak:grant:0196410c-1000-7000-8000-000000000000",
+            "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000",
             "subject": "did:webvh:z6mkfixture:alice.example",
             "actions": [
               "ak.strand.update"
@@ -257,7 +257,7 @@
           "kind": "ak.capability.revoke",
           "hlc": "01970e589d31-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ak:grant:0196410c-1000-7000-8000-000000000000"
+            "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000"
           }
         },
         {
@@ -265,7 +265,7 @@
           "kind": "ak.capability.revoke",
           "hlc": "01970e589d32-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ak:grant:0196410c-1000-7000-8000-000000000000"
+            "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000"
           }
         },
         {
@@ -274,7 +274,7 @@
           "hlc": "01970e589d33-0001-a13f9c2e",
           "refs": [
             {
-              "id": "ak:grant:0196410c-1000-7000-8000-000000000000",
+              "id": "ak:grant:01964110-0400-8000-8000-000000000000",
               "role": "authorized_by",
               "critical": true
             }
@@ -304,7 +304,7 @@
           "kind": "ak.capability.grant",
           "hlc": "01970e589d34-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ak:grant:0196410c-1400-7000-8000-000000000000",
+            "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000",
             "subject": "did:webvh:z6mkfixture:alice.example",
             "actions": [
               "ak.strand.update"
@@ -322,7 +322,7 @@
           "kind": "ak.capability.revoke",
           "hlc": "01970e589d35-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ak:grant:0196410c-1400-7000-8000-000000000000"
+            "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000"
           }
         },
         {
@@ -330,7 +330,7 @@
           "kind": "ak.capability.grant",
           "hlc": "01970e589d36-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ak:grant:0196410c-1400-7000-8000-000000000000",
+            "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000",
             "subject": "did:webvh:z6mkfixture:alice.example",
             "actions": [
               "ak.strand.update"
@@ -349,7 +349,7 @@
           "hlc": "01970e589d37-0001-a13f9c2e",
           "refs": [
             {
-              "id": "ak:grant:0196410c-1400-7000-8000-000000000000",
+              "id": "ak:grant:01964110-0400-8000-8000-000000000000",
               "role": "authorized_by",
               "critical": true
             }
@@ -375,7 +375,7 @@
       "name": "approval_constraint_requires_controller_approval",
       "vector_id": "ak.vector.capability.approval_constraint.v1",
       "grant": {
-        "id": "ak:grant:0196410c-0c00-7000-8000-000000000000",
+        "id": "ak:grant:01964110-0400-8000-8000-000000000000",
         "issuer": "did:webvh:z6mkfixture:owner.example",
         "subject": "did:webvh:z6mkfixture:agent.example",
         "actions": [
@@ -423,7 +423,7 @@
       "name": "authority_chain_multi_level",
       "vector_id": "ak.vector.capability.authority_chain.v1",
       "base": {
-        "grant_id": "ak:grant:019640d0-b800-7000-8000-000000000000",
+        "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000",
         "root_event_id": "ak:event:01964180-0350-82ab-a000-000000000000",
         "subject": "did:webvh:z6mkfixture:root-admin.example.com",
         "actions": [
@@ -440,9 +440,9 @@
       "expected": {
         "authorized": true,
         "valid_chain": [
-          "ak:grant:019640d0-b800-7000-8000-000000000000",
-          "ak:grant:019640d0-c000-7000-8000-000000000000",
-          "ak:grant:019640d0-c400-7000-8000-000000000000"
+          "ak:grant:01964110-0400-8000-8000-000000000000",
+          "ak:grant:01964110-0400-8000-8000-000000000000",
+          "ak:grant:01964110-0400-8000-8000-000000000000"
         ],
         "constraints_checked": {
           "time": true,
@@ -462,11 +462,11 @@
           },
           "actor_id": "did:webvh:z6mkfixture:root-admin.example.com",
           "payload": {
-            "grant_id": "ak:grant:019640d0-c000-7000-8000-000000000000",
+            "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000",
             "issuer_authority_refs": [
               {
                 "kind": "grant",
-                "grant_id": "ak:grant:019640d0-b800-7000-8000-000000000000"
+                "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000"
               }
             ],
             "subject": "did:webvh:z6mkfixture:ops.example.com",
@@ -497,12 +497,12 @@
           },
           "refs": [
             {
-              "id": "ak:grant:019640d0-b800-7000-8000-000000000000",
+              "id": "ak:grant:01964110-0400-8000-8000-000000000000",
               "role": "authorized_by",
               "critical": true
             },
             {
-              "id": "ak:grant:019640d0-b800-7000-8000-000000000000",
+              "id": "ak:grant:01964110-0400-8000-8000-000000000000",
               "role": "issuer_authority",
               "critical": true
             }
@@ -518,11 +518,11 @@
           },
           "actor_id": "did:webvh:z6mkfixture:ops.example.com",
           "payload": {
-            "grant_id": "ak:grant:019640d0-c400-7000-8000-000000000000",
+            "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000",
             "issuer_authority_refs": [
               {
                 "kind": "grant",
-                "grant_id": "ak:grant:019640d0-c000-7000-8000-000000000000"
+                "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000"
               }
             ],
             "subject": "did:webvh:z6mkfixture:intern.example.com",
@@ -555,12 +555,12 @@
           },
           "refs": [
             {
-              "id": "ak:grant:019640d0-c000-7000-8000-000000000000",
+              "id": "ak:grant:01964110-0400-8000-8000-000000000000",
               "role": "authorized_by",
               "critical": true
             },
             {
-              "id": "ak:grant:019640d0-c000-7000-8000-000000000000",
+              "id": "ak:grant:01964110-0400-8000-8000-000000000000",
               "role": "issuer_authority",
               "critical": true
             }
@@ -577,7 +577,7 @@
           "kind": "ak.capability.grant",
           "created_at": "2026-04-26T00:00:00.000Z",
           "payload": {
-            "grant_id": "ak:grant:01964101-2800-7000-8000-000000000000",
+            "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000",
             "subject": "did:webvh:z6mkfixture:alice.example.com",
             "actions": [
               "ak.message.create"
@@ -589,7 +589,7 @@
           "kind": "ak.capability.revoke",
           "created_at": "2026-04-26T00:00:01.000Z",
           "payload": {
-            "grant_id": "ak:grant:01964101-2800-7000-8000-000000000000"
+            "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000"
           }
         },
         {
@@ -612,7 +612,7 @@
               "kind": "ak.content.text",
               "body": "should_fail_if_revoke_applies"
             },
-            "authorized_by": "ak:grant:01964101-2800-7000-8000-000000000000"
+            "authorized_by": "ak:grant:01964110-0400-8000-8000-000000000000"
           }
         }
       ],
@@ -633,18 +633,18 @@
       "vector_id": "ak.vector.capability.revoke_downstream_recheck.v1",
       "grants": [
         {
-          "grant_id": "ak:grant:01964110-0000-7000-8000-000000000000",
+          "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000",
           "subject": "did:webvh:z6mkfixture:alice.example.com",
           "actions": [
             "ak.strand.update"
           ]
         },
         {
-          "grant_id": "ak:grant:01964110-0400-7000-8000-000000000000",
+          "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000",
           "issuer_authority_refs": [
             {
               "kind": "grant",
-              "grant_id": "ak:grant:01964110-0000-7000-8000-000000000000"
+              "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000"
             }
           ],
           "subject": "did:webvh:z6mkfixture:bob.example.com",
@@ -656,26 +656,26 @@
       "accepted_event": {
         "event_id": "ak:event:01964110-0800-8000-8000-000000000000",
         "kind": "ak.strand.update",
-        "authorized_by": "ak:grant:01964110-0000-7000-8000-000000000000"
+        "authorized_by": "ak:grant:01964110-0400-8000-8000-000000000000"
       },
       "pending_event": {
         "event_id": "ak:event:01964110-0c00-8000-8000-000000000000",
         "kind": "ak.strand.update",
-        "authorized_by": "ak:grant:01964110-0400-7000-8000-000000000000"
+        "authorized_by": "ak:grant:01964110-0400-8000-8000-000000000000"
       },
       "revoke": {
-        "grant_id": "ak:grant:01964110-0000-7000-8000-000000000000"
+        "grant_id": "ak:grant:01964110-0400-8000-8000-000000000000"
       },
       "allow_cache_grants": [
-        "ak:grant:01964110-0000-7000-8000-000000000000",
-        "ak:grant:01964110-0400-7000-8000-000000000000"
+        "ak:grant:01964110-0400-8000-8000-000000000000",
+        "ak:grant:01964110-0400-8000-8000-000000000000"
       ],
       "expected": {
         "pending_event_decision": "fail_closed",
         "pending_event_reason": "authorized_grant_revoked",
         "invalidated_cache_grants": [
-          "ak:grant:01964110-0000-7000-8000-000000000000",
-          "ak:grant:01964110-0400-7000-8000-000000000000"
+          "ak:grant:01964110-0400-8000-8000-000000000000",
+          "ak:grant:01964110-0400-8000-8000-000000000000"
         ],
         "history_event_retained": true,
         "revoked_grant_currently_valid": false
@@ -993,7 +993,7 @@
       },
       "grants": [
         {
-          "grant_id": "ak:grant:01990000-0000-7000-8000-000000000011",
+          "grant_id": "ak:grant:01990000-0000-8000-8000-000000000011",
           "issuer": "did:web:alice.example",
           "subject": "did:web:bob.example",
           "issuer_authority_refs": [
@@ -1007,13 +1007,13 @@
           ]
         },
         {
-          "grant_id": "ak:grant:01990000-0000-7000-8000-000000000012",
+          "grant_id": "ak:grant:01990000-0000-8000-8000-000000000012",
           "issuer": "did:web:bob.example",
           "subject": "did:web:carol.example",
           "issuer_authority_refs": [
             {
               "kind": "grant",
-              "grant_id": "ak:grant:01990000-0000-7000-8000-000000000011"
+              "grant_id": "ak:grant:01990000-0000-8000-8000-000000000011"
             }
           ]
         }
@@ -1031,8 +1031,8 @@
           "expected": {
             "accepted": true,
             "active_grants": [
-              "ak:grant:01990000-0000-7000-8000-000000000011",
-              "ak:grant:01990000-0000-7000-8000-000000000012"
+              "ak:grant:01990000-0000-8000-8000-000000000011",
+              "ak:grant:01990000-0000-8000-8000-000000000012"
             ],
             "root_identity_unchanged": true
           }
@@ -1052,11 +1052,11 @@
         },
         {
           "name": "ancestor_revoke_has_no_cascade_write",
-          "revoked_grant_id": "ak:grant:01990000-0000-7000-8000-000000000011",
+          "revoked_grant_id": "ak:grant:01990000-0000-8000-8000-000000000011",
           "expected": {
             "active_grants": [],
             "written_grant_ids": [
-              "ak:grant:01990000-0000-7000-8000-000000000011"
+              "ak:grant:01990000-0000-8000-8000-000000000011"
             ]
           }
         },
@@ -1086,7 +1086,7 @@
             "ak.realm.destroy",
             "ak.realm.tombstone"
           ],
-          "authorization_ref": "ak:grant:01990000-0000-7000-8000-000000000011",
+          "authorization_ref": "ak:grant:01990000-0000-8000-8000-000000000011",
           "expected": {
             "accepted": false,
             "reason_code": "realm_authority_controller_mismatch"
@@ -1162,14 +1162,14 @@
           "name": "multi_ref_partial_revocation_rechecks_per_action",
           "authority_refs": [
             {
-              "grant_id": "ak:grant:01990000-0000-7000-8000-000000000031",
+              "grant_id": "ak:grant:01990000-0000-8000-8000-000000000031",
               "active": false,
               "actions": [
                 "ak.message.create"
               ]
             },
             {
-              "grant_id": "ak:grant:01990000-0000-7000-8000-000000000032",
+              "grant_id": "ak:grant:01990000-0000-8000-8000-000000000032",
               "active": true,
               "actions": [
                 "ak.reaction.add"
@@ -1295,7 +1295,7 @@
       "vector_id": "ak.vector.capability.authority_audit.v1",
       "parents": [
         {
-          "grant_id": "ak:grant:01990000-0000-7000-8000-000000000021",
+          "grant_id": "ak:grant:01990000-0000-8000-8000-000000000021",
           "authority_depth": 1,
           "authority_root_refs": [
             {
@@ -1313,7 +1313,7 @@
           ]
         },
         {
-          "grant_id": "ak:grant:01990000-0000-7000-8000-000000000022",
+          "grant_id": "ak:grant:01990000-0000-8000-8000-000000000022",
           "authority_depth": 3,
           "authority_root_refs": [
             {
@@ -1328,11 +1328,11 @@
       "child_issuer_authority_refs": [
         {
           "kind": "grant",
-          "grant_id": "ak:grant:01990000-0000-7000-8000-000000000021"
+          "grant_id": "ak:grant:01990000-0000-8000-8000-000000000021"
         },
         {
           "kind": "grant",
-          "grant_id": "ak:grant:01990000-0000-7000-8000-000000000022"
+          "grant_id": "ak:grant:01990000-0000-8000-8000-000000000022"
         }
       ],
       "expected": {

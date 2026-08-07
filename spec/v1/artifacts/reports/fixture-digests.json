@@ -66,11 +66,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "887c0cee3c5270c3fa6b9c1b924a00d3dd2f5f05169a3524661433f4228689c1"
+      "sha256": "1b0298bff0f579b95418d872add2ff15a0d522f20cb97707a1d8cd2dd65dccfd"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "8eec11de20c340d3897f8c78db7ace0e42393bd5646807f684f74a3aca53993c"
+      "sha256": "44afc74d02d5efc9403faf44b94434d1d2100d0f3fb601592bd9a463bac54020"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -126,7 +126,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-envelope-negative-fixture.json",
-      "sha256": "9ccb9b18770a431dd1b7d76bcaba5af6f1553738937d3c63ebb7f18e5bf6a93d"
+      "sha256": "3e8535463b3f15c216ec5fe444dbb482aa96868c758fae339a9a964e6b8c314c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-lattice-dispatch-fixture.json",
@@ -274,7 +274,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "cc15ab0e9a1f4a57330fa46e83623f7fedbea185881bea913cb84b2e3a5fe798"
+      "sha256": "e8fc8b3188738a8e385d1a2fbeb193a2174f87962f03710dbac1cbab75cec389"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

@@ -33,9 +33,6 @@
     },
     {
       "$ref": "#/$defs/sidecar_ensure_outcome"
-    },
-    {
-      "$ref": "#/$defs/sidecar_access_replace"
     }
   ],
   "$defs": {
