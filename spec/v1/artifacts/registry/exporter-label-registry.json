@@ -129,16 +129,19 @@
       "label": "ak.signal-v1",
       "primitive": "ExpandWithLabel",
       "parent_label": "ak.history-v1",
-      "purpose": "Per-epoch Signal AEAD key for the ak.signal_exporter_aead.v1 construction. The scope's MLS group already binds Realm or Circle, so the label itself is the only domain separator needed against ak.content-v1 under the same group and epoch.",
+      "purpose": "Per-epoch, per-sender-device Signal AEAD key for the ak.signal_exporter_aead.v1 construction. Sender key separation prevents a 32-bit AES-GCM sender_nonce_prefix collision from becoming same-key nonce reuse.",
       "defined_in": "zh/sync/signal.md",
-      "context_fields": [],
-      "context_encoding": "empty byte string, exactly as specified by the registered ExpandWithLabel derivation",
+      "context_fields": [
+        "sender_device_id"
+      ],
+      "context_encoding": "canonical JSON (RFC 8785 JCS) bytes of {sender_device_id}; empty Context is forbidden",
       "output_bytes": "AEAD.Nk for the active MLS ciphersuite",
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1"
       ],
       "grandfathered": false,
-      "empty_context_forbidden": false,
+      "empty_context_forbidden": true,
+      "empty_context_error": "e2ee_key_source_unauthorised",
       "forbid_reuse_with": [
         "ak.history-v1",
         "arkret-aead-sender-nonce-prefix-v1",

@@ -1,0 +1,80 @@
+{
+  "profile": "ak.profile.full_client.v1",
+  "version": "2026-08-08",
+  "suite": "signal_sequence_high_water",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.signal.sequence_high_water.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.signal.sequence_high_water.v1"
+  ],
+  "allocator": {
+    "domain": [
+      "sender_device_id",
+      "canonical_scope_ref"
+    ],
+    "value_type": "u64",
+    "block_size": 256,
+    "initial_next_unreserved": 1,
+    "reservation_cases": [
+      {
+        "name": "restart_after_partial_block_burns_tail",
+        "reserved_blocks": [
+          [1, 256],
+          [257, 512]
+        ],
+        "used_before_crash": [1, 2],
+        "first_after_restart": 257,
+        "reuse_forbidden": true
+      },
+      {
+        "name": "failed_submit_burns_sequence",
+        "emissions": [7, 8],
+        "submit_results": ["failed", "accepted"],
+        "expected_next": 9,
+        "reuse_forbidden": true
+      },
+      {
+        "name": "scopes_have_independent_high_waters",
+        "scope_a": [1, 257],
+        "scope_b": [1, 257],
+        "same_device": true
+      }
+    ]
+  },
+  "receiver_cases": [
+    {
+      "name": "forward_gap_is_accepted",
+      "arrivals": [7, 1024],
+      "expected": ["accepted", "accepted"],
+      "final_high_water": 1024
+    },
+    {
+      "name": "out_of_order_old_value_is_stale",
+      "arrivals": [1025, 1024],
+      "expected": ["accepted", "signal_payload_sequence_stale"],
+      "final_high_water": 1025
+    },
+    {
+      "name": "repeat_with_new_envelope_is_stale",
+      "arrivals": [2048, 2048],
+      "envelope_digests": ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+      "expected": ["accepted", "signal_payload_sequence_stale"],
+      "final_high_water": 2048
+    },
+    {
+      "name": "exact_envelope_replay_is_distinct",
+      "arrivals": [4096, 4096],
+      "envelope_digests": ["sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"],
+      "expected": ["accepted", "signal_exact_envelope_replay"],
+      "final_high_water": 4096
+    }
+  ],
+  "forbidden_identity_surfaces": [
+    "signal_id",
+    "ak:signal:",
+    "uuidv7_emission_id",
+    "durable_envelope_digest_reference"
+  ]
+}

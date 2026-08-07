@@ -19,7 +19,7 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 18446744073709551615,
-      "description": "Sender-device sequence within the signed Signal scope; the third component of the (sender_device_id, scope_ref, payload_sequence) receiver dedupe triple in zh/sync/signal.md section 2. Monotonic per sender device and scope."
+      "description": "Strictly increasing but non-contiguous u64 within (sender_device_id, canonical scope_ref). Arbitrary forward gaps are accepted; a repeated or lower value is stale."
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/did",

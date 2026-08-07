@@ -5327,7 +5327,7 @@
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1"
       ],
-      "description": "Byte-level ak.history-v1 -> ak.signal-v1 ExpandWithLabel KAT for the SignalEnvelope AEAD key, including label, context, and epoch negative mutations.",
+      "description": "Byte-level ak.history-v1 -> ak.signal-v1 ExpandWithLabel KAT for per-sender-device SignalEnvelope AEAD keys, including JCS({sender_device_id}), distinct valid-device keys under a forced equal nonce, and label/context/device/epoch negative mutations.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
@@ -5357,6 +5357,19 @@
         "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
+    },
+    {
+      "vector_id": "ak.vector.signal.sequence_high_water.v1",
+      "status": "active",
+      "domain": "signal",
+      "applies_to_fixtures": [
+        "signal-sequence-high-water-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/signal-sequence-high-water-fixture.json",
+        "spec/v1/zh/sync/signal.md"
+      ],
+      "description": "Signal payload_sequence is a durable per-device/per-canonical-scope u64 high-water: forward gaps from reservation/crash/failure are accepted, repeat or rollback is stale, exact envelope replay is diagnosed separately, and scopes remain independent."
     },
     {
       "vector_id": "ak.vector.snapshot.inclusion_challenge.v1",

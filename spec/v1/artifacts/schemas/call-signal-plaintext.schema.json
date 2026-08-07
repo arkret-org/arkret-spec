@@ -20,7 +20,7 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 18446744073709551615,
-      "description": "Sender-device sequence within the signed Signal scope; the third component of the (sender_device_id, scope_ref, payload_sequence) receiver dedupe triple in zh/sync/signal.md section 2. It is independent of seq, which is the per-call anti-rollback sequence monotonic over (realm_id, call_id, actor_id, device_id)."
+      "description": "Strictly increasing but non-contiguous u64 within (sender_device_id, canonical scope_ref); arbitrary forward gaps are accepted. It is independent of seq, the per-call anti-rollback sequence monotonic over (realm_id, call_id, actor_id, device_id)."
     },
     "call_id": {
       "type": "string",

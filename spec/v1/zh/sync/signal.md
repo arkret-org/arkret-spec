@@ -3,7 +3,7 @@ title: Signal Extension
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-28
+updated: 2026-08-08
 ---
 
 # Signal Extension
@@ -38,8 +38,25 @@ SignalEnvelope {
 `canonical_json({context:"ak.signal-proof-v1", envelope_digest, sender_actor_id,
 sender_device_id, verification_method, created_at, domain?, audience?})`，其中 proof
 `created_at` 必须逐字等于外层 `sent_at`。`encrypted_payload` 必须使用 scope 当前 MLS exporter
-以 label `ak.signal-v1`（[`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)）
-派生的 AEAD key，并把上述不可变 server-visible header 的 canonical digest 绑定进 AAD。其中：
+以 label `ak.signal-v1` 和 `JCS({sender_device_id})` context
+（[`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)）
+派生 **per-sender-device** AEAD key，并把上述不可变 server-visible header 的 canonical digest
+绑定进 AAD。其中：
+
+```text
+K_signal[epoch, sender_device_id] = ExpandWithLabel(
+  history_secret[epoch],
+  "ak.signal-v1",
+  JCS({"sender_device_id": sender_device_id}),
+  AEAD.Nk
+)
+```
+
+`sender_device_id` 同时进入 KDF context、nonce-prefix exporter context、AAD 与 proof；receiver
+MUST 从已验证外层 sender 重算 key。这样 AES-GCM 的 32-bit `sender_nonce_prefix` 即使在两个合法
+active device 间发生碰撞，碰撞 nonce 仍位于不同 AEAD key 下，不构成同 key/nonce reuse。
+实现 MUST NOT 回退到旧的 group-shared Signal key，亦不得仅以“fixture 中两个 prefix 不同”替代
+这一 per-sender key 合同。其他参数如下：
 
 ```text
 aad_digest = H(canonical_json({
@@ -70,6 +87,11 @@ MUST fail closed（同 `encoding.md` §10.1 对全部 MLS-exporter 派生 domain
 
 `aad_digest` 不包含自身、ciphertext 或 proof。`envelope_digest` 则覆盖移除 `proof` 后的完整
 SignalEnvelope，因此同时承诺 ciphertext 与 `aad_digest`。
+
+`envelope_digest` 是 proof commitment 与短 TTL transport replay fingerprint，**不是 Signal ID**。
+v1 MUST NOT 定义 `signal_id`、任何 Signal 持久化 ID namespace，或把 `envelope_digest` 包装为可长期寻址的
+对象标识；Event payload、Relation、receipt、projection 与 durable storage MUST NOT 把它作为
+Signal 业务引用持久化。send outcome MAY 原样返回该 digest 用于诊断与短期提交关联。
 
 **两个独立状态域（normative）**：Signal 验证涉及两个互不替代的状态域，`seal_ref` 只选择
 其中第一个：
@@ -131,7 +153,7 @@ Signal rail 的路由与去重前提：
 | 字段 | 约束 |
 | --- | --- |
 | `kind` | `const`，取该 profile 的 payload kind（如 `ak.receipt.read`）。它是解密后的唯一 payload 判别式；外层不得出现同义 selector。 |
-| `payload_sequence` | 非负整数，按 sender device 与 signed scope 单调；§2 的 `(sender_device_id, scope_ref, payload_sequence)` 去重三元组第三项。profile 自己的产品序列（call 的 `seq`、message stream 的 `seq`）与它相互独立，不得互相替代。 |
+| `payload_sequence` | 非负 `u64`，按 `(sender_device_id, canonical scope_ref)` **严格单调递增但不要求连续**；§2 receiver high-water 的候选值。profile 自己的产品序列（call 的 `seq`、message stream 的 `seq`）与它相互独立，不得互相替代。 |
 
 Realm scope、sender device 与发送时间由外层已签名 envelope 承载，plaintext MUST NOT 重复
 `realm_id`、`sender_device_id` 与 `sent_at`（或等价的 `created_at`）；需要它们时接收方直接从
@@ -156,14 +178,28 @@ MUST NOT 按字段名手工解析。新增 profile 只能新增登记行，不�
 
 ## 2. 时间与资源上限
 
+对应可执行向量为 `ak.vector.signal.sequence_high_water.v1`。
+
 - `expires_at` 必须晚于 `sent_at`，差值硬上限 120 seconds；
 - `setup` 最大 120 seconds，`moderation` 最大 60 seconds，`session` 最大 30 seconds；
 - canonical envelope ≤ 64 KiB，AEAD plaintext ≤ 48 KiB；AEAD tag 计入 `ciphertext`，
   其 unpadded base64url 最大长度为 65,558 characters（按 16 字节 tag 计，v1 全部 active
   ciphersuite 的 AEAD tag 均为 16 字节）；
 - relay 每次只允许一个 destination peer hop，不得形成 signal mesh 转发链；
-- receiver 按 `(sender_device_id, scope_ref, payload_sequence)` 去重；sequence 位于密文内，
-  server 只按完整 envelope digest 做短期 replay suppression。
+- receiver 在 proof/AAD/AEAD/plaintext schema 全部通过后，按 `(sender_device_id, canonical
+  scope_ref)` 维护 `payload_sequence` high-water；新值 MUST 严格大于旧值，但任意正向 gap
+  （例如 `7 -> 1024`）MUST 接受。`N+1` 先到后，迟到的 `N` 是
+  `signal_payload_sequence_stale`，不是“缺少 catch-up”。
+- exact same envelope digest 的重投是 `signal_exact_envelope_replay`；使用新 nonce/ciphertext
+  形成的新 envelope 若 sequence 未推进则是上一项 stale。两条诊断 MUST NOT 混同。
+- sequence 位于密文内，server 只按完整 `envelope_digest` 做短期 replay suppression，不解密、
+  不读取 high-water，也不把 digest 升级成业务 ID。
+
+sender MUST 使用 durable per-`(sender_device_id, canonical scope_ref)` `u64` allocator。允许先原子
+预留 block；durable `next_unreserved` MUST 在返回 block 首值前提交。crash、reservation 尾部、
+加密失败、admission 失败或 submit 结果不确定均可永久 burn sequence 并形成 gap，MUST NOT
+回退或复用。多进程 / 多 tab MUST 共享原子 store/CAS 或单写 owner；process-local counter 不合规。
+UUIDv7、wall clock、`sent_at`、随机 salt 或 AEAD nonce counter 均不得替代该公共 sequence。
 
 部署 MAY 收紧 TTL/byte/rate 上限，但能力广告必须给出实际值。
 

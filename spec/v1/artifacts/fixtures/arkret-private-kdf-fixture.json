@@ -89,17 +89,24 @@
         "realm_id_utf8": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
         "history_label": "ak.history-v1",
         "signal_label": "ak.signal-v1",
-        "signal_context_hex": "",
+        "sender_device_id": "ak:device:01904100-0000-7000-8000-000000000006",
+        "signal_context_canonical_json": "{\"sender_device_id\":\"ak:device:01904100-0000-7000-8000-000000000006\"}",
+        "signal_context_hex": "7b2273656e6465725f6465766963655f6964223a22616b3a6465766963653a30313930343130302d303030302d373030302d383030302d303030303030303030303036227d",
         "aead_nk": 16,
         "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
       },
       "expected": {
         "history_secret_hex": "f9e39ba45ff2ba26a1e430c0df76bf7b56737a5c1ad9d103b3c07ca205e1963d",
-        "signal_expand_with_label_info_hex": "0010144d4c5320312e3020616b2e7369676e616c2d763100",
-        "signal_key_hex": "a8dc8c9d501257bd1d75b5b39faf1de0",
+        "signal_expand_with_label_info_hex": "0010144d4c5320312e3020616b2e7369676e616c2d763140457b2273656e6465725f6465766963655f6964223a22616b3a6465766963653a30313930343130302d303030302d373030302d383030302d303030303030303030303036227d",
+        "signal_key_hex": "29152db2983e95748e835fbfb9311d89",
+        "collision_peer_sender_device_id": "ak:device:01904100-0000-7000-8000-00000000000e",
+        "collision_peer_signal_key_hex": "52339613d0e19df737ea9c9636e17955",
+        "forced_equal_nonce_hex": "000000000102030405060708",
+        "same_raw_aead_key": false,
         "negative_mutations": [
           "signal_label=ak.content-v1",
-          "signal_context=realm_id",
+          "signal_context=empty",
+          "sender_device_id=collision_peer_sender_device_id",
           "reuse_signal_key_after_epoch_change"
         ],
         "negative_decision": "reject"

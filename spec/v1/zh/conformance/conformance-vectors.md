@@ -5337,7 +5337,7 @@ Expected：
 
 ### 21.2 Signal、sender nonce prefix 与 mention routing KAT
 
-`ak.vector.signal.exporter_key_kat.v1` 固定 exporter secret、Realm context 与 active MLS ciphersuite，逐字节比较 `history_secret`、`ak.signal-v1` 的完整 KDFLabel info 与 16-byte Signal AEAD key；错误 label、非空第二级 context 或跨 epoch 复用均 MUST fail closed。
+`ak.vector.signal.exporter_key_kat.v1` 固定 exporter secret、Realm context、sender device 与 active MLS ciphersuite，逐字节比较 `history_secret`、`ak.signal-v1` + `JCS({sender_device_id})` 的完整 KDFLabel info 与 16-byte per-sender Signal AEAD key。runner MUST 再以 collision peer device 派生第二把不同 key，并验证即使强制输入相同 12-byte nonce 也不属于同 raw AEAD key/nonce domain；错误 label、空第二级 context、修改 sender device 或跨 epoch 复用均 MUST fail closed。
 
 `ak.vector.aead.sender_nonce_prefix_kat.v1` 固定 `arkret-aead-sender-nonce-prefix-v1` label、完整 `{key_ref, epoch, device_id, purpose, aead_profile}` JCS context、AES-GCM prefix 长度与 big-endian counter，逐字节比较 4-byte prefix 和最终 12-byte nonce。遗漏或修改任一 context 字段 MUST 产生不同前缀或在 seal 前拒绝。
 

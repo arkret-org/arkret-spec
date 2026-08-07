@@ -112,7 +112,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#10-encrypted-envelope-digest",
-      "section_digest": "sha256:1c893f02dc45f533ef3f92b9479f055f83a2c4bd10fba5964ec1be918080e9b2",
+      "section_digest": "sha256:a104f1f8cde7ce27054f793cd35cd5499164ecc36b3dfce183be089c3d53a6b8",
       "requirement": "Encrypted envelopes carry a pre-encryption immutable header; AAD digest and ciphertext digest are computed over fixed transcripts and any mismatch MUST fail closed.",
       "testability_grade": "vector",
       "evidence_refs": [

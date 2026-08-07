@@ -18,7 +18,7 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 18446744073709551615,
-      "description": "Sender-device sequence within the signed Signal scope; the third component of the (sender_device_id, scope_ref, payload_sequence) receiver dedupe triple in zh/sync/signal.md section 2. Receivers apply it as a monotonic filter only after the Signal proof, scope, Seal/MLS basis and AAD have verified and the payload has decrypted."
+      "description": "Strictly increasing but non-contiguous u64 within (sender_device_id, canonical scope_ref). Receivers apply the high-water rule only after proof, scope, Seal/MLS basis, AAD and plaintext validation; arbitrary forward gaps are accepted and repeats or rollback are stale."
     },
     "strand_id": {
       "type": "string",
