@@ -10500,7 +10500,7 @@
     },
     "session_grant_payload": {
       "type": "object",
-      "description": "Genesis claims for ak.session.grant. session_grant_id is omitted and derived from the Event id. A JWT is signed only after derivation and its jti MUST equal that typed ID.",
+      "description": "Immutable genesis claims for ak.session.grant. session_grant_id is omitted and derived from the accepted Event id. Except for JWT-only kind and the derived jti, every security-relevant signed JWT claim is copied from this accepted payload; the issuer MUST NOT sign the JWT before durable acceptance.",
       "required": [
         "issuer",
         "subject",
@@ -10508,7 +10508,10 @@
         "audience",
         "scopes",
         "not_before",
-        "expires_at"
+        "expires_at",
+        "session_id",
+        "cnf",
+        "credential_class"
       ],
       "properties": {
         "issuer": {
@@ -10516,12 +10519,6 @@
         },
         "subject": {
           "$ref": "#/$defs/did"
-        },
-        "principal_id": {
-          "$ref": "#/$defs/did"
-        },
-        "device_id": {
-          "$ref": "#/$defs/device_id"
         },
         "session_public_key": {
           "$ref": "#/$defs/non_empty_string"
@@ -10541,20 +10538,108 @@
         "expires_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "proof": {
-          "$ref": "#/$defs/signature_material"
+        "session_id": {
+          "$ref": "#/$defs/non_empty_string"
         },
-        "revocation_ref": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/event_ref"
-            },
-            {
-              "$ref": "#/$defs/non_empty_string"
+        "cnf": {
+          "type": "object",
+          "required": [
+            "jkt"
+          ],
+          "properties": {
+            "jkt": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
             }
+          },
+          "additionalProperties": false
+        },
+        "credential_class": {
+          "type": "string",
+          "enum": [
+            "standard",
+            "recovery_restricted"
           ]
+        },
+        "recovery_binding": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantRecoveryBinding"
+        },
+        "device_binding": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantDeviceBinding"
+        },
+        "proof_kind": {
+          "type": "string",
+          "enum": [
+            "did_bound_signature",
+            "paired_device_proof",
+            "passkey_assertion",
+            "oidc_code_exchange",
+            "pre_registration_handoff",
+            "agent_key_proof"
+          ]
+        },
+        "scope_details": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
+      "additionalProperties": false
+    },
+    "session_grant_state_payload": {
+      "type": "object",
+      "description": "Terminal lifecycle transition for one accepted ak.session.grant. Expiry is evaluated directly from the immutable genesis expires_at and MUST NOT be forged as a state transition.",
+      "required": [
+        "session_grant_id",
+        "from",
+        "to"
+      ],
+      "properties": {
+        "session_grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        },
+        "from": {
+          "const": "active"
+        },
+        "to": {
+          "type": "string",
+          "enum": [
+            "revoked",
+            "superseded"
+          ]
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "successor_session_grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "to": {
+                "const": "superseded"
+              }
+            },
+            "required": [
+              "to"
+            ]
+          },
+          "then": {
+            "required": [
+              "successor_session_grant_id"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "successor_session_grant_id"
+              ]
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "sidecar_context_attach_payload": {

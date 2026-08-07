@@ -749,7 +749,10 @@ Arkret v1 使用 `ak.session.grant` 作为 principal control stream 中的标准
     "ak.message.create"
   ],
   "not_before": "2026-04-26T00:00:00Z",
-  "expires_at": "2026-04-27T00:00:00Z"
+  "expires_at": "2026-04-27T00:00:00Z",
+  "session_id": "browser-session-01",
+  "cnf": {"jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
+  "credential_class": "standard"
 }
 ```
 
@@ -758,13 +761,36 @@ Arkret v1 使用 `ak.session.grant` 作为 principal control stream 中的标准
 > 被 reducer 以 `schema_violation` 拒绝。genesis payload 不携带 `grant_id` / `session_grant_id` 或
 > `realm_id`；receiver 从 accepted Event ID 派生 `ak:session_grant:` ID，JWT `jti` 使用该派生值。
 
+**签发顺序（normative）**：issuer MUST 先构造并签名完整的 `ak.session.grant` Event，以 subject
+的 PCR 为 `realm_id`，以 issuer service DID 为 `actor_id`；若另有执行代理，才使用
+`executed_by`，且 admission 必须验证该代理授权。issuer 必须通过标准
+`POST /_arkret/self/events`（delegated service signature 分支）提交该 Event，并取得包含该 exact
+`event_id` 的 durable accepted outcome。只有在该接受完成后，issuer 才可将 Event ID retype 为
+`ak:session_grant:`、把该值写为 JWT `jti` 并签 JWT。pending、queued、仅写入 issuer 本地数据库、
+HTTP 2xx 但未列入 `accepted[]`，或无法验证的异步回执均不构成签发依据。失败与不确定结果必须
+fail closed，不得退回 producer 自选 UUIDv7，也不得先返回 JWT 后异步补 Event。
+
+除 JWT 固定 `kind="ak.session.grant"` 与由 accepted Event ID 派生的 `jti` 外，JWT 中全部安全相关
+claims（包括 issuer、subject、session public key、audience、scopes、有效期、session id、cnf、
+credential class 及适用 binding/proof/scope details）MUST 与 accepted genesis payload 逐字段相等。
+因此 Event proof 是 durable issuer signature；JWT 是其短期可出示编码，不能成为另一套可漂移事实源。
+
+SessionGrant 的 immutable genesis 与 lifecycle 分别投影到
+`ak.component.session.grant.v1` 和 `ak.component.session.grant_state.v1`。genesis 原子初始化 state 为
+`active`。后续只允许 service-attested `ak.session.grant.state` 引用
+`session_grant_id`，执行 `active -> revoked|superseded` 的 terminal 转换；`superseded` 必须携带
+`successor_session_grant_id`。`expires_at` 是 genesis 的 immutable 时间边界，校验方到时直接视为
+expired，不发布可伪造的 expiry Event。refresh 必须先让 successor genesis accepted，再让 predecessor
+的 supersede Event accepted，最后才返回 successor JWT；任一步失败都不得返回新 JWT。撤销接口同理，
+只有 revoke Event accepted 后才可报告 canonical revocation complete；Auth 本地行只可作为缓存/索引。
+
 规则：
 
 - session grant MUST 由可信 issuer 签名
 - session key MUST NOT 超过 grant 的有效期
 - session grant SHOULD 绑定 audience
 - 在条件允许时，session grant SHOULD 在 WebCrypto / 平台 keystore 中以不可导出方式存储
-- session grant 撤销 MUST 由下列 **canonical 撤销机制** 之一表达：accepted `ak.session.grant` 状态更新（含 supersede / expiry），或 device / account revoke（[`account-lifecycle.md` §9](./account-lifecycle.md) Session Revocation、§7.1 Deactivation Fanout 的 `ak.session.grant` 撤销链）。除上述 canonical 机制外，仅当某 extension / deployment profile **显式注册并声明** 了一个 credential status mechanism（profile MUST 给出该 mechanism 的 canonical event / 字段定义，对照 agent key 撤销的具体 `ak.agent.key.revoke`）时，方可使用该 profile 注册的机制表达撤销；未注册、无明确 canonical event / 字段定义的机制 MUST NOT 用于 session 撤销，且任何情况下 MUST NOT 使用未注册的 `ak:revocation-list:*` typed ID。
+- session grant 撤销 MUST 由下列 **canonical 撤销机制** 之一表达：accepted `ak.session.grant.state`（`to=revoked|superseded`）、genesis `expires_at` 的直接时间判定，或 device / account revoke（[`account-lifecycle.md` §9](./account-lifecycle.md) Session Revocation、§7.1 Deactivation Fanout 的 `ak.session.grant` 撤销链）。除上述 canonical 机制外，仅当某 extension / deployment profile **显式注册并声明** 了一个 credential status mechanism（profile MUST 给出该 mechanism 的 canonical event / 字段定义，对照 agent key 撤销的具体 `ak.agent.key.revoke`）时，方可使用该 profile 注册的机制表达撤销；未注册、无明确 canonical event / 字段定义的机制 MUST NOT 用于 session 撤销，且任何情况下 MUST NOT 使用未注册的 `ak:revocation-list:*` typed ID。
 
 ## 7. 密钥备份
 

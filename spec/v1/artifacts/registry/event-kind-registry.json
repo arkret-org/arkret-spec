@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07.8",
+  "version": "2026-08-07.9",
   "source_of_truth": false,
-  "generated_at": "2026-08-07T16:00:00Z",
+  "generated_at": "2026-08-07T17:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -3933,7 +3933,8 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "service_attested",
-      "payload": "Session Grant genesis. session_grant_id is omitted from the Event payload and derived by retyping event_id. JWT jti MUST equal the derived typed ID and is signed only after event_id is known.",
+      "payload": "Session Grant genesis. session_grant_id is omitted from the Event payload and derived by retyping the accepted event_id. The Event initializes the referenced grant lifecycle to active. JWT jti MUST equal the derived typed ID and the JWT MUST be signed only after this exact Event is durably accepted in the subject PCR.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/session_grant_payload",
       "id_source": "event_derived",
       "id_kind": "session_grant",
       "plane": "control",
@@ -3954,6 +3955,58 @@
             },
             "value": {
               "field": "payload"
+            }
+          }
+        },
+        {
+          "cell_family": "ak.component.session.grant_state.v1",
+          "cell_subject": {
+            "field": "envelope.event_id",
+            "kind": "id:session_grant"
+          },
+          "lattice": "fsm",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "const": "active"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier"
+    },
+    {
+      "event_kind": "ak.session.grant.state",
+      "category": "authz",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "admission": "service_attested",
+      "payload": "Reference-based terminal lifecycle transition for an existing SessionGrant. The payload names the event-derived session_grant_id and transitions active to revoked or superseded. Expiry is evaluated from the immutable genesis expires_at and is not authored as a state Event.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/session_grant_state_payload",
+      "id_source": "reference",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.session.grant_state.v1",
+          "cell_subject": {
+            "field": "payload.session_grant_id",
+            "kind": "id:session_grant"
+          },
+          "lattice": "fsm",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "field": "payload.from"
+            },
+            "to": {
+              "field": "payload.to"
             }
           }
         }
@@ -7063,6 +7116,33 @@
       ],
       "initial_states": [
         "request"
+      ]
+    },
+    "ak.component.session.grant_state.v1": {
+      "axis": "credential_status",
+      "states": [
+        "active",
+        "revoked",
+        "superseded"
+      ],
+      "terminal_states": [
+        "revoked",
+        "superseded"
+      ],
+      "idempotent_replay": "same_transition_same_basis_noop",
+      "concurrent_sibling_conflict": "bottom",
+      "allowed_transitions": [
+        [
+          "active",
+          "revoked"
+        ],
+        [
+          "active",
+          "superseded"
+        ]
+      ],
+      "initial_states": [
+        "active"
       ]
     },
     "ak.component.call.recording.v1": {

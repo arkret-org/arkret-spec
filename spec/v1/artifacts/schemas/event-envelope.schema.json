@@ -716,6 +716,7 @@
               "ak.self.agent.resume",
               "ak.self.moderation.report",
               "ak.session.grant",
+              "ak.session.grant.state",
               "ak.sidecar.context.attach",
               "ak.sidecar.create",
               "ak.sovereign.did_policy",
@@ -3475,6 +3476,25 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/session_grant_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.session.grant.state"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/session_grant_state_payload"
           }
         }
       }
