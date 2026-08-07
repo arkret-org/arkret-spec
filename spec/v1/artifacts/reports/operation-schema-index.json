@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.16",
+  "version": "2026-08-07",
   "source_of_truth": false,
-  "generated_at": "2026-08-07T02:30:00Z",
+  "generated_at": "2026-08-07T05:33:31Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -821,7 +821,7 @@
       }
     },
     {
-      "operation_id": "ak.self.agent.query.list",
+      "operation_id": "ak.self.agent.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_list",
@@ -1229,7 +1229,7 @@
       }
     },
     {
-      "operation_id": "ak.self.agent.sidecar.query.list",
+      "operation_id": "ak.self.agent.sidecar.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_list",
@@ -1447,7 +1447,7 @@
       }
     },
     {
-      "operation_id": "ak.edge.applet.query.ping",
+      "operation_id": "ak.edge.applet.read.ping",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome",
@@ -1468,7 +1468,7 @@
       }
     },
     {
-      "operation_id": "ak.edge.applet.query.protocol_metadata",
+      "operation_id": "ak.edge.applet.read.protocol_metadata",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_protocol_metadata",
@@ -1489,7 +1489,7 @@
       }
     },
     {
-      "operation_id": "ak.edge.applet.actor.query.resolve",
+      "operation_id": "ak.edge.applet.actor.read.resolve",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view",
@@ -1507,7 +1507,7 @@
       }
     },
     {
-      "operation_id": "ak.edge.applet.realm.query.resolve",
+      "operation_id": "ak.edge.applet.realm.read.resolve",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view",
@@ -1612,7 +1612,7 @@
       }
     },
     {
-      "operation_id": "ak.edge.applet.third_party_locations.query.list",
+      "operation_id": "ak.edge.applet.third_party_locations.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_list",
@@ -1629,7 +1629,7 @@
       }
     },
     {
-      "operation_id": "ak.edge.applet.third_party_users.query.list",
+      "operation_id": "ak.edge.applet.third_party_users.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_list",
@@ -1676,7 +1676,7 @@
       }
     },
     {
-      "operation_id": "ak.self.authz.query.check",
+      "operation_id": "ak.self.authz.read.check",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequestBody",
@@ -1718,7 +1718,7 @@
       }
     },
     {
-      "operation_id": "ak.self.authz.grants.query.effective",
+      "operation_id": "ak.self.authz.grants.read.effective",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantList",
@@ -1733,7 +1733,7 @@
       }
     },
     {
-      "operation_id": "ak.self.authz.invites.query.list",
+      "operation_id": "ak.self.authz.invites.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/authz-operations.schema.json#/$defs/authz_invite_list",
@@ -1822,7 +1822,7 @@
       }
     },
     {
-      "operation_id": "ak.self.device_messages.query.list",
+      "operation_id": "ak.self.device_messages.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome",
@@ -2116,7 +2116,7 @@
       }
     },
     {
-      "operation_id": "ak.self.contact.query.list",
+      "operation_id": "ak.self.contact.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list",
@@ -2481,7 +2481,7 @@
       }
     },
     {
-      "operation_id": "ak.self.direct_conversation.query.resolve",
+      "operation_id": "ak.self.direct_conversation.read.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request",
@@ -2665,7 +2665,7 @@
       }
     },
     {
-      "operation_id": "ak.self.circle.query.list",
+      "operation_id": "ak.self.circle.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_list",
@@ -3010,7 +3010,7 @@
       }
     },
     {
-      "operation_id": "ak.find.directory.query.private_contact_discovery",
+      "operation_id": "ak.find.directory.read.private_contact_discovery",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body",
@@ -3152,7 +3152,7 @@
       }
     },
     {
-      "operation_id": "ak.find.directory.query.resolve_handle",
+      "operation_id": "ak.find.directory.read.resolve_handle",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body",
@@ -3196,7 +3196,7 @@
       }
     },
     {
-      "operation_id": "ak.find.directory.query.resolve_agent_selector",
+      "operation_id": "ak.find.directory.read.resolve_agent_selector",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body",
@@ -3242,7 +3242,7 @@
       }
     },
     {
-      "operation_id": "ak.find.directory.query.list_handles_for_subject",
+      "operation_id": "ak.find.directory.read.list_handles_for_subject",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body",
@@ -3284,7 +3284,7 @@
       }
     },
     {
-      "operation_id": "ak.find.directory.query.resolve_organization",
+      "operation_id": "ak.find.directory.read.resolve_organization",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body",
@@ -3312,7 +3312,7 @@
       }
     },
     {
-      "operation_id": "ak.find.directory.query.resolve_realm",
+      "operation_id": "ak.find.directory.read.resolve_realm",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body",
@@ -3345,7 +3345,7 @@
       }
     },
     {
-      "operation_id": "ak.find.directory.query.resolve_target",
+      "operation_id": "ak.find.directory.read.resolve_target",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body",
@@ -3385,7 +3385,7 @@
       }
     },
     {
-      "operation_id": "ak.find.directory.query.search_actors",
+      "operation_id": "ak.find.directory.read.search_actors",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_actors_request_body",
@@ -3416,7 +3416,7 @@
       }
     },
     {
-      "operation_id": "ak.find.directory.query.search_organizations",
+      "operation_id": "ak.find.directory.read.search_organizations",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_organizations_request_body",
@@ -3446,7 +3446,7 @@
       }
     },
     {
-      "operation_id": "ak.find.directory.query.search_realms",
+      "operation_id": "ak.find.directory.read.search_realms",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body",
@@ -3480,7 +3480,7 @@
       }
     },
     {
-      "operation_id": "ak.find.directory.query.search_users",
+      "operation_id": "ak.find.directory.read.search_users",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_users_request_body",
@@ -4131,7 +4131,7 @@
       }
     },
     {
-      "operation_id": "ak.peer.mls.query.group_state_material",
+      "operation_id": "ak.peer.mls.read.group_state_material",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody",
@@ -4236,7 +4236,7 @@
       }
     },
     {
-      "operation_id": "ak.peer.account_status.query.authoring_basis",
+      "operation_id": "ak.peer.account_status.read.authoring_basis",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_request_body",
@@ -4733,7 +4733,7 @@
       }
     },
     {
-      "operation_id": "ak.peer.keys.keypackages.query.claim",
+      "operation_id": "ak.peer.keys.keypackages.read.claim",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_request_body",
@@ -4768,7 +4768,7 @@
       }
     },
     {
-      "operation_id": "ak.peer.snapshot.query.manifest_head",
+      "operation_id": "ak.peer.snapshot.read.manifest_head",
       "success_shape_kind": "schema_resource",
       "response": {
         "schema_ref": "schemas/snapshot.schema.json",
@@ -4954,7 +4954,7 @@
       }
     },
     {
-      "operation_id": "ak.root.identity.log.query.list",
+      "operation_id": "ak.root.identity.log.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome",
@@ -4972,7 +4972,7 @@
       }
     },
     {
-      "operation_id": "ak.root.identity.receipts.query.list",
+      "operation_id": "ak.root.identity.receipts.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome",
@@ -4988,7 +4988,7 @@
       }
     },
     {
-      "operation_id": "ak.root.identity.query.resolve",
+      "operation_id": "ak.root.identity.read.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequestBody",
@@ -5902,7 +5902,7 @@
       }
     },
     {
-      "operation_id": "ak.self.keys.backups.query.list",
+      "operation_id": "ak.self.keys.backups.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list",
@@ -6206,7 +6206,7 @@
       }
     },
     {
-      "operation_id": "ak.self.keys.query.lookup",
+      "operation_id": "ak.self.keys.read.lookup",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_request_body",
@@ -6236,7 +6236,7 @@
       }
     },
     {
-      "operation_id": "ak.self.agent_signer_evidence.query.resolve",
+      "operation_id": "ak.self.agent_signer_evidence.read.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_request",
@@ -6296,7 +6296,7 @@
       }
     },
     {
-      "operation_id": "ak.self.media.query.ice_config",
+      "operation_id": "ak.self.media.read.ice_config",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/media-operations.schema.json#/$defs/media_ice_config_request_body",
@@ -6354,7 +6354,7 @@
       }
     },
     {
-      "operation_id": "ak.open.agent_pairing.query.resolve",
+      "operation_id": "ak.open.agent_pairing.read.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_resolve_request_body",
@@ -6431,7 +6431,7 @@
       }
     },
     {
-      "operation_id": "ak.open.agent_pairing.query.runtime_key_request_status",
+      "operation_id": "ak.open.agent_pairing.read.runtime_key_request_status",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body",
@@ -6512,7 +6512,7 @@
       }
     },
     {
-      "operation_id": "ak.open.device_pairing.query.resolve",
+      "operation_id": "ak.open.device_pairing.read.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_resolve_request_body",
@@ -6554,7 +6554,7 @@
       }
     },
     {
-      "operation_id": "ak.open.device_pairing.query.status",
+      "operation_id": "ak.open.device_pairing.read.status",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body",
@@ -6584,7 +6584,7 @@
       }
     },
     {
-      "operation_id": "ak.open.invite_locator.query.resolve",
+      "operation_id": "ak.open.invite_locator.read.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body",
@@ -6625,7 +6625,7 @@
       }
     },
     {
-      "operation_id": "ak.open.mimi.query.group_info",
+      "operation_id": "ak.open.mimi.read.group_info",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome",
@@ -6642,7 +6642,7 @@
       }
     },
     {
-      "operation_id": "ak.open.mimi.query.identifiers",
+      "operation_id": "ak.open.mimi.read.identifiers",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body",
@@ -6739,7 +6739,7 @@
       }
     },
     {
-      "operation_id": "ak.open.mimi.query.provider_directory",
+      "operation_id": "ak.open.mimi.read.provider_directory",
       "success_shape_kind": "schema_resource",
       "response": {
         "schema_ref": "schemas/mimi-interop.schema.json",
@@ -7008,7 +7008,7 @@
       }
     },
     {
-      "operation_id": "ak.self.policy.query.check",
+      "operation_id": "ak.self.policy.read.check",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody",
@@ -7065,7 +7065,7 @@
       }
     },
     {
-      "operation_id": "ak.self.realm_link.query.list",
+      "operation_id": "ak.self.realm_link.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_list",
@@ -7148,7 +7148,7 @@
       }
     },
     {
-      "operation_id": "ak.self.realm_link.query.effective_policy",
+      "operation_id": "ak.self.realm_link.read.effective_policy",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome",
@@ -7169,7 +7169,7 @@
       }
     },
     {
-      "operation_id": "ak.self.realm_organization.query.list",
+      "operation_id": "ak.self.realm_organization.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list",
@@ -7451,7 +7451,7 @@
       }
     },
     {
-      "operation_id": "ak.self.realm.query.export",
+      "operation_id": "ak.self.realm.read.export",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_export",
@@ -7474,7 +7474,7 @@
       }
     },
     {
-      "operation_id": "ak.self.realm.moderation_policy.query.effective",
+      "operation_id": "ak.self.realm.moderation_policy.read.effective",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy",
@@ -7624,7 +7624,7 @@
       }
     },
     {
-      "operation_id": "ak.self.realm.join_application.query.list",
+      "operation_id": "ak.self.realm.join_application.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_list_outcome",
@@ -7659,7 +7659,7 @@
       }
     },
     {
-      "operation_id": "ak.self.realm.join_application.audit.query.list",
+      "operation_id": "ak.self.realm.join_application.audit.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_audit_outcome",
@@ -7678,7 +7678,7 @@
       }
     },
     {
-      "operation_id": "ak.self.consent.query.list",
+      "operation_id": "ak.self.consent.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_list",
@@ -7852,7 +7852,7 @@
       }
     },
     {
-      "operation_id": "ak.self.account_data.query.list",
+      "operation_id": "ak.self.account_data.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_list",
@@ -7990,7 +7990,7 @@
       }
     },
     {
-      "operation_id": "ak.self.read_cursor.query.list",
+      "operation_id": "ak.self.read_cursor.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list",
@@ -8005,7 +8005,7 @@
       }
     },
     {
-      "operation_id": "ak.self.strand.query.list",
+      "operation_id": "ak.self.strand.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList",
@@ -8027,7 +8027,7 @@
       }
     },
     {
-      "operation_id": "ak.self.morph.query.list",
+      "operation_id": "ak.self.morph.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList",
@@ -8049,7 +8049,7 @@
       }
     },
     {
-      "operation_id": "ak.self.space.query.list",
+      "operation_id": "ak.self.space.read.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList",
@@ -8226,7 +8226,7 @@
       }
     },
     {
-      "operation_id": "ak.self.account.query.viewer",
+      "operation_id": "ak.self.account.read.viewer",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/account-operations.schema.json#/$defs/account_view",
@@ -8306,7 +8306,7 @@
       }
     },
     {
-      "operation_id": "ak.self.snapshot.query.manifest_head",
+      "operation_id": "ak.self.snapshot.read.manifest_head",
       "success_shape_kind": "schema_resource",
       "response": {
         "schema_ref": "schemas/snapshot.schema.json",

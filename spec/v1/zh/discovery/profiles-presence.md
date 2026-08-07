@@ -346,7 +346,7 @@ plaintext 内；不得把目标 Strand 或精确 kind 暴露给 Sync Service。
 
 Directory Service 或客户端本地联系人索引 MAY 提供用户搜索功能，用于 `@mention` 自动完成和联系人发现。
 
-> **Normative 源（normative）**：`search-users` 的 request / response 字段、授权过滤、分页字段（`has_more` / `next_cursor`）以 [`discovery-directory.md` §9](./discovery-directory.md) `ak.find.directory.query.search_users` 为**唯一规范源**；本节只补充 presence / mention 特有的 UI 语义（例如 autocomplete intent、普通 mention 不得请求投递上下文、以及 `results[].membership` 仅作本地展示 hint）。字段名、必填性或分页语义与 directory §9 冲突时，MUST 以 directory §9 为准。
+> **Normative 源（normative）**：`search-users` 的 request / response 字段、授权过滤、分页字段（`has_more` / `next_cursor`）以 [`discovery-directory.md` §9](./discovery-directory.md) `ak.find.directory.read.search_users` 为**唯一规范源**；本节只补充 presence / mention 特有的 UI 语义（例如 autocomplete intent、普通 mention 不得请求投递上下文、以及 `results[].membership` 仅作本地展示 hint）。字段名、必填性或分页语义与 directory §9 冲突时，MUST 以 directory §9 为准。
 
 ```
 POST /_arkret/find/directory/search-users

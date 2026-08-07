@@ -35,7 +35,7 @@ Account Data 的存储、namespace key、`derive_account_data_key`、value encry
 
 account data 默认是 holder-private 加密数据，Sync Service 只存不透明密文（[`../models/account-data.md` §1](../models/account-data.md)）。presence / typing 的精确 kind、target 与 visibility policy 不交给服务端读取；发送端按 [`profiles-presence.md` §3.4](./profiles-presence.md) 选择可安全加密的 scope。服务端仅可读取其它明确声明、确有服务端执行需要的最小 policy projection（例如单独授权的 blocklist data class）。"account data 加密"与"服务端执行 policy"之间的边界必须显式协商：
 
-- 服务端 MUST 在 `ak.server.query.describe`（`ServiceDescribe`）中声明它能否读取每个最小 policy projection（例如通过 `plaintext_visible_services.data_classes` 或等价 `policy_projection_readable[]` 声明）。`presence_visibility` 不得声明为服务端可读；未声明的其它 data class 视为不能读取。
+- 服务端 MUST 在 `ak.server.read.describe`（`ServiceDescribe`）中声明它能否读取每个最小 policy projection（例如通过 `plaintext_visible_services.data_classes` 或等价 `policy_projection_readable[]` 声明）。`presence_visibility` 不得声明为服务端可读；未声明的其它 data class 视为不能读取。
 - Presence / typing 的 policy gate **固定在发送客户端**：客户端只向符合本端 membership、contact 与 visibility 判断的整个加密 scope 发送；无法安全选择 scope 时 MUST 抑制发送。Sync Service 只按外层已签名 `scope_ref` 做成员级 fanout，不读取或推断 `ak.presence.visibility`，也不得因无法读取该 key 而把整个 opaque Signal rail 判为不可转发。
 - 单独声明且 holder 明确授权的其它最小 projection（例如 blocklist data class）可由服务端执行；其过滤结果 MUST NOT 让发送方、被查询方或 federation peer 区分"被屏蔽"与"无权限 / 不存在 / 离线"（§3.5）。
 
@@ -205,7 +205,7 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 
 用户可以为已知联系人（其他 Actor / Organization / 设备）保存只对自己可见的本地备注名、笔记和私有标签。该数据是 actor-private 的渲染覆盖层，**不**修改对方公开 profile，**不**写入 Realm history、mention、sender attribution 或任何协议主体字段。
 
-`ak.contacts.*` account-data key 只表达 holder-private 备注、标签、置顶、别名和本地排序。它不通知对方，不证明对方接受，也不打开 `direct_message` / `invite` / `call` / `presence` gate。联系人关系状态与 Contact-based action gate MUST 只从 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 定义的 `ak.contact.*` directional fact log 投影；Consent不得参与。客户端 MAY 把本地备注与 `ak.self.contact.query.list` 结果合并展示，但不得把 account-data note 当作 accepted contact。
+`ak.contacts.*` account-data key 只表达 holder-private 备注、标签、置顶、别名和本地排序。它不通知对方，不证明对方接受，也不打开 `direct_message` / `invite` / `call` / `presence` gate。联系人关系状态与 Contact-based action gate MUST 只从 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 定义的 `ak.contact.*` directional fact log 投影；Consent不得参与。客户端 MAY 把本地备注与 `ak.self.contact.read.list` 结果合并展示，但不得把 account-data note 当作 accepted contact。
 
 **Key:** `ak.contacts.actor.<did>`
 

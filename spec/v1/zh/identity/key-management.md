@@ -350,7 +350,7 @@ Pairing record 与 account notification projection 的 add/update/remove MUST �
 
 最终 pairing commit 以 `authorize_event.event.event_id` 为幂等身份。相同 `pairing_request_id`、相同 stable runtime binding、相同完整 request digest 与相同 EventInitialSubmission bytes（含 publication authority evidence）的重试 MUST 返回当前权威阶段：Seal witness 尚未 accepted 时为同一 `awaiting_accepted_frontier`，witness accepted 且 activation durable 后为同一 `active`；不得再次插入 authorization 或因数据库唯一约束返回 500。相同 Event ID 携带不同 canonical Event bytes 或 publication authority evidence，或相同 runtime key id 绑定不同 Agent / pairing / public key时 MUST 返回 conflict 并 fail closed。网络超时后的调用方 MAY 安全重试完全相同的请求，也 MAY 通过 `ak.self.agent.resource.get` / list 确认 active `authorized_event_ref`；服务端后台重试同样 MUST 重放原始 controller-signed submission，不得生成替代 Event 或代签 receipt。
 
-Controller 通过 `ak.self.account.stream.subscribe.notifications.items[]` 发现请求；声明支持的服务 MUST 在 `ServiceDescribe.supported_features` 列出 `ak.feature.agent_runtime_approval_notifications.v1`。只有 describe 已成功解析且缺少该 token 时，controller 客户端才能启用 30 秒起、带 jitter、最大 60 秒的 list/get fallback；describe 未解析、应用隐藏或离线时不得轮询。未配对 runtime 仍通过 `ak.open.agent_pairing.query.runtime_key_request_status` 有界轮询；HTTP response MUST 携带 `Retry-After`，客户端采用 1s/2s/5s/10s 后最大 30s，并遵守更长的服务端值，在 pairing 过期后停止。
+Controller 通过 `ak.self.account.stream.subscribe.notifications.items[]` 发现请求；声明支持的服务 MUST 在 `ServiceDescribe.supported_features` 列出 `ak.feature.agent_runtime_approval_notifications.v1`。只有 describe 已成功解析且缺少该 token 时，controller 客户端才能启用 30 秒起、带 jitter、最大 60 秒的 list/get fallback；describe 未解析、应用隐藏或离线时不得轮询。未配对 runtime 仍通过 `ak.open.agent_pairing.read.runtime_key_request_status` 有界轮询；HTTP response MUST 携带 `Retry-After`，客户端采用 1s/2s/5s/10s 后最大 30s，并遵守更长的服务端值，在 pairing 过期后停止。
 
 ### 3.7 MLS KeyPackage Key
 
@@ -438,7 +438,7 @@ allowed operations 不得合并：
   byte-identical Event bytes；resolve 只可查询这些原 Event IDs。不得增加通用 account/bootstrap status、
   Realm write、history、backup、普通 sync或 KeyPackage claim。
 - `sibling_pairing` 恰好允许 `ak.gate.account.command.cancel_device_bootstrap`、
-  `ak.self.device_messages.command.send`、`ak.self.device_messages.query.list`、
+  `ak.self.device_messages.command.send`、`ak.self.device_messages.read.list`、
   `ak.self.device_messages.command.ack`。三项 device-message 操作必须绑定同一 transaction、source/target
   device与已登记 `ak.key.verification.*` content kind；list按 transaction过滤且不得返回 secret或普通 message。
   bootstrap sibling不得 enroll。最终 pair只能由 active sibling持 `standard` credential调用

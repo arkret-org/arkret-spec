@@ -187,11 +187,12 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 
 ### 6.2 High-assurance bootstrap 的额外要求
 
-`security_class=high_assurance` 的 Realm MUST 在采纳任何 snapshot 之前执行该挑战；其他 profile SHOULD 执行。同时，该 security_class 的 bootstrap 客户端 **MUST** 至少满足以下一条以补足 §6.1 的边界缺失:
+`security_class=high_assurance` 的 Realm MUST 在采纳任何 snapshot 之前执行该挑战；其他 profile SHOULD 执行。同时，该 security_class 的 bootstrap 客户端 **MUST** 使用下列两个充分路径之一补足 §6.1 的边界缺失；`actor_seq_ranges[]` 只是两个路径都可使用的区间内部一致性材料，不是第三个独立充分路径：
 
-1. **Witness quorum on actor set**:从至少一个独立 witness(部署 policy 明确列出且非 snapshot issuer 控制)拉取该 Realm 在 `manifest.created_at` 时刻的 active actor set commitment 与 actor sequence upper-bound commitment,client 用其与 snapshot manifest 中声明的 actor set 比对；不一致 MUST quarantine。
-2. **Per-actor sequence upper-bound**:`event_set_commitment` MUST 携带 schema 中的 `actor_seq_ranges[]`，为每个 actor 绑定 `[from_seq, to_seq]` 与该区间的 commitment `root`；该 commitment 使用 `event_set_commitment.algorithm` 声明的现有算法（`ordered_event_id_sha256_v1` 或 `merkle_event_set_v1`）计算，不引入第三种 wire algorithm。Client 校验该 actor 在 snapshot frontier 后到达的事件 `actor_seq > to_seq`。
-3. **Raw replay fallback**:无 witness quorum 可用时,bootstrap 客户端 **MUST NOT** 把 snapshot 作为 high-assurance accepted state——只能当作加速索引，实际授权决策仍 MUST 走原始 Event 回放，直到独立 witness 上线或 federation peer 提供 cross-source confirmation。
+1. **Independent witness path**：从至少一个独立 witness（部署 policy 明确列出且非 snapshot issuer 控制）拉取该 Realm 在 `manifest.created_at` 时刻的 active actor-set commitment 与 actor sequence upper-bound commitment，client 用其与 snapshot manifest 中声明的 actor set 比对；不一致 MUST quarantine。`event_set_commitment` MUST 同时携带 schema 中的 `actor_seq_ranges[]`，为每个已见证 actor 绑定 `[from_seq, to_seq]` 与该区间的 commitment `root`；该 commitment 使用 `event_set_commitment.algorithm` 声明的现有算法（`ordered_event_id_sha256_v1` 或 `merkle_event_set_v1`）计算，不引入第三种 wire algorithm。
+2. **Raw replay path**：无独立 witness actor-set commitment 可用时，bootstrap 客户端 **MUST NOT** 把 snapshot 本身作为 high-assurance accepted state；它只能作为加速索引，实际授权决策 MUST 由原始 Event 完整回放得到。回放尚未完成时，snapshot completeness 保持 unverified / degraded；独立 witness 或 federation peer 后续提供 cross-source confirmation 后方可升级。
+
+仅由 snapshot issuer 自己声明并签发的 `actor_seq_ranges[]`，即使所有已声明 actor 的区间、root 与 count 均自洽，也只能证明这些区间内部无洞；它 MUST NOT 被解释为“没有未知 actor 被整体省略”的证明。整 actor 省略负例由 `ak.vector.snapshot.inclusion_challenge.v1` 承载。
 
 非 high-assurance profile SHOULD 在 UI 中把"由第三方 snapshot 加速 bootstrap"标记为 lower-trust 状态，与从原始 Event 回放出的 high-trust 状态区分。
 

@@ -1195,7 +1195,7 @@
         "post_bootstrap_alias_shape": "ordinary Control Move carrying seal_basis",
         "rename_shape": "successor set on the same cell carrying whole-value head_eq",
         "release_shape": "explicit {tombstone:true} set; effective resolution treats it as absence and the Realm stays addressable only by realm_id",
-        "resolution_source": "resolve_realm / resolve_target / ak.edge.applet.realm.query.resolve read the effective cell; directory rows are a projection, not a second source of truth",
+        "resolution_source": "resolve_realm / resolve_target / ak.edge.applet.realm.read.resolve read the effective cell; directory rows are a projection, not a second source of truth",
         "authorized_by": [
           "ak.realm.alias",
           "ak.realm.admin"

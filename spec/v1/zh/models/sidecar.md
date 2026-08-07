@@ -14,7 +14,7 @@ updated: 2026-07-20
 
 **Agent Sidecar**（`ak:sidecar:`）是绑定到一个 `(realm_id, controller_id)` 的个人 AI 私有工作区。它是一等协议对象，不是 Circle profile、普通 Circle、Direct Conversation、Strand Track 或某个 Agent 的 1:1 会话。
 
-用户从 Contacts/Direct Messages 产品面点击自己的 Native Personal Agent 时，客户端 MUST 使用 [`ak.self.direct_conversation.query.resolve`](../identity/contact-and-direct-conversation.md#91-resolver-状态) 定位 `{controller, agent}` 的独立双成员 Direct Conversation Realm；尚不存在时由 controller 按 [contact-and-direct-conversation.md §5.4](../identity/contact-and-direct-conversation.md#54-create-判别与授权) 的 `direct_conversation_agent_genesis` 分支创建（该分支 founder 固定为 controller）。resolve 是查询入口，MUST NOT 承载 create phase。该入口不得调用 Sidecar ensure、不得要求当前 Realm/Strand context，也不得把 backing Circle 暴露成私聊会话。Sidecar 仅用于既有 Realm/Strand 内的 context-routed 私有协作。
+用户从 Contacts/Direct Messages 产品面点击自己的 Native Personal Agent 时，客户端 MUST 使用 [`ak.self.direct_conversation.read.resolve`](../identity/contact-and-direct-conversation.md#91-resolver-状态) 定位 `{controller, agent}` 的独立双成员 Direct Conversation Realm；尚不存在时由 controller 按 [contact-and-direct-conversation.md §5.4](../identity/contact-and-direct-conversation.md#54-create-判别与授权) 的 `direct_conversation_agent_genesis` 分支创建（该分支 founder 固定为 controller）。resolve 是查询入口，MUST NOT 承载 create phase。该入口不得调用 Sidecar ensure、不得要求当前 Realm/Strand context，也不得把 backing Circle 暴露成私聊会话。Sidecar 仅用于既有 Realm/Strand 内的 context-routed 私有协作。
 
 Sidecar 与 Circle 的职责不同：
 
@@ -68,7 +68,7 @@ ensure MUST：
 
 ### 3.2 专用读取
 
-Sidecar 的 canonical read surface 是 `ak.self.agent.sidecar.resource.get` 与 `ak.self.agent.sidecar.query.list`。两者只返回 authenticated controller 自己的 Sidecar，以及分离的 desired/effective Agent access、readiness、pending reconciliation 与 `mls_context`。普通 Circle get/list、Realm directory、scope picker 或通用 event query MUST NOT 代替该 surface。
+Sidecar 的 canonical read surface 是 `ak.self.agent.sidecar.resource.get` 与 `ak.self.agent.sidecar.read.list`。两者只返回 authenticated controller 自己的 Sidecar，以及分离的 desired/effective Agent access、readiness、pending reconciliation 与 `mls_context`。普通 Circle get/list、Realm directory、scope picker 或通用 event query MUST NOT 代替该 surface。
 
 get 对 nonexistent、foreign-controller 与 unauthorized `sidecar_id` MUST 返回相同 `not_found` envelope 与 timing bucket。list 不返回其他 controller 的 locked stub、计数空洞或 backing Circle。Sidecar view MAY 包含 `backing_circle_id` 供专用 MLS/scope 处理，但客户端不得把它注册为普通 Circle route 或用户可管理资源。
 
@@ -329,7 +329,7 @@ controller 离线时 response/control 留在 private history。新设备或 cach
 
 新 controller 设备不得依赖旧设备保存的 ensure outcome、pending fact、当前 route 或已激活 UI session 来定位 private Strand。它 MUST 对每个可访问 Realm 执行以下完整分页算法：
 
-1. 分页调用 `ak.self.agent.sidecar.query.list`，直到响应不再给出 continuation cursor，或下一 cursor 与已见 cursor 重复（重复 cursor MUST 作为服务端错误 fail closed，不得接受不完整结果）；将每个 view 的 `(realm_id, controller_id, sidecar_id, backing_circle_id)` 建成只读候选表。同一 `(realm_id, controller_id, backing_circle_id)` 映射到多个 `sidecar_id` 时，该候选冲突且不得恢复。
+1. 分页调用 `ak.self.agent.sidecar.read.list`，直到响应不再给出 continuation cursor，或下一 cursor 与已见 cursor 重复（重复 cursor MUST 作为服务端错误 fail closed，不得接受不完整结果）；将每个 view 的 `(realm_id, controller_id, sidecar_id, backing_circle_id)` 建成只读候选表。同一 `(realm_id, controller_id, backing_circle_id)` 映射到多个 `sidecar_id` 时，该候选冲突且不得恢复。
 2. 对候选表涉及的每个 Realm 分页调用 `ak.self.events.read.scan`，使用同一 verified controller self session，直到 continuation cursor 缺席；cursor 重复、页缺失、鉴权变化、限额中断或无法证明最后一页时，该 Realm 标记 `backfill_pending`，不得从部分 history 启用 echo。
 3. 只考虑完整 accepted Event Envelope。候选 `ak.strand.create` 的 effective scope MUST 精确为候选 backing Circle，actor MUST 是 controller，Realm MUST 匹配，且 payload 必须描述 private Strand。候选 `ak.relation.create` 必须位于同一 effective scope，actor/controller/Realm 全部匹配，`kind=agent_sidecar_of`，`from_ref` 指向该 private Strand，`to_ref` 是 canonical source context ref。
 4. `ak.strand.create` 与 `ak.relation.create` 必须同时存在于同一已接受 aggregate/history，并且 Relation 因果上引用或覆盖 Strand creation；缺一、多个 Relation 指向不同 source、多个 private Strand 指向同一 source，或任何 scope/controller/Realm 不匹配都使该候选保持 unresolved。

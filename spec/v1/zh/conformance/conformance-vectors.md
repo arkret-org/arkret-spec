@@ -596,8 +596,8 @@ ak.vector.encoding.encrypted_envelope_digest.v1
 domain_separator = ak.aad-event-ref-v1
 event_id         = ak:event:01964148-0000-8000-8000-000000000000
 realm_id         = ak:realm:0196419b-0000-8000-8000-000000000000
-digest_input_hex = 616b2e6161642d6576656e742d7265662d763100616b3a6576656e743a30313936343134382d303030302d373030302d383030302d30303030303030303030303000616b3a7265616c6d3a30313936343139622d303030302d373030302d383030302d303030303030303030303030
-event_ref_digest = sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3
+digest_input_hex = 616b2e6161642d6576656e742d7265662d763100616b3a6576656e743a30313936343134382d303030302d383030302d383030302d30303030303030303030303000616b3a7265616c6d3a30313936343139622d303030302d383030302d383030302d303030303030303030303030
+event_ref_digest = sha256:9e9317900fc1c29c1a5de03536d3ed1ffd26a23ab4a027c9efe8a875152ac943
 ```
 
 `digest_input_hex` 必须逐字节等于 `utf8(domain_separator) || 0x00 || utf8(event_id) || 0x00 || utf8(realm_id)`。机器向量另含“省略两个 `0x00`”“交换 `event_id` / `realm_id`”“追加尾部 `0x00`”三个 mutation case；三者都必须产生各自固定的不同摘要，不能被实现接受为有效输入。
@@ -605,7 +605,7 @@ event_ref_digest = sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71
 `payload_metadata` canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"aad":{"event_kind":"ak.message.create","event_ref_digest":"sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3","realm_id":"ak:realm:0196419b-0000-8000-8000-000000000000"},"aad_visibility_event_id":"routing_digest","content_type":"application/json","epoch":12,"group_id":"Z3JvdXAtMDAx","key_ref":{"algorithm":"MLS","group_state_ref":"ak:event:01964148-0000-8000-8000-000000000000"},"scheme":"mls_rfc9420","version":"1.0"}
+{"aad":{"event_kind":"ak.message.create","event_ref_digest":"sha256:9e9317900fc1c29c1a5de03536d3ed1ffd26a23ab4a027c9efe8a875152ac943","realm_id":"ak:realm:0196419b-0000-8000-8000-000000000000"},"aad_visibility_event_id":"routing_digest","content_type":"application/json","epoch":12,"group_id":"Z3JvdXAtMDAx","key_ref":{"algorithm":"MLS","group_state_ref":"ak:event:01964148-0000-8000-8000-000000000000"},"scheme":"mls_rfc9420","version":"1.0"}
 ```
 
 `ciphertext` 的 base64url wire 值与解码后 UTF-8 测试表示：
@@ -618,7 +618,7 @@ ciphertext-example-001
 期望 digest：
 
 ```text
-sha256:6aa6a93aff69fc6505207e409c07f33940037e549c47542f261197c0c872052c
+sha256:4bb1b546bf078c0f90699aa661c799fb69956caed147f17e09ecc79be8bb67bb
 ```
 
 判定规则：
@@ -887,7 +887,7 @@ Verifier mutation matrix MUST 在需要测试语义阶段时重算所有 transpo
 
 Materializer matrix MUST 覆盖精确有效输出，以及 unknown/unreachable anchor、缺失或分叉 Seal material、撤销后的 notary、缺失 covered Event、control-cell Bottom、scope visibility denial 与总界超限；失败时 response count 必须为 0，不能输出 partial manifest。两条 runner 在同一 profile certification job 中还 MUST 执行 companion `ak.vector.scalability.mls_governance_proof_bounds.v1` 的全部 `limit-1 / limit / limit+1` 与 chunk acquisition cases，并记录每 case 的 stage、reason/error、response count、bundle/chunk digests、epoch transition 与 peak buffer bytes。
 
-MLS group tracker 的 companion matrix MUST 另外对 `ak.peer.mls.query.group_state_material` 执行：两组 ref/digest/raw
+MLS group tracker 的 companion matrix MUST 另外对 `ak.peer.mls.read.group_state_material` 执行：两组 ref/digest/raw
 bytes 完全匹配的 accepted genesis 正例；Event id、scope、group 或 epoch cross-binding；只有 ref/只有 digest；
 object missing；ref 内嵌 hash mismatch；raw-byte digest mismatch；GroupInfo 与 ratchet tree / GroupContext 不一致；
 未 accepted 或 quarantine genesis；响应总界超限。所有失败必须 response count 0。正例必须从验证后的 RFC 9420
@@ -3376,7 +3376,7 @@ Expected：
 
 Steps：
 
-1. 调用 `ak.self.space.query.list` / `strand` / `morph`，请求 `limit=1`。
+1. 调用 `ak.self.space.read.list` / `strand` / `morph`，请求 `limit=1`。
 2. 使用返回的 `next_cursor` 继续读取。
 3. 下游 service-call 返回缺失 `has_more` 或 cursor 形态不合法的响应。
 
@@ -4721,7 +4721,7 @@ Setup:
 
 1. Realm R 的 discoverability 为 `invite_only`，但 Alice 给 Bob 发出 `lt=preview` token。token payload 绑定 `target_digest`、`address_link_kind="preview"`、`preview_policy_digest`、`aud=Bob`、短 TTL。
 2. Effective `ak.realm.preview_policy.value.mode = "stripped_state"`，fields 只包含 `title`、`summary`、`join_rule`、`member_count_bucket`。
-3. Bob 调用 `ak.find.directory.query.resolve_target`，携带 address 与 token。
+3. Bob 调用 `ak.find.directory.read.resolve_target`，携带 address 与 token。
 4. 攻击者 Mallory 把同一 token 放到另一个 Strand address，或把 URL `lt` 改为 `invite`。
 
 Expected:
@@ -5132,7 +5132,7 @@ Expected：
 
 本向量固化 §2.6.2 的优先序、复用与幂等 consume MUST：池中存在普通包时 claim MUST 优先返回普通包，仅普通包池空时 MAY 返回 `last_resort=true` 包；last-resort 包 MUST NOT 进入单次 `claimed` / `consumed` 状态，而是始终保持 `published`，每次领取以独立 `keypackage_claim_record` 表达；`ak.keys.keypackages.consume` 对 last-resort `keypackage_ref` MUST 被识别为幂等（返回成功但不改 `published`，不得返回 `keypackage_already_consumed`）；每次消费 MUST 追加 claim audit record，不得伪造 KeyPackage FSM transition。
 
-Steps（前置：服务端在 `ak.server.query.describe.supported_features` 声明 `ak.feature.mls_last_resort_keypackage.v1`，目标 Realm policy 允许 last-resort join）：
+Steps（前置：服务端在 `ak.server.read.describe.supported_features` 声明 `ak.feature.mls_last_resort_keypackage.v1`，目标 Realm policy 允许 last-resort join）：
 
 1. 该 Realm 的普通（单次）KeyPackage 池耗尽；requester 发起 claim。
 2. 同一 `intended_realm_id` 内对该 last-resort 包发起多次 Welcome（多次 claim / consume）。
@@ -5171,7 +5171,7 @@ Expected：
 Steps：
 
 - **Case A — 跨 Realm 复用拒绝**：声明该 feature 的服务端，尝试把绑定 `intended_realm_id = R1` 的 last-resort 包用于另一 Realm `R2` 的 Welcome / claim（`intended_realm_id` 不一致）。
-- **Case B — 未声明 feature 池空 fail-closed**：未在 `ak.server.query.describe.supported_features` 声明 `ak.feature.mls_last_resort_keypackage.v1` 的服务端，其某 Realm 普通包池耗尽；requester claim，并显式请求 last-resort 回退。
+- **Case B — 未声明 feature 池空 fail-closed**：未在 `ak.server.read.describe.supported_features` 声明 `ak.feature.mls_last_resort_keypackage.v1` 的服务端，其某 Realm 普通包池耗尽；requester claim，并显式请求 last-resort 回退。
 - **Case C — holder 无该 Realm 条目（对照）**：声明该 feature 但 holder 离线期间某 Realm 尚无 last-resort 条目，该 Realm 普通包池空。
 - **Case D — 高保证 profile 禁用**：服务端全局支持 `ak.feature.mls_last_resort_keypackage.v1`，但目标 Realm 声明 `ak.profile.high_security_organization.v1` 或 `ak.profile.sovereign_deployment.v1`。
 
@@ -5212,17 +5212,17 @@ Expected：
 
 `vector_id`: `ak.vector.session.bare_bearer_rejected_protected.v1`
 
-本向量固化 §3.2 / §2.5 的 sender-constrained 会话出示与 replay window MUST：生产 current-v1 受保护 endpoint MUST 要求 DPoP、RFC 9421 HTTP Message Signature、detached JWS、mTLS 或等价 sender-constrained proof；纯 `Authorization: Bearer`（无 DPoP / PoP / mTLS 绑定）对受保护 endpoint MUST 被拒绝。`ak.profile.high_security_organization.v1` / `sovereign_deployment` 进一步要求常规写与敏感读使用带 transcript/body 绑定的 RFC 9421 HTTP Message Signature。PoP 的 `created` / `expires` 超出 replay window 即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝（口径同 `federation.md` §3.2 / `encoding.md` §6 签名时效窗口）。
+本向量固化 §3.2 / §2.5 的 sender-constrained 会话出示与 replay window MUST：生产 current-v1 受保护 endpoint MUST 要求 DPoP、RFC 9421 HTTP Message Signature、detached JWS、mTLS 或等价 sender-constrained proof；纯 `Authorization: Bearer`（无 DPoP / PoP / mTLS 绑定）对受保护 endpoint MUST 被拒绝。`ak.profile.high_security_organization.v1` / `sovereign_deployment` 进一步要求所有受保护 `ak.self.*` operation 使用带 transcript/body 绑定的 RFC 9421 HTTP Message Signature。PoP 的 `created` / `expires` 超出 replay window 即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝（口径同 `federation.md` §3.2 / `encoding.md` §6 签名时效窗口）。
 
 Steps：
 
-- **Case A — 高安全 profile 纯 bearer 写 / 敏感读**：在 `ak.profile.high_security_organization.v1`（或 `sovereign_deployment`）下，对常规写（推进 actor_seq / Realm frontier）或敏感读（成员列表、私有 projection、key backup、device list、moderation 队列等）只用 `Authorization: Bearer <ak.session.grant>` 出示，无 `Signature` / `Signature-Input`，且无 DPoP / mTLS 绑定。
+- **Case A — 高安全 profile 纯 bearer 写 / 受保护 `.read.`**：在 `ak.profile.high_security_organization.v1`（或 `sovereign_deployment`）下，对常规写（推进 actor_seq / Realm frontier）或返回受保护 projection 的 `.read.` operation 只用 `Authorization: Bearer <ak.session.grant>` 出示，无 `Signature` / `Signature-Input`，且无 DPoP / mTLS 绑定。
 - **Case B — 默认 profile 受保护 endpoint 纯 bearer**：默认 profile 下对任一受保护 current-v1 endpoint 只用 `Authorization: Bearer <ak.session.grant>` 出示，无 DPoP / PoP / mTLS 绑定。公开 metadata endpoint 若设计为无需认证的 public surface，MAY 返回公开响应，但 MUST NOT 把裸 bearer 当作认证成功的 session presentation。
 - **Case C — PoP 过窗**：携带合法签名的 PoP 出示，但 `created` / `expires` 超出 replay window（`expires - created` 超上限或 `created` 与本地时钟偏差超上限）。
 
 Expected：
 
-- **Case A**：MUST 以 `unauthenticated` 拒绝；高安全 profile 对常规写与敏感读要求 RFC 9421 PoP 出示（见 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 对应 profile 的 `additional_requirements`），纯 bearer 对这些操作 MUST 被拒绝。
+- **Case A**：MUST 以 `unauthenticated` 拒绝；高安全 profile 对所有受保护 `ak.self.*` operation 要求 RFC 9421 PoP 出示（见 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 对应 profile 的 `additional_requirements`），纯 bearer 对这些操作 MUST 被拒绝。若 operation registry 明确允许匿名 public metadata projection，无有效 proof 只能返回该公开 projection，且不得授予 session / capability 语义。
 - **Case B**：受保护 endpoint MUST 以 `unauthenticated` 拒绝。若 endpoint 是公开 metadata surface，响应 MUST 按未认证 public request 处理，不得授予 session/capability 语义。
 - **Case C**：过窗签名即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝；时效窗口外的逐字节重放同样 MUST 拒绝。
 
@@ -5403,7 +5403,7 @@ runner MUST 实际验证 challenge 消费、proof 绑定与状态机转移，只
 - 要求 distinct controlling organization 时，两个 witness key 同属一个组织 → `webvh_witness_controlling_organization_unverified`。计数按控制组织而非按 key，否则单一运营方持多把 key 即可独自满足"两个不同组织"；
 - evidence 超过生效 max age → `webvh_witness_evidence_stale`。age 自 `observed_at` 起算，重新签发旧观测不构成刷新。
 
-**Arkret 层**：`ak.schema.did_webvh_witness_receipt.v1` 与 `ak.schema.identity_receipt.v1` 是两个不同对象族，经 `ak.root.identity.receipts.query.list` 以 `schema` 常量为 discriminator 的 tagged union 返回。runner MUST 验证：两族可在同一响应中共存并被正确分支；receipt 缺 `expires_at` 或 `controlling_organization` MUST 被拒（前者会让缓存记录退化为永久断言，后者使该 receipt 无法计入 distinct-organization）；`witness_did` 非 `did:key` MUST 被拒；receipt 携带 `max_age_seconds` 等 policy 字段 MUST 被拒——receipt 记录观测，不承载 policy，否则新鲜度门槛会落回被审对象手中。
+**Arkret 层**：`ak.schema.did_webvh_witness_receipt.v1` 与 `ak.schema.identity_receipt.v1` 是两个不同对象族，经 `ak.root.identity.receipts.read.list` 以 `schema` 常量为 discriminator 的 tagged union 返回。runner MUST 验证：两族可在同一响应中共存并被正确分支；receipt 缺 `expires_at` 或 `controlling_organization` MUST 被拒（前者会让缓存记录退化为永久断言，后者使该 receipt 无法计入 distinct-organization）；`witness_did` 非 `did:key` MUST 被拒；receipt 携带 `max_age_seconds` 等 policy 字段 MUST 被拒——receipt 记录观测，不承载 policy，否则新鲜度门槛会落回被审对象手中。
 
 receipt 与 `threshold_met` 均 MUST NOT 替代对标准 `did-witness.json` proof、entry hash chain 与 controller proof 的直接验证；`threshold_met` 缺席 MUST NOT 被读作 `true`。
 
@@ -6039,7 +6039,7 @@ Runner MUST 加载 [`event-kind-payload-coverage-fixture.json`](../../artifacts/
 - 任一显式 schema ref 不存在、ref fragment 不可解析、Event Envelope 错接到共享 `audit_payload` / `relation_update_payload`、或 cell subject 在所选 payload class 上无可解析标量端点，均 MUST 使本组失败；`generic_standard_payload` 不能替代上述两条 kind-specific 合同。
 ## Account status publication carrier
 
-`ak.vector.account_status.authority_publication.v1` MUST 覆盖：Account Authority 先以当前 binding version 的 `authority_evidence` 调用 `ak.peer.account_status.query.authoring_basis`，只有 Source-Service-ID 等于 issuer、account/principal/PCR/current delegation 全部匹配且 actor/Seal frontier 可验证时返回 typed basis；返回 actor_id/realm_id 不一致、degraded governance、synthetic empty PCR、stale/unresolved Seal 或过期 evidence 均零披露失败，query 本身零写入。producer 必须由返回 actor frontier 构造 `actor_seq/prev_refs`，由验证后的单一 Seal head 构造 `seal_basis.leaves`，不得使用 opaque peer frontier root 或私有 DTO。随后 Event actor/proof、payload account/principal 与 Principal Control Realm 全部一致时进入 `pending_seal -> accepted` 并返回 frontier digest/barrier cursor；相同 Idempotency-Key + byte-identical body 在 pending/accepted 两阶段均不创建第二条 Event且返回最新 operation state；同 key 异 body `duplicate_conflict`。Issuer、account、principal、PCR、authority ref、binding version、proof digest、HTTP Source/Destination 或 trust domain 任一不匹配均零写入失败。Receipted fanout 必须保留原 Event 并携 receiver-signed `account_status_receipts[]` / CBA closure；receipt 必须证明本地 accepted frontier且不含 AuthorizationLease，generic `IngressReceipt` 必须 schema-invalid；目标 ack 前 outbox 保持 pending，超窗投影 `deactivation_federation_incomplete=true`，最终 ack 后清零 flag 而不改写 Event payload。Holder session、第三方服务与通用 `ak.peer.events.command.submit` 缺 account authority evidence 的尝试都不得成为可接受 carrier。
+`ak.vector.account_status.authority_publication.v1` MUST 覆盖：Account Authority 先以当前 binding version 的 `authority_evidence` 调用 `ak.peer.account_status.read.authoring_basis`，只有 Source-Service-ID 等于 issuer、account/principal/PCR/current delegation 全部匹配且 actor/Seal frontier 可验证时返回 typed basis；返回 actor_id/realm_id 不一致、degraded governance、synthetic empty PCR、stale/unresolved Seal 或过期 evidence 均零披露失败，query 本身零写入。producer 必须由返回 actor frontier 构造 `actor_seq/prev_refs`，由验证后的单一 Seal head 构造 `seal_basis.leaves`，不得使用 opaque peer frontier root 或私有 DTO。随后 Event actor/proof、payload account/principal 与 Principal Control Realm 全部一致时进入 `pending_seal -> accepted` 并返回 frontier digest/barrier cursor；相同 Idempotency-Key + byte-identical body 在 pending/accepted 两阶段均不创建第二条 Event且返回最新 operation state；同 key 异 body `duplicate_conflict`。Issuer、account、principal、PCR、authority ref、binding version、proof digest、HTTP Source/Destination 或 trust domain 任一不匹配均零写入失败。Receipted fanout 必须保留原 Event 并携 receiver-signed `account_status_receipts[]` / CBA closure；receipt 必须证明本地 accepted frontier且不含 AuthorizationLease，generic `IngressReceipt` 必须 schema-invalid；目标 ack 前 outbox 保持 pending，超窗投影 `deactivation_federation_incomplete=true`，最终 ack 后清零 flag 而不改写 Event payload。Holder session、第三方服务与通用 `ak.peer.events.command.submit` 缺 account authority evidence 的尝试都不得成为可接受 carrier。
 
 ## Personal blocklist revision and delivery semantics
 

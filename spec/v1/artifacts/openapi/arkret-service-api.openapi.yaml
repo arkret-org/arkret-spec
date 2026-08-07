@@ -1,4 +1,11 @@
 openapi: 3.2.0
+x-arkret-high-security-session-authentication-policy:
+  appliesToOperationIdPrefix: ak.self.
+  protectedOperationDefault: rfc9421_session_public_key_required
+  unauthenticatedPublicProjectionOperations:
+  - ak.self.events.read.describe
+  - ak.self.account.read.describe
+  newOperationsFailClosed: true
 info:
   title: Arkret Service API
   version: 1.0.0
@@ -28,11 +35,11 @@ info:
     prose. The typed surface currently covers `ak.self.events.{command.submit, resource.get, read.resolve,
 
     read.scan, read.frontier}`, `ak.peer.events.{command.submit, read.resolve, read.scan,
-    read.frontier}`, `ak.self.account.{query.viewer, stream.subscribe,
-    command.update_profile}`, `ak.gate.account.{command.register, command.revoke_session}`, `ak.self.snapshot.query.manifest_head`,
-    `ak.peer.snapshot.query.manifest_head`,
+    read.frontier}`, `ak.self.account.{read.viewer, stream.subscribe,
+    command.update_profile}`, `ak.gate.account.{command.register, command.revoke_session}`, `ak.self.snapshot.read.manifest_head`,
+    `ak.peer.snapshot.read.manifest_head`,
 
-    `ak.root.identity.{query.resolve, document.resource.get, receipts.query.list, command.submit_did_operation}`, `ak.self.authz.{query.check,
+    `ak.root.identity.{read.resolve, document.resource.get, receipts.read.list, command.submit_did_operation}`, `ak.self.authz.{read.check,
 
     grants.query.effective}`, and the ServiceDescribe envelope. The corresponding
 
@@ -2274,7 +2281,7 @@ components:
     ServiceDescribe:
       type: object
       description: |
-        Service capability descriptor returned by `ak.server.query.describe` and the
+        Service capability descriptor returned by `ak.server.read.describe` and the
         per-surface `ak.*.describe` operations. Required fields are normatively
         listed in `zh/sync/service-surface.md` §3.0 and §17. Implementations MUST
         emit `plaintext_visibility` so callers can honor the plaintext-boundary
@@ -2579,7 +2586,7 @@ components:
           type: array
           description: |
             Directory-service resource classes indexed by
-            `ak.find.directory.query.describe`. Required when
+            `ak.find.directory.read.describe`. Required when
             `service_kind=directory_service`.
           items:
             type: string
@@ -2593,7 +2600,7 @@ components:
           type: array
           description: |
             Directory discovery profiles and extension profile ids advertised by
-            `ak.find.directory.query.describe`. Required when
+            `ak.find.directory.read.describe`. Required when
             `service_kind=directory_service`.
           items:
             type: string
@@ -3253,7 +3260,7 @@ components:
 paths:
   /_arkret/describe:
     get:
-      operationId: ak.server.query.describe
+      operationId: ak.server.read.describe
       security: []
       parameters:
       - name: service_kind
@@ -3287,7 +3294,7 @@ paths:
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/resolve:
     post:
-      operationId: ak.root.identity.query.resolve
+      operationId: ak.root.identity.read.resolve
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3335,7 +3342,7 @@ paths:
                 $ref: '#/components/schemas/IdentityDocumentView'
   /_arkret/root/identity/log:
     get:
-      operationId: ak.root.identity.log.query.list
+      operationId: ak.root.identity.log.read.list
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3609,7 +3616,7 @@ paths:
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/receipts:
     get:
-      operationId: ak.root.identity.receipts.query.list
+      operationId: ak.root.identity.receipts.read.list
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3885,7 +3892,7 @@ paths:
       description: |
         Canonical RFC 10008 QUERY binding for `ak.self.events.read.scan`.
         The JSON content carries the selector, cursor, ordering, filter, and
-        completeness inputs. GET and POST are compatibility bindings only.
+        completeness inputs.
       requestBody:
         required: true
         content:
@@ -3929,160 +3936,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsSubmitOutcome'
-    get:
-      deprecated: true
-      x-arkret-compatibility-binding-of: ak.self.events.read.scan
-      x-arkret-required-any-of:
-      - - realms
-      - - actors
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-      summary: Compatibility GET binding for ak.self.events.read.scan.
-      description: |
-        Returns a page of events according to `before` / `after` cursor seals.
-
-        Either or both of `before` / `after` may be given:
-          - `before=<cursor>` alone: events most recently *before* this cursor
-            position (history backfill, UI-friendly). Default `order=descending`.
-          - `after=<cursor>` alone: events earliest *after* this cursor position
-            (catch-up, reducer-friendly). Default `order=ascending`.
-          - both: open interval `(after, before)`. Default `order=descending`.
-          - neither: equivalent to `before=<server head>` (latest first page).
-
-        `before` and `after` are both EXCLUSIVE of the cursor position.
-
-        Response `prev_cursor` / `next_cursor` are absolute-direction cursors:
-        `prev_cursor` points toward older events (pass to next `before=`);
-        `next_cursor` points toward newer events (pass to next `after=`).
-        See zh/sync/service-http-binding.md §3.3 and zh/sync/api-conventions.md
-        §7.0 for the full semantic table.
-
-      parameters:
-      - name: realms
-        in: query
-        description: Filter by Realm IDs. Multiple values are UNION within the parameter; cross with `actors` is intersection.
-        schema:
-          type: array
-          items:
-            $ref: '#/components/schemas/RealmId'
-          minItems: 1
-        style: form
-        explode: true
-      - name: actors
-        in: query
-        description: Filter by Actor DIDs. Multiple values are UNION within the parameter; cross with `realms` is intersection.
-        schema:
-          type: array
-          items:
-            $ref: '#/components/schemas/ActorDid'
-          minItems: 1
-        style: form
-        explode: true
-      - name: before
-        in: query
-        description: Return events strictly older than this cursor position. Pair with response `prev_cursor` to walk further backward.
-        schema:
-          $ref: '#/components/schemas/Cursor'
-      - name: after
-        in: query
-        description: Return events strictly newer than this cursor position. Pair with response `next_cursor` to walk further forward.
-        schema:
-          $ref: '#/components/schemas/Cursor'
-      - name: order
-        in: query
-        description: |
-          Batch ordering. `default` follows the proximity-to-seal rule
-          (before-only → descending; after-only → ascending; both → descending);
-          `ascending` / `descending` force the order.
-        schema:
-          type: string
-          enum:
-          - default
-          - ascending
-          - descending
-          default: default
-      - name: limit
-        in: query
-        description: Max events to return; server enforces an upper bound (see scalability-constraints.md).
-        schema:
-          type: integer
-          minimum: 1
-      - name: filters
-        in: query
-        description: Optional structured filter object (kind, payload predicates). See zh/sync/service-http-binding.md §3.3.
-        schema:
-          type: object
-        style: deepObject
-        explode: true
-      - name: include_completeness
-        in: query
-        description: Request range-completeness attestation references covering the returned page (zh/sync/service-http-binding.md §3.3.6). Only effective when the service advertises events_query_range_completeness in supported_features; services that do not advertise it MUST ignore this parameter.
-        schema:
-          type: boolean
-          default: false
-      responses:
-        '200':
-          description: Event query page
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventsQueryOutcome'
-        '400':
-          description: |
-            `invalid_param` — unrecognized `order` enum value or malformed cursor.
-  /_arkret/self/events/query:
-    post:
-      deprecated: true
-      x-arkret-compatibility-binding-of: ak.self.events.read.scan
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: ak.self.events.read.scan in HTTP POST body form (for long/complex queries).
-      description: |
-        Compatibility binding of `QUERY /_arkret/self/events`
-        (`ak.self.events.read.scan`); the same selector / cursor / order /
-        filter content is transported as a JSON request body. Use this form when
-        any of:
-
-          - The URL would exceed the deployment's practical limit (proxies /
-            CDNs commonly cap at 4–8 KiB). Large `realms[]` / `actors[]` lists
-            or a non-trivial `filters` object cross this threshold quickly.
-          - Operators would otherwise log full URL query strings (which can
-            inadvertently capture sensitive filter contents in access logs).
-
-        The response shape (`events[]`, `prev_cursor`, `next_cursor`,
-        `has_more`) matches the canonical QUERY form exactly. Cursor pagination semantics
-        (proximity-to-seal default order, absolute prev / next directions)
-        come from the same source — see zh/sync/service-http-binding.md §3.3.
-
-        This is a compatibility binding of `ak.self.events.read.scan`; it is
-        not an independent operation. New clients use `QUERY /_arkret/self/events`.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody
-      responses:
-        '200':
-          description: Event query page (same shape as the canonical QUERY response)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventsQueryOutcome'
-        '400':
-          description: |
-            `invalid_param` — unrecognized `order` enum value or malformed cursor.
   /_arkret/self/events/subscribe:
     get:
       operationId: ak.self.events.stream.subscribe
@@ -4164,17 +4017,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
-    get:
-      deprecated: true
-      x-arkret-compatibility-binding-of: ak.self.events.read.describe
-      security: []
-      responses:
-        '200':
-          description: Events API capabilities
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/self/events/{event_id}:
     get:
       operationId: ak.self.events.resource.get
@@ -4223,28 +4065,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsResolveOutcome'
-    post:
-      deprecated: true
-      x-arkret-compatibility-binding-of: ak.self.events.read.resolve
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EventsResolveRequestBody'
-      responses:
-        '200':
-          description: Resolved events keyed by event_id / event_digest
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventsResolveOutcome'
   /_arkret/self/events/frontier:
     query:
       operationId: ak.self.events.read.frontier
@@ -4260,33 +4080,6 @@ paths:
           application/json:
             schema:
               $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierRequestBody
-      responses:
-        '200':
-          description: Event frontier visible to caller
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventsFrontierState'
-    get:
-      deprecated: true
-      x-arkret-compatibility-binding-of: ak.self.events.read.frontier
-      x-arkret-required-any-of:
-      - - actor_id
-      - - realm_id
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-      parameters:
-      - name: actor_id
-        in: query
-        schema:
-          $ref: '#/components/schemas/ActorDid'
-      - name: realm_id
-        in: query
-        schema:
-          $ref: '#/components/schemas/RealmId'
       responses:
         '200':
           description: Event frontier visible to caller
@@ -4332,51 +4125,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MlsGovernanceProofBundle'
-    post:
-      deprecated: true
-      x-arkret-compatibility-binding-of: ak.self.events.read.mls_governance_proof
-      security:
-      - bearerAuth: []
-      summary: Materialize a verifiable full-profile MLS governance binding.
-      description: |
-        Returns one bounded chunk of a complete_control_state_v1 proof bundle
-        for one caller-visible Realm/scope. The server derives the membership
-        frontier and all roots from one accepted Seal view; the request cannot
-        supply either. The request MUST name one locally trusted_anchor_seal_id
-        and a chunk_index. Chunk 0 returns the committed manifest; later reads
-        pin expected_bundle_digest. Each response is at most 4 MiB and the
-        manifest commits at most 1024 chunks / 256 MiB of canonical item bytes.
-        The response path starts from the exact caller anchor,
-        proof_request_digest binds acquisition identity, and bundle_digest
-        (not accepted_seal_id) addresses the complete logical bundle.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MlsGovernanceProofRequestBodyBody'
-      responses:
-        '200':
-          description: One bounded, manifest-committed accepted-Seal governance proof chunk
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MlsGovernanceProofBundle'
-        '409':
-          description: No verified path can be constructed from the exact caller-trusted anchor (`mls_governance_anchor_unreachable`); retry only with another locally trusted anchor or authorized proof service.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '422':
-          description: The logical complete_control_state_v1 bundle exceeds a v1 count, byte, or chunk bound (`mls_governance_proof_bounds_exceeded`); no partial bundle is returned.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
   /_arkret/peer/account-status/authoring-basis:
     post:
-      operationId: ak.peer.account_status.query.authoring_basis
+      operationId: ak.peer.account_status.read.authoring_basis
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -4470,7 +4221,7 @@ paths:
                 $ref: '#/components/schemas/ErrorEnvelope'
   /_arkret/peer/mls/group-state-material:
     post:
-      operationId: ak.peer.mls.query.group_state_material
+      operationId: ak.peer.mls.read.group_state_material
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -4522,17 +4273,6 @@ paths:
           application/json:
             schema:
               $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsDescribeRequestBody
-      responses:
-        '200':
-          description: Federation peer Events API capabilities
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceDescribe'
-    get:
-      deprecated: true
-      x-arkret-compatibility-binding-of: ak.peer.events.read.describe
-      security: []
       responses:
         '200':
           description: Federation peer Events API capabilities
@@ -4628,112 +4368,6 @@ paths:
                           const: dependency_missing
                         details:
                           $ref: '#/components/schemas/EventsDependencyMissingProblem'
-    get:
-      deprecated: true
-      x-arkret-compatibility-binding-of: ak.peer.events.read.scan
-      x-arkret-required-any-of:
-      - - realms
-      - - actors
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-      summary: Federation peer event pull / backfill query.
-      description: |
-        Returns a page of events visible to the authenticated federation peer.
-        Cursor, selector, order, and response semantics match `ak.self.events.read.scan`,
-        but this binding is the server-to-server peer trust surface.
-      parameters:
-      - name: realms
-        in: query
-        description: Filter by Realm IDs. Multiple values are UNION within the parameter; cross with `actors` is intersection.
-        schema:
-          type: array
-          items:
-            $ref: '#/components/schemas/RealmId'
-          minItems: 1
-        style: form
-        explode: true
-      - name: actors
-        in: query
-        description: Filter by Actor DIDs. Multiple values are UNION within the parameter; cross with `realms` is intersection.
-        schema:
-          type: array
-          items:
-            $ref: '#/components/schemas/ActorDid'
-          minItems: 1
-        style: form
-        explode: true
-      - name: before
-        in: query
-        description: Return events strictly older than this cursor position. Pair with response `prev_cursor` to walk further backward.
-        schema:
-          $ref: '#/components/schemas/Cursor'
-      - name: after
-        in: query
-        description: Return events strictly newer than this cursor position. Pair with response `next_cursor` to walk further forward.
-        schema:
-          $ref: '#/components/schemas/Cursor'
-      - name: order
-        in: query
-        description: Batch ordering. `default` follows the proximity-to-seal rule.
-        schema:
-          type: string
-          enum:
-          - default
-          - ascending
-          - descending
-          default: default
-      - name: limit
-        in: query
-        description: Max events to return; server enforces an upper bound.
-        schema:
-          type: integer
-          minimum: 1
-      - name: filters
-        in: query
-        description: Optional structured filter object.
-        schema:
-          type: object
-        style: deepObject
-        explode: true
-      responses:
-        '200':
-          description: Federation peer event query page
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventsQueryOutcome'
-  /_arkret/peer/events/query:
-    post:
-      deprecated: true
-      x-arkret-compatibility-binding-of: ak.peer.events.read.scan
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: ak.peer.events.read.scan in HTTP POST body form.
-      description: |
-        Compatibility binding of `QUERY /_arkret/peer/events`; transports the
-        same selector / cursor / order / filter content as a JSON body.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody
-      responses:
-        '200':
-          description: Federation peer event query page
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventsQueryOutcome'
   /_arkret/peer/events/resolve:
     query:
       operationId: ak.peer.events.read.resolve
@@ -4744,39 +4378,6 @@ paths:
         sourceTrustDomain: []
         destinationTrustDomain: []
         contentDigest: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PeerEventsResolveRequestBody'
-      responses:
-        '200':
-          description: Resolved Events and CBA proof bundles visible to the authenticated federation peer
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PeerEventsResolveOutcome'
-    post:
-      deprecated: true
-      x-arkret-compatibility-binding-of: ak.peer.events.read.resolve
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Federation peer Event and CBA dependency resolution.
-      description: |
-        Read-only dependency fetch for exact Event IDs, Event digests, and Seal
-        refs in one Realm. Returned CbaProofBundle values are independently
-        verified transport evidence and MAY be bounded supersets. This operation
-        never accepts an Event or Seal and never advances an actor or Realm
-        frontier. Every input selector is fully accounted for as resolved or in
-        its same-type missing set; if complete accounting cannot fit the response
-        budget, the operation fails with limit_exceeded instead of returning a
-        partial success.
       requestBody:
         required: true
         content:
@@ -4806,28 +4407,6 @@ paths:
           application/json:
             schema:
               $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsFrontierRequestBody
-      responses:
-        '200':
-          description: Federation peer frontier response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventsFrontierFederationPeerState'
-    get:
-      deprecated: true
-      x-arkret-compatibility-binding-of: ak.peer.events.read.frontier
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-      parameters:
-      - name: realm_id
-        in: query
-        required: true
-        schema:
-          $ref: '#/components/schemas/RealmId'
       responses:
         '200':
           description: Federation peer frontier response
@@ -4946,7 +4525,7 @@ paths:
                 $ref: '#/components/schemas/PeerKeyPackagesClaimOutcome'
   /_arkret/peer/keys/keypackages/claims/query:
     post:
-      operationId: ak.peer.keys.keypackages.query.claim
+      operationId: ak.peer.keys.keypackages.read.claim
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -5140,7 +4719,7 @@ paths:
             not declare explicit media foci.
   /_arkret/self/account/viewer:
     get:
-      operationId: ak.self.account.query.viewer
+      operationId: ak.self.account.read.viewer
       security:
       - bearerAuth: []
       summary: Holder-bound one-shot read of the current account projection.
@@ -5148,7 +4727,7 @@ paths:
         Returns the authenticated principal's account projection: principal_id,
         lifecycle state, device summaries, optional ActorProfile, and signed
         handle-claim evidence or refs. This endpoint is distinct from
-        ak.self.account.query.describe, which describes service capabilities.
+        ak.self.account.read.describe, which describes service capabilities.
 
         The response MUST NOT use an unsigned bare handle as authoritative
         identity. When present, primary_handle_claim is a complete
@@ -5365,7 +4944,7 @@ paths:
                 $ref: '#/components/schemas/ContactRejectOutcome'
   /_arkret/self/contacts:
     get:
-      operationId: ak.self.contact.query.list
+      operationId: ak.self.contact.read.list
       security:
       - bearerAuth: []
         dpopProof: []
@@ -5452,7 +5031,7 @@ paths:
                 $ref: '#/components/schemas/ContactScopeUpdateOutcome'
   /_arkret/self/circles:
     get:
-      operationId: ak.self.circle.query.list
+      operationId: ak.self.circle.read.list
       security:
       - bearerAuth: []
       summary: List Circles visible to the caller within one parent Realm.
@@ -5786,7 +5365,7 @@ paths:
                 $ref: '#/components/schemas/InviteLocatorRevokeOutcome'
   /_arkret/self/direct-conversations/resolve:
     post:
-      operationId: ak.self.direct_conversation.query.resolve
+      operationId: ak.self.direct_conversation.read.resolve
       security:
       - bearerAuth: []
         dpopProof: []
@@ -5817,7 +5396,7 @@ paths:
                 $ref: '#/components/schemas/DirectConversationResolveOutcome'
   /_arkret/self/snapshot/head:
     get:
-      operationId: ak.self.snapshot.query.manifest_head
+      operationId: ak.self.snapshot.read.manifest_head
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5845,7 +5424,7 @@ paths:
                 $ref: ../schemas/snapshot.schema.json
   /_arkret/peer/snapshot/head:
     get:
-      operationId: ak.peer.snapshot.query.manifest_head
+      operationId: ak.peer.snapshot.read.manifest_head
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -5864,14 +5443,14 @@ paths:
             The current recommended Snapshot manifest visible to an authorized
             federation peer for snapshot-assisted bootstrap. Same manifest
             shape, verification, and not_implemented rules as
-            ak.self.snapshot.query.manifest_head.
+            ak.self.snapshot.read.manifest_head.
           content:
             application/json:
               schema:
                 $ref: ../schemas/snapshot.schema.json
   /_arkret/self/realms/{realm_id}/spaces:
     get:
-      operationId: ak.self.space.query.list
+      operationId: ak.self.space.read.list
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5919,7 +5498,7 @@ paths:
                 $ref: '#/components/schemas/ProjectionSpaceList'
   /_arkret/self/realms/{realm_id}/strands:
     get:
-      operationId: ak.self.strand.query.list
+      operationId: ak.self.strand.read.list
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5966,7 +5545,7 @@ paths:
                 $ref: '#/components/schemas/ProjectionStrandList'
   /_arkret/self/realms/{realm_id}/morphs:
     get:
-      operationId: ak.self.morph.query.list
+      operationId: ak.self.morph.read.list
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -6081,7 +5660,7 @@ paths:
                 $ref: '#/components/schemas/DocumentMorphProjectionOutcome'
   /_arkret/find/directory/resolve-handle:
     post:
-      operationId: ak.find.directory.query.resolve_handle
+      operationId: ak.find.directory.read.resolve_handle
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -6103,7 +5682,7 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveHandleRequestBody'
   /_arkret/find/directory/resolve-agent-selector:
     post:
-      operationId: ak.find.directory.query.resolve_agent_selector
+      operationId: ak.find.directory.read.resolve_agent_selector
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -6125,7 +5704,7 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveAgentSelectorRequestBody'
   /_arkret/find/directory/list-handles-for-subject:
     post:
-      operationId: ak.find.directory.query.list_handles_for_subject
+      operationId: ak.find.directory.read.list_handles_for_subject
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -6148,7 +5727,7 @@ paths:
                 $ref: '#/components/schemas/DirectorySubjectHandleList'
   /_arkret/find/directory/private-contact-discovery:
     post:
-      operationId: ak.find.directory.query.private_contact_discovery
+      operationId: ak.find.directory.read.private_contact_discovery
       description: >-
         Two-round OPRF set-membership PSI (zh/discovery/discovery-directory.md
         §6.2/§6.3); the request/response phase field discriminates the blind and
@@ -6385,7 +5964,7 @@ paths:
               $ref: '#/components/schemas/PushNotifyRequestBody'
   /_arkret/self/authz/check:
     post:
-      operationId: ak.self.authz.query.check
+      operationId: ak.self.authz.read.check
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -6407,7 +5986,7 @@ paths:
                 $ref: '#/components/schemas/AuthzCheckOutcome'
   /_arkret/self/authz/effective-grants:
     get:
-      operationId: ak.self.authz.grants.query.effective
+      operationId: ak.self.authz.grants.read.effective
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -6449,7 +6028,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DeviceMessagesSendOutcome'
     get:
-      operationId: ak.self.device_messages.query.list
+      operationId: ak.self.device_messages.read.list
       security:
       - bearerAuth: []
       parameters:
@@ -6519,7 +6098,7 @@ paths:
               $ref: '#/components/schemas/KeysUploadRequestBody'
   /_arkret/self/keys/query:
     post:
-      operationId: ak.self.keys.query.lookup
+      operationId: ak.self.keys.read.lookup
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -6563,7 +6142,7 @@ paths:
               $ref: '#/components/schemas/KeysClaimRequestBody'
   /_arkret/self/agent-signer-evidence/query:
     post:
-      operationId: ak.self.agent_signer_evidence.query.resolve
+      operationId: ak.self.agent_signer_evidence.read.resolve
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -6805,7 +6384,7 @@ paths:
                 $ref: ../schemas/keys-operations.schema.json#/$defs/backup_series_erase_outcome
   /_arkret/self/keys/backups:
     get:
-      operationId: ak.self.keys.backups.query.list
+      operationId: ak.self.keys.backups.read.list
       security:
       - bearerAuth: []
       parameters:
@@ -6853,7 +6432,7 @@ paths:
                 $ref: '#/components/schemas/ModerationReportOutcome'
   /_arkret/open/invite-locators/resolve:
     post:
-      operationId: ak.open.invite_locator.query.resolve
+      operationId: ak.open.invite_locator.read.resolve
       security: []
       x-arkret-auth:
         public_metadata: false
@@ -6879,7 +6458,7 @@ paths:
                 $ref: '#/components/schemas/PrincipalLocator'
   /_arkret/open/agent-pairing/resolve:
     post:
-      operationId: ak.open.agent_pairing.query.resolve
+      operationId: ak.open.agent_pairing.read.resolve
       security: []
       x-arkret-auth:
         public_metadata: false
@@ -6933,7 +6512,7 @@ paths:
                 $ref: '#/components/schemas/AgentRuntimeApprovalOutcome'
   /_arkret/open/agent-pairing/runtime-key-requests/status:
     post:
-      operationId: ak.open.agent_pairing.query.runtime_key_request_status
+      operationId: ak.open.agent_pairing.read.runtime_key_request_status
       security: []
       x-arkret-auth:
         public_metadata: false
@@ -6995,7 +6574,7 @@ paths:
                 $ref: '#/components/schemas/DevicePairingStageOutcome'
   /_arkret/open/device-pairing/resolve:
     post:
-      operationId: ak.open.device_pairing.query.resolve
+      operationId: ak.open.device_pairing.read.resolve
       security: []
       x-arkret-auth:
         public_metadata: false
@@ -7023,7 +6602,7 @@ paths:
                 $ref: '#/components/schemas/DevicePairingBootstrap'
   /_arkret/open/device-pairing/requests/status:
     post:
-      operationId: ak.open.device_pairing.query.status
+      operationId: ak.open.device_pairing.read.status
       security: []
       x-arkret-auth:
         public_metadata: false
@@ -7054,7 +6633,7 @@ paths:
                 $ref: '#/components/schemas/DevicePairingStatusOutcome'
   /_arkret/open/mimi/provider-directory:
     get:
-      operationId: ak.open.mimi.query.provider_directory
+      operationId: ak.open.mimi.read.provider_directory
       security: []
       responses:
         '200':
@@ -7167,7 +6746,7 @@ paths:
               $ref: '#/components/schemas/MimiSubmitMessageRequestBody'
   /_arkret/open/mimi/strands/{strand_id}/group-info:
     get:
-      operationId: ak.open.mimi.query.group_info
+      operationId: ak.open.mimi.read.group_info
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -7240,7 +6819,7 @@ paths:
               $ref: '#/components/schemas/MimiUpdateConsentRequestBody'
   /_arkret/open/mimi/identifiers/query:
     post:
-      operationId: ak.open.mimi.query.identifiers
+      operationId: ak.open.mimi.read.identifiers
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -7303,7 +6882,7 @@ paths:
               $ref: '#/components/schemas/MimiProxyDownloadRequestBody'
   /_arkret/root/identity/describe:
     get:
-      operationId: ak.root.identity.registry.query.describe
+      operationId: ak.root.identity.registry.read.describe
       security: []
       responses:
         '200':
@@ -7314,7 +6893,7 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/self/account/describe:
     get:
-      operationId: ak.self.account.query.describe
+      operationId: ak.self.account.read.describe
       security: []
       responses:
         '200':
@@ -7325,7 +6904,7 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/find/directory/describe:
     get:
-      operationId: ak.find.directory.query.describe
+      operationId: ak.find.directory.read.describe
       security: []
       responses:
         '200':
@@ -7402,7 +6981,7 @@ paths:
               $ref: '#/components/schemas/DirectoryTakedownAppealRequestBody'
   /_arkret/find/directory/search-realms:
     post:
-      operationId: ak.find.directory.query.search_realms
+      operationId: ak.find.directory.read.search_realms
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -7424,7 +7003,7 @@ paths:
               $ref: '#/components/schemas/DirectorySearchRealmsRequestBody'
   /_arkret/find/directory/resolve-realm:
     post:
-      operationId: ak.find.directory.query.resolve_realm
+      operationId: ak.find.directory.read.resolve_realm
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -7446,7 +7025,7 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveRealmRequestBody'
   /_arkret/find/directory/resolve-target:
     post:
-      operationId: ak.find.directory.query.resolve_target
+      operationId: ak.find.directory.read.resolve_target
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -7468,7 +7047,7 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveTargetRequestBody'
   /_arkret/find/directory/search-organizations:
     post:
-      operationId: ak.find.directory.query.search_organizations
+      operationId: ak.find.directory.read.search_organizations
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -7490,7 +7069,7 @@ paths:
               $ref: '#/components/schemas/DirectorySearchOrganizationsRequestBody'
   /_arkret/find/directory/resolve-organization:
     post:
-      operationId: ak.find.directory.query.resolve_organization
+      operationId: ak.find.directory.read.resolve_organization
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -7512,7 +7091,7 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveOrganizationRequestBody'
   /_arkret/find/directory/search-actors:
     post:
-      operationId: ak.find.directory.query.search_actors
+      operationId: ak.find.directory.read.search_actors
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -7534,7 +7113,7 @@ paths:
               $ref: '#/components/schemas/DirectorySearchActorsRequestBody'
   /_arkret/find/directory/search-users:
     post:
-      operationId: ak.find.directory.query.search_users
+      operationId: ak.find.directory.read.search_users
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -7578,7 +7157,7 @@ paths:
               $ref: '#/components/schemas/DirectoryPushRegisterRequestBody'
   /_arkret/self/authz/invites:
     get:
-      operationId: ak.self.authz.invites.query.list
+      operationId: ak.self.authz.invites.read.list
       security:
       - bearerAuth: []
       parameters:
@@ -7610,7 +7189,7 @@ paths:
                 $ref: '#/components/schemas/AuthzInviteList'
   /_arkret/edge/applet/ping:
     get:
-      operationId: ak.edge.applet.query.ping
+      operationId: ak.edge.applet.read.ping
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -7624,7 +7203,7 @@ paths:
                 $ref: '#/components/schemas/AppletPingOutcome'
   /_arkret/edge/applet/describe:
     get:
-      operationId: ak.edge.applet.query.describe
+      operationId: ak.edge.applet.read.describe
       security: []
       responses:
         '200':
@@ -7704,7 +7283,7 @@ paths:
               $ref: '#/components/schemas/AppletTransactionRequestBody'
   /_arkret/edge/applet/actors/{actor_id}:
     get:
-      operationId: ak.edge.applet.actor.query.resolve
+      operationId: ak.edge.applet.actor.read.resolve
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -7725,7 +7304,7 @@ paths:
                 $ref: '#/components/schemas/AppletActorView'
   /_arkret/edge/applet/realms/{realm_id_or_alias}:
     get:
-      operationId: ak.edge.applet.realm.query.resolve
+      operationId: ak.edge.applet.realm.read.resolve
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -7746,7 +7325,7 @@ paths:
                 $ref: '#/components/schemas/AppletRealmView'
   /_arkret/edge/applet/protocols/{protocol}:
     get:
-      operationId: ak.edge.applet.query.protocol_metadata
+      operationId: ak.edge.applet.read.protocol_metadata
       security: []
       parameters:
       - in: path
@@ -7764,7 +7343,7 @@ paths:
                 $ref: '#/components/schemas/AppletProtocolMetadata'
   /_arkret/edge/applet/third_party/users:
     get:
-      operationId: ak.edge.applet.third_party_users.query.list
+      operationId: ak.edge.applet.third_party_users.read.list
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -7797,7 +7376,7 @@ paths:
                 $ref: '#/components/schemas/AppletThirdPartyUserList'
   /_arkret/edge/applet/third_party/locations:
     get:
-      operationId: ak.edge.applet.third_party_locations.query.list
+      operationId: ak.edge.applet.third_party_locations.read.list
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -7950,10 +7529,10 @@ paths:
               $ref: '#/components/schemas/AppletRevokeRequestBody'
   /_arkret/self/policy/check:
     post:
-      operationId: ak.self.policy.query.check
+      operationId: ak.self.policy.read.check
       summary: Signed policy decision.
       description: |
-        Canonical HTTP binding for `ak.self.policy.query.check`. The Policy Server returns
+        Canonical HTTP binding for `ak.self.policy.read.check`. The Policy Server returns
         a signed allow/deny/quarantine/require_review decision.
       security:
       - bearerAuth: []
@@ -7976,7 +7555,7 @@ paths:
               $ref: '#/components/schemas/PolicyCheckRequestBody'
   /_arkret/self/realms/{realm_id}/links:
     get:
-      operationId: ak.self.realm_link.query.list
+      operationId: ak.self.realm_link.read.list
       security:
       - bearerAuth: []
       summary: List typed cross-Realm links projected from ak.realm.link.
@@ -8073,7 +7652,7 @@ paths:
                 $ref: '#/components/schemas/RealmLinkMutationOutcome'
   /_arkret/self/realms/{realm_id}/effective-policy:
     get:
-      operationId: ak.self.realm_link.query.effective_policy
+      operationId: ak.self.realm_link.read.effective_policy
       security:
       - bearerAuth: []
       summary: Read the merged effective policy after walking inheritance.
@@ -8092,7 +7671,7 @@ paths:
                 $ref: '#/components/schemas/RealmEffectivePolicyOutcome'
   /_arkret/self/realms/{realm_id}/organizations:
     get:
-      operationId: ak.self.realm_organization.query.list
+      operationId: ak.self.realm_organization.read.list
       security:
       - bearerAuth: []
       summary: List projected ak.realm.organization relationships for a Realm.
@@ -8299,7 +7878,7 @@ paths:
                 $ref: '#/components/schemas/RealmLifecycleView'
   /_arkret/self/realms/{realm_id}/export:
     get:
-      operationId: ak.self.realm.query.export
+      operationId: ak.self.realm.read.export
       security:
       - bearerAuth: []
       summary: Full event-log + operation dump for a Realm.
@@ -8318,7 +7897,7 @@ paths:
                 $ref: '#/components/schemas/RealmExport'
   /_arkret/self/realms/{realm_id}/moderation-policy/effective:
     get:
-      operationId: ak.self.realm.moderation_policy.query.effective
+      operationId: ak.self.realm.moderation_policy.read.effective
       security:
       - bearerAuth: []
       summary: Read the organization-inherited effective moderation policy.
@@ -8398,7 +7977,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JoinApplicationMutationOutcome'
     get:
-      operationId: ak.self.realm.join_application.query.list
+      operationId: ak.self.realm.join_application.read.list
       security:
       - bearerAuth: []
       summary: List viewer-scoped profile-private join applications.
@@ -8530,7 +8109,7 @@ paths:
                 $ref: '#/components/schemas/JoinApplicationMutationOutcome'
   /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit:
     get:
-      operationId: ak.self.realm.join_application.audit.query.list
+      operationId: ak.self.realm.join_application.audit.read.list
       security:
       - bearerAuth: []
       summary: Read the authorized audit trail for one join application.
@@ -8555,7 +8134,7 @@ paths:
                 $ref: '#/components/schemas/JoinApplicationAuditOutcome'
   /_arkret/self/consent/cells:
     get:
-      operationId: ak.self.consent.query.list
+      operationId: ak.self.consent.read.list
       security:
       - bearerAuth: []
       summary: List consent cells where the caller is holder or peer.
@@ -8673,7 +8252,7 @@ paths:
                 $ref: '#/components/schemas/ConsentRequestOutcome'
   /_arkret/self/account_data:
     get:
-      operationId: ak.self.account_data.query.list
+      operationId: ak.self.account_data.read.list
       security:
       - bearerAuth: []
       summary: List the authenticated actor's account_data entries.
@@ -8753,7 +8332,7 @@ paths:
                 $ref: '#/components/schemas/AccountDataDeleteOutcome'
   /_arkret/self/read-cursors:
     get:
-      operationId: ak.self.read_cursor.query.list
+      operationId: ak.self.read_cursor.read.list
       security:
       - bearerAuth: []
       summary: List the authenticated actor's read markers.
@@ -8795,7 +8374,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ak.self.media.query.ice_config
+      operationId: ak.self.media.read.ice_config
       security:
       - bearerAuth: []
       responses:
@@ -9349,7 +8928,7 @@ paths:
               $ref: '#/components/schemas/AgentKeyPairRequestBody'
   /_arkret/self/agents:
     get:
-      operationId: ak.self.agent.query.list
+      operationId: ak.self.agent.read.list
       description: List native personal agents visible to the authenticated controller.
       security:
       - bearerAuth: []
@@ -9597,7 +9176,7 @@ paths:
                 $ref: '#/components/schemas/AgentSidecarView'
   /_arkret/self/agent-sidecars:
     get:
-      operationId: ak.self.agent.sidecar.query.list
+      operationId: ak.self.agent.sidecar.read.list
       description: List Agent Sidecars owned by the authenticated controller. An optional realm_id filter narrows the result without exposing other controllers' objects.
       security:
       - bearerAuth: []

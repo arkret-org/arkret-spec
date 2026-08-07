@@ -171,7 +171,7 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.self.account_data.query.list",
+          "ak.self.account_data.read.list",
           "ak.self.account_data.resource.delete",
           "ak.self.account_data.resource.get",
           "ak.self.account_data.resource.replace"
@@ -197,9 +197,9 @@
           "ak.gate.account.command.revoke_session",
           "ak.gate.account.exchange.create_handoff",
           "ak.peer.account_status.command.submit",
-          "ak.peer.account_status.query.authoring_basis",
+          "ak.peer.account_status.read.authoring_basis",
           "ak.self.account.command.update_profile",
-          "ak.self.account.query.viewer"
+          "ak.self.account.read.viewer"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -269,8 +269,8 @@
           "ak.gate.account.command.pair_agent_key",
           "ak.gate.account.command.pair_device",
           "ak.open.agent_pairing.command.submit_runtime_key_request",
-          "ak.open.agent_pairing.query.resolve",
-          "ak.open.agent_pairing.query.runtime_key_request_status",
+          "ak.open.agent_pairing.read.resolve",
+          "ak.open.agent_pairing.read.runtime_key_request_status",
           "ak.self.agent.command.deactivate",
           "ak.self.agent.command.pause",
           "ak.self.agent.command.provision",
@@ -280,9 +280,9 @@
           "ak.self.agent.grant.resource.delete",
           "ak.self.agent.participation.resource.get",
           "ak.self.agent.participation.resource.replace",
-          "ak.self.agent.query.list",
+          "ak.self.agent.read.list",
           "ak.self.agent.resource.get",
-          "ak.self.agent.sidecar.query.list",
+          "ak.self.agent.sidecar.read.list",
           "ak.self.agent.sidecar.resource.get"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
@@ -301,7 +301,7 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.open.agent_pairing.query.resolve"
+          "ak.open.agent_pairing.read.resolve"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       },
@@ -555,13 +555,13 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.edge.applet.actor.query.resolve",
+          "ak.edge.applet.actor.read.resolve",
           "ak.edge.applet.command.transaction",
-          "ak.edge.applet.query.ping",
-          "ak.edge.applet.query.protocol_metadata",
-          "ak.edge.applet.realm.query.resolve",
-          "ak.edge.applet.third_party_locations.query.list",
-          "ak.edge.applet.third_party_users.query.list"
+          "ak.edge.applet.read.ping",
+          "ak.edge.applet.read.protocol_metadata",
+          "ak.edge.applet.realm.read.resolve",
+          "ak.edge.applet.third_party_locations.read.list",
+          "ak.edge.applet.third_party_users.read.list"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -741,7 +741,7 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.self.authz.invites.query.list"
+          "ak.self.authz.invites.read.list"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -940,7 +940,7 @@
           "ak.self.circle.command.tombstone",
           "ak.self.circle.member.command.add",
           "ak.self.circle.member.resource.delete",
-          "ak.self.circle.query.list",
+          "ak.self.circle.read.list",
           "ak.self.circle.resource.get"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
@@ -1100,7 +1100,7 @@
           "ak.self.consent.command.grant",
           "ak.self.consent.command.request",
           "ak.self.consent.command.revoke",
-          "ak.self.consent.query.list",
+          "ak.self.consent.read.list",
           "ak.self.consent.resource.get"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
@@ -1125,7 +1125,7 @@
           "ak.self.contact.command.respond",
           "ak.self.contact.command.scope_update",
           "ak.self.contact.command.tombstone",
-          "ak.self.contact.query.list"
+          "ak.self.contact.read.list"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -1287,7 +1287,7 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.open.device_pairing.query.resolve"
+          "ak.open.device_pairing.read.resolve"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       },
@@ -1307,8 +1307,8 @@
         "disposition": "operation_e2e_owned",
         "owners": [
           "ak.open.device_pairing.command.stage",
-          "ak.open.device_pairing.query.resolve",
-          "ak.open.device_pairing.query.status"
+          "ak.open.device_pairing.read.resolve",
+          "ak.open.device_pairing.read.status"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -1410,7 +1410,7 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.self.direct_conversation.query.resolve"
+          "ak.self.direct_conversation.read.resolve"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       },
@@ -1433,17 +1433,17 @@
         "disposition": "operation_e2e_owned",
         "owners": [
           "ak.find.directory.push.command.register",
-          "ak.find.directory.query.list_handles_for_subject",
-          "ak.find.directory.query.private_contact_discovery",
-          "ak.find.directory.query.resolve_agent_selector",
-          "ak.find.directory.query.resolve_handle",
-          "ak.find.directory.query.resolve_organization",
-          "ak.find.directory.query.resolve_realm",
-          "ak.find.directory.query.resolve_target",
-          "ak.find.directory.query.search_actors",
-          "ak.find.directory.query.search_organizations",
-          "ak.find.directory.query.search_realms",
-          "ak.find.directory.query.search_users"
+          "ak.find.directory.read.list_handles_for_subject",
+          "ak.find.directory.read.private_contact_discovery",
+          "ak.find.directory.read.resolve_agent_selector",
+          "ak.find.directory.read.resolve_handle",
+          "ak.find.directory.read.resolve_organization",
+          "ak.find.directory.read.resolve_realm",
+          "ak.find.directory.read.resolve_target",
+          "ak.find.directory.read.search_actors",
+          "ak.find.directory.read.search_organizations",
+          "ak.find.directory.read.search_realms",
+          "ak.find.directory.read.search_users"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -1713,7 +1713,7 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.self.media.query.ice_config"
+          "ak.self.media.read.ice_config"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -1945,7 +1945,7 @@
         "disposition": "operation_e2e_owned",
         "owners": [
           "ak.peer.keys.keypackages.command.claim",
-          "ak.peer.keys.keypackages.query.claim",
+          "ak.peer.keys.keypackages.read.claim",
           "ak.self.keys.keypackages.command.claim",
           "ak.self.keys.keypackages.command.consume",
           "ak.self.keys.keypackages.command.revoke",
@@ -1969,11 +1969,11 @@
           "ak.self.keys.backup_series.command.erase",
           "ak.self.keys.backups.command.issue_delete_challenge",
           "ak.self.keys.backups.command.unlock",
-          "ak.self.keys.backups.query.list",
+          "ak.self.keys.backups.read.list",
           "ak.self.keys.backups.resource.delete",
           "ak.self.keys.backups.resource.replace",
           "ak.self.keys.command.claim",
-          "ak.self.keys.query.lookup",
+          "ak.self.keys.read.lookup",
           "ak.self.keys.upload.create"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
@@ -1991,7 +1991,7 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.find.directory.query.list_handles_for_subject"
+          "ak.find.directory.read.list_handles_for_subject"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -2027,7 +2027,7 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.self.media.query.ice_config"
+          "ak.self.media.read.ice_config"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -2116,8 +2116,8 @@
           "ak.open.mimi.command.update_consent",
           "ak.open.mimi.command.update_room",
           "ak.open.mimi.exchange.request_key_material",
-          "ak.open.mimi.query.group_info",
-          "ak.open.mimi.query.identifiers"
+          "ak.open.mimi.read.group_info",
+          "ak.open.mimi.read.identifiers"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -2397,7 +2397,7 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.open.invite_locator.query.resolve",
+          "ak.open.invite_locator.read.resolve",
           "ak.self.invite_locator.command.issue",
           "ak.self.invite_locator.command.revoke",
           "ak.self.invite_locator.command.rotate"
@@ -2534,7 +2534,7 @@
         "disposition": "operation_e2e_owned",
         "owners": [
           "ak.self.read_cursor.command.advance",
-          "ak.self.read_cursor.query.list"
+          "ak.self.read_cursor.read.list"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -2604,8 +2604,8 @@
         "disposition": "operation_e2e_owned",
         "owners": [
           "ak.self.realm_link.command.create",
-          "ak.self.realm_link.query.effective_policy",
-          "ak.self.realm_link.query.list",
+          "ak.self.realm_link.read.effective_policy",
+          "ak.self.realm_link.read.list",
           "ak.self.realm_link.resource.delete"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
@@ -2622,7 +2622,7 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.self.realm_organization.query.list"
+          "ak.self.realm_organization.read.list"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -2662,9 +2662,9 @@
           "ak.self.realm.command.destroy",
           "ak.self.realm.command.freeze",
           "ak.self.realm.command.tombstone",
-          "ak.self.realm.moderation_policy.query.effective",
+          "ak.self.realm.moderation_policy.read.effective",
           "ak.self.realm.moderation_policy.resource.replace",
-          "ak.self.realm.query.export",
+          "ak.self.realm.read.export",
           "ak.self.realm.resource.get"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."

@@ -27,7 +27,7 @@ see_also:
 - 用 `ak.account_data.set` 写入 `ak.file_transfer.v1:<transfer_key>` 加密 account-data 记录。
 - 用 `ak.self.events.command.submit` 承载 `ak.account_data.set` 的实际写入路径。
 - 用 `ak.self.account.stream.subscribe` 把 account-data 更新同步到 holder 的其它授权设备。
-- 用 `ak.self.device_messages.command.send` / `ak.self.device_messages.query.list` 承载 device-bound key delivery（见 §4.2）。
+- 用 `ak.self.device_messages.command.send` / `ak.self.device_messages.read.list` 承载 device-bound key delivery（见 §4.2）。
 
 文件传输记录 MUST NOT 写入共享 Realm history。用户之后若选择把该文件发送到某个聊天、Strand 或共享对象，客户端 MUST 重新执行目标 Event.kind 的授权检查，并生成新的共享 Event；不得把 file-transfer account-data key、file-transfer 密文 value、私有 `content_key` 或本地传输历史复制到 shared payload。
 

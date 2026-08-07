@@ -287,7 +287,7 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
 
 服务端对 holder 不存在、holder policy deny、per-holder 限速、静默丢弃与成功进入 quarantine MUST 返回完全相同的 `consent_request_outcome {ok:true, accepted_for_processing:true}`，并 SHOULD 做统一时序填充。响应 MUST NOT 包含 cell id、state、dots、expiry、request timestamp、account-existence flag 或可关联 queue id。写入 quarantine 时必须执行 §6.1.1 的总量/速率上限；`require_explicit_consent` profile 下请求被静默丢弃，仍返回相同 opaque outcome。
 
-完整 consent cell 查询 `ak.self.consent.query.list` / `.resource.get` 仅允许 holder 或 holder 明确授权的 controller 调用。Peer MUST NOT 读取 consent cell、grant/revoked dots、expiry 或 request history；peer 若获 holder 主动披露，只能消费 §2.1/§6.2.2 定义的 audience-bound 短期 opaque green-light。
+完整 consent cell 查询 `ak.self.consent.read.list` / `.resource.get` 仅允许 holder 或 holder 明确授权的 controller 调用。Peer MUST NOT 读取 consent cell、grant/revoked dots、expiry 或 request history；peer 若获 holder 主动披露，只能消费 §2.1/§6.2.2 定义的 audience-bound 短期 opaque green-light。
 
 **UX 提示（normative for client implementations）**: 撤销 consent 后，客户端 UI MUST 明确披露两点语义：已发出的 invite 不会因 consent revoke 自动失效；如需撤销已发出的 invite，必须单独执行 `ak.invite.revoke`。该提示是非追溯语义的 UX 配套，服务端不强制（consent revoke 不会自动 cascade 到 invite）。
 
@@ -297,7 +297,7 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
 
 WebRTC `ak.call.signal{signal_kind=invite}` 在服务端投递与目标客户端展示前都 MUST 校验 `voice_call` / `video_call` consent；无 consent 的 invite MUST 被丢弃或进入 profile 声明的 quarantine，且不得产生 VoIP push / ringing UI。Presence subscription / fanout 由 Sync Service 在每次订阅建立和每次 fanout 前校验 holder 对 observer 的 `presence` consent；无 consent 时不得泄露在线、离线、last active bucket 或订阅是否存在。
 
-`ak.self.direct_conversation.query.resolve`与§5.4的DM founding admission均不得查询Consent。普通分支只验证双方current directional Contact heads与source freshness；owned-Agent分支验证immutable controller/provision/runtime binding。无权主体统一opaque unavailable。其它基于Consent的一次性通信若未来需要，必须另行注册operation/profile，不得复用resolver或伪造Contact。
+`ak.self.direct_conversation.read.resolve`与§5.4的DM founding admission均不得查询Consent。普通分支只验证双方current directional Contact heads与source freshness；owned-Agent分支验证immutable controller/provision/runtime binding。无权主体统一opaque unavailable。其它基于Consent的一次性通信若未来需要，必须另行注册operation/profile，不得复用resolver或伪造Contact。
 
 `ak.private_contact_discovery.v1` 返回 PSI set-membership 命中位图时，MAY 附带 holder 当前 consent state hash 或最小 invite/consent handoff stub（不暴露具体 consent 内容，只声明 grant/revoke 状态与下一步引导），让发起方在尝试联系前判断是否需要先请求 consent。该响应 MUST NOT 包含 contact request handoff token、reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。
 

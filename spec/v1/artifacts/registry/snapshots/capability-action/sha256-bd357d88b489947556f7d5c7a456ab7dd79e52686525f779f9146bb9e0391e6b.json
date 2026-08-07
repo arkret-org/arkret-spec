@@ -1732,7 +1732,7 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.self.account.query.describe",
+      "action": "ak.self.account.read.describe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1918,7 +1918,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.snapshot.query.manifest_head",
+      "action": "ak.self.snapshot.read.manifest_head",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],

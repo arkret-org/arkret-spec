@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.16",
+  "version": "2026-08-07",
   "source_of_truth": false,
-  "generated_at": "2026-08-07T02:30:00Z",
+  "generated_at": "2026-08-07T05:33:31Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1798,7 +1798,7 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.self.account.query.describe",
+      "action": "ak.self.account.read.describe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -2012,7 +2012,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.snapshot.query.manifest_head",
+      "action": "ak.self.snapshot.read.manifest_head",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],

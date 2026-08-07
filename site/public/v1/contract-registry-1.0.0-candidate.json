@@ -8992,7 +8992,7 @@
         "schema_id": "ak.schema.did_webvh_witness_receipt.v1",
         "file": "schemas/did-webvh-witness-receipt.schema.json",
         "status": "active",
-        "description": "Arkret-layer record that a named did:webvh witness was observed attesting a specific log versionId. Separate object family from ak.schema.identity_receipt.v1, whose witness_role describes a DID registry consensus role rather than a method-native witness; both are returned by ak.root.identity.receipts.query.list as a tagged union discriminated on schema. Never substitutes for verifying the standard did-witness.json proofs."
+        "description": "Arkret-layer record that a named did:webvh witness was observed attesting a specific log versionId. Separate object family from ak.schema.identity_receipt.v1, whose witness_role describes a DID registry consensus role rather than a method-native witness; both are returned by ak.root.identity.receipts.read.list as a tagged union discriminated on schema. Never substitutes for verifying the standard did-witness.json proofs."
       },
       {
         "schema_id": "ak.schema.identity_link.v1",
@@ -9277,7 +9277,7 @@
         "schema_id": "ak.schema.service_describe.v1",
         "file": "schemas/service-describe.schema.json",
         "status": "active",
-        "description": "Canonical ServiceDescribe response for ak.server.query.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces) and the registered directory_service overlay fields used by ak.find.directory.query.describe. Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
+        "description": "Canonical ServiceDescribe response for ak.server.read.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces) and the registered directory_service overlay fields used by ak.find.directory.read.describe. Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
       },
       {
         "schema_id": "ak.schema.transport_binding.v1",
@@ -10152,18 +10152,18 @@
       {
         "surface": "service_discovery",
         "operations": [
-          "ak.server.query.describe"
+          "ak.server.read.describe"
         ],
         "surface_class": "core"
       },
       {
         "surface": "identity_registry",
         "operations": [
-          "ak.root.identity.registry.query.describe",
-          "ak.root.identity.query.resolve",
+          "ak.root.identity.registry.read.describe",
+          "ak.root.identity.read.resolve",
           "ak.root.identity.document.resource.get",
-          "ak.root.identity.log.query.list",
-          "ak.root.identity.receipts.query.list",
+          "ak.root.identity.log.read.list",
+          "ak.root.identity.receipts.read.list",
           "ak.root.identity.command.submit_did_operation",
           "ak.root.identity.service_registration.command.ensure",
           "ak.root.identity.service_registration.resource.get",
@@ -10204,12 +10204,12 @@
           "ak.self.events.stream.subscribe",
           "ak.self.events.read.frontier",
           "ak.self.events.read.mls_governance_proof",
-          "ak.self.account.query.describe",
-          "ak.self.account.query.viewer",
+          "ak.self.account.read.describe",
+          "ak.self.account.read.viewer",
           "ak.self.account.command.update_profile",
           "ak.self.account.stream.subscribe",
           "ak.self.account.command.revoke_cursor",
-          "ak.self.snapshot.query.manifest_head"
+          "ak.self.snapshot.read.manifest_head"
         ],
         "surface_class": "core"
       },
@@ -10218,17 +10218,17 @@
         "operations": [
           "ak.peer.events.read.describe",
           "ak.peer.events.command.submit",
-          "ak.peer.account_status.query.authoring_basis",
+          "ak.peer.account_status.read.authoring_basis",
           "ak.peer.account_status.command.submit",
-          "ak.peer.mls.query.group_state_material",
+          "ak.peer.mls.read.group_state_material",
           "ak.peer.events.read.resolve",
           "ak.peer.events.read.scan",
           "ak.peer.events.read.frontier",
           "ak.peer.invites.command.submit",
           "ak.peer.contacts.command.submit",
           "ak.peer.keys.keypackages.command.claim",
-          "ak.peer.keys.keypackages.query.claim",
-          "ak.peer.snapshot.query.manifest_head",
+          "ak.peer.keys.keypackages.read.claim",
+          "ak.peer.snapshot.read.manifest_head",
           "ak.peer.signal.command.relay"
         ],
         "surface_class": "extension"
@@ -10236,18 +10236,18 @@
       {
         "surface": "directory_discovery",
         "operations": [
-          "ak.find.directory.query.describe",
-          "ak.find.directory.query.search_realms",
-          "ak.find.directory.query.resolve_realm",
-          "ak.find.directory.query.resolve_target",
-          "ak.find.directory.query.search_organizations",
-          "ak.find.directory.query.resolve_organization",
-          "ak.find.directory.query.search_actors",
-          "ak.find.directory.query.search_users",
-          "ak.find.directory.query.resolve_handle",
-          "ak.find.directory.query.resolve_agent_selector",
-          "ak.find.directory.query.list_handles_for_subject",
-          "ak.find.directory.query.private_contact_discovery",
+          "ak.find.directory.read.describe",
+          "ak.find.directory.read.search_realms",
+          "ak.find.directory.read.resolve_realm",
+          "ak.find.directory.read.resolve_target",
+          "ak.find.directory.read.search_organizations",
+          "ak.find.directory.read.resolve_organization",
+          "ak.find.directory.read.search_actors",
+          "ak.find.directory.read.search_users",
+          "ak.find.directory.read.resolve_handle",
+          "ak.find.directory.read.resolve_agent_selector",
+          "ak.find.directory.read.list_handles_for_subject",
+          "ak.find.directory.read.private_contact_discovery",
           "ak.find.directory.command.announce",
           "ak.find.directory.command.withdraw",
           "ak.find.directory.command.takedown_appeal",
@@ -10262,14 +10262,14 @@
           "ak.self.contact.command.respond",
           "ak.self.contact.command.reject",
           "ak.self.contact.command.scope_update",
-          "ak.self.contact.query.list",
+          "ak.self.contact.read.list",
           "ak.self.contact.command.tombstone",
           "ak.self.invite_receive_policy.resource.get",
           "ak.self.invite_receive_policy.resource.replace",
           "ak.self.invite_locator.command.issue",
           "ak.self.invite_locator.command.rotate",
           "ak.self.invite_locator.command.revoke",
-          "ak.self.direct_conversation.query.resolve"
+          "ak.self.direct_conversation.read.resolve"
         ],
         "surface_class": "extension"
       },
@@ -10277,7 +10277,7 @@
         "surface": "circle_management",
         "operations": [
           "ak.self.circle.command.create",
-          "ak.self.circle.query.list",
+          "ak.self.circle.read.list",
           "ak.self.circle.resource.get",
           "ak.self.circle.member.command.add",
           "ak.self.circle.member.resource.delete",
@@ -10291,11 +10291,11 @@
       {
         "surface": "realm_governance_links",
         "operations": [
-          "ak.self.realm_link.query.list",
+          "ak.self.realm_link.read.list",
           "ak.self.realm_link.command.create",
           "ak.self.realm_link.resource.delete",
-          "ak.self.realm_link.query.effective_policy",
-          "ak.self.realm_organization.query.list",
+          "ak.self.realm_link.read.effective_policy",
+          "ak.self.realm_organization.read.list",
           "ak.self.realm_policy_server.resource.get",
           "ak.self.realm_policy_server.resource.replace",
           "ak.self.realm_policy_server.resource.delete"
@@ -10310,8 +10310,8 @@
           "ak.self.realm.command.freeze",
           "ak.self.realm.command.tombstone",
           "ak.self.realm.command.destroy",
-          "ak.self.realm.query.export",
-          "ak.self.realm.moderation_policy.query.effective",
+          "ak.self.realm.read.export",
+          "ak.self.realm.moderation_policy.read.effective",
           "ak.self.realm.moderation_policy.resource.replace"
         ],
         "surface_class": "extension"
@@ -10322,16 +10322,16 @@
           "ak.self.realm.join_application.command.submit",
           "ak.self.realm.join_application.command.review",
           "ak.self.realm.join_application.command.cancel",
-          "ak.self.realm.join_application.query.list",
+          "ak.self.realm.join_application.read.list",
           "ak.self.realm.join_application.resource.get",
-          "ak.self.realm.join_application.audit.query.list"
+          "ak.self.realm.join_application.audit.read.list"
         ],
         "surface_class": "extension"
       },
       {
         "surface": "consent_management",
         "operations": [
-          "ak.self.consent.query.list",
+          "ak.self.consent.read.list",
           "ak.self.consent.resource.get",
           "ak.self.consent.command.grant",
           "ak.self.consent.command.revoke",
@@ -10342,7 +10342,7 @@
       {
         "surface": "account_data",
         "operations": [
-          "ak.self.account_data.query.list",
+          "ak.self.account_data.read.list",
           "ak.self.account_data.resource.get",
           "ak.self.account_data.resource.replace",
           "ak.self.account_data.resource.delete"
@@ -10353,7 +10353,7 @@
         "surface": "read_cursor",
         "operations": [
           "ak.self.read_cursor.command.advance",
-          "ak.self.read_cursor.query.list"
+          "ak.self.read_cursor.read.list"
         ],
         "surface_class": "extension"
       },
@@ -10370,7 +10370,7 @@
       {
         "surface": "realtime_media",
         "operations": [
-          "ak.self.media.query.ice_config",
+          "ak.self.media.read.ice_config",
           "ak.self.signal.command.send",
           "ak.self.signal.stream.subscribe",
           "ak.self.call.media.exchange.issue_token"
@@ -10380,10 +10380,10 @@
       {
         "surface": "authz_policy",
         "operations": [
-          "ak.self.authz.query.check",
-          "ak.self.authz.grants.query.effective",
-          "ak.self.authz.invites.query.list",
-          "ak.self.policy.query.check"
+          "ak.self.authz.read.check",
+          "ak.self.authz.grants.read.effective",
+          "ak.self.authz.invites.read.list",
+          "ak.self.policy.read.check"
         ],
         "surface_class": "extension"
       },
@@ -10398,18 +10398,18 @@
         "surface": "device_and_keys",
         "operations": [
           "ak.self.device_messages.command.send",
-          "ak.self.device_messages.query.list",
+          "ak.self.device_messages.read.list",
           "ak.self.device_messages.command.ack",
           "ak.self.keys.upload.create",
-          "ak.self.keys.query.lookup",
-          "ak.self.agent_signer_evidence.query.resolve",
+          "ak.self.keys.read.lookup",
+          "ak.self.agent_signer_evidence.read.resolve",
           "ak.self.keys.command.claim",
           "ak.self.keys.keypackages.upload.create",
           "ak.self.keys.keypackages.command.claim",
           "ak.self.keys.keypackages.command.consume",
           "ak.self.keys.keypackages.command.revoke",
           "ak.self.keys.backups.resource.replace",
-          "ak.self.keys.backups.query.list",
+          "ak.self.keys.backups.read.list",
           "ak.self.keys.backups.command.unlock",
           "ak.self.keys.backups.command.issue_delete_challenge",
           "ak.self.keys.backups.resource.delete",
@@ -10429,9 +10429,9 @@
       {
         "surface": "realm_object_read",
         "operations": [
-          "ak.self.space.query.list",
-          "ak.self.strand.query.list",
-          "ak.self.morph.query.list",
+          "ak.self.space.read.list",
+          "ak.self.strand.read.list",
+          "ak.self.morph.read.list",
           "ak.self.morph.resource.get"
         ],
         "surface_class": "extension"
@@ -10446,14 +10446,14 @@
       {
         "surface": "applet",
         "operations": [
-          "ak.edge.applet.query.ping",
-          "ak.edge.applet.query.describe",
+          "ak.edge.applet.read.ping",
+          "ak.edge.applet.read.describe",
           "ak.edge.applet.command.transaction",
-          "ak.edge.applet.actor.query.resolve",
-          "ak.edge.applet.realm.query.resolve",
-          "ak.edge.applet.query.protocol_metadata",
-          "ak.edge.applet.third_party_users.query.list",
-          "ak.edge.applet.third_party_locations.query.list"
+          "ak.edge.applet.actor.read.resolve",
+          "ak.edge.applet.realm.read.resolve",
+          "ak.edge.applet.read.protocol_metadata",
+          "ak.edge.applet.third_party_users.read.list",
+          "ak.edge.applet.third_party_locations.read.list"
         ],
         "surface_class": "interop_bridge"
       },
@@ -10476,14 +10476,14 @@
       {
         "surface": "mimi_interop",
         "operations": [
-          "ak.open.mimi.query.provider_directory",
-          "ak.open.mimi.query.group_info",
+          "ak.open.mimi.read.provider_directory",
+          "ak.open.mimi.read.group_info",
           "ak.open.mimi.exchange.request_key_material",
           "ak.open.mimi.command.submit_message",
           "ak.open.mimi.command.update_room",
           "ak.open.mimi.command.request_consent",
           "ak.open.mimi.command.update_consent",
-          "ak.open.mimi.query.identifiers",
+          "ak.open.mimi.read.identifiers",
           "ak.open.mimi.command.notify",
           "ak.open.mimi.command.report_abuse",
           "ak.open.mimi.command.proxy_download"
@@ -10493,9 +10493,9 @@
       {
         "surface": "agent_pairing_handoff",
         "operations": [
-          "ak.open.agent_pairing.query.resolve",
+          "ak.open.agent_pairing.read.resolve",
           "ak.open.agent_pairing.command.submit_runtime_key_request",
-          "ak.open.agent_pairing.query.runtime_key_request_status"
+          "ak.open.agent_pairing.read.runtime_key_request_status"
         ],
         "surface_class": "extension"
       },
@@ -10503,15 +10503,15 @@
         "surface": "device_pairing_handoff",
         "operations": [
           "ak.open.device_pairing.command.stage",
-          "ak.open.device_pairing.query.resolve",
-          "ak.open.device_pairing.query.status"
+          "ak.open.device_pairing.read.resolve",
+          "ak.open.device_pairing.read.status"
         ],
         "surface_class": "extension"
       },
       {
         "surface": "invite_locator_handoff",
         "operations": [
-          "ak.open.invite_locator.query.resolve"
+          "ak.open.invite_locator.read.resolve"
         ],
         "surface_class": "extension"
       },
@@ -10542,7 +10542,7 @@
           "ak.gate.account.command.pair_agent_key",
           "ak.self.agent.command.provision",
           "ak.self.agent.command.renew_pairing",
-          "ak.self.agent.query.list",
+          "ak.self.agent.read.list",
           "ak.self.agent.resource.get",
           "ak.self.agent.command.pause",
           "ak.self.agent.command.resume",
@@ -10551,7 +10551,7 @@
           "ak.self.agent.grant.resource.delete",
           "ak.self.agent.sidecar.command.ensure",
           "ak.self.agent.sidecar.resource.get",
-          "ak.self.agent.sidecar.query.list",
+          "ak.self.agent.sidecar.read.list",
           "ak.self.agent.participation.resource.replace",
           "ak.self.agent.participation.resource.get"
         ],
@@ -10621,7 +10621,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.self.account.query.viewer"
+          "operation_id": "ak.self.account.read.viewer"
         },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome",
@@ -10873,7 +10873,7 @@
         }
       },
       {
-        "operation_id": "ak.self.agent.query.list",
+        "operation_id": "ak.self.agent.read.list",
         "http": "GET /_arkret/self/agents",
         "grpc": "SelfAgent/List",
         "mq": "self.agent.query.list",
@@ -10967,7 +10967,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.self.authz.grants.query.effective"
+          "operation_id": "ak.self.authz.grants.read.effective"
         },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome",
@@ -11026,7 +11026,7 @@
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_view"
       },
       {
-        "operation_id": "ak.self.agent.sidecar.query.list",
+        "operation_id": "ak.self.agent.sidecar.read.list",
         "http": "GET /_arkret/self/agent-sidecars",
         "grpc": "SelfAgent/SidecarList",
         "mq": "self.agent.sidecar.query.list",
@@ -11082,7 +11082,7 @@
         }
       },
       {
-        "operation_id": "ak.edge.applet.query.describe",
+        "operation_id": "ak.edge.applet.read.describe",
         "http": "GET /_arkret/edge/applet/describe",
         "grpc": "EdgeApplet/Describe",
         "mq": "edge.applet.query.describe",
@@ -11125,7 +11125,7 @@
         }
       },
       {
-        "operation_id": "ak.edge.applet.query.ping",
+        "operation_id": "ak.edge.applet.read.ping",
         "http": "GET /_arkret/edge/applet/ping",
         "grpc": "EdgeApplet/Ping",
         "mq": "edge.applet.query.ping",
@@ -11134,7 +11134,7 @@
         "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome"
       },
       {
-        "operation_id": "ak.edge.applet.query.protocol_metadata",
+        "operation_id": "ak.edge.applet.read.protocol_metadata",
         "http": "GET /_arkret/edge/applet/protocols/{protocol}",
         "grpc": "EdgeApplet/ProtocolMetadata",
         "mq": "edge.applet.query.protocol_metadata",
@@ -11143,7 +11143,7 @@
         "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_protocol_metadata"
       },
       {
-        "operation_id": "ak.edge.applet.actor.query.resolve",
+        "operation_id": "ak.edge.applet.actor.read.resolve",
         "http": "GET /_arkret/edge/applet/actors/{actor_id}",
         "grpc": "EdgeApplet/ResolveActor",
         "mq": "edge.applet.actor.query.resolve",
@@ -11152,7 +11152,7 @@
         "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view"
       },
       {
-        "operation_id": "ak.edge.applet.realm.query.resolve",
+        "operation_id": "ak.edge.applet.realm.read.resolve",
         "http": "GET /_arkret/edge/applet/realms/{realm_id_or_alias}",
         "grpc": "EdgeApplet/ResolveRealm",
         "mq": "edge.applet.realm.query.resolve",
@@ -11199,7 +11199,7 @@
         }
       },
       {
-        "operation_id": "ak.edge.applet.third_party_locations.query.list",
+        "operation_id": "ak.edge.applet.third_party_locations.read.list",
         "http": "GET /_arkret/edge/applet/third_party/locations",
         "grpc": "EdgeApplet/ThirdPartyLocations",
         "mq": "edge.applet.third_party_locations.query.list",
@@ -11208,7 +11208,7 @@
         "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_list"
       },
       {
-        "operation_id": "ak.edge.applet.third_party_users.query.list",
+        "operation_id": "ak.edge.applet.third_party_users.read.list",
         "http": "GET /_arkret/edge/applet/third_party/users",
         "grpc": "EdgeApplet/ThirdPartyUsers",
         "mq": "edge.applet.third_party_users.query.list",
@@ -11280,7 +11280,7 @@
         }
       },
       {
-        "operation_id": "ak.self.authz.query.check",
+        "operation_id": "ak.self.authz.read.check",
         "http": "POST /_arkret/self/authz/check",
         "grpc": "SelfAuthz/Check",
         "mq": "self.authz.query.check",
@@ -11290,7 +11290,7 @@
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckOutcome"
       },
       {
-        "operation_id": "ak.self.authz.grants.query.effective",
+        "operation_id": "ak.self.authz.grants.read.effective",
         "http": "GET /_arkret/self/authz/effective-grants",
         "grpc": "SelfAuthz/GetEffectiveGrants",
         "mq": "self.authz.grants.query.effective",
@@ -11299,7 +11299,7 @@
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantList"
       },
       {
-        "operation_id": "ak.self.authz.invites.query.list",
+        "operation_id": "ak.self.authz.invites.read.list",
         "http": "GET /_arkret/self/authz/invites",
         "grpc": "SelfAuthz/GetInvites",
         "mq": "self.authz.invites.query.list",
@@ -11363,7 +11363,7 @@
         }
       },
       {
-        "operation_id": "ak.self.device_messages.query.list",
+        "operation_id": "ak.self.device_messages.read.list",
         "http": "GET /_arkret/self/device_messages",
         "grpc": "SelfDeviceMessages/Get",
         "mq": "self.device_messages.query.list",
@@ -11463,7 +11463,7 @@
         }
       },
       {
-        "operation_id": "ak.self.contact.query.list",
+        "operation_id": "ak.self.contact.read.list",
         "http": "GET /_arkret/self/contacts",
         "grpc": "SelfContact/List",
         "mq": "self.contact.query.list",
@@ -11600,7 +11600,7 @@
         }
       },
       {
-        "operation_id": "ak.self.direct_conversation.query.resolve",
+        "operation_id": "ak.self.direct_conversation.read.resolve",
         "http": "POST /_arkret/self/direct-conversations/resolve",
         "grpc": "SelfDirectConversation/Resolve",
         "mq": "self.direct_conversation.query.resolve",
@@ -11622,7 +11622,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.self.circle.query.list"
+          "operation_id": "ak.self.circle.read.list"
         },
         "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_create_request_body",
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
@@ -11634,7 +11634,7 @@
         }
       },
       {
-        "operation_id": "ak.self.circle.query.list",
+        "operation_id": "ak.self.circle.read.list",
         "http": "GET /_arkret/self/circles",
         "grpc": "SelfCircle/List",
         "mq": "self.circle.query.list",
@@ -11794,7 +11794,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.find.directory.query.resolve_target"
+          "operation_id": "ak.find.directory.read.resolve_target"
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome",
@@ -11804,7 +11804,7 @@
         }
       },
       {
-        "operation_id": "ak.find.directory.query.describe",
+        "operation_id": "ak.find.directory.read.describe",
         "http": "GET /_arkret/find/directory/describe",
         "grpc": "FindDirectory/Describe",
         "mq": "find.directory.query.describe",
@@ -11812,7 +11812,7 @@
         "success_shape_kind": "service_describe"
       },
       {
-        "operation_id": "ak.find.directory.query.private_contact_discovery",
+        "operation_id": "ak.find.directory.read.private_contact_discovery",
         "http": "POST /_arkret/find/directory/private-contact-discovery",
         "grpc": "FindDirectory/PrivateContactDiscovery",
         "mq": "find.directory.query.private_contact_discovery",
@@ -11822,7 +11822,7 @@
         "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome"
       },
       {
-        "operation_id": "ak.find.directory.query.resolve_handle",
+        "operation_id": "ak.find.directory.read.resolve_handle",
         "http": "POST /_arkret/find/directory/resolve-handle",
         "grpc": "FindDirectory/ResolveHandle",
         "mq": "find.directory.query.resolve_handle",
@@ -11832,7 +11832,7 @@
         "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome"
       },
       {
-        "operation_id": "ak.find.directory.query.resolve_agent_selector",
+        "operation_id": "ak.find.directory.read.resolve_agent_selector",
         "http": "POST /_arkret/find/directory/resolve-agent-selector",
         "grpc": "FindDirectory/ResolveAgentSelector",
         "mq": "find.directory.query.resolve_agent_selector",
@@ -11842,7 +11842,7 @@
         "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome"
       },
       {
-        "operation_id": "ak.find.directory.query.list_handles_for_subject",
+        "operation_id": "ak.find.directory.read.list_handles_for_subject",
         "http": "POST /_arkret/find/directory/list-handles-for-subject",
         "grpc": "FindDirectory/ListHandlesForSubject",
         "mq": "find.directory.query.list_handles_for_subject",
@@ -11852,7 +11852,7 @@
         "response_schema_ref": "schemas/list-handles-for-subject-response.schema.json"
       },
       {
-        "operation_id": "ak.find.directory.query.resolve_organization",
+        "operation_id": "ak.find.directory.read.resolve_organization",
         "http": "POST /_arkret/find/directory/resolve-organization",
         "grpc": "FindDirectory/ResolveOrganization",
         "mq": "find.directory.query.resolve_organization",
@@ -11862,7 +11862,7 @@
         "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_resolution_outcome"
       },
       {
-        "operation_id": "ak.find.directory.query.resolve_realm",
+        "operation_id": "ak.find.directory.read.resolve_realm",
         "http": "POST /_arkret/find/directory/resolve-realm",
         "grpc": "FindDirectory/ResolveRealm",
         "mq": "find.directory.query.resolve_realm",
@@ -11872,7 +11872,7 @@
         "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome"
       },
       {
-        "operation_id": "ak.find.directory.query.resolve_target",
+        "operation_id": "ak.find.directory.read.resolve_target",
         "http": "POST /_arkret/find/directory/resolve-target",
         "grpc": "FindDirectory/ResolveTarget",
         "mq": "find.directory.query.resolve_target",
@@ -11882,7 +11882,7 @@
         "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_target_resolution_outcome"
       },
       {
-        "operation_id": "ak.find.directory.query.search_actors",
+        "operation_id": "ak.find.directory.read.search_actors",
         "http": "POST /_arkret/find/directory/search-actors",
         "grpc": "FindDirectory/SearchActors",
         "mq": "find.directory.query.search_actors",
@@ -11892,7 +11892,7 @@
         "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome"
       },
       {
-        "operation_id": "ak.find.directory.query.search_organizations",
+        "operation_id": "ak.find.directory.read.search_organizations",
         "http": "POST /_arkret/find/directory/search-organizations",
         "grpc": "FindDirectory/SearchOrganizations",
         "mq": "find.directory.query.search_organizations",
@@ -11902,7 +11902,7 @@
         "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_search_outcome"
       },
       {
-        "operation_id": "ak.find.directory.query.search_realms",
+        "operation_id": "ak.find.directory.read.search_realms",
         "http": "POST /_arkret/find/directory/search-realms",
         "grpc": "FindDirectory/SearchRealms",
         "mq": "find.directory.query.search_realms",
@@ -11912,7 +11912,7 @@
         "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome"
       },
       {
-        "operation_id": "ak.find.directory.query.search_users",
+        "operation_id": "ak.find.directory.read.search_users",
         "http": "POST /_arkret/find/directory/search-users",
         "grpc": "FindDirectory/SearchUsers",
         "mq": "find.directory.query.search_users",
@@ -12231,7 +12231,7 @@
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveOutcome"
       },
       {
-        "operation_id": "ak.peer.mls.query.group_state_material",
+        "operation_id": "ak.peer.mls.read.group_state_material",
         "http": "POST /_arkret/peer/mls/group-state-material",
         "grpc": "PeerMls/GroupStateMaterial",
         "mq": "peer.mls.query.group_state_material",
@@ -12260,7 +12260,7 @@
         }
       },
       {
-        "operation_id": "ak.peer.account_status.query.authoring_basis",
+        "operation_id": "ak.peer.account_status.read.authoring_basis",
         "http": "POST /_arkret/peer/account-status/authoring-basis",
         "grpc": "PeerAccountStatus/AuthoringBasis",
         "mq": "peer.account_status.query.authoring_basis",
@@ -12335,7 +12335,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.peer.keys.keypackages.query.claim"
+          "operation_id": "ak.peer.keys.keypackages.read.claim"
         },
         "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body",
         "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_outcome",
@@ -12345,7 +12345,7 @@
         }
       },
       {
-        "operation_id": "ak.peer.keys.keypackages.query.claim",
+        "operation_id": "ak.peer.keys.keypackages.read.claim",
         "http": "POST /_arkret/peer/keys/keypackages/claims/query",
         "grpc": "PeerKeys/KeyPackagesClaimQuery",
         "mq": "peer.keys.keypackages.query.claim",
@@ -12356,7 +12356,7 @@
         "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_outcome"
       },
       {
-        "operation_id": "ak.peer.snapshot.query.manifest_head",
+        "operation_id": "ak.peer.snapshot.read.manifest_head",
         "http": "GET /_arkret/peer/snapshot/head",
         "grpc": "PeerSnapshot/Head",
         "mq": "peer.snapshot.query.manifest_head",
@@ -12440,7 +12440,7 @@
         }
       },
       {
-        "operation_id": "ak.root.identity.registry.query.describe",
+        "operation_id": "ak.root.identity.registry.read.describe",
         "http": "GET /_arkret/root/identity/describe",
         "grpc": "RootIdentity/DescribeRegistry",
         "mq": "root.identity.registry.query.describe",
@@ -12457,7 +12457,7 @@
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityDocumentView"
       },
       {
-        "operation_id": "ak.root.identity.log.query.list",
+        "operation_id": "ak.root.identity.log.read.list",
         "http": "GET /_arkret/root/identity/log",
         "grpc": "RootIdentity/GetLog",
         "mq": "root.identity.log.query.list",
@@ -12466,7 +12466,7 @@
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome"
       },
       {
-        "operation_id": "ak.root.identity.receipts.query.list",
+        "operation_id": "ak.root.identity.receipts.read.list",
         "http": "GET /_arkret/root/identity/receipts",
         "grpc": "RootIdentity/GetReceipts",
         "mq": "root.identity.receipts.query.list",
@@ -12475,7 +12475,7 @@
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome"
       },
       {
-        "operation_id": "ak.root.identity.query.resolve",
+        "operation_id": "ak.root.identity.read.resolve",
         "http": "POST /_arkret/root/identity/resolve",
         "grpc": "RootIdentity/Resolve",
         "mq": "root.identity.query.resolve",
@@ -12761,7 +12761,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.self.keys.query.lookup"
+          "operation_id": "ak.self.keys.read.lookup"
         },
         "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_request_body",
         "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_outcome",
@@ -12825,7 +12825,7 @@
         }
       },
       {
-        "operation_id": "ak.self.keys.backups.query.list",
+        "operation_id": "ak.self.keys.backups.read.list",
         "http": "GET /_arkret/self/keys/backups",
         "grpc": "SelfKeys/BackupsList",
         "mq": "self.keys.backups.query.list",
@@ -12898,7 +12898,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.self.keys.query.lookup"
+          "operation_id": "ak.self.keys.read.lookup"
         },
         "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body",
         "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_outcome",
@@ -12918,7 +12918,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.self.keys.query.lookup"
+          "operation_id": "ak.self.keys.read.lookup"
         },
         "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_request_body",
         "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_outcome",
@@ -12949,7 +12949,7 @@
         }
       },
       {
-        "operation_id": "ak.self.keys.query.lookup",
+        "operation_id": "ak.self.keys.read.lookup",
         "http": "POST /_arkret/self/keys/query",
         "grpc": "SelfKeys/Query",
         "mq": "self.keys.query.lookup",
@@ -12959,7 +12959,7 @@
         "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome"
       },
       {
-        "operation_id": "ak.self.agent_signer_evidence.query.resolve",
+        "operation_id": "ak.self.agent_signer_evidence.read.resolve",
         "http": "POST /_arkret/self/agent-signer-evidence/query",
         "grpc": "SelfAgentSignerEvidence/Resolve",
         "mq": "self.agent_signer_evidence.query.resolve",
@@ -12980,7 +12980,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.self.keys.query.lookup"
+          "operation_id": "ak.self.keys.read.lookup"
         },
         "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_request_body",
         "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_outcome",
@@ -12990,7 +12990,7 @@
         }
       },
       {
-        "operation_id": "ak.self.media.query.ice_config",
+        "operation_id": "ak.self.media.read.ice_config",
         "http": "POST /_arkret/self/rtc/ice-config",
         "grpc": "SelfMedia/IceConfig",
         "mq": "self.media.query.ice_config",
@@ -13000,7 +13000,7 @@
         "response_schema_ref": "schemas/ice-config-response.schema.json"
       },
       {
-        "operation_id": "ak.open.agent_pairing.query.resolve",
+        "operation_id": "ak.open.agent_pairing.read.resolve",
         "http": "POST /_arkret/open/agent-pairing/resolve",
         "grpc": "OpenAgentPairing/Resolve",
         "mq": "open.agent_pairing.query.resolve",
@@ -13028,7 +13028,7 @@
         }
       },
       {
-        "operation_id": "ak.open.agent_pairing.query.runtime_key_request_status",
+        "operation_id": "ak.open.agent_pairing.read.runtime_key_request_status",
         "http": "POST /_arkret/open/agent-pairing/runtime-key-requests/status",
         "grpc": "OpenAgentPairing/RuntimeKeyRequestStatus",
         "mq": "open.agent_pairing.query.runtime_key_request_status",
@@ -13061,7 +13061,7 @@
         }
       },
       {
-        "operation_id": "ak.open.device_pairing.query.resolve",
+        "operation_id": "ak.open.device_pairing.read.resolve",
         "http": "POST /_arkret/open/device-pairing/resolve",
         "grpc": "OpenDevicePairing/Resolve",
         "mq": "open.device_pairing.query.resolve",
@@ -13072,7 +13072,7 @@
         "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_bootstrap"
       },
       {
-        "operation_id": "ak.open.device_pairing.query.status",
+        "operation_id": "ak.open.device_pairing.read.status",
         "http": "POST /_arkret/open/device-pairing/requests/status",
         "grpc": "OpenDevicePairing/Status",
         "mq": "open.device_pairing.query.status",
@@ -13083,7 +13083,7 @@
         "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome"
       },
       {
-        "operation_id": "ak.open.invite_locator.query.resolve",
+        "operation_id": "ak.open.invite_locator.read.resolve",
         "http": "POST /_arkret/open/invite-locators/resolve",
         "grpc": "OpenInviteLocator/Resolve",
         "mq": "open.invite_locator.query.resolve",
@@ -13094,7 +13094,7 @@
         "response_schema_ref": "schemas/principal-locator.schema.json"
       },
       {
-        "operation_id": "ak.open.mimi.query.group_info",
+        "operation_id": "ak.open.mimi.read.group_info",
         "http": "GET /_arkret/open/mimi/strands/{strand_id}/group-info",
         "grpc": "OpenMimi/GroupInfo",
         "mq": "open.mimi.query.group_info",
@@ -13103,7 +13103,7 @@
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome"
       },
       {
-        "operation_id": "ak.open.mimi.query.identifiers",
+        "operation_id": "ak.open.mimi.read.identifiers",
         "http": "POST /_arkret/open/mimi/identifiers/query",
         "grpc": "OpenMimi/IdentifierQuery",
         "mq": "open.mimi.query.identifiers",
@@ -13123,7 +13123,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.open.mimi.query.group_info"
+          "operation_id": "ak.open.mimi.read.group_info"
         },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome",
@@ -13152,7 +13152,7 @@
         }
       },
       {
-        "operation_id": "ak.open.mimi.query.provider_directory",
+        "operation_id": "ak.open.mimi.read.provider_directory",
         "http": "GET /_arkret/open/mimi/provider-directory",
         "grpc": "OpenMimi/ProviderDirectory",
         "mq": "open.mimi.query.provider_directory",
@@ -13213,7 +13213,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.self.consent.query.list"
+          "operation_id": "ak.self.consent.read.list"
         },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_outcome",
@@ -13233,7 +13233,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.open.mimi.query.group_info"
+          "operation_id": "ak.open.mimi.read.group_info"
         },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome",
@@ -13253,7 +13253,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.open.mimi.query.group_info"
+          "operation_id": "ak.open.mimi.read.group_info"
         },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome",
@@ -13273,7 +13273,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.self.consent.query.list"
+          "operation_id": "ak.self.consent.read.list"
         },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome",
@@ -13304,7 +13304,7 @@
         }
       },
       {
-        "operation_id": "ak.self.policy.query.check",
+        "operation_id": "ak.self.policy.read.check",
         "http": "POST /_arkret/self/policy/check",
         "grpc": "SelfPolicy/Check",
         "mq": "self.policy.query.check",
@@ -13315,7 +13315,7 @@
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome"
       },
       {
-        "operation_id": "ak.self.realm_link.query.list",
+        "operation_id": "ak.self.realm_link.read.list",
         "http": "GET /_arkret/self/realms/{realm_id}/links",
         "grpc": "SelfRealmLink/List",
         "mq": "self.realm_link.query.list",
@@ -13336,7 +13336,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.self.realm_link.query.list"
+          "operation_id": "ak.self.realm_link.read.list"
         },
         "request_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body",
         "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
@@ -13366,7 +13366,7 @@
         }
       },
       {
-        "operation_id": "ak.self.realm_link.query.effective_policy",
+        "operation_id": "ak.self.realm_link.read.effective_policy",
         "http": "GET /_arkret/self/realms/{realm_id}/effective-policy",
         "grpc": "SelfRealmLink/EffectivePolicy",
         "mq": "self.realm_link.query.effective_policy",
@@ -13376,7 +13376,7 @@
         "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome"
       },
       {
-        "operation_id": "ak.self.realm_organization.query.list",
+        "operation_id": "ak.self.realm_organization.read.list",
         "http": "GET /_arkret/self/realms/{realm_id}/organizations",
         "grpc": "SelfRealmOrganization/List",
         "mq": "self.realm_organization.query.list",
@@ -13534,7 +13534,7 @@
         }
       },
       {
-        "operation_id": "ak.self.realm.query.export",
+        "operation_id": "ak.self.realm.read.export",
         "http": "GET /_arkret/self/realms/{realm_id}/export",
         "grpc": "SelfRealm/Export",
         "mq": "self.realm.query.export",
@@ -13544,7 +13544,7 @@
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_export"
       },
       {
-        "operation_id": "ak.self.realm.moderation_policy.query.effective",
+        "operation_id": "ak.self.realm.moderation_policy.read.effective",
         "http": "GET /_arkret/self/realms/{realm_id}/moderation-policy/effective",
         "grpc": "SelfRealm/ModerationPolicyEffective",
         "mq": "self.realm.moderation_policy.query.effective",
@@ -13624,7 +13624,7 @@
         }
       },
       {
-        "operation_id": "ak.self.realm.join_application.query.list",
+        "operation_id": "ak.self.realm.join_application.read.list",
         "http": "GET /_arkret/self/realms/{realm_id}/join-applications",
         "grpc": "SelfRealmJoinApplication/List",
         "mq": "self.realm.join_application.query.list",
@@ -13644,7 +13644,7 @@
         "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_get_outcome"
       },
       {
-        "operation_id": "ak.self.realm.join_application.audit.query.list",
+        "operation_id": "ak.self.realm.join_application.audit.read.list",
         "http": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit",
         "grpc": "SelfRealmJoinApplication/ListAudit",
         "mq": "self.realm.join_application.audit.query.list",
@@ -13654,7 +13654,7 @@
         "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_audit_outcome"
       },
       {
-        "operation_id": "ak.self.consent.query.list",
+        "operation_id": "ak.self.consent.read.list",
         "http": "GET /_arkret/self/consent/cells",
         "grpc": "SelfConsent/List",
         "mq": "self.consent.query.list",
@@ -13685,7 +13685,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.self.consent.query.list"
+          "operation_id": "ak.self.consent.read.list"
         },
         "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
         "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
@@ -13708,7 +13708,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.self.consent.query.list"
+          "operation_id": "ak.self.consent.read.list"
         },
         "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
         "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
@@ -13731,7 +13731,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.self.consent.query.list"
+          "operation_id": "ak.self.consent.read.list"
         },
         "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
         "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_outcome",
@@ -13741,7 +13741,7 @@
         }
       },
       {
-        "operation_id": "ak.self.account_data.query.list",
+        "operation_id": "ak.self.account_data.read.list",
         "http": "GET /_arkret/self/account_data",
         "grpc": "SelfAccountData/List",
         "mq": "self.account_data.query.list",
@@ -13811,7 +13811,7 @@
         }
       },
       {
-        "operation_id": "ak.self.read_cursor.query.list",
+        "operation_id": "ak.self.read_cursor.read.list",
         "http": "GET /_arkret/self/read-cursors",
         "grpc": "SelfReadCursor/List",
         "mq": "self.read_cursor.query.list",
@@ -13821,7 +13821,7 @@
         "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list"
       },
       {
-        "operation_id": "ak.self.strand.query.list",
+        "operation_id": "ak.self.strand.read.list",
         "http": "GET /_arkret/self/realms/{realm_id}/strands",
         "grpc": "SelfStrand/List",
         "mq": "self.strand.query.list",
@@ -13831,7 +13831,7 @@
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList"
       },
       {
-        "operation_id": "ak.self.morph.query.list",
+        "operation_id": "ak.self.morph.read.list",
         "http": "GET /_arkret/self/realms/{realm_id}/morphs",
         "grpc": "SelfMorph/List",
         "mq": "self.morph.query.list",
@@ -13841,7 +13841,7 @@
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList"
       },
       {
-        "operation_id": "ak.self.space.query.list",
+        "operation_id": "ak.self.space.read.list",
         "http": "GET /_arkret/self/realms/{realm_id}/spaces",
         "grpc": "SelfSpace/List",
         "mq": "self.space.query.list",
@@ -13932,7 +13932,7 @@
         }
       },
       {
-        "operation_id": "ak.server.query.describe",
+        "operation_id": "ak.server.read.describe",
         "http": "GET /_arkret/describe",
         "grpc": "Server/Describe",
         "mq": "server.query.describe",
@@ -13940,7 +13940,7 @@
         "success_shape_kind": "service_describe"
       },
       {
-        "operation_id": "ak.self.account.query.describe",
+        "operation_id": "ak.self.account.read.describe",
         "http": "GET /_arkret/self/account/describe",
         "grpc": "SelfAccount/Describe",
         "mq": "self.account.query.describe",
@@ -13948,7 +13948,7 @@
         "success_shape_kind": "service_describe"
       },
       {
-        "operation_id": "ak.self.account.query.viewer",
+        "operation_id": "ak.self.account.read.viewer",
         "http": "GET /_arkret/self/account/viewer",
         "grpc": "SelfAccount/Viewer",
         "mq": "self.account.query.viewer",
@@ -13969,7 +13969,7 @@
         "retry_safe": false,
         "uncertain_outcome": {
           "strategy": "query_operation",
-          "operation_id": "ak.self.account.query.viewer"
+          "operation_id": "ak.self.account.read.viewer"
         },
         "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_request_body",
         "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_outcome",
@@ -14007,7 +14007,7 @@
         }
       },
       {
-        "operation_id": "ak.self.snapshot.query.manifest_head",
+        "operation_id": "ak.self.snapshot.read.manifest_head",
         "http": "GET /_arkret/self/snapshot/head",
         "grpc": "SelfSnapshot/Head",
         "mq": "self.snapshot.query.manifest_head",
@@ -15823,7 +15823,7 @@
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ak.self.account.query.describe",
+        "action": "ak.self.account.read.describe",
         "category": "service",
         "risk_tier": "low",
         "required_constraints": [],
@@ -16037,7 +16037,7 @@
         "event_mapping_kind": "non_event_surface"
       },
       {
-        "action": "ak.self.snapshot.query.manifest_head",
+        "action": "ak.self.snapshot.read.manifest_head",
         "category": "service",
         "risk_tier": "low",
         "required_constraints": [],

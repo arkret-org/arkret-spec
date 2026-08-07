@@ -88,8 +88,7 @@ ak.<surface>.<domain-or-subject...>.<kind>.<action>
 
 | kind | 语义边界 | HTTP/JSON binding 关系 |
 | --- | --- | --- |
-| `read` | 安全、幂等的只读计算：扫描、批量解析、frontier/head 投影、proof materialization。不得产生 server-side mutation。 | canonical binding 使用 RFC 10008 `QUERY` 与 typed request content；`GET` / `POST` 仅可作为显式登记的 compatibility binding。 |
-| `query` | 尚未迁移到 `read` 的既有只读 operation kind。语义仍不得产生 server-side mutation。 | 迁移前保持其既有 GET / POST binding；新建的 RFC 10008 QUERY-bound operation MUST 使用 `read`，不得继续扩展此 kind。 |
+| `read` | 安全、幂等的只读计算：扫描、批量解析、frontier/head 投影、proof materialization。不得产生 server-side mutation。 | 简单 selector 可使用 `GET`，typed request content 优先使用 RFC 10008 `QUERY`，需要隐藏 selector 或承载复杂 body 时可使用 `POST`；唯一 binding 由 operation registry 固定。 |
 | `stream` | 长连接、live tail、增量同步或 bounded catch-up stream。 | 通常 `GET`；响应可以是 NDJSON、SSE、WebSocket frame 或等价 stream。 |
 | `resource` | URI 明确标识一个资源、binding 或 slot；请求语义围绕该 URI 的当前表示。 | `resource.get` 使用 `GET`/`HEAD`；`resource.replace` 使用 `PUT`；`resource.delete` 使用 `DELETE`。 |
 | `command` | 触发协议动作、状态推进、发布、入队、fanout、ack、领取、消费、授权、撤销、注册或流程推进。 | 通常 `POST`。命令可通过 idempotency key、对象 id、序列号或签名 transcript 实现幂等，但不因此变成 `PUT`。 |
@@ -102,9 +101,7 @@ ak.<surface>.<domain-or-subject...>.<kind>.<action>
 - `command.publish` 表示发布调用方签名的 policy / identity state / 权威文档，由服务端按签名、版本和 `supersedes` 链验证后接受；除非目标 URI 本身就是可完整替换的 slot，否则 MUST 使用 `POST`。
 - `command.send` / `command.notify` 表示投递、入队或 fanout；即使有幂等键，也不是 `resource.replace`。
 - `command.ack` 表示对已投递数据做显式确认；天然幂等，但不得被 cursor 推进隐式替代。
-- `read` operation 的 GET / POST 兼容形态不得拥有独立 `operation_id`，也不得进入 `supported_operations`；它们必须在 canonical operation 的 `http_compatibility_bindings[]` 中登记。
-
-HTTP method 不是 operation action 的来源。以 `ak.self.events.read.scan` 为例，canonical HTTP binding 是 `QUERY /_arkret/self/events`；`GET /_arkret/self/events` 与 `POST /_arkret/self/events/query` 只是同一 operation 的退化兼容形态。OpenAPI 3.2 的 `query:` Operation Object 持有唯一 `operationId`；GET / POST Operation Object 必须省略 `operationId`，声明 `deprecated: true` 与 `x-arkret-compatibility-binding-of`。gRPC / MQ 只暴露 canonical operation。
+HTTP method 不是 operation action 的来源。以 `ak.self.events.read.scan` 为例，其 HTTP binding 唯一为 `QUERY /_arkret/self/events`，OpenAPI 3.2 的 `query:` Operation Object 持有唯一 `operationId`。实现不得为同一 operation 暴露未登记的 GET / POST 别名；gRPC / MQ 同样只暴露 registry 中的 canonical operation。
 
 ### 2.4.1 写操作的 durable effect 闭包（normative）
 
@@ -126,7 +123,7 @@ HTTP method 不是 operation action 的来源。以 `ak.self.events.read.scan` �
 未登记 durable Event。该闭包由 `tools/lint_artifacts.py` 与
 `operation-registry-coverage-fixture.json` 机械校验。
 
-**`viewer` action（术语定义）**：`ak.self.account.query.viewer` 的含义钉死为：**当前已认证 holder 的主体自读投影**。目标不由 path / query 中的外部 id 定位，而由 holder-bound `user_session` 的会话绑定决定，故不建模为 `resource.get`；命名沿用 GraphQL 生态的 `viewer` 惯例（"viewer = 发起请求的已认证主体"）。它与 `query.describe`（服务能力元数据，可 pre-auth）的区分见 [`service-http-binding.md` §5.1](./service-http-binding.md)。注意区分本规范 prose 中 `viewer` 的另一用法：可见性 / 投影语境（pins、history visibility、conformance vector 的 `viewer_*` 字段）里的 "viewer" 指**正在读取内容、作为可见性评估视角的主体**，不是本 operation；`reviewer`（审核者）与两者均无关，全文检索 `viewer` 时勿混入。
+**`viewer` action（术语定义）**：`ak.self.account.read.viewer` 的含义钉死为：**当前已认证 holder 的主体自读投影**。目标不由 path / query 中的外部 id 定位，而由 holder-bound `user_session` 的会话绑定决定，故不建模为 `resource.get`；命名沿用 GraphQL 生态的 `viewer` 惯例（"viewer = 发起请求的已认证主体"）。它与 `query.describe`（服务能力元数据，可 pre-auth）的区分见 [`service-http-binding.md` §5.1](./service-http-binding.md)。注意区分本规范 prose 中 `viewer` 的另一用法：可见性 / 投影语境（pins、history visibility、conformance vector 的 `viewer_*` 字段）里的 "viewer" 指**正在读取内容、作为可见性评估视角的主体**，不是本 operation；`reviewer`（审核者）与两者均无关，全文检索 `viewer` 时勿混入。
 
 ### 2.5 HTTP method 语义
 
@@ -216,7 +213,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 **生产 current-v1 PoP 要求（normative）**：
 
 - `/_arkret/self/*` endpoint MUST 使用 §3.3 的 `Authorization: Bearer <ak.session.grant>` + DPoP 出示。该 bearer header 只是 DPoP 绑定的 grant 载体；缺少有效 DPoP proof 时 MUST 拒绝。
-- 对常规写操作（任何推进 actor_seq / Realm frontier 或产生持久副作用的请求）与敏感读（成员列表、私有 projection、key backup、device list、moderation 队列等），实现 MUST 用 RFC 9421 HTTP Message Signature 或等价 sender-constrained proof 做会话出示；高安全 profile 进一步要求 RFC 9421 形态与 transcript/body 绑定。
+- 高安全 profile 对所有受保护的 `ak.self.*` operation MUST 要求 RFC 9421 HTTP Message Signature 会话出示并绑定 transcript/body。`ak.self.` 前缀是机器可判定的默认保护面；同一 operation 若在 registry 明确列为匿名 public metadata projection，无有效 proof 时只能返回该公开 projection，MUST NOT 把 bare bearer 当作 session / capability 认证。新增或未知 `ak.self.*` operation 默认 fail closed，除非 operation registry 与其规范性 contract 同时明确声明匿名 public projection。
 - 对其它受保护 current-v1 endpoint，实现仍 MUST 要求 DPoP、RFC 9421 HTTP Message Signature、detached JWS、mTLS 或等价 sender-constrained proof。裸 `Authorization: Bearer <ak.session.grant>` MUST 以 `unauthenticated` 拒绝。
 - 服务 SHOULD 通过 `auth_metadata.did_binding_methods` 公布支持的 sender-constrained 方法（如 `session_dpop`、`session_http_signature`），供客户端选择；未公布任何 sender-constrained 方法的服务 MUST NOT 声明通过 current-v1 production protected-endpoint conformance。
 - 在 §11.2 之外，PoP 出示不改变 §3 其余规则：协议层权限判断仍 MUST 回到 actor DID / capability / Realm policy；PoP 只把"持有 token"升级为"持有绑定密钥"。
@@ -270,10 +267,10 @@ Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失�
 
 实现 MUST 通过 `ak.vector.session.dpop_target_uri_binding.v1`，证明跨 authority、跨 scheme、伪造转发头与 authority 不可重建场景均 fail closed，且不存在 path-only fallback。
 
-**DPoP 与 RFC 9421 PoP 是两层正交保障**。DPoP（RFC 9449）提供 per-request 认证 + sender-constraint,但**不绑定请求 body**——默认 profile 下 body 完整性依赖 TLS(与 Matrix 同口径)。§3.2 的 RFC 9421 PoP 则额外提供 body 完整性(覆盖 `content-digest`)。两层用**同一把** Ed25519 grant-binding(DPoP)key:该 key 的 RFC 7638 thumbprint 即 grant 的 `cnf.jkt`(DPoP 绑定),其公钥即 grant 委托的 `session_public_key`(9421 绑定),客户端无需为 DPoP 与 9421 各管理一把密钥。此 grant-binding key 是短期会话认证凭据，必须独立生成、独立存储并随 session 轮换；其私钥字节、公钥字节、JWK thumbprint 与 `kid` 都 MUST NOT 等于或复用签事件 / KeyPackage / MLS 的长期设备身份 key(`device_public_key`)。违反分离要求的请求 MUST 以 `unauthenticated` fail closed(见 [`../crypto-media/device-lifecycle.md` §3.3/§5.2](../crypto-media/device-lifecycle.md))。
+**DPoP 与 RFC 9421 PoP 是两层正交保障**。DPoP（RFC 9449）提供 per-request 认证 + sender-constraint，但**不绑定请求 body**——默认 profile 下 body 完整性依赖 TLS(与 Matrix 同口径)。§3.2 的 RFC 9421 PoP 则额外提供 body 完整性(覆盖 `content-digest`)。两层用**同一把** Ed25519 grant-binding(DPoP)key:该 key 的 RFC 7638 thumbprint 即 grant 的 `cnf.jkt`(DPoP 绑定),其公钥即 grant 委托的 `session_public_key`(9421 绑定),客户端无需为 DPoP 与 9421 各管理一把密钥。此 grant-binding key 是短期会话认证凭据，必须独立生成、独立存储并随 session 轮换；其私钥字节、公钥字节、JWK thumbprint 与 `kid` 都 MUST NOT 等于或复用签事件 / KeyPackage / MLS 的长期设备身份 key(`device_public_key`)。违反分离要求的请求 MUST 以 `unauthenticated` fail closed(见 [`../crypto-media/device-lifecycle.md` §3.3/§5.2](../crypto-media/device-lifecycle.md))。
 
 - **默认 profile**:self-path 的会话出示就是本节的 grant + DPoP;RFC 9421 PoP 可选叠加。
-- **高安全 profile**(`sovereign_deployment` / `high_security_organization`,见 §3.2 末段):对常规写与敏感读,Principal Server **MUST** 在 grant + DPoP 之外**再要求** RFC 9421 PoP 出示(获取 body 完整性);仅出示 grant + DPoP、缺 `Signature-Input` 的写 / 敏感读 MUST 被拒。此时 9421 校验的 `session_public_key` **MUST** 取自该 grant 的 session-grant 内省结果(grant + DPoP 会话为请求级、不落库为本地 bearer),而非持久化 session 记录。
+- **高安全 profile**(`sovereign_deployment` / `high_security_organization`，见 §3.2 末段):对所有受保护的 `ak.self.*` operation，Principal Server **MUST** 在 grant + DPoP 之外**再要求** RFC 9421 PoP 出示；仅出示 grant + DPoP、缺 `Signature-Input` 的此类请求 MUST 被拒。此时 9421 校验的 `session_public_key` **MUST** 取自该 grant 的 session-grant 内省结果(grant + DPoP 会话为请求级、不落库为本地 bearer)，而非持久化 session 记录。
 
 该模型对齐 Matrix [MSC3861](https://github.com/matrix-org/matrix-spec-proposals/pull/3861)（Auth Server 签发凭据 + Resource Server 内省）的方向，并在其上叠加 DPoP sender-constraining(比 Matrix 的裸 bearer 更强)。
 
@@ -434,11 +431,11 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 规则：
 
 - 客户端 MUST 把 cursor 当作不透明字符串，禁止解析以推断排序、权限或服务身份。
-- 任何接受 cursor 的接口 MUST 把无效 cursor 返回 `invalid_param`，把已过期 cursor 返回 `cursor_expired`。
+- 任何接受 cursor 的接口 MUST 在 wire/schema 层先拒绝不满足注册 cursor 类型与词法约束的值并返回 `schema_violation`；对通过该层但令牌结构、完整性或请求绑定无效的 cursor 返回 `invalid_param`，对已过期 cursor 返回 `cursor_expired`。
 - 同一字符串 cursor 在不同 issuing 服务间不可移植；跨服务复用 MUST `invalid_param`。
 - TTL 硬上限：barrier cursor 与 stream cursor 的 `expires_at - issued_at` 硬上限的**唯一 canonical 数值定义点**见 [`encoding.md` §8.3 规则 9](../conformance/encoding.md)；本节不重复字面毫秒数值。
 - 声明 `cursor_revoke_high_assurance` feature 的服务必须实现 [`client-sync.md` §12.2.1](./client-sync.md) 的 revocation set。已撤销但仍在 TTL 内的 cursor MUST 返回 `cursor_revoked`；完整性失败仍返回 `cursor_integrity_invalid`，不得泄露 revocation set。
-- 声明 `events_query_range_completeness` feature 的服务必须实现 [`service-http-binding.md` §3.3.6](./service-http-binding.md)：`ak.self.events.read.scan` 接受 `include_completeness=true` 并返回覆盖该页范围的 `ak.attestation.range_completeness` 引用。未声明该 feature 的服务 MUST 忽略 `include_completeness` 参数。
+- 声明 `events_query_range_completeness` feature 的服务必须实现 [`service-http-binding.md` §3.3.5](./service-http-binding.md)：`ak.self.events.read.scan` 接受 `include_completeness=true` 并返回覆盖该页范围的 `ak.attestation.range_completeness` 引用。未声明该 feature 的服务 MUST 忽略 `include_completeness` 参数。
 
 ### 7.1 列表分页（normative）
 
@@ -456,7 +453,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 - 优先使用资源复数名（`realms[]` / `strands[]` / `morphs[]` / `spaces[]` / `backups[]` / `notifications[]` / `messages[]` 等）；
 - 没有自然资源复数名时使用语义名：全文/混合实体搜索命中使用 `matches[]`，原始查询行使用 `rows[]`，private contact discovery 仍使用 `matches[]`；
 - **MUST NOT** 使用 `results[]` 作为返回字段名，避免与 Rust `Result` 语义和 SDK 类型命名冲突；
-- **MUST NOT** 使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `ak.self.device_messages.query.list` 与 `ak.self.account.stream.subscribe`）。
+- **MUST NOT** 使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `ak.self.device_messages.read.list` 与 `ak.self.account.stream.subscribe`）。
 
 **`next_cursor` / `has_more`** (normative)：
 - `next_cursor` 是 optional：缺省表示当前批次已经是末尾。
@@ -471,7 +468,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 
 **`prev_cursor`**（可选, 双向分页）：仅当接口支持向"更旧"方向翻页时返回。详见 §7.0；不支持双向翻页的接口 MUST NOT 返回 `prev_cursor`。
 
-**Cursor 方向参数** (`before` / `after`)：见 [`service-http-binding.md` §3.3](./service-http-binding.md) 与本文 §7.0。`before` / `after` 是绝对时间方向（朝更旧 / 朝更新），与响应 `prev_cursor` / `next_cursor` 形成一一对应；所有 v1 接口（包括 `ak.self.device_messages.query.list`）MUST 使用这两个方向名，不得引入 `from=` / `start_at=` 等同义别名。
+**Cursor 方向参数** (`before` / `after`)：见 [`service-http-binding.md` §3.3](./service-http-binding.md) 与本文 §7.0。`before` / `after` 是绝对时间方向（朝更旧 / 朝更新），与响应 `prev_cursor` / `next_cursor` 形成一一对应；所有 v1 接口（包括 `ak.self.device_messages.read.list`）MUST 使用这两个方向名，不得引入 `from=` / `start_at=` 等同义别名。
 
 服务端 MAY 对 `limit` 设置上限。超过上限时 SHOULD 使用最大允许值或返回 `invalid_param`。
 

@@ -515,7 +515,7 @@
       "schema_ref": "schemas/identity-receipt.schema.json",
       "expect_valid": true,
       "semantic_outcome": "accept",
-      "notes": "The pre-existing family, unchanged. Its witness_role describes a replication role inside a DID registry consensus group and it binds seq + head_event_digest; it says nothing about did:webvh method witnesses. Both families ride ak.root.identity.receipts.query.list and are told apart only by the schema constant.",
+      "notes": "The pre-existing family, unchanged. Its witness_role describes a replication role inside a DID registry consensus group and it binds seq + head_event_digest; it says nothing about did:webvh method witnesses. Both families ride ak.root.identity.receipts.read.list and are told apart only by the schema constant.",
       "instance": {
         "schema": "ak.schema.identity_receipt.v1",
         "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",

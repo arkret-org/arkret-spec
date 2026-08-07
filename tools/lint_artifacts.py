@@ -55,7 +55,7 @@ ARTIFACTS = SPEC_ROOT / "artifacts"
 EVENT_KIND_TOKEN_RE = re.compile(r"\bak\.[a-z0-9_]+(?:\.[a-z0-9_]+)+\b")
 OPERATION_ID_RE = re.compile(r"^ak\.[a-z0-9_]+(?:\.[a-z0-9_]+)+$")
 # zh/sync/api-conventions.md §2.4: ak.<surface>.<domain...>.<kind>.<action>.
-OPERATION_KINDS = frozenset({"read", "query", "stream", "resource", "command", "upload", "exchange"})
+OPERATION_KINDS = frozenset({"read", "stream", "resource", "command", "upload", "exchange"})
 # HTTP method names describe transport, not protocol effect; get/delete stay legal
 # because they are the canonical resource-kind actions.
 FORBIDDEN_OPERATION_ACTIONS = frozenset({"post", "put", "patch"})
@@ -2989,6 +2989,23 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
 
     operation_rows = operation_registry.get("operations", [])
     operation_ids = unique_values(lint, operation_path, operation_rows, "operation_id")
+    high_security_policy = operation_registry.get("high_security_session_authentication_policy")
+    if not isinstance(high_security_policy, dict):
+        lint.fail(operation_path, "operation_registry.high_security_session_authentication_policy must be an object")
+    else:
+        if high_security_policy.get("applies_to_operation_id_prefix") != "ak.self.":
+            lint.fail(operation_path, "high-security session policy must classify the ak.self. surface")
+        if high_security_policy.get("protected_operation_default") != "rfc9421_session_public_key_required":
+            lint.fail(operation_path, "high-security session policy must fail closed to RFC 9421 PoP")
+        public_operations = high_security_policy.get("unauthenticated_public_projection_operations")
+        if not isinstance(public_operations, list) or not public_operations:
+            lint.fail(operation_path, "high-security session policy must declare its public projection exceptions")
+        else:
+            for public_operation in public_operations:
+                if public_operation not in operation_ids:
+                    lint.fail(operation_path, f"high-security public projection operation is not registered: {public_operation!r}")
+                elif not isinstance(public_operation, str) or not public_operation.startswith("ak.self.") or ".read." not in public_operation:
+                    lint.fail(operation_path, f"invalid high-security public projection operation: {public_operation!r}")
     operation_http_map: dict[str, str] = {}
     operation_grpc_map: dict[str, str] = {}
     operation_mq_map: dict[str, str] = {}
@@ -3027,32 +3044,8 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             lint.fail(operation_path, f"{operation_id} missing http binding")
         else:
             operation_http_map[operation_id] = http
-        compatibility_bindings = row.get("http_compatibility_bindings")
-        if compatibility_bindings is not None:
-            if not isinstance(http, str) or not http.startswith("QUERY "):
-                lint.fail(operation_path, f"{operation_id} compatibility bindings require a canonical QUERY binding")
-            if not isinstance(compatibility_bindings, list) or not compatibility_bindings:
-                lint.fail(operation_path, f"{operation_id}.http_compatibility_bindings must be a non-empty array")
-            else:
-                seen_compatibility_http: set[str] = set()
-                for binding in compatibility_bindings:
-                    if not isinstance(binding, dict):
-                        lint.fail(operation_path, f"{operation_id}.http_compatibility_bindings entries must be objects")
-                        continue
-                    compatibility_http = binding.get("http")
-                    request_encoding = binding.get("request_encoding")
-                    if not isinstance(compatibility_http, str) or not re.fullmatch(r"(?:GET|POST) /\S+", compatibility_http):
-                        lint.fail(operation_path, f"{operation_id} has invalid compatibility HTTP binding {compatibility_http!r}")
-                    elif compatibility_http in seen_compatibility_http:
-                        lint.fail(operation_path, f"{operation_id} repeats compatibility HTTP binding {compatibility_http!r}")
-                    else:
-                        seen_compatibility_http.add(compatibility_http)
-                    if request_encoding not in {"query_string", "json_body"}:
-                        lint.fail(operation_path, f"{operation_id} has invalid compatibility request_encoding {request_encoding!r}")
-                    if isinstance(compatibility_http, str) and compatibility_http.startswith("GET ") and request_encoding != "query_string":
-                        lint.fail(operation_path, f"{operation_id} GET compatibility binding must use query_string")
-                    if isinstance(compatibility_http, str) and compatibility_http.startswith("POST ") and request_encoding != "json_body":
-                        lint.fail(operation_path, f"{operation_id} POST compatibility binding must use json_body")
+        if "http_compatibility_bindings" in row:
+            lint.fail(operation_path, f"{operation_id} must not declare removed http_compatibility_bindings")
         if http_only_variant:
             if grpc is not None:
                 lint.fail(operation_path, f"{operation_id} is http_only_variant and must not declare grpc binding")
@@ -5351,30 +5344,8 @@ def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
     if isinstance(openapi, dict) and isinstance(operation_registry, dict):
         if openapi.get("openapi") != "3.2.0":
             lint.fail(openapi_path, "Arkret OpenAPI must use 3.2.0 so RFC 10008 QUERY is represented by the standard query field")
-        paths = openapi.get("paths")
-        if isinstance(paths, dict):
-            for row in operation_registry.get("operations", []):
-                if not isinstance(row, dict):
-                    continue
-                operation_id = row.get("operation_id")
-                compatibility_bindings = row.get("http_compatibility_bindings")
-                if not isinstance(operation_id, str) or not isinstance(compatibility_bindings, list):
-                    continue
-                for binding in compatibility_bindings:
-                    if not isinstance(binding, dict) or not isinstance(binding.get("http"), str):
-                        continue
-                    method, _, path_name = binding["http"].partition(" ")
-                    path_item = paths.get(path_name)
-                    operation = path_item.get(method.lower()) if isinstance(path_item, dict) else None
-                    if not isinstance(operation, dict):
-                        lint.fail(openapi_path, f"compatibility binding missing from OpenAPI: {binding['http']}")
-                        continue
-                    if operation.get("operationId") is not None:
-                        lint.fail(openapi_path, f"compatibility binding must not declare operationId: {binding['http']}")
-                    if operation.get("deprecated") is not True:
-                        lint.fail(openapi_path, f"compatibility binding must declare deprecated=true: {binding['http']}")
-                    if operation.get("x-arkret-compatibility-binding-of") != operation_id:
-                        lint.fail(openapi_path, f"compatibility binding must point to {operation_id}: {binding['http']}")
+        if "x-arkret-compatibility-binding-of" in openapi_path.read_text(encoding="utf-8"):
+            lint.fail(openapi_path, "removed HTTP compatibility bindings must not remain in OpenAPI")
 
     binding_path = ARTIFACTS / "bindings" / "non-http-bindings.yaml"
     binding = load_yaml(lint, binding_path)
@@ -5454,18 +5425,18 @@ def check_service_describe_alignment(lint: Lint) -> None:
     paths = openapi.get("paths")
     if not isinstance(paths, dict):
         return
-    describe_paths = [
-        "/_arkret/describe",
-        "/_arkret/self/events/describe",
-        "/_arkret/root/identity/describe",
-        "/_arkret/self/account/describe",
-        "/_arkret/find/directory/describe",
-        "/_arkret/edge/applet/describe",
+    describe_bindings = [
+        ("/_arkret/describe", "get"),
+        ("/_arkret/self/events/describe", "query"),
+        ("/_arkret/root/identity/describe", "get"),
+        ("/_arkret/self/account/describe", "get"),
+        ("/_arkret/find/directory/describe", "get"),
+        ("/_arkret/edge/applet/describe", "get"),
     ]
-    for describe_path in describe_paths:
+    for describe_path, describe_method in describe_bindings:
         response_schema = (
             paths.get(describe_path, {})
-            .get("get", {})
+            .get(describe_method, {})
             .get("responses", {})
             .get("200", {})
             .get("content", {})
@@ -5662,9 +5633,9 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         lint.fail(openapi_path, "SessionGrantRequestBody.proof.required must include audience")
 
     projection_components = {
-        "ak.self.space.query.list": "ProjectionSpaceList",
-        "ak.self.strand.query.list": "ProjectionStrandList",
-        "ak.self.morph.query.list": "ProjectionMorphList",
+        "ak.self.space.read.list": "ProjectionSpaceList",
+        "ak.self.strand.read.list": "ProjectionStrandList",
+        "ak.self.morph.read.list": "ProjectionMorphList",
     }
     for operation_id, component_name in projection_components.items():
         operation = find_operation(operation_id)
@@ -5740,7 +5711,7 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
     expect_array_param("ak.self.events.stream.subscribe", "actors", "#/components/schemas/ActorDid")
     expect_param_ref("ak.self.events.stream.subscribe", "after", "#/components/schemas/Cursor")
     expect_param_ref("ak.self.events.resource.get", "event_id", "#/components/schemas/EventId")
-    expect_param_ref("ak.self.snapshot.query.manifest_head", "realm_id", "#/components/schemas/RealmId")
+    expect_param_ref("ak.self.snapshot.read.manifest_head", "realm_id", "#/components/schemas/RealmId")
 
     query_body = op("ak.self.events.read.scan")
     if query_body is not None:
@@ -5784,27 +5755,27 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         return
     operations = openapi_operations_by_id(openapi)
     public_metadata_operations = {
-        "ak.server.query.describe",
+        "ak.server.read.describe",
         "ak.self.events.read.describe",
         "ak.peer.events.read.describe",
-        "ak.open.mimi.query.provider_directory",
-        "ak.root.identity.registry.query.describe",
-        "ak.self.account.query.describe",
-        "ak.find.directory.query.describe",
-        "ak.edge.applet.query.describe",
-        "ak.edge.applet.query.protocol_metadata",
+        "ak.open.mimi.read.provider_directory",
+        "ak.root.identity.registry.read.describe",
+        "ak.self.account.read.describe",
+        "ak.find.directory.read.describe",
+        "ak.edge.applet.read.describe",
+        "ak.edge.applet.read.protocol_metadata",
     }
     proof_in_body_operations = {
         "ak.gate.account.command.register",
         "ak.gate.account.command.issue_session_grant",
         "ak.gate.account.exchange.complete_oidc",
-        "ak.open.invite_locator.query.resolve",
-        "ak.open.agent_pairing.query.resolve",
+        "ak.open.invite_locator.read.resolve",
+        "ak.open.agent_pairing.read.resolve",
         "ak.open.agent_pairing.command.submit_runtime_key_request",
-        "ak.open.agent_pairing.query.runtime_key_request_status",
+        "ak.open.agent_pairing.read.runtime_key_request_status",
         "ak.open.device_pairing.command.stage",
-        "ak.open.device_pairing.query.resolve",
-        "ak.open.device_pairing.query.status",
+        "ak.open.device_pairing.read.resolve",
+        "ak.open.device_pairing.read.status",
     }
 
     for operation_id, operation in operations.items():

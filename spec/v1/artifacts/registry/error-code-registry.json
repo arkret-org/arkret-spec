@@ -1,5 +1,6 @@
 {
-  "version": "2026-08-06.3",
+  "version": "2026-08-07",
+  "generated_at": "2026-08-07T05:33:31Z",
   "codes": [
     {
       "code": "bad_json",
@@ -1015,7 +1016,7 @@
       "code": "unsupported_join_rule",
       "http_status": 422,
       "scope": "both",
-      "description": "A third-party (3PID) invite claim targeted a join-rule Realm whose continuation profile is outside v1 base conformance (e.g. knock_restricted) and the deployment has not declared the required candidate profile in ak.find.directory.query.describe / ak.account.describe. The verification service MUST reject the token claim instead of silently downgrading. See zh/sync/third-party-invites.md §4.3."
+      "description": "A third-party (3PID) invite claim targeted a join-rule Realm whose continuation profile is outside v1 base conformance (e.g. knock_restricted) and the deployment has not declared the required candidate profile in ak.find.directory.read.describe / ak.account.describe. The verification service MUST reject the token claim instead of silently downgrading. See zh/sync/third-party-invites.md §4.3."
     },
     {
       "code": "failed_precondition",
@@ -2297,7 +2298,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A Policy Server challenge obligation was not satisfied within `max_proof_age`, or a challenge_proof was submitted whose issuance is older than `max_proof_age`. The reducer / Policy Server MUST reject with failed_precondition and MUST NOT auto-renew; the applicant must re-run ak.self.policy.query.check to obtain a fresh challenge_id. See zh/governance/join-policy.md §11."
+      "description": "A Policy Server challenge obligation was not satisfied within `max_proof_age`, or a challenge_proof was submitted whose issuance is older than `max_proof_age`. The reducer / Policy Server MUST reject with failed_precondition and MUST NOT auto-renew; the applicant must re-run ak.self.policy.read.check to obtain a fresh challenge_id. See zh/governance/join-policy.md §11."
     },
     {
       "code": "challenge_failed",

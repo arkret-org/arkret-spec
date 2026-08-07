@@ -247,15 +247,15 @@ MIMI facade 至少定义以下 canonical operation：
 
 | operation_id | HTTP binding | 语义 |
 | --- | --- | --- |
-| `ak.open.mimi.query.provider_directory` | `GET /_arkret/open/mimi/provider-directory` | 返回 MIMI provider feature profile。 |
+| `ak.open.mimi.read.provider_directory` | `GET /_arkret/open/mimi/provider-directory` | 返回 MIMI provider feature profile。 |
 | `ak.open.mimi.exchange.request_key_material` | `POST /_arkret/open/mimi/key-material` | 领取 MLS KeyPackage，映射到 Arkret KeyPackage claim lifecycle。 |
 | `ak.open.mimi.command.update_room` | `POST /_arkret/open/mimi/strands/{strand_id}/update` | 提交或转发 room state / MLS update。 |
 | `ak.open.mimi.command.notify` | `POST /_arkret/open/mimi/strands/{strand_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
 | `ak.open.mimi.command.submit_message` | `POST /_arkret/open/mimi/strands/{strand_id}/messages` | 提交 MIMI encrypted application message。 |
-| `ak.open.mimi.query.group_info` | `GET /_arkret/open/mimi/strands/{strand_id}/group-info` | 获取 MLS groupInfo / room projection。 |
+| `ak.open.mimi.read.group_info` | `GET /_arkret/open/mimi/strands/{strand_id}/group-info` | 获取 MLS groupInfo / room projection。 |
 | `ak.open.mimi.command.request_consent` | `POST /_arkret/open/mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
 | `ak.open.mimi.command.update_consent` | `POST /_arkret/open/mimi/consent/update` | 更新 consent state。 |
-| `ak.open.mimi.query.identifiers` | `POST /_arkret/open/mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |
+| `ak.open.mimi.read.identifiers` | `POST /_arkret/open/mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |
 | `ak.open.mimi.command.report_abuse` | `POST /_arkret/open/mimi/report-abuse` | 提交跨 provider abuse report，支持 E2EE franking proof。 |
 | `ak.open.mimi.command.proxy_download` | `POST /_arkret/open/mimi/proxy-download` | 代理或 oblivious 下载资产。 |
 
@@ -438,7 +438,7 @@ MIMI identifier MUST NOT 被直接作为 Arkret actor。映射规则：
 - connection identifier 仅用于 discovery / consent，不进入 Realm history，除非 holder 明确作为 handle / claim 披露。
 - display name 只用于 UI，不参与授权。
 
-`ak.open.mimi.query.identifiers` SHOULD 调用 `ak.private_contact_discovery.v1`，按 [`discovery/discovery-directory.md` §6](../discovery/discovery-directory.md) 的 PSI 流程返回 set-membership 命中位图与 invite handoff stub；MUST NOT 返回任何形式的 "reachability proof"——该机制在 v1 已被移除（见 `discovery-directory.md` §6 的 PSI-only 边界），facade 实现 MUST NOT 复活它。`ak.open.mimi.command.request_consent` / `ak.open.mimi.command.update_consent` MUST 映射为 Arkret 的 holder-private consent state（`ak.consent.grant` / `ak.consent.revoke`，详见 [`identity/consent-model.md`](../identity/consent-model.md)）。Consent 不授予 Realm read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。Facade 在两侧 round-trip 时 MUST 保留 `consent_id` 作为 inter-protocol correlation。
+`ak.open.mimi.read.identifiers` SHOULD 调用 `ak.private_contact_discovery.v1`，按 [`discovery/discovery-directory.md` §6](../discovery/discovery-directory.md) 的 PSI 流程返回 set-membership 命中位图与 invite handoff stub；MUST NOT 返回任何形式的 "reachability proof"——该机制在 v1 已被移除（见 `discovery-directory.md` §6 的 PSI-only 边界），facade 实现 MUST NOT 复活它。`ak.open.mimi.command.request_consent` / `ak.open.mimi.command.update_consent` MUST 映射为 Arkret 的 holder-private consent state（`ak.consent.grant` / `ak.consent.revoke`，详见 [`identity/consent-model.md`](../identity/consent-model.md)）。Consent 不授予 Realm read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。Facade 在两侧 round-trip 时 MUST 保留 `consent_id` 作为 inter-protocol correlation。
 
 ## 11. Abuse Report And Proxy Download
 

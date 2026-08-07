@@ -23,7 +23,7 @@ Realm invite 的基础寻址模型是：
 invite_delivery = invite_address + introduction_evidence
 ```
 
-base v1 invite **MUST NOT** 依赖 `ak.find.directory.query.resolve_handle(intent="invite" | "member_add")` 才能投递。Handle 是人类可读入口，不是邀请投递授权；实现不得把猜到的 `<localpart>:<domain>` 字符串自动升级成可投递邀请。用户 MAY 显式发布 handle 并允许 verified handle 作为 first-contact / invite 入口，但接收方仍必须把解析结果归约为 `subject_id`、可验证 handle claim 与 `invite_receive_policy` 判定。
+base v1 invite **MUST NOT** 依赖 `ak.find.directory.read.resolve_handle(intent="invite" | "member_add")` 才能投递。Handle 是人类可读入口，不是邀请投递授权；实现不得把猜到的 `<localpart>:<domain>` 字符串自动升级成可投递邀请。用户 MAY 显式发布 handle 并允许 verified handle 作为 first-contact / invite 入口，但接收方仍必须把解析结果归约为 `subject_id`、可验证 handle claim 与 `invite_receive_policy` 判定。
 
 邀请目标的规范输入是显式 `invite_address`：
 
@@ -314,7 +314,7 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Principal Se
 - `ak.self.invite_locator.command.issue`
 - `ak.self.invite_locator.command.rotate`
 - `ak.self.invite_locator.command.revoke`
-- `ak.open.invite_locator.query.resolve`
+- `ak.open.invite_locator.read.resolve`
 - `ak.peer.invites.command.submit`
 
 它 MAY 在 `x_invite_addressing` 扩展字段中给出粗粒度能力：
@@ -350,7 +350,7 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Principal Se
 }
 ```
 
-Directory 服务若支持 handle lookup，也 MAY 在 `ServiceDescribe` 或 `ak.find.directory.query.describe` 的扩展字段中声明：
+Directory 服务若支持 handle lookup，也 MAY 在 `ServiceDescribe` 或 `ak.find.directory.read.describe` 的扩展字段中声明：
 
 ```json
 {
@@ -365,8 +365,8 @@ base clients MUST NOT require `resolve_handle(intent="invite" | "member_add")` t
 
 ## 9. Handle 与 Mention 边界
 
-`ak.find.directory.query.resolve_handle(intent="contact_request" | "invite" | "member_add")` 是可选 Directory 能力，不是 base first-contact / invite / member-add 的安全关键路径。Directory 即使返回 `member_delivery_binding` 或旧式 `MemberDeliveryBindingCandidate`，也只能作为可验证 builder evidence 或 `handle_claim` introduction evidence；reducer 仍 MUST 按 Join Policy 与 [`member-delivery-binding.md`](../governance/member-delivery-binding.md) 重新物化。
+`ak.find.directory.read.resolve_handle(intent="contact_request" | "invite" | "member_add")` 是可选 Directory 能力，不是 base first-contact / invite / member-add 的安全关键路径。Directory 即使返回 `member_delivery_binding` 或旧式 `MemberDeliveryBindingCandidate`，也只能作为可验证 builder evidence 或 `handle_claim` introduction evidence；reducer 仍 MUST 按 Join Policy 与 [`member-delivery-binding.md`](../governance/member-delivery-binding.md) 重新物化。
 
 Realm 内 mention 不依赖公网 handle resolve。客户端在用户输入 `@alice:acme.example` 时 MUST 先从当前 Realm roster、MemberIdentity subject disclosure、内联 signed `handle_claims[]` 或本地已授权 claim cache 中解析到 `subject_id`。发送 Message 前必须持久化 DID-sealed mention reference；handle 字符串只能作为 audit / search metadata。
 
-已知 `subject_id` 需要显示当前 handle 时，客户端 MAY 使用 roster 内联 `handle_claims[]` 或 `ak.find.directory.query.list_handles_for_subject`。这条 subject -> current handles 路径不得反向用来发现未知主体、发起 invite delivery 或构造 membership grant；只有 holder/issuer 已发布 verified handle claim，且 subject policy 与部署约束允许 `handle_claim` evidence 时，客户端才可把 handle 解析结果作为 first-contact / invite 的 introduction evidence。
+已知 `subject_id` 需要显示当前 handle 时，客户端 MAY 使用 roster 内联 `handle_claims[]` 或 `ak.find.directory.read.list_handles_for_subject`。这条 subject -> current handles 路径不得反向用来发现未知主体、发起 invite delivery 或构造 membership grant；只有 holder/issuer 已发布 verified handle claim，且 subject policy 与部署约束允许 `handle_claim` evidence 时，客户端才可把 handle 解析结果作为 first-contact / invite 的 introduction evidence。

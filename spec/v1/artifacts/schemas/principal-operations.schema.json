@@ -825,7 +825,7 @@
           "const": "ak.self.device_messages.command.send"
         },
         {
-          "const": "ak.self.device_messages.query.list"
+          "const": "ak.self.device_messages.read.list"
         },
         {
           "const": "ak.self.device_messages.command.ack"

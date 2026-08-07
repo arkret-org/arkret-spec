@@ -703,7 +703,7 @@ Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention �
 规则处理：源消息可暴露 ref 与最小 metadata，目标对象内容与 preview 必须重新按
 目标 Realm policy 授权。
 
-客户端 MAY 允许用户输入 handle（例如 `@alice:acme.example`）完成 mention autocomplete；发送前 MUST 从当前 Realm roster、MemberIdentity subject disclosure、内联 signed `handle_claims[]` 或本地已授权 claim cache 解析为 DID，并在结构化 mention 节点中以 `subject_id` 为权威字段保存解析结果。Realm message mention **MUST NOT** 自动调用外部 `ak.find.directory.query.resolve_handle(intent="mention")` 来发现未知主体；已知 `subject_id` 的当前 handle 展示 MAY 使用 roster 内联 claim 或 `ak.find.directory.query.list_handles_for_subject`。handle 字符串本身**不**作为权威字段进入 mention 节点；MAY 携带 §3.8.1 定义的 audit / fallback metadata（`handle_at_time` / `display_name_at_time` / `controller_subject_id` / `controller_handle_at_time` / `agent_slug_at_time` / `mention_text_original`）。授权、通知路由、audit attribution 一律按 `subject_id` 处理。
+客户端 MAY 允许用户输入 handle（例如 `@alice:acme.example`）完成 mention autocomplete；发送前 MUST 从当前 Realm roster、MemberIdentity subject disclosure、内联 signed `handle_claims[]` 或本地已授权 claim cache 解析为 DID，并在结构化 mention 节点中以 `subject_id` 为权威字段保存解析结果。Realm message mention **MUST NOT** 自动调用外部 `ak.find.directory.read.resolve_handle(intent="mention")` 来发现未知主体；已知 `subject_id` 的当前 handle 展示 MAY 使用 roster 内联 claim 或 `ak.find.directory.read.list_handles_for_subject`。handle 字符串本身**不**作为权威字段进入 mention 节点；MAY 携带 §3.8.1 定义的 audit / fallback metadata（`handle_at_time` / `display_name_at_time` / `controller_subject_id` / `controller_handle_at_time` / `agent_slug_at_time` / `mention_text_original`）。授权、通知路由、audit attribution 一律按 `subject_id` 处理。
 
 Native personal agent 不要求拥有公开 handle。客户端 MAY 支持 controller-scoped agent mention selector：
 

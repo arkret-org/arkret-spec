@@ -162,9 +162,9 @@ Message Signature只能额外叠加，不能替代其中任一项。实现 **MUS
 | `ak.self.contact.command.reject` | 独立 proposal terminal reject与 rejection receipt；不得复用 respond body |
 | `ak.self.contact.command.scope_update` | issuer-local full-set replacement |
 | `ak.self.contact.command.tombstone` | accepted basis terminal，旧 refs永久消费 |
-| `ak.self.contact.query.list` | 从 verified basis与双方 directional current heads投影 |
+| `ak.self.contact.read.list` | 从 verified basis与双方 directional current heads投影 |
 | `ak.peer.contacts.command.submit` | closed XOR peer carrier；原 bytes + exact receipt/current proof |
-| `ak.self.direct_conversation.query.resolve` | §9.1 的唯一 DM 查询入口；closed outcome，不携 create phase 分支 |
+| `ak.self.direct_conversation.read.resolve` | §9.1 的唯一 DM 查询入口；closed outcome，不携 create phase 分支 |
 
 `ak.self.direct_conversation.command.resolve` 的 untagged 多 phase create 入口 **MUST** 删除：创建由 §5 的
 `ak.realm.create` founding admission 承担，查询由上表的 `query.resolve` 承担，二者 **MUST NOT** 合并为一个
@@ -388,7 +388,7 @@ binding **MUST NOT** 携带 `binding_state`、`supersedes_binding_ref`、永久 
 
 ### 9.1 resolver 状态
 
-`ak.self.direct_conversation.query.resolve` 是唯一查询入口，其 outcome 为封闭判别联合：
+`ak.self.direct_conversation.read.resolve` 是唯一查询入口，其 outcome 为封闭判别联合：
 
 | state | 条件 |
 | --- | --- |

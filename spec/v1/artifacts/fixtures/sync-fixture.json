@@ -412,7 +412,7 @@
       "code": "cursor_expired",
       "http_status": 410,
       "recovery": {
-        "call": "ak.self.snapshot.query.manifest_head",
+        "call": "ak.self.snapshot.read.manifest_head",
         "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
       }
     }
@@ -436,7 +436,7 @@
         },
         {
           "branch": "snapshot_bootstrap",
-          "call": "ak.self.snapshot.query.manifest_head",
+          "call": "ak.self.snapshot.read.manifest_head",
           "realm_id": "ak:realm:0196419b-0000-8000-8000-000000000000"
         }
       ],
@@ -494,7 +494,8 @@
       "proofs_bind_samples_to_event_set",
       "silent_actor_seq_gaps_reject_snapshot",
       "commitment_root_mismatch_rejects_snapshot",
-      "legacy_unprefixed_root_rejects_snapshot"
+    "legacy_unprefixed_root_rejects_snapshot",
+    "issuer_only_ranges_cannot_prove_an_entire_actor_was_not_omitted"
     ],
     "manifest": {
       "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000001",
@@ -981,14 +982,27 @@
           "reason": "inclusion_proof_failed"
         }
       },
-      {
-        "name": "silent_actor_seq_gap",
-        "mutation": "drop_gap_attribution",
-        "expected": {
-          "decision": "reject",
-          "reason": "inclusion_proof_failed"
-        }
+    {
+      "name": "silent_actor_seq_gap",
+      "mutation": "drop_gap_attribution",
+      "expected": {
+        "decision": "reject",
+        "reason": "inclusion_proof_failed"
       }
+    },
+    {
+      "name": "entire_unknown_actor_omitted_without_independent_witness",
+      "mutation": "omit_actor_and_all_of_its_events_then_recompute_issuer_signature_root_count_and_actor_seq_ranges",
+      "omitted_actor_id": "did:webvh:z6mkfixture:david.example",
+      "issuer_internal_consistency": "valid",
+      "independent_actor_set_witness": null,
+      "raw_replay_completed": false,
+      "expected": {
+        "decision": "reject_high_assurance_snapshot",
+        "completeness_state": "unverified",
+        "reason": "inclusion_proof_failed"
+      }
+    }
     ]
   },
   "account_subscribe_schema_cases": [

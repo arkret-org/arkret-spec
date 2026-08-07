@@ -1,6 +1,7 @@
 {
-  "version": "2026-08-06.9",
+  "version": "2026-08-07",
   "source_of_truth": true,
+  "generated_at": "2026-08-07T05:33:31Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -123,7 +124,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#2-http-传输与编码",
-      "section_digest": "sha256:3ec23767b36add0e8fa7298bc664c428a061a5ad620bb029dc6f2777a9651e44",
+      "section_digest": "sha256:aca52cee693e782906b97d5ae8aa0858fab362cb33381dca6f0172d73ab65873",
       "requirement": "Transport encoding bounds: Content-Encoding is forbidden on non-streaming JSON operations and every size limit MUST be enforced before the body is fully buffered or parsed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -138,7 +139,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#24-operation-id-kindaction-taxonomy",
-      "section_digest": "sha256:c9084fb95911bc5228214304d2b483eefce5bd8338c669c5eab208bd9a585976",
+      "section_digest": "sha256:89d24d810f265cad44040722051b5f31a4da7a4b0f7d9722cedc02f445875d64",
       "requirement": "Every operation_id ends with <kind>.<action> drawn from the closed kind set, and the action MUST describe a protocol effect rather than an HTTP method name.",
       "testability_grade": "api_shape",
       "test_plan": "Enforced mechanically by tools/lint_artifacts.py: every operation_id in operation-registry.json is checked against the closed kind set and against forbidden HTTP-method action names. There is no runtime vector because the obligation is on the published contract, not on request handling."
@@ -160,7 +161,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:1f63ec5019ef9704ab610eab5160afdeca6e7860f528a5acdbcba569cafdc75b",
+      "section_digest": "sha256:f27d6b702b817f835427e532c8dbdf904ab7c52debb6058bfd7b75147a7f40f0",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -175,7 +176,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:718c46794850382c24a1dcb78ea152d5be3f8904f2a8b0f59c090362b42facba",
+      "section_digest": "sha256:bc52e1c34e085da956e36952dfc2c591ebfdf485d884fd26e5c6b7eb82605481",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, encryption floors MUST NOT be downgraded, an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling, every MLS epoch MUST bind the independently re-derived security frontier for its accepted key-access state, and epoch-0 leaf indices MUST be recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -257,7 +258,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:a99e4d44df756bd4a0e82ec104af4a1edbc80fc126a6b45d03169d65a9d4c4ca",
+      "section_digest": "sha256:78ee736c4d561a41cbc5be63fba0f90ad08be96b86042146662878fb6ec8b7a4",
       "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window; cycles over grant refs and inactive refs MUST fail closed rather than widen the effective permission set.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -387,7 +388,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/sync/client-sync.md#10-to-device-delivery",
-      "section_digest": "sha256:2b742ae47296c284954a8f44c6bb6ba823b50e327460c19901f9d5c250ee5c2b",
+      "section_digest": "sha256:bf10b0675445a6e4e505ce80755884d2f1733b5fb16a9d6953aea90210abf01f",
       "requirement": "To-device delivery executes each durable handler effect exactly once: redelivery is deduplicated by sender-scoped message id and queue removal happens only on explicit ack.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -491,6 +492,5 @@
         "ak.vector.mls.governance_proof.verifier.v1"
       ]
     }
-  ],
-  "generated_at": "2026-08-06T16:00:00Z"
+  ]
 }

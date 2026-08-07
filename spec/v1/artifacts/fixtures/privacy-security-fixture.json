@@ -47,7 +47,7 @@
     {
       "vector_id": "ak.vector.directory.invite_not_found_blinding.v1",
       "name": "hidden_realm_resolve_indistinguishable",
-      "operation_id": "ak.find.directory.query.resolve_realm",
+      "operation_id": "ak.find.directory.read.resolve_realm",
       "inputs": [
         {
           "label": "missing",
@@ -93,7 +93,7 @@
     {
       "vector_id": "ak.vector.directory.resolve_handle_failure_blinding.v1",
       "name": "resolve_handle_failure_blinding",
-      "operation_id": "ak.find.directory.query.resolve_handle",
+      "operation_id": "ak.find.directory.read.resolve_handle",
       "inputs": [
         {
           "label": "missing_handle",
@@ -139,7 +139,7 @@
     {
       "vector_id": "ak.vector.directory.resolve_agent_selector_failure_blinding.v1",
       "name": "resolve_agent_selector_failure_blinding",
-      "operation_id": "ak.find.directory.query.resolve_agent_selector",
+      "operation_id": "ak.find.directory.read.resolve_agent_selector",
       "inputs": [
         {
           "label": "missing_selector",
@@ -188,7 +188,7 @@
     {
       "vector_id": "ak.vector.psi.padding_and_cardinality.v1",
       "name": "private_contact_discovery_padding_and_cardinality",
-      "operation_id": "ak.find.directory.query.private_contact_discovery",
+      "operation_id": "ak.find.directory.read.private_contact_discovery",
       "input": {
         "local_real_identifier_count": 2,
         "private_contact_discovery_config": {
@@ -262,7 +262,7 @@
     {
       "vector_id": "ak.vector.psi.quota_blinded_denial.v1",
       "name": "private_contact_discovery_quota_blind_phase_denial",
-      "operation_id": "ak.find.directory.query.private_contact_discovery",
+      "operation_id": "ak.find.directory.read.private_contact_discovery",
       "input": {
         "private_contact_discovery_config": {
           "profile": "ak.private_contact_discovery.v1",
@@ -348,12 +348,12 @@
     {
       "name": "directory_query_and_ingest_vector_closure",
       "operation_ids": [
-        "ak.find.directory.query.search_realms",
-        "ak.find.directory.query.resolve_realm",
-        "ak.find.directory.query.resolve_target",
+        "ak.find.directory.read.search_realms",
+        "ak.find.directory.read.resolve_realm",
+        "ak.find.directory.read.resolve_target",
         "ak.find.directory.command.announce",
         "ak.find.directory.command.withdraw",
-        "ak.find.directory.query.private_contact_discovery"
+        "ak.find.directory.read.private_contact_discovery"
       ],
       "covers_vectors": [
         "ak.vector.directory.public_realm_search.v1",
@@ -560,7 +560,7 @@
           {
             "surface": "directory_search",
             "profile": "ak.profile.directory_service.v1",
-            "operation_id": "ak.find.directory.query.search_realms",
+            "operation_id": "ak.find.directory.read.search_realms",
             "payload": {
               "realm_id": "ak:realm:01970e58-9d26-8000-8000-000000000001",
               "title": "Launch calendar",

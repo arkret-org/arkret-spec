@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06.16",
+  "version": "2026-08-07",
   "source_of_truth": false,
-  "generated_at": "2026-08-07T02:30:00Z",
+  "generated_at": "2026-08-07T05:33:31Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -724,7 +724,7 @@
       "schema_id": "ak.schema.did_webvh_witness_receipt.v1",
       "file": "schemas/did-webvh-witness-receipt.schema.json",
       "status": "active",
-      "description": "Arkret-layer record that a named did:webvh witness was observed attesting a specific log versionId. Separate object family from ak.schema.identity_receipt.v1, whose witness_role describes a DID registry consensus role rather than a method-native witness; both are returned by ak.root.identity.receipts.query.list as a tagged union discriminated on schema. Never substitutes for verifying the standard did-witness.json proofs."
+      "description": "Arkret-layer record that a named did:webvh witness was observed attesting a specific log versionId. Separate object family from ak.schema.identity_receipt.v1, whose witness_role describes a DID registry consensus role rather than a method-native witness; both are returned by ak.root.identity.receipts.read.list as a tagged union discriminated on schema. Never substitutes for verifying the standard did-witness.json proofs."
     },
     {
       "schema_id": "ak.schema.identity_link.v1",
@@ -1009,7 +1009,7 @@
       "schema_id": "ak.schema.service_describe.v1",
       "file": "schemas/service-describe.schema.json",
       "status": "active",
-      "description": "Canonical ServiceDescribe response for ak.server.query.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces) and the registered directory_service overlay fields used by ak.find.directory.query.describe. Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
+      "description": "Canonical ServiceDescribe response for ak.server.read.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces) and the registered directory_service overlay fields used by ak.find.directory.read.describe. Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
     },
     {
       "schema_id": "ak.schema.transport_binding.v1",

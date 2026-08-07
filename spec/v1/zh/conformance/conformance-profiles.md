@@ -315,7 +315,7 @@ SHOULD 支持：
 
 MUST 支持：
 
-- service describe（`ak.server.query.describe`）
+- service describe（`ak.server.read.describe`）
 - `ak.gate.account.command.issue_session_grant` / `/_arkret/gate/account/session-grants` 的规范化签发路径
 - 至少一种登录因子（password / passkey / OIDC / SSO / device pairing / recovery challenge）
 - 短期、audience-bound `ak.session.grant` 签发
@@ -328,7 +328,7 @@ SHOULD 支持：
 - session-grant introspection 与 revocation
 - `ak.gate.account.command.issue_session_grant` 规范化 HTTP binding
 - 采用 account-first onboarding 时，完整实现 `ak.gate.account.exchange.create_handoff` → `ak.gate.account.command.issue_identity_binding_challenge` → `ak.gate.account.command.register`；不得以私有 endpoint、普通 OAuth bearer 或进程内 challenge store 替代
-- `ak.self.policy.query.check`（`PolicyCheckOutcome`）
+- `ak.self.policy.read.check`（`PolicyCheckOutcome`）
 - 多 principal-server delegation target 配置
 - DID binding / claim attestation
 
@@ -480,7 +480,7 @@ MUST 支持：
 - 跨域事件审计
 - grant / invite / membership 撤销
 - 外部成员移除后 MLS epoch 轮换
-- sender-constrained（proof-of-possession）会话出示：常规写与敏感读 MUST 用 `session_public_key` 的 RFC 9421 HTTP Message Signature 出示（见下文与 `conformance-profiles.json#profile_requirements` 的 `additional_requirements.sender_constrained_session_pop_must`），纯 `Authorization: Bearer`（无 `Signature`）对这些操作 MUST 被拒绝
+- sender-constrained（proof-of-possession）会话出示：所有受保护 `ak.self.*` operation MUST 用 `session_public_key` 的 RFC 9421 HTTP Message Signature 出示（见下文与 `conformance-profiles.json#profile_requirements` 的 `additional_requirements.sender_constrained_session_pop_must`），纯 `Authorization: Bearer`（无 `Signature`）对这些操作 MUST 被拒绝
 
 MUST NOT：
 
@@ -500,15 +500,15 @@ SHOULD 支持：
 
 ### 15.1 Sender-constrained 会话出示
 
-依据 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Arkret v1 production protected endpoint 的会话出示必须是 proof-of-possession（PoP）：`/_arkret/self/*` 使用 `ak.session.grant` + DPoP，常规写与敏感读使用会话 `session_public_key` 的 RFC 9421 HTTP Message Signature 或等价 sender-constrained proof。裸 `Authorization: Bearer` 可作为 DPoP / PoP 绑定中的 grant 载体，但不能单独作为受保护 endpoint 的认证成功依据（见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md)）。
+依据 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Arkret v1 production protected endpoint 的会话出示必须是 proof-of-possession（PoP）：`/_arkret/self/*` 使用 `ak.session.grant` + DPoP；高安全 profile 的所有受保护 `ak.self.*` operation 进一步使用会话 `session_public_key` 的 RFC 9421 HTTP Message Signature。裸 `Authorization: Bearer` 可作为 DPoP / PoP 绑定中的 grant 载体，但不能单独作为受保护 endpoint 的认证成功依据（见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md)）。
 
-在高安全 deployment profile 下，常规写与敏感读的 sender-constrained 出示必须使用 RFC 9421 HTTP Message Signature 形态并绑定 transcript/body。涉及的 profile 与其 `conformance-profiles.json#profile_requirements` 中的 `additional_requirements.sender_constrained_session_pop_must` 一一对应：
+在高安全 deployment profile 下，所有受保护 `ak.self.*` operation 的 sender-constrained 出示必须使用 RFC 9421 HTTP Message Signature 形态并绑定 transcript/body。涉及的 profile 与其 `conformance-profiles.json#profile_requirements` 中的 `additional_requirements.sender_constrained_session_pop_must` 一一对应：
 
 - `ak.profile.high_security_organization.v1`
 - `ak.profile.sovereign_deployment.v1`（`ak.profile.sovereign_enclave.v1` 经 `inherits` 继承）
 - `ak.profile.isolated_sovereign_network.v1`（经 `inherits` 同时继承上述两者，无需重复声明）
 
-这些 profile 下，对常规写（任何推进 `actor_seq` / Realm frontier 或产生持久副作用的请求）与敏感读，实现 MUST 要求 RFC 9421 PoP 出示：签名密钥为 `ak.session.grant` 委托的 `session_public_key`，覆盖 `@method` / `@target-uri` / `@authority`、`content-digest`（带 body 时）与参与幂等的 `Idempotency-Key`，`created` / `expires` 落在既有 replay window 内（量级见 [`../sync/federation.md` §3.2](../sync/federation.md) 与 [`encoding.md` §6](./encoding.md)）。带 body 请求的 exact canonical HTTP content bytes、唯一 RFC 9530 `sha-256` token 与 raw-byte verification MUST 遵循 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md)。纯 `Authorization: Bearer`（无 DPoP / `Signature` / mTLS 绑定）对任何生产 current-v1 受保护 endpoint MUST 被拒绝；公开 metadata surface 若返回 public response，必须按未认证请求处理，不得授予 session / capability 语义。PoP header 形态见 [`../sync/service-http-binding.md` §2.5.2](../sync/service-http-binding.md)。
+这些 profile 下，对所有受保护 `ak.self.*` operation，实现 MUST 要求 RFC 9421 PoP 出示：签名密钥为 `ak.session.grant` 委托的 `session_public_key`，覆盖 `@method` / `@target-uri` / `@authority`、`content-digest`（带 body 时）与参与幂等的 `Idempotency-Key`，`created` / `expires` 落在既有 replay window 内（量级见 [`../sync/federation.md` §3.2](../sync/federation.md) 与 [`encoding.md` §6](./encoding.md)）。`ak.self.` 是机器可判定的默认保护面；新增或未知 operation 默认 fail closed。带 body 请求的 exact canonical HTTP content bytes、唯一 RFC 9530 `sha-256` token 与 raw-byte verification MUST 遵循 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md)。纯 `Authorization: Bearer`（无 DPoP / `Signature` / mTLS 绑定）对任何生产 current-v1 受保护 endpoint MUST 被拒绝；operation registry 明确允许匿名 public metadata projection 时，无有效 proof 只能返回该公开 projection，必须按未认证请求处理，不得授予 session / capability 语义。PoP header 形态见 [`../sync/service-http-binding.md` §2.5.2](../sync/service-http-binding.md)。
 
 ## 16. Sovereign Client
 
@@ -580,7 +580,7 @@ Deployment profile 用于发布与验收，不替代实现 profile。完整 depl
 - auditable E2EE 或受控 plaintext-visible boundary
 - break-glass audit
 - server ACL 和 quarantine
-- sender-constrained（PoP）会话出示：常规写与敏感读 MUST 用 `session_public_key` 的 RFC 9421 HTTP Message Signature 出示；生产 current-v1 受保护 endpoint 对裸 bearer 的拒绝规则见 §15.1
+- sender-constrained（PoP）会话出示：所有受保护 `ak.self.*` operation MUST 用 `session_public_key` 的 RFC 9421 HTTP Message Signature 出示；生产 current-v1 受保护 endpoint 对裸 bearer 的拒绝规则见 §15.1
 
 `ak.profile.isolated_sovereign_network.v1` MUST cover：
 

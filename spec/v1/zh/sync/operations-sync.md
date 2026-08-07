@@ -364,7 +364,7 @@ Snapshot 后续恢复流程：
 
 ## 11. 首次加入 Realm
 
-**加入提交目标（normative）**：跨域加入时"向哪台服务提交 join material"的唯一权威来源是 `ak.find.directory.query.resolve_realm` / `ak.find.directory.query.resolve_target` / signed invite metadata 返回的 `join_candidates[]`（规范定义见 [`federation.md` §5.0](./federation.md)）。客户端 / 提交服务 MUST NOT 从 Realm ID、邀请者所在 Principal Server、被邀请者自己的 Principal Server 或 URL 路由提示推导加入提交目标；所有重试 MUST 绑定同一 canonical `realm_id`。
+**加入提交目标（normative）**：跨域加入时"向哪台服务提交 join material"的唯一权威来源是 `ak.find.directory.read.resolve_realm` / `ak.find.directory.read.resolve_target` / signed invite metadata 返回的 `join_candidates[]`（规范定义见 [`federation.md` §5.0](./federation.md)）。客户端 / 提交服务 MUST NOT 从 Realm ID、邀请者所在 Principal Server、被邀请者自己的 Principal Server 或 URL 路由提示推导加入提交目标；所有重试 MUST 绑定同一 canonical `realm_id`。
 
 推荐流程：
 

@@ -150,7 +150,7 @@ GET /_arkret/describe
     "ak.profile.principal_server.v1"
   ],
   "supported_operations": [
-    "ak.server.query.describe",
+    "ak.server.read.describe",
     "ak.self.events.command.submit",
     "ak.self.events.read.scan",
     "ak.peer.events.command.submit",
@@ -158,12 +158,12 @@ GET /_arkret/describe
     "ak.peer.events.read.resolve",
     "ak.peer.events.read.frontier",
     "ak.peer.invites.command.submit",
-    "ak.peer.snapshot.query.manifest_head",
+    "ak.peer.snapshot.read.manifest_head",
     "ak.self.invite_locator.command.issue",
     "ak.self.invite_locator.command.rotate",
     "ak.self.invite_locator.command.revoke",
-    "ak.open.invite_locator.query.resolve",
-    "ak.self.account.query.viewer",
+    "ak.open.invite_locator.read.resolve",
+    "ak.self.account.read.viewer",
     "ak.self.account.command.update_profile",
     "ak.self.account.stream.subscribe"
   ],
@@ -172,8 +172,8 @@ GET /_arkret/describe
       "kind": "http_json",
       "base_url": "https://alice.example.net",
       "operations": [
-        "ak.server.query.describe",
-        "ak.self.account.query.viewer",
+        "ak.server.read.describe",
+        "ak.self.account.read.viewer",
         "ak.self.account.stream.subscribe"
       ],
       "extension_profile_required": null
@@ -322,7 +322,7 @@ GET /_arkret/describe
 `directory/describe` / `applet/describe`）响应 MUST 使用同一个 canonical `ServiceDescribe` shape。除 `service_id`、`trust_domain`、`service_kind`、`protocol_version`、`supported_profiles`、`supported_operations`、`supported_bindings`、`supported_features`、`auth_metadata`、`limits`、`plaintext_visibility` 和 `rate_limit_policy` / `rate_limit_policy_id` 之外，响应还 MUST 按 **claim level** 区分以下字段；schema 见
 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)（`ak.schema.service_describe.v1`）：
 
-当 `service_kind=directory_service` 时，`ak.find.directory.query.describe` 还 MUST 按 [`discovery-directory.md` §8.9](../discovery/discovery-directory.md#89-akfinddirectoryquerydescribe-扩展) 暴露已登记在 `ServiceDescribe` schema 中的 directory-specific 裸字段（例如 `resource_kinds[]`、`discovery_profiles[]`、`ingest_modes`、`accept_policy_kind`、TTL 与 `rate_limits` 字段）；这些字段不是 vendor-specific `x_*` 扩展。
+当 `service_kind=directory_service` 时，`ak.find.directory.read.describe` 还 MUST 按 [`discovery-directory.md` §8.9](../discovery/discovery-directory.md#89-akfinddirectoryreaddescribe-扩展) 暴露已登记在 `ServiceDescribe` schema 中的 directory-specific 裸字段（例如 `resource_kinds[]`、`discovery_profiles[]`、`ingest_modes`、`accept_policy_kind`、TTL 与 `rate_limits` 字段）；这些字段不是 vendor-specific `x_*` 扩展。
 
 - `supported_operations: operation_id[]` — 该 endpoint 可被实际调用的 operation_id。仅表示 wire 可达，
   不构成 profile claim。元素 SHOULD 命中 `operation-registry.json` 注册项。
@@ -414,7 +414,7 @@ generic 形态的 digest、hash chain 与 proof transcript 的唯一规范定义
 - Verifier 顺序固定：先重算并 constant-time 比对 `head_event_digest` 与 `proof.payload_digest`，再构造 binding object 并验证 detached JWS；任一步失败 MUST 拒绝该 entry 及其后续链段。实现 MUST NOT 用字段拼接字符串、裸 hex 或任何非 canonical JSON 形态替代上述 transcript。
 - 签名者授权：`proofs[]` 的 `verification_method` MUST 按该 DID method 的原生控制规则验证；不得把“上一 entry 的 key 验下一 entry”当成通用规则。`seq=0` 由该 entry 声明的 cold identity root 自签。对启用 pre-rotation 的 did:webvh，entry N 的 proof 必须由 **entry N 当前显式 `updateKeys`** 验证，且当前 key 的 canonical multikey hash 必须命中 entry N-1 的 `nextKeyHashes`；省略当前 `updateKeys`、沿用 previous key、复用 spent key均拒绝。其它 method 依其注册 adapter 的 update/recovery 规则。registry host MUST NOT 以自身 key 代替 controller 签名；registry / witness 对 head 状态的背书走 identity receipt，不进入 entry `proofs[]`。
 
-did method 原生日志有更强互操作格式时 MAY 直接返回该 method 的原生 accepted log entry，例如 `did:webvh` 的 Data Integrity proof 日志；这种服务 MUST 在 `describe.experimental_features[]` 中声明对应 feature id（例如 `ak.feature.identity.webvh_native_log.v1`），并且 `operation_body` / proof 语义 MUST 可按该 DID method 的规范重建同一 DID Document head。未声明该 experimental feature 的 `ak.root.identity.log.query.list` 响应仍 MUST 使用 `did-key-log-entry.schema.json`。
+did method 原生日志有更强互操作格式时 MAY 直接返回该 method 的原生 accepted log entry，例如 `did:webvh` 的 Data Integrity proof 日志；这种服务 MUST 在 `describe.experimental_features[]` 中声明对应 feature id（例如 `ak.feature.identity.webvh_native_log.v1`），并且 `operation_body` / proof 语义 MUST 可按该 DID method 的规范重建同一 DID Document head。未声明该 experimental feature 的 `ak.root.identity.log.read.list` 响应仍 MUST 使用 `did-key-log-entry.schema.json`。
 
 #### 3.1.4 提交 DID 更新
 
@@ -549,10 +549,10 @@ Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视�
 
 本节定义 account 与 snapshot 两类操作（事件流读取请到 Events Surface）：
 
-- `GET /_arkret/self/account/viewer`：当前 holder 的账号主体自读（`ak.self.account.query.viewer`）。响应使用 signed handle claim / ref / digest，不把未签名裸 `handle` 作为账号权威字段。
+- `GET /_arkret/self/account/viewer`：当前 holder 的账号主体自读（`ak.self.account.read.viewer`）。响应使用 signed handle claim / ref / digest，不把未签名裸 `handle` 作为账号权威字段。
 - `POST /_arkret/self/account/profile`：当前账号 profile 更新（`ak.self.account.command.update_profile`）。patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；字段语义以 [`profiles-presence.md` §2.2](../discovery/profiles-presence.md) 为准。
 - `GET /_arkret/self/account/subscribe`：客户端账号视角聚合同步（`ak.self.account.stream.subscribe`），见 `client-sync.md`。
-- `GET /_arkret/self/account/describe`：account aggregate service describe（`ak.self.account.query.describe`）。
+- `GET /_arkret/self/account/describe`：account aggregate service describe（`ak.self.account.read.describe`）。
 - `POST /_arkret/self/account/cursor/revoke`：撤销账号聚合订阅 cursor（`ak.self.account.command.revoke_cursor`）。
 - `GET /_arkret/self/snapshot/head`：snapshot manifest 入口。
 
@@ -580,7 +580,7 @@ POST /_arkret/self/account/cursor/revoke
 GET /_arkret/self/snapshot/head?realm_id=<id>
 ```
 
-用于拿到当前推荐 snapshot manifest：响应即完整 `ak.schema.snapshot.v1` manifest（不含 chunk bytes），chunk bytes 经 manifest `chunks[].chunk_ref` 走 blob surface 获取。v1 的 `snapshot` namespace 仅 `ak.self.snapshot.query.manifest_head` 一个 canonical operation；snapshot manifest 与 chunk 的防投毒校验流程见 §11。无法产出真实签名 manifest 的部署 MUST NOT 宣告本操作并 MUST 返回 `not_implemented`，不得伪造证明字段。
+用于拿到当前推荐 snapshot manifest：响应即完整 `ak.schema.snapshot.v1` manifest（不含 chunk bytes），chunk bytes 经 manifest `chunks[].chunk_ref` 走 blob surface 获取。v1 的 `snapshot` namespace 仅 `ak.self.snapshot.read.manifest_head` 一个 canonical operation；snapshot manifest 与 chunk 的防投毒校验流程见 §11。无法产出真实签名 manifest 的部署 MUST NOT 宣告本操作并 MUST 返回 `not_implemented`，不得伪造证明字段。
 
 ### 5.3 Event / Seal 状态与 Bottom 暴露
 

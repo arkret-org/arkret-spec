@@ -288,11 +288,11 @@
         },
         "limited": {
           "type": "boolean",
-          "description": "True when this account subscribe to_device batch is truncated because the device queue exceeds the stream frame budget. When true, `next_cursor` is REQUIRED and the client MUST continue with ak.self.device_messages.query.list?after=<next_cursor>; the top-level account stream cursor MUST NOT be used as the to-device queue pagination cursor."
+          "description": "True when this account subscribe to_device batch is truncated because the device queue exceeds the stream frame budget. When true, `next_cursor` is REQUIRED and the client MUST continue with ak.self.device_messages.read.list?after=<next_cursor>; the top-level account stream cursor MUST NOT be used as the to-device queue pagination cursor."
         },
         "next_cursor": {
           "$ref": "#/$defs/cursor_value",
-          "description": "Read-only to-device queue continuation cursor for ak.self.device_messages.query.list?after=... . It is not an acknowledgement and MUST NOT delete queued messages; queue deletion happens only through `ack_token` passed to ak.self.device_messages.command.ack."
+          "description": "Read-only to-device queue continuation cursor for ak.self.device_messages.read.list?after=... . It is not an acknowledgement and MUST NOT delete queued messages; queue deletion happens only through `ack_token` passed to ak.self.device_messages.command.ack."
         }
       },
       "allOf": [
@@ -703,7 +703,7 @@
         },
         "handle_claims": {
           "type": "array",
-          "description": "Optional inline signed handle claim evidence. MUST be omitted unless subject_id is disclosed, and every included claim MUST have claim.subject equal to subject_id. Services may omit this for privacy, size, or freshness; clients can backfill by subject via ak.find.directory.query.list_handles_for_subject.",
+          "description": "Optional inline signed handle claim evidence. MUST be omitted unless subject_id is disclosed, and every included claim MUST have claim.subject equal to subject_id. Services may omit this for privacy, size, or freshness; clients can backfill by subject via ak.find.directory.read.list_handles_for_subject.",
           "items": {
             "$ref": "./handle-claim.schema.json"
           }

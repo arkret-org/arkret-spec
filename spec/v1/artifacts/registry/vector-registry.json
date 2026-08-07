@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-07",
+  "version": "2026-08-07.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-07T00:00:00Z",
+  "generated_at": "2026-08-07T06:13:07Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4955,7 +4955,7 @@
       "applies_to_fixtures": [
         "auth-session-proof-fixture.json"
       ],
-      "description": "Production current-v1 protected endpoints MUST reject bare Authorization: Bearer unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof; high-security profiles additionally require RFC 9421 PoP for regular writes / sensitive reads; a PoP signature whose created/expires falls outside the replay window MUST be rejected.",
+      "description": "Production current-v1 protected endpoints MUST reject bare Authorization: Bearer unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof; high-security profiles additionally require RFC 9421 PoP for every protected ak.self.* operation; a PoP signature whose created/expires falls outside the replay window MUST be rejected.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"

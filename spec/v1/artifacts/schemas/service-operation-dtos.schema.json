@@ -735,7 +735,7 @@
     },
     "AuthzCheckRequestBody": {
       "type": "object",
-      "description": "ak.self.authz.query.check input — local capability projection / preflight / diagnostic query. `resource` is optional because some actions (e.g. `ak.realm.create`, identity-scoped actions) have no Realm-bound target. The result is not a signed Policy Server decision and MUST NOT be used as Event auth_context, reducer accept proof, or cross-service authorization fact; dynamic policy obligations use ak.self.policy.query.check.\n",
+      "description": "ak.self.authz.read.check input — local capability projection / preflight / diagnostic query. `resource` is optional because some actions (e.g. `ak.realm.create`, identity-scoped actions) have no Realm-bound target. The result is not a signed Policy Server decision and MUST NOT be used as Event auth_context, reducer accept proof, or cross-service authorization fact; dynamic policy obligations use ak.self.policy.read.check.\n",
       "required": [
         "actor_id",
         "action"
@@ -762,7 +762,7 @@
     },
     "AuthzCheckOutcome": {
       "type": "object",
-      "description": "ak.self.authz.query.check diagnostic/preflight decision. See zh/authz/capabilities.md §18. This shape may include freshness and obligation hints, but any obligation that affects reducer admission or external state MUST be re-issued and signed through PolicyCheckOutcome.",
+      "description": "ak.self.authz.read.check diagnostic/preflight decision. See zh/authz/capabilities.md §18. This shape may include freshness and obligation hints, but any obligation that affects reducer admission or external state MUST be re-issued and signed through PolicyCheckOutcome.",
       "required": [
         "decision"
       ],
@@ -2397,7 +2397,7 @@
     },
     "EventsDescribeRequestBody": {
       "type": "object",
-      "description": "Canonical QUERY content for ak.self.events.read.describe. GET compatibility bindings map the same properties to URI query parameters.",
+      "description": "QUERY content for ak.self.events.read.describe.",
       "properties": {
         "actor_id": {
           "$ref": "#/$defs/ActorDid"
@@ -2410,7 +2410,7 @@
     },
     "EventsFrontierRequestBody": {
       "type": "object",
-      "description": "Canonical QUERY content for ak.self.events.read.frontier. Exactly the same selector semantics apply to the GET compatibility binding.",
+      "description": "QUERY content for ak.self.events.read.frontier.",
       "anyOf": [
         {
           "required": [
@@ -2458,7 +2458,7 @@
     },
     "EventsQueryPostRequestBody": {
       "type": "object",
-      "description": "Canonical QUERY content for ak.self.events.read.scan and ak.peer.events.read.scan. The historical name is retained as a schema identifier for generated-code compatibility; POST is only a compatibility binding.",
+      "description": "QUERY content for ak.self.events.read.scan and ak.peer.events.read.scan.",
       "additionalProperties": false,
       "anyOf": [
         {
@@ -2524,7 +2524,7 @@
     },
     "EventsQueryOutcome": {
       "type": "object",
-      "description": "Result of ak.self.events.read.scan across its canonical QUERY binding and GET/POST compatibility bindings. Ordering follows the \"近邻先返回\" rule unless `order` was explicitly set on the request; see service-http-binding.md §3.3.3.",
+      "description": "Result of ak.self.events.read.scan. Ordering follows the \"近邻先返回\" rule unless `order` was explicitly set on the request; see service-http-binding.md §3.3.3.",
       "required": [
         "events",
         "has_more"
@@ -3134,7 +3134,7 @@
     },
     "IdentityLogListOutcome": {
       "type": "object",
-      "description": "Result of ak.root.identity.log.query.list — paginated DID key-log entries for the requested DID.",
+      "description": "Result of ak.root.identity.log.read.list — paginated DID key-log entries for the requested DID.",
       "required": [
         "events",
         "has_more"
@@ -3158,7 +3158,7 @@
     },
     "IdentityReceiptListOutcome": {
       "type": "object",
-      "description": "Result of ak.root.identity.receipts.query.list. receipts[] is a tagged union over two distinct object families discriminated by their schema constant: ak.schema.identity_receipt.v1 records a role inside a DID registry consensus group (writer / witness / replica) and binds seq + head_event_digest, while ak.schema.did_webvh_witness_receipt.v1 records a did:webvh method witness observed at a specific versionId. The two say different things with the same English word, so the discriminator is mandatory and a verifier MUST branch on it rather than infer intent from which optional fields happen to be present.",
+      "description": "Result of ak.root.identity.receipts.read.list. receipts[] is a tagged union over two distinct object families discriminated by their schema constant: ak.schema.identity_receipt.v1 records a role inside a DID registry consensus group (writer / witness / replica) and binds seq + head_event_digest, while ak.schema.did_webvh_witness_receipt.v1 records a did:webvh method witness observed at a specific versionId. The two say different things with the same English word, so the discriminator is mandatory and a verifier MUST branch on it rather than infer intent from which optional fields happen to be present.",
       "required": [
         "receipts"
       ],
@@ -3252,7 +3252,7 @@
     },
     "PolicyCheckRequestBody": {
       "type": "object",
-      "description": "ak.self.policy.query.check input bound to a Realm authorization context.",
+      "description": "ak.self.policy.read.check input bound to a Realm authorization context.",
       "required": [
         "request_id",
         "realm_id",
@@ -3322,7 +3322,7 @@
     },
     "PolicyCheckOutcome": {
       "type": "object",
-      "description": "Result of ak.self.policy.query.check — signed decision bound to authorization, policy, and membership frontier hashes.",
+      "description": "Result of ak.self.policy.read.check — signed decision bound to authorization, policy, and membership frontier hashes.",
       "required": [
         "request_id",
         "bound_to",

@@ -28,7 +28,7 @@ Arkret 协议核心定义的是：
 libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供。本规范当前定义的
 第一个可选 profile 是 [`ak.profile.binding.websocket.v1`](./websocket-binding.md)。
 
-> Rationale: HTTP/JSON 是 core normative surface（`arkret-service-api.openapi.yaml` ~70 KB
+> Rationale: HTTP/JSON 是 core normative surface（完整契约见 `arkret-service-api.openapi.yaml`
 > 完整描述）。gRPC / WebSocket / MQ / libp2p 由独立 binding extension profile 单独 normative
 > 化，避免在 core 中只给几行说明就声称 transport-agnostic。Sync stream / events feed 的事件
 > 驱动语义可由独立 AsyncAPI 描述补充，但不改变 core 锁定。
@@ -77,9 +77,9 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 
 | Operation | 语义 |
 | --- | --- |
-| `ak.server.query.describe` | 返回服务 DID、service type、profile、feature、binding 与限制。 |
-| `ak.root.identity.query.resolve` | 解析 DID，返回 DID document 与 normalized principal view。 |
-| `ak.root.identity.log.query.list` | 获取 DID key log。 |
+| `ak.server.read.describe` | 返回服务 DID、service type、profile、feature、binding 与限制。 |
+| `ak.root.identity.read.resolve` | 解析 DID，返回 DID document 与 normalized principal view。 |
+| `ak.root.identity.log.read.list` | 获取 DID key log。 |
 | `ak.root.identity.command.submit_did_operation` | 提交 DID 更新操作。 |
 | `ak.self.events.command.submit` | 提交 signed Event Envelope。 |
 | `ak.self.events.resource.get` | 按 ID 读取单个 Event。 |
@@ -95,29 +95,29 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.gate.account.command.cancel_device_bootstrap` | 取消同一typed bootstrap transaction；bootstrap bearer+DPoP、closed response、exact replay/conflict。 |
 | `ak.self.contact.command.scope_update` | Contact issuer-local signed full-set scope replacement，固定`phase=prepare|commit`。 |
 | `ak.self.agent.participation.resource.replace` | controller 通过 bearer+DPoP 在自己的 Account Authority 原子替换一个 versioned per-scope selection；不产生 Realm Event、不走 peer relay。 |
-| `ak.peer.snapshot.query.manifest_head` | federation peer 获取 snapshot-assisted bootstrap 的 manifest head。 |
-| `ak.self.account.query.viewer` | 当前 holder 的账号主体自读；响应使用 signed handle claim / ref / digest。 |
+| `ak.peer.snapshot.read.manifest_head` | federation peer 获取 snapshot-assisted bootstrap 的 manifest head。 |
+| `ak.self.account.read.viewer` | 当前 holder 的账号主体自读；响应使用 signed handle claim / ref / digest。 |
 | `ak.self.account.command.update_profile` | 当前账号 profile 更新；`bio` 映射到 `profile_fields.bio`。 |
 | `ak.self.account.stream.subscribe` | 客户端账号视角聚合同步入口；HTTP binding 使用 `AccountSubscribeFrame` NDJSON account-aggregate frame stream。 |
 | `ak.gate.account.exchange.create_handoff` | OIDC code 换 DPoP-bound account handoff，并返回 binding / identity-creation lease 状态；不是 session grant。 |
 | `ak.gate.account.command.issue_identity_binding_challenge` | 为当前 handoff lease 保留完整 DID operation，并签发服务端持久化的一次性 root-control challenge。 |
 | `ak.gate.account.command.register` | 注册 / account binding；account-first 分支内部发布客户端签名的 DID inception 并按 account/principal/operation digest 幂等绑定；不接受裸 `handle` 或 root secret。 |
 | `ak.gate.account.command.revoke_session` | 撤销 session grant；不撤销 device authorization。 |
-| `ak.find.directory.query.search_realms` / `ak.find.directory.query.search_organizations` / `ak.find.directory.query.search_actors` / `ak.find.directory.query.search_users` | 授权搜索 Realm / Organization / Actor，以及用户目录条目（actor profile / handle 视图）。 |
-| `ak.find.directory.query.resolve_realm` / `ak.find.directory.query.resolve_organization` / `ak.find.directory.query.resolve_handle` / `ak.find.directory.query.resolve_agent_selector` / `ak.find.directory.query.list_handles_for_subject` | 精确解析 Realm / Organization / handle / controller-scoped agent selector，以及列出已知 subject 的当前可见 handle claims。 |
+| `ak.find.directory.read.search_realms` / `ak.find.directory.read.search_organizations` / `ak.find.directory.read.search_actors` / `ak.find.directory.read.search_users` | 授权搜索 Realm / Organization / Actor，以及用户目录条目（actor profile / handle 视图）。 |
+| `ak.find.directory.read.resolve_realm` / `ak.find.directory.read.resolve_organization` / `ak.find.directory.read.resolve_handle` / `ak.find.directory.read.resolve_agent_selector` / `ak.find.directory.read.list_handles_for_subject` | 精确解析 Realm / Organization / handle / controller-scoped agent selector，以及列出已知 subject 的当前可见 handle claims。 |
 | `ak.find.directory.command.announce` / `ak.find.directory.command.withdraw` / `ak.find.directory.push.command.register` | Discovery ingest：资源向 Directory 推送签名 discovery state、撤销 opt-in、或注册 pull-mode webhook 通知。详见 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8。 |
 | `ak.self.blob.upload.create` | 上传 blob。 |
 | `ak.self.blob.resource.get` | 获取 blob 或下载授权。 |
 | `ak.edge.push.command.register_device` | 注册推送设备和推送网关。 |
 | `ak.edge.push.command.notify` | 投递脱敏唤醒。 |
-| `ak.self.authz.query.check` | 检查 capability / policy 是否允许动作。 |
-| `ak.self.policy.query.check` | 调用 Policy Server 获取签名决策。 |
+| `ak.self.authz.read.check` | 检查 capability / policy 是否允许动作。 |
+| `ak.self.policy.read.check` | 调用 Policy Server 获取签名决策。 |
 | `ak.self.moderation.command.report` | 提交内容或行为举报。 |
 | `ak.edge.applet.command.transaction` | 向 Applet 推送事件批次。 |
-| `ak.edge.applet.query.describe` | 查询 Applet profile、namespace 与限制。 |
+| `ak.edge.applet.read.describe` | 查询 Applet profile、namespace 与限制。 |
 | `ak.self.device_messages.command.send` | 将 to-device message 批次放入目标设备短期队列；HTTP binding 是 `POST /_arkret/self/device_messages`，因其语义是 send/fanout command，而不是 URI 资源替换。 |
-| `ak.self.keys.upload.create` / `ak.self.keys.query.lookup` / `ak.self.keys.command.claim` | E2EE 设备密钥发布、查询与领取。 |
-| `ak.self.keys.backups.resource.replace` / `ak.self.keys.backups.query.list` / `ak.self.keys.backups.command.unlock` / `ak.self.keys.backups.resource.delete` | 加密密钥备份对象存储、枚举、解锁取回与删除。 |
+| `ak.self.keys.upload.create` / `ak.self.keys.read.lookup` / `ak.self.keys.command.claim` | E2EE 设备密钥发布、查询与领取。 |
+| `ak.self.keys.backups.resource.replace` / `ak.self.keys.backups.read.list` / `ak.self.keys.backups.command.unlock` / `ak.self.keys.backups.resource.delete` | 加密密钥备份对象存储、枚举、解锁取回与删除。 |
 
 > **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_arkret/peer/*` HTTP trust surface 和 `ak.peer.*` operation_id。`/_arkret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。**联邦接收收敛为单轨**：`POST /_arkret/peer/events`（`ak.peer.events.command.submit`）是唯一的 federation Event 接收轨，DataEvent / Control Move（含 Move / Anchor）统一走该 sealed Event Envelope 通道；实现私有 peer 入站轨 MUST NOT 作为跨 deployment 互通入口（详见 [`federation.md`](./federation.md) §4.0）。详见 [`federation.md`](./federation.md) §4。
 
@@ -179,7 +179,7 @@ transport MUST 各自通过 binding profile 单独 normative 化。
     {
       "kind": "http_json",
       "base_url": "https://server.example",
-      "operations": ["ak.self.account.query.viewer", "ak.self.account.command.update_profile", "ak.self.account.stream.subscribe", "ak.self.snapshot.query.manifest_head"],
+      "operations": ["ak.self.account.read.viewer", "ak.self.account.command.update_profile", "ak.self.account.stream.subscribe", "ak.self.snapshot.read.manifest_head"],
       "extension_profile_required": null
     }
   ]

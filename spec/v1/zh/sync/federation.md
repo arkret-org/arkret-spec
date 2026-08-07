@@ -210,7 +210,7 @@ body/schema/count/byte 失败才拒绝。完整 batch、签名窗口、重复/�
 
 ### 4.1 推送模式 (Push)
 
-> **v1 联邦使用专用 peer HTTP API surface**。跨域 Event 推送、拉取、补洞、frontier probe 与 snapshot bootstrap 必须使用 `/_arkret/peer/*` 路径和 `ak.peer.*` operation_id。`/_arkret/self/*` 是当前 principal / 自服务会话攻击面，不承接 federation server-to-server wire。本节描述的所有规则适用于 `ak.peer.events.*` / `ak.peer.snapshot.query.manifest_head` 调用。
+> **v1 联邦使用专用 peer HTTP API surface**。跨域 Event 推送、拉取、补洞、frontier probe 与 snapshot bootstrap 必须使用 `/_arkret/peer/*` 路径和 `ak.peer.*` operation_id。`/_arkret/self/*` 是当前 principal / 自服务会话攻击面，不承接 federation server-to-server wire。本节描述的所有规则适用于 `ak.peer.events.*` / `ak.peer.snapshot.read.manifest_head` 调用。
 
 本文件中的联邦载荷项是 v1 规范性 Event Envelope。请求与响应体中的共享事实字段使用 `events[]`，不引入第二套 Operation wire object。
 
@@ -751,7 +751,7 @@ Probe 响应 payload：
 
 规范约束：
 
-1. 客户端 / 提交服务在提交 `ak.invite.accept`、`ak.member.state{membership="join"}`、`ak.member.state{membership="knock"}` 或 application receipt 前，MUST 通过 `ak.find.directory.query.resolve_realm` / `ak.find.directory.query.resolve_target` / signed invite metadata 取得 canonical `realm_id` 与 `join_candidates[]`。
+1. 客户端 / 提交服务在提交 `ak.invite.accept`、`ak.member.state{membership="join"}`、`ak.member.state{membership="knock"}` 或 application receipt 前，MUST 通过 `ak.find.directory.read.resolve_realm` / `ak.find.directory.read.resolve_target` / signed invite metadata 取得 canonical `realm_id` 与 `join_candidates[]`。
 2. 提交方 MAY 选择任一未过期 candidate；协议不要求通过邀请者 Principal Server，也不要求通过被邀请者自己的 Principal Server 加入。被邀请者自己的 Principal Server 仍负责其本地账号视角、device / to-device / KeyPackage 等投递，但这不等于 Realm ingress。
 3. Candidate 服务接收 join-side submission 时，MUST 独立验证 `realm_id`、Event signature、candidate 是否仍被当前 Realm auth state / `sync_endpoints` / service delegation / peer policy 授权，以及 Join Policy / invite / review 链是否允许该提交。Candidate 本身不是 authorization grant。
 4. **join-side 接收的最小披露失败语义（normative）**：candidate 服务接收 `ak.invite.accept` / `ak.member.state{membership="join"|"knock"}` / application receipt 时，§3.2 定义的**统一最小披露失败族**（存在性不可区分 + 固定 timing bucket）MUST 同样适用于该接收路径——对外 MUST NOT 可区分"该 `(realm_id, subject)` 不存在 pending invite / 不是该 Realm 成员候选"与"存在但本提交鉴权 / 完整性 / Join Policy 校验失败"。具体而言：对这两类原因 MUST 返回同一 HTTP status 与同一 `reason_code`（沿用 §3.2 的统一鉴权失败码），响应可见字段 MUST NOT 携带 Realm / invite / membership 是否存在的可区分信息，timing MUST 归一到 §3.2 同口径的固定 bucket（≥30 次采样 p95 差异 SHOULD ≤ 50ms，高安全 profile MUST 使 p99 落入同桶）。真实 reason 仅写入接收方审计日志。这把"可探测 `(realm_id, subject)` 是否存在 pending invite"的枚举面在 join-side submission 接收上关闭，与 [`third-party-invites.md` §6](./third-party-invites.md) 的不可枚举 claim 响应口径一致。
@@ -763,7 +763,7 @@ Probe 响应 payload：
 当 Realm S 的管理员邀请外部用户 Bob（Principal Server 在 `server-beta.com`）时：
 
 1. 管理员提交 `ak.invite.create` Event，`subject_id` 指向 Bob 的 DID；邀请的私有 metadata MAY 携带裁剪后的 `join_candidates[]`，但不得把该列表当作授权本身。
-2. 该 Event 通过联邦推送到达 Bob 的 Principal Server；Bob 的客户端也 MAY 用 invite token / signed link 调用 `ak.find.directory.query.resolve_realm` 刷新 candidate 列表。
+2. 该 Event 通过联邦推送到达 Bob 的 Principal Server；Bob 的客户端也 MAY 用 invite token / signed link 调用 `ak.find.directory.read.resolve_realm` 刷新 candidate 列表。
 3. Bob 的客户端发现 Invite，决定接受，并选择一个未过期 join candidate。
 4. Bob 的客户端提交 `ak.invite.accept` Event 到所选 candidate 的 Events API；该 candidate 可以是邀请者 Principal Server、Realm shared notary / Sync Service、或其他被 Realm policy 授权的参与方服务。
 5. 接收 candidate 验证 invite / membership / service binding 后，将该 Event 扇出给 Realm S 的其他参与方 Principal Server / federation peer。
@@ -862,13 +862,13 @@ v1 联邦与单域 client 请求不共享 HTTP attack surface：federation serve
 | 联邦行为 | peer endpoint | 认证模式 |
 | --- | --- | --- |
 | 跨域推送 Event（含批处理） | `POST /_arkret/peer/events`（`ak.peer.events.command.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-ID` / `Destination-Service-ID` / `Source-Trust-Domain` / `Destination-Trust-Domain` / `Content-Digest` header；Realm policy 必须列出 source service DID 为合法 federation peer。 |
-| 跨域 backfill / 拉取缺失历史 | `QUERY /_arkret/peer/events` + JSON content `before`（`ak.peer.events.read.scan`） | 同一 service signature 规则；canonical QUERY 携带 JSON content，因此 MUST 携带并签入 `Content-Digest`。GET compatibility binding 无 body，才省略 `Content-Digest`。 |
+| 跨域 backfill / 拉取缺失历史 | `QUERY /_arkret/peer/events` + JSON content `before`（`ak.peer.events.read.scan`） | 同一 service signature 规则；QUERY 携带 JSON content，因此 MUST 携带并签入 `Content-Digest`。 |
 | 跨域按 id / digest 补洞 | `QUERY /_arkret/peer/events/resolve`（`ak.peer.events.read.resolve`） | 同上；服务端按 Realm policy、history visibility 与 reference disclosure 裁剪响应。 |
-| Account Authority 获取 PCR authoring basis | `POST /_arkret/peer/account-status/authoring-basis`（`ak.peer.account_status.query.authoring_basis`） | 完整 service signature + Content-Digest；Source-Service-ID 必须等于 authority evidence issuer，receiver 在披露 actor/Seal frontier 前验证当前 account/principal/PCR/delegation binding。 |
-| 获取 MLS epoch-0 public group state | `POST /_arkret/peer/mls/group-state-material`（`ak.peer.mls.query.group_state_material`） | 完整 service signature + Content-Digest；调用方须获目标 Realm 授权，provider 必须按 accepted genesis 验证 selector、content-addressed refs、raw-byte digests 与 RFC 9420 GroupInfo/tree 一致性。 |
+| Account Authority 获取 PCR authoring basis | `POST /_arkret/peer/account-status/authoring-basis`（`ak.peer.account_status.read.authoring_basis`） | 完整 service signature + Content-Digest；Source-Service-ID 必须等于 authority evidence issuer，receiver 在披露 actor/Seal frontier 前验证当前 account/principal/PCR/delegation binding。 |
+| 获取 MLS epoch-0 public group state | `POST /_arkret/peer/mls/group-state-material`（`ak.peer.mls.read.group_state_material`） | 完整 service signature + Content-Digest；调用方须获目标 Realm 授权，provider 必须按 accepted genesis 验证 selector、content-addressed refs、raw-byte digests 与 RFC 9420 GroupInfo/tree 一致性。 |
 | 跨域 Realm 成员视图 | `QUERY /_arkret/peer/events`（`ak.peer.events.read.scan`）+ `ak.member.state` 过滤 | 同上；服务端按 Realm policy 决定哪些成员对该 service DID 可见。 |
-| 跨域 snapshot-assisted bootstrap | `GET /_arkret/peer/snapshot/head`（`ak.peer.snapshot.query.manifest_head`） | 同上；manifest 必须签名并绑定 authority_binding。 |
-| 跨域 actor / DID 验证 | `POST /_arkret/root/identity/resolve`（`ak.root.identity.query.resolve`） | 该端点本就是公共服务面；联邦请求按调用方信任策略缓存。 |
+| 跨域 snapshot-assisted bootstrap | `GET /_arkret/peer/snapshot/head`（`ak.peer.snapshot.read.manifest_head`） | 同上；manifest 必须签名并绑定 authority_binding。 |
+| 跨域 actor / DID 验证 | `POST /_arkret/root/identity/resolve`（`ak.root.identity.read.resolve`） | 该端点本就是公共服务面；联邦请求按调用方信任策略缓存。 |
 
 ### 7.1 跨域 Event 推送
 
@@ -931,7 +931,7 @@ Signature: sig1=:<base64>:
 
 ### 7.4 验证 Actor
 
-跨域 actor 验证复用 `POST /_arkret/root/identity/resolve` 公共服务面（`ak.root.identity.query.resolve`）。该端点本就是公共 DID 解析入口，但 Arkret 实现 MUST 按调用方信任策略限速、缓存、并对私有 / pairwise DID 拒绝匿名公开。
+跨域 actor 验证复用 `POST /_arkret/root/identity/resolve` 公共服务面（`ak.root.identity.read.resolve`）。该端点本就是公共 DID 解析入口，但 Arkret 实现 MUST 按调用方信任策略限速、缓存、并对私有 / pairwise DID 拒绝匿名公开。
 
 下面列出 `holder-approved proof challenge` 高级 query 形态的字段集——这是 `/_arkret/root/identity/resolve` 的一种调用形态，不是独立 operation。
 
@@ -1053,7 +1053,7 @@ peer接收 ordinary Native Agent Event时，MUST使用与本地sync完全相同�
 - 单事件级别仍以 `event_id` 去重，规则见 4.3 节；`event_id` 去重是 durable Event 语义的一部分，不受上述幂等记录保留窗口限制；
 - 对同一 `(Source-Service-ID, Destination-Service-ID, endpoint, realm_id?)` 计数窗口，若 60 秒内相同 canonical request hash 被拒绝 ≥ 3 次，或 5 分钟内总请求数 ≥ 10 且失败率 ≥ 50%，接收方 MUST 将该来源在该 endpoint / Realm 范围内暂停至少 60 秒，并返回 `rate_limited`（可附 `retry_after_ms` / HTTP `Retry-After`）或 `temporarily_unavailable`。
 
-**该回压窗口同样覆盖 pull 路径（normative）**：上面的失败率熔断与暂停窗口不仅适用于 push（`POST /_arkret/peer/events`），也 MUST 适用于 pull / resolve（`QUERY /_arkret/peer/events` 的 `ak.peer.events.read.scan`、`QUERY /_arkret/peer/events/resolve` 的 `ak.peer.events.read.resolve`）。canonical QUERY 的相同 request key 必须覆盖 body digest；GET compatibility binding 才使用无 body 的 `(@method, @target-uri, source/destination service DID, trust domain, endpoint digest)` 规范化键。其余熔断阈值、暂停时长与 `Retry-After` 语义与 push 一致。
+**该回压窗口同样覆盖 pull 路径（normative）**：上面的失败率熔断与暂停窗口不仅适用于 push（`POST /_arkret/peer/events`），也 MUST 适用于 pull / resolve（`QUERY /_arkret/peer/events` 的 `ak.peer.events.read.scan`、`QUERY /_arkret/peer/events/resolve` 的 `ak.peer.events.read.resolve`）。QUERY 的相同 request key 必须覆盖 body digest。其余熔断阈值、暂停时长与 `Retry-After` 语义与 push 一致。
 
 #### 8.5.1 Idempotency cache 绑定 service key state（normative）
 
@@ -1084,7 +1084,7 @@ peer接收 ordinary Native Agent Event时，MUST使用与本地sync完全相同�
 
 联邦场景下，Principal Server 之间应支持基于快照的快速恢复（snapshot-assisted bootstrap），否则首次加入或大范围缺失时会退化为全量历史回放，影响可用性。实现层面：
 
-在 `QUERY /_arkret/peer/events`（JSON content 携带 `before`，`ak.peer.events.read.scan`）响应中，服务端 SHOULD 在可用时提供 `snapshot_bootstrap`（可选字段）；需要单独读取 manifest head 时使用 `GET /_arkret/peer/snapshot/head`（`ak.peer.snapshot.query.manifest_head`）：
+在 `QUERY /_arkret/peer/events`（JSON content 携带 `before`，`ak.peer.events.read.scan`）响应中，服务端 SHOULD 在可用时提供 `snapshot_bootstrap`（可选字段）；需要单独读取 manifest head 时使用 `GET /_arkret/peer/snapshot/head`（`ak.peer.snapshot.read.manifest_head`）：
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |

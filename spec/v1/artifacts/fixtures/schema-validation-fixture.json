@@ -119,14 +119,14 @@
           "ak.profile.principal_server.v1"
         ],
         "supported_operations": [
-          "ak.server.query.describe"
+          "ak.server.read.describe"
         ],
         "supported_bindings": [
           {
             "kind": "http_json",
             "base_url": "https://alice.example.net",
             "operations": [
-              "ak.server.query.describe"
+              "ak.server.read.describe"
             ],
             "extension_profile_required": null
           }
@@ -177,16 +177,16 @@
           "ak.profile.directory_service.v1"
         ],
         "supported_operations": [
-          "ak.find.directory.query.describe",
-          "ak.find.directory.query.private_contact_discovery"
+          "ak.find.directory.read.describe",
+          "ak.find.directory.read.private_contact_discovery"
         ],
         "supported_bindings": [
           {
             "kind": "http_json",
             "base_url": "https://directory.example.net",
             "operations": [
-              "ak.find.directory.query.describe",
-              "ak.find.directory.query.private_contact_discovery"
+              "ak.find.directory.read.describe",
+              "ak.find.directory.read.private_contact_discovery"
             ],
             "extension_profile_required": null
           }
@@ -277,14 +277,14 @@
         "protocol_version": "1.0",
         "supported_profiles": [],
         "supported_operations": [
-          "ak.server.query.describe"
+          "ak.server.read.describe"
         ],
         "supported_bindings": [
           {
             "kind": "http_json",
             "base_url": "https://alice.example.net",
             "operations": [
-              "ak.server.query.describe"
+              "ak.server.read.describe"
             ],
             "extension_profile_required": null
           }
@@ -332,14 +332,14 @@
         "protocol_version": "1.0",
         "supported_profiles": [],
         "supported_operations": [
-          "ak.server.query.describe"
+          "ak.server.read.describe"
         ],
         "supported_bindings": [
           {
             "kind": "http_json",
             "base_url": "https://alice.example.net",
             "operations": [
-              "ak.server.query.describe"
+              "ak.server.read.describe"
             ],
             "extension_profile_required": null
           }

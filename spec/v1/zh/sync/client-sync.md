@@ -49,7 +49,7 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 2. **成员列表展示绑定上下文**。当某 Realm 内成员的 `delivery_binding.recipient_service_id` 不属于该 actor DID Document 默认 `ArkretPrincipalServer` 时，UI SHOULD 在该成员条目附近显示其 binding 上下文（例如 `Bob @ Acme`、`Carol @ Beta`）；当属于默认时 SHOULD 仅显示 actor，不显示 binding。展示形态可使用组织 endorsement 的 `display_name` / `logo` 而不是 raw service DID。
 3. **邀请 strand 智能默认**。客户端 SHOULD 按当前邀请方上下文自动提议 binding：
    - 默认使用 [`invite-addressing.md`](./invite-addressing.md) 的 online principal locator 或显式 `subject_id + recipient_service_id` 输入；locator/ref 成功后 UI 显示 `Alice @ Acme` 这类上下文标签，不展示 raw service DID；
-   - 用户输入 `@alice:acme.example` / `alice@acme.example` 时，只有在 Directory / Organization 明确支持可选 handle invite/member_add profile 且调用方具备披露授权时，才 MAY 调用 `ak.find.directory.query.resolve_handle(intent="member_add" | "invite")` 获取可验证 candidate；失败时 MUST 回到 locator/address 模式，不得本地合成 remote service DID；
+   - 用户输入 `@alice:acme.example` / `alice@acme.example` 时，只有在 Directory / Organization 明确支持可选 handle invite/member_add profile 且调用方具备披露授权时，才 MAY 调用 `ak.find.directory.read.resolve_handle(intent="member_add" | "invite")` 获取可验证 candidate；失败时 MUST 回到 locator/address 模式，不得本地合成 remote service DID；
    - 邀请方在 Org-A 内部 Realm 中邀请 → 默认 invitee 也走 Org-A binding（如果 Org-A organization registry 把 invitee 列为成员）；
    - 邀请方在个人 Realm 中邀请 → 默认 invitee DID Document `did_document_default`（若 Realm policy 允许）；
    - 多上下文 invitee + 无明确默认 → 提示用户在已知上下文中选择，**不要静默选择**。
@@ -200,7 +200,7 @@ Account subscribe `delta` frame 包含以下 stream：
 
 顶层 `notifications` 的 wire 形态固定为 `{items: NotificationDelta[]}`，不再复用 `{events: EventEnvelope[]}`。`NotificationDelta` 是闭合对象 `{id, notification_kind, action, data?}`：`id` 为 `ak:notification:*`，`notification_kind="agent"`，`action` 只能为 `add | update | remove`。当前 v1 数据分支只登记 `data.kind="agent_runtime_approval"`：
 
-- `add` / `update` 的 `data` MUST 含 `approval_request_id`、`agent_id`、`requested_at`、`expires_at`，并且不得含 pairing code、runtime public key、PoP、attestation、display name 或 slug。客户端必须在显示和审批前通过认证的 `ak.self.agent.query.get` 读取当前完整投影。
+- `add` / `update` 的 `data` MUST 含 `approval_request_id`、`agent_id`、`requested_at`、`expires_at`，并且不得含 pairing code、runtime public key、PoP、attestation、display name 或 slug。客户端必须在显示和审批前通过认证的 `ak.self.agent.resource.get` 读取当前完整投影。
 - `remove` 的 `data` MAY 省略；若存在，必须是闭合 `{kind="agent_runtime_approval", reason}`，其中 `reason` 只能为 `approved | expired | renewed | deactivated | superseded`。
 - 客户端 projector MUST 按 `add=插入`、`update=按同 id 完整替换`、`remove=删除` 应用 delta；把所有 action 都当 insert 的实现不得声明支持该 notification delta。
 - `add` / `update` 后，客户端 MUST 重读 Agent，要求当前 `approval_request_id` 相同、`key_state.pairing_request_id` / `pairing_mode` / `pairing_expires_at` 共同表明 pairing 仍 open 且未过期，并要求通用 `agent.readiness.blockers` 含 `pairing_open`；`pairing_mode=bootstrap` 时还必须含 `runtime_key_missing`，`replacement` 时必须存在 active authorization 且显示 runtime key replacement 警告。通用 view/key_state 不含 `runtime_state`；该字段只在 runtime pairing poll 响应出现。lifecycle 意图与 open handle 不互锁，pause / resume 不被 replacement 阻塞。服务端在 handle consumed 或过期后 MUST 原子清除上述 open-handle 投影（以及 `pairing_code`）并重算 readiness。审批前 MUST 再次读取或依赖服务端 current-request CAS。匹配 `remove` 必须关闭 prompt并清除本地缓存。Local dismiss 只影响当前设备 UI，不写 durable dismissed state。
@@ -381,7 +381,7 @@ event_id ASC
 当 `lazy_load_members=true`：
 
 - 服务器 SHOULD 只返回 timeline 中 sender、被 mention actor、membership changed actor 和 required_state 指定 actor 的 `ak.member.state`。
-- 客户端遇到未知 actor 时 MAY 通过 `ak.self.events.read.scan` 补拉当前 effective `ak.member.state` / `ak.member.identity.update` events；需要当前 handle 展示时，MUST 使用本节定义的 handle-claim source（roster 内联或 `ak.find.directory.query.list_handles_for_subject`），不得把 profile / identity event 中的 handle 字符串当作授权事实。
+- 客户端遇到未知 actor 时 MAY 通过 `ak.self.events.read.scan` 补拉当前 effective `ak.member.state` / `ak.member.identity.update` events；需要当前 handle 展示时，MUST 使用本节定义的 handle-claim source（roster 内联或 `ak.find.directory.read.list_handles_for_subject`），不得把 profile / identity event 中的 handle 字符串当作授权事实。
 - 如果 `include_redundant_members=false`，服务器 SHOULD 避免重复发送客户端已知且未变化的 member state。
 
 ### 8.1 Member Roster, Identity Projection, and Handle Claims
@@ -449,10 +449,10 @@ event_id ASC
 | --- | --- | --- | --- |
 | `actor_id` | DID | MUST | 等于当前 effective `ak.member.state` cell subject / `payload.actor_id`。高隐私 Realm 中 MAY 是 Realm-scoped pairwise DID；作为**长期 membership key** 的 pairwise DID MUST 由 `did:webvh` 派生（可持久解析 / 轮换 / 撤销）或在部署 `method_policy` 中显式豁免，MUST NOT 使用被标为 `ephemeral_only` 的 `did:key`（见 [`sovereign-deployment.md` §3.1](./sovereign-deployment.md)）。真实 principal 的披露由当前 effective `ak.member.identity.update` events 决定。 |
 | `membership` | enum | MUST | 当前 effective membership，取 `join` / `invite` / `knock`。leave / ban 不进入 roster。 |
-| `subject_id` | DID | MAY | handle claim 的 `subject` 对应的 holder / principal DID，不是 Realm `actor_id`。当当前响应已经按 Realm disclosure policy 向调用方披露该 member 的 principal / holder DID 时可返回。若 subject 仅在 encrypted MemberIdentity 中披露，服务端 MAY 省略，由客户端解密后再走 `ak.find.directory.query.list_handles_for_subject`。返回 `identity_events`、`handle_claim_digests`、`handle_claims` 或 `handle_claims_limited` 时该字段 MUST 存在。 |
+| `subject_id` | DID | MAY | handle claim 的 `subject` 对应的 holder / principal DID，不是 Realm `actor_id`。当当前响应已经按 Realm disclosure policy 向调用方披露该 member 的 principal / holder DID 时可返回。若 subject 仅在 encrypted MemberIdentity 中披露，服务端 MAY 省略，由客户端解密后再走 `ak.find.directory.read.list_handles_for_subject`。返回 `identity_events`、`handle_claim_digests`、`handle_claims` 或 `handle_claims_limited` 时该字段 MUST 存在。 |
 | `identity_event_ids` | event id array | MAY | 当前 effective `ak.member.identity.update` event ids。客户端 MAY 按这些 id backfill 原始事件；服务端 MAY 把这些原始 Event envelope 内联到 `identity_events[]` 或 `state.events`。 |
 | `handle_claim_digests` | hash array | MAY | 当前对调用方可见且可用于该 Realm context 的 effective handle claims 的 canonical digest 集合。每个 digest 按 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 的 `claim_digest(c)` 定义计算。该字段是跨上下文稳定标识，MUST NOT 在 `subject_id` 未披露时返回。 |
-| `handle_claims` | handle claim array | MAY | 可选内联的完整 `ak.schema.handle_claim.v1` objects。它们是当前 handle 授权 evidence，不是 roster 自己生成的 display 字段。该字段 MUST NOT 在 `subject_id` 未披露时返回；若返回，每个 claim 的 `subject` MUST 等于 `subject_id`。服务端 MAY 因隐私、体积或 freshness 省略，客户端可用 `subject_id` 调 `ak.find.directory.query.list_handles_for_subject` 补拉。 |
+| `handle_claims` | handle claim array | MAY | 可选内联的完整 `ak.schema.handle_claim.v1` objects。它们是当前 handle 授权 evidence，不是 roster 自己生成的 display 字段。该字段 MUST NOT 在 `subject_id` 未披露时返回；若返回，每个 claim 的 `subject` MUST 等于 `subject_id`。服务端 MAY 因隐私、体积或 freshness 省略，客户端可用 `subject_id` 调 `ak.find.directory.read.list_handles_for_subject` 补拉。 |
 | `handle_claims_limited` | boolean | MAY | `true` 表示 `handle_claims[]` 被截断或仅含 digest hints；客户端 MUST NOT 把缺失 claim 解释为该 subject 没有 handle。该字段只在 `subject_id` 已披露且 handle claim set 对调用方可见时返回。 |
 | `member_display_state_digest` | hash | MAY | `sha256` over RFC 8785 JCS canonical JSON：`{realm_id, actor_id, effective_events:[{event_id, segment, payload_digest}], handle_claims:[{claim_digest,binding_state,expires_at}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序，`handle_claims` 按 `(claim_digest)` 排序。用于 roster display cache 失效和重复响应去重；不同于 `ak.member.identity.update` 事件内的 `identity_payload_digest`。 |
 | `identity_events` | Event array | MAY | 可选内联的原始 `ak.member.identity.update` Event envelope。服务端不得把它改写成查询时合成 payload。该字段可能明文或可解密地披露同一 member `subject_id`，因此 `subject_id` 未披露时 MUST 省略。 |
@@ -553,7 +553,7 @@ Handle claim 获取与刷新规则：
 
 - 注册、邀请链接、管理员预分配、管理员后期修改、重签和撤销 handle 都落到 issuer / Auth Server / 部署本地 `ak.schema.handle_claim.v1` lifecycle。Arkret v1 core 不定义用户如何申请、管理员如何收到通知、谁有权审批、审批状态如何流转或客户端如何在 bootstrap 中领取自己的 claim。
 - 客户端不得通过 `ak.profile.update`、`ak.profile.realm_override` 或 `ak.member.identity.update` 自行设置 handle。无论 claim 来自 Auth Server bootstrap、issuer 本地 API、设备迁移恢复、Directory resolve 还是 roster 内联，客户端只有在 schema、issuer trust、proof、audience、expiry 和 revocation 状态验证通过后，才能把它作为 handle 授权事实。
-- 已知 `subject_id`、需要渲染 Realm member 当前 handle 时，客户端调用 `ak.find.directory.query.list_handles_for_subject`，或使用 roster entry 内联的 `handle_claims[]` / `handle_claim_digests[]`。已知 handle 字符串、需要解析到 subject 或投递绑定时，继续使用 `ak.find.directory.query.resolve_handle`。
+- 已知 `subject_id`、需要渲染 Realm member 当前 handle 时，客户端调用 `ak.find.directory.read.list_handles_for_subject`，或使用 roster entry 内联的 `handle_claims[]` / `handle_claim_digests[]`。已知 handle 字符串、需要解析到 subject 或投递绑定时，继续使用 `ak.find.directory.read.resolve_handle`。
 - roster / member picker / mention autocomplete 的当前 handle projection MUST 由当前可见 handle-claim set + Realm policy 运行 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 得出。`ak.member.identity.update` 事件的 churn 不应成为 handle 更新传播的必要条件。
 - 若 `member_display_state_digest` 因 handle-claim set 变化而改变，服务端 SHOULD 在下一次 `/_arkret/self/account/subscribe` delta 中发送新的 roster entry 或使客户端相关 cache 失效；无法内联完整 claims 时，MUST 至少让 `handle_claim_digests` 或 digest 缺失状态发生可观察变化。
 
@@ -592,7 +592,7 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 `/_arkret/self/account/subscribe` 与 `GET /_arkret/self/device_messages` 暴露的是同一个 per-device to-device 队列的两种读取形态；二者不代表两套消息源，也不允许客户端把同一 kind 分流到两套互不一致的处理器。
 
-`ak.self.account.stream.subscribe` 是 full client / E2EE client 的主接收路径。客户端维护连续长轮询后，服务端 SHOULD 在 `delta.to_device.messages[]` 中返回当前设备的验证请求、SAS/QR 交换、secret sharing、device-list 相关私有消息；客户端 MUST 把这里收到的 `DeviceMessageEnvelope` 交给与 `ak.self.device_messages.query.list` 相同的 to-device dispatcher，并在持久化处理完成后按 §10.1 使用 `ack_token` 显式确认。
+`ak.self.account.stream.subscribe` 是 full client / E2EE client 的主接收路径。客户端维护连续长轮询后，服务端 SHOULD 在 `delta.to_device.messages[]` 中返回当前设备的验证请求、SAS/QR 交换、secret sharing、device-list 相关私有消息；客户端 MUST 把这里收到的 `DeviceMessageEnvelope` 交给与 `ak.self.device_messages.read.list` 相同的 to-device dispatcher，并在持久化处理完成后按 §10.1 使用 `ack_token` 显式确认。
 
 `GET /_arkret/self/device_messages?after=<cursor>&limit=n` 是补拉 / 轮询路径，只用于下列情况：
 
@@ -648,7 +648,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 ### 11.1 Events 面的 query-scope digest（normative）
 
-`ak.self.events.read.scan`、`ak.self.events.stream.subscribe`、`ak.peer.events.read.scan`（包括 canonical QUERY 与其 GET/POST compatibility bindings）签发的 stream cursor，其绑定中的 `filter_digest` MUST 覆盖**完整查询作用域**，不只是 `filters`：
+`ak.self.events.read.scan`、`ak.self.events.stream.subscribe`、`ak.peer.events.read.scan` 签发的 stream cursor，其绑定中的 `filter_digest` MUST 覆盖**完整查询作用域**，不只是 `filters`：
 
 1. normalized scope object 包含全部**非位置性**、决定结果集合或结果形状的请求参数：selector（`realms`、`actors`）、`filters` object、`order`，以及 profile 引入的等价参数。
 2. 位置性参数（`before` / `after` / `limit` / cursor 本身）与认证材料 MUST NOT 进入 digest——它们随每次调用变化，不属于作用域身份。
@@ -729,8 +729,8 @@ cursor 本端状态失效（TTL 超时，或 tamper / 未知 handle / cross-bind
 1. 客户端 MUST 清空本地 cursor 缓存（含该流的 `after=` 高水位）；**MUST NOT** 把已失效的旧 cursor 复用为任何 `after=` / `before=` 起点或 backfill 续传位置。`filter_digest`、未确认写入和最后可验证 frontier 可保留用于 backfill 停止判定，但 frontier 不得当作 cursor 使用。
 2. 客户端从下列两条合法新起点二选一，二者都不复用旧 cursor：
    - **(A) 重做 initial sync**：无 `after` 重新建立 `ak.self.account.stream.subscribe?catchup=true`（`after=` 缺省 + `catchup=true`），由服务端发 baseline `delta` 重新签发新 cursor。
-   - **(B) snapshot 加速 bootstrap**：调用 `ak.self.snapshot.query.manifest_head` 取 `ak.schema.snapshot.v1` manifest，MUST 先验证签名、签名者授权、`state_digest`、`frontier`、`event_set_commitment` 和每个 chunk digest（[`service-http-binding.md` §6.1](./service-http-binding.md)、§13）。验证通过后把 `frontier.event_ids` 作为该 Realm 已知态边界，再以 `ak.self.events.read.scan` **从 server head 向更旧方向 backfill**（省略 `after`，即隐式 `before=<server_head>`，并用响应 `prev_cursor` 作为下一页 `before=`），直到 `frontier.event_ids` 中每一个 head 都已在本地命中，且窗口内所有已拉事件的 `prev_refs` / critical refs 因果闭包要么已解析、要么落在已验证的 `event_set_commitment` 覆盖集内；在此之前 timeline MUST 保持 `limited` / provisional，不得声称历史完整。账号聚合面仍按 (A) 重新建立 subscribe 取得新 cursor。
-3. 若 snapshot 校验失败、manifest 不可用或服务端未宣告 `ak.self.snapshot.query.manifest_head`，客户端 MUST 回退到 (A) 的 initial sync 或纯 Event history replay，**不得**把未验证 snapshot 作为 accepted state，也不得退回复用旧 cursor。
+   - **(B) snapshot 加速 bootstrap**：调用 `ak.self.snapshot.read.manifest_head` 取 `ak.schema.snapshot.v1` manifest，MUST 先验证签名、签名者授权、`state_digest`、`frontier`、`event_set_commitment` 和每个 chunk digest（[`service-http-binding.md` §6.1](./service-http-binding.md)、§13）。验证通过后把 `frontier.event_ids` 作为该 Realm 已知态边界，再以 `ak.self.events.read.scan` **从 server head 向更旧方向 backfill**（省略 `after`，即隐式 `before=<server_head>`，并用响应 `prev_cursor` 作为下一页 `before=`），直到 `frontier.event_ids` 中每一个 head 都已在本地命中，且窗口内所有已拉事件的 `prev_refs` / critical refs 因果闭包要么已解析、要么落在已验证的 `event_set_commitment` 覆盖集内；在此之前 timeline MUST 保持 `limited` / provisional，不得声称历史完整。账号聚合面仍按 (A) 重新建立 subscribe 取得新 cursor。
+3. 若 snapshot 校验失败、manifest 不可用或服务端未宣告 `ak.self.snapshot.read.manifest_head`，客户端 MUST 回退到 (A) 的 initial sync 或纯 Event history replay，**不得**把未验证 snapshot 作为 accepted state，也不得退回复用旧 cursor。
 
 #### 12.3.2 `stale_frontier`（旧 cursor 仍有效，可继续 backfill）
 
@@ -741,7 +741,7 @@ cursor 本身仍有效，只是服务 frontier 落后于请求所需 causal fron
 
 #### 12.3.3 Range completeness（两分支共用）
 
-服务端声明 `events_query_range_completeness` feature 时，客户端 SHOULD 在恢复 backfill 的 `ak.self.events.read.scan` 调用上设置 `include_completeness=true`，并在补齐后按 [`service-http-binding.md` §3.3.6](./service-http-binding.md) 验证覆盖该缺口区间的 `ak.attestation.range_completeness`——cursor + `has_more` 只证明"拿到了页"，attestation 才证明"该区间没有事件被静默扣下"。验证失败（`range_completeness_root_mismatch` / `range_completeness_actor_seq_gap` / `witness_disagreement`）时 MUST 把该区间标记 degraded 并 fail closed，不得向用户展示"历史完整"。high-assurance Realm（`security_class=high_assurance` 或 `ak.profile.federation.high_assurance.v1`）下该 SHOULD 升级为 MUST。
+服务端声明 `events_query_range_completeness` feature 时，客户端 SHOULD 在恢复 backfill 的 `ak.self.events.read.scan` 调用上设置 `include_completeness=true`，并在补齐后按 [`service-http-binding.md` §3.3.5](./service-http-binding.md) 验证覆盖该缺口区间的 `ak.attestation.range_completeness`——cursor + `has_more` 只证明"拿到了页"，attestation 才证明"该区间没有事件被静默扣下"。验证失败（`range_completeness_root_mismatch` / `range_completeness_actor_seq_gap` / `witness_disagreement`）时 MUST 把该区间标记 degraded 并 fail closed，不得向用户展示"历史完整"。high-assurance Realm（`security_class=high_assurance` 或 `ak.profile.federation.high_assurance.v1`）下该 SHOULD 升级为 MUST。
 
 ## 13. Initial Sync
 
@@ -767,7 +767,7 @@ notification 历史受限也不得截断该子集。
 
 大型账户 MAY 使用 sliding window subscriptions，避免一次性返回所有 Realm。
 
-大型 Realm 的当前态 MAY 在 initial sync 中通过 snapshot bootstrap 加速：客户端先调用 `ak.self.snapshot.query.manifest_head` 获取 `ak.schema.snapshot.v1` manifest，完成签名、authority binding、`event_set_commitment`、`state_digest` 与 chunk digest 校验后，把 snapshot frontier 作为该 Realm 的恢复起点；随后仍 MUST 从该 frontier 之后继续执行 `ak.self.events.read.scan` / backfill，直至账号 baseline 与 Realm event stream 收敛。snapshot 校验失败、manifest 不可用或服务端未宣告 `ak.self.snapshot.query.manifest_head` 时，客户端 MUST 回退到原始 Event history replay，不得把未验证 snapshot 作为 accepted state。
+大型 Realm 的当前态 MAY 在 initial sync 中通过 snapshot bootstrap 加速：客户端先调用 `ak.self.snapshot.read.manifest_head` 获取 `ak.schema.snapshot.v1` manifest，完成签名、authority binding、`event_set_commitment`、`state_digest` 与 chunk digest 校验后，把 snapshot frontier 作为该 Realm 的恢复起点；随后仍 MUST 从该 frontier 之后继续执行 `ak.self.events.read.scan` / backfill，直至账号 baseline 与 Realm event stream 收敛。snapshot 校验失败、manifest 不可用或服务端未宣告 `ak.self.snapshot.read.manifest_head` 时，客户端 MUST 回退到原始 Event history replay，不得把未验证 snapshot 作为 accepted state。
 
 ## 14. E2EE Requirements
 

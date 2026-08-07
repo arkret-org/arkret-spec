@@ -69,7 +69,7 @@ MUST 同时携带 `delivery_binding`；reducer 在同一 Control Move 内验证�
 
 1. 以 `subject_id` / `payload.actor_id` 作为成员主语；不得把 handle 字符串写作 actor、grant subject 或 cell subject。
 2. 对基础路径，验证 `invite_address.subject_id`、`invite_address.recipient_service_id`、`principal_locator` proof、`introduction_evidence_digest` 和 Realm Join Policy；`invite_address.recipient_service_id` 只能作为 join-time `delivery_binding` 的候选输入，仍需按本文件 §2 和 §4 物化。
-3. 对可选 handle 辅助路径，先按 [`identity/identity-handles.md` §3.1](../identity/identity-handles.md) 规范化为 canonical `handle`，再仅在 Directory / Organization 明确支持时调用 `ak.find.directory.query.resolve_handle(intent="member_add" | "invite")`。不支持、无权或解析失败时，客户端 MUST 回到基础路径，要求提供 locator 或显式 address；不得本地合成 remote `recipient_service_id`。
+3. 对可选 handle 辅助路径，先按 [`identity/identity-handles.md` §3.1](../identity/identity-handles.md) 规范化为 canonical `handle`，再仅在 Directory / Organization 明确支持时调用 `ak.find.directory.read.resolve_handle(intent="member_add" | "invite")`。不支持、无权或解析失败时，客户端 MUST 回到基础路径，要求提供 locator 或显式 address；不得本地合成 remote `recipient_service_id`。
 4. 若可选解析结果携带 `MemberDeliveryBindingCandidate` 或 `member_delivery_binding`，验证其 handle claim / presentation 绑定 `handle`、`subject_id`、`member_delivery_binding.recipient_service_id`、issuer、`issued_at`、`expires_at`、撤销状态与 `audience`。claim `audience` MUST 等于目标 `realm_id` 或邀请方 service DID 之一；不一致 MUST 视作未授权 claim。
 5. 将有效 delivery evidence 物化为 `payload.delivery_binding` 时，按 Realm `ak.realm.delivery_binding_policy` 选择 `binding_source`：
    - 多个来源同时可用时，reducer MUST 按固定优先级选择唯一 binding：`explicit` > `organization_policy` > `invite` > `join_policy` > `realm_policy` > `did_document_default`。

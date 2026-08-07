@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-06.2",
-  "generated_at": "2026-08-06T14:00:00Z",
+  "version": "2026-08-07",
+  "generated_at": "2026-08-07T05:33:31Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -722,7 +722,7 @@
   "vector_group_requirements": {
     "ak.vector_group.capability.v1": {
       "required_endpoints": [
-        "ak.self.authz.query.check"
+        "ak.self.authz.read.check"
       ],
       "required_event_kinds": [
         "ak.capability.grant",
@@ -836,7 +836,7 @@
     },
     "ak.vector_group.discovery.v1": {
       "required_endpoints": [
-        "ak.server.query.describe"
+        "ak.server.read.describe"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -981,8 +981,8 @@
     },
     "ak.vector_group.privacy_security.v1": {
       "required_endpoints": [
-        "ak.find.directory.query.resolve_realm",
-        "ak.find.directory.query.private_contact_discovery",
+        "ak.find.directory.read.resolve_realm",
+        "ak.find.directory.read.private_contact_discovery",
         "ak.self.events.command.submit",
         "ak.self.blob.resource.head",
         "ak.edge.push.command.notify"
@@ -1073,7 +1073,7 @@
       "required_endpoints": [
         "ak.self.account.stream.subscribe",
         "ak.self.events.read.scan",
-        "ak.self.snapshot.query.manifest_head"
+        "ak.self.snapshot.read.manifest_head"
       ],
       "required_event_kinds": [
         "ak.message.create",
@@ -1100,7 +1100,7 @@
     },
     "ak.vector_group.mimi_interop.v1": {
       "required_endpoints": [
-        "ak.open.mimi.query.provider_directory",
+        "ak.open.mimi.read.provider_directory",
         "ak.open.mimi.command.update_room",
         "ak.open.mimi.command.submit_message"
       ],
@@ -1195,7 +1195,7 @@
       "role": "admin",
       "description": "Fail-closed Realm role profile for one stable two-principal Direct Conversation. The role is identified only by schema_refs containing this profile together with fields.collaboration_role=direct_conversation.",
       "required_endpoints": [
-        "ak.self.direct_conversation.query.resolve",
+        "ak.self.direct_conversation.read.resolve",
         "ak.self.contact.command.request",
         "ak.self.contact.command.respond",
         "ak.self.contact.command.reject",
@@ -1204,7 +1204,7 @@
         "ak.self.events.command.submit",
         "ak.peer.contacts.command.submit",
         "ak.peer.keys.keypackages.command.claim",
-        "ak.peer.keys.keypackages.query.claim",
+        "ak.peer.keys.keypackages.read.claim",
         "ak.peer.events.command.submit",
         "ak.peer.events.read.scan",
         "ak.peer.events.read.resolve"
@@ -1592,7 +1592,7 @@
     },
     "ak.profile.core_event_store.v1": {
       "required_endpoints": [
-        "ak.server.query.describe",
+        "ak.server.read.describe",
         "ak.self.events.read.describe",
         "ak.self.events.command.submit",
         "ak.self.events.resource.get",
@@ -1787,7 +1787,7 @@
         "ak.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "ak.server.query.describe",
+        "ak.server.read.describe",
         "ak.self.events.resource.get",
         "ak.self.events.read.scan"
       ],
@@ -1848,13 +1848,13 @@
         "ak.profile.kanban_mvp.v1"
       ],
       "required_endpoints": [
-        "ak.server.query.describe",
+        "ak.server.read.describe",
         "ak.self.events.command.submit",
         "ak.self.account.stream.subscribe",
         "ak.self.events.stream.subscribe",
         "ak.self.blob.upload.create",
         "ak.self.blob.resource.get",
-        "ak.self.authz.query.check"
+        "ak.self.authz.read.check"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1901,14 +1901,14 @@
       ],
       "required_endpoints": [
         "ak.self.keys.upload.create",
-        "ak.self.keys.query.lookup",
+        "ak.self.keys.read.lookup",
         "ak.self.keys.command.claim",
         "ak.self.keys.keypackages.upload.create",
         "ak.self.keys.keypackages.command.claim",
         "ak.self.keys.keypackages.command.consume",
         "ak.self.keys.keypackages.command.revoke",
         "ak.self.keys.backups.resource.replace",
-        "ak.self.keys.backups.query.list",
+        "ak.self.keys.backups.read.list",
         "ak.self.keys.backups.command.unlock",
         "ak.self.keys.backups.resource.delete"
       ],
@@ -1952,7 +1952,7 @@
     "ak.profile.agent_signer_evidence.v1": {
       "description": "Portable ordinary-Realm Native Agent signer authorization evidence. Producers publish one Agent authority snapshot with key and Agent-lifecycle witnesses, one privacy-minimal Account Authority controller gate, and a structural XOR between exact-request current observation and destination-signed historical Event admission receipt. Consumers independently verify all three orthogonal gates, reject cross-request replay, preserve accepted Event validity across later terminal transitions, and cross-bind encrypted Events to the historical MLS leaf.",
       "required_endpoints": [
-        "ak.self.agent_signer_evidence.query.resolve"
+        "ak.self.agent_signer_evidence.read.resolve"
       ],
       "required_event_kinds": [
         "ak.agent.key.authorize",
@@ -2069,9 +2069,9 @@
         "ak.profile.full_client.v1"
       ],
       "required_endpoints": [
-        "ak.find.directory.query.resolve_organization",
-        "ak.find.directory.query.search_organizations",
-        "ak.self.authz.grants.query.effective"
+        "ak.find.directory.read.resolve_organization",
+        "ak.find.directory.read.search_organizations",
+        "ak.self.authz.grants.read.effective"
       ],
       "required_event_kinds": [
         "ak.organization.discovery",
@@ -2105,15 +2105,15 @@
       "inherits": [],
       "description": "Arkret v1 Directory Service profile. Directory Services index resource-signed discovery state, expose blinded search/resolve endpoints, and support at least one §8 ingest mode without becoming a source of truth.",
       "required_endpoints": [
-        "ak.find.directory.query.describe",
-        "ak.find.directory.query.search_realms",
-        "ak.find.directory.query.resolve_realm",
-        "ak.find.directory.query.search_organizations",
-        "ak.find.directory.query.resolve_organization",
-        "ak.find.directory.query.search_actors",
-        "ak.find.directory.query.search_users",
-        "ak.find.directory.query.resolve_handle",
-        "ak.find.directory.query.resolve_agent_selector",
+        "ak.find.directory.read.describe",
+        "ak.find.directory.read.search_realms",
+        "ak.find.directory.read.resolve_realm",
+        "ak.find.directory.read.search_organizations",
+        "ak.find.directory.read.resolve_organization",
+        "ak.find.directory.read.search_actors",
+        "ak.find.directory.read.search_users",
+        "ak.find.directory.read.resolve_handle",
+        "ak.find.directory.read.resolve_agent_selector",
         "ak.find.directory.command.announce",
         "ak.find.directory.command.withdraw"
       ],
@@ -2207,14 +2207,14 @@
         "ak.profile.kanban_mvp.v1"
       ],
       "required_endpoints": [
-        "ak.server.query.describe",
-        "ak.self.account.query.describe",
+        "ak.server.read.describe",
+        "ak.self.account.read.describe",
         "ak.self.account.stream.subscribe",
         "ak.self.events.stream.subscribe",
         "ak.self.events.read.scan",
-        "ak.self.snapshot.query.manifest_head",
-        "ak.self.authz.query.check",
-        "ak.peer.account_status.query.authoring_basis",
+        "ak.self.snapshot.read.manifest_head",
+        "ak.self.authz.read.check",
+        "ak.peer.account_status.read.authoring_basis",
         "ak.peer.account_status.command.submit"
       ],
       "required_event_kinds": [
@@ -2413,7 +2413,7 @@
       "role": "server",
       "description": "Optional symmetric Principal Server profile for the encrypted Signal Extension single-hop peer relay. It does not imply durable Event federation and does not advertise any product signal kind.",
       "required_endpoints": [
-        "ak.server.query.describe",
+        "ak.server.read.describe",
         "ak.self.signal.command.send",
         "ak.self.signal.stream.subscribe",
         "ak.peer.signal.command.relay"
@@ -2503,11 +2503,11 @@
     },
     "ak.profile.identity_registry.v1": {
       "required_endpoints": [
-        "ak.root.identity.registry.query.describe",
-        "ak.root.identity.query.resolve",
+        "ak.root.identity.registry.read.describe",
+        "ak.root.identity.read.resolve",
         "ak.root.identity.document.resource.get",
-        "ak.root.identity.log.query.list",
-        "ak.root.identity.receipts.query.list",
+        "ak.root.identity.log.read.list",
+        "ak.root.identity.receipts.read.list",
         "ak.root.identity.command.submit_did_operation"
       ],
       "required_event_kinds": [
@@ -2545,9 +2545,9 @@
     },
     "ak.profile.auth_server.v1": {
       "inherits": [],
-      "description": "Arkret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `ak.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `ak.self.policy.query.check` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `ak.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
+      "description": "Arkret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `ak.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `ak.self.policy.read.check` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `ak.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
       "required_endpoints": [
-        "ak.server.query.describe",
+        "ak.server.read.describe",
         "ak.gate.account.command.issue_session_grant"
       ],
       "required_event_kinds": [
@@ -2569,7 +2569,7 @@
         "ak.gate.account.exchange.create_handoff",
         "ak.gate.account.command.issue_identity_binding_challenge",
         "ak.gate.account.command.register",
-        "ak.self.policy.query.check",
+        "ak.self.policy.read.check",
         "session_grant_introspection",
         "session_grant_revocation",
         "oidc",
@@ -2599,12 +2599,12 @@
         "not_identity_registry_must": "Auth Server MUST NOT claim `ak.profile.identity_registry.v1`; any DID document / key-log surface it exposes MUST be declared on `compat_surfaces[]` as `delegated_resolver` rather than self-claimed canonical authority.",
         "not_principal_server_must": "Auth Server MUST NOT claim `ak.profile.principal_server.v1`; Realm event acceptance is the principal server role and is incompatible with auth-server-only deployments.",
         "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run.",
-        "account_status_publication_must": "An Auth Server acting as Account Authority MUST first obtain the PCR-bound issuer actor frontier and accepted Seal frontier through ak.peer.account_status.query.authoring_basis, then sign authority_evidence and publish every ak.account.status transition through ak.peer.account_status.command.submit to the bound Principal Server; it MUST NOT synthesize an empty basis, impersonate a holder session, or use a deployment-private route."
+        "account_status_publication_must": "An Auth Server acting as Account Authority MUST first obtain the PCR-bound issuer actor frontier and accepted Seal frontier through ak.peer.account_status.read.authoring_basis, then sign authority_evidence and publish every ak.account.status transition through ak.peer.account_status.command.submit to the bound Principal Server; it MUST NOT synthesize an empty basis, impersonate a holder session, or use a deployment-private route."
       }
     },
     "ak.profile.public_network_identity.v1": {
       "required_endpoints": [
-        "ak.root.identity.query.resolve",
+        "ak.root.identity.read.resolve",
         "ak.root.identity.document.resource.get"
       ],
       "required_event_kinds": [],
@@ -2631,9 +2631,9 @@
     },
     "ak.profile.org_high_assurance_identity.v1": {
       "required_endpoints": [
-        "ak.root.identity.query.resolve",
+        "ak.root.identity.read.resolve",
         "ak.root.identity.document.resource.get",
-        "ak.root.identity.log.query.list"
+        "ak.root.identity.log.read.list"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2668,9 +2668,9 @@
     "ak.profile.key_transparency.v1": {
       "description": "Append-only key-transparency profile for principal DID history, cross-signing roots, active device-key-set digests and KeyPackage publication digests. Claims require independently verifiable log heads, inclusion proofs, consistency proofs and at least two distinct witness signatures.",
       "required_endpoints": [
-        "ak.root.identity.query.resolve",
-        "ak.root.identity.log.query.list",
-        "ak.root.identity.receipts.query.list"
+        "ak.root.identity.read.resolve",
+        "ak.root.identity.log.read.list",
+        "ak.root.identity.receipts.read.list"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2889,8 +2889,8 @@
     },
     "ak.profile.applet_service.v1": {
       "required_endpoints": [
-        "ak.edge.applet.query.describe",
-        "ak.edge.applet.query.ping",
+        "ak.edge.applet.read.describe",
+        "ak.edge.applet.read.ping",
         "ak.edge.applet.command.transaction"
       ],
       "required_event_kinds": [
@@ -2936,9 +2936,9 @@
         "ak.profile.applet_service.v1"
       ],
       "required_endpoints": [
-        "ak.edge.applet.actor.query.resolve",
-        "ak.edge.applet.realm.query.resolve",
-        "ak.edge.applet.query.protocol_metadata",
+        "ak.edge.applet.actor.read.resolve",
+        "ak.edge.applet.realm.read.resolve",
+        "ak.edge.applet.read.protocol_metadata",
         "ak.self.applet.ghost.command.provision"
       ],
       "required_event_kinds": [
@@ -3065,10 +3065,10 @@
     },
     "ak.profile.agent_runtime.v1": {
       "required_endpoints": [
-        "ak.server.query.describe",
+        "ak.server.read.describe",
         "ak.self.events.command.submit",
         "ak.self.events.read.scan",
-        "ak.self.authz.query.check",
+        "ak.self.authz.read.check",
         "ak.self.keys.keypackages.upload.create",
         "ak.self.keys.keypackages.command.consume",
         "ak.self.keys.keypackages.command.revoke"
@@ -3107,7 +3107,7 @@
         "ak.self.agent.command.renew_pairing",
         "ak.gate.account.command.pair_agent_key",
         "ak.self.keys.backups.resource.replace",
-        "ak.self.keys.backups.query.list",
+        "ak.self.keys.backups.read.list",
         "ak.self.keys.backups.command.unlock",
         "ak.self.events.command.submit",
         "ak.self.events.read.scan"
@@ -3200,7 +3200,7 @@
         "ak.profile.agent_runtime.v1"
       ],
       "required_endpoints": [
-        "ak.self.authz.query.check"
+        "ak.self.authz.read.check"
       ],
       "required_event_kinds": [
         "ak.capability.grant",
@@ -3237,7 +3237,7 @@
       "required_endpoints": [
         "ak.self.agent.sidecar.command.ensure",
         "ak.self.agent.sidecar.resource.get",
-        "ak.self.agent.sidecar.query.list",
+        "ak.self.agent.sidecar.read.list",
         "ak.self.events.command.submit",
         "ak.self.events.read.scan"
       ],
@@ -3341,7 +3341,7 @@
       ],
       "required_endpoints": [
         "ak.self.events.command.submit",
-        "ak.self.direct_conversation.query.resolve"
+        "ak.self.direct_conversation.read.resolve"
       ],
       "required_event_kinds": [
         "ak.member.state",
@@ -3418,12 +3418,12 @@
     },
     "ak.profile.mimi_interop.v1": {
       "required_endpoints": [
-        "ak.open.mimi.query.provider_directory",
+        "ak.open.mimi.read.provider_directory",
         "ak.open.mimi.command.request_consent",
         "ak.open.mimi.command.update_consent",
         "ak.open.mimi.command.update_room",
         "ak.open.mimi.command.submit_message",
-        "ak.open.mimi.query.group_info"
+        "ak.open.mimi.read.group_info"
       ],
       "required_event_kinds": [
         "ak.mimi.room_binding",
@@ -3476,9 +3476,9 @@
         "ak.profile.identity_registry.v1"
       ],
       "required_endpoints": [
-        "ak.server.query.describe",
-        "ak.root.identity.query.resolve",
-        "ak.self.authz.query.check"
+        "ak.server.read.describe",
+        "ak.root.identity.read.resolve",
+        "ak.self.authz.read.check"
       ],
       "required_event_kinds": [
         "ak.sovereign.did_policy",
@@ -3517,7 +3517,7 @@
         "ak.feature.mls_last_resort_keypackage.v1"
       ],
       "additional_requirements": {
-        "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, regular writes (any request advancing actor_seq / Realm frontier or producing durable side effects) and sensitive reads MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. Public metadata surfaces may return only unauthenticated public responses when no valid proof is present; they MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
+        "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, every protected ak.self.* operation MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. The ak.self. prefix is the machine-enforceable default-protected surface; new or unknown operations default to fail closed. The operation registry may explicitly allow an unauthenticated public-metadata projection, but without valid proof it MUST return only that public projection and MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
         "mls_last_resort_forbidden_must": "Realms claiming this profile MUST NOT allow last-resort KeyPackage join: services MUST NOT advertise ak.feature.mls_last_resort_keypackage.v1 for those Realms, claim responses MUST NOT return last_resort=true packages, and requesters MUST treat any last_resort=true claim record as profile-forbidden and fail closed.",
         "key_transparency_must": "High-risk identity, recovery, service delegation and membership decisions MUST verify ak.schema.key_transparency.v1 inclusion and consistency proofs under ak.profile.key_transparency.v1; missing or invalid proof fails closed."
       }
@@ -3528,9 +3528,9 @@
       ],
       "description": "Controlled-collaboration enclave variant of the sovereign deployment profile. The enclave runs alongside (or downstream of) a sovereign main node and hosts external collaborators inside `ak.realm.deployment_profile=enclave` Realms. When this profile is claimed the implementation MUST: (a) disable outbound federation; (b) disable public discovery and public DID resolution; (c) restrict its resolver to DID methods in the configured `allowed_did_methods` allow-list; (d) log every outbound HTTP call under the `sovereign_boundary_audit` target. See `zh/sync/sovereign-deployment.md` §2–§6.",
       "required_endpoints": [
-        "ak.server.query.describe",
-        "ak.root.identity.query.resolve",
-        "ak.self.authz.query.check"
+        "ak.server.read.describe",
+        "ak.root.identity.read.resolve",
+        "ak.self.authz.read.check"
       ],
       "required_event_kinds": [
         "ak.sovereign.did_policy",
@@ -3655,7 +3655,7 @@
     },
     "ak.profile.webrtc_media.v1": {
       "required_endpoints": [
-        "ak.server.query.describe",
+        "ak.server.read.describe",
         "ak.self.signal.command.send",
         "ak.self.signal.stream.subscribe"
       ],
@@ -3809,8 +3809,8 @@
         "ak.profile.full_client.v1"
       ],
       "required_endpoints": [
-        "ak.server.query.describe",
-        "ak.root.identity.query.resolve"
+        "ak.server.read.describe",
+        "ak.root.identity.read.resolve"
       ],
       "required_event_kinds": [
         "ak.sovereign.did_policy",
@@ -3842,7 +3842,7 @@
         "ak.profile.principal_server_events_api.v1"
       ],
       "required_endpoints": [
-        "ak.server.query.describe",
+        "ak.server.read.describe",
         "ak.self.events.command.submit",
         "ak.self.account.stream.subscribe"
       ],
@@ -3896,7 +3896,7 @@
         "ak.profile.kanban_mvp.v1"
       ],
       "required_endpoints": [
-        "ak.server.query.describe",
+        "ak.server.read.describe",
         "ak.self.events.command.submit",
         "ak.self.account.stream.subscribe"
       ],
@@ -3950,8 +3950,8 @@
         "ak.profile.identity_registry.v1"
       ],
       "required_endpoints": [
-        "ak.find.directory.query.resolve_organization",
-        "ak.self.authz.grants.query.effective"
+        "ak.find.directory.read.resolve_organization",
+        "ak.self.authz.grants.read.effective"
       ],
       "required_event_kinds": [
         "ak.organization.discovery",
@@ -3997,7 +3997,7 @@
         "ak.profile.mls_governance_binding.full.v1"
       ],
       "required_endpoints": [
-        "ak.self.snapshot.query.manifest_head",
+        "ak.self.snapshot.read.manifest_head",
         "ak.self.keys.keypackages.command.revoke"
       ],
       "required_event_kinds": [
@@ -4039,7 +4039,7 @@
         "ak.feature.mls_last_resort_keypackage.v1"
       ],
       "additional_requirements": {
-        "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, regular writes (any request advancing actor_seq / Realm frontier or producing durable side effects) and sensitive reads MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. Public metadata surfaces may return only unauthenticated public responses when no valid proof is present; they MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
+        "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, every protected ak.self.* operation MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. The ak.self. prefix is the machine-enforceable default-protected surface; new or unknown operations default to fail closed. The operation registry may explicitly allow an unauthenticated public-metadata projection, but without valid proof it MUST return only that public projection and MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
         "mls_last_resort_forbidden_must": "Realms claiming this profile MUST NOT allow last-resort KeyPackage join: services MUST NOT advertise ak.feature.mls_last_resort_keypackage.v1 for those Realms, claim responses MUST NOT return last_resort=true packages, and requesters MUST treat any last_resort=true claim record as profile-forbidden and fail closed.",
         "key_transparency_must": "High-risk identity, recovery, service delegation and membership decisions MUST verify ak.schema.key_transparency.v1 inclusion and consistency proofs under ak.profile.key_transparency.v1; missing or invalid proof fails closed."
       },
@@ -4063,8 +4063,8 @@
         "ak.profile.high_security_organization.v1"
       ],
       "required_endpoints": [
-        "ak.server.query.describe",
-        "ak.root.identity.query.resolve"
+        "ak.server.read.describe",
+        "ak.root.identity.read.resolve"
       ],
       "required_event_kinds": [
         "ak.sovereign.did_policy",
@@ -4104,7 +4104,7 @@
         "ak.self.keys.keypackages.command.consume",
         "ak.self.events.read.scan",
         "ak.self.events.read.mls_governance_proof",
-        "ak.peer.mls.query.group_state_material"
+        "ak.peer.mls.read.group_state_material"
       ],
       "required_event_kinds": [
         "ak.mls.commit",
@@ -4397,7 +4397,7 @@
       "description": "Notary profile using one DID/service key to issue Seals.",
       "required_endpoints": [
         "ak.self.events.command.submit",
-        "ak.self.snapshot.query.manifest_head"
+        "ak.self.snapshot.read.manifest_head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -4422,7 +4422,7 @@
       "description": "Notary profile using k-of-n threshold signatures to issue Seals.",
       "required_endpoints": [
         "ak.self.events.command.submit",
-        "ak.self.snapshot.query.manifest_head"
+        "ak.self.snapshot.read.manifest_head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -4447,7 +4447,7 @@
       "description": "Notary profile allowing multiple leaf Seals and deterministic Seal view joins.",
       "required_endpoints": [
         "ak.self.events.command.submit",
-        "ak.self.snapshot.query.manifest_head"
+        "ak.self.snapshot.read.manifest_head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -4472,7 +4472,7 @@
       "description": "Notary profile with primary notary and fallback recovery notary.",
       "required_endpoints": [
         "ak.self.events.command.submit",
-        "ak.self.snapshot.query.manifest_head"
+        "ak.self.snapshot.read.manifest_head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -4497,10 +4497,10 @@
       "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message strand. Account-aggregate sync is NOT covered: Arkret v1 chose a streaming push form (ak.self.account.stream.subscribe / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the ak.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
       "required_endpoints": [
         "ak.self.device_messages.command.send",
-        "ak.self.device_messages.query.list",
+        "ak.self.device_messages.read.list",
         "ak.self.device_messages.command.ack",
         "ak.self.keys.upload.create",
-        "ak.self.keys.query.lookup",
+        "ak.self.keys.read.lookup",
         "ak.self.keys.command.claim",
         "ak.edge.push.command.notify"
       ],
@@ -4535,9 +4535,9 @@
         "ak.self.realm.join_application.command.submit",
         "ak.self.realm.join_application.command.review",
         "ak.self.realm.join_application.command.cancel",
-        "ak.self.realm.join_application.query.list",
+        "ak.self.realm.join_application.read.list",
         "ak.self.realm.join_application.resource.get",
-        "ak.self.realm.join_application.audit.query.list"
+        "ak.self.realm.join_application.audit.read.list"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -4624,7 +4624,7 @@
       "description": "Hardening profile for passphrase-protected key backups. Requires memory-hard Argon2id defaults, explicit PBKDF2 downgrade, domain-separated backup classes, deterministic AEAD nonce recomputation, series-chain freshness (series_id / series_seq / supersedes / supersedes_digest), and server-side rate limiting / fresh device proof on backup access.",
       "required_endpoints": [
         "ak.self.keys.backups.resource.replace",
-        "ak.self.keys.backups.query.list",
+        "ak.self.keys.backups.read.list",
         "ak.self.keys.backups.command.unlock",
         "ak.self.keys.backups.resource.delete"
       ],
@@ -4875,7 +4875,7 @@
         "ak.self.blob.resource.head",
         "ak.self.blob.resource.get",
         "ak.self.device_messages.command.send",
-        "ak.self.device_messages.query.list",
+        "ak.self.device_messages.read.list",
         "ak.self.device_messages.command.ack"
       ],
       "required_event_kinds": [
@@ -4970,7 +4970,7 @@
     "ak.profile.calendar_notification_dispatch.v1": {
       "description": "Principal Server profile for deriving notification_kind=schedule from calendar schedule changes, including the blind-wakeup path for encrypted schedules. Provider delivery stays governed by the Push Gateway profiles.",
       "required_endpoints": [
-        "ak.server.query.describe",
+        "ak.server.read.describe",
         "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
@@ -5057,7 +5057,7 @@
     "ak.profile.search.blind_index.v1": {
       "description": "Server-assisted blind-index search profile with HMAC tokens, scope/epoch binding, and fail-closed stale posting behavior.",
       "required_endpoints": [
-        "ak.server.query.describe",
+        "ak.server.read.describe",
         "ak.self.events.read.scan"
       ],
       "required_event_kinds": [
@@ -5088,7 +5088,7 @@
         "ak.profile.search.blind_index.v1"
       ],
       "required_endpoints": [
-        "ak.server.query.describe",
+        "ak.server.read.describe",
         "ak.self.events.read.scan"
       ],
       "required_event_kinds": [

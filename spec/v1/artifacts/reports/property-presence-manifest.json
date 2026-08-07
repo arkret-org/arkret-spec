@@ -15,10 +15,10 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9207,
+    "total_properties": 9206,
     "total_schema_documents": 155,
     "by_presence_class": {
-      "optional": 2826,
+      "optional": 2825,
       "optional_defaulted": 67,
       "required": 5932,
       "required_nullable": 111,
@@ -11390,7 +11390,6 @@
         "/properties/implemented_features": "required",
         "/properties/ingest_modes": "optional",
         "/properties/limits": "required",
-        "/properties/limits/properties/max_get_query_selectors": "optional",
         "/properties/limits/properties/mls_governance_proof": "optional",
         "/properties/limits/properties/mls_governance_proof/properties/max_chunks": "required",
         "/properties/limits/properties/mls_governance_proof/properties/max_control_state_items": "required",

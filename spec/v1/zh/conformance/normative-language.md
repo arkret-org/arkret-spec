@@ -19,9 +19,9 @@ see_also:
 
 英文小写 "must" / "should" / "may"、首字母大写形式，以及未列入下表的自然语言建议，仅供阅读理解，不构成规范要求。
 
-由于 v1 中文正文是规范真源，以下中文规范词在 normative 段落、normative 表格和字段约束中具有与对应 RFC 2119 / RFC 8174 关键字相同的规范力。新增或重写规范要求时 SHOULD 优先同时给出英文关键字，以便下游 SDK、conformance suite 与翻译版本机械识别。
+由于 v1 中文正文是规范真源，以下中文规范词在 normative 段落、normative 表格和字段约束中，**仅当句子向明确的协议主体施加可观察的实现义务、禁止或许可时**，具有与对应 RFC 2119 / RFC 8174 关键字相同的规范力。描述攻击者能力、数学或机制上的可能/不可能、已发生事实、示例能力与安全边界时，这些词仍是普通自然语言，不产生 conformance 义务。新增或重写规范要求时 MUST 同时给出英文大写关键字，以便下游 SDK、conformance suite 与翻译版本机械识别。
 
-任何 conformance 统计、lint、coverage report 或发布门禁在统计规范关键字时 MUST 按下表把中文规范词归一到对应 RFC 2119 / RFC 8174 bucket；不得只统计英文大写关键字。`tools/lint_spec.py --keyword-stats` 是本仓库的基线统计入口。
+任何 conformance coverage 或发布门禁 MUST 以英文大写关键字为机械锚点；中文词只用于帮助读者理解同一句义务，不再单独扩大关键字计数。`tools/lint_spec.py --keyword-stats` 保留为编辑候选盘点入口，其中中文命中数只是待人工分类的 lexical occurrence，MUST NOT 直接解释成 conformance obligation 数量。新增或重写的规范义务没有同句英文大写关键字时，review / lint SHOULD 报告编辑问题；威胁能力或机制局限中的同形中文词不得计为实现许可/禁止。
 
 | 中文规范词 | 等价关键字 | 说明 |
 | --- | --- | --- |

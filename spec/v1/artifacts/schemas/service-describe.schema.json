@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/service-describe.schema.json",
   "title": "Arkret Service Describe",
-  "description": "Canonical service describe response returned by ak.server.query.describe and per-surface describe operations. It combines stable service metadata (service_id, service_kind, protocol_version, profiles, bindings, auth, limits, plaintext visibility and rate-limit policy) with claim-level partitions: implemented_features, claimed_profiles, verified_profiles, experimental_features and compat_surfaces. The `supported_operations` field MUST list endpoint-callable operation_ids. Constraint: when `development_mode=true`, the service MUST NOT advertise any `verified_profiles` entry, and clients MUST verify the referenced verification artifacts before treating verified_profiles as production conformance. See service-surface.md §3.0.",
+  "description": "Canonical service describe response returned by ak.server.read.describe and per-surface describe operations. It combines stable service metadata (service_id, service_kind, protocol_version, profiles, bindings, auth, limits, plaintext visibility and rate-limit policy) with claim-level partitions: implemented_features, claimed_profiles, verified_profiles, experimental_features and compat_surfaces. The `supported_operations` field MUST list endpoint-callable operation_ids. Constraint: when `development_mode=true`, the service MUST NOT advertise any `verified_profiles` entry, and clients MUST verify the referenced verification artifacts before treating verified_profiles as production conformance. See service-surface.md §3.0.",
   "type": "object",
   "patternProperties": {
     "^x_[a-z][a-z0-9_]{0,63}$": true
@@ -174,11 +174,6 @@
       "type": "object",
       "description": "Operational limits such as body size, batch size, TTL, pagination or retention bounds.",
       "properties": {
-        "max_get_query_selectors": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Maximum total selector count (`realms[]` + `actors[]`) accepted by the optional GET /_arkret/self/events compatibility binding. When QUERY is unavailable and the selector count exceeds this value, or filters are sensitive enough to avoid URL logging, clients SHOULD choose the POST /_arkret/self/events/query compatibility binding. If omitted, clients use the v1 default of 8."
-        },
         "mls_governance_proof": {
           "type": "object",
           "description": "Required with these exact v1 interoperability bounds when supported_operations contains ak.self.events.read.mls_governance_proof.",
@@ -544,7 +539,7 @@
     },
     "resource_kinds": {
       "type": "array",
-      "description": "Directory-service resource classes indexed by ak.find.directory.query.describe. Required when service_kind=directory_service.",
+      "description": "Directory-service resource classes indexed by ak.find.directory.read.describe. Required when service_kind=directory_service.",
       "items": {
         "$ref": "#/$defs/directory_resource_kind"
       },
@@ -553,7 +548,7 @@
     },
     "discovery_profiles": {
       "type": "array",
-      "description": "Directory discovery profiles and extension profile ids advertised by ak.find.directory.query.describe. Required when service_kind=directory_service.",
+      "description": "Directory discovery profiles and extension profile ids advertised by ak.find.directory.read.describe. Required when service_kind=directory_service.",
       "items": {
         "type": "string",
         "minLength": 1
@@ -563,7 +558,7 @@
     },
     "private_contact_discovery": {
       "type": "object",
-      "description": "Complete machine-readable configuration for ak.private_contact_discovery.v1. Required when supported_operations contains ak.find.directory.query.private_contact_discovery; clients MUST fail closed if any field is absent or unsupported.",
+      "description": "Complete machine-readable configuration for ak.private_contact_discovery.v1. Required when supported_operations contains ak.find.directory.read.private_contact_discovery; clients MUST fail closed if any field is absent or unsupported.",
       "additionalProperties": false,
       "required": [
         "profile",
@@ -716,7 +711,7 @@
     },
     "accept_policy_kind": {
       "type": "string",
-      "description": "Directory resource acceptance policy advertised by ak.find.directory.query.describe.",
+      "description": "Directory resource acceptance policy advertised by ak.find.directory.read.describe.",
       "enum": [
         "open",
         "allowlist",
@@ -950,7 +945,7 @@
         "properties": {
           "supported_operations": {
             "contains": {
-              "const": "ak.find.directory.query.private_contact_discovery"
+              "const": "ak.find.directory.read.private_contact_discovery"
             }
           }
         },

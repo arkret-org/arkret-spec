@@ -177,7 +177,7 @@ Account Authority 与客户端 UI MUST 把 service-account 认证凭据（密码
 Account Authority 或已委派 issuer 向 Principal Server 发布状态的唯一 HTTP operation 是 `ak.peer.account_status.command.submit`（`POST /_arkret/peer/account-status`），request 为 `account_status_publication_request_body`：
 
 在签名 Event 之前，authoritative issuer MUST 通过标准只读操作
-`ak.peer.account_status.query.authoring_basis`（`POST /_arkret/peer/account-status/authoring-basis`）取得同一 PCR 的
+`ak.peer.account_status.read.authoring_basis`（`POST /_arkret/peer/account-status/authoring-basis`）取得同一 PCR 的
 typed authoring basis。request 必须携带完整、当前有效的 `authority_evidence` 与固定
 `event_kind="ak.account.status"`，并使用 §3 的 service-to-service HTTP Message Signature；Source-Service-ID
 MUST 等于 evidence 的 `issuer_service_id`，Destination-Service-ID MUST 是承载该 PCR accepted state 的 Principal

@@ -180,7 +180,7 @@ AAD 字段集合受 Realm 的 `aad_visibility` policy 组件约束（承载与�
   )
   ```
 
-  其中 `ak.aad-event-ref-v1` 是固定的 ASCII 域分隔常量（逐字节等于该字符串），字段间以单字节 `0x00` 分隔以消除拼接歧义；`event_id` / `realm_id` 取其 canonical typed-id 字符串（`ak:event:<uuidv7>` / `ak:realm:<uuidv7>`）的 UTF-8 字节，二者都是已在 wire 上、双方可逐字节获得的权威字段。输入**只有**这两个 typed id 与域分隔常量：`event_id` 的 UUIDv7 含约 74-bit 随机段（其余为可预测的时间戳位），该随机段足以使 digest 无法被离线**盲枚举**反查回 `event_id`（2^74 量级不可行，无需额外 nonce）；`realm_id` 绑定 Realm 阻止跨 Realm 重放。**诚实边界**：本 digest 是 `(event_id, realm_id)` 的**确定性无密钥函数**，因此它是**稳定伪名**——任何已持有候选 `event_id` 的一方都可逐字节重算并据此确认 / 链接该事件；本机制只提供对"未知 `event_id` 的盲枚举"的抗性，**不**提供对"已知 `event_id` 的确认 / 链接"的保密（后者需 keyed 构造，v1 在此不引入）。v1 **不**在本 digest 引入任何未在 registry / schema 定义 canonical wire 来源的额外 nonce 输入。该常量与公式是 wire-breaking 的安全域分隔参数，实现 MUST 逐字节一致构造，MUST NOT 引入私有前缀、额外输入、改变字段顺序或省略 `0x00` 分隔；逐字节 KAT 与 mutation case 固化在 [conformance-vectors.md](../conformance/conformance-vectors.md) §1.12。**接收方语义**：`event_ref_digest` 是明文但受外层 AEAD 认证的字段——AEAD 解密本身直接使用 wire 字节、不重算该 digest；需要做反欺骗绑定校验或跨 provider 去重的 router / verifier **MAY** 按上式重算并与 wire 值 bytewise 比对，不一致时 **MUST** 视为绑定失效并拒绝据其路由 / 去重。
+  其中 `ak.aad-event-ref-v1` 是固定的 ASCII 域分隔常量（逐字节等于该字符串），字段间以单字节 `0x00` 分隔以消除拼接歧义；`event_id` / `realm_id` 取其 canonical typed-id 字符串（event-derived ID 为 §4.0 的 UUIDv8；producer-allocated ID 为 UUIDv7）的 UTF-8 字节，二者都是已在 wire 上、双方可逐字节获得的权威字段。输入**只有**这两个 typed id 与域分隔常量：content-bound `event_id` 含 34-bit 秒时间段与 88-bit digest material，不存在旧 UUIDv7 所称的 74-bit 独立随机段；对未知 Event 的盲枚举成本来自该 88-bit 内容摘要，而不是时间戳。`realm_id` 绑定 Realm 阻止跨 Realm 重放。**诚实边界**：本 digest 是 `(event_id, realm_id)` 的**确定性无密钥函数**，因此它是**稳定伪名**——任何已持有候选 `event_id` 的一方都可逐字节重算并据此确认 / 链接该事件；本机制只提供对"未知 `event_id` 的盲枚举"的抗性，**不**提供对"已知 `event_id` 的确认 / 链接"的保密。需要抵抗候选确认的 Realm MUST 使用 `aad_visibility_event_id="hidden"`；v1 不把 MLS secret 引入跨 provider 必须稳定可重算的 routing digest。该常量与公式是 wire-breaking 的安全域分隔参数，实现 MUST 逐字节一致构造，MUST NOT 引入私有前缀、额外输入、改变字段顺序或省略 `0x00` 分隔；逐字节 KAT 与 mutation case 固化在 [conformance-vectors.md](../conformance/conformance-vectors.md) §1.12。**接收方语义**：`event_ref_digest` 是明文但受外层 AEAD 认证的字段——AEAD 解密本身直接使用 wire 字节、不重算该 digest；需要做反欺骗绑定校验或跨 provider 去重的 router / verifier **MAY** 按上式重算并与 wire 值 bytewise 比对，不一致时 **MUST** 视为绑定失效并拒绝据其路由 / 去重。
 - `hidden`：AAD MUST 同时省略 `event_id` 与 `event_ref_digest`；去重只能依赖外层 Event Envelope、transport receipt 或 receiver-local cache。
 
 AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
@@ -306,7 +306,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
   - 接收端在解密 advisory 模式下旧 epoch 消息时 MUST 检查 receive_at vs membership_change_at 时间窗，超过部署声明 `relaxed_window_max_ms` 时拒绝解密结果进入 verified timeline
   - **`relaxed_window_max_ms` 默认值 = 30,000 ms（30 秒），硬上限 = 300,000 ms（5 分钟）**：两者语义不同，不得混淆。**默认值**是部署未在 `ak.realm.policy_bundle` 显式声明 `relaxed_window_max_ms` 时 reducer / 接收端 MUST 采用的值，固定为 30,000 ms（与 §2.4.2 profile 行为表"被踢者继续解密窗口默认 30s"及 `max_mls_commit_delay_ms` 默认 30,000 ms 对齐，使"踢出后被踢者继续可读窗口"与"正常 commit roundtrip 上限"在默认配置下同量级）。**硬上限**是部署即使显式声明也不得超过的天花板 300,000 ms：部署不得通过 `ak.realm.policy_bundle` 把 `relaxed_window_max_ms` 写为大于硬上限的值；reducer MUST 用 `relaxed_window_exceeds_ceiling` 拒绝。接收端 MUST 独立 enforce 硬上限——不得静默 clamp 到 300000，否则部署声明的窗口与 receiver 接受的窗口会跨实现分裂。部署 MAY 在 `(0, 300000]` 区间内显式覆盖默认 30000；缺省即 30000。Negative vector `ak.vector.e2ee_relaxed.window_exceeds_ceiling.v1` 同时覆盖 policy write 超限与 receiver 接受超限 decrypt 两条路径。
   - **合规 profile 互斥**：声明 `ak.profile.attested_audit.e2ee.v1` / `ak.profile.disclosed_audit.e2ee.v1` 或存在 active Audit Applet Binding 的部署 MUST NOT 同时启用 `ak.profile.e2ee_relaxed.v1`；reducer MUST 用 `e2ee_relaxed_disallowed_in_compliance_profile` 拒绝。合规 / 监管 profile 的核心承诺是"踢出即时密码学生效"，relaxed 窗口与之矛盾。
-  - **Federation guard**：`ak.profile.e2ee_relaxed.v1` MUST NOT 与 `federation_policy="open"` 或 `"quarantine"` 同时启用；reducer MUST 用 `e2ee_relaxed_federation_policy_unsupported` 拒绝。`federation_policy="restricted"` 只允许在 Realm policy 同时声明 `relaxed_fanout_deadline_ms <= relaxed_window_max_ms`、`max_federation_delivery_delay_ms <= relaxed_window_max_ms` 且 federation peers 在 `ak.server.query.describe.limits` 中公开不超过该 deadline 的 fanout SLA 时启用；否则 MUST fail closed。`federation_policy="closed"` 不需要额外 federation guard。describe SLA 校验仅是准入门槛（声明时校验 peer 公开的 fanout deadline 是否满足约束），实际 enforcement 仍由接收端 `relaxed_window_max_ms` 时间窗兜底（运行时校验 receive_at vs membership_change_at，超窗即拒绝 decrypt 进入 verified timeline）；二者缺一不可，不得理解为"声明合规即放行"。
+  - **Federation guard**：`ak.profile.e2ee_relaxed.v1` MUST NOT 与 `federation_policy="open"` 或 `"quarantine"` 同时启用；reducer MUST 用 `e2ee_relaxed_federation_policy_unsupported` 拒绝。`federation_policy="restricted"` 只允许在 Realm policy 同时声明 `relaxed_fanout_deadline_ms <= relaxed_window_max_ms`、`max_federation_delivery_delay_ms <= relaxed_window_max_ms` 且 federation peers 在 `ak.server.read.describe.limits` 中公开不超过该 deadline 的 fanout SLA 时启用；否则 MUST fail closed。`federation_policy="closed"` 不需要额外 federation guard。describe SLA 校验仅是准入门槛（声明时校验 peer 公开的 fanout deadline 是否满足约束），实际 enforcement 仍由接收端 `relaxed_window_max_ms` 时间窗兜底（运行时校验 receive_at vs membership_change_at，超窗即拒绝 decrypt 进入 verified timeline）；二者缺一不可，不得理解为"声明合规即放行"。
 
   **降级声明义务（normative）**：`ak.profile.e2ee_relaxed.v1` 不是本地优化开关，而是可审计的协议降级声明。有效声明必须同时满足：Realm `schema_refs` 明文记录 `ak.profile.e2ee_relaxed.v1`（经 `ak.realm.create` 或 `ak.realm.schema` 写入），且 `ak.realm.policy_bundle` 明文记录 `mls_send_pause="advisory"`——profile id 与 `mls_send_pause` 分属两个承载，bundle 闭合 payload 内没有 profile 字段；服务端 `ServiceDescribe.supported_profiles` / `supported_features` 声明 `ak.profile.e2ee_relaxed.v1` / `ak.feature.e2ee_relaxed.v1`；该 Realm 后续每个 MLS `governance_binding.binding_profile` 写为 `ak.profile.e2ee_relaxed.v1` 并携带匹配的 `reducer_profile`；sync metadata、snapshot、backup/export 与 interop mapping receipt 必须保留 `e2ee_relaxed=true` 和 `relaxed_window_max_ms`。任一条件缺失、互相矛盾、或仅通过部署私有配置 / UI 标签 / 省略 GroupContext extension 表达降级，接收方 MUST 按未声明降级 fail closed：拒绝 Realm 写入、quarantine 相关 MLS artifact，或拒绝 old-epoch decrypt 进入 verified timeline。
 
@@ -349,7 +349,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
   - 在该 Realm 的对话 UI 上展示 banner-level 警示(不可被用户永久 dismiss,可临时折叠)
   - 在用户邀请新成员时弹窗提示"该 Realm 使用降级 E2EE",让用户知情决策
   - 在 sync metadata 中标记该 Realm 为 `e2ee_relaxed=true`,导出 / 备份 / 跨设备时保留该标记
-- 服务端 `ak.server.query.describe.supported_features` **MUST** 列出 `ak.feature.e2ee_relaxed.v1` 才能接受该 profile 的 Realm 写入
+- 服务端 `ak.server.read.describe.supported_features` **MUST** 列出 `ak.feature.e2ee_relaxed.v1` 才能接受该 profile 的 Realm 写入
 
 **禁止扩展**:本 profile 不允许进一步降级到"不验证 `security_frontier_digest`" / "允许跨 epoch 解密无窗口限制"。降级到此为止；更宽松场景应当退回到**非 E2EE** Realm(`encryption_profile="none"`)而不是继续放宽 E2EE 承诺。
 
@@ -602,7 +602,7 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
 
 **可选协商（normative）**：last-resort 是可选能力，复用 server describe `supported_features`（§2.4.2 同款 `ak.feature.*` 机制）与 Realm profile 的既有协商面，不引入新协商通道：
 
-- 提供 last-resort 回退的服务端 MUST 在 `ak.server.query.describe.supported_features` 中声明 `ak.feature.mls_last_resort_keypackage.v1`；未声明该 feature 的服务端 MUST 继续 fail-closed（池空 claim 失败），claim 响应 MUST NOT 返回 `last_resort=true` 的包。
+- 提供 last-resort 回退的服务端 MUST 在 `ak.server.read.describe.supported_features` 中声明 `ak.feature.mls_last_resort_keypackage.v1`；未声明该 feature 的服务端 MUST 继续 fail-closed（池空 claim 失败），claim 响应 MUST NOT 返回 `last_resort=true` 的包。
 - device 发布 last-resort 包前 SHOULD 校验目标服务端声明了该 feature；requester 收到 `last_resort=true` claim 记录时，若其本地 profile 不接受 last-resort 路径（例如高保证 Realm 要求严格单次性），MUST NOT 用该包发 Welcome，并 SHOULD 视为池空（按默认 fail-closed 处理）。
 - 是否在某 Realm 允许 last-resort join 由 Realm policy / profile 决定：要求严格前向保密的 Realm MAY 通过 profile 禁止 last-resort join；`ak.profile.high_security_organization.v1` / `ak.profile.sovereign_deployment.v1` MUST 禁止。此时即便服务端支持该 feature，该 Realm 的邀请 MUST 走单次包或 fail closed。
 - 这是加性 feature：不声明 feature、不发布 last-resort 包的部署，其 claim / consume / Welcome 行为保持默认 fail-closed 路径不变。
@@ -689,7 +689,7 @@ binding 天然覆盖它：
 | 值 | 含义 |
 | --- | --- |
 | `hidden` | 组件缺省时的取值；AAD 不暴露任何稳定 event 标识（`aad.event_id` 与 `aad.event_ref_digest` 都省略）。 |
-| `routing_digest` | 只暴露 §2.3.2 canonical 公式算出的不可逆 `event_ref_digest`，用于去重、幂等和 backfill 诊断。 |
+| `routing_digest` | 只暴露 §2.3.2 canonical 公式算出的稳定 `event_ref_digest`，用于去重、幂等和 backfill 诊断；它对已知候选可确认，不得描述为不可逆。 |
 | `opaque_id` | 暴露 opaque `aad.event_id`，用于跨 provider 投递确认。 |
 
 **上限语义（normative）**：披露序为 `hidden < routing_digest < opaque_id`。
@@ -1027,7 +1027,7 @@ GroupInfo bytes 与 `ratchet_tree` extension bytes 放入可由承载该 Realm �
 object ref、解析后的 leaf DTO 或本地路径都不合规。
 
 服务器、federation peer 或独立公开 MLS group tracker 读取 epoch-0 tree 时 MUST 使用注册操作
-`ak.peer.mls.query.group_state_material`（`POST /_arkret/peer/mls/group-state-material`）或逐字段等价的同进程
+`ak.peer.mls.read.group_state_material`（`POST /_arkret/peer/mls/group-state-material`）或逐字段等价的同进程
 typed binding。request 必须逐字携带 accepted genesis 的 Realm/scope/group/epoch/Event id 和两组 ref/digest；
 响应必须回显同一 binding，并以未填充 base64url 返回两份原始 bytes。provider 在响应前 MUST：
 

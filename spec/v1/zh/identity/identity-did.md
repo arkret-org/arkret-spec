@@ -294,7 +294,7 @@ artifact。
 
 Arkret 层用 [`did-webvh-witness-receipt.schema.json`](../../artifacts/schemas/did-webvh-witness-receipt.schema.json)
 （`ak.schema.did_webvh_witness_receipt.v1`）承载 witness 观测结论，
-经 `ak.root.identity.receipts.query.list` 以**闭合 discriminator 的 tagged union** 返回。
+经 `ak.root.identity.receipts.read.list` 以**闭合 discriminator 的 tagged union** 返回。
 
 该 receipt 与 `ak.schema.identity_receipt.v1` 是**两个不同的对象族**，不得合并：
 后者的 `witness_role ∈ {writer, witness, replica}` 描述的是 DID **registry consensus group** 中的复制角色，
@@ -873,8 +873,8 @@ service identity registration 分开：三者的主体模型不同，混用会�
 | Realm relationship | 由 `ak.realm.organization` statement 表达 | 不因本地 registration 自动获得 |
 | service delegation | organization → service DID 的 purpose/scope/validity | 另行验证，registration 不代替 |
 
-`ak.find.directory.query.resolve_organization` 只提供可见的 discovery/resolve 结果，
-`ak.self.realm_organization.query.list` 只是既有 Realm relationship 的投影。
+`ak.find.directory.read.resolve_organization` 只提供可见的 discovery/resolve 结果，
+`ak.self.realm_organization.read.list` 只是既有 Realm relationship 的投影。
 **能解析或能引用，不产生本地管理权**——规范必须堵住"可见 ⇒ 可管理"的权限升级。
 
 **为什么不复用 service registration。** 结构先例可以借：root identity 下的 operation 位置、

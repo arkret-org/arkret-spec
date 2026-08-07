@@ -45,7 +45,7 @@
           "ak.profile.calendar_notification_dispatch.v1"
         ],
         "supported_operations": [
-          "ak.server.query.describe",
+          "ak.server.read.describe",
           "ak.self.events.read.scan"
         ],
         "supported_bindings": [
