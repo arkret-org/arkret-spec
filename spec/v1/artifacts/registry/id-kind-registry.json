@@ -1,17 +1,25 @@
 {
-  "version": "2026-08-08.1",
+  "version": "2026-08-08.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T01:00:00Z",
+  "generated_at": "2026-08-08T06:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
+  "wire_form_generation": {
+    "producer_allocated": "ak:<kind>:<uuidv7>",
+    "event_derived": "ak:<kind>:<44-char-event-token>",
+    "derivation_tagged_full_digest": "ak:realm:<44-char-derivation-tagged-full-digest-token>"
+  },
   "storage_rules": [
     "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form declared by each id_kind row.",
-    "Storage implementations MAY store producer_allocated UUIDv7 values as raw 16-byte UUIDs. Event-derived IDs MUST instead store their raw 33-byte token (suite wire_code plus all 32 digest octets); they MUST NOT use a native UUID column.",
-    "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, Event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
+    "Storage implementations MAY store producer-allocated raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the ak:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
+    "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
     "The <kind> segment is part of the signed/canonical wire value. It MUST NOT be changed, inferred differently, or stripped during verification, forwarding, backfill, or replay.",
-    "The id_form is fixed by registry kind and never chosen per call site: producer_allocated uses RFC 9562 UUIDv7; event_derived uses the same canonical 33-byte token as its creating Event ID and serializes as 44 unpadded Base64URL characters.",
-    "A producer_allocated UUIDv7 is never a globally sufficient protocol identity. Its canonical identity key is (mint_authority, typed_id), where mint_authority is the DID whose accepted proof authorized the first durable appearance of that ID. Bare typed-ID lookup, cross-authority deduplication, and last-writer-wins collision repair are forbidden."
+    "The payload construction MUST be fixed by that kind's id_form and identity_authority columns, never chosen per call site: producer_allocated uses UUIDv7; event_derived uses the creating Event's 33-byte token; Realm uses the derivation-tagged 33-byte token from zh/conformance/encoding.md section 4.1. A UUID version nibble or Realm header alone never proves identity authority.",
+    "A producer_allocated UUIDv7 is never a globally sufficient protocol identity. Its canonical identity key is (mint_authority, typed_id), where mint_authority is the DID whose accepted proof authorized the first durable appearance of that ID. Bare typed-ID lookup, cross-authority deduplication, and last-writer-wins collision repair are forbidden.",
+    "Storage implementations MAY store producer_allocated UUID values as raw 16-byte UUIDs. Event-derived and derivation-tagged Realm IDs MUST instead store their raw 33-byte token; they MUST NOT use a native UUID column.",
+    "The id_form is fixed by registry kind and never chosen per call site: producer_allocated uses RFC 9562 UUIDv7; event_derived uses the same canonical 33-byte token as its creating Event ID; derivation_tagged_full_digest uses a 4-bit derivation class, 4-bit digest suite, and all 32 digest octets. Both token forms serialize as 44 unpadded Base64URL characters.",
+    "A database MAY intern any full Realm wire identity in a canonical Realm table and use a database-local surrogate pk for joins, indexes, and foreign keys. That pk is never serialized or signed. The canonical table MUST retain a unique lossless 33-byte Realm identity (or its full typed wire form), and every realm_pk foreign key MUST resolve to the same wire Realm identity carried by the protocol record."
   ],
   "producer_allocated_identity_contract": {
     "identity_key": [
@@ -25,7 +33,33 @@
     "cross_authority_same_uuid": "distinct_identity",
     "atomic_reservation_required": true,
     "signature_binding_required": true,
+    "conformance_suite": {
+      "vector_id": "ak.vector.object_identity.producer_allocated_collision.v1",
+      "fixture": "producer-allocated-identity-collision-fixture.json",
+      "parameter_source": "id_kind_registry.id_kinds[id_form=producer_allocated]"
+    },
     "security_rationale": "UUIDv7 randomness and timestamp layout do not authenticate the allocator. Binding every producer-selected ID to the accepted genesis signer prevents an attacker from claiming another producer's ID by copying or predicting the UUID."
+  },
+  "realm_token_layout": {
+    "wire_form": "ak:realm:<44-char-base64url-no-pad>",
+    "decoded_length_bytes": 33,
+    "header": "(derivation_class << 4) | digest_suite",
+    "derivation_classes": {
+      "0": "event_derived",
+      "1": "principal_subject_derived",
+      "2..14": "reserved",
+      "15": "format_control"
+    },
+    "digest_suites": {
+      "1": "sha256",
+      "2..14": "reserved",
+      "0": "invalid",
+      "15": "reserved"
+    },
+    "event_derived_retype_compatibility": "Class 0 leaves the Event suite byte unchanged; v1 Realm identity is fixed to SHA-256, so only a creating Event with suite wire code 0x01 is Realm-eligible.",
+    "principal_control_header": 17,
+    "principal_control_domain": "ak:realm:principal-control:v1:",
+    "principal_control_digest_suite": "sha256"
   },
   "special_forms": [
     {
@@ -104,7 +138,7 @@
       "kind": "actor_profile",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ak:actor_profile:<event-token>",
+      "wire_form": "ak:actor_profile:<44-char-event-token>",
       "referenceability": [
         "relation_endpoint"
       ],
@@ -119,7 +153,7 @@
       "kind": "appeal",
       "category": "moderation",
       "status": "active",
-      "wire_form": "ak:appeal:<event-token>",
+      "wire_form": "ak:appeal:<44-char-event-token>",
       "description": "Moderation appeal ID derived from ak.moderation.appeal.submit and referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5.",
       "id_form": "event_derived",
       "identity_authority": "event",
@@ -149,7 +183,7 @@
       "kind": "audit_binding",
       "category": "audit",
       "status": "active",
-      "wire_form": "ak:audit_binding:<event-token>",
+      "wire_form": "ak:audit_binding:<44-char-event-token>",
       "description": "Audit Applet Binding ID derived from ak.audit.applet_binding.create and referenced by binding state and audit session events.",
       "id_form": "event_derived",
       "identity_authority": "event",
@@ -161,7 +195,7 @@
       "kind": "audit_session",
       "category": "audit",
       "status": "active",
-      "wire_form": "ak:audit_session:<event-token>",
+      "wire_form": "ak:audit_session:<44-char-event-token>",
       "description": "Audit release session ID derived from ak.audit.session.request. Threads request, authorize, notice, release, and close events for one bounded historical audit window.",
       "id_form": "event_derived",
       "identity_authority": "event",
@@ -173,7 +207,7 @@
       "kind": "audit_release",
       "category": "audit",
       "status": "active",
-      "wire_form": "ak:audit_release:<event-token>",
+      "wire_form": "ak:audit_release:<44-char-event-token>",
       "description": "Audit release manifest ID derived from ak.audit.release for a sealed historical release under an active audit binding/session.",
       "id_form": "event_derived",
       "identity_authority": "event",
@@ -234,7 +268,7 @@
       "kind": "call",
       "category": "media",
       "status": "active",
-      "wire_form": "ak:call:<event-token>",
+      "wire_form": "ak:call:<44-char-event-token>",
       "description": "Call/session ID derived from the accepted ak.call.create genesis Event.",
       "id_form": "event_derived",
       "identity_authority": "event",
@@ -264,7 +298,7 @@
       "kind": "circle",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ak:circle:<event-token>",
+      "wire_form": "ak:circle:<44-char-event-token>",
       "referenceability": [
         "read_cursor_scope_ref"
       ],
@@ -279,7 +313,7 @@
       "kind": "sidecar",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ak:sidecar:<event-token>",
+      "wire_form": "ak:sidecar:<44-char-event-token>",
       "description": "Agent Sidecar object ID — controller-owned private AI workspace, singleton per (realm_id, controller_id), with derived eligible-Agent access. See zh/models/sidecar.md.",
       "id_form": "event_derived",
       "identity_authority": "event",
@@ -300,7 +334,7 @@
       "kind": "strand",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ak:strand:<event-token>",
+      "wire_form": "ak:strand:<44-char-event-token>",
       "referenceability": [
         "relation_endpoint",
         "notification_source",
@@ -353,7 +387,7 @@
       "kind": "event",
       "category": "event_history",
       "status": "active",
-      "wire_form": "ak:event:<event-token>",
+      "wire_form": "ak:event:<44-char-event-token>",
       "referenceability": [
         "relation_endpoint"
       ],
@@ -392,7 +426,7 @@
       "kind": "grant",
       "category": "authz",
       "status": "active",
-      "wire_form": "ak:grant:<event-token>",
+      "wire_form": "ak:grant:<44-char-event-token>",
       "description": "Durable signed capability Grant ID derived from the accepted ak.capability.grant genesis Event; distinct from short-lived SessionGrant credentials.",
       "id_form": "event_derived",
       "identity_authority": "event",
@@ -404,7 +438,7 @@
       "kind": "session_grant",
       "category": "authz",
       "status": "active",
-      "wire_form": "ak:session_grant:<event-token>",
+      "wire_form": "ak:session_grant:<44-char-event-token>",
       "description": "Short-lived signed SessionGrant credential ID derived from ak.session.grant. JWT jti carries this typed ID; it is never an ak:grant capability ID.",
       "id_form": "event_derived",
       "identity_authority": "event",
@@ -416,7 +450,7 @@
       "kind": "invite",
       "category": "authz",
       "status": "active",
-      "wire_form": "ak:invite:<event-token>",
+      "wire_form": "ak:invite:<44-char-event-token>",
       "description": "Invite object ID derived from either directed ak.invite.create or third-party ak.invite.third_party genesis.",
       "id_form": "event_derived",
       "identity_authority": "event",
@@ -447,7 +481,7 @@
       "kind": "message",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ak:message:<event-token>",
+      "wire_form": "ak:message:<44-char-event-token>",
       "referenceability": [
         "relation_endpoint",
         "notification_source",
@@ -473,7 +507,7 @@
       "kind": "morph",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ak:morph:<event-token>",
+      "wire_form": "ak:morph:<44-char-event-token>",
       "referenceability": [
         "relation_endpoint",
         "notification_source"
@@ -570,7 +604,7 @@
       "kind": "relation",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ak:relation:<event-token>",
+      "wire_form": "ak:relation:<44-char-event-token>",
       "referenceability": [
         "relation_endpoint",
         "notification_source"
@@ -586,7 +620,7 @@
       "kind": "report",
       "category": "moderation",
       "status": "active",
-      "wire_form": "ak:report:<event-token>",
+      "wire_form": "ak:report:<44-char-event-token>",
       "description": "Moderation report ID derived from the accepted ak.self.moderation.report Event.",
       "id_form": "event_derived",
       "identity_authority": "event",
@@ -598,7 +632,7 @@
       "kind": "moderation_queue_item",
       "category": "moderation",
       "status": "active",
-      "wire_form": "ak:moderation_queue_item:<event-token>",
+      "wire_form": "ak:moderation_queue_item:<44-char-event-token>",
       "description": "Moderation queue item ID derived as a second, distinct typed output of the accepted ak.self.moderation.report Event.",
       "id_form": "event_derived",
       "identity_authority": "event",
@@ -628,7 +662,7 @@
       "kind": "space",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ak:space:<event-token>",
+      "wire_form": "ak:space:<44-char-event-token>",
       "referenceability": [
         "relation_endpoint",
         "read_cursor_scope_ref"
@@ -653,18 +687,18 @@
       "kind": "realm",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ak:realm:<uuid>",
+      "wire_form": "ak:realm:<44-char-derivation-tagged-full-digest-token>",
       "referenceability": [
         "relation_endpoint",
         "read_cursor_scope_kind"
       ],
       "description": "Realm object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy.",
-      "id_form": "event_derived_or_subject_derived",
+      "id_form": "derivation_tagged_full_digest",
       "identity_authority": "event_or_subject_transcript",
       "genesis_event_kinds": [
         "ak.realm.create"
       ],
-      "id_form_note": "Collaboration Realms are event-derived and retype their creating Event's 33-byte token (encoding.md section 4.0). Principal Control Realms are subject-derived from the principal DID (H(\"ak:realm:principal-control:v1:\" || did), UUIDv7 layout) so the address stays computable from the DID alone; their identity anchor is did_inception, not the genesis Event. Neither form is producer-chosen and the branch is fixed by the create's purpose."
+      "id_form_note": "All Realm IDs are 33-byte derivation-tagged full-digest tokens (encoding.md section 4.1). Collaboration Realms use header 0x0S and directly retype the creating Event token; SHA-256 is 0x01. Principal Control Realms use header 0x11 and the full SHA-256 digest of UTF8(\"ak:realm:principal-control:v1:\") || UTF8(canonical_principal_did), preserving DID-only addressability. UUID Realm IDs are invalid; the header class and signed create purpose must agree."
     },
     {
       "kind": "transaction",
@@ -688,7 +722,7 @@
       "kind": "view",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ak:view:<event-token>",
+      "wire_form": "ak:view:<44-char-event-token>",
       "referenceability": [
         "relation_endpoint",
         "notification_source"

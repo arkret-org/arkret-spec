@@ -225,7 +225,7 @@ ak:<kind>:<uuid>
 
 `<kind>` 是 canonical bytes 的一部分。实现 MUST NOT 把 `ak:receipt:<id>` 改写成 `ak:event:<id>`，也 MUST NOT 因为字段名叫 `receipt_id` 就在验证时补前缀。字段名可以辅助 schema 校验，但不能替代 signed wire ID。
 
-producer-allocated typed ID 继续使用 [RFC 9562](https://datatracker.ietf.org/doc/html/rfc9562) UUIDv7；`event_id` 与 registry 中 `id_form=event_derived` 的对象 ID 不再是 UUID，而使用 §4.0 的固定 33-octet token。kind 的形态由 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 唯一决定，调用点不得自行选择，也不得把 Event-derived token 放入 PostgreSQL `uuid` / `BYTEA(16)`。
+producer-allocated typed ID 继续使用 [RFC 9562](https://datatracker.ietf.org/doc/html/rfc9562) UUIDv7；`event_id`、registry 中 `id_form=event_derived` 的对象 ID，以及 `id_form=derivation_tagged_full_digest` 的 Realm ID 不是 UUID，而使用固定 33-octet token。kind 的形态由 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 唯一决定，调用点不得自行选择，也不得把这些 token 放入 PostgreSQL `uuid` / `BYTEA(16)`。
 
 ### 4.0 suite-tagged 264-bit Event ID（normative）
 
@@ -251,7 +251,42 @@ producer 顺序固定为：完成除 `event_id` / `proofs` 外的字段；计算
 
 Event ID 保留底层 256-bit digest 的指定目标与碰撞安全强度；额外 suite octet 是算法域标识，不增加同一 suite 的 hash 强度。canonical store、proof / receipt / Seal coverage、raw replay 与所有 Event 引用 MUST 使用完整 Event ID，且可从 ID 无损恢复 suite code 与全部 digest bytes。
 
-派生对象 ID 的规则见 [`../models/common-fields.md`](../models/common-fields.md)；`event_id` 的携带与重算义务见 §6。
+派生对象 ID 的规则见 [`../models/common-fields.md`](../models/common-fields.md)；Realm token header 见 §4.1；`event_id` 的携带与重算义务见 §6。
+
+### 4.1 derivation-tagged 264-bit Realm ID（normative）
+
+所有 Realm ID 统一为 `ak:realm:` 加 44-character unpadded Base64URL token；解码后恰为 33 octets：
+
+```text
+realm_header = (derivation_class << 4) | digest_suite
+realm_id_bytes[0]     = realm_header
+realm_id_bytes[1..32] = full_digest[0..31]
+realm_id = "ak:realm:" || base64url_no_pad(realm_id_bytes)
+```
+
+v1 header 注册表：
+
+| 高 nibble `derivation_class` | 含义 | digest preimage authority |
+| --- | --- | --- |
+| `0x0` | `event_derived` | `ak.realm.create` Event digest preimage |
+| `0x1` | `principal_subject_derived` | `SHA-256(UTF8("ak" ":" "realm" ":" "principal-control" ":" "v1" ":") || UTF8(canonical_principal_did))` |
+| `0x2..0xE` | reserved | 激活前非法 |
+| `0xF` | format-control | 不得作为身份类别 |
+
+低 nibble 预留 digest-suite code 空间，但 v1 Realm identity 的算法已经固定为 SHA-256，因此只有
+`digest_suite=0x1` 合法；`0x0` 与 `0x2..0xF` 均为非法/保留。普通 Event 可以登记其它 suite，
+但这不会自动使其成为 Realm-eligible suite；v1 Collaboration Realm 的 create Event 必须使用
+suite wire code `0x01`，否则不能逐字节重类型为 Realm。
+
+Event-derived Realm 的 `derivation_class=0x0`，所以其首字节与 Event ID suite byte 相同，33-octet token MUST 可逐字节直接重类型；v1 唯一合法值为 SHA-256 `0x01`。Principal Control Realm 的 suite 同样固定为 SHA-256、header 固定为 `0x11`，并保留完整 32-octet subject digest。任何 UUID 形态、未知/保留 class、header 不是 `0x01`/`0x11`、class 与 signed genesis `purpose` 不一致，或 digest 重算不一致，都 MUST fail closed。
+
+数据库实现 MAY 与 Event 一样为 Realm 分配仅本地可见的 surrogate `pk`，并让 Event、投影和 Realm
+业务表通过 `realm_pk` 外键关联。该 `pk` 不是协议身份，MUST NOT 出现在 wire、canonical JSON、签名、
+hash、同步 cursor、联邦消息或审计引用中。canonical Realm 表 MUST 同时保存并唯一约束完整 33-octet
+身份（或可无损恢复它的完整 typed wire form）；任何 `realm_pk` 关联都 MUST 与协议记录携带的
+`realm_id` 解析为同一身份。实现不得以本地 `pk` 替代首次接触重算、跨库导入、重放或冲突判断。
+
+Realm 的高 nibble 只编码身份派生类别，不编码 `direct_conversation`、organization、managed Agent 等产品/profile 分类。后者继续由签名 genesis schema/profile 判定，不能占用 identity header。
 
 本节的 conformance 入口是 `ak.vector.event_id.content_bound.v1`（机读 fixture 见 [`content-bound-event-id-fixture.json`](../../artifacts/fixtures/content-bound-event-id-fixture.json)）：它固定 SHA-256 / BLAKE3 bytes、canonical Base64URL、suite mismatch、unknown/reserved code、错误完整 digest、padding与长度负例。
 
@@ -263,7 +298,7 @@ Event ID 保留底层 256-bit digest 的指定目标与碰撞安全强度；额�
 
 若两个不同 canonical preimage 重算出相同 `event_id`，它们具有相同 suite 与完整 digest，属于底层 hash collision evidence。不能由先到顺序或字典序判定哪条“正确”；必须按 [`operations-sync.md` §12](../sync/operations-sync.md) 整组 quarantine。携带相同 ID 但重算 digest 不同只是 `event_id_digest_mismatch` 的伪造/损坏输入，不得拖入已接受 Event。
 
-[`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `id_form` 决定每个 kind 的构造：`producer_allocated` 使用 UUIDv7；`event_derived` 使用 §4.0 的 33-octet token；`event_derived_or_subject_derived`（当前仅 Realm）按 schema-discriminated authority 分支选择 Event token 或 subject-derived UUIDv7。新 kind 必须显式登记其 authority，调用点不得自行选形态。registry `special_forms[]` 中的 opaque cursor、content-addressed blob / seal、canonical cell tuple、MLS profile-scoped 引用、Realm-scoped pseudonym 与 trust domain 各由对应 schema/profile 校验；未登记形态按未知 critical wire type 拒绝。
+[`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `id_form` 决定每个 kind 的构造：`producer_allocated` 使用 UUIDv7；`event_derived` 使用 §4.0 的 33-octet token；`derivation_tagged_full_digest`（当前仅 Realm）使用 §4.1 的统一 33-octet token。新 kind 必须显式登记其 authority，调用点不得自行选形态。registry `special_forms[]` 中的 opaque cursor、content-addressed blob / seal、canonical cell tuple、MLS profile-scoped 引用、Realm-scoped pseudonym 与 trust domain 各由对应 schema/profile 校验；未登记形态按未知 critical wire type 拒绝。
 
 特殊 ID/ref 形式（与 [`id-kind-registry.json` `special_forms[]`](../../artifacts/registry/id-kind-registry.json) 一一对应）：
 

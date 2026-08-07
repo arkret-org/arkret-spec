@@ -30,7 +30,7 @@ Arkret 身份由 DID principal 表示，但用户访问通常经过一个或多�
 
 服务账号 MAY 使用用户名/密码、passkey、WebAuthn、OAuth/OIDC、企业 SSO 或类似集中认证服务的登录方式。它们只证明调用方通过了某个 account service 的认证，不能直接证明 DID principal 所有权。
 
-登录成功后，account service / auth service MUST 将会话绑定到 DID principal 与设备，例如签发短期 `ak.session.grant`、登记 device binding，或要求客户端提交 DID proof。资源服务器随后验证 grant、device、capability、Realm policy 和撤销状态。`ak.session.grant` Event payload 不携带 ID；服务先计算 content-bound `event_id`，再重类型为 `ak:session_grant:<uuidv8>`，最后签 JWT，且 JWT `jti` MUST 逐字节等于该 typed ID。这个 ID 不是 `ak:grant:` Capability GrantId，两者的 parser、存储索引与 API strong type MUST 分开。
+登录成功后，account service / auth service MUST 将会话绑定到 DID principal 与设备，例如签发短期 `ak.session.grant`、登记 device binding，或要求客户端提交 DID proof。资源服务器随后验证 grant、device、capability、Realm policy 和撤销状态。`ak.session.grant` Event payload 不携带 ID；服务先计算 content-bound `event_id`，再把同一 33-octet / 44-character Event token 重类型为 `ak:session_grant:<44-char-event-token>`，最后签 JWT，且 JWT `jti` MUST 逐字节等于该 typed ID。这个 ID 不是 `ak:grant:` Capability GrantId，两者的 parser、存储索引与 API strong type MUST 分开。
 
 ### 2.1.1 Account-first onboarding
 

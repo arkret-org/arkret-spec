@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 6,
+  "version": 7,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -338,7 +338,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "ak.message.create payload MUST NOT carry a second identity. The reducer materializes Message.id by retyping the content-bound UUIDv8 of Event.event_id. See zh/models/strand-and-message.md §9."
+      "notes": "ak.message.create payload MUST NOT carry a second identity. The reducer materializes Message.id by retyping the creating Event's full 33-byte / 44-character content-bound token. See zh/models/strand-and-message.md §9."
     },
     {
       "id": "sidecar_exchange_binding",

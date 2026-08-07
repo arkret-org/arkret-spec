@@ -292,29 +292,29 @@ def check_capability_action_derivations() -> list[str]:
     return errors
 
 
-def derived_id_wire_form(row: dict[str, Any]) -> str | None:
+def derived_id_wire_form(row: dict[str, Any], templates: dict[str, Any]) -> str | None:
     kind = row.get("kind")
     id_form = row.get("id_form")
     if not isinstance(kind, str) or not kind:
         return None
-    if id_form == "event_derived":
-        return f"ak:{kind}:<event-token>"
-    if id_form == "producer_allocated":
-        return f"ak:{kind}:<uuidv7>"
-    return None
+    template = templates.get(id_form)
+    if not isinstance(template, str):
+        return None
+    return template.replace("<kind>", kind)
 
 
 def write_id_wire_form_derivations() -> None:
     catalog = load_contract_registry()
     section = catalog.get("id_kind_registry")
     rows = section.get("id_kinds") if isinstance(section, dict) else None
-    if not isinstance(rows, list):
-        raise SystemExit("contract registry missing id_kind_registry.id_kinds")
+    templates = section.get("wire_form_generation") if isinstance(section, dict) else None
+    if not isinstance(rows, list) or not isinstance(templates, dict):
+        raise SystemExit("contract registry missing id_kind_registry wire-form inputs")
     changed: list[str] = []
     for row in rows:
         if not isinstance(row, dict):
             continue
-        expected = derived_id_wire_form(row)
+        expected = derived_id_wire_form(row, templates)
         if expected is not None and row.get("wire_form") != expected:
             row["wire_form"] = expected
             changed.append(str(row.get("kind")))
@@ -331,13 +331,14 @@ def check_id_wire_form_derivations() -> list[str]:
     catalog = load_contract_registry()
     section = catalog.get("id_kind_registry")
     rows = section.get("id_kinds") if isinstance(section, dict) else None
-    if not isinstance(rows, list):
-        return ["contract registry missing id_kind_registry.id_kinds"]
+    templates = section.get("wire_form_generation") if isinstance(section, dict) else None
+    if not isinstance(rows, list) or not isinstance(templates, dict):
+        return ["contract registry missing id_kind_registry wire-form inputs"]
     errors: list[str] = []
     for row in rows:
         if not isinstance(row, dict):
             continue
-        expected = derived_id_wire_form(row)
+        expected = derived_id_wire_form(row, templates)
         if expected is not None and row.get("wire_form") != expected:
             errors.append(
                 f"derived ID wire-form drift: {row.get('kind')}.wire_form must equal {expected!r} "
@@ -400,6 +401,20 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
                         + ", ".join(overlapping)
                     )
                 event_row.update(copy.deepcopy(contract))
+        elif section == "id_kind_registry":
+            templates = section_payload.get("wire_form_generation")
+            id_rows = section_payload.get("id_kinds")
+            if not isinstance(templates, dict) or not isinstance(id_rows, list):
+                raise SystemExit("id_kind_registry requires wire_form_generation and id_kinds")
+            for id_row in id_rows:
+                if not isinstance(id_row, dict):
+                    continue
+                kind = id_row.get("kind")
+                id_form = id_row.get("id_form")
+                template = templates.get(id_form)
+                if not isinstance(kind, str) or not isinstance(template, str):
+                    raise SystemExit(f"cannot generate wire_form for id row {id_row!r}")
+                id_row["wire_form"] = template.replace("<kind>", kind)
         payloads[ARTIFACTS / file_ref] = {
             "version": version,
             "source_of_truth": False,

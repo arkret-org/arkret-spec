@@ -543,7 +543,7 @@ object_id ≡ retype(create_event.event_id, object_kind)
 Protocol typed identifier / reference 的 wire value MUST 使用带类型前缀的稳定字符串：
 
 ```text
-ak:realm:<event-token-or-subject-derived-uuidv7>
+ak:realm:<44-char-derivation-tagged-full-digest-token>
 ak:space:<event-token>
 ak:strand:<event-token>
 ak:message:<event-token>
@@ -567,8 +567,9 @@ typed ID 的 token 构造 MUST 由
 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 中该 kind 的 `id_form`
 唯一固定：`producer_allocated` 使用 UUIDv7（time-ordered），`event_derived` 使用
 [`../conformance/encoding.md` §4.0](../conformance/encoding.md) 定义的 33-octet suite-tagged 完整 digest token；
-`event_derived_or_subject_derived` 的分支由 registry 的 kind 级规则固定。调用点 MUST NOT 自行选择
-UUIDv7 / Event-derived token，也不得把 Event 或 Event-derived typed ID 降级为 UUIDv7。content-addressed form
+`derivation_tagged_full_digest`（当前仅 Realm）使用 [`../conformance/encoding.md` §4.1](../conformance/encoding.md)
+的统一 33-octet token，高 nibble 固定身份派生类别、低 nibble 固定 digest suite。调用点 MUST NOT 自行选择
+派生类别，也不得把 Event、Realm 或 Event-derived typed ID 降级为 UUIDv7。content-addressed form
 使用对应 digest。
 
 所有 typed ID 的总表是 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)；它同时列出 `id_form`、`identity_authority` 和 `genesis_event_kinds`，实现 MUST NOT 在各 schema / reducer 中另建一份手写分类。其中 `ak:audit_binding:`、`ak:call:`、`ak:grant:` 和 `ak:session_grant:` 都是 `event_derived`；分别从 `ak.audit.applet_binding.create`、`ak.call.create`、`ak.capability.grant` 和 `ak.session.grant` 的 Event ID 重类型化为相同 33-octet token。

@@ -1,0 +1,62 @@
+{
+  "suite": "producer_allocated_identity_collision",
+  "profile": "ak.vector_group.object_identity.producer_allocated.v1",
+  "version": "2026-08-08",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.object_identity.producer_allocated_collision.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.object_identity.producer_allocated_collision.v1"
+  ],
+  "parameter_source": {
+    "registry": "registry/contract-registry.json#id_kind_registry.id_kinds",
+    "filter": {
+      "id_form": "producer_allocated"
+    },
+    "identity_key": [
+      "mint_authority",
+      "typed_id"
+    ]
+  },
+  "cases": [
+    {
+      "name": "first_atomic_reservation",
+      "same_mint_authority": true,
+      "same_typed_id": true,
+      "same_canonical_binding": true,
+      "expected": "accept_and_reserve_atomically"
+    },
+    {
+      "name": "same_authority_exact_replay",
+      "same_mint_authority": true,
+      "same_typed_id": true,
+      "same_canonical_binding": true,
+      "expected": "idempotent_replay"
+    },
+    {
+      "name": "same_authority_conflicting_binding",
+      "same_mint_authority": true,
+      "same_typed_id": true,
+      "same_canonical_binding": false,
+      "expected": "reject_and_quarantine"
+    },
+    {
+      "name": "cross_authority_same_uuid",
+      "same_mint_authority": false,
+      "same_typed_id": true,
+      "same_canonical_binding": false,
+      "expected": "distinct_identity"
+    },
+    {
+      "name": "bare_typed_id_lookup",
+      "lookup_includes_mint_authority": false,
+      "expected": "reject"
+    },
+    {
+      "name": "unauthorized_allocator",
+      "accepted_proof_signer_matches_mint_authority": false,
+      "expected": "reject"
+    }
+  ]
+}

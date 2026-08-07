@@ -80,7 +80,7 @@ Morph 中的 `call_id` 只是对已创建 Call 的引用；Morph 不创建 Call�
 }
 ```
 
-create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，因而使用 content-bound UUIDv8。只有在这条 Event accepted 后，才能签发媒体 token、发送 offer/answer/candidate/focus_join 信令、创建引用该 Call 的 Morph，或提交 `ak.call.state`。接收方对未解析到 accepted create 的任何引用 MUST fail closed，不得为裸 `call_id` 自动建立占位 Call。
+create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，因而使用与 Event 相同的 33-octet / 44-character content-bound token。只有在这条 Event accepted 后，才能签发媒体 token、发送 offer/answer/candidate/focus_join 信令、创建引用该 Call 的 Morph，或提交 `ak.call.state`。接收方对未解析到 accepted create 的任何引用 MUST fail closed，不得为裸 `call_id` 自动建立占位 Call。
 
 后续状态以 durable event 记录：
 

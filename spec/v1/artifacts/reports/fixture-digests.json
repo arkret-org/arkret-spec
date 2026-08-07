@@ -78,11 +78,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
-      "sha256": "0fadbdede8d395c51b291e3b279e28d8c086f1eead0c8303357716651f10bb52"
+      "sha256": "3d0f51e1d07c1a5acbe84d81ef271643c8766c69d441f07ee7afd03079f07158"
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "e3a9fe5f842f0717895e0f0f07c3160665aa21959e2f35355f625c9641b2bca9"
+      "sha256": "03d5026fb5abb4f237175160c3497be51832885a66fbbb6e5fa85b370c6413aa"
     },
     {
       "path": "spec/v1/artifacts/fixtures/control-proposal-ack-fixture.json",
@@ -239,6 +239,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",
       "sha256": "7dfe81a2abc94c49a803aae78a22f360f7e3d0d720620d51598b1206b2da1ec2"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/producer-allocated-identity-collision-fixture.json",
+      "sha256": "1ed7317be96a2d8c82ed81e45ff0f1d8c8fa3099889333a724ff9627ed66815a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/producer-allocated-identity-fixture.json",

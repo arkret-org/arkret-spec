@@ -45,7 +45,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^(?:ak:realm:(?:[A-Za-z0-9_-]{44}|[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:(space|circle|strand|message|morph|relation|view|event|invite):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$",
+      "pattern": "^(?:ak:realm:[A-Za-z0-9_-]{44}|ak:(space|circle|strand|message|morph|relation|view|event|invite):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$",
       "description": "Canonical object reference. Acceptable typed-id kinds match the v1 resource selector kind enum (see resource-selector-grammar.md §3.1). Notably MUST NOT include 'actor_profile' (use the 'actor' selector with did pattern), nor non-canonical 'board' / 'list' / 'card' / 'subject' / 'room' kinds — board / list / swimlane / calendar bucket are Space objects and MUST use the 'space' kind together with the 'allowed_space_kinds' constraint to restrict which Space kinds the grant covers."
     },
     "strand_id": {

@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-07.3",
+  "version": "2026-08-08.1",
   "codes": [
     {
       "code": "bad_json",
@@ -4303,7 +4303,7 @@
       "applies_to": [
         "event_envelope"
       ],
-      "description": "Sub-reason for schema_violation when ak.realm.create carries an envelope realm_id whose UUID segment differs from the UUID segment of its own event_id, or when its payload.object still carries an id field. See zh/models/realm-and-space.md section 2.5."
+      "description": "Sub-reason for schema_violation when ak.realm.create carries a forbidden envelope realm_id instead of the realm_genesis shape, when a Collaboration Realm does not retype the full 33-byte create Event token, when a Principal Control Realm does not match the 0x11 subject transcript, or when payload.object still carries an id field. See zh/models/realm-and-space.md section 2.5."
     },
     {
       "code": "realm_link_invalid_transition",

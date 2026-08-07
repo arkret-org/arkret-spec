@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.2",
+  "version": "2026-08-08.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T01:10:00Z",
+  "generated_at": "2026-08-08T06:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4210,13 +4210,26 @@
       ]
     },
     {
+      "vector_id": "ak.vector.object_identity.producer_allocated_collision.v1",
+      "status": "active",
+      "domain": "object_identity",
+      "applies_to_fixtures": [
+        "producer-allocated-identity-collision-fixture.json"
+      ],
+      "description": "Registry-parameterized collision suite applied to every id_kind_registry row whose id_form is producer_allocated. It verifies atomic first reservation, same-authority exact replay, same-authority conflicting binding quarantine, cross-authority UUID separation, and rejection of bare typed-ID lookup or an unauthorized allocator.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/producer-allocated-identity-collision-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.object_identity.subject_derived_realm.v1",
       "status": "active",
       "domain": "object_identity",
       "applies_to_fixtures": [
         "content-bound-event-id-fixture.json"
       ],
-      "description": "Principal Control Realm ids are deterministically derived as UUIDv7 from the registered domain separator plus canonical principal DID. All 122 usable bits come from the transcript hash; the create Event still omits realm_id, and receivers select and recompute this layout from purpose=principal_control.",
+      "description": "Principal Control Realm ids use the unified 33-byte Realm token: header 0x11 (principal_subject_derived + sha256) followed by the full SHA-256 digest of UTF8(\"ak:realm:principal-control:v1:\") || UTF8(canonical principal DID). The 44-character token preserves all 256 digest bits; UUID Realm IDs are rejected. The create Event still omits realm_id, and receivers require both header class and signed purpose=principal_control before recomputing the subject transcript.",
       "source_refs": [
         "spec/v1/zh/models/realm-and-space.md",
         "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json"

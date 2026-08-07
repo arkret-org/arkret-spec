@@ -115,7 +115,7 @@ Handle 分两层：**显示形态**面向用户，**canonical handle** 面向协
 
 `acct:` alias 按 RFC 7565 构造：prepared localpart 以 UTF-8 编码，对 URI 中非直接允许的 octet 做大写十六进制 percent-encoding；host 使用 canonical A-label；不得携带 port。比较遵循 RFC 3986 的 scheme / host case 与 percent-encoding normalization，不参与 Arkret canonical handle equality。
 
-**与 realm alias 的关系（normative）**：handle 的 `@` sigil 与 realm alias 的 `#` sigil（见 [`discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)）构成同一套人类短地址体系：两者 canonical 形态同为 `<localpart>:<domain>`（不含 sigil），但占据**不相交命名空间**——handle 经 `resolve_handle` 解析为 holder / principal DID，realm alias 经 `resolve_realm` 解析为 `ak:realm:<uuid>`。同一 `<localpart>:<domain>` MAY 同时是一个 handle 与一个 realm alias；协议**不要求**二者全局唯一，sigil 在显示 / 输入期区分类型，线上字段凭其类型上下文消歧。`@` 与 `#` 均为展示 + 输入路由 affordance，strip 后才进 wire。
+**与 realm alias 的关系（normative）**：handle 的 `@` sigil 与 realm alias 的 `#` sigil（见 [`discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)）构成同一套人类短地址体系：两者 canonical 形态同为 `<localpart>:<domain>`（不含 sigil），但占据**不相交命名空间**——handle 经 `resolve_handle` 解析为 holder / principal DID，realm alias 经 `resolve_realm` 解析为 `ak:realm:<44-char-token>`。同一 `<localpart>:<domain>` MAY 同时是一个 handle 与一个 realm alias；协议**不要求**二者全局唯一，sigil 在显示 / 输入期区分类型，线上字段凭其类型上下文消歧。`@` 与 `#` 均为展示 + 输入路由 affordance，strip 后才进 wire。
 
 ### 3.2 解析结果必含字段
 

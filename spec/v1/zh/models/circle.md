@@ -35,7 +35,7 @@ Schema id: `ak.schema.circle.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:circle` | `ak:circle:<uuid>`（event-derived content-bound UUIDv8） | Circle ID。 |
+| `id` | yes | `id:circle` | `ak:circle:<44-char-event-token>` | Event-derived Circle ID。 |
 | `schema` | yes | `ak.schema.circle.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | create-locked;Circle 永远属于一个 Realm，不可改绑。 | 归属 Realm(父安全/联邦边界)。 |
 | `profile_ref` | no | `profile id` | create-locked；必须匹配 `^ak\.profile\.[a-z0-9_.-]+\.v1$`。普通 Circle 省略；profile-specific 创建路径必须写入其规范注册的 profile id。 | Circle 的语义 profile 判别器；目录、查询与客户端用它执行 profile-specific fail-closed 过滤，不得依赖 title、short_name 或 relation 推断。Agent Sidecar 是独立对象，不使用 Circle `profile_ref` 表达。 |

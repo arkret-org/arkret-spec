@@ -842,7 +842,7 @@ components:
           pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         widgets:
@@ -1073,7 +1073,7 @@ components:
           pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         sections:
@@ -1452,7 +1452,7 @@ components:
       properties:
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
         realm_policy_digest:
           type: string
           pattern: ^sha256:[0-9a-f]{64}$
@@ -1545,7 +1545,7 @@ components:
           pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         nodes:
@@ -1864,7 +1864,7 @@ components:
           pattern: ^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
         morph_kind:
           type: string
         state:
@@ -1969,7 +1969,7 @@ components:
           pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
         kind:
           type: string
           description: Space kind such as `board`, `list`, `folder`, or a profile-registered kind.
@@ -2018,7 +2018,7 @@ components:
           pattern: ^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
         state:
           type: string
           enum:
@@ -2203,7 +2203,7 @@ components:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_freeze_request_body
     RealmId:
       type: string
-      pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
     RealmLifecycleView:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view
     RealmLinkCreateRequestBody:
@@ -2863,7 +2863,7 @@ components:
       properties:
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
         edge_status:
           $ref: '#/components/schemas/SpaceHierarchyEdgeState'
         accessible:
@@ -3069,7 +3069,7 @@ components:
           pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         entries:
@@ -5048,7 +5048,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
       responses:
         '200':
           description: Circles visible to the caller in the named Realm.
@@ -5472,7 +5472,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
       - name: include_terminal
         in: query
         required: false
@@ -5519,7 +5519,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
       - name: include_terminal
         in: query
         required: false
@@ -5566,7 +5566,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
       - name: include_terminal
         in: query
         required: false
@@ -5648,7 +5648,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
       - name: morph_id
         in: path
         required: true
@@ -7177,7 +7177,7 @@ paths:
         required: false
         schema:
           type: string
-          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
       - in: query
         name: cursor
         required: false
@@ -9219,7 +9219,7 @@ paths:
         required: false
         schema:
           type: string
-          pattern: '^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+          pattern: '^ak:realm:[A-Za-z0-9_-]{44}$'
       - in: query
         name: cursor
         required: false

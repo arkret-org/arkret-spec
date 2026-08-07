@@ -218,17 +218,28 @@ receiver 派生：realm_id = retype(event_id, "realm")
 
 Realm 之外的 create-once 对象没有这个问题：它们的 ID 只出现在 payload，且按 [`common-fields.md` §6.0](./common-fields.md) 一律省略。
 
-**Principal Control Realm 是本节的例外（normative）**：PCR 的 `realm_id` 不由 genesis Event 派生，而由 principal DID 确定性派生：
+**Principal Control Realm 是本节的派生类别例外（normative）**：PCR 的 `realm_id` 不由 genesis Event 派生，而由 principal DID 确定性派生；它与 Collaboration Realm 使用同一个 33-octet / 44-character Realm token wire form，不使用 UUID：
 
 ```text
 H = SHA-256( PCR_DOMAIN || UTF8(canonical_principal_did) )
-uuid = H[0..16]，并置 UUID version=7、variant=10
 PCR_DOMAIN = UTF8("ak" ":" "realm" ":" "principal-control" ":" "v1" ":")
+
+realm_token[0]     = 0x11
+realm_token[1..32] = H[0..31]
+realm_id = "ak:realm:" || base64url_no_pad(realm_token)
 ```
+
+`realm_token[0]` 按 nibble 拆分：高 4 位是 `derivation_class`，低 4 位是 `digest_suite`。v1 登记 `derivation_class=0x0` 为 `event_derived`、`0x1` 为 `principal_subject_derived`，且 Realm 算法固定为 `digest_suite=0x1`（SHA-256）。因此 v1 有效 header 只有 Event-derived Realm 的 `0x01` 与 PCR 的 `0x11`。`0x2..0xE` derivation class 保留，`0xF` class 为 format-control；低 nibble `0x0` 与 `0x2..0xF` 非法/保留。Realm 类型解析 MUST 按 `ak:realm:` 上下文解释该 header；`ak:event:` 的首字节仍是完整 uint8 Event digest-suite code，普通 Event 支持其它 suite 不代表 Realm 自动支持。
 
 理由是**可寻址性**：任何一方拿到某个 principal 的 DID 就能直接算出其 PCR 地址，不需要先取得 genesis Event；collaboration Realm 的 Event-derived token 则必须先知道 create Event 的完整 digest。PCR 的身份锚本来也不是 genesis Event，而是 [`../identity/key-management.md` §5.0.1](../identity/key-management.md) 的唯一 critical `did_inception` root anchor——那比 genesis Event 更强。
 
-因此 `ak:realm:` 是**唯一同时接受两种确定性形态**的 typed kind：collaboration Realm 重类型其 create Event 的 suite-tagged 33-octet token，PCR 使用 subject-derived UUIDv7 布局。两者都不是 producer 自选，分支由 create 的 `purpose` 决定，实现 MUST NOT 逐调用点自选，也不得用一个通用 UUID accessor / 数据库列承载两种分支。
+因此 `ak:realm:` 始终只有一种物理形态：`ak:realm:<44-char-token>`，解码后恰为 33 octets。Collaboration Realm 重类型其 create Event 的 token（header `0x0S`）；PCR 使用 principal subject transcript 的完整 SHA-256 digest（header `0x11`）。两者都不是 producer 自选；header 先给出派生类别，签名 create 的 `purpose` 必须与该类别一致。实现 MUST NOT 逐调用点自选，不得接受 UUID Realm ID，也不得把 Realm token 存入原生 UUID / `BYTEA(16)`；推荐存储为完整 typed string 或 raw `BYTEA(33)`。
+
+持久化实现 MAY 建立 `canonical_realms(pk, identity, wire_id, ...)` 一类本地 intern 表，并以
+`realm_pk` 作为 Event、投影和 Realm 业务表的物理外键；这与 Event 的本地 `event_pk` 分层相同。
+`pk` 仅服务数据库 join/index，永远不得序列化。`identity` 必须无损保存完整 33 octets并唯一约束，
+`wire_id` 必须能 canonical round-trip；写入关联行时必须确认 `realm_pk` 与其 wire `realm_id` 相同，
+不得因本地 `pk` 相同或不同改变协议身份、重放、冲突或首次接触判断。
 
 固定 KAT 与负例由 `ak.vector.object_identity.subject_derived_realm.v1` 承载。
 
@@ -657,8 +668,8 @@ Group 不是资源容器，也不是安全边界。Group 是 principal / actor �
 
 完整 ID 列表与 ID kind registry 见 [common-fields.md](./common-fields.md) §6。Realm / Space 相关：
 
-- `ak:realm:<uuid>`
-- `ak:space:<uuid>`
+- `ak:realm:<44-char-derivation-tagged-full-digest-token>`
+- `ak:space:<44-char-event-token>`
 
 ## 6. 规范性引用
 

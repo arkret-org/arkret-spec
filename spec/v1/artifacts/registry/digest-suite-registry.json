@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-07.2",
+  "version": "2026-08-08.1",
   "source_of_truth": true,
   "description": "Canonical digest suite vocabulary for v1 typed digest values. A digest suite is the registered tuple (canonicalization, hash_algorithm). The suite canonical_id is the wire prefix in `<suite>:<lowercase_hex>` typed digest values and the value space of the Realm `digest_algorithm` field.",
   "suite_id_grammar": "suite_id = hash_id | canonicalization_id '.' hash_id ; each segment matches [a-z0-9_]+ ; at most one dot. In the v1 canonical grammar, a bare hash_id denotes canonicalization=json_jcs.",
@@ -15,7 +15,8 @@
     "The registry is intentionally minimal: new hash algorithms (e.g. SHA-3 family for algorithm diversity, post-quantum hash families) and new canonicalizations enter additively as new rows with their own profile gates and conformance vectors; the <suite>:<hex> wire form needs no rewrite. KDF/ciphersuite algorithm selectors elsewhere in the spec (e.g. key-backup PBKDF2 digest_algorithm, VOPRF SHA-512) are separate value spaces and are NOT digest suites.",
     "Every suite row has an explicit immutable uint8 wire_code. wire_code MUST NOT be derived from array position, canonical_id ordering, canonicalization name, or hash name; a retired code remains permanently assigned and MUST NOT be reused.",
     "wire_code 0x00 is permanently invalid, 0xF0..0xFF are format-control reserved, and unassigned or status=reserved codes MUST fail closed when carried by an Event ID.",
-    "A suite MUST NOT be activated for the v1 Event-ID format unless digest_length_bytes is exactly 32. The 33-octet Event-ID body is wire_code followed by all 32 digest octets; shorter or longer digests MUST NOT be padded, folded, rehashed, or silently truncated into this format."
+    "A suite MUST NOT be activated for the v1 Event-ID format unless digest_length_bytes is exactly 32. The 33-octet Event-ID body is wire_code followed by all 32 digest octets; shorter or longer digests MUST NOT be padded, folded, rehashed, or silently truncated into this format.",
+    "Realm IDs use the nibble-split header defined by zh/conformance/encoding.md section 4.1. Only suite wire_code 0x01..0x0E can be retyped into a v1 Realm token with derivation_class=0; activation as an Event suite outside that range does not make the suite Realm-eligible. Principal Control Realm derivation is fixed to sha256 and header 0x11."
   ],
   "hash_strength_order": {
     "order": [

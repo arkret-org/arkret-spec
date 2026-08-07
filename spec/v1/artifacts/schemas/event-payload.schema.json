@@ -7978,7 +7978,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^((?:ak:realm:(?:[A-Za-z0-9_-]{44}|[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob|snapshot|franking_proof):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob|snapshot|franking_proof):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
     },
     "object_snapshot": {
       "type": "object",

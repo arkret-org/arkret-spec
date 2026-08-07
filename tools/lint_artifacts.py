@@ -2995,6 +2995,16 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             "security_rationale"
         ]:
             lint.fail(id_path, "producer_allocated_identity_contract.security_rationale is required")
+        expected_suite = {
+            "vector_id": "ak.vector.object_identity.producer_allocated_collision.v1",
+            "fixture": "producer-allocated-identity-collision-fixture.json",
+            "parameter_source": "id_kind_registry.id_kinds[id_form=producer_allocated]",
+        }
+        if producer_contract.get("conformance_suite") != expected_suite:
+            lint.fail(
+                id_path,
+                "producer_allocated_identity_contract.conformance_suite must use the registry-parameterized suite",
+            )
     event_derived_id_kinds = {
         row.get("kind")
         for row in (id_rows if isinstance(id_rows, list) else [])
@@ -3005,6 +3015,16 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         for row in (id_rows if isinstance(id_rows, list) else [])
         if isinstance(row, dict) and isinstance(row.get("kind"), str)
     }
+    expected_wire_form_generation = {
+        "producer_allocated": "ak:<kind>:<uuidv7>",
+        "event_derived": "ak:<kind>:<44-char-event-token>",
+        "derivation_tagged_full_digest": "ak:realm:<44-char-derivation-tagged-full-digest-token>",
+    }
+    if id_registry.get("wire_form_generation") != expected_wire_form_generation:
+        lint.fail(
+            id_path,
+            "id_kind_registry.wire_form_generation must declare the canonical v1 forms",
+        )
     for row in id_rows if isinstance(id_rows, list) else []:
         if not isinstance(row, dict):
             continue
@@ -3014,10 +3034,55 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             lint.fail(id_path, f"id kind has invalid format: {kind}")
         if isinstance(kind, str) and isinstance(wire_form, str) and not wire_form.startswith(f"ak:{kind}:"):
             lint.fail(id_path, f"{kind} wire_form must start with ak:{kind}:")
+        id_form = row.get("id_form")
+        template = expected_wire_form_generation.get(id_form)
+        if isinstance(kind, str) and isinstance(template, str):
+            expected_wire_form = template.replace("<kind>", kind)
+            if wire_form != expected_wire_form:
+                lint.fail(
+                    id_path,
+                    f"{kind} wire_form must be generated from id_form={id_form}: {expected_wire_form}",
+                )
+
+    # Bidirectional registry/schema guard: every token-derived kind must have
+    # an exact 44-character schema carrier somewhere, and no schema may retain
+    # an exact UUID carrier for that same typed kind. This closes the gap where
+    # registry generation was correct but an independently hand-written schema
+    # still accepted the retired physical form.
+    schema_patterns: set[str] = set()
+
+    def collect_schema_patterns(value: object) -> None:
+        if isinstance(value, dict):
+            pattern = value.get("pattern")
+            if isinstance(pattern, str):
+                schema_patterns.add(pattern)
+            for child in value.values():
+                collect_schema_patterns(child)
+        elif isinstance(value, list):
+            for child in value:
+                collect_schema_patterns(child)
+
+    for schema_file in sorted((ARTIFACTS / "schemas").glob("*.json")):
+        schema_document = load_json(lint, schema_file)
+        if schema_document is not None:
+            collect_schema_patterns(schema_document)
+    for kind, row in id_by_kind.items():
+        if row.get("id_form") not in {"event_derived", "derivation_tagged_full_digest"}:
+            continue
+        escaped_kind = re.escape(kind)
+        token_pattern = rf"^ak:{escaped_kind}:[A-Za-z0-9_-]{{44}}$"
+        uuid_pattern = (
+            rf"^ak:{escaped_kind}:[0-9a-f]{{8}}-[0-9a-f]{{4}}-7[0-9a-f]{{3}}-"
+            rf"[89ab][0-9a-f]{{3}}-[0-9a-f]{{12}}$"
+        )
+        if token_pattern not in schema_patterns:
+            lint.fail(id_path, f"{kind} has no exact 44-character schema carrier")
+        if uuid_pattern in schema_patterns:
+            lint.fail(id_path, f"{kind} schema still carries the retired UUIDv7 form")
 
     # zh/models/common-fields.md section 6.0: an event-derived Event may
     # retype its event_id into more than one *different* typed ID kind.  The
-    # full `ak:<kind>:<uuid>` is the identity key, so this is collision-free;
+    # full `ak:<kind>:<44-char-event-token>` is the identity key, so this is collision-free;
     # however the target set must be closed and one-per-kind.  Single-output
     # rows retain `id_kind`; multi-output rows use `id_kinds[]`.
     for event_kind, row in event_by_kind.items():
@@ -3106,14 +3171,16 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                         id_path,
                         f"{id_kind} genesis Event {genesis_kind} does not point back to this id kind",
                     )
-        elif id_form == "event_derived_or_subject_derived":
+        elif id_form == "derivation_tagged_full_digest":
             if authority != "event_or_subject_transcript":
                 lint.fail(
                     id_path,
-                    f"{id_kind} conditional row must declare identity_authority=event_or_subject_transcript",
+                    f"{id_kind} derivation-tagged row must declare identity_authority=event_or_subject_transcript",
                 )
             if not isinstance(genesis_kinds, list) or not genesis_kinds:
-                lint.fail(id_path, f"{id_kind} conditional row must declare genesis_event_kinds")
+                lint.fail(id_path, f"{id_kind} derivation-tagged row must declare genesis_event_kinds")
+            if id_kind != "realm":
+                lint.fail(id_path, "derivation_tagged_full_digest is reserved to the Realm kind in v1")
         elif id_form == "producer_allocated":
             if authority != "producer_signature":
                 lint.fail(
@@ -6533,7 +6600,7 @@ def check_id_form_wire_schema_alignment(lint: Lint) -> None:
         lint.fail(registry_path, "storage_rules must be a string array")
         return
     storage_text = "\n".join(storage_rules).lower()
-    for forbidden in ("uuidv8", "version 8", "raw 16-byte uuid values"):
+    for forbidden in ("uuidv8", "version 8"):
         if forbidden in storage_text:
             lint.fail(registry_path, f"storage_rules retain forbidden Event-derived UUID wording {forbidden!r}")
     if "raw 33-byte token" not in storage_text or "must not use a native uuid column" not in storage_text:
@@ -6557,7 +6624,7 @@ def check_id_form_wire_schema_alignment(lint: Lint) -> None:
         if not isinstance(kind, str):
             continue
         if id_form == "event_derived":
-            expected_wire = f"ak:{kind}:<event-token>"
+            expected_wire = f"ak:{kind}:<44-char-event-token>"
             if wire_form != expected_wire:
                 lint.fail(registry_path, f"{kind} event-derived wire_form must equal {expected_wire!r}")
             matching = [
@@ -8392,11 +8459,26 @@ def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str
         # event_derived kinds carry a canonical 33-byte suite-tagged token;
         # producer_allocated kinds stay UUIDv7.
         if token_kind == "realm":
-            if not (EVENT_TOKEN_RE.fullmatch(candidate) or UUID7_RE.fullmatch(rest[:36])):
+            if not EVENT_TOKEN_RE.fullmatch(candidate):
                 lint.fail(
                     path,
-                    f"{json_path} has invalid ak:realm: expected Event-derived token or subject-derived UUIDv7",
+                    f"{json_path} has invalid ak:realm: expected canonical 44-char derivation-tagged token",
                 )
+                return
+            try:
+                token = base64.urlsafe_b64decode(candidate + "=" * (-len(candidate) % 4))
+            except (ValueError, binascii.Error):
+                lint.fail(path, f"{json_path} has invalid ak:realm: malformed Base64URL token")
+                return
+            if len(token) != 33:
+                lint.fail(path, f"{json_path} has invalid ak:realm: decoded token must be 33 bytes")
+                return
+            derivation_class = token[0] >> 4
+            digest_suite = token[0] & 0x0F
+            if derivation_class not in {0, 1}:
+                lint.fail(path, f"{json_path} has invalid ak:realm: unknown derivation class 0x{derivation_class:x}")
+            if digest_suite != 1:
+                lint.fail(path, f"{json_path} has invalid ak:realm: v1 Realm derivation is fixed to SHA-256")
         elif token_kind in known.get("event_derived_id_kinds", set()):
             if not EVENT_TOKEN_RE.fullmatch(candidate):
                 lint.fail(
@@ -8419,6 +8501,31 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
         data = load_json(lint, path)
         if data is None:
             continue
+        if path.name == "producer-allocated-identity-collision-fixture.json":
+            expected_parameter_source = {
+                "registry": "registry/contract-registry.json#id_kind_registry.id_kinds",
+                "filter": {"id_form": "producer_allocated"},
+                "identity_key": ["mint_authority", "typed_id"],
+            }
+            if data.get("parameter_source") != expected_parameter_source:
+                lint.fail(path, "producer-ID collision fixture must select producer_allocated rows dynamically")
+            required_cases = {
+                "first_atomic_reservation": "accept_and_reserve_atomically",
+                "same_authority_exact_replay": "idempotent_replay",
+                "same_authority_conflicting_binding": "reject_and_quarantine",
+                "cross_authority_same_uuid": "distinct_identity",
+                "bare_typed_id_lookup": "reject",
+                "unauthorized_allocator": "reject",
+            }
+            actual_cases = {
+                case.get("name"): case.get("expected")
+                for case in data.get("cases", [])
+                if isinstance(case, dict)
+            }
+            if actual_cases != required_cases:
+                lint.fail(path, "producer-ID collision fixture must contain the closed six-case contract")
+            if "expanded_kinds" in data:
+                lint.fail(path, "producer-ID collision fixture must not freeze a hand-maintained kind list")
         check_fixture_schema_validation_cases(lint, path, data)
         check_event_envelope_candidates(lint, path, data, known["event_kinds"])
         for json_path, value, key in walk_json(data):

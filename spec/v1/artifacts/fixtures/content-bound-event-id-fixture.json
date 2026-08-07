@@ -11,16 +11,20 @@
   ],
   "cases": [
     {
-      "name": "principal_control_realm_id_is_subject_derived_uuidv7",
+      "name": "principal_control_realm_id_is_subject_derived_full_digest_token",
       "vector_id": "ak.vector.object_identity.subject_derived_realm.v1",
       "principal_id": "did:webvh:z6mkfixture:alice.example",
       "domain_utf8_hex": "616b3a7265616c6d3a7072696e636970616c2d636f6e74726f6c3a76313a",
       "sha256_digest": "984ba56e2ecf486cfbe0cab2c7a30677848ab632b02dcd0ed4f2bf01bdba5712",
-      "derived_realm_id": "ak:realm:984ba56e-2ecf-786c-bbe0-cab2c7a30677",
+      "realm_header_hex": "11",
+      "realm_id_bytes_hex": "11984ba56e2ecf486cfbe0cab2c7a30677848ab632b02dcd0ed4f2bf01bdba5712",
+      "derived_realm_id": "ak:realm:EZhLpW4uz0hs--DKssejBneEirYysC3NDtTyvwG9ulcS",
       "layout": {
-        "hash_octets": "digest[0..16]",
-        "version": 7,
-        "variant_bits": "10",
+        "derivation_class": 1,
+        "digest_suite": 1,
+        "digest_octets": "digest[0..32]",
+        "token_octets": 33,
+        "base64url_characters": 44,
         "producer_selected_bits": 0
       },
       "expected": {

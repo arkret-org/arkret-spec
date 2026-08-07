@@ -6086,3 +6086,13 @@ effect 持久化；第一条相关 revoke Event accepted 后立即 fence 后续 
 `complete`；Event 或外部撤销失败时必须返回并持久化 `partially_completed`，重启后继续同一 saga。
 相同 key/body 从不同 `principal_service_id` 或 `admin_actor_id` 重放也必须 `duplicate_conflict` 且零新
 effect，不能把另一个管理员或服务当成同一 saga owner。
+
+## Producer-allocated ID 冲突参数化向量
+
+`ak.vector.object_identity.producer_allocated_collision.v1` MUST 加载
+[`producer-allocated-identity-collision-fixture.json`](../../artifacts/fixtures/producer-allocated-identity-collision-fixture.json)，并以
+`id_kind_registry.id_kinds[id_form=producer_allocated]` 为参数源逐 kind 执行，而不是维护手写 kind
+白名单。每一行都必须覆盖：首次原子 reservation、同 authority 同 binding 精确重放幂等、同 authority
+不同 binding 拒绝并 quarantine、不同 authority 的相同 UUID 按 `(mint_authority, typed_id)` 成为不同身份、
+裸 typed-ID lookup 失败，以及 accepted proof signer 不是登记 mint authority 时失败。新增 producer-allocated
+kind 若未自动进入本 suite，release gate MUST 失败。

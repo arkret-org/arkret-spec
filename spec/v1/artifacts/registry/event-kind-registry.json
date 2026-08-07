@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.1",
+  "version": "2026-08-08.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T01:00:00Z",
+  "generated_at": "2026-08-08T06:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -195,7 +195,7 @@
           },
           "id_source": "subject_derived",
           "subject_field": "actor_id",
-          "derivation": "pcr_subject_uuidv7_v1"
+          "derivation": "pcr_subject_realm_token_v1"
         },
         {
           "when": {
@@ -2707,7 +2707,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Message create. Payload MUST omit message_id; reducer materializes Message.id by retyping the content-bound UUIDv8 of Event.event_id.",
+      "payload": "Message create. Payload MUST omit message_id; reducer materializes Message.id by retyping the creating Event's full 33-byte / 44-character content-bound token.",
       "id_source": "event_derived",
       "id_kind": "message",
       "plane": "data",
