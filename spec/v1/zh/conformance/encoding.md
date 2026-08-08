@@ -229,27 +229,27 @@ producer-allocated typed ID 继续使用 [RFC 9562](https://datatracker.ietf.org
 
 ### 4.0 suite-tagged 264-bit Event ID（normative）
 
-`event_id` 是 Event 的完整密码学身份：一个显式 digest-suite code 后紧跟该 suite 产生的完整 32-octet digest。Event 相等、引用、去重与存储键语义均以这个完整 Event ID 为准；`proof.event_digest` 是可直接交叉验证的算法名 + digest wire 表示，不是第二套身份。
+`event_id` 是 Event 的完整密码学身份：首字节高 nibble 永久保留为零，低 nibble 是显式 digest-suite code，随后紧跟该 suite 产生的完整 32-octet digest。Event 相等、引用、去重与存储键语义均以这个完整 Event ID 为准；`proof.event_digest` 是可直接交叉验证的算法名 + digest wire 表示，不是第二套身份。
 
 ```text
 输入：
-  S = digest-suite-registry 显式登记的 uint8 wire_code
+  S = digest-suite-registry 显式登记的 uint4 wire_code（0x1..0xF）
   D = 按该 suite 对既有 Event digest preimage 计算的 32-octet digest
 
-event_id_bytes[0]     = S
+event_id_bytes[0]     = 0x00 | S          // 高 nibble MUST 为零
 event_id_bytes[1..32] = D[0..31]       // 完整 32 octets，256 digest bits
 event_id = "ak:event:" || base64url_no_pad(event_id_bytes)
 ```
 
 `event_id_bytes` MUST 恰为 33 octets；无 padding Base64URL suffix MUST 恰为 44 characters，完整 typed ID MUST 恰为 53 characters。词法预检为 `^ak:event:[A-Za-z0-9_-]{44}$`，但 regex 不构成完整验证：receiver MUST decode、确认 33-octet 长度、canonical re-encode 并逐字比较，从而拒绝 padding 或其它非 canonical alias。33 octets 恰好编码为 44 个 Base64URL 字符，不存在 trailing unused bits。
 
-suite code 由 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 固定：`0x01=sha256`、`0x02=blake3`、`0x03=cbor.sha256`（reserved，激活前非法）；`0x00` 永久 invalid，`0xF0..0xFF` 为 format-control 保留段。code 未登记、未激活、digest 长度不等于 32，或不属于该 Realm historical/live basis 时 MUST fail closed。code 不得由数组位置、suite 名或 hash 名推导，退役后不得复用。
+suite code 由 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 固定：`0x1=sha256`、`0x2=blake3`、`0x3=cbor.sha256`（reserved，激活前非法）；低 nibble `0x0` 永久 invalid，`0x4..0xF` 未分配。Event header 高 nibble MUST 为 `0x0`；`0x10..0xFF` 对 Event ID 永久非法，即使低 nibble 是 active suite 也不得接受。code 未登记、未激活、digest 长度不等于 32，或不属于该 Realm historical/live basis 时 MUST fail closed。code 不得由数组位置、suite 名或 hash 名推导，退役后不得复用。
 
 本次只改变 Event ID 编码，**不改变 event_digest preimage**：`D` 仍是 `canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`。实现不得在本迁移中加入 domain prefix、二次 hash、XOR folding 或另一套 canonicalization；这些改变必须注册新 suite。
 
-producer 顺序固定为：完成除 `event_id` / `proofs` 外的字段；计算完整 `D`；派生并写入 `event_id`；最后签署携完整 `event_digest` 的 proof。receiver 在任何 lookup、去重、路由、幂等、授权或 projection 副作用前，MUST 严格解析 ID、按历史 basis 校验 suite、重算完整 digest，并要求 `id.code == digest.suite.wire_code` 且全部 32 digest octets 相等。不一致使用 `event_id_digest_mismatch`；未知或未激活 code 使用 `unsupported_digest_algorithm`；已知但不属于 Realm basis 使用 `schema_violation`。
+producer 顺序固定为：完成除 `event_id` / `proofs` 外的字段；计算完整 `D`；派生并写入 `event_id`；最后签署携完整 `event_digest` 的 proof。receiver 在任何 lookup、去重、路由、幂等、授权或 projection 副作用前，MUST 严格解析 ID、先要求 `id.header >> 4 == 0`，再从 `id.header & 0x0F` 读取 suite、按历史 basis 校验 suite、重算完整 digest，并要求低 nibble `id.code == digest.suite.wire_code` 且全部 32 digest octets 相等。reserved nibble 非零使用 `schema_violation`；digest 不一致使用 `event_id_digest_mismatch`；未知或未激活 code 使用 `unsupported_digest_algorithm`；已知但不属于 Realm basis 使用 `schema_violation`。解析器不得只 mask 低 nibble 后接受高 nibble 非零的 canonical alias。
 
-Event ID 保留底层 256-bit digest 的指定目标与碰撞安全强度；额外 suite octet 是算法域标识，不增加同一 suite 的 hash 强度。canonical store、proof / receipt / Seal coverage、raw replay 与所有 Event 引用 MUST 使用完整 Event ID，且可从 ID 无损恢复 suite code 与全部 digest bytes。
+Event ID 保留底层 256-bit digest 的指定目标与碰撞安全强度；额外 header octet 承载固定为零的 reserved nibble 与 suite nibble，不增加同一 suite 的 hash 强度。canonical store、proof / receipt / Seal coverage、raw replay 与所有 Event 引用 MUST 使用完整 Event ID，且可从 ID 无损恢复 suite code 与全部 digest bytes。
 
 派生对象 ID 的规则见 [`../models/common-fields.md`](../models/common-fields.md)；Realm token header 见 §4.1；`event_id` 的携带与重算义务见 §6。
 
@@ -278,7 +278,7 @@ v1 header 注册表：
 但这不会自动使其成为 Realm-eligible suite；v1 Collaboration Realm 的 create Event 必须使用
 suite wire code `0x01`，否则不能逐字节重类型为 Realm。
 
-Event-derived Realm 的 `derivation_class=0x0`，所以其首字节与 Event ID suite byte 相同，33-octet token MUST 可逐字节直接重类型；v1 唯一合法值为 SHA-256 `0x01`。Principal Control Realm 的 suite 同样固定为 SHA-256、header 固定为 `0x11`，并保留完整 32-octet subject digest。任何 UUID 形态、未知/保留 class、header 不是 `0x01`/`0x11`、class 与 signed genesis `purpose` 不一致，或 digest 重算不一致，都 MUST fail closed。
+Event-derived Realm 的 `derivation_class=0x0`，与 Event ID 固定为零的 reserved nibble 结构相同，所以 33-octet token MUST 可逐字节直接重类型；v1 唯一合法值为 SHA-256 `0x01`。Principal Control Realm 的 suite 同样固定为 SHA-256、header 固定为 `0x11`，并保留完整 32-octet subject digest。任何 UUID 形态、Event reserved nibble 非零、未知/保留 Realm class、Realm header 不是 `0x01`/`0x11`、class 与 signed genesis `purpose` 不一致，或 digest 重算不一致，都 MUST fail closed。
 
 数据库实现 MAY 与 Event 一样为 Realm 分配仅本地可见的 surrogate `pk`，并让 Event、投影和 Realm
 业务表通过 `realm_pk` 外键关联。该 `pk` 不是协议身份，MUST NOT 出现在 wire、canonical JSON、签名、

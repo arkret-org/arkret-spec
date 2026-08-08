@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.4",
+  "version": "2026-08-08.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T06:00:00Z",
+  "generated_at": "2026-08-08T15:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -40,6 +40,15 @@
     },
     "security_rationale": "UUIDv7 randomness and timestamp layout do not authenticate the allocator. Binding every producer-selected ID to the accepted genesis signer prevents an attacker from claiming another producer's ID by copying or predicting the UUID."
   },
+  "event_token_layout": {
+    "wire_form": "ak:<event-derived-kind>:<44-char-base64url-no-pad>",
+    "decoded_length_bytes": 33,
+    "header": "(reserved_zero << 4) | digest_suite",
+    "reserved_high_nibble": 0,
+    "digest_suite_range": "1..15",
+    "digest_length_bytes": 32,
+    "nonzero_reserved_nibble": "permanently_invalid"
+  },
   "realm_token_layout": {
     "wire_form": "ak:realm:<44-char-base64url-no-pad>",
     "decoded_length_bytes": 33,
@@ -56,7 +65,7 @@
       "0": "invalid",
       "15": "reserved"
     },
-    "event_derived_retype_compatibility": "Class 0 leaves the Event suite byte unchanged; v1 Realm identity is fixed to SHA-256, so only a creating Event with suite wire code 0x01 is Realm-eligible.",
+    "event_derived_retype_compatibility": "Realm class 0 is byte-identical to the Event zero reserved nibble and leaves the low-nibble suite code unchanged; v1 Realm identity is fixed to SHA-256, so only a creating Event with header 0x01 is Realm-eligible.",
     "principal_control_header": 17,
     "principal_control_domain": "ak:realm:principal-control:v1:",
     "principal_control_digest_suite": "sha256"
@@ -746,7 +755,7 @@
   ],
   "uuid_pattern_producer_allocated": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
   "typed_uuid_pattern_producer_allocated": "^ak:<kind>:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-  "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (uint8 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
+  "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
   "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
   "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$"
 }

@@ -261,7 +261,7 @@ realm_token[1..32] = H[0..31]
 realm_id = "ak:realm:" || base64url_no_pad(realm_token)
 ```
 
-`realm_token[0]` 按 nibble 拆分：高 4 位是 `derivation_class`，低 4 位是 `digest_suite`。v1 登记 `derivation_class=0x0` 为 `event_derived`、`0x1` 为 `principal_subject_derived`，且 Realm 算法固定为 `digest_suite=0x1`（SHA-256）。因此 v1 有效 header 只有 Event-derived Realm 的 `0x01` 与 PCR 的 `0x11`。`0x2..0xE` derivation class 保留，`0xF` class 为 format-control；低 nibble `0x0` 与 `0x2..0xF` 非法/保留。Realm 类型解析 MUST 按 `ak:realm:` 上下文解释该 header；`ak:event:` 的首字节仍是完整 uint8 Event digest-suite code，普通 Event 支持其它 suite 不代表 Realm 自动支持。
+`realm_token[0]` 按 nibble 拆分：高 4 位是 `derivation_class`，低 4 位是 `digest_suite`。v1 登记 `derivation_class=0x0` 为 `event_derived`、`0x1` 为 `principal_subject_derived`，且 Realm 算法固定为 `digest_suite=0x1`（SHA-256）。因此 v1 有效 header 只有 Event-derived Realm 的 `0x01` 与 PCR 的 `0x11`。`0x2..0xE` derivation class 保留，`0xF` class 为 format-control；低 nibble `0x0` 与 `0x2..0xF` 非法/保留。Event ID 使用同一 suite 位置，但高 nibble 不是可分配 suite 空间：它永久保留并 MUST 为 `0x0`。普通 Event 支持其它低-nibble suite 不代表 Realm 自动支持。
 
 理由是**可寻址性**：任何一方拿到某个 principal 的 DID 就能直接算出其 PCR 地址，不需要先取得 genesis Event；collaboration Realm 的 Event-derived token 则必须先知道 create Event 的完整 digest。PCR 的身份锚本来也不是 genesis Event，而是 [`../identity/key-management.md` §5.0.1](../identity/key-management.md) 的唯一 critical `did_inception` root anchor——那比 genesis Event 更强。
 

@@ -14,8 +14,8 @@ FIXTURE = ROOT / "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json
 
 def derive(suite_code: int, digest_hex: str) -> tuple[str, str]:
     digest = bytes.fromhex(digest_hex)
-    if len(digest) != 32 or not 0 < suite_code < 0xF0:
-        raise ValueError("v1 Event ID requires an assigned suite code and 32-byte digest")
+    if len(digest) != 32 or not 0 < suite_code <= 0x0F:
+        raise ValueError("v1 Event ID requires a uint4 suite code and 32-byte digest")
     body = bytes((suite_code,)) + digest
     token = base64.urlsafe_b64encode(body).rstrip(b"=").decode("ascii")
     assert len(body) == 33 and len(token) == 44
@@ -27,6 +27,8 @@ def main() -> int:
     errors: list[str] = []
     expected_layout = {
         "decoded_length_bytes": 33,
+        "reserved_high_nibble": 0,
+        "digest_suite_low_nibble": True,
         "suite_code_offset": 0,
         "digest_offset": 1,
         "digest_length_bytes": 32,
@@ -61,6 +63,7 @@ def main() -> int:
     required_negative_cases = {
         "suite_code_mismatch_rejected",
         "invalid_zero_suite_code_rejected",
+        "nonzero_event_reserved_nibble_rejected",
         "reserved_suite_code_rejected",
         "unknown_suite_code_rejected",
         "padding_rejected",

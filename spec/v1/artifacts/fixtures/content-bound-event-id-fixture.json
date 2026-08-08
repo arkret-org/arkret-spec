@@ -189,6 +189,15 @@
       }
     },
     {
+      "name": "nonzero_event_reserved_nibble_rejected",
+      "vector_id": "ak.vector.event_id.content_bound.v1",
+      "mutation": "replace header 0x01 with 0x11 while retaining the same SHA-256 digest",
+      "expected": {
+        "outcome": "rejected",
+        "error": "schema_violation"
+      }
+    },
+    {
       "name": "reserved_suite_code_rejected",
       "vector_id": "ak.vector.event_id.content_bound.v1",
       "mutation": "replace suite code with reserved 0x03",
@@ -240,6 +249,8 @@
   "generated_by": "tools/generate_content_bound_event_id_fixture.py",
   "layout": {
     "decoded_length_bytes": 33,
+    "reserved_high_nibble": 0,
+    "digest_suite_low_nibble": true,
     "suite_code_offset": 0,
     "digest_offset": 1,
     "digest_length_bytes": 32,

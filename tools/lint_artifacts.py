@@ -3715,8 +3715,8 @@ def check_event_id_suite_registry(lint: Lint) -> None:
             continue
         suite_id = row.get("canonical_id")
         code = row.get("wire_code")
-        if not isinstance(code, int) or not 0 < code < 0xF0:
-            lint.fail(path, f"{suite_id!r} must declare assigned uint8 wire_code 0x01..0xEF")
+        if not isinstance(code, int) or not 0 < code <= 0x0F:
+            lint.fail(path, f"{suite_id!r} must declare assigned uint4 wire_code 0x01..0x0F")
             continue
         if code in seen:
             lint.fail(path, f"wire_code 0x{code:02x} reused by {seen[code]!r} and {suite_id!r}")
@@ -3741,6 +3741,7 @@ def check_content_bound_event_id_fixture(lint: Lint) -> None:
         "full_digest_single_bit_difference_changes_event_id",
         "suite_code_mismatch_rejected",
         "invalid_zero_suite_code_rejected",
+        "nonzero_event_reserved_nibble_rejected",
         "reserved_suite_code_rejected",
         "unknown_suite_code_rejected",
         "padding_rejected",
@@ -6572,7 +6573,9 @@ def check_erasure_verification_contract(lint: Lint) -> None:
             return "schema_violation"
         if len(decoded) != 33 or base64.urlsafe_b64encode(decoded).decode("ascii").rstrip("=") != suffix:
             return "schema_violation"
-        suite_id = active_suites.get(decoded[0])
+        if decoded[0] >> 4 != 0:
+            return "schema_violation"
+        suite_id = active_suites.get(decoded[0] & 0x0F)
         if not isinstance(suite_id, str):
             return "unsupported_digest_algorithm"
         event_digest = vector.get("event_digest")
@@ -8519,6 +8522,21 @@ def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str
                     path,
                     f"{json_path} has invalid ak:{token_kind}: expected canonical 44-char Event-derived token",
                 )
+                return
+            try:
+                token = base64.urlsafe_b64decode(candidate + "=" * (-len(candidate) % 4))
+            except (ValueError, binascii.Error):
+                lint.fail(path, f"{json_path} has invalid ak:{token_kind}: malformed Base64URL token")
+                return
+            if (
+                len(token) != 33
+                or base64.urlsafe_b64encode(token).decode("ascii").rstrip("=") != candidate
+            ):
+                lint.fail(path, f"{json_path} has invalid ak:{token_kind}: non-canonical 33-byte token")
+                return
+            if token[0] >> 4 != 0:
+                lint.fail(path, f"{json_path} has invalid ak:{token_kind}: Event reserved nibble must be zero")
+                return
         elif not UUID7_RE.fullmatch(candidate):
             lint.fail(path, f"{json_path} has invalid ak:{token_kind}: typed UUIDv7 reference")
         return
