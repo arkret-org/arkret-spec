@@ -336,12 +336,10 @@ realm_id = "ak:realm:" || base64url_no_pad(realm_token)
 
 **genesis batch 内的 staged root proof（normative）**：同一 ordered submit batch 中位于 create 之后的 Event MAY 使用 staged authority-root proof，其绑定的 create Event MUST 是同批 slot 0，且 `controller_id` MUST 等于 signed envelope `actor_id`。该 proof 只在此原子 unit 内有效；batch 外一律要求 accepted Seal 下的 root-cell inclusion proof。
 
-普通 Realm bootstrap event set 以 create 开始。创建时没有 accepted Seal，因此下列**封闭列表**内的 Event MAY 免 `seal_basis`（与 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move) 使用同一句，两处 MUST 保持逐条一致）：
+Realm bootstrap event set 以 create 开始。创建时没有 accepted Seal，因此下列两个**互斥封闭分支**内的 Event MAY 免 `seal_basis`（与 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move) 使用同一句，两处 MUST 保持逐条一致）：
 
-- `ak.realm.create` 自身；
-- 同批同 actor 的 initial facets，顺序唯一由 `contract-registry.json.realm_bootstrap_registry` 登记：required `profile → policy_bundle → join_rule → history_visibility`，条件 `history_sharing_policy`，required `discovery`，可选 `alias`，条件 `plaintext_visible_services`，required `delivery_binding_policy`，最后 required creator `member.state{join}`。不得在实现中维护第二套顺序常量；
-- 同批由 creator 写入的 **bootstrap 初始成员 `ak.member.state{join}`**，含 1:1 Direct Conversation Realm 的 peer join（[`../identity/contact-and-direct-conversation.md` §6](../identity/contact-and-direct-conversation.md)）与 [`../governance/member-delivery-binding.md` §3.1.1](../governance/member-delivery-binding.md) 的 creator `join -> join` delivery-binding self-transition。
-- 1:1 Direct Conversation Realm founding unit 的第三条 `ak.strand.create`（该 Realm 的 main Strand）。它是 DataEvent，正常携 `seal_ref + auth_context`；但 founding unit 的 Genesis Seal 按 [`../identity/contact-and-direct-conversation.md` §6.1](../identity/contact-and-direct-conversation.md) 必须同时覆盖这三条，Strand 无法引用一个尚不存在的 Seal。因此它在该 exact unit 内免 basis，**batch admission MUST 在其它任何位置拒绝该 no-basis 形态**；普通 Strand 一律照常携 `seal_ref + auth_context`。
+- 普通 Collaboration 分支：`ak.realm.create`；同批同 actor 的 initial facets，顺序唯一由 `contract-registry.json.realm_bootstrap_registry.ordinary_collaboration` 登记：required `profile → policy_bundle → join_rule → history_visibility`，条件 `history_sharing_policy`，required `discovery`，可选 `alias`，条件 `plaintext_visible_services`，required `delivery_binding_policy`，最后 required creator `member.state{join}`。不得在实现中维护第二套顺序常量；
+- 1:1 Direct Conversation 分支：恰好 `ak.realm.create → peer ak.member.state{join} → main ak.strand.create` 三条，不得携普通 Collaboration facet。固定 profile、policy、join、history 与 discovery baseline 由 [`../identity/contact-and-direct-conversation.md` §6.2](../identity/contact-and-direct-conversation.md) 的 registered reducer contract 机械投影。`ak.strand.create` 平时是携 `seal_ref + auth_context` 的 DataEvent；但该 exact unit 的 Genesis Seal 同时覆盖三条，Strand 无法引用尚不存在的 Seal，因此在且仅在该 unit 内免 basis。
 
 不在该列表内的 Control Move 一律要求 `seal_basis`。PCR 则只允许上文 create + first-authorize 两项 shape；不得把普通 Realm follow-up 白名单混入 PCR bootstrap。批次结束后所有普通 Control Move 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move) 携带 basis。
 

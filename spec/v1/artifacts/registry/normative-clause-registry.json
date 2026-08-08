@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.6",
+  "version": "2026-08-08.7",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T13:00:00Z",
+  "generated_at": "2026-08-08T15:00:00Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -225,8 +225,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#5-control-move",
-      "section_digest": "sha256:7af5501ddb027ecc2db0f4fab49d8966a0541b15d219d9dbf62ae44c2d965d2b",
-      "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with Control Proposal Acks and pending-index obligations. The Realm bootstrap whitelist is the ordered machine registry closure with no implicit creator membership; a Direct Conversation founding unit additionally admits its explicit peer membership and one basis-free main ak.strand.create because the Genesis Seal covers that Event and it cannot reference a Seal that does not yet exist. Batch admission MUST reject those no-basis shapes anywhere else.",
+      "section_digest": "sha256:d07be0ccdc34fac43b0aff6a09ae163a8811b22af5b7b467b4cbd4d77978d2bd",
+      "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with Control Proposal Acks and pending-index obligations. Ordinary Collaboration bootstrap uses the ordered machine-registry facet closure with an explicit final creator membership and no implicit creator membership. The mutually exclusive Direct Conversation branch is exactly create, explicit peer membership, and one basis-free main ak.strand.create; its fixed baseline and founder membership are reducer projections. Batch admission MUST reject both no-basis shapes anywhere else.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1",
