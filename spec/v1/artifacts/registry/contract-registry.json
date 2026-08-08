@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.3",
+  "version": "2026-08-09.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-09T14:00:00Z",
+  "generated_at": "2026-08-09T15:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -7228,7 +7228,7 @@
         "wire_scope": "durable_event",
         "reducer_input": false,
         "payload": "Range-bound completeness attestation. Distinct from ak.audit.ryw_receipt (per-event read-your-writes hint) and ak.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent seal backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §6.4.",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_payload",
+        "payload_schema_ref": "schemas/range-completeness-attestation.schema.json",
         "id_source": "not_an_object_id"
       },
       {

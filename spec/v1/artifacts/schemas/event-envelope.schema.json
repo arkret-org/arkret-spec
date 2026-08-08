@@ -4171,10 +4171,7 @@
       "if": {
         "properties": {
           "kind": {
-            "enum": [
-              "ak.audit.ryw_receipt",
-              "ak.attestation.range_completeness"
-            ]
+            "const": "ak.audit.ryw_receipt"
           }
         },
         "required": [
@@ -4185,6 +4182,25 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/audit_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.attestation.range_completeness"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./range-completeness-attestation.schema.json"
           }
         }
       }
