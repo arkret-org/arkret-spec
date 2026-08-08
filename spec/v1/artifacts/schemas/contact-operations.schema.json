@@ -1098,7 +1098,7 @@
               "$ref": "#/$defs/contact_introduction_evidence"
             },
             "previous_terminal_basis_id": {
-              "$ref": "#/$defs/hash",
+              "$ref": "./principal-operations.schema.json#/$defs/hash",
               "description": "Immediate previously accepted terminal Contact basis for a recontact request. The Principal Server MUST require an exact local terminal-basis match when present and MUST require it when a terminal predecessor exists."
             },
             "message": {
