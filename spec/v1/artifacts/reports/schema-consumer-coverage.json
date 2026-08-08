@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 185,
+    "total_schemas": 182,
     "by_consumer": {
       "declared_wire": 43,
-      "event_kind": 11,
-      "inbound": 43,
-      "outbound": 46,
-      "prose": 110,
+      "event_kind": 9,
+      "inbound": 42,
+      "outbound": 45,
+      "prose": 107,
       "prose_only": 2,
       "schema_reference": 109,
-      "startup_compile": 185,
-      "vectors": 116
+      "startup_compile": 182,
+      "vectors": 114
     },
     "without_wire_consumer": 2,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 69,
+    "without_vector_coverage": 68,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -130,7 +130,6 @@
     "ak.schema.realm_organization_operations.v1",
     "ak.schema.realm_policy_server_operations.v1",
     "ak.schema.realm_read_operations.v1",
-    "ak.schema.recovery_authority_ticket.v1",
     "ak.schema.recovery_completion_attestation.v1",
     "ak.schema.sdk_conformance_claim.v1",
     "ak.schema.seal_transparency.v1",
@@ -267,7 +266,6 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.gate.account.command.enroll_device",
           "ak.gate.account.command.pair_agent_key",
           "ak.gate.account.command.pair_device",
           "ak.open.agent_pairing.command.submit_runtime_key_request",
@@ -996,7 +994,6 @@
           "ak.schema.contact_operations.v1",
           "ak.schema.contact_scope_update.v1",
           "ak.schema.controller_account_gate_attestation.v1",
-          "ak.schema.cross_signing_publish.v1",
           "ak.schema.delivery_binding_stale.v1",
           "ak.schema.did_binding_contracts.v1",
           "ak.schema.directory_operations.v1",
@@ -1045,13 +1042,13 @@
           "ak.schema.read_cursor_operations.v1",
           "ak.schema.read_receipt.v1",
           "ak.schema.realm.v1",
+          "ak.schema.realm_genesis.v1",
           "ak.schema.realm_join_candidate.v1",
           "ak.schema.realm_link_operations.v1",
           "ak.schema.realm_organization_operations.v1",
           "ak.schema.realm_policy_server_operations.v1",
           "ak.schema.realm_profile.v1",
           "ak.schema.realm_read_operations.v1",
-          "ak.schema.recovery_authority_ticket.v1",
           "ak.schema.recovery_completion_attestation.v1",
           "ak.schema.recovery_policy.v1",
           "ak.schema.recovery_receipt.v1",
@@ -1193,37 +1190,6 @@
         "evidence": "required_schema"
       },
       "fragment": "#/$defs/controller_account_gate_attestation"
-    },
-    {
-      "schema_id": "ak.schema.cross_signing_publish.v1",
-      "file": "schemas/cross-signing-publish.schema.json",
-      "consumers": {
-        "event_kind": "registered",
-        "prose": "normative_text",
-        "schema_reference": "exact",
-        "startup_compile": "exact",
-        "vectors": "required_schema"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
-      }
-    },
-    {
-      "schema_id": "ak.schema.cross_signing_reset.v1",
-      "file": "schemas/cross-signing-reset.schema.json",
-      "consumers": {
-        "event_kind": "registered",
-        "prose": "normative_text",
-        "startup_compile": "exact",
-        "vectors": "required_schema"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
-      }
     },
     {
       "schema_id": "ak.schema.cursor.v1",
@@ -1581,6 +1547,7 @@
       "consumers": {
         "declared_wire": "dynamic_schema_ref",
         "prose": "normative_text",
+        "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
@@ -1988,6 +1955,7 @@
       "consumers": {
         "inbound": "fragment",
         "outbound": "fragment",
+        "schema_reference": "fragment",
         "startup_compile": "exact"
       },
       "wire_covered": true,
@@ -2327,8 +2295,6 @@
           "ak.schema.authority_set_policy.v1",
           "ak.schema.backup_series_erase_confirmation.v1",
           "ak.schema.keys_operations.v1",
-          "ak.schema.recovery_authority_ticket.v1",
-          "ak.schema.recovery_completion_attestation.v1",
           "ak.schema.recovery_policy.v1",
           "ak.schema.recovery_session.v1",
           "ak.schema.security_rotation_local_commit.v1",
@@ -2744,30 +2710,9 @@
       }
     },
     {
-      "schema_id": "ak.schema.recovery_authority_ticket.v1",
-      "file": "schemas/recovery-authority.schema.json",
-      "consumers": {
-        "inbound": "fragment",
-        "outbound": "exact",
-        "schema_reference": "fragment",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "operation_e2e_owned",
-        "owners": [
-          "ak.gate.account.command.authorize_recovery_device",
-          "ak.gate.account.command.promote_recovery_session_grant",
-          "ak.self.recovery_authority_ticket.command.issue"
-        ],
-        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
-      }
-    },
-    {
       "schema_id": "ak.schema.recovery_completion_attestation.v1",
       "file": "schemas/recovery-authority.schema.json",
       "consumers": {
-        "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact"
       },
@@ -2775,7 +2720,6 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
-          "ak.schema.recovery_authority_ticket.v1",
           "ak.schema.security_rotation_local_commit.v1",
           "ak.schema.security_transaction.v1"
         ],
@@ -3217,8 +3161,6 @@
           "ak.schema.contact_operations.v1",
           "ak.schema.contact_scope_update.v1",
           "ak.schema.controller_account_gate_attestation.v1",
-          "ak.schema.cross_signing_publish.v1",
-          "ak.schema.cross_signing_reset.v1",
           "ak.schema.cursor.v1",
           "ak.schema.device_message.v1",
           "ak.schema.device_pairing_bootstrap.v1",
@@ -3232,6 +3174,7 @@
           "ak.schema.erasure_receipt_operations.v1",
           "ak.schema.erasure_verification_stub.v1",
           "ak.schema.event.v1",
+          "ak.schema.event_batch_receipt.v1",
           "ak.schema.event_payload.v1",
           "ak.schema.extension_manifest.v1",
           "ak.schema.federated_device_signing_key_evidence.v1",
@@ -3276,7 +3219,6 @@
           "ak.schema.realm_organization_operations.v1",
           "ak.schema.realm_policy_server_operations.v1",
           "ak.schema.realm_read_operations.v1",
-          "ak.schema.recovery_authority_ticket.v1",
           "ak.schema.recovery_completion_attestation.v1",
           "ak.schema.recovery_policy.v1",
           "ak.schema.recovery_receipt.v1",

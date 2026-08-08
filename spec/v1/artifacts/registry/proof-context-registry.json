@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-08.1",
+  "version": "2026-08-09.1",
   "source_of_truth": true,
   "description": "Canonical domain-separation contexts for Arkret detached proofs. Context is part of the canonical signing binding object and is not a wire field in the generic proof shape.",
   "registry_rules": [
@@ -130,15 +130,18 @@
       "schema_ref": "schemas/audit-ryw-receipt.schema.json"
     },
     {
-      "context": "ak.control-proposal-decision-proof-v1",
-      "object_family": "control_proposal_decision",
+      "context": "ak.authorization-lease-proof-v1",
+      "object_family": "authorization_lease",
       "binding_fields": [
         "payload_digest",
+        "authority_set_ref",
         "verification_method",
-        "created_at"
+        "created_at",
+        "domain?",
+        "audience?"
       ],
-      "defined_in": "zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_decision"
+      "defined_in": "zh/authz/offline-publication.md",
+      "schema_ref": "schemas/offline-publication.schema.json#/$defs/authorization_lease"
     },
     {
       "context": "ak.control-proposal-authority-ack-proof-v1",
@@ -150,6 +153,37 @@
       ],
       "defined_in": "zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
       "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_authority_ack"
+    },
+    {
+      "context": "ak.control-proposal-decision-proof-v1",
+      "object_family": "control_proposal_decision",
+      "binding_fields": [
+        "payload_digest",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
+      "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_decision"
+    },
+    {
+      "context": "ak.device-authorize-possession-proof-v1",
+      "object_family": "device_authorize_possession",
+      "binding_fields": [
+        "principal_id",
+        "device_id",
+        "device_public_key",
+        "hpke_key",
+        "algorithms",
+        "device_key_algorithm",
+        "authorized_by",
+        "not_before",
+        "expires_at?",
+        "scopes?",
+        "recovery_session_id?",
+        "authorization_binding_kind"
+      ],
+      "defined_in": "zh/crypto-media/device-lifecycle.md",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload"
     },
     {
       "context": "ak.did-continuity-proof-v1",
@@ -182,6 +216,23 @@
       "schema_ref": "schemas/did-key-log-entry.schema.json"
     },
     {
+      "context": "ak.did-webvh-witness-receipt-proof-v1",
+      "object_family": "did_webvh_witness_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "issuer_service_id",
+        "did",
+        "version_id",
+        "witness_did",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/identity/identity-did.md",
+      "schema_ref": "schemas/did-webvh-witness-receipt.schema.json"
+    },
+    {
       "context": "ak.directory-operation-proof-v1",
       "object_family": "directory_operation",
       "binding_fields": [
@@ -197,32 +248,18 @@
       "schema_ref": "schemas/directory-operations.schema.json"
     },
     {
-      "context": "ak.authorization-lease-proof-v1",
-      "object_family": "authorization_lease",
+      "context": "ak.event-proof-v1",
+      "object_family": "event_envelope",
       "binding_fields": [
-        "payload_digest",
-        "authority_set_ref",
+        "event_digest",
+        "actor_id",
         "verification_method",
         "created_at",
         "domain?",
         "audience?"
       ],
-      "defined_in": "zh/authz/offline-publication.md",
-      "schema_ref": "schemas/offline-publication.schema.json#/$defs/authorization_lease"
-    },
-    {
-      "context": "ak.ingress-receipt-proof-v1",
-      "object_family": "ingress_receipt",
-      "binding_fields": [
-        "payload_digest",
-        "authority_set_ref",
-        "verification_method",
-        "created_at",
-        "domain?",
-        "audience?"
-      ],
-      "defined_in": "zh/authz/offline-publication.md",
-      "schema_ref": "schemas/offline-publication.schema.json#/$defs/ingress_receipt"
+      "defined_in": "zh/models/event-and-patch.md",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/event_proof"
     },
     {
       "context": "ak.extension-manifest-proof-v1",
@@ -238,35 +275,6 @@
       ],
       "defined_in": "zh/extensions/extension-manifest.md",
       "schema_ref": "schemas/extension-manifest.schema.json"
-    },
-    {
-      "context": "ak.signal-proof-v1",
-      "object_family": "signal_envelope",
-      "binding_fields": [
-        "envelope_digest",
-        "sender_actor_id",
-        "sender_device_id",
-        "verification_method",
-        "created_at",
-        "domain?",
-        "audience?"
-      ],
-      "defined_in": "zh/sync/signal.md",
-      "schema_ref": "schemas/signal-envelope.schema.json"
-    },
-    {
-      "context": "ak.event-proof-v1",
-      "object_family": "event_envelope",
-      "binding_fields": [
-        "event_digest",
-        "actor_id",
-        "verification_method",
-        "created_at",
-        "domain?",
-        "audience?"
-      ],
-      "defined_in": "zh/models/event-and-patch.md",
-      "schema_ref": "schemas/event-envelope.schema.json#/$defs/event_proof"
     },
     {
       "context": "ak.handle-claim-proof-v1",
@@ -287,77 +295,29 @@
       "context": "ak.identity-creation-control-proof-v1",
       "object_family": "identity_creation_control",
       "binding_fields": [
-        "payload_digest",
-        "principal_id",
-        "verification_method",
-        "created_at",
-        "audience"
-      ],
-      "defined_in": "zh/identity/identity-did.md",
-      "schema_ref": "schemas/account-operations.schema.json"
-    },
-    {
-      "context": "ak.did-webvh-witness-receipt-proof-v1",
-      "object_family": "did_webvh_witness_receipt",
-      "binding_fields": [
-        "payload_digest",
-        "issuer_service_id",
-        "did",
-        "version_id",
-        "witness_did",
-        "verification_method",
-        "created_at",
-        "domain?",
-        "audience?"
-      ],
-      "defined_in": "zh/identity/identity-did.md",
-      "schema_ref": "schemas/did-webvh-witness-receipt.schema.json"
-    },
-    {
-      "context": "ak.device-bootstrap-decision-receipt-proof-v1",
-      "object_family": "device_bootstrap_decision_receipt",
-      "binding_fields": [
-        "payload_digest",
-        "principal_server_id",
-        "account_authority_id",
-        "transaction_id",
-        "verification_method",
-        "created_at",
-        "audience"
-      ],
-      "defined_in": "zh/identity/key-management.md",
-      "schema_ref": "schemas/principal-operations.schema.json#/$defs/device_bootstrap_decision_receipt"
-    },
-    {
-      "context": "ak.organization-registration-control-proof-v1",
-      "object_family": "organization_registration_control_proof",
-      "binding_fields": [
+        "proof_kind",
         "challenge_id",
-        "organization_id",
-        "local_admin_subject",
-        "version_id",
-        "log_head_digest",
-        "verification_method",
-        "created_at"
+        "challenge",
+        "purpose",
+        "principal_id",
+        "operation_digest",
+        "pcr_realm_id",
+        "realm_create_payload_digest",
+        "founding_authorize_payload_digest",
+        "initial_session_request_digest",
+        "genesis_unit_kinds",
+        "identity_creation_lease_id",
+        "lease_fence",
+        "dpop_jkt",
+        "audience",
+        "origin",
+        "trust_domain",
+        "issued_at",
+        "expires_at",
+        "verification_key_multibase"
       ],
-      "defined_in": "zh/identity/identity-did.md",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationControlProof"
-    },
-    {
-      "context": "ak.organization-registration-receipt-proof-v1",
-      "object_family": "organization_registration_receipt",
-      "binding_fields": [
-        "payload_digest",
-        "issuer_service_id",
-        "registration_receipt_id",
-        "organization_id",
-        "verification_method",
-        "created_at",
-        "domain?",
-        "audience?"
-      ],
-      "defined_in": "zh/identity/identity-did.md",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationReceipt"
+      "defined_in": "zh/identity/account-lifecycle.md",
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_creation_control_proof"
     },
     {
       "context": "ak.identity-receipt-proof-v1",
@@ -373,6 +333,20 @@
       ],
       "defined_in": "zh/identity/identity-did.md",
       "schema_ref": "schemas/identity-receipt.schema.json"
+    },
+    {
+      "context": "ak.ingress-receipt-proof-v1",
+      "object_family": "ingress_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "authority_set_ref",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/authz/offline-publication.md",
+      "schema_ref": "schemas/offline-publication.schema.json#/$defs/ingress_receipt"
     },
     {
       "context": "ak.join-application-cancel-receipt-proof-v1",
@@ -462,6 +436,37 @@
       ],
       "defined_in": "zh/extensions/mimi-interop.md",
       "schema_ref": "schemas/mimi-operations.schema.json"
+    },
+    {
+      "context": "ak.organization-registration-control-proof-v1",
+      "object_family": "organization_registration_control_proof",
+      "binding_fields": [
+        "challenge_id",
+        "organization_id",
+        "local_admin_subject",
+        "version_id",
+        "log_head_digest",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/identity/identity-did.md",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationControlProof"
+    },
+    {
+      "context": "ak.organization-registration-receipt-proof-v1",
+      "object_family": "organization_registration_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "issuer_service_id",
+        "registration_receipt_id",
+        "organization_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/identity/identity-did.md",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationReceipt"
     },
     {
       "context": "ak.principal-locator-proof-v1",
@@ -557,6 +562,21 @@
       ],
       "defined_in": "zh/identity/identity-did.md",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationReceipt"
+    },
+    {
+      "context": "ak.signal-proof-v1",
+      "object_family": "signal_envelope",
+      "binding_fields": [
+        "envelope_digest",
+        "sender_actor_id",
+        "sender_device_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/sync/signal.md",
+      "schema_ref": "schemas/signal-envelope.schema.json"
     },
     {
       "context": "ak.snapshot-proof-v1",

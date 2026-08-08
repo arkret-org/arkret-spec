@@ -3854,14 +3854,7 @@ def check_event_reference_inventory(lint: Lint) -> None:
         and row.get("schema") == "event-envelope.schema.json"
         and row.get("field") == "prev_refs"
     ]
-    expected_prev_refs = {
-        "/properties/prev_refs",
-        "/$defs/device_authorize_event_preimage/properties/prev_refs",
-    }
-    if (
-        {row.get("json_pointer") for row in prev_refs} != expected_prev_refs
-        or any(row.get("classification") != "complete_event_id" for row in prev_refs)
-    ):
+    if len(prev_refs) != 1 or prev_refs[0].get("classification") != "complete_event_id":
         lint.fail(path, "event-envelope.prev_refs must be inventoried as complete_event_id")
     valid = {"complete_event_id", "digest_copy_or_commitment", "external_event_namespace"}
     for index, row in enumerate(rows):
@@ -6527,6 +6520,7 @@ def check_wire_schema_no_bare_scope(lint: Lint) -> None:
         ("erasure-verification-stub.schema.json", "$.properties"),
         ("event-batch-receipt.schema.json", "$.properties"),
         ("event-batch-receipt.schema.json", "$.allOf[0].if.properties"),
+        ("event-batch-receipt.schema.json", "$.allOf[1].if.properties"),
     }
     for path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
         data = load_json(lint, path)

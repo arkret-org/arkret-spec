@@ -8,11 +8,11 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 68,
+    "total_fields": 67,
     "by_classification": {
       "bounded_free_text": 7,
       "closed_enum": 31,
-      "closed_literal": 10,
+      "closed_literal": 9,
       "validated_open_reason_code": 17,
       "validated_open_token": 3
     },
@@ -371,14 +371,6 @@
       "pointer": "#/$defs/mimi_update_consent_request_body/properties/reason",
       "classification": "bounded_free_text",
       "basis": "human-readable text with schema boundary"
-    },
-    {
-      "schema_file": "principal-operations.schema.json",
-      "shape": "device_bootstrap_decision_receipt",
-      "field": "schema",
-      "pointer": "#/$defs/device_bootstrap_decision_receipt/properties/schema",
-      "classification": "closed_literal",
-      "basis": "JSON Schema const"
     },
     {
       "schema_file": "push-operations.schema.json",

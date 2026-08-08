@@ -3,8 +3,8 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "digest_copy_or_commitment": 37,
-    "complete_event_id": 164,
+    "digest_copy_or_commitment": 35,
+    "complete_event_id": 151,
     "external_event_namespace": 1
   },
   "fields": [
@@ -78,18 +78,6 @@
       "schema": "account-subscribe-frame.schema.json",
       "json_pointer": "/$defs/realm_sync_entry/properties/event_states/items/properties/event_id",
       "field": "event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "agent-operations.schema.json",
-      "json_pointer": "/$defs/account_device_enroll_outcome/properties/authorized_event_digest",
-      "field": "authorized_event_digest",
-      "classification": "digest_copy_or_commitment"
-    },
-    {
-      "schema": "agent-operations.schema.json",
-      "json_pointer": "/$defs/account_device_enroll_outcome/properties/authorized_event_id",
-      "field": "authorized_event_id",
       "classification": "complete_event_id"
     },
     {
@@ -592,18 +580,6 @@
     },
     {
       "schema": "event-envelope.schema.json",
-      "json_pointer": "/$defs/device_authorize_event_preimage/properties/event_id",
-      "field": "event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "event-envelope.schema.json",
-      "json_pointer": "/$defs/device_authorize_event_preimage/properties/prev_refs",
-      "field": "prev_refs",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "event-envelope.schema.json",
       "json_pointer": "/$defs/event_proof/properties/event_digest",
       "field": "event_digest",
       "classification": "digest_copy_or_commitment"
@@ -874,12 +850,6 @@
     },
     {
       "schema": "principal-operations.schema.json",
-      "json_pointer": "/$defs/device_bootstrap_credential/oneOf/0/properties/founding_event_ids",
-      "field": "founding_event_ids",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "principal-operations.schema.json",
       "json_pointer": "/$defs/sidecar_control_frontier/properties/create_event_ref",
       "field": "create_event_ref",
       "classification": "complete_event_id"
@@ -940,50 +910,8 @@
     },
     {
       "schema": "recovery-authority.schema.json",
-      "json_pointer": "/$defs/authorization_preimage/properties/authorize_event_id",
-      "field": "authorize_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "recovery-authority.schema.json",
-      "json_pointer": "/$defs/authorization_preimage/properties/reanchor_event_id",
-      "field": "reanchor_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "recovery-authority.schema.json",
-      "json_pointer": "/$defs/authorize_event_publication_intent/properties/event_id",
-      "field": "event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "recovery-authority.schema.json",
-      "json_pointer": "/$defs/authorize_recovery_device_outcome/properties/authorize_event_id",
-      "field": "authorize_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "recovery-authority.schema.json",
-      "json_pointer": "/$defs/authorize_recovery_device_outcome/properties/authorized_event_digest",
-      "field": "authorized_event_digest",
-      "classification": "digest_copy_or_commitment"
-    },
-    {
-      "schema": "recovery-authority.schema.json",
-      "json_pointer": "/$defs/promote_recovery_session_grant_request/properties/device_authorization_event_id",
+      "json_pointer": "/$defs/issue_recovery_completion_grant_request/properties/device_authorization_event_id",
       "field": "device_authorization_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "recovery-authority.schema.json",
-      "json_pointer": "/$defs/recovery_authority_ticket/properties/authorize_event_id",
-      "field": "authorize_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "recovery-authority.schema.json",
-      "json_pointer": "/$defs/recovery_authority_ticket/properties/reanchor_event_id",
-      "field": "reanchor_event_id",
       "classification": "complete_event_id"
     },
     {
@@ -1002,12 +930,6 @@
       "schema": "recovery-receipt.schema.json",
       "json_pointer": "/properties/authorization_event_id",
       "field": "authorization_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "recovery-receipt.schema.json",
-      "json_pointer": "/properties/device_list_update_event_id",
-      "field": "device_list_update_event_id",
       "classification": "complete_event_id"
     },
     {
@@ -1048,25 +970,13 @@
     },
     {
       "schema": "security-transaction.schema.json",
-      "json_pointer": "/$defs/cross_signing_recovery_binding/properties/authorize_event_id",
+      "json_pointer": "/$defs/root_anchored_recovery_binding/properties/authorize_event_id",
       "field": "authorize_event_id",
       "classification": "complete_event_id"
     },
     {
       "schema": "security-transaction.schema.json",
-      "json_pointer": "/$defs/cross_signing_recovery_binding/properties/device_list_update_event_id",
-      "field": "device_list_update_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "security-transaction.schema.json",
-      "json_pointer": "/$defs/enrollment_authority_recovery_binding/properties/authorize_event_id",
-      "field": "authorize_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "security-transaction.schema.json",
-      "json_pointer": "/$defs/enrollment_authority_recovery_binding/properties/reanchor_event_id",
+      "json_pointer": "/$defs/root_anchored_recovery_binding/properties/reanchor_event_id",
       "field": "reanchor_event_id",
       "classification": "complete_event_id"
     },

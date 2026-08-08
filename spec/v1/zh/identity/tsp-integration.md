@@ -107,8 +107,6 @@ DID Document 或 normalized principal view 中出现 `ak.service.tsp` 只是一�
 
 **Durable Event kind carried inside `ak.self.events.command.submit`**：
 
-- `ak.cross_signing.publish`
-- `ak.cross_signing.reset`
 - `ak.device.authorize`
 - `ak.device.revoke`
 - 跨 `trust_domain` 的 `ak.member.state`

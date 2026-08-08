@@ -22,8 +22,8 @@
         "expires_at": "2026-07-31T00:05:00.000Z",
         "holder_acceptance_proof": {
           "kind": "detached_jws",
-          "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
-          "payload_digest": "sha256:6dea2ecbd89f7ffe2f330d5f679a3b735c576f0c221fad0a8a96627eb327e166",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+          "payload_digest": "sha256:543132a4a5fa1862cab667aa7903a53f7b8e267775bc5e3bce82e56a85b71efd",
           "created_at": "2026-07-31T00:00:00.000Z",
           "audience": "did:webvh:z6mkfixture:ps.example",
           "proof_purpose": "holder_acceptance",
@@ -64,8 +64,8 @@
         "proofs": [
           {
             "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
-            "payload_digest": "sha256:6dea2ecbd89f7ffe2f330d5f679a3b735c576f0c221fad0a8a96627eb327e166",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+            "payload_digest": "sha256:543132a4a5fa1862cab667aa7903a53f7b8e267775bc5e3bce82e56a85b71efd",
             "created_at": "2026-07-31T00:00:00.000Z",
             "audience": "did:webvh:z6mkfixture:ps.example",
             "proof_purpose": "holder_acceptance",
@@ -73,8 +73,8 @@
           },
           {
             "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
-            "payload_digest": "sha256:6dea2ecbd89f7ffe2f330d5f679a3b735c576f0c221fad0a8a96627eb327e166",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+            "payload_digest": "sha256:543132a4a5fa1862cab667aa7903a53f7b8e267775bc5e3bce82e56a85b71efd",
             "created_at": "2026-07-31T00:00:00.000Z",
             "audience": "did:webvh:z6mkfixture:ps.example",
             "proof_purpose": "holder_acceptance",
@@ -99,8 +99,8 @@
         "expires_at": "2026-07-31T00:05:00.000Z",
         "holder_acceptance_proof": {
           "kind": "detached_jws",
-          "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
-          "payload_digest": "sha256:6dea2ecbd89f7ffe2f330d5f679a3b735c576f0c221fad0a8a96627eb327e166",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+          "payload_digest": "sha256:543132a4a5fa1862cab667aa7903a53f7b8e267775bc5e3bce82e56a85b71efd",
           "created_at": "2026-07-31T00:00:00.000Z",
           "audience": "did:webvh:z6mkfixture:ps.example",
           "proof_purpose": "holder_acceptance",
@@ -293,6 +293,9 @@
       "vector_id": "ak.vector.keypackage.self_claim_authorization_idempotency.v1",
       "kind": "self_claim_authorization_and_linearization",
       "authority_service_id": "did:webvh:z6mkfixture:ps.example",
+      "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+      "device_authorization_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+      "model_generation_ref": "1-QmCotestPrincipalGeneration",
       "proof_free_request": {
         "target_principal_id": "did:webvh:z6mkfixture:bob.example",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
@@ -304,9 +307,9 @@
         "expires_at": "2026-07-31T00:05:00.000Z"
       },
       "canonical_proof_free_request_json": "{\"claim_nonce\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"expires_at\":\"2026-07-31T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"requester\":\"did:webvh:z6mkfixture:alice.example\",\"required_capabilities\":[\"mls\"],\"target_principal_id\":\"did:webvh:z6mkfixture:bob.example\"}",
-      "payload_digest": "sha256:6dea2ecbd89f7ffe2f330d5f679a3b735c576f0c221fad0a8a96627eb327e166",
-      "canonical_proof_binding_json": "{\"audience\":\"did:webvh:z6mkfixture:ps.example\",\"claim_nonce\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"context\":\"ak.keypackage-claim-request-proof-v1\",\"created_at\":\"2026-07-31T00:00:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"payload_digest\":\"sha256:6dea2ecbd89f7ffe2f330d5f679a3b735c576f0c221fad0a8a96627eb327e166\",\"proof_purpose\":\"holder_acceptance\",\"requester\":\"did:webvh:z6mkfixture:alice.example\",\"target_principal_id\":\"did:webvh:z6mkfixture:bob.example\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ak_self_signing_v1\"}",
-      "proof_binding_digest": "sha256:ce49ba361d7f133f9a8fd1c99141fb75ae78262a0badb054bb14a08c5c878e8c",
+      "payload_digest": "sha256:543132a4a5fa1862cab667aa7903a53f7b8e267775bc5e3bce82e56a85b71efd",
+      "canonical_proof_binding_json": "{\"audience\":\"did:webvh:z6mkfixture:ps.example\",\"claim_nonce\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"context\":\"ak.keypackage-claim-request-proof-v1\",\"created_at\":\"2026-07-31T00:00:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"payload_digest\":\"sha256:543132a4a5fa1862cab667aa7903a53f7b8e267775bc5e3bce82e56a85b71efd\",\"proof_purpose\":\"holder_acceptance\",\"requester\":\"did:webvh:z6mkfixture:alice.example\",\"target_principal_id\":\"did:webvh:z6mkfixture:bob.example\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001\"}",
+      "proof_binding_digest": "sha256:cd4e951de3a5c62b608671045d95628e88dc4a37003aa862dcf750c7b63b724c",
       "object_identity": {
         "requester": "did:webvh:z6mkfixture:alice.example",
         "claim_nonce": "AAAAAAAAAAAAAAAAAAAAAA"
@@ -324,8 +327,8 @@
         "wrong_proof_purpose",
         "stale_or_future_created_at",
         "short_claim_nonce",
-        "cross_identity_model_signer",
-        "revoked_requester_key",
+        "unaccepted_or_fenced_device_signer",
+        "revoked_requester_device",
         "bearer_token_without_sender_constraint",
         "target_policy_denied"
       ],
@@ -339,7 +342,8 @@
       },
       "assertions": [
         "the proof payload digest covers every actually present proof-free request field",
-        "exactly one holder-acceptance proof binds requester, target, Realm, nonce and authority service DID",
+        "the holder-acceptance proof signer is the requester's accepted current-generation device method",
+        "the device authorization Event and model generation are replay-verified before accepting the proof",
         "proof verification is independent of sender-constrained transport authentication and target policy",
         "claim CAS, nonce ledger and serialized outcome commit at one linearization boundary",
         "same identity and digest replay returns the original outcome without selecting another package",
@@ -403,9 +407,11 @@
       "claim_id": "mls-keypackage-claim-normal-1",
       "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "requester_did": "did:webvh:z6mkfixture:alice.example",
+      "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+      "device_authorization_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
+      "model_generation_ref": "1-QmCotestPrincipalGeneration",
       "claim_nonce": "claim-nonce-01",
       "welcome_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-      "ssk_generation": 7,
       "expected": {
         "reject_before_decrypt": true,
         "reason": "keypackage_welcome_envelope_mismatch",
@@ -415,6 +421,7 @@
         "Welcome keypackage_digest must match the claim record digest",
         "Welcome claim_ref.keypackage_digest must match the same claim record digest",
         "published ak.mls.keypackage payload digest participates in the same equality check",
+        "the claim signer is an accepted current-generation requester device",
         "a mismatch is rejected before decrypting or accepting the Welcome"
       ]
     }

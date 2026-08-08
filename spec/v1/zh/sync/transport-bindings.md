@@ -92,8 +92,6 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.peer.events.read.scan` | federation peer 按 Realm / actor / cursor 拉取或回填 Event。 |
 | `ak.peer.events.read.frontier` | federation peer 查询 Realm frontier 以检测 fork / stale peer。 |
 | `ak.peer.contacts.command.submit` | federation peer以closed XOR投递原签名`ak.contact.*` fact、对应source-signed acceptance receipt与可刷新current proof；不得承载`ak.direct_conversation.bound`、共享Realm Event或unsigned service row。 |
-| `ak.peer.device_bootstrap.command.decide` | Account Authority 以 S2S 签名请求 Principal Server 对 founding bootstrap 写 `cancelled | expired` terminal fence；与 founding batch 共用唯一 row lock，exact replay 返回原 signed receipt，indeterminate 保持 Coauth pending。 |
-| `ak.gate.account.command.cancel_device_bootstrap` | 取消同一typed bootstrap transaction；bootstrap bearer+DPoP、closed response、exact replay/conflict。 |
 | `ak.self.contact.command.scope_update` | Contact issuer-local signed full-set scope replacement，固定`phase=prepare|commit`。 |
 | `ak.self.agent.participation.resource.replace` | controller 通过 bearer+DPoP 在自己的 Account Authority 原子替换一个 versioned per-scope selection；不产生 Realm Event、不走 peer relay。 |
 | `ak.peer.snapshot.read.manifest_head` | federation peer 获取 snapshot-assisted bootstrap 的 manifest head。 |

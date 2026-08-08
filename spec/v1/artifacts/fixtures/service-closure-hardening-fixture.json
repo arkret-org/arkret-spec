@@ -303,47 +303,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.device_recovery.lifecycle.v1",
-      "assertions": [
-        "stale_ssk_generation_rejected",
-        "proof_without_secret_unlock_remains_recovery_pending",
-        "failed_keypackage_claim_reports_low_watermark_without_republishing_claimed_package"
-      ],
-      "current_ssk_generation": 5,
-      "steps": [
-        {
-          "name": "stale_ssk_generation",
-          "proof_ssk_generation": 4,
-          "expected": {
-            "decision": "reject",
-            "reason": "device_recovery_ssk_generation_mismatch"
-          }
-        },
-        {
-          "name": "proof_passed_waiting_for_unlock",
-          "proof_verified": true,
-          "secret_storage_unlocked": false,
-          "mls_welcome_replayed": false,
-          "expected": {
-            "device_state": "recovery_pending",
-            "fully_verified": false
-          }
-        },
-        {
-          "name": "keypackage_claim_failure_low_watermark",
-          "available_count": 1,
-          "low_watermark": 5,
-          "claimed_package_status_after_failure": "claimed_failed",
-          "expected": {
-            "available_count": 1,
-            "low_watermark": 5,
-            "suggested_publish_count": 4,
-            "claimed_package_republished": false
-          }
-        }
-      ]
-    },
-    {
       "vector_id": "ak.vector.device.revocation_seal_binding.v1",
       "assertions": [
         "post_seal_device_operations_fail_closed",

@@ -13,32 +13,6 @@
   ],
   "cases": [
     {
-      "name": "accept_atomic_principal_control_bootstrap",
-      "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
-      "input": {
-        "identity_model": "enrollment_authority",
-        "batch_kinds": [
-          "ak.realm.create",
-          "ak.device.authorize"
-        ],
-        "atomic": true,
-        "realm_purpose": "principal_control",
-        "root_proof_ref": {
-          "role": "did_inception",
-          "critical": true,
-          "entry_is_genesis": true
-        },
-        "root_verification_method": "did:key:z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ#z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ",
-        "referenced_entry_active_update_verification_method": "did:key:z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ#z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ",
-        "authorize_authority_matches_entry_delegation": true,
-        "existing_principal_control_realm": false
-      },
-      "expected": {
-        "decision": "accept",
-        "authority_root_required": true
-      }
-    },
-    {
       "name": "reject_root_signed_ordinary_event",
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
       "input": {
@@ -106,52 +80,6 @@
       }
     },
     {
-      "name": "accept_reanchor_without_prior_seal",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "identity_model": "enrollment_authority",
-        "entry_is_live_registry_head": true,
-        "pre_fence_basis": null,
-        "accepted_seal_frontier": [],
-        "batch_kinds": [
-          "ak.device.reanchor",
-          "ak.device.authorize"
-        ],
-        "replacement_authorize_payload_digest_matches": true,
-        "authorize_prev_refs_is_reanchor_only": true,
-        "previous_generation_matches": true,
-        "update_authority_is_current_and_unspent": true,
-        "verification_method": "did:key:z6MknoCfkzmsoi3R98zoM8gNdsnQsouJQCaCYoeVJ6VkquSi#z6MknoCfkzmsoi3R98zoM8gNdsnQsouJQCaCYoeVJ6VkquSi",
-        "referenced_entry_active_update_verification_method": "did:key:z6MknoCfkzmsoi3R98zoM8gNdsnQsouJQCaCYoeVJ6VkquSi#z6MknoCfkzmsoi3R98zoM8gNdsnQsouJQCaCYoeVJ6VkquSi"
-      },
-      "expected": {
-        "decision": "accept",
-        "new_device_generation_status": "active"
-      }
-    },
-    {
-      "name": "accept_reanchor_with_complete_current_frontier",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "identity_model": "enrollment_authority",
-        "entry_is_live_registry_head": true,
-        "pre_fence_basis_matches_full_accepted_frontier": true,
-        "frontier_compare_and_swap_matches": true,
-        "batch_kinds": [
-          "ak.device.reanchor",
-          "ak.device.authorize"
-        ],
-        "replacement_authorize_payload_digest_matches": true,
-        "authorize_prev_refs_is_reanchor_only": true,
-        "previous_generation_matches": true,
-        "update_authority_is_current_and_unspent": true
-      },
-      "expected": {
-        "decision": "accept",
-        "fence_effective_before_new_generation_seal": true
-      }
-    },
-    {
       "name": "accept_byte_identical_reanchor_retry",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
@@ -176,18 +104,6 @@
       "expected": {
         "decision": "accept",
         "uses_current_head": false
-      }
-    },
-    {
-      "name": "reject_cross_signing_model_reanchor",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "identity_model": "cross_signing",
-        "event_kind": "ak.device.reanchor"
-      },
-      "expected": {
-        "decision": "reject",
-        "error_code": "failed_precondition"
       }
     },
     {
@@ -604,17 +520,6 @@
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
         "authorize_device_signature_valid_for_replacement_key": false
-      },
-      "expected": {
-        "decision": "reject",
-        "error_code": "device_reanchor_authorize_mismatch"
-      }
-    },
-    {
-      "name": "reject_reanchor_authorize_authority_delegation_mismatch",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "authorize_enrollment_authority_matches_referenced_entry": false
       },
       "expected": {
         "decision": "reject",

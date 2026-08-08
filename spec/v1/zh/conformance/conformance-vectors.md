@@ -901,13 +901,13 @@ occupied tree leaves 得到 leaf index；runner 若从 KeyPackage 顺序、数�
 
 Steps：
 
-1. KeyPackage claim response 返回 `keypackage_ref=K`、`keypackage_digest=H1`、`capabilities_digest=C`、`ssk_generation=G`。
+1. KeyPackage claim response 返回 `keypackage_ref=K`、`keypackage_digest=H1`、`capabilities_digest=C`、`requester_device_id=D`、`device_authorization_event_id=E` 与 `model_generation_ref=G`；`E` 必须是 PCR 中授权 `D` 且仍属于 active generation `G` 的当前有效设备授权 Event。
 2. 攻击者提交 `ak.mls.welcome`，顶层 `keypackage_ref=K`，但 `payload.keypackage_digest=H2` 或 `payload.claim_ref.keypackage_digest=H2`。
 3. Welcome ciphertext、claim_id、capabilities_digest 和 signature envelope 其它字段均有效。
 
 Expected：
 
-- Receiver MUST reject before decrypting or accepting the Welcome。
+- Receiver MUST 先验证 `D/E/G` 的当前 PCR accepted-device 投影，再校验三个位置的 KeyPackage digest；任一步不一致都必须在解密或接受 Welcome 前拒绝。
 - `payload.keypackage_digest`、`payload.claim_ref.keypackage_digest`、claim record `keypackage_digest` 和已发布 `ak.mls.keypackage.payload.keypackage_digest` MUST 全部一致。
 
 ### 2.5.4 Vector: RFC 9420 MTI Ciphersuite Byte-Level KAT
@@ -3466,9 +3466,9 @@ Expected：
 
 Steps：
 
-1. requester 以恰好一个 fresh `holder_acceptance` proof 提交 self claim；proof payload digest、audience、requester、target、Realm 与 claim nonce 均正确，authority 在提交 KeyPackage CAS 后丢失响应。
+1. requester 以恰好一个 fresh `holder_acceptance` proof 提交 self claim；`verification_method` 必须逐字等于 `{requester}#{requester_device_id}`，并由 `device_authorization_event_id` 与 `model_generation_ref` 证明它是 PCR 中 current accepted、未撤销且属于 active generation 的设备。proof payload digest、audience、requester、target、Realm 与 claim nonce 均正确，authority 在提交 KeyPackage CAS 后丢失响应。
 2. requester 以同一 `(requester, claim_nonce)` 与相同 proof-free payload digest 重试；再以同一 identity 修改 target / Realm / capability 得到另一 digest。
-3. 分别施加零 proof、两个 proof、开放对象、wrong audience/purpose、stale/future proof、短 nonce、跨身份模型 signer、已 revoke device/Agent key、仅 bearer token、以及 proof 有效但 target consent/policy 不满足的单点变异。
+3. 分别施加零 proof、两个 proof、开放对象、wrong audience/purpose、stale/future proof、短 nonce、未被 PCR 接受的设备、已 fence/revoke 的设备或 generation、Agent/service key 冒充普通设备、仅 bearer token、以及 proof 有效但 target consent/policy 不满足的单点变异。
 
 Expected：
 
@@ -3633,23 +3633,22 @@ Expected：
 - 第 2 步 MUST 返回 `cursor_revoked`，且不推进 subscription position（to-device 队列删除只由 `ak.self.device_messages.command.ack` 驱动，与 cursor 无关）。
 - 第 3 步 MUST 返回 `cursor_integrity_invalid`，不得泄露 revocation set 是否命中。
 
-### 10.9 Vector: Device Recovery Lifecycle（A 模型限定）
+### 10.9 Vector: PCR Genesis 与 Root Re-anchor
 
-`vector_id`: `ak.vector.device_recovery.lifecycle.v1`
-
-本 vector 仅适用于 `identity_model="cross_signing"` 的 A 模型 SSK 恢复，不得泛化到 B 模型。B 模型没有 `ssk_generation`；其 generation mismatch、re-anchor 原子 unit 与围栏错误由 §22.3 `ak.vector.identity.device_reanchor.v1` 及对应 `device_reanchor_*` / `device_generation_fenced` errors 覆盖。
+`vector_id`: `ak.vector.identity.pcr_genesis.v1`
 
 Steps：
 
-1. 新设备用过期 `ssk_generation` 提交恢复 proof。
-2. 新设备 proof 通过，但未完成 secret storage unlock / MLS Welcome replay。
-3. KeyPackage claim 后失败并使可用数量低于 low-watermark。
+1. 构造 root-signed create + founding-device-signed authorize，并让 descriptor、payload digest、device/HPKE material、initial session request和 `{principal_id}#{device_id}` proof method全部一致。
+2. 分别 mutation root/device signature、lease fence、DPoP JKT、scope、Event order/prev_refs、descriptor fields与 payload digest。
+3. 尝试把 authorize Event id/envelope digest加入 root transcript，或把 second proof method改为 `did:key`。
+4. 并发提交两个不同 genesis unit；随后对 winner执行 root re-anchor。
 
 Expected：
 
-- 第 1 步 MUST 返回 `device_recovery_ssk_generation_mismatch`。
-- 第 2 步设备只能处于 `recovery_pending`，不得显示 fully verified。
-- 第 3 步 response SHOULD 返回 `available_count` / `low_watermark` / `suggested_publish_count`，claimed package 不得自动放回。
+- 第 1 步两 Event原子 accepted，receipt scope=`pcr_genesis_unit`，首个 Standard grant只在 receipt verified 后签发。
+- 第 2/3 步全部 fail closed、零写入。
+- 第 4 步只有一个 create-once winner；re-anchor 第二条使用同一 candidate overlay，接受后旧 generation devices fenced。
 
 ### 10.9.1 Vector: Device Revocation Seal Binding
 
@@ -4006,7 +4005,7 @@ Steps:
 1. Runtime 用 K1 作为 MLS LeafNode signature key 生成 KeyPackage，并用 K1 签署发布 transcript；服务端从当前 accepted Agent key projection 写入 `agent_key_authorize_event_id=E1`。
 2. Requester claim 该 KeyPackage，并把返回的 `agent_key_authorize_event_id=E1` 原样写入 Welcome `claim_ref`。
 3. Receiver 在解密 Welcome 前 resolve E1，校验 E1 仍是 A 的 active accepted authorization，`verification_method=K1`，并校验发布 `device_signature.kid` 与 MLS LeafNode signature key 都绑定 K1。
-4. 负向变体依次为：同时携带 `ssk_generation` / `device_authorize_event_id` 中任一字段；把 E1 填入 `device_authorize_event_id`；Event ref 属于另一 Agent；`device_signature.kid` 或 MLS LeafNode signature key 为 K2；E1 被 revoke、被 replacement `supersedes[]` 替换或可选 `expires_at` 已到期；只有 service-local Agent row 而无 accepted E1。
+4. 负向变体依次为：额外携带普通设备的 `device_authorize_event_id`；把 E1 填入该字段；Event ref 属于另一 Agent；`device_signature.kid` 或 MLS LeafNode signature key 为 K2；E1 被 revoke、被 replacement `supersedes[]` 替换或可选 `expires_at` 已到期；只有 service-local Agent row 而无 accepted E1。
 5. E1 被 E2 replacement 后，以 K2 发布新 KeyPackage并重新 claim，得到新 `claim_id` 与 `agent_key_authorize_event_id=E2`。
 
 Expected:
@@ -5233,7 +5232,7 @@ Expected：
 
 - 普通包池空后，claim 响应 MAY 返回 last-resort 包，且对应 `keypackage_claim_record` MUST 置 `last_resort=true`，使 requester 与 holder 都能识别本次走 last-resort 路径。
 - 同一 `intended_realm_id` 内该包可被多次 Welcome 复用；`ak.keys.keypackages.consume` 对其调用 MUST 幂等（返回成功、状态保持 `published`、不移出池、MUST NOT 返回 `keypackage_already_consumed`）。
-- §2.6 / §2.6.1 其余校验（`keypackage_digest` / `capabilities_digest` / `ssk_generation` 匹配、`claim_envelope` 签名、Realm 反向 resolve）对 last-resort 包仍全部适用，放宽的只有单次性。
+- §2.6 / §2.6.1 其余校验（`keypackage_digest` / `capabilities_digest` / `device_authorize_event_id` 匹配、`claim_envelope` 签名、Realm 反向 resolve）对 last-resort 包仍全部适用，放宽的只有单次性。
 - 每次消费 MUST emit 一条 `ak.mls.keypackage`（或等价）审计记录，至少含 `keypackage_ref`、`keypackage_digest`、`claim_id`、`last_resort=true`、消费的 `intended_realm_id` 与时间戳；审计链 MUST append-only，保留每次消费的独立记录（不得覆盖前次）。
 
 ### 17.2 Vector: Last-Resort Forced Rotation
@@ -5432,7 +5431,7 @@ Expected：
 
 ### 22.3 Re-anchor、generation fence 与冲突
 
-`ak.vector.identity.device_reanchor.v1` 同时覆盖零 Seal 与完整 accepted Seal frontier 两个正向入口、`payload digest → re-anchor → authorize` 单向依赖链的无环双签构造（[`../identity/key-management.md` §5.0.7](../identity/key-management.md)）、byte-identical 幂等重试和 accepted-at receipt 历史复验。负向必须覆盖 A 模型混入、live non-head、伪造 previous generation、过旧/不完整/CAS 失配 frontier、replacement authorize payload digest 不符、authorize `prev_refs` 不恰为 `[reanchor event_id]`、拆批、spent root、post-fence 旧 generation Event/Seal，以及首个新 generation Seal 的 predecessor/delta 不匹配。
+`ak.vector.identity.device_reanchor.v1` 同时覆盖零 Seal 与完整 accepted Seal frontier 两个正向入口、`payload digest → re-anchor → authorize` 单向依赖链的无环双签构造（[`../identity/key-management.md` §5.0.3](../identity/key-management.md)）、byte-identical 幂等重试和 accepted-at receipt 历史复验。负向必须覆盖 A 模型混入、live non-head、伪造 previous generation、过旧/不完整/CAS 失配 frontier、replacement authorize payload digest 不符、authorize `prev_refs` 不恰为 `[reanchor event_id]`、拆批、spent root、post-fence 旧 generation Event/Seal，以及首个新 generation Seal 的 predecessor/delta 不匹配。
 
 同 `(principal_id,did_version_number)` 的不同 versionId/digest 或同 entry 的不同 re-anchor unit 必须把全集置于 quarantine 并令 `device_generation_status="conflicted"`；不同到达顺序得到相同结果，禁止 first-seen winner。conflicted 期间普通 admission fail closed；只有下一预承诺 authority 的有效 resolution entry + re-anchor unit 可恢复 `active`。
 

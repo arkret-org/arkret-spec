@@ -62,8 +62,6 @@
       "type": "string",
       "enum": [
         "recovery_key_share",
-        "self_signing_key",
-        "user_signing_key",
         "account_data_namespace_key",
         "mls_account_secret",
         "mls_private_plaintext",
@@ -115,11 +113,11 @@
         },
         "first_event_id": {
           "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
         },
         "last_event_id": {
           "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
         }
       },
       "allOf": [

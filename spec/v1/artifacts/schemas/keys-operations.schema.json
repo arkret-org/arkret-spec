@@ -58,7 +58,7 @@
     },
     "event_id": {
       "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "backup_id": {
       "type": "string",
@@ -169,7 +169,7 @@
         "active",
         "revoked"
       ],
-      "description": "Usable directory status of the (principal_id, device_id) pair at query time. active requires an accepted, non-revoked authorization and, for B-model principals, device_generation_status=active plus authorized_generation_ref=current_device_generation_ref. revoked means ak.device.revoke is in effect. Servers MUST omit usable key material for revoked, unverified, fenced, or conflicted devices."
+      "description": "Usable directory status of the (principal_id, device_id) pair at query time. active requires an accepted, non-revoked authorization, device_generation_status=active, and authorized_generation_ref=current_device_generation_ref. Servers omit usable key material for revoked, unverified, fenced, or conflicted devices."
     },
     "did_version_id": {
       "type": "string",
@@ -177,7 +177,7 @@
     },
     "device_generation_state": {
       "type": "object",
-      "description": "Reducer-managed B-model generation state. Omitted for A-model principals, which use SSK generation instead.",
+      "description": "Reducer-managed identity-root generation fence for the principal device directory.",
       "required": [
         "current_device_generation_ref",
         "device_generation_status"
@@ -207,7 +207,7 @@
     },
     "query_device_record": {
       "type": "object",
-      "description": "Per-(principal_id, device_id) entry in keys_query_outcome. The directory facet is populated only for currently usable devices. For B-model principals the server MUST compare authorized_generation_ref with the sibling principal device_generations state and omit device_signing_key, hpke_key and prekey claims when the generation is fenced or conflicted.",
+      "description": "Per-(principal_id, device_id) entry in keys_query_outcome. The server compares authorized_generation_ref with the principal device_generations state and omits signing, HPKE, and prekey material when the generation is fenced or conflicted.",
       "required": [
         "algorithms"
       ],
@@ -232,19 +232,13 @@
         "device_status": {
           "$ref": "#/$defs/device_status"
         },
-        "cross_signing_binding": {
-          "$ref": "#/$defs/cross_signing_binding"
-        },
-        "enrollment_authority_binding": {
-          "$ref": "./event-payload.schema.json#/$defs/device_enrollment_authority_binding"
-        },
         "device_authorize_event_id": {
           "$ref": "#/$defs/event_id",
-          "description": "Accepted ak.device.authorize event id anchoring the current device-set projection. For service_attested / enrollment-authority devices this pairs with enrollment_authority_binding and identifies the accepted authorization event whose payload.device_public_key is exposed as device_signing_key."
+          "description": "Accepted ak.device.authorize Event id anchoring the current device-set projection."
         },
         "authorized_generation_ref": {
           "$ref": "#/$defs/did_version_id",
-          "description": "Reducer-managed B-model DID generation that authorized this device. Producers MUST NOT self-report it. A B-model device is usable only when this equals the principal current_device_generation_ref and device_generation_status is active. Omitted for A-model SSK devices."
+          "description": "Reducer-managed DID generation that authorized this device. Producers cannot self-report it; it must equal current_device_generation_ref for the device to be usable."
         }
       },
       "allOf": [
@@ -259,45 +253,14 @@
               "hpke_key",
               "trust_algorithms",
               "device_status",
-              "device_authorize_event_id"
+              "device_authorize_event_id",
+              "authorized_generation_ref"
             ],
             "properties": {
               "device_status": {
                 "const": "active"
               }
-            },
-            "oneOf": [
-              {
-                "required": [
-                  "cross_signing_binding"
-                ],
-                "not": {
-                  "anyOf": [
-                    {
-                      "required": [
-                        "enrollment_authority_binding"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "authorized_generation_ref"
-                      ]
-                    }
-                  ]
-                }
-              },
-              {
-                "required": [
-                  "enrollment_authority_binding",
-                  "authorized_generation_ref"
-                ],
-                "not": {
-                  "required": [
-                    "cross_signing_binding"
-                  ]
-                }
-              }
-            ]
+            }
           }
         }
       ],
@@ -594,19 +557,9 @@
             "$ref": "#/$defs/failure"
           }
         },
-        "cross_signing": {
-          "type": "object",
-          "description": "Tier-2: {principal_id} -> that principal's current accepted-generation ak.cross_signing.publish payload (device-lifecycle.md §5.1). Lets receivers anchor the SSK to the DID control set before trusting cross_signing_binding. See device-lifecycle.md §8.3.",
-          "propertyNames": {
-            "$ref": "#/$defs/did"
-          },
-          "additionalProperties": {
-            "$ref": "./cross-signing-publish.schema.json"
-          }
-        },
         "device_generations": {
           "$ref": "#/$defs/principal_device_generation_states",
-          "description": "Current B-model generation fence by principal. Omitted for A-model principals. If a principal is conflicted, or a device record's authorized_generation_ref differs from current_device_generation_ref, the corresponding device record MUST expose no usable signing/HPKE/prekey material and keys_claim MUST not return a claim for it."
+          "description": "Current identity-root generation fence by principal. Fenced/conflicted principals or mismatched device generations expose no usable signing/HPKE/prekey material."
         }
       },
       "additionalProperties": false
@@ -1014,10 +967,6 @@
         }
       ],
       "additionalProperties": false
-    },
-    "cross_signing_binding": {
-      "$ref": "./event-payload.schema.json#/$defs/device_cross_signing_binding",
-      "description": "Tier-2 A-model device trust binding echoed from ak.device.authorize.payload.cross_signing_binding (device-lifecycle.md §5.2). The echo is byte-for-byte the accepted authorize payload, so it reuses that payload's single closed definition; a second hand-copied shape is forbidden. B-model devices instead use enrollment_authority_binding plus authorized_generation_ref."
     }
   }
 }

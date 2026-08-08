@@ -71,7 +71,6 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 - `ak.profile.mls_governance_binding.full.v1`
 - `ak.profile.attested_audit.e2ee.v1`
 - `ak.profile.disclosed_audit.e2ee.v1`
-- `ak.profile.cross_signing.reset.v1`
 - `ak.profile.mls.minimal_metadata_realm.v1`
 - `ak.profile.traffic_metadata_hardened.v1`
 - `ak.profile.key_backup.memory_hard.v1`

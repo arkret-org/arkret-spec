@@ -1410,7 +1410,6 @@
             "watch_set_others",
             "watch_audit_read",
             "e2ee_late_recovery",
-            "cross_signing_reset",
             "join_application_review",
             "policy_audit_read",
             "other"
@@ -3860,164 +3859,20 @@
       "type": "string",
       "pattern": "^(ak\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
     },
-    "cross_signing_publish_payload": {
-      "type": "object",
-      "description": "Payload for ak.cross_signing.publish. Schema ak.schema.cross_signing_publish.v1 (cross-signing-publish.schema.json) carries the authoritative shape; this payload entry mirrors the required-field set so the kind-specific payload class is wired into event-payload.schema.json dispatch. See device-lifecycle.md §5.1.",
-      "required": [
-        "principal_id",
-        "trust_domain",
-        "principal_signing_key",
-        "self_signing_key",
-        "user_signing_key",
-        "expected_previous_generation",
-        "generation",
-        "issued_at"
-      ],
-      "properties": {
-        "principal_id": {
-          "$ref": "#/$defs/did"
-        },
-        "trust_domain": {
-          "type": "string",
-          "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
-        },
-        "principal_signing_key": {
-          "type": "object"
-        },
-        "self_signing_key": {
-          "type": "object"
-        },
-        "user_signing_key": {
-          "type": "object"
-        },
-        "expected_previous_generation": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "generation": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "issued_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
-    },
-    "cross_signing_reset_payload": {
-      "description": "Payload for ak.cross_signing.reset. Schema ak.schema.cross_signing_reset.v1 (cross-signing-reset.schema.json) carries the authoritative shape; this payload entry mirrors the required-field set so the kind-specific payload class is wired into event-payload.schema.json dispatch. See device-lifecycle.md §14.1.",
-      "type": "object",
-      "required": [
-        "trust_domain",
-        "principal_id",
-        "previous_generation",
-        "new_generation",
-        "reset_reason_code",
-        "proof",
-        "issued_at"
-      ],
-      "properties": {
-        "trust_domain": {
-          "type": "string",
-          "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
-        },
-        "principal_id": {
-          "$ref": "#/$defs/did"
-        },
-        "previous_generation": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "new_generation": {
-          "type": "integer",
-          "minimum": 2
-        },
-        "reset_reason_code": {
-          "type": "string",
-          "enum": [
-            "rotation",
-            "compromise",
-            "device_loss",
-            "policy_required"
-          ]
-        },
-        "proof": {
-          "type": "object",
-          "required": [
-            "kind"
-          ],
-          "properties": {
-            "kind": {
-              "type": "string",
-              "enum": [
-                "principal_signing",
-                "recovery_unlock",
-                "device_quorum",
-                "trusted_recovery_service"
-              ]
-            }
-          },
-          "additionalProperties": true
-        },
-        "issued_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
-    },
     "device_authorize_payload": {
       "type": "object",
+      "description": "Closed authorization record shared by genesis, accepted-device pairing, and identity-root re-anchor. For root_anchored genesis/re-anchor, the authorize Event proof is made by the candidate device through the unit-local overlay. For accepted_device pairing, the authorize Event proof signer MUST be the current active device named by authorized_by; device_signature separately proves possession by the new target device.",
       "required": [
         "principal_id",
         "device_id",
         "device_public_key",
         "hpke_key",
         "algorithms",
+        "device_key_algorithm",
         "authorized_by",
-        "not_before"
-      ],
-      "anyOf": [
-        {
-          "required": [
-            "proof"
-          ]
-        },
-        {
-          "required": [
-            "device_signature"
-          ]
-        },
-        {
-          "required": [
-            "enrollment_authority_binding"
-          ]
-        }
-      ],
-      "oneOf": [
-        {
-          "required": [
-            "cross_signing_binding"
-          ]
-        },
-        {
-          "required": [
-            "enrollment_authority_binding"
-          ]
-        }
-      ],
-      "allOf": [
-        {
-          "if": {
-            "required": [
-              "recovery_session_id"
-            ]
-          },
-          "then": {
-            "required": [
-              "device_signature"
-            ]
-          }
-        }
+        "authorization_binding_kind",
+        "not_before",
+        "device_signature"
       ],
       "properties": {
         "principal_id": {
@@ -4031,17 +3886,25 @@
         },
         "hpke_key": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "Device HPKE public key used for secret/key envelope sealing. MUST be covered by cross_signing_binding (§5.2) or enrollment-authority Event proof (§5.4); services MUST NOT substitute this value in projection."
+          "description": "Device HPKE public key used for secret/key envelope sealing. It is covered by the possession transcript and by the surrounding root anchor or accepted-device Event proof; services MUST NOT substitute it."
         },
         "algorithms": {
           "$ref": "#/$defs/string_list",
           "description": "Canonical sorted unique algorithm ids supported by this device. Enters device trust binding transcript together with device_public_key and hpke_key."
         },
         "device_key_algorithm": {
-          "$ref": "#/$defs/non_empty_string"
+          "const": "Ed25519"
         },
         "authorized_by": {
           "$ref": "#/$defs/device_or_principal_ref"
+        },
+        "authorization_binding_kind": {
+          "type": "string",
+          "enum": [
+            "root_anchored",
+            "accepted_device"
+          ],
+      "description": "root_anchored is valid only in the second slot of an accepted PCR genesis or device re-anchor unit. accepted_device requires Event proof.verification_method to equal principal_id + '#' + authorized_by, where authorized_by is a current active device id at the accepted generation; the target device cannot authorize itself."
         },
         "scopes": {
           "$ref": "#/$defs/string_list"
@@ -4054,139 +3917,12 @@
         },
         "device_signature": {
           "$ref": "#/$defs/signature_material",
-          "description": "Device possession proof for ak.device.authorize. When present, it MUST be an Ed25519 detached signature by the private key corresponding to device_public_key over the ak.device-authorize-possession-v1 canonical input defined in zh/crypto-media/device-lifecycle.md §5.2. It MUST NOT be signed by the grant-binding (DPoP) key / session_public_key / cnf.jkt key. Recovery-strand device authorization requires this field."
-        },
-        "proof": {
-          "$ref": "#/$defs/signature_material"
-        },
-        "cross_signing_binding": {
-          "$ref": "#/$defs/device_cross_signing_binding"
-        },
-        "enrollment_authority_binding": {
-          "$ref": "#/$defs/device_enrollment_authority_binding"
+          "description": "Required Ed25519 proof of possession by the private key corresponding to device_public_key over ak.device-authorize-possession-proof-v1. The transcript includes authorization_binding_kind and excludes all signature material. DPoP/session keys cannot satisfy this proof."
         },
         "recovery_session_id": {
           "type": "string",
           "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Present when this authorization was produced by a device recovery strand (crypto-media/device-lifecycle.md §15). Binds the event to the recovery_session_id used by the proof transcript, backup-decrypt proofs, and the recovery_receipt, so an auditor reading only the control stream can correlate authorization to receipt. Omitted for ordinary pairing-based authorizations. Not part of the cross_signing_binding signing input (§5.2)."
-        }
-      },
-      "additionalProperties": false
-    },
-    "device_cross_signing_binding": {
-      "type": "object",
-      "description": "SSK signature binding a ak.device.authorize payload's device_public_key, hpke_key and algorithms to the principal's accepted cross-signing generation. Canonical signing input is defined in zh/crypto-media/device-lifecycle.md §5.2.",
-      "required": [
-        "verification_method",
-        "signature_algorithm",
-        "ssk_generation",
-        "signature"
-      ],
-      "properties": {
-        "verification_method": {
-          "$ref": "#/$defs/verification_method",
-          "description": "DID URL of the self-signing key that signed the device trust binding."
-        },
-        "signature_algorithm": {
-          "type": "string",
-          "enum": [
-            "Ed25519",
-            "ML-DSA-65"
-          ]
-        },
-        "ssk_generation": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "signature": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$"
-        }
-      },
-      "additionalProperties": false
-    },
-    "device_enrollment_authority_binding": {
-      "type": "object",
-      "description": "Delegated-authority binding for a ak.device.authorize event admitted as service_attested: device_public_key, hpke_key and algorithms are attested by an enrollment authority designated in the principal DID document. Both the external-authority B model and the principal-owned A-model genesis use this shape; identity model is determined by whether authority_did equals principal_id, not by the binding name. Identity root keys MUST NOT sign this event.",
-      "required": [
-        "kind",
-        "authority_did",
-        "authorization_ref"
-      ],
-      "properties": {
-        "kind": {
-          "const": "service_attested"
-        },
-        "authority_did": {
-          "$ref": "#/$defs/did",
-          "description": "DID of the enrollment authority that attested this device, designated by the principal DID document. MUST equal the envelope executed_by."
-        },
-        "authorization_ref": {
-          "$ref": "#/$defs/non_empty_string",
-          "description": "Reference to the delegation evidence designating authority_did as an enrollment authority for this principal (DID-document service delegation, materialized grant, or the accepted delegation event). MUST match the envelope authorization_ref."
-        },
-        "authority_verification_method_snapshot": {
-          "type": "object",
-          "description": "Inline snapshot of the enrollment authority's signing verification method as it existed at issuance time. REQUIRED when the enrollment authority DID has no history-resolution method (e.g. did:web) so that historical re-verification depends only on event-carried evidence, not on online resolution of the authority's current DID document. Receivers MUST verify proofs[] with this snapshot's public key. A ak.device.authorize issued by a no-history-resolution-method authority that omits this snapshot (or authority_controller_proof) MUST be rejected with reason device_enrollment_authority_snapshot_missing. See zh/identity/key-management.md §5.0.6 step4 and zh/identity/identity-did.md §3.2.",
-          "required": [
-            "method_id"
-          ],
-          "oneOf": [
-            {
-              "required": [
-                "public_key_multibase"
-              ]
-            },
-            {
-              "required": [
-                "public_key_jwk"
-              ]
-            }
-          ],
-          "properties": {
-            "method_id": {
-              "$ref": "#/$defs/non_empty_string",
-              "description": "Verification method id of the snapshotted key within the enrollment authority DID document at issuance time."
-            },
-            "public_key_multibase": {
-              "$ref": "#/$defs/non_empty_string",
-              "description": "Multibase-encoded public key of the snapshotted verification method. Exactly one of public_key_multibase / public_key_jwk MUST be present."
-            },
-            "public_key_jwk": {
-              "type": "object",
-              "minProperties": 1,
-              "description": "JWK form of the snapshotted verification method public key. Exactly one of public_key_multibase / public_key_jwk MUST be present."
-            },
-            "algorithm": {
-              "$ref": "#/$defs/non_empty_string",
-              "description": "Signature algorithm of the snapshotted verification method."
-            }
-          },
-          "additionalProperties": false
-        },
-        "authority_controller_proof": {
-          "type": "object",
-          "description": "Controller proof linking authority_verification_method_snapshot to the enrollment authority DID's controller set at issuance time, signed by the authority DID's then-current controller key over 'this verification method belongs to this DID and is authorized to sign device authorizations'. REQUIRED alongside authority_verification_method_snapshot when the enrollment authority DID has no history-resolution method. See zh/identity/key-management.md §5.0.6 step4.",
-          "required": [
-            "controller_method_id",
-            "signature",
-            "signed_at"
-          ],
-          "properties": {
-            "controller_method_id": {
-              "$ref": "#/$defs/non_empty_string",
-              "description": "Verification method id of the controller key (within the enrollment authority DID document) that produced this proof."
-            },
-            "signature": {
-              "$ref": "#/$defs/non_empty_string",
-              "description": "Controller signature binding the snapshotted verification method to the authority DID and its device-authorization-signing authority."
-            },
-            "signed_at": {
-              "$ref": "#/$defs/timestamp",
-              "description": "Issuance time of the controller proof."
-            }
-          },
-          "additionalProperties": false
+          "description": "Present when this authorization was produced by the root-anchored recovery strand. It is included in the device possession transcript and omitted for genesis and ordinary accepted-device pairing."
         }
       },
       "additionalProperties": false
@@ -4308,7 +4044,7 @@
     },
     "device_reanchor_payload": {
       "type": "object",
-      "description": "Closed payload for the B-model DID-root recovery anchor. Fields are ordered identity, DID generation, accepted pre-fence basis, then the exact replacement authorization binding. The binding commits to the replacement authorize payload digest, never to that Event's id or envelope digest: the authorize envelope carries the re-anchor event_id in prev_refs, and every event_id is a function of its own signed content, so an id or envelope binding would make the two Events preimages of each other. Generation projection fields are reducer-managed and MUST NOT be added here.",
+      "description": "Closed payload for the identity-root recovery anchor. Fields are ordered identity, DID generation, accepted pre-fence basis, then the exact replacement authorization binding. The binding commits to the replacement authorize payload digest, never to that Event's id or envelope digest: the authorize envelope carries the re-anchor event_id in prev_refs, and every event_id is a function of its own signed content, so an id or envelope binding would make the two Events preimages of each other. Generation projection fields are reducer-managed and MUST NOT be added here.",
       "required": [
         "principal_id",
         "did_version_id",
@@ -7240,7 +6976,7 @@
         },
         "claim_ref": {
           "type": "object",
-          "description": "KeyPackage claim binding used by the receiver before decrypting the Welcome. claim_id, keypackage_ref, and keypackage_digest must match the top-level fields; capabilities_digest is sha256(JCS(claimed_capabilities)) from the single-use claim response. Exactly one trust binding is present: ssk_generation for cross-signing devices, device_authorize_event_id for service-attested enrollment-authority devices, or agent_key_authorize_event_id for an independently authorized Native Agent runtime.",
+          "description": "KeyPackage claim binding validated before Welcome decryption. Exactly one trust binding is present: device_authorize_event_id for a PCR-authorized device or agent_key_authorize_event_id for an independently authorized Native Agent runtime.",
           "required": [
             "claim_id",
             "keypackage_ref",
@@ -7250,39 +6986,11 @@
           "oneOf": [
             {
               "required": [
-                "ssk_generation"
-              ],
-              "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "device_authorize_event_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "agent_key_authorize_event_id"
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "required": [
                 "device_authorize_event_id"
               ],
               "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "ssk_generation"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "agent_key_authorize_event_id"
-                    ]
-                  }
+                "required": [
+                  "agent_key_authorize_event_id"
                 ]
               }
             },
@@ -7291,17 +6999,8 @@
                 "agent_key_authorize_event_id"
               ],
               "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "ssk_generation"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "device_authorize_event_id"
-                    ]
-                  }
+                "required": [
+                  "device_authorize_event_id"
                 ]
               }
             }
@@ -7319,10 +7018,6 @@
             "capabilities_digest": {
               "$ref": "#/$defs/hash"
             },
-            "ssk_generation": {
-              "type": "integer",
-              "minimum": 1
-            },
             "device_authorize_event_id": {
               "$ref": "#/$defs/non_empty_string"
             },
@@ -7335,7 +7030,7 @@
         },
         "claim_envelope": {
           "type": "object",
-          "description": "Detached requester signature binding the claimed KeyPackage to this Welcome, Realm, claim nonce, and Welcome digest before decrypting the Welcome. Exactly one requester signing binding is present: ssk_generation for requester SSK signatures, or requester_device_id for service-attested requester device signatures.",
+          "description": "Detached requester-device signature binding the claimed KeyPackage to this Welcome, Realm, claim nonce, and Welcome digest before decrypting the Welcome.",
           "required": [
             "keypackage_ref",
             "keypackage_digest",
@@ -7345,29 +7040,8 @@
             "nonce",
             "welcome_digest",
             "created_at",
-            "signature"
-          ],
-          "oneOf": [
-            {
-              "required": [
-                "ssk_generation"
-              ],
-              "not": {
-                "required": [
-                  "requester_device_id"
-                ]
-              }
-            },
-            {
-              "required": [
-                "requester_device_id"
-              ],
-              "not": {
-                "required": [
-                  "ssk_generation"
-                ]
-              }
-            }
+            "signature",
+            "requester_device_id"
           ],
           "properties": {
             "keypackage_ref": {
@@ -7384,10 +7058,6 @@
             },
             "requester_did": {
               "$ref": "#/$defs/did"
-            },
-            "ssk_generation": {
-              "type": "integer",
-              "minimum": 1
             },
             "requester_device_id": {
               "$ref": "#/$defs/device_id"

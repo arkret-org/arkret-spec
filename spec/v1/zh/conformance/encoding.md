@@ -451,7 +451,7 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned`、`actor
 需要这类承诺时，只有两条合法承载：
 
 1. **对方的 payload digest**——payload 先于两条信封成型，依赖方向因此单向。这是同一 unit 内
-   互相承诺的标准写法，见 [`../identity/key-management.md` §5.0.7](../identity/key-management.md)
+   互相承诺的标准写法，见 [`../identity/key-management.md` §5.0.3](../identity/key-management.md)
    的 `replacement_authorize_payload_digest`；
 2. **preimage 之外的结构**——`proofs`、receipt、attestation 等在两条 Event 都成型之后由签发方
    计算的对象，可以自由承诺 `event_id` 与信封 digest（`proof.event_digest` 即如此）。
@@ -481,7 +481,7 @@ Arkret 的 `detached_jws` proof wrapper **不得重复携带算法字段**。算
 
 | Algo（`canonical_id`） | `jose_algorithm` | `raw_signature_algorithm` | `http_message_signature_algorithm` | 允许的 `proof_kinds` | v1 角色 | 抗量子 / future-ready 评估 |
 | --- | --- | --- | --- | --- | --- | --- |
-| `Ed25519` | `Ed25519`（JWS, crv=Ed25519） | `Ed25519` | `ed25519` | `detached_jws`, `raw_detached_signature` | **v1 default-MUST**；所有 receiver MUST 支持。Event proof、receipt proof、device cross-signing binding 等核心签名默认使用。 | 不抗量子(Shor 可破)；通过 `ak.profile.signature.pqc.v1` 迁移到后量子 suite。 |
+| `Ed25519` | `Ed25519`（JWS, crv=Ed25519） | `Ed25519` | `ed25519` | `detached_jws`, `raw_detached_signature` | **v1 default-MUST**；所有 receiver MUST 支持。Event proof、receipt proof、device possession proof 等核心签名默认使用。 | 不抗量子(Shor 可破)；通过 `ak.profile.signature.pqc.v1` 迁移到后量子 suite。 |
 | `ECDSA-P256-SHA256` | `ES256`（JWS, P-256 + SHA-256） | `null` | `ecdsa-p256-sha256` | `detached_jws` | v1 optional；声明 `ak.profile.signature.ecdsa_p256.v1` 的实现 MUST 支持。用于需要与 WebAuthn / FIDO2 / 既有 PKI 互通的部署。 | 不抗量子(Shor 可破)；选择仅出于生态互通。 |
 | `ML-DSA-65` | `ML-DSA-65`（RFC 9964；JWK `kty=AKP`、`alg=ML-DSA-65`、`pub` 必填） | `ML-DSA-65` | `null` | `detached_jws`, `raw_detached_signature` | v1 profile-gated；声明 `ak.profile.signature.pqc.v1` 的实现 MUST 支持。JWK 私钥只允许 RFC 9964 的 32-byte seed `priv`，公共 JWK 不得含 `priv`。 | 抗量子（NIST FIPS 204）；JOSE / COSE 映射以 RFC 9964 为准。 |
 

@@ -26,7 +26,10 @@
     "outcome",
     "started_at",
     "completed_at",
-    "auth_data"
+    "auth_data",
+    "reanchor_event_id",
+    "reanchor_batch_receipt_id",
+    "did_entry_ref"
   ],
   "properties": {
     "schema": {
@@ -73,53 +76,25 @@
       "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "identity_model": {
-      "type": "string",
-      "enum": [
-        "cross_signing",
-        "enrollment_authority"
-      ]
+      "const": "root_anchored"
     },
     "previous_model_generation_ref": {
-      "oneOf": [
-        {
-          "type": "integer",
-          "minimum": 1
-        },
-        {
-          "type": "string",
-          "pattern": "^[1-9][0-9]*-[^\\s]+$"
-        }
-      ],
-      "description": "Server-snapshotted generation at recovery-session creation: accepted SSK generation for cross_signing or pre-reanchor DID versionId for enrollment_authority."
+      "type": "string",
+      "pattern": "^[1-9][0-9]*-[^\\s]+$",
+      "description": "Identity-root DID versionId snapshotted at recovery-session creation."
     },
     "result_model_generation_ref": {
-      "oneOf": [
-        {
-          "type": "integer",
-          "minimum": 1
-        },
-        {
-          "type": "string",
-          "pattern": "^[1-9][0-9]*-[^\\s]+$"
-        }
-      ],
-      "description": "Accepted generation after completion. Equals previous_model_generation_ref for an A-model fresh-device recovery without reset; equals the re-anchor did_version_id for B-model recovery."
+      "type": "string",
+      "pattern": "^[1-9][0-9]*-[^\\s]+$",
+      "description": "Accepted re-anchor DID versionId after completion."
     },
     "authorization_event_id": {
       "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-    },
-    "device_list_update_event_id": {
-      "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "reanchor_event_id": {
       "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-    },
-    "authority_ticket_id": {
-      "type": "string",
-      "pattern": "^ak:recovery_authority_ticket:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "did_entry_ref": {
       "type": "string",
@@ -394,6 +369,21 @@
               "contains": {
                 "const": "completed_at"
               }
+            },
+            {
+              "contains": {
+                "const": "reanchor_event_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "reanchor_batch_receipt_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "did_entry_ref"
+              }
             }
           ]
         }
@@ -514,117 +504,6 @@
               }
             }
           }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "identity_model": {
-            "const": "cross_signing"
-          }
-        },
-        "required": [
-          "identity_model"
-        ]
-      },
-      "then": {
-        "required": [
-          "device_list_update_event_id"
-        ],
-        "properties": {
-          "previous_model_generation_ref": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "result_model_generation_ref": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "contains": {
-                  "const": "device_list_update_event_id"
-                }
-              }
-            }
-          }
-        },
-        "not": {
-          "anyOf": [
-            {
-              "required": [
-                "reanchor_event_id"
-              ]
-            },
-            {
-              "required": [
-                "reanchor_batch_receipt_id"
-              ]
-            },
-            {
-              "required": [
-                "authority_ticket_id"
-              ]
-            },
-            {
-              "required": [
-                "did_entry_ref"
-              ]
-            }
-          ]
-        }
-      },
-      "else": {
-        "required": [
-          "reanchor_event_id",
-          "reanchor_batch_receipt_id",
-          "authority_ticket_id",
-          "did_entry_ref"
-        ],
-        "properties": {
-          "previous_model_generation_ref": {
-            "type": "string",
-            "pattern": "^[1-9][0-9]*-[^\\s]+$"
-          },
-          "result_model_generation_ref": {
-            "type": "string",
-            "pattern": "^[1-9][0-9]*-[^\\s]+$"
-          },
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "reanchor_event_id"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "const": "reanchor_batch_receipt_id"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "const": "authority_ticket_id"
-                    }
-                  },
-                  {
-                    "contains": {
-                      "const": "did_entry_ref"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        },
-        "not": {
-          "required": [
-            "device_list_update_event_id"
-          ]
         }
       }
     }

@@ -45,12 +45,8 @@
       "description": "base64url(no padding) encoding of 256 bits from a CSPRNG. The value is single-use and bound to one recovery_session_id."
     },
     "identity_model": {
-      "type": "string",
-      "enum": [
-        "cross_signing",
-        "enrollment_authority"
-      ],
-      "description": "A-model cross-signing or B-model external enrollment authority. Server derives and verifies this value from accepted DID/control state."
+      "const": "root_anchored",
+      "description": "The sole v1 recovery identity model. Identity root history anchors the re-anchor Event; device authorization state remains in the PCR."
     },
     "did_version_id": {
       "type": "string",
@@ -114,80 +110,40 @@
       "additionalProperties": false
     },
     "publication_authority_context": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "identity_model",
-            "basis_ref",
-            "scope_ref",
-            "authority_set_ref",
-            "authority_set_policy",
-            "allowed_actions"
-          ],
-          "properties": {
-            "identity_model": {
-              "const": "cross_signing"
-            },
-            "basis_ref": {
-              "$ref": "./offline-publication.schema.json#/$defs/authorization_lease/properties/basis_ref"
-            },
-            "scope_ref": {
-              "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
-            },
-            "authority_set_ref": {
-              "$ref": "./offline-publication.schema.json#/$defs/authority_set_ref"
-            },
-            "authority_set_policy": {
-              "$ref": "./offline-publication.schema.json#/$defs/authority_set_policy"
-            },
-            "allowed_actions": {
-              "type": "array",
-              "const": [
-                "ak.device.authorize",
-                "ak.device.list_update"
-              ]
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "identity_model",
-            "basis_ref",
-            "scope_ref",
-            "authority_set_ref",
-            "authority_set_policy",
-            "allowed_actions"
-          ],
-          "properties": {
-            "identity_model": {
-              "const": "enrollment_authority"
-            },
-            "basis_ref": {
-              "$ref": "./offline-publication.schema.json#/$defs/authorization_lease/properties/basis_ref"
-            },
-            "scope_ref": {
-              "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
-            },
-            "authority_set_ref": {
-              "$ref": "./offline-publication.schema.json#/$defs/authority_set_ref"
-            },
-            "authority_set_policy": {
-              "$ref": "./offline-publication.schema.json#/$defs/authority_set_policy"
-            },
-            "allowed_actions": {
-              "type": "array",
-              "const": [
-                "ak.device.reanchor"
-              ]
-            }
-          },
-          "additionalProperties": false
-        }
+      "type": "object",
+      "description": "Server-snapshotted accepted authority policy for publishing the root-anchored re-anchor Event. It never grants the replacement device a generic lease issuer role.",
+      "required": [
+        "identity_model",
+        "basis_ref",
+        "scope_ref",
+        "authority_set_ref",
+        "authority_set_policy",
+        "allowed_actions"
       ],
-      "description": "Server-snapshotted accepted authority policy for locally authoring only the model-specific recovery publication leases. Issuers and quorum live only in authority_set_policy; the context does not predict a single future proof signer. It never grants the replacement device a generic lease issuer role."
+      "properties": {
+        "identity_model": {
+          "const": "root_anchored"
+        },
+        "basis_ref": {
+          "$ref": "./offline-publication.schema.json#/$defs/authorization_lease/properties/basis_ref"
+        },
+        "scope_ref": {
+          "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
+        },
+        "authority_set_ref": {
+          "$ref": "./offline-publication.schema.json#/$defs/authority_set_ref"
+        },
+        "authority_set_policy": {
+          "$ref": "./offline-publication.schema.json#/$defs/authority_set_policy"
+        },
+        "allowed_actions": {
+          "type": "array",
+          "const": [
+            "ak.device.reanchor"
+          ]
+        }
+      },
+      "additionalProperties": false
     },
     "recovery_session_state": {
       "type": "object",
@@ -206,7 +162,11 @@
         "state",
         "expires_at",
         "created_at",
-        "updated_at"
+        "updated_at",
+        "current_device_generation_ref",
+        "device_generation_status",
+        "registry_head",
+        "accepted_seal_frontier"
       ],
       "properties": {
         "schema": {
@@ -235,14 +195,9 @@
         "identity_model": {
           "$ref": "#/$defs/identity_model"
         },
-        "ssk_generation": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Accepted cross-signing generation snapshotted when the session is created. Reducers MUST reject completion if the current accepted generation no longer equals this value."
-        },
         "current_device_generation_ref": {
           "$ref": "#/$defs/did_version_id",
-          "description": "B-model reducer-managed generation snapshotted at session creation."
+          "description": "Reducer-managed identity-root device generation snapshotted at session creation."
         },
         "device_generation_status": {
           "type": "string",
@@ -253,7 +208,7 @@
         },
         "registry_head": {
           "$ref": "#/$defs/hash",
-          "description": "Digest of the B-model accepted identity-registry head snapshot."
+          "description": "Digest of the accepted identity-registry head snapshot."
         },
         "accepted_seal_frontier": {
           "$ref": "./event-payload.schema.json#/$defs/device_reanchor_payload/properties/pre_fence_basis"
@@ -301,60 +256,6 @@
         }
       },
       "allOf": [
-        {
-          "if": {
-            "properties": {
-              "identity_model": {
-                "const": "cross_signing"
-              }
-            },
-            "required": [
-              "identity_model"
-            ]
-          },
-          "then": {
-            "required": [
-              "ssk_generation"
-            ],
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "current_device_generation_ref"
-                  ]
-                },
-                {
-                  "required": [
-                    "device_generation_status"
-                  ]
-                },
-                {
-                  "required": [
-                    "registry_head"
-                  ]
-                },
-                {
-                  "required": [
-                    "accepted_seal_frontier"
-                  ]
-                }
-              ]
-            }
-          },
-          "else": {
-            "required": [
-              "current_device_generation_ref",
-              "device_generation_status",
-              "registry_head",
-              "accepted_seal_frontier"
-            ],
-            "not": {
-              "required": [
-                "ssk_generation"
-              ]
-            }
-          }
-        },
         {
           "if": {
             "properties": {
@@ -765,16 +666,8 @@
           "$ref": "#/$defs/identity_model"
         },
         "model_generation_ref": {
-          "oneOf": [
-            {
-              "type": "integer",
-              "minimum": 1
-            },
-            {
-              "$ref": "#/$defs/did_version_id"
-            }
-          ],
-          "description": "SSK generation for cross_signing; DID versionId for enrollment_authority."
+          "$ref": "#/$defs/did_version_id",
+          "description": "Accepted DID versionId that anchors the current device generation."
         },
         "publication_authority_context_digest": {
           "$ref": "#/$defs/hash"
@@ -842,15 +735,8 @@
           "$ref": "#/$defs/identity_model"
         },
         "model_generation_ref": {
-          "oneOf": [
-            {
-              "type": "integer",
-              "minimum": 1
-            },
-            {
-              "$ref": "#/$defs/did_version_id"
-            }
-          ]
+          "$ref": "#/$defs/did_version_id",
+          "description": "Accepted DID versionId that anchors the current device generation."
         },
         "publication_authority_context_digest": {
           "$ref": "#/$defs/hash"

@@ -1,0 +1,225 @@
+{
+  "suite": "ak.fixture.pcr_genesis.v1",
+  "version": 1,
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.identity.pcr_genesis.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.identity.pcr_genesis.v1"
+  ],
+  "digest_domains": {
+    "identity_creation_control_proof": "ak.identity-creation-control-proof-v1",
+    "device_possession": "ak.device-authorize-possession-proof-v1",
+    "event_receipt": "ak.receipt-proof-v1"
+  },
+  "founding_authorize": {
+    "payload": {
+      "principal_id": "did:webvh:z6mkfixture:alice.example",
+      "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
+      "device_public_key": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+      "hpke_key": "z6LSfixtureFoundingHpkeKey",
+      "algorithms": [
+        "ak.hpke_x25519_aead_chacha20poly1305.v1",
+        "ak.mls.v1"
+      ],
+      "device_key_algorithm": "Ed25519",
+      "authorized_by": "did:webvh:z6mkfixture:alice.example",
+      "authorization_binding_kind": "root_anchored",
+      "not_before": "2026-08-09T00:00:00.000Z",
+      "device_signature": "fixture-signature"
+    },
+    "canonical_payload_json": "{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"authorization_binding_kind\":\"root_anchored\",\"authorized_by\":\"did:webvh:z6mkfixture:alice.example\",\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_public_key\":\"did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1\",\"device_signature\":\"fixture-signature\",\"hpke_key\":\"z6LSfixtureFoundingHpkeKey\",\"not_before\":\"2026-08-09T00:00:00.000Z\",\"principal_id\":\"did:webvh:z6mkfixture:alice.example\"}",
+    "payload_digest": "sha256:ae3a0c670ad963bf20b883a37ea7189ea058b4a58a969a466356cefed570a1dc"
+  },
+  "device_possession": {
+    "canonical_object": {
+      "principal_id": "did:webvh:z6mkfixture:alice.example",
+      "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
+      "device_public_key": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+      "hpke_key": "z6LSfixtureFoundingHpkeKey",
+      "algorithms": [
+        "ak.hpke_x25519_aead_chacha20poly1305.v1",
+        "ak.mls.v1"
+      ],
+      "device_key_algorithm": "Ed25519",
+      "authorized_by": "did:webvh:z6mkfixture:alice.example",
+      "not_before": "2026-08-09T00:00:00.000Z",
+      "expires_at": null,
+      "scopes": null,
+      "recovery_session_id": null,
+      "authorization_binding_kind": "root_anchored"
+    },
+    "canonical_json": "{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"authorization_binding_kind\":\"root_anchored\",\"authorized_by\":\"did:webvh:z6mkfixture:alice.example\",\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_public_key\":\"did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1\",\"expires_at\":null,\"hpke_key\":\"z6LSfixtureFoundingHpkeKey\",\"not_before\":\"2026-08-09T00:00:00.000Z\",\"principal_id\":\"did:webvh:z6mkfixture:alice.example\",\"recovery_session_id\":null,\"scopes\":null}",
+    "canonical_json_sha256": "sha256:55173dcc93ae11cc34b80cb272979d2f89c74e8ae19b8c2caf33a5588e521757"
+  },
+  "founding_device_descriptor": {
+    "descriptor_version": 1,
+    "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
+    "device_public_key": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+    "device_key_digest": "sha256:3fa973b9a2ef96b14861c224438f604e3bb0a8cb872772aa6d3b3d80f5710c0b",
+    "device_key_algorithm": "Ed25519",
+    "device_key_purpose": "event_signing_and_mls_identity",
+    "hpke_key": "z6LSfixtureFoundingHpkeKey",
+    "hpke_key_digest": "sha256:9e086dd9b7db70b10713bfa6ff80d0960d048d52ce6ad9140e980d7acffb51be",
+    "hpke_key_algorithm": "X25519",
+    "algorithms": [
+      "ak.hpke_x25519_aead_chacha20poly1305.v1",
+      "ak.mls.v1"
+    ],
+    "founding_authorize_payload_digest": "sha256:ae3a0c670ad963bf20b883a37ea7189ea058b4a58a969a466356cefed570a1dc"
+  },
+  "unit_contract": {
+    "ordered_kinds": [
+      "ak.realm.create",
+      "ak.device.authorize"
+    ],
+    "authorize_prev_refs": [
+      "create.event_id"
+    ],
+    "root_commitment_input": "authorize.payload",
+    "forbidden_root_commitment_inputs": [
+      "authorize.event_id",
+      "authorize.event_digest",
+      "authorize.envelope_digest"
+    ],
+    "atomic": true,
+    "create_once": true
+  },
+  "mutation_cases": [
+    {
+      "field": "founding_device_descriptor.device_id",
+      "expected": "reject"
+    },
+    {
+      "field": "founding_device_descriptor.device_public_key",
+      "expected": "reject"
+    },
+    {
+      "field": "founding_device_descriptor.hpke_key",
+      "expected": "reject"
+    },
+    {
+      "field": "founding_device_descriptor.algorithms",
+      "expected": "reject"
+    },
+    {
+      "field": "founding_device_descriptor.founding_authorize_payload_digest",
+      "expected": "reject"
+    },
+    {
+      "field": "identity_creation_control_proof.lease_fence",
+      "expected": "reject"
+    },
+    {
+      "field": "identity_creation_control_proof.dpop_jkt",
+      "expected": "reject"
+    },
+    {
+      "field": "genesis_unit.events.order",
+      "expected": "reject"
+    },
+    {
+      "field": "genesis_unit.events[1].prev_refs",
+      "expected": "reject"
+    },
+    {
+      "field": "genesis_unit.partial_submission",
+      "expected": "reject_zero_writes"
+    },
+    {
+      "field": "identity_creation_control_proof.initial_session_request_digest",
+      "expected": "reject"
+    },
+    {
+      "field": "initial_session.session_public_key",
+      "expected": "reject"
+    },
+    {
+      "field": "initial_session.requested_scope",
+      "expected": "reject"
+    },
+    {
+      "field": "genesis_unit.events[1].proof.verification_method",
+      "mutation": "did:key",
+      "expected": "reject"
+    },
+    {
+      "field": "identity_creation_control_proof.realm_create_event_id",
+      "mutation": "add",
+      "expected": "reject"
+    },
+    {
+      "field": "identity_creation_control_proof.founding_authorize_envelope_digest",
+      "mutation": "add",
+      "expected": "reject"
+    }
+  ],
+  "initial_session_request": {
+    "value": {
+      "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
+      "session_public_key": "{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\"}",
+      "audience": "did:webvh:z6mkfixture:principal.example",
+      "requested_scope": [
+        "ak.self.account.read.describe",
+        "ak.self.events.read.scan"
+      ]
+    },
+    "canonical_json": "{\"audience\":\"did:webvh:z6mkfixture:principal.example\",\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"requested_scope\":[\"ak.self.account.read.describe\",\"ak.self.events.read.scan\"],\"session_public_key\":\"{\\\"crv\\\":\\\"Ed25519\\\",\\\"kty\\\":\\\"OKP\\\",\\\"x\\\":\\\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\\\"}\"}",
+    "digest": "sha256:3451eb81f17528ac108212eef20e8052afc053ab78e97d1b57c41c230e95e195",
+    "rfc7638_jkt": "RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI",
+    "constraints": [
+      "rfc7638(session_public_key) == identity_creation_control_proof.dpop_jkt",
+      "device_id == founding_device_descriptor.device_id",
+      "audience and requested_scope are within the handoff ceiling"
+    ]
+  },
+  "identity_creation_control_transcript": {
+    "context": "ak.identity-creation-control-proof-v1",
+    "signature_omitted_object": {
+      "proof_kind": "did_webvh_inception_update_key",
+      "challenge_id": "genesis-challenge-000001",
+      "challenge": "AAAAAAAAAAAAAAAAAAAAAA",
+      "purpose": "account_binding_and_pcr_genesis",
+      "principal_id": "did:webvh:z6mkfixture:alice.example",
+      "operation_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "pcr_realm_id": "ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8",
+      "realm_create_payload_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "founding_authorize_payload_digest": "sha256:ae3a0c670ad963bf20b883a37ea7189ea058b4a58a969a466356cefed570a1dc",
+      "initial_session_request_digest": "sha256:3451eb81f17528ac108212eef20e8052afc053ab78e97d1b57c41c230e95e195",
+      "genesis_unit_kinds": [
+        "ak.realm.create",
+        "ak.device.authorize"
+      ],
+      "identity_creation_lease_id": "genesis-lease-fence-0001",
+      "lease_fence": 1,
+      "dpop_jkt": "RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI",
+      "audience": "did:webvh:z6mkfixture:account.example",
+      "origin": "https://account.example",
+      "trust_domain": "fixture.example",
+      "issued_at": "2026-08-09T00:00:00.000Z",
+      "expires_at": "2026-08-09T00:05:00.000Z",
+      "verification_key_multibase": "z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1"
+    },
+    "canonical_json": "{\"audience\":\"did:webvh:z6mkfixture:account.example\",\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"challenge_id\":\"genesis-challenge-000001\",\"dpop_jkt\":\"RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI\",\"expires_at\":\"2026-08-09T00:05:00.000Z\",\"founding_authorize_payload_digest\":\"sha256:ae3a0c670ad963bf20b883a37ea7189ea058b4a58a969a466356cefed570a1dc\",\"genesis_unit_kinds\":[\"ak.realm.create\",\"ak.device.authorize\"],\"identity_creation_lease_id\":\"genesis-lease-fence-0001\",\"initial_session_request_digest\":\"sha256:3451eb81f17528ac108212eef20e8052afc053ab78e97d1b57c41c230e95e195\",\"issued_at\":\"2026-08-09T00:00:00.000Z\",\"lease_fence\":1,\"operation_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"origin\":\"https://account.example\",\"pcr_realm_id\":\"ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8\",\"principal_id\":\"did:webvh:z6mkfixture:alice.example\",\"proof_kind\":\"did_webvh_inception_update_key\",\"purpose\":\"account_binding_and_pcr_genesis\",\"realm_create_payload_digest\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"trust_domain\":\"fixture.example\",\"verification_key_multibase\":\"z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1\"}",
+    "canonical_json_sha256": "sha256:69a5d151a5560ece7eee4f893a082dbc8325586a6fed9ad6d2acb1f8fc224a05",
+    "forbidden_fields": [
+      "realm_create_event_id",
+      "founding_authorize_event_id",
+      "realm_create_envelope_digest",
+      "founding_authorize_envelope_digest"
+    ]
+  },
+  "founding_event_proof_binding": {
+    "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a0000-0000-7000-8000-000000000001",
+    "candidate_overlay_lookup": {
+      "method": "did:webvh:z6mkfixture:alice.example#ak:device:019a0000-0000-7000-8000-000000000001",
+      "public_key_source": "founding_authorize.payload.device_public_key"
+    },
+    "forbidden_verification_method_forms": [
+      "did:key candidate",
+      "pre-existing accepted-device directory entry",
+      "any fragment other than the complete device_id"
+    ]
+  }
+}

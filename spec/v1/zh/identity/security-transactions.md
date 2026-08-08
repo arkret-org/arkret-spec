@@ -92,224 +92,25 @@ attestation_digest` 的有序集合并签该 JCS projection。coordinator 必须
 携带 client attestation 必须拒绝。`get` 是 response loss、restart 与
 跨设备续跑的权威进度查询，不得从短期 HTTP idempotency cache 合成。
 
-只有 `authorize_recovery_device` 可以且必须携带 `participant_request`，其值必须是完整 typed
-`AuthorizeRecoveryDeviceRequest`。客户端必须在 coordinator 签发并持久化 authority ticket 后，
-以 recovery holder key 为 Account Authority 的精确标准 endpoint 生成 DPoP；coordinator 不得持有
-holder private key，也不得重签或改写该 request。coordinator 必须持久化完整 continue canonical
-bytes，并向 `account_authority_id` DID service 解析出的标准 gate endpoint byte-identical 转发；
-response lost 或 restart 后只重放相同 request。其它 step 携带 `participant_request` 必须拒绝。
-
 旧 `recovery_session.command.complete` 不属于 v1。recovery session 只负责建立 verified 证据；
 完成投影只能由接受 terminal receipt 的 RecoveryTransaction coordinator 原子写入，不能存在绕过
 transaction binding、prepared plan 和 accepted-step ledger 的第二个公开完成入口。
 
 ## 2. RecoveryTransaction
 
-RecoveryTransaction 必须由 `identity_model` 判别为下面两个且仅两个 closed shape。
+RecoveryTransaction 只有 `identity_model="root_anchored"`。binding 固定 recovery session、replacement device、DID entry/version、re-anchor/authorize Event ids 与 terminal receipt；prepared plan 固定完整 method-native DID publication 与 ordered re-anchor unit。
 
-### 2.1 A 模型：`cross_signing`
-
-binding 必填：
-
-`identity_model`、`recovery_session_id`、`replacement_device_id`、`authorize_event_id`、
-`device_list_update_event_id`、`terminal_receipt_id`。
-
-prepared plan 必须保存 session snapshot/proof digest、previous/result SSK generation、
-包含固定 `ak.device.authorize` 与 `ak.device.list_update` 的完整
-`EventsSubmitBatchRequestBody` typed value及其 canonical bytes/digest、目标 Principal Server/
-audience；batch 中两项都必须是完整 `EventInitialSubmission`，不得使用裸 Event或
-`{event_id, kind}` stub。terminal receipt 只在设备观察 accepted outputs 后生成，不属于 prepared plan。
-batch Event ids必须逐项等于
-binding。
-
-A 模型 batch 中两份 high-risk `AuthorizationLease` 只能由 recovery session
-`publication_authority_context` 固定的 snapshot SSK verification method 签发；lease 的
-basis/scope/authority-set 必须逐字等于该 context，action 顺序分别为
-`ak.device.authorize`、`ak.device.list_update`。replacement device Event key、自报 key或普通
-缓存 lease均不得替代。context digest同时进入 recovery proof transcript与 session snapshot
-digest。
-
-唯一连续步骤是：
+步骤严格为：
 
 ```text
-submit_authorize_unit
-→ issue_terminal_receipt
+publish_did_entry -> submit_reanchor_unit -> issue_terminal_receipt
 ```
 
-`submit_authorize_unit` 是固定双 Event batch，不得拆成两个可生成新 Event id 的通用 submit。
+`publish_did_entry` 只提交预先持久化的 exact client-signed DID operation；`submit_reanchor_unit` 原样提交 root-signed `ak.device.reanchor` 与 replacement-device-signed `ak.device.authorize`。第二条 Event proof method 必须等于 `` `{principal_id}#{replacement_device_id}` ``，由 unit-local candidate overlay 映射到 authorize payload key。Coordinator 不持有 root/device private key，不生成、更改或代签 Event。
 
-### 2.2 B 模型：`enrollment_authority`
+Principal Server 必须验证 DID history/active root、recovery session/policy、payload digest单向承诺、Event predecessor、candidate possession、generation CAS 与 old-device fence，然后原子接受两条 Event并返回 `device_reanchor_unit` receipt。没有账号服务 authority ticket或 replacement authorize signer；transport service signature不构成内容 authority。
 
-binding 必填：
-
-`identity_model`、`recovery_session_id`、`replacement_device_id`、`authority_ticket_id`、
-`did_entry_ref`、`reanchor_event_id`、`authorize_event_id`、`terminal_receipt_id`。
-
-`authority_ticket_id` 必须在 create 时作为 UUIDv7 typed id 预留；ticket 的签名 bytes 只能在
-transaction durable 后由 `issue_authority_ticket` 产生。create 不得要求一个已经存在的 ticket
-digest，否则 ticket issuance 会落到 transaction 固定之前。
-
-prepared plan 必须保存 session snapshot/proof digest、显式 `account_authority_id`、
-从已验证 recovery session/grant 固定的 `recovery_holder_jkt` 与 Account Authority authorization
-preimage、replacement device possession proof、planned DID entry canonical bytes/
-digest/previous head/ref、完整 typed reanchor `EventInitialSubmission`、authority-produced
-authorize Event 的 closed `authorize_event_publication_intent`。reanchor submission 的
-high-risk lease只能由 recovery session `publication_authority_context` 固定的concrete policy
-中与已验证proof family同名、由`authorization_rule_id`精确选择的完整authorization rule按其
-threshold签发，且 action 必须为 `ak.device.reanchor`；
-coordinator不得在proof前
-把该集合降格成单个synthetic verification method。
-Account Authority 签名与 terminal receipt 都是 create 后的 accepted output，不属于 prepared
-material。
-
-`did_publication.registry_service_id` 必须固定执行 WebVH 写入的 registry service DID；
-`did_publication.registry_endpoint` 必须是
-`ak.root.identity.command.submit_did_operation` 的精确绝对 HTTPS endpoint，禁止 query、
-fragment 与 userinfo；它不是可再次拼接 path 的 registry base URL。coordinator 的最终发送 URL
-必须与该值逐字相等，禁止 redirect或运行时重新发现替换。accepted publish step 的
-`acceptor_id` 必须逐字等于 `registry_service_id`，不能写 URL origin或部署时另行选择的身份。
-
-authorization preimage 必须内嵌 `did_entry_preimage`，其 canonical JSON bytes/digest 必须与
-`prepared_plan.did_publication` 的 candidate entry byte-identical，且 digest 等于
-`did_entry_digest`。这是 Account Authority 在 entry 尚未发布时验证新 delegation 的必要证据，
-不是第二份可独立修改的 DID entry。
-
-ticket issue request 不得嵌入 create 的 prepared plan，因为它绑定 create `request_digest`；
-coordinator 必须在 transaction durable 后从已保存的 `transaction_id + request_digest +
-prepared_plan_digest + authority_ticket_id + expected_next_step` 确定性构造它。
-
-唯一连续步骤是：
-
-```text
-issue_authority_ticket
-→ authorize_recovery_device
-→ publish_did_entry
-→ submit_reanchor_unit
-→ issue_terminal_receipt
-```
-
-先取得 byte-stable authority Event，再发布不可回滚的 WebVH entry。WebVH entry 已接受而
-re-anchor response 丢失时，transaction 保持 `running` 并从相同 reserved ids、prepared bytes
-和 authority accepted output续跑，不得创建第二 entry。
-
-`submit_reanchor_unit` 原子覆盖固定 `reanchor_event_id` 与 authority output 中的
-`authorize_event_id`，不得拆成两个可独立重试并产生不同 Event id 的通用步骤。
-其唯一 batch 顺序为 `[reanchor_event_submission, authorize_event_submission]`；后者只能由
-Account Authority首次 outcome中的 signed Event、authority-signed lease与CBA bundles组合。
-outcome 的每个 publication 字段必须逐字匹配prepared
-`authorize_event_publication_intent`；coordinator不得改写 Event、lease或CBA bundles，也不得
-回退到客户端预先注入的 authorize lease。
-
-### 2.3 Terminal attestation
-
-terminal receipt 必须签名绑定 `transaction_id`、该 transaction 的稳定 `request_digest`、
-`prepared_plan_digest`，以及 A/B binding 的全部 artifact refs，并证明设备对 accepted outputs
-和 result 的签名声明。服务端可以验证签名、引用、digest 与 release state，不能声称观察到设备
-完成解密或 MLS secret 导入。
-
-设备必须在观察到 accepted refs 后签名，因此 coordinator 完成全部服务端步骤但客户端离线时，
-resource 必须进入 `awaiting_device_attestation`，`next_required_step=issue_terminal_receipt`。
-它不得预签 receipt 或把该状态声明为 completed。
-
-coordinator 接受 terminal receipt 时，必须在写入最后一条 accepted step 和
-`state=completed` 的同一 durable transaction 中签发
-`ak.schema.recovery_completion_attestation.v1`。该 Ed25519 attestation 必须按 schema 登记的
-14 个有序字段投影后 JCS 签名，绑定 transaction/request/plan、principal/coordinator、
-recovery session、terminal receipt id/digest、replacement device、accepted authorization
-Event id/digest、result generation 与 `completed_at`。completed recovery transaction 的
-`terminal_result` 必须内嵌它；其它 kind/state 携带它必须拒绝。设备签名 receipt 证明设备声明，
-coordinator attestation 证明服务端 durable completion，两者不得互相替代。
-
-### 2.4 Recovery authority 与 grant promotion 操作
-
-| operation | HTTP | 合同 |
-| --- | --- | --- |
-| `ak.self.recovery_authority_ticket.command.issue` | `POST /_arkret/self/recovery-authority-tickets` | 只为当前 durable transaction 的下一步签发 ticket |
-| `ak.gate.account.command.authorize_recovery_device` | `POST /_arkret/gate/account/recovery-device-authorizations` | 消费 ticket，原子、幂等返回固定 authority-signed Event及其 authority-signed publication evidence |
-| `ak.gate.account.command.promote_recovery_session_grant` | `POST /_arkret/gate/account/recovery-session-grants/promote` | 以 completed transaction/receipt 与 DPoP holder proof 轮换受限 grant |
-
-`authorization_preimage.account_authority_id` 与 `authorization_preimage.recovery_holder_jkt`
-必须在 create 前固定，并由 `prepared_plan_digest` 覆盖；前者必须是目标 Account Authority
-service DID，后者必须来自 Principal Server 已验证 recovery session/grant 的 `cnf.jkt`。
-ticket 必须逐字复制这两个 typed 字段，不得从 generic Event JSON、部署配置、调用方自报 JKT
-或事后 delegation 查询推导。
-
-`authorize_recovery_device` 与 `promote_recovery_session_grant` 的
-`canonical_request_digest` 统一等于
-`SHA-256(JCS(request object with canonical_request_digest and
-holder_proof.proof_jwt omitted))`。`holder_proof.dpop_jkt` 与所有业务字段仍在摘要投影内；
-只排除摘要字段本身与将签署该摘要的 JWT，避免签名自引用。
-
-`holder_proof.proof_jwt` 必须是 RFC 9449 Ed25519 DPoP proof：protected header 必须为
-`typ=dpop+jwt`、`alg=Ed25519` 并携带 public `jwk`；claims 必须携带 fresh `iat`、single-use
-`jti`、精确 `htm=POST`、精确到无 query/fragment endpoint 的 `htu`，且 `nonce` 必须逐字等于
-`canonical_request_digest`。header JWK 的 RFC 7638 thumbprint 必须等于
-`holder_proof.dpop_jkt`。authorization 时该 JKT 还必须等于 ticket/preimage 的
-`recovery_holder_jkt`；promotion 时必须等于 durable old grant 的 `cnf.jkt`。只比较请求体中
-两个调用方自报字段不构成验证。
-
-Account Authority 必须先查 durable exact-request outcome：已经 accepted 的 byte-identical
-request 即使复用了同一 DPoP `jti` 或 proof 已超过 freshness window，也返回首次 canonical
-outcome；不存在 accepted outcome 时才验证 proof freshness并原子消费 JTI。相同幂等 identity
-但 bytes 不同始终返回 `duplicate_conflict`。
-
-ticket 必须绑定 transaction/request/plan、principal/session/policy/domain、两端 service audience、
-recovery holder JKT、replacement device、generation、DID head/entry、Event ids、
-authorization preimage（含 authorize Event publication intent）与 possession
-proof digest。Account Authority 必须按 `(ticket_id, transaction_id, request_digest)` 一次性消费；
-同 bytes replay 返回 byte-identical outcome，不同 bytes 返回 `duplicate_conflict`。
-
-v1 ticket 必须满足 `0 < expires_at - issued_at <= 300 seconds`。`auth_data.signed_fields` 必须
-逐字等于 schema 登记的 25 个顶层字段，不能添加实现私有字段；签名输入是只投影这 25 个键后
-的 `JCS` object bytes，不包含 `auth_data`，因此不形成 signature 自引用。`Ed25519` 直接对该
-projection 签名；其它 schema-admitted service signature algorithm 也必须签同一 projection。
-
-`replacement_device_possession_proof` 不是第二套 transaction-specific possession transcript。
-它必须逐字等于 fixed `authorize_event_preimage.payload.device_signature`，其签名输入唯一复用
-[`device-lifecycle.md` §5.2](../crypto-media/device-lifecycle.md) 的
-`ak.device-authorize-possession-v1`。ticket 对 closed preimage/proof digest 的签名负责把这份
-设备持有证明绑定到 transaction、generation、frontier 与 planned Event ids。
-
-Account Authority 在签 authorize Event前必须从 proof-free Event preimage重算 Event id、
-preimage digest、actor、replacement device、signed scope与action，并逐字段匹配
-`authorize_event_publication_intent`。首次 durable outcome必须在保存 authority Event的同一事务
-保存其 `AuthorizationLease` 与CBA bundles；lease 的actor/device/scope/action/risk/basis/
-authority-set与`authorization_rule_id="account_authority"`必须等于intent，issuer
-verification method必须属于当前 accepted enrollment/
-recovery authority set。exact request replay返回同一 Event、lease、bundles、receipt id与时间。
-
-`authorize_event_preimage` 必须是 canonical JSON 编码、尚未带 Account Authority Event proof 的
-完整 `ak.schema.event.v1` Event；reserved event id、scope、actor sequence、HLC、time、prev refs、
-payload、`executed_by` 与 `authorization_ref` 都在 persisted canonical bytes 中固定。
-Account Authority 必须解析并逐项验证，只能追加自己的 Event proof；不得重建 Event、生成新 id/
-time/HLC 或改写任何 preimage 字段。
-
-Account Authority 验证 delegation 时不得只查询已发布的 entry N-1，也不得把 Principal Server
-对 `did_entry_digest` 的签名当作 DID controller 授权。它必须从可信 resolver 取得 entry N-1 的
-完整已验证 WebVH history/head，在内存中追加 `did_entry_preimage` 后运行共享 SDK 的完整
-candidate-chain/proof verifier，再从验证后的 candidate DID document state 精确解析
-`authorization_ref`：delegation 必须覆盖 `ak.device.authorize`，目标 authority DID 必须等于
-当前 service，且 Event 的 `executed_by` / `authorization_ref` /
-`enrollment_authority_binding` 必须逐字匹配。该验证不得发布 candidate entry。
-
-旧 recovery grant 必须是 `credential_class=recovery_restricted`，携带与 completion
-attestation 同一 `recovery_session_id` 的 typed `recovery_binding`，且 scope 只能来自 registry
-登记的闭合 recovery bootstrap 权限集。它不得原地扩大 scope。promotion request 必须同时携带
-typed terminal receipt 和 coordinator-signed completion attestation；Account Authority 必须从
-old grant audience 定位可信 coordinator DID verification method，验签并要求 receipt digest、
-transaction、principal、session、replacement device、authorization Event 与 generation
-逐字闭合。不得盲信客户端提供的 terminal resource，也不得引入实现私有 callback。
-
-promotion 必须签发新的 `credential_class=standard` grant，保持 subject、audience 与
-`cnf.jkt`，并写入
-`device_binding {device_id, authorization_event_id, model_generation_ref}`。普通 scope 必须按
-当前已授权设备策略重新计算，不能继承 recovery-only scope；Principal Server 内省及每次
-self-path admission 都必须核对该 binding 仍是 current active generation。
-
-Account Authority 必须以 `(transaction_id, old_grant_id)` 保存 durable promotion outcome。
-exact request lookup 先于 DPoP freshness/JTI；不存在 outcome 时，JTI 消费、old grant CAS、
-successor insert 与首次 canonical outcome insert 必须在同一数据库事务。相同 bytes（包括
-response loss 后复用 proof/JTI）返回首次 successor，不同 bytes 返回 `duplicate_conflict`。
+`issue_terminal_receipt` 的 client attestation 必须覆盖完整 recovery receipt及其 accepted re-anchor receipt。DID publication 已成功而 unit 暂时失败时，resource 保持可 exact resume，不得回滚 DID history或换用不同 plan。
 
 ## 3. SecurityRotationTransaction
 

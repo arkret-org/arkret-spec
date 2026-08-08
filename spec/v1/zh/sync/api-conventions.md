@@ -175,8 +175,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
   "auth_metadata": {
     "account_authority": {
       "origin": "https://account.example",
-      "gate_account_base": "https://account.example/_arkret/gate/account",
-      "enrollment_authority_did": "did:key:z6MkenrollmentAuthority"
+      "gate_account_base": "https://account.example/_arkret/gate/account"
     },
     "methods": [
       {
@@ -203,7 +202,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 - 登录成功后，Account Authority MUST 产生可验证的 `SessionGrantOutcome`，把 OAuth/OIDC / passkey / device proof 绑定到 DID principal / device。客户端可见登录凭据是 `ak.session.grant`，Principal 本地 session provisioning 是 Account Authority 内部步骤。该 credential 的 durable authority 是 Account Authority 的 issuer ledger，不是 Principal Control Realm Event/cell；issuer MUST NOT 为 SessionGrant 代签 principal Event。
 - Resource server MUST 校验 token audience、issuer、expiry、nonce / replay 防护和 issuer-ledger session grant 状态；Principal Server 校验 grant 时通过 Account Authority / Auth-side 内省或等价可信本地状态 fail closed。verifier 还 MUST 从 JWT signed claims 按 [`../identity/key-management.md` §6.1](../identity/key-management.md) 重算 issuance preimage、suite-tagged ID 与 `jti`，并拒绝非 canonical public-JWK JCS、claim tamper 或 ID mismatch。
 - `methods[]` 只描述 service account 登录或恢复入口；它不改变 DID 控制权规则。密码、邮箱验证码、passkey 和 OIDC session 必须通过 `did_binding_methods` 绑定到 DID / device 后才能用于协议写入。
-- 当 Account Authority 提供 [`../identity/account-lifecycle.md` §2.1.2](../identity/account-lifecycle.md) 的 account-first 分支时，Principal Server 的部署配置 MUST 在 `account_authority.enrollment_authority_did` 公布 B 模型首设备入册权威 DID。客户端 MUST 把该值作为 entry 0 的部署 pin，并在调用 Account Authority `describe` 时校验其公布的同名值一致；不得直接采用待认证 Account Authority 响应中的 DID，也不得以 TOFU 替代部署声明。
+- Account-first registration 的首设备 authority 来自 identity-root control transcript 与 founding device proof；service discovery 不发布设备 authority pin。Account Authority 只能 relay exact signed genesis unit并验证 receipt。
 - 当认证 metadata 变化时，服务 SHOULD 通过 feature discovery 版本或 DID service metadata hash 暴露变更，客户端不得静默沿用过期 issuer。
 
 ### 3.2 Sender-constrained（proof-of-possession）会话出示

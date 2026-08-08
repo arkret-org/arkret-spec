@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-08.7",
+  "version": "2026-08-09.3",
   "codes": [
     {
       "code": "bad_json",
@@ -610,10 +610,10 @@
       "description": "A pending write, cache entry, snapshot claim, or downstream grant depends on a grant that has been revoked, superseded, expired, or revoked through an ancestor grant. The dependent action MUST fail closed or be quarantined until re-authorized."
     },
     {
-      "code": "device_recovery_ssk_generation_mismatch",
+      "code": "device_recovery_generation_mismatch",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "Device recovery proof or authorization references an SSK generation that does not equal the current accepted cross-signing publish generation for the principal."
+      "description": "Device recovery proof or authorization references a device generation that does not equal the principal's current accepted device generation."
     },
     {
       "code": "cursor_expired",
@@ -692,12 +692,6 @@
       "http_status": 400,
       "scope": "endpoint",
       "description": "The supplied cursor fails syntax, schema, purpose, binding, or integrity validation before the operation can advance state."
-    },
-    {
-      "code": "device_enrollment_authority_not_designated",
-      "http_status": 403,
-      "scope": "endpoint",
-      "description": "A service-attested ak.device.authorize names an executed_by / authority_did that is not designated as an enrollment authority by the principal DID document (resolved at the event's accepted-at), or its authorization_ref delegation does not cover device authorization."
     },
     {
       "code": "device_unknown",
@@ -1401,12 +1395,6 @@
       "description": "The current device cannot pair with itself."
     },
     {
-      "code": "cross_signing_state_missing",
-      "http_status": 409,
-      "scope": "endpoint",
-      "description": "Cross-signing state is missing for the principal."
-    },
-    {
       "code": "device_already_authorized",
       "http_status": 409,
       "scope": "endpoint",
@@ -1683,36 +1671,6 @@
       "description": "A canonical non-streaming JSON operation carried a Content-Encoding header. Canonical JSON bindings MUST reject the request before reading or decompressing the body; see zh/conformance/scalability-constraints.md section 2.1.4."
     },
     {
-      "code": "bootstrap_idempotency_conflict",
-      "http_status": 409,
-      "scope": "endpoint",
-      "description": "A device bootstrap enroll, cancel or recovery request reused the durable transaction/idempotency identity with different closed request bytes or a different canonical bootstrap request digest. The first outcome remains authoritative and no Event or credential is replaced."
-    },
-    {
-      "code": "bootstrap_decision_conflict",
-      "http_status": 409,
-      "scope": "service_call",
-      "description": "A Principal Server already has an immutable accepted, cancelled or expired device-bootstrap decision whose authority, transaction or founding binding differs from the canonical S2S request. The stored decision remains authoritative and the request performs zero Event, tombstone or credential writes."
-    },
-    {
-      "code": "bootstrap_decision_indeterminate",
-      "http_status": 503,
-      "scope": "service_call",
-      "description": "The Principal Server cannot prove the durable device-bootstrap decision because its transactional storage result or required decision record is unavailable. The Account Authority MUST leave its four-state transaction unchanged (normally pending), MUST NOT infer cancellation or expiry from a directory miss, and MUST retry with the exact same request identity and canonical bytes."
-    },
-    {
-      "code": "bootstrap_transaction_cancelled",
-      "http_status": 409,
-      "scope": "endpoint",
-      "description": "The durable device bootstrap transaction is cancelled. Only byte-identical replay of an already committed operation outcome is allowed; no bootstrap credential, Event authorization or standard successor may be created."
-    },
-    {
-      "code": "bootstrap_transaction_expired",
-      "http_status": 410,
-      "scope": "endpoint",
-      "description": "The durable device bootstrap transaction deadline elapsed and its state is expired. Only byte-identical replay of an already committed operation outcome is allowed; bearer renewal cannot revive or replace the transaction."
-    },
-    {
       "code": "contact_scope_stale",
       "http_status": 409,
       "scope": "endpoint",
@@ -1976,7 +1934,7 @@
         "device_recovery",
         "schema_validation"
       ],
-      "description": "A `recipient_method=hardware_wrapped_key` key-backup envelope, or any recovery / cross-signing proof requiring hardware attestation, lacks an `attestation` chain that the receiver can verify against the active recovery policy's `trusted_recovery_services[]`. See zh/identity/key-management.md §7.5.5."
+      "description": "A `recipient_method=hardware_wrapped_key` key-backup envelope, or a recovery proof requiring hardware attestation, lacks an `attestation` chain that the receiver can verify against the active recovery policy's `trusted_recovery_services[]`. See zh/identity/key-management.md §7.5.5."
     },
     {
       "code": "audience_mismatch",
@@ -2199,15 +2157,7 @@
         "device_recovery",
         "state_resolution"
       ],
-      "description": "`ak.schema.key_backup.v1.frontier_ref.frontier_digest` does not match the current principal control stream frontier; in A model `ssk_generation` is below the current accepted generation; or in B model `device_generation_ref` does not equal the active `current_device_generation_ref` / the generation is not active. Receivers MUST refuse to use the envelope as the primary recovery source. See zh/identity/key-management.md §7.6."
-    },
-    {
-      "code": "backup_post_reset_stale",
-      "applies_to": [
-        "device_recovery",
-        "cross_signing"
-      ],
-      "description": "A `secret_storage` backup envelope references a `self_signing_key` / `user_signing_key` whose generation was retired by a cross-signing reset, and the publish-recovery window elapsed without a successor envelope. Receivers MUST refuse it as the primary recovery source. See zh/crypto-media/device-lifecycle.md §14.2 step 7."
+      "description": "`ak.schema.key_backup.v1.frontier_ref.frontier_digest` does not match the current principal control stream frontier, or `device_generation_ref` does not equal the active `current_device_generation_ref`. Receivers MUST refuse to use the envelope as the primary recovery source. See zh/identity/key-management.md §7.6."
     },
     {
       "code": "blob_redacted",
@@ -2423,7 +2373,7 @@
         "crypto",
         "auth_decision"
       ],
-      "description": "An MLS Welcome / KeyPackage claim binds a cross-signing or self-signing generation that does not equal the receiver's current accepted generation. Receivers MUST reject before admitting the Welcome or key material. See zh/crypto-media/encryption-and-audit.md §2.6 and zh/crypto-media/device-lifecycle.md §14.4."
+      "description": "An MLS Welcome / KeyPackage claim binds a device generation that does not equal the receiver's current accepted generation. Receivers MUST reject before admitting the Welcome or key material. See zh/crypto-media/encryption-and-audit.md §2.6 and zh/crypto-media/device-lifecycle.md §14.4."
     },
     {
       "code": "claim_invalid",
@@ -2527,9 +2477,10 @@
     {
       "code": "cross_domain_replay_rejected",
       "applies_to": [
-        "auth_decision"
+        "identity_creation",
+        "proof_verification"
       ],
-      "description": "A ak.cross_signing.reset payload declared a trust_domain that does not match the receiver's own trust_domain (or the receiver is unable to validate that the declared trust_domain belongs to this deployment). Rejected before signature verification to prevent replay of reset proofs across deployments / sovereign trust domains. See zh/crypto-media/device-lifecycle.md §14.1."
+      "description": "The signed proof audience, origin or trust_domain does not match the current request context; the verifier rejects it before any state transition."
     },
     {
       "code": "cross_realm_structural_relation",
@@ -2538,110 +2489,6 @@
         "auth_decision"
       ],
       "description": "A structural `contains` Relation was submitted that would cross Realm boundaries. Structural containment (Board → List → Strand / Space hierarchy) MUST stay within a single Realm; cross-Realm links use the dedicated `ak.relation.*` non-structural kinds. See zh/models/relation.md §4."
-    },
-    {
-      "code": "cross_signing_reset",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "A previously trusted cross-signing key set was reset; verifications against the old `ssk_generation` MUST fail until the user re-verifies under the new generation. See zh/crypto-media/device-lifecycle.md §14."
-    },
-    {
-      "code": "cross_signing_reset_attestation_missing",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "A `trusted_recovery_service` declaration requires an `attestation_ref` but the proof omits it, or the ref does not resolve to a verifiable attestation event. See zh/crypto-media/device-lifecycle.md §14.4."
-    },
-    {
-      "code": "cross_signing_reset_clock_skew_exceeded",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "`ak.cross_signing.reset.issued_at` deviates from receiver local clock by more than `ak.profile.cross_signing.reset.v1.max_clock_skew_seconds`. See zh/crypto-media/device-lifecycle.md §14.4."
-    },
-    {
-      "code": "cross_signing_reset_generation_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "`ak.cross_signing.reset.previous_generation` does not equal the receiver's currently accepted publish generation, or `new_generation != previous_generation + 1`. See zh/crypto-media/device-lifecycle.md §14.4."
-    },
-    {
-      "code": "cross_signing_reset_proof_authority_invalid",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "A `ak.cross_signing.reset` proof was signed by a key class that does not have authority for that proof.kind: `principal_signing.verification_method` is not a principal-grade DID control key (or is the self/user signing key being retired), `recovery_unlock` is signed by a key that is not the declared recovery key, `trusted_recovery_service` is signed by a non-published verification method, or `device_quorum.signatures[i].verification_method` is not the named device's authorized key. See zh/crypto-media/device-lifecycle.md §14.4."
-    },
-    {
-      "code": "cross_signing_reset_quorum_below_policy",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "`device_quorum.threshold` is below the principal's currently published `recovery_policy.device_quorum.threshold`; receivers MUST reject so issuers cannot weaken the quorum unilaterally. See zh/crypto-media/device-lifecycle.md §14.4."
-    },
-    {
-      "code": "cross_signing_reset_quorum_insufficient",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "After deduplication by `device_id` and signature verification, `device_quorum.signatures[]` contains fewer than `threshold` valid signatures. See zh/crypto-media/device-lifecycle.md §14.4."
-    },
-    {
-      "code": "cross_signing_reset_recovery_ref_unknown",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "`recovery_unlock.recovery_secret_ref` does not resolve to an active recovery_keys[] signing entry in the recovery session's snapshotted accepted recovery_policy at `issued_at`. DID Document-only keys are not authoritative. See zh/crypto-media/device-lifecycle.md §14.4."
-    },
-    {
-      "code": "cross_signing_reset_recovery_service_attestation_domain_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "A `ak.cross_signing.reset` `trusted_recovery_service` proof referenced an `attestation_ref` whose trust domain does not equal the reset payload `trust_domain`. Cross-trust-domain attestations MUST NOT serve as recovery-service authorization. See zh/crypto-media/device-lifecycle.md §14.4 and cross-signing-reset.schema.json."
-    },
-    {
-      "code": "cross_signing_reset_recovery_service_unknown",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "`trusted_recovery_service.service_id` is not declared in the recovery session's snapshotted accepted `recovery_policy.trusted_recovery_services[]`, or is outside its validity window. A DID Document-only service declaration is not sufficient. See zh/crypto-media/device-lifecycle.md §14.4."
-    },
-    {
-      "code": "cross_signing_reset_replayed",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Another `ak.cross_signing.reset` already consumed the same `(principal_id, previous_generation)` tuple; receivers MUST reject duplicates until the corresponding successor `ak.cross_signing.publish` is accepted + 24h. See zh/crypto-media/device-lifecycle.md §14.4."
-    },
-    {
-      "code": "cross_signing_reset_signature_invalid",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "A `ak.cross_signing.reset` proof signature failed verification: `principal_signing.signature` does not verify under the resolved principal-grade DID control key, `recovery_unlock` / `trusted_recovery_service` signature does not verify under the bound key, or any `device_quorum.signatures[i]` does not verify under the named device key. Key-class or authority failures use `cross_signing_reset_proof_authority_invalid`. See zh/crypto-media/device-lifecycle.md §14.4."
-    },
-    {
-      "code": "cross_signing_reset_unlock_commitment_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "`recovery_unlock.unlock_commitment` does not equal the receiver-recomputed `SHA-256(utf8('ak.cross-signing-reset-unlock-binding-v1\\n') || recovery_secret_ref || unlock_binding_input_bytes)`, where `unlock_binding_input_bytes` is the §14.1 canonical input with `proof_body` excluding both signature fields and `unlock_commitment`. This is a wire-integrity binding (not a secret-knowledge proof) preventing the same recovery-key signature from being shelled into a different reset envelope. See zh/crypto-media/device-lifecycle.md §14.4."
     },
     {
       "code": "cross_space_structural_relation",
@@ -2777,14 +2624,6 @@
       "description": "A non-bootstrap ak.device.authorize event was submitted outside the principal's bound principal_control Realm, or the Realm purpose/profile/created_by does not match the device owner and issuer principal. Reducer MUST fail closed. See zh/identity/key-management.md §5.0.3."
     },
     {
-      "code": "device_enrollment_authority_snapshot_missing",
-      "applies_to": [
-        "auth_decision",
-        "state_resolution"
-      ],
-      "description": "A service_attested ak.device.authorize was signed by an enrollment authority whose DID has no history-resolution method (e.g. did:web), but its enrollment_authority_binding omits the inline issuance-time verification method snapshot and/or controller proof required for point-in-time historical re-verification. Without these, the authorization cannot be re-verified at its signing time and a rotated/hijacked current document could forge re-verification, so the receiver MUST reject. See zh/identity/key-management.md §5.0.6 and zh/identity/identity-did.md §3.2."
-    },
-    {
       "code": "device_generation_fenced",
       "applies_to": [
         "event_envelope",
@@ -2827,14 +2666,6 @@
         "service_call"
       ],
       "description": "The re-anchor pre_fence_basis is null despite an accepted Seal, omits or adds frontier leaves, has unreconstructable roots, or lost the admission-time frontier compare-and-swap race. Dual-registered as a reason_code and a top-level service code (see codes[])."
-    },
-    {
-      "code": "device_recovery_ssk_generation_mismatch",
-      "applies_to": [
-        "device_recovery",
-        "cross_signing"
-      ],
-      "description": "Recovery request or device authorization references a stale or future cross-signing generation."
     },
     {
       "code": "did_proof_replay_window_exceeded",
@@ -3152,6 +2983,13 @@
       "description": "A threshold-notary Seal's declared forensic_attribution mode (e.g. waived or quorum_intersection) does not satisfy the Realm's forensic-attribution obligation for the signer set. The Seal MUST reject. See fixtures/cba-lattice-fixture.json."
     },
     {
+      "code": "founding_device_commitment_mismatch",
+      "applies_to": [
+        "pcr_genesis"
+      ],
+      "description": "The FoundingDeviceDescriptor, authorize payload, device/HPKE digests, algorithms or root creation transcript are not byte-for-byte consistent."
+    },
+    {
       "code": "gate_check_failed",
       "applies_to": [
         "auth_decision",
@@ -3276,6 +3114,13 @@
       "description": "An agent runtime requested a high-risk session scope that requires out-of-band controller approval. The top-level service error is claim_required; error.details carries this reason_code and an opaque approval_request_id. The runtime MUST NOT receive a CAPTCHA, OTP, or browser challenge. See zh/identity/key-management.md §3.2."
     },
     {
+      "code": "identity_creation_lease_fenced",
+      "applies_to": [
+        "identity_creation"
+      ],
+      "description": "The identity-creation lease fence is no longer current. A stale holder cannot publish or complete the frozen account/principal registration."
+    },
+    {
       "code": "identity_link_no_longer_visible",
       "applies_to": [
         "identity_resolution"
@@ -3351,6 +3196,13 @@
         "snapshot_verification"
       ],
       "description": "Snapshot inclusion / omission challenge failed: issuer could not produce a valid Merkle branch or ordered-set slice for a sampled Event ID / actor sequence range against the manifest's event_set_commitment.root, OR the proof's root differs, OR an actor sequence gap is not reflected in soft_failed/quarantined digests. Client MUST quarantine or reject the snapshot and fall back to raw Event replay."
+    },
+    {
+      "code": "initial_session_request_mismatch",
+      "applies_to": [
+        "identity_creation"
+      ],
+      "description": "The InitialSessionGrantRequest digest, device id, audience, scope ceiling, or RFC 7638 thumbprint does not match the frozen registration and handoff holder binding."
     },
     {
       "code": "insufficient_challenge_samples",
@@ -3540,7 +3392,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An MLS Welcome arrived with a `claim_envelope` whose canonical signing input does not match the Welcome's actual intended_realm_id / claim_id / requester_did, or the envelope signature does not chain to the requester's current accepted self-signing key or requester device authorization. See zh/crypto-media/encryption-and-audit.md §2.6."
+      "description": "An MLS Welcome arrived with a `claim_envelope` whose canonical signing input does not match the Welcome's actual intended_realm_id / claim_id / requester_did, or the envelope signature does not chain to the requester's PCR current accepted device signing key and authorization Event. See zh/crypto-media/encryption-and-audit.md §2.6."
     },
     {
       "code": "last_resort_not_supported",
@@ -3965,14 +3817,6 @@
       "description": "Standard moderation reason: catch-all for reports that do not fit the named categories. MUST be accompanied by a free-text `description` field. See zh/governance/content-moderation.md §3.2."
     },
     {
-      "code": "out_of_order_bootstrap",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "A Realm bootstrap batch violated the exact ordered-slot registry, including placing any facet before ak.realm.create or creator membership anywhere except the required final slot."
-    },
-    {
       "code": "pairing_expired",
       "applies_to": [
         "auth_decision",
@@ -4038,6 +3882,27 @@
         "event_envelope"
       ],
       "description": "An `ak.schema.patch.v1` `$op=\"unset\"` was used on a redactable content field (e.g. message.content, strand.metadata.summary, encrypted_content / encrypted_metadata). Redaction MUST go through `ak.<kind>.redact` or `ak.redaction` events to enforce redaction-specific capability checks and audit. See zh/models/event-and-patch.md §4.2.4."
+    },
+    {
+      "code": "pcr_genesis_conflict",
+      "applies_to": [
+        "pcr_genesis"
+      ],
+      "description": "The deterministic Principal Control Realm already has a different authoritative genesis unit. The receiver MUST perform zero writes and MUST NOT replace the accepted founding device."
+    },
+    {
+      "code": "pcr_genesis_not_first",
+      "applies_to": [
+        "pcr_genesis"
+      ],
+      "description": "Genesis admission was attempted after the PCR frontier ceased to be empty, or after a PCR genesis receipt already existed. The caller must use device pairing or root-anchored re-anchor."
+    },
+    {
+      "code": "pcr_genesis_unit_invalid",
+      "applies_to": [
+        "pcr_genesis"
+      ],
+      "description": "The closed ordered pair is not exactly one root-signed ak.realm.create followed by one founding-device-signed ak.device.authorize, or atomic validation failed. No partial write is permitted."
     },
     {
       "code": "permission_denied",
@@ -4502,10 +4367,9 @@
     {
       "code": "recovery_evidence_unbound",
       "applies_to": [
-        "device_recovery",
-        "cross_signing"
+        "recovery_transaction"
       ],
-      "description": "A proof transcript for recovery, cross-signing reset, device authorization, or recovery-policy rotation is not bound to `(policy_id, version, recovery_session_id)`. Receivers MUST reject. See zh/identity/key-management.md §8.1."
+      "description": "Recovery evidence does not bind the current transaction, recovery session, principal, replacement device or prepared-plan digest."
     },
     {
       "code": "recovery_policy_genesis_not_v1",
@@ -5053,15 +4917,6 @@
       "description": "Standard moderation reason: spam content."
     },
     {
-      "code": "stale_backup_trust_generation",
-      "applies_to": [
-        "device_recovery",
-        "cross_signing",
-        "state_resolution"
-      ],
-      "description": "A key-backup envelope's auth_data verification method is bound to a self-signing generation older than the current accepted generation and outside the rotation grace window. Receivers MUST reject the envelope for recovery or read paths. See zh/identity/key-management.md §7.4.1."
-    },
-    {
       "code": "state_mismatch",
       "applies_to": [
         "client_sync",
@@ -5272,7 +5127,7 @@
         "device_recovery",
         "state_resolution"
       ],
-      "description": "A key-backup envelope signature verifies cryptographically but the signer device key cannot be linked to the current actor cross-signing trust root, or the signer is revoked, unauthorized, or generation-mismatched. Receivers MUST reject it even if the series chain and ciphertext_digest are self-consistent. See zh/identity/key-management.md §7.4.1."
+      "description": "A key-backup envelope signature verifies cryptographically but the signer is not an active accepted device in the current generation, or is revoked, unauthorized, or generation-mismatched. Receivers MUST reject it even if the series chain and ciphertext_digest are self-consistent. See zh/identity/key-management.md §7.4.1."
     },
     {
       "code": "verification_method_principal_mismatch",

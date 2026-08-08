@@ -194,8 +194,8 @@
             "source_kind": {
               "type": "string",
               "enum": [
-                "cross_signing_publish",
                 "did_document",
+                "pcr_device_directory",
                 "recovery_policy",
                 "realm_control"
               ]
@@ -237,9 +237,8 @@
               "issuer_role": {
                 "type": "string",
                 "enum": [
-                  "cross_signing_self_signing",
                   "identity_recovery",
-                  "account_enrollment_authority",
+                  "accepted_device",
                   "realm_admission"
                 ]
               },

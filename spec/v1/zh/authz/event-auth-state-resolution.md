@@ -201,7 +201,7 @@ Control Move 是写 control plane cell 的 Event，通常 MUST 携带 `seal_basi
    - 1:1 Direct Conversation 分支必须恰好提交 `ak.realm.create → peer ak.member.state{join} → main ak.strand.create` 三条，不得携普通 Collaboration facet。固定 baseline 由 Direct Conversation reducer contract 机械投影。Strand 平时是携 `seal_ref + auth_context` 的 DataEvent；但该 exact unit 的 Genesis Seal 覆盖全部三条，无法引用一张尚不存在的 Seal，因此在且仅在该 unit 内免 basis。
 
    不在该列表内的 Control Move 一律要求 `seal_basis`。
-2. B 模型 [`ak.device.reanchor`](../identity/key-management.md#507-b-模型-recovery-re-anchor-unit) + replacement authorize 原子 unit。它不携带 `seal_basis`，而在 payload 的 `pre_fence_basis` 固定完整当前 accepted Seal frontier，并由 RecoveryTransaction 对 frontier digest 做 CAS。授权 fence 在完整 unit 验证/提交后立即生效；确定性治理写由首个新-generation Seal 覆盖。
+2. B 模型 [`ak.device.reanchor`](../identity/key-management.md) + replacement authorize 原子 unit。它不携带 `seal_basis`，而在 payload 的 `pre_fence_basis` 固定完整当前 accepted Seal frontier，并由 RecoveryTransaction 对 frontier digest 做 CAS。授权 fence 在完整 unit 验证/提交后立即生效；确定性治理写由首个新-generation Seal 覆盖。
 
 这两个例外不得推广到 batch 外、普通设备入册或其他 Control Move。机器执行闭包分别由 `ak.vector.identity.root_anchor_exclusivity.v1` 与 `ak.vector.identity.device_reanchor.v1` 覆盖。
 

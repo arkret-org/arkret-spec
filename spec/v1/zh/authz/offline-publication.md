@@ -54,7 +54,7 @@ unit 内除 create 外只可含该节 registry 登记的 required/conditional/op
 `ak.capability.grant`。仅对这些完整 unit，`basis_ref` MAY 是
 `{anchor_unit:{realm_id,event_digests[],unit_digest}}`，其中 event digest 按 unit 必需顺序排列，
 `unit_digest = sha256(canonical_json({realm_id,event_digests}))`。issuer MUST 在签发前验证完整
-closed unit、root/enrollment authority proof、creator/session/device、notary declaration、actor
+closed unit、root/founding authority proof、creator/session/device、notary declaration、actor
 chain 与目标 Realm 不存在；提交时 unit、顺序、数量或任一 digest 不同都 MUST 零写入拒绝。
 该例外不得用于普通未接受 Event，也不得把 prospective/fabricated Seal 当作 accepted basis。
 
@@ -105,55 +105,9 @@ threshold猜测分支，也不得把不同recovery proof family的issuer拼成�
 
 ### 1.1 RecoveryTransaction 的 authority ownership
 
-fresh-device recovery 不存在“replacement device因为通过 recovery proof即可自行签 lease”的
-规则。服务端创建 recovery session时必须从 accepted basis snapshot一个 closed
-`publication_authority_context`并把其digest纳入 recovery proof transcript：
+Root-anchored device recovery 不需要另一个账号服务签 replacement authorize，也不为该动作签发 DID-derived device authority lease。RecoveryTransaction 先发布 method-native DID entry，再提交 root-signed re-anchor + replacement-device-signed authorize 原子 unit；内容 authority来自 DID root history、recovery session/policy 与 candidate device possession。Coordinator/service authentication只控制 transport、rate-limit和幂等 correlation。
 
-- A模型使用`ak.authority_set.recovery_cross_signing.v1`，只有当前snapshot generation的SSK
-  可为固定`ak.device.authorize`和
-  `ak.device.list_update`签发lease；
-- B模型local re-anchor使用`ak.authority_set.recovery_identity_reanchor.v1`，每个allowed proof
-  family的issuer集合与threshold从session创建时accepted sealed recovery policy完整投影；满足
-  其中一个完整authorization rule的recovery
-  authority才可为固定`ak.device.reanchor`签发lease；
-- B模型Account Authority lease使用`ak.authority_set.recovery_account_authority.v1`。该
-  authority必须已经由pre-fence accepted DID document委托，并在
-  `authorize_recovery_device`首次durable outcome中同时签发lease。
-
-每份lease的basis、actor、replacement device、scope、action、risk与authority-set都必须逐字
-等于session context或transaction-bound publication intent。SSK、root/recovery method或Account
-Authority只有在accepted basis明确把它列为相应high-risk issuer时才有效；角色名称本身不产生
-authority。协议不登记一个允许客户端请求任意action lease的通用endpoint。
-
-每个 accepted recovery policy version 必须携带 immutable `acceptance_basis`。该 basis 引用已把
-承载该 policy 的 Principal Control Realm `ak.policy.set` Event纳入control state的accepted
-Seal/SealBasis；policy publish request必须是该Event的完整`EventInitialSubmission`。
-canonical Event payload固定为`{policy_id, value}`，其中`value`是完整`RecoveryPolicy`，
-两处policy id必须逐字一致，且本operation禁止`state`/`reason`。Event actor/scope、
-`payload.value.principal_id`、lease与accepted Seal必须一致。command只有在该basis
-materialize后才能返回成功或推进active policy；此前对同一Event id返回retry-safe
-`frontier_unavailable`，不得生成第二policy Event。B 模型 session 的
-`publication_authority_context.basis_ref` 必须逐字等于该 `acceptance_basis`，不得借用 live
-device-generation frontier、`accepted_at` 或 inline policy bytes。authority policy 的
-`source_ref=policy_id`、`source_digest=SHA-256(JCS(RecoveryPolicy))`、
-`generation_ref=policy_version(decimal)`。所谓“零 Seal frontier”只允许
-device-generation/re-anchor frontier 为空，不表示 recovery policy 可以没有自己的 acceptance
-basis。
-
-B 模型 policy 的 `publication_authorization_rules[]` 必须由 policy
-`auth_data.signed_fields`覆盖，并与`allowed_proof_kinds[]`一一对应。它是确定性投影输入而不是
-自报 authority：session creator必须在policy `acceptance_basis`重算每个exact DidUrl。规则固定
-只允许`ak.device.reanchor`；principal-signing使用accepted policy authority method；
-recovery-unlock使用active `recovery_keys[].verification_method`且threshold=1；device-quorum把
-每个member在basis中解析为唯一current device method并使用`device_quorum.k`；trusted service
-使用entry中与`service_id`同controller DID的`authorization_verification_method`且threshold=1。
-threshold-recovery完成Shamir重构后使用policy中的recovery signing key、signature
-threshold=1；`threshold.k`是secret reconstruction门限，绝不能复制成PayloadProof签名quorum。
-proof verified后，prepared plan与lease的`authorization_rule_id`必须逐字等于已验证proof
-family对应的`publication_authorization_rules[].rule_id`；不得在其它同action rule间切换。
-`ak.vector.identity.recovery_policy_publication.v1` 必须覆盖 signing/HPKE key 缺失、issuer
-集合漂移、share holder 冒充 issuer、把 `threshold.k` 复制为 publication signature quorum，
-以及 canonical PCR Event/lease/Seal 路径。
+若 recovery policy 需要离线 quorum，`ak.authority_set.recovery_identity_reanchor.v1` 可以为 policy proof/publication intent签发有界 lease；该 lease不得单独签 `ak.device.authorize`，也不得把账号服务变成 device authority。接受 unit 后 receipt 和 generation fence 是 durable outcome。
 
 ## 2. IngressReceipt
 

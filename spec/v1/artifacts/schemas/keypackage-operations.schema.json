@@ -241,39 +241,11 @@
       "oneOf": [
         {
           "required": [
-            "ssk_generation"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "device_authorize_event_id"
-                ]
-              },
-              {
-                "required": [
-                  "agent_key_authorize_event_id"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "required": [
             "device_authorize_event_id"
           ],
           "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "ssk_generation"
-                ]
-              },
-              {
-                "required": [
-                  "agent_key_authorize_event_id"
-                ]
-              }
+            "required": [
+              "agent_key_authorize_event_id"
             ]
           }
         },
@@ -282,17 +254,8 @@
             "agent_key_authorize_event_id"
           ],
           "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "ssk_generation"
-                ]
-              },
-              {
-                "required": [
-                  "device_authorize_event_id"
-                ]
-              }
+            "required": [
+              "device_authorize_event_id"
             ]
           }
         }
@@ -322,16 +285,12 @@
         "capabilities_digest": {
           "$ref": "#/$defs/hash"
         },
-        "ssk_generation": {
-          "type": "integer",
-          "minimum": 1
-        },
         "device_authorize_event_id": {
           "$ref": "#/$defs/non_empty_string"
         },
         "agent_key_authorize_event_id": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "Accepted active ak.agent.key.authorize Event that binds a Native Agent runtime verification method to this KeyPackage. This branch is mutually exclusive with ssk_generation and device_authorize_event_id."
+          "description": "Accepted active ak.agent.key.authorize Event that binds a Native Agent runtime verification method to this KeyPackage. Mutually exclusive with device_authorize_event_id."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -510,40 +469,10 @@
       "type": "object",
       "required": [
         "verification_method",
+        "requester_device_id",
+        "device_authorize_event_id",
         "signed_at",
         "signature"
-      ],
-      "oneOf": [
-        {
-          "required": [
-            "ssk_generation"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "requester_device_id"
-                ]
-              },
-              {
-                "required": [
-                  "device_authorize_event_id"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "required": [
-            "requester_device_id",
-            "device_authorize_event_id"
-          ],
-          "not": {
-            "required": [
-              "ssk_generation"
-            ]
-          }
-        }
       ],
       "properties": {
         "verification_method": {
@@ -552,10 +481,6 @@
         },
         "requester_device_id": {
           "$ref": "#/$defs/device_id"
-        },
-        "ssk_generation": {
-          "type": "integer",
-          "minimum": 1
         },
         "device_authorize_event_id": {
           "$ref": "#/$defs/non_empty_string"

@@ -279,8 +279,8 @@ realm_id = "ak:realm:" || base64url_no_pad(realm_token)
 
 1. 先定位该 Realm 的 `ak.realm.create` 并取得其完整 canonical bytes；
 2. 对所有分支重算并校验 `event_id`；
-3. 若 `purpose="principal_control"`，从签名 Event 的 canonical `actor_id` principal DID 按本节 transcript 派生 `realm_id`，校验唯一 `did_inception` root anchor，并拒绝 `genesis_salt`；否则校验 `retype(event_id) == realm_id` 且 `genesis_salt` 为 canonical Base64URL-no-pad 的 32 octets；
-4. 取得并验证完整 ordered bootstrap unit 与其 genesis Seal/state commitment；identity 或 genesis closure 任一未完成前 MUST NOT 接受该 Realm 的后续 Event、Seal 或 effective Realm projection；
+3. 若 `purpose="principal_control"`，从签名 Event 的 canonical `actor_id` principal DID 按本节 transcript 派生 `realm_id`，校验对应 root/controller anchor，并拒绝 `genesis_salt`；否则校验 `retype(event_id) == realm_id` 且 `genesis_salt` 为 canonical Base64URL-no-pad 的 32 octets；
+4. 取得并验证完整 ordered genesis unit 与其 genesis Seal/state commitment；identity 或 genesis closure 任一未完成前 MUST NOT 接受该 Realm 的后续 Event、Seal 或 effective Realm projection；
 5. 把该 genesis 与完整初始 facet commitment 持久化为该 `realm_id` 的永久本地绑定；
 6. 此后出现的任何不同 genesis MUST 拒绝，MUST NOT 因为它先到、更新、或来自"更权威"的 peer 而覆盖。
 
@@ -300,7 +300,7 @@ realm_id = "ak:realm:" || base64url_no_pad(realm_token)
 
 `ak.realm.create` 是 Realm 生命周期的 genesis event，只建立 Realm identity/security core、create log、notary、reducer profile 与终身稳定的 authority root。显示内容、policy 与 membership 都由同一原子 bootstrap unit 中各自的 registered facet Event 建立。
 
-**Principal Control Realm 分支（normative）**：当 create 同时满足 `purpose="principal_control"`、PCR profile、`actor_id=principal DID`、省略 `genesis_salt` 与 [`identity/key-management.md` §5.0.1](../identity/key-management.md) 的唯一 critical `did_inception` root anchor 时，bootstrap unit 的第二条固定为首个 delegated `ak.device.authorize`。两条必须在同一 `ak.self.events.command.submit` batch 原子接受，均免 `seal_basis`。managed Agent PCR 同样是 subject-derived、MUST NOT 携带 salt；其 authority 来自 controller device proof、accepted DID delegation 与唯一 critical `agent_provision` ref，而不是 create 隐式写入 Agent lifecycle 状态。
+**Human Principal Control Realm 分支（normative）**：当 create 满足 `purpose="principal_control"`、PCR profile、`actor_id=principal DID`、省略 `genesis_salt` 与唯一 critical `did_inception` root anchor 时，root-signed genesis 必须携带 `FoundingDeviceDescriptor`，第二条固定为 founding-device-signed `ak.device.authorize`。两条通过 `ak.peer.principal_genesis.command.submit` 原子接受，均免 `seal_basis`；descriptor 与 authorize payload 必须逐字段/digest 相等。Managed Agent PCR 保留其 controller-authorized subject-derived branch，不使用 human `pcr_genesis_unit` 或 `FoundingDeviceDescriptor`。
 
 以下五项是 `ak.realm.create` 的完整 registered writes。任何实现不得由 create 顺带写 profile、member 或 Agent lifecycle 状态。
 
@@ -341,14 +341,14 @@ Realm bootstrap event set 以 create 开始。创建时没有 accepted Seal，�
 - 普通 Collaboration 分支：`ak.realm.create`；同批同 actor 的 initial facets，顺序唯一由 `contract-registry.json.realm_bootstrap_registry.ordinary_collaboration` 登记：required `profile → policy_bundle → join_rule → history_visibility`，条件 `history_sharing_policy`，required `discovery`，可选 `alias`，条件 `plaintext_visible_services`，required `delivery_binding_policy`，最后 required creator `member.state{join}`。不得在实现中维护第二套顺序常量；
 - 1:1 Direct Conversation 分支：恰好 `ak.realm.create → peer ak.member.state{join} → main ak.strand.create` 三条，不得携普通 Collaboration facet。固定 profile、policy、join、history 与 discovery baseline 由 [`../identity/contact-and-direct-conversation.md` §6.2](../identity/contact-and-direct-conversation.md) 的 registered reducer contract 机械投影。`ak.strand.create` 平时是携 `seal_ref + auth_context` 的 DataEvent；但该 exact unit 的 Genesis Seal 同时覆盖三条，Strand 无法引用尚不存在的 Seal，因此在且仅在该 unit 内免 basis。
 
-不在该列表内的 Control Move 一律要求 `seal_basis`。PCR 则只允许上文 create + first-authorize 两项 shape；不得把普通 Realm follow-up 白名单混入 PCR bootstrap。批次结束后所有普通 Control Move 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move) 携带 basis。
+不在该列表内的 Control Move 一律要求 `seal_basis`。Human PCR 只允许上文 root create + founding authorize 两项 shape；不得把普通 Realm follow-up 白名单混入 PCR genesis。批次结束后所有普通 Control Move 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move) 携带 basis。
 
 Authz 含义：
 
 - 同批 facet 在 creator member slot 生效前依赖 staged authority-root proof，而不是 create 隐式 membership。批次外的授权不得回退到 envelope actor、create author 或服务本地 owner mirror。
 - `ak.realm.policy_bundle` payload MUST 携带单调递增的 `policy_revision`。初始 revision 为 `1`；后续更新必须满足 `new.policy_revision == previous.policy_revision + 1`，否则 reducer MUST `failed_precondition`，reason=`policy_revision_rollback` 或 `policy_revision_gap`。任何用于缓存、Policy Server decision 或 identity_link 的 `policy_frontier_digest` MUST 覆盖 `policy_revision`，不得只 hash policy 字段值集合；MLS security frontier 则只投影 key-access 字段，MUST NOT 因无关 revision 前进而变化。
 - **加密 floor 单向 ratchet（normative）**：Realm 的 effective `content_encryption_floor` 与 effective `metadata_encryption_floor` MUST 随时间单调非降。`ak.realm.policy_bundle` 若把 `content_encryption_floor` 从 `e2ee_required` 降回 `allow_plaintext`，reducer MUST `failed_precondition`，reason=`content_encryption_floor_downgrade`；若把 `metadata_encryption_floor` 降到更低等级（比较序 `allow_plaintext < e2ee_required`），reducer MUST `failed_precondition`，reason=`metadata_encryption_floor_downgrade`。收紧（抬高 floor）永远允许，只有降低被拒。该 ratchet 使"加密一旦开启不可撤销"成为治理层硬约束，并消除静默 downgrade 攻击面；Circle 级同一规则与 effective floor 计算见 [`circle.md` §7](./circle.md)。
-- 同一 submit 批次内 reducer MUST 按 wire 顺序处理。普通 Realm：create 第一，其后是白名单内的 follow-up；PCR：root-anchored create 第一、delegated first-authorize 第二且 unit 到此结束。顺序或形态不符以 `out_of_order_bootstrap` 原子拒绝。
+- 同一 submit 批次内 reducer MUST 按 wire 顺序处理。普通 Realm：create 第一，其后是白名单内的 follow-up；human PCR：root-anchored create 第一、founding-device-signed authorize 第二且 unit 到此结束。顺序或形态不符以 `pcr_genesis_unit_invalid` 原子拒绝。
 - byte-identical unit retry 返回原 accepted identity/receipt，不产生第二个 Realm 或副作用；不同 canonical bytes 声称同一 Realm id 时 MUST `realm_already_exists` 或 collision quarantine。
 
 Server 端实现合规要点：

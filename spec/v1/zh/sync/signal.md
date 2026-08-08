@@ -99,8 +99,7 @@ Signal 业务引用持久化。send outcome MAY 原样返回该 digest 用于诊
 1. **Realm / scope 授权域**：`seal_ref` 必须解析为 `realm_id` 的已知 Seal；sender actor 在该
    Realm / scope basis 下的实时发送资格、`signal_class` action gate 与产品级 action（§7）都在
    该 basis 下求值。
-2. **sender-key 授权域**：普通 user / org principal 的设备授权、吊销、A 模型 cross-signing
-   generation 与 B 模型 device generation fence 按**每个 verifier 当时的 current accepted
+2. **sender-key 授权域**：普通 user / org principal 的设备授权、吊销与 device generation fence 按**每个 verifier 当时的 current accepted
    device directory**（[`../crypto-media/device-lifecycle.md` §5.4 / §8.2](../crypto-media/device-lifecycle.md)）
    求值；Native Agent 则按其 current accepted `ak.agent.key.authorize` 与 portable signer
    evidence 求值。两类都与 `seal_ref` 无关；目标 Realm 的 Seal 不覆盖、也无法定位另一个
@@ -109,8 +108,7 @@ Signal 业务引用持久化。send outcome MAY 原样返回该 digest 用于诊
 `proof.verification_method` MUST 逐字等于 `` `{sender_actor_id}#{sender_device_id}` ``；
 逐字相等只是 sender endpoint 与签名方法的完整性条件，不能代替授权验证。普通 principal
 的 verifier MUST 用 `(sender_actor_id, sender_device_id)` 从 current accepted
-principal-control / device-directory frontier 解析权威 verify key，并完成适用的 A 模型
-cross-signing 链或 B 模型 enrollment-authority + active-generation 校验。Native Agent 的
+principal-control / device-directory frontier 解析权威 verify key，并验证完整的 root-anchored PCR authorization chain、当前 active generation 与撤销状态。Native Agent 的
 verifier MUST 要求该 `sender_device_id` 等于 Agent session / MLS endpoint 的稳定绑定，并以
 同一 `proof.verification_method` 解析 current active accepted `ak.agent.key.authorize`；其
 signing-key binding、state witness、freshness、revoke / supersede / expiry / conflict 语义按

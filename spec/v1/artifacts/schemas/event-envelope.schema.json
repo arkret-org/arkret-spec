@@ -651,8 +651,6 @@
               "ak.contact.tombstoned",
               "ak.container.move_item",
               "ak.container.rebalance",
-              "ak.cross_signing.publish",
-              "ak.cross_signing.reset",
               "ak.device.authorize",
               "ak.device.list_update",
               "ak.device.reanchor",
@@ -3761,44 +3759,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.cross_signing.publish"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/cross_signing_publish_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.cross_signing.reset"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/cross_signing_reset_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.mls.proposal"
           }
         },
@@ -4606,100 +4566,6 @@
     }
   ],
   "$defs": {
-    "device_authorize_event_preimage": {
-      "type": "object",
-      "description": "Complete canonical, proof-free ak.device.authorize Event fixed by the founding client before bootstrap credential issuance. event_id is derived from this exact object under the registered Event digest contract. The enrollment authority may only append its Event proof; it MUST NOT generate or rewrite event_id, created_at, hlc, actor chain, authorization references, payload or any other preimage field.",
-      "required": [
-        "event_id",
-        "kind",
-        "realm_id",
-        "scope_ref",
-        "actor_id",
-        "executed_by",
-        "authorization_ref",
-        "actor_seq",
-        "created_at",
-        "hlc",
-        "prev_refs",
-        "refs",
-        "payload"
-      ],
-      "properties": {
-        "event_id": {
-          "$ref": "#/properties/event_id"
-        },
-        "kind": {
-          "const": "ak.device.authorize"
-        },
-        "realm_id": {
-          "$ref": "#/properties/realm_id"
-        },
-        "scope_ref": {
-          "$ref": "#/properties/scope_ref"
-        },
-        "actor_id": {
-          "$ref": "#/properties/actor_id"
-        },
-        "executed_by": {
-          "$ref": "#/properties/executed_by"
-        },
-        "authorization_ref": {
-          "$ref": "#/$defs/did_delegation_ref"
-        },
-        "actor_seq": {
-          "type": "integer",
-          "const": 1
-        },
-        "created_at": {
-          "$ref": "#/properties/created_at"
-        },
-        "hlc": {
-          "$ref": "#/properties/hlc"
-        },
-        "prev_refs": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 1,
-          "items": {
-            "$ref": "./common-ids.schema.json#/$defs/event_id"
-          }
-        },
-        "refs": {
-          "type": "array",
-          "maxItems": 0
-        },
-        "payload": {
-          "allOf": [
-            {
-              "$ref": "./event-payload.schema.json#/$defs/device_authorize_payload"
-            },
-            {
-              "required": [
-                "enrollment_authority_binding"
-              ],
-              "properties": {
-                "enrollment_authority_binding": {
-                  "properties": {
-                    "kind": {
-                      "const": "service_attested"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                }
-              },
-              "not": {
-                "required": [
-                  "cross_signing_binding"
-                ]
-              }
-            }
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
     "applet_id": {
       "type": "string",
       "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -4933,7 +4799,7 @@
     "did_delegation_ref": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-      "description": "DID URL of a delegation entry in the principal DID document that designates the executed_by principal as authorized for the action (e.g. a ArkretDeviceEnrollmentAuthority service entry id, or a capabilityDelegation verification method id). Used as authorization_ref when the delegation lives in the DID document rather than in an on-stream grant/event. Resolved against the principal DID document at the event's accepted-at (point-in-time), so enrollment-authority key rotation does not invalidate prior authorizations."
+      "description": "DID URL of a non-device controller/organization authority entry that designates executed_by for an operation profile. Principal device authorization never uses this DID-document branch: it resolves through accepted PCR evidence. Historical DID authority is resolved at the Event accepted-at basis."
     },
     "realm_authority_root_ref": {
       "type": "string",

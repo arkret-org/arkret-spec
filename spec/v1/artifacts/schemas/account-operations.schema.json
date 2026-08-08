@@ -480,7 +480,8 @@
           "const": [
             "ak.gate.account.command.issue_identity_binding_challenge",
             "ak.gate.account.command.register",
-            "ak.gate.account.command.issue_session_grant"
+            "ak.gate.account.command.issue_session_grant",
+            "ak.gate.account.command.issue_recovery_completion_grant"
           ]
         },
         "binding": {
@@ -495,7 +496,11 @@
         "request_id",
         "identity_creation_lease_id",
         "lease_fence",
-        "did_operation"
+        "did_operation",
+        "pcr_realm_id",
+        "realm_create_payload_digest",
+        "founding_authorize_payload_digest",
+        "initial_session_request_digest"
       ],
       "properties": {
         "request_id": {
@@ -510,6 +515,18 @@
         },
         "did_operation": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody"
+        },
+        "pcr_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "realm_create_payload_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "founding_authorize_payload_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "initial_session_request_digest": {
+          "$ref": "#/$defs/sha256_digest"
         }
       },
       "additionalProperties": false
@@ -524,6 +541,11 @@
         "purpose",
         "principal_id",
         "operation_digest",
+        "pcr_realm_id",
+        "realm_create_payload_digest",
+        "founding_authorize_payload_digest",
+        "initial_session_request_digest",
+        "genesis_unit_kinds",
         "identity_creation_lease_id",
         "lease_fence",
         "dpop_jkt",
@@ -545,7 +567,7 @@
           "minLength": 22
         },
         "purpose": {
-          "const": "account_binding"
+          "const": "account_binding_and_pcr_genesis"
         },
         "principal_id": {
           "$ref": "#/$defs/did"
@@ -553,6 +575,21 @@
         "operation_digest": {
           "$ref": "#/$defs/sha256_digest",
           "description": "sha256:<lowercase-hex> of SHA-256 over RFC 8785 JCS bytes of the complete request did_operation object."
+        },
+        "pcr_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "realm_create_payload_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "founding_authorize_payload_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "initial_session_request_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "genesis_unit_kinds": {
+          "$ref": "#/$defs/pcr_genesis_unit_kinds"
         },
         "identity_creation_lease_id": {
           "$ref": "#/$defs/opaque_registration_id"
@@ -583,6 +620,20 @@
       },
       "additionalProperties": false
     },
+    "pcr_genesis_unit_kinds": {
+      "type": "array",
+      "description": "Closed ordered declaration copied into the identity-root creation transcript.",
+      "prefixItems": [
+        {
+          "const": "ak.realm.create"
+        },
+        {
+          "const": "ak.device.authorize"
+        }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
     "identity_creation_control_proof": {
       "type": "object",
       "description": "Fresh proof signed by the did:webvh inception operation's parameters.updateKeys[0] identity root. The verifier selects that key from did_operation and MUST NOT treat a request-supplied key or a DID Document verificationMethod as authority. Signature covers every field except signature as canonical JSON with domain separator ak.identity-creation-control-proof-v1.",
@@ -593,6 +644,11 @@
         "purpose",
         "principal_id",
         "operation_digest",
+        "pcr_realm_id",
+        "realm_create_payload_digest",
+        "founding_authorize_payload_digest",
+        "initial_session_request_digest",
+        "genesis_unit_kinds",
         "identity_creation_lease_id",
         "lease_fence",
         "dpop_jkt",
@@ -616,13 +672,32 @@
           "minLength": 22
         },
         "purpose": {
-          "const": "account_binding"
+          "const": "account_binding_and_pcr_genesis"
         },
         "principal_id": {
           "$ref": "#/$defs/did"
         },
         "operation_digest": {
           "$ref": "#/$defs/sha256_digest"
+        },
+        "pcr_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Deterministic Principal Control Realm id derived from principal_id."
+        },
+        "realm_create_payload_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "Canonical digest of the ak.realm.create payload only. Event ids and envelope digests are forbidden from this transcript."
+        },
+        "founding_authorize_payload_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "Canonical digest of the founding ak.device.authorize payload only. Event ids and envelope digests are forbidden from this transcript."
+        },
+        "initial_session_request_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "SHA-256 digest of RFC 8785 JCS InitialSessionGrantRequest. The embedded session_public_key MUST thumbprint to dpop_jkt; this binds the first Standard grant intent without turning it into a separate root-signed object."
+        },
+        "genesis_unit_kinds": {
+          "$ref": "#/$defs/pcr_genesis_unit_kinds"
         },
         "identity_creation_lease_id": {
           "$ref": "#/$defs/opaque_registration_id"
@@ -668,7 +743,9 @@
         "identity_creation_lease_id",
         "lease_fence",
         "did_operation",
-        "control_proof"
+        "control_proof",
+        "pcr_genesis_unit",
+        "initial_session"
       ],
       "properties": {
         "identity_creation_lease_id": {
@@ -683,6 +760,12 @@
         },
         "control_proof": {
           "$ref": "#/$defs/identity_creation_control_proof"
+        },
+        "pcr_genesis_unit": {
+          "$ref": "./principal-operations.schema.json#/$defs/pcr_genesis_unit"
+        },
+        "initial_session": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/InitialSessionGrantRequest"
         }
       },
       "additionalProperties": false
@@ -989,6 +1072,12 @@
         },
         "binding_receipt": {
           "$ref": "#/$defs/account_binding_receipt"
+        },
+        "pcr_genesis_receipt": {
+          "$ref": "./event-batch-receipt.schema.json"
+        },
+        "session_grant_outcome": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantOutcome"
         }
       },
       "not": {

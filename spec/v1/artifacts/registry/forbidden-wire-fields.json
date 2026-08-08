@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 8,
+  "version": 9,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -3325,6 +3325,71 @@
         "negative_test"
       ],
       "notes": "Removed dead field (previously also spelled co_write_policy). Which cell families an Event kind writes — and which writes form an atomic unit — is fixed by the contract-registry cell_writes contracts and registered atomic units; a Realm-configurable co-write whitelist never had admission, join, or reason-code semantics and no implementation ever evaluated or produced it. If a per-Realm co-write constraint is ever genuinely needed it must return together with complete notary admission and reducer rules, not as a bare optional field."
+    },
+    {
+      "id": "cross_signing_binding",
+      "context": "retired_device_identity_wire",
+      "since_revision": "2026-08-09",
+      "rejection_level": "hard_reject",
+      "replacement": "authorization_binding_kind + PCR evidence",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Removed from current v1 by the PCR genesis clean cut."
+    },
+    {
+      "id": "ssk_generation",
+      "context": "retired_device_identity_wire",
+      "since_revision": "2026-08-09",
+      "rejection_level": "hard_reject",
+      "replacement": "authorized_generation_ref/device_generation_ref",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Removed from current v1 by the PCR genesis clean cut."
+    },
+    {
+      "id": "enrollment_authority_binding",
+      "context": "retired_device_identity_wire",
+      "since_revision": "2026-08-09",
+      "rejection_level": "hard_reject",
+      "replacement": "root_anchored or accepted_device authorization",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Removed from current v1 by the PCR genesis clean cut."
+    },
+    {
+      "id": "bootstrap_binding",
+      "context": "retired_device_identity_wire",
+      "since_revision": "2026-08-09",
+      "rejection_level": "hard_reject",
+      "replacement": "holder_binding",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Removed from current v1 by the PCR genesis clean cut."
+    },
+    {
+      "id": "recovery_authority_ticket",
+      "context": "retired_device_identity_wire",
+      "since_revision": "2026-08-09",
+      "rejection_level": "hard_reject",
+      "replacement": "root-anchored re-anchor unit",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Removed from current v1 by the PCR genesis clean cut."
     }
   ]
 }

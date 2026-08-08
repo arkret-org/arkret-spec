@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.18",
+  "version": "2026-08-09.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T20:00:00Z",
+  "generated_at": "2026-08-09T13:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -551,12 +551,6 @@
       "description": "Immutable transaction-bound completion artifact proving all planned old secret_storage and mls_history backup objects were erased after authoritative pointer switch."
     },
     {
-      "schema_id": "ak.schema.recovery_authority_ticket.v1",
-      "file": "schemas/recovery-authority.schema.json",
-      "status": "active",
-      "description": "Transaction-bound recovery authority ticket plus ticket issuance, recovery device authorization and recovery grant promotion DTOs."
-    },
-    {
       "schema_id": "ak.schema.recovery_completion_attestation.v1",
       "file": "schemas/recovery-authority.schema.json",
       "fragment": "#/$defs/recovery_completion_attestation",
@@ -656,13 +650,13 @@
       "schema_id": "ak.schema.recovery_policy.v1",
       "file": "schemas/recovery-policy.schema.json",
       "status": "active",
-      "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm via signed publish / rotate / share-revoke; receivers MUST reject recovery / rotate / ak.device.authorize and cross-signing-reset evidence whose proof family is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8."
+      "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm; receivers reject recovery and device authorization evidence whose proof family is not allowed by current accepted policy."
     },
     {
       "schema_id": "ak.schema.device_reanchor.v1",
       "file": "schemas/device-reanchor.schema.json",
       "status": "active",
-      "description": "Closed B-model recovery re-anchor payload binding one verified DID version, the complete pre-fence Seal frontier, and the exact replacement device authorization event id/digest."
+      "description": "Closed root-anchored recovery re-entry payload binding one verified DID version, the complete pre-fence Seal frontier, and the exact replacement device authorization event id/digest."
     },
     {
       "schema_id": "ak.schema.recovery_session.v1",
@@ -914,18 +908,6 @@
       "file": "schemas/principal-service-binding.schema.json",
       "status": "active",
       "description": "Accepted-at Principal Server binding snapshot and signed service-cutover continuity chain"
-    },
-    {
-      "schema_id": "ak.schema.cross_signing_publish.v1",
-      "file": "schemas/cross-signing-publish.schema.json",
-      "status": "active",
-      "description": "Wire payload schema for ak.cross_signing.publish — establishes the PSK→{SSK, USK} binding on the principal control stream. See device-lifecycle.md §5.1."
-    },
-    {
-      "schema_id": "ak.schema.cross_signing_reset.v1",
-      "file": "schemas/cross-signing-reset.schema.json",
-      "status": "active",
-      "description": "Wire payload schema for ak.cross_signing.reset — retires the current (SSK, USK) generation under one of four kinds of high-risk proof. See device-lifecycle.md §14.1."
     },
     {
       "schema_id": "ak.schema.high_risk_authority_proof.v1",
@@ -1208,7 +1190,7 @@
       "schema_id": "ak.schema.federated_device_signing_key_evidence.v1",
       "file": "schemas/federated-device-signing-key-evidence.schema.json",
       "status": "active",
-      "description": "Portable service-attested device authorization evidence reused by peer Event, contact fact, and KeyPackage claim transports. The original ak.device.authorize Event anchors the key in the DID-designated enrollment authority; the source Principal Server attests current lifecycle freshness."
+      "description": "Portable PCR-root-anchored device authorization evidence reused by peer Event, contact fact, and KeyPackage claim transports. DID history supplies only the identity root; accepted PCR Events and Seal evidence establish device authority and freshness."
     },
     {
       "schema_id": "ak.schema.delivery_binding_stale.v1",
@@ -1275,7 +1257,7 @@
       "schema_id": "ak.schema.principal_operations.v1",
       "file": "schemas/principal-operations.schema.json",
       "status": "active",
-      "description": "Closed wire carriers scoped to a single principal: device bootstrap, participation replacement, history ingress contracts, KeyPackage terminal handling, Sidecar staging and the shared identifier, signature and receipt primitives those carriers reuse.",
+      "description": "Closed wire carriers scoped to a single principal: PCR genesis, participation replacement, history ingress contracts, KeyPackage terminal handling, Sidecar staging and shared primitives.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "registered principal-scoped operation DTO and proof carriers",

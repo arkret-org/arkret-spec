@@ -744,7 +744,7 @@ Schema id: `ak.schema.event_batch_receipt.v1`
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `proofs` | yes | `array<Proof>` |  | Receipt proof。 |
 
-`receipt-item` 的 closed wire 形态为 `{event_id: id:event, event_digest: hash, kind: string}`，用于同时承诺 Event identity、canonical content digest 与 kind 的 receipt profile；其中 `event_digest` 必须按 §3 的 Event digest 规则计算。该 object 整体作为 `events[]` item 进入 canonical JSON、排序键与 `receipt_digest` 输入，不得只对其中某个字段取 hash。`scope.kind="device_reanchor_unit"` 的 B 模型 Recovery Re-anchor Unit MUST 使用此形态，具体受理语义见 [`../identity/key-management.md`](../identity/key-management.md) §5.0.7。
+`receipt-item` 的 closed wire 形态为 `{event_id: id:event, event_digest: hash, kind: string}`，用于同时承诺 Event identity、canonical content digest 与 kind 的 receipt profile；其中 `event_digest` 必须按 §3 的 Event digest 规则计算。该 object 整体作为 `events[]` item 进入 canonical JSON、排序键与 `receipt_digest` 输入，不得只对其中某个字段取 hash。`scope.kind="device_reanchor_unit"` 的 B 模型 Recovery Re-anchor Unit MUST 使用此形态，具体受理语义见 [`../identity/key-management.md`](../identity/key-management.md) §5.0.3。
 
 签发方 MUST 在计算 `receipt_digest` 前按上述排序键对 `events[]` 排序并去重，并把规范化后的数组作为实际 wire 值签发；接收方 MUST 在验签前确认相邻排序键严格递增。非升序或含重复项的 receipt MUST 以 `schema_violation` 拒绝，不得通过本地静默重排后接受。对于 `scope.kind="device_reanchor_unit"`，数组仍是 canonical set：实现按 item 的 `kind` 找到唯一 `ak.device.reanchor` 与唯一 `ak.device.authorize`，分别与 `scope.reanchor_digest` / `scope.replacement_authorize_digest` 比对，不得依赖 `[0]` / `[1]` 位置。
 

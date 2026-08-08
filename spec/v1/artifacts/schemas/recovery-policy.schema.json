@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-policy.schema.json",
   "title": "Arkret Recovery Policy",
-  "description": "Normative grammar for a principal's recovery policy. Bound to the Principal Control Realm via signed publish / rotate / revoke control events; receivers MUST reject `recover`, `rotate`, `ak.device.authorize` and Cross-Signing Reset evidence whose proof family / threshold / approval requirement is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8 and crypto-media/device-lifecycle.md §15.",
+  "description": "Normative grammar for a principal's recovery policy. Bound to the Principal Control Realm via signed publish / rotate / revoke control events; receivers MUST reject `recover`, `rotate` and root-anchored `ak.device.authorize` evidence whose proof family / threshold / approval requirement is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8 and crypto-media/device-lifecycle.md §15.",
   "type": "object",
   "required": [
     "schema",
@@ -62,14 +62,14 @@
           "threshold_recovery"
         ]
       },
-      "description": "Which proof families this policy authorizes for recovery and cross-signing reset. Each entry constrains the matching proof kind defined in device-lifecycle.md §14. Empty array is valid only for an explicit revocation policy that also sets expires_at."
+      "description": "Which proof families this policy authorizes for recovery and root-anchored device re-entry. Each entry constrains the matching proof kind defined in device-lifecycle.md §14. Empty array is valid only for an explicit revocation policy that also sets expires_at."
     },
     "publication_authorization_rules": {
       "type": "array",
       "minItems": 0,
       "maxItems": 5,
       "uniqueItems": true,
-      "description": "Signed, deterministic projection inputs for B-model re-anchor publication. Exactly one rule per allowed_proof_kinds entry; an explicit revocation policy carries an empty array. Receivers rederive each issuer from the policy and its acceptance basis before trusting this declaration.",
+      "description": "Signed, deterministic projection inputs for root-anchored re-anchor publication. Exactly one rule per allowed_proof_kinds entry; an explicit revocation policy carries an empty array. Receivers rederive each issuer from the policy and its acceptance basis before trusting this declaration.",
       "items": {
         "type": "object",
         "required": [
@@ -263,7 +263,7 @@
           },
           "authorization_verification_method": {
             "$ref": "#/$defs/did_url",
-            "description": "Exact service verification method authorized to sign a B-model re-anchor publication lease. Its controller DID MUST equal service_id at the policy acceptance basis."
+            "description": "Exact service verification method authorized to sign a root-anchored re-anchor publication lease. Its controller DID MUST equal service_id at the policy acceptance basis."
           },
           "attestation_required": {
             "type": "boolean",
@@ -275,7 +275,6 @@
               "type": "string",
               "enum": [
                 "ak.device.authorize",
-                "ak.cross_signing.reset",
                 "ak.recovery_policy.rotate"
               ]
             },
@@ -367,7 +366,7 @@
       "properties": {
         "verification_method": {
           "$ref": "#/$defs/did_url",
-          "description": "DID URL identifying the authorized issuer: bootstrap-accepted first device for genesis; current SSK for later A-model updates; current-generation accepted device for later B-model updates; or a coordinator satisfying the superseded policy quorum. Receivers resolve this semantic authority from accepted principal-control state, not from arbitrary DID Document membership."
+          "description": "DID URL identifying the authorized issuer: founding device after genesis; current-generation accepted device for later updates; identity root for re-anchor; or a coordinator satisfying the superseded policy quorum. Receivers resolve this semantic authority from accepted principal-control state, not from arbitrary DID Document membership."
         },
         "signature_algorithm": {
           "type": "string",
@@ -863,7 +862,7 @@
     },
     "recovery_key_entry": {
       "type": "object",
-      "description": "A recovery signing key the principal authorizes for 'recovery_unlock' proofs and post-reconstruction 'threshold_recovery' publication signatures. The verification_method is the stable recovery_secret_ref and publication-rule issuer; public_key_multibase carries the actual signing public key so B-model principals do not depend on a DID Document verificationMethod. key_agreement_ref pairs this signer with a distinct backup-only recovery_key_agreements[] entry.",
+      "description": "A recovery signing key the principal authorizes for 'recovery_unlock' proofs and post-reconstruction 'threshold_recovery' publication signatures. The verification_method is the stable recovery_secret_ref and publication-rule issuer; public_key_multibase carries the actual signing public key so principals do not depend on a DID Document verificationMethod. key_agreement_ref pairs this signer with a distinct backup-only recovery_key_agreements[] entry.",
       "required": [
         "verification_method",
         "public_key_multibase",

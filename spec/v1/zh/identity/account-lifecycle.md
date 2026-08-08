@@ -34,43 +34,33 @@ Arkret 身份由 DID principal 表示，但用户访问通常经过一个或多�
 
 ### 2.1.1 Account-first onboarding
 
-实现 MAY 提供 account-first 体验：用户先通过 `@alice:example.org`、邮箱、手机号、企业 SSO、OIDC 或邀请链接完成注册和登录，客户端不要求用户理解或手动输入 DID。
+用户可以先完成邮箱、passkey、OIDC/SSO 或企业账号登录，而无需理解 DID。但未完成 principal binding 的 session 只能执行 registration/risk/device initialization，不能作为最终 actor 写 Realm、MLS、capability 或 federation state。
 
-在这种模式下，account service / auth service MUST 在允许持久写入前完成以下动作之一：
+客户端必须在首个网络副作用前本地生成并 durable 保存 recovery/identity-root、device identity、HPKE、DPoP keys 与完整 onboarding draft。服务端不得生成或持有 identity root/device private key。PCR genesis accepted 后仍必须完成首个 Seal、genesis recovery policy 与 `did_recovery` backup，才能解除 `recovery_material_pending` 业务写门。
 
-- 绑定到用户已控制的 principal DID，并验证 DID proof、device binding 或等价 session grant。
-- 由客户端创建并签名受支持的 principal DID，服务只托管已签名 history/提供 enrollment authority，并记录 delegation、recovery policy、trust domain、service-account 绑定和审计证据；服务不得生成或持有 identity root。
+### 2.1.2 Account handoff、PCR genesis 与首次 Standard grant（normative）
 
-account-first DID 分支必须执行 [`key-management.md` §5.0.1](./key-management.md) 的两道门：entry 0 发布前完成 custody confirmation；bootstrap 后只允许 gate-closing 首个 Seal、genesis recovery policy 与 `did_recovery` material，直至 recovery-material gate 完成。`personal_node + single_point_of_failure=true` 只允许以本地持久化替代人工抄录确认，不得跳过同一恢复状态标记与持续风险提示。
+Account Authority 必须使用 holder-bound handoff；普通 OAuth token、OIDC `id_token`、refresh token 或 browser cookie 不能直接成为 Arkret registration authority。固定流程如下：
 
-未绑定 DID 的 session MAY 执行注册、风险检查、邀请预览、邮箱验证、设备初始化等 pre-registration 操作；MUST NOT 作为最终 actor 提交 Realm Event、capability grant、MLS membership、service delegation 或 federation transaction。
+1. 客户端提交 OIDC code exchange proof 与 RFC 9449 DPoP；Account Authority 验 issuer/client/redirect/state/nonce/PKCE 并返回最多 1 hour 的 opaque `account_handoff_grant`。handoff 只允许 challenge/register，不是 SessionGrant，不能访问 `/_arkret/self/*`。
+2. Account Authority 原子取得最多 15 minutes 的 `identity_creation_lease`，持久化 `(service_account,audience,lease_id,holder_jkt,fence,expires_at,reserved_principal_id?,reserved_operation_digest?,state)`；同一账号同一 audience 同时只有一个 live holder。
+3. 客户端生成并签署 did:webvh entry 0、确定性 PCR id、`FoundingDeviceDescriptor` 与 ordered genesis unit。它还构造 `InitialSessionGrantRequest {device_id,session_public_key,audience,requested_scope}`；`session_public_key` 是当前 handoff DPoP public JWK 的 RFC 8785 canonical string，其 RFC 7638 thumbprint必须等于 handoff `cnf.jkt`。
+4. challenge 与 `identity_creation_control_proof` 必须承诺 principal/PCR id、DID operation digest、create payload digest、founding authorize payload digest、`initial_session_request_digest`、closed unit kinds、lease/fence、DPoP JKT、audience/origin/trust-domain 与最多 300 秒窗口。对 did:webvh，proof key只能是 entry 0 `parameters.updateKeys[0]`，不能从 DID Document authentication/service fragment 选择。Event id 与 envelope digest 禁止进入 transcript。
+5. `register` 携带 exact DID operation、root control proof、`pcr_genesis_unit` 与 `initial_session`。Account Authority CAS 验证 holder/lease/fence/reservation/challenge，冻结 canonical request，再执行单调 saga：
 
-如果用户后续改用自有 DID、pairwise DID 或组织私有 DID，服务 MAY 根据 policy 迁移 handle、service account binding、credential 或后续写入身份。历史 Event 的 `actor_id` 和 grant `subject` MUST NOT 被改写；需要表达迁移时，应发布显式 claim、attestation、profile update 或 account binding record。
+```text
+reserved -> did_published -> pcr_accepted -> account_bound -> completed
+```
 
-### 2.1.2 Account handoff 与首次 DID 绑定
+6. Account Authority 发布 exact client-signed DID operation，并通过 `ak.peer.principal_genesis.command.submit` 原样 relay genesis unit。S2S signature 只认证 transport/correlation；Principal Server 必须独立验证 root/device proofs、descriptor/payload commitments、deterministic PCR、empty frontier、create-once 与 atomicity。
+7. Principal Server 返回 durable batch receipt，`scope.kind="pcr_genesis_unit"`。Account Authority 必须验证 receipt 的 principal/PCR/device/key/HPKE、两条 Event digest、accepted frontier/Seal basis 与 frozen registration 逐字一致，才可提交一账号一 principal binding。
+8. Account Authority 随后从 issuer ledger 签发 `credential_class="standard"` grant。`InitialSessionGrantRequest.device_id` 必须等于 founding descriptor；public JWK thumbprint必须等于 handoff/control proof DPoP JKT；audience/scope必须在 handoff ceiling 内。`pcr_accepted` 前不得签发 principal grant；account binding commit 后签发超时只能 exact replay issuer ledger，不能重建 PCR。
 
-采用 §2.1.1 account-first DID 分支的 Account Authority MUST 实现本节的 holder-bound handoff；不得把普通 OAuth access token、OIDC `id_token`、可续期 refresh token 或未绑定 holder 的 browser cookie 直接当作 Arkret 注册权限。Canonical HTTP binding 与 DTO 见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md) 和 `account-operations.schema.json`。
+整个 register 以 `(service_account,principal_id,operation_digest)` 与 idempotency key 做 exact replay：相同 bytes 返回同一 saga/receipt/grant outcome；同 key 不同 bytes、账号/principal 冲突或 genesis digest 变化必须零写入失败。一个 Account Authority 下一个 service account 只绑定一个 active principal，一个 principal 也只绑定一个 active account。
 
-`service_account -> principal_id` binding record 仍是 Account Authority 的部署本地状态，不进入 federation，也不成为跨部署 canonical identity fact。本节升格为 canonical 的是**客户端与 Account Authority 之间的绑定仪式**：holder constraint、lease/fence、challenge transcript、DID control proof、幂等与错误语义必须跨实现一致，客户端不能为每个 Account Authority 私有适配一条安全边界不同的 endpoint。实现可自由选择本地表结构，但不得把 canonical ceremony 降级回 `/_<impl>/*` 私有客户端协议。
+若设备在 PCR accepted 前物理损毁，新 holder 在旧 lease 过期后可递增 fence、继承 principal/DID reservation，用同一 identity root 对新 challenge 与新 founding device unit重签。deterministic PCR create-once 使并发 unit 只有一个 winner；若旧 unit 已先 accepted，新设备必须走 root re-anchor，不能再次 genesis。若 PCR 未 accepted 且 identity root 也丢失，可在强 re-auth、风险检查和 cooldown 后显式放弃 provisional identity并新建 root/DID/PCR；旧 entry 0 是 orphan anchor，必须 tombstone/audit、不得复用或声称连续性，handle 释放遵守独立 namespace policy。PCR 已 accepted 且无可满足 recovery proof 时必须 fail closed。
 
-流程固定为：
-
-1. 客户端对 `ak.gate.account.exchange.create_handoff` 提交 OIDC authorization code exchange proof，并同时提交 RFC 9449 DPoP proof。Account Authority 必须在 authorize transaction 中预先生成并持久化 body proof challenge，换码时一并校验和消费；Account Authority 自己向 issuer `token_endpoint` 换码、验证 issuer / client / redirect / state / nonce / PKCE，并要求 body proof 的 holder signature 与 DPoP JWK 是同一把 Ed25519 key。
-2. Account Authority 返回默认且最大 TTL 为 1 hour 的短期 opaque `account_handoff_grant`，并返回已认证 service account 的 canonical `account_handle`，供客户端显示账号及命名本地恢复文件。`account_handle` 是 unsigned UX hint，MUST NOT 被当作 principal 身份证据、授权事实或 `service_account -> principal_id` binding；客户端不得由它推导 DID。handoff 凭据 MUST 绑定 service account、Account Authority audience 与 `cnf.jkt`，MUST NOT 是 `ak.session.grant`，MUST NOT 有 refresh-token 语义，且允许的 operation 集 MUST 精确为 `ak.gate.account.command.issue_identity_binding_challenge`、`ak.gate.account.command.register`、`ak.gate.account.command.issue_session_grant`。它不得认证任何 `/_arkret/self/*`、`/_arkret/root/*`、Realm Event、capability、MLS、service delegation 或 federation 写入。
-3. 未绑定账号在同一原子步骤取得 `identity_creation_lease`。租约默认且最大 TTL 为 15 minutes；租约至少持久化 `(service_account, audience, identity_creation_lease_id, holder_jkt, fence, expires_at, reserved_principal_id?, reserved_operation_digest?, state)`；一个 `(service_account, audience)` 同时最多一个未过期 holder。相同 holder 可续租；不同 holder 在租约未过期时只能得到 `identity_creation_busy` 状态，不得取得 fence 或 challenge。
-4. 客户端只在本地生成 recovery secret、identity root、next root 与 entry 0 draft，并在发布前完成 custody confirmation；只有 gate 通过后才用 `root_0` 产生 entry 0 method-native controller proof，得到完整签名 DID operation。客户端随后以 handoff + DPoP 调用 `ak.gate.account.command.issue_identity_binding_challenge`，提交这份完整但尚未由客户端直接发布的 operation。Account Authority MUST 验证 operation 形态与 method-native controller proof、从 operation 导出 `principal_id` 与 canonical `operation_digest`，并持久化这份**公开** checkpoint；`operation_digest` 固定为 `sha256:` + `lowercase_hex(SHA-256(RFC8785_JCS(did_operation)))`。checkpoint MUST NOT 包含恢复词、seed、identity-root private key、HKDF PRK 或其可逆封装。
-5. Account Authority 生成并持久化一次性 challenge。challenge transcript MUST 绑定 `purpose="account_binding"`、service account（只需服务端状态持有，不得暴露可关联的本地 account id）、`principal_id`、`operation_digest`、`identity_creation_lease_id`、`lease_fence`、`holder_jkt`、Account Authority audience、origin、trust domain、`issued_at`、`expires_at` 与不可预测 nonce；`expires_at - issued_at` MUST ≤ 300 秒。challenge 状态 MUST 位于所有实例共享的 durable store，不能只放进程内 memory；同一 challenge 成功消费一次后，任何重放都 MUST fail closed。
-6. 客户端用 entry 0 的 method-native inception control key 签 `identity_creation_control_proof`。对 v1 默认 `did:webvh`，验证 key MUST 是所提交 entry 0 `parameters.updateKeys[0]`，并与 proof 的 `verification_key_multibase` byte-identical；root 不在 DID Document `verificationMethod` 中，验证器不得把“解析已发布 DID 再选 authentication VM”的普通 DID proof 路径误用于此次 inception proof，也不得信任请求另带的任意公钥。
-7. 客户端以同一 handoff + DPoP 调用 canonical `ak.gate.account.command.register`，携带当前 lease/fence、原样 DID operation 与 control proof。Account Authority MUST 先 CAS 校验 account / holder / lease / fence / reservation / challenge，再验证 root signature；随后由 Account Authority 内部调用 identity registry 提交 DID operation。只有返回 `accepted`，或返回 `duplicate` 且 canonical operation bytes 与已接受 entry 完全相同、`head_event_digest` 可验证时，才可写 `service_account -> principal_id` verified binding。客户端在该 account-first strand 中 MUST NOT 绕过 register 直接发布 entry 0。
-8. 绑定完成后，同一未过期 handoff MAY 以 `SessionGrantRequestBody.proof.proof_kind="pre_registration_handoff"` 调用 `issue_session_grant`。请求仍 MUST 明示已经 verified binding 的 `principal_id`，Authorization 必须是 `DPoP <account_handoff_grant>` 并携带匹配 DPoP proof；Account Authority 必须比较 handoff 所属 service account 与该 binding。签发使用 issuer ledger，不要求 principal control realm 已 bootstrap，也不产生 SessionGrant Event。该 one-shot handoff 与 canonical grant intent 组成稳定 request identity；commit 后响应丢失时，exact replay MUST 在重新验证 holder/DPoP/target/digest 后返回 byte-identical outcome，而不是再次消费 handoff 或生成第二个 grant。handoff 过期时客户端重新认证；不得把 handoff 扩成长期 refresh credential。
-
-采用 B 模型的部署必须由 Principal Server 的部署配置在 `/_arkret/describe` 的 `auth_metadata.account_authority.enrollment_authority_did` pin 首设备入册权威。客户端生成 entry 0 时只使用该部署 pin，并在 Account Authority `describe` 返回同名值时要求二者相等；Account Authority 自身的响应不能成为该 DID 的初始信任源。缺少 pin 或不一致时必须在生成、发布 entry 0 前 fail closed。
-
-`register` 的 identity-creation 分支 MUST 按 `(service_account, principal_id, operation_digest)` 幂等。服务端至少持久化 `reserved -> published -> bound` 进度：registry 已接受但本地 binding 尚未提交时，只能为原 service account 重试完成同一个 binding，不能回滚成“未发布”、不能改绑另一账号，也不能允许新租约改选另一 `principal_id`。相同完整请求重放必须返回已存 outcome 或等价 `duplicate` receipt；challenge 的单次消费与最终 binding commit 必须由同一 durable saga / transaction fence 保护。
-
-如果客户端丢失 handoff holder key，未过期租约不会转让。租约过期后，同一 service account 的新认证 holder MAY 原子递增 fence、取得新 lease，并继承已保留的 `principal_id`、operation digest 与公开 DID operation；旧 fence 从此永久失效。新 holder 仍 MUST 用相同 identity root 对新 challenge 产生 fresh control proof，才能完成 register。只有恢复词而没有旧 DPoP key 的用户因此仍能续跑，但不能用新 holder 改选另一 DID 来覆盖已预留身份。
-
-Account Authority 与客户端 UI MUST 把 service-account 认证凭据（密码、passkey、OIDC/SSO session）和 principal recovery secret 说明为两套正交凭据：重置账号密码只恢复 service account 访问，不恢复、轮换或导出 DID root；输入 recovery secret 只证明或恢复 principal 控制，不重置 service-account 密码。UI 不得用同一个“恢复密钥/恢复账号”标签把两类权力合并描述。
+账号认证凭据与 principal Recovery Key 是两套正交权力：重置账号密码不能轮换 DID、授权设备或解密 E2EE；Recovery Key 也不能重置账号密码。
 
 ### 2.1.3 SessionGrant 不确定结果与开发期 clean break
 
@@ -213,7 +203,7 @@ principal、PCR 与 issuer 全字段绑定。响应 `account_status_authoring_ba
 两种 frontier、account/principal/PCR/issuer 任一不一致、Seal 不可解析、governance health 非健康、authority
 evidence 过期或 hosting service 无 current accepted view 时 MUST fail closed（`frontier_unavailable` / 对应认证
 错误）。该 query 不签发 authority、不接受 Event、不推进 frontier，也不得返回 synthetic empty PCR。仅注册
-bootstrap unit 可按通用 Events 规则本地派生 genesis basis；既有 PCR 的 Account Authority 不得使用空
+PCR genesis unit 可按专用原子 admission 规则派生 genesis basis；既有 PCR 的 Account Authority 不得使用空
 `prev_refs`、空 `seal_basis`、peer opaque frontier root 或实现私有 DTO 代替本操作。
 
 - `publication` 只允许一条完整 `ak.account.status` Event。首次 Account Authority publication 只携 `event`；下游 fanout 携同一原始 Event 与此前 receiver 签发的 `account_status_receipts[]`。每份专用 receipt 闭合绑定 `receipt_id`、Event id/digest、account/principal/PCR、`receiver_service_id`、accepted frontier digest 与 `accepted_at`，proof context 固定为 `ak.account_status.ingress_receipt.v1`；proof controller 必须是 `receiver_service_id`，且 receipt 中的绑定字段必须与 Event/authority evidence 逐字一致。它只证明该 receiver 已把 Event accepted 进本地 account-status frontier，不授予发布 authority。两条 publication 分支都禁止 AuthorizationLease，也禁止复用 generic `IngressReceipt`（后者结构上必含 `authorization_lease_id`）：account status 是高风险在线写入，receiver 必须按当前 authority / binding / revocation state admission，不能用旧 lease 延长发布窗口。

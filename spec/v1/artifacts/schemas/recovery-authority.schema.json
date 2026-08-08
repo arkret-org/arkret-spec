@@ -1,43 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-authority.schema.json",
-  "title": "Arkret Recovery Authority Ticket",
-  "description": "Principal Server signed, transaction-bound one-time authorization for an Account Authority to mint the fixed enrollment-authority recovery device authorization Event.",
-  "$ref": "#/$defs/recovery_authority_ticket",
+  "title": "Arkret Recovery Completion Carriers",
+  "description": "Closed recovery completion attestation and Standard-grant issuance carriers. Device re-anchor authorization is root-anchored and requires no Account Authority ticket or temporary recovery grant.",
   "$defs": {
-    "hash": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-    },
-    "recovery_holder_jkt": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]{43}$",
-      "description": "RFC 7638 SHA-256 JWK thumbprint of the verified recovery-session holder key, encoded base64url without padding."
-    },
-    "transaction_id": {
-      "type": "string",
-      "pattern": "^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "authority_ticket_id": {
-      "type": "string",
-      "pattern": "^ak:recovery_authority_ticket:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "recovery_session_id": {
-      "type": "string",
-      "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "event_id": {
-      "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-    },
-    "receipt_id": {
-      "type": "string",
-      "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "did_generation_ref": {
-      "type": "string",
-      "pattern": "^[1-9][0-9]*-[^\\s]+$"
-    },
     "canonical_public_material": {
       "type": "object",
       "description": "Typed public material plus the exact canonical bytes persisted by the coordinator. canonical_bytes_base64url MUST decode to the canonical JSON/CBOR representation of value and digest MUST recompute over those bytes.",
@@ -70,527 +36,87 @@
       },
       "additionalProperties": false
     },
-    "replacement_device_possession_proof": {
-      "type": "object",
-      "required": [
-        "verification_method",
-        "signature_algorithm",
-        "transcript_digest",
-        "signature"
-      ],
-      "properties": {
-        "verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
-        },
-        "signature_algorithm": {
-          "type": "string",
-          "const": "Ed25519"
-        },
-        "transcript_digest": {
-          "$ref": "#/$defs/hash",
-          "description": "Digest of the exact ak.device-authorize-possession-v1 input for the fixed authorize Event payload. Transaction, generation, frontier and planned Event bindings are supplied by the ticket over the closed authorization preimage."
-        },
-        "signature": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$"
-        }
-      },
-      "additionalProperties": false
+    "did_generation_ref": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*-[^\\s]+$"
     },
-    "authorize_event_publication_intent": {
-      "type": "object",
-      "description": "Closed publication fields fixed before the Account Authority produces the signed ak.device.authorize Event and its lease. The authority MUST derive and compare these fields against authorize_event_preimage before signing.",
-      "required": [
-        "event_id",
-        "event_preimage_digest",
-        "actor_id",
-        "device_id",
-        "scope_ref",
-        "action",
-        "authorization_rule_id",
-        "risk_tier",
-        "basis_ref",
-        "authority_set_ref",
-        "authority_set_policy",
-        "cba_proof_bundles"
-      ],
-      "properties": {
-        "event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "event_preimage_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
-        },
-        "device_id": {
-          "$ref": "./common-ids.schema.json#/$defs/device_id"
-        },
-        "scope_ref": {
-          "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
-        },
-        "action": {
-          "const": "ak.device.authorize"
-        },
-        "authorization_rule_id": {
-          "const": "account_authority"
-        },
-        "risk_tier": {
-          "type": "string",
-          "enum": [
-            "low",
-            "medium",
-            "high"
-          ],
-          "description": "Recovery authorize publication MUST use high; the complete ordered enum is retained here for the shared risk-tier registry lint."
-        },
-        "basis_ref": {
-          "$ref": "./offline-publication.schema.json#/$defs/authorization_lease/properties/basis_ref"
-        },
-        "authority_set_ref": {
-          "$ref": "./offline-publication.schema.json#/$defs/authority_set_ref"
-        },
-        "authority_set_policy": {
-          "$ref": "./offline-publication.schema.json#/$defs/authority_set_policy",
-          "description": "Concrete pre-fence Account Authority policy. Its sole recovery issuer MUST be resolved from the accepted previous DID document; the candidate DID entry cannot create or replace it for this transaction."
-        },
-        "cba_proof_bundles": {
-          "type": "array",
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./cba-proof-bundle.schema.json"
-          }
-        }
-      },
-      "additionalProperties": false
+    "event_id": {
+      "type": "string",
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
-    "authorization_preimage": {
-      "type": "object",
-      "description": "Closed Account Authority input fixed by the RecoveryTransaction before ticket issuance. It contains no recovery secret or private key.",
-      "required": [
-        "principal_id",
-        "replacement_device_id",
-        "device_public_key",
-        "hpke_key",
-        "algorithms",
-        "recovery_session_id",
-        "policy_id",
-        "policy_version",
-        "trust_domain",
-        "account_authority_id",
-        "recovery_holder_jkt",
-        "identity_model",
-        "previous_model_generation_ref",
-        "result_model_generation_ref",
-        "registry_previous_head",
-        "did_entry_ref",
-        "did_entry_digest",
-        "did_entry_preimage",
-        "reanchor_event_id",
-        "authorize_event_id",
-        "actor_seq",
-        "pre_fence_frontier_digest",
-        "not_before",
-        "authorize_event_preimage",
-        "authorize_event_publication_intent",
-        "possession_proof"
-      ],
-      "properties": {
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
-        },
-        "replacement_device_id": {
-          "$ref": "./common-ids.schema.json#/$defs/device_id"
-        },
-        "device_public_key": {
-          "type": "string",
-          "minLength": 1
-        },
-        "hpke_key": {
-          "type": "string",
-          "minLength": 1
-        },
-        "algorithms": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "recovery_session_id": {
-          "$ref": "#/$defs/recovery_session_id"
-        },
-        "policy_id": {
-          "type": "string",
-          "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "policy_version": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "trust_domain": {
-          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
-        },
-        "account_authority_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did",
-          "description": "Account Authority service DID fixed by the prepared plan before ticket issuance. The issued ticket audience and consuming service MUST equal this value."
-        },
-        "recovery_holder_jkt": {
-          "$ref": "#/$defs/recovery_holder_jkt",
-          "description": "Holder key thumbprint copied only from the Principal Server's verified recovery session/grant binding."
-        },
-        "identity_model": {
-          "type": "string",
-          "const": "enrollment_authority"
-        },
-        "previous_model_generation_ref": {
-          "$ref": "#/$defs/did_generation_ref"
-        },
-        "result_model_generation_ref": {
-          "$ref": "#/$defs/did_generation_ref"
-        },
-        "registry_previous_head": {
-          "type": "string",
-          "minLength": 1
-        },
-        "did_entry_ref": {
-          "type": "string",
-          "minLength": 1
-        },
-        "did_entry_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "did_entry_preimage": {
-          "$ref": "#/$defs/canonical_public_material",
-          "description": "Canonical JSON of the prepared did:webvh entry that will become did_entry_ref. Its bytes and digest MUST equal the enclosing RecoveryTransaction prepared did_publication material. The Account Authority verifies this candidate against the independently resolved previous head before signing; it MUST NOT publish the entry."
-        },
-        "reanchor_event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "authorize_event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "actor_seq": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "pre_fence_frontier_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "not_before": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "authorize_event_preimage": {
-          "$ref": "#/$defs/canonical_public_material"
-        },
-        "authorize_event_publication_intent": {
-          "$ref": "#/$defs/authorize_event_publication_intent"
-        },
-        "possession_proof": {
-          "$ref": "#/$defs/replacement_device_possession_proof"
-        }
-      },
-      "additionalProperties": false
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
-    "ticket_issue_request": {
+    "issue_recovery_completion_grant_outcome": {
       "type": "object",
       "required": [
         "transaction_id",
-        "transaction_request_digest",
-        "prepared_plan_digest",
-        "authority_ticket_id",
-        "expected_next_step"
+        "session_grant_outcome",
+        "issued_at"
       ],
       "properties": {
         "transaction_id": {
           "$ref": "#/$defs/transaction_id"
         },
-        "transaction_request_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "prepared_plan_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "authority_ticket_id": {
-          "$ref": "#/$defs/authority_ticket_id"
-        },
-        "expected_next_step": {
-          "type": "string",
-          "const": "issue_authority_ticket"
-        }
-      },
-      "additionalProperties": false
-    },
-    "recovery_authority_ticket": {
-      "type": "object",
-      "required": [
-        "schema",
-        "ticket_id",
-        "transaction_id",
-        "transaction_request_digest",
-        "prepared_plan_digest",
-        "principal_id",
-        "recovery_session_id",
-        "policy_id",
-        "policy_version",
-        "trust_domain",
-        "principal_server_id",
-        "account_authority_id",
-        "recovery_holder_jkt",
-        "replacement_device_id",
-        "previous_model_generation_ref",
-        "result_model_generation_ref",
-        "registry_previous_head",
-        "did_entry_ref",
-        "did_entry_digest",
-        "reanchor_event_id",
-        "authorize_event_id",
-        "authorization_preimage_digest",
-        "possession_proof_digest",
-        "issued_at",
-        "expires_at",
-        "auth_data"
-      ],
-      "properties": {
-        "schema": {
-          "const": "ak.schema.recovery_authority_ticket.v1"
-        },
-        "ticket_id": {
-          "$ref": "#/$defs/authority_ticket_id"
-        },
-        "transaction_id": {
-          "$ref": "#/$defs/transaction_id"
-        },
-        "transaction_request_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "prepared_plan_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
-        },
-        "recovery_session_id": {
-          "$ref": "#/$defs/recovery_session_id"
-        },
-        "policy_id": {
-          "type": "string",
-          "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "policy_version": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "trust_domain": {
-          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
-        },
-        "principal_server_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
-        },
-        "account_authority_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
-        },
-        "recovery_holder_jkt": {
-          "$ref": "#/$defs/recovery_holder_jkt"
-        },
-        "replacement_device_id": {
-          "$ref": "./common-ids.schema.json#/$defs/device_id"
-        },
-        "previous_model_generation_ref": {
-          "$ref": "#/$defs/did_generation_ref"
-        },
-        "result_model_generation_ref": {
-          "$ref": "#/$defs/did_generation_ref"
-        },
-        "registry_previous_head": {
-          "type": "string",
-          "minLength": 1
-        },
-        "did_entry_ref": {
-          "type": "string",
-          "minLength": 1
-        },
-        "did_entry_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "reanchor_event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "authorize_event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "authorization_preimage_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "possession_proof_digest": {
-          "$ref": "#/$defs/hash"
+        "session_grant_outcome": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantOutcome"
         },
         "issued_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "expires_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp",
-          "description": "MUST be after issued_at and no more than 300 seconds later."
-        },
-        "auth_data": {
-          "type": "object",
-          "required": [
-            "verification_method",
-            "signature_algorithm",
-            "signature",
-            "signed_fields"
-          ],
-          "properties": {
-            "verification_method": {
-              "$ref": "./common-ids.schema.json#/$defs/did_url"
-            },
-            "signature_algorithm": {
-              "type": "string",
-              "enum": [
-                "Ed25519",
-                "ML-DSA-65"
-              ]
-            },
-            "signature": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9_-]+$"
-            },
-            "signed_fields": {
-              "type": "array",
-              "const": [
-                "schema",
-                "ticket_id",
-                "transaction_id",
-                "transaction_request_digest",
-                "prepared_plan_digest",
-                "principal_id",
-                "recovery_session_id",
-                "policy_id",
-                "policy_version",
-                "trust_domain",
-                "principal_server_id",
-                "account_authority_id",
-                "recovery_holder_jkt",
-                "replacement_device_id",
-                "previous_model_generation_ref",
-                "result_model_generation_ref",
-                "registry_previous_head",
-                "did_entry_ref",
-                "did_entry_digest",
-                "reanchor_event_id",
-                "authorize_event_id",
-                "authorization_preimage_digest",
-                "possession_proof_digest",
-                "issued_at",
-                "expires_at"
-              ]
-            }
-          },
-          "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
-    "authorize_recovery_device_request": {
+    "issue_recovery_completion_grant_request": {
       "type": "object",
       "required": [
-        "ticket",
-        "authorization_preimage",
-        "canonical_request_digest",
-        "holder_proof"
-      ],
-      "properties": {
-        "ticket": {
-          "$ref": "#/$defs/recovery_authority_ticket"
-        },
-        "authorization_preimage": {
-          "$ref": "#/$defs/authorization_preimage"
-        },
-        "canonical_request_digest": {
-          "$ref": "#/$defs/hash",
-          "description": "SHA-256 of JCS(request object with canonical_request_digest and holder_proof.proof_jwt omitted). holder_proof.dpop_jkt and every business field remain covered; proof_jwt carries this digest as its RFC 9449 nonce."
-        },
-        "holder_proof": {
-          "type": "object",
-          "required": [
-            "dpop_jkt",
-            "proof_jwt"
-          ],
-          "properties": {
-            "dpop_jkt": {
-              "$ref": "#/$defs/recovery_holder_jkt"
-            },
-            "proof_jwt": {
-              "type": "string",
-              "minLength": 1,
-              "description": "RFC 9449 Ed25519 DPoP proof for this exact POST endpoint. Its nonce claim MUST equal canonical_request_digest."
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "authorize_recovery_device_outcome": {
-      "type": "object",
-      "required": [
-        "ticket_id",
         "transaction_id",
-        "authorize_event_id",
-        "authorized_event",
-        "authorized_event_digest",
-        "authorization_lease",
-        "cba_proof_bundles",
-        "authority_receipt_id",
-        "accepted_at"
+        "transaction_request_digest",
+        "terminal_receipt",
+        "completion_attestation",
+        "device_authorization_event_id",
+        "result_model_generation_ref",
+        "initial_session",
+        "canonical_request_digest"
       ],
       "properties": {
-        "ticket_id": {
-          "$ref": "#/$defs/authority_ticket_id"
-        },
         "transaction_id": {
           "$ref": "#/$defs/transaction_id"
         },
-        "authorize_event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "authorized_event": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": true,
-          "description": "Fully signed ak.device.authorize Event. It MUST byte-match the ticket-bound preimage and carry the service_attested enrollment authority binding."
-        },
-        "authorized_event_digest": {
+        "transaction_request_digest": {
           "$ref": "#/$defs/hash"
         },
-        "authorization_lease": {
-          "$ref": "./offline-publication.schema.json#/$defs/authorization_lease",
-          "description": "Authority-signed lease for the returned Event. Every non-signature field MUST equal the ticket-bound authorize_event_publication_intent."
+        "terminal_receipt": {
+          "$ref": "./recovery-receipt.schema.json"
         },
-        "cba_proof_bundles": {
-          "type": "array",
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./cba-proof-bundle.schema.json"
-          }
+        "completion_attestation": {
+          "$ref": "#/$defs/recovery_completion_attestation"
         },
-        "authority_receipt_id": {
-          "$ref": "#/$defs/receipt_id"
+        "device_authorization_event_id": {
+          "$ref": "#/$defs/event_id"
         },
-        "accepted_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
+        "result_model_generation_ref": {
+          "$ref": "#/$defs/did_generation_ref"
+        },
+        "initial_session": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/InitialSessionGrantRequest",
+          "description": "The Standard grant to issue after recovery. device_id MUST equal the attested replacement device and the RFC 7638 thumbprint of session_public_key MUST equal the Bound AccountHandoff and HTTP DPoP key."
+        },
+        "canonical_request_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "SHA-256 of JCS(request object with only canonical_request_digest omitted). The Bound AccountHandoff authorization and RFC 9449 HTTP DPoP proof authenticate the account and holder outside this closed business body."
         }
       },
       "additionalProperties": false
     },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "recovery_completion_attestation": {
       "type": "object",
-      "description": "Coordinator-signed proof created atomically with the durable completed RecoveryTransaction. It is the only offline completion evidence accepted by the Account Authority during recovery grant promotion.",
+      "description": "Coordinator-signed proof created atomically with the durable completed RecoveryTransaction. It is the only offline completion evidence accepted by the Account Authority when issuing the post-recovery Standard grant.",
       "required": [
         "schema",
         "transaction_id",
@@ -646,15 +172,7 @@
           "$ref": "#/$defs/hash"
         },
         "result_model_generation_ref": {
-          "oneOf": [
-            {
-              "type": "integer",
-              "minimum": 1
-            },
-            {
-              "$ref": "#/$defs/did_generation_ref"
-            }
-          ]
+          "$ref": "#/$defs/did_generation_ref"
         },
         "completed_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -704,97 +222,24 @@
       },
       "additionalProperties": false
     },
-    "promote_recovery_session_grant_request": {
-      "type": "object",
-      "required": [
-        "old_grant_id",
-        "transaction_id",
-        "transaction_request_digest",
-        "terminal_receipt",
-        "completion_attestation",
-        "device_authorization_event_id",
-        "result_model_generation_ref",
-        "canonical_request_digest",
-        "holder_proof"
-      ],
-      "properties": {
-        "old_grant_id": {
-          "$ref": "./common-ids.schema.json#/$defs/grant_id"
-        },
-        "transaction_id": {
-          "$ref": "#/$defs/transaction_id"
-        },
-        "transaction_request_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "terminal_receipt": {
-          "$ref": "./recovery-receipt.schema.json"
-        },
-        "completion_attestation": {
-          "$ref": "#/$defs/recovery_completion_attestation"
-        },
-        "device_authorization_event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "result_model_generation_ref": {
-          "oneOf": [
-            {
-              "type": "integer",
-              "minimum": 1
-            },
-            {
-              "$ref": "#/$defs/did_generation_ref"
-            }
-          ]
-        },
-        "canonical_request_digest": {
-          "$ref": "#/$defs/hash",
-          "description": "SHA-256 of JCS(request object with canonical_request_digest and holder_proof.proof_jwt omitted). holder_proof.dpop_jkt and every business field remain covered; proof_jwt carries this digest as its RFC 9449 nonce."
-        },
-        "holder_proof": {
-          "type": "object",
-          "required": [
-            "dpop_jkt",
-            "proof_jwt"
-          ],
-          "properties": {
-            "dpop_jkt": {
-              "$ref": "#/$defs/recovery_holder_jkt"
-            },
-            "proof_jwt": {
-              "type": "string",
-              "minLength": 1,
-              "description": "RFC 9449 Ed25519 DPoP proof for this exact POST endpoint. Its nonce claim MUST equal canonical_request_digest."
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
+    "recovery_session_id": {
+      "type": "string",
+      "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "promote_recovery_session_grant_outcome": {
-      "type": "object",
-      "required": [
-        "transaction_id",
-        "consumed_grant_id",
-        "new_grant",
-        "consumed_at"
-      ],
-      "properties": {
-        "transaction_id": {
-          "$ref": "#/$defs/transaction_id"
-        },
-        "consumed_grant_id": {
-          "$ref": "./common-ids.schema.json#/$defs/grant_id"
-        },
-        "new_grant": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantOutcome"
-        },
-        "consumed_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
+    "transaction_id": {
+      "type": "string",
+      "pattern": "^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     }
-  }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/recovery_completion_attestation"
+    },
+    {
+      "$ref": "#/$defs/issue_recovery_completion_grant_request"
+    },
+    {
+      "$ref": "#/$defs/issue_recovery_completion_grant_outcome"
+    }
+  ]
 }

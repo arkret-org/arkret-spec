@@ -33,6 +33,10 @@
       "pattern": "^[A-Za-z0-9_-]{43}$",
       "description": "Canonical unpadded Base64URL encoding of exactly 32 CSPRNG octets. It distinguishes event-derived creation intents and has no replay, ordering, authorization, freshness, or winner semantics."
     },
+    "founding_device_descriptor": {
+      "$ref": "#/$defs/founding_device_descriptor",
+      "description": "Principal Control Realm only. The identity root commits to the exact founding device material and the canonical founding authorize payload digest."
+    },
     "trust_domain": {
       "$ref": "./realm.schema.json#/$defs/trust_domain"
     },
@@ -88,9 +92,78 @@
       "else": {
         "required": [
           "genesis_salt"
-        ]
+        ],
+        "not": {
+          "required": [
+            "founding_device_descriptor"
+          ]
+        }
       }
     }
   ],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "$defs": {
+    "founding_device_descriptor": {
+      "type": "object",
+      "description": "Closed founding-device commitment embedded in the root-signed human Principal Control Realm genesis payload and required by pcr_genesis_unit. It is not an independent signed object. Managed Agent PCR creation uses its existing controller-authorized branch and omits this human-device descriptor.",
+      "required": [
+        "descriptor_version",
+        "device_id",
+        "device_public_key",
+        "device_key_digest",
+        "device_key_algorithm",
+        "device_key_purpose",
+        "hpke_key",
+        "hpke_key_digest",
+        "hpke_key_algorithm",
+        "algorithms",
+        "founding_authorize_payload_digest"
+      ],
+      "properties": {
+        "descriptor_version": {
+          "const": 1
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "device_public_key": {
+          "type": "string",
+          "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$"
+        },
+        "device_key_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/hash"
+        },
+        "device_key_algorithm": {
+          "const": "Ed25519"
+        },
+        "device_key_purpose": {
+          "const": "event_signing_and_mls_identity"
+        },
+        "hpke_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hpke_key_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/hash"
+        },
+        "hpke_key_algorithm": {
+          "const": "X25519"
+        },
+        "algorithms": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "founding_authorize_payload_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/hash",
+          "description": "Canonical digest of the proof-free founding ak.device.authorize payload. It MUST NOT be an Event id or envelope digest."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
 }

@@ -41,7 +41,6 @@ VECTOR_OUTPUT_FIELDS = {
 }
 BINDING_BY_CLASS = {
     "standard": "holder_binding",
-    "device_bootstrap": "bootstrap_binding",
     "recovery_restricted": "recovery_binding",
 }
 BINDING_FIELDS = set(BINDING_BY_CLASS.values())

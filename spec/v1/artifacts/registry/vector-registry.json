@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.10",
+  "version": "2026-08-09.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T20:00:00Z",
+  "generated_at": "2026-08-09T13:30:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -561,7 +561,7 @@
       "applies_to_fixtures": [
         "session-grant-issuance-fixture.json"
       ],
-      "description": "Closed SessionGrant issuance preimage JCS, SHA-256 suite-tagged typed ID and JWT jti recomputation; issuer domain separation; optional-field omission; credential-class holder/bootstrap binding inclusion and tamper rejection; canonical public-JWK normalization; durable exact replay, conflict and terminal replay outcomes; tampered nonce/claims/jti rejection.",
+      "description": "Closed SessionGrant issuance preimage, typed ID/JWT jti derivation, holder/recovery binding, canonical public-JWK normalization, durable exact replay, conflict and terminal outcomes.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json"
       ]
@@ -576,90 +576,6 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.device_bootstrap.founding_batch_digest.v1",
-      "status": "active",
-      "domain": "device_bootstrap",
-      "applies_to_fixtures": [
-        "device-bootstrap-fixture.json"
-      ],
-      "description": "Byte-exact domain-separated digest over the ordered [ak.realm.create, ak.device.authorize] Event IDs; sorting, deduplication, digest substitution and reversal fail closed.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.device_bootstrap.device_key_digest.v1",
-      "status": "active",
-      "domain": "device_bootstrap",
-      "applies_to_fixtures": [
-        "device-bootstrap-fixture.json"
-      ],
-      "description": "SHA-256 typed digest over the decoded raw 32-byte Ed25519 public key; equivalent multibase and base64url encodings converge and hashing either text form is rejected.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.device_bootstrap.canonical_request_digest.v1",
-      "status": "active",
-      "domain": "device_bootstrap",
-      "applies_to_fixtures": [
-        "device-bootstrap-fixture.json"
-      ],
-      "description": "RFC 8785/JCS and SHA-256 typed digest of the exact closed enroll_device body, including the complete proof-free device authorize Event preimage.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.device_bootstrap.holder_jkt.v1",
-      "status": "active",
-      "domain": "device_bootstrap",
-      "applies_to_fixtures": [
-        "device-bootstrap-fixture.json"
-      ],
-      "description": "RFC 7638 SHA-256 public-JWK thumbprint uses unpadded base64url and equals the credential cnf.jkt byte-for-byte.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.device_bootstrap.transaction_states.v1",
-      "status": "active",
-      "domain": "device_bootstrap",
-      "applies_to_fixtures": [
-        "device-bootstrap-fixture.json"
-      ],
-      "description": "The durable bootstrap lifecycle has exactly pending, accepted, cancelled and expired; bearer expiry is not a state transition and cancelled/expired permit exact replay only.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.device_bootstrap.issue_request.v1",
-      "status": "active",
-      "domain": "device_bootstrap",
-      "applies_to_fixtures": [
-        "device-bootstrap-fixture.json"
-      ],
-      "description": "The pre_registration_handoff branch requires the closed founding issue material and forbids caller-selected transaction, holder, derived digest, allowlist, and expiry fields; all non-handoff proof kinds reject that material.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.device_bootstrap.decision_fence.v1",
-      "status": "active",
-      "domain": "device_bootstrap",
-      "applies_to_fixtures": [
-        "device-bootstrap-fixture.json"
-      ],
-      "description": "Recomputes the cross-service cancellation request digest, terminal decision receipt digest, detached-JWS proof binding and deterministic receipt signature; also freezes exact replay, durable tombstone retention, atomic accepted-vs-cancel/expiry races and the DeviceBootstrap four-operation authorization boundary.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
       ]
     },
     {
@@ -1733,17 +1649,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.cross_signing.subordinate_key_binding.v1",
-      "status": "active",
-      "domain": "cross_signing",
-      "applies_to_fixtures": [
-        "cross-signing-binding-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/cross-signing-binding-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.crypto.keypackage_write_transcripts.v1",
       "status": "active",
       "domain": "crypto",
@@ -1800,19 +1705,7 @@
         "service-closure-hardening-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.device_trust.binding_input.v1",
-      "status": "active",
-      "domain": "device_trust",
-      "applies_to_fixtures": [
-        "cross-signing-binding-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/cross-signing-binding-fixture.json"
+        "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json"
       ]
     },
     {
@@ -3178,8 +3071,6 @@
         "ak.profile.identity_registry.v1"
       ],
       "source_refs": [
-        "spec/v1/zh/identity/key-management.md",
-        "spec/v1/zh/crypto-media/device-lifecycle.md",
         "spec/v1/zh/authz/event-auth-state-resolution.md",
         "spec/v1/zh/models/event-and-patch.md",
         "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json"
@@ -3271,6 +3162,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.identity.pcr_genesis.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "pcr-genesis-fixture.json"
+      ],
+      "description": "Root-committed FoundingDeviceDescriptor, device possession, one-way authorize payload digest binding, ordered atomic create-once PCR genesis unit, extended identity creation transcript, exact replay and mutation rejection.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.identity.producer_allocated_collision.v1",
       "status": "active",
       "domain": "identity",
@@ -3323,7 +3227,6 @@
       ],
       "source_refs": [
         "spec/v1/zh/identity/key-management.md",
-        "spec/v1/zh/authz/offline-publication.md",
         "spec/v1/artifacts/fixtures/recovery-policy-fixture.json"
       ],
       "description": "Threshold-recovery publication-signing-key closure, canonical recovery-policy EventInitialSubmission shape, PCR allowlist/reducer admission, acceptance-basis materialization and fail-closed retry semantics."
@@ -3354,7 +3257,6 @@
         "ak.profile.identity_registry.v1"
       ],
       "source_refs": [
-        "spec/v1/zh/identity/key-management.md",
         "spec/v1/zh/authz/event-auth-state-resolution.md",
         "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json"
       ]
@@ -3624,7 +3526,7 @@
       "applies_to_fixtures": [
         "keypackage-lifecycle-fixture.json"
       ],
-      "description": "Self KeyPackage claim requires exactly one fresh requester holder-acceptance proof bound to the proof-free request and authority DID. The (requester, claim_nonce) object identity atomically binds payload digest, KeyPackage CAS and byte-identical outcome; exact retry never claims twice and conflicting reuse fails before inventory lookup.",
+      "description": "Self KeyPackage claim requires exactly one fresh requester holder-acceptance proof from the PCR current accepted device, with canonical method {requester}#{requester_device_id} and explicit device authorization Event plus active generation evidence, bound to the proof-free request and authority DID. The (requester, claim_nonce) object identity atomically binds payload digest, KeyPackage CAS and byte-identical outcome; exact retry never claims twice and conflicting reuse fails before inventory lookup.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/crypto-media/device-lifecycle.md",
@@ -4172,6 +4074,7 @@
       "applies_to_fixtures": [
         "keypackage-lifecycle-fixture.json"
       ],
+      "description": "Welcome acceptance binds the claimed KeyPackage digest to the same PCR current accepted requester device, authorization Event and active model generation carried by the claim record; any device evidence or digest mismatch is rejected before decrypt.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"

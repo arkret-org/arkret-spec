@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-29",
+  "version": "2026-08-09.1",
   "source_of_truth": true,
   "description": "Canonical registry of authority-set policy symbols and deterministic projections from accepted CBA control state. Registry rows are templates, not authority: each lease carries the concrete AuthoritySetPolicy and its digest, and verifiers rederive it from basis_ref plus CBA closure.",
   "registry_rules": [
@@ -13,30 +13,6 @@
   ],
   "policies": [
     {
-      "authority_set_id": "ak.authority_set.recovery_cross_signing.v1",
-      "policy_kind": "principal_control",
-      "source_kind": "cross_signing_publish",
-      "fixed_rules": [
-        {
-          "rule_id": "cross_signing",
-          "issuer_role": "cross_signing_self_signing",
-          "allowed_actions": [
-            "ak.device.authorize",
-            "ak.device.list_update"
-          ],
-          "threshold": 1
-        }
-      ],
-      "projection": {
-        "scope_ref": "principal_control_realm",
-        "source_ref": "accepted_event_ref(ak.cross_signing.publish)",
-        "source_digest": "accepted_event_digest",
-        "generation_ref": "payload.ssk_generation(decimal)",
-        "issuer_verification_methods": "payload.self_signing_key.kid"
-      },
-      "defined_in": "zh/crypto-media/device-lifecycle.md#15-全部设备丢失后的恢复"
-    },
-    {
       "authority_set_id": "ak.authority_set.recovery_identity_reanchor.v1",
       "policy_kind": "principal_control",
       "source_kind": "recovery_policy",
@@ -48,29 +24,6 @@
         "generation_ref": "policy_version(decimal)",
         "basis_ref": "accepted_recovery_policy.acceptance_basis",
         "authorization_rules": "one rule per allowed proof kind; principal_signing/recovery_unlock/trusted service use threshold 1, device_quorum uses device_quorum.k, threshold_recovery uses its recovered signing key with threshold 1 (Shamir reconstruction k is not a signature quorum)"
-      },
-      "defined_in": "zh/crypto-media/device-lifecycle.md#15-全部设备丢失后的恢复"
-    },
-    {
-      "authority_set_id": "ak.authority_set.recovery_account_authority.v1",
-      "policy_kind": "principal_control",
-      "source_kind": "did_document",
-      "fixed_rules": [
-        {
-          "rule_id": "account_authority",
-          "issuer_role": "account_enrollment_authority",
-          "allowed_actions": [
-            "ak.device.authorize"
-          ],
-          "threshold": 1
-        }
-      ],
-      "projection": {
-        "scope_ref": "principal_control_realm",
-        "source_ref": "pre_fence_did_document.version_id",
-        "source_digest": "pre_fence_did_document.canonical_digest",
-        "generation_ref": "pre_fence_did_document.version_id",
-        "issuer_verification_methods": "ArkretDeviceEnrollmentAuthority.resolved_authority_verification_method"
       },
       "defined_in": "zh/crypto-media/device-lifecycle.md#15-全部设备丢失后的恢复"
     },

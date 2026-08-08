@@ -524,45 +524,17 @@ Claim 请求 MUST 绑定：
 
 Claim 成功后：
 
-- KeyPackage MUST 进入 `claimed`，并绑定 `claim_id`、requester、intended Realm、capability set、`keypackage_digest = canonical_digest(KeyPackage bytes)`、`capabilities_digest = sha256(JCS(claimed_capabilities))`、被 claim endpoint 当前 accepted trust binding 和 expiry。普通设备的 binding 是 cross-signing `ssk_generation` 或 service-attested / enrollment-authority `device_authorize_event_id`；独立 Native Agent runtime 的 binding 是 `agent_key_authorize_event_id`，引用其当前 active accepted `ak.agent.key.authorize`。三者 MUST 精确三选一。
-- 同一 KeyPackage 不得被第二个 Realm / MLS group、第二个 requester 或第二次 Welcome 重复使用。
-- Welcome 发送方 MUST 引用 `keypackage_ref` / `keypackage_digest` / `claim_id`，并在 `ak.mls.welcome.payload.claim_ref` 中携带 `{claim_id, keypackage_ref, keypackage_digest, capabilities_digest}` 以及 claimed endpoint 的 trust binding：cross-signing 设备携带 `ssk_generation`，service-attested / enrollment-authority 设备携带 `device_authorize_event_id`，独立 Native Agent runtime 携带 `agent_key_authorize_event_id`；三者 MUST 精确三选一。该 `claim_ref` MUST 进入 `governance_binding` transcript 或等价 Welcome AAD。接收端在解密 Welcome 前 MUST 校验：`claim_ref.claim_id` / `claim_ref.keypackage_ref` / `claim_ref.keypackage_digest` 与顶层字段一致，`claim_ref.keypackage_digest` 等于已发布 `ak.mls.keypackage.payload.keypackage_digest` 或重新获取 KeyPackage canonical bytes 后得到的 hash，`capabilities_digest == sha256(JCS(claimed_capabilities))`；设备分支还须分别匹配当前 accepted cross-signing generation 或当前未撤销 accepted `ak.device.authorize` Event；Agent 分支须把 `agent_key_authorize_event_id` resolve 为 claimed `principal_id` 当前 active accepted `ak.agent.key.authorize` Event，并要求该 Event 的 `verification_method` 与 KeyPackage MLS LeafNode `signature_key` 及发布 `device_signature.kid` 指向同一 Ed25519 key。任一分支被 revoke、supersede、过期或不匹配时，未消费 claim MUST 失效。本次 Welcome 要求的 capability / content profile 集合还必须是 `claimed_capabilities` 的子集；否则 fail closed，KeyPackage hash 或 capability 不匹配返回 `welcome_capability_mismatch`，trust binding 不匹配返回 `claim_generation_mismatch`。
-- 若在 claim 与 Welcome 之间发生 cross-signing reset（接收端 accepted `ak.cross_signing.publish.generation` 递增），旧 generation 下尚未消费的 claim MUST 视为失效：其 `claim_ref.ssk_generation` 永远小于接收端当前 accepted generation，按上一条 fail closed 返回 `claim_generation_mismatch`。这是设备恢复（§15 reset 后重发 Welcome）的常态而非异常——发送方在收到 `claim_generation_mismatch` 后 MUST 以接收端新 accepted generation 重新 claim（产生新的 `claim_id` 与 `claim_ref.ssk_generation`）再发 Welcome，不得复用旧 generation 的 claim；接收端不得为兼容旧 generation 放宽该校验。
-- 若 Native Agent 的 referenced `ak.agent.key.authorize` 在 claim 与 Welcome 之间被 `ak.agent.key.revoke` 撤销、被 replacement re-pairing 的 `supersedes[]` 原子替换，或其可选 `expires_at` 到期，旧 authorization 下尚未消费的 claim MUST 视为失效并返回 `claim_generation_mismatch`。发送方 MUST 对该 Agent 当前 active authorization 重新 claim，产生新的 `claim_id` 与 `agent_key_authorize_event_id`；接收端不得接受旧 Event ref，也不得把它改写成 `device_authorize_event_id`。
-- Agent runtime 在处理 Welcome、持久化 group state、调用 consume 以及重放 pending consume intent 的每一步都 MUST 保留同一 `(principal_id, device_id, agent_key_authorize_event_id, claim_id, keypackage_ref)` binding，并在每次状态转换前重新确认 authorization仍为 current active且未过期。成功处理 Welcome 后，接收端 MUST 先原子持久化可恢复的 MLS group state与 consume intent，再以同一 Agent session/device按 [`device-lifecycle.md` §9.0](./device-lifecycle.md) 签名调用 consume；持久化失败不得 consume，响应丢失必须重放同一 request。若 Welcome 失败或过期，KeyPackage不得自动回到 `published`；runtime SHOULD 发布新的 KeyPackage。
-- 服务端返回 KeyPackage 时 MUST 附带 endpoint signature、principal binding 和 revocation status。设备 KeyPackage 的客户端验证仍走 DID control chain 与 device trust chain；Native Agent KeyPackage 必须走同一 principal 的 accepted `ak.agent.key.authorize` 审计链。两类验证不得互相 fallback，验证通过后才能加密。
+- KeyPackage 进入 `claimed`，并绑定 claim/requester/intended Realm、capability/digest、expiry 与 claimed endpoint 的 accepted authorization ref。普通 device 必须且只能使用 `device_authorize_event_id`；Native Agent runtime 必须且只能使用 `agent_key_authorize_event_id`。
+- 同一 KeyPackage 不得被第二个 Realm/group、requester 或 Welcome 重复使用。
+- Welcome `claim_ref` 携带 `{claim_id,keypackage_ref,keypackage_digest,capabilities_digest}` 加上述二选一 authorization ref，并进入 governance/AAD transcript。接收端解密前必须验证所有 digest、capability subset 和 ref 指向 current active accepted authorization；device 分支还要验证 root-anchored PCR evidence、current device generation、未撤销状态与 MLS LeafNode/signature key 一致。
+- 若 device 在 claim 与 Welcome 之间 revoke、re-anchor fenced 或其 authorization 被替换，未消费 claim 失效；发送方必须以 current `device_authorize_event_id` 新建 claim。Agent authorization revoke/supersede/expiry 同理。
+- 返回 KeyPackage 时必须附 endpoint signature 与 portable authorization evidence。device 与 Native Agent 两分支不能互相 fallback。
 
 #### 2.6.1 Welcome `claim_envelope` 签名（normative）
 
-KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早于** claim/Welcome 阶段 Realm 还未确定，因此 device_signature 不能覆盖 `intended_realm_id`。这就出现一个攻击面:**rogue Delivery Service** 或同时控制 KeyPackage 与 Welcome 的中间者可以把一个为 Realm A 设计的 KeyPackage,用于把目标 device 加入 Realm B(用相同 keypackage_ref + 重写 group_id 的 Welcome)。即便接收端校验 Welcome 内 group_id,attacker 仍可在 UI 上诱导接收端用户接受错误 Realm。
+KeyPackage 发布时 Realm 尚未确定，因此 per-Welcome `claim_envelope` 必须由 requester 当前 accepted signer 签署并至少绑定：`keypackage_ref`、`keypackage_digest`、`intended_realm_id`、`claim_id`、`requester_did`、`nonce`、`welcome_digest`、`created_at`，以及精确二选一的 `requester_device_id + device_authorize_event_id` 或 `agent_key_authorize_event_id`。
 
-为关闭该攻击面,Welcome 发送方 **MUST** 附带 detached **`claim_envelope`** signature,canonical signing input 至少绑定:
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `keypackage_ref` | hash | 被消费的 KeyPackage 的 `keypackage_ref`。 |
-| `keypackage_digest` | hash | 被消费 KeyPackage canonical bytes 的 hash；MUST 等于 Welcome 顶层 `keypackage_digest` 与 `claim_ref.keypackage_digest`。 |
-| `intended_realm_id` | id | Welcome 真正加入的 Realm ID (与 Realm governance state 同源)。 |
-| `claim_id` | id | claim 阶段 server 返回的 `claim_id`,绑定 (requester, target_keypackage, intended_realm_id, nonce, expiry)。 |
-| `requester_did` | did | Welcome 发送方 principal DID。 |
-| `ssk_generation` | integer | requester 使用 cross-signing SSK 签名时的当前 accepted generation。与 `requester_device_id` 精确二选一。 |
-| `requester_device_id` | id:device | requester 使用 service-attested / enrollment-authority device key 签名时的已授权设备 id。与 `ssk_generation` 精确二选一。 |
-| `nonce` | string | per-Welcome 唯一的 ≥ 128 bit 随机串。 |
-| `welcome_digest` | hash | MLS Welcome 消息本身的 canonical-bytes digest。 |
-| `created_at` | timestamp | 签名时间；接收方校验在 KeyPackage `expires_at` 与 claim `expires_at` 之内。 |
-
-`claim_envelope.signature` MUST 绑定到 `requester_did` 当前 accepted requester identity:cross-signing requester MUST 携带 `ssk_generation` 并由该 generation 的 active **self-signing key** 签发；service-attested / enrollment-authority requester MUST 携带 `requester_device_id` 并由该设备当前 accepted `ak.device.authorize.payload.device_public_key` 签发。二者 MUST 精确二选一。签名方不是 Delivery Service service key,也不是被 claim 的 KeyPackage 的 `device_signature`。接收端 **MUST**:
-
-1. 对 cross-signing path,通过 DID control chain 验证 `claim_envelope.signature` → `requester_did` 的当前 accepted SSK generation;对 service-attested / enrollment-authority path,验证 `requester_device_id` 属于 `requester_did` 的当前未撤销 accepted device projection,且 signature `kid` 指向该 projection 的 `device_public_key`;
-2. 校验 `intended_realm_id` 等于 MLS Welcome 内 group_id 反向 resolve 出的 Realm(防止 server-side rewrite);
-3. 校验 `claim_id` 在 KeyPackage `claimed` 元数据中可见，`claim_envelope.nonce` 与 `claim_id` 关联的 nonce 一致，`claim_envelope.keypackage_digest == payload.keypackage_digest == payload.claim_ref.keypackage_digest`，`payload.claim_ref` 的 claimed-device trust binding 仍指向被 claim 设备当前 accepted state，且 `claim_envelope` 的 requester signing binding 仍指向 requester 当前 accepted SSK generation 或 accepted requester device;不得把 `payload.claim_ref.device_authorize_event_id` 当作 requester 签名身份使用;
-4. 校验 `welcome_digest` 等于 `canonical_digest(welcome_bytes)`,防止 envelope 被剥离后重新封装。
-
-任一项失败 → 拒绝 Welcome,reason=`keypackage_welcome_envelope_mismatch`,并 SHOULD 触发 client UI 警示，明确披露本次 Welcome envelope 无效，且邀请方身份无法为该 Realm 验证；具体本地化文案由客户端决定。
-
-此处返回可区分 reason（区别于 claim API 失败侧 SHOULD 合并为单一不透明 `claim_failed`、不暴露细分原因，见 [`device-lifecycle.md`](device-lifecycle.md) §9）并不构成不一致：claim API 面向尚未确定身份的请求方，细分原因会成为目标枚举侧信道；而 Welcome 阶段的 receiver 已被确定为该 Welcome 的合法被邀请方，不存在向外部枚举者泄露的侧信道，故可向本端用户披露细分原因以支持知情决策。
-
-为什么不直接让 device_signature 覆盖 intended_realm_id?KeyPackage 是离线发布、长期可消费的资源(典型 7 天 TTL),发布时 Realm 未知；每次需要预先签名所有可能 Realm 的 cross-product 既不可行也违反 KeyPackage 设计语义。`claim_envelope` 是 per-Welcome 一次性签名，把"哪个 Realm 接收这次 Welcome"的承诺锁定到 holder 的 self-signing key,与 KeyPackage 的长期发布关注点分离。
+普通 device signature 必须按 PCR authorization chain 解析到 current generation 的 accepted `device_public_key`；Native Agent 必须解析其 current active `ak.agent.key.authorize`。接收端还必须验证 intended Realm 与 Welcome group 一致、claim nonce/digests 一致、authorization ref 在消费时仍 current，以及 `welcome_digest` 等于 canonical Welcome bytes。任何失败都拒绝 Welcome，reason=`keypackage_welcome_envelope_mismatch`。Delivery Service key、目标 KeyPackage 自身的 publish signature或裸服务断言都不能替代 requester signature。
 
 #### 2.6.2 Last-Resort KeyPackage（可选语义）
 
@@ -579,7 +551,7 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
 - 池中存在普通（单次）KeyPackage 时，claim 响应 MUST 优先返回普通包；仅当普通包池为空时，claim 响应 MAY 返回 last-resort 包。
 - claim 响应返回 last-resort 包时 MUST 在对应 `keypackage_claim_record` 中置 `last_resort=true`，使 requester 与 holder 都能识别本次 join 走的是 last-resort 路径。
 - last-resort 包**不走** §2.6 的单次 `consume` 路径：服务端 MUST NOT 因一次 Welcome 消费而把它转入 `consumed` 或从池中移除。`ak.keys.keypackages.consume` 对 last-resort `keypackage_ref` 的调用 MUST 被服务端识别为幂等（返回成功但不改变 `published` 状态），不得返回 `keypackage_already_consumed`。
-- §2.6 / §2.6.1 的其余校验（`keypackage_digest` / `capabilities_digest` / `ssk_generation` 匹配、`claim_envelope` 签名、Realm 反向 resolve）对 last-resort 包**仍然全部适用**；放宽的只有"单次性"。
+- §2.6 / §2.6.1 的其余校验（`keypackage_digest` / `capabilities_digest` / current authorization ref 匹配、`claim_envelope` 签名、Realm 反向 resolve）对 last-resort 包**仍然全部适用**；放宽的只有"单次性"。
 
 **消费审计（normative）**：每次 last-resort 包被 claim / 用于 Welcome，MUST 进入 §2.6 既有审计链。实现 MUST 为每次消费追加一条独立 `keypackage_claim_record` 审计记录，至少携带 `keypackage_ref`、`keypackage_digest`、`claim_id`、`last_resort=true`、消费的 `intended_realm_id`（见下文 Realm affinity）与时间戳。该记录不是第二条 `ak.mls.keypackage` 状态 Event，也不得触发 KeyPackage FSM transition；KeyPackage 本身保持 `published`。审计链 MUST 保留每次消费的独立记录（append-only，不得覆盖前次），使审计员能枚举"该 last-resort 包被哪些 Realm / requester 在哪些时点使用"。
 

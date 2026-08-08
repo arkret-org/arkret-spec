@@ -39,7 +39,6 @@
       "presentation",
       "read_cursor",
       "receipt",
-      "recovery_authority_ticket",
       "recovery_session",
       "request",
       "rtc_participant",

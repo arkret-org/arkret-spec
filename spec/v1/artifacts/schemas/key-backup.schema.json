@@ -75,9 +75,10 @@
     },
     "frontier_ref": {
       "type": "object",
-      "description": "Optional reference to the principal control stream frontier at envelope creation time. Exactly one model generation is bound: ssk_generation for A-model cross-signing or device_generation_ref for B-model enrollment authority.",
+      "description": "Optional reference to the Principal Control Realm frontier and identity-root device generation at envelope creation time.",
       "required": [
-        "frontier_digest"
+        "frontier_digest",
+        "device_generation_ref"
       ],
       "properties": {
         "frontier_digest": {
@@ -87,42 +88,16 @@
           "type": "string",
           "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
         },
-        "ssk_generation": {
-          "type": "integer",
-          "minimum": 1
-        },
         "device_generation_ref": {
           "type": "string",
           "pattern": "^[1-9][0-9]*-[^\\s]+$"
         }
       },
-      "oneOf": [
-        {
-          "required": [
-            "ssk_generation"
-          ],
-          "not": {
-            "required": [
-              "device_generation_ref"
-            ]
-          }
-        },
-        {
-          "required": [
-            "device_generation_ref"
-          ],
-          "not": {
-            "required": [
-              "ssk_generation"
-            ]
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "recovery_policy_ref": {
       "type": "object",
-      "description": "Required for backup_kind=did_recovery and optional as a signed recovery-strand hint for other backup classes. Binds the backup envelope to the active recovery policy version under which it was produced. Receivers MUST compare this tuple to the currently accepted recovery policy before using a did_recovery envelope; when present on other classes, mismatch fails as recovery_policy_mismatch but the field does not replace active-series, frontier, Realm/MLS authorization, or device-state checks. This is intentionally separate from frontier_ref and ssk_generation: it binds the recovery authorization surface, not only the device trust generation or control-stream position.",
+      "description": "Required for backup_kind=did_recovery and optional as a signed recovery-strand hint for other backup classes. Binds the backup envelope to the active recovery policy version under which it was produced. Receivers MUST compare this tuple to the currently accepted recovery policy before using a did_recovery envelope; when present on other classes, mismatch fails as recovery_policy_mismatch but the field does not replace active-series, frontier, Realm/MLS authorization, or device-state checks. This is intentionally separate from frontier_ref: it binds the recovery authorization surface, not only the device trust generation or control-stream position.",
       "required": [
         "policy_id",
         "policy_version"
@@ -556,8 +531,6 @@
             "type": "string",
             "enum": [
               "recovery_key_share",
-              "self_signing_key",
-              "user_signing_key",
               "account_data_namespace_key",
               "mls_account_secret",
               "mls_private_plaintext",
@@ -585,11 +558,11 @@
           },
           "first_event_id": {
             "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
           },
           "last_event_id": {
             "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
           },
           "secret_id": {
             "type": "string",
@@ -649,7 +622,8 @@
         "verification_method",
         "signature_algorithm",
         "signature",
-        "signed_fields"
+        "signed_fields",
+        "device_authorize_event_id"
       ],
       "properties": {
         "device_id": {
@@ -734,39 +708,12 @@
           ],
           "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_kind, backup_version, series_id, series_seq, encryption, domain_separation, contents, ciphertext_digest, and when present supersedes, supersedes_digest, frontier_ref, and recovery_policy_ref."
         },
-        "ssk_generation": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Accepted ak.cross_signing.publish.generation of the self-signing key generation that authorized the device signing this backup. Exactly one of auth_data.ssk_generation and auth_data.device_authorize_event_id identifies the device trust root."
-        },
         "device_authorize_event_id": {
           "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
-          "description": "Accepted ak.device.authorize event id anchoring the service_attested/enrollment-authority device signing this backup. Exactly one of auth_data.ssk_generation and auth_data.device_authorize_event_id identifies the device trust root."
+          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
+          "description": "Accepted current-generation ak.device.authorize Event anchoring the device signing this backup."
         }
       },
-      "oneOf": [
-        {
-          "required": [
-            "ssk_generation"
-          ],
-          "not": {
-            "required": [
-              "device_authorize_event_id"
-            ]
-          }
-        },
-        {
-          "required": [
-            "device_authorize_event_id"
-          ],
-          "not": {
-            "required": [
-              "ssk_generation"
-            ]
-          }
-        }
-      ],
       "patternProperties": {
         "^x_[a-z][a-z0-9_]{0,63}$": true
       },
@@ -1175,46 +1122,6 @@
                   }
                 ]
               }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "auth_data": {
-            "required": [
-              "ssk_generation"
-            ]
-          }
-        },
-        "required": [
-          "auth_data",
-          "frontier_ref"
-        ]
-      },
-      "then": {
-        "properties": {
-          "frontier_ref": {
-            "required": [
-              "ssk_generation"
-            ]
-          }
-        }
-      },
-      "else": {
-        "if": {
-          "required": [
-            "frontier_ref"
-          ]
-        },
-        "then": {
-          "properties": {
-            "frontier_ref": {
-              "required": [
-                "device_generation_ref"
-              ]
             }
           }
         }

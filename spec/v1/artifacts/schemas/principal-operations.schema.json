@@ -2,25 +2,16 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/principal-operations.schema.json",
   "title": "Arkret Principal Operation Carriers",
-  "description": "Closed wire carriers scoped to a single principal: device bootstrap, participation replacement, history ingress contracts, KeyPackage terminal handling, Sidecar staging and the shared identifier, signature and receipt primitives those carriers reuse.",
+  "description": "Closed wire carriers scoped to a single principal: PCR genesis, participation replacement, history ingress contracts, KeyPackage terminal handling, Sidecar staging and shared primitives.",
   "oneOf": [
     {
-      "$ref": "#/$defs/device_bootstrap_credential"
+      "$ref": "#/$defs/pcr_genesis_unit"
     },
     {
-      "$ref": "#/$defs/cancel_device_bootstrap_request"
+      "$ref": "#/$defs/pcr_genesis_submit_request"
     },
     {
-      "$ref": "#/$defs/cancel_device_bootstrap_outcome"
-    },
-    {
-      "$ref": "#/$defs/device_bootstrap_decision_request"
-    },
-    {
-      "$ref": "#/$defs/device_bootstrap_decision_outcome"
-    },
-    {
-      "$ref": "#/$defs/device_bootstrap_decision_receipt"
+      "$ref": "#/$defs/pcr_genesis_submit_outcome"
     },
     {
       "$ref": "#/$defs/standard_holder_binding"
@@ -48,521 +39,6 @@
     "base64url": {
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]+$"
-    },
-    "jwk_thumbprint": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]{43}$",
-      "description": "Unpadded base64url RFC 7638 SHA-256 JWK Thumbprint."
-    },
-    "bootstrap_mode": {
-      "type": "string",
-      "enum": [
-        "founding",
-        "sibling_pairing"
-      ]
-    },
-    "device_bootstrap_transaction_state": {
-      "type": "string",
-      "enum": [
-        "pending",
-        "accepted",
-        "cancelled",
-        "expired"
-      ],
-      "description": "Closed durable bootstrap transaction state. No failed or implementation-private fifth state is permitted."
-    },
-    "device_bootstrap_decision": {
-      "type": "string",
-      "enum": [
-        "accepted",
-        "cancelled",
-        "expired"
-      ],
-      "description": "Principal Server terminal decision for a founding bootstrap transaction. Absence of a decision row means undecided/pending; pending is not stored as a decision and no fifth Coauth transaction state exists."
-    },
-    "device_bootstrap_decision_request": {
-      "type": "object",
-      "description": "Authenticated Account Authority to Principal Server S2S request that asks the Principal Server to fence one still-undecided founding transaction as cancelled or expired. The stable request identity is (account_authority_id,transaction_id,idempotency_key); exact replay returns the byte-identical first outcome and different canonical bytes conflict with zero writes.",
-      "required": [
-        "account_authority_id",
-        "transaction_id",
-        "idempotency_key",
-        "requested_decision",
-        "principal_id",
-        "device_id",
-        "grant_id",
-        "canonical_request_digest",
-        "founding_event_ids",
-        "founding_batch_digest",
-        "bootstrap_transaction_expires_at",
-        "decision_request_digest"
-      ],
-      "properties": {
-        "account_authority_id": {
-          "$ref": "#/$defs/did"
-        },
-        "transaction_id": {
-          "$ref": "#/$defs/opaque_id"
-        },
-        "idempotency_key": {
-          "$ref": "#/$defs/opaque_id"
-        },
-        "requested_decision": {
-          "type": "string",
-          "enum": [
-            "cancelled",
-            "expired"
-          ]
-        },
-        "principal_id": {
-          "$ref": "#/$defs/did"
-        },
-        "device_id": {
-          "$ref": "#/$defs/device_id"
-        },
-        "grant_id": {
-          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
-        },
-        "canonical_request_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "founding_event_ids": {
-          "type": "array",
-          "prefixItems": [
-            {
-              "$ref": "#/$defs/event_id"
-            },
-            {
-              "$ref": "#/$defs/event_id"
-            }
-          ],
-          "items": false,
-          "minItems": 2,
-          "maxItems": 2,
-          "uniqueItems": true
-        },
-        "founding_batch_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "bootstrap_transaction_expires_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "decision_request_digest": {
-          "$ref": "#/$defs/hash",
-          "description": "sha256 typed digest of RFC 8785/JCS of this closed request with decision_request_digest omitted."
-        }
-      },
-      "additionalProperties": false
-    },
-    "device_bootstrap_decision_receipt": {
-      "type": "object",
-      "description": "Principal Server notary-signed terminal decision receipt. receipt_digest is the domain-separated digest H(ak.device-bootstrap.decision-receipt.v1, receipt with receipt_digest and proof omitted); proof signs the generic non-Event payload binding for that digest. The receipt is immutable and retained as a tombstone for the lifetime of Arkret v1 storage.",
-      "required": [
-        "schema",
-        "receipt_id",
-        "principal_server_id",
-        "account_authority_id",
-        "transaction_id",
-        "decision",
-        "principal_id",
-        "device_id",
-        "grant_id",
-        "canonical_request_digest",
-        "founding_event_ids",
-        "founding_batch_digest",
-        "bootstrap_transaction_expires_at",
-        "decided_at",
-        "receipt_digest",
-        "proof"
-      ],
-      "properties": {
-        "schema": {
-          "const": "ak.device_bootstrap.decision_receipt.v1"
-        },
-        "receipt_id": {
-          "$ref": "#/$defs/opaque_id"
-        },
-        "principal_server_id": {
-          "$ref": "#/$defs/did"
-        },
-        "account_authority_id": {
-          "$ref": "#/$defs/did"
-        },
-        "transaction_id": {
-          "$ref": "#/$defs/opaque_id"
-        },
-        "decision": {
-          "$ref": "#/$defs/device_bootstrap_decision"
-        },
-        "principal_id": {
-          "$ref": "#/$defs/did"
-        },
-        "device_id": {
-          "$ref": "#/$defs/device_id"
-        },
-        "grant_id": {
-          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
-        },
-        "canonical_request_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "founding_event_ids": {
-          "$ref": "#/$defs/device_bootstrap_decision_request/properties/founding_event_ids"
-        },
-        "founding_batch_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "bootstrap_transaction_expires_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "decided_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "receipt_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "proof": {
-          "$ref": "#/$defs/device_bootstrap_decision_receipt_proof"
-        }
-      },
-      "additionalProperties": false
-    },
-    "device_bootstrap_decision_receipt_proof": {
-      "type": "object",
-      "description": "Closed Principal Server detached-JWS proof for a bootstrap decision receipt. The JWS detached payload is RFC 8785/JCS of {context:'ak.device-bootstrap-decision-receipt-proof-v1',payload_digest,principal_server_id,account_authority_id,transaction_id,verification_method,created_at,audience}; audience MUST equal account_authority_id, created_at MUST equal decided_at and payload_digest MUST equal receipt_digest.",
-      "required": [
-        "kind",
-        "verification_method",
-        "payload_digest",
-        "created_at",
-        "audience",
-        "proof_purpose",
-        "jws"
-      ],
-      "properties": {
-        "kind": {
-          "const": "detached_jws"
-        },
-        "verification_method": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-        },
-        "payload_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "created_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "audience": {
-          "$ref": "#/$defs/did"
-        },
-        "proof_purpose": {
-          "const": "issuer_attestation"
-        },
-        "jws": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
-        }
-      },
-      "additionalProperties": false
-    },
-    "device_bootstrap_decision_outcome": {
-      "type": "object",
-      "description": "Closed byte-stable response from the Principal Server decision fence. accepted means the founding batch won the atomic race; cancelled or expired means the matching terminal tombstone won and later submission must be rejected with zero Event writes.",
-      "required": [
-        "transaction_id",
-        "decision",
-        "receipt"
-      ],
-      "properties": {
-        "transaction_id": {
-          "$ref": "#/$defs/opaque_id"
-        },
-        "decision": {
-          "$ref": "#/$defs/device_bootstrap_decision"
-        },
-        "receipt": {
-          "$ref": "#/$defs/device_bootstrap_decision_receipt"
-        }
-      },
-      "additionalProperties": false
-    },
-    "device_bootstrap_decision_record": {
-      "type": "object",
-      "description": "Principal Server durable authority row. There is at most one row per (account_authority_id,transaction_id). It is inserted under the same database lock used by the founding identity-anchor batch; accepted is committed in the same PostgreSQL transaction as both Events, the device projection, ingress receipts and outbox. cancelled/expired are terminal negative tombstones. canonical_outcome_bytes is retained byte-for-byte and rows MUST NOT be pruned in v1.",
-      "required": [
-        "account_authority_id",
-        "transaction_id",
-        "decision",
-        "binding_digest",
-        "canonical_outcome_bytes",
-        "receipt"
-      ],
-      "properties": {
-        "account_authority_id": {
-          "$ref": "#/$defs/did"
-        },
-        "transaction_id": {
-          "$ref": "#/$defs/opaque_id"
-        },
-        "decision": {
-          "$ref": "#/$defs/device_bootstrap_decision"
-        },
-        "binding_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "canonical_outcome_bytes": {
-          "$ref": "#/$defs/base64url"
-        },
-        "receipt": {
-          "$ref": "#/$defs/device_bootstrap_decision_receipt"
-        }
-      },
-      "additionalProperties": false
-    },
-    "device_bootstrap_transaction": {
-      "type": "object",
-      "description": "Durable device bootstrap transaction identity and lifecycle projection. Bearer expiry does not alter state. cancelled and expired permit exact replay only; standard promotion requires accepted.",
-      "required": [
-        "transaction_id",
-        "mode",
-        "state",
-        "principal_id",
-        "device_id",
-        "holder_jkt",
-        "canonical_request_digest",
-        "expires_at",
-        "created_at"
-      ],
-      "properties": {
-        "transaction_id": {
-          "$ref": "#/$defs/opaque_id"
-        },
-        "mode": {
-          "$ref": "#/$defs/bootstrap_mode"
-        },
-        "state": {
-          "$ref": "#/$defs/device_bootstrap_transaction_state"
-        },
-        "principal_id": {
-          "$ref": "#/$defs/did"
-        },
-        "device_id": {
-          "$ref": "#/$defs/device_id"
-        },
-        "holder_jkt": {
-          "$ref": "#/$defs/jwk_thumbprint"
-        },
-        "canonical_request_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "created_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "accepted_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "cancelled_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "expired_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "state": {
-                "const": "accepted"
-              }
-            },
-            "required": [
-              "state"
-            ]
-          },
-          "then": {
-            "required": [
-              "accepted_at"
-            ]
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "state": {
-                "const": "cancelled"
-              }
-            },
-            "required": [
-              "state"
-            ]
-          },
-          "then": {
-            "required": [
-              "cancelled_at"
-            ]
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "state": {
-                "const": "expired"
-              }
-            },
-            "required": [
-              "state"
-            ]
-          },
-          "then": {
-            "required": [
-              "expired_at"
-            ]
-          }
-        }
-      ],
-      "additionalProperties": false
-    },
-    "bootstrap_transaction_cancelled_error_details": {
-      "type": "object",
-      "required": [
-        "transaction_id",
-        "state"
-      ],
-      "properties": {
-        "transaction_id": {
-          "$ref": "#/$defs/opaque_id"
-        },
-        "state": {
-          "const": "cancelled"
-        }
-      },
-      "additionalProperties": false
-    },
-    "bootstrap_transaction_expired_error_details": {
-      "type": "object",
-      "required": [
-        "transaction_id",
-        "state"
-      ],
-      "properties": {
-        "transaction_id": {
-          "$ref": "#/$defs/opaque_id"
-        },
-        "state": {
-          "const": "expired"
-        }
-      },
-      "additionalProperties": false
-    },
-    "cancel_device_bootstrap_outcome": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "status",
-            "transaction_id",
-            "outcome_digest"
-          ],
-          "properties": {
-            "status": {
-              "const": "cancelled"
-            },
-            "transaction_id": {
-              "$ref": "#/$defs/opaque_id"
-            },
-            "outcome_digest": {
-              "$ref": "#/$defs/hash"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "status",
-            "transaction_id",
-            "expired_at",
-            "outcome_digest"
-          ],
-          "properties": {
-            "status": {
-              "const": "expired"
-            },
-            "transaction_id": {
-              "$ref": "#/$defs/opaque_id"
-            },
-            "expired_at": {
-              "$ref": "#/$defs/timestamp"
-            },
-            "outcome_digest": {
-              "$ref": "#/$defs/hash"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "status",
-            "transaction_id",
-            "retryable_error",
-            "outcome_digest"
-          ],
-          "properties": {
-            "status": {
-              "const": "pending"
-            },
-            "transaction_id": {
-              "$ref": "#/$defs/opaque_id"
-            },
-            "retryable_error": {
-              "type": "string",
-              "enum": [
-                "temporarily_unavailable",
-                "proof_refresh_required",
-                "dependency_pending"
-              ]
-            },
-            "retry_after_ms": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "outcome_digest": {
-              "$ref": "#/$defs/hash"
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "cancel_device_bootstrap_request": {
-      "type": "object",
-      "required": [
-        "transaction_id",
-        "mode",
-        "canonical_request_digest",
-        "idempotency_key"
-      ],
-      "properties": {
-        "transaction_id": {
-          "$ref": "#/$defs/opaque_id"
-        },
-        "mode": {
-          "$ref": "#/$defs/bootstrap_mode"
-        },
-        "canonical_request_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "idempotency_key": {
-          "$ref": "#/$defs/opaque_id"
-        }
-      },
-      "additionalProperties": false
     },
     "causal_ingress_receipt": {
       "type": "object",
@@ -608,152 +84,6 @@
     "circle_id": {
       "$ref": "./common-ids.schema.json#/$defs/circle_id"
     },
-    "device_bootstrap_credential": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "credential_kind",
-            "mode",
-            "principal_id",
-            "device_id",
-            "device_key_digest",
-            "transaction_id",
-            "holder_jkt",
-            "canonical_request_digest",
-            "founding_batch_digest",
-            "founding_event_ids",
-            "allowed_operation_ids",
-            "credential_expires_at",
-            "bootstrap_transaction_expires_at"
-          ],
-          "properties": {
-            "credential_kind": {
-              "const": "device_bootstrap"
-            },
-            "mode": {
-              "const": "founding"
-            },
-            "principal_id": {
-              "$ref": "#/$defs/did"
-            },
-            "device_id": {
-              "$ref": "#/$defs/device_id"
-            },
-        "device_key_digest": {
-          "$ref": "#/$defs/hash",
-          "description": "SHA-256 typed digest over the decoded raw 32-byte Ed25519 device public key. Hashing multibase/base64/JWK/DTO text is forbidden."
-            },
-            "transaction_id": {
-              "$ref": "#/$defs/opaque_id"
-            },
-            "holder_jkt": {
-              "$ref": "#/$defs/jwk_thumbprint",
-              "description": "RFC 7638 SHA-256 thumbprint of the holder public JWK. MUST equal the enclosing SessionGrant cnf.jkt byte-for-byte."
-            },
-        "canonical_request_digest": {
-          "$ref": "#/$defs/hash",
-          "description": "SHA-256 typed digest over RFC 8785/JCS of the exact closed enroll_device request after removing derived digest fields. The v1 enroll body contains no such digest fields, so the projection is the entire closed body."
-            },
-            "founding_batch_digest": {
-              "$ref": "#/$defs/hash",
-              "description": "H(ak.device-bootstrap.founding-batch.v1, {event_ids: founding_event_ids}); a pure function recomputed by issuer and verifier."
-            },
-            "founding_event_ids": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/event_id"
-              },
-              "minItems": 2,
-              "maxItems": 2,
-              "description": "Exact ordered founding unit Event IDs: root-signed ak.realm.create first, authority-proof-pending ak.device.authorize second. Sorting, deduplication or digest substitution is forbidden.",
-              "uniqueItems": true
-            },
-            "allowed_operation_ids": {
-              "$ref": "#/$defs/founding_allowed_operations"
-            },
-            "credential_expires_at": {
-              "$ref": "#/$defs/timestamp"
-            },
-            "bootstrap_transaction_expires_at": {
-              "$ref": "#/$defs/timestamp"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "credential_kind",
-            "mode",
-            "principal_id",
-            "device_id",
-            "device_key_digest",
-            "transaction_id",
-            "holder_jkt",
-            "canonical_request_digest",
-            "source_device_id",
-            "target_device_id",
-            "verification_content_kinds",
-            "allowed_operation_ids",
-            "credential_expires_at",
-            "bootstrap_transaction_expires_at"
-          ],
-          "properties": {
-            "credential_kind": {
-              "const": "device_bootstrap"
-            },
-            "mode": {
-              "const": "sibling_pairing"
-            },
-            "principal_id": {
-              "$ref": "#/$defs/did"
-            },
-            "device_id": {
-              "$ref": "#/$defs/device_id"
-            },
-            "device_key_digest": {
-              "$ref": "#/$defs/hash"
-            },
-            "transaction_id": {
-              "$ref": "#/$defs/opaque_id"
-            },
-            "holder_jkt": {
-              "$ref": "#/$defs/jwk_thumbprint",
-              "description": "RFC 7638 SHA-256 thumbprint of the holder public JWK. MUST equal the enclosing SessionGrant cnf.jkt byte-for-byte."
-            },
-            "canonical_request_digest": {
-              "$ref": "#/$defs/hash"
-            },
-            "source_device_id": {
-              "$ref": "#/$defs/device_id"
-            },
-            "target_device_id": {
-              "$ref": "#/$defs/device_id"
-            },
-            "verification_content_kinds": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "pattern": "^ak\\.key\\.verification\\.[a-z0-9_.-]+$"
-              },
-              "minItems": 1,
-              "uniqueItems": true
-            },
-            "allowed_operation_ids": {
-              "$ref": "#/$defs/sibling_allowed_operations"
-            },
-            "credential_expires_at": {
-              "$ref": "#/$defs/timestamp"
-            },
-            "bootstrap_transaction_expires_at": {
-              "$ref": "#/$defs/timestamp"
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
     "device_id": {
       "$ref": "./common-ids.schema.json#/$defs/device_id"
     },
@@ -763,27 +93,7 @@
     },
     "event_id": {
       "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-    },
-    "founding_allowed_operations": {
-      "type": "array",
-      "prefixItems": [
-        {
-          "const": "ak.gate.account.command.enroll_device"
-        },
-        {
-          "const": "ak.gate.account.command.cancel_device_bootstrap"
-        },
-        {
-          "const": "ak.self.events.command.submit"
-        },
-        {
-          "const": "ak.self.events.read.resolve"
-        }
-      ],
-      "items": false,
-      "minItems": 4,
-      "maxItems": 4
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "hash": {
       "type": "string",
@@ -1128,6 +438,137 @@
         }
       ]
     },
+    "pcr_genesis_submit_outcome": {
+      "type": "object",
+      "required": [
+        "principal_id",
+        "pcr_realm_id",
+        "accepted_device_id",
+        "receipt"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "pcr_realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "accepted_device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "receipt": {
+          "$ref": "./event-batch-receipt.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "pcr_genesis_submit_request": {
+      "type": "object",
+      "description": "Account-Authority-to-Principal-Server relay. The outer service signature authenticates transport only; content authorization is exclusively the identity-root control proof and the two Event proofs.",
+      "required": [
+        "account_authority_id",
+        "principal_id",
+        "pcr_realm_id",
+        "idempotency_key",
+        "registration_request_digest",
+        "identity_creation_control_proof",
+        "genesis_unit"
+      ],
+      "properties": {
+        "account_authority_id": {
+          "$ref": "#/$defs/did"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "pcr_realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "registration_request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "identity_creation_control_proof": {
+          "$ref": "./account-operations.schema.json#/$defs/identity_creation_control_proof"
+        },
+        "genesis_unit": {
+          "$ref": "#/$defs/pcr_genesis_unit"
+        }
+      },
+      "additionalProperties": false
+    },
+    "pcr_genesis_unit": {
+      "type": "object",
+      "description": "Exact ordered, atomic PCR genesis unit. The first Event is identity-root signed ak.realm.create; the second is founding-device signed ak.device.authorize. The second Event proof.verification_method MUST be byte-identical to principal_id + '#' + device_id (where device_id is the complete ak:device UUID string), never a did:key. Before the accepted device directory exists, the verifier resolves that one canonical method through a unit-local candidate overlay to the descriptor/payload device_public_key; it MUST NOT consult or mutate the durable directory until every check succeeds. No partial acceptance is permitted.",
+      "required": [
+        "events"
+      ],
+      "properties": {
+        "events": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "allOf": [
+                {
+                  "$ref": "./event-envelope.schema.json"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "const": "ak.realm.create"
+                    },
+                    "payload": {
+                      "type": "object",
+                      "properties": {
+                        "object": {
+                          "type": "object",
+                          "required": [
+                            "founding_device_descriptor"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "object"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "./event-envelope.schema.json"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "const": "ak.device.authorize"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "additionalProperties": false
+    },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
@@ -1230,26 +671,6 @@
           "additionalProperties": false
         }
       ]
-    },
-    "sibling_allowed_operations": {
-      "type": "array",
-      "prefixItems": [
-        {
-          "const": "ak.gate.account.command.cancel_device_bootstrap"
-        },
-        {
-          "const": "ak.self.device_messages.command.send"
-        },
-        {
-          "const": "ak.self.device_messages.read.list"
-        },
-        {
-          "const": "ak.self.device_messages.command.ack"
-        }
-      ],
-      "items": false,
-      "minItems": 4,
-      "maxItems": 4
     },
     "sidecar_context_attach_event": {
       "allOf": [

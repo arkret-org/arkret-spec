@@ -96,7 +96,7 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 
 ### 4.5 Device 密钥层级与生命周期
 
-§4.4 只覆盖了群组 E2EE 算法的选择。但 device-key 是一整套包含身份密钥、prekey、群组密钥、cross-signing、备份、推送、验证状态机的体系。Matrix 在这套体系上有成熟实践（参见 [Matrix E2EE guide](https://matrix.org/docs/matrix-concepts/end-to-end-encryption/) 与 [Megolm spec](https://spec.matrix.org/unstable/olm-megolm/megolm/)），Arkret 在保留多数原语形状的同时，把身份根换到 DID method、把 E2EE 换到 MLS、并把若干在 Matrix 中相对耦合的语义拆开规范化。本节按原语逐项对照。
+§4.4 只覆盖了群组 E2EE 算法的选择。但 device-key 是一整套包含身份密钥、prekey、群组密钥、账户级设备信任、备份、推送、验证状态机的体系。Matrix 在这套体系上有成熟实践（参见 [Matrix E2EE guide](https://matrix.org/docs/matrix-concepts/end-to-end-encryption/) 与 [Megolm spec](https://spec.matrix.org/unstable/olm-megolm/megolm/)），Arkret 在保留多数原语形状的同时，把身份根换到 DID method、把 E2EE 换到 MLS、并把若干在 Matrix 中相对耦合的语义拆开规范化。本节按原语逐项对照。
 
 #### 4.5.1 设备级身份密钥与信任根
 
@@ -122,26 +122,18 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 | Megolm inbound session 缓存 | MLS group state + epoch material 写入 `mls_epoch_cell`、`key_schedule_cell` 与 active security-frontier projection | epoch 与 key-access frontier 由 MLS transcript 和 reducer projection 共同绑定。 |
 | Megolm Ed25519 签名（per-message） | MLS application message 内嵌签名 + MLS transcript | 完整性来自 MLS 标准；不再额外维护 per-message Megolm 签名链。 |
 
-#### 4.5.4 Cross-Signing 与信任视图
+#### 4.5.4 设备授权与信任视图
 
-Arkret 的 **A 模型（principal 自持 enrollment authority）**沿用 Matrix 的三层 cross-signing 结构（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5）；B 模型由外部 enrollment authority + device generation fence 取代该结构，不发布 SSK/USK：
+Arkret v1 不移植 Matrix 的账户级设备信任密钥层级。设备 authority 以 root-committed PCR genesis 为起点；首设备同时提供私钥持有证明，后续设备由当前 generation 中已 accepted 的设备批准，全设备丢失使用 identity-root re-anchor。DID 只锚定 identity root key log，不承载设备目录或业务委派。
 
-| 角色 | Matrix | Arkret |
-| --- | --- | --- |
-| 用户签名根 | Master key | `principal_signing_key`（PSK），与冷 DID identity root 分离 |
-| 签名本账号所有设备 | Self-signing key | `self_signing_key`（存 secret storage，跨设备共享） |
-| 签名其他用户身份 key | User-signing key | `user_signing_key`（同上） |
-
-差异：A 模型的 PSK 在 DID Document `verificationMethod` / `assertionMethod` 中声明，但它与只存在于 method update authority 的冷 identity root 材料不同；`self_signing_key` / `user_signing_key` 在 cross-signing reset 时整条信任链置为 `needs_reverification`。B 模型不生成 PSK/SSK/USK cross-signing 链，恢复设备只走 DID-root `ak.device.reanchor` + enrollment-authority-signed replacement authorize 原子 unit。
-
-线级形态：SSK / USK 公钥与 PSK 绑定通过 `ak.cross_signing.publish`（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5.1）公布到 principal control stream；每条 `ak.device.authorize` 在 `content.cross_signing_binding` 中携带 SSK 对设备 `verify_key` 的签名（§5.2），并显式声明 `ssk_generation`。Reset 写 `ak.cross_signing.reset`（§14.1），`new_generation = previous_generation + 1`；publish 恢复窗口、device authorization 接受规则和 `cross_signing_reset` cancel code 由 device lifecycle 章节给出。
+Matrix 导入只能生成显式迁移 evidence，不能把旧的跨设备信任断言直接变成 active PCR authorization。迁移客户端必须让用户在 Arkret 侧完成一次明确的 genesis、pairing 或 re-anchor ceremony。
 
 #### 4.5.5 Secret Storage 与 Key Backup
 
 | Matrix | Arkret | 说明 |
 | --- | --- | --- |
-| Secure Secret Storage（SSSS）统一保管 cross-signing / megolm backup 等 | `ak.secret_storage.v1`（**client-local only**）+ wire 上传走 `ak.schema.key_backup.v1` | Arkret v1 不再把 secret storage envelope 作为 wire 格式；服务端 wire backup 使用 `ak.schema.key_backup.v1` 与 `backup_kind` 分类。 |
-| 一把 backup key 覆盖所有 secret 类别 | **域隔离**：`did_recovery` / `secret_storage` / `mls_history` 三类 `backup_kind`，各自独立 KDF info、HKDF 子密钥、AEAD AAD、wrap key | 防止"一把口令同时控制身份签名和 E2EE 历史"。`self_signing_key` / `user_signing_key` 与 MLS group secrets backup key 归入不同 envelope 或不同 subdomain key。详见 [`identity/key-management.md`](../identity/key-management.md) §7。 |
+| Secure Secret Storage（SSSS）统一保管账户密钥 / megolm backup 等 | `ak.secret_storage.v1`（**client-local only**）+ wire 上传走 `ak.schema.key_backup.v1` | Arkret v1 不再把 secret storage envelope 作为 wire 格式；服务端 wire backup 使用 `ak.schema.key_backup.v1` 与 `backup_kind` 分类。 |
+| 一把 backup key 覆盖所有 secret 类别 | **域隔离**：`did_recovery` / `secret_storage` / `mls_history` 三类 `backup_kind`，各自独立 KDF info、HKDF 子密钥、AEAD AAD、wrap key | 防止"一把口令同时控制身份签名和 E2EE 历史"；每类 envelope 使用独立 subdomain key。详见 [`identity/key-management.md`](../identity/key-management.md) §7。 |
 | 一把 recovery key 解锁 SSSS | recovery key + 门限 / 社交恢复 share | Arkret 把 recovery 表达为 `recovery_policy`，可声明 threshold、share holder、有效期、approval 条件；share holder 不自动获得读取内容能力。 |
 | (Matrix 未明确约束) | "能解密某段历史" 不单独作为账号所有权证明 | Arkret 把 DID 控制证明与解密能力分开，并定义了固定格式、限速、绑定 audience / service DID 的 challenge 流程。 |
 
@@ -162,7 +154,7 @@ Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标
 - **Session key（`ak.session.grant`）**：浏览器、OIDC、SSO、远程执行环境的短期会话密钥。其 audience / origin / service / scope / 过期时间绑定和 DID control state 复验由 key-management 与 account lifecycle 章节定义。
 - **Agent key**：AI agent / bot / CI / automation 的一等密钥类型，带 scope、`expires_at`、accountable actor 绑定；高风险动作可由 proposal / approval 约束。Matrix bot 复用 user / appservice token，没有这一层 scope/审计结构。
 - **Applet delegated device key**：Applet 代表 Ghost Actor 或桥接用户参与 E2EE 时，使用受限的 delegated device 密钥；`device_id` 标记 `applet_id`，capability 限定 Realm / 协议 / 动作 / 有效期，delegated device 不签发新的人类 device。to-device 权限只覆盖其 namespace 内 actor。Matrix appservice 的 ghost user 没有 device-level 委托语义。
-- **冷 Identity Root 代际**：DID method 层的逐代控制密钥。`root_0` 只签客户端构造的 DID entry 0 controller proof 与 PCR genesis；首台 `ak.device.authorize` 始终由 entry 0 委派的独立 enrollment authority 签发。root、device key、PSK/SSK 与 enrollment key 材料必须分离，recovery secret / root seed 不上传、不进入 `secret_storage` wire backup；日常 Event 只由已授权 device key 签名。
+- **冷 Identity Root 代际**：DID method 层的逐代控制密钥。`root_0` 只签客户端构造的 DID entry 0 controller proof、PCR genesis 与全设备丢失时的 re-anchor。root、device key 与 DPoP key 材料必须分离，recovery secret / root seed 不上传、不进入 `secret_storage` wire backup；日常 Event 只由已授权 device key 签名。
 
 #### 4.5.8 验证 / 登录 / 设备授权的语义解耦
 
@@ -172,14 +164,14 @@ Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把�
 | --- | --- | --- |
 | 登录因子验证（密码 / passkey / OIDC / SSO） | 短期 `ak.session.grant`、触发 recovery、请求已授权设备授权 | 长期 device、`ak.device.authorize`、E2EE 历史密钥访问 |
 | 设备授权 | `ak.device.authorize`、DID key-log operation、`ak.device.list_update`、MLS Welcome 资格 | 仅凭密码 / SSO 通过即视作设备授权 |
-| 设备密钥验证（SAS / QR） | `user_signing_key` 签名（跨 principal）、本地信任标记 | 长期 device grant、Realm capability、登录态 |
+| 设备密钥验证（SAS / QR） | 本地人工信任标记与一次性 pairing transcript | 长期 device grant、Realm capability、登录态 |
 
 验证消息形状（`ak.key.verification.{request, ready, start, accept, key, mac, done, cancel}`）与 Matrix 一致，但 Arkret 对生命周期和 transcript 绑定给出更明确的规范章节：
 
 - `request.expires_at` 与本地交互超时由 device lifecycle 章节给出。
 - SAS transcript 覆盖双方 principal id、device id、verify key、transaction id、method、算法选择、双方 ephemeral key 与待验证 key id。
 - QR payload 覆盖 transaction id、展示端 principal/device、intended verifier、一次性 secret 或 commitment、`expires_at`、supported method，并排除长期私钥、secret storage key、recovery secret 或 MLS group secret。
-- 跨 principal 验证只表达人工信任；本端 `user_signing_key` 签名对方 identity key，不改变对方设备授权状态。
+- 跨 principal 验证只表达人工信任，不改变对方设备授权状态。
 - cancel code 由 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §10.6 给出固定 registry；本指南不抄录具体取值，避免成为陈旧副本。
 
 #### 4.5.9 完整性评估
@@ -190,7 +182,7 @@ Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把�
 
 - covered: device identity key（Ed25519 / X25519）
 - covered: OTK / fallback key
-- covered: cross-signing 三层
+- covered: PCR-rooted device authorization、pairing、revoke 与 root re-anchor
 - covered: to-device 验证状态机 + cancel code
 - covered: server-side key backup（并增加域隔离）
 - covered: device list sync + 撤销

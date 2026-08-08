@@ -224,7 +224,7 @@ see_also:
 
 | 文档 | 内容 |
 | --- | --- |
-| `crypto-media/device-lifecycle.md` | 设备身份、登录与授权边界、SSO/OIDC gateway、多设备配对、to-device 消息、cross-signing、secret storage、key backup。 |
+| `crypto-media/device-lifecycle.md` | 设备身份、登录与授权边界、SSO/OIDC gateway、多设备配对、to-device 消息、PCR 设备授权、secret storage、key backup。 |
 | `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS Security Frontier Binding（`governance_binding.security_frontier_digest` + active generation projection）、KeyPackage lifecycle、minimal-metadata Realm 与 master-agent control 边界（核心机制）。 |
 | `crypto-media/disappearing-messages.md` | Message expiry、`ak.realm.disappearing_policy`、expiry stub、crypto-shredding 与 redaction 区分。 |
 | `crypto-media/audited-e2ee.md` | 可选 hardening profile：Audit Applet Binding、阶段性 release session、sealed historical release、RYW receipt、`ak.profile.attested_audit.e2ee.v1` / `ak.profile.disclosed_audit.e2ee.v1` 保证类别与 forbidden marketing terms。 |

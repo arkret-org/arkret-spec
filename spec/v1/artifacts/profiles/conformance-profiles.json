@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-08.7",
-  "generated_at": "2026-08-08T20:00:00Z",
+  "version": "2026-08-09.2",
+  "generated_at": "2026-08-09T13:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -634,7 +634,6 @@
     "ak.profile.mls_governance_binding.full.v1": "admin",
     "ak.profile.attested_audit.e2ee.v1": "admin",
     "ak.profile.disclosed_audit.e2ee.v1": "admin",
-    "ak.profile.cross_signing.reset.v1": "admin",
     "ak.profile.mls.minimal_metadata_realm.v1": "admin",
     "ak.profile.traffic_metadata_hardened.v1": "admin",
     "ak.profile.key_backup.memory_hard.v1": "admin",
@@ -694,7 +693,6 @@
     "ak.profile.mls_governance_binding.full.v1",
     "ak.profile.attested_audit.e2ee.v1",
     "ak.profile.disclosed_audit.e2ee.v1",
-    "ak.profile.cross_signing.reset.v1",
     "ak.profile.mls.minimal_metadata_realm.v1",
     "ak.profile.traffic_metadata_hardened.v1",
     "ak.profile.key_backup.memory_hard.v1",
@@ -1378,7 +1376,7 @@
     },
     "ak.profile.principal_control_realm.v1": {
       "role": "admin",
-      "description": "Realm profile for a principal-scoped durable control stream (the Principal Control Realm role; see zh/models/realm-and-space.md §2.7). It is an ordinary Collaboration Realm at the envelope level, but reducers MUST treat fields.purpose=principal_control + this schema_ref as an allowlist-bound control stream, not as a user collaboration space.",
+      "description": "Realm profile for a principal-scoped durable control stream. PCR genesis is one create-once atomic unit: identity-root-signed ak.realm.create plus founding-device-signed ak.device.authorize. After genesis, device state and recovery policy live in the PCR; the DID is only the identity-root key log and re-anchor fence.",
       "required_endpoints": [
         "ak.self.events.command.submit",
         "ak.self.events.read.scan",
@@ -1386,7 +1384,8 @@
         "ak.self.keys.keypackages.upload.create",
         "ak.self.keys.keypackages.command.claim",
         "ak.self.keys.keypackages.command.consume",
-        "ak.self.keys.keypackages.command.revoke"
+        "ak.self.keys.keypackages.command.revoke",
+        "ak.peer.principal_genesis.command.submit"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1394,8 +1393,6 @@
         "ak.device.reanchor",
         "ak.device.revoke",
         "ak.device.list_update",
-        "ak.cross_signing.publish",
-        "ak.cross_signing.reset",
         "ak.policy.set",
         "ak.mls.keypackage",
         "ak.account.status",
@@ -1424,16 +1421,14 @@
         "ak.schema.device_reanchor.v1",
         "ak.schema.capability.v1",
         "ak.schema.key_backup.v1",
-        "ak.schema.recovery_policy.v1",
-        "ak.schema.cross_signing_publish.v1",
-        "ak.schema.cross_signing_reset.v1"
+        "ak.schema.recovery_policy.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
         "crypto-signature-fixture.json",
-        "device-bootstrap-fixture.json",
         "recovery-policy-fixture.json",
-        "schema-validation-fixture.json"
+        "schema-validation-fixture.json",
+        "pcr-genesis-fixture.json"
       ],
       "optional_extensions": [
         "ak.profile.org_high_assurance_identity.v1",
@@ -1445,7 +1440,7 @@
           "control_event_kind_allowlist",
           "principal_control_binding_check"
         ],
-        "unsupported_optional": "Receivers that do not understand ak.profile.principal_control_realm.v1 MUST treat the Realm as an ordinary Collaboration Realm and MUST NOT accept device/session/cross-signing state from it as principal control state."
+        "unsupported_optional": "Receivers that do not understand this v1 profile MUST NOT accept the Realm as principal control state."
       },
       "realm_event_kind_policy": {
         "allowlist_only": true,
@@ -1455,8 +1450,6 @@
           "ak.device.reanchor",
           "ak.device.revoke",
           "ak.device.list_update",
-          "ak.cross_signing.publish",
-          "ak.cross_signing.reset",
           "ak.policy.set",
           "ak.mls.proposal",
           "ak.mls.genesis",
@@ -2216,8 +2209,7 @@
         "ak.self.snapshot.read.manifest_head",
         "ak.self.authz.read.check",
         "ak.peer.account_status.read.authoring_basis",
-        "ak.peer.account_status.command.submit",
-        "ak.peer.device_bootstrap.command.decide"
+        "ak.peer.account_status.command.submit"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -2247,8 +2239,7 @@
         "cba-lattice-fixture.json",
         "capability-fixture.json",
         "privacy-security-fixture.json",
-        "security-closure-fixture.json",
-        "device-bootstrap-fixture.json"
+        "security-closure-fixture.json"
       ],
       "optional_extensions": [
         "ak.profile.federation_minimal.v1",
@@ -2270,9 +2261,7 @@
         "invite_claim_allowlist_recheck_must": "Reducer MUST re-check binding_proof.verification_service_id against the current effective Realm allowlist and any invite-pinned service DID before accepting subject_proof.",
         "invite_claim_nonce_dedup_must": "Reducer MUST treat (invite_id, claim_nonce) and token_commitment as one-time constraints and reject replay with duplicate_conflict.",
         "invite_claim_membership_conversion_must": "Successful claim MUST atomically transition invite pending -> claimed and materialize only a subject-bound standard invite or membership proposal; final join still requires ak.invite.accept or an explicitly profiled equivalent path.",
-        "invite_claim_expiry_cleanup_must": "Reducer MUST expire third-party invites before claim acceptance when expires_at <= now and trigger token material cleanup obligations from third-party-invites.md §6.1.",
-        "device_bootstrap_decision_fence_must": "The Principal Server MUST be the durable decision authority for founding device-bootstrap acceptance versus cancellation/expiry. It MUST commit accepted and the notary-signed decision receipt in the same PostgreSQL transaction as the ordered founding Events, and MUST serialize ak.peer.device_bootstrap.command.decide against that commit under the same durable lock. accepted|cancelled|expired rows and byte-stable outcomes are immutable v1 tombstones and MUST NOT be pruned.",
-        "device_bootstrap_restricted_auth_must": "Grant authentication MUST retain credential_class and the complete bootstrap_binding. A DeviceBootstrap grant is authorized only for its exact four registered operations. ak.self.events.command.submit additionally requires an InitialBatch whose ordered Event IDs and recomputed founding digest, principal, device, holder and deadline equal the Founding binding; a mismatch or terminal decision performs zero Event writes."
+        "invite_claim_expiry_cleanup_must": "Reducer MUST expire third-party invites before claim acceptance when expires_at <= now and trigger token material cleanup obligations from third-party-invites.md §6.1."
       }
     },
     "ak.profile.federation_minimal.v1": {
@@ -2556,8 +2545,7 @@
         "ak.gate.account.command.issue_session_grant",
         "ak.gate.account.command.refresh_session_grant",
         "ak.gate.account.command.revoke_session",
-        "ak.gate.account.command.introspect_session_grant",
-        "ak.gate.account.command.cancel_device_bootstrap"
+        "ak.gate.account.command.introspect_session_grant"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [
@@ -2570,8 +2558,7 @@
       "required_fixtures": [
         "crypto-signature-fixture.json",
         "privacy-security-fixture.json",
-        "session-grant-issuance-fixture.json",
-        "device-bootstrap-fixture.json"
+        "session-grant-issuance-fixture.json"
       ],
       "optional_extensions": [
         "ak.gate.account.command.issue_session_grant",
@@ -2608,7 +2595,6 @@
         "session_grant_issuer_ledger_must": "Auth Server MUST be the sole durable authority for immutable SessionGrant issuance records and active/revoked/superseded lifecycle. It MUST derive the suite-tagged grant ID and JWT jti from the complete closed issuance preimage, including the credential-class-selected holder/bootstrap/recovery binding, atomically persist issuance before response, provide durable exact replay for issue, refresh and revoke, and use the same ledger for cascade and introspection. It MUST NOT author ak.session.grant or ak.session.grant.state Events or depend on a Principal Control Realm grant cell.",
         "session_grant_dpop_binding_must": "Issue, refresh, replay retrieval and protected-resource presentation MUST verify current holder/DPoP proof, exact HTTP target and method, issuer/audience and canonical request digest. An S2S HTTP Message Signature authenticates transport only and never substitutes for holder proof or principal/device/notary Event proof.",
         "session_grant_terminal_replay_must": "Exact replay of an expired recorded outcome returns session_grant_replay_expired; exact replay of a revoked or superseded recorded outcome returns session_grant_replay_terminal with grant_id and terminal state. Neither path returns success or issues a new grant. After replay-record retention expires, the same request identity fails closed as indeterminate.",
-        "device_bootstrap_cross_service_fence_must": "For founding device bootstrap, cancellation and deadline expiry MUST obtain a signed terminal decision receipt from ak.peer.device_bootstrap.command.decide before changing the Account Authority transaction. accepted wins when the Principal Server already committed the founding batch; cancelled/expired win only under the same Principal Server transaction fence before Event acceptance. Dependency, network, 5xx and indeterminate outcomes leave the four-state transaction unchanged. No directory miss, cached introspection or fifth transaction state may substitute for this fence.",
         "not_identity_registry_must": "Auth Server MUST NOT claim `ak.profile.identity_registry.v1`; any DID document / key-log surface it exposes MUST be declared on `compat_surfaces[]` as `delegated_resolver` rather than self-claimed canonical authority.",
         "not_principal_server_must": "Auth Server MUST NOT claim `ak.profile.principal_server.v1`; Realm event acceptance is the principal server role and is incompatible with auth-server-only deployments.",
         "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run.",
@@ -2679,7 +2665,7 @@
       }
     },
     "ak.profile.key_transparency.v1": {
-      "description": "Append-only key-transparency profile for principal DID history, cross-signing roots, active device-key-set digests and KeyPackage publication digests. Claims require independently verifiable log heads, inclusion proofs, consistency proofs and at least two distinct witness signatures.",
+      "description": "Append-only key-transparency profile for principal DID history, PCR device authorization roots, active device-key-set digests and KeyPackage publication digests. Claims require independently verifiable log heads, inclusion proofs, consistency proofs and at least two distinct witness signatures.",
       "required_endpoints": [
         "ak.root.identity.read.resolve",
         "ak.root.identity.log.read.list",
@@ -4503,7 +4489,7 @@
     },
     "ak.profile.matrix_compat.v1": {
       "inherits": [],
-      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message strand. Account-aggregate sync is NOT covered: Arkret v1 chose a streaming push form (ak.self.account.stream.subscribe / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the ak.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
+      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, and SAS verification message strand. Arkret device authorization remains PCR-native and is outside this compatibility profile. Account-aggregate sync is NOT covered: Arkret v1 chose a streaming push form (ak.self.account.stream.subscribe / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the ak.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
       "required_endpoints": [
         "ak.self.device_messages.command.send",
         "ak.self.device_messages.read.list",
@@ -4519,7 +4505,6 @@
         "ak.schema.device_message.v1"
       ],
       "required_fixtures": [
-        "cross-signing-binding-fixture.json",
         "keypackage-lifecycle-fixture.json",
         "push-rule-core-fixture.json",
         "sync-fixture.json"
@@ -4530,8 +4515,7 @@
       "feature_discovery": {
         "required": [
           "to_device_queue",
-          "prekey_distribution",
-          "cross_signing"
+          "prekey_distribution"
         ],
         "unsupported_optional": "omit profile claim"
       }
@@ -4711,53 +4695,6 @@
           "circle_seal_activity_independent_schedule"
         ],
         "unsupported_optional": "omit profile claim; confidential Circle deployments MUST NOT claim an event-count cadence as equivalent"
-      }
-    },
-    "ak.profile.cross_signing.reset.v1": {
-      "inherits": [],
-      "description": "Hardening profile for high-risk cross-signing reset. Claimants MUST accept ak.cross_signing.reset only with one valid reset proof family, enforce generation monotonicity, clock skew, and replay rejection, and require a successor ak.cross_signing.publish within the recovery window. Verification rules and reason codes are normative in zh/crypto-media/device-lifecycle.md §14.4.",
-      "required_endpoints": [],
-      "required_event_kinds": [
-        "ak.cross_signing.reset",
-        "ak.cross_signing.publish"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.cross_signing_reset.v1",
-        "ak.schema.cross_signing_publish.v1"
-      ],
-      "required_fixtures": [
-        "cross-signing-binding-fixture.json"
-      ],
-      "optional_extensions": [],
-      "parameters": {
-        "max_clock_skew_seconds": {
-          "default": 300,
-          "min": 60,
-          "max": 900,
-          "rationale": "Maximum allowed deviation between `ak.cross_signing.reset.issued_at` and receiver local clock. Default 300s mirrors policy-decision freshness windows; receivers MAY tighten down to 60s for high-assurance deployments or relax up to 900s for federated peers with documented clock skew. Beyond the configured value receivers MUST emit cross_signing_reset_clock_skew_exceeded."
-        },
-        "publish_recovery_window_seconds": {
-          "default": 86400,
-          "min": 3600,
-          "max": 172800,
-          "rationale": "Maximum interval after an accepted reset within which the successor ak.cross_signing.publish MUST be observed; receivers MUST otherwise enter the 'no usable SSK/USK' state from §14.2 step 5. Default 24h matches the §14.1 normative requirement."
-        },
-        "reset_replay_cache_min_retention_seconds": {
-          "default": 90000,
-          "min": 86400,
-          "rationale": "Minimum retention for the (principal_id, previous_generation) replay-rejection cache used by §14.4 通用规则. MUST be at least `publish_recovery_window_seconds + 3600` so that no late-arriving duplicate reset can bypass the cache before the successor publish window closes. Default = 24h + 1h slack."
-        }
-      },
-      "feature_discovery": {
-        "required": [
-          "cross_signing_reset",
-          "cross_signing_reset_replay_cache",
-          "cross_signing_generation_gate",
-          "cross_signing_reset_clock_skew_bound",
-          "cross_signing_reset_publish_window"
-        ],
-        "unsupported_optional": "fail closed or omit profile claim"
       }
     },
     "ak.profile.circle_conformance.v1": {

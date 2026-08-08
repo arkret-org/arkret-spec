@@ -75,8 +75,6 @@
   ],
   "fault_matrix": {
     "transaction_kinds": [
-      "recovery_cross_signing",
-      "recovery_enrollment_authority",
       "security_rotation"
     ],
     "fault_positions": [

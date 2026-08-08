@@ -25,7 +25,7 @@
     },
     "sender_principal_id": {
       "$ref": "#/$defs/did",
-      "description": "Sender Principal DID. Intentionally NOT named sender_actor_id: device messages are out-of-band per-device transport envelopes that travel principal-to-principal outside any Realm context, so the Realm-scoped Actor identity used by message.schema.json / event-payload.schema.json does not apply here. Pair with sender_device_id for cross-signing binding."
+      "description": "Sender Principal DID. Intentionally NOT named sender_actor_id: device messages are out-of-band per-device transport envelopes that travel principal-to-principal outside any Realm context, so the Realm-scoped Actor identity used by message.schema.json / event-payload.schema.json does not apply here. Pair with sender_device_id and verify it against the accepted PCR device projection."
     },
     "sender_device_id": {
       "$ref": "#/$defs/device_id"
@@ -48,7 +48,7 @@
     },
     "device_proof": {
       "type": "object",
-      "description": "Optional per-device transport proof block. Schema-open extension point keyed by device-lifecycle.md §5.2 cross-signing binding (typical sub-fields: cross_signing_binding, sender_device_key_fingerprint, signature_over_content_digest). MUST NOT replace MLS authentication of the enclosing envelope; included only when an additional out-of-band per-device transport binding is required (e.g. SAS verification, dehydrated-device proofs). Receivers MUST treat unknown sub-fields as opaque and MUST NOT trust device_proof in isolation."
+      "description": "Optional per-device transport proof block (typical sub-fields: device_authorize_event_id, sender_device_key_fingerprint, signature_over_content_digest). It MUST NOT replace MLS authentication of the enclosing envelope and MUST NOT be trusted in isolation."
     },
     "unsigned": {
       "type": "object",
@@ -671,8 +671,7 @@
             "device_revoked",
             "untrusted_device",
             "policy_denied",
-            "accepted_by_other_device",
-            "cross_signing_reset"
+            "accepted_by_other_device"
           ]
         },
         "reason": {

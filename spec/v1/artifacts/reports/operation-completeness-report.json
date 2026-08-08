@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.18",
+  "version": "2026-08-09.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T20:00:00Z",
+  "generated_at": "2026-08-09T13:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,21 +18,21 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 226,
+    "total_operations": 222,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "service_describe": 5,
       "streaming_frame_schema": 3,
-      "typed_schema": 216
+      "typed_schema": 212
     },
     "by_surface_class_and_completeness_class": {
       "core": {
         "service_describe": 3,
         "streaming_frame_schema": 2,
-        "typed_schema": 35
+        "typed_schema": 34
       },
       "deployment_local": {
-        "typed_schema": 15
+        "typed_schema": 12
       },
       "extension": {
         "binary_or_redirect": 2,
@@ -418,48 +418,6 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.gate.account.command.authorize_recovery_device",
-      "surface_class": "deployment_local",
-      "http": "POST /_arkret/gate/account/recovery-device-authorizations",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/recovery-authority.schema.json#/$defs/authorize_recovery_device_request",
-      "response_schema_ref": "schemas/recovery-authority.schema.json#/$defs/authorize_recovery_device_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/RecoveryDeviceAuthorizationRequestBody",
-        "response": "#/components/schemas/RecoveryDeviceAuthorizationOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.gate.account.command.cancel_device_bootstrap",
-      "surface_class": "deployment_local",
-      "http": "POST /_arkret/gate/account/device-bootstrap/cancel",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/cancel_device_bootstrap_request",
-      "response_schema_ref": "schemas/principal-operations.schema.json#/$defs/cancel_device_bootstrap_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/DeviceBootstrapCancelRequestBody",
-        "response": "#/components/schemas/DeviceBootstrapCancelOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.gate.account.command.enroll_device",
-      "surface_class": "deployment_local",
-      "http": "POST /_arkret/gate/account/device-enroll",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/AccountDeviceEnrollRequestBody",
-        "response": "#/components/schemas/AccountDeviceEnrollOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
       "operation_id": "ak.gate.account.command.introspect_session_grant",
       "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/session-grants/introspect",
@@ -483,6 +441,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/IdentityBindingChallengeRequestBody",
         "response": "#/components/schemas/IdentityBindingChallengeOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.gate.account.command.issue_recovery_completion_grant",
+      "surface_class": "deployment_local",
+      "http": "POST /_arkret/gate/account/recovery-session-grants/issue",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_request",
+      "response_schema_ref": "schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/RecoveryCompletionGrantRequestBody",
+        "response": "#/components/schemas/RecoveryCompletionGrantOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -553,20 +525,6 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountDevicePairRequestBody",
         "response": "#/components/schemas/AccountDevicePairOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.gate.account.command.promote_recovery_session_grant",
-      "surface_class": "deployment_local",
-      "http": "POST /_arkret/gate/account/recovery-session-grants/promote",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/recovery-authority.schema.json#/$defs/promote_recovery_session_grant_request",
-      "response_schema_ref": "schemas/recovery-authority.schema.json#/$defs/promote_recovery_session_grant_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/RecoverySessionGrantPromotionRequestBody",
-        "response": "#/components/schemas/RecoverySessionGrantPromotionOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -934,20 +892,6 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.peer.device_bootstrap.command.decide",
-      "surface_class": "extension",
-      "http": "POST /_arkret/peer/device-bootstrap-decisions",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/device_bootstrap_decision_request",
-      "response_schema_ref": "schemas/principal-operations.schema.json#/$defs/device_bootstrap_decision_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/DeviceBootstrapDecisionRequestBody",
-        "response": "#/components/schemas/DeviceBootstrapDecisionOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
       "operation_id": "ak.peer.erasure_receipt.command.submit",
       "surface_class": "extension",
       "http": "POST /_arkret/peer/erasure-receipts",
@@ -1084,6 +1028,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/MlsGroupStateMaterialRequestBody",
         "response": "#/components/schemas/MlsGroupStateMaterialOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.principal_genesis.command.submit",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/principal-genesis",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_request",
+      "response_schema_ref": "schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/PcrGenesisSubmitRequestBody",
+        "response": "#/components/schemas/PcrGenesisSubmitOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2957,20 +2915,6 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/RealmPolicyServerReplaceRequestBody",
         "response": "#/components/schemas/RealmPolicyServerView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.recovery_authority_ticket.command.issue",
-      "surface_class": "core",
-      "http": "POST /_arkret/self/recovery-authority-tickets",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/recovery-authority.schema.json#/$defs/ticket_issue_request",
-      "response_schema_ref": "schemas/recovery-authority.schema.json",
-      "openapi_component_refs": {
-        "request": "../schemas/recovery-authority.schema.json#/$defs/ticket_issue_request",
-        "response": "../schemas/recovery-authority.schema.json"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

@@ -41,11 +41,9 @@ class CanonicalPublicMaterialFixtureTests(unittest.TestCase):
                 case
                 for case in fixture["schema_validation_cases"]
                 if case["name"]
-                == "security_transaction_enrollment_authority_create_valid"
+                == "root_anchored_recovery_public_did_entry_valid"
             )
-            material = case["instance"]["prepared_plan"]["authorization_preimage"][
-                "did_entry_preimage"
-            ]
+            material = case["instance"]
             material["value"]["versionId"] = "3-drifted"
 
         errors = self._lint(mutate)

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/federated-device-signing-key-evidence.schema.json",
   "title": "Arkret Federated Device Signing Key Evidence",
-  "description": "Portable device-key authorization evidence. The original accepted service-attested ak.device.authorize Event cryptographically binds the key to the principal's DID-designated enrollment authority; the authenticated source Principal Server attests only that the authorization is current and active. Transport-only: this object never enters another Event digest, Realm reducer, Seal, or timeline.",
+  "description": "Portable PCR-anchored device-key authorization evidence. A destination independently verifies the identity-root-signed PCR genesis, every accepted device authorization hop, and the Seal that covers the target authorization. DID resolution supplies only the identity root history; it is not a device authority or directory. Transport-only: this object never enters another Event digest, reducer, Seal, or timeline.",
   "type": "object",
   "required": [
     "actor_id",
@@ -10,12 +10,15 @@
     "verification_method",
     "device_signing_key",
     "authorization_accepted_at",
-    "device_authorize_event"
+    "principal_genesis_receipt",
+    "authorization_chain",
+    "accepted_seal",
+    "current_device_projection",
+    "range_completeness_evidence"
   ],
   "properties": {
     "actor_id": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/did"
     },
     "device_id": {
       "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -28,15 +31,54 @@
     "device_signing_key": {
       "type": "string",
       "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
-      "description": "Ed25519 device signing public key. The multibase suffix MUST equal device_authorize_event.payload.device_public_key."
+      "description": "MUST equal the target authorization Event payload device_public_key."
     },
     "authorization_accepted_at": {
-      "$ref": "./time.schema.json#/$defs/timestamp",
-      "description": "Source authority's server-sealed acceptance time for device_authorize_event. The destination uses this time for historical DID/enrollment-authority resolution; it MUST be no earlier than the Event created_at and no later than the source service attestation time."
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "device_authorize_event": {
-      "$ref": "./event-envelope.schema.json",
-      "description": "Original accepted ak.device.authorize Event. It MUST target actor_id/device_id, carry enrollment_authority_binding.kind=service_attested, bind device_signing_key, and have portable proofs with no service-specific domain or audience. The destination independently verifies its proof against the DID-designated enrollment authority."
+    "principal_genesis_receipt": {
+      "$ref": "./event-batch-receipt.schema.json",
+      "description": "A verified receipt whose scope.kind is pcr_genesis_unit and whose principal/device commitments match the first two authorization_chain Events."
+    },
+    "authorization_chain": {
+      "type": "array",
+      "description": "Complete ordered PCR control-state history needed to rederive the target device projection at accepted_seal, starting at root-signed genesis and including every relevant authorize, revoke, reanchor and device-list move. For accepted_device hops the Event proof signer MUST be payload.authorized_by (a current active device), while payload.device_signature proves possession by the new device. range_completeness_evidence proves that reducer inputs were not omitted.",
+      "items": {
+        "$ref": "./event-envelope.schema.json"
+      },
+      "minItems": 2,
+      "maxItems": 64
+    },
+    "accepted_seal": {
+      "$ref": "./seal.schema.json",
+      "description": "Current Seal whose recursively covered control Event set includes every authorization_chain Event digest and whose Realm id is the principal's deterministic PCR."
+    },
+    "current_device_projection": {
+      "type": "object",
+      "description": "Deterministic projection rederived from authorization_chain at accepted_seal. The outer source assertion is not authority; any mismatch with replayed history fails closed.",
+      "required": [ "principal_id", "device_id", "device_record", "generation_state" ],
+      "properties": {
+        "principal_id": { "$ref": "./common-ids.schema.json#/$defs/did" },
+        "device_id": { "$ref": "./common-ids.schema.json#/$defs/device_id" },
+        "device_record": { "$ref": "./keys-operations.schema.json#/$defs/query_device_record" },
+        "generation_state": { "$ref": "./keys-operations.schema.json#/$defs/device_generation_state" }
+      },
+      "additionalProperties": false
+    },
+    "range_completeness_evidence": {
+      "type": "array",
+      "description": "Signed ak.attestation.range_completeness Event envelopes whose verified scopes cover the PCR range from genesis through accepted_seal. The verifier checks roots, actor-seq ranges, witnesses required by Realm policy, and rejects gaps or witness disagreement.",
+      "items": {
+        "allOf": [
+          { "$ref": "./event-envelope.schema.json" },
+          {
+            "type": "object",
+            "properties": { "kind": { "const": "ak.attestation.range_completeness" } },
+            "required": [ "kind" ]
+          }
+        ]
+      },
+      "minItems": 1
     }
   },
   "additionalProperties": false

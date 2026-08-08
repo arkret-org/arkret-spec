@@ -53,7 +53,7 @@
     },
     "constraint_subkind": {
       "type": "string",
-      "description": "Optional discriminator within a constraint_kind. Standard values: claim_based.{claim,approval,accountability}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}; authority_control.{applet_authority}. Per constraint-schema.md §2.2, device/session binding is NOT an independent constraint_subkind: it is the claim_based constraint_subkind=claim sub-case expressed via claim issuer = device cross-signing key. Implementations MAY require constraint_subkind for these families and fail closed on unknown values.",
+      "description": "Optional discriminator within a constraint_kind. Standard values: claim_based.{claim,approval,accountability}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}; authority_control.{applet_authority}. Per constraint-schema.md §2.2, device/session binding is NOT an independent constraint_subkind: it is the claim_based constraint_subkind=claim sub-case expressed via an accepted PCR device issuer. Implementations MAY require constraint_subkind for these families and fail closed on unknown values.",
       "enum": [
         "claim",
         "approval",

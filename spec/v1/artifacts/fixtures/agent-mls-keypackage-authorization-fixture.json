@@ -36,19 +36,6 @@
       "authorization_status": "active"
     },
     {
-      "name": "ssk_generation_binding_is_rejected",
-      "expected": "rejected",
-      "agent_id": "did:webvh:z6mkagent:agent.example",
-      "claim_principal_id": "did:webvh:z6mkagent:agent.example",
-      "current_agent_key_authorize_event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-      "claim_agent_key_authorize_event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-      "ssk_generation": 3,
-      "current_verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
-      "leaf_signature_key": "did:webvh:z6mkagent:agent.example#runtime-1",
-      "leaf_signature_valid": true,
-      "authorization_status": "active"
-    },
-    {
       "name": "stale_authorize_event_is_rejected",
       "expected": "rejected",
       "agent_id": "did:webvh:z6mkagent:agent.example",
