@@ -63,7 +63,7 @@ lattice     := cas_register
 bottom      := reject
 payload path:= join_policy
 value shape := JoinPolicy（见下；机器真源
-               [`event-payload.schema.json#/$defs/join_policy_payload`](../../artifacts/schemas/event-payload.schema.json)）
+               [`event-payload.schema.json#/$defs/join_policy_component`](../../artifacts/schemas/event-payload.schema.json)）
 ```
 
 Join policy **没有**独立 Event kind，也**没有**独立 cell family：它是 `ak.realm.policy_bundle` payload 的 `join_policy` 组件，随整个 bundle 一起写入 per-Realm 单例 `ak.component.realm.policy_bundle.v1` cell，因此也随 `policy_revision` 单调推进、被同一 cas_register 语义整体替换（每次 revision 重述完整启用组件集）。这与 [`member-delivery-binding.md`](member-delivery-binding.md) §4 的 `ak.component.realm.delivery_binding_policy.v1` 形成对照：后者有自己的 facet event 与独立 cell，前者没有。两个 cell 的 `cell_subject` 都为 `null`，都由 Event envelope `realm_id` 定位。null subject 的 canonical wire 形态（字面 ASCII `null`）及"不得把 `realm_id`、Realm 角色分类或任何 payload 派生值编码进 subject 段"的禁令是全协议规则，canonical 定义在 [`../conformance/encoding.md` §4](../conformance/encoding.md)；本节不再重复承载该规则。
@@ -90,7 +90,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
 **`reviewer_quorum` 解析规则（normative）**：
 
-- object 形式 `{ threshold, reviewers }`（N-of-M）写入时，reducer MUST 校验 `threshold <= |unique reviewers|`（`reviewers[]` 按 DID 去重后的元素数；[`event-payload.schema.json#/$defs/join_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 已对 `reviewers` 声明 `uniqueItems: true`）。不满足时 MUST 以 `schema_violation` 拒绝该 policy 写入。
+- object 形式 `{ threshold, reviewers }`（N-of-M）写入时，reducer MUST 校验 `threshold <= |unique reviewers|`（`reviewers[]` 按 DID 去重后的元素数；[`event-payload.schema.json#/$defs/join_policy_component`](../../artifacts/schemas/event-payload.schema.json) 已对 `reviewers` 声明 `uniqueItems: true`）。不满足时 MUST 以 `schema_violation` 拒绝该 policy 写入。
 - `majority` / `all` 的分母（reviewer 总数）与单个 reviewer 的资格（是否持有 `review_capability`）MUST 按**各 review accept Event 的 CBA basis** 取值（与 §5 "Gate predicate 评估时点"同一模型）。某条 accept 按其 basis 计入后，该 reviewer 在后续 Seal 失去 capability **不**追溯使既有 accept 失效；它只影响该 reviewer 此后新的 review 决策与新 envelope 投递（§8.2）。
 - **quorum 数学上不可达（normative）**：当 `reviewer_quorum` 为 object 形式 `{ threshold, reviewers }` 且在当前评估 frontier 下仍持有 `review_capability` 的 `reviewers[]` 元素数已 `< threshold`（如 reviewer 被撤销 capability 或离开 Realm，使剩余合格 reviewer 不足以达成 threshold），该 application 进入**不可达**状态。reducer / review 服务 MUST NOT 让 applicant 无声挂起至 `application_ttl`：检测到不可达时 MUST 把该 application 转为终态 reject，写入 §7.3 受控枚举 `reason_code="quorum_unreachable"`（见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)），并 SHOULD 通过 §11 / Realm policy 触发 join policy 重评（如降低 threshold 或补充 reviewer）。`majority` / `all` 形式因分母随合格 reviewer 集合动态收缩，不构成此意义上的不可达。
 
@@ -108,7 +108,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
 字段语义：
 
-- `gate_id`：稳定 id，用于审计与 application 中的 proof 关联。**`gate_id` MUST 在 `gates[]` 中唯一**——重复值 MUST 触发 `schema_violation`（`reason_code=join_policy_duplicate_gate_id`，见 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）。enforcement 由三层组成：(a) [`event-payload.schema.json#/$defs/join_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 在 `gates` 数组上声明 `uniqueItems: true`，捕获**整对象重复**的 gate；(b) JSON Schema 2020-12 无法以纯 schema 表达"按字段属性去重"，因此 [`tools/lint_artifacts.py` `check_join_policy_gate_id_uniqueness`](../../../../tools/lint_artifacts.py) 在 fixture 与 Markdown JSON 示例中机械拒绝**按 `gate_id` 去重**的违例；(c) reducer 在 wire 上再做一次 `gate_id` 唯一性校验并以上述 reason_code 拒绝。三层共同构成机器可执行的闭环。
+- `gate_id`：稳定 id，用于审计与 application 中的 proof 关联。**`gate_id` MUST 在 `gates[]` 中唯一**——重复值 MUST 触发 `schema_violation`（`reason_code=join_policy_duplicate_gate_id`，见 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）。enforcement 由三层组成：(a) [`event-payload.schema.json#/$defs/join_policy_component`](../../artifacts/schemas/event-payload.schema.json) 在 `gates` 数组上声明 `uniqueItems: true`，捕获**整对象重复**的 gate；(b) JSON Schema 2020-12 无法以纯 schema 表达"按字段属性去重"，因此 [`tools/lint_artifacts.py` `check_join_policy_gate_id_uniqueness`](../../../../tools/lint_artifacts.py) 在 fixture 与 Markdown JSON 示例中机械拒绝**按 `gate_id` 去重**的违例；(c) reducer 在 wire 上再做一次 `gate_id` 唯一性校验并以上述 reason_code 拒绝。三层共同构成机器可执行的闭环。
 - `kind`：取 `claim_required` / `application_form` / `challenge_response` / `manual_review` / `parent_membership` / `principal_admission` / `cooldown` 之一
 - `auto_resolve`：该 gate 能否仅靠 applicant 提交的材料解析；`manual_review` / `application_form` 必为 `false`
 - 其余字段按 `kind` 决定（见下表）

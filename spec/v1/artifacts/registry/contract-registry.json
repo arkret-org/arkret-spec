@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.2",
+  "version": "2026-08-09.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-09T13:00:00Z",
+  "generated_at": "2026-08-09T14:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -435,14 +435,16 @@
       "State convergence is defined by CBA: DataEvent writes are projected and locally accepted against seal_ref, Control Move writes are projected and finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
       "Every active durable reducer-input event_kind MUST have a machine-readable admission source: either at least one capability action targets it (capability_action_registry.target_event_kinds), or it declares an admission class from admission_class_definitions. capability_gated events MUST be listed in at least one action's target_event_kinds - admission has a single direction of truth and no per-event capability list. Enforced by lint_artifacts.py; no active durable reducer-input event may lack an admission source (fail-closed).",
       "A conditional admission MUST use only selectors defined by admission_predicate_contract. All non-otherwise predicates are evaluated independently; exactly one match selects its branch, zero matches selects the final otherwise branch, and multiple matches fail closed. otherwise is never evaluated as an ordinary predicate.",
-      "ak.state.conflict_recovery is the single registered exception to literal cell addressing. Its one cell_writes[] entry declares cell_ref (a cell_id sourced from the payload) instead of cell_family/cell_subject, and effect_projection kind=reset instead of a lattice op, and it omits lattice and bottom. That combination is closed: no other kind may declare cell_ref or reset, and this kind MUST declare both together. A recovery addresses one cell of an arbitrary family, so the target cannot be a literal ak.component.*.v<n> URI; and a reset is not a join, so it has no lattice. The safety envelope is not static reachability but zh/authz/event-auth-state-resolution.md section 9.5: the reducer MUST apply a reset only to a cell already in Bottom, and only when the Event carries refs[] role=recovery_capability and role=state_witness satisfying every condition in that section. On a cell in any other state the write MUST be rejected."
+      "ak.state.conflict_recovery is the single registered exception to literal cell addressing. Its one cell_writes[] entry declares cell_ref (a cell_id sourced from the payload) instead of cell_family/cell_subject, and effect_projection kind=reset instead of a lattice op, and it omits lattice and bottom. That combination is closed: no other kind may declare cell_ref or reset, and this kind MUST declare both together. A recovery addresses one cell of an arbitrary family, so the target cannot be a literal ak.component.*.v<n> URI; and a reset is not a join, so it has no lattice. The safety envelope is not static reachability but zh/authz/event-auth-state-resolution.md section 9.5: the reducer MUST apply a reset only to a cell already in Bottom, and only when the Event carries refs[] role=recovery_capability and role=state_witness satisfying every condition in that section. On a cell in any other state the write MUST be rejected.",
+      "Every active standard Event kind MUST declare exactly one payload_schema_ref. The reference MUST resolve to an existing schema location and MUST equal the single Event Envelope payload dispatch for that kind. Consumers MUST NOT infer payload schemas from Event.kind spelling, schema-name conventions, or fallback definitions."
     ],
     "payload_schema_contract": {
       "event_envelope_schema": "schemas/event-envelope.schema.json",
       "payload_schema_file": "schemas/event-payload.schema.json",
       "coverage_required": true,
       "validation_rule": "Every active standard ak.* event kind MUST be validated by the Event Envelope schema and one payload class selected by kind. Unknown standard kind, unmatched active kind, or payload class failure is schema_violation before reducer execution.",
-      "non_critical_extension_rule": "Unknown non-critical payload fields are preserved in canonical bytes and MAY be ignored by reducers. Unknown critical payload semantics MUST be declared in Event.requirements.critical_extensions and fail closed when unsupported."
+      "non_critical_extension_rule": "Unknown non-critical payload fields are preserved in canonical bytes and MAY be ignored by reducers. Unknown critical payload semantics MUST be declared in Event.requirements.critical_extensions and fail closed when unsupported.",
+      "explicit_binding_rule": "Each active standard event kind declares exactly one payload_schema_ref, and the Event Envelope dispatch selects that exact location. Missing, dangling, duplicate, or divergent bindings fail closed. Consumers MUST NOT infer a payload schema from kind spelling or naming conventions."
     },
     "cell_contracts": {
       "ak.account.status": {
@@ -5631,6 +5633,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Writes a registered target_reducer_profile to the Realm reducer-profile singleton control cell. The Move MUST carry a head_eq precondition for that cell's settled source profile. The source profile interprets the upgrade Event; successors whose governance basis contains the accepted upgrade use the target profile.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_upgrade_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5640,6 +5643,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Organization-authorized Realm relationship statement or revocation",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_organization_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5649,6 +5653,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Typed Realm link graph edge. link_kind declares governance / discoverability / import-export / confidential-extension semantics; it is never generic parent/child containment and never implicitly propagates membership, capabilities, history, E2EE keys, retention, or federation policy.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_link_payload",
         "id_source": "reference"
       },
       {
@@ -5658,6 +5663,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm access policy reference (policy_id)",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5667,6 +5673,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm join rule (public/invite/knock/restricted/knock_restricted/closed)",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5676,6 +5683,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm history visibility scope",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/history_visibility_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5685,6 +5693,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm discoverability state",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5694,6 +5703,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm preview / peek policy for directory card, stripped state, history stub, and plaintext history snippet projections",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/preview_policy_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5703,7 +5713,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm disappearing-message expiry policy",
-        "payload_schema": "ak.schema.disappearing_messages.v1",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_disappearing_policy_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5713,7 +5723,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm privacy-preserving search policy",
-        "payload_schema": "ak.schema.search_service.v1",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_search_policy_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5723,6 +5733,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Sets / changes the Realm's authoritative default discussion Strand pointer. payload = {realm_id, strand_id}; reducer projects payload.strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify the referenced strand_id already exists in this Realm (a projected, non-tombstoned Strand); a dangling reference MUST be rejected with failed_precondition. Strand-side is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage; clients discover the default Strand deterministically from the Realm projection default_strand_id or the Strand projection is_default, NOT from any UUID-reuse implementation detail. Authorization is the standard Realm-admin gate (hold ak.realm.admin, or the same-name action ak.realm.set_default_strand).",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_set_default_strand_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5732,6 +5743,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "CAS rotation of the per-Realm notary authority. The current notary must finalize the Move; concurrent rotations join to Bottom and require recovery.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_notary_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5741,6 +5753,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Profile-gated transition from the Realm's current digest suite to a stronger active suite, bound to a transition snapshot and dual-root Seal under ak.profile.hash_transition.v1.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_digest_suite_transition_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5770,6 +5783,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "E2EE history sharing policy",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/history_sharing_policy_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5789,6 +5803,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm asset privacy policy",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5798,6 +5813,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed / receipt_compliance_opt_in); see zh/discovery/read-receipts.md §2.5 for the closed compliance opt-in object",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5807,6 +5823,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm moderation policy (blocklists, allowlists, content filters)",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5816,6 +5833,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Plaintext-visible services declaration outside E2EE boundary",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/plaintext_visible_services_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5825,6 +5843,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Media Service (TURN/SFU/MCU + ICE) binding",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5834,6 +5853,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm schema_refs declaration",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5843,6 +5863,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Per-parent inheritance policy; one entry per source Realm",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_inheritance_policy_payload",
         "id_source": "reference"
       },
       {
@@ -5852,6 +5873,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm archive lifecycle facet (reversible boolean)",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
         "lifecycle_modality": "reversible",
         "id_source": "not_an_object_id"
       },
@@ -5862,6 +5884,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm freeze lifecycle facet (reversible boolean)",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
         "lifecycle_modality": "reversible",
         "id_source": "not_an_object_id"
       },
@@ -5872,6 +5895,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm tombstone lifecycle facet (terminal pointer to successor)",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
         "lifecycle_modality": "terminal",
         "id_source": "not_an_object_id"
       },
@@ -5882,6 +5906,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm destroy lifecycle facet (terminal decommission marker)",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
         "lifecycle_modality": "terminal",
         "id_source": "not_an_object_id"
       },
@@ -5892,6 +5917,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_create_payload",
         "id_source": "event_derived",
         "id_kind": "circle"
       },
@@ -5925,6 +5951,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Circle patch (ak.schema.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_patch_payload",
         "id_source": "reference"
       },
       {
@@ -5934,6 +5961,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Circle archive lifecycle facet (active -> archived).",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
         "lifecycle_modality": "reversible",
         "id_source": "not_an_object_id"
       },
@@ -5944,6 +5972,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Circle restore lifecycle facet (archived -> active).",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
         "lifecycle_modality": "reversible",
         "id_source": "not_an_object_id"
       },
@@ -5954,6 +5983,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Circle tombstone (terminal). Triggers lifecycle cascade per zh/models/circle.md §9.2.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
         "lifecycle_modality": "terminal",
         "id_source": "not_an_object_id"
       },
@@ -5964,6 +5994,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Circle membership state. Uses the same membership_state enum as ak.member.state (invite/join/knock/leave/ban), scoped to a Circle. Reducer MUST first validate the target actor is a parent Realm `join` member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_member_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5973,6 +6004,7 @@
         "wire_scope": "durable_event",
         "reducer_input": false,
         "payload": "Reducer-derived: Circle sub-seal commits opaque sub_seal_head_digest to the Realm Seal stream at the Circle's profile-defined cadence. MUST use time-based ticks + empty-batch commitment to avoid leaking activity frequency. See zh/models/circle.md §10.2.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_seal_commit_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5983,6 +6015,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Organization discoverability state",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/organization_discovery_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -5993,6 +6026,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Actor discoverability state",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/resource_discovery_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6003,6 +6037,7 @@
         "reducer_input": true,
         "admission": "service_attested",
         "payload": "Applet discoverability state",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/resource_discovery_state_payload",
         "id_source": "reference"
       },
       {
@@ -6013,6 +6048,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Handle discoverability state",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/resource_discovery_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6023,6 +6059,7 @@
         "reducer_input": true,
         "admission": "capability_gated",
         "payload": "Organization moderation policy state",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/organization_moderation_policy_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6033,6 +6070,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "DID proof object or event",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/did_proof_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6043,6 +6081,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Identity disclosure policy",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_policy_state_payload",
         "id_source": "reference"
       },
       {
@@ -6053,6 +6092,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Identity disclosure receipt",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_receipt_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6063,6 +6103,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Presentation request",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/identity_presentation_request_state_payload",
         "id_source": "reference"
       },
       {
@@ -6073,6 +6114,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Presentation response",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/identity_presentation_response_state_payload",
         "id_source": "reference"
       },
       {
@@ -6093,6 +6135,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Schema definition",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/schema_define_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6102,6 +6145,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Schema patch",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/schema_update_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6111,6 +6155,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Policy object set",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/policy_set_state_payload",
         "id_source": "reference"
       },
       {
@@ -6120,6 +6165,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Policy rule state",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/policy_rule_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6129,6 +6175,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Policy-gated action proposal or execution",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/policy_action_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6138,6 +6185,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Control cell bottom recovery",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/state_conflict_recovery_payload",
         "admission": "capability_gated",
         "id_source": "not_an_object_id"
       },
@@ -6148,6 +6196,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Notary equivocation evidence (Control Move). Payload carries signer_id plus the two conflicting Seal wire objects: same (realm_id, notary_seq) slot with different canonical bytes, or a notary_seq=k+1 Seal that does not descend from the same signer's notary_seq=k Seal (authz/event-auth-state-resolution.md section 7.1). Admission is verification-only: any Realm member MAY submit and the two conflicting notary signatures are the complete authorization; no capability grant is consulted and reducer MUST NOT require one. Reducer MUST re-verify both signatures and the slot rule, then add a per-signer fault record to the notary_fault cell. Once a fault record is accepted: receivers MUST reject later Seals signed by the fault signer, the two conflicting Seals and their descendants enter fork_quarantine, and Realm-wide pause applies only when no eligible signer remains.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/notary_fault_equivocation_payload",
         "admission": "crypto_verifiable",
         "id_source": "not_an_object_id"
       },
@@ -6158,6 +6207,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Notary censorship evidence (Control Move). Payload carries signer_id, the signed control-plane receipt, the seal_ref of the Seal that was obliged to include / signed-reject / defer the pending Control Move, a control_event_set_root non-membership proof for the censored event digest, and the missing rejection-or-defer proof (authz/event-auth-state-resolution.md section 7.2). Admission is verification-only: the receipt holder MAY submit; the receipt signature plus the non-membership proof are the complete authorization. This evidence does NOT automatically disqualify the notary: reducer adds an audit fault record that MUST raise governance alarms, feeds inclusion-list / recovery obligations, and is evaluated by governance or the genesis recovery path.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/notary_fault_censorship_payload",
         "admission": "crypto_verifiable",
         "id_source": "not_an_object_id"
       },
@@ -6169,6 +6219,7 @@
         "reducer_input": true,
         "admission": "capability_gated",
         "payload": "Realm membership state",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/membership_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6179,6 +6230,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior ak.member.identity.update events via payload.replaces[] without overloading ak.profile.update patch semantics.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/member_identity_update_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6188,6 +6240,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Strand create",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_create_payload",
         "id_source": "event_derived",
         "id_kind": "strand"
       },
@@ -6198,6 +6251,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Strand patch",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
         "id_source": "reference"
       },
       {
@@ -6207,6 +6261,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Strand archive",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
         "lifecycle_modality": "reversible",
         "id_source": "not_an_object_id"
       },
@@ -6217,6 +6272,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Strand restore",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
         "lifecycle_modality": "reversible",
         "id_source": "not_an_object_id"
       },
@@ -6227,6 +6283,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Strand business-progression stage transition. Single source of truth for mutating Strand.stage / Strand.stage_changed_at; ak.strand.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Strand's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=strand_already_terminal; state=archived yields strand_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. A per-Realm workflow profile MAY narrow which transitions are legal beyond these hard invariants.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_stage_set_payload",
         "id_source": "reference"
       },
       {
@@ -6236,6 +6293,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Unified Strand tracks patch. payload.patch uses ak.schema.patch.v1 against the Strand.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
         "id_source": "reference"
       },
       {
@@ -6245,6 +6303,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Strand move between Spaces (target_space_id in payload). Writes a cas_register cell keyed by (board_space_id, strand_id); the contains Relation list_space_id->strand_id is derived from cell value, not a separate truth source. Plane ruling (CBA): ak.component.strand.position.v1 defaults to sealed=true (control plane), so ak.strand.move is a Control Move carrying seal_basis; Realm schema MAY redeclare the cell family as data-plane mv_register + user-pick or per-object sequencer per authz/event-auth-state-resolution.md section 9.4 and models/realm-and-space.md section 3.6.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_move_payload",
         "id_source": "reference"
       },
       {
@@ -6254,6 +6313,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Strand reorder within Space. Writes the same cell as ak.strand.move; the reducer-projected list_space_id MUST equal head_eq.list_space_id (rank-only update). Plane ruling follows ak.strand.move: same cell family, same default sealed=true control-plane declaration (models/realm-and-space.md section 3.6).",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_reorder_payload",
         "id_source": "reference"
       },
       {
@@ -6263,6 +6323,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a cas_register cell keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST be paired with a same-batch ak.audit.accessed event with access_kind=watch_set_others; the audit event carries refs[role=audit_pair] plus paired_event_id/paired_event_digest pointing at the write, and the write MUST NOT reference the audit event (encoding.md 6.0.1 forbids mutual preimages). The watches Relation (actor --watches--> strand) is a derived projection of this cell, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_watch_set_payload",
         "id_source": "reference"
       },
       {
@@ -6272,6 +6333,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space create (board / list / swimlane / calendar bucket / etc.)",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/space_create_payload",
         "id_source": "event_derived",
         "id_kind": "space"
       },
@@ -6282,6 +6344,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space metadata update (title, rank, kind-specific fields)",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/space_patch_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6291,6 +6354,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space parent declaration. Parent is another ak:space: or null; cross-Realm parent is navigation only and never propagates Realm membership, capabilities, history, E2EE keys, retention, or federation policy.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/space_parent_payload",
         "id_source": "reference"
       },
       {
@@ -6300,6 +6364,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space archive (UI-level grouping archive; contained Strands MUST be relocated or follow archive)",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/space_state_transition_payload",
         "lifecycle_modality": "reversible",
         "id_source": "not_an_object_id"
       },
@@ -6310,6 +6375,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space restore (transition state archived -> active; only valid when current state == archived; tombstoned Spaces MUST NOT be restored)",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/space_state_transition_payload",
         "lifecycle_modality": "reversible",
         "id_source": "not_an_object_id"
       },
@@ -6320,6 +6386,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space tombstone (irreversible; contained Strands MUST be relocated before)",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/space_object_tombstone_payload",
         "lifecycle_modality": "terminal",
         "id_source": "not_an_object_id"
       },
@@ -6330,6 +6397,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Message create. Payload MUST omit message_id; reducer materializes Message.id by retyping the creating Event's full 33-byte / 44-character content-bound token.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/message_create_payload",
         "id_source": "event_derived",
         "id_kind": "message"
       },
@@ -6340,6 +6408,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Controller-authored durable Sidecar exchange control. The outer payload binds the native Sidecar and source context plus an MLS encrypted payload whose plaintext validates as ak.schema.agent_sidecar_exchange_control.v1. It is accepted only in the matching native Sidecar scope from that Sidecar controller and is the sole truth source for coordinator reassignment and terminal exchange state.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_sidecar_exchange_control_payload",
         "id_source": "reference"
       },
       {
@@ -6349,6 +6418,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Message edit patch",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/message_revise_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6358,6 +6428,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Message-scoped redaction; does not grant generic redaction authority",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/message_redact_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6367,6 +6438,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Reaction add",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/reaction_payload",
         "id_source": "reference"
       },
       {
@@ -6376,6 +6448,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Reaction remove",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/reaction_payload",
         "id_source": "reference"
       },
       {
@@ -6385,7 +6458,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Calendar event RSVP set",
-        "payload_schema": "ak.schema.rsvp.v1",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6395,7 +6468,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Shared pin add or update",
-        "payload_schema": "ak.schema.pin.v1",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/pin_add_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6405,7 +6478,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Shared pin remove",
-        "payload_schema": "ak.schema.pin.v1",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/pin_remove_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6415,7 +6488,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Shared pin rank update",
-        "payload_schema": "ak.schema.pin.v1",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/pin_reorder_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6425,6 +6498,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Generic redaction envelope for non-message objects/events and profile-declared content trimming",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/message_redact_payload",
         "lifecycle_modality": "terminal",
         "id_source": "not_an_object_id"
       },
@@ -6435,6 +6509,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Morph create",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/morph_create_payload",
         "id_source": "event_derived",
         "id_kind": "morph"
       },
@@ -6445,6 +6520,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Morph patch",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/morph_update_payload",
         "id_source": "reference"
       },
       {
@@ -6454,6 +6530,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Morph archive",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
         "lifecycle_modality": "reversible",
         "id_source": "not_an_object_id"
       },
@@ -6464,6 +6541,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Morph restore",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
         "lifecycle_modality": "reversible",
         "id_source": "not_an_object_id"
       },
@@ -6474,6 +6552,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability ak.morph.schema_migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares ak.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/morph_schema_migrate_payload",
         "id_source": "reference"
       },
       {
@@ -6483,6 +6562,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Morph business-progression stage transition. Single source of truth for mutating Morph.stage / Morph.stage_changed_at; ak.morph.update / ak.morph.schema_migrate patches on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on an associated discussion track that 'references' this event. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=morph_already_terminal; state=archived yields morph_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/morph_stage_set_payload",
         "id_source": "reference"
       },
       {
@@ -6492,6 +6572,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Relation create",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_create_payload",
         "id_source": "event_derived",
         "id_kind": "relation"
       },
@@ -6502,6 +6583,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Relation patch",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_update_payload",
         "id_source": "reference"
       },
       {
@@ -6522,6 +6604,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Profile-declared container item move",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/container_move_item_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6531,6 +6614,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Profile-declared container rank rebalance",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/container_rebalance_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6540,6 +6624,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "View create",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/view_payload",
         "id_source": "event_derived",
         "id_kind": "view"
       },
@@ -6550,6 +6635,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "View update",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/view_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6559,6 +6645,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "View schema or definition sync",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/view_reconcile_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6568,6 +6655,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorize_payload and bind agent_id, key_id, verification_method, accountable_principal_id, agent_key_scope, audience, issued_at, and approval_evidence; expires_at is optional (absent means non-expiring, revocation-governed). The agent-key cell is an observed-remove OR-Set. First authorization adds one authorization dot. Same-key re-authorization MUST atomically remove every active authorization dot visible at the Move seal_basis and add the replacement dot; it MUST NOT select a winner by arrival time. Concurrent replacement dots that survive the join are evaluated by the deterministic strictest fold: intersect agent_key_scope and audience, take the earliest finite expires_at (absence is +infinity), and fail closed if accountable_principal_id or verification_method disagree. Key replacement has no dedicated rotate kind: runtime replacement re-pairing authorizes the new key and revokes every prior active key (reason=superseded_by_repairing) in the same accepted transaction.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_key_authorize_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6577,6 +6665,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoke_payload and bind agent_id, key_id, revoked_at, and revoked_by; the revocation's control-plane basis is the Control Move envelope seal_basis, and its cutoff is the accepted Seal covering the Move.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_key_revoke_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6608,6 +6697,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Agent lifecycle transition to paused state. Authorization basis is the Control Move envelope seal_basis; payload carries no independent frontier. Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within an independent pause revocation freshness window of at most 60 seconds, never merely the session maximum TTL. Reversible via ak.self.agent.resume.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_pause_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6617,6 +6707,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Agent lifecycle transition from paused to active. Authorization basis is the Control Move envelope seal_basis; payload carries no independent frontier. At acceptance the reducer MUST use the accepted current control frontier to re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_resume_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6626,6 +6717,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Agent lifecycle terminal state. One accepted controller-authorized Event is the unavoidable parent AND gate for every runtime key, session, pairing handle, capability grant, KeyPackage, presence and future submission. Cleanup is asynchronous and MUST NOT synthesize or require child revocation Events. Terminal — no transition out.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_deactivate_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6635,6 +6727,7 @@
         "wire_scope": "actor_private_event",
         "reducer_input": false,
         "payload": "Agent-initiated draft proposal. Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned ak.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_draft_propose_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6644,6 +6737,7 @@
         "wire_scope": "actor_private_event",
         "reducer_input": false,
         "payload": "Agent-initiated action request. Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_request_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6653,6 +6747,7 @@
         "wire_scope": "actor_private_event",
         "reducer_input": false,
         "payload": "Controller approval of a draft / action request. Binds draft_id, content digest, target descriptor, proposed_action, approved payload digest, approval expiry, and single-use nonce. Publish executor MUST atomic-consume the nonce; reuse fails closed (reason=approval_already_consumed).",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_approve_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6662,6 +6757,7 @@
         "wire_scope": "actor_private_event",
         "reducer_input": false,
         "payload": "Controller rejection of a draft / action request. Draft transitions to rejected; agent runtime MUST NOT continue publish attempts.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_reject_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6671,6 +6767,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Capability Grant genesis. grant.id is omitted; GrantId is derived by retyping this Event's event_id and inserted only in the reducer projection.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/capability_grant_payload",
         "id_source": "event_derived",
         "id_kind": "grant"
       },
@@ -6681,6 +6778,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Capability revocation",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/capability_revoke_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6690,6 +6788,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Derived capability state",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/capability_derived_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6700,6 +6799,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Holder-private consent declaration: 'I consent to receive <consent_scope> from <peer>'",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/consent_grant_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6710,6 +6810,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Revoke a previously granted consent (shares the ak.consent.grant cell; semantically a remove on the consent or_set)",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/consent_revoke_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6775,6 +6876,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Participant endorsement of the settled Direct Conversation coordinates and of the first exact-pair MLS generation. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact basis may author the founding unit. Written once and never retired; the active MLS generation is projected separately and read as the current value, never pinned by this payload.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6785,6 +6887,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Selects which already-established MLS group currently holds send authority in a Direct Conversation Realm. It never creates a group: the producer first establishes candidate state with ordinary ak.mls.genesis and Add Commit and durably stores its own private state, and the activation then references those accepted public facts. Generation 0 is the founder's sender-only provisional exporter group. Generation 1 MUST be authored by the joiner, because no portable proof exists that the peer Principal Server durably accepted the Welcome and only the joiner can truthfully assert it. Generation 2 and above are post-binding repair and require generation = current + 1 with predecessor_active_value_digest matching the current value.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_mls_generation_activate_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6795,6 +6898,7 @@
         "reducer_input": true,
         "admission": "service_attested",
         "payload": "Account Authority / authoritative Principal Server signed account lifecycle status. Event actor/proof controller is the authorized issuer service DID; payload account_id and principal_id MUST match its verified service-account binding.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/account_status_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6804,6 +6908,7 @@
         "wire_scope": "actor_private_event",
         "reducer_input": false,
         "payload": "Actor-private blocklist state",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6813,6 +6918,7 @@
         "wire_scope": "actor_private_event",
         "reducer_input": false,
         "payload": "Actor-private account data update",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/account_data_set_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6823,6 +6929,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Actor profile create",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/actor_profile_create_payload",
         "id_source": "event_derived",
         "id_kind": "actor_profile"
       },
@@ -6834,6 +6941,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Actor profile update",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_patch_payload",
         "id_source": "reference"
       },
       {
@@ -6844,6 +6952,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Realm-scoped profile override. payload.target_realm_id is the target Realm and no Space boundary is created.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/profile_realm_override_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6854,6 +6963,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Device authorization",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6864,7 +6974,7 @@
         "reducer_input": true,
         "admission": "did_root_anchor",
         "payload": "DID-root recovery re-anchor. Accepted only as the first event of an atomic re-anchor plus replacement-authorize unit in a principal control Realm. It fences the old device generation against the complete accepted Seal frontier and preserves every same-version candidate for deterministic conflict quarantine.",
-        "payload_schema": "ak.schema.device_reanchor.v1",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6875,6 +6985,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Device revocation",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_revoke_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6885,6 +6996,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Device list update",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_list_update_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6895,7 +7007,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Key backup active series selection for one principal and backup_kind.",
-        "payload_schema": "ak.schema.key_backup_active_series.v1",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/key_backup_active_series_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6905,6 +7017,7 @@
         "wire_scope": "actor_private_event",
         "reducer_input": false,
         "payload": "Push route binding for a (recipient_service_id, principal, device, push_route) tuple. Carries push_target_id, push_gateway_did, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_id context.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6914,6 +7027,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "MLS proposal",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_proposal_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6923,6 +7037,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "MLS group genesis",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_genesis_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6932,6 +7047,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "MLS commit",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_commit_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6941,6 +7057,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "MLS commit or Welcome processing failure diagnostic",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_commit_failed_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6950,6 +7067,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "MLS welcome reference",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_welcome_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6959,6 +7077,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "MLS KeyPackage publication",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_keypackage_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6969,6 +7088,7 @@
         "reducer_input": true,
         "admission": "crypto_verifiable",
         "payload": "Realm key share: member-device history key delivery or RRK durability seal",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_key_share_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6979,6 +7099,7 @@
         "reducer_input": true,
         "admission": "crypto_verifiable",
         "payload": "Realm key withheld notice",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_key_withheld_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6989,6 +7110,7 @@
         "reducer_input": true,
         "admission": "service_attested",
         "payload": "Auditable history key share marker",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_key_share_audit_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6998,6 +7120,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Auditable access marker for privileged reads or privacy-sensitive paired writes. E2EE compliance release uses ak.audit.release; ak.audit.accessed remains for non-release audit pairs such as Circle metadata audit, watch_set_others, late recovery, and policy reads.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_accessed_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -7007,6 +7130,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Audit Applet Binding genesis. binding_id is omitted and derived by retyping event_id. Declares immutable scope and release policy; initial lifecycle state is active.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_applet_binding_create_payload",
         "id_source": "event_derived",
         "id_kind": "audit_binding"
       },
@@ -7017,6 +7141,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Audit Applet Binding lifecycle transition. Policy or scope changes require a new binding create so non-retroactive eligibility remains unambiguous.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_applet_binding_state_payload",
         "id_source": "reference"
       },
       {
@@ -7026,6 +7151,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Audit release session request. Must reference an active ak.audit.applet_binding and a bounded historical target range or target_refs. session_id is omitted and derived by retyping this Event's event_id.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_session_request_payload",
         "id_source": "event_derived",
         "id_kind": "audit_session"
       },
@@ -7036,6 +7162,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Audit release session authorization by a scoped approver. Approves only the intersection of request, binding, policy, and effective_scope.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_session_authorize_payload",
         "id_source": "reference"
       },
       {
@@ -7045,6 +7172,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Member-visible notice for an audit release session. Circle-scoped notices are visible only to the target Circle audience and authorized moderators/admins.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_session_notice_payload",
         "id_source": "reference"
       },
       {
@@ -7054,6 +7182,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Sealed audit release manifest. Appends to the session release log only while the session FSM head is notice. Records exactly which historical target_refs or sealed epochs were released, to whom, under which binding/session/notice/policy. Current active epoch release is forbidden; sealed epoch releases must reference sealed_by_commit_ref. Same-basis close dominates release and rejects the release.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_release_payload",
         "parameters": {
           "required_session_state": "notice",
           "same_basis_close_vs_release": "close_wins_release_rejected",
@@ -7069,6 +7198,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Close an audit release session and freeze its final release_refs. release_refs MUST exactly equal the accepted ordered release log at the close seal_basis. Close is terminal; for same-basis close versus release, close wins and the competing release is rejected.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_session_close_payload",
         "id_source": "reference"
       },
       {
@@ -7078,6 +7208,7 @@
         "wire_scope": "durable_event",
         "reducer_input": false,
         "payload": "Audit RYW receipt",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -7087,6 +7218,7 @@
         "wire_scope": "durable_event",
         "reducer_input": false,
         "payload": "Signed hard-erasure receipt. Attests deletion outcome and retained verification stub within an issuer-declared storage boundary; does not prove independent third-party copies disappeared.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/erasure_receipt_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -7096,6 +7228,7 @@
         "wire_scope": "durable_event",
         "reducer_input": false,
         "payload": "Range-bound completeness attestation. Distinct from ak.audit.ryw_receipt (per-event read-your-writes hint) and ak.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent seal backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §6.4.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -7121,6 +7254,7 @@
           }
         ],
         "payload": "Moderation report. A report authored by the reporter's own device admits as self_authored_proof (actor == subject == payload.reporter). An inbound MIMI report mapped by the provider facade sets payload.provenance=mimi_facade and admits as service_attested: the envelope actor is the facade service DID, payload.reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 10/11 consent and holder-claim rules, payload.source_provider carries the origin MIMI provider, and the reducer MUST verify the actor service operates the MIMI facade for payload.realm_id. The facade MUST NOT author actor_id as the reporter principal. One accepted Event derives exactly one report and one moderation_queue_item; their full typed IDs differ although both retype the same event_id UUID payload.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/moderation_report_payload",
         "id_source": "event_derived",
         "id_kinds": [
           "report",
@@ -7145,6 +7279,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Sealed moderation decision (writes ak.component.moderation_state.v1 cell)",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/moderation_decision_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -7154,6 +7289,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Lift a previously sealed moderation decision (observed-remove/supersede the referenced decision in ak.component.moderation_state.v1)",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/moderation_decision_lift_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -7163,6 +7299,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Submit an appeal against an existing ak.moderation.decision. Writes the appeal cell to state=submitted. appeal_id is omitted and derived by retyping this Event's event_id. Schema: ak.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal strand).",
+        "payload_schema_ref": "schemas/moderation-appeal.schema.json#/$defs/submit_payload",
         "id_source": "event_derived",
         "id_kind": "appeal"
       },
@@ -7173,6 +7310,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: ak.schema.moderation_appeal.v1.",
+        "payload_schema_ref": "schemas/moderation-appeal.schema.json#/$defs/review_payload",
         "id_source": "reference"
       },
       {
@@ -7182,6 +7320,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits ak.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: ak.schema.moderation_appeal.v1.",
+        "payload_schema_ref": "schemas/moderation-appeal.schema.json#/$defs/decision_payload",
         "id_source": "reference"
       },
       {
@@ -7191,6 +7330,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Closes the appeal from submitted / under_review / decided via reviewer close, appellant withdrawal, or a deployment's authorized close service. close is a manual/authorized action; the protocol does not mandate any auto-close timer or cool-off duration (deployment/Realm policy decides). Schema: ak.schema.moderation_appeal.v1.",
+        "payload_schema_ref": "schemas/moderation-appeal.schema.json#/$defs/close_payload",
         "id_source": "reference"
       },
       {
@@ -7200,6 +7340,7 @@
         "wire_scope": "actor_private_event",
         "reducer_input": false,
         "payload": "Read cursor advance event (actor-private). Writes the actor's latest read position for a given (realm_id, read_scope) tuple. Was historically named ak.read.cursor; renamed to align the event_kind, capability action, schema id and typed ID prefix on a single noun root read_cursor.",
+        "payload_schema_ref": "schemas/read-cursor.schema.json",
         "id_source": "not_an_object_id"
       },
       {
@@ -7209,6 +7350,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Invite create. Directed v1 genesis payloads omit invite/invite_id and carry invitee plus invite_delivery_target, introduction_evidence_digest and expires_at; the Invite ID is derived from this Event. Raw locator tokens and invite_receive_policy state are private and MUST NOT enter the durable Realm event.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_create_payload",
         "id_source": "event_derived",
         "id_kind": "invite"
       },
@@ -7219,6 +7361,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Invite cancel",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_cancel_payload",
         "id_source": "reference"
       },
       {
@@ -7228,6 +7371,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Invite accept",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_accept_payload",
         "id_source": "reference"
       },
       {
@@ -7237,6 +7381,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Third-party identifier pending invite. Genesis payload omits invite/invite_id; the Invite ID is derived from this Event.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_third_party_create_payload",
         "id_source": "event_derived",
         "id_kind": "invite"
       },
@@ -7247,6 +7392,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Third-party invite claim",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_claim_payload",
         "reducer_authority": "realm",
         "reducer_effects": [
           "match pending ak.invite.third_party by invite_id and token_commitment",
@@ -7269,6 +7415,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Third-party invite revoke",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_revoke_payload",
         "id_source": "reference"
       },
       {
@@ -7279,6 +7426,7 @@
         "reducer_input": true,
         "admission": "service_attested",
         "payload": "Bridge failure",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_bridge_error_payload",
         "id_source": "reference"
       },
       {
@@ -7289,6 +7437,7 @@
         "reducer_input": true,
         "admission": "service_attested",
         "payload": "Applet registration",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_registration_payload",
         "id_source": "reference"
       },
       {
@@ -7299,6 +7448,7 @@
         "reducer_input": true,
         "admission": "capability_gated",
         "payload": "MIMI room binding state",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mimi_room_binding_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -7308,6 +7458,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Call genesis. call_id is omitted and derived by retyping event_id. This Event MUST be accepted before signaling, token issuance, Morph binding, or any ak.call.state Event references the call.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/call_create_payload",
         "id_source": "event_derived",
         "id_kind": "call"
       },
@@ -7318,6 +7469,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Call state",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/call_state_payload",
         "id_source": "reference"
       },
       {
@@ -7327,6 +7479,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Call recording / transcript capture start",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/call_recording_start_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -7336,6 +7489,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Durable end-of-call summary",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/call_summary_payload",
         "id_source": "reference"
       },
       {
@@ -7346,6 +7500,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Sovereign DID resolver policy state",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sovereign_did_policy_state_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -7355,6 +7510,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm authority-root controller transfer",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_owner_transfer_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -7364,6 +7520,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm authority generation reset",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_authority_reset_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -7373,6 +7530,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm authority-root capability registry basis update",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_authority_basis_update_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -7383,6 +7541,7 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Subject-authored release of the actor own capability grant",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/capability_relinquish_payload",
         "id_source": "not_an_object_id"
       }
     ],

@@ -4800,35 +4800,19 @@ KIND_PAYLOAD_RENAME_EXEMPTIONS: dict[str, str] = {
 
 # Legitimate kind → payload-class pairs where multiple kinds intentionally
 # share a "category" payload class (object_lifecycle, state, audit, view,
-# invite, capability_grant, generic_standard, reaction, container_position,
-# call, message_redact, space_state_transition, strand_patch,
+# invite, reaction, message_redact, space_state_transition, strand_patch,
 # object_patch). Adding a new dispatch that doesn't match the last-segment
 # rule MUST add the pair here, forcing reviewer awareness of the rename.
 LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
-    ("ak.actor.discovery", "state_payload"),
-    ("ak.applet.discovery", "state_payload"),
     ("ak.attestation.range_completeness", "audit_payload"),
-    ("ak.audit.epoch_key_destruction", "audit_payload"),
     ("ak.audit.ryw_receipt", "audit_payload"),
-    ("ak.call.recording.start", "call_payload"),
-    ("ak.call.state", "call_payload"),
-    ("ak.capability.derived", "capability_grant_payload"),
     ("ak.circle.archive", "object_lifecycle_payload"),
     ("ak.circle.restore", "object_lifecycle_payload"),
     ("ak.circle.tombstone", "object_lifecycle_payload"),
-    ("ak.container.move_item", "container_position_payload"),
-    ("ak.container.rebalance", "container_position_payload"),
-    ("ak.did.proof", "state_payload"),
     ("ak.strand.archive", "object_lifecycle_payload"),
     ("ak.strand.restore", "object_lifecycle_payload"),
     ("ak.strand.tracks.update", "strand_patch_payload"),
     ("ak.strand.update", "strand_patch_payload"),
-    ("ak.handle.discovery", "state_payload"),
-    ("ak.identity.accountability_grant", "state_payload"),
-    ("ak.identity.disclosure_policy", "state_payload"),
-    ("ak.identity.disclosure_receipt", "state_payload"),
-    ("ak.identity.presentation_request", "state_payload"),
-    ("ak.identity.presentation_response", "state_payload"),
     ("ak.invite.accept", "invite_accept_payload"),
     ("ak.invite.cancel", "invite_cancel_payload"),
     ("ak.invite.claim", "invite_claim_payload"),
@@ -4837,40 +4821,21 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.invite.third_party", "invite_third_party_create_payload"),
     ("ak.morph.archive", "object_lifecycle_payload"),
     ("ak.morph.restore", "object_lifecycle_payload"),
-    ("ak.morph.update", "object_patch_payload"),
-    ("ak.organization.discovery", "state_payload"),
-    ("ak.organization.moderation_policy", "state_payload"),
-    ("ak.policy.action", "state_payload"),
-    ("ak.policy.set", "state_payload"),
     ("ak.profile.update", "object_patch_payload"),
     ("ak.reaction.add", "reaction_payload"),
     ("ak.reaction.remove", "reaction_payload"),
     ("ak.realm.asset_privacy_policy", "state_payload"),
-    ("ak.realm.audit_policy_downgrade", "audit_payload"),
-    ("ak.realm.delivery_binding_policy", "state_payload"),
     ("ak.realm.discovery", "state_payload"),
     ("ak.realm.join_rule", "state_payload"),
     ("ak.realm.media_service", "state_payload"),
     ("ak.realm.moderation_policy", "state_payload"),
-    ("ak.realm.organization", "state_payload"),
     ("ak.realm.policy", "state_payload"),
-    ("ak.realm.policy_bundle", "state_payload"),
-    ("ak.realm.policy_server", "state_payload"),
     ("ak.realm.schema", "state_payload"),
     ("ak.realm.profile", "realm_profile_payload"),
     ("ak.redaction", "message_redact_payload"),
-    ("ak.schema.define", "state_payload"),
-    ("ak.schema.update", "state_payload"),
-    ("ak.sovereign.did_policy", "state_payload"),
-    ("ak.space.archive", "generic_standard_payload"),
     ("ak.space.archive", "space_state_transition_payload"),
-    ("ak.space.create", "generic_standard_payload"),
-    ("ak.space.parent", "generic_standard_payload"),
-    ("ak.space.restore", "generic_standard_payload"),
     ("ak.space.restore", "space_state_transition_payload"),
-    ("ak.space.tombstone", "generic_standard_payload"),
     ("ak.view.create", "view_payload"),
-    ("ak.view.reconcile", "view_payload"),
     ("ak.view.update", "view_payload"),
 }
 
@@ -5514,15 +5479,22 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     for token in sorted(active_envelope_event_kinds - payload_dispatch_kinds):
         lint.fail(path, f"active Event.kind missing payload schema dispatch: {token}")
 
-    # An explicit registry payload_schema_ref is the canonical payload carrier.
-    # The Event Envelope kind dispatch MUST select that exact schema location;
-    # otherwise registry-driven SDKs and envelope-driven validators can accept
-    # different payload languages for the same Event kind.
-    event_registry_path = ARTIFACTS / "registry" / "event-kind-registry.json"
-    event_registry = load_json(lint, event_registry_path)
-    dispatch_refs: dict[str, set[str]] = {}
+    # The canonical contract registry owns one explicit payload_schema_ref for
+    # every active standard Event kind. The Event Envelope remains hand-written,
+    # so lint proves that its dispatch is a one-to-one equivalent view.
+    contract_registry_path = ARTIFACTS / "registry" / "contract-registry.json"
+    contract_registry = load_json(lint, contract_registry_path)
+    event_registry = (
+        contract_registry.get("event_kind_registry")
+        if isinstance(contract_registry, dict)
+        else None
+    )
+    event_rows = (
+        event_registry.get("event_kinds") if isinstance(event_registry, dict) else None
+    )
+    dispatch_refs: dict[str, list[str]] = {}
     for kind, ref in collect_payload_dispatch_refs(data):
-        dispatch_refs.setdefault(kind, set()).add(ref)
+        dispatch_refs.setdefault(kind, []).append(ref)
 
     def normalize_payload_ref(ref: str, base: Path) -> str | None:
         file_ref, separator, fragment = ref.partition("#")
@@ -5533,25 +5505,101 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
             return None
         return relative + (f"#{fragment}" if separator else "")
 
-    if isinstance(event_registry, dict):
-        for row in event_registry.get("event_kinds", []):
+    schema_cache: dict[Path, object] = {}
+
+    def payload_ref_resolves(ref: str, base: Path) -> tuple[str | None, bool]:
+        normalized = normalize_payload_ref(ref, base)
+        if normalized is None:
+            return None, False
+        file_ref, separator, fragment = ref.partition("#")
+        target = (base / file_ref).resolve()
+        if not target.is_file() or not target.name.endswith(".schema.json"):
+            return normalized, False
+        if target not in schema_cache:
+            schema_cache[target] = load_json(lint, target)
+        current = schema_cache[target]
+        if not separator:
+            return normalized, isinstance(current, (dict, list, bool))
+        if not fragment.startswith("/"):
+            return normalized, False
+        for token in fragment[1:].split("/"):
+            token = token.replace("~1", "/").replace("~0", "~")
+            if isinstance(current, dict) and token in current:
+                current = current[token]
+            elif isinstance(current, list) and token.isdigit() and int(token) < len(current):
+                current = current[int(token)]
+            else:
+                return normalized, False
+        return normalized, True
+
+    registered_refs: set[str] = set()
+    if not isinstance(event_rows, list):
+        lint.fail(
+            contract_registry_path,
+            "event_kind_registry.event_kinds must be an array for payload binding",
+        )
+    else:
+        for row in event_rows:
             if not isinstance(row, dict):
                 continue
             kind = row.get("event_kind")
+            if "payload_schema" in row:
+                lint.fail(
+                    contract_registry_path,
+                    f"kind {kind!r} uses removed payload_schema carrier; use payload_schema_ref",
+                )
             registered_ref = row.get("payload_schema_ref")
-            if not isinstance(kind, str) or not isinstance(registered_ref, str):
+            if not isinstance(kind, str):
                 continue
-            normalized_registered = normalize_payload_ref(registered_ref, ARTIFACTS)
-            normalized_dispatches = {
+            if row.get("status") != "active" or not kind.startswith("ak."):
+                continue
+            if not isinstance(registered_ref, str) or not registered_ref:
+                lint.fail(
+                    contract_registry_path,
+                    f"active standard kind {kind} must declare payload_schema_ref",
+                )
+                continue
+            normalized_registered, resolves = payload_ref_resolves(
+                registered_ref, ARTIFACTS
+            )
+            if normalized_registered is not None:
+                registered_refs.add(normalized_registered)
+            if not resolves:
+                lint.fail(
+                    contract_registry_path,
+                    f"kind {kind} payload_schema_ref {registered_ref!r} does not resolve",
+                )
+            normalized_dispatches = [
                 normalized
-                for ref in dispatch_refs.get(kind, set())
+                for ref in dispatch_refs.get(kind, [])
                 if (normalized := normalize_payload_ref(ref, path.parent)) is not None
-            }
-            if normalized_registered is None or normalized_registered not in normalized_dispatches:
+            ]
+            if len(normalized_dispatches) != 1:
+                lint.fail(
+                    path,
+                    f"kind {kind} must have exactly one Event Envelope payload dispatch, "
+                    f"got {normalized_dispatches}",
+                )
+            if normalized_registered is None or normalized_dispatches != [normalized_registered]:
                 lint.fail(
                     path,
                     f"kind {kind} registry payload_schema_ref {registered_ref!r} is not selected "
-                    f"by Event Envelope payload dispatch {sorted(normalized_dispatches)}",
+                    f"by the unique Event Envelope payload dispatch {normalized_dispatches}",
+                )
+
+    event_payload_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
+    event_payload = load_json(lint, event_payload_path)
+    payload_defs = event_payload.get("$defs") if isinstance(event_payload, dict) else None
+    if isinstance(payload_defs, dict):
+        for def_name in sorted(payload_defs):
+            if not def_name.endswith("_payload"):
+                continue
+            normalized = f"schemas/event-payload.schema.json#/$defs/{def_name}"
+            if normalized not in registered_refs:
+                lint.fail(
+                    event_payload_path,
+                    f"orphan Event payload definition $defs/{def_name} is not referenced "
+                    "by any active standard kind",
                 )
 
     check_composite_subject_terminal_types(lint, path, data)
@@ -5589,6 +5637,12 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
                 f"LEGACY_SHARED_PAYLOAD_DISPATCH or KIND_PAYLOAD_RENAME_EXEMPTIONS "
                 f"in tools/lint_artifacts.py.",
             )
+    for kind, class_name in sorted(LEGACY_SHARED_PAYLOAD_DISPATCH - seen_pairs):
+        lint.fail(
+            path,
+            "stale LEGACY_SHARED_PAYLOAD_DISPATCH entry has no matching dispatch: "
+            f"({kind!r}, {class_name!r})",
+        )
 
 
 def parse_openapi_operation_http_map(text: str) -> tuple[dict[str, str], list[str]]:
@@ -6964,13 +7018,12 @@ def check_reducer_payload_closure(lint: Lint) -> None:
         if key == "$ref" and isinstance(value, str) and value.startswith("./event-payload.schema.json#/$defs/"):
             referenced_defs.add(value.rsplit("/", 1)[-1])
 
-    explicitly_open = {"generic_standard_payload"}
     defs = payload_schema.get("$defs", {})
     if not isinstance(defs, dict):
         lint.fail(payload_path, "event payload schema missing $defs")
         return
 
-    for def_name in sorted(referenced_defs - explicitly_open):
+    for def_name in sorted(referenced_defs):
         definition = defs.get(def_name)
         if not isinstance(definition, dict):
             lint.fail(payload_path, f"Event Envelope references missing payload $defs/{def_name}")

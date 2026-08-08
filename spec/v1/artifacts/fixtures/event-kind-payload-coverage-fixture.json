@@ -1,6 +1,6 @@
 {
   "suite": "event_kind_payload_coverage_fixture",
-  "version": "2026-08-01",
+  "version": "2026-08-09",
   "runner": {
     "kind": "registry_coverage",
     "inputs": [
@@ -8,7 +8,12 @@
       "registry/event-kind-registry.json",
       "schemas/event-envelope.schema.json",
       "schemas/event-payload.schema.json",
-      "schemas/moderation-report.schema.json"
+      "schemas/accountability-grant.schema.json",
+      "schemas/agent-provision.schema.json",
+      "schemas/agent-selector-claim.schema.json",
+      "schemas/moderation-appeal.schema.json",
+      "schemas/moderation-report.schema.json",
+      "schemas/read-cursor.schema.json"
     ]
   },
   "schema_validation_cases": [
@@ -72,7 +77,7 @@
     },
     {
       "id": "payload_schema_ref_resolves",
-      "rule": "Every active durable event kind resolves through payload_schema, payload_schema_ref, or its canonical kind-dispatched event-payload definition; every explicit payload_schema_ref resolves and matches the Event Envelope dispatch for that kind."
+      "rule": "Every active standard event kind declares exactly one explicit payload_schema_ref; the reference resolves and equals that kind's single Event Envelope payload dispatch. Naming-convention inference and fallback payload definitions are forbidden."
     },
     {
       "id": "wire_scope_matches_envelope",

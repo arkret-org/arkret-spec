@@ -134,7 +134,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-      "sha256": "219813cba2f2b7b6dab45f0b8acd9cf8dd41ab0de3ae02a36528e08e5a0666ee"
+      "sha256": "97eedd01137c695599fecdc1f6ee67a301f5c9a72b424547f3c1e1c9706e2db0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",

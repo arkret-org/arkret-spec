@@ -3,7 +3,13 @@
   "$id": "https://arkret.org/v1/schemas/event-payload.schema.json",
   "title": "Arkret Standard Event Payloads",
   "description": "Definitions bundle for common payload contracts used by registered ak.* Event.kind values. The root schema is intentionally generic and MUST NOT be used as a complete payload validator. Event validators MUST validate the full Event Envelope and dispatch by Event.kind to the matching $defs payload class using artifacts/registry/event-kind-registry.json.",
-  "$ref": "#/$defs/generic_standard_payload",
+  "type": "object",
+  "not": {
+    "$comment": "The event-payload schema root is a definition-bundle diagnostic only. Standard payload validation MUST select one explicit kind-bound schema ref from the event kind registry.",
+    "required": [
+      "type"
+    ]
+  },
   "$defs": {
     "account_blocklist_payload": {
       "type": "object",
@@ -1173,7 +1179,7 @@
           "$ref": "#/$defs/sidecar_context_attach_payload/properties/source_context_ref"
         },
         "encrypted_payload": {
-          "$ref": "#/$defs/encrypted_payload"
+          "$ref": "#/$defs/encrypted_envelope"
         }
       },
       "additionalProperties": false
@@ -1900,7 +1906,7 @@
     "audit_session_authorize_payload": {
       "allOf": [
         {
-          "$ref": "#/$defs/audit_session_payload"
+          "$ref": "#/$defs/audit_session_contract"
         },
         {
           "required": [
@@ -1936,7 +1942,7 @@
     "audit_session_close_payload": {
       "allOf": [
         {
-          "$ref": "#/$defs/audit_session_payload"
+          "$ref": "#/$defs/audit_session_contract"
         },
         {
           "required": [
@@ -1960,7 +1966,7 @@
     "audit_session_notice_payload": {
       "allOf": [
         {
-          "$ref": "#/$defs/audit_session_payload"
+          "$ref": "#/$defs/audit_session_contract"
         },
         {
           "required": [
@@ -1992,7 +1998,7 @@
         }
       ]
     },
-    "audit_session_payload": {
+    "audit_session_contract": {
       "type": "object",
       "description": "Shared payload class for ak.audit.session.request / authorize / notice / close. The session_state field is the target state of the control-plane FSM cell ak.component.audit.session.v1 keyed by session_id. Initial state is request; legal main-path transitions are request->authorize->notice->close, with request->close and authorize->close allowed for aborted sessions. Close is terminal; same-basis conflicting siblings produce Bottom.",
       "required": [
@@ -2133,7 +2139,7 @@
     "audit_session_request_payload": {
       "allOf": [
         {
-          "$ref": "#/$defs/audit_session_payload"
+          "$ref": "#/$defs/audit_session_contract"
         },
         {
           "required": [
@@ -3904,7 +3910,7 @@
             "root_anchored",
             "accepted_device"
           ],
-      "description": "root_anchored is valid only in the second slot of an accepted PCR genesis or device re-anchor unit. accepted_device requires Event proof.verification_method to equal principal_id + '#' + authorized_by, where authorized_by is a current active device id at the accepted generation; the target device cannot authorize itself."
+          "description": "root_anchored is valid only in the second slot of an accepted PCR genesis or device re-anchor unit. accepted_device requires Event proof.verification_method to equal principal_id + '#' + authorized_by, where authorized_by is a current active device id at the accepted generation; the target device cannot authorize itself."
         },
         "scopes": {
           "$ref": "#/$defs/string_list"
@@ -4441,7 +4447,7 @@
     "encrypted_metadata": {
       "$ref": "./encrypted-envelope.schema.json"
     },
-    "encrypted_payload": {
+    "encrypted_envelope": {
       "$ref": "./encrypted-envelope.schema.json"
     },
     "erasure_receipt_payload": {
@@ -4450,17 +4456,6 @@
     "event_ref": {
       "type": "string",
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-    },
-    "generic_standard_payload": {
-      "type": "object",
-      "description": "Generic fallback shape used only inside Event Envelope kind dispatch and tooling diagnostics. It rejects the `type` field but does not close kind-specific fields; validators MUST NOT accept a standard Event solely because its payload validates against this definition.",
-      "additionalProperties": true,
-      "not": {
-        "$comment": "Standard ak.* event payloads use kind (envelope) + payload schema discriminators. `type` is a banned field name here to keep schema validation aligned with reducer behavior.",
-        "required": [
-          "type"
-        ]
-      }
     },
     "grant_id": {
       "type": "string",
@@ -5087,7 +5082,7 @@
       },
       "additionalProperties": false
     },
-    "join_policy_payload": {
+    "join_policy_component": {
       "$comment": "Value shape of the join_policy component of realm_policy_bundle_payload; it has no separate Event kind and no separate cell family, and rides inside the ak.component.realm.policy_bundle.v1 cas_register value. Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/lint_artifacts.py check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
       "type": "object",
       "required": [
@@ -5392,38 +5387,6 @@
       "minLength": 1,
       "description": "Opaque content-addressed or service-scoped MLS KeyPackage reference. Hash-shaped refs MUST use keypackage_digest for digest bytes."
     },
-    "list_reorder_payload": {
-      "type": "object",
-      "required": [
-        "board_space_id",
-        "space_id",
-        "rank"
-      ],
-      "properties": {
-        "board_space_id": {
-          "$ref": "#/$defs/board_space_id"
-        },
-        "space_id": {
-          "$ref": "#/$defs/list_space_id"
-        },
-        "rank": {
-          "$ref": "#/$defs/rank"
-        },
-        "expected_position": {
-          "type": "object",
-          "properties": {
-            "rank": {
-              "$ref": "#/$defs/rank"
-            },
-            "relation_id": {
-              "$ref": "#/$defs/relation_id"
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
     "list_space_id": {
       "type": "string",
       "pattern": "^ak:space:[A-Za-z0-9_-]{44}$",
@@ -5670,7 +5633,7 @@
               ],
               "properties": {
                 "encrypted_payload": {
-                  "$ref": "#/$defs/encrypted_payload"
+                  "$ref": "#/$defs/encrypted_envelope"
                 }
               },
               "additionalProperties": false
@@ -5722,7 +5685,7 @@
           "items": {
             "type": "object"
           },
-          "description": "Join-policy gate proofs evaluated by governance/join-policy.md before accepting membership=join. maxItems aligns with the gates 1..16 bound in join_policy_payload; see zh/conformance/scalability-constraints.md."
+          "description": "Join-policy gate proofs evaluated by governance/join-policy.md before accepting membership=join. maxItems aligns with the gates 1..16 bound in join_policy_component; see zh/conformance/scalability-constraints.md."
         },
         "via_service_ids": {
           "type": "array",
@@ -7418,7 +7381,7 @@
     },
     "morph_stage_set_payload": {
       "type": "object",
-      "description": "Payload class for ak.morph.stage.set. Mutates Morph.stage / Morph.stage_changed_at. Intentionally carries no reason field — see object_stage_set_payload description and zh/models/morph.md §2.",
+      "description": "Payload class for ak.morph.stage.set. Mutates Morph.stage / Morph.stage_changed_at. Intentionally carries no reason field — see the shared stage-set contract in zh/models/common-fields.md §5.3 and zh/models/morph.md §2.",
       "required": [
         "morph_id",
         "stage"
@@ -7456,7 +7419,7 @@
         }
       },
       "not": {
-        "$comment": "Mirror of object_stage_set_payload guard.",
+        "$comment": "Stage-set guard shared by the concrete Strand and Morph payload classes.",
         "anyOf": [
           {
             "required": [
@@ -7596,24 +7559,6 @@
     "nullable_timestamp": {
       "$ref": "./time.schema.json#/$defs/nullable_timestamp"
     },
-    "object_create_payload": {
-      "type": "object",
-      "required": [
-        "object"
-      ],
-      "properties": {
-        "object": {
-          "$ref": "#/$defs/object_snapshot"
-        },
-        "initial_relations": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
-        }
-      },
-      "additionalProperties": true
-    },
     "object_lifecycle_payload": {
       "type": "object",
       "description": "Generic lifecycle payload for Strand / Circle / Morph archive-restore-tombstone style events. The target object is single-sourced by target_ref; target_state may describe the intended lifecycle result but cannot replace the target object reference.",
@@ -7676,78 +7621,6 @@
         ]
       },
       "description": "Embedded object snapshot inside an Event payload. Object kind is derived from the typed-id prefix on `id`; there is no separate `type` field."
-    },
-    "object_stage_set_payload": {
-      "type": "object",
-      "description": "Shared base shape for ak.<kind>.stage.set events. Each concrete stage_set payload class (strand_stage_set_payload / morph_stage_set_payload) extends this base by pinning the object-id field (strand_id / morph_id) and is referenced from event-envelope.schema.json conditional routing. The stage enum is the protocol-level 8-value set defined in zh/models/common-fields.md §5.3.2; profile MUST NOT extend or override the enum. Reducer hard invariants are listed in zh/models/common-fields.md §5.3.3 (terminal state freeze, non-active reject, reducer-derived stage_changed_at, same-value no-op, single-source via this event). The payload intentionally does NOT carry a reason / note / explanation field: this event log is the audit source (actor_id + created_at), and human-readable explanation belongs in a Message on an associated discussion track that 'references' this event. expected_stage compiles to a cell head_eq precondition and provides optimistic concurrency; omission is equivalent to no CAS.",
-      "required": [
-        "stage"
-      ],
-      "properties": {
-        "stage": {
-          "type": "string",
-          "enum": [
-            "draft",
-            "proposed",
-            "planned",
-            "in_progress",
-            "blocked",
-            "done",
-            "cancelled",
-            "superseded"
-          ]
-        },
-        "expected_stage": {
-          "type": "string",
-          "enum": [
-            "draft",
-            "proposed",
-            "planned",
-            "in_progress",
-            "blocked",
-            "done",
-            "cancelled",
-            "superseded"
-          ],
-          "description": "Optional CAS precondition: when present, reducer compiles it to a cell head_eq comparison against the cell's current value. Mismatch yields failed_precondition reason=stage_cas_mismatch. Same semantics as ak.strand.watch.set's expected_value."
-        }
-      },
-      "not": {
-        "$comment": "Reason / note / explanation fields are intentionally rejected. Stage transitions audit through the event log; human-readable rationale belongs in a Message on the discussion track that references this event.",
-        "anyOf": [
-          {
-            "required": [
-              "stage_reason"
-            ]
-          },
-          {
-            "required": [
-              "stage_note"
-            ]
-          },
-          {
-            "required": [
-              "stage_explanation"
-            ]
-          },
-          {
-            "required": [
-              "stage_comment"
-            ]
-          },
-          {
-            "required": [
-              "reason"
-            ]
-          },
-          {
-            "required": [
-              "note"
-            ]
-          }
-        ]
-      },
-      "additionalProperties": true
     },
     "or_set_dot": {
       "type": "string",
@@ -7894,7 +7767,7 @@
           "$ref": "#/$defs/rank"
         },
         "note": {
-          "$ref": "#/$defs/encrypted_payload"
+          "$ref": "#/$defs/encrypted_envelope"
         }
       },
       "additionalProperties": false
@@ -8432,7 +8305,7 @@
           "description": "Optional free-form annotation (e.g. issue triage label). MUST be omitted when `encrypted_payload` is present; in E2EE realms the annotation MUST instead be carried inside `encrypted_payload`."
         },
         "encrypted_payload": {
-          "$ref": "#/$defs/encrypted_payload",
+          "$ref": "#/$defs/encrypted_envelope",
           "description": "Encrypted carrier for the canonical reaction key and any annotation in E2EE realms. The decrypted plaintext JSON MUST validate as #/$defs/reaction_encrypted_payload_plaintext. When present, outer plaintext `key` MUST be the routing tag and `annotation` MUST be omitted; service-side OR-Set convergence still uses the outer routing key."
         }
       },
@@ -8484,7 +8357,7 @@
       },
       "additionalProperties": false
     },
-    "realm_alias_declaration_payload": {
+    "realm_alias_declaration": {
       "type": "object",
       "required": [
         "alias"
@@ -8501,14 +8374,14 @@
       "description": "Closed payload for ak.realm.alias, the ONLY wire carrier of a Realm alias. A declaration writes the complete canonical alias; {tombstone:true} is a durable value tombstone that removes the alias from effective resolution without erasing the cell history. realm-genesis.schema.json and realm-profile.schema.json are closed and have no alias property, and ak.realm.create / ak.realm.profile payloads MUST NOT carry one.",
       "oneOf": [
         {
-          "$ref": "#/$defs/realm_alias_declaration_payload"
+          "$ref": "#/$defs/realm_alias_declaration"
         },
         {
-          "$ref": "#/$defs/realm_alias_tombstone_payload"
+          "$ref": "#/$defs/realm_alias_tombstone"
         }
       ]
     },
-    "realm_alias_tombstone_payload": {
+    "realm_alias_tombstone": {
       "type": "object",
       "required": [
         "tombstone"
@@ -8809,26 +8682,6 @@
       },
       "additionalProperties": false
     },
-    "realm_discovery_payload": {
-      "type": "object",
-      "required": [
-        "value"
-      ],
-      "properties": {
-        "value": {
-          "type": "string",
-          "enum": [
-            "public",
-            "listed",
-            "restricted",
-            "unlisted",
-            "invite_only",
-            "secret"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
     "realm_freeze_payload": {
       "type": "object",
       "required": [
@@ -8897,26 +8750,6 @@
         },
         "reason": {
           "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "realm_join_rule_payload": {
-      "type": "object",
-      "required": [
-        "value"
-      ],
-      "properties": {
-        "value": {
-          "type": "string",
-          "enum": [
-            "public",
-            "invite",
-            "knock",
-            "restricted",
-            "knock_restricted",
-            "closed"
-          ]
         }
       },
       "additionalProperties": false
@@ -9546,7 +9379,7 @@
           "description": "Whether a media service listed in plaintext_visible_services may decrypt call media. Defaults to false when absent. It is one of three conditions that MUST all hold (ak.realm.media_service declaration + plaintext_visible_services grant + this toggle). Because it changes who may receive media keys, it enters the media scope security_frontier_digest; a generation that does not cover the current value cannot authorize media decryption. See crypto-media/media-service-binding.md section 8.2."
         },
         "join_policy": {
-          "$ref": "#/$defs/join_policy_payload"
+          "$ref": "#/$defs/join_policy_component"
         },
         "agent_participation": {
           "$ref": "./realm.schema.json#/properties/agent_participation"
@@ -9631,7 +9464,7 @@
       },
       "additionalProperties": false
     },
-    "realm_policy_server_declaration_payload": {
+    "realm_policy_server_declaration": {
       "type": "object",
       "required": [
         "policy_server_did",
@@ -9721,14 +9554,14 @@
       "description": "Closed payload for ak.realm.policy_server. A declaration writes the complete direct Realm binding; {tombstone:true} is a durable value tombstone that removes the direct binding from effective queries without erasing the cell history.",
       "oneOf": [
         {
-          "$ref": "#/$defs/realm_policy_server_declaration_payload"
+          "$ref": "#/$defs/realm_policy_server_declaration"
         },
         {
-          "$ref": "#/$defs/realm_policy_server_tombstone_payload"
+          "$ref": "#/$defs/realm_policy_server_tombstone"
         }
       ]
     },
-    "realm_policy_server_tombstone_payload": {
+    "realm_policy_server_tombstone": {
       "type": "object",
       "required": [
         "tombstone"
@@ -9969,7 +9802,7 @@
       "description": "Encrypted RSVP response envelope. The content_type is pinned so a receiver can route the ciphertext to exactly one decrypted schema; the plaintext MUST validate against rsvp_response.",
       "allOf": [
         {
-          "$ref": "#/$defs/encrypted_payload"
+          "$ref": "#/$defs/encrypted_envelope"
         },
         {
           "type": "object",
@@ -10584,7 +10417,7 @@
     },
     "strand_stage_set_payload": {
       "type": "object",
-      "description": "Payload class for ak.strand.stage.set. Mutates Strand.stage / Strand.stage_changed_at. Intentionally carries no reason field — see object_stage_set_payload description and zh/models/strand-and-message.md §3.2.",
+      "description": "Payload class for ak.strand.stage.set. Mutates Strand.stage / Strand.stage_changed_at. Intentionally carries no reason field — see the shared stage-set contract in zh/models/common-fields.md §5.3 and zh/models/strand-and-message.md §3.2.",
       "required": [
         "strand_id",
         "stage"
@@ -10621,7 +10454,7 @@
         }
       },
       "not": {
-        "$comment": "Mirror of object_stage_set_payload guard. Reason-style fields are forbidden; rationale belongs in a discussion-track Message.",
+        "$comment": "Stage-set guard shared by the concrete Strand and Morph payload classes. Reason-style fields are forbidden; rationale belongs in a discussion-track Message.",
         "anyOf": [
           {
             "required": [

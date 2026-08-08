@@ -21,26 +21,26 @@
     },
     {
       "path": "spec/v1/artifacts/registry/authority-source-registry.json",
-      "version": "2026-08-09.2",
-      "generated_at": "2026-08-09T13:00:00Z",
+      "version": "2026-08-09.3",
+      "generated_at": "2026-08-09T14:00:00Z",
       "content_digest": "sha256:365237b9e79bce19cdf7d39843a3de37348e1e0c4a5288e240bc5c7b3e599ec2"
     },
     {
       "path": "spec/v1/artifacts/registry/binding-kind-registry.json",
-      "version": "2026-08-09.2",
-      "generated_at": "2026-08-09T13:00:00Z",
+      "version": "2026-08-09.3",
+      "generated_at": "2026-08-09T14:00:00Z",
       "content_digest": "sha256:dfb055a9e4c061b8b6eba878f56b4c32b7ed27e6c3560f2342f3dc32844eeddf"
     },
     {
       "path": "spec/v1/artifacts/registry/calendar-timezone-registry.json",
-      "version": "2026-08-09.2",
-      "generated_at": "2026-08-09T13:00:00Z",
+      "version": "2026-08-09.3",
+      "generated_at": "2026-08-09T14:00:00Z",
       "content_digest": "sha256:f540c35cee7467fdb38a280b5d4baae5cf078d7c565228f860fa1d47b008e392"
     },
     {
       "path": "spec/v1/artifacts/registry/capability-action-registry.json",
-      "version": "2026-08-09.2",
-      "generated_at": "2026-08-09T13:00:00Z",
+      "version": "2026-08-09.3",
+      "generated_at": "2026-08-09T14:00:00Z",
       "content_digest": "sha256:49315b3abc8515ef46b2ff0841f697c8302f4fe99e7d7e9a18327375e3c4667e"
     },
     {
@@ -51,9 +51,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-08-09.2",
-      "generated_at": "2026-08-09T13:00:00Z",
-      "content_digest": "sha256:dfb543c04f768e913d16955e726bb441d5fb55e197619c96cfbae46f45d968ff"
+      "version": "2026-08-09.3",
+      "generated_at": "2026-08-09T14:00:00Z",
+      "content_digest": "sha256:cc3d07037c1c0f6ae832e3f8c39cc697b9de0768e49b643672666177aa6592d1"
     },
     {
       "path": "spec/v1/artifacts/registry/did-freshness-profile-registry.json",
@@ -75,9 +75,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-08-09.2",
-      "generated_at": "2026-08-09T13:00:00Z",
-      "content_digest": "sha256:96e23a2c46dc16a2604a0c3a1e729581c3ff620d6f770bb78086b81967210588"
+      "version": "2026-08-09.3",
+      "generated_at": "2026-08-09T14:00:00Z",
+      "content_digest": "sha256:640b375f2fa2e56cb22acee2ad473c042038cbbd079f45af0d845140ca7a748a"
     },
     {
       "path": "spec/v1/artifacts/registry/exporter-label-registry.json",
@@ -93,9 +93,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/forbidden-wire-fields.json",
-      "version": 9,
+      "version": 10,
       "generated_at": null,
-      "content_digest": "sha256:f4afd24ef0557f26250184c55240bd4058c2ef3e3f8b66d82dca0a68bbd95fbd"
+      "content_digest": "sha256:612d4cb82ca1a20703d06ac7e4e0106413d7e3394543c8fbaf14d69aea7fb0f9"
     },
     {
       "path": "spec/v1/artifacts/registry/hpke-suite-registry.json",
@@ -147,8 +147,8 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-08-09.2",
-      "generated_at": "2026-08-09T13:00:00Z",
+      "version": "2026-08-09.3",
+      "generated_at": "2026-08-09T14:00:00Z",
       "content_digest": "sha256:e8570bcf7f6a25dd98d058bae53e119c0525b785900a61671dea0f078b2632b5"
     },
     {
@@ -201,8 +201,8 @@
     },
     {
       "path": "spec/v1/artifacts/registry/schema-registry.json",
-      "version": "2026-08-09.2",
-      "generated_at": "2026-08-09T13:00:00Z",
+      "version": "2026-08-09.3",
+      "generated_at": "2026-08-09T14:00:00Z",
       "content_digest": "sha256:a8fb74bc55f21618af677380409a60927b9b1c0653db8eb1780a55c21b7518e5"
     },
     {
@@ -225,8 +225,8 @@
     },
     {
       "path": "spec/v1/artifacts/registry/track-name-registry.json",
-      "version": "2026-08-09.2",
-      "generated_at": "2026-08-09T13:00:00Z",
+      "version": "2026-08-09.3",
+      "generated_at": "2026-08-09T14:00:00Z",
       "content_digest": "sha256:931cd839a81f5f04e6286b9f2980de2202b267cf1084dc28a9a449ffa52f14b9"
     },
     {

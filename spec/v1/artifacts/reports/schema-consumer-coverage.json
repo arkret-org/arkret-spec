@@ -44,7 +44,7 @@
     "total_schemas": 182,
     "by_consumer": {
       "declared_wire": 43,
-      "event_kind": 9,
+      "event_kind": 3,
       "inbound": 42,
       "outbound": 45,
       "prose": 107,
@@ -53,21 +53,32 @@
       "startup_compile": 182,
       "vectors": 114
     },
-    "without_wire_consumer": 2,
+    "without_wire_consumer": 7,
     "explicit_prose_only": 2,
-    "unresolved_consumer_coverage": 0,
+    "unresolved_consumer_coverage": 5,
     "without_vector_coverage": 68,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
     "ak.schema.agent_sidecar_exchange_projection.v1",
-    "ak.schema.applet.v1"
+    "ak.schema.applet.v1",
+    "ak.schema.device_reanchor.v1",
+    "ak.schema.disappearing_messages.v1",
+    "ak.schema.pin.v1",
+    "ak.schema.rsvp.v1",
+    "ak.schema.search_service.v1"
   ],
   "explicit_prose_only": [
     "ak.schema.agent_sidecar_exchange_projection.v1",
     "ak.schema.applet.v1"
   ],
-  "unresolved_consumer_coverage": [],
+  "unresolved_consumer_coverage": [
+    "ak.schema.device_reanchor.v1",
+    "ak.schema.disappearing_messages.v1",
+    "ak.schema.pin.v1",
+    "ak.schema.rsvp.v1",
+    "ak.schema.search_service.v1"
+  ],
   "without_vector_coverage": [
     "ak.schema.account_data_encrypted_value.v1",
     "ak.schema.account_data_operations.v1",
@@ -1289,11 +1300,10 @@
       "schema_id": "ak.schema.device_reanchor.v1",
       "file": "schemas/device-reanchor.schema.json",
       "consumers": {
-        "event_kind": "registered",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
-      "wire_covered": true,
+      "wire_covered": false,
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "required_schema"
@@ -1427,11 +1437,10 @@
       "schema_id": "ak.schema.disappearing_messages.v1",
       "file": "schemas/disappearing-messages.schema.json",
       "consumers": {
-        "event_kind": "registered",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
-      "wire_covered": true,
+      "wire_covered": false,
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "required_schema"
@@ -1859,7 +1868,6 @@
       "schema_id": "ak.schema.key_backup_active_series.v1",
       "file": "schemas/key-backup-active-series.schema.json",
       "consumers": {
-        "event_kind": "registered",
         "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",
@@ -2347,11 +2355,10 @@
       "schema_id": "ak.schema.pin.v1",
       "file": "schemas/pin.schema.json",
       "consumers": {
-        "event_kind": "registered",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
-      "wire_covered": true,
+      "wire_covered": false,
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "required_schema"
@@ -2808,11 +2815,10 @@
       "schema_id": "ak.schema.rsvp.v1",
       "file": "schemas/rsvp.schema.json",
       "consumers": {
-        "event_kind": "registered",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
-      "wire_covered": true,
+      "wire_covered": false,
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "required_schema"
@@ -2877,11 +2883,10 @@
       "schema_id": "ak.schema.search_service.v1",
       "file": "schemas/search-service.schema.json",
       "consumers": {
-        "event_kind": "registered",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
-      "wire_covered": true,
+      "wire_covered": false,
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "required_schema"

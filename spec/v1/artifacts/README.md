@@ -63,6 +63,7 @@ updated: 2026-05-25
 
 - canonical artifact（schemas / contract-registry）是手工真源；generated registry view 必须由 pipeline 重生成，绝不手工补丁。
 - 新增或修改某 `ak.*` event kind 时，`contract-registry.json`、对应 payload schema `$defs`、由此派生的 `event-kind-registry.json` / `schema-registry.json` 与 `schema-registry.md` 必须在同一变更内一致更新；只改其一即视为 drift。
+- 每个 active 标准 Event kind **MUST** 在 `contract-registry.json` 中显式声明唯一 `payload_schema_ref`，且该引用 **MUST** 与 `event-envelope.schema.json` 对该 kind 的唯一 payload dispatch 完全一致并解析到现存 schema 位置。消费方 **MUST NOT** 从 kind 拼写、schema 命名约定或通用 fallback 推断 payload schema；缺失、悬空、重复或分叉的绑定必须 fail closed。
 - 任意一处的 schema_id / event_kind / typed-ID 出现而其余真源缺失，`artifact_pipeline.py check` 与 `lint_artifacts.py` 会拦截。
 
 ## 2. 维护与校验流水线
