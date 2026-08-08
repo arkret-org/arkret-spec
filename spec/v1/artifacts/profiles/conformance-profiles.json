@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-08.3",
-  "generated_at": "2026-08-08T09:00:00Z",
+  "version": "2026-08-08.5",
+  "generated_at": "2026-08-08T15:03:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1394,7 +1394,6 @@
         "ak.device.reanchor",
         "ak.device.revoke",
         "ak.device.list_update",
-        "ak.session.grant",
         "ak.cross_signing.publish",
         "ak.cross_signing.reset",
         "ak.policy.set",
@@ -1455,7 +1454,6 @@
           "ak.device.reanchor",
           "ak.device.revoke",
           "ak.device.list_update",
-          "ak.session.grant",
           "ak.cross_signing.publish",
           "ak.cross_signing.reset",
           "ak.policy.set",
@@ -2550,11 +2548,12 @@
       "description": "Arkret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `ak.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `ak.self.policy.read.check` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `ak.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
       "required_endpoints": [
         "ak.server.read.describe",
-        "ak.gate.account.command.issue_session_grant"
+        "ak.gate.account.command.issue_session_grant",
+        "ak.gate.account.command.refresh_session_grant",
+        "ak.gate.account.command.revoke_session",
+        "ak.gate.account.command.introspect_session_grant"
       ],
-      "required_event_kinds": [
-        "ak.session.grant"
-      ],
+      "required_event_kinds": [],
       "rejected_event_kinds": [
         "wire_scope:actor_private_event"
       ],
@@ -2564,7 +2563,8 @@
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
-        "privacy-security-fixture.json"
+        "privacy-security-fixture.json",
+        "session-grant-issuance-fixture.json"
       ],
       "optional_extensions": [
         "ak.gate.account.command.issue_session_grant",
@@ -2597,7 +2597,10 @@
       "additional_requirements": {
         "session_grant_must_be_short_lived": "Auth Server MUST cap session_grant TTL well below the Realm policy review horizon (per device-lifecycle.md §5, typical ceiling is minutes-to-hours, not days).",
         "audience_binding_must": "Every issued session_grant MUST carry an `audience` claim; auth servers MUST refuse to issue grants for audiences they have not been configured to serve.",
-        "session_grant_release_readiness_must": "Release readiness MUST cover ak.vector.auth.session_grant_audience_binding.v1 and ak.vector.auth.soft_logout_did_proof.v1: proof binds challenge, audience, request_canonical_digest, principal and device; stranger audiences are rejected; soft_logged_out recovery requires fresh DID proof; development_mode=true never advertises verified profiles.",
+        "session_grant_release_readiness_must": "Release readiness MUST cover ak.vector.auth.session_grant_audience_binding.v1, ak.vector.auth.soft_logout_did_proof.v1 and ak.vector.auth.session_grant_issuer_record.v1: proof binds challenge, audience, request_canonical_digest, principal and device; suite-tagged issuer-record ID/JTI recomputation, credential-class holder/bootstrap binding inclusion, canonical JWK, exact replay/conflict/terminal outcomes and DPoP binding are exercised; stranger audiences are rejected; soft_logged_out recovery requires fresh proof; development_mode=true never advertises verified profiles.",
+        "session_grant_issuer_ledger_must": "Auth Server MUST be the sole durable authority for immutable SessionGrant issuance records and active/revoked/superseded lifecycle. It MUST derive the suite-tagged grant ID and JWT jti from the complete closed issuance preimage, including the credential-class-selected holder/bootstrap/recovery binding, atomically persist issuance before response, provide durable exact replay for issue, refresh and revoke, and use the same ledger for cascade and introspection. It MUST NOT author ak.session.grant or ak.session.grant.state Events or depend on a Principal Control Realm grant cell.",
+        "session_grant_dpop_binding_must": "Issue, refresh, replay retrieval and protected-resource presentation MUST verify current holder/DPoP proof, exact HTTP target and method, issuer/audience and canonical request digest. An S2S HTTP Message Signature authenticates transport only and never substitutes for holder proof or principal/device/notary Event proof.",
+        "session_grant_terminal_replay_must": "Exact replay of an expired recorded outcome returns session_grant_replay_expired; exact replay of a revoked or superseded recorded outcome returns session_grant_replay_terminal with grant_id and terminal state. Neither path returns success or issues a new grant. After replay-record retention expires, the same request identity fails closed as indeterminate.",
         "not_identity_registry_must": "Auth Server MUST NOT claim `ak.profile.identity_registry.v1`; any DID document / key-log surface it exposes MUST be declared on `compat_surfaces[]` as `delegated_resolver` rather than self-claimed canonical authority.",
         "not_principal_server_must": "Auth Server MUST NOT claim `ak.profile.principal_server.v1`; Realm event acceptance is the principal server role and is incompatible with auth-server-only deployments.",
         "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run.",

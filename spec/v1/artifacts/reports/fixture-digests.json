@@ -313,6 +313,10 @@
       "sha256": "bbd44d1f8becf96a0b9b871c4d82c074a2fc2b2265231c40c2e595b4bf7a5626"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json",
+      "sha256": "ac94379fd2699d6c870e92cbefea297914451bf8efef99f55cd72d608beecbee"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
       "sha256": "805df9df9a5e397fd44b1755928cc0cebea01e04f8edaa59a126f08c547427b5"
     },

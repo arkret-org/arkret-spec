@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.11",
+  "version": "2026-08-08.15",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T16:00:00Z",
+  "generated_at": "2026-08-08T17:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -412,7 +412,10 @@
         "required": [
           "principal_id",
           "session_grant",
-          "expires_at"
+          "expires_at",
+          "grant_id",
+          "session_public_key",
+          "audience"
         ],
         "properties": [
           "principal_id",

@@ -183,9 +183,62 @@
     },
     {
       "$ref": "#/$defs/SessionGrantRefreshOutcome"
+    },
+    {
+      "$ref": "#/$defs/session_grant_replay_error_details"
     }
   ],
   "$defs": {
+    "session_grant_replay_error_details": {
+      "description": "Closed union of the two replay error-detail shapes. The error envelope code selects the matching subtype in OpenAPI.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/session_grant_replay_expired_error_details"
+        },
+        {
+          "$ref": "#/$defs/session_grant_replay_terminal_error_details"
+        }
+      ]
+    },
+    "session_grant_replay_expired_error_details": {
+      "type": "object",
+      "description": "Closed ErrorEnvelope.error.details for session_grant_replay_expired. The named issuer-ledger record remains authoritative and no replacement grant is created under the same request identity.",
+      "required": [
+        "grant_id",
+        "state"
+      ],
+      "properties": {
+        "grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        },
+        "state": {
+          "type": "string",
+          "const": "expired"
+        }
+      },
+      "additionalProperties": false
+    },
+    "session_grant_replay_terminal_error_details": {
+      "type": "object",
+      "description": "Closed ErrorEnvelope.error.details for session_grant_replay_terminal. The state is an exact durable issuer-ledger terminal state and no replacement grant is created under the same request identity.",
+      "required": [
+        "grant_id",
+        "state"
+      ],
+      "properties": {
+        "grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "revoked",
+            "superseded"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "SessionGrantRefreshRequestBody": {
       "type": "object",
       "additionalProperties": false,
@@ -293,6 +346,7 @@
         },
         "session_public_key": {
           "type": "string",
+          "format": "canonical-public-jwk-jcs",
           "description": "JWK the rotated grant is bound to (the device holder key)."
         },
         "expires_at": {
@@ -314,7 +368,7 @@
         },
         "previous_grant_id": {
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id",
-          "description": "The prior grant, single-use revoked on success."
+          "description": "The predecessor grant, atomically superseded by this successor on success."
         }
       }
     },
@@ -439,6 +493,7 @@
           "enum": [
             "active",
             "revoked",
+            "superseded",
             "expired",
             "locked",
             "suspended",
@@ -475,6 +530,7 @@
         "expires_at",
         "revocation_ref",
         "session_public_key",
+        "cnf_jkt",
         "credential_class"
       ],
       "properties": {
@@ -4175,11 +4231,12 @@
     },
     "SignedSessionGrantClaims": {
       "type": "object",
-      "description": "Canonical claims carried by an ak.session.grant JWT. recovery_restricted is a closed bootstrap credential and cannot be interpreted as a standard device grant.",
+      "description": "Canonical signed claims carried by an ak.session.grant JWT. Except for the fixed kind and derived jti, the closed issuance preimage fields are copied from these claims, including the credential-class binding selected by the closed XOR: standard requires holder_binding, device_bootstrap requires bootstrap_binding, and recovery_restricted requires recovery_binding. Verifiers MUST RFC 8785-canonicalize the complete claim-derived preimage, recompute SHA-256, prepend the active sha256 suite wire code, derive ak:session_grant:<44-char-token>, and require byte equality with jti. Changing a binding therefore changes the ID. recovery_restricted is a closed bootstrap credential and cannot be interpreted as a standard device grant.",
       "required": [
         "kind",
         "jti",
         "issuer",
+        "issuance_nonce",
         "subject",
         "session_public_key",
         "audience",
@@ -4201,16 +4258,23 @@
         "issuer": {
           "$ref": "./common-ids.schema.json#/$defs/did"
         },
+        "issuance_nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "description": "Canonical unpadded Base64URL encoding of the issuer-generated 256-bit issuance nonce. Exact replay reuses the same nonce, issuance preimage, grant ID and JWT."
+        },
         "subject": {
           "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "session_public_key": {
           "type": "string",
-          "minLength": 1
+          "format": "canonical-public-jwk-jcs",
+          "minLength": 1,
+          "description": "A supported public JWK serialized as its exact RFC 8785 JCS UTF-8 string. Producers MUST parse and canonicalize input before signing; consumers MUST reject strings whose parsed JWK re-serialization is not byte-identical. Private JWK members are forbidden."
         },
         "audience": {
-          "type": "string",
-          "minLength": 1
+          "$ref": "./common-ids.schema.json#/$defs/did",
+          "description": "Canonical bare DID of the resource service. HTTP origins are bound separately by DPoP htu and MUST NOT be used as the SessionGrant audience."
         },
         "scopes": {
           "type": "array",
@@ -4249,6 +4313,9 @@
         },
         "recovery_binding": {
           "$ref": "#/$defs/SessionGrantRecoveryBinding"
+        },
+        "device_binding": {
+          "$ref": "#/$defs/SessionGrantDeviceBinding"
         },
         "bootstrap_binding": {
           "$ref": "./principal-operations.schema.json#/$defs/device_bootstrap_credential"
@@ -4336,8 +4403,17 @@
                 "bootstrap_binding"
               ],
               "not": {
-                "required": [
-                  "holder_binding"
+                "anyOf": [
+                  {
+                    "required": [
+                      "holder_binding"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "recovery_binding"
+                    ]
+                  }
                 ]
               }
             },
@@ -4346,8 +4422,17 @@
                 "holder_binding"
               ],
               "not": {
-                "required": [
-                  "bootstrap_binding"
+                "anyOf": [
+                  {
+                    "required": [
+                      "bootstrap_binding"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "recovery_binding"
+                    ]
+                  }
                 ]
               }
             }
@@ -4362,7 +4447,10 @@
       "required": [
         "principal_id",
         "session_grant",
-        "expires_at"
+        "expires_at",
+        "grant_id",
+        "session_public_key",
+        "audience"
       ],
       "properties": {
         "principal_id": {
@@ -4386,6 +4474,7 @@
         },
         "session_public_key": {
           "type": "string",
+          "format": "canonical-public-jwk-jcs",
           "description": "JWK of the holder/session key the grant is bound to (the device holder key). The client needs this to perform RFC 9421 PoP and to derive the DPoP cnf.jkt for /_arkret/self/* requests (api-conventions.md §3.2 / §3.3); returning it at issue time avoids a mandatory introspect round-trip before the first self-path request. Equals the grant's bound session_public_key for both human and agent grants. Mirrors SessionGrantRefreshOutcome.session_public_key."
         },
         "audience": {

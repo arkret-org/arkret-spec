@@ -94,12 +94,16 @@ DID Document 或 normalized principal view 中出现 `ak.service.tsp` 只是一�
 
 ### 4.1.1 高风险 protocol surface 清单（normative）
 
-下列 protocol surface 在通过 TSP transport 触发时 MUST 在 transport 层完成 §4.1 反向绑定校验，校验失败 MUST fail closed，不得回退到任何不带反向绑定的传输路径承载该次调用。本节故意把 surface 分成三类；实现不得把 Event kind 或 capability action 误登记为 operation id。
+下列 protocol surface 在通过 TSP transport 触发时 MUST 在 transport 层完成 §4.1 反向绑定校验，校验失败 MUST fail closed，不得回退到任何不带反向绑定的传输路径承载该次调用。本节故意把 surface 分成四类；实现不得把 credential kind、Event kind 或 capability action 误登记为 operation id。
 
 **Operation id**（取自 `operation-registry.json`）：
 
 - 跨 `trust_domain` 的 `ak.self.events.command.submit`
 - `ak.root.identity.command.submit_did_operation`
+- `ak.gate.account.command.issue_session_grant`
+- `ak.gate.account.command.refresh_session_grant`
+- `ak.gate.account.command.revoke_session`
+- `ak.gate.account.command.introspect_session_grant`
 
 **Durable Event kind carried inside `ak.self.events.command.submit`**：
 
@@ -107,9 +111,14 @@ DID Document 或 normalized principal view 中出现 `ak.service.tsp` 只是一�
 - `ak.cross_signing.reset`
 - `ak.device.authorize`
 - `ak.device.revoke`
-- `ak.session.grant`
 - 跨 `trust_domain` 的 `ak.member.state`
 - 跨 `trust_domain` 的 `ak.invite.create`
+
+**Credential surface**：
+
+- `kind="ak.session.grant"` credential 的 issue、refresh、presentation、revoke 与 introspection。该 kind
+  不是 Event kind；TSP 反向绑定与外层 service proof 只加强跨 trust-domain transport，MUST NOT 替代
+  client DPoP/holder proof、issuer JWT/status signature 或 principal/device/notary Event proof。
 
 **Capability action**：
 

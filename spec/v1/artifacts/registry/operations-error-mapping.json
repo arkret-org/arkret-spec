@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-08.2",
+  "version": "2026-08-08.5",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T09:00:00Z",
+  "generated_at": "2026-08-08T17:00:00Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -82,6 +82,10 @@
         "audience_unknown",
         "principal_unknown",
         "proof_invalid",
+        "duplicate_conflict",
+        "session_grant_replay_expired",
+        "session_grant_replay_terminal",
+        "session_grant_replay_indeterminate",
         "verification_method_principal_mismatch",
         "agent_paused",
         "agent_deactivated",
@@ -89,7 +93,7 @@
         "accountability_grant_missing",
         "agent_requested_scope_commitment_invalid"
       ],
-      "description": "Account Authority session grant issuance. `principal_unknown` is returned when the required principal_id has no verified account binding; the authority must not derive or mint a DID as a fallback. Shared by human user_session and agent runtime branches: when `proof.proof_kind=\"oidc_code_exchange\"`, `proof_invalid` covers issuer/discovery/state/nonce/redirect_uri/code_verifier/principal/device/audience binding failures; when `proof.proof_kind=\"pre_registration_handoff\"`, proof_invalid covers handoff/DPoP mismatch or a handoff account not matching principal_id; when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures, `verification_method_principal_mismatch` when verification_method DID does not match `principal_id`, lifecycle errors for the target agent, and authorization/accountability errors for stale authority (zh/identity/account-lifecycle.md §2.1.2 / §9.1)."
+      "description": "Account Authority issuer-ledger session grant issuance. `principal_unknown` is returned when the required principal_id has no verified account binding; the authority must not derive or mint a DID as a fallback. Exact replay returns the byte-identical recorded live outcome after current holder/DPoP/target/digest revalidation; conflicting canonical intent is duplicate_conflict. A recorded expired outcome returns session_grant_replay_expired; revoked/superseded returns session_grant_replay_terminal; an evicted replay record returns session_grant_replay_indeterminate. None may issue a replacement under the same request identity. Proof-kind-specific validation failures remain proof_invalid or the registered Agent lifecycle/authority codes."
     },
     {
       "operation_id": "ak.gate.account.command.revoke_session",
@@ -97,9 +101,11 @@
       "operation_specific": [
         "session_grant_not_found",
         "session_revoke_selector_conflict",
-        "proof_invalid"
+        "proof_invalid",
+        "duplicate_conflict",
+        "session_grant_replay_indeterminate"
       ],
-      "description": "Session grant/access-token revocation. Empty body revokes the current request's session grant; cross grant/device/all_sessions selectors require fresh proof and never revoke device authorization or write durable ak.account.status."
+      "description": "Session grant/access-token revocation. Empty body revokes the current request's session grant; cross grant/device/all_sessions selectors require fresh proof and never revoke device authorization or write durable ak.account.status. The issuer durably records the exact mutation outcome; exact request replay returns that outcome, while the same request identity with different canonical intent returns duplicate_conflict. If replay retention no longer proves whether the mutation committed, session_grant_replay_indeterminate fails closed with zero new state changes."
     },
     {
       "operation_id": "ak.gate.account.command.refresh_session_grant",
@@ -108,11 +114,15 @@
         "grant_already_consumed",
         "session_logged_out",
         "audience_mismatch",
+        "duplicate_conflict",
+        "session_grant_replay_expired",
+        "session_grant_replay_terminal",
+        "session_grant_replay_indeterminate",
         "session_grant_not_found",
         "did_proof_required",
         "proof_invalid"
       ],
-      "description": "DPoP-bound session-grant rotation (account-lifecycle §4.1). Single-use: a consumed grant cannot be rotated again (grant_already_consumed); the audience is locked to the prior grant (audience_mismatch); rotation is refused once the underlying browser session is logged out (session_logged_out). The caller MUST present a holder proof signed by the key bound into the grant's cnf.jkt plus a fresh DID/device proof bound to principal_id, device_id, audience, request_canonical_digest, challenge, issued_at, and expires_at. Missing proof material returns did_proof_required; invalid signature, replay, transcript, device binding, or freshness semantics return proof_invalid."
+      "description": "DPoP-bound issuer-ledger rotation keyed by predecessor_grant_id plus refresh_request_digest. Exact replay returns the recorded successor after current proof revalidation; a conflicting request is duplicate_conflict. One transaction creates the successor and supersedes the predecessor. A recorded successor that is expired or terminal returns the corresponding session_grant_replay_* code and never causes a second successor. The audience remains locked; logged-out or invalid holder/fresh-proof paths retain their existing errors."
     },
     {
       "operation_id": "ak.gate.account.command.promote_recovery_session_grant",

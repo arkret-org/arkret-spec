@@ -1,24 +1,25 @@
 {
-  "version": "2026-08-08.5",
+  "version": "2026-08-08.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T15:00:00Z",
+  "generated_at": "2026-08-08T15:05:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
   "wire_form_generation": {
     "producer_allocated": "ak:<kind>:<uuidv7>",
     "event_derived": "ak:<kind>:<44-char-event-token>",
-    "derivation_tagged_full_digest": "ak:realm:<44-char-derivation-tagged-full-digest-token>"
+    "derivation_tagged_full_digest": "ak:<kind>:<44-char-derivation-tagged-full-digest-token>",
+    "suite_tagged_full_digest": "ak:<kind>:<44-char-suite-tagged-full-digest-token>"
   },
   "storage_rules": [
     "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form declared by each id_kind row.",
     "Storage implementations MAY store producer-allocated raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the ak:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
     "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
     "The <kind> segment is part of the signed/canonical wire value. It MUST NOT be changed, inferred differently, or stripped during verification, forwarding, backfill, or replay.",
-    "The payload construction MUST be fixed by that kind's id_form and identity_authority columns, never chosen per call site: producer_allocated uses UUIDv7; event_derived uses the creating Event's 33-byte token; Realm uses the derivation-tagged 33-byte token from zh/conformance/encoding.md section 4.1. A UUID version nibble or Realm header alone never proves identity authority.",
+    "The payload construction MUST be fixed by that kind's id_form and identity_authority columns, never chosen per call site: producer_allocated uses UUIDv7; event_derived uses the creating Event's 33-byte token; suite_tagged_full_digest uses a full uint8 digest-suite code followed by the complete 32-byte digest under its registered kind-specific preimage contract; derivation_tagged_full_digest uses the registered kind-specific derivation contract. v1 Event and suite-tagged identities accept only registered active suite codes with high nibble 0x0; this constraint does not turn that nibble into a derivation class. A UUID version nibble, digest-suite byte, or derivation header alone never proves identity authority.",
     "A producer_allocated UUIDv7 is never a globally sufficient protocol identity. Its canonical identity key is (mint_authority, typed_id), where mint_authority is the DID whose accepted proof authorized the first durable appearance of that ID. Bare typed-ID lookup, cross-authority deduplication, and last-writer-wins collision repair are forbidden.",
-    "Storage implementations MAY store producer_allocated UUID values as raw 16-byte UUIDs. Event-derived and derivation-tagged Realm IDs MUST instead store their raw 33-byte token; they MUST NOT use a native UUID column.",
-    "The id_form is fixed by registry kind and never chosen per call site: producer_allocated uses RFC 9562 UUIDv7; event_derived uses the same canonical 33-byte token as its creating Event ID; derivation_tagged_full_digest uses a 4-bit derivation class, 4-bit digest suite, and all 32 digest octets. Both token forms serialize as 44 unpadded Base64URL characters.",
+    "Storage implementations MAY store producer_allocated UUID values as raw 16-byte UUIDs. Event-derived, suite-tagged full-digest, and derivation-tagged full-digest IDs MUST instead store their raw 33-byte token; they MUST NOT use a native UUID column.",
+    "The id_form is fixed by registry kind and never chosen per call site: producer_allocated uses RFC 9562 UUIDv7; event_derived uses the same canonical 33-byte token as its creating Event ID; suite_tagged_full_digest uses a full uint8 digest suite code followed by all 32 digest octets; derivation_tagged_full_digest uses a 4-bit derivation class, 4-bit digest suite, and all 32 digest octets. All three token forms serialize as 44 unpadded Base64URL characters.",
     "A database MAY intern any full Realm wire identity in a canonical Realm table and use a database-local surrogate pk for joins, indexes, and foreign keys. That pk is never serialized or signed. The canonical table MUST retain a unique lossless 33-byte Realm identity (or its full typed wire form), and every realm_pk foreign key MUST resolve to the same wire Realm identity carried by the protocol record."
   ],
   "producer_allocated_identity_contract": {
@@ -48,6 +49,87 @@
     "digest_suite_range": "1..15",
     "digest_length_bytes": 32,
     "nonzero_reserved_nibble": "permanently_invalid"
+  },
+  "issuer_record_identity_contract": {
+    "applies_to_id_kinds": [
+      "session_grant"
+    ],
+    "identity_key": [
+      "issuer_did",
+      "typed_id"
+    ],
+    "authority": "signed_immutable_issuer_record",
+    "schema": "ak.session_grant.issuance.v1",
+    "canonicalization": "json_jcs",
+    "digest_suite_registry_ref": "registry/digest-suite-registry.json#/suites/canonical_id=sha256",
+    "digest_suite_wire_code": 1,
+    "v1_suite_code_constraint": "The complete uint8 suite wire code is encoded unchanged, but v1 accepts only registered active codes whose high nibble is 0x0; this is not a Realm derivation-class nibble.",
+    "digest_input": "SHA-256(JCS(closed issuance_preimage))",
+    "token_layout": "digest_suite_wire_code || 32-byte digest",
+    "preimage_fields": [
+      "schema",
+      "issuer",
+      "issuance_nonce",
+      "subject",
+      "session_public_key",
+      "audience",
+      "scopes",
+      "not_before",
+      "expires_at",
+      "session_id",
+      "cnf",
+      "credential_class",
+      "recovery_binding?",
+      "device_binding?",
+      "bootstrap_binding?",
+      "holder_binding?",
+      "proof_kind?",
+      "scope_details?"
+    ],
+    "closed_encoding": {
+      "issuance_nonce": "base64url_no_pad_exactly_32_octets",
+      "session_public_key": "supported_public_jwk_encoded_as_rfc8785_jcs_string",
+      "audience": "canonical_bare_resource_service_did; never an HTTP origin or endpoint URL",
+      "scopes": "protocol_bytewise_sorted_unique_after_authorization_intersection",
+      "timestamps": "utc_canonical_millisecond",
+      "optional_fields": "omit_when_absent_never_null",
+      "credential_binding_xor": "standard_requires_holder_binding; device_bootstrap_requires_bootstrap_binding; recovery_restricted_requires_recovery_binding; the other two credential-class bindings are absent"
+    },
+    "signed_claim_binding": "Every preimage field except fixed schema is a signed JWT claim, including the credential-class binding selected by the closed XOR; kind is the fixed credential kind and jti is the derived typed ID. Verifiers MUST reconstruct the complete preimage from signed claims and recompute jti, so two different holder_binding or bootstrap_binding values cannot share one valid ID.",
+    "session_chain_rule": "session_id is independently allocated before first issuance, refresh inherits it, and it MUST NOT equal or derive from grant_id",
+    "device_id_rule": "No independent top-level device_id claim enters the preimage; device scope tokens and the credential-class-selected holder_binding, bootstrap_binding, recovery_binding, or optional device_binding carry the binding.",
+    "durable_replay": {
+      "key": [
+        "issuer_did",
+        "operation_or_proof_kind",
+        "request_identity"
+      ],
+      "same_key_same_canonical_intent": "return_byte_identical_recorded_outcome",
+      "same_key_different_canonical_intent": "duplicate_conflict_zero_writes",
+      "replay_revalidation": [
+        "holder_or_dpop_proof",
+        "http_method_and_target",
+        "issuer_and_audience",
+        "canonical_request_digest"
+      ],
+      "retention": "not_shorter_than_the_corresponding_one_shot_proof_maximum_retry_window",
+      "retention_expired": "fail_closed_indeterminate_never_treat_as_first_issue"
+    },
+    "lifecycle": {
+      "durable_states": [
+        "active",
+        "revoked",
+        "superseded"
+      ],
+      "expired": "derived_from_immutable_expires_at",
+      "refresh": "one issuer transaction creates active successor and supersedes predecessor with successor_session_grant_id",
+      "revoke": "idempotently_transition_active_to_revoked",
+      "introspection": "read_current_issuer_ledger_state_with_authenticated_request_binding"
+    },
+    "conformance_suite": {
+      "vector_id": "ak.vector.auth.session_grant_issuer_record.v1",
+      "fixture": "session-grant-issuance-fixture.json"
+    }
   },
   "realm_token_layout": {
     "wire_form": "ak:realm:<44-char-base64url-no-pad>",
@@ -447,12 +529,14 @@
       "kind": "session_grant",
       "category": "authz",
       "status": "active",
-      "wire_form": "ak:session_grant:<44-char-event-token>",
-      "description": "Short-lived signed SessionGrant credential ID derived from ak.session.grant. JWT jti carries this typed ID; it is never an ak:grant capability ID.",
-      "id_form": "event_derived",
-      "identity_authority": "event",
-      "genesis_event_kinds": [
-        "ak.session.grant"
+      "wire_form": "ak:session_grant:<44-char-suite-tagged-full-digest-token>",
+      "description": "Short-lived signed SessionGrant credential ID derived from the Account Authority's closed immutable issuance record. JWT jti carries this typed ID; it is neither an Event ID nor an ak:grant capability ID.",
+      "id_form": "suite_tagged_full_digest",
+      "identity_authority": "issuer_record",
+      "derivation_contract_ref": "#/id_kind_registry/issuer_record_identity_contract",
+      "storage_identity_key": [
+        "issuer_did",
+        "typed_id"
       ]
     },
     {

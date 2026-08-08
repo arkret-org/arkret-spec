@@ -1170,6 +1170,9 @@ components:
               - device_reanchor_conflict
               - epoch_mismatch
               - duplicate_conflict
+              - session_grant_replay_expired
+              - session_grant_replay_terminal
+              - session_grant_replay_indeterminate
               - rank_exhausted
               - hlc_logical_overflow
               - payload_too_large
@@ -2818,6 +2821,12 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome
     SessionGrantRefreshRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody
+    SessionGrantReplayExpiredProblem:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/session_grant_replay_expired_error_details
+    SessionGrantReplayProblem:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/session_grant_replay_error_details
+    SessionGrantReplayTerminalProblem:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/session_grant_replay_terminal_error_details
     SessionGrantRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody
     SessionRevokeOutcome:
@@ -8708,6 +8717,51 @@ paths:
                           const: claim_required
                         details:
                           $ref: '#/components/schemas/AgentHumanApprovalProblem'
+        '409':
+          description: Conflicting canonical intent, terminal recorded replay, or replay record no longer decidable. A terminal replay carries closed grant_id/state details and never creates a replacement grant.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - allOf:
+                  - $ref: '#/components/schemas/ErrorEnvelope'
+                  - type: object
+                    properties:
+                      error:
+                        type: object
+                        required: [code]
+                        properties:
+                          code:
+                            enum: [duplicate_conflict, session_grant_replay_indeterminate]
+                - allOf:
+                  - $ref: '#/components/schemas/ErrorEnvelope'
+                  - type: object
+                    properties:
+                      error:
+                        type: object
+                        required: [code, details]
+                        properties:
+                          code:
+                            const: session_grant_replay_terminal
+                          details:
+                            $ref: '#/components/schemas/SessionGrantReplayTerminalProblem'
+        '410':
+          description: The recorded exact-replay outcome has expired; the issuer returns its grant_id/state and creates no replacement.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ErrorEnvelope'
+                - type: object
+                  properties:
+                    error:
+                      type: object
+                      required: [code, details]
+                      properties:
+                        code:
+                          const: session_grant_replay_expired
+                        details:
+                          $ref: '#/components/schemas/SessionGrantReplayExpiredProblem'
       requestBody:
         required: true
         content:
@@ -8733,7 +8787,10 @@ paths:
 
         Cross grant, cross device, and all_sessions=true revocation requires a
         fresh DID/device proof or explicit capability; a bearer session credential
-        alone is not enough to revoke other devices or all sessions.
+        alone is not enough to revoke other devices or all sessions. The issuer
+        durably records the mutation outcome under a stable request identity;
+        exact replay returns the recorded outcome and conflicting canonical
+        intent returns duplicate_conflict without further state changes.
       responses:
         '200':
           description: Session revocation completed.
@@ -8741,6 +8798,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SessionRevokeOutcome'
+        '409':
+          description: The stable revoke request identity conflicts with a different canonical intent, or replay retention no longer proves whether the mutation committed. Both outcomes fail closed with zero new state changes.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ErrorEnvelope'
+                - type: object
+                  properties:
+                    error:
+                      type: object
+                      required: [code]
+                      properties:
+                        code:
+                          enum: [duplicate_conflict, session_grant_replay_indeterminate]
       requestBody:
         required: false
         content:
@@ -8764,7 +8836,7 @@ paths:
         caller MUST present a DPoP header proving possession of the key bound
         into the grant's cnf.jkt (ath = the prior grant). The new grant keeps
         cnf.jkt, subject, scope and audience and gets a fresh minutes-to-hours
-        expiry; the prior grant is single-use revoked. audience MUST NOT change
+        expiry; the predecessor is atomically superseded by the successor. audience MUST NOT change
         across rotation (else audience_mismatch); a consumed grant returns
         grant_already_consumed; a logged-out browser session returns
         session_logged_out.
@@ -8775,6 +8847,51 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SessionGrantRefreshOutcome'
+        '409':
+          description: Conflicting refresh intent, terminal recorded successor, or replay record no longer decidable. A terminal replay carries closed grant_id/state details and never creates a second successor.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - allOf:
+                  - $ref: '#/components/schemas/ErrorEnvelope'
+                  - type: object
+                    properties:
+                      error:
+                        type: object
+                        required: [code]
+                        properties:
+                          code:
+                            enum: [duplicate_conflict, session_grant_replay_indeterminate]
+                - allOf:
+                  - $ref: '#/components/schemas/ErrorEnvelope'
+                  - type: object
+                    properties:
+                      error:
+                        type: object
+                        required: [code, details]
+                        properties:
+                          code:
+                            const: session_grant_replay_terminal
+                          details:
+                            $ref: '#/components/schemas/SessionGrantReplayTerminalProblem'
+        '410':
+          description: The recorded successor has expired; the issuer returns its grant_id/state and creates no second successor.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ErrorEnvelope'
+                - type: object
+                  properties:
+                    error:
+                      type: object
+                      required: [code, details]
+                      properties:
+                        code:
+                          const: session_grant_replay_expired
+                        details:
+                          $ref: '#/components/schemas/SessionGrantReplayExpiredProblem'
       requestBody:
         required: true
         content:

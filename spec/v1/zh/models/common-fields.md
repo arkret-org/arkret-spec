@@ -567,12 +567,23 @@ typed ID 的 token 构造 MUST 由
 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 中该 kind 的 `id_form`
 唯一固定：`producer_allocated` 使用 UUIDv7（time-ordered），`event_derived` 使用
 [`../conformance/encoding.md` §4.0](../conformance/encoding.md) 定义的 33-octet suite-tagged 完整 digest token；
-`derivation_tagged_full_digest`（当前仅 Realm）使用 [`../conformance/encoding.md` §4.1](../conformance/encoding.md)
-的统一 33-octet token，高 nibble 固定身份派生类别、低 nibble 固定 digest suite。调用点 MUST NOT 自行选择
+`suite_tagged_full_digest` 同样使用 §4.0 的完整 uint8 digest-suite code 加 32-octet digest，但其 preimage 与
+authority 由 kind-specific registry contract 固定；`derivation_tagged_full_digest` 使用
+[`../conformance/encoding.md` §4.1](../conformance/encoding.md)
+的统一 33-octet token，高 nibble 固定身份派生类别、低 nibble 固定 digest suite；具体 preimage 与 authority
+由该 kind 的 registry contract 固定。调用点 MUST NOT 自行选择
 派生类别，也不得把 Event、Realm 或 Event-derived typed ID 降级为 UUIDv7。content-addressed form
 使用对应 digest。
 
-所有 typed ID 的总表是 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)；它同时列出 `id_form`、`identity_authority` 和 `genesis_event_kinds`，实现 MUST NOT 在各 schema / reducer 中另建一份手写分类。其中 `ak:audit_binding:`、`ak:call:`、`ak:grant:` 和 `ak:session_grant:` 都是 `event_derived`；分别从 `ak.audit.applet_binding.create`、`ak.call.create`、`ak.capability.grant` 和 `ak.session.grant` 的 Event ID 重类型化为相同 33-octet token。
+所有 typed ID 的总表是 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)；它同时列出
+`id_form`、`identity_authority`，并在适用行列出 `genesis_event_kinds` 或 kind-specific derivation contract，
+实现 MUST NOT 在各 schema / reducer 中另建一份手写分类。其中 `ak:audit_binding:`、`ak:call:` 与
+`ak:grant:` 是 `event_derived`，分别从 `ak.audit.applet_binding.create`、`ak.call.create` 与
+`ak.capability.grant` 的 Event ID 重类型化为相同 33-octet token。`ak:session_grant:` 则是
+`identity_authority="issuer_record"` 的 `suite_tagged_full_digest`：从 closed
+`ak.session_grant.issuance.v1` preimage 派生，并以 `(issuer_did, typed_id)` 作为 storage identity key；它
+不是 Event ID。其首字节是完整 digest-suite wire code，不得按 Realm 的“高 4 位 derivation class + 低 4 位
+suite”解释；具体合同见 [`../identity/key-management.md` §6.1](../identity/key-management.md)。
 
 `producer_allocated` UUIDv7 只提供时间排序与随机冲突概率，**不证明谁有权分配该 ID**。其协议身份键 MUST 是 `(mint_authority, typed_id)`，`mint_authority` 是该 ID 首次持久出现时通过接收校验的 genesis proof signer DID。存储与索引 MUST 原子保留这个二元组：同 authority + 同 ID + 同内容是幂等重放；同 authority + 同 ID + 不同内容 MUST 拒绝并隔离；不同 authority 即使 UUID 相同也是不同身份。裸 typed-ID 查找、跨 authority 去重、last-writer-wins 修复以及未绑定签名的预占位都 MUST fail closed。该规则由 ID registry 顶层 `producer_allocated_identity_contract` 机读定义，所有 `identity_authority="producer_signature"` 行统一继承。
 

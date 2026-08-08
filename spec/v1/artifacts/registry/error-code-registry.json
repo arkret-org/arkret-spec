@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-08.4",
+  "version": "2026-08-08.5",
   "codes": [
     {
       "code": "bad_json",
@@ -464,6 +464,24 @@
       "http_status": 409,
       "scope": "both",
       "description": "The same idempotency key or stable identifier was reused with different canonical content."
+    },
+    {
+      "code": "session_grant_replay_expired",
+      "http_status": 410,
+      "scope": "endpoint",
+      "description": "A durable exact-replay lookup found the original SessionGrant issuance outcome, but its immutable expires_at is past. The response details MUST include grant_id and state=expired. The issuer MUST NOT return the expired credential as success or issue a replacement under the same request identity; the client must perform full authentication with a new one-shot proof and request identity."
+    },
+    {
+      "code": "session_grant_replay_terminal",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "A durable exact-replay lookup found the original SessionGrant issuance outcome in revoked or superseded state. The response details MUST include grant_id and the exact terminal state. The issuer MUST NOT return the credential as success or issue a replacement under the same request identity; the client must perform full authentication with a new one-shot proof and request identity."
+    },
+    {
+      "code": "session_grant_replay_indeterminate",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The stable SessionGrant request identity is older than the issuer's durable replay-record retention window, so the issuer cannot prove whether the one-shot request previously committed. It MUST fail closed and MUST NOT treat the request as first issuance; the client must obtain a new one-shot proof and request identity."
     },
     {
       "code": "rank_exhausted",

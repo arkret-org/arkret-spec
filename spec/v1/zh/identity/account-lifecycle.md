@@ -30,7 +30,7 @@ Arkret 身份由 DID principal 表示，但用户访问通常经过一个或多�
 
 服务账号 MAY 使用用户名/密码、passkey、WebAuthn、OAuth/OIDC、企业 SSO 或类似集中认证服务的登录方式。它们只证明调用方通过了某个 account service 的认证，不能直接证明 DID principal 所有权。
 
-登录成功后，account service / auth service MUST 将会话绑定到 DID principal 与设备，例如签发短期 `ak.session.grant`、登记 device binding，或要求客户端提交 DID proof。资源服务器随后验证 grant、device、capability、Realm policy 和撤销状态。`ak.session.grant` Event payload 不携带 ID；服务先计算 content-bound `event_id`，再把同一 33-octet / 44-character Event token 重类型为 `ak:session_grant:<44-char-event-token>`，最后签 JWT，且 JWT `jti` MUST 逐字节等于该 typed ID。这个 ID 不是 `ak:grant:` Capability GrantId，两者的 parser、存储索引与 API strong type MUST 分开。
+登录成功后，account service / auth service MUST 将会话绑定到 DID principal 与设备，例如签发短期 `ak.session.grant`、登记 device binding，或要求客户端提交 DID proof。资源服务器随后验证 grant、device、capability、Realm policy 和撤销状态。`ak.session.grant` 是 Account Authority issuer-ledger credential，不是 Event：issuer 从 closed immutable `ak.session_grant.issuance.v1` preimage 派生 33-octet / 44-character suite-tagged full-digest token，签 JWT，并要求 JWT `jti` 逐字节等于该 typed ID。其 ID derivation、canonical JWK、nonce 与 verifier 规则见 [`key-management.md` §6](./key-management.md)。这个 ID 不是 Event ID，也不是 `ak:grant:` Capability GrantId；三者的 parser、存储索引与 API strong type MUST 分开。
 
 ### 2.1.1 Account-first onboarding
 
@@ -62,7 +62,7 @@ account-first DID 分支必须执行 [`key-management.md` §5.0.1](./key-managem
 5. Account Authority 生成并持久化一次性 challenge。challenge transcript MUST 绑定 `purpose="account_binding"`、service account（只需服务端状态持有，不得暴露可关联的本地 account id）、`principal_id`、`operation_digest`、`identity_creation_lease_id`、`lease_fence`、`holder_jkt`、Account Authority audience、origin、trust domain、`issued_at`、`expires_at` 与不可预测 nonce；`expires_at - issued_at` MUST ≤ 300 秒。challenge 状态 MUST 位于所有实例共享的 durable store，不能只放进程内 memory；同一 challenge 成功消费一次后，任何重放都 MUST fail closed。
 6. 客户端用 entry 0 的 method-native inception control key 签 `identity_creation_control_proof`。对 v1 默认 `did:webvh`，验证 key MUST 是所提交 entry 0 `parameters.updateKeys[0]`，并与 proof 的 `verification_key_multibase` byte-identical；root 不在 DID Document `verificationMethod` 中，验证器不得把“解析已发布 DID 再选 authentication VM”的普通 DID proof 路径误用于此次 inception proof，也不得信任请求另带的任意公钥。
 7. 客户端以同一 handoff + DPoP 调用 canonical `ak.gate.account.command.register`，携带当前 lease/fence、原样 DID operation 与 control proof。Account Authority MUST 先 CAS 校验 account / holder / lease / fence / reservation / challenge，再验证 root signature；随后由 Account Authority 内部调用 identity registry 提交 DID operation。只有返回 `accepted`，或返回 `duplicate` 且 canonical operation bytes 与已接受 entry 完全相同、`head_event_digest` 可验证时，才可写 `service_account -> principal_id` verified binding。客户端在该 account-first strand 中 MUST NOT 绕过 register 直接发布 entry 0。
-8. 绑定完成后，同一未过期 handoff MAY 以 `SessionGrantRequestBody.proof.proof_kind="pre_registration_handoff"` 调用 `issue_session_grant`。请求仍 MUST 明示已经 verified binding 的 `principal_id`，Authorization 必须是 `DPoP <account_handoff_grant>` 并携带匹配 DPoP proof；Account Authority 必须比较 handoff 所属 service account 与该 binding。handoff 过期时客户端重新认证；不得把 handoff 扩成长期 refresh credential。
+8. 绑定完成后，同一未过期 handoff MAY 以 `SessionGrantRequestBody.proof.proof_kind="pre_registration_handoff"` 调用 `issue_session_grant`。请求仍 MUST 明示已经 verified binding 的 `principal_id`，Authorization 必须是 `DPoP <account_handoff_grant>` 并携带匹配 DPoP proof；Account Authority 必须比较 handoff 所属 service account 与该 binding。签发使用 issuer ledger，不要求 principal control realm 已 bootstrap，也不产生 SessionGrant Event。该 one-shot handoff 与 canonical grant intent 组成稳定 request identity；commit 后响应丢失时，exact replay MUST 在重新验证 holder/DPoP/target/digest 后返回 byte-identical outcome，而不是再次消费 handoff 或生成第二个 grant。handoff 过期时客户端重新认证；不得把 handoff 扩成长期 refresh credential。
 
 采用 B 模型的部署必须由 Principal Server 的部署配置在 `/_arkret/describe` 的 `auth_metadata.account_authority.enrollment_authority_did` pin 首设备入册权威。客户端生成 entry 0 时只使用该部署 pin，并在 Account Authority `describe` 返回同名值时要求二者相等；Account Authority 自身的响应不能成为该 DID 的初始信任源。缺少 pin 或不一致时必须在生成、发布 entry 0 前 fail closed。
 
@@ -71,6 +71,26 @@ account-first DID 分支必须执行 [`key-management.md` §5.0.1](./key-managem
 如果客户端丢失 handoff holder key，未过期租约不会转让。租约过期后，同一 service account 的新认证 holder MAY 原子递增 fence、取得新 lease，并继承已保留的 `principal_id`、operation digest 与公开 DID operation；旧 fence 从此永久失效。新 holder 仍 MUST 用相同 identity root 对新 challenge 产生 fresh control proof，才能完成 register。只有恢复词而没有旧 DPoP key 的用户因此仍能续跑，但不能用新 holder 改选另一 DID 来覆盖已预留身份。
 
 Account Authority 与客户端 UI MUST 把 service-account 认证凭据（密码、passkey、OIDC/SSO session）和 principal recovery secret 说明为两套正交凭据：重置账号密码只恢复 service account 访问，不恢复、轮换或导出 DID root；输入 recovery secret 只证明或恢复 principal 控制，不重置 service-account 密码。UI 不得用同一个“恢复密钥/恢复账号”标签把两类权力合并描述。
+
+### 2.1.3 SessionGrant 不确定结果与开发期 clean break
+
+SessionGrant issue / refresh 的 exact replay 规则以 [`key-management.md` §6.2](./key-management.md) 为准。
+replay 命中 expired outcome 时返回 `session_grant_replay_expired`；命中 revoked / superseded outcome 时返回
+`session_grant_replay_terminal`；记录已超过保留期、issuer 无法证明旧 attempt 是否提交时返回
+`session_grant_replay_indeterminate`。三者都不得返回成功或在旧 request identity 下补发 grant。客户端
+必须取得新的 one-shot proof 与 request identity 后重新认证。
+
+account-first onboarding 在上述终态恢复时 MUST 复用 §2.1.2 的 identity-creation lease fence 与
+`reserved_principal_id` / `reserved_operation_digest` / public DID-operation checkpoint：新 holder 在租约
+到期并 fence 后继续同一身份创建，不得重做已经 accepted 的 DID operation，也不得重新生成 Recovery
+Key。普通登录则回到认证入口。
+
+本次 issuer-ledger 切换是开发期 clean break。部署 MUST 清理或重建旧版本误用 capability 前缀与 UUIDv7
+组合的 SessionGrant ID、旧版本从 accepted Event token 重类型得到的 `ak:session_grant:*`，以及相关
+refresh chain / local auth session/cache，并要求所有客户端重新登录；不得修改既有 JWT 的 `jti`、把旧
+Event/cell 重解释为 issuer record，或复制旧 row 到新 ID。客户端只删除旧
+session credential 与绑定缓存，MUST 保留 principal 私钥、Recovery Key、DID/PCR/MLS 与 secret-storage
+数据；这是 auth session fence，不是 principal identity migration。
 
 当 service account 已绑定到某个 `principal_id` 时，DID proof MAY 作为恢复该 service account 访问的强证据。恢复服务 SHOULD 通过一次性 challenge 验证用户当前控制该 `principal_id`，再允许重设 service account 密码、重新绑定 passkey / WebAuthn 凭据、解除 `soft_logged_out`，或签发短期 session grant。该 DID proof MUST 按 DID method 和本地 trust policy 验证 DID Document、key log / method history、当前 authentication key 或授权 device key、challenge audience、origin、过期时间和重放状态。
 
@@ -253,7 +273,7 @@ POST /_arkret/gate/account/logout
 该请求 MUST 使用 `Authorization: Bearer <ak.session.grant>` 出示当前 grant，并带 `DPoP` proof；DPoP `ath` MUST 绑定该 grant，`htu` MUST 绑定由 `gate_account_base` 派生出的 `/logout` URL，使 Account Authority 能定位要终结的 grant chain 与 principal device session。客户端 MUST NOT 分别向 Auth Server 与 Principal Server 两个 origin 发起登出；部署内部的分权威调用是 Account Authority 的实现细节。普通客户端可见的 logout endpoint **只有** `POST /_arkret/gate/account/logout`。
 
 1. **客户端** MUST：停止 sync、清除本地 session credential / `session_grant` / OIDC 凭证；hard logout SHOULD 额外清除本设备的 grant-binding(DPoP)私钥，使下次登录轮换 `cnf.jkt`(软恢复路径 MUST 保留该 key 以便 refresh)。
-2. **Account Authority → Auth-side** MUST 登出当前 grant 所属的 Auth-side session / `browser_session` 并终结其 `ak.session.grant` 轮换链。若 Auth-side 不在同进程，Account Authority MUST 调用标准 S2S 子操作 `POST /_arkret/gate/account/auth-sessions/logout`(`ak.gate.account.command.logout_auth_session`)；该调用 MUST 使用 Account Authority → Auth Server 的部署内 S2S bearer（同 `session_grant_introspection_bearer` 认证族），MUST NOT 复用客户端为高层 `/logout` URL 铸造的 DPoP proof。此后 (i) 凭同一 `cnf.jkt` grant-binding proof 调 `refresh` MUST 被拒(`session_logged_out`)，整条轮换链不可再续；(ii) 该 Auth-side session 下任何 grant 的 introspection MUST 返回 inactive(即 grant-binding key 不能在登出后重建或维持会话)。
+2. **Account Authority → Auth-side** MUST 登出当前 grant 所属的 Auth-side session / `browser_session`，在同一 issuer ledger 中幂等撤销该链的 active grant 并终结轮换链。若 Auth-side 不在同进程，Account Authority MUST 调用标准 S2S 子操作 `POST /_arkret/gate/account/auth-sessions/logout`(`ak.gate.account.command.logout_auth_session`)；该调用 MUST 使用 Account Authority → Auth Server 的部署内 S2S bearer（同 `session_grant_introspection_bearer` 认证族），MUST NOT 复用客户端为高层 `/logout` URL 铸造的 DPoP proof。此后 (i) 凭同一 `cnf.jkt` grant-binding proof 调 `refresh` MUST 被拒(`session_logged_out`)，整条轮换链不可再续；(ii) 该 Auth-side session 下任何 grant 的 introspection MUST 从同一 ledger 返回 inactive(即 grant-binding key 不能在登出后重建或维持会话)。该步骤不得发布 SessionGrant state Event。
 3. **Account Authority → Principal-side** MUST：作废该 grant 的本地 session-grant 内省缓存（下次内省即得 `active=false`）、吊销 / 标记该 principal 本地 account session 与**本地设备会话记录**(使后续以该设备签名的 device-scoped 操作在本 Principal Server fail closed)+ drop 该设备的待投递 to-device 消息，并移除该设备作用域内的 push registration。因 Principal Server 不为客户端铸独立本地 bearer（会话凭据即 grant 本身，见上），此处无单独的本地 bearer 可撤——作废内省缓存 + 撤设备会话记录即足以使该设备后续 `/_arkret/self/*` 请求 fail closed。此操作终结该设备在本 Principal Server 的本地会话状态，但 **不** 改写 `ak.account.status`、不发 `ak.device.revoke` 协议事件、不擦除 durable device authorization 历史(用户重新登录即可在本设备恢复)。注意它与 `ak.gate.account.command.revoke_session`(仅撤 session grant、不触设备会话记录，用于"撤某个会话但保留设备")是不同操作。
 
 `POST /_arkret/gate/account/auth-sessions/logout` 是部署内部 S2S 子操作，不是客户端 account flow。该子操作 MUST 幂等：同一 Auth-side session / grant 已登出、已吊销、未知或已被剪枝时，Auth Server 仍 MUST 返回成功并把链视为已终结；鉴权失败、请求体不合法、或 Auth Server 无法确认完成时才返回错误。普通客户端、inkson、浏览器 UI 与移动客户端 **MUST NOT** 调用或自行派生该路径；即使高层 `/logout` 失败，客户端也只能重试 `ak.gate.account.command.logout`。客户端和服务实现 **MUST NOT** 依赖任何实现私有 / 产品私有(例如 `/_<impl>/*`)路由完成登出。
@@ -264,7 +284,7 @@ POST /_arkret/gate/account/logout
 
 **吊销传播与生效语义(normative)**：Account Authority 内部可同步调用或异步重试 Principal-side 终结，但对客户端返回成功前 MUST 至少保证 Auth-side grant 轮换链已不可续。Principal Server 对本地 session 的有效性以「本地 session 记录 + 对 Account Authority / Auth-side 的 session-grant 内省」为准；Auth-side grant/会话被吊销后，Principal Server MUST 在下一次内省时得到 `active=false` 并 fail closed。实现 MAY 缓存内省结果，但缓存 TTL 与本地 session TTL 共同构成吊销生效的上界，二者 SHOULD ≤ 数分钟；高安全 profile SHOULD 更短或对敏感操作旁路缓存。Auth Server / Principal Server MUST NOT 依赖对方主动 push 吊销；Account Authority 是客户端可见的编排边界。
 
-**轮换链单次使用与重用即妥协(normative)**:`ak.session.grant` 轮换 MUST 单次使用——轮换成功即吊销旧 grant；对**已消费**的 grant 再次发起轮换 MUST 拒(`grant_already_consumed`)，且 SHOULD 视为凭证泄露信号并吊销整条轮换链(并入上面的会话终结)。
+**轮换链单次 successor 与重用即妥协(normative)**：一次逻辑 refresh 只能产生一个 successor。轮换 MUST 在同一 issuer transaction 创建 successor 并把 predecessor 标记为 `superseded`。使用相同 `(predecessor_grant_id, refresh_request_digest)` 与 byte-identical intent 的 exact replay MUST 返回已记录的同一 successor；不得把它误判为第二次消费。对同一已 superseded grant 使用不同 request identity 或不同 canonical intent 再次发起轮换 MUST 拒(`grant_already_consumed` 或 `duplicate_conflict`)，且 SHOULD 视为凭证泄露信号并吊销整条轮换链。
 
 **与 soft logout 的区别**:soft logout 可凭 fresh DID/device proof(§4)恢复；hard logout 终结 grant 链 + `browser_session`，恢复 MUST 重新走完整认证(新 `browser_session`)，设备密钥本身不足以重建会话。
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.5",
+  "version": "2026-08-08.7",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T11:00:00Z",
+  "generated_at": "2026-08-08T15:03:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -552,6 +552,18 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.auth.session_grant_issuer_record.v1",
+      "status": "active",
+      "domain": "auth",
+      "applies_to_fixtures": [
+        "session-grant-issuance-fixture.json"
+      ],
+      "description": "Closed SessionGrant issuance preimage JCS, SHA-256 suite-tagged typed ID and JWT jti recomputation; issuer domain separation; optional-field omission; credential-class holder/bootstrap binding inclusion and tamper rejection; canonical public-JWK normalization; durable exact replay, conflict and terminal replay outcomes; tampered nonce/claims/jti rejection.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json"
       ]
     },
     {

@@ -46,6 +46,7 @@ PROFILE_REGISTRY_PATH = ARTIFACTS / "profiles" / "conformance-profiles.json"
 LINT_SCRIPT = Path(__file__).with_name("lint_artifacts.py")
 PROSE_LINT_SCRIPT = Path(__file__).with_name("lint_spec.py")
 FIXTURE_DIGEST_SCRIPT = Path(__file__).with_name("check_fixture_digests.py")
+SESSION_GRANT_KAT_SCRIPT = Path(__file__).with_name("check_session_grant_kat.py")
 ARTIFACT_VERSION_SCRIPT = Path(__file__).with_name("check_artifact_versions.py")
 COMPLETENESS_REPORT_SCRIPT = Path(__file__).with_name("gen_operation_completeness_report.py")
 PRESENCE_MANIFEST_SCRIPT = Path(__file__).with_name("gen_property_presence_manifest.py")
@@ -988,6 +989,11 @@ def run_fixture_digest_check() -> int:
     return result.returncode
 
 
+def run_session_grant_kat_check() -> int:
+    result = subprocess.run([sys.executable, str(SESSION_GRANT_KAT_SCRIPT)], cwd=ROOT)
+    return result.returncode
+
+
 def run_artifact_version_check() -> int:
     result = subprocess.run([sys.executable, str(ARTIFACT_VERSION_SCRIPT)], cwd=ROOT)
     return result.returncode
@@ -1058,6 +1064,7 @@ def cmd_check(_: argparse.Namespace) -> int:
     coverage_status = run_schema_consumer_coverage("check")
     string_classification_status = run_operation_string_classification("check")
     fixture_status = run_fixture_digest_check()
+    session_grant_kat_status = run_session_grant_kat_check()
     artifact_version_status = run_artifact_version_check()
     lint_status = run_lint()
     prose_lint_status = run_prose_lint()
@@ -1067,6 +1074,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         or coverage_status
         or string_classification_status
         or fixture_status
+        or session_grant_kat_status
         or artifact_version_status
         or lint_status
         or prose_lint_status

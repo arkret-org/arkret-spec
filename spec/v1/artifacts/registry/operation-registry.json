@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.11",
+  "version": "2026-08-08.15",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T16:00:00Z",
+  "generated_at": "2026-08-08T17:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -598,15 +598,20 @@
       "http": "POST /_arkret/gate/account/session-grants",
       "grpc": "GateAccount/IssueSessionGrant",
       "mq": "gate.account.command.issue_session_grant",
-      "notes": "Account Authority single-call session-grant exchange. The response is the client-visible SessionGrantOutcome; any Principal-side local session provisioning is internal. There is no separate client-visible grant-to-bearer exchange step: the client presents ak.session.grant directly to /_arkret/self/* with DPoP (api-conventions §3.3). For proof_kind=oidc_code_exchange, the Account Authority exchanges the authorization code and validates issuer/state/nonce/redirect_uri/principal/device/audience binding. For proof_kind=pre_registration_handoff, the caller instead presents Authorization: DPoP <account_handoff_grant> plus matching DPoP; the handoff's service account MUST already be bound to the requested principal_id. principal_id is required for every proof kind and MUST already have a verified account binding; unknown or unbound returns principal_unknown (404). The Account Authority MUST NOT derive or mint a principal DID from OIDC. A first OIDC interaction may create only the account handoff; the client completes cold-root custody and canonical register before requesting a session grant. For proof_kind=agent_key_proof when high-risk scope needs controller approval, the endpoint returns 403 ErrorEnvelope with error.code=claim_required and closed agent_human_approval_error_details; it never returns CAPTCHA, OTP, password, or browser challenge material to the runtime.",
+      "notes": "Account Authority single-call issuer-ledger session-grant exchange. After validating account-to-principal binding, authentication proof, holder DPoP, audience and scope ceiling, the issuer uses the proof-specific stable request identity and canonical intent digest to atomically persist one immutable issuance record and signed JWT before responding. The grant ID and JWT jti are recomputed from that record under id_kind_registry.issuer_record_identity_contract; no Principal Event is authored. Exact replay revalidates holder/DPoP/target/digest and returns the byte-identical recorded outcome. Same request identity with different canonical intent is duplicate_conflict with zero writes. A replay whose outcome is expired or revoked/superseded returns the registered terminal error and never issues a replacement; an evicted replay record fails closed as indeterminate. The response is the client-visible SessionGrantOutcome and the client presents ak.session.grant directly to /_arkret/self/* with DPoP. For proof_kind=oidc_code_exchange, the Account Authority exchanges and validates the code. For proof_kind=pre_registration_handoff, the DPoP-bound handoff account MUST already be bound to principal_id. The Account Authority never derives a principal DID from OIDC and never obtains or uses a principal/root/device/notary Event-signing key.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "none",
-      "retry_safe": false,
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
       "uncertain_outcome": {
-        "strategy": "reissue_material",
+        "strategy": "replay_same_operation",
         "operation_id": "ak.gate.account.command.issue_session_grant",
-        "requires_fresh_request_identity": true
+        "requires_same_request_identity_and_canonical_intent": true,
+        "terminal_outcomes": [
+          "session_grant_replay_expired",
+          "session_grant_replay_terminal",
+          "session_grant_replay_indeterminate"
+        ]
       },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome",
@@ -620,13 +625,18 @@
       "http": "POST /_arkret/gate/account/session-grants/revoke",
       "grpc": "GateAccount/SessionRevoke",
       "mq": "gate.account.command.revoke_session",
+      "notes": "Durable issuer-ledger session revocation. The stable request identity binds issuer, operation kind, authenticated principal/session, canonical target selector and canonical request digest. One issuer transaction records the exact outcome and idempotently transitions matching active records to revoked. Same identity and canonical intent replays the byte-identical recorded outcome after current caller authorization is revalidated; the same identity with different intent is duplicate_conflict with zero additional state changes. Introspection is not a substitute for resolving an uncertain mutation outcome.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "object_id",
-      "retry_safe": false,
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
       "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.gate.account.command.introspect_session_grant"
+        "strategy": "replay_same_operation",
+        "operation_id": "ak.gate.account.command.revoke_session",
+        "requires_same_request_identity_and_canonical_intent": true,
+        "terminal_outcomes": [
+          "session_grant_replay_indeterminate"
+        ]
       },
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_outcome",
@@ -639,15 +649,20 @@
       "operation_id": "ak.gate.account.command.refresh_session_grant",
       "http_only_variant": true,
       "http": "POST /_arkret/gate/account/session-grants/refresh",
-      "notes": "DPoP-bound session-grant rotation (account-lifecycle §4.1, device-lifecycle §3.3). An authorized device presents a DPoP holder proof for the grant's cnf.jkt plus a fresh DID/device proof bound to principal_id, device_id, audience, request_canonical_digest, challenge, issued_at, and expires_at; expires_at - issued_at MUST be <=300s. The old grant is single-use revoked. Account Authority-local op; not exposed over gRPC/MQ.",
+      "notes": "DPoP-bound issuer-ledger session-grant rotation. The stable request identity is (predecessor_grant_id, refresh_request_digest). Exact replay revalidates current holder/DPoP and returns the recorded successor outcome; conflicting canonical bytes are duplicate_conflict. One issuer transaction creates the active successor with a fresh issuance nonce, preserves the independently allocated session_id, and atomically marks the predecessor superseded with successor_session_grant_id. A replay whose recorded successor is expired or revoked/superseded returns the registered terminal error and never issues another successor. Account Authority-local op; no Principal Event is authored.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "none",
-      "retry_safe": false,
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
       "uncertain_outcome": {
-        "strategy": "reissue_material",
-        "operation_id": "ak.gate.account.command.issue_session_grant",
-        "requires_fresh_request_identity": true
+        "strategy": "replay_same_operation",
+        "operation_id": "ak.gate.account.command.refresh_session_grant",
+        "requires_same_request_identity_and_canonical_intent": true,
+        "terminal_outcomes": [
+          "session_grant_replay_expired",
+          "session_grant_replay_terminal",
+          "session_grant_replay_indeterminate"
+        ]
       },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome",
@@ -696,7 +711,7 @@
       "operation_id": "ak.gate.account.command.introspect_session_grant",
       "http_only_variant": true,
       "http": "POST /_arkret/gate/account/session-grants/introspect",
-      "notes": "Server-to-server session-grant introspection (RFC 7662-style). The Principal Server validating a presented grant calls this with the grant id or grant_jwt (+ optional audience and optional S2S holder confirmation) and learns whether it is active, plus non-secret grant metadata. The introspection response MUST include the grant's cnf_jkt (RFC 7638 thumbprint of the bound DPoP holder key) so the Principal Server can verify the per-request DPoP proof on /_arkret/self/* (api-conventions §3.3); clients do not send a separate introspection-proof header on self-path requests. session_public_key is also returned for RFC 9421 PoP verification. READ-ONLY: introspection MUST NOT consume/revoke the grant. Authenticated by the configured session_grant_introspection_bearer (server-local); not exposed over gRPC/MQ.",
+      "notes": "Server-to-server session-grant introspection (RFC 7662-style). The Principal Server validating a presented grant calls this with the grant id or grant_jwt (+ optional audience and optional S2S holder confirmation) and learns whether it is active, plus non-secret grant metadata. The Account Authority MUST read the same issuer ledger used by issue, refresh, revoke and cascade; lifecycle status distinguishes active, revoked, superseded and dynamically expired records rather than consulting a Principal Event/cell. The introspection response MUST include the grant's cnf_jkt (RFC 7638 thumbprint of the bound DPoP holder key) so the Principal Server can verify the per-request DPoP proof on /_arkret/self/* (api-conventions §3.3); clients do not send a separate introspection-proof header on self-path requests. session_public_key is also returned for RFC 9421 PoP verification. READ-ONLY: introspection MUST NOT consume/revoke the grant. Authenticated by the configured session_grant_introspection_bearer (server-local); not exposed over gRPC/MQ.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",

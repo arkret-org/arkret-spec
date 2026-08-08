@@ -1,0 +1,257 @@
+{
+  "version": "2026-08-08",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.auth.session_grant_issuer_record.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.auth.session_grant_issuer_record.v1"
+  ],
+  "derivation_contract_ref": "registry/id-kind-registry.json#/issuer_record_identity_contract",
+  "digest_suite_ref": "registry/digest-suite-registry.json#/suites/canonical_id=sha256",
+  "canonical_public_jwk": "{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\"}",
+  "equivalent_non_canonical_jwk_inputs": [
+    "{ \"x\" : \"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\", \"kty\" : \"OKP\", \"crv\" : \"Ed25519\" }",
+    "{\"kty\":\"OKP\",\"crv\":\"Ed25519\",\"x\":\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\"}"
+  ],
+  "accepted_vectors": [
+    {
+      "name": "issuer_a_closed_preimage",
+      "issuance_preimage": {
+        "schema": "ak.session_grant.issuance.v1",
+        "issuer": "did:webvh:z6mkfixture:auth-a.example",
+        "issuance_nonce": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+        "subject": "did:webvh:z6mkfixture:alice.example",
+        "session_public_key": "{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\"}",
+        "audience": "did:webvh:z6mkfixture:service.example",
+        "scopes": [
+          "ak.self.account.read.describe",
+          "ak.self.events.read.scan"
+        ],
+        "not_before": "2026-08-08T12:00:00.000Z",
+        "expires_at": "2026-08-08T13:00:00.000Z",
+        "session_id": "session-chain-fixture-001",
+        "cnf": {
+          "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "credential_class": "standard",
+        "holder_binding": {
+          "kind": "human_device",
+          "device_binding": "ak:device:019a0000-0000-7000-8000-000000000001"
+        },
+        "proof_kind": "oidc_code_exchange"
+      },
+      "canonical_preimage_utf8": "{\"audience\":\"did:webvh:z6mkfixture:service.example\",\"cnf\":{\"jkt\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"},\"credential_class\":\"standard\",\"expires_at\":\"2026-08-08T13:00:00.000Z\",\"holder_binding\":{\"device_binding\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"kind\":\"human_device\"},\"issuance_nonce\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"issuer\":\"did:webvh:z6mkfixture:auth-a.example\",\"not_before\":\"2026-08-08T12:00:00.000Z\",\"proof_kind\":\"oidc_code_exchange\",\"schema\":\"ak.session_grant.issuance.v1\",\"scopes\":[\"ak.self.account.read.describe\",\"ak.self.events.read.scan\"],\"session_id\":\"session-chain-fixture-001\",\"session_public_key\":\"{\\\"crv\\\":\\\"Ed25519\\\",\\\"kty\\\":\\\"OKP\\\",\\\"x\\\":\\\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\\\"}\",\"subject\":\"did:webvh:z6mkfixture:alice.example\"}",
+      "sha256_digest_hex": "32c2fa063ec6913490ddd05d5631a342a1df61283424c1413485baefcfe7b7ba",
+      "suite_wire_code": 1,
+      "grant_id": "ak:session_grant:ATLC-gY-xpE0kN3QXVYxo0Kh32EoNCTBQTSFuu_P57e6",
+      "jwt_jti": "ak:session_grant:ATLC-gY-xpE0kN3QXVYxo0Kh32EoNCTBQTSFuu_P57e6"
+    },
+    {
+      "name": "issuer_b_domain_separation",
+      "inherits": "issuer_a_closed_preimage",
+      "override": {
+        "issuer": "did:webvh:z6mkfixture:auth-b.example"
+      },
+      "canonical_preimage_utf8": "{\"audience\":\"did:webvh:z6mkfixture:service.example\",\"cnf\":{\"jkt\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"},\"credential_class\":\"standard\",\"expires_at\":\"2026-08-08T13:00:00.000Z\",\"holder_binding\":{\"device_binding\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"kind\":\"human_device\"},\"issuance_nonce\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"issuer\":\"did:webvh:z6mkfixture:auth-b.example\",\"not_before\":\"2026-08-08T12:00:00.000Z\",\"proof_kind\":\"oidc_code_exchange\",\"schema\":\"ak.session_grant.issuance.v1\",\"scopes\":[\"ak.self.account.read.describe\",\"ak.self.events.read.scan\"],\"session_id\":\"session-chain-fixture-001\",\"session_public_key\":\"{\\\"crv\\\":\\\"Ed25519\\\",\\\"kty\\\":\\\"OKP\\\",\\\"x\\\":\\\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\\\"}\",\"subject\":\"did:webvh:z6mkfixture:alice.example\"}",
+      "sha256_digest_hex": "88b90f828ad921a61564faaea515b8c7dc3e07e279026d2bc27170849eeb87b6",
+      "suite_wire_code": 1,
+      "grant_id": "ak:session_grant:AYi5D4KK2SGmFWT6rqUVuMfcPgfieQJtK8JxcISe64e2",
+      "jwt_jti": "ak:session_grant:AYi5D4KK2SGmFWT6rqUVuMfcPgfieQJtK8JxcISe64e2"
+    },
+    {
+      "name": "absent_optional_is_omitted",
+      "inherits": "issuer_a_closed_preimage",
+      "omit": [
+        "proof_kind"
+      ],
+      "canonical_preimage_utf8": "{\"audience\":\"did:webvh:z6mkfixture:service.example\",\"cnf\":{\"jkt\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"},\"credential_class\":\"standard\",\"expires_at\":\"2026-08-08T13:00:00.000Z\",\"holder_binding\":{\"device_binding\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"kind\":\"human_device\"},\"issuance_nonce\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"issuer\":\"did:webvh:z6mkfixture:auth-a.example\",\"not_before\":\"2026-08-08T12:00:00.000Z\",\"schema\":\"ak.session_grant.issuance.v1\",\"scopes\":[\"ak.self.account.read.describe\",\"ak.self.events.read.scan\"],\"session_id\":\"session-chain-fixture-001\",\"session_public_key\":\"{\\\"crv\\\":\\\"Ed25519\\\",\\\"kty\\\":\\\"OKP\\\",\\\"x\\\":\\\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\\\"}\",\"subject\":\"did:webvh:z6mkfixture:alice.example\"}",
+      "sha256_digest_hex": "11db88fcfbb29b0024e62bc523fa322d51b10830075fb65c3f4bf0e9a817313d",
+      "suite_wire_code": 1,
+      "grant_id": "ak:session_grant:ARHbiPz7spsAJOYrxSP6Mi1RsQgwB1-2XD9L8OmoFzE9",
+      "jwt_jti": "ak:session_grant:ARHbiPz7spsAJOYrxSP6Mi1RsQgwB1-2XD9L8OmoFzE9"
+    },
+    {
+      "name": "device_bootstrap_binding_is_identity_material",
+      "inherits": "issuer_a_closed_preimage",
+      "override": {
+        "credential_class": "device_bootstrap",
+        "bootstrap_binding": {
+          "credential_kind": "device_bootstrap",
+          "mode": "founding",
+          "principal_id": "did:webvh:z6mkfixture:alice.example",
+          "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
+          "device_key_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "transaction_id": "bootstrap-transaction-fixture-001",
+          "holder_jkt": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "canonical_request_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "founding_batch_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "founding_event_ids": [
+            "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g"
+          ],
+          "allowed_operation_ids": [
+            "ak.gate.account.command.enroll_device",
+            "ak.gate.account.command.cancel_device_bootstrap",
+            "ak.self.events.command.submit",
+            "ak.self.events.read.resolve"
+          ],
+          "credential_expires_at": "2026-08-08T12:15:00.000Z",
+          "bootstrap_transaction_expires_at": "2026-08-08T12:30:00.000Z"
+        }
+      },
+      "omit": [
+        "holder_binding"
+      ],
+      "canonical_preimage_utf8": "{\"audience\":\"did:webvh:z6mkfixture:service.example\",\"bootstrap_binding\":{\"allowed_operation_ids\":[\"ak.gate.account.command.enroll_device\",\"ak.gate.account.command.cancel_device_bootstrap\",\"ak.self.events.command.submit\",\"ak.self.events.read.resolve\"],\"bootstrap_transaction_expires_at\":\"2026-08-08T12:30:00.000Z\",\"canonical_request_digest\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"credential_expires_at\":\"2026-08-08T12:15:00.000Z\",\"credential_kind\":\"device_bootstrap\",\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"founding_batch_digest\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"founding_event_ids\":[\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\"],\"holder_jkt\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"mode\":\"founding\",\"principal_id\":\"did:webvh:z6mkfixture:alice.example\",\"transaction_id\":\"bootstrap-transaction-fixture-001\"},\"cnf\":{\"jkt\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"},\"credential_class\":\"device_bootstrap\",\"expires_at\":\"2026-08-08T13:00:00.000Z\",\"issuance_nonce\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"issuer\":\"did:webvh:z6mkfixture:auth-a.example\",\"not_before\":\"2026-08-08T12:00:00.000Z\",\"proof_kind\":\"oidc_code_exchange\",\"schema\":\"ak.session_grant.issuance.v1\",\"scopes\":[\"ak.self.account.read.describe\",\"ak.self.events.read.scan\"],\"session_id\":\"session-chain-fixture-001\",\"session_public_key\":\"{\\\"crv\\\":\\\"Ed25519\\\",\\\"kty\\\":\\\"OKP\\\",\\\"x\\\":\\\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\\\"}\",\"subject\":\"did:webvh:z6mkfixture:alice.example\"}",
+      "sha256_digest_hex": "56636fabd1a55527099616128c62ddcbf99d1e067b6a5d75f9e0e6423e96ccf6",
+      "suite_wire_code": 1,
+      "grant_id": "ak:session_grant:AVZjb6vRpVUnCZYWEoxi3cv5nR4Ge2pddfng5kI-lsz2",
+      "jwt_jti": "ak:session_grant:AVZjb6vRpVUnCZYWEoxi3cv5nR4Ge2pddfng5kI-lsz2"
+    },
+    {
+      "name": "recovery_binding_is_identity_material",
+      "inherits": "issuer_a_closed_preimage",
+      "override": {
+        "credential_class": "recovery_restricted",
+        "recovery_binding": {
+          "recovery_session_id": "ak:recovery_session:019a0000-0000-7000-8000-000000000002",
+          "policy_id": "ak:policy:019a0000-0000-7000-8000-000000000003",
+          "policy_version": 1
+        },
+        "scopes": [
+          "ak.self.security_transaction.resource.get"
+        ]
+      },
+      "omit": [
+        "holder_binding"
+      ],
+      "canonical_preimage_utf8": "{\"audience\":\"did:webvh:z6mkfixture:service.example\",\"cnf\":{\"jkt\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"},\"credential_class\":\"recovery_restricted\",\"expires_at\":\"2026-08-08T13:00:00.000Z\",\"issuance_nonce\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"issuer\":\"did:webvh:z6mkfixture:auth-a.example\",\"not_before\":\"2026-08-08T12:00:00.000Z\",\"proof_kind\":\"oidc_code_exchange\",\"recovery_binding\":{\"policy_id\":\"ak:policy:019a0000-0000-7000-8000-000000000003\",\"policy_version\":1,\"recovery_session_id\":\"ak:recovery_session:019a0000-0000-7000-8000-000000000002\"},\"schema\":\"ak.session_grant.issuance.v1\",\"scopes\":[\"ak.self.security_transaction.resource.get\"],\"session_id\":\"session-chain-fixture-001\",\"session_public_key\":\"{\\\"crv\\\":\\\"Ed25519\\\",\\\"kty\\\":\\\"OKP\\\",\\\"x\\\":\\\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\\\"}\",\"subject\":\"did:webvh:z6mkfixture:alice.example\"}",
+      "sha256_digest_hex": "6d0503c5faa5a07cda29693a70898c456f1d86b25b0478530f756a61d9dbb8a4",
+      "suite_wire_code": 1,
+      "grant_id": "ak:session_grant:AW0FA8X6paB82ilpOnCJjEVvHYayWwR4Uw91amHZ27ik",
+      "jwt_jti": "ak:session_grant:AW0FA8X6paB82ilpOnCJjEVvHYayWwR4Uw91amHZ27ik"
+    }
+  ],
+  "jwk_canonicalization": {
+    "all_inputs_parse_to_same_public_jwk": true,
+    "all_inputs_normalize_to": "{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\"}",
+    "all_inputs_produce_grant_id": "ak:session_grant:ATLC-gY-xpE0kN3QXVYxo0Kh32EoNCTBQTSFuu_P57e6",
+    "signed_claim_must_equal_canonical_string": true
+  },
+  "replay_cases": [
+    {
+      "name": "same_request_exact_replay",
+      "same_issuer": true,
+      "same_operation_or_proof_kind": true,
+      "same_request_identity": true,
+      "same_canonical_intent": true,
+      "current_holder_dpop_revalidated": true,
+      "expected": "byte_identical_outcome"
+    },
+    {
+      "name": "same_key_different_intent",
+      "same_issuer": true,
+      "same_operation_or_proof_kind": true,
+      "same_request_identity": true,
+      "same_canonical_intent": false,
+      "expected_error": "duplicate_conflict",
+      "new_grants": 0,
+      "state_changes": 0
+    },
+    {
+      "name": "replay_after_expiry",
+      "recorded_state": "active",
+      "now_after_expires_at": true,
+      "expected_error": "session_grant_replay_expired",
+      "new_grants": 0,
+      "state_changes": 0
+    },
+    {
+      "name": "replay_after_supersede",
+      "recorded_state": "superseded",
+      "expected_error": "session_grant_replay_terminal",
+      "new_grants": 0,
+      "state_changes": 0
+    }
+  ],
+  "tamper_cases": [
+    {
+      "name": "nonce_changed_without_jti_change",
+      "mutate": "issuance_nonce",
+      "expected": "jti_recomputation_mismatch"
+    },
+    {
+      "name": "claim_changed_without_jti_change",
+      "mutate": "audience",
+      "expected": "jti_recomputation_mismatch"
+    },
+    {
+      "name": "holder_binding_changed_without_jti_change",
+      "base_vector": "issuer_a_closed_preimage",
+      "mutate": "holder_binding.device_binding",
+      "expected": "jti_recomputation_mismatch"
+    },
+    {
+      "name": "bootstrap_binding_changed_without_jti_change",
+      "base_vector": "device_bootstrap_binding_is_identity_material",
+      "mutate": "bootstrap_binding.transaction_id",
+      "expected": "jti_recomputation_mismatch"
+    },
+    {
+      "name": "noncanonical_signed_jwk",
+      "mutate": "session_public_key_member_order_or_whitespace",
+      "expected": "canonical_jwk_required"
+    },
+    {
+      "name": "session_id_equals_grant_id",
+      "mutate": "session_id",
+      "value_from": "grant_id",
+      "expected": "session_chain_self_reference_forbidden"
+    }
+  ],
+  "credential_binding_negative_cases": [
+    {
+      "name": "standard_missing_holder_binding",
+      "base_vector": "issuer_a_closed_preimage",
+      "omit": [
+        "holder_binding"
+      ],
+      "expected": "signed_claims_schema_invalid"
+    },
+    {
+      "name": "device_bootstrap_missing_bootstrap_binding",
+      "base_vector": "device_bootstrap_binding_is_identity_material",
+      "omit": [
+        "bootstrap_binding"
+      ],
+      "expected": "signed_claims_schema_invalid"
+    },
+    {
+      "name": "standard_with_bootstrap_binding",
+      "base_vector": "issuer_a_closed_preimage",
+      "add_from_vector": {
+        "field": "bootstrap_binding",
+        "vector": "device_bootstrap_binding_is_identity_material"
+      },
+      "expected": "signed_claims_schema_invalid"
+    },
+    {
+      "name": "standard_with_recovery_binding",
+      "base_vector": "issuer_a_closed_preimage",
+      "add_from_vector": {
+        "field": "recovery_binding",
+        "vector": "recovery_binding_is_identity_material"
+      },
+      "expected": "signed_claims_schema_invalid"
+    },
+    {
+      "name": "device_bootstrap_with_recovery_binding",
+      "base_vector": "device_bootstrap_binding_is_identity_material",
+      "add_from_vector": {
+        "field": "recovery_binding",
+        "vector": "recovery_binding_is_identity_material"
+      },
+      "expected": "signed_claims_schema_invalid"
+    }
+  ]
+}

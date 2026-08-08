@@ -317,15 +317,20 @@ MUST 支持：
 
 - service describe（`ak.server.read.describe`）
 - `ak.gate.account.command.issue_session_grant` / `/_arkret/gate/account/session-grants` 的规范化签发路径
+- `ak.gate.account.command.refresh_session_grant`、`ak.gate.account.command.revoke_session` 与
+  `ak.gate.account.command.introspect_session_grant`
 - 至少一种登录因子（password / passkey / OIDC / SSO / device pairing / recovery challenge）
 - 短期、audience-bound `ak.session.grant` 签发
 - session_grant TTL 上限远低于 Realm policy review horizon（minutes-to-hours，不得跨越多日）
 - session_grant audience 绑定与拒签陌生 audience
+- issuer ledger 是 issuance、active/revoked/superseded lifecycle、refresh/revoke/cascade/introspection 的唯一
+  durable authority；ID/JWT `jti` 必须从 closed issuance preimage 重算
+- durable exact replay、same-identity conflicting intent 零写入，以及 expired / revoked|superseded /
+  indeterminate replay 的 terminal fail-closed 语义
 - `auth_metadata.account_authority`、`auth_metadata.methods[]`、`auth_metadata.did_binding_methods`
 
 SHOULD 支持：
 
-- session-grant introspection 与 revocation
 - `ak.gate.account.command.issue_session_grant` 规范化 HTTP binding
 - 采用 account-first onboarding 时，完整实现 `ak.gate.account.exchange.create_handoff` → `ak.gate.account.command.issue_identity_binding_challenge` → `ak.gate.account.command.register`；不得以私有 endpoint、普通 OAuth bearer 或进程内 challenge store 替代
 - `ak.self.policy.read.check`（`PolicyCheckOutcome`）
@@ -336,9 +341,15 @@ Auth Server MUST NOT 声明 `ak.profile.identity_registry.v1`、`ak.profile.prin
 
 Auth Server MUST NOT 把成功的 OIDC / SSO / password 验证直接当作 DID 控制证明。Account-first inception binding 必须按 [`../identity/account-lifecycle.md` §2.1.2](../identity/account-lifecycle.md) 验证由 entry 0 method-native control key 签发的 fresh proof；普通已发布 DID binding 与下游资源服务器仍 MUST 重新验证 DID control state（见 `guides/migrating-from-matrix.md`）。
 
+Auth Server 只可用 issuer key 签自己的 JWT、introspection/status 与 issuer receipt。它 MUST NOT 持有或
+请求 principal/root/device/notary private key，MUST NOT author SessionGrant genesis/lifecycle Event、查询
+subject PCR authoring frontier 或依赖 grant Event/cell。客户端 DPoP
+签 holder/request proof；真正的 principal Event 必须由当前获授权客户端 signer 签署，S2S transport proof
+不能替代内层 Event proof。
+
 `development_mode=true` 时，`verified_profiles[]` MUST 为 `[]`（见 `sync/service-surface.md` §3.0）；Conformance Verifier 在 verified-profile suite 通过后才能写入 verified entry。
 
-Release readiness MUST 至少覆盖：签发路径拒绝陌生 audience、session grant TTL 上限、proof 绑定 `challenge` / `audience` / `request_canonical_digest` / principal / device、`soft_logged_out` 恢复需要 fresh DID proof，以及 development mode 下不得声明 verified profile。对应 conformance vector 为 `ak.vector.auth.session_grant_audience_binding.v1` 与 `ak.vector.auth.soft_logout_did_proof.v1`。
+Release readiness MUST 至少覆盖：签发路径拒绝陌生 audience、session grant TTL 上限、proof 绑定 `challenge` / `audience` / `request_canonical_digest` / principal / device、issuer domain separation、canonical JWK、ID/JTI recomputation、exact replay/conflict/terminal outcomes、`soft_logged_out` 恢复需要 fresh DID proof，以及 development mode 下不得声明 verified profile。对应 conformance vector 为 `ak.vector.auth.session_grant_audience_binding.v1`、`ak.vector.auth.session_grant_issuer_record.v1` 与 `ak.vector.auth.soft_logout_did_proof.v1`。
 
 ## 10. Blob Node
 

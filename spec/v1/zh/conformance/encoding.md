@@ -225,11 +225,11 @@ ak:<kind>:<uuid>
 
 `<kind>` 是 canonical bytes 的一部分。实现 MUST NOT 把 `ak:receipt:<id>` 改写成 `ak:event:<id>`，也 MUST NOT 因为字段名叫 `receipt_id` 就在验证时补前缀。字段名可以辅助 schema 校验，但不能替代 signed wire ID。
 
-producer-allocated typed ID 继续使用 [RFC 9562](https://datatracker.ietf.org/doc/html/rfc9562) UUIDv7；`event_id`、registry 中 `id_form=event_derived` 的对象 ID，以及 `id_form=derivation_tagged_full_digest` 的 Realm ID 不是 UUID，而使用固定 33-octet token。kind 的形态由 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 唯一决定，调用点不得自行选择，也不得把这些 token 放入 PostgreSQL `uuid` / `BYTEA(16)`。
+producer-allocated typed ID 继续使用 [RFC 9562](https://datatracker.ietf.org/doc/html/rfc9562) UUIDv7；`event_id`、registry 中 `id_form=event_derived` 或 `id_form=suite_tagged_full_digest` 的对象 ID，以及 `id_form=derivation_tagged_full_digest` 的 Realm ID 不是 UUID，而使用固定 33-octet token。kind 的形态由 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 唯一决定，调用点不得自行选择，也不得把这些 token 放入 PostgreSQL `uuid` / `BYTEA(16)`。
 
-### 4.0 suite-tagged 264-bit Event ID（normative）
+### 4.0 suite-tagged 264-bit full-digest ID（normative）
 
-`event_id` 是 Event 的完整密码学身份：首字节高 nibble 永久保留为零，低 nibble 是显式 digest-suite code，随后紧跟该 suite 产生的完整 32-octet digest。Event 相等、引用、去重与存储键语义均以这个完整 Event ID 为准；`proof.event_digest` 是可直接交叉验证的算法名 + digest wire 表示，不是第二套身份。
+`event_id` 是 Event 的完整密码学身份：首字节高 nibble 永久保留为零，低 nibble 是显式 digest-suite code，随后紧跟该 suite 产生的完整 32-octet digest。Event 相等、引用、去重与存储键语义均以这个完整 Event ID 为准；`proof.event_digest` 是可直接交叉验证的算法名 + digest wire 表示，不是第二套身份。registry 中 `id_form=suite_tagged_full_digest` 的 typed ID 使用相同 33-octet 布局；其首字节语义是受 v1 高 nibble 为零约束的 suite code，不因此获得 Realm derivation class。
 
 ```text
 输入：
@@ -241,9 +241,11 @@ event_id_bytes[1..32] = D[0..31]       // 完整 32 octets，256 digest bits
 event_id = "ak:event:" || base64url_no_pad(event_id_bytes)
 ```
 
+SessionGrant 是 v1 的非 Event `suite_tagged_full_digest` kind：其 `session_grant_id_bytes` 使用同一 `S || D` 布局，但 `D` 来自 Account Authority closed immutable issuance preimage，而非 Event digest preimage；wire form 为 `ak:session_grant:<44-char-suite-tagged-full-digest-token>`。`identity_authority=issuer_record` 决定谁对 preimage 与 lifecycle 负责，`id_form` 只决定字节布局；实现不得因为 authority 不同而改写首字节。完整合同见 [`../identity/key-management.md` §6.1](../identity/key-management.md)。
+
 `event_id_bytes` MUST 恰为 33 octets；无 padding Base64URL suffix MUST 恰为 44 characters，完整 typed ID MUST 恰为 53 characters。词法预检为 `^ak:event:[A-Za-z0-9_-]{44}$`，但 regex 不构成完整验证：receiver MUST decode、确认 33-octet 长度、canonical re-encode 并逐字比较，从而拒绝 padding 或其它非 canonical alias。33 octets 恰好编码为 44 个 Base64URL 字符，不存在 trailing unused bits。
 
-suite code 由 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 固定：`0x1=sha256`、`0x2=blake3`、`0x3=cbor.sha256`（reserved，激活前非法）；低 nibble `0x0` 永久 invalid，`0x4..0xF` 未分配。Event header 高 nibble MUST 为 `0x0`；`0x10..0xFF` 对 Event ID 永久非法，即使低 nibble 是 active suite 也不得接受。code 未登记、未激活、digest 长度不等于 32，或不属于该 Realm historical/live basis 时 MUST fail closed。code 不得由数组位置、suite 名或 hash 名推导，退役后不得复用。
+suite code 由 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 固定：`0x1=sha256`、`0x2=blake3`、`0x3=cbor.sha256`（reserved，激活前非法）；低 nibble `0x0` 永久 invalid，`0x4..0xF` 未分配。v1 Event 与 `suite_tagged_full_digest` typed ID 只接受高 nibble为 `0x0` 的已登记 active suite code；`0x10..0xFF` 对 v1 Event ID 永久非法，对其它 suite-tagged typed ID 在本 wire contract 中同样非法。对 SessionGrant，这个首字节仍是受范围约束的 suite code；高 nibble 为零不得解释为 Realm derivation class。code 未登记、未激活、digest 长度不等于 32，或不属于该 Realm historical/live basis 时 MUST fail closed。code 不得由数组位置、suite 名或 hash 名推导，退役后不得复用。
 
 本次只改变 Event ID 编码，**不改变 event_digest preimage**：`D` 仍是 `canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`。实现不得在本迁移中加入 domain prefix、二次 hash、XOR folding 或另一套 canonicalization；这些改变必须注册新 suite。
 
@@ -298,7 +300,7 @@ Realm 的高 nibble 只编码身份派生类别，不编码 `direct_conversation
 
 若两个不同 canonical preimage 重算出相同 `event_id`，它们具有相同 suite 与完整 digest，属于底层 hash collision evidence。不能由先到顺序或字典序判定哪条“正确”；必须按 [`operations-sync.md` §12](../sync/operations-sync.md) 整组 quarantine。携带相同 ID 但重算 digest 不同只是 `event_id_digest_mismatch` 的伪造/损坏输入，不得拖入已接受 Event。
 
-[`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `id_form` 决定每个 kind 的构造：`producer_allocated` 使用 UUIDv7；`event_derived` 使用 §4.0 的 33-octet token；`derivation_tagged_full_digest`（当前仅 Realm）使用 §4.1 的统一 33-octet token。新 kind 必须显式登记其 authority，调用点不得自行选形态。registry `special_forms[]` 中的 opaque cursor、content-addressed blob / seal、canonical cell tuple、MLS profile-scoped 引用、Realm-scoped pseudonym 与 trust domain 各由对应 schema/profile 校验；未登记形态按未知 critical wire type 拒绝。
+[`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `id_form` 决定每个 kind 的构造：`producer_allocated` 使用 UUIDv7；`event_derived` 与 `suite_tagged_full_digest` 使用 §4.0 的 `uint8 suite code || 32-byte digest` token，前者从 Event token 重类型，后者按 kind-specific preimage 直接计算；`derivation_tagged_full_digest`（当前仅 Realm）使用 §4.1 的 `高 4 位 derivation class || 低 4 位 suite` token。新 kind 必须显式登记其 authority，调用点不得自行选形态。registry `special_forms[]` 中的 opaque cursor、content-addressed blob / seal、canonical cell tuple、MLS profile-scoped 引用、Realm-scoped pseudonym 与 trust domain 各由对应 schema/profile 校验；未登记形态按未知 critical wire type 拒绝。
 
 特殊 ID/ref 形式（与 [`id-kind-registry.json` `special_forms[]`](../../artifacts/registry/id-kind-registry.json) 一一对应）：
 

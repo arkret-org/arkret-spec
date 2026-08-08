@@ -169,6 +169,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 | Minimal/Full Client | filter、pagination、state_after、decryption_pending | snapshot frontier、causal wait |
 | Events API | submitEvent、eventIdempotency、eventDigest 验证、signature 校验 | snapshot generation、event batch receipt |
 | Principal Server | sync stream 续传、backfill 顺序、重复过滤、加密转发不解密、来源限速与回压 | 多上游 federation、快照指针 |
+| Auth Server | issuer-record ID/JTI 重算、canonical JWK、DPoP binding、durable exact replay/conflict/terminal outcome、原子 refresh/revoke/introspection | issuer key rotation、commit 后响应丢失与并发重试 |
 | E2EE Client | epoch 回填、to-device、removed 成员 fail-closed | 本地 search 协调 |
 | Applet Bridge | 注册签名、transaction 幂等、namespace 冲突、未授权写入拒绝 | portal realm 映射 |
 | MIMI Provider Facade | draft pinning、room binding、KeyPackage claim、message/content roundtrip、policy mapping、identifier privacy、consent isolation、proxy download、unsupported draft fail-closed | MIMI content extension lossless preservation |

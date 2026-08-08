@@ -3032,7 +3032,8 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     expected_wire_form_generation = {
         "producer_allocated": "ak:<kind>:<uuidv7>",
         "event_derived": "ak:<kind>:<44-char-event-token>",
-        "derivation_tagged_full_digest": "ak:realm:<44-char-derivation-tagged-full-digest-token>",
+        "derivation_tagged_full_digest": "ak:<kind>:<44-char-derivation-tagged-full-digest-token>",
+        "suite_tagged_full_digest": "ak:<kind>:<44-char-suite-tagged-full-digest-token>",
     }
     if id_registry.get("wire_form_generation") != expected_wire_form_generation:
         lint.fail(
@@ -3081,7 +3082,11 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         if schema_document is not None:
             collect_schema_patterns(schema_document)
     for kind, row in id_by_kind.items():
-        if row.get("id_form") not in {"event_derived", "derivation_tagged_full_digest"}:
+        if row.get("id_form") not in {
+            "event_derived",
+            "derivation_tagged_full_digest",
+            "suite_tagged_full_digest",
+        }:
             continue
         escaped_kind = re.escape(kind)
         token_pattern = rf"^ak:{escaped_kind}:[A-Za-z0-9_-]{{44}}$"
@@ -3186,15 +3191,36 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                         f"{id_kind} genesis Event {genesis_kind} does not point back to this id kind",
                     )
         elif id_form == "derivation_tagged_full_digest":
-            if authority != "event_or_subject_transcript":
+            if id_kind == "realm":
+                if authority != "event_or_subject_transcript":
+                    lint.fail(
+                        id_path,
+                        "realm derivation-tagged row must declare identity_authority=event_or_subject_transcript",
+                    )
+                if not isinstance(genesis_kinds, list) or not genesis_kinds:
+                    lint.fail(id_path, "realm derivation-tagged row must declare genesis_event_kinds")
+            else:
                 lint.fail(
                     id_path,
-                    f"{id_kind} derivation-tagged row must declare identity_authority=event_or_subject_transcript",
+                    f"{id_kind} has no registered derivation_tagged_full_digest authority contract",
                 )
-            if not isinstance(genesis_kinds, list) or not genesis_kinds:
-                lint.fail(id_path, f"{id_kind} derivation-tagged row must declare genesis_event_kinds")
-            if id_kind != "realm":
-                lint.fail(id_path, "derivation_tagged_full_digest is reserved to the Realm kind in v1")
+        elif id_form == "suite_tagged_full_digest":
+            if id_kind != "session_grant":
+                lint.fail(
+                    id_path,
+                    f"{id_kind} has no registered suite_tagged_full_digest authority contract",
+                )
+            if authority != "issuer_record":
+                lint.fail(
+                    id_path,
+                    "session_grant suite-tagged row must declare identity_authority=issuer_record",
+                )
+            if genesis_kinds is not None:
+                lint.fail(id_path, "session_grant issuer-record row must omit genesis_event_kinds")
+            if row.get("derivation_contract_ref") != "#/id_kind_registry/issuer_record_identity_contract":
+                lint.fail(id_path, "session_grant must reference issuer_record_identity_contract")
+            if row.get("storage_identity_key") != ["issuer_did", "typed_id"]:
+                lint.fail(id_path, "session_grant storage identity key must bind issuer_did and typed_id")
         elif id_form == "producer_allocated":
             if authority != "producer_signature":
                 lint.fail(
@@ -3389,10 +3415,16 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                             f"{operation_id} {strategy} must require a fresh request identity",
                         )
             elif uncertain_outcome is not None:
-                lint.fail(
-                    operation_path,
-                    f"{operation_id} may declare uncertain_outcome only when retry_safe=false",
-                )
+                if not (
+                    isinstance(uncertain_outcome, dict)
+                    and uncertain_outcome.get("strategy") == "replay_same_operation"
+                    and uncertain_outcome.get("operation_id") == operation_id
+                    and uncertain_outcome.get("requires_same_request_identity_and_canonical_intent") is True
+                ):
+                    lint.fail(
+                        operation_path,
+                        f"{operation_id} retry-safe uncertain_outcome must use replay_same_operation with the same stable request identity and canonical intent",
+                    )
         else:
             if "idempotency_mechanism" in row or "retry_safe" in row:
                 lint.fail(
@@ -3685,6 +3717,12 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         "active_track_names": active_track_names,
         "id_kinds": id_kinds,
         "event_derived_id_kinds": event_derived_id_kinds,
+        "digest_token_id_kinds": {
+            row.get("kind")
+            for row in (id_rows if isinstance(id_rows, list) else [])
+            if isinstance(row, dict)
+            and row.get("id_form") in {"derivation_tagged_full_digest", "suite_tagged_full_digest"}
+        },
         "special_id_kinds": special_id_kinds,
         "operation_ids": operation_ids,
         "http_only_operation_ids": {
@@ -6641,7 +6679,7 @@ def check_id_form_wire_schema_alignment(lint: Lint) -> None:
         if forbidden in storage_text:
             lint.fail(registry_path, f"storage_rules retain forbidden Event-derived UUID wording {forbidden!r}")
     if "raw 33-byte token" not in storage_text or "must not use a native uuid column" not in storage_text:
-        lint.fail(registry_path, "storage_rules must require 33-byte Event tokens outside native UUID columns")
+        lint.fail(registry_path, "storage_rules must require 33-byte digest tokens outside native UUID columns")
 
     pattern_rows: list[tuple[Path, str]] = []
     for schema_path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
@@ -6676,6 +6714,32 @@ def check_id_form_wire_schema_alignment(lint: Lint) -> None:
             for schema_path, pattern in matching:
                 if "{44}" not in pattern and "-7[0-9a-f]{3}-" in pattern:
                     lint.fail(schema_path, f"event-derived {kind} schema retains a UUID-only pattern")
+        elif id_form == "derivation_tagged_full_digest":
+            expected_wire = f"ak:{kind}:<44-char-derivation-tagged-full-digest-token>"
+            if wire_form != expected_wire:
+                lint.fail(registry_path, f"{kind} derivation-tagged wire_form must equal {expected_wire!r}")
+            matching = [
+                (path, pattern)
+                for path, pattern in pattern_rows
+                if pattern.startswith(f"^ak:{kind}:")
+            ]
+            if not matching:
+                lint.fail(registry_path, f"{kind} derivation-tagged ID has no schema regex")
+            if matching and not any("{44}" in pattern for _, pattern in matching):
+                lint.fail(registry_path, f"derivation-tagged {kind} schemas never require a 44-character token")
+        elif id_form == "suite_tagged_full_digest":
+            expected_wire = f"ak:{kind}:<44-char-suite-tagged-full-digest-token>"
+            if wire_form != expected_wire:
+                lint.fail(registry_path, f"{kind} suite-tagged wire_form must equal {expected_wire!r}")
+            matching = [
+                (path, pattern)
+                for path, pattern in pattern_rows
+                if pattern.startswith(f"^ak:{kind}:")
+            ]
+            if not matching:
+                lint.fail(registry_path, f"{kind} suite-tagged ID has no schema regex")
+            if matching and not any("{44}" in pattern for _, pattern in matching):
+                lint.fail(registry_path, f"suite-tagged {kind} schemas never require a 44-character token")
         elif id_form == "producer_allocated":
             expected_wire = f"ak:{kind}:<uuidv7>"
             if wire_form != expected_wire:
@@ -8491,7 +8555,7 @@ def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str
             lint.fail(path, f"{json_path} has invalid ak:blob:sha256 reference")
         return
     if token_kind in known["id_kinds"]:
-        candidate = rest[:44] if token_kind in known.get("event_derived_id_kinds", set()) or token_kind == "realm" else rest[:36]
+        candidate = rest[:44] if token_kind in known.get("event_derived_id_kinds", set()) or token_kind in known.get("digest_token_id_kinds", set()) else rest[:36]
         # encoding.md section 4: the construction is fixed per registry kind.
         # event_derived kinds carry a canonical 33-byte suite-tagged token;
         # producer_allocated kinds stay UUIDv7.
@@ -8516,6 +8580,20 @@ def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str
                 lint.fail(path, f"{json_path} has invalid ak:realm: unknown derivation class 0x{derivation_class:x}")
             if digest_suite != 1:
                 lint.fail(path, f"{json_path} has invalid ak:realm: v1 Realm derivation is fixed to SHA-256")
+        elif token_kind in known.get("digest_token_id_kinds", set()):
+            if not EVENT_TOKEN_RE.fullmatch(candidate):
+                lint.fail(
+                    path,
+                    f"{json_path} has invalid ak:{token_kind}: expected canonical 44-char derivation-tagged token",
+                )
+                return
+            try:
+                token = base64.urlsafe_b64decode(candidate + "=" * (-len(candidate) % 4))
+            except (ValueError, binascii.Error):
+                lint.fail(path, f"{json_path} has invalid ak:{token_kind}: malformed Base64URL token")
+                return
+            if len(token) != 33 or token[0] != 0x01:
+                lint.fail(path, f"{json_path} has invalid ak:{token_kind}: expected sha256 suite code plus 32 digest bytes")
         elif token_kind in known.get("event_derived_id_kinds", set()):
             if not EVENT_TOKEN_RE.fullmatch(candidate):
                 lint.fail(
@@ -9942,6 +10020,7 @@ STATED_PREIMAGE_DIGEST_PAIRS: tuple[tuple[str, str, str, str, str], ...] = (
     ("scope_preimage_utf8", "scope_set_component", "utf8", "base64url", ""),
     ("canonical_event_payload", "event_digest", "utf8", "sha256_hex", ""),
     ("digest_preimage_canonical_bytes_utf8", "event_digest", "utf8", "sha256_hex", ""),
+    ("canonical_preimage_utf8", "sha256_digest_hex", "utf8", "raw_hex", ""),
     (
         "canonical_bytes_utf8",
         "expected_registration_epoch",
@@ -10019,6 +10098,8 @@ def _stated_digest(data: bytes, encoding: str) -> str:
     digest = hashlib.sha256(data).digest()
     if encoding == "sha256_hex":
         return "sha256:" + digest.hex()
+    if encoding == "raw_hex":
+        return digest.hex()
     if encoding == "base64url":
         return base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
     raise AssertionError(f"unknown stated-digest encoding: {encoding}")

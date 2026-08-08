@@ -3550,6 +3550,42 @@ Expected：
 - 第 3 步 MUST 拒绝或收紧到服务器硬上限，并在响应中暴露实际 `expires_at`；不得签发跨多日 session grant。
 - 第 4 步 MUST 被 conformance / describe 校验拒绝；development mode 下 `verified_profiles[]` 必须为空。
 
+### 10.5.1 Vector: SessionGrant Issuer Record 与 Exact Replay
+
+`vector_id`: `ak.vector.auth.session_grant_issuer_record.v1`
+
+Runner MUST 加载
+[`session-grant-issuance-fixture.json`](../../artifacts/fixtures/session-grant-issuance-fixture.json)，并执行其
+全部 positive、normalization、tamper、replay 与 lifecycle cases。
+
+Expected：
+
+- 对 closed `ak.session_grant.issuance.v1` preimage 执行 RFC 8785 JCS 与 SHA-256，前置 registry 中 active
+  SHA-256 suite wire code 后生成 33-octet token；typed `ak:session_grant:` ID MUST 与 JWT `jti`
+  byte-identical。该 `suite_tagged_full_digest` 首字节是完整 uint8 suite code，不得套用 Realm 的高/低 nibble
+  derivation header。两个 issuer 使用相同 nonce 与其余 claims 时必须产生不同 ID。
+- `issuance_nonce` 必须是 32-octet unpadded Base64URL；`session_public_key` 的非 canonical public-JWK 输入
+  必须先规约成同一 JCS string，private member、不能 round-trip 的 signed claim、乱序/重复 scopes、非
+  canonical millisecond、显式 `null` optional 均必须拒绝或在签发前唯一规约。
+- 任一 signed preimage claim、nonce、`jti` 或 issuer 被篡改时，verifier 重算必须失败。`session_id` 必须
+  独立于 grant ID，refresh 必须继承它；不得接受 `session_id=grant_id` 或从 grant ID 派生的实现。
+- credential-class binding 必须进入同一 closed preimage：standard 缺 `holder_binding`、device bootstrap 缺
+  `bootstrap_binding`、或任一分支混入其它 class binding 时 schema 校验必须失败；改变任一 binding 而保持
+  原 `jti` 时重算必须失败。fixture checker 必须展开全部 `inherits` / `override` / `omit` 后再逐向量验证
+  canonical bytes、suite byte、digest、typed ID、`jti`、nonce、canonical JWK 与 signed-claim 精确投影。
+- 同 issuer/proof-kind/request identity 与 byte-identical canonical intent 的首次签发、commit 后响应丢失、
+  restart 与并发 replay 必须返回同一 nonce、ID 与 byte-identical JWT，且 ledger 只有一条 logical grant。
+  replay retrieval 每次仍须验证 current holder/DPoP、HTTP method/target、issuer/audience 与 request digest。
+- 同 replay key 异 intent 必须 `duplicate_conflict` 且零新 grant、零状态变化。命中 expired record 必须
+  `session_grant_replay_expired`；命中 revoked/superseded record 必须 `session_grant_replay_terminal`，并在
+  closed details 返回原 `grant_id` 与 exact state；记录超过 retention 后必须
+  `session_grant_replay_indeterminate`。三者均不得返回成功或补发 credential。
+- refresh 必须在一个 issuer transaction 中创建唯一 active successor 并把 predecessor 标为
+  `superseded`、记录 successor ID；rollback 不得留下半条链。revoke、account/device/Agent cascade 与
+  introspection 必须读取同一 issuer ledger，不得依赖 PCR grant Event/cell。
+- 权限负例必须证明 Auth Server 未取得 principal/root/device/notary private key，SessionGrant 路径未调用
+  `/_arkret/self/events`、未查询 PCR authoring frontier；S2S signature 不得替代 DPoP 或 Event proof。
+
 ### 10.6 Vector: Witness Disagreement Quarantine
 
 `vector_id`: `ak.vector.range_completeness.witness_disagreement.v1`

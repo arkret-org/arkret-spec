@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-08.1",
+  "version": "2026-08-08.2",
   "source_of_truth": true,
   "description": "Exhaustive ownership of every active Arkret v1 Event.kind by Kernel, Collaboration Base, or Extension. Each kind appears exactly once. Layer ownership constrains conformance packaging and dependency direction; it does not change the Event Envelope wire shape.",
   "layer_rules": {
@@ -83,8 +83,6 @@
       "ak.realm_key.withheld",
       "ak.schema.define",
       "ak.schema.update",
-      "ak.session.grant",
-      "ak.session.grant.state",
       "ak.state.conflict_recovery"
     ],
     "collaboration_base": [

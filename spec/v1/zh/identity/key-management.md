@@ -387,13 +387,13 @@ MLS KeyPackage key 用于加入加密 Realm。
 
 ### 4.1 Principal Control Event Stream
 
-设备、session、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意 Collaboration Realm。Arkret v1 使用 **Principal Control Event Stream** 承载这些 durable identity state（其归属的 Realm 即 [Principal Control Realm](../models/realm-and-space.md#28-realm-角色分类normative)，与 Collaboration Realm 在 `models/realm-and-space.md` §2.8 中正式分类）。
+设备、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意 Collaboration Realm。Arkret v1 使用 **Principal Control Event Stream** 承载这些 durable identity state（其归属的 Realm 即 [Principal Control Realm](../models/realm-and-space.md#28-realm-角色分类normative)，与 Collaboration Realm 在 `models/realm-and-space.md` §2.8 中正式分类）。SessionGrant 是 Account Authority 的 issuer-ledger credential，其签发与 lifecycle 不写入 Principal Control Event Stream，见 §6。
 
-当 `ak.device.authorize`、`ak.device.revoke`、`ak.device.list_update` 或 `ak.session.grant` 以 `ak.schema.event.v1` Event Envelope 传播时：
+当 `ak.device.authorize`、`ak.device.revoke` 或 `ak.device.list_update` 以 `ak.schema.event.v1` Event Envelope 传播时：
 
 - `realm_id` MUST 是该 principal 的专用 `principal_control_realm_id`，不得使用任意 Collaboration Realm 的 `realm_id`。
-- `actor_id` MUST 是签发该控制事件的 principal、已授权 device、受信 recovery service 或组织声明的 session issuer。
-- `payload.principal_id` / `payload.subject` MUST 与该 control Realm 绑定的 principal DID 一致；不一致时 MUST reject。
+- `actor_id` MUST 是签发该控制事件的 principal、已授权 device 或受信 recovery service。
+- `payload.principal_id` MUST 与该 control Realm 绑定的 principal DID 一致；不一致时 MUST reject。
 - control Realm 的 `ak.realm.create` 或等价 genesis record MUST 绑定 principal DID、DID method / key-log history、control stream policy 和可发现的 service endpoint。该 Realm 使用标准 `ak.schema.realm.v1`；通过 `fields.purpose="principal_control"` + `schema_refs` 包含 `ak.profile.principal_control_realm.v1` 标记其 control stream 角色（详见 §5.0.1 步骤 3）。control realm **不**使用单独的 Realm kind——所有 Realm-level 验证（schema、boundary、E2EE、federation）走标准 Realm 路径。
 - 普通 Collaboration Realm 的业务事件 MAY 通过 `refs[role=authorized_by]` 引用不可变 grant record，并通过 role=`did_inception` 等专门 role、verified snapshot reference、Policy Server proof 或 device-state seal 引用 principal control state；`authorized_by` 不得使用 Event id alias，也不得把另一个 principal 的 device/session 事件直接写入该 Collaboration Realm history 来改变身份状态。
 
@@ -729,68 +729,166 @@ unit 验证完成时授权 fence 立即生效，不等待旧设备签 Seal。red
 
 ## 6. Session Grant
 
-Session grant 用于 OIDC / SSO、浏览器短会话、远程执行环境。
-Arkret v1 使用 `ak.session.grant` 作为 principal control stream 中的标准 durable control event 类型。
+Session grant 用于 OIDC / SSO、浏览器短会话与远程执行环境。Arkret v1 的
+`kind="ak.session.grant"` 是 Account Authority / Auth Server 对自身授权决定签发的短期 credential
+kind，**不是** Event kind。它的唯一 durable lifecycle 权威是 issuer 自己维护的 ledger；Principal
+Control Realm 不保存 grant genesis、grant state cell 或其兼容投影。
 
-`ak.session.grant.payload` 示例：
+`SignedSessionGrantClaims` 示例（`session_public_key` 的值是 canonical public-JWK JCS 字符串）：
 
 ```json
 {
-
-  "issuer": "did:webvh:z99jGJ9cd12QASVtC6r35kV5q:auth-gateway.example.com",
-  "subject": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "session_public_key": "z6Mss...",
-  "audience": "https://app.example.com",
+  "kind": "ak.session.grant",
+  "jti": "ak:session_grant:ATLC-gY-xpE0kN3QXVYxo0Kh32EoNCTBQTSFuu_P57e6",
+  "issuer": "did:webvh:z6mkfixture:auth-a.example",
+  "issuance_nonce": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+  "subject": "did:webvh:z6mkfixture:alice.example",
+  "session_public_key": "{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\"}",
+  "audience": "did:webvh:z6mkfixture:service.example",
   "scopes": [
-    "ak.self.events.command.submit",
-    "ak.realm.discover",
-    "ak.object.read",
-    "ak.strand.update",
-    "ak.message.create"
+    "ak.self.account.read.describe",
+    "ak.self.events.read.scan"
   ],
-  "not_before": "2026-04-26T00:00:00Z",
-  "expires_at": "2026-04-27T00:00:00Z",
-  "session_id": "browser-session-01",
+  "not_before": "2026-08-08T12:00:00.000Z",
+  "expires_at": "2026-08-08T13:00:00.000Z",
+  "session_id": "session-chain-fixture-001",
   "cnf": {"jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
-  "credential_class": "standard"
+  "credential_class": "standard",
+  "holder_binding": {
+    "kind": "human_device",
+    "device_binding": "ak:device:019a0000-0000-7000-8000-000000000001"
+  },
+  "proof_kind": "oidc_code_exchange"
 }
 ```
 
-> 注：`ak.session.grant` 是 principal control stream 事件，Event Envelope 的 `realm_id` MUST 等于
-> subject 的 principal control realm（§4.1）。该 envelope 字段是 control Event 必填项；省略 MUST
-> 被 reducer 以 `schema_violation` 拒绝。genesis payload 不携带 `grant_id` / `session_grant_id` 或
-> `realm_id`；receiver 从 accepted Event ID 派生 `ak:session_grant:` ID，JWT `jti` 使用该派生值。
+该示例逐字段复用
+[`session-grant-issuance-fixture.json`](../../artifacts/fixtures/session-grant-issuance-fixture.json) 的
+`issuer_a_closed_preimage` KAT；其 canonical preimage、digest 与 `jti` 必须可机械复算一致。
 
-**签发顺序（normative）**：issuer MUST 先构造并签名完整的 `ak.session.grant` Event，以 subject
-的 PCR 为 `realm_id`，以 issuer service DID 为 `actor_id`；若另有执行代理，才使用
-`executed_by`，且 admission 必须验证该代理授权。issuer 必须通过标准
-`POST /_arkret/self/events`（delegated service signature 分支）提交该 Event，并取得包含该 exact
-`event_id` 的 durable accepted outcome。只有在该接受完成后，issuer 才可将 Event ID retype 为
-`ak:session_grant:`、把该值写为 JWT `jti` 并签 JWT。pending、queued、仅写入 issuer 本地数据库、
-HTTP 2xx 但未列入 `accepted[]`，或无法验证的异步回执均不构成签发依据。失败与不确定结果必须
-fail closed，不得退回 producer 自选 UUIDv7，也不得先返回 JWT 后异步补 Event。
+### 6.1 Issuance record 与 ID（normative）
 
-除 JWT 固定 `kind="ak.session.grant"` 与由 accepted Event ID 派生的 `jti` 外，JWT 中全部安全相关
-claims（包括 issuer、subject、session public key、audience、scopes、有效期、session id、cnf、
-credential class 及适用 binding/proof/scope details）MUST 与 accepted genesis payload 逐字段相等。
-因此 Event proof 是 durable issuer signature；JWT 是其短期可出示编码，不能成为另一套可漂移事实源。
+issuer 必须从下面的 closed immutable preimage 派生 SessionGrant ID：
 
-SessionGrant 的 immutable genesis 与 lifecycle 分别投影到
-`ak.component.session.grant.v1` 和 `ak.component.session.grant_state.v1`。genesis 原子初始化 state 为
-`active`。后续只允许 service-attested `ak.session.grant.state` 引用
-`session_grant_id`，执行 `active -> revoked|superseded` 的 terminal 转换；`superseded` 必须携带
-`successor_session_grant_id`。`expires_at` 是 genesis 的 immutable 时间边界，校验方到时直接视为
-expired，不发布可伪造的 expiry Event。refresh 必须先让 successor genesis accepted，再让 predecessor
-的 supersede Event accepted，最后才返回 successor JWT；任一步失败都不得返回新 JWT。撤销接口同理，
-只有 revoke Event accepted 后才可报告 canonical revocation complete；Auth 本地行只可作为缓存/索引。
+```text
+issuance_preimage = JCS({
+  schema: "ak.session_grant.issuance.v1",
+  issuer,
+  issuance_nonce,
+  subject,
+  session_public_key,
+  audience,
+  scopes,
+  not_before,
+  expires_at,
+  session_id,
+  cnf,
+  credential_class,
+  recovery_binding?,
+  device_binding?,
+  bootstrap_binding?,
+  holder_binding?,
+  proof_kind?,
+  scope_details?
+})
+
+grant_digest = SHA-256(issuance_preimage)
+grant_id = "ak:session_grant:" ||
+  base64url_no_pad(sha256_digest_suite_wire_code || grant_digest)
+JWT jti = grant_id
+```
+
+`sha256_digest_suite_wire_code` MUST 取自
+[`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json)，不得复制 Event token 的私有
+常量。它在当前 profile 中是完整 `0x01` byte；v1 只接受高 nibble 为零的 active suite code，但不得把该
+零 nibble 解释成 Realm derivation class。`issuance_nonce` MUST 是 issuer 为本次逻辑签发生成的 256-bit CSPRNG nonce，并以恰好 32 octets
+的无 padding Base64URL 作为 signed claim。`scopes` MUST 在授权求交后按协议 byte-wise 排序去重；时间
+MUST 使用 UTC canonical millisecond；optional 字段无值时 MUST 省略而非写 `null`。
+
+credential-class binding 是 closed XOR，并且也是 preimage 的身份材料：`standard` MUST 携带
+`holder_binding`；`device_bootstrap` MUST 携带 `bootstrap_binding`；`recovery_restricted` MUST 携带
+`recovery_binding`。每一分支 MUST 省略另外两种 class binding。因而修改 holder 或 bootstrap binding
+必须改变 canonical preimage、digest、grant ID 与 `jti`；verifier 不得把 binding 当作不参与 ID 的附加
+metadata。
+
+`session_public_key` MUST 先解析为受支持且不含 private member 的 public JWK，再编码为 RFC 8785 JCS
+UTF-8 字符串；JWT claim 自身必须携带该 canonical 字符串。接收方重新解析并序列化后若不能逐字节得到
+相同字符串，MUST 拒绝。`audience` 的 canonical 形态是目标 resource service 的无 fragment bare DID，
+与 `SessionGrantRequestProof.audience`、issue/refresh outcome 的 typed `Did` 相同；HTTP origin / endpoint URL
+由 DPoP `htu` 单独绑定，MUST NOT 写入 SessionGrant audience。该选择与 SDK 的 `Did` wire type及 Account
+Authority 对 non-DID audience 的 fail-closed 校验一致。preimage 不含独立 `device_id`：设备绑定由 scope 中登记的 device token 与可选
+`device_binding` 表达。
+
+除固定 `schema`、固定 credential `kind` 与派生结果 `jti` 外，preimage 的每个字段都 MUST 是 JWT 的
+signed claim。verifier MUST 验证 JWT signature、issuer key 的 accepted-at 历史，并从 signed claims
+重算 preimage、digest 与 typed ID，要求结果与 `jti` 逐字节相等。仅验证 `ak:session_grant:` 外形不构成
+有效验证。该 ID 的 `id_form=suite_tagged_full_digest`，是 33-octet `uint8 digest-suite wire code ||
+32-octet digest` token；它不是 Realm 的 derivation-tagged `4-bit class || 4-bit suite` header，不是 Event
+ID，也不是 `ak:grant:` Capability
+GrantId；不得提供 Event retype、`from_event_id` 或 accepted-Event marker 路径。跨 issuer 的 durable
+identity/replay key MUST 使用 `(issuer_did, typed_id)`。
+
+`session_id` MUST 在首次签发前由 issuer 独立分配，作为稳定的 rotation-chain ID；refresh 继承它。
+`session_id` MUST NOT 等于或派生自 `grant_id`，否则 ID derivation 形成自引用。
+
+### 6.2 签发、签名边界与 durable exact replay（normative）
+
+Account Authority MUST 先验证 account↔principal binding、登录或恢复 proof、当前 holder DPoP、audience
+与 scope ceiling，再建立 issuer-owned issuance operation。issuer 必须在响应前原子持久化 canonical
+intent、request identity、preimage bytes、nonce、digest、grant ID、完整 JWT、signing key id、状态与时间；
+JWT 是该 immutable issuance record 的签名投影。Coauth/Account Authority 只签自己的 JWT 与 issuer
+status，MUST NOT 获取或使用 principal/root/device/notary 私钥，MUST NOT 为 SessionGrant 构造或提交
+`/_arkret/self/events` Event，也 MUST NOT 等待 PCR frontier、Seal 或 `accepted[]`。
+
+每个 production proof 分支 MUST 提供稳定 request identity；ledger key 至少包含
+`(issuer_did, operation_or_proof_kind, request_identity)`。同 key + byte-identical canonical intent MUST 在
+进程重启、并发重试及 commit 后响应丢失时返回首次持久化的同一 nonce、grant ID 与 byte-identical JWT；
+同 key + 不同 intent MUST `duplicate_conflict` 且零新 grant、零状态变化。replay lookup 仍 MUST 重新验证
+本次 holder/DPoP、HTTP method/target、issuer/audience 与 canonical request digest；它只复用已持久化的
+one-shot proof 验证结果，不允许仅知道 request identity 的第三方取回 JWT。
+
+若 replay 命中的记录已经 expired，MUST 返回 `session_grant_replay_expired`；若已 `revoked` 或
+`superseded`，MUST 返回 `session_grant_replay_terminal`。两种响应的 closed details 都 MUST 携带原
+`grant_id` 与 exact state，MUST NOT 返回成功或在同一 request identity 下补发 credential。replay record
+保留期 MUST 不短于相应 one-shot proof 的最大可重试窗口；保留期后无法判定旧请求是否提交时 MUST
+`session_grant_replay_indeterminate`，不得把它当首次签发。客户端收到这三类结果后必须取得新的 one-shot
+proof 与 request identity，重新走完整认证。
+
+### 6.3 Lifecycle、refresh、revoke 与 introspection（normative）
+
+issuer ledger 的 durable state 是 `active | revoked | superseded`；`expired` 只从 immutable
+`expires_at` 判定，不写状态 Event。refresh MUST 以
+`(predecessor_grant_id, refresh_request_digest)` 作为稳定 request identity，在同一 issuer transaction
+中创建 active successor、继承独立 `session_id`，并把 predecessor 原子转为 `superseded`、记录
+`successor_session_grant_id`；commit 后才可返回 successor JWT。exact refresh replay 返回同一 successor，
+不得创建第二个 successor。revoke/logout MUST 幂等地把 active record 转为 `revoked`；revoke mutation
+还必须以 issuer、operation kind、authenticated session/principal、canonical selector 与 request digest
+构造稳定 request identity，durable 保存首次 exact outcome。同 identity + 同 intent 在重验当前调用方授权后
+返回 byte-identical outcome；同 identity + 异 intent 返回 `duplicate_conflict` 且不得再次改变状态。
+account、device 与 Agent-key lifecycle cascade 也必须更新同一 ledger，不得声称生成 principal Event。
+
+introspection MUST 从该 ledger 返回当前状态，绑定 issuer proof/key 与 exact authenticated request。
+跨服务可转交的 status MUST 带 issuer/service signature；同一部署的直接响应至少必须经过 authenticated
+channel 并绑定 exact request。Resource server 的本地 session/cache 只是有 freshness 上限的投影，不能
+覆盖 ledger；issuer key rotation 必须保留 signing key id，并按 accepted-at key history 验证既有 JWT，
+不得用当前 key 重签历史 exact-replay outcome。
+
+### 6.4 客户端 Event signer 边界（normative）
+
+SessionGrant request/DPoP 由当前客户端的 grant-binding key 签，credential 由 issuer key 签；两者都不
+替代 principal Event proof。若其它 Account Authority operation 确实需要 principal Event，服务只能返回
+closed canonical draft/basis/material，由持有当前有效 principal/device/notary key 的客户端签 exact Event
+并提交，receiver 必须独立验签。relay 或 S2S HTTP Message Signature 只认证 transport，MUST NOT 代签或
+替代内层 Event actor proof。首次 onboarding 的 Recovery root 继续只承担登记的冷根职责，MUST NOT 因
+SessionGrant 签发而扩张为日常 Event signer。
 
 规则：
 
-- session grant MUST 由可信 issuer 签名
-- session key MUST NOT 超过 grant 的有效期
-- session grant SHOULD 绑定 audience
-- 在条件允许时，session grant SHOULD 在 WebCrypto / 平台 keystore 中以不可导出方式存储
-- session grant 撤销 MUST 由下列 **canonical 撤销机制** 之一表达：accepted `ak.session.grant.state`（`to=revoked|superseded`）、genesis `expires_at` 的直接时间判定，或 device / account revoke（[`account-lifecycle.md` §9](./account-lifecycle.md) Session Revocation、§7.1 Deactivation Fanout 的 `ak.session.grant` 撤销链）。除上述 canonical 机制外，仅当某 extension / deployment profile **显式注册并声明** 了一个 credential status mechanism（profile MUST 给出该 mechanism 的 canonical event / 字段定义，对照 agent key 撤销的具体 `ak.agent.key.revoke`）时，方可使用该 profile 注册的机制表达撤销；未注册、无明确 canonical event / 字段定义的机制 MUST NOT 用于 session 撤销，且任何情况下 MUST NOT 使用未注册的 `ak:revocation-list:*` typed ID。
+- session grant MUST 由可信 issuer 签名，且 session key MUST NOT 超过 grant 的有效期；
+- session grant MUST 绑定 audience；
+- 在条件允许时，session grant SHOULD 在 WebCrypto / 平台 keystore 中以不可导出方式存储；
+- canonical 撤销真相只能来自 issuer ledger、immutable `expires_at` 或触发 ledger cascade 的 current
+  account/device/Agent lifecycle；不得另建 Event cell、未注册 revocation-list ID 或第二套状态源。
 
 ## 7. 密钥备份
 
