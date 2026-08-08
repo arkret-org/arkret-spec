@@ -4664,10 +4664,8 @@
     },
     "SessionGrantCredentialClass": {
       "type": "string",
-      "enum": [
-        "standard",
-        "recovery_restricted"
-      ]
+      "const": "standard",
+      "description": "Arkret v1 issues only standard session grants. Recovery completion proves a replacement device and then issues this same standard credential; no temporary recovery credential class exists."
     },
     "SessionGrantDeviceBinding": {
       "type": "object",
@@ -4729,7 +4727,8 @@
         "revocation_ref",
         "session_public_key",
         "cnf_jkt",
-        "credential_class"
+        "credential_class",
+        "holder_binding"
       ],
       "properties": {
         "id": {
@@ -4777,48 +4776,11 @@
         "credential_class": {
           "$ref": "#/$defs/SessionGrantCredentialClass"
         },
-        "recovery_binding": {
-          "$ref": "#/$defs/SessionGrantRecoveryBinding"
-        },
         "holder_binding": {
           "$ref": "./principal-operations.schema.json#/$defs/standard_holder_binding",
           "description": "Required closed human-device versus Agent-runtime holder binding for every standard grant."
         }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "credential_class": {
-                "const": "standard"
-              }
-            },
-            "required": [
-              "credential_class"
-            ]
-          },
-          "then": {
-            "required": [
-              "holder_binding"
-            ],
-            "not": {
-              "required": [
-                "recovery_binding"
-              ]
-            }
-          },
-          "else": {
-            "required": [
-              "recovery_binding"
-            ],
-            "not": {
-              "required": [
-                "holder_binding"
-              ]
-            }
-          }
-        }
-      ]
+      }
     },
     "SessionGrantIntrospectOutcome": {
       "type": "object",
@@ -4994,29 +4956,6 @@
           }
         }
       }
-    },
-    "SessionGrantRecoveryBinding": {
-      "type": "object",
-      "required": [
-        "recovery_session_id",
-        "policy_id",
-        "policy_version"
-      ],
-      "properties": {
-        "recovery_session_id": {
-          "type": "string",
-          "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "policy_id": {
-          "type": "string",
-          "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "policy_version": {
-          "type": "integer",
-          "minimum": 1
-        }
-      },
-      "additionalProperties": false
     },
     "SessionGrantRefreshOutcome": {
       "type": "object",
@@ -5502,7 +5441,7 @@
     },
     "SignedSessionGrantClaims": {
       "type": "object",
-      "description": "Canonical signed claims carried by an ak.session.grant JWT. Except for the fixed kind and derived jti, the closed issuance preimage fields are copied from these claims, including the credential-class binding selected by the closed XOR: standard requires holder_binding and recovery_restricted requires recovery_binding. Verifiers MUST RFC 8785-canonicalize the complete claim-derived preimage, recompute SHA-256, prepend the active sha256 suite wire code, derive ak:session_grant:<44-char-token>, and require byte equality with jti. Changing a binding therefore changes the ID. recovery_restricted is a closed recovery credential and cannot be interpreted as a standard device grant.",
+      "description": "Canonical signed claims carried by an ak.session.grant JWT. Except for the fixed kind and derived jti, the closed issuance preimage fields are copied from these claims. Arkret v1 fixes credential_class=standard and requires holder_binding; recovery completion directly issues this standard credential after validating the replacement-device evidence. Verifiers MUST RFC 8785-canonicalize the complete claim-derived preimage, recompute SHA-256, prepend the active sha256 suite wire code, derive ak:session_grant:<44-char-token>, and require byte equality with jti. Changing holder_binding therefore changes the ID.",
       "required": [
         "kind",
         "jti",
@@ -5516,7 +5455,8 @@
         "expires_at",
         "session_id",
         "cnf",
-        "credential_class"
+        "credential_class",
+        "holder_binding"
       ],
       "properties": {
         "kind": {
@@ -5582,9 +5522,6 @@
         "credential_class": {
           "$ref": "#/$defs/SessionGrantCredentialClass"
         },
-        "recovery_binding": {
-          "$ref": "#/$defs/SessionGrantRecoveryBinding"
-        },
         "device_binding": {
           "$ref": "#/$defs/SessionGrantDeviceBinding"
         },
@@ -5606,57 +5543,6 @@
           "type": "object"
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "credential_class": {
-                "const": "recovery_restricted"
-              }
-            },
-            "required": [
-              "credential_class"
-            ]
-          },
-          "then": {
-            "required": [
-              "recovery_binding"
-            ],
-            "properties": {
-              "scopes": {
-                "items": {
-                  "type": "string",
-                  "enum": [
-                    "ak.root.identity.recovery_policy.resource.get",
-                    "ak.root.identity.recovery_session.command.create",
-                    "ak.root.identity.recovery_session.resource.get",
-                    "ak.root.identity.recovery_session.command.submit_proof",
-                    "ak.self.security_transaction.command.create",
-                    "ak.self.security_transaction.resource.get",
-                    "ak.self.security_transaction.command.continue",
-                    "ak.self.keys.backups.command.unlock"
-                  ]
-                }
-              }
-            },
-            "not": {
-              "required": [
-                "holder_binding"
-              ]
-            }
-          },
-          "else": {
-            "required": [
-              "holder_binding"
-            ],
-            "not": {
-              "required": [
-                "recovery_binding"
-              ]
-            }
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "SnapshotBootstrap": {

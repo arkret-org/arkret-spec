@@ -70,29 +70,6 @@
       "suite_wire_code": 1,
       "grant_id": "ak:session_grant:ARHbiPz7spsAJOYrxSP6Mi1RsQgwB1-2XD9L8OmoFzE9",
       "jwt_jti": "ak:session_grant:ARHbiPz7spsAJOYrxSP6Mi1RsQgwB1-2XD9L8OmoFzE9"
-    },
-    {
-      "name": "recovery_binding_is_identity_material",
-      "inherits": "issuer_a_closed_preimage",
-      "override": {
-        "credential_class": "recovery_restricted",
-        "recovery_binding": {
-          "recovery_session_id": "ak:recovery_session:019a0000-0000-7000-8000-000000000002",
-          "policy_id": "ak:policy:019a0000-0000-7000-8000-000000000003",
-          "policy_version": 1
-        },
-        "scopes": [
-          "ak.self.security_transaction.resource.get"
-        ]
-      },
-      "omit": [
-        "holder_binding"
-      ],
-      "canonical_preimage_utf8": "{\"audience\":\"did:webvh:z6mkfixture:service.example\",\"cnf\":{\"jkt\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"},\"credential_class\":\"recovery_restricted\",\"expires_at\":\"2026-08-08T13:00:00.000Z\",\"issuance_nonce\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"issuer\":\"did:webvh:z6mkfixture:auth-a.example\",\"not_before\":\"2026-08-08T12:00:00.000Z\",\"proof_kind\":\"oidc_code_exchange\",\"recovery_binding\":{\"policy_id\":\"ak:policy:019a0000-0000-7000-8000-000000000003\",\"policy_version\":1,\"recovery_session_id\":\"ak:recovery_session:019a0000-0000-7000-8000-000000000002\"},\"schema\":\"ak.session_grant.issuance.v1\",\"scopes\":[\"ak.self.security_transaction.resource.get\"],\"session_id\":\"session-chain-fixture-001\",\"session_public_key\":\"{\\\"crv\\\":\\\"Ed25519\\\",\\\"kty\\\":\\\"OKP\\\",\\\"x\\\":\\\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\\\"}\",\"subject\":\"did:webvh:z6mkfixture:alice.example\"}",
-      "sha256_digest_hex": "6d0503c5faa5a07cda29693a70898c456f1d86b25b0478530f756a61d9dbb8a4",
-      "suite_wire_code": 1,
-      "grant_id": "ak:session_grant:AW0FA8X6paB82ilpOnCJjEVvHYayWwR4Uw91amHZ27ik",
-      "jwt_jti": "ak:session_grant:AW0FA8X6paB82ilpOnCJjEVvHYayWwR4Uw91amHZ27ik"
     }
   ],
   "jwk_canonicalization": {
@@ -173,15 +150,6 @@
       "omit": [
         "holder_binding"
       ],
-      "expected": "signed_claims_schema_invalid"
-    },
-    {
-      "name": "standard_with_recovery_binding",
-      "base_vector": "issuer_a_closed_preimage",
-      "add_from_vector": {
-        "field": "recovery_binding",
-        "vector": "recovery_binding_is_identity_material"
-      },
       "expected": "signed_claims_schema_invalid"
     }
   ]

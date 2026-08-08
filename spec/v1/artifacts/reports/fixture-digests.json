@@ -82,7 +82,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "b114ea3f173425a0b5aa6e7d031b85f56d0e40b1e1c2f22415c4a266cc518e90"
+      "sha256": "0a4f544caa82df19832f2e4c813d46459151ab1fae324a5091338eab50ddac07"
     },
     {
       "path": "spec/v1/artifacts/fixtures/control-proposal-ack-fixture.json",
@@ -314,7 +314,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json",
-      "sha256": "a19d1520c556936162cc66beee15a59ee4682ea0d829865f200ec3b9f8a94730"
+      "sha256": "10518019f8f07535bfaaa0ca25d6f13ff6dbd308c811f0d317cc69f80bd5207d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",

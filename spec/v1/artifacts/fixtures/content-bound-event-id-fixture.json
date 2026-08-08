@@ -58,12 +58,12 @@
     {
       "name": "strand_object_id_is_retyped_event_id",
       "vector_id": "ak.vector.object_identity.event_derived.v1",
-      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.strand.create\",\"payload\":{\"object\":{\"created_at\":\"2026-08-06T00:00:00.000Z\",\"created_by\":\"did:webvh:z6mkfixture:alice.example\",\"realm_id\":\"ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV\",\"schema\":\"ak.schema.strand.v1\",\"tracks\":{\"discussion\":{\"enabled\":true,\"name\":\"discussion\"}}}},\"prev_refs\":[],\"realm_id\":\"ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV\",\"refs\":[],\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV\"}}",
-      "event_digest": "sha256:e21a82eeebb6ea36160d9803961d39dfa7a8d2acfa4a03af8c43005e905fb741",
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.strand.create\",\"payload\":{\"object\":{\"created_at\":\"2026-08-06T00:00:00.000Z\",\"created_by\":\"did:webvh:z6mkfixture:alice.example\",\"realm_id\":\"ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV\",\"schema\":\"ak.schema.strand.v1\",\"tracks\":{\"discussion\":{\"enabled\":true,\"name\":\"discussion\"}}}},\"prev_refs\":[\"ak:event:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV\"],\"realm_id\":\"ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV\",\"refs\":[],\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV\"}}",
+      "event_digest": "sha256:b8e0bbf0151a247b8cdfb9fe4da8c2df751e7e3bcdd8f070fbef50d2ee3e5825",
       "suite_wire_code": 1,
-      "event_id_bytes_hex": "01e21a82eeebb6ea36160d9803961d39dfa7a8d2acfa4a03af8c43005e905fb741",
-      "derived_event_id": "ak:event:AeIagu7rtuo2Fg2YA5YdOd-nqNKs-koDr4xDAF6QX7dB",
-      "derived_object_id": "ak:strand:AeIagu7rtuo2Fg2YA5YdOd-nqNKs-koDr4xDAF6QX7dB",
+      "event_id_bytes_hex": "01b8e0bbf0151a247b8cdfb9fe4da8c2df751e7e3bcdd8f070fbef50d2ee3e5825",
+      "derived_event_id": "ak:event:Abjgu_AVGiR7jN-5_k2owt91Hn47zdjwcPvvUNLuPlgl",
+      "derived_object_id": "ak:strand:Abjgu_AVGiR7jN-5_k2owt91Hn47zdjwcPvvUNLuPlgl",
       "expected": {
         "outcome": "accepted",
         "object_id_source": "retype(event_id)"

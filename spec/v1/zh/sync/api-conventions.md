@@ -252,8 +252,8 @@ Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失�
 - **grant active**:grant MUST 经 session-grant 内省判定 issuer ledger 当前为 active(`ak.gate.account.command.introspect_session_grant`)。Principal Server **MAY** 缓存内省结果，但 TTL **SHOULD ≤ 120s**；对敏感操作 MUST 旁路缓存、强制重新内省(吊销生效上界即缓存 TTL，见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。本地 session/cache 只是有 freshness 上限的投影，MUST NOT 覆盖 issuer 返回的 revoked/superseded/expired 或成为第二真相源。内省的 `proof` 字段是部署内部 S2S 的可选附加确认；默认 self-path 客户端只发送本节的 `Authorization` + `DPoP`，Principal Server MUST 依据内省返回的 `cnf_jkt` 在本地校验该请求的 DPoP，不得要求客户端再发送额外的 session-grant introspection proof header。
 - **grant class/binding**：JWT 与内省必须使用
   `service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims` 的 typed
-  `credential_class`。`recovery_restricted` 只允许 recovery bootstrap scope，必须携带
-  `recovery_binding` 且不得携带 `standard.holder_binding`。`standard.holder_binding` 在 JWT 与 introspection
+  `credential_class`，Arkret v1 固定为 `standard` 并必须携带 `holder_binding`。恢复完成入口在核验 replacement
+  device 后直接签发同一种 Standard grant，不存在临时恢复凭据类。`standard.holder_binding` 在 JWT 与 introspection
   共用同一 closed discriminated XOR wire：human 分支恰为
   `{kind="human_device",device_binding}`，并禁止全部 Agent runtime字段；Agent分支恰为
   `{kind="agent_runtime",agent_id,device_id,agent_key_authorization_ref,verification_method}`，并禁止

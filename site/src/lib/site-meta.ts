@@ -8,7 +8,8 @@
  * - The current spec release tag shown in the homepage hero eyebrow and
  *   marketing footer. `tools/artifact_pipeline.py check` requires the
  *   matching public catalog snapshot to be byte-identical to the canonical
- *   registry catalog.
+ *   registry catalog. The current snapshot is committed and checked by the
+ *   artifact pipeline so a deployment cannot publish a stale contract.
  *
  * Anything that lives inside `contract-registry.json` (catalog version,
  * registry counts, ...) stays in `lib/artifacts.ts`; this file is for
@@ -29,7 +30,8 @@ export function specFileUrl(relPath: string): string {
  *
  * Keep the pre-release suffix until the stable promotion gate passes. The published
  * `site/public/v1/contract-registry-<version>.json` snapshot is generated from
- * this tag at build time (scripts/gen-public-catalog.mjs) and is not committed.
+ * this tag by `tools/artifact_pipeline.py generate`, committed, and verified by
+ * `tools/artifact_pipeline.py check`.
  */
 export const specReleaseTag = "v1.0.0-candidate";
 export const specReleaseLabel = "v1";

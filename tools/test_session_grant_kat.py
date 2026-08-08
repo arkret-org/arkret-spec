@@ -147,13 +147,9 @@ class SessionGrantKatTests(unittest.TestCase):
         errors = self._check(claims_schema=schema)
         self.assertTrue(any("preimage/claims closure drift" in error for error in errors), errors)
 
-    def test_credential_class_binding_xor_is_enforced(self) -> None:
+    def test_standard_holder_binding_is_enforced(self) -> None:
         fixture = copy.deepcopy(self.fixture)
-        fixture["accepted_vectors"][0]["issuance_preimage"]["recovery_binding"] = {
-            "recovery_session_id": "ak:recovery_session:019a0000-0000-7000-8000-000000000002",
-            "policy_id": "ak:policy:019a0000-0000-7000-8000-000000000003",
-            "policy_version": 1,
-        }
+        fixture["accepted_vectors"][0]["issuance_preimage"].pop("holder_binding")
         errors = self._check(fixture=fixture)
         self.assertTrue(any("requires exactly holder_binding" in error for error in errors), errors)
 
@@ -170,14 +166,11 @@ class SessionGrantKatTests(unittest.TestCase):
                 f"accepted vector {name} must validate as SignedSessionGrantClaims",
             )
 
-        recovery_binding = copy.deepcopy(
-            claims["recovery_binding_is_identity_material"]["recovery_binding"]
-        )
         invalid_standard = copy.deepcopy(claims["issuer_a_closed_preimage"])
-        invalid_standard["recovery_binding"] = recovery_binding
+        invalid_standard.pop("holder_binding")
         self.assertTrue(
             list(validator.iter_errors(invalid_standard)),
-            "standard claims carrying recovery_binding must fail the actual JSON Schema",
+            "standard claims without holder_binding must fail the actual JSON Schema",
         )
 
     def test_introspection_grant_requires_cnf_jkt_but_inactive_may_omit_grant(self) -> None:

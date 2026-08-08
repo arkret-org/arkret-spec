@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.4",
+  "version": "2026-08-09.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-09T15:00:00Z",
+  "generated_at": "2026-08-09T16:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -9855,9 +9855,8 @@
         "session_id",
         "cnf",
         "credential_class",
-        "recovery_binding?",
         "device_binding?",
-        "holder_binding?",
+        "holder_binding",
         "proof_kind?",
         "scope_details?"
       ],
@@ -9868,11 +9867,11 @@
         "scopes": "protocol_bytewise_sorted_unique_after_authorization_intersection",
         "timestamps": "utc_canonical_millisecond",
         "optional_fields": "omit_when_absent_never_null",
-        "credential_binding_xor": "standard_requires_holder_binding; recovery_restricted_requires_recovery_binding; the other credential-class binding is absent"
+        "credential_binding": "v1 fixes credential_class=standard and requires holder_binding"
       },
-      "signed_claim_binding": "Every preimage field except fixed schema is a signed JWT claim, including the credential-class binding selected by the closed XOR; kind is the fixed credential kind and jti is the derived typed ID. Verifiers MUST reconstruct the complete preimage from signed claims and recompute jti, so two different holder_binding or recovery_binding values cannot share one valid ID.",
+      "signed_claim_binding": "Every preimage field except fixed schema is a signed JWT claim, including the required standard holder_binding; kind is the fixed credential kind and jti is the derived typed ID. Verifiers MUST reconstruct the complete preimage from signed claims and recompute jti, so two different holder_binding values cannot share one valid ID.",
       "session_chain_rule": "session_id is independently allocated before first issuance, refresh inherits it, and it MUST NOT equal or derive from grant_id",
-      "device_id_rule": "No independent top-level device_id claim enters the preimage; device scope tokens and the credential-class-selected holder_binding, recovery_binding, or optional device_binding carry the binding.",
+      "device_id_rule": "No independent top-level device_id claim enters the preimage; device scope tokens, the required holder_binding, or optional device_binding carry the binding.",
       "durable_replay": {
         "key": [
           "issuer_did",
@@ -10608,8 +10607,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-08-09.2",
-    "generated_at": "2026-08-09T13:00:00Z"
+    "version": "2026-08-09.4",
+    "generated_at": "2026-08-09T16:00:00Z"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",

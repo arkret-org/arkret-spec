@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.2",
+  "version": "2026-08-09.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-09T13:00:00Z",
+  "generated_at": "2026-08-09T15:00:00Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -161,7 +161,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:21330235676c0af7dae9e465891d6722f859a82365124d0d9b9fd031c9d7508c",
+      "section_digest": "sha256:f568941815685eae8cf2b1ecd28993dbf093f9bfb2b42725581dc48cf90d65ab",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -441,7 +441,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:20d0b7da61dfdca9f10e72c0c5c640c143d806a668d0ca865848bb193cf3f32a",
+      "section_digest": "sha256:72d03e0b8b67d22af687bd733b504367aa75aaf529ce7c7f05e113dbe718a856",
       "requirement": "Realm proposal configuration must leave a realizable decision schedule: decision window does not exceed the absolute deadline, equality is valid only when deferral is disabled, and invalid create/update writes reject without state change.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -463,8 +463,8 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:20d0b7da61dfdca9f10e72c0c5c640c143d806a668d0ca865848bb193cf3f32a",
-      "requirement": "An accepted closed-anchor Control Move, its Control Proposal Ack and pending index are committed atomically; the covering Seal atomically applies lineage and cell effects and marks every covered pending digest sealed, rolling back if any digest is absent.",
+      "section_digest": "sha256:72d03e0b8b67d22af687bd733b504367aa75aaf529ce7c7f05e113dbe718a856",
+      "requirement": "An accepted ordinary-Realm or managed-Agent closed-anchor Control Move, its Control Proposal Ack and pending index are committed atomically; the covering Seal atomically applies lineage and cell effects and marks every covered pending digest sealed, rolling back if any digest is absent. The separately specified human self-principal PCR authority-authored path omits the Ack but not the pending index or covering-Seal obligation.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.agent.managed_pcr_separation.v1"

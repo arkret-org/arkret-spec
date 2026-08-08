@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9080,
+    "total_properties": 9072,
     "total_schema_documents": 157,
     "by_presence_class": {
-      "optional": 2762,
+      "optional": 2758,
       "optional_defaulted": 67,
-      "required": 5883,
+      "required": 5880,
       "required_nullable": 114,
-      "tristate": 254
+      "tristate": 253
     },
-    "tristate_occurrences": 254,
-    "tristate_audit_targets": 158,
+    "tristate_occurrences": 253,
+    "tristate_audit_targets": 157,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 149,
+      "absent_null_equivalent": 148,
       "condition_guarded": 8,
       "distinct": 1
     }
@@ -281,7 +281,6 @@
     "service-operation-dtos.schema.json/$defs/ServiceRegistrationEnsureRequestBody/properties/previous_receipt",
     "service-operation-dtos.schema.json/$defs/SessionGrantRequestBody/allOf/0/then/properties/proof",
     "service-operation-dtos.schema.json/$defs/SessionGrantRequestBody/allOf/1/then/properties/proof",
-    "service-operation-dtos.schema.json/$defs/SignedSessionGrantClaims/allOf/0/then/properties/scopes",
     "strand.schema.json/$defs/content_block/allOf/2/then/properties/body",
     "strand.schema.json/$defs/content_block_long_text/oneOf/1/allOf/0/properties/attachment",
     "strand.schema.json/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment",
@@ -1883,16 +1882,6 @@
       "occurrences": [
         "/$defs/SessionGrantRequestBody/allOf/0/then/properties/proof",
         "/$defs/SessionGrantRequestBody/allOf/1/then/properties/proof"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
-      "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/SignedSessionGrantClaims",
-      "instance_path": "/scopes",
-      "occurrences": [
-        "/$defs/SignedSessionGrantClaims/allOf/0/then/properties/scopes"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -11804,16 +11793,14 @@
         "/$defs/SessionGrantDeviceBinding/properties/device_id": "required",
         "/$defs/SessionGrantDeviceBinding/properties/model_generation_ref": "required",
         "/$defs/SessionGrantDpopBindingProof/properties/proof_jwt": "required",
-        "/$defs/SessionGrantIntrospectGrant/allOf/0/if/properties/credential_class": "required",
         "/$defs/SessionGrantIntrospectGrant/properties/audience": "required",
         "/$defs/SessionGrantIntrospectGrant/properties/cnf_jkt": "required",
         "/$defs/SessionGrantIntrospectGrant/properties/credential_class": "required",
         "/$defs/SessionGrantIntrospectGrant/properties/device_id": "optional",
         "/$defs/SessionGrantIntrospectGrant/properties/expires_at": "required",
-        "/$defs/SessionGrantIntrospectGrant/properties/holder_binding": "optional",
+        "/$defs/SessionGrantIntrospectGrant/properties/holder_binding": "required",
         "/$defs/SessionGrantIntrospectGrant/properties/id": "required",
         "/$defs/SessionGrantIntrospectGrant/properties/issuer": "required",
-        "/$defs/SessionGrantIntrospectGrant/properties/recovery_binding": "optional",
         "/$defs/SessionGrantIntrospectGrant/properties/revocation_ref": "required",
         "/$defs/SessionGrantIntrospectGrant/properties/revoked_at": "optional",
         "/$defs/SessionGrantIntrospectGrant/properties/scopes": "required",
@@ -11844,9 +11831,6 @@
         "/$defs/SessionGrantOutcome/properties/scope_details/properties/track_names": "optional",
         "/$defs/SessionGrantOutcome/properties/session_grant": "required",
         "/$defs/SessionGrantOutcome/properties/session_public_key": "required",
-        "/$defs/SessionGrantRecoveryBinding/properties/policy_id": "required",
-        "/$defs/SessionGrantRecoveryBinding/properties/policy_version": "required",
-        "/$defs/SessionGrantRecoveryBinding/properties/recovery_session_id": "required",
         "/$defs/SessionGrantRefreshOutcome/properties/audience": "required",
         "/$defs/SessionGrantRefreshOutcome/properties/dpop_jkt": "required",
         "/$defs/SessionGrantRefreshOutcome/properties/expires_at": "required",
@@ -11906,22 +11890,19 @@
         "/$defs/SignalSubmitOutcome/properties/envelope_digest": "required",
         "/$defs/SignalSubmitOutcome/properties/realm_id": "required",
         "/$defs/SignalSubmitOutcome/properties/server_received_at": "optional",
-        "/$defs/SignedSessionGrantClaims/allOf/0/if/properties/credential_class": "required",
-        "/$defs/SignedSessionGrantClaims/allOf/0/then/properties/scopes": "tristate",
         "/$defs/SignedSessionGrantClaims/properties/audience": "required",
         "/$defs/SignedSessionGrantClaims/properties/cnf": "required",
         "/$defs/SignedSessionGrantClaims/properties/cnf/properties/jkt": "required",
         "/$defs/SignedSessionGrantClaims/properties/credential_class": "required",
         "/$defs/SignedSessionGrantClaims/properties/device_binding": "optional",
         "/$defs/SignedSessionGrantClaims/properties/expires_at": "required",
-        "/$defs/SignedSessionGrantClaims/properties/holder_binding": "optional",
+        "/$defs/SignedSessionGrantClaims/properties/holder_binding": "required",
         "/$defs/SignedSessionGrantClaims/properties/issuance_nonce": "required",
         "/$defs/SignedSessionGrantClaims/properties/issuer": "required",
         "/$defs/SignedSessionGrantClaims/properties/jti": "required",
         "/$defs/SignedSessionGrantClaims/properties/kind": "required",
         "/$defs/SignedSessionGrantClaims/properties/not_before": "required",
         "/$defs/SignedSessionGrantClaims/properties/proof_kind": "optional",
-        "/$defs/SignedSessionGrantClaims/properties/recovery_binding": "optional",
         "/$defs/SignedSessionGrantClaims/properties/scope_details": "optional",
         "/$defs/SignedSessionGrantClaims/properties/scopes": "required",
         "/$defs/SignedSessionGrantClaims/properties/session_id": "required",
@@ -11956,16 +11937,12 @@
         "/$defs/PeerEventsResolveRequestBody/properties/event_digests",
         "/$defs/PeerEventsResolveRequestBody/properties/event_ids",
         "/$defs/PeerEventsResolveRequestBody/properties/seal_refs",
-        "/$defs/SessionGrantIntrospectGrant/properties/holder_binding",
-        "/$defs/SessionGrantIntrospectGrant/properties/recovery_binding",
         "/$defs/SessionGrantIntrospectRequestBody/properties/grant_jwt",
         "/$defs/SessionGrantIntrospectRequestBody/properties/id",
         "/$defs/SessionGrantRequestBody/properties/agent_key_authorization_ref",
         "/$defs/SessionGrantRequestBody/properties/agent_scope_request",
         "/$defs/SessionGrantRequestBody/properties/device_id",
-        "/$defs/SessionGrantRequestBody/properties/dpop_binding_proof",
-        "/$defs/SignedSessionGrantClaims/properties/holder_binding",
-        "/$defs/SignedSessionGrantClaims/properties/recovery_binding"
+        "/$defs/SessionGrantRequestBody/properties/dpop_binding_proof"
       ]
     },
     "signal-envelope.schema.json": {

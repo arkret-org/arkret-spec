@@ -66,6 +66,18 @@ operation/idempotency/phase + 相同完整bytes回放该phase首次outcome；pre
 operation/idempotency，但两phase的canonical bytes与幂等记录彼此独立。响应丢失、重启或outbox redelivery
 不得产生第二Event、第二receipt或第二lineage head。
 
+对 human self-principal PCR，commit 的 exact Event 已由 current active accepted device 以 canonical
+`{holder}#{device_id}` method 签名；该 device 同时是 current `single_did(holder)` authority，因此这是
+authority-authored Move，不得再要求一份独立 Control Proposal Ack，也不得因 Principal Server 不持有
+holder 私钥而返回 `quorum_unreachable`。commit 仍须把 Event 写入 pending Control index；只有后继
+device-signed accepted Seal 覆盖该 digest 后 Contact effect 才 materialize。managed Agent delegation、
+organization governance、ordinary Realm 与 recovery/re-anchor 不使用此例外。
+
+request prepare 是 holder-local authoring：它 **MUST** 从 holder PCR 的 current actor frontier 与 accepted Seal
+frontier 固定 `actor_seq`、`prev_refs` 与 `seal_basis`；任一 frontier 暂不可得时返回可重试的
+`frontier_unavailable` 且零写入。target principal 的解析与投递属于 commit 后的 durable receipted outbox / peer
+carrier；因此 target 当前离线或不可解析 **MUST NOT** 把本地 prepare 改写成 `not_found`，也不得伪造已投递状态。
+
 holder source service **MUST** 以本地 `(holder, peer)` admission slot CAS 串行 request/respond/reject，并保证
 任一 request ref 最多被 normal、glare 或 reject 之一消费。每条 accepted request 独立取得 source-signed
 `request_acceptance_receipt`，至少绑定 holder、完整 peer、slot version/predecessor、request Event ref/digest、

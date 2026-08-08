@@ -107,13 +107,20 @@ defer_count, authority_set_ref, authority_acks[]
 ```
 
 **闭合 genesis 的 ingress authority**：普通路径中的 `authority_set_ref` 来自已经生效的
-Realm authority set。登记的完整闭合 genesis 单元（ordinary Realm、self-principal PCR、
-managed Agent PCR）中的每条 Event 虽然免 `seal_basis`，仍是 Control Move，因而在 durable
-proposal ingress 时 **MUST 各自具有 Control Proposal Ack**；`AnchorUnit` transport context 只证明
-无 basis 单元的闭合形态，不得据此让 durable ingress 省略 receipt。receipt、canonical Event、
-pending Control index 与 wakeup MUST 按本文件的统一提交规则原子落库，不能先接受 Event 再等待
-首 Seal 时补 pending row。这里的“具有”约束的是 durable ingress 事务，不等于所有来源都必须在
+Realm authority set。ordinary Realm 与 managed Agent PCR 的登记闭合 genesis Event 虽然免
+`seal_basis`，仍是 Control Move，因而在 durable proposal ingress 时 **MUST 各自具有 Control
+Proposal Ack**；`AnchorUnit` transport context 只证明无 basis 单元的闭合形态，不得据此让这两类
+durable ingress 省略 receipt。receipt、canonical Event、pending Control index 与 wakeup MUST
+按本文件的统一提交规则原子落库，不能先接受 Event 再等待首 Seal 时补 pending row。这里的“具有”
+约束的是 durable ingress 事务，不等于所有来源都必须在
 `EventInitialSubmission.control_proposal_ack` 中预先携带 Control Proposal Ack；wire 责任由下列两个来源决定。
+
+human self-principal PCR 的 `[ak.realm.create, ak.device.authorize]` genesis unit 是唯一闭合 genesis
+例外：它不是向外部 authority 提交的 proposal。create 的 identity-root commitment、founding device
+对 exact authorize payload/Event 的 possession proof 与整单元原子验证已经闭合内容授权；因此该 unit
+**MUST NOT** 携 AuthorizationLease 或 Control Proposal Ack，但两条 canonical Event、pending Control
+index 与首 Seal obligation 仍必须原子建立。不得把此例外扩大到 ordinary Realm、managed Agent PCR、
+organization PCR 或 re-anchor/recovery。
 
 该 authority set 正由单元创建，不能循环要求尚未生效的 founding notary state 作为 receipt
 验证前提，但允许以下两个互斥且可独立验证的 ingress authority 来源：
@@ -140,6 +147,18 @@ authority、reanchor、recovery 或普通 Control Move 不得使用第二条例�
 `control_proposal_ack`；来源 2 的 caller 携带完整 anchor-unit lease set 且 Ack 字段为空，
 由同一 admitting server 在原子 ingress 中产生并返回 receipt。实现不得同时接受两种证据，也不得
 把来源 2 的 lease 当作可调用单 Event receipt endpoint 的凭据。
+
+**authority-authored self-principal PCR Move**：human PCR genesis 已由 accepted Seal 建立后，若
+Control Move 同时满足 `realm_id=principal_control_realm_id(actor_id)`、current notary profile 为
+`single_did(actor_id)`、proof method 精确为该 principal 当前 active accepted device 的 canonical
+`{principal_id}#{device_id}`，并通过 generation/fence、current Seal basis 与完整 Event signature 校验，
+则该 device 就是 proposal authority 且已经 author exact Move；这不是需要另一个 authority 签收的
+proposal。此类 Move **MUST** 省略独立 Control Proposal Ack，admitting service 仍须原子持久化
+canonical Event 与无 Ack 的 pending Control row，并只在同一 current device（或随后合法替代 authority）
+签署的 accepted successor Seal 覆盖该 digest 后 materialize effect。duplicate 必须回放首次 admission，
+不得补签 Ack 或推进期限。任一 profile、principal、device method、accepted generation 或 Seal basis不匹配
+都必须 fail closed，且不得使用本例外。managed Agent controller delegation、organization governance、
+ordinary Realm、re-anchor/recovery 与任意 threshold/mixed notary 继续走上文的显式 Ack/quorum 轨道。
 
 Realm 可通过 `proposal_decision_window_ms`、`proposal_absolute_deadline_ms` 与
 `max_proposal_defers` 声明更严格的有效值；协议硬上限：

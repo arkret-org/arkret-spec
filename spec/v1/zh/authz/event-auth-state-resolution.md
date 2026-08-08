@@ -484,7 +484,12 @@ Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名�
 
 ### 7.2 控制面 Control Proposal Ack 与 inclusion obligation
 
-控制面 pending Control Move MUST 在 `proposal_intake_sla_ms` 内得到签名 Control Proposal Ack（控制提案签收）或签名 rejection。`proposal_intake_sla_ms` 的权威字段是 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `proposal_intake_sla_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`，v1 wire hard `maximum 86400000`），与 `seal_compaction_max_interval_ms`（§6.2）同量级；其 wire 上限登记于 [`scalability-constraints.md`](../conformance/scalability-constraints.md) §4。SLA 计时以 notary 签署的提交时间为准（与 §4.3 `distance` 同源），不用本地接收时间。
+除 [`cba-profiles.md` §4](./cba-profiles.md) 定义的 authority-authored human
+self-principal PCR Move 外，控制面 pending Control Move MUST 在 `proposal_intake_sla_ms` 内得到签名
+Control Proposal Ack（控制提案签收）或签名 rejection。该唯一例外已由 current accepted device 作为
+exact Move 的 author/authority，不产生第二份 Ack 或 decision deadline，但仍必须进入 pending Control
+index，并且只有 accepted successor Seal 能使其生效。`proposal_intake_sla_ms` 的权威字段是
+[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `proposal_intake_sla_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`，v1 wire hard `maximum 86400000`），与 `seal_compaction_max_interval_ms`（§6.2）同量级；其 wire 上限登记于 [`scalability-constraints.md`](../conformance/scalability-constraints.md) §4。SLA 计时以 notary 签署的提交时间为准（与 §4.3 `distance` 同源），不用本地接收时间。
 
 **Proposal 有界决议（normative）**：`proposal_intake_sla_ms` 只管「多久确认收到」。authority
 接受 proposal ingress 后签发的 Ack 还 MUST 承诺：
@@ -498,7 +503,8 @@ defer_count=0, authority_set_ref, authority_acks[]
 [`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。
 `ak.self.events.command.submit` / `ak.peer.events.command.submit` 对 accepted 或 byte-identical
 duplicate Control Move MUST 在 `EventsSubmitOutcome.control_proposal_acks[]` 返回已持久化的
-原 Ack；DataEvent 不得进入该数组。重复提交不得重签或延长任何 deadline。
+原 Ack；authority-authored self-principal PCR Move 必须省略该数组项，DataEvent 也不得进入该数组。
+重复提交不得重签或延长任何 deadline。
 Realm 的 `proposal_decision_window_ms` 给出首个决议窗口（default 30,000ms，协议硬上限
 24h），`proposal_absolute_deadline_ms` 给出从 signed `received_at` 起不可延长的绝对窗口
 （default 90,000ms，协议硬上限 72h），`max_proposal_defers` 给出 defer 次数上限

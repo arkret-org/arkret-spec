@@ -59,7 +59,8 @@ tools/
 ## Public v1 artifact
 
 `spec/v1/artifacts/registry/contract-registry.json` 是当前工作树的 canonical catalog。
-`site/public/v1/contract-registry-1.0.0.json` 是 v1 当前唯一 public catalog snapshot。
+`site/public/v1/contract-registry-1.0.0-candidate.json` 是当前 `v1.0.0-candidate` release tag
+对应且唯一受版本控制的 public catalog snapshot。
 仓库不同时维护 rc / stable 两套 public catalog；`tools/artifact_pipeline.py generate`
 只刷新这个当前 v1 snapshot，`check` 用 count/hash gate 证明它与 canonical catalog 一致。
 

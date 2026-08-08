@@ -12,10 +12,12 @@ Layout (post-restructure):
   spec/v1/artifacts/bindings/          non-HTTP bindings
   spec/v1/artifacts/fixtures/          conformance fixtures
 
-This pipeline owns two responsibilities only:
+This pipeline owns three responsibilities:
 
   generate   regenerate derived registry views from contract-registry.json
-  check      verify no drift, fixture digests, artifact versions, then run lints
+             and the single version-pinned public registry snapshot
+  check      verify generated/public drift, fixture digests, artifact versions,
+             then run lints
 
 The legacy "sync canonical files into zh/ mirrors" and "rewrite generated
 markdown tables inside zh/sync/service-api-schema.{md,mdx}" responsibilities
@@ -941,6 +943,30 @@ def write_public_registry_snapshot() -> None:
         print(f"updated {target.relative_to(ROOT).as_posix()}")
 
 
+def check_public_registry_snapshot() -> list[str]:
+    expected_path = current_public_registry_path()
+    present = sorted(PUBLIC_V1.glob("contract-registry-*.json"))
+    errors: list[str] = []
+    unexpected = [path for path in present if path != expected_path]
+    for path in unexpected:
+        errors.append(
+            f"obsolete public registry snapshot: {path.relative_to(ROOT).as_posix()} "
+            f"(current release tag requires {expected_path.name})"
+        )
+    if not expected_path.exists():
+        errors.append(
+            f"missing public registry snapshot {expected_path.relative_to(ROOT).as_posix()} "
+            "(run python tools/artifact_pipeline.py generate)"
+        )
+        return errors
+    if expected_path.read_bytes() != CONTRACT_REGISTRY_PATH.read_bytes():
+        errors.append(
+            f"public registry snapshot drift: {expected_path.relative_to(ROOT).as_posix()} "
+            "(run python tools/artifact_pipeline.py generate)"
+        )
+    return errors
+
+
 def check_derived_registry_views() -> list[str]:
     errors: list[str] = []
     for path, payload in generated_registry_payloads(load_contract_registry()).items():
@@ -1032,6 +1058,7 @@ def cmd_generate(_: argparse.Namespace) -> int:
     write_id_wire_form_derivations()
     write_derived_registry_views()
     write_operation_schema_index()
+    write_public_registry_snapshot()
     completeness_status = run_operation_completeness_report("generate")
     presence_status = run_property_presence_manifest("generate")
     coverage_status = run_schema_consumer_coverage("generate")
@@ -1050,6 +1077,7 @@ def cmd_check(_: argparse.Namespace) -> int:
     errors.extend(check_id_wire_form_derivations())
     errors.extend(check_derived_registry_views())
     errors.extend(check_operation_schema_index())
+    errors.extend(check_public_registry_snapshot())
     errors.extend(check_classification_discipline())
     if errors:
         for error in errors:
@@ -1104,7 +1132,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     snapshot_parser = subparsers.add_parser(
         "snapshot",
-        help="write the version-pinned public catalog snapshot under site/public/v1 (build/deploy step; not committed)",
+        help="write the committed version-pinned public registry snapshot under site/public/v1",
     )
     snapshot_parser.set_defaults(func=cmd_snapshot)
 

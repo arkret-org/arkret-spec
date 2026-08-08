@@ -420,7 +420,7 @@ Native Personal Agent 不建立独立的面向用户 Recovery Key，也不得要
 
 首次设备授权不是账号服务签发的临时 credential，也不是在 PCR 创建后的第二个审批流程。客户端在任何外部副作用前必须 durable 保存 recovery/identity-root、device identity、HPKE、DPoP keys 与完整 registration draft，然后一次构造：
 
-- did:webvh entry 0，active update key 即 identity root；DID Document 不承载设备目录或设备授权 service；
+- did:webvh entry 0（Arkret 零基 history 的 `history[0]`，即 did:webvh 原生 `seq=1` 且 `versionId` 以 `1-` 开头的 inception entry），active update key 即 identity root；DID Document 不承载设备目录或设备授权 service；实现不得把 Arkret 的逻辑 entry index 误作原生 log sequence；
 - 扩展 `identity_creation_control_proof`，由同一 identity root 签名并承诺 principal/PCR id、DID operation digest、create payload digest、founding authorize payload digest、首个 Standard session request digest、lease fence、DPoP/audience/origin/trust-domain 与 expiry；
 - ordered `pcr_genesis_unit=[ak.realm.create, ak.device.authorize]`。create 由 identity root 签名；authorize 由 founding device 自签，`authorization_binding_kind="root_anchored"`。
 
@@ -557,7 +557,6 @@ issuance_preimage = JCS({
   session_id,
   cnf,
   credential_class,
-  recovery_binding?,
   holder_binding?,
   proof_kind?,
   scope_details?
@@ -576,8 +575,10 @@ JWT jti = grant_id
 的无 padding Base64URL 作为 signed claim。`scopes` MUST 在授权求交后按协议 byte-wise 排序去重；时间
 MUST 使用 UTC canonical millisecond；optional 字段无值时 MUST 省略而非写 `null`。
 
-credential-class binding 是 closed XOR，并且也是 preimage 的身份材料：`standard` MUST 携带
-`holder_binding`；`recovery_restricted` MUST 携带 `recovery_binding`。两种分支必须精确二选一。因而修改 holder 或 recovery binding 必须改变 canonical preimage、digest、grant ID 与 `jti`；verifier 不得把 binding 当作不参与 ID 的附加 metadata。
+credential class 与 holder binding 都是 preimage 的身份材料：Arkret v1 的 `credential_class` 固定为
+`standard`，并且 MUST 携带 `holder_binding`。恢复完成在核验 replacement device 后直接签发同一种 Standard
+grant，不存在临时恢复凭据类。因而修改 holder binding 必须改变 canonical preimage、digest、grant ID 与
+`jti`；verifier 不得把 binding 当作不参与 ID 的附加 metadata。
 
 `session_public_key` MUST 先解析为受支持且不含 private member 的 public JWK，再编码为 RFC 8785 JCS
 UTF-8 字符串；JWT claim 自身必须携带该 canonical 字符串。接收方重新解析并序列化后若不能逐字节得到
