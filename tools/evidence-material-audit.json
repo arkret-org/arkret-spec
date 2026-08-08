@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 106,
+  "audited_occurrence_count": 107,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -456,6 +456,18 @@
       "occurrences": 8,
       "disposition": "registry_contract",
       "reason": "Declares conformance evidence kinds rather than a wire material instance."
+    },
+    {
+      "file": "principal-service-binding.schema.json",
+      "key": "authority_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Carries the method-specific DID resolution evidence receipt that binds the accepted service verification method to the recorded document digest."
     },
     {
       "file": "sdk-conformance-claim.schema.json",

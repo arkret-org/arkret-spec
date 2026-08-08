@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-08.3",
+  "version": "2026-08-08.4",
   "codes": [
     {
       "code": "bad_json",
@@ -2997,6 +2997,33 @@
         "state_resolution"
       ],
       "description": "A `ak.account.status` event attempted to supersede an `erasure_pending` status (via `supersedes_status_event_id`) down to a lower-severity status. `erasure_pending` is terminal: erasure physically destroys data, so reducers / projections MUST reject the downgrade and keep `erasure_pending` as the current status. See zh/identity/account-lifecycle.md §3."
+    },
+    {
+      "code": "erasure_receipt_authority_invalid",
+      "applies_to": [
+        "account_status",
+        "identity_resolution",
+        "service_call"
+      ],
+      "description": "The erasure receipt issuer, signing verification method, service transport identity or accepted-at authority chain does not establish authority for the claimed erasure scope. The receiver MUST reject before deletion or durable acknowledgement."
+    },
+    {
+      "code": "erasure_receipt_proof_invalid",
+      "applies_to": [
+        "account_status",
+        "identity_resolution",
+        "service_call"
+      ],
+      "description": "One or more required erasure receipt proofs fail canonical transcript, signature, threshold or validity-window verification. The receiver MUST reject before deletion or durable acknowledgement."
+    },
+    {
+      "code": "erasure_receipt_stub_binding_mismatch",
+      "applies_to": [
+        "account_status",
+        "identity_resolution",
+        "service_call"
+      ],
+      "description": "The retained stub carried with an erasure receipt does not bind the receipt scope, subject, terminal status or required verification coordinates. The receiver MUST reject before deletion or durable acknowledgement."
     },
     {
       "code": "erasure_receipt_stub_digest_mismatch",

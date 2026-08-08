@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9303,
-    "total_schema_documents": 157,
+    "total_properties": 9370,
+    "total_schema_documents": 159,
     "by_presence_class": {
-      "optional": 2828,
+      "optional": 2835,
       "optional_defaulted": 67,
-      "required": 6026,
-      "required_nullable": 113,
-      "tristate": 269
+      "required": 6082,
+      "required_nullable": 115,
+      "tristate": 271
     },
-    "tristate_occurrences": 269,
-    "tristate_audit_targets": 163,
+    "tristate_occurrences": 271,
+    "tristate_audit_targets": 164,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 153,
+      "absent_null_equivalent": 154,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -165,6 +165,8 @@
     "message.schema.json/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment",
     "message.schema.json/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment",
     "message.schema.json/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment",
+    "mimi-operations.schema.json/$defs/mimi_update_consent_request_body/allOf/0/else/properties/consent_event",
+    "mimi-operations.schema.json/$defs/mimi_update_consent_request_body/allOf/0/then/properties/consent_event",
     "morph.schema.json/$defs/content_block/allOf/2/then/properties/body",
     "morph.schema.json/$defs/content_block_long_text/oneOf/1/allOf/0/properties/attachment",
     "morph.schema.json/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment",
@@ -1161,6 +1163,17 @@
         "/$defs/content_block_long_text/oneOf/1/allOf/1/properties/attachment",
         "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment",
         "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "mimi-operations.schema.json",
+      "shape": "/$defs/mimi_update_consent_request_body",
+      "instance_path": "/consent_event",
+      "occurrences": [
+        "/$defs/mimi_update_consent_request_body/allOf/0/else/properties/consent_event",
+        "/$defs/mimi_update_consent_request_body/allOf/0/then/properties/consent_event"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -4080,6 +4093,7 @@
         "/$defs/contact_basis_evidence_bundle/properties/current_proofs": "required",
         "/$defs/contact_basis_evidence_bundle/properties/glare_concurrency_attestations": "optional",
         "/$defs/contact_basis_evidence_bundle/properties/normal_response_receipt": "optional",
+        "/$defs/contact_basis_evidence_bundle/properties/previous_terminal_basis_id": "optional",
         "/$defs/contact_basis_evidence_bundle/properties/request_receipts": "required",
         "/$defs/contact_current_proof/properties/accepted_frontier": "required",
         "/$defs/contact_current_proof/properties/basis_id": "required",
@@ -4089,6 +4103,7 @@
         "/$defs/contact_current_proof/properties/head_event_ref": "required",
         "/$defs/contact_current_proof/properties/issuer": "required",
         "/$defs/contact_current_proof/properties/signature": "required",
+        "/$defs/contact_current_proof/properties/terminal": "required",
         "/$defs/contact_introduction_evidence/oneOf/0/properties/kind": "required",
         "/$defs/contact_introduction_evidence/oneOf/0/properties/principal_locator": "required",
         "/$defs/contact_introduction_evidence/oneOf/1/properties/kind": "required",
@@ -4197,6 +4212,7 @@
         "/$defs/contact_operation_request/oneOf/0/properties/operation_id": "required",
         "/$defs/contact_operation_request/oneOf/0/properties/peer": "required",
         "/$defs/contact_operation_request/oneOf/0/properties/phase": "required",
+        "/$defs/contact_operation_request/oneOf/0/properties/previous_terminal_basis_id": "optional",
         "/$defs/contact_operation_request/oneOf/1/properties/idempotency_key": "required",
         "/$defs/contact_operation_request/oneOf/1/properties/operation_id": "required",
         "/$defs/contact_operation_request/oneOf/1/properties/phase": "required",
@@ -4421,6 +4437,7 @@
         "/$defs/request_acceptance_receipt_core/properties/holder": "required",
         "/$defs/request_acceptance_receipt_core/properties/issuer": "required",
         "/$defs/request_acceptance_receipt_core/properties/peer": "required",
+        "/$defs/request_acceptance_receipt_core/properties/previous_terminal_basis_id": "optional",
         "/$defs/request_acceptance_receipt_core/properties/request_digest": "required",
         "/$defs/request_acceptance_receipt_core/properties/request_event_ref": "required",
         "/$defs/request_acceptance_receipt_core/properties/slot_predecessor": "optional",
@@ -5234,6 +5251,28 @@
         "/properties/aead_profile",
         "/properties/purpose"
       ]
+    },
+    "erasure-receipt-operations.schema.json": {
+      "schema_ids": [
+        "ak.schema.erasure_receipt_operations.v1"
+      ],
+      "properties": {
+        "/$defs/erasure_receipt_acceptance/properties/accepted_at": "required",
+        "/$defs/erasure_receipt_acceptance/properties/issuer_service_id": "required",
+        "/$defs/erasure_receipt_acceptance/properties/proof": "required",
+        "/$defs/erasure_receipt_acceptance/properties/receipt_digest": "required",
+        "/$defs/erasure_receipt_acceptance/properties/receipt_id": "required",
+        "/$defs/erasure_receipt_acceptance/properties/receiver_service_id": "required",
+        "/$defs/erasure_receipt_acceptance/properties/status": "required",
+        "/$defs/erasure_receipt_package/properties/receipt": "required",
+        "/$defs/erasure_receipt_package/properties/receipt_digest": "required",
+        "/$defs/erasure_receipt_package/properties/retained_stub": "required",
+        "/$defs/erasure_receipt_resource/properties/package": "required",
+        "/$defs/erasure_receipt_submit_outcome/oneOf/1/properties/reason_code": "required",
+        "/$defs/erasure_receipt_submit_outcome/oneOf/1/properties/receipt_id": "required",
+        "/$defs/erasure_receipt_submit_outcome/oneOf/1/properties/status": "required",
+        "/$defs/erasure_receipt_submit_request_body/properties/package": "required"
+      }
     },
     "erasure-receipt.schema.json": {
       "schema_ids": [
@@ -6300,6 +6339,7 @@
         "/$defs/contact_accepted_payload/properties/basis_id": "required",
         "/$defs/contact_accepted_payload/properties/granted_to_peer_scopes": "required",
         "/$defs/contact_accepted_payload/properties/peer": "required",
+        "/$defs/contact_accepted_payload/properties/previous_terminal_basis_id": "optional",
         "/$defs/contact_accepted_payload/properties/request_acceptance_receipt_digest": "required",
         "/$defs/contact_accepted_payload/properties/request_event_ref": "required",
         "/$defs/contact_accepted_payload/properties/version": "required",
@@ -6311,6 +6351,7 @@
         "/$defs/contact_requested_payload/properties/introduction_evidence_digest": "required",
         "/$defs/contact_requested_payload/properties/message": "optional",
         "/$defs/contact_requested_payload/properties/peer": "required",
+        "/$defs/contact_requested_payload/properties/previous_terminal_basis_id": "optional",
         "/$defs/contact_tombstoned_payload/properties/basis_id": "required",
         "/$defs/contact_tombstoned_payload/properties/peer": "required",
         "/$defs/contact_tombstoned_payload/properties/predecessor_event_ref": "required",
@@ -9057,10 +9098,20 @@
         "/$defs/mimi_submit_message_request_body/properties/epoch": "optional",
         "/$defs/mimi_submit_message_request_body/properties/mls_group_id": "optional",
         "/$defs/mimi_submit_message_request_body/properties/sender_actor_id": "required",
-        "/$defs/mimi_update_consent_outcome/properties/event_ref": "optional",
+        "/$defs/mimi_update_consent_outcome/properties/consent_id": "required",
+        "/$defs/mimi_update_consent_outcome/properties/decision": "required",
+        "/$defs/mimi_update_consent_outcome/properties/event_ref": "required",
         "/$defs/mimi_update_consent_outcome/properties/status": "required",
         "/$defs/mimi_update_consent_outcome/properties/updated_at": "required",
+        "/$defs/mimi_update_consent_request_body/allOf/0/else/properties/consent_event": "tristate",
+        "/$defs/mimi_update_consent_request_body/allOf/0/else/properties/consent_event/properties/event": "required_nullable",
+        "/$defs/mimi_update_consent_request_body/allOf/0/else/properties/consent_event/properties/event/properties/kind": "required",
+        "/$defs/mimi_update_consent_request_body/allOf/0/if/properties/decision": "required",
+        "/$defs/mimi_update_consent_request_body/allOf/0/then/properties/consent_event": "tristate",
+        "/$defs/mimi_update_consent_request_body/allOf/0/then/properties/consent_event/properties/event": "required_nullable",
+        "/$defs/mimi_update_consent_request_body/allOf/0/then/properties/consent_event/properties/event/properties/kind": "required",
         "/$defs/mimi_update_consent_request_body/properties/actor_id": "required",
+        "/$defs/mimi_update_consent_request_body/properties/consent_event": "required",
         "/$defs/mimi_update_consent_request_body/properties/consent_id": "required",
         "/$defs/mimi_update_consent_request_body/properties/decision": "required",
         "/$defs/mimi_update_consent_request_body/properties/expires_at": "optional",
@@ -9784,6 +9835,47 @@
         "/$defs/standard_holder_binding/oneOf/1/properties/device_id": "required",
         "/$defs/standard_holder_binding/oneOf/1/properties/kind": "required",
         "/$defs/standard_holder_binding/oneOf/1/properties/verification_method": "required"
+      }
+    },
+    "principal-service-binding.schema.json": {
+      "schema_ids": [
+        "ak.schema.principal_service_binding.v1"
+      ],
+      "properties": {
+        "/$defs/accepted_at_service_binding/properties/accepted_at": "required",
+        "/$defs/accepted_at_service_binding/properties/authority_evidence": "required",
+        "/$defs/accepted_at_service_binding/properties/binding_digest": "required",
+        "/$defs/accepted_at_service_binding/properties/document_digest": "required",
+        "/$defs/accepted_at_service_binding/properties/endpoint_origins": "required",
+        "/$defs/accepted_at_service_binding/properties/expires_at": "optional",
+        "/$defs/accepted_at_service_binding/properties/history_head": "optional",
+        "/$defs/accepted_at_service_binding/properties/not_before": "required",
+        "/$defs/accepted_at_service_binding/properties/principal_authorization_proof": "required",
+        "/$defs/accepted_at_service_binding/properties/principal_id": "required",
+        "/$defs/accepted_at_service_binding/properties/service_acceptance_proof": "required",
+        "/$defs/accepted_at_service_binding/properties/service_id": "required",
+        "/$defs/accepted_at_service_binding/properties/service_kind": "required",
+        "/$defs/accepted_at_service_binding/properties/service_verification_method": "required",
+        "/$defs/accepted_at_service_binding/properties/trust_domain": "required",
+        "/$defs/accepted_at_service_binding/properties/version_id": "optional",
+        "/$defs/principal_service_binding_continuity/properties/accepted_binding": "required",
+        "/$defs/principal_service_binding_continuity/properties/cutovers": "required",
+        "/$defs/principal_service_cutover/properties/cutover_sequence": "required",
+        "/$defs/principal_service_cutover/properties/effective_at": "required",
+        "/$defs/principal_service_cutover/properties/fence_digest": "required",
+        "/$defs/principal_service_cutover/properties/new_binding": "required",
+        "/$defs/principal_service_cutover/properties/new_service_id": "required",
+        "/$defs/principal_service_cutover/properties/new_service_proof": "required",
+        "/$defs/principal_service_cutover/properties/previous_binding_digest": "required",
+        "/$defs/principal_service_cutover/properties/previous_service_id": "required",
+        "/$defs/principal_service_cutover/properties/previous_service_proof": "required",
+        "/$defs/principal_service_cutover/properties/principal_id": "required",
+        "/$defs/principal_service_cutover/properties/principal_proof": "required",
+        "/$defs/principal_service_cutover/properties/trust_domain": "required",
+        "/$defs/service_verification_method/properties/controller": "required",
+        "/$defs/service_verification_method/properties/id": "required",
+        "/$defs/service_verification_method/properties/public_key_multibase": "required",
+        "/$defs/service_verification_method/properties/type": "required"
       }
     },
     "public-key.schema.json": {
@@ -11719,11 +11811,13 @@
         "/$defs/DirectConversationFoundingFederationSubmission/properties/founder_basis_evidence": "required",
         "/$defs/DirectConversationFoundingFederationSubmission/properties/signer_key_evidence": "optional",
         "/$defs/DirectConversationFoundingFederationSubmission/properties/source_acceptance_receipt": "required",
+        "/$defs/DirectConversationFoundingFederationSubmission/properties/source_service_continuity": "required",
         "/$defs/DirectConversationFoundingFederationSubmission/properties/unit_kind": "required",
         "/$defs/DirectConversationFoundingUnitSubmission/properties/cba_proof_bundles": "optional",
         "/$defs/DirectConversationFoundingUnitSubmission/properties/events": "required",
         "/$defs/DirectConversationFoundingUnitSubmission/properties/founder_basis_evidence": "required",
         "/$defs/DirectConversationFoundingUnitSubmission/properties/idempotency_key": "required",
+        "/$defs/DirectConversationFoundingUnitSubmission/properties/source_service_binding": "required",
         "/$defs/DirectConversationFoundingUnitSubmission/properties/unit_kind": "required",
         "/$defs/DirectoryAnnounceOutcome/properties/announce_id": "required",
         "/$defs/DirectoryAnnounceOutcome/properties/effective_ttl_seconds": "required",

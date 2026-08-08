@@ -310,9 +310,44 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "direct_conversation_founding_unit_invalid",
       "instance": {
-        "unit_kind": "direct_conversation_founding",
-        "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4A6",
-        "events": [
+      "unit_kind": "direct_conversation_founding",
+      "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4A6",
+      "source_service_binding": {
+        "principal_id": "did:webvh:z6mkfixture:founder.example",
+        "service_id": "did:webvh:z6mkfixture:principal.example",
+        "trust_domain": "ak:trust_domain:fixture",
+        "service_kind": "principal_server",
+        "service_verification_method": {
+          "id": "did:webvh:z6mkfixture:principal.example#key-1",
+          "controller": "did:webvh:z6mkfixture:principal.example",
+          "type": "Multikey",
+          "public_key_multibase": "z6MkhFixtureKey"
+        },
+        "endpoint_origins": [
+          "https://principal.example"
+        ],
+        "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "authority_evidence": {
+          "kind": "ak.did.binding_evidence.v1",
+          "method": "webvh",
+          "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "method_proofs": []
+        },
+        "not_before": "2026-08-01T00:00:00.000Z",
+        "accepted_at": "2026-08-01T00:00:00.000Z",
+        "binding_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "service_acceptance_proof": {
+          "verification_method": "did:webvh:z6mkfixture:principal.example#key-1",
+          "created_at": "2026-08-01T00:00:00.000Z",
+          "jws": "a"
+        },
+        "principal_authorization_proof": {
+          "verification_method": "did:webvh:z6mkfixture:founder.example#key-1",
+          "created_at": "2026-08-01T00:00:00.000Z",
+          "jws": "a"
+        }
+      },
+      "events": [
           {},
           {}
         ],
@@ -332,9 +367,44 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "direct_conversation_founding_unit_invalid",
       "instance": {
-        "unit_kind": "direct_conversation_founding",
-        "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4A6",
-        "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+      "unit_kind": "direct_conversation_founding",
+      "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4A6",
+      "source_service_binding": {
+        "principal_id": "did:webvh:z6mkfixture:founder.example",
+        "service_id": "did:webvh:z6mkfixture:principal.example",
+        "trust_domain": "ak:trust_domain:fixture",
+        "service_kind": "principal_server",
+        "service_verification_method": {
+          "id": "did:webvh:z6mkfixture:principal.example#key-1",
+          "controller": "did:webvh:z6mkfixture:principal.example",
+          "type": "Multikey",
+          "public_key_multibase": "z6MkhFixtureKey"
+        },
+        "endpoint_origins": [
+          "https://principal.example"
+        ],
+        "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "authority_evidence": {
+          "kind": "ak.did.binding_evidence.v1",
+          "method": "webvh",
+          "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "method_proofs": []
+        },
+        "not_before": "2026-08-01T00:00:00.000Z",
+        "accepted_at": "2026-08-01T00:00:00.000Z",
+        "binding_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "service_acceptance_proof": {
+          "verification_method": "did:webvh:z6mkfixture:principal.example#key-1",
+          "created_at": "2026-08-01T00:00:00.000Z",
+          "jws": "a"
+        },
+        "principal_authorization_proof": {
+          "verification_method": "did:webvh:z6mkfixture:founder.example#key-1",
+          "created_at": "2026-08-01T00:00:00.000Z",
+          "jws": "a"
+        }
+      },
+      "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
         "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
         "events": [
           {},
@@ -357,8 +427,46 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
-        "unit_kind": "direct_conversation_founding",
-        "service_binding_ref": {
+      "unit_kind": "direct_conversation_founding",
+      "source_service_continuity": {
+        "accepted_binding": {
+          "principal_id": "did:webvh:z6mkfixture:founder.example",
+          "service_id": "did:webvh:z6mkfixture:principal.example",
+          "trust_domain": "ak:trust_domain:fixture",
+          "service_kind": "principal_server",
+          "service_verification_method": {
+            "id": "did:webvh:z6mkfixture:principal.example#key-1",
+            "controller": "did:webvh:z6mkfixture:principal.example",
+            "type": "Multikey",
+            "public_key_multibase": "z6MkhFixtureKey"
+          },
+          "endpoint_origins": [
+            "https://principal.example"
+          ],
+          "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "authority_evidence": {
+            "kind": "ak.did.binding_evidence.v1",
+            "method": "webvh",
+            "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "method_proofs": []
+          },
+          "not_before": "2026-08-01T00:00:00.000Z",
+          "accepted_at": "2026-08-01T00:00:00.000Z",
+          "binding_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "service_acceptance_proof": {
+            "verification_method": "did:webvh:z6mkfixture:principal.example#key-1",
+            "created_at": "2026-08-01T00:00:00.000Z",
+            "jws": "a"
+          },
+          "principal_authorization_proof": {
+            "verification_method": "did:webvh:z6mkfixture:founder.example#key-1",
+            "created_at": "2026-08-01T00:00:00.000Z",
+            "jws": "a"
+          }
+        },
+        "cutovers": []
+      },
+      "service_binding_ref": {
           "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "realm_policy_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "membership_frontier": [],

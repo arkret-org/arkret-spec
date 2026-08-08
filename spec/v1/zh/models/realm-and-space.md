@@ -414,15 +414,18 @@ Realm 有两个终态 event，语义不同：
 当部署对一个 Realm（或一个 principal）执行 hard erasure 时，**issuing** Principal Server MUST：
 
 - 发布一条 `ak.audit.erasure_receipt`（durable_event）；
-- 在 federation push 中带上该 receipt 给所有曾接收过该 Realm 内容的 peer Principal Server；
-- 在 server describe `erasure_receipts_endpoint` 暴露 receipt 列表，便于 verifier 查询。
+- 把 receipt、`receipt_digest` 与 exact retained stub 封装成 `erasure_receipt_package`，通过 `ak.peer.erasure_receipt.command.submit`（`POST /_arkret/peer/erasure-receipts`）投递给所有曾接收过该 scope 内容的 peer Principal Server；
+- 为每个 destination 写入有上限的 durable outbox，并只在收到 receiver 签名的 `accepted` 或 `duplicate` acknowledgement 后关闭；网络不明时使用相同 Idempotency-Key 与逐字节相同 body 重试；
+- 通过 `ak.peer.erasure_receipt.resource.get`（`GET /_arkret/peer/erasure-receipts/{receipt_id}`）向 issuer、receiver 或显式授权 auditor 返回 exact package；未知、隐藏与未授权统一 `not_found`，不得提供可枚举列表。
 
 **receiving** peer 处理 receipt 时 MUST：
 
-- 验证 receipt 签名链与 schema；
+- 在任何删除或 durable acknowledgement 之前，验证 service-to-service transport，要求 `Source-Service-ID == receipt.issuer`，并验证 receipt schema、签名链、issued-at authority、`receipt_digest`、retained-stub digest 与 scope/subject/terminal binding；
 - 如果 peer 本地存有该 erasure scope 内的 blob / projection / cache，按 receipt `scope.storage_boundary` 走本地删除流程，并发布自己的 `ak.audit.erasure_receipt` 反馈实际结果；
 - 失败（legal hold、retention 冲突、blob 已被备份到不可达存储）MUST 在 peer 自己的 receipt `outcome` 字段写 `partially_completed` 或 `blocked_by_legal_hold`，不得假装成功；
 - 任何 peer 未在 `erasure_propagation_window_ms`（默认 7 天）内回执，issuing server MUST 在该 erasure receipt 的 `fanout_status` 字段标 `incomplete`（并在 `peer_receipts[]` 对应 peer 条目记 `status=timed_out`），把 incomplete 状态暴露给 audit/UI；不得静默吞没。`fanout_status` 与 per-peer `peer_receipts` 子结构定义见 `ak.schema.erasure_receipt.v1`（schema `artifacts/schemas/erasure-receipt.schema.json`）。
+
+提交操作的幂等域固定为 `(source service, destination service, Idempotency-Key)`：同 key / 同 canonical body 必须返回首次生成的 byte-identical acknowledgement 与原 `accepted_at`；同 key / 不同 body 返回 `duplicate_conflict` 且零写入。receiver acknowledgement 的 proof 对去掉 proof 的完整 closed object 使用 `H("ak.erasure-receipt-acceptance.v1", object)`，因此发送方可以离线验证谁在何时接受了哪一个 receipt digest。
 
 **Hash chain linkage 保留**：hard erasure 仍保留 event graph verification stub（`retained_stub_digest` 字段），供后续 verifier 校验 Event ID 的结构、Event ID 与冗余 digest 的一致性、receipt/stub binding，并连接外部仍存在的 proof、Seal 与授权证据。它只保留已记录的 identity/linkage evidence；原 canonical Event bytes 已擦除后，stub 不能独立重算或证明这些 bytes 的 hash preimage。`retained_stub_digest` 的输入是 `canonical_json(retained_stub)`；`retained_stub` 使用 `ak.schema.erasure_verification_stub.v1` 结构，至少绑定 subject、scope、receipt_id、completed_at，并在适用时包含 event digest / proof `event_digest`、seal inclusion、redaction authorization ref 与 legal-hold ref。Stub MUST NOT 保留已擦除 plaintext 或未加盐低熵 plaintext digest；若 receipt 不内联 `retained_stub`，签发服务必须在 erasure receipt endpoint 暴露同一 canonical stub。projection / UI MUST 显示 `[erased]` 占位而不是模糊化。
 

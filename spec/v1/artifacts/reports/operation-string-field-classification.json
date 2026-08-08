@@ -8,13 +8,13 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 66,
+    "total_fields": 67,
     "by_classification": {
       "bounded_free_text": 7,
-      "closed_enum": 30,
-      "closed_literal": 8,
+      "closed_enum": 31,
+      "closed_literal": 9,
       "validated_open_reason_code": 17,
-      "validated_open_token": 4
+      "validated_open_token": 3
     },
     "unclassified": 0
   },
@@ -229,6 +229,14 @@
       "basis": "JSON Schema enum"
     },
     {
+      "schema_file": "erasure-receipt-operations.schema.json",
+      "shape": "erasure_receipt_acceptance",
+      "field": "status",
+      "pointer": "#/$defs/erasure_receipt_acceptance/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
       "schema_file": "join-policy-operations.schema.json",
       "shape": "application_entry",
       "field": "status",
@@ -353,8 +361,8 @@
       "shape": "mimi_update_consent_outcome",
       "field": "status",
       "pointer": "#/$defs/mimi_update_consent_outcome/properties/status",
-      "classification": "validated_open_token",
-      "basis": "open protocol token with schema boundary"
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
     },
     {
       "schema_file": "mimi-operations.schema.json",

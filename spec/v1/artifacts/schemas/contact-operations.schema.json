@@ -268,6 +268,10 @@
         "basis_id": {
           "$ref": "./principal-operations.schema.json#/$defs/hash"
         },
+        "previous_terminal_basis_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash",
+          "description": "Absent only for a root Contact basis. On recontact it is copied from every signed request fact and request acceptance receipt in this bundle and points to the immediately preceding terminal basis. The bundle field is derived convenience, never independent authority."
+        },
         "basis": {
           "$ref": "#/$defs/contact_basis"
         },
@@ -372,6 +376,7 @@
         "issuer",
         "head_event_ref",
         "head_digest",
+        "terminal",
         "accepted_frontier",
         "complete_through",
         "fresh_until",
@@ -389,6 +394,10 @@
         },
         "head_digest": {
           "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "terminal": {
+          "type": "boolean",
+          "description": "Signed current-head classification. true means head_event_ref is an accepted ak.contact.tombstoned terminal head for this basis; false means the basis remains non-terminal. A historical predecessor in a recontact continuity chain requires true from both directional proofs."
         },
         "accepted_frontier": {
           "type": "array",
@@ -1087,6 +1096,10 @@
             },
             "introduction_evidence": {
               "$ref": "#/$defs/contact_introduction_evidence"
+            },
+            "previous_terminal_basis_id": {
+              "$ref": "#/$defs/hash",
+              "description": "Immediate previously accepted terminal Contact basis for a recontact request. The Principal Server MUST require an exact local terminal-basis match when present and MUST require it when a terminal predecessor exists."
             },
             "message": {
               "type": "string"
@@ -2771,6 +2784,10 @@
         },
         "slot_predecessor": {
           "$ref": "./principal-operations.schema.json#/$defs/hash"
+        },
+        "previous_terminal_basis_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/hash",
+          "description": "Present exactly when this accepted request starts a recontact after a prior accepted basis became terminal. It MUST equal the requester-signed ak.contact.requested payload field and is covered by receipt_digest/signature. It is distinct from slot_predecessor, which is the issuer-local request-slot CAS predecessor and can also follow a rejected proposal."
         },
         "request_event_ref": {
           "$ref": "#/$defs/event_id"

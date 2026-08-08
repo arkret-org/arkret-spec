@@ -2821,7 +2821,8 @@
         "unit_kind",
         "idempotency_key",
         "events",
-        "founder_basis_evidence"
+        "founder_basis_evidence",
+        "source_service_binding"
       ],
       "properties": {
         "unit_kind": {
@@ -2843,6 +2844,10 @@
         },
         "founder_basis_evidence": {
           "$ref": "#/$defs/DirectConversationFounderBasisEvidence"
+        },
+        "source_service_binding": {
+          "$ref": "./principal-service-binding.schema.json#/$defs/accepted_at_service_binding",
+          "description": "Founder-authorized accepted-at binding for the current Principal Server. principal_id MUST equal events[0].event.actor_id, service_id MUST equal the receiving service, and accepted_at MUST be live and no later than the slot transaction. The service verifies both proofs and uses this binding_digest verbatim in its acceptance receipt; it MUST NOT synthesize the principal proof."
         },
         "cba_proof_bundles": {
           "type": "array",
@@ -2956,7 +2961,8 @@
         "unit_kind",
         "events",
         "source_acceptance_receipt",
-        "founder_basis_evidence"
+        "founder_basis_evidence",
+        "source_service_continuity"
       ],
       "properties": {
         "unit_kind": {
@@ -2976,6 +2982,10 @@
         },
         "founder_basis_evidence": {
           "$ref": "#/$defs/DirectConversationFounderBasisEvidence"
+        },
+        "source_service_continuity": {
+          "$ref": "./principal-service-binding.schema.json#/$defs/principal_service_binding_continuity",
+          "description": "Portable accepted-at binding for source_acceptance_receipt. accepted_binding.binding_digest MUST equal receipt.issuer_service_binding_digest, accepted_binding.service_id MUST equal receipt.issuer_service_id, principal_id MUST equal receipt.founder_id and accepted_at MUST equal receipt.accepted_at. The final binding after cutovers MUST equal the authenticated Source-Service-ID."
         },
         "cba_proof_bundles": {
           "type": "array",

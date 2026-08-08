@@ -209,6 +209,10 @@ glare 分支不存在 responder，`requests[0]` 依 §2 已登记的 canonical o
 
 founder **MUST** 从该 pair 的**根 founder basis** 派生，而非从 current basis。tombstone 后 recontact 产生的新 basis **MUST** 在其 request/receipt 中承诺 `previous_terminal_basis_id`；receiver **MUST** 沿该链求出唯一根 basis，并从根 basis 派生 founder。
 
+该指针的 wire 规则是封闭的：根 request Event 与根 acceptance receipt 都 **MUST** 省略 `previous_terminal_basis_id`；recontact 的 request Event、source request acceptance receipt、以及 normal response acceptance receipt **MUST** 都携带同一个“紧邻上一轮 terminal basis”的 `basis_id`。glare 分支的两个 request Event 与两张 source acceptance receipt 也 **MUST** 携带相同指针。`slot_predecessor` 只表示签发服务内部 request-slot 的 CAS 前驱，**不是**跨轮 continuity 指针，二者不得互相替代。
+
+`basis_continuity_chain` 按 current → immediate predecessor → root 排列，最多 64 段，不得重复或成环。每一段 predecessor bundle 的两张 `contact_current_proof` 都 **MUST** 令 `terminal=true`，共同证明该 basis 已 tombstone；当前 active basis 的 proof 则 **MUST** 为 `terminal=false`。每条边必须逐字节满足“后继 core/receipt 的 `previous_terminal_basis_id` 等于下一段 bundle 的 `basis_id`”；最后一段必须且只能是省略该指针的 root。proof 对完整 closed object 签名，因此 `terminal` 也在签名 transcript 内。断链、多根、跳段、非 terminal predecessor、两个方向 proof 不一致或超过上限均整体拒绝。
+
 断链、多根、成环、跳过非 terminal basis、或两个 directional proof 导出不同根，**MUST** 拒绝创建与回放。current recontact 的 responder 即使与根 basis 的 responder 不同，也 **MUST NOT** 取得创建权。Realm 一经 accepted，founder 身份只保留为 founding 审计与 §7.2 bootstrap authority 的 actor 约束；日常 authority、repair 与 recontact **MUST NOT** 再读取它。
 
 ### 5.4 create 判别与授权
@@ -261,6 +265,8 @@ founder 的 current Principal Server **MUST** 以本地唯一约束保证同一 
 
 receipt **MUST** 绑定 `pair_key`、`founder_id`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 authorization core（human 为 current/根 basis 与 evidence digest；controller↔Agent 为 provision ref/digest 与 controller binding digest）、`slot_committed`、issuer service ID 与其 accepted-at service binding digest、`accepted_at` 与 proof。它 **MUST NOT** 创建 Realm、授权 Message 或充当全局 slot；它只让 peer verifier 确认 founder 当时的 current service 已原子接受该 unit 并关闭本地唯一 slot。
 
+`issuer_service_binding_digest` 的唯一输入是 [`principal-service-binding.schema.json`](../../artifacts/schemas/principal-service-binding.schema.json) 中 `accepted_at_service_binding` 去掉 `binding_digest`、`service_acceptance_proof` 与 `principal_authorization_proof` 后的完整 closed object，按 `H("ak.principal-service-binding.v1", object)` 计算。该 snapshot 必须把 `principal_id=founder_id`、`service_id=issuer_service_id`、`accepted_at` 不晚于且在 `receipt.accepted_at` 仍有效、service DID verification method、endpoint origins、DID document digest 与 current authority evidence固定；两张 proof 分别证明 service 接受承载关系和 principal 授权该 service，任何只查询“现在是谁的服务器”的结果都不能替代 accepted-at snapshot。
+
 `proof` 的签名 transcript 是唯一封闭前像，按 §2 的 `H` 固定为：
 
 ```text
@@ -274,7 +280,7 @@ founding_receipt_transcript = H("ak.direct-conversation.founding-receipt.v1",
 transcript 与同一签名输入。
 
 carrier 是 `ak.self.events.command.submit` request union 中显式登记的 discriminated branch
-`DirectConversationFoundingUnitSubmission`（discriminator `unit_kind="direct_conversation_founding"`）：它精确要求恰好三条按 §6.1 顺序排列的 `EventInitialSubmission`、分支化 founder basis evidence 与 `idempotency_key`，并在 response union `EventsSubmitResponseBody` 中返回 `DirectConversationFoundingAcceptanceOutcome`。实现 **MUST NOT** 新增私有 endpoint、复用普通 batch 分支，也 **MUST NOT** 用本地 DTO 猜测该合同；`ak.self.direct_conversation.read.resolve` 继续 query-only，**MUST NOT** 承载 create。
+`DirectConversationFoundingUnitSubmission`（discriminator `unit_kind="direct_conversation_founding"`）：它精确要求恰好三条按 §6.1 顺序排列的 `EventInitialSubmission`、分支化 founder basis evidence、founder 已签名的 `source_service_binding` 与 `idempotency_key`，并在 response union `EventsSubmitResponseBody` 中返回 `DirectConversationFoundingAcceptanceOutcome`。binding 的 `principal_id` 必须等于 founder、`service_id` 必须等于接收服务，服务端在 slot transaction 固定并验证 `accepted_at` 后只把其已验证 `binding_digest` 写入 receipt，**MUST NOT** 代替 founder 产生 `principal_authorization_proof`。实现 **MUST NOT** 新增私有 endpoint、复用普通 batch 分支，也 **MUST NOT** 用本地 DTO 猜测该合同；`ak.self.direct_conversation.read.resolve` 继续 query-only，**MUST NOT** 承载 create。
 
 幂等与 crash/restart 语义 **MUST** 如下封闭：
 
@@ -291,10 +297,12 @@ Realm 尚不存在时无法取得普通 `federation_peer` authority，因此 [`.
 
 接收方每次 **MUST** fresh 验证：transport source 当前确实承载 founder（receipt 由迁移前旧 service 签发时还须携完整 accepted-at binding 与 cutover/fence 连续性证明）、destination 承载本地 participant、body 只含该 unit/receipt/dependencies、且 create 通过 §5.4 全部校验。Contact basis 镜像尚未到达时 **MUST** 返回 `dependency_missing` 并重试，**MUST NOT** 放行，也 **MUST NOT** 永久拒绝。
 
+该连续性证明使用 `principal_service_binding_continuity`：先验证 accepted-at snapshot digest 等于 receipt，再按 `sequence` 从 1 严格递增验证至多 16 个 `principal_service_cutover`。每次 cutover 都必须把上一服务、下一服务、上一 binding digest、新 binding、effective time 与 fence digest 一并签入 `ak.principal-service-cutover.v1` transcript，并同时具有 principal、旧服务、新服务三方 proof；下一段的 previous digest/服务必须等于上一段输出，最后 service 必须逐字节等于认证的 `Source-Service-ID`。缺段、分叉、倒序、重复、无旧服务 fence 或超过上限均 fail closed；若 transport source 仍等于 receipt issuer，则 `cutovers` 必须为空。
+
 该例外的 carrier **MUST** 是 `ak.peer.events.command.submit` request union 中显式登记的 discriminated
 branch `DirectConversationFoundingFederationSubmission`（discriminator
 `unit_kind="direct_conversation_founding"`），承载恰好三条按 §6.1 顺序排列的 `EventFederationSubmission`、
-source `DirectConversationFoundingAcceptanceReceipt` 与 bounded dependencies；实现 **MUST NOT** 新增私有 peer
+source `DirectConversationFoundingAcceptanceReceipt`、`source_service_continuity` 与 bounded dependencies；实现 **MUST NOT** 新增私有 peer
 endpoint，也 **MUST NOT** 用普通 Realm batch 分支夹带该 unit。该 branch 是 registered atomic unit：dependency
 不足时 **MUST** 用 top-level HTTP 409 `dependency_missing` 与 `EventsDependencyMissingProblem` 并零写入，
 **MUST NOT** 退化为 per-item partial，也 **MUST NOT** 只接受其中一或两条。

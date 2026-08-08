@@ -254,7 +254,7 @@ MIMI facade 至少定义以下 canonical operation：
 | `ak.open.mimi.command.submit_message` | `POST /_arkret/open/mimi/strands/{strand_id}/messages` | 提交 MIMI encrypted application message。 |
 | `ak.open.mimi.read.group_info` | `GET /_arkret/open/mimi/strands/{strand_id}/group-info` | 获取 MLS groupInfo / room projection。 |
 | `ak.open.mimi.command.request_consent` | `POST /_arkret/open/mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
-| `ak.open.mimi.command.update_consent` | `POST /_arkret/open/mimi/consent/update` | 更新 consent state。 |
+| `ak.open.mimi.command.update_consent` | `POST /_arkret/open/mimi/consent/update` | 提交调用方已签名的 `ak.consent.grant` / `ak.consent.revoke` Event。 |
 | `ak.open.mimi.read.identifiers` | `POST /_arkret/open/mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |
 | `ak.open.mimi.command.report_abuse` | `POST /_arkret/open/mimi/report-abuse` | 提交跨 provider abuse report，支持 E2EE franking proof。 |
 | `ak.open.mimi.command.proxy_download` | `POST /_arkret/open/mimi/proxy-download` | 代理或 oblivious 下载资产。 |
@@ -439,6 +439,8 @@ MIMI identifier MUST NOT 被直接作为 Arkret actor。映射规则：
 - display name 只用于 UI，不参与授权。
 
 `ak.open.mimi.read.identifiers` SHOULD 调用 `ak.private_contact_discovery.v1`，按 [`discovery/discovery-directory.md` §6](../discovery/discovery-directory.md) 的 PSI 流程返回 set-membership 命中位图与 invite handoff stub；MUST NOT 返回任何形式的 "reachability proof"——该机制在 v1 已被移除（见 `discovery-directory.md` §6 的 PSI-only 边界），facade 实现 MUST NOT 复活它。`ak.open.mimi.command.request_consent` / `ak.open.mimi.command.update_consent` MUST 映射为 Arkret 的 holder-private consent state（`ak.consent.grant` / `ak.consent.revoke`，详见 [`identity/consent-model.md`](../identity/consent-model.md)）。Consent 不授予 Realm read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。Facade 在两侧 round-trip 时 MUST 保留 `consent_id` 作为 inter-protocol correlation。
+
+`update_consent` **MUST** 携带完整 `consent_event: EventInitialSubmission`：`decision=accept` 对应 `event.kind=ak.consent.grant`，`decision=deny|revoke` 对应 `event.kind=ak.consent.revoke`。`event.actor_id` 必须等于请求 `actor_id`，payload 的 `consent_id`、peer 与 scope 必须等于 facade 私有 correlation；facade 同时验证覆盖完整 unsigned body 的 detached operation signature。Event 必须由 holder 本人签名，或由具有明确 `consent_write` 委派并携可回放 holder approval 的 controller/agent 签名；普通 PCR write 权限不够。facade 只能把 exact submission 交给 ordinary Event admission，**MUST NOT** 代签、重建或合成 Event。deny/revoke 没有可枚举的 active observed dots 时必须用不泄露 holder 状态的拒绝结束，不能写“成功但无 Event”的本地状态。成功响应必须返回 `status=accepted` 与唯一 `event_ref`；相同 Event ID 的逐字节重放返回同一结果。
 
 ## 11. Abuse Report And Proxy Download
 

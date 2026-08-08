@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/erasure-receipt-operations.schema.json",
+  "title": "Arkret Erasure Receipt Operations",
+  "description": "Typed service-to-service submit, acceptance and retrieval carriers for hard-erasure receipts and their exact retained verification stubs.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/erasure_receipt_package"
+    },
+    {
+      "$ref": "#/$defs/erasure_receipt_submit_request_body"
+    },
+    {
+      "$ref": "#/$defs/erasure_receipt_submit_outcome"
+    },
+    {
+      "$ref": "#/$defs/erasure_receipt_resource"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "timestamp": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "erasure_receipt_package": {
+      "type": "object",
+      "description": "Self-contained acceptance package. retained_stub is always present on this carrier even when receipt.retained_stub is omitted. If receipt.retained_stub is present, its canonical bytes MUST equal retained_stub. receipt_digest = H('ak.erasure-receipt.v1', receipt); retained_stub_digest MUST equal SHA-256(RFC8785_JCS(retained_stub)).",
+      "required": [
+        "receipt",
+        "receipt_digest",
+        "retained_stub"
+      ],
+      "properties": {
+        "receipt": {
+          "$ref": "./erasure-receipt.schema.json"
+        },
+        "receipt_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "retained_stub": {
+          "$ref": "./erasure-verification-stub.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "erasure_receipt_submit_request_body": {
+      "type": "object",
+      "description": "Canonical body of ak.peer.erasure_receipt.command.submit. Idempotency-Key is a required signed HTTP header and is not duplicated in the body.",
+      "required": [
+        "package"
+      ],
+      "properties": {
+        "package": {
+          "$ref": "#/$defs/erasure_receipt_package"
+        }
+      },
+      "additionalProperties": false
+    },
+    "erasure_receipt_acceptance": {
+      "type": "object",
+      "description": "Receiver-signed acceptance. proof signs H('ak.erasure-receipt-acceptance.v1', this object without proof). A duplicate reuses the original accepted_at and byte-identical acceptance object.",
+      "required": [
+        "status",
+        "receipt_id",
+        "receipt_digest",
+        "issuer_service_id",
+        "receiver_service_id",
+        "accepted_at",
+        "proof"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "duplicate"
+          ]
+        },
+        "receipt_id": {
+          "$ref": "#/$defs/receipt_id"
+        },
+        "receipt_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "issuer_service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "receiver_service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "erasure_receipt_submit_outcome": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/erasure_receipt_acceptance"
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "receipt_id",
+            "reason_code"
+          ],
+          "properties": {
+            "status": {
+              "const": "rejected"
+            },
+            "receipt_id": {
+              "$ref": "#/$defs/receipt_id"
+            },
+            "reason_code": {
+              "type": "string",
+              "enum": [
+                "erasure_receipt_authority_invalid",
+                "erasure_receipt_proof_invalid",
+                "erasure_receipt_stub_binding_mismatch",
+                "erasure_receipt_stub_digest_mismatch",
+                "duplicate_conflict",
+                "unauthorized"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "erasure_receipt_resource": {
+      "type": "object",
+      "description": "Result of ak.peer.erasure_receipt.resource.get. The package is byte-identical in semantic content to the accepted submit package; no later lookup may substitute another retained stub.",
+      "required": [
+        "package"
+      ],
+      "properties": {
+        "package": {
+          "$ref": "#/$defs/erasure_receipt_package"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

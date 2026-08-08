@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.10",
+  "version": "2026-08-08.11",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T15:00:00Z",
+  "generated_at": "2026-08-08T16:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -128,6 +128,8 @@
         "ak.peer.events.command.submit",
         "ak.peer.account_status.read.authoring_basis",
         "ak.peer.account_status.command.submit",
+        "ak.peer.erasure_receipt.command.submit",
+        "ak.peer.erasure_receipt.resource.get",
         "ak.peer.mls.read.group_state_material",
         "ak.peer.events.read.resolve",
         "ak.peer.events.read.scan",
@@ -2172,6 +2174,33 @@
       }
     },
     {
+      "operation_id": "ak.peer.erasure_receipt.command.submit",
+      "http": "POST /_arkret/peer/erasure-receipts",
+      "grpc": "PeerErasureReceipts/Submit",
+      "mq": "peer.erasure_receipt.command.submit",
+      "notes": "Service-authenticated hard-erasure receipt fanout. Source-Service-ID MUST equal receipt.issuer. Idempotency-Key is required and covered by the HTTP Message Signature; its scope is (source service, destination service, key). The receiver verifies the closed receipt, issuer authority at receipt.issued_at, every receipt proof, receipt_digest and the exact retained-stub binding before any deletion or durable acceptance. Same key and canonical body returns the byte-identical signed acceptance; different body returns duplicate_conflict with zero writes. An accepted or duplicate acknowledgement closes the sender outbox item.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body",
+      "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "accepts_a_signed_receipt_and_may_trigger_local_erasure_but_does_not_author_an_event"
+      }
+    },
+    {
+      "operation_id": "ak.peer.erasure_receipt.resource.get",
+      "http": "GET /_arkret/peer/erasure-receipts/{receipt_id}",
+      "grpc": "PeerErasureReceipts/Get",
+      "mq": "peer.erasure_receipt.resource.get",
+      "notes": "Service-authenticated exact receipt-package lookup for the issuer, receiver or an explicitly authorized auditor. It is non-enumerating: unauthorized, unknown and hidden receipt identifiers produce the same not_found response. The returned retained stub is the exact object accepted with the receipt and MUST NOT be reconstructed from later state.",
+      "body_class": "none",
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_resource"
+    },
+    {
       "operation_id": "ak.peer.invites.command.submit",
       "http": "POST /_arkret/peer/invites",
       "grpc": "PeerInvites/Submit",
@@ -3151,17 +3180,15 @@
       "mq": "open.mimi.command.update_consent",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "none",
-      "retry_safe": false,
-      "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.self.consent.read.list"
-      },
+      "notes": "The caller MUST author and sign the exact ak.consent.grant (decision=accept) or ak.consent.revoke (decision=deny or revoke) EventInitialSubmission. The facade verifies the detached operation signature and the Event authority/correlation, then submits the Event unchanged through ordinary Event admission. It MUST NOT synthesize, rebuild or co-sign consent state. A revoke with no matching active observed dots is rejected without disclosing holder state. Exact Event replay returns the same accepted Event reference.",
+      "idempotency_mechanism": "object_id",
+      "idempotency_object_path": "/consent_event/event/event_id",
+      "retry_safe": true,
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome",
       "durable_effect": {
-        "kind": "none",
-        "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        "kind": "event_log",
+        "event_kind_source": "$request.consent_event.event.kind"
       }
     },
     {

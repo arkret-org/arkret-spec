@@ -205,6 +205,9 @@ grpc:
     PeerAccountStatus:
       AuthoringBasis: ak.peer.account_status.read.authoring_basis
       Submit: ak.peer.account_status.command.submit
+    PeerErasureReceipts:
+      Get: ak.peer.erasure_receipt.resource.get
+      Submit: ak.peer.erasure_receipt.command.submit
     PeerMls:
       GroupStateMaterial: ak.peer.mls.read.group_state_material
     PeerInvites:

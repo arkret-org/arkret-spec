@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.10",
+  "version": "2026-08-08.11",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T15:00:00Z",
+  "generated_at": "2026-08-08T16:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,12 +18,12 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 223,
+    "total_operations": 225,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "service_describe": 5,
       "streaming_frame_schema": 3,
-      "typed_schema": 213
+      "typed_schema": 215
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -38,7 +38,7 @@
         "binary_or_redirect": 2,
         "service_describe": 1,
         "streaming_frame_schema": 1,
-        "typed_schema": 144
+        "typed_schema": 146
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -932,6 +932,33 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.erasure_receipt.command.submit",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/erasure-receipts",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body",
+      "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ErasureReceiptSubmitRequestBody",
+        "response": "#/components/schemas/ErasureReceiptSubmitOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.erasure_receipt.resource.get",
+      "surface_class": "extension",
+      "http": "GET /_arkret/peer/erasure-receipts/{receipt_id}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_resource",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/ErasureReceiptResource"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ak.peer.events.command.submit",

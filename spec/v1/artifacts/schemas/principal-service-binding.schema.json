@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/principal-service-binding.schema.json",
+  "title": "Arkret Principal Service Binding",
+  "description": "Portable accepted-at binding between a principal and the Principal Server that hosted it, plus a bounded three-party-signed cutover chain to the current transport source.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/accepted_at_service_binding"
+    },
+    {
+      "$ref": "#/$defs/principal_service_binding_continuity"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "did_url": {
+      "$ref": "./common-ids.schema.json#/$defs/did_url"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "timestamp": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "service_verification_method": {
+      "type": "object",
+      "required": [
+        "id",
+        "controller",
+        "type",
+        "public_key_multibase"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/did_url"
+        },
+        "controller": {
+          "$ref": "#/$defs/did"
+        },
+        "type": {
+          "const": "Multikey"
+        },
+        "public_key_multibase": {
+          "type": "string",
+          "pattern": "^z[1-9A-HJ-NP-Za-km-z]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "accepted_at_service_binding": {
+      "type": "object",
+      "description": "Closed accepted-at snapshot. binding_digest = H('ak.principal-service-binding.v1', the object formed by the fields principal_id through expires_at, omitting binding_digest and both proofs). authority_evidence.document_digest MUST equal document_digest. service_acceptance_proof and principal_authorization_proof both sign H('ak.principal-service-binding-proof.v1', {binding_digest,accepted_at,proof_purpose,verification_method}); the former uses verification_method.id and the latter uses a key accepted for principal_id at accepted_at.",
+      "required": [
+        "principal_id",
+        "service_id",
+        "trust_domain",
+        "service_kind",
+        "service_verification_method",
+        "endpoint_origins",
+        "document_digest",
+        "authority_evidence",
+        "not_before",
+        "accepted_at",
+        "binding_digest",
+        "service_acceptance_proof",
+        "principal_authorization_proof"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "trust_domain": {
+          "type": "string",
+          "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+        },
+        "service_kind": {
+          "const": "principal_server"
+        },
+        "service_verification_method": {
+          "$ref": "#/$defs/service_verification_method"
+        },
+        "endpoint_origins": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://"
+          },
+          "description": "Canonical HTTPS origins sorted by unsigned UTF-8 bytes. Paths, queries and fragments are forbidden by semantic validation."
+        },
+        "document_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "authority_evidence": {
+          "$ref": "./did-binding-contracts.schema.json#/$defs/evidence_receipt"
+        },
+        "history_head": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "binding_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "service_acceptance_proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        },
+        "principal_authorization_proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "principal_service_cutover": {
+      "type": "object",
+      "description": "One cutover edge. All three proofs sign H('ak.principal-service-cutover.v1', this object without principal_proof, previous_service_proof and new_service_proof). The principal proof prevents two services from transferring a principal between themselves; the old-service proof closes the prior writer fence; the new-service proof accepts the new binding. new_binding.principal_id and trust_domain MUST match the edge, new_binding.service_id MUST equal new_service_id, and new_binding.accepted_at MUST equal effective_at.",
+      "required": [
+        "principal_id",
+        "trust_domain",
+        "previous_service_id",
+        "new_service_id",
+        "previous_binding_digest",
+        "new_binding",
+        "cutover_sequence",
+        "fence_digest",
+        "effective_at",
+        "principal_proof",
+        "previous_service_proof",
+        "new_service_proof"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "trust_domain": {
+          "type": "string",
+          "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+        },
+        "previous_service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "new_service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "previous_binding_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "new_binding": {
+          "$ref": "#/$defs/accepted_at_service_binding"
+        },
+        "cutover_sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "fence_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "effective_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "principal_proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        },
+        "previous_service_proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        },
+        "new_service_proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "principal_service_binding_continuity": {
+      "type": "object",
+      "description": "Accepted-at binding followed by zero or more cutovers. Edges are in ascending cutover_sequence, the first previous_binding_digest equals accepted_binding.binding_digest, every later edge links to the preceding new_binding, service_id values MUST NOT repeat, and the final binding service_id MUST equal the authenticated transport Source-Service-ID. An empty cutovers array requires accepted_binding.service_id to equal Source-Service-ID.",
+      "required": [
+        "accepted_binding",
+        "cutovers"
+      ],
+      "properties": {
+        "accepted_binding": {
+          "$ref": "#/$defs/accepted_at_service_binding"
+        },
+        "cutovers": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/principal_service_cutover"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

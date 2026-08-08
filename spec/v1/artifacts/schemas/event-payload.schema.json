@@ -3294,6 +3294,10 @@
         "request_acceptance_receipt_digest": {
           "$ref": "#/$defs/hash"
         },
+        "previous_terminal_basis_id": {
+          "$ref": "#/$defs/hash",
+          "description": "Required by semantic admission when the accepted request is a recontact. It MUST equal the same field in the referenced request fact and its source-signed acceptance receipt. It is absent for a root basis."
+        },
         "granted_to_peer_scopes": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_scopes"
         }
@@ -3342,6 +3346,10 @@
         "introduction_evidence_digest": {
           "$ref": "#/$defs/hash",
           "description": "Required digest of the exact private introduction_evidence carried by the request branch of ak.peer.contacts.command.submit. Raw evidence is not written into the contact fact log."
+        },
+        "previous_terminal_basis_id": {
+          "$ref": "#/$defs/hash",
+          "description": "Requester-signed immediate predecessor link for recontact. It is required when this request follows a previously accepted terminal Contact basis and forbidden for a root request. It is not the issuer-local request-slot predecessor."
         },
         "message": {
           "type": "string"

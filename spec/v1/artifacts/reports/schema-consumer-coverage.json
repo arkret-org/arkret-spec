@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 183,
+    "total_schemas": 185,
     "by_consumer": {
       "declared_wire": 43,
       "event_kind": 11,
-      "inbound": 42,
-      "outbound": 45,
+      "inbound": 43,
+      "outbound": 46,
       "prose": 110,
       "prose_only": 2,
-      "schema_reference": 107,
-      "startup_compile": 183,
+      "schema_reference": 109,
+      "startup_compile": 185,
       "vectors": 116
     },
     "without_wire_consumer": 2,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 67,
+    "without_vector_coverage": 69,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -99,6 +99,7 @@
     "ak.schema.did_continuity_proof.v1",
     "ak.schema.direct_conversation_operations.v1",
     "ak.schema.directory_operations.v1",
+    "ak.schema.erasure_receipt_operations.v1",
     "ak.schema.extension_manifest.v1",
     "ak.schema.federated_device_signing_key_evidence.v1",
     "ak.schema.high_risk_authority_proof.v1",
@@ -118,6 +119,7 @@
     "ak.schema.offline_publication.v1",
     "ak.schema.patch.v1",
     "ak.schema.principal_locator.v1",
+    "ak.schema.principal_service_binding.v1",
     "ak.schema.public_key.v1",
     "ak.schema.push_operations.v1",
     "ak.schema.query.v1",
@@ -1000,6 +1002,7 @@
           "ak.schema.directory_operations.v1",
           "ak.schema.encrypted_envelope.v1",
           "ak.schema.erasure_receipt.v1",
+          "ak.schema.erasure_receipt_operations.v1",
           "ak.schema.erasure_verification_stub.v1",
           "ak.schema.event.v1",
           "ak.schema.event_batch_receipt.v1",
@@ -1034,6 +1037,7 @@
           "ak.schema.offline_publication.v1",
           "ak.schema.policy.v1",
           "ak.schema.principal_operations.v1",
+          "ak.schema.principal_service_binding.v1",
           "ak.schema.push_operations.v1",
           "ak.schema.query.v1",
           "ak.schema.range_completeness_attestation.v1",
@@ -1334,13 +1338,16 @@
       "file": "schemas/did-binding-contracts.schema.json",
       "consumers": {
         "declared_wire": "standalone_schema_alias",
+        "schema_reference": "fragment",
         "startup_compile": "exact"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "runtime_dispatch_owned",
-        "owner": "standalone_schema_alias",
-        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.principal_service_binding.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       },
       "consumer_binding": {
         "kind": "standalone_schema_alias",
@@ -1511,6 +1518,24 @@
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "fixture"
+      }
+    },
+    {
+      "schema_id": "ak.schema.erasure_receipt_operations.v1",
+      "file": "schemas/erasure-receipt-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.peer.erasure_receipt.command.submit",
+          "ak.peer.erasure_receipt.resource.get"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
     },
     {
@@ -2431,6 +2456,22 @@
       }
     },
     {
+      "schema_id": "ak.schema.principal_service_binding.v1",
+      "file": "schemas/principal-service-binding.schema.json",
+      "consumers": {
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.service_operation_dtos.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+      }
+    },
+    {
       "schema_id": "ak.schema.public_key.v1",
       "file": "schemas/public-key.schema.json",
       "consumers": {
@@ -3188,6 +3229,7 @@
           "ak.schema.directory_operations.v1",
           "ak.schema.draft_sync.v1",
           "ak.schema.erasure_receipt.v1",
+          "ak.schema.erasure_receipt_operations.v1",
           "ak.schema.erasure_verification_stub.v1",
           "ak.schema.event.v1",
           "ak.schema.event_payload.v1",
@@ -3224,6 +3266,7 @@
           "ak.schema.policy.v1",
           "ak.schema.principal_locator.v1",
           "ak.schema.principal_operations.v1",
+          "ak.schema.principal_service_binding.v1",
           "ak.schema.push_operations.v1",
           "ak.schema.range_completeness_attestation.v1",
           "ak.schema.read_cursor.v1",

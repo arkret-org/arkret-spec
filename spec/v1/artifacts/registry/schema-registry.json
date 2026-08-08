@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.10",
+  "version": "2026-08-08.11",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T15:00:00Z",
+  "generated_at": "2026-08-08T16:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -893,6 +893,12 @@
       "description": "Signed hard-erasure receipt payload for ak.audit.erasure_receipt"
     },
     {
+      "schema_id": "ak.schema.erasure_receipt_operations.v1",
+      "file": "schemas/erasure-receipt-operations.schema.json",
+      "status": "active",
+      "description": "Closed service-to-service submission, signed acceptance and retrieval carriers for erasure receipts"
+    },
+    {
       "schema_id": "ak.schema.erasure_verification_stub.v1",
       "file": "schemas/erasure-verification-stub.schema.json",
       "status": "active",
@@ -902,6 +908,12 @@
         "selector": "erasure receipt retained_stub_digest target",
         "normative_ref": "zh/models/common-fields.md"
       }
+    },
+    {
+      "schema_id": "ak.schema.principal_service_binding.v1",
+      "file": "schemas/principal-service-binding.schema.json",
+      "status": "active",
+      "description": "Accepted-at Principal Server binding snapshot and signed service-cutover continuity chain"
     },
     {
       "schema_id": "ak.schema.cross_signing_publish.v1",

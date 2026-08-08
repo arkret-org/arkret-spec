@@ -1088,6 +1088,12 @@ components:
         stale:
           type: boolean
       additionalProperties: false
+    ErasureReceiptResource:
+      $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_resource
+    ErasureReceiptSubmitOutcome:
+      $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome
+    ErasureReceiptSubmitRequestBody:
+      $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body
     ErrorEnvelope:
       type: object
       required:
@@ -4280,6 +4286,81 @@ paths:
                 $ref: '#/components/schemas/ErrorEnvelope'
         '422':
           description: The complete response exceeds the caller or protocol byte bound.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /_arkret/peer/erasure-receipts:
+    post:
+      operationId: ak.peer.erasure_receipt.command.submit
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Submit a signed hard-erasure receipt package.
+      description: |
+        Source-Service-ID must equal the receipt issuer. The receiver verifies
+        issuer authority, all receipt proofs, receipt_digest and exact retained
+        stub binding before deletion or acknowledgement. Idempotency-Key is
+        covered by the HTTP Message Signature; an identical retry returns the
+        original byte-identical signed acceptance and a different body is
+        duplicate_conflict with zero writes.
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErasureReceiptSubmitRequestBody'
+      responses:
+        '200':
+          description: Receiver-signed accepted or duplicate acknowledgement.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErasureReceiptSubmitOutcome'
+        '409':
+          description: Idempotency conflict or invalid receipt package.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /_arkret/peer/erasure-receipts/{receipt_id}:
+    get:
+      operationId: ak.peer.erasure_receipt.resource.get
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+      summary: Retrieve an exact accepted erasure receipt package.
+      parameters:
+      - in: path
+        name: receipt_id
+        required: true
+        schema:
+          type: string
+          pattern: ^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      responses:
+        '200':
+          description: Exact receipt and retained-stub package.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErasureReceiptResource'
+        '404':
+          description: Unknown, hidden or unauthorized receipt.
           content:
             application/json:
               schema:

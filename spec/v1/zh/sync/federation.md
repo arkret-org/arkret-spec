@@ -221,6 +221,7 @@ branch `DirectConversationFoundingFederationSubmission`（discriminator
 - 恰好三条按 `contact-and-direct-conversation.md` §6.1 wire 顺序排列的 `EventFederationSubmission`
   （`ak.realm.create` → 另一 participant 的 `ak.member.state{join}` → `ak.strand.create`）；
 - 一张 source `DirectConversationFoundingAcceptanceReceipt`；
+- 一条 `source_service_continuity`，其 accepted binding 必须与 receipt 的 founder、issuer 与 binding digest 精确一致，且零到十六段三方签名 cutover 最终落到认证的 `Source-Service-ID`；
 - 验证该 unit 所需的 bounded dependencies（`cba_proof_bundles`、`signer_key_evidence`、
   Contact basis evidence bundle 及其至根 founder basis 的 continuity chain）。
 

@@ -638,10 +638,12 @@
     },
     "mimi_update_consent_request_body": {
       "type": "object",
+      "description": "Carries the caller-authored, caller-signed Arkret consent Control Move. The facade verifies the detached MIMI operation signature over the complete unsigned body, then submits consent_event unchanged through ordinary Event admission. decision=accept requires ak.consent.grant; decision=deny or revoke requires ak.consent.revoke. The facade MUST NOT synthesize, rebuild or co-sign the Event.",
       "required": [
         "consent_id",
         "decision",
         "actor_id",
+        "consent_event",
         "signature"
       ],
       "properties": {
@@ -659,6 +661,10 @@
         "actor_id": {
           "$ref": "#/$defs/did"
         },
+        "consent_event": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
+          "description": "Exact EventInitialSubmission whose event.actor_id equals actor_id and whose payload.consent_id equals consent_id. The Event holder, peer and scope MUST match the private consent-request correlation. An agent/controller actor requires an explicit consent_write delegation with replayable holder approval."
+        },
         "signature": {
           "$ref": "#/$defs/signature"
         },
@@ -669,17 +675,87 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "const": "accept"
+              }
+            },
+            "required": [
+              "decision"
+            ]
+          },
+          "then": {
+            "properties": {
+              "consent_event": {
+                "properties": {
+                  "event": {
+                    "properties": {
+                      "kind": {
+                        "const": "ak.consent.grant"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  }
+                },
+                "required": [
+                  "event"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "consent_event": {
+                "properties": {
+                  "event": {
+                    "properties": {
+                      "kind": {
+                        "const": "ak.consent.revoke"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  }
+                },
+                "required": [
+                  "event"
+                ]
+              }
+            }
+          }
+        }
+      ]
     },
     "mimi_update_consent_outcome": {
       "type": "object",
       "required": [
         "status",
-        "updated_at"
+        "consent_id",
+        "decision",
+        "updated_at",
+        "event_ref"
       ],
       "properties": {
         "status": {
-          "$ref": "#/$defs/non_empty_string"
+          "const": "accepted"
+        },
+        "consent_id": {
+          "$ref": "#/$defs/consent_id"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "accept",
+            "deny",
+            "revoke"
+          ]
         },
         "updated_at": {
           "$ref": "#/$defs/timestamp"

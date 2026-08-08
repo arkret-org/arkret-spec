@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.10",
+  "version": "2026-08-08.11",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T15:00:00Z",
+  "generated_at": "2026-08-08T16:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1943,6 +1943,7 @@
           "peer",
           "granted_to_peer_scopes",
           "introduction_evidence",
+          "previous_terminal_basis_id",
           "message",
           "reservation_handle",
           "signed_event"
@@ -1967,6 +1968,7 @@
               "peer",
               "granted_to_peer_scopes",
               "introduction_evidence",
+              "previous_terminal_basis_id",
               "message"
             ],
             "closed": true
@@ -3922,7 +3924,8 @@
           "events",
           "unit_kind",
           "idempotency_key",
-          "founder_basis_evidence"
+          "founder_basis_evidence",
+          "source_service_binding"
         ],
         "closed": true,
         "variants": [
@@ -3958,13 +3961,15 @@
               "unit_kind",
               "idempotency_key",
               "events",
-              "founder_basis_evidence"
+              "founder_basis_evidence",
+              "source_service_binding"
             ],
             "properties": [
               "unit_kind",
               "idempotency_key",
               "events",
               "founder_basis_evidence",
+              "source_service_binding",
               "cba_proof_bundles"
             ],
             "closed": true
@@ -4302,7 +4307,8 @@
           "agent_signer_evidence_bundle",
           "unit_kind",
           "source_acceptance_receipt",
-          "founder_basis_evidence"
+          "founder_basis_evidence",
+          "source_service_continuity"
         ],
         "closed": true,
         "variants": [
@@ -4329,13 +4335,15 @@
               "unit_kind",
               "events",
               "source_acceptance_receipt",
-              "founder_basis_evidence"
+              "founder_basis_evidence",
+              "source_service_continuity"
             ],
             "properties": [
               "unit_kind",
               "events",
               "source_acceptance_receipt",
               "founder_basis_evidence",
+              "source_service_continuity",
               "cba_proof_bundles",
               "signer_key_evidence"
             ],
@@ -4442,6 +4450,95 @@
           "propagation_state",
           "pending_destination_count",
           "retry_after_ms"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.erasure_receipt.command.submit",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body",
+        "schema_kind": "object",
+        "required": [
+          "package"
+        ],
+        "properties": [
+          "package"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome",
+        "schema_kind": "oneOf",
+        "required": [
+          "status",
+          "receipt_id"
+        ],
+        "properties": [
+          "status",
+          "receipt_id",
+          "receipt_digest",
+          "issuer_service_id",
+          "receiver_service_id",
+          "accepted_at",
+          "proof",
+          "reason_code"
+        ],
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_acceptance",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "receipt_id",
+              "receipt_digest",
+              "issuer_service_id",
+              "receiver_service_id",
+              "accepted_at",
+              "proof"
+            ],
+            "properties": [
+              "status",
+              "receipt_id",
+              "receipt_digest",
+              "issuer_service_id",
+              "receiver_service_id",
+              "accepted_at",
+              "proof"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "receipt_id",
+              "reason_code"
+            ],
+            "properties": [
+              "status",
+              "receipt_id",
+              "reason_code"
+            ],
+            "closed": true
+          }
+        ]
+      }
+    },
+    {
+      "operation_id": "ak.peer.erasure_receipt.resource.get",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_resource",
+        "schema_kind": "object",
+        "required": [
+          "package"
+        ],
+        "properties": [
+          "package"
         ],
         "closed": true
       }
@@ -7067,12 +7164,14 @@
           "consent_id",
           "decision",
           "actor_id",
+          "consent_event",
           "signature"
         ],
         "properties": [
           "consent_id",
           "decision",
           "actor_id",
+          "consent_event",
           "signature",
           "reason",
           "expires_at"
@@ -7084,10 +7183,15 @@
         "schema_kind": "object",
         "required": [
           "status",
-          "updated_at"
+          "consent_id",
+          "decision",
+          "updated_at",
+          "event_ref"
         ],
         "properties": [
           "status",
+          "consent_id",
+          "decision",
           "updated_at",
           "event_ref"
         ],
