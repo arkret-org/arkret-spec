@@ -242,6 +242,7 @@
     "SessionGrantRefreshRequestBody": {
       "type": "object",
       "additionalProperties": false,
+      "description": "Closed issuer-ledger rotation request. Standard grants use the ordinary same-class refresh path. A device_bootstrap(mode=founding) predecessor selects the only permitted class-changing refresh: the issuer MUST require the bound bootstrap transaction to be accepted, revalidate current device/holder proof, create one standard successor, and atomically supersede the bootstrap predecessor. Pending, cancelled, or expired bootstrap transactions MUST NOT produce a standard grant. Recovery-restricted and every other credential-class change remain forbidden.",
       "required": [
         "grant_jwt",
         "device_id",
@@ -262,7 +263,8 @@
           "description": "Concrete authorized device restoring the soft-logged-out grant chain. MUST match the persisted grant device binding."
         },
         "proof": {
-          "$ref": "#/$defs/SessionGrantRefreshProof"
+          "$ref": "#/$defs/SessionGrantRefreshProof",
+          "description": "Fresh current proof. For device_bootstrap founding promotion this proof is revalidated against the now-accepted founding device before the atomic DeviceBootstrap-to-Standard transition."
         }
       }
     },
@@ -3860,6 +3862,10 @@
           "$ref": "#/$defs/SessionGrantAppletDelegation",
           "description": "Applet-specific delegated session binding. When present, the session grant, proof digest, persistence row, introspection metadata, and revoke selector are bound to the same applet_id, effective_scope, and registration_epoch."
         },
+        "device_bootstrap_request": {
+          "$ref": "#/$defs/SessionGrantDeviceBootstrapRequest",
+          "description": "Closed founding material accepted only with proof.proof_kind=pre_registration_handoff. Its presence selects credential_class=device_bootstrap and mode=founding. The issuer derives transaction_id, holder_jkt/cnf.jkt, canonical_request_digest, device_key_digest, the fixed four-operation allowlist, credential expiry, and transaction expiry; callers MUST NOT submit those issuer-derived fields."
+        },
         "proof": {
           "type": "object",
           "additionalProperties": false,
@@ -4108,8 +4114,75 @@
               }
             }
           }
+        },
+        {
+          "description": "Closed founding-bootstrap selector. The first post-registration handoff grant is necessarily device_bootstrap(mode=founding): it carries the complete client-authored authorize Event preimage plus the exact ordered founding Event IDs and their recomputable digest. All other proof kinds MUST omit device_bootstrap_request. The issuer never accepts caller-selected transaction ids, operation allowlists, expiries, holder thumbprints, canonical request digests, or device-key digests.",
+          "if": {
+            "properties": {
+              "proof": {
+                "properties": {
+                  "proof_kind": {
+                    "const": "pre_registration_handoff"
+                  }
+                },
+                "required": [
+                  "proof_kind"
+                ]
+              }
+            },
+            "required": [
+              "proof"
+            ]
+          },
+          "then": {
+            "required": [
+              "device_id",
+              "device_bootstrap_request"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "device_bootstrap_request"
+              ]
+            }
+          }
         }
       ]
+    },
+    "SessionGrantDeviceBootstrapRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Client-fixed input for the founding device_bootstrap credential. This is not the signed bootstrap_binding: transaction_id, holder_jkt, canonical_request_digest, device_key_digest, allowed_operation_ids, credential_expires_at, and bootstrap_transaction_expires_at are issuer-derived and therefore absent. The issuer MUST validate the Event preimage, require founding_event_ids[0] to equal its sole realm.create predecessor and founding_event_ids[1] to equal its recomputed event_id, recompute founding_batch_digest with the normative helper, derive the enroll_device closed body from the outer device_id plus authorize_event_preimage, and derive the raw-key digest from the Event payload.",
+      "required": [
+        "mode",
+        "authorize_event_preimage",
+        "founding_event_ids",
+        "founding_batch_digest"
+      ],
+      "properties": {
+        "mode": {
+          "const": "founding"
+        },
+        "authorize_event_preimage": {
+          "$ref": "./event-envelope.schema.json#/$defs/device_authorize_event_preimage"
+        },
+        "founding_event_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/event_id"
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "description": "Ordered founding unit IDs: root-signed ak.realm.create first, client-derived ak.device.authorize second. Sorting, deduplication, or replacement by digests is forbidden."
+        },
+        "founding_batch_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "H(ak.device-bootstrap.founding-batch.v1, {event_ids: founding_event_ids}); issuer MUST recompute and compare."
+        }
+      }
     },
     "SessionGrantDpopBindingProof": {
       "type": "object",

@@ -3,8 +3,8 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "digest_copy_or_commitment": 38,
-    "complete_event_id": 163,
+    "digest_copy_or_commitment": 37,
+    "complete_event_id": 164,
     "external_event_namespace": 1
   },
   "fields": [
@@ -90,12 +90,6 @@
       "schema": "agent-operations.schema.json",
       "json_pointer": "/$defs/account_device_enroll_outcome/properties/authorized_event_id",
       "field": "authorized_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "agent-operations.schema.json",
-      "json_pointer": "/$defs/account_device_enroll_request_body/properties/bootstrap_create_event_id",
-      "field": "bootstrap_create_event_id",
       "classification": "complete_event_id"
     },
     {
@@ -567,12 +561,6 @@
       "classification": "complete_event_id"
     },
     {
-      "schema": "erasure-receipt.schema.json",
-      "json_pointer": "/$defs/verification_stub/properties/event_digest",
-      "field": "event_digest",
-      "classification": "digest_copy_or_commitment"
-    },
-    {
       "schema": "erasure-verification-stub.schema.json",
       "json_pointer": "/properties/event_digest",
       "field": "event_digest",
@@ -600,6 +588,18 @@
       "schema": "event-batch-receipt.schema.json",
       "json_pointer": "/properties/frontier/properties/event_id",
       "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-envelope.schema.json",
+      "json_pointer": "/$defs/device_authorize_event_preimage/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-envelope.schema.json",
+      "json_pointer": "/$defs/device_authorize_event_preimage/properties/prev_refs",
+      "field": "prev_refs",
       "classification": "complete_event_id"
     },
     {

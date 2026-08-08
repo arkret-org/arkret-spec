@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.7",
+  "version": "2026-08-08.9",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T15:03:00Z",
+  "generated_at": "2026-08-08T19:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -576,6 +576,78 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.device_bootstrap.founding_batch_digest.v1",
+      "status": "active",
+      "domain": "device_bootstrap",
+      "applies_to_fixtures": [
+        "device-bootstrap-fixture.json"
+      ],
+      "description": "Byte-exact domain-separated digest over the ordered [ak.realm.create, ak.device.authorize] Event IDs; sorting, deduplication, digest substitution and reversal fail closed.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.device_bootstrap.device_key_digest.v1",
+      "status": "active",
+      "domain": "device_bootstrap",
+      "applies_to_fixtures": [
+        "device-bootstrap-fixture.json"
+      ],
+      "description": "SHA-256 typed digest over the decoded raw 32-byte Ed25519 public key; equivalent multibase and base64url encodings converge and hashing either text form is rejected.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.device_bootstrap.canonical_request_digest.v1",
+      "status": "active",
+      "domain": "device_bootstrap",
+      "applies_to_fixtures": [
+        "device-bootstrap-fixture.json"
+      ],
+      "description": "RFC 8785/JCS and SHA-256 typed digest of the exact closed enroll_device body, including the complete proof-free device authorize Event preimage.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.device_bootstrap.holder_jkt.v1",
+      "status": "active",
+      "domain": "device_bootstrap",
+      "applies_to_fixtures": [
+        "device-bootstrap-fixture.json"
+      ],
+      "description": "RFC 7638 SHA-256 public-JWK thumbprint uses unpadded base64url and equals the credential cnf.jkt byte-for-byte.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.device_bootstrap.transaction_states.v1",
+      "status": "active",
+      "domain": "device_bootstrap",
+      "applies_to_fixtures": [
+        "device-bootstrap-fixture.json"
+      ],
+      "description": "The durable bootstrap lifecycle has exactly pending, accepted, cancelled and expired; bearer expiry is not a state transition and cancelled/expired permit exact replay only.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.device_bootstrap.issue_request.v1",
+      "status": "active",
+      "domain": "device_bootstrap",
+      "applies_to_fixtures": [
+        "device-bootstrap-fixture.json"
+      ],
+      "description": "The pre_registration_handoff branch requires the closed founding issue material and forbids caller-selected transaction, holder, derived digest, allowlist, and expiry fields; all non-handoff proof kinds reject that material.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
       ]
     },
     {

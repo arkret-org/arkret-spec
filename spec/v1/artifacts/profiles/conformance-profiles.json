@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-08.5",
-  "generated_at": "2026-08-08T15:03:00Z",
+  "version": "2026-08-08.6",
+  "generated_at": "2026-08-08T18:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1431,6 +1431,7 @@
       "required_fixtures": [
         "privacy-security-fixture.json",
         "crypto-signature-fixture.json",
+        "device-bootstrap-fixture.json",
         "recovery-policy-fixture.json",
         "schema-validation-fixture.json"
       ],
@@ -2564,7 +2565,8 @@
       "required_fixtures": [
         "crypto-signature-fixture.json",
         "privacy-security-fixture.json",
-        "session-grant-issuance-fixture.json"
+        "session-grant-issuance-fixture.json",
+        "device-bootstrap-fixture.json"
       ],
       "optional_extensions": [
         "ak.gate.account.command.issue_session_grant",

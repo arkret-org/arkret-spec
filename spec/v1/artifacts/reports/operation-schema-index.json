@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.15",
+  "version": "2026-08-08.17",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T17:00:00Z",
+  "generated_at": "2026-08-08T19:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -201,20 +201,11 @@
         "schema_kind": "object",
         "required": [
           "device_id",
-          "device_public_key",
-          "hpke_key",
-          "algorithms",
-          "actor_seq",
-          "bootstrap_create_event_id"
+          "authorize_event_preimage"
         ],
         "properties": [
           "device_id",
-          "device_public_key",
-          "hpke_key",
-          "algorithms",
-          "actor_seq",
-          "bootstrap_create_event_id",
-          "not_before"
+          "authorize_event_preimage"
         ],
         "closed": true
       },
@@ -402,6 +393,7 @@
           "requested_scope_disclosure",
           "dpop_binding_proof",
           "applet_authority",
+          "device_bootstrap_request",
           "proof"
         ],
         "closed": true

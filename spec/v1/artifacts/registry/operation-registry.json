@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.15",
+  "version": "2026-08-08.17",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T17:00:00Z",
+  "generated_at": "2026-08-08T19:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -546,7 +546,7 @@
       "http": "POST /_arkret/gate/account/device-enroll",
       "grpc": "GateAccount/DeviceEnroll",
       "mq": "gate.account.command.enroll_device",
-      "notes": "Managed-DID (account-authority) device enrollment, device-lifecycle.md §5.4 / key-management.md §5.0.6. The authenticated session asks its designated enrollment authority to mint a service_attested ak.device.authorize for this session's own device; the authority signs with its persistent enrollment key (never the principal SSK) and returns the full Event. The caller submits it verbatim to POST /_arkret/self/events. Distinct from pair_device (§2.1), which lands an existing-device SAS/QR approval and carries a pairing_code; enroll_device is only the bootstrap / first-device path where no sibling device can approve. The authority MUST require actor_seq=1, a verified identity-creation binding receipt for the same principal/account, and no existing active device; a bare session grant or actor_seq>1 MUST NOT enroll a second long-term device. Later devices use pair_device or the recovery re-anchor strand.",
+      "notes": "Founding B-model device enrollment, device-lifecycle.md §5.4 / key-management.md §5.0.6. The closed request carries device_id plus the complete client-authored proof-free canonical ak.device.authorize Event. The authority recomputes canonical_request_digest and event_id, verifies the device_bootstrap credential's transaction/device/raw-key/founding-batch/RFC7638-holder bindings, pinned delegation, principal_control_realm_id, actor_seq=1, sole realm.create predecessor and service_attested payload, then only appends its persistent enrollment-key proof. It MUST NOT generate or rewrite event_id, created_at, HLC, actor chain, authorization refs, device key, HPKE key, algorithms or any other preimage field. The durable transaction is pending|accepted|cancelled|expired; exact body replay returns the byte-stable first outcome, different bytes conflict, and cancelled/expired transactions permit exact replay only. The caller submits the returned Event verbatim in the ordered atomic founding batch. Later devices use pair_device or recovery.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "canonical_hash",
@@ -556,7 +556,7 @@
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome",
       "durable_effect": {
         "kind": "none",
-        "rationale": "persists_byte_stable_signed_enrollment_outcome_without_committing_the_event"
+        "rationale": "persists_byte_stable_authority_proof_outcome_without_committing_or_reauthoring_the_event"
       }
     },
     {
@@ -564,7 +564,7 @@
       "http": "POST /_arkret/gate/account/device-bootstrap/cancel",
       "grpc": "GateAccount/CancelDeviceBootstrap",
       "mq": "gate.account.command.cancel_device_bootstrap",
-      "notes": "Cancels exactly one pending founding or sibling bootstrap transaction under its closed device_bootstrap bearer plus DPoP. The durable ledger key is (transaction_id,idempotency_key); byte-identical retries return the first closed outcome, different bytes conflict, explicit accepted cancellation alone yields cancelled, the independent transaction deadline alone yields expired, and every other failure remains pending/retryable. This operation never mints a replacement Event or standard credential.",
+      "notes": "Cancels exactly one pending founding or sibling bootstrap transaction under its closed device_bootstrap bearer plus DPoP. The durable ledger key is (transaction_id,idempotency_key); byte-identical retries return the first closed outcome, different bytes return bootstrap_idempotency_conflict with zero writes, explicit accepted cancellation alone yields cancelled, the independent transaction deadline alone yields expired, and every other failure remains pending/retryable. cancelled|expired allow exact replay only and can never be renewed or promoted. Bearer expiry does not alter pending state. This operation never mints a replacement Event or credential.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -598,7 +598,7 @@
       "http": "POST /_arkret/gate/account/session-grants",
       "grpc": "GateAccount/IssueSessionGrant",
       "mq": "gate.account.command.issue_session_grant",
-      "notes": "Account Authority single-call issuer-ledger session-grant exchange. After validating account-to-principal binding, authentication proof, holder DPoP, audience and scope ceiling, the issuer uses the proof-specific stable request identity and canonical intent digest to atomically persist one immutable issuance record and signed JWT before responding. The grant ID and JWT jti are recomputed from that record under id_kind_registry.issuer_record_identity_contract; no Principal Event is authored. Exact replay revalidates holder/DPoP/target/digest and returns the byte-identical recorded outcome. Same request identity with different canonical intent is duplicate_conflict with zero writes. A replay whose outcome is expired or revoked/superseded returns the registered terminal error and never issues a replacement; an evicted replay record fails closed as indeterminate. The response is the client-visible SessionGrantOutcome and the client presents ak.session.grant directly to /_arkret/self/* with DPoP. For proof_kind=oidc_code_exchange, the Account Authority exchanges and validates the code. For proof_kind=pre_registration_handoff, the DPoP-bound handoff account MUST already be bound to principal_id. The Account Authority never derives a principal DID from OIDC and never obtains or uses a principal/root/device/notary Event-signing key.",
+      "notes": "Account Authority single-call issuer-ledger session-grant exchange. After validating account-to-principal binding, authentication proof, holder DPoP, audience and scope ceiling, the issuer uses the proof-specific stable request identity and canonical intent digest to atomically persist one immutable issuance record and signed JWT before responding. The grant ID and JWT jti are recomputed from that record under id_kind_registry.issuer_record_identity_contract; no Principal Event is authored. Exact replay revalidates holder/DPoP/target/digest and returns the byte-identical recorded outcome. Same request identity with different canonical intent is duplicate_conflict with zero writes. A replay whose outcome is expired or revoked/superseded returns the registered terminal error and never issues a replacement; an evicted replay record fails closed as indeterminate. The response is the client-visible SessionGrantOutcome and the client presents ak.session.grant directly to /_arkret/self/* with DPoP. For proof_kind=oidc_code_exchange, the Account Authority exchanges and validates the code. For proof_kind=pre_registration_handoff, the DPoP-bound handoff account MUST already be bound to principal_id and the request MUST carry the closed device_bootstrap_request for mode=founding. That request carries only the complete client-authored authorize Event preimage, ordered founding_event_ids and founding_batch_digest; the issuer recomputes Event ID, founding digest, enroll canonical_request_digest and raw device_key_digest, derives holder_jkt from DPoP, and selects transaction_id, the exact four-operation allowlist, credential expiry and transaction expiry. Caller-supplied values for those issuer-derived fields are forbidden. The Account Authority never derives a principal DID from OIDC and never obtains or uses a principal/root/device/notary Event-signing key.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",
@@ -610,7 +610,9 @@
         "terminal_outcomes": [
           "session_grant_replay_expired",
           "session_grant_replay_terminal",
-          "session_grant_replay_indeterminate"
+          "session_grant_replay_indeterminate",
+          "bootstrap_transaction_cancelled",
+          "bootstrap_transaction_expired"
         ]
       },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
@@ -649,7 +651,7 @@
       "operation_id": "ak.gate.account.command.refresh_session_grant",
       "http_only_variant": true,
       "http": "POST /_arkret/gate/account/session-grants/refresh",
-      "notes": "DPoP-bound issuer-ledger session-grant rotation. The stable request identity is (predecessor_grant_id, refresh_request_digest). Exact replay revalidates current holder/DPoP and returns the recorded successor outcome; conflicting canonical bytes are duplicate_conflict. One issuer transaction creates the active successor with a fresh issuance nonce, preserves the independently allocated session_id, and atomically marks the predecessor superseded with successor_session_grant_id. A replay whose recorded successor is expired or revoked/superseded returns the registered terminal error and never issues another successor. Account Authority-local op; no Principal Event is authored.",
+      "notes": "DPoP-bound issuer-ledger session-grant rotation. The stable request identity is (predecessor_grant_id, refresh_request_digest). Exact replay revalidates current holder/DPoP and returns the recorded successor outcome; conflicting canonical bytes are duplicate_conflict. One issuer transaction creates the active successor with a fresh issuance nonce, preserves the independently allocated session_id, and atomically marks the predecessor superseded with successor_session_grant_id. Standard grants follow the ordinary same-class path. A DeviceBootstrap(mode=founding) predecessor selects the sole permitted class-changing refresh: the issuer locks the bound bootstrap transaction, requires state=accepted, revalidates current device/holder proof, creates one Standard successor and atomically supersedes the bootstrap predecessor. pending yields failed_precondition; cancelled or expired returns its registered terminal code; no state may mint a second successor. RecoveryRestricted and every other class change remain forbidden. A replay whose recorded successor is expired or revoked/superseded returns the registered terminal error and never issues another successor. Account Authority-local op; no Principal Event is authored.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",
@@ -661,7 +663,9 @@
         "terminal_outcomes": [
           "session_grant_replay_expired",
           "session_grant_replay_terminal",
-          "session_grant_replay_indeterminate"
+          "session_grant_replay_indeterminate",
+          "bootstrap_transaction_cancelled",
+          "bootstrap_transaction_expired"
         ]
       },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",

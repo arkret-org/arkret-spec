@@ -1,0 +1,223 @@
+{
+  "suite": "device_bootstrap_founding_digest_conformance",
+  "version": 1,
+  "profile": "ak.profile.auth_server.v1",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.device_bootstrap.founding.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.device_bootstrap.founding_batch_digest.v1",
+    "ak.vector.device_bootstrap.device_key_digest.v1",
+    "ak.vector.device_bootstrap.canonical_request_digest.v1",
+    "ak.vector.device_bootstrap.holder_jkt.v1",
+    "ak.vector.device_bootstrap.issue_request.v1",
+    "ak.vector.device_bootstrap.transaction_states.v1"
+  ],
+  "vector_ids": [
+    "ak.vector.device_bootstrap.founding_batch_digest.v1",
+    "ak.vector.device_bootstrap.device_key_digest.v1",
+    "ak.vector.device_bootstrap.canonical_request_digest.v1",
+    "ak.vector.device_bootstrap.holder_jkt.v1",
+    "ak.vector.device_bootstrap.issue_request.v1",
+    "ak.vector.device_bootstrap.transaction_states.v1"
+  ],
+  "algorithms": {
+    "domain_separated_digest": "sha256(lower-level bytes UTF8(label + newline) || RFC8785_JCS(value)); wire is sha256:lowerhex",
+    "founding_batch_label": "ak.device-bootstrap.founding-batch.v1",
+    "device_key_digest": "sha256:lowerhex(SHA256(raw 32-byte Ed25519 public key))",
+    "canonical_request_digest": "sha256:lowerhex(SHA256(UTF8(RFC8785_JCS(closed request with derived digest fields removed))))",
+    "holder_jkt": "RFC7638 SHA-256 JWK Thumbprint, unpadded base64url"
+  },
+  "founding_batch": {
+    "event_ids": [
+      "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
+      "ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK"
+    ],
+    "canonical_value_utf8": "{\"event_ids\":[\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\",\"ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK\"]}",
+    "digest_input_utf8": "ak.device-bootstrap.founding-batch.v1\n{\"event_ids\":[\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\",\"ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK\"]}",
+    "expected_digest": "sha256:b654c737248a83ae6959b9e0ff61e5b3594faa8b12d8ca12efe41f6581aa5fd7",
+    "negative_vectors": [
+      {
+        "name": "sort_event_ids",
+        "event_ids": [
+          "ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK",
+          "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g"
+        ],
+        "must_not_equal_expected": true
+      },
+      {
+        "name": "deduplicate_event_ids",
+        "event_ids": [
+          "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g"
+        ],
+        "must_reject": true
+      },
+      {
+        "name": "replace_event_ids_with_digests",
+        "event_ids": [
+          "sha256:9eb6157cd905fc19a1132c59998cf4c3db78aa1fd00dd92a47728fe062868dce",
+          "sha256:08a53ac362e9617b90131f3952f0e0b8c5a7be695d2ab9589d16326270de480a"
+        ],
+        "must_reject": true
+      },
+      {
+        "name": "reverse_wire_order",
+        "event_ids": [
+          "ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK",
+          "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g"
+        ],
+        "must_not_equal_expected": true
+      }
+    ]
+  },
+  "device_key": {
+    "raw_public_key_hex": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+    "public_key_multibase": "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+    "public_key_base64url": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+    "expected_digest": "sha256:21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9",
+    "negative_vectors": [
+      {
+        "name": "hash_multibase_text",
+        "input_utf8": "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+        "must_not_equal_expected": true
+      },
+      {
+        "name": "hash_base64url_text",
+        "input_utf8": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+        "must_not_equal_expected": true
+      }
+    ]
+  },
+  "holder": {
+    "public_jwk": {
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"
+    },
+    "canonical_thumbprint_input_utf8": "{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\"}",
+    "expected_jkt": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k",
+    "credential_cnf_jkt": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+  },
+  "enroll_request": {
+    "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
+    "authorize_event_preimage": {
+      "event_id": "ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK",
+      "kind": "ak.device.authorize",
+      "realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
+      "scope_ref": {
+        "kind": "realm",
+        "realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"
+      },
+      "actor_id": "did:webvh:z6mkfixture:alice.example",
+      "executed_by": "did:webvh:z6mkfixture:auth-a.example",
+      "authorization_ref": "did:webvh:z6mkfixture:alice.example#device-enrollment-authority",
+      "actor_seq": 1,
+      "created_at": "2026-08-08T12:00:00.000Z",
+      "hlc": "019a00000000-0000-00000001",
+      "prev_refs": [
+        "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g"
+      ],
+      "refs": [],
+      "payload": {
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
+        "device_public_key": "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+        "hpke_key": "z6LSfixtureHpkeKey11111111111111111111111111111111",
+        "algorithms": [
+          "Ed25519",
+          "HPKE-X25519-HKDF-SHA256-AES128GCM"
+        ],
+        "authorized_by": "did:webvh:z6mkfixture:alice.example",
+        "not_before": "2026-08-08T12:00:00.000Z",
+        "enrollment_authority_binding": {
+          "kind": "service_attested",
+          "authority_did": "did:webvh:z6mkfixture:auth-a.example",
+          "authorization_ref": "did:webvh:z6mkfixture:alice.example#device-enrollment-authority"
+        }
+      }
+    }
+  },
+  "event_identity": {
+    "event_identity_derivation": "RFC8785_JCS(authorize_event_preimage with event_id removed), then SHA-256 and suite-tagged Event ID encoding",
+    "canonical_preimage_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"authorization_ref\":\"did:webvh:z6mkfixture:alice.example#device-enrollment-authority\",\"created_at\":\"2026-08-08T12:00:00.000Z\",\"executed_by\":\"did:webvh:z6mkfixture:auth-a.example\",\"hlc\":\"019a00000000-0000-00000001\",\"kind\":\"ak.device.authorize\",\"payload\":{\"algorithms\":[\"Ed25519\",\"HPKE-X25519-HKDF-SHA256-AES128GCM\"],\"authorized_by\":\"did:webvh:z6mkfixture:alice.example\",\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_public_key\":\"z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw\",\"enrollment_authority_binding\":{\"authority_did\":\"did:webvh:z6mkfixture:auth-a.example\",\"authorization_ref\":\"did:webvh:z6mkfixture:alice.example#device-enrollment-authority\",\"kind\":\"service_attested\"},\"hpke_key\":\"z6LSfixtureHpkeKey11111111111111111111111111111111\",\"not_before\":\"2026-08-08T12:00:00.000Z\",\"principal_id\":\"did:webvh:z6mkfixture:alice.example\"},\"prev_refs\":[\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\"],\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"refs\":[],\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\"}}",
+    "suite_wire_code": 1,
+    "expected_event_id": "ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK"
+  },
+  "canonical_request": {
+    "derived_digest_fields_removed": [],
+    "canonical_request_utf8": "{\"authorize_event_preimage\":{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"authorization_ref\":\"did:webvh:z6mkfixture:alice.example#device-enrollment-authority\",\"created_at\":\"2026-08-08T12:00:00.000Z\",\"event_id\":\"ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK\",\"executed_by\":\"did:webvh:z6mkfixture:auth-a.example\",\"hlc\":\"019a00000000-0000-00000001\",\"kind\":\"ak.device.authorize\",\"payload\":{\"algorithms\":[\"Ed25519\",\"HPKE-X25519-HKDF-SHA256-AES128GCM\"],\"authorized_by\":\"did:webvh:z6mkfixture:alice.example\",\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_public_key\":\"z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw\",\"enrollment_authority_binding\":{\"authority_did\":\"did:webvh:z6mkfixture:auth-a.example\",\"authorization_ref\":\"did:webvh:z6mkfixture:alice.example#device-enrollment-authority\",\"kind\":\"service_attested\"},\"hpke_key\":\"z6LSfixtureHpkeKey11111111111111111111111111111111\",\"not_before\":\"2026-08-08T12:00:00.000Z\",\"principal_id\":\"did:webvh:z6mkfixture:alice.example\"},\"prev_refs\":[\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\"],\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"refs\":[],\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\"}},\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\"}",
+    "expected_digest": "sha256:d2ff0499b25b6d7e008a41a56c7ff1966c311bd2233c3a5201d12ae039526d7c",
+    "negative_vectors": [
+      {
+        "name": "payload_changed_without_digest_change",
+        "json_pointer": "/authorize_event_preimage/payload/hpke_key",
+        "replacement": "z6LSdifferentHpkeKey111111111111111111111111111111",
+        "must_not_equal_expected": true
+      },
+      {
+        "name": "unknown_request_member",
+        "json_pointer": "/derived_digest",
+        "replacement": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "must_reject_closed_schema": true
+      }
+    ]
+  },
+  "session_grant_issue_request": {
+    "proof_kind": "pre_registration_handoff",
+    "principal_id": "did:webvh:z6mkfixture:alice.example",
+    "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
+    "device_bootstrap_request": {
+      "mode": "founding",
+      "authorize_event_source": "#/enroll_request/authorize_event_preimage",
+      "founding_event_ids": [
+        "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
+        "ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK"
+      ],
+      "founding_batch_digest": "sha256:b654c737248a83ae6959b9e0ff61e5b3594faa8b12d8ca12efe41f6581aa5fd7"
+    },
+    "issuer_derived_fields_forbidden": [
+      "transaction_id",
+      "holder_jkt",
+      "canonical_request_digest",
+      "device_key_digest",
+      "allowed_operation_ids",
+      "credential_expires_at",
+      "bootstrap_transaction_expires_at"
+    ],
+    "negative_vectors": [
+      {
+        "name": "non_handoff_proof_with_bootstrap_request",
+        "proof_kind": "oidc_code_exchange",
+        "must_reject_closed_schema": true
+      },
+      {
+        "name": "caller_submits_transaction_id",
+        "extra_bootstrap_field": "transaction_id",
+        "must_reject_closed_schema": true
+      },
+      {
+        "name": "caller_submits_derived_device_key_digest",
+        "extra_bootstrap_field": "device_key_digest",
+        "must_reject_closed_schema": true
+      },
+      {
+        "name": "authorize_id_not_second_founding_id",
+        "replace_second_with_first": true,
+        "must_reject_binding": true
+      }
+    ]
+  },
+  "bootstrap_transaction": {
+    "states": [
+      "pending",
+      "accepted",
+      "cancelled",
+      "expired"
+    ],
+    "forbidden_terminal_state": "failed",
+    "bearer_expiry_changes_state": false,
+    "cancelled_or_expired_exact_replay_only": true,
+    "standard_promotion_requires": "accepted"
+  }
+}

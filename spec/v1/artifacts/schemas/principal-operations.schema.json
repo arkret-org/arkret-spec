@@ -40,12 +40,166 @@
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]+$"
     },
+    "jwk_thumbprint": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{43}$",
+      "description": "Unpadded base64url RFC 7638 SHA-256 JWK Thumbprint."
+    },
     "bootstrap_mode": {
       "type": "string",
       "enum": [
         "founding",
         "sibling_pairing"
       ]
+    },
+    "device_bootstrap_transaction_state": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "cancelled",
+        "expired"
+      ],
+      "description": "Closed durable bootstrap transaction state. No failed or implementation-private fifth state is permitted."
+    },
+    "device_bootstrap_transaction": {
+      "type": "object",
+      "description": "Durable device bootstrap transaction identity and lifecycle projection. Bearer expiry does not alter state. cancelled and expired permit exact replay only; standard promotion requires accepted.",
+      "required": [
+        "transaction_id",
+        "mode",
+        "state",
+        "principal_id",
+        "device_id",
+        "holder_jkt",
+        "canonical_request_digest",
+        "expires_at",
+        "created_at"
+      ],
+      "properties": {
+        "transaction_id": {
+          "$ref": "#/$defs/opaque_id"
+        },
+        "mode": {
+          "$ref": "#/$defs/bootstrap_mode"
+        },
+        "state": {
+          "$ref": "#/$defs/device_bootstrap_transaction_state"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "holder_jkt": {
+          "$ref": "#/$defs/jwk_thumbprint"
+        },
+        "canonical_request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "cancelled_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expired_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "accepted"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "accepted_at"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "cancelled"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "cancelled_at"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "expired"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "expired_at"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "bootstrap_transaction_cancelled_error_details": {
+      "type": "object",
+      "required": [
+        "transaction_id",
+        "state"
+      ],
+      "properties": {
+        "transaction_id": {
+          "$ref": "#/$defs/opaque_id"
+        },
+        "state": {
+          "const": "cancelled"
+        }
+      },
+      "additionalProperties": false
+    },
+    "bootstrap_transaction_expired_error_details": {
+      "type": "object",
+      "required": [
+        "transaction_id",
+        "state"
+      ],
+      "properties": {
+        "transaction_id": {
+          "$ref": "#/$defs/opaque_id"
+        },
+        "state": {
+          "const": "expired"
+        }
+      },
+      "additionalProperties": false
     },
     "cancel_device_bootstrap_outcome": {
       "oneOf": [
@@ -228,27 +382,33 @@
             "device_id": {
               "$ref": "#/$defs/device_id"
             },
-            "device_key_digest": {
-              "$ref": "#/$defs/hash"
+        "device_key_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "SHA-256 typed digest over the decoded raw 32-byte Ed25519 device public key. Hashing multibase/base64/JWK/DTO text is forbidden."
             },
             "transaction_id": {
               "$ref": "#/$defs/opaque_id"
             },
             "holder_jkt": {
-              "$ref": "#/$defs/hash"
+              "$ref": "#/$defs/jwk_thumbprint",
+              "description": "RFC 7638 SHA-256 thumbprint of the holder public JWK. MUST equal the enclosing SessionGrant cnf.jkt byte-for-byte."
             },
-            "canonical_request_digest": {
-              "$ref": "#/$defs/hash"
+        "canonical_request_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "SHA-256 typed digest over RFC 8785/JCS of the exact closed enroll_device request after removing derived digest fields. The v1 enroll body contains no such digest fields, so the projection is the entire closed body."
             },
             "founding_batch_digest": {
-              "$ref": "#/$defs/hash"
+              "$ref": "#/$defs/hash",
+              "description": "H(ak.device-bootstrap.founding-batch.v1, {event_ids: founding_event_ids}); a pure function recomputed by issuer and verifier."
             },
             "founding_event_ids": {
               "type": "array",
               "items": {
                 "$ref": "#/$defs/event_id"
               },
-              "minItems": 1,
+              "minItems": 2,
+              "maxItems": 2,
+              "description": "Exact ordered founding unit Event IDs: root-signed ak.realm.create first, authority-proof-pending ak.device.authorize second. Sorting, deduplication or digest substitution is forbidden.",
               "uniqueItems": true
             },
             "allowed_operation_ids": {
@@ -301,7 +461,8 @@
               "$ref": "#/$defs/opaque_id"
             },
             "holder_jkt": {
-              "$ref": "#/$defs/hash"
+              "$ref": "#/$defs/jwk_thumbprint",
+              "description": "RFC 7638 SHA-256 thumbprint of the holder public JWK. MUST equal the enclosing SessionGrant cnf.jkt byte-for-byte."
             },
             "canonical_request_digest": {
               "$ref": "#/$defs/hash"

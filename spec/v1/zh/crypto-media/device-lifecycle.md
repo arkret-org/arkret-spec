@@ -539,7 +539,26 @@ receiver 接受 `service_attested` 的 `ak.device.authorize` 时 MUST 校验：
 
 **按时点解析（normative）：** 历史 `ak.device.authorize` 的复验（审计 / 联邦 replay）MUST 按该 Event 的 server-sealed accepted-at，对入册权威 DID 做按时点解析（`did:webvh` 历史 `versionTime`），用当时有效的入册密钥验签；因此入册权威轮换其签名密钥**不会**使既有授权失效。设备集投影的历史复算同样按时点进行。
 
-**客户端请求入口（normative）：** 客户端经 `ak.gate.account.command.enroll_device` 请求 authority proof。普通入册请求必须用当前 session grant + DPoP；PCR bootstrap 与 verified recovery session 使用各自的受限一次性授权上下文，不得要求尚不存在的普通 device grant。authority 只签最终 `ak.device.authorize` digest，客户端原样提交；服务端不得替换 device key、HPKE key、algorithms、event id 或 actor chain。
+**客户端请求入口（normative，唯一真源）：** 首设备 onboarding 固定走外部 enrollment authority 的 B 模型。
+客户端必须在请求 `device_bootstrap(mode=founding)` credential 前构造完整 canonical、尚未带 authority Event proof
+的 `ak.device.authorize` preimage，自行固定 `event_id`、`kind`、`realm_id`、`scope_ref`、`actor_id`、
+`executed_by`、`authorization_ref`、`actor_seq=1`、`created_at`、`hlc`、唯一 `prev_refs`、空 `refs` 与 closed
+payload。`ak.gate.account.command.enroll_device` 的 closed body 仅为 `{device_id,authorize_event_preimage}`；
+`device_id` 必须等于 preimage payload 与 credential binding 中的值。
+
+authority 必须从完整 proof-free Event 重算 `event_id` 与 canonical request digest，并逐项验证：`realm_id` 与
+`scope_ref.realm_id` 等于 `principal_control_realm_id(principal)`；`actor_id` 与 payload principal 等于该
+principal；唯一 predecessor 等于 founding unit 第一条 root-signed `ak.realm.create`；`executed_by`、信封与
+payload 的 `authorization_ref`、`enrollment_authority_binding.authority_did` 精确命中
+`/_arkret/describe` 所 pin 且 entry 0 授权的 delegation；binding `kind` 恰为 `service_attested`；device raw-key
+digest、founding Event IDs/digest 与 holder JKT 全部等于 credential identity material。
+
+authority 只能向该 canonical Event **追加自己的 Event proof**。它不得重建 Event、生成新的
+`event_id`/`created_at`/HLC、改写 actor chain/delegation、替换 device key、HPKE key、algorithms 或任何其它
+preimage 字段。由于 `proofs` 排除在 Event identity digest preimage 外，追加 proof 后 event_id 必须逐字不变；
+返回 Event 与请求 preimage 除 authority proof 外必须 byte-identical。相同 bootstrap transaction + body 必须
+回放首次 durable outcome，不同 body 返回 `bootstrap_idempotency_conflict` 且零写入。普通入册不适用本入口；
+后续设备走 sibling pairing，recovery 走自己的受限 transaction。
 
 ## 5a. Privacy-Preserving Push
 

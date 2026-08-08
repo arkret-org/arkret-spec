@@ -4606,6 +4606,100 @@
     }
   ],
   "$defs": {
+    "device_authorize_event_preimage": {
+      "type": "object",
+      "description": "Complete canonical, proof-free ak.device.authorize Event fixed by the founding client before bootstrap credential issuance. event_id is derived from this exact object under the registered Event digest contract. The enrollment authority may only append its Event proof; it MUST NOT generate or rewrite event_id, created_at, hlc, actor chain, authorization references, payload or any other preimage field.",
+      "required": [
+        "event_id",
+        "kind",
+        "realm_id",
+        "scope_ref",
+        "actor_id",
+        "executed_by",
+        "authorization_ref",
+        "actor_seq",
+        "created_at",
+        "hlc",
+        "prev_refs",
+        "refs",
+        "payload"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "#/properties/event_id"
+        },
+        "kind": {
+          "const": "ak.device.authorize"
+        },
+        "realm_id": {
+          "$ref": "#/properties/realm_id"
+        },
+        "scope_ref": {
+          "$ref": "#/properties/scope_ref"
+        },
+        "actor_id": {
+          "$ref": "#/properties/actor_id"
+        },
+        "executed_by": {
+          "$ref": "#/properties/executed_by"
+        },
+        "authorization_ref": {
+          "$ref": "#/$defs/did_delegation_ref"
+        },
+        "actor_seq": {
+          "type": "integer",
+          "const": 1
+        },
+        "created_at": {
+          "$ref": "#/properties/created_at"
+        },
+        "hlc": {
+          "$ref": "#/properties/hlc"
+        },
+        "prev_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/event_id"
+          }
+        },
+        "refs": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "payload": {
+          "allOf": [
+            {
+              "$ref": "./event-payload.schema.json#/$defs/device_authorize_payload"
+            },
+            {
+              "required": [
+                "enrollment_authority_binding"
+              ],
+              "properties": {
+                "enrollment_authority_binding": {
+                  "properties": {
+                    "kind": {
+                      "const": "service_attested"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              },
+              "not": {
+                "required": [
+                  "cross_signing_binding"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "applet_id": {
       "type": "string",
       "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"

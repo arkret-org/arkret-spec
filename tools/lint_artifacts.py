@@ -3854,7 +3854,14 @@ def check_event_reference_inventory(lint: Lint) -> None:
         and row.get("schema") == "event-envelope.schema.json"
         and row.get("field") == "prev_refs"
     ]
-    if len(prev_refs) != 1 or prev_refs[0].get("classification") != "complete_event_id":
+    expected_prev_refs = {
+        "/properties/prev_refs",
+        "/$defs/device_authorize_event_preimage/properties/prev_refs",
+    }
+    if (
+        {row.get("json_pointer") for row in prev_refs} != expected_prev_refs
+        or any(row.get("classification") != "complete_event_id" for row in prev_refs)
+    ):
         lint.fail(path, "event-envelope.prev_refs must be inventoried as complete_event_id")
     valid = {"complete_event_id", "digest_copy_or_commitment", "external_event_namespace"}
     for index, row in enumerate(rows):

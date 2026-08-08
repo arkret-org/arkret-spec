@@ -443,15 +443,45 @@ allowed operations 不得合并：
   bootstrap sibling不得 enroll。最终 pair只能由 active sibling持 `standard` credential调用
   `ak.gate.account.command.pair_device`。
 
-credential 两分支都签入 principal、device key digest、transaction ID、holder JKT、closed allowlist与
-`credential_expires_at`，每次请求都执行 DPoP。transaction另有独立
+`founding` credential 的 13 个必填 identity material 与 artifact schema 完全一致：
+`credential_kind`、`mode`、`principal_id`、`device_id`、`device_key_digest`、`transaction_id`、
+`holder_jkt`、`canonical_request_digest`、`founding_batch_digest`、`founding_event_ids`、
+`allowed_operation_ids`、`credential_expires_at`、`bootstrap_transaction_expires_at`。任何字段都不得在签发后
+回填或替换。`sibling_pairing` 使用同一公共绑定字段，并以其 closed sibling 字段替换 founding batch 字段；
+两分支每次请求都执行 DPoP。
+
+上述四个 digest / thumbprint 构造固定如下，不允许实现另造第五种构造：
+
+```text
+H(label, x) = "sha256:" + lowerhex(
+  SHA256(UTF8(label + "\n") || RFC8785_JCS(x)))
+
+founding_batch_digest = H(
+  "ak.device-bootstrap.founding-batch.v1",
+  {"event_ids":[realm_create_event_id, device_authorize_event_id]})
+```
+
+`founding_event_ids` 必须恰好两项，并严格按 founding unit wire 顺序列出：root-signed
+`ak.realm.create` 在前，等待 authority proof 的首个 `ak.device.authorize` 在后；不得排序、去重、颠倒或换成
+digest。`founding_batch_digest` 是该有序列表的纯函数，issuer 与 verifier 都必须重算并逐字比对。
+
+`device_key_digest` 必须只对从 wire 编码解出的 **32-byte raw Ed25519 public key** 做 SHA-256 typed digest
+（`sha256:` + lowerhex）；不得 hash multibase/base64 字符串、JWK 或 DTO。相同 raw key 的不同 wire 编码必须
+得到相同值。`canonical_request_digest` 必须对删除 derived digest 字段后的 exact closed
+`enroll_device` request body 做 RFC 8785/JCS，再对 UTF-8 bytes 做 SHA-256 typed digest；v1 该 body
+本身不含 derived digest 字段，因此摘要投影就是完整 closed body。`holder_jkt` 是 RFC 7638 SHA-256 JWK
+Thumbprint 的 43 字符 unpadded base64url wire 值，不是 `sha256:hex` Hash；它必须与同一 credential 的
+`cnf.jkt` 逐字相等，否则 fail closed。逐字节向量见
+`artifacts/fixtures/device-bootstrap-fixture.json`。
+
+transaction另有独立
 `bootstrap_transaction_expires_at`，状态仅为 `pending | accepted | cancelled | expired`。bearer过期只令 token
 失效：transaction仍 pending且 current holder/device proof通过时，issuer可为同 transaction、同 canonical request
 digest续发；不得创建新 transaction、改写 request或替换 Event。只有 founding batch accepted，或 standard
 sibling调用 `pair_device` accepted，才可在再次验证 current proof后另签 `standard` credential。
 
 只有显式 accepted cancel进入 `cancelled`，只有 transaction deadline进入 `expired`；其它失败保持
-`pending/retryable`，不得写第四状态或 failed terminal。`cancelled|expired`只能 exact replay，禁止续 bootstrap和
+`pending/retryable`，不得写第五状态或 failed terminal。`cancelled|expired`只能 exact replay，禁止续 bootstrap和
 standard。
 
 `ak.gate.account.command.cancel_device_bootstrap` 的 closed request固定为
@@ -463,10 +493,33 @@ cancel ledger key仅为 `(transaction_id,idempotency_key)`，row分别保存原 
 `outcome_digest=SHA-256(RFC8785/JCS(response_without_outcome_digest))`。HTTP/gRPC/MQ逐字段等值，transport不得
 把 retryable failure改写成 cancelled/accepted。
 
+首次签发复用 `ak.gate.account.command.issue_session_grant`，但
+`proof_kind="pre_registration_handoff"` 分支 MUST 携带 closed
+`device_bootstrap_request {mode:"founding", authorize_event_preimage, founding_event_ids,
+founding_batch_digest}`，且其它 proof kind MUST 禁止该字段。这里的 `authorize_event_preimage` 与稍后
+`enroll_device` body 中的值逐字相同。客户端不得提交 `transaction_id`、`holder_jkt`、
+`canonical_request_digest`、`device_key_digest`、`allowed_operation_ids`、
+`credential_expires_at` 或 `bootstrap_transaction_expires_at`：issuer 从 Event preimage、外层
+`device_id`、DPoP 与自己的 durable issuance seed 生成或重算这些值，并在同一事务创建 pending bootstrap
+transaction 与 `device_bootstrap(mode=founding)` grant。任何额外字段都属于 schema violation，不能当 hint。
+
 `ak.gate.account.command.enroll_device` 以 `(principal_id,device_id,bootstrap transaction)`与 canonical request
 digest保存 durable outcome。相同 key/body永远回放原 `ak.device.authorize` Event bytes、ID与 outcome；不同 body
 conflict。credential/publication authority过期只允许对原 transaction/outcome/Event签发 fresh外层 evidence，
 不得生成“等价”replacement Event。原 Event按当前固定合同不可接受时必须确定性失败。
+
+founding batch accepted 后的 standard 换发复用
+`ak.gate.account.command.refresh_session_grant` 的 stable request identity、exact replay 与原子
+predecessor→successor 事务。它是唯一允许的 class transition：predecessor 必须是绑定同 transaction 的
+`device_bootstrap(mode=founding)`、transaction 必须已为 `accepted`，issuer 必须再次验证 current device/holder
+proof，然后创建 `standard` successor 并把 bootstrap predecessor 原子标为 `superseded`。`pending` 不得提前
+换发；`cancelled|expired` 为终态；`recovery_restricted` 或其它任意 class change 仍必须 fail closed。
+
+本 founding 通路固定使用外部 enrollment authority 的 **B 模型**；不得产出 A 模型 delegation、SSK/USK 或
+`ak.cross_signing.publish`。客户端在请求 credential 之前已经固定 root-signed `ak.realm.create` 与完整
+proof-free `ak.device.authorize` preimage，并由二者算出 Event IDs 与 founding digest；authority 只为后者追加
+自己的 proof。只有两条 Event 的 ordered atomic batch 已 accepted，transaction 才能进入 `accepted`，并在再次
+验证 current holder/device proof 后用 predecessor→successor 原子事务签发 `standard` credential。
 
 #### 5.0.1 标准 delegated 路径（v1 core 默认 `did:webvh` principal）
 

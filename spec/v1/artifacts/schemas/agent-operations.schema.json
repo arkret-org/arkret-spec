@@ -769,57 +769,26 @@
     },
     "account_device_enroll_request_body": {
       "type": "object",
-      "description": "Request to the account-authority enrollment service to mint a `service_attested` ak.device.authorize for the calling session's own device (device-lifecycle.md §5.4, key-management.md §5.0.6). Used for the bootstrap / first-device path under the managed-DID model, where no existing device can approve via device-pair.",
+      "description": "Founding B-model request carrying the caller-fixed complete proof-free ak.device.authorize Event. The closed body is the canonical_request_digest input (after removal of derived digest fields; v1 has none in this body). The authority validates every field and only appends its proof.",
       "required": [
         "device_id",
-        "device_public_key",
-        "hpke_key",
-        "algorithms",
-        "actor_seq",
-        "bootstrap_create_event_id"
+        "authorize_event_preimage"
       ],
       "properties": {
         "device_id": {
-          "$ref": "#/$defs/device_id"
+          "$ref": "#/$defs/device_id",
+          "description": "Explicit bootstrap grant binding key. MUST equal authorize_event_preimage.payload.device_id and the device_bootstrap credential binding."
         },
-        "device_public_key": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            }
-          ],
-          "description": "This session's device public key as a did:key multibase string (z6Mk…) or base64."
-        },
-        "hpke_key": {
-          "$ref": "#/$defs/non_empty_string",
-          "description": "This device’s HPKE sealing public key (multibase). Enters ak.device.authorize.payload.hpke_key verbatim and is covered by the enrollment-authority Event proof (device-lifecycle.md §5.4)."
-        },
-        "algorithms": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/non_empty_string"
-          },
-          "minItems": 1,
-          "description": "Canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids the device supports. Enters ak.device.authorize.payload.algorithms verbatim (device-lifecycle.md §5.2/§5.4)."
-        },
-        "actor_seq": {
-          "type": "integer",
-          "const": 1,
-          "description": "Founding-device sequence. This endpoint is closed to post-bootstrap devices, so the only valid value is 1."
-        },
-        "bootstrap_create_event_id": {
-          "$ref": "#/$defs/event_id",
-          "description": "Event id of the root-signed ak.realm.create that immediately precedes the authority-signed authorize in the atomic first-device bootstrap unit. The authority copies it as the authorize Event's sole prev_refs entry."
-        },
-        "not_before": {
-          "$ref": "#/$defs/timestamp"
+        "authorize_event_preimage": {
+          "$ref": "./event-envelope.schema.json#/$defs/device_authorize_event_preimage",
+          "description": "Complete client-authored canonical Event with no proofs. realm_id and scope_ref MUST equal principal_control_realm_id(principal); actor_id and payload.principal_id MUST equal principal; executed_by/authorization_ref and payload.enrollment_authority_binding MUST match the deployment-pinned B-model enrollment authority delegation; prev_refs[0] is the root-signed ak.realm.create Event id."
         }
       },
       "additionalProperties": false
     },
     "account_device_enroll_outcome": {
       "type": "object",
-      "description": "The signed `service_attested` ak.device.authorize Event for the requested device. The account authority does not contact the Principal Server; the caller submits `authorized_event` verbatim to POST /_arkret/self/events.",
+      "description": "The client-authored ak.device.authorize Event with exactly the enrollment authority proof appended. Its event_id and all digest-preimage fields MUST equal authorize_event_preimage; the account authority does not contact the Principal Server and the caller submits authorized_event verbatim.",
       "required": [
         "bootstrap_transaction_id",
         "principal_id",

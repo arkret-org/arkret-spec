@@ -76,18 +76,22 @@
       "inherits": "issuer_a_closed_preimage",
       "override": {
         "credential_class": "device_bootstrap",
+        "cnf": {
+          "jkt": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+        },
         "bootstrap_binding": {
           "credential_kind": "device_bootstrap",
           "mode": "founding",
           "principal_id": "did:webvh:z6mkfixture:alice.example",
           "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
-          "device_key_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "device_key_digest": "sha256:21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9",
           "transaction_id": "bootstrap-transaction-fixture-001",
-          "holder_jkt": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-          "canonical_request_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-          "founding_batch_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "holder_jkt": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k",
+          "canonical_request_digest": "sha256:d2ff0499b25b6d7e008a41a56c7ff1966c311bd2233c3a5201d12ae039526d7c",
+          "founding_batch_digest": "sha256:b654c737248a83ae6959b9e0ff61e5b3594faa8b12d8ca12efe41f6581aa5fd7",
           "founding_event_ids": [
-            "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g"
+            "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
+            "ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK"
           ],
           "allowed_operation_ids": [
             "ak.gate.account.command.enroll_device",
@@ -102,11 +106,11 @@
       "omit": [
         "holder_binding"
       ],
-      "canonical_preimage_utf8": "{\"audience\":\"did:webvh:z6mkfixture:service.example\",\"bootstrap_binding\":{\"allowed_operation_ids\":[\"ak.gate.account.command.enroll_device\",\"ak.gate.account.command.cancel_device_bootstrap\",\"ak.self.events.command.submit\",\"ak.self.events.read.resolve\"],\"bootstrap_transaction_expires_at\":\"2026-08-08T12:30:00.000Z\",\"canonical_request_digest\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"credential_expires_at\":\"2026-08-08T12:15:00.000Z\",\"credential_kind\":\"device_bootstrap\",\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"founding_batch_digest\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"founding_event_ids\":[\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\"],\"holder_jkt\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"mode\":\"founding\",\"principal_id\":\"did:webvh:z6mkfixture:alice.example\",\"transaction_id\":\"bootstrap-transaction-fixture-001\"},\"cnf\":{\"jkt\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"},\"credential_class\":\"device_bootstrap\",\"expires_at\":\"2026-08-08T13:00:00.000Z\",\"issuance_nonce\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"issuer\":\"did:webvh:z6mkfixture:auth-a.example\",\"not_before\":\"2026-08-08T12:00:00.000Z\",\"proof_kind\":\"oidc_code_exchange\",\"schema\":\"ak.session_grant.issuance.v1\",\"scopes\":[\"ak.self.account.read.describe\",\"ak.self.events.read.scan\"],\"session_id\":\"session-chain-fixture-001\",\"session_public_key\":\"{\\\"crv\\\":\\\"Ed25519\\\",\\\"kty\\\":\\\"OKP\\\",\\\"x\\\":\\\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\\\"}\",\"subject\":\"did:webvh:z6mkfixture:alice.example\"}",
-      "sha256_digest_hex": "56636fabd1a55527099616128c62ddcbf99d1e067b6a5d75f9e0e6423e96ccf6",
+      "canonical_preimage_utf8": "{\"audience\":\"did:webvh:z6mkfixture:service.example\",\"bootstrap_binding\":{\"allowed_operation_ids\":[\"ak.gate.account.command.enroll_device\",\"ak.gate.account.command.cancel_device_bootstrap\",\"ak.self.events.command.submit\",\"ak.self.events.read.resolve\"],\"bootstrap_transaction_expires_at\":\"2026-08-08T12:30:00.000Z\",\"canonical_request_digest\":\"sha256:d2ff0499b25b6d7e008a41a56c7ff1966c311bd2233c3a5201d12ae039526d7c\",\"credential_expires_at\":\"2026-08-08T12:15:00.000Z\",\"credential_kind\":\"device_bootstrap\",\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_digest\":\"sha256:21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9\",\"founding_batch_digest\":\"sha256:b654c737248a83ae6959b9e0ff61e5b3594faa8b12d8ca12efe41f6581aa5fd7\",\"founding_event_ids\":[\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\",\"ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK\"],\"holder_jkt\":\"kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k\",\"mode\":\"founding\",\"principal_id\":\"did:webvh:z6mkfixture:alice.example\",\"transaction_id\":\"bootstrap-transaction-fixture-001\"},\"cnf\":{\"jkt\":\"kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k\"},\"credential_class\":\"device_bootstrap\",\"expires_at\":\"2026-08-08T13:00:00.000Z\",\"issuance_nonce\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"issuer\":\"did:webvh:z6mkfixture:auth-a.example\",\"not_before\":\"2026-08-08T12:00:00.000Z\",\"proof_kind\":\"oidc_code_exchange\",\"schema\":\"ak.session_grant.issuance.v1\",\"scopes\":[\"ak.self.account.read.describe\",\"ak.self.events.read.scan\"],\"session_id\":\"session-chain-fixture-001\",\"session_public_key\":\"{\\\"crv\\\":\\\"Ed25519\\\",\\\"kty\\\":\\\"OKP\\\",\\\"x\\\":\\\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\\\"}\",\"subject\":\"did:webvh:z6mkfixture:alice.example\"}",
+      "sha256_digest_hex": "d76e2dd2cc8a60eb537b933be319f055adf8400e63aa67d9dfce4a410e177706",
       "suite_wire_code": 1,
-      "grant_id": "ak:session_grant:AVZjb6vRpVUnCZYWEoxi3cv5nR4Ge2pddfng5kI-lsz2",
-      "jwt_jti": "ak:session_grant:AVZjb6vRpVUnCZYWEoxi3cv5nR4Ge2pddfng5kI-lsz2"
+      "grant_id": "ak:session_grant:AdduLdLMimDrU3uTO-MZ8FWt-EAOY6pn2d_OSkEOF3cG",
+      "jwt_jti": "ak:session_grant:AdduLdLMimDrU3uTO-MZ8FWt-EAOY6pn2d_OSkEOF3cG"
     },
     {
       "name": "recovery_binding_is_identity_material",

@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-08.5",
+  "version": "2026-08-08.7",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T17:00:00Z",
+  "generated_at": "2026-08-08T19:00:00Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -55,10 +55,13 @@
       "http_alias": "POST /_arkret/gate/account/device-enroll",
       "operation_specific": [
         "proof_invalid",
+        "bootstrap_idempotency_conflict",
+        "bootstrap_transaction_cancelled",
+        "bootstrap_transaction_expired",
         "duplicate_conflict",
         "failed_precondition"
       ],
-      "description": "Enrolls a device via the principal's designated enrollment authority. proof_invalid when the enrollment proof / controller binding does not verify against the authority designated in the principal DID document; duplicate_conflict when the device record already exists; failed_precondition when the enrollment-authority designation is absent or stale at the accepted-at frontier. See zh/identity/key-management.md §5.0.6 and zh/identity/identity-did.md §3.2."
+      "description": "Founding B-model enrollment accepts the exact proof-free ak.device.authorize preimage bound by the device_bootstrap credential, recomputes event_id and canonical_request_digest, and only appends the pinned enrollment-authority proof. bootstrap_idempotency_conflict covers the same transaction identity with different closed bytes; cancelled/expired terminal transactions allow exact replay only. No failure may synthesize or replace the Event."
     },
     {
       "operation_id": "ak.gate.account.command.authorize_recovery_device",
@@ -83,6 +86,8 @@
         "principal_unknown",
         "proof_invalid",
         "duplicate_conflict",
+        "bootstrap_transaction_cancelled",
+        "bootstrap_transaction_expired",
         "session_grant_replay_expired",
         "session_grant_replay_terminal",
         "session_grant_replay_indeterminate",
@@ -93,7 +98,7 @@
         "accountability_grant_missing",
         "agent_requested_scope_commitment_invalid"
       ],
-      "description": "Account Authority issuer-ledger session grant issuance. `principal_unknown` is returned when the required principal_id has no verified account binding; the authority must not derive or mint a DID as a fallback. Exact replay returns the byte-identical recorded live outcome after current holder/DPoP/target/digest revalidation; conflicting canonical intent is duplicate_conflict. A recorded expired outcome returns session_grant_replay_expired; revoked/superseded returns session_grant_replay_terminal; an evicted replay record returns session_grant_replay_indeterminate. None may issue a replacement under the same request identity. Proof-kind-specific validation failures remain proof_invalid or the registered Agent lifecycle/authority codes."
+      "description": "Account Authority issuer-ledger session grant issuance. `principal_unknown` is returned when the required principal_id has no verified account binding; the authority must not derive or mint a DID as a fallback. pre_registration_handoff requires the closed founding device_bootstrap_request and creates the pending bootstrap transaction atomically with its DeviceBootstrap grant; caller-supplied transaction/JKT/digest/allowlist/expiry fields are schema violations. Exact replay returns the byte-identical recorded live outcome after current holder/DPoP/target/digest revalidation; conflicting canonical intent is duplicate_conflict. A recorded expired outcome returns session_grant_replay_expired; revoked/superseded returns session_grant_replay_terminal; a cancelled or expired bootstrap transaction returns its bootstrap terminal code; an evicted replay record returns session_grant_replay_indeterminate. None may issue a replacement under the same request identity. Proof-kind-specific validation failures remain proof_invalid or the registered Agent lifecycle/authority codes."
     },
     {
       "operation_id": "ak.gate.account.command.revoke_session",
@@ -120,9 +125,12 @@
         "session_grant_replay_indeterminate",
         "session_grant_not_found",
         "did_proof_required",
-        "proof_invalid"
+        "proof_invalid",
+        "failed_precondition",
+        "bootstrap_transaction_cancelled",
+        "bootstrap_transaction_expired"
       ],
-      "description": "DPoP-bound issuer-ledger rotation keyed by predecessor_grant_id plus refresh_request_digest. Exact replay returns the recorded successor after current proof revalidation; a conflicting request is duplicate_conflict. One transaction creates the successor and supersedes the predecessor. A recorded successor that is expired or terminal returns the corresponding session_grant_replay_* code and never causes a second successor. The audience remains locked; logged-out or invalid holder/fresh-proof paths retain their existing errors."
+      "description": "DPoP-bound issuer-ledger rotation keyed by predecessor_grant_id plus refresh_request_digest. Exact replay returns the recorded successor after current proof revalidation; a conflicting request is duplicate_conflict. One transaction creates the successor and supersedes the predecessor. Standard refresh remains same-class. A DeviceBootstrap(mode=founding) predecessor may change only to Standard, only when its durable bootstrap transaction is accepted, and only after current device/holder proof revalidation; pending is failed_precondition, while cancelled or expired returns the matching bootstrap terminal code with zero successor writes. RecoveryRestricted and every other class change remain forbidden. A recorded successor that is expired or terminal returns the corresponding session_grant_replay_* code and never causes a second successor. The audience remains locked; logged-out or invalid holder/fresh-proof paths retain their existing errors."
     },
     {
       "operation_id": "ak.gate.account.command.promote_recovery_session_grant",
@@ -1871,7 +1879,7 @@
       "operation_specific": [
         "bootstrap_idempotency_conflict"
       ],
-      "description": "Same transaction/idempotency identity with different closed bytes conflicts; retryable failures remain pending and are not mapped to a fabricated terminal error."
+      "description": "Same transaction/idempotency identity with different closed bytes conflicts. Exact replay returns the first cancelled/expired/pending outcome; explicit accepted cancellation alone writes cancelled, the independent deadline alone writes expired, and every other failure leaves the transaction pending/retryable."
     },
     {
       "operation_id": "ak.self.contact.command.scope_update",

@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-08.5",
+  "version": "2026-08-08.6",
   "codes": [
     {
       "code": "bad_json",
@@ -1687,6 +1687,18 @@
       "http_status": 409,
       "scope": "endpoint",
       "description": "A device bootstrap enroll, cancel or recovery request reused the durable transaction/idempotency identity with different closed request bytes or a different canonical bootstrap request digest. The first outcome remains authoritative and no Event or credential is replaced."
+    },
+    {
+      "code": "bootstrap_transaction_cancelled",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The durable device bootstrap transaction is cancelled. Only byte-identical replay of an already committed operation outcome is allowed; no bootstrap credential, Event authorization or standard successor may be created."
+    },
+    {
+      "code": "bootstrap_transaction_expired",
+      "http_status": 410,
+      "scope": "endpoint",
+      "description": "The durable device bootstrap transaction deadline elapsed and its state is expired. Only byte-identical replay of an already committed operation outcome is allowed; bearer renewal cannot revive or replace the transaction."
     },
     {
       "code": "contact_scope_stale",

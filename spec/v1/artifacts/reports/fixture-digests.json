@@ -101,6 +101,10 @@
       "sha256": "4e07b5fec16d198194bdf1abea8a4a1d3d220ce558689acb96e4627f78c9079d"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json",
+      "sha256": "d96e6842ceefac128553042fe11e9b74f94f3b2835897695b13903c2891b48d2"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",
       "sha256": "ee67d9f467ee3d1c1bbcfb90b75f725bab30bf41202c4a2e5ade2e393968f1ee"
     },
@@ -314,7 +318,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json",
-      "sha256": "ac94379fd2699d6c870e92cbefea297914451bf8efef99f55cd72d608beecbee"
+      "sha256": "44218ada6cbd1a1a4506f959f7c41dc62470aec97cb172d28968bed53fd5ab44"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
