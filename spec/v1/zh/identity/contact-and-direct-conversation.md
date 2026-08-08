@@ -46,7 +46,7 @@ request、respond、reject、scope replacement 与 tombstone 共享唯一写链�
 
 ```text
 prepare private durable reservation
-→ holder-authorized signer 签 closed EventInitialSubmission batch
+→ holder-authorized signer 签 closed Event，并在必要时附外部 authority Control Proposal Ack
 → commit 在 holder PCR 本地原子 acceptance
 → source-signed acceptance receipt + durable receipted outbox
 → peer carrier 投递原始 signed fact 与对应 receipt
@@ -57,7 +57,11 @@ prepare **MUST** 保存 operation/idempotency/canonical request digest、预分�
 full-set scope、expiry 与该分支已有的 basis/version/predecessor，并返回branch-typed
 `{event_id,kind,unsigned_event_bytes,event_digest}` canonical draft；request/reject不得伪造未来basis字段。draft
 不含holder proof，客户端只可追加该proof。commit移除proof后必须与reserved unsigned bytes、ID、kind与digest
-逐字一致，任何其它变化返回conflict；不存在接受caller自造Event shape的分支。同一
+逐字一致，任何其它变化返回conflict；不存在接受caller自造Event shape的分支。五类 Contact Event 均为
+Control Move；commit body 可携带`control_proposal_ack`，其结构和验证规则与
+`EventInitialSubmission.control_proposal_ack`完全相同。当接收 Principal Server 不能代表当前 authority set
+产生完整 quorum 时，caller **MUST** 携带该字段；服务端能产生时该字段 **MAY** 省略。该证据只是
+Event 外的 publication evidence，不进入 reserved Event bytes 或 Event digest。同一
 operation/idempotency/phase + 相同完整bytes回放该phase首次outcome；prepare与commit必须使用同一
 operation/idempotency，但两phase的canonical bytes与幂等记录彼此独立。响应丢失、重启或outbox redelivery
 不得产生第二Event、第二receipt或第二lineage head。

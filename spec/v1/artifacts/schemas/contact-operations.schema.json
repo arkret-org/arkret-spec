@@ -121,6 +121,10 @@
                   ]
                 }
               ]
+            },
+            "control_proposal_ack": {
+              "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
+              "description": "External-authority receipt set for this Contact Control Move when the receiving Principal Server cannot itself produce the complete current authority quorum."
             }
           },
           "additionalProperties": false
@@ -1145,6 +1149,10 @@
                   ]
                 }
               ]
+            },
+            "control_proposal_ack": {
+              "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
+              "description": "External-authority receipt set for this Contact Control Move when the receiving Principal Server cannot itself produce the complete current authority quorum."
             }
           },
           "additionalProperties": false
@@ -1308,6 +1316,10 @@
                   ]
                 }
               ]
+            },
+            "control_proposal_ack": {
+              "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
+              "description": "External-authority receipt set for this Contact Control Move when the receiving Principal Server cannot itself produce the complete current authority quorum."
             }
           },
           "additionalProperties": false
@@ -1504,6 +1516,10 @@
                   ]
                 }
               ]
+            },
+            "control_proposal_ack": {
+              "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
+              "description": "External-authority receipt set for this Contact Control Move when the receiving Principal Server cannot itself produce the complete current authority quorum."
             }
           },
           "additionalProperties": false
@@ -1629,6 +1645,10 @@
                   ]
                 }
               ]
+            },
+            "control_proposal_ack": {
+              "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
+              "description": "External-authority receipt set for this Contact Control Move when the receiving Principal Server cannot itself produce the complete current authority quorum."
             }
           },
           "additionalProperties": false

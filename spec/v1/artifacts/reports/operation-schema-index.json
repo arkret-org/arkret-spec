@@ -5487,7 +5487,8 @@
           "request_receipt",
           "action",
           "reservation_handle",
-          "signed_event"
+          "signed_event",
+          "control_proposal_ack"
         ],
         "closed": true,
         "variants": [
@@ -5525,7 +5526,8 @@
               "operation_id",
               "idempotency_key",
               "reservation_handle",
-              "signed_event"
+              "signed_event",
+              "control_proposal_ack"
             ],
             "closed": true
           }
@@ -5560,7 +5562,8 @@
           "previous_terminal_basis_id",
           "message",
           "reservation_handle",
-          "signed_event"
+          "signed_event",
+          "control_proposal_ack"
         ],
         "closed": true,
         "variants": [
@@ -5602,7 +5605,8 @@
               "operation_id",
               "idempotency_key",
               "reservation_handle",
-              "signed_event"
+              "signed_event",
+              "control_proposal_ack"
             ],
             "closed": true
           }
@@ -5635,7 +5639,8 @@
           "action",
           "granted_to_peer_scopes",
           "reservation_handle",
-          "signed_event"
+          "signed_event",
+          "control_proposal_ack"
         ],
         "closed": true,
         "variants": [
@@ -5675,7 +5680,8 @@
               "operation_id",
               "idempotency_key",
               "reservation_handle",
-              "signed_event"
+              "signed_event",
+              "control_proposal_ack"
             ],
             "closed": true
           }
@@ -5710,7 +5716,8 @@
           "predecessor_event_ref",
           "granted_to_peer_scopes",
           "reservation_handle",
-          "signed_event"
+          "signed_event",
+          "control_proposal_ack"
         ],
         "closed": true,
         "variants": [
@@ -5754,7 +5761,8 @@
               "operation_id",
               "idempotency_key",
               "reservation_handle",
-              "signed_event"
+              "signed_event",
+              "control_proposal_ack"
             ],
             "closed": true
           }
@@ -5788,7 +5796,8 @@
           "version",
           "predecessor_event_ref",
           "reservation_handle",
-          "signed_event"
+          "signed_event",
+          "control_proposal_ack"
         ],
         "closed": true,
         "variants": [
@@ -5830,7 +5839,8 @@
               "operation_id",
               "idempotency_key",
               "reservation_handle",
-              "signed_event"
+              "signed_event",
+              "control_proposal_ack"
             ],
             "closed": true
           }
