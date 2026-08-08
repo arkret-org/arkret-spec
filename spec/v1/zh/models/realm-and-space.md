@@ -131,7 +131,7 @@ Schema id: `ak.schema.realm.v1`
 | `default_join_rule` | `ak.realm.join_rule`。 |
 | `history_visibility` | `ak.realm.history_visibility`。 |
 | history key sharing | `ak.realm.history_sharing_policy`。 |
-| bundle 组件集合（本节 §2.2，含 `federation_policy`） | `ak.realm.policy_bundle`。 |
+| bundle 组件集合（本节 §2.2，含 `federation_policy`、`sync_endpoints`、freshness / proposal / compaction / authority-lifetime / bottom-escalation 时窗与 `cell_lattices`） | `ak.realm.policy_bundle`。整个 bundle 每次按 `policy_revision` 完整重述；这些字段不得回落到 create 或 generic patch。 |
 | alias | `ak.realm.alias`。 |
 | plaintext-visible services | `ak.realm.plaintext_visible_services`。 |
 | delivery binding policy | `ak.realm.delivery_binding_policy`。 |
@@ -140,6 +140,8 @@ Schema id: `ak.schema.realm.v1`
 | `id`、`created_by`、`created_at`、`updated_by`、`updated_at` 与其它 query-only 字段 | 分别由 Realm identity、signed envelope 与 reducer history 派生，不由 producer 在 Realm object 中重复写入。 |
 
 monolithic `ak.realm.update` 与 `ak.component.realm.metadata.v1` 已删除。实现不得保留双写、双读或把完整旧 Realm create object 缓存为第二真相源。
+
+`owning_organizations`、`fields`、`relation_profiles`、`policy_id`、`preview_policy_id`、`default_strand_id` 与 `retention_policy_id` 不构成遗漏的自由写入面：它们分别由已接受的 `ak.realm.organization` 关系、registered extension/relation projection、`ak.policy.set`、`ak.realm.preview_policy`、`ak.realm.set_default_strand` 与 retention Policy 投影。producer MUST NOT 在 profile 或 policy bundle 中重复声明这些 query 字段。
 
 跨字段约束（normative）：`encryption_profile=mls_rfc9420` 的 Realm 若 effective `history_visibility ∈ {world_readable, shared, invited}`，effective `content_scheme` MUST 为 `mls_exporter_aead_v1`。若 effective `content_scheme=mls_rfc9420`（含缺省），effective `history_visibility` MUST 为 `joined` 或 `restricted`。任何 create/bootstrap 或 facet update 造成非法组合时，reducer MUST `failed_precondition`，reason=`history_visibility_requires_history_capable_scheme`。
 

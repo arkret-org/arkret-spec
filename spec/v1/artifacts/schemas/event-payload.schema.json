@@ -9824,6 +9824,10 @@
           "$ref": "./realm.schema.json#/properties/federation_policy",
           "description": "The sole producer carrier of the effective Realm federation policy. High-assurance Realm reducers require closed, restricted, or quarantine and reject open."
         },
+        "sync_endpoints": {
+          "$ref": "./realm.schema.json#/properties/sync_endpoints",
+          "description": "The sole producer carrier of Realm-level shared notary, sync mirror and federation service bindings. Member delivery bindings remain in ak.realm.delivery_binding_policy and ak.member.state."
+        },
         "aad_visibility": {
           "type": "object",
           "$comment": "One registered axis in v1. The AAD field set has exactly one wire discriminator, encrypted-envelope.schema.json#/properties/aad_visibility_event_id; the object shape leaves room for a second registered axis without renaming the component, and additionalProperties=false hard-rejects unregistered axis names at wire parse time.",
@@ -9892,6 +9896,37 @@
         },
         "audit_policy": {
           "$ref": "./realm.schema.json#/properties/audit_policy"
+        },
+        "revocation_freshness_window_ms": {
+          "$ref": "./realm.schema.json#/properties/revocation_freshness_window_ms"
+        },
+        "recovery_witness_freshness_window_ms": {
+          "$ref": "./realm.schema.json#/properties/recovery_witness_freshness_window_ms"
+        },
+        "proposal_intake_sla_ms": {
+          "$ref": "./realm.schema.json#/properties/proposal_intake_sla_ms"
+        },
+        "proposal_decision_window_ms": {
+          "$ref": "./realm.schema.json#/properties/proposal_decision_window_ms"
+        },
+        "proposal_absolute_deadline_ms": {
+          "$ref": "./realm.schema.json#/properties/proposal_absolute_deadline_ms"
+        },
+        "max_proposal_defers": {
+          "$ref": "./realm.schema.json#/properties/max_proposal_defers"
+        },
+        "seal_compaction_max_interval_ms": {
+          "$ref": "./realm.schema.json#/properties/seal_compaction_max_interval_ms"
+        },
+        "max_authority_lifetime_ms": {
+          "$ref": "./realm.schema.json#/properties/max_authority_lifetime_ms"
+        },
+        "bottom_escalation_after_ms": {
+          "$ref": "./realm.schema.json#/properties/bottom_escalation_after_ms"
+        },
+        "cell_lattices": {
+          "$ref": "./realm.schema.json#/properties/cell_lattices",
+          "description": "Complete current client hint set for Realm-specific cell lattice diagnostics. Registered reducer contracts remain authoritative."
         },
         "preauth": {
           "type": "object",
