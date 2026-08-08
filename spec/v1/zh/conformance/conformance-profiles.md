@@ -277,6 +277,10 @@ MUST 支持：
 - service describe
 - service binding verification for federation destinations
 - plaintext-visible service enforcement
+- founding DeviceBootstrap 的 durable terminal decision authority：accepted 与 ordered founding batch 同一数据库事务，
+  cancelled / expired 使用同一 fence，签名 receipt / canonical outcome bytes / tombstone 在 v1 永不清理
+- 认证投影保留 `credential_class=device_bootstrap` 与完整 `bootstrap_binding`，执行 exact four-operation allowlist，
+  并在 InitialBatch 上重算 ordered IDs/digest、principal/device/holder/deadline binding
 
 SHOULD 支持：
 
@@ -327,6 +331,9 @@ MUST 支持：
   durable authority；ID/JWT `jti` 必须从 closed issuance preimage 重算
 - durable exact replay、same-identity conflicting intent 零写入，以及 expired / revoked|superseded /
   indeterminate replay 的 terminal fail-closed 语义
+- founding bootstrap cancel / deadline 在本地 transition 前调用
+  `ak.peer.device_bootstrap.command.decide`；只接受逐项绑定且验签通过的 Principal Server receipt，
+  网络/5xx/indeterminate 保持 pending 且零 lifecycle 写入
 - `auth_metadata.account_authority`、`auth_metadata.methods[]`、`auth_metadata.did_binding_methods`
 
 SHOULD 支持：

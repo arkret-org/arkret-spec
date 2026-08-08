@@ -14,6 +14,15 @@
       "$ref": "#/$defs/cancel_device_bootstrap_outcome"
     },
     {
+      "$ref": "#/$defs/device_bootstrap_decision_request"
+    },
+    {
+      "$ref": "#/$defs/device_bootstrap_decision_outcome"
+    },
+    {
+      "$ref": "#/$defs/device_bootstrap_decision_receipt"
+    },
+    {
       "$ref": "#/$defs/standard_holder_binding"
     },
     {
@@ -61,6 +70,255 @@
         "expired"
       ],
       "description": "Closed durable bootstrap transaction state. No failed or implementation-private fifth state is permitted."
+    },
+    "device_bootstrap_decision": {
+      "type": "string",
+      "enum": [
+        "accepted",
+        "cancelled",
+        "expired"
+      ],
+      "description": "Principal Server terminal decision for a founding bootstrap transaction. Absence of a decision row means undecided/pending; pending is not stored as a decision and no fifth Coauth transaction state exists."
+    },
+    "device_bootstrap_decision_request": {
+      "type": "object",
+      "description": "Authenticated Account Authority to Principal Server S2S request that asks the Principal Server to fence one still-undecided founding transaction as cancelled or expired. The stable request identity is (account_authority_id,transaction_id,idempotency_key); exact replay returns the byte-identical first outcome and different canonical bytes conflict with zero writes.",
+      "required": [
+        "account_authority_id",
+        "transaction_id",
+        "idempotency_key",
+        "requested_decision",
+        "principal_id",
+        "device_id",
+        "grant_id",
+        "canonical_request_digest",
+        "founding_event_ids",
+        "founding_batch_digest",
+        "bootstrap_transaction_expires_at",
+        "decision_request_digest"
+      ],
+      "properties": {
+        "account_authority_id": {
+          "$ref": "#/$defs/did"
+        },
+        "transaction_id": {
+          "$ref": "#/$defs/opaque_id"
+        },
+        "idempotency_key": {
+          "$ref": "#/$defs/opaque_id"
+        },
+        "requested_decision": {
+          "type": "string",
+          "enum": [
+            "cancelled",
+            "expired"
+          ]
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        },
+        "canonical_request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "founding_event_ids": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/event_id"
+            },
+            {
+              "$ref": "#/$defs/event_id"
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "founding_batch_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "bootstrap_transaction_expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "decision_request_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "sha256 typed digest of RFC 8785/JCS of this closed request with decision_request_digest omitted."
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_bootstrap_decision_receipt": {
+      "type": "object",
+      "description": "Principal Server notary-signed terminal decision receipt. receipt_digest is the domain-separated digest H(ak.device-bootstrap.decision-receipt.v1, receipt with receipt_digest and proof omitted); proof signs the generic non-Event payload binding for that digest. The receipt is immutable and retained as a tombstone for the lifetime of Arkret v1 storage.",
+      "required": [
+        "schema",
+        "receipt_id",
+        "principal_server_id",
+        "account_authority_id",
+        "transaction_id",
+        "decision",
+        "principal_id",
+        "device_id",
+        "grant_id",
+        "canonical_request_digest",
+        "founding_event_ids",
+        "founding_batch_digest",
+        "bootstrap_transaction_expires_at",
+        "decided_at",
+        "receipt_digest",
+        "proof"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.device_bootstrap.decision_receipt.v1"
+        },
+        "receipt_id": {
+          "$ref": "#/$defs/opaque_id"
+        },
+        "principal_server_id": {
+          "$ref": "#/$defs/did"
+        },
+        "account_authority_id": {
+          "$ref": "#/$defs/did"
+        },
+        "transaction_id": {
+          "$ref": "#/$defs/opaque_id"
+        },
+        "decision": {
+          "$ref": "#/$defs/device_bootstrap_decision"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        },
+        "canonical_request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "founding_event_ids": {
+          "$ref": "#/$defs/device_bootstrap_decision_request/properties/founding_event_ids"
+        },
+        "founding_batch_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "bootstrap_transaction_expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "decided_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "receipt_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "proof": {
+          "$ref": "#/$defs/device_bootstrap_decision_receipt_proof"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_bootstrap_decision_receipt_proof": {
+      "type": "object",
+      "description": "Closed Principal Server detached-JWS proof for a bootstrap decision receipt. The JWS detached payload is RFC 8785/JCS of {context:'ak.device-bootstrap-decision-receipt-proof-v1',payload_digest,principal_server_id,account_authority_id,transaction_id,verification_method,created_at,audience}; audience MUST equal account_authority_id, created_at MUST equal decided_at and payload_digest MUST equal receipt_digest.",
+      "required": [
+        "kind",
+        "verification_method",
+        "payload_digest",
+        "created_at",
+        "audience",
+        "proof_purpose",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "const": "detached_jws"
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "payload_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "audience": {
+          "$ref": "#/$defs/did"
+        },
+        "proof_purpose": {
+          "const": "issuer_attestation"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_bootstrap_decision_outcome": {
+      "type": "object",
+      "description": "Closed byte-stable response from the Principal Server decision fence. accepted means the founding batch won the atomic race; cancelled or expired means the matching terminal tombstone won and later submission must be rejected with zero Event writes.",
+      "required": [
+        "transaction_id",
+        "decision",
+        "receipt"
+      ],
+      "properties": {
+        "transaction_id": {
+          "$ref": "#/$defs/opaque_id"
+        },
+        "decision": {
+          "$ref": "#/$defs/device_bootstrap_decision"
+        },
+        "receipt": {
+          "$ref": "#/$defs/device_bootstrap_decision_receipt"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_bootstrap_decision_record": {
+      "type": "object",
+      "description": "Principal Server durable authority row. There is at most one row per (account_authority_id,transaction_id). It is inserted under the same database lock used by the founding identity-anchor batch; accepted is committed in the same PostgreSQL transaction as both Events, the device projection, ingress receipts and outbox. cancelled/expired are terminal negative tombstones. canonical_outcome_bytes is retained byte-for-byte and rows MUST NOT be pruned in v1.",
+      "required": [
+        "account_authority_id",
+        "transaction_id",
+        "decision",
+        "binding_digest",
+        "canonical_outcome_bytes",
+        "receipt"
+      ],
+      "properties": {
+        "account_authority_id": {
+          "$ref": "#/$defs/did"
+        },
+        "transaction_id": {
+          "$ref": "#/$defs/opaque_id"
+        },
+        "decision": {
+          "$ref": "#/$defs/device_bootstrap_decision"
+        },
+        "binding_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "canonical_outcome_bytes": {
+          "$ref": "#/$defs/base64url"
+        },
+        "receipt": {
+          "$ref": "#/$defs/device_bootstrap_decision_receipt"
+        }
+      },
+      "additionalProperties": false
     },
     "device_bootstrap_transaction": {
       "type": "object",

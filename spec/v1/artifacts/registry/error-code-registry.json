@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-08.6",
+  "version": "2026-08-08.7",
   "codes": [
     {
       "code": "bad_json",
@@ -1687,6 +1687,18 @@
       "http_status": 409,
       "scope": "endpoint",
       "description": "A device bootstrap enroll, cancel or recovery request reused the durable transaction/idempotency identity with different closed request bytes or a different canonical bootstrap request digest. The first outcome remains authoritative and no Event or credential is replaced."
+    },
+    {
+      "code": "bootstrap_decision_conflict",
+      "http_status": 409,
+      "scope": "service_call",
+      "description": "A Principal Server already has an immutable accepted, cancelled or expired device-bootstrap decision whose authority, transaction or founding binding differs from the canonical S2S request. The stored decision remains authoritative and the request performs zero Event, tombstone or credential writes."
+    },
+    {
+      "code": "bootstrap_decision_indeterminate",
+      "http_status": 503,
+      "scope": "service_call",
+      "description": "The Principal Server cannot prove the durable device-bootstrap decision because its transactional storage result or required decision record is unavailable. The Account Authority MUST leave its four-state transaction unchanged (normally pending), MUST NOT infer cancellation or expiry from a directory miss, and MUST retry with the exact same request identity and canonical bytes."
     },
     {
       "code": "bootstrap_transaction_cancelled",

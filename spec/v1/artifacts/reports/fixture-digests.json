@@ -102,7 +102,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json",
-      "sha256": "d96e6842ceefac128553042fe11e9b74f94f3b2835897695b13903c2891b48d2"
+      "sha256": "9b4c00210d1327eef8a791acc855c4f04a1b034e14b89184e544638effb9043b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",

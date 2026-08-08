@@ -493,6 +493,39 @@ cancel ledger key仅为 `(transaction_id,idempotency_key)`，row分别保存原 
 `outcome_digest=SHA-256(RFC8785/JCS(response_without_outcome_digest))`。HTTP/gRPC/MQ逐字段等值，transport不得
 把 retryable failure改写成 cancelled/accepted。
 
+founding transaction 的终态裁决权位于承载 principal control Realm 的 Principal Server，而不是 Account
+Authority。Principal Server 以 `(account_authority_id, transaction_id)` 保存至多一条 immutable
+`accepted | cancelled | expired` decision；**没有 row 才表示 pending**，不得持久化另一种 pending/fencing 状态，
+也不得给 Coauth transaction 增加第五态。接受 ordered founding batch 的同一个 PostgreSQL transaction MUST
+同时提交两条 Event、device projection、ingress receipts / outbox 以及 `accepted` decision 和签名 receipt；任何
+一步失败都回滚全部写入。已存在 `cancelled | expired` tombstone 时，整个 batch 必须零 Event 写入拒绝。
+
+founding cancel 或 deadline expiry 在写 Account Authority 本地状态之前，MUST 以 S2S
+`ak.peer.device_bootstrap.command.decide`（`POST /_arkret/peer/device-bootstrap-decisions`）取得权威裁决。closed
+request 携带 `account_authority_id`、`transaction_id`、`idempotency_key`、`requested_decision`、principal / device /
+grant binding、`canonical_request_digest`、ordered `founding_event_ids`、`founding_batch_digest`、transaction deadline
+及删除自身后重算的 `decision_request_digest`；客户端不得调用或构造该请求。Principal Server 对
+`requested_decision=expired` 还 MUST 用自己的数据库时间验证 deadline 已到。该 operation 与 founding batch
+共用同一 row lock / unique fence：先提交的一方获得唯一 terminal decision；后到的同绑定请求返回已有 decision，
+绝不覆盖。
+
+稳定 request identity 是 `(account_authority_id, transaction_id, idempotency_key)`。相同 canonical bytes 必须回放
+首次 `device_bootstrap_decision_outcome` 的逐字相同 bytes；同 identity 异 bytes / binding 返回
+`bootstrap_decision_conflict` 且零写入。网络失败、5xx 或存储结果不明返回
+`bootstrap_decision_indeterminate`；此时 Account Authority 必须保持 transaction `pending` 且零 lifecycle 写入，
+只可用同 identity / bytes 重放本 operation。只读 introspection、directory miss 或“本地尚未看到 Event”都不是
+未接受证明，禁止据此取消。
+
+每个 terminal outcome MUST 携 Principal Server 签名的
+`ak.device_bootstrap.decision_receipt.v1`。`receipt_digest = H("ak.device-bootstrap.decision-receipt.v1",
+receipt_without_receipt_digest_and_proof)`；detached JWS payload 是
+`canonical_json({context:"ak.device-bootstrap-decision-receipt-proof-v1", payload_digest:receipt_digest,
+principal_server_id, account_authority_id, transaction_id, verification_method, created_at, audience})`，其中
+`created_at == decided_at`、`audience == account_authority_id`、`proof_purpose="issuer_attestation"`。Account
+Authority 只有在完整验签、逐项比对 credential binding 后才可执行 `pending→cancelled | expired`；若 receipt 为
+`accepted`，必须收敛本地 transaction 为 accepted 并拒绝取消。decision row、canonical outcome bytes 与签名
+receipt 在 v1 永不清理；否则清理后会把历史 terminal transaction 误判为首次请求。
+
 首次签发复用 `ak.gate.account.command.issue_session_grant`，但
 `proof_kind="pre_registration_handoff"` 分支 MUST 携带 closed
 `device_bootstrap_request {mode:"founding", authorize_event_preimage, founding_event_ids,
@@ -520,6 +553,15 @@ proof，然后创建 `standard` successor 并把 bootstrap predecessor 原子标
 proof-free `ak.device.authorize` preimage，并由二者算出 Event IDs 与 founding digest；authority 只为后者追加
 自己的 proof。只有两条 Event 的 ordered atomic batch 已 accepted，transaction 才能进入 `accepted`，并在再次
 验证 current holder/device proof 后用 predecessor→successor 原子事务签发 `standard` credential。
+
+Principal Server 对 `device_bootstrap(mode=founding)` 的每次授权 MUST 保留 introspection 得到的
+`credential_class=device_bootstrap` 与完整 `bootstrap_binding`，不得降格为普通 authenticated principal。
+route 必须映射成 canonical operation ID 并逐字命中 credential 内固定四项 allowlist：
+`ak.gate.account.command.enroll_device`、`ak.gate.account.command.cancel_device_bootstrap`、
+`ak.self.events.command.submit`、`ak.self.events.read.resolve`；对本 Principal Server，实际可执行的是后两项，
+前两项只描述同一 credential 在 Account Authority 的边界。`InitialBatch` 还必须在 deadline 前逐项验证 exact ordered
+Event IDs、重算 founding digest、principal/device/holder binding；丢失 class/binding、额外 operation、重排或
+digest/deadline 不匹配均 fail closed。
 
 #### 5.0.1 标准 delegated 路径（v1 core 默认 `did:webvh` principal）
 

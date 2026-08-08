@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.17",
+  "version": "2026-08-08.18",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T19:00:00Z",
+  "generated_at": "2026-08-08T20:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -4445,6 +4445,58 @@
           "propagation_state",
           "pending_destination_count",
           "retry_after_ms"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.device_bootstrap.command.decide",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/principal-operations.schema.json#/$defs/device_bootstrap_decision_request",
+        "schema_kind": "object",
+        "required": [
+          "account_authority_id",
+          "transaction_id",
+          "idempotency_key",
+          "requested_decision",
+          "principal_id",
+          "device_id",
+          "grant_id",
+          "canonical_request_digest",
+          "founding_event_ids",
+          "founding_batch_digest",
+          "bootstrap_transaction_expires_at",
+          "decision_request_digest"
+        ],
+        "properties": [
+          "account_authority_id",
+          "transaction_id",
+          "idempotency_key",
+          "requested_decision",
+          "principal_id",
+          "device_id",
+          "grant_id",
+          "canonical_request_digest",
+          "founding_event_ids",
+          "founding_batch_digest",
+          "bootstrap_transaction_expires_at",
+          "decision_request_digest"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/principal-operations.schema.json#/$defs/device_bootstrap_decision_outcome",
+        "schema_kind": "object",
+        "required": [
+          "transaction_id",
+          "decision",
+          "receipt"
+        ],
+        "properties": [
+          "transaction_id",
+          "decision",
+          "receipt"
         ],
         "closed": true
       }

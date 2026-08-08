@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.17",
+  "version": "2026-08-08.18",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T19:00:00Z",
+  "generated_at": "2026-08-08T20:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,12 +18,12 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 225,
+    "total_operations": 226,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "service_describe": 5,
       "streaming_frame_schema": 3,
-      "typed_schema": 215
+      "typed_schema": 216
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -38,7 +38,7 @@
         "binary_or_redirect": 2,
         "service_describe": 1,
         "streaming_frame_schema": 1,
-        "typed_schema": 146
+        "typed_schema": 147
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -929,6 +929,20 @@
       "openapi_component_refs": {
         "request": "../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
         "response": "../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.device_bootstrap.command.decide",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/device-bootstrap-decisions",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/device_bootstrap_decision_request",
+      "response_schema_ref": "schemas/principal-operations.schema.json#/$defs/device_bootstrap_decision_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DeviceBootstrapDecisionRequestBody",
+        "response": "#/components/schemas/DeviceBootstrapDecisionOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

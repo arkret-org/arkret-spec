@@ -928,6 +928,12 @@ components:
       $ref: ../schemas/principal-operations.schema.json#/$defs/cancel_device_bootstrap_outcome
     DeviceBootstrapCancelRequestBody:
       $ref: ../schemas/principal-operations.schema.json#/$defs/cancel_device_bootstrap_request
+    DeviceBootstrapDecisionOutcome:
+      $ref: ../schemas/principal-operations.schema.json#/$defs/device_bootstrap_decision_outcome
+    DeviceBootstrapDecisionReceipt:
+      $ref: ../schemas/principal-operations.schema.json#/$defs/device_bootstrap_decision_receipt
+    DeviceBootstrapDecisionRequestBody:
+      $ref: ../schemas/principal-operations.schema.json#/$defs/device_bootstrap_decision_request
     DeviceId:
       type: string
       pattern: ^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
@@ -4261,6 +4267,72 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /_arkret/peer/device-bootstrap-decisions:
+    post:
+      operationId: ak.peer.device_bootstrap.command.decide
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Atomically fence a founding bootstrap as accepted, cancelled or expired.
+      description: |
+        Service-authenticated Account Authority request for the Principal
+        Server's durable bootstrap decision. The request may ask only for
+        cancelled or expired. The receiver acquires the same durable database
+        fence used by the ordered founding identity-anchor batch. If that batch
+        already committed, it returns the byte-stable accepted receipt; if no
+        decision exists, it atomically inserts the requested terminal tombstone
+        and signed receipt. Expired additionally requires Principal Server
+        database time at or after bootstrap_transaction_expires_at. Exact
+        request identity and bytes replay the first outcome. A conflict or
+        storage ambiguity performs zero Event or decision writes. Decision
+        records and canonical outcomes are immutable and never pruned in v1.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceBootstrapDecisionRequestBody'
+      responses:
+        '200':
+          description: Byte-stable accepted, cancelled or expired decision and Principal Server signed receipt.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceBootstrapDecisionOutcome'
+        '409':
+          description: The immutable transaction/founding binding or stable replay identity conflicts; zero writes.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ErrorEnvelope'
+                - type: object
+                  properties:
+                    error:
+                      type: object
+                      required: [code]
+                      properties:
+                        code:
+                          const: bootstrap_decision_conflict
+        '503':
+          description: Durable decision is unavailable or transaction outcome is indeterminate; caller retains pending state and retries exactly.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ErrorEnvelope'
+                - type: object
+                  properties:
+                    error:
+                      type: object
+                      required: [code]
+                      properties:
+                        code:
+                          const: bootstrap_decision_indeterminate
   /_arkret/peer/mls/group-state-material:
     post:
       operationId: ak.peer.mls.read.group_state_material

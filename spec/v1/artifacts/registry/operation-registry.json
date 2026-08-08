@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.17",
+  "version": "2026-08-08.18",
   "source_of_truth": false,
-  "generated_at": "2026-08-08T19:00:00Z",
+  "generated_at": "2026-08-08T20:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -128,6 +128,7 @@
         "ak.peer.events.command.submit",
         "ak.peer.account_status.read.authoring_basis",
         "ak.peer.account_status.command.submit",
+        "ak.peer.device_bootstrap.command.decide",
         "ak.peer.erasure_receipt.command.submit",
         "ak.peer.erasure_receipt.resource.get",
         "ak.peer.mls.read.group_state_material",
@@ -564,7 +565,7 @@
       "http": "POST /_arkret/gate/account/device-bootstrap/cancel",
       "grpc": "GateAccount/CancelDeviceBootstrap",
       "mq": "gate.account.command.cancel_device_bootstrap",
-      "notes": "Cancels exactly one pending founding or sibling bootstrap transaction under its closed device_bootstrap bearer plus DPoP. The durable ledger key is (transaction_id,idempotency_key); byte-identical retries return the first closed outcome, different bytes return bootstrap_idempotency_conflict with zero writes, explicit accepted cancellation alone yields cancelled, the independent transaction deadline alone yields expired, and every other failure remains pending/retryable. cancelled|expired allow exact replay only and can never be renewed or promoted. Bearer expiry does not alter pending state. This operation never mints a replacement Event or credential.",
+      "notes": "Cancels exactly one pending founding or sibling bootstrap transaction under its closed device_bootstrap bearer plus DPoP. The durable ledger key is (transaction_id,idempotency_key); byte-identical retries return the first closed outcome and different bytes return bootstrap_idempotency_conflict with zero writes. For founding mode, neither a directory miss nor a read-only introspection result proves non-acceptance: before writing cancelled the Account Authority MUST call ak.peer.device_bootstrap.command.decide with requested_decision=cancelled and the exact credential binding. A signed Principal Server cancelled receipt alone authorizes pending→cancelled; an accepted receipt requires pending→accepted and rejects cancellation. Network, 5xx or bootstrap_decision_indeterminate leaves the Coauth transaction pending with zero lifecycle writes. Deadline processing follows the same fence with requested_decision=expired before writing expired. cancelled|expired allow exact replay only and can never be renewed or promoted. Bearer expiry does not alter pending state. This operation never mints a replacement Event or credential and never adds a fifth transaction state.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -2056,7 +2057,7 @@
       "http": "POST /_arkret/self/events",
       "grpc": "SelfEvents/Submit",
       "mq": "self.events.command.submit",
-      "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbaProofBundle values are independently verified publication evidence outside the Event digest. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state. The request union additionally registers the discriminated direct_conversation_founding branch, the only carrier for a Direct Conversation founding unit: the founder authors all three Events itself, realm_id and main_strand_id are retyped from the first and third Event IDs, and the service allocates no identifier and issues no draft. That branch requires exactly three ordered EventInitialSubmission items, closed XOR founder basis evidence and an idempotency_key, accepts zero or three Events inside one slot transaction, and returns DirectConversationFoundingAcceptanceOutcome with the source-signed receipt. Same key plus the same unit replays the byte-identical receipt without advancing accepted_at; same key plus a different unit is duplicate_conflict; a slot already closed by another unit for the same pair is slot_already_committed. All four outcomes write zero Events on failure.",
+      "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbaProofBundle values are independently verified publication evidence outside the Event digest. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. A DeviceBootstrap grant is never widened into an ordinary human session: authentication retains credential_class and the complete bootstrap_binding, maps the current route to its canonical operation_id, requires the exact four-operation founding allowlist, and for an InitialBatch requires exactly the ordered [ak.realm.create,ak.device.authorize] IDs, recomputed founding_batch_digest, principal/device/holder binding and unelapsed transaction deadline. The same PostgreSQL transaction that accepts that founding batch inserts the immutable accepted device_bootstrap_decision_record and signed receipt under the same fence used by ak.peer.device_bootstrap.command.decide; an existing cancelled or expired tombstone rejects the entire batch with zero Event writes. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state. The request union additionally registers the discriminated direct_conversation_founding branch, the only carrier for a Direct Conversation founding unit: the founder authors all three Events itself, realm_id and main_strand_id are retyped from the first and third Event IDs, and the service allocates no identifier and issues no draft. That branch requires exactly three ordered EventInitialSubmission items, closed XOR founder basis evidence and an idempotency_key, accepts zero or three Events inside one slot transaction, and returns DirectConversationFoundingAcceptanceOutcome with the source-signed receipt. Same key plus the same unit replays the byte-identical receipt without advancing accepted_at; same key plus a different unit is duplicate_conflict; a slot already closed by another unit for the same pair is slot_already_committed. All four outcomes write zero Events on failure.",
       "body_class": "non_streaming_json",
       "max_items": 1000,
       "success_shape_kind": "typed_response",
@@ -2190,6 +2191,28 @@
         "event_kinds": [
           "ak.account.status"
         ]
+      }
+    },
+    {
+      "operation_id": "ak.peer.device_bootstrap.command.decide",
+      "http": "POST /_arkret/peer/device-bootstrap-decisions",
+      "grpc": "PeerDeviceBootstrap/Decide",
+      "mq": "peer.device_bootstrap.command.decide",
+      "notes": "Service-authenticated Account Authority request to place a cancelled or expired terminal fence on exactly one founding device-bootstrap transaction. The stable request identity is (account_authority_id,transaction_id,idempotency_key); the HTTP Message Signature covers Content-Digest, source/destination service IDs and the canonical closed body that contains idempotency_key. The Principal Server is the durable decision authority: absence of a row means undecided, while accepted|cancelled|expired are immutable terminal decisions. The same PostgreSQL transaction that accepts the ordered [ak.realm.create,ak.device.authorize] founding batch MUST insert the accepted decision and notary-signed receipt; the S2S path acquires the same transaction fence and inserts cancelled/expired only if no accepted decision exists. An expired request additionally requires Principal Server database time at or after bootstrap_transaction_expires_at. Exact replay returns the byte-identical first outcome; different bytes or bindings return bootstrap_decision_conflict with zero writes. An unavailable/ambiguous store returns bootstrap_decision_indeterminate and the Account Authority leaves its four-state transaction unchanged. Decision records, canonical outcome bytes and signed tombstones are never pruned in v1. This operation creates no fifth Coauth transaction state and never authors an Event.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
+      "uncertain_outcome": {
+        "strategy": "replay_same_operation",
+        "operation_id": "ak.peer.device_bootstrap.command.decide",
+        "requires_same_request_identity_and_canonical_intent": true
+      },
+      "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/device_bootstrap_decision_request",
+      "response_schema_ref": "schemas/principal-operations.schema.json#/$defs/device_bootstrap_decision_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "principal_server_local_terminal_bootstrap_decision_tombstone_only"
       }
     },
     {

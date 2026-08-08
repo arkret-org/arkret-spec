@@ -10,6 +10,9 @@ import re
 from pathlib import Path
 from typing import Any
 
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_PATH = ROOT / "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
 SESSION_FIXTURE_PATH = ROOT / "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json"
@@ -17,6 +20,8 @@ PRINCIPAL_SCHEMA_PATH = ROOT / "spec/v1/artifacts/schemas/principal-operations.s
 AGENT_SCHEMA_PATH = ROOT / "spec/v1/artifacts/schemas/agent-operations.schema.json"
 EVENT_SCHEMA_PATH = ROOT / "spec/v1/artifacts/schemas/event-envelope.schema.json"
 SERVICE_SCHEMA_PATH = ROOT / "spec/v1/artifacts/schemas/service-operation-dtos.schema.json"
+CONTRACT_REGISTRY_PATH = ROOT / "spec/v1/artifacts/registry/contract-registry.json"
+PROOF_CONTEXT_REGISTRY_PATH = ROOT / "spec/v1/artifacts/registry/proof-context-registry.json"
 
 EVENT_ID_RE = re.compile(r"^ak:event:[A-Za-z0-9_-]{44}$")
 JKT_RE = re.compile(r"^[A-Za-z0-9_-]{43}$")
@@ -39,6 +44,10 @@ def sha256_typed(data: bytes) -> str:
 
 def b64url(data: bytes) -> str:
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
+
+
+def b64url_decode(value: str) -> bytes:
+    return base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
 
 
 def b58decode(value: str) -> bytes:
@@ -91,6 +100,8 @@ def check_documents(
     agent_schema: dict[str, Any],
     event_schema: dict[str, Any],
     service_schema: dict[str, Any],
+    contract_registry: dict[str, Any],
+    proof_context_registry: dict[str, Any],
 ) -> list[str]:
     errors: list[str] = []
 
@@ -298,6 +309,193 @@ def check_documents(
     except Exception as exc:
         errors.append(f"cannot resolve SessionGrant bootstrap vector: {exc}")
 
+    fence = fixture.get("decision_fence", {})
+    decision_request = fence.get("request", {})
+    request_without_digest = fence.get("request_without_digest", {})
+    decision_request_def = principal_schema.get("$defs", {}).get("device_bootstrap_decision_request", {})
+    if set(decision_request) != set(decision_request_def.get("required", [])) or set(
+        decision_request
+    ) - set(decision_request_def.get("properties", {})):
+        errors.append("decision request fixture does not equal the closed required shape")
+    if {key: value for key, value in decision_request.items() if key != "decision_request_digest"} != (
+        request_without_digest
+    ):
+        errors.append("decision request digest omission is not exact")
+    canonical_decision_request = jcs(request_without_digest)
+    expected_decision_request_digest = sha256_typed(canonical_decision_request.encode("utf-8"))
+    if fence.get("canonical_request_utf8") != canonical_decision_request:
+        errors.append("decision request canonical bytes mismatch")
+    if (
+        fence.get("expected_request_digest") != expected_decision_request_digest
+        or decision_request.get("decision_request_digest") != expected_decision_request_digest
+    ):
+        errors.append("decision_request_digest mismatch")
+    if decision_request.get("requested_decision") not in {"cancelled", "expired"}:
+        errors.append("decision request may only ask for cancelled or expired")
+    if decision_request.get("founding_event_ids") != event_ids:
+        errors.append("decision request founding Event IDs drift from founding KAT")
+    if decision_request.get("founding_batch_digest") != expected_founding_digest:
+        errors.append("decision request founding digest drift from founding KAT")
+    if decision_request.get("canonical_request_digest") != expected_request_digest:
+        errors.append("decision request enrollment digest drift from enrollment KAT")
+
+    receipt_core = fence.get("receipt_core", {})
+    canonical_receipt = jcs(receipt_core)
+    receipt_digest_input = "ak.device-bootstrap.decision-receipt.v1\n" + canonical_receipt
+    expected_receipt_digest = sha256_typed(receipt_digest_input.encode("utf-8"))
+    if fence.get("receipt_canonical_utf8") != canonical_receipt:
+        errors.append("decision receipt canonical bytes mismatch")
+    if fence.get("receipt_digest_input_utf8") != receipt_digest_input:
+        errors.append("decision receipt digest input mismatch")
+    if fence.get("expected_receipt_digest") != expected_receipt_digest:
+        errors.append("decision receipt digest mismatch")
+    for field in (
+        "account_authority_id",
+        "transaction_id",
+        "principal_id",
+        "device_id",
+        "grant_id",
+        "canonical_request_digest",
+        "founding_event_ids",
+        "founding_batch_digest",
+        "bootstrap_transaction_expires_at",
+    ):
+        if receipt_core.get(field) != decision_request.get(field):
+            errors.append(f"decision receipt {field} does not bind the request")
+    if receipt_core.get("decision") != decision_request.get("requested_decision"):
+        errors.append("decision receipt decision does not bind requested_decision")
+
+    proof = fence.get("proof", {})
+    proof_binding = fence.get("proof_binding", {})
+    expected_binding = {
+        "context": "ak.device-bootstrap-decision-receipt-proof-v1",
+        "payload_digest": expected_receipt_digest,
+        "principal_server_id": receipt_core.get("principal_server_id"),
+        "account_authority_id": receipt_core.get("account_authority_id"),
+        "transaction_id": receipt_core.get("transaction_id"),
+        "verification_method": proof.get("verification_method"),
+        "created_at": receipt_core.get("decided_at"),
+        "audience": receipt_core.get("account_authority_id"),
+    }
+    if proof_binding != expected_binding:
+        errors.append("decision receipt proof binding fields mismatch")
+    canonical_proof_binding = jcs(expected_binding)
+    if fence.get("proof_binding_canonical_utf8") != canonical_proof_binding:
+        errors.append("decision receipt proof binding canonical bytes mismatch")
+    if (
+        proof.get("kind") != "detached_jws"
+        or proof.get("payload_digest") != expected_receipt_digest
+        or proof.get("created_at") != receipt_core.get("decided_at")
+        or proof.get("audience") != receipt_core.get("account_authority_id")
+        or proof.get("proof_purpose") != "issuer_attestation"
+    ):
+        errors.append("decision receipt proof envelope does not bind receipt/audience/time")
+    receipt_proof_def = principal_schema.get("$defs", {}).get(
+        "device_bootstrap_decision_receipt_proof", {}
+    )
+    if set(proof) != set(receipt_proof_def.get("required", [])) or set(proof) - set(
+        receipt_proof_def.get("properties", {})
+    ):
+        errors.append("decision receipt proof does not equal the closed required schema")
+    try:
+        protected, empty, signature = proof["jws"].split(".")
+        if empty:
+            errors.append("decision receipt JWS payload segment must be detached")
+        header = json.loads(b64url_decode(protected))
+        if header != {"alg": "Ed25519", "kid": proof["verification_method"]}:
+            errors.append("decision receipt protected JWS header mismatch")
+        public_jwk = fence["receipt_signer"]["public_jwk"]
+        if public_jwk.get("kty") != "OKP" or public_jwk.get("crv") != "Ed25519":
+            errors.append("decision receipt signing key is not Ed25519")
+        key = Ed25519PublicKey.from_public_bytes(b64url_decode(public_jwk["x"]))
+        signing_input = (protected + "." + b64url(canonical_proof_binding.encode("utf-8"))).encode("ascii")
+        key.verify(b64url_decode(signature), signing_input)
+    except (KeyError, ValueError, InvalidSignature, json.JSONDecodeError) as exc:
+        errors.append(f"decision receipt detached JWS verification failed: {exc}")
+
+    contexts = {
+        row.get("context"): row for row in proof_context_registry.get("contexts", [])
+    }
+    registered_context = contexts.get("ak.device-bootstrap-decision-receipt-proof-v1", {})
+    if registered_context.get("object_family") != "device_bootstrap_decision_receipt" or (
+        registered_context.get("binding_fields")
+        != [
+            "payload_digest",
+            "principal_server_id",
+            "account_authority_id",
+            "transaction_id",
+            "verification_method",
+            "created_at",
+            "audience",
+        ]
+    ):
+        errors.append("decision receipt proof context registry drift")
+
+    races = {row.get("name"): row for row in fence.get("race_vectors", [])}
+    if races.get("accepted_before_cancel") != {
+        "name": "accepted_before_cancel",
+        "winner": "accepted",
+        "cancel_replays": "accepted",
+        "new_event_writes_after_winner": 0,
+    }:
+        errors.append("accepted-before-cancel exact replay/zero-write vector drift")
+    for name, decision, reason in (
+        ("cancel_before_submit", "cancelled", "bootstrap_transaction_cancelled"),
+        ("expiry_before_submit", "expired", "bootstrap_transaction_expired"),
+    ):
+        row = races.get(name, {})
+        if (
+            row.get("winner") != decision
+            or row.get("submit_rejects") != reason
+            or row.get("new_event_writes_after_winner") != 0
+        ):
+            errors.append(f"{name} terminal tombstone vector drift")
+    if races.get("network_indeterminate") != {
+        "name": "network_indeterminate",
+        "coauth_state_after": "pending",
+        "coauth_state_writes": 0,
+    }:
+        errors.append("network-indeterminate must leave Coauth pending with zero writes")
+    retention = fence.get("retention", {})
+    if retention != {
+        "decision_rows_pruned_in_v1": False,
+        "canonical_outcome_bytes_retained": True,
+        "exact_replay_is_byte_identical": True,
+        "different_request_bytes": "bootstrap_decision_conflict",
+    }:
+        errors.append("decision fence exact replay/tombstone retention vector drift")
+
+    restricted = fence.get("restricted_authorization", {})
+    exact_allowlist = [
+        "ak.gate.account.command.enroll_device",
+        "ak.gate.account.command.cancel_device_bootstrap",
+        "ak.self.events.command.submit",
+        "ak.self.events.read.resolve",
+    ]
+    if (
+        restricted.get("credential_class") != "device_bootstrap"
+        or restricted.get("binding_preserved") is not True
+        or restricted.get("allowed_operation_ids") != exact_allowlist
+        or restricted.get("initial_batch_event_ids_source") != "#/founding_batch/event_ids"
+    ):
+        errors.append("DeviceBootstrap restricted authorization vector drift")
+    operations = {
+        row.get("operation_id"): row
+        for row in contract_registry.get("operation_registry", {}).get("operations", [])
+        if isinstance(row, dict)
+    }
+    decision_operation = operations.get("ak.peer.device_bootstrap.command.decide", {})
+    if (
+        decision_operation.get("http") != "POST /_arkret/peer/device-bootstrap-decisions"
+        or decision_operation.get("idempotency_mechanism") != "idempotency_key"
+        or decision_operation.get("uncertain_outcome", {}).get("strategy") != "replay_same_operation"
+    ):
+        errors.append("device-bootstrap decision operation identity/replay contract drift")
+    submit_notes = operations.get("ak.self.events.command.submit", {}).get("notes", "")
+    for token in ("credential_class", "bootstrap_binding", "four-operation", "founding_batch_digest"):
+        if token not in submit_notes:
+            errors.append(f"self events restricted bootstrap notes missing {token}")
+
     return errors
 
 
@@ -309,12 +507,14 @@ def main() -> int:
         load_json(AGENT_SCHEMA_PATH),
         load_json(EVENT_SCHEMA_PATH),
         load_json(SERVICE_SCHEMA_PATH),
+        load_json(CONTRACT_REGISTRY_PATH),
+        load_json(PROOF_CONTEXT_REGISTRY_PATH),
     )
     if errors:
         for error in errors:
             print(f"device-bootstrap KAT: {error}")
         return 1
-    print("device-bootstrap KAT: digests, Event preimage, closed issue request, refresh promotion, transaction states and SessionGrant binding verified")
+    print("device-bootstrap KAT: digests, Event preimage, issue/promotion, four-state transaction, cross-service decision fence, signed receipt and restricted authorization verified")
     return 0
 
 

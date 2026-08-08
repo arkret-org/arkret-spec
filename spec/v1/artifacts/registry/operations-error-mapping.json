@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-08.7",
+  "version": "2026-08-08.8",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T19:00:00Z",
+  "generated_at": "2026-08-08T20:00:00Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -818,9 +818,12 @@
         "stale_seal_ref",
         "seal_ref_unknown",
         "realm_frozen",
+        "bootstrap_transaction_cancelled",
+        "bootstrap_transaction_expired",
+        "bootstrap_decision_conflict",
         "quarantine"
       ],
-      "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes. ak.invite.claim-specific reducer reasons remain internal/audit-facing when exposed through non-enumerable invite claim flows."
+      "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes, except the registered atomic founding bootstrap unit: a cancelled/expired Principal decision tombstone or mismatched immutable decision binding rejects the entire unit with zero Event writes. ak.invite.claim-specific reducer reasons remain internal/audit-facing when exposed through non-enumerable invite claim flows."
     },
     {
       "operation_id": "ak.self.events.command.submit_seal",
@@ -1880,6 +1883,15 @@
         "bootstrap_idempotency_conflict"
       ],
       "description": "Same transaction/idempotency identity with different closed bytes conflicts. Exact replay returns the first cancelled/expired/pending outcome; explicit accepted cancellation alone writes cancelled, the independent deadline alone writes expired, and every other failure leaves the transaction pending/retryable."
+    },
+    {
+      "operation_id": "ak.peer.device_bootstrap.command.decide",
+      "http_alias": "POST /_arkret/peer/device-bootstrap-decisions",
+      "operation_specific": [
+        "bootstrap_decision_conflict",
+        "bootstrap_decision_indeterminate"
+      ],
+      "description": "The Principal Server serializes accepted founding-batch commit against cancelled/expired terminal fences. A binding or canonical replay conflict performs zero writes; an unavailable or ambiguous durable store returns indeterminate so the Account Authority keeps the Coauth transaction unchanged and retries exactly."
     },
     {
       "operation_id": "ak.self.contact.command.scope_update",

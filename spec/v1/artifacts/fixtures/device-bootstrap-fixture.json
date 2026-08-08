@@ -12,7 +12,8 @@
     "ak.vector.device_bootstrap.canonical_request_digest.v1",
     "ak.vector.device_bootstrap.holder_jkt.v1",
     "ak.vector.device_bootstrap.issue_request.v1",
-    "ak.vector.device_bootstrap.transaction_states.v1"
+    "ak.vector.device_bootstrap.transaction_states.v1",
+    "ak.vector.device_bootstrap.decision_fence.v1"
   ],
   "vector_ids": [
     "ak.vector.device_bootstrap.founding_batch_digest.v1",
@@ -20,14 +21,18 @@
     "ak.vector.device_bootstrap.canonical_request_digest.v1",
     "ak.vector.device_bootstrap.holder_jkt.v1",
     "ak.vector.device_bootstrap.issue_request.v1",
-    "ak.vector.device_bootstrap.transaction_states.v1"
+    "ak.vector.device_bootstrap.transaction_states.v1",
+    "ak.vector.device_bootstrap.decision_fence.v1"
   ],
   "algorithms": {
     "domain_separated_digest": "sha256(lower-level bytes UTF8(label + newline) || RFC8785_JCS(value)); wire is sha256:lowerhex",
     "founding_batch_label": "ak.device-bootstrap.founding-batch.v1",
     "device_key_digest": "sha256:lowerhex(SHA256(raw 32-byte Ed25519 public key))",
     "canonical_request_digest": "sha256:lowerhex(SHA256(UTF8(RFC8785_JCS(closed request with derived digest fields removed))))",
-    "holder_jkt": "RFC7638 SHA-256 JWK Thumbprint, unpadded base64url"
+    "holder_jkt": "RFC7638 SHA-256 JWK Thumbprint, unpadded base64url",
+    "decision_request_digest": "sha256:lowerhex(SHA256(UTF8(RFC8785_JCS(closed decision request with decision_request_digest omitted))))",
+    "decision_receipt_label": "ak.device-bootstrap.decision-receipt.v1",
+    "decision_receipt_proof_context": "ak.device-bootstrap-decision-receipt-proof-v1"
   },
   "founding_batch": {
     "event_ids": [
@@ -219,5 +224,143 @@
     "bearer_expiry_changes_state": false,
     "cancelled_or_expired_exact_replay_only": true,
     "standard_promotion_requires": "accepted"
+  },
+  "decision_fence": {
+    "request_without_digest": {
+      "account_authority_id": "did:webvh:z6mkfixture:auth-a.example",
+      "transaction_id": "bootstrap-transaction-fixture-001",
+      "idempotency_key": "bootstrap-decision-fixture-001",
+      "requested_decision": "cancelled",
+      "principal_id": "did:webvh:z6mkfixture:alice.example",
+      "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
+      "grant_id": "ak:session_grant:AdduLdLMimDrU3uTO-MZ8FWt-EAOY6pn2d_OSkEOF3cG",
+      "canonical_request_digest": "sha256:d2ff0499b25b6d7e008a41a56c7ff1966c311bd2233c3a5201d12ae039526d7c",
+      "founding_event_ids": [
+        "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
+        "ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK"
+      ],
+      "founding_batch_digest": "sha256:b654c737248a83ae6959b9e0ff61e5b3594faa8b12d8ca12efe41f6581aa5fd7",
+      "bootstrap_transaction_expires_at": "2026-08-08T12:30:00.000Z"
+    },
+    "canonical_request_utf8": "{\"account_authority_id\":\"did:webvh:z6mkfixture:auth-a.example\",\"bootstrap_transaction_expires_at\":\"2026-08-08T12:30:00.000Z\",\"canonical_request_digest\":\"sha256:d2ff0499b25b6d7e008a41a56c7ff1966c311bd2233c3a5201d12ae039526d7c\",\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"founding_batch_digest\":\"sha256:b654c737248a83ae6959b9e0ff61e5b3594faa8b12d8ca12efe41f6581aa5fd7\",\"founding_event_ids\":[\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\",\"ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK\"],\"grant_id\":\"ak:session_grant:AdduLdLMimDrU3uTO-MZ8FWt-EAOY6pn2d_OSkEOF3cG\",\"idempotency_key\":\"bootstrap-decision-fixture-001\",\"principal_id\":\"did:webvh:z6mkfixture:alice.example\",\"requested_decision\":\"cancelled\",\"transaction_id\":\"bootstrap-transaction-fixture-001\"}",
+    "expected_request_digest": "sha256:aa7df249143b3dd58e9d7ebad6bfcd488d8337fd8b42a67b31dac44400bf0bf0",
+    "request": {
+      "account_authority_id": "did:webvh:z6mkfixture:auth-a.example",
+      "transaction_id": "bootstrap-transaction-fixture-001",
+      "idempotency_key": "bootstrap-decision-fixture-001",
+      "requested_decision": "cancelled",
+      "principal_id": "did:webvh:z6mkfixture:alice.example",
+      "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
+      "grant_id": "ak:session_grant:AdduLdLMimDrU3uTO-MZ8FWt-EAOY6pn2d_OSkEOF3cG",
+      "canonical_request_digest": "sha256:d2ff0499b25b6d7e008a41a56c7ff1966c311bd2233c3a5201d12ae039526d7c",
+      "founding_event_ids": [
+        "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
+        "ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK"
+      ],
+      "founding_batch_digest": "sha256:b654c737248a83ae6959b9e0ff61e5b3594faa8b12d8ca12efe41f6581aa5fd7",
+      "bootstrap_transaction_expires_at": "2026-08-08T12:30:00.000Z",
+      "decision_request_digest": "sha256:aa7df249143b3dd58e9d7ebad6bfcd488d8337fd8b42a67b31dac44400bf0bf0"
+    },
+    "receipt_core": {
+      "schema": "ak.device_bootstrap.decision_receipt.v1",
+      "receipt_id": "bootstrap-decision-receipt-fixture-001",
+      "principal_server_id": "did:webvh:z6mkfixture:service.example",
+      "account_authority_id": "did:webvh:z6mkfixture:auth-a.example",
+      "transaction_id": "bootstrap-transaction-fixture-001",
+      "decision": "cancelled",
+      "principal_id": "did:webvh:z6mkfixture:alice.example",
+      "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
+      "grant_id": "ak:session_grant:AdduLdLMimDrU3uTO-MZ8FWt-EAOY6pn2d_OSkEOF3cG",
+      "canonical_request_digest": "sha256:d2ff0499b25b6d7e008a41a56c7ff1966c311bd2233c3a5201d12ae039526d7c",
+      "founding_event_ids": [
+        "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
+        "ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK"
+      ],
+      "founding_batch_digest": "sha256:b654c737248a83ae6959b9e0ff61e5b3594faa8b12d8ca12efe41f6581aa5fd7",
+      "bootstrap_transaction_expires_at": "2026-08-08T12:30:00.000Z",
+      "decided_at": "2026-08-08T12:10:00.000Z"
+    },
+    "receipt_canonical_utf8": "{\"account_authority_id\":\"did:webvh:z6mkfixture:auth-a.example\",\"bootstrap_transaction_expires_at\":\"2026-08-08T12:30:00.000Z\",\"canonical_request_digest\":\"sha256:d2ff0499b25b6d7e008a41a56c7ff1966c311bd2233c3a5201d12ae039526d7c\",\"decided_at\":\"2026-08-08T12:10:00.000Z\",\"decision\":\"cancelled\",\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"founding_batch_digest\":\"sha256:b654c737248a83ae6959b9e0ff61e5b3594faa8b12d8ca12efe41f6581aa5fd7\",\"founding_event_ids\":[\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\",\"ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK\"],\"grant_id\":\"ak:session_grant:AdduLdLMimDrU3uTO-MZ8FWt-EAOY6pn2d_OSkEOF3cG\",\"principal_id\":\"did:webvh:z6mkfixture:alice.example\",\"principal_server_id\":\"did:webvh:z6mkfixture:service.example\",\"receipt_id\":\"bootstrap-decision-receipt-fixture-001\",\"schema\":\"ak.device_bootstrap.decision_receipt.v1\",\"transaction_id\":\"bootstrap-transaction-fixture-001\"}",
+    "receipt_digest_input_utf8": "ak.device-bootstrap.decision-receipt.v1\n{\"account_authority_id\":\"did:webvh:z6mkfixture:auth-a.example\",\"bootstrap_transaction_expires_at\":\"2026-08-08T12:30:00.000Z\",\"canonical_request_digest\":\"sha256:d2ff0499b25b6d7e008a41a56c7ff1966c311bd2233c3a5201d12ae039526d7c\",\"decided_at\":\"2026-08-08T12:10:00.000Z\",\"decision\":\"cancelled\",\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"founding_batch_digest\":\"sha256:b654c737248a83ae6959b9e0ff61e5b3594faa8b12d8ca12efe41f6581aa5fd7\",\"founding_event_ids\":[\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\",\"ak:event:AQilOsNi6WF7kBMfOVLw4LjFp75pXSq5WJ0WMmJw3kgK\"],\"grant_id\":\"ak:session_grant:AdduLdLMimDrU3uTO-MZ8FWt-EAOY6pn2d_OSkEOF3cG\",\"principal_id\":\"did:webvh:z6mkfixture:alice.example\",\"principal_server_id\":\"did:webvh:z6mkfixture:service.example\",\"receipt_id\":\"bootstrap-decision-receipt-fixture-001\",\"schema\":\"ak.device_bootstrap.decision_receipt.v1\",\"transaction_id\":\"bootstrap-transaction-fixture-001\"}",
+    "expected_receipt_digest": "sha256:b0b9462a0c67c337053e607ce4e640692cccea157e87762c85ceab743f706901",
+    "receipt_signer": {
+      "verification_method": "did:webvh:z6mkfixture:service.example#bootstrap-decision-key-1",
+      "public_jwk": {
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "x": "oJql9HpnWYAv-VX43C0qFKXJnSO-l_hkEn_5ODRVpPA"
+      }
+    },
+    "proof_binding": {
+      "context": "ak.device-bootstrap-decision-receipt-proof-v1",
+      "payload_digest": "sha256:b0b9462a0c67c337053e607ce4e640692cccea157e87762c85ceab743f706901",
+      "principal_server_id": "did:webvh:z6mkfixture:service.example",
+      "account_authority_id": "did:webvh:z6mkfixture:auth-a.example",
+      "transaction_id": "bootstrap-transaction-fixture-001",
+      "verification_method": "did:webvh:z6mkfixture:service.example#bootstrap-decision-key-1",
+      "created_at": "2026-08-08T12:10:00.000Z",
+      "audience": "did:webvh:z6mkfixture:auth-a.example"
+    },
+    "proof_binding_canonical_utf8": "{\"account_authority_id\":\"did:webvh:z6mkfixture:auth-a.example\",\"audience\":\"did:webvh:z6mkfixture:auth-a.example\",\"context\":\"ak.device-bootstrap-decision-receipt-proof-v1\",\"created_at\":\"2026-08-08T12:10:00.000Z\",\"payload_digest\":\"sha256:b0b9462a0c67c337053e607ce4e640692cccea157e87762c85ceab743f706901\",\"principal_server_id\":\"did:webvh:z6mkfixture:service.example\",\"transaction_id\":\"bootstrap-transaction-fixture-001\",\"verification_method\":\"did:webvh:z6mkfixture:service.example#bootstrap-decision-key-1\"}",
+    "proof": {
+      "kind": "detached_jws",
+      "verification_method": "did:webvh:z6mkfixture:service.example#bootstrap-decision-key-1",
+      "payload_digest": "sha256:b0b9462a0c67c337053e607ce4e640692cccea157e87762c85ceab743f706901",
+      "created_at": "2026-08-08T12:10:00.000Z",
+      "audience": "did:webvh:z6mkfixture:auth-a.example",
+      "proof_purpose": "issuer_attestation",
+      "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlOnNlcnZpY2UuZXhhbXBsZSNib290c3RyYXAtZGVjaXNpb24ta2V5LTEifQ..PRMQxNBdR-uEB7l4ms3oxd_sF6k6t_8Ms4xwXfmAxxNMWy1K8moQ2xb2lCvmfUBNVGJ0ncC0mFEgkYGl12B0BA"
+    },
+    "race_vectors": [
+      {
+        "name": "accepted_before_cancel",
+        "winner": "accepted",
+        "cancel_replays": "accepted",
+        "new_event_writes_after_winner": 0
+      },
+      {
+        "name": "cancel_before_submit",
+        "winner": "cancelled",
+        "submit_rejects": "bootstrap_transaction_cancelled",
+        "new_event_writes_after_winner": 0
+      },
+      {
+        "name": "expiry_before_submit",
+        "winner": "expired",
+        "submit_rejects": "bootstrap_transaction_expired",
+        "new_event_writes_after_winner": 0
+      },
+      {
+        "name": "network_indeterminate",
+        "coauth_state_after": "pending",
+        "coauth_state_writes": 0
+      }
+    ],
+    "retention": {
+      "decision_rows_pruned_in_v1": false,
+      "canonical_outcome_bytes_retained": true,
+      "exact_replay_is_byte_identical": true,
+      "different_request_bytes": "bootstrap_decision_conflict"
+    },
+    "restricted_authorization": {
+      "credential_class": "device_bootstrap",
+      "binding_preserved": true,
+      "allowed_operation_ids": [
+        "ak.gate.account.command.enroll_device",
+        "ak.gate.account.command.cancel_device_bootstrap",
+        "ak.self.events.command.submit",
+        "ak.self.events.read.resolve"
+      ],
+      "initial_batch_event_ids_source": "#/founding_batch/event_ids",
+      "negative_vectors": [
+        "credential_class_dropped",
+        "bootstrap_binding_dropped",
+        "operation_outside_exact_allowlist",
+        "founding_ids_reordered",
+        "founding_batch_digest_mismatch",
+        "principal_or_device_binding_mismatch",
+        "deadline_elapsed"
+      ]
+    }
   }
 }

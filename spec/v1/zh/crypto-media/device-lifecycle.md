@@ -560,6 +560,23 @@ preimage 字段。由于 `proofs` 排除在 Event identity digest preimage 外�
 回放首次 durable outcome，不同 body 返回 `bootstrap_idempotency_conflict` 且零写入。普通入册不适用本入口；
 后续设备走 sibling pairing，recovery 走自己的受限 transaction。
 
+**跨服务终态 fence（normative）：** `device_bootstrap(mode=founding)` 的 accepted / cancelled / expired 唯一
+authority 是承载 PCR 的 Principal Server durable decision row；absence 才表示 pending。Principal Server 必须在
+接受 ordered `[ak.realm.create, ak.device.authorize]` 的同一 PostgreSQL transaction 内写入 accepted decision、
+device projection、receipt/outbox 与两条 Event；既有 cancelled/expired tombstone 时整个 batch 零写入拒绝。
+Account Authority 的 cancel/deadline worker 必须先调用
+`ak.peer.device_bootstrap.command.decide`，验证返回的 Principal Server signed receipt，再改自己的四态 transaction；
+网络/5xx/indeterminate 保持 pending 且零写入。相同 request identity/body exact replay 原 outcome，异 body conflict；
+decision row、canonical outcome bytes 与 receipt 在 v1 不得清理。完整 DTO、digest / proof transcript 与竞态向量见
+[`device-bootstrap-fixture.json`](../../artifacts/fixtures/device-bootstrap-fixture.json) 和
+[`key-management.md` §5.0.0](../identity/key-management.md)。
+
+Soland/Principal ingress 的认证结果 MUST 原样保留 `credential_class` 与完整 `bootstrap_binding`，并按 canonical
+operation ID 执行 credential 中的 exact four-operation allowlist；不得仅把它投影为普通 principal/scopes。对
+`ak.self.events.command.submit` 的 founding `InitialBatch`，还 MUST 逐项绑定 exact ordered Event IDs、重算
+`founding_batch_digest`，并核对 principal、device、holder JKT 与未经过的 transaction deadline，之后才可进入上述
+原子 transaction。
+
 ## 5a. Privacy-Preserving Push
 
 Arkret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sync Service、网络中间人或第三方 SaaS 控制面泄露身份与可链接信息的前提下，把"有事可投递"的最小信号送达终端。这是 [`discovery/push-notifications.md`](../discovery/push-notifications.md) 与 [`crypto-media/webrtc-signaling.md`](./webrtc-signaling.md) 中"pairwise pseudonym `push_target_id`"语义的协议层定义。

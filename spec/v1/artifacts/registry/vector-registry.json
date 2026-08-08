@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-08.9",
+  "version": "2026-08-08.10",
   "source_of_truth": true,
-  "generated_at": "2026-08-08T19:00:00Z",
+  "generated_at": "2026-08-08T20:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -646,6 +646,18 @@
         "device-bootstrap-fixture.json"
       ],
       "description": "The pre_registration_handoff branch requires the closed founding issue material and forbids caller-selected transaction, holder, derived digest, allowlist, and expiry fields; all non-handoff proof kinds reject that material.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.device_bootstrap.decision_fence.v1",
+      "status": "active",
+      "domain": "device_bootstrap",
+      "applies_to_fixtures": [
+        "device-bootstrap-fixture.json"
+      ],
+      "description": "Recomputes the cross-service cancellation request digest, terminal decision receipt digest, detached-JWS proof binding and deterministic receipt signature; also freezes exact replay, durable tombstone retention, atomic accepted-vs-cancel/expiry races and the DeviceBootstrap four-operation authorization boundary.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/device-bootstrap-fixture.json"
       ]

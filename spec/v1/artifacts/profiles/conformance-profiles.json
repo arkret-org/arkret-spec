@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-08.6",
-  "generated_at": "2026-08-08T18:00:00Z",
+  "version": "2026-08-08.7",
+  "generated_at": "2026-08-08T20:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2216,7 +2216,8 @@
         "ak.self.snapshot.read.manifest_head",
         "ak.self.authz.read.check",
         "ak.peer.account_status.read.authoring_basis",
-        "ak.peer.account_status.command.submit"
+        "ak.peer.account_status.command.submit",
+        "ak.peer.device_bootstrap.command.decide"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -2246,7 +2247,8 @@
         "cba-lattice-fixture.json",
         "capability-fixture.json",
         "privacy-security-fixture.json",
-        "security-closure-fixture.json"
+        "security-closure-fixture.json",
+        "device-bootstrap-fixture.json"
       ],
       "optional_extensions": [
         "ak.profile.federation_minimal.v1",
@@ -2268,7 +2270,9 @@
         "invite_claim_allowlist_recheck_must": "Reducer MUST re-check binding_proof.verification_service_id against the current effective Realm allowlist and any invite-pinned service DID before accepting subject_proof.",
         "invite_claim_nonce_dedup_must": "Reducer MUST treat (invite_id, claim_nonce) and token_commitment as one-time constraints and reject replay with duplicate_conflict.",
         "invite_claim_membership_conversion_must": "Successful claim MUST atomically transition invite pending -> claimed and materialize only a subject-bound standard invite or membership proposal; final join still requires ak.invite.accept or an explicitly profiled equivalent path.",
-        "invite_claim_expiry_cleanup_must": "Reducer MUST expire third-party invites before claim acceptance when expires_at <= now and trigger token material cleanup obligations from third-party-invites.md §6.1."
+        "invite_claim_expiry_cleanup_must": "Reducer MUST expire third-party invites before claim acceptance when expires_at <= now and trigger token material cleanup obligations from third-party-invites.md §6.1.",
+        "device_bootstrap_decision_fence_must": "The Principal Server MUST be the durable decision authority for founding device-bootstrap acceptance versus cancellation/expiry. It MUST commit accepted and the notary-signed decision receipt in the same PostgreSQL transaction as the ordered founding Events, and MUST serialize ak.peer.device_bootstrap.command.decide against that commit under the same durable lock. accepted|cancelled|expired rows and byte-stable outcomes are immutable v1 tombstones and MUST NOT be pruned.",
+        "device_bootstrap_restricted_auth_must": "Grant authentication MUST retain credential_class and the complete bootstrap_binding. A DeviceBootstrap grant is authorized only for its exact four registered operations. ak.self.events.command.submit additionally requires an InitialBatch whose ordered Event IDs and recomputed founding digest, principal, device, holder and deadline equal the Founding binding; a mismatch or terminal decision performs zero Event writes."
       }
     },
     "ak.profile.federation_minimal.v1": {
@@ -2552,7 +2556,8 @@
         "ak.gate.account.command.issue_session_grant",
         "ak.gate.account.command.refresh_session_grant",
         "ak.gate.account.command.revoke_session",
-        "ak.gate.account.command.introspect_session_grant"
+        "ak.gate.account.command.introspect_session_grant",
+        "ak.gate.account.command.cancel_device_bootstrap"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [
@@ -2603,6 +2608,7 @@
         "session_grant_issuer_ledger_must": "Auth Server MUST be the sole durable authority for immutable SessionGrant issuance records and active/revoked/superseded lifecycle. It MUST derive the suite-tagged grant ID and JWT jti from the complete closed issuance preimage, including the credential-class-selected holder/bootstrap/recovery binding, atomically persist issuance before response, provide durable exact replay for issue, refresh and revoke, and use the same ledger for cascade and introspection. It MUST NOT author ak.session.grant or ak.session.grant.state Events or depend on a Principal Control Realm grant cell.",
         "session_grant_dpop_binding_must": "Issue, refresh, replay retrieval and protected-resource presentation MUST verify current holder/DPoP proof, exact HTTP target and method, issuer/audience and canonical request digest. An S2S HTTP Message Signature authenticates transport only and never substitutes for holder proof or principal/device/notary Event proof.",
         "session_grant_terminal_replay_must": "Exact replay of an expired recorded outcome returns session_grant_replay_expired; exact replay of a revoked or superseded recorded outcome returns session_grant_replay_terminal with grant_id and terminal state. Neither path returns success or issues a new grant. After replay-record retention expires, the same request identity fails closed as indeterminate.",
+        "device_bootstrap_cross_service_fence_must": "For founding device bootstrap, cancellation and deadline expiry MUST obtain a signed terminal decision receipt from ak.peer.device_bootstrap.command.decide before changing the Account Authority transaction. accepted wins when the Principal Server already committed the founding batch; cancelled/expired win only under the same Principal Server transaction fence before Event acceptance. Dependency, network, 5xx and indeterminate outcomes leave the four-state transaction unchanged. No directory miss, cached introspection or fifth transaction state may substitute for this fence.",
         "not_identity_registry_must": "Auth Server MUST NOT claim `ak.profile.identity_registry.v1`; any DID document / key-log surface it exposes MUST be declared on `compat_surfaces[]` as `delegated_resolver` rather than self-claimed canonical authority.",
         "not_principal_server_must": "Auth Server MUST NOT claim `ak.profile.principal_server.v1`; Realm event acceptance is the principal server role and is incompatible with auth-server-only deployments.",
         "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run.",

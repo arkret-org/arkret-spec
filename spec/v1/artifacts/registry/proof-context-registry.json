@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-06",
+  "version": "2026-08-08.1",
   "source_of_truth": true,
   "description": "Canonical domain-separation contexts for Arkret detached proofs. Context is part of the canonical signing binding object and is not a wire field in the generic proof shape.",
   "registry_rules": [
@@ -312,6 +312,21 @@
       ],
       "defined_in": "zh/identity/identity-did.md",
       "schema_ref": "schemas/did-webvh-witness-receipt.schema.json"
+    },
+    {
+      "context": "ak.device-bootstrap-decision-receipt-proof-v1",
+      "object_family": "device_bootstrap_decision_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "principal_server_id",
+        "account_authority_id",
+        "transaction_id",
+        "verification_method",
+        "created_at",
+        "audience"
+      ],
+      "defined_in": "zh/identity/key-management.md",
+      "schema_ref": "schemas/principal-operations.schema.json#/$defs/device_bootstrap_decision_receipt"
     },
     {
       "context": "ak.organization-registration-control-proof-v1",
