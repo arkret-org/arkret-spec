@@ -34,7 +34,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json",
-      "sha256": "9e121fc0f219c5c790588952f9367fda550619bdd8dea2eb193154b4c9ec3235"
+      "sha256": "372f29159d5a4cb0277250bfa6d56ba0f2a447244604a3d70a2ea983604a035d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/audit-release-fixture.json",
@@ -58,7 +58,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
-      "sha256": "b06883b647a2debadf670e3fee8b22b2355510a938d7b4ab09bf857c36b64745"
+      "sha256": "291ee80604366f8f78b8b57ae2a05af4cb6937748e0bffacbb5a84c19071af50"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-core-fixture.json",
@@ -118,7 +118,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "33fa5d21bdf0a14ba03288afd48fcded03cd52dd6327807c8450cb10fc0bcf0d"
+      "sha256": "282d1c6d59f0ec59da2c364b86192095f7dd37fc9f55f2be3e005712571c3763"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",
@@ -262,7 +262,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/reaction-fixture.json",
-      "sha256": "c5205facae222d99105438d2af7a9a5ed8a67e0bd7772b6e215211daf9ec027b"
+      "sha256": "da51e87a4c86cf9efa3db1188f3636adf23adc7c57ee8765d7f2a0983a54200c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/read-cursor-multi-device-merge-fixture.json",

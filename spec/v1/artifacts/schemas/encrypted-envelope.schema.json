@@ -70,11 +70,17 @@
       "type": "object",
       "required": [
         "realm_id",
-        "event_kind"
+        "event_kind",
+        "scope_digest"
       ],
       "properties": {
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "scope_digest": {
+          "type": "string",
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
+          "description": "Domain-separated commitment to the Event's exact scope_ref under ak.aad-scope-v1 (encryption-and-audit.md 2.3.2). Unconditionally required for every scope so that carrying it never fingerprints one scope kind, and irreversible so the server cannot enumerate Sidecar existence from ciphertext metadata."
         },
         "event_kind": {
           "type": "string",

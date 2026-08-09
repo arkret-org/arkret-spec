@@ -153,6 +153,7 @@ Realm policy MUST 通过 Event kind `ak.realm.policy_bundle` 的 payload path `m
 | `aad` | object | 是 | 路由元数据；明文但被 AEAD 认证。 |
 | `aad.realm_id` | id:realm | 是 | 路由与授权的 Realm。 |
 | `aad.event_kind` | string | 是 | 路由 event kind。 |
+| `aad.scope_digest` | hash | 是 | 对本 Event **精确 `scope_ref`** 的域分隔承诺（常量 `ak.aad-scope-v1`），构造见 §2.3.2.1。**所有 scope 一律携带**，无 discriminator、无省略分支。 |
 | `aad.event_id` | id:event | 条件 | `aad_visibility_event_id="opaque_id"` 时必填。 |
 | `aad.event_ref_digest` | hash | 条件 | `aad_visibility_event_id="routing_digest"` 时必填；构造 MUST 按下方 `routing_digest` 条目的 canonical 公式（域分隔常量 `ak.aad-event-ref-v1`），实现 MUST NOT 使用其它输入或顺序。 |
 | `aad.causal_refs` | array | 条件 | 可见因果依赖；高隐私 profile 可改用 `causal_ref_digests`。 |
@@ -183,6 +184,42 @@ AAD 字段集合受 Realm 的 `aad_visibility` policy 组件约束（承载与�
   其中 `ak.aad-event-ref-v1` 是固定的 ASCII 域分隔常量（逐字节等于该字符串），字段间以单字节 `0x00` 分隔以消除拼接歧义；`event_id` / `realm_id` 取其 canonical typed-id 字符串（`ak:event:<44-char-suite-tagged-full-digest-token>` / `ak:realm:<44-char-derivation-tagged-full-digest-token>`）的 UTF-8 字节，二者都是已在 wire 上、双方可逐字节获得的权威字段。输入**只有**这两个 typed id 与域分隔常量：未知 Event token 携完整 256-bit digest，盲枚举 token 的量级约 `2^256`，无需额外 nonce；`realm_id` 绑定 Realm 阻止跨 Realm 重放。**诚实边界**：本 digest 是 `(event_id, realm_id)` 的**确定性无密钥函数**，因此它是**稳定伪名**——任何已持有候选 `event_id`，或能猜中低熵 Event preimage 并自行派生候选 ID 的一方，都可逐字节重算并据此确认 / 链接该事件；本机制只提供对未知候选 token 的盲枚举抗性，**不**提供对候选内容字典攻击或已知 ID 确认 / 链接的保密（后者需 keyed 构造，v1 在此不引入）。v1 **不**在本 digest 引入任何未在 registry / schema 定义 canonical wire 来源的额外 nonce 输入。该常量与公式是 wire-breaking 的安全域分隔参数，实现 MUST 逐字节一致构造，MUST NOT 引入私有前缀、额外输入、改变字段顺序或省略 `0x00` 分隔；逐字节 KAT 与 mutation case 固化在 [conformance-vectors.md](../conformance/conformance-vectors.md) §1.12。**接收方语义**：`event_ref_digest` 是明文但受外层 AEAD 认证的字段——AEAD 解密本身直接使用 wire 字节、不重算该 digest；需要做反欺骗绑定校验或跨 provider 去重的 router / verifier **MAY** 按上式重算并与 wire 值 bytewise 比对，不一致时 **MUST** 视为绑定失效并拒绝据其路由 / 去重。
 - `hidden`：AAD MUST 同时省略 `event_id` 与 `event_ref_digest`；去重只能依赖外层 Event Envelope、transport receipt 或 receiver-local cache。
 
+#### 2.3.2.1 `aad.scope_digest`（normative）
+
+密文必须被密码学地绑定到它所属的 **exact scope**，否则"这段密文属于这个 Sidecar / Circle"
+只能靠 `group_id` + 投影查表**推断**，而不是可验证事实。构造 **MUST**（canonical，normative）为：
+
+```
+scope_digest = "sha256:" || hex(
+    SHA-256( utf8("ak.aad-scope-v1") || 0x00 || utf8(canonical_json(scope_ref)) || 0x00 || utf8(realm_id) )
+)
+```
+
+其中 `ak.aad-scope-v1` 是固定 ASCII 域分隔常量（逐字节相等），字段间以单字节 `0x00` 分隔；
+`canonical_json(scope_ref)` 是外层 Event Envelope `scope_ref` 对象的 RFC 8785 JCS bytes，
+**整对象参与**（`kind` 与该 kind 下的全部成员），因此 `realm` / `circle` / `sidecar` /
+`realm_genesis` 四种形态用同一条公式处理，不需要逐 kind 分支；`realm_id` 取 `aad.realm_id` 的
+canonical typed-id 字符串，绑定 Realm 以阻止跨 Realm 重放。
+
+**所有 scope 一律携带该字段，v1 不为它定义可见性 discriminator。** 这与 `event_id` 的三态
+判别器是有意的不对称：`event_id` 存在明文需求（跨 provider 投递确认），而 scope 没有——
+router 按 `realm_id` 路由，服务端本就从 envelope 顶层 `group_id` 知道 MLS group。反过来，
+任何"带或不带 / 明文或摘要"的选择本身都会成为指纹：只有 Sidecar 带则暴露 Sidecar 存在，
+逐 Realm 可选则暴露该 Realm 的 scope 构成。恒定必填是唯一不泄漏选择本身的形态。
+明文 `sidecar_id` 同理 **MUST NOT** 进入 AAD——那会让服务端直接从密文枚举 Sidecar 的存在、
+数量与活跃度，违反 [`../models/sidecar.md` §9](../models/sidecar.md) 的反泄漏要求。
+
+**诚实边界**（与 `event_ref_digest` 同）：本 digest 是 `(scope_ref, realm_id)` 的确定性无密钥
+函数，因此是**稳定伪名**——已持有候选 `sidecar_id` / `circle_id` 的一方可逐字节重算并确认
+关联。它提供的是对未知候选 token 的盲枚举抗性与密码学绑定，**不**提供对已知 id 的确认抗性
+（后者需 keyed 构造，v1 不引入）。同一 scope 下所有密文共享同一 digest，这正是"同 scope 可
+链接"的既有事实（`group_id` 早已如此），不构成新增泄漏。
+
+**接收方语义**：`scope_digest` 是明文但受外层 AEAD 认证的字段。receiver 在解密后
+**MUST** 按上式用外层 `scope_ref` 重算并与 wire 值 bytewise 比对，不一致 **MUST** 拒绝该
+密文并按 `schema_violation` 处理——这正是把"密文属于本 scope"从推断升级为可验证事实的那一步；
+跨 scope 搬运的密文因此在解密后被确定性检出，而不是依赖密钥隔离碰巧失败。
+
 AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 
 ```json
@@ -190,6 +227,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "event_kind": "ak.message.create",
   "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "scope_digest": "sha256:1ab18cba8cdb5f932820849de9cc736457eebbceffe27fb7a3f63a47f33fd1dc",
   "causal_refs": ["ak:event:Ae0kN-KHls3vjqQ9FHo4P_2uAhcMVu8dI8qHcFsqGn5d"]
 }
 ```

@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9197,
+    "total_properties": 9198,
     "total_schema_documents": 156,
     "by_presence_class": {
       "optional": 2763,
       "optional_defaulted": 67,
-      "required": 6005,
+      "required": 6006,
       "required_nullable": 112,
       "tristate": 250
     },
@@ -5186,6 +5186,7 @@
         "/properties/aad/properties/event_kind": "required",
         "/properties/aad/properties/event_ref_digest": "optional",
         "/properties/aad/properties/realm_id": "required",
+        "/properties/aad/properties/scope_digest": "required",
         "/properties/aad_digest": "required",
         "/properties/aad_visibility_event_id": "required",
         "/properties/aead_profile": "optional",

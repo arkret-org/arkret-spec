@@ -240,6 +240,7 @@
               "aad_visibility_event_id": "routing_digest",
               "aad": {
                 "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
+                "scope_digest": "sha256:451f93952c530013fa07ca69255e9ae4f61df82ae8b1d8b1b36d42b55994e6c9",
                 "event_kind": "ak.reaction.add",
                 "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
               },
@@ -269,6 +270,7 @@
               "aad_visibility_event_id": "routing_digest",
               "aad": {
                 "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
+                "scope_digest": "sha256:451f93952c530013fa07ca69255e9ae4f61df82ae8b1d8b1b36d42b55994e6c9",
                 "event_kind": "ak.reaction.add",
                 "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
               },
@@ -327,6 +329,7 @@
               "aad_visibility_event_id": "hidden",
               "aad": {
                 "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
+                "scope_digest": "sha256:451f93952c530013fa07ca69255e9ae4f61df82ae8b1d8b1b36d42b55994e6c9",
                 "event_kind": "ak.reaction.add"
               },
               "key_ref": {
@@ -355,6 +358,7 @@
               "aad_visibility_event_id": "hidden",
               "aad": {
                 "realm_id": "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb",
+                "scope_digest": "sha256:451f93952c530013fa07ca69255e9ae4f61df82ae8b1d8b1b36d42b55994e6c9",
                 "event_kind": "ak.reaction.add"
               },
               "key_ref": {

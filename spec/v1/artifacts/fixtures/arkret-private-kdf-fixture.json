@@ -63,6 +63,7 @@
           "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
           "aad": {
             "realm_id": "ak:realm:AaWnYbjtomNOLOpuefTZzVyoFKF4V-Vbj2yAPDP0aZTj",
+            "scope_digest": "sha256:b4688597a0773d0e68224243ebaf9ce1d21c72e865d957b14714663eaae7f164",
             "event_kind": "ak.message.create"
           }
         }
