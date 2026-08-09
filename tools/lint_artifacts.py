@@ -5425,6 +5425,66 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     if data is None:
         return
 
+    def realm_create_purpose_const(branch: object) -> object:
+        if not isinstance(branch, dict):
+            return None
+        return (
+            branch.get("properties", {})
+            .get("payload", {})
+            .get("properties", {})
+            .get("object", {})
+            .get("properties", {})
+            .get("purpose", {})
+            .get("const")
+        )
+
+    discriminator_conditions = {
+        "Any Event carrying did_inception": ("then", "principal_control"),
+        "A managed_agent_control Realm create without did_inception": (
+            "if",
+            "managed_agent_control",
+        ),
+        "agent_provision is a reserved critical ref role": (
+            "then",
+            "managed_agent_control",
+        ),
+    }
+    schema_nodes = [node for _json_path, node, _key in walk_json(data) if isinstance(node, dict)]
+    for comment_prefix, (branch_name, expected_purpose) in discriminator_conditions.items():
+        matches = [
+            node
+            for node in schema_nodes
+            if isinstance(node.get("$comment"), str)
+            and node["$comment"].startswith(comment_prefix)
+        ]
+        if len(matches) != 1:
+            lint.fail(
+                path,
+                f"Event envelope must contain exactly one {comment_prefix!r} admission condition",
+            )
+            continue
+        actual_purpose = realm_create_purpose_const(matches[0].get(branch_name))
+        if actual_purpose != expected_purpose:
+            lint.fail(
+                path,
+                f"{comment_prefix!r} must constrain purpose={expected_purpose!r}, "
+                f"got {actual_purpose!r}",
+            )
+
+    realm_genesis_path = ARTIFACTS / "schemas" / "realm-genesis.schema.json"
+    realm_genesis = load_json(lint, realm_genesis_path)
+    purpose_values = (
+        realm_genesis.get("properties", {}).get("purpose", {}).get("enum", [])
+        if isinstance(realm_genesis, dict)
+        else []
+    )
+    for purpose in ("principal_control", "managed_agent_control"):
+        if purpose not in purpose_values:
+            lint.fail(
+                realm_genesis_path,
+                f"Realm genesis purpose enum must contain {purpose!r} used by envelope admission",
+            )
+
     event_schema_tokens: set[str] = set()
 
     def collect_admitted_kind_tokens(node: object) -> None:

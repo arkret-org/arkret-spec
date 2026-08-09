@@ -3299,7 +3299,7 @@
       }
     },
     {
-      "$comment": "A principal_control Realm create without did_inception is syntactically reserved for delegated managed-principal genesis. Requiring the delegation pair prevents a self-principal caller from falling through to ordinary realm.create capability admission; the delegated_pcr_genesis verifier performs the actor/DID/service/realm comparisons that JSON Schema cannot express.",
+      "$comment": "A managed_agent_control Realm create without did_inception is syntactically reserved for delegated managed-principal genesis. Requiring the delegation pair prevents a self-principal caller from falling through to ordinary realm.create capability admission; the delegated_pcr_genesis verifier performs the actor/DID/service/realm comparisons that JSON Schema cannot express.",
       "if": {
         "properties": {
           "kind": {
@@ -3312,7 +3312,7 @@
                 "type": "object",
                 "properties": {
                   "purpose": {
-                    "const": "principal_control"
+                    "const": "managed_agent_control"
                   }
                 },
                 "required": [
@@ -3394,7 +3394,7 @@
                 "type": "object",
                 "properties": {
                   "purpose": {
-                    "const": "principal_control"
+                    "const": "managed_agent_control"
                   }
                 },
                 "required": [
