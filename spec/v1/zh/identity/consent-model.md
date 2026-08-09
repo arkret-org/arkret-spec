@@ -318,7 +318,7 @@ contact discovery / PSI 端点 MUST 按 `(requester, holder)` 维度限速，防
 
 MIMI 协议有 `request_consent` / `update_consent` 操作（`ak.open.mimi.command.request_consent` / `ak.open.mimi.command.update_consent`），见 [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) §10。Facade 映射规则：
 
-- 接收 MIMI consent update：facade MUST 先验证 actor 是声明 holder 或受授权 controller，然后构造 grant 或 revoke Control Move 写入 holder principal control Realm 的 consent cell。
+- 接收 MIMI consent update：facade MUST 先验证 actor 是私有 request correlation 声明的 holder 或受授权 controller，并把调用方携带的 exact `ak.consent.grant` / `ak.consent.revoke` `EventInitialSubmission` 原样送入普通 Event admission；facade 不得构造、代签或重建该 Control Move。只有 accepted Event 才能写入 holder principal control Realm 的 consent cell。
 - 发送 Arkret consent state 到 MIMI：facade MUST 把当前 consent cell or_set join 值翻译为 MIMI consent message，并保留 consent_id 作为 inter-protocol correlation。
 - consent state 不暴露具体 evidence_ref / reason 跨 provider；只暴露最小 `(peer, scope, granted/revoked)` 三元组。
 
