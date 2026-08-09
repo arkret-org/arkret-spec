@@ -639,6 +639,42 @@ Operator takedown 的申诉 / 恢复 MUST 形成可验证闭环：
 
 撤销后，Directory MUST 对该 `resource_id` 的精确 resolve 返回与 `unlisted` / `not_found` 不可区分的响应（参见 §3 防枚举）；对正在分页的 search 响应，MUST 在下一次 cursor 推进时停止披露。
 
+#### 8.7.1 Governance proof wire 形态与绑定（normative）
+
+`withdraw` 与 `takedown_appeal` 的 `governance_proof` MUST 验证
+`service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof`：复用通用非 Event
+detached-JWS proof 叶，并对本对象族封闭三个选择——`proof_purpose` MUST 为
+`governance_authorization`，`audience` MUST 为目标 Directory 的 service DID（单值），
+`domain` MUST 缺席。proof 对象开放、出现未声明成员、purpose / audience 不符，MUST 在
+执行任何撤销或申诉动作前拒绝。
+
+绑定按 `device-lifecycle.md` §9.0.1 同一形态构造：先从闭合 request body 删除顶层
+`governance_proof` 成员（不是置为 `null`），保留所有实际存在的 optional 字段，计算
+`payload_digest = SHA-256(JCS(request_without_governance_proof))` typed digest；proof
+`payload_digest` MUST 与之 byte-identical。detached JWS 的 payload segment MUST 为空，
+并对下列唯一 canonical binding object 的 JCS bytes 签名：
+
+```json
+{
+  "context": "ak.directory-governance-request-proof-v1",
+  "payload_digest": "<proof.payload_digest>",
+  "operation_id": "<ak.find.directory.command.withdraw | ak.find.directory.command.takedown_appeal>",
+  "resource_id": "<request.resource_id>",
+  "verification_method": "<proof.verification_method>",
+  "created_at": "<proof.created_at>",
+  "proof_purpose": "governance_authorization",
+  "audience": "<目标 Directory service DID>"
+}
+```
+
+`operation_id` 进入 binding object，阻断同一签名跨 withdraw / appeal 重放。签名者授权
+沿用既有规则：`verification_method` MUST 解析为该资源当前 DID document epoch 内的
+governance key（§8.1 / §8.5，失败返回 `governance_key_invalid`）；`takedown_appeal`
+额外允许资源 governance 明确授权的 advocate key，授权关系 MUST 可由 Directory 从资源
+DID document 或 takedown notice 声明的治理通道验证。**新鲜度**：Directory MUST 拒绝
+`proof.created_at` 与接收时刻偏差超过 300 秒的 proof；需要更长窗口的调用方 MUST 重新
+签发，部署 MUST NOT 放宽该常量。
+
 ### 8.8 Cross-Directory Replication（out of scope）
 
 v1 core **不**定义 Directory 之间的 replication / federation 协议。每个 Directory 独立 ingest；同一资源 opt-in 多家 Directory 时分别 announce。

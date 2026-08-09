@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-10.1",
+  "version": "2026-08-10.2",
   "source_of_truth": true,
   "description": "Canonical domain-separation contexts for Arkret detached proofs. Context is part of the canonical signing binding object and is not a wire field in the generic proof shape.",
   "registry_rules": [
@@ -406,6 +406,21 @@
       ],
       "defined_in": "zh/crypto-media/device-lifecycle.md#901-self-claim-requester-proof-与重放闭包normative",
       "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackage_claim_proof"
+    },
+    {
+      "context": "ak.directory-governance-request-proof-v1",
+      "object_family": "directory_governance_request",
+      "binding_fields": [
+        "payload_digest",
+        "operation_id",
+        "resource_id",
+        "verification_method",
+        "created_at",
+        "proof_purpose",
+        "audience"
+      ],
+      "defined_in": "zh/discovery/discovery-directory.md#871-governance-proof-wire-形态与绑定normative",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof"
     },
     {
       "context": "ak.member-delivery-binding-candidate-proof-v1",

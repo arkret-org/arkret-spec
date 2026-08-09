@@ -1420,6 +1420,35 @@
         }
       }
     },
+    "DirectoryGovernanceProof": {
+      "description": "Single resource-governance authorization proof for directory write surfaces (withdraw, takedown_appeal). Reuses the generic non-Event detached-JWS wire leaf while closing audience, purpose, and domain choices for this object family; canonical binding, signer authority, and freshness rules are defined in discovery-directory.md section 8.7.1.",
+      "allOf": [
+        {
+          "$ref": "./event-envelope.schema.json#/$defs/proof"
+        },
+        {
+          "type": "object",
+          "required": [
+            "audience",
+            "proof_purpose"
+          ],
+          "properties": {
+            "audience": {
+              "$ref": "#/$defs/ServiceId"
+            },
+            "proof_purpose": {
+              "type": "string",
+              "const": "governance_authorization"
+            }
+          },
+          "not": {
+            "required": [
+              "domain"
+            ]
+          }
+        }
+      ]
+    },
     "DirectoryAnnounceRequestBody": {
       "type": "object",
       "additionalProperties": false,
@@ -1564,9 +1593,8 @@
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "governance_proof": {
-          "type": "object",
-          "description": "Signature by the resource governance key or an authorized advocate, equivalent strength to withdraw.governance_proof.",
-          "additionalProperties": true
+          "$ref": "#/$defs/DirectoryGovernanceProof",
+          "description": "Signature by the resource governance key or an authorized advocate, equivalent strength to withdraw.governance_proof; wire form and binding per discovery-directory.md section 8.7.1."
         }
       }
     },
@@ -1616,9 +1644,8 @@
           "maxLength": 512
         },
         "governance_proof": {
-          "type": "object",
-          "description": "Signature proof by the resource governance key, equivalent strength to announce.discovery_state.proof.",
-          "additionalProperties": true
+          "$ref": "#/$defs/DirectoryGovernanceProof",
+          "description": "Signature proof by the resource governance key, equivalent strength to announce.discovery_state.proof; wire form and binding per discovery-directory.md section 8.7.1."
         },
         "effective_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

@@ -171,9 +171,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/proof-context-registry.json",
-      "version": "2026-08-10.1",
+      "version": "2026-08-10.2",
       "generated_at": null,
-      "content_digest": "sha256:a2549caaf82e9552cb3d0d58ab526050cdcc2186f422378cdb54eae85566396d"
+      "content_digest": "sha256:2c634c6de3afb257e52952562e4222e52dd251be7ae070c2c4b4c9795f54a6ae"
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",
@@ -189,15 +189,21 @@
     },
     {
       "path": "spec/v1/artifacts/registry/registry-manifest.json",
-      "version": "2026-08-10",
+      "version": "2026-08-10.1",
       "generated_at": null,
-      "content_digest": "sha256:78cb5a82ccac50306002d5ad4613c7ac8f7f34734e8c3bcef875881457d0df01"
+      "content_digest": "sha256:2f1fd683c5c93fd212c4c1ec2a181449bd5e072e2d8d7b06c8bc947d7b47a7d2"
     },
     {
       "path": "spec/v1/artifacts/registry/relation-kind-registry.json",
       "version": "2026-08-07",
       "generated_at": null,
       "content_digest": "sha256:6a58b468ca60a6343ee906141e66c4288837c4390b6bd1fdef5c579301e4bf57"
+    },
+    {
+      "path": "spec/v1/artifacts/registry/request-material-supply-exemption-registry.json",
+      "version": "2026-08-10.1",
+      "generated_at": "2026-08-10T00:00:01Z",
+      "content_digest": "sha256:72cc16e2fdc550094202cfcec58bd16e6be45c0bceda4441479adf74002d55a0"
     },
     {
       "path": "spec/v1/artifacts/registry/runner-kind-registry.json",

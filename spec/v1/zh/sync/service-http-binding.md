@@ -192,6 +192,54 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 - 携带 top-level 数组的 `non_streaming_json` operation MUST 登记 `max_items`；服务端与客户端 MUST 同时按 count 与 canonical bytes 两维截断 batch / page（scalability-constraints §2.1.5）。
 - 请求处理顺序 MUST 遵循 scalability-constraints §2.1.8：先 header 边界与不依赖 body 的认证，再拒绝 `Content-Encoding`，再 `Content-Length` 预检与边读边计数，最后才 parse / canonicalize / 校验 / body-dependent proof。
 
+#### 2.2.2 请求材料供给闭合（normative）
+
+**供给闭合律：合同中出现的每一个"需要"，必须在 machine-readable 合同里有一个登记在案的
+"从哪来"。** 对每个 operation 请求 schema 的必填输入，其来源 MUST 落在以下封闭集合之一，
+不在集合内即为合同缺陷，release gate 拒绝：
+
+1. **调用方自产**（client_local）——调用方本地生成或签署的材料：自签 detached-JWS /
+   Data Integrity proof、本地密钥与密文、自由内容、协议参数、幂等键与 nonce、对自己所
+   授权内容的摘要，以及**签发者就是调用方本人**的签名声明（如 join-policy 的
+   applicant/reviewer receipt）；
+2. **已登记供给**（supplied）——某已登记 operation 响应、或客户端经 sync 可达的 event
+   payload，按 **`$def` 同一性**返回同一对象；仅当字段为**无 `$ref` 的内联标量**时才允许
+   按**字段名逐字一致**供给（echo 纪律，见下），`$ref` 对象不得靠同名字段跨域冒充；
+3. **带内绑定**（in-band binding）——开放对象仅当兄弟成员以 const 声明其封闭 schema 身份
+   （`request_schema` 模式）、或以 `canonical_bytes_base64url` + digest 钉死字节时放行；
+4. **结构面规则**（structural surface）——`ak.peer.*` / `ak.edge.*` 的提交方是服务器 /
+   applet host，本地投影即来源；`ak.open.*` 是带外 handoff 面（二维码 / 外部协议），
+   输入按定义来自 HTTP 合同之外；由 DID log 读取面按方法自有形态派生的引用
+   （`did_generation_ref` 等）视为已供给；
+5. **具名例外**——登记于
+   [`request-material-supply-exemption-registry.json`](../../artifacts/registry/request-material-supply-exemption-registry.json)，
+   disposition 封闭为 `external_form` / `open_finding` / `deferred_supply` 三值；
+   `open_finding` / `deferred_supply` 行 MUST 引用 `arkret-work` 中仍存在的评审条目锚点，
+   对应缺口闭合时 MUST 同变更删行；结构性类别 MUST NOT 以例外行承载——例外表只收
+   逐条人工背书的个案。
+
+配套规则：
+
+- **无形状必填禁止**：`additionalProperties: true` 且无任何 shape 成员的必填对象，除非命中
+  第 3 类带内绑定或具名例外（`external_form`），一律拒绝——散文描述不是形状。
+- **echo 容器纪律**（002 / 010 落盘形态的提升）：读取面为下一步写入交付材料时，MUST 使用
+  专用容器（如 `next_prepare_input` / `next_replace_input`），**成员名与写入面消费的字段
+  逐字节一致**；时态语义由容器名承担，MUST NOT 引入改名映射。读取面缺料时**省略容器即
+  "当前不可 author"**，MUST NOT 为此新增错误码或状态枚举。
+- **交付形态选择指南**（non-normative）：验证方自持的状态快照优先不透明游标（CAS 载体）；
+  对端签名事实优先返回完整签名对象使客户端可自行验证；跨信任域提交的证据 MUST 由服务器
+  在 server-to-server 一跳承运（carrier 附带），客户端不亲手跨域搬运。
+- **联合分支可构造性**：必填字段为 oneOf 联合时，**每一条**分支都必须整体可构造——分支
+  可能由准入上下文钦定而非调用方自由选择，存在不可构造分支的联合按缺陷上报，确属可选
+  分支的经具名例外承载。
+- **FSM 入口闭合**：`fsm_contracts` 每个 cell family MUST 恰好声明
+  `initial_state` / `initial_states` / `template` 三者之一（键集封闭），且所有已声明状态
+  MUST 从入口集经已登记 cell write 可达、所有 `allowed_transitions` MUST 有对应写入、
+  const→const 写入 MUST 不越表——这是 OPEN-FLOW-PROTO-013 当初缺失的那道门。
+
+机器门禁：`tools/lint_artifacts.py` 的 `request_material_supply` 与 `fsm_reachability`，
+随 release gate `--strict` 强制执行；例外表与本节双向绑定（门禁查表 + 反向校验行未失效）。
+
 ### 2.3 端点契约清单
 
 类型简写：`did` 为 DID URI，`id` 为协议对象 ID，`cursor` / `token` 为 opaque string，`signature` 为 `{kid, alg?, sig}`，`proof` 为 DID / HTTP message / detached JWS proof。`events` 为 Event Envelope 数组。

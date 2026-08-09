@@ -4915,9 +4915,10 @@
           "type": "string",
           "enum": [
             "issuer_attestation",
-            "holder_acceptance"
+            "holder_acceptance",
+            "governance_authorization"
           ],
-          "description": "Optional role discriminator for non-Event proofs. handle-claim.schema.json requires binding_state=verified claims to carry at least one proofs[] entry with proof_purpose=holder_acceptance; without this optional field that requirement was unsatisfiable under additionalProperties:false. Generic proof consumers ignore it unless their object-family contract makes it load-bearing."
+          "description": "Optional role discriminator for non-Event proofs. handle-claim.schema.json requires binding_state=verified claims to carry at least one proofs[] entry with proof_purpose=holder_acceptance; without this optional field that requirement was unsatisfiable under additionalProperties:false. governance_authorization marks a resource-governance-key authorization (directory withdraw/takedown-appeal, discovery-directory.md 8.7.1). Generic proof consumers ignore it unless their object-family contract makes it load-bearing."
         },
         "jws": {
           "type": "string",

@@ -198,6 +198,9 @@
         "act_on_behalf": false
       },
       "version": 7,
+      "next_replace_input": {
+        "expected_version": 7
+      },
       "expected": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_entry",
         "runtime_without_grant": "failed_precondition"

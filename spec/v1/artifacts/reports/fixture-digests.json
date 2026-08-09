@@ -10,7 +10,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
-      "sha256": "0a0fcb5cedb772f8ee73bb134a734edcbba0404da2310089e72687b5c0827b9d"
+      "sha256": "5e0c3585b9dd79587c4dfb4c2c077d7cd004eaef2090c768517d019facad6217"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json",

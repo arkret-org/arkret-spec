@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9180,
+    "total_properties": 9184,
     "total_schema_documents": 156,
     "by_presence_class": {
       "optional": 2762,
       "optional_defaulted": 67,
-      "required": 5989,
+      "required": 5993,
       "required_nullable": 112,
       "tristate": 250
     },
@@ -2511,6 +2511,8 @@
         "/$defs/agent_pairing_bootstrap/properties/pairing_request_id": "required",
         "/$defs/agent_pairing_bootstrap/properties/service_id": "required",
         "/$defs/agent_pairing_resolve_request_body/properties/pairing_token": "required",
+        "/$defs/agent_participation_entry/properties/next_replace_input": "required",
+        "/$defs/agent_participation_entry/properties/next_replace_input/properties/expected_version": "required",
         "/$defs/agent_participation_entry/properties/selection": "required",
         "/$defs/agent_participation_entry/properties/target_scope": "required",
         "/$defs/agent_participation_entry/properties/version": "required",
@@ -11474,6 +11476,8 @@
         "/$defs/DirectoryAnnounceRequestBody/properties/source_refs": "required",
         "/$defs/DirectoryAnnounceRequestBody/properties/supersedes_announce_id": "optional",
         "/$defs/DirectoryAnnounceRequestBody/properties/ttl_seconds": "optional",
+        "/$defs/DirectoryGovernanceProof/allOf/1/properties/audience": "required",
+        "/$defs/DirectoryGovernanceProof/allOf/1/properties/proof_purpose": "required",
         "/$defs/DirectoryTakedownAppealOutcome/properties/appeal_id": "required",
         "/$defs/DirectoryTakedownAppealOutcome/properties/decision_receipt": "required",
         "/$defs/DirectoryTakedownAppealOutcome/properties/received_at": "required",

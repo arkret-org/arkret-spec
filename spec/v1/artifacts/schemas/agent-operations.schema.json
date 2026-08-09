@@ -2031,7 +2031,8 @@
       "required": [
         "target_scope",
         "selection",
-        "version"
+        "version",
+        "next_replace_input"
       ],
       "properties": {
         "target_scope": {
@@ -2044,6 +2045,22 @@
           "type": "integer",
           "minimum": 1,
           "description": "Account Authority CAS version for this exact agent/scope selection."
+        },
+        "next_replace_input": {
+          "type": "object",
+          "required": [
+            "expected_version"
+          ],
+          "properties": {
+            "expected_version": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9223372036854775806,
+              "description": "Value to echo verbatim into the next participation replace for this exact agent/scope selection."
+            }
+          },
+          "additionalProperties": false,
+          "description": "Verbatim prepare input for the next ak.self.agent.participation.resource.replace of this entry; member names match the replace request byte-for-byte per the service-http-binding.md 2.2.2 echo-container discipline. A first-ever selection has no entry row and uses expected_version 0."
         }
       },
       "additionalProperties": false

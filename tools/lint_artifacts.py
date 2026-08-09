@@ -13617,6 +13617,7 @@ def main(argv: list[str] | None = None) -> int:
                 "preimage_event_identity",
                 lambda: check_preimage_event_identity_commitments(lint),
             ),
+            ("fsm_reachability", lambda: check_fsm_state_reachability(lint)),
             ("read_scope", lambda: check_read_scope_schema_closure(lint)),
             ("signed_objects", lambda: check_signed_object_closure(lint)),
             ("reducer_payloads", lambda: check_reducer_payload_closure(lint)),
@@ -13657,6 +13658,10 @@ def main(argv: list[str] | None = None) -> int:
             ("capability_mapping", lambda: check_capability_action_event_mapping(lint)),
             ("event_admission", lambda: check_event_admission_coverage(lint)),
             ("dto_closure", lambda: check_operation_dto_closure(lint)),
+            (
+                "request_material_supply",
+                lambda: check_request_material_supply_closure(lint),
+            ),
         ],
         quiet=args.quiet,
         timing=args.timing,
@@ -13821,6 +13826,949 @@ def check_account_notification_prose_schema_alignment(lint: Lint) -> None:
             prose_path,
             "legacy NotificationDelta.type is forbidden; use notification_kind",
         )
+
+
+# ---------------------------------------------------------------------------
+# service-http-binding.md 2.2.2: request material supply closure
+# ---------------------------------------------------------------------------
+
+SUPPLY_EXEMPTION_REGISTRY_PATH = (
+    ARTIFACTS / "registry" / "request-material-supply-exemption-registry.json"
+)
+SUPPLY_EXEMPTION_ID_RE = re.compile(
+    r"^ak\.exemption\.request_material_supply\.[a-z0-9_]+\.v[0-9]+$"
+)
+_SUPPLY_ROW_KEYS_REQUEST = frozenset(
+    {
+        "exemption_id",
+        "status",
+        "kind",
+        "operation_id",
+        "json_path_prefix",
+        "disposition",
+        "rationale",
+        "review_anchor",
+    }
+)
+_SUPPLY_ROW_KEYS_FSM = frozenset(
+    {
+        "exemption_id",
+        "status",
+        "kind",
+        "fsm_family",
+        "states",
+        "transitions",
+        "disposition",
+        "rationale",
+        "review_anchor",
+    }
+)
+_SUPPLY_ROW_KINDS = frozenset({"request_input", "fsm_transition"})
+_SUPPLY_DISPOSITIONS = frozenset({"external_form", "open_finding", "deferred_supply"})
+
+# Caller-owned material: self-signed proofs and signatures, caller-chosen
+# parameters and content, caller-generated keys/nonces/ids, OAuth/PKCE values,
+# W3C Data Integrity proof members, and digests over caller-authored content.
+_SUPPLY_CLIENT_LOCAL_RE = re.compile(
+    r"(^signature$|_signature$|^signed_|idempotency_key|request_id$|^nonce$|"
+    r"client_|display_name|^name$|^slug$|^text$|^body$|^content$|^message$|"
+    r"^reason$|^label$|^title$|^description$|public_key|key_package|^keys$|"
+    r"^payload_bytes$|^ciphertext|plaintext|^password|^locale$|^timezone$|"
+    r"^limit$|^cursor$|^page|^filter|^query$|^purpose$|^kind$|^mode$|^scope$|"
+    r"_proof$|^proof$|proof_kind|proof_jwt|^code$|code_verifier|redirect_uri|"
+    r"blinded|^auth_data$|^proofPurpose$|^proofValue$|^verificationMethod$|"
+    r"^cryptosuite$|^argument_digest$|recovery_secret)",
+    re.I,
+)
+# Evidence-shaped leaves: third-party-signed facts a verifier relies on.
+_SUPPLY_EVIDENCE_RE = re.compile(
+    r"(receipt|evidence|attestation|bundle|notary|continuity|countersign|"
+    r"service_binding)",
+    re.I,
+)
+# CAS / echo-shaped leaves: server-state snapshots the caller must echo.
+_SUPPLY_CAS_ECHO_RE = re.compile(
+    r"(_ref$|_refs$|_digest$|predecessor|basis|lineage|_version$|_chain$)",
+    re.I,
+)
+# References the caller derives locally from the DID log read surfaces, which
+# cross the wire in the DID method's own form (see the b8cfa51a ruling).
+_SUPPLY_DID_LOG_DERIVED_NAMES = frozenset(
+    {"did_entry_ref", "previous_entry_ref", "expected_entry_ref"}
+)
+_SUPPLY_DID_LOG_DERIVED_DEFS = frozenset({"did_generation_ref"})
+# Caller-signed statements whose issuer IS the requester (join-policy.md 7:
+# applicant-signed application/cancel receipts, reviewer-signed review
+# receipt). The evidence-shaped name notwithstanding, the caller authors and
+# signs the object locally, so no read surface owes it to them.
+_SUPPLY_CALLER_SIGNED_DEFS = frozenset(
+    {"application_receipt", "review_receipt", "cancel_receipt"}
+)
+# peer/edge submitters are servers or applet hosts presenting their own
+# projections; open is the out-of-band handoff surface (QR / external
+# protocol), so its inputs arrive outside the HTTP contract by design.
+_SUPPLY_STRUCTURAL_SURFACES = frozenset({"peer", "edge", "open"})
+_SUPPLY_PAYLOAD_SUPPLY_FILES = ("payload", "event-envelope.schema.json")
+
+
+def _supply_schema_files(lint: Lint) -> dict[str, Any]:
+    files: dict[str, Any] = {}
+    for path in sorted((ARTIFACTS / "schemas").glob("*.json")):
+        data = load_json(lint, path)
+        if isinstance(data, dict):
+            files[f"schemas/{path.name}"] = data
+    return files
+
+
+def _supply_resolve_ref(
+    schema_files: dict[str, Any], cur_file: str, ref: str
+) -> tuple[str, str, Any] | None:
+    if ref.startswith("#"):
+        file = cur_file
+        frag = ref[1:]
+    else:
+        file_part, _, frag = ref.partition("#")
+        file = file_part
+        if file.startswith("./"):
+            file = "schemas/" + file[2:]
+        elif not file.startswith("schemas/"):
+            file = "schemas/" + file.rsplit("/", 1)[-1]
+    node = schema_files.get(file)
+    if node is None:
+        return None
+    defname = f"<root:{file}>"
+    frag = frag.lstrip("/")
+    if frag:
+        for part in frag.split("/"):
+            if not isinstance(node, dict):
+                return None
+            node = node.get(part)
+            if node is None:
+                return None
+            defname = part
+    return (file, defname, node)
+
+
+def _supply_collect_supply(
+    schema_files: dict[str, Any],
+    file: str,
+    node: Any,
+    visiting: frozenset,
+    defs_out: set,
+    names_out: set,
+) -> None:
+    if not isinstance(node, dict):
+        return
+    if "$ref" in node:
+        resolved = _supply_resolve_ref(schema_files, file, node["$ref"])
+        if resolved is None:
+            return
+        rfile, rdef, rnode = resolved
+        key = (rfile, rdef)
+        if key in visiting:
+            return
+        defs_out.add(key)
+        _supply_collect_supply(
+            schema_files, rfile, rnode, visiting | {key}, defs_out, names_out
+        )
+        return
+    for comb in ("oneOf", "anyOf", "allOf"):
+        for branch in node.get(comb) or []:
+            _supply_collect_supply(
+                schema_files, file, branch, visiting, defs_out, names_out
+            )
+    items = node.get("items")
+    if isinstance(items, dict):
+        _supply_collect_supply(schema_files, file, items, visiting, defs_out, names_out)
+    props = node.get("properties")
+    if isinstance(props, dict):
+        for prop_name, sub in props.items():
+            names_out.add(prop_name)
+            _supply_collect_supply(schema_files, file, sub, visiting, defs_out, names_out)
+
+
+def _supply_is_untyped_object(node: Any) -> bool:
+    if not isinstance(node, dict):
+        return False
+    if node.get("additionalProperties") is not True:
+        return False
+    for shaping in ("properties", "patternProperties", "oneOf", "anyOf", "allOf", "$ref"):
+        if shaping in node:
+            return False
+    return node.get("type") in (None, "object")
+
+
+def _supply_walk_demand(
+    schema_files: dict[str, Any],
+    file: str,
+    node: Any,
+    path: str,
+    visiting: frozenset,
+    out: list,
+    chain_required: bool,
+    supplied_defs: set,
+    covered: bool,
+) -> None:
+    if not isinstance(node, dict):
+        return
+    if "$ref" in node:
+        resolved = _supply_resolve_ref(schema_files, file, node["$ref"])
+        if resolved is None:
+            return
+        rfile, rdef, rnode = resolved
+        key = (rfile, rdef)
+        if key in visiting:
+            return
+        _supply_walk_demand(
+            schema_files,
+            rfile,
+            rnode,
+            path,
+            visiting | {key},
+            out,
+            chain_required,
+            supplied_defs,
+            covered or key in supplied_defs,
+        )
+        return
+    for comb in ("oneOf", "anyOf", "allOf"):
+        for branch in node.get(comb) or []:
+            _supply_walk_demand(
+                schema_files,
+                file,
+                branch,
+                path,
+                visiting,
+                out,
+                chain_required,
+                supplied_defs,
+                covered,
+            )
+    items = node.get("items")
+    if isinstance(items, dict):
+        _supply_walk_demand(
+            schema_files,
+            file,
+            items,
+            path + "[]",
+            visiting,
+            out,
+            chain_required,
+            supplied_defs,
+            covered,
+        )
+    props = node.get("properties")
+    if not isinstance(props, dict):
+        return
+    required = set(node.get("required") or [])
+    sibling_names = set(props.keys())
+    has_schema_identity_sibling = any(
+        isinstance(sub, dict)
+        and isinstance(sub.get("const"), str)
+        and ".schema.json#/" in sub["const"]
+        for sub in props.values()
+    )
+    has_canonical_bytes_sibling = "canonical_bytes_base64url" in sibling_names
+    for prop_name, sub in props.items():
+        is_required = prop_name in required
+        field_path = f"{path}.{prop_name}" if path else prop_name
+        ref_def = ""
+        ref_supplied = False
+        resolved_sub = sub
+        resolved_file = file
+        if isinstance(sub, dict) and "$ref" in sub:
+            resolved = _supply_resolve_ref(schema_files, file, sub["$ref"])
+            if resolved is not None:
+                ref_def = resolved[1]
+                ref_supplied = (resolved[0], resolved[1]) in supplied_defs
+                resolved_file = resolved[0]
+                resolved_sub = resolved[2]
+        is_union = (
+            isinstance(resolved_sub, dict)
+            and isinstance(resolved_sub.get("oneOf"), list)
+            and bool(resolved_sub["oneOf"])
+            and all(
+                isinstance(branch, dict) and isinstance(branch.get("properties"), dict)
+                for branch in resolved_sub["oneOf"]
+            )
+        )
+        if is_required and chain_required and is_union and not (covered or ref_supplied):
+            # A required union is constructible when at least one branch is
+            # fully constructible; evaluate branches independently and let the
+            # container carry the demand if every branch fails.
+            branches: list[list[dict[str, Any]]] = []
+            for branch in resolved_sub["oneOf"]:
+                branch_out: list[dict[str, Any]] = []
+                _supply_walk_demand(
+                    schema_files,
+                    resolved_file,
+                    branch,
+                    field_path,
+                    visiting,
+                    branch_out,
+                    True,
+                    supplied_defs,
+                    covered or ref_supplied,
+                )
+                branches.append(branch_out)
+            out.append(
+                {
+                    "union": True,
+                    "path": field_path,
+                    "name": prop_name,
+                    "ref_def": ref_def,
+                    "chain_required": chain_required,
+                    "covered": covered or ref_supplied,
+                    "untyped": False,
+                    "schema_identity_sibling": has_schema_identity_sibling,
+                    "canonical_bytes_sibling": has_canonical_bytes_sibling,
+                    "branches": branches,
+                }
+            )
+            continue
+        if is_required:
+            out.append(
+                {
+                    "union": False,
+                    "path": field_path,
+                    "name": prop_name,
+                    "ref_def": ref_def,
+                    "chain_required": chain_required,
+                    "covered": covered or ref_supplied,
+                    "untyped": _supply_is_untyped_object(sub),
+                    "schema_identity_sibling": has_schema_identity_sibling,
+                    "canonical_bytes_sibling": has_canonical_bytes_sibling,
+                    "branches": [],
+                }
+            )
+        _supply_walk_demand(
+            schema_files,
+            file,
+            sub,
+            field_path,
+            visiting,
+            out,
+            chain_required and is_required,
+            supplied_defs,
+            covered or ref_supplied,
+        )
+
+
+def _supply_load_exemptions(lint: Lint) -> list[dict[str, Any]]:
+    path = SUPPLY_EXEMPTION_REGISTRY_PATH
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return []
+    rows = data.get("exemptions")
+    if not isinstance(rows, list) or not rows:
+        lint.fail(path, "exemptions must be a non-empty list")
+        return []
+    workspace_root = ROOT.parent
+    seen_ids: set[str] = set()
+    valid_rows: list[dict[str, Any]] = []
+    for index, row in enumerate(rows):
+        label = f"exemptions[{index}]"
+        if not isinstance(row, dict):
+            lint.fail(path, f"{label} must be an object")
+            continue
+        row_kind = row.get("kind")
+        if row_kind not in _SUPPLY_ROW_KINDS:
+            lint.fail(
+                path,
+                f"{label}.kind must be one of {sorted(_SUPPLY_ROW_KINDS)}",
+            )
+            continue
+        expected_keys = (
+            _SUPPLY_ROW_KEYS_REQUEST
+            if row_kind == "request_input"
+            else _SUPPLY_ROW_KEYS_FSM
+        )
+        if set(row.keys()) != expected_keys:
+            lint.fail(
+                path,
+                f"{label} keys must be exactly {sorted(expected_keys)} for kind {row_kind}",
+            )
+            continue
+        exemption_id = row.get("exemption_id")
+        if not isinstance(exemption_id, str) or not SUPPLY_EXEMPTION_ID_RE.fullmatch(
+            exemption_id
+        ):
+            lint.fail(path, f"{label}.exemption_id must match the registry id pattern")
+            continue
+        label = exemption_id
+        if exemption_id in seen_ids:
+            lint.fail(path, f"{label}: duplicate exemption_id")
+            continue
+        seen_ids.add(exemption_id)
+        if row.get("status") not in ("active", "retired"):
+            lint.fail(path, f"{label}.status must be active or retired")
+            continue
+        disposition = row.get("disposition")
+        if disposition not in _SUPPLY_DISPOSITIONS:
+            lint.fail(
+                path,
+                f"{label}.disposition must be one of {sorted(_SUPPLY_DISPOSITIONS)}",
+            )
+            continue
+        if row_kind == "request_input":
+            if not isinstance(row.get("operation_id"), str) or not isinstance(
+                row.get("json_path_prefix"), str
+            ):
+                lint.fail(
+                    path, f"{label}: operation_id and json_path_prefix must be strings"
+                )
+                continue
+        else:
+            transitions = row.get("transitions")
+            states = row.get("states")
+            if (
+                not isinstance(row.get("fsm_family"), str)
+                or not isinstance(states, list)
+                or not all(isinstance(state, str) for state in states)
+                or not isinstance(transitions, list)
+                or not all(
+                    isinstance(pair, list)
+                    and len(pair) == 2
+                    and all(isinstance(state, str) for state in pair)
+                    for pair in transitions
+                )
+            ):
+                lint.fail(
+                    path,
+                    f"{label}: fsm_transition rows need fsm_family, states[] and transitions[][2]",
+                )
+                continue
+        rationale = row.get("rationale")
+        if not isinstance(rationale, str) or len(rationale) < 40:
+            lint.fail(
+                path,
+                f"{label}.rationale must explain the exemption (>= 40 chars)",
+            )
+            continue
+        anchor = row.get("review_anchor")
+        if disposition in ("open_finding", "deferred_supply"):
+            if (
+                not isinstance(anchor, dict)
+                or not isinstance(anchor.get("file"), str)
+                or not isinstance(anchor.get("heading"), str)
+            ):
+                lint.fail(
+                    path,
+                    f"{label}: {disposition} rows must carry review_anchor.file and .heading",
+                )
+                continue
+            anchor_path = workspace_root / anchor["file"]
+            if (workspace_root / "arkret-work").is_dir():
+                if not anchor_path.is_file():
+                    lint.fail(
+                        path,
+                        f"{label}: review_anchor file {anchor['file']} does not exist",
+                    )
+                    continue
+                if anchor["heading"] not in anchor_path.read_text(encoding="utf-8"):
+                    lint.fail(
+                        path,
+                        f"{label}: review_anchor heading not found in {anchor['file']}",
+                    )
+                    continue
+        elif anchor is not None:
+            lint.fail(path, f"{label}: external_form rows must set review_anchor null")
+            continue
+        if row.get("status") == "active":
+            valid_rows.append(row)
+    return valid_rows
+
+
+def check_request_material_supply_closure(lint: Lint) -> None:
+    """service-http-binding.md 2.2.2: every gate-scoped required request input
+    (evidence-shaped or CAS/echo-shaped leaf, or untyped required object) must
+    have a registered supply source; anything else needs a named exemption row.
+    """
+    schema_files = _supply_schema_files(lint)
+    operation_registry = load_json(
+        lint, ARTIFACTS / "registry" / "operation-registry.json"
+    )
+    if not isinstance(operation_registry, dict):
+        return
+    operations = operation_registry.get("operations") or []
+
+    supplied_defs: set = set()
+    supplied_names: set = set()
+    for op in operations:
+        response_ref = op.get("response_schema_ref")
+        if not response_ref:
+            continue
+        resolved = _supply_resolve_ref(schema_files, "", response_ref)
+        if resolved is None:
+            lint.fail(
+                ARTIFACTS / "registry" / "operation-registry.json",
+                f"{op.get('operation_id')}: response_schema_ref does not resolve",
+            )
+            continue
+        rfile, rdef, rnode = resolved
+        supplied_defs.add((rfile, rdef))
+        _supply_collect_supply(
+            schema_files,
+            rfile,
+            rnode,
+            frozenset({(rfile, rdef)}),
+            supplied_defs,
+            supplied_names,
+        )
+    for file, node in schema_files.items():
+        base = file.rsplit("/", 1)[-1]
+        if not any(marker in base for marker in _SUPPLY_PAYLOAD_SUPPLY_FILES):
+            continue
+        _supply_collect_supply(schema_files, file, node, frozenset(), supplied_defs, supplied_names)
+        for def_name, def_node in (node.get("$defs") or {}).items():
+            key = (file, def_name)
+            supplied_defs.add(key)
+            _supply_collect_supply(
+                schema_files,
+                file,
+                def_node,
+                frozenset({key}),
+                supplied_defs,
+                supplied_names,
+            )
+
+    exemption_rows = [
+        row
+        for row in _supply_load_exemptions(lint)
+        if row["kind"] == "request_input"
+    ]
+    used_rows: set[str] = set()
+
+    def exempted(operation_id: str, field_path: str) -> bool:
+        for row in exemption_rows:
+            if row["operation_id"] != operation_id:
+                continue
+            prefix = row["json_path_prefix"]
+            if field_path == prefix or field_path.startswith(prefix + ".") or field_path.startswith(prefix + "["):
+                used_rows.add(row["exemption_id"])
+                return True
+        return False
+
+    registry_path = ARTIFACTS / "registry" / "operation-registry.json"
+    for op in operations:
+        operation_id = op.get("operation_id") or ""
+        request_ref = op.get("request_schema_ref")
+        if not request_ref:
+            continue
+        surface = operation_id.split(".")[1] if operation_id.count(".") else ""
+        resolved = _supply_resolve_ref(schema_files, "", request_ref)
+        if resolved is None:
+            lint.fail(
+                registry_path,
+                f"{operation_id}: request_schema_ref does not resolve",
+            )
+            continue
+        qfile, qdef, qnode = resolved
+        demands: list[dict[str, Any]] = []
+        _supply_walk_demand(
+            schema_files,
+            qfile,
+            qnode,
+            "",
+            frozenset({(qfile, qdef)}),
+            demands,
+            True,
+            supplied_defs,
+            (qfile, qdef) in supplied_defs,
+        )
+        supplied_def_names = {def_name for (_file, def_name) in supplied_defs}
+
+        def leaf_fails(demand: dict[str, Any]) -> bool:
+            name = demand["name"]
+            ref_def = demand["ref_def"]
+            untyped = demand["untyped"]
+            if not untyped and not demand["chain_required"]:
+                return False
+            evidence_shaped = bool(
+                _SUPPLY_EVIDENCE_RE.search(name)
+                or (ref_def and _SUPPLY_EVIDENCE_RE.search(ref_def))
+            )
+            cas_shaped = bool(_SUPPLY_CAS_ECHO_RE.search(name))
+            if not untyped and not evidence_shaped and not cas_shaped:
+                return False
+            if untyped and (
+                demand["schema_identity_sibling"] or demand["canonical_bytes_sibling"]
+            ):
+                return False
+            if _SUPPLY_CLIENT_LOCAL_RE.search(name):
+                return False
+            if (
+                name in _SUPPLY_DID_LOG_DERIVED_NAMES
+                or ref_def in _SUPPLY_DID_LOG_DERIVED_DEFS
+            ):
+                return False
+            if ref_def in _SUPPLY_CALLER_SIGNED_DEFS:
+                return False
+            if not untyped:
+                if demand["covered"]:
+                    return False
+                if surface in _SUPPLY_STRUCTURAL_SURFACES:
+                    return False
+                if ref_def and ref_def in supplied_def_names:
+                    return False
+                # Name-level supply is the verbatim-echo discipline for inline
+                # scalars; a $ref'd object must match at def level so that a
+                # same-named field from an unrelated domain cannot pass it.
+                if not ref_def and name in supplied_names:
+                    return False
+            return True
+
+        def row_fails(row: dict[str, Any]) -> bool:
+            if row["union"]:
+                # Branches are not necessarily caller-choosable (admission
+                # context can dictate one), so every branch must be
+                # constructible; a union with any unconstructible branch is
+                # surfaced instead of silently passing on the easiest branch.
+                return any(
+                    any(row_fails(branch_row) for branch_row in branch)
+                    for branch in row["branches"]
+                )
+            return leaf_fails(row)
+
+        for demand in demands:
+            if not row_fails(demand):
+                continue
+            if exempted(operation_id, demand["path"]):
+                continue
+            if demand["union"]:
+                kind = "required union with no constructible branch"
+            elif demand["untyped"]:
+                kind = "untyped required object"
+            else:
+                kind = "required input with no registered supply source"
+            lint.fail(
+                registry_path,
+                f"{operation_id}: {demand['path']}: {kind}; register a supply "
+                "surface or a named exemption row "
+                "(service-http-binding.md 2.2.2)",
+            )
+    for row in exemption_rows:
+        if row["exemption_id"] not in used_rows:
+            lint.fail(
+                SUPPLY_EXEMPTION_REGISTRY_PATH,
+                f"{row['exemption_id']}: stale exemption row matches no failing "
+                "demand; delete the row now that the supply exists",
+            )
+
+
+# ---------------------------------------------------------------------------
+# service-http-binding.md 2.2.2: FSM state reachability
+# ---------------------------------------------------------------------------
+
+_FSM_CONTRACT_KEYS = frozenset(
+    {
+        "axis",
+        "states",
+        "terminal_states",
+        "idempotent_replay",
+        "concurrent_sibling_conflict",
+        "allowed_transitions",
+        "initial_state",
+        "initial_states",
+        "template",
+        "instance_parameters",
+        "state_preserving_profiles",
+    }
+)
+_FSM_TEMPLATE_KEYS = frozenset(
+    {
+        "states",
+        "initial_state",
+        "initial_states",
+        "terminal_states",
+        "idempotent_replay",
+        "concurrent_sibling_conflict",
+        "allowed_transitions",
+        "conditional_transitions",
+        "parameter_schema",
+    }
+)
+_FSM_ABSENT = "<absent>"
+
+
+def _fsm_field_states(
+    schema_files: dict[str, Any],
+    payload_schema_ref: str | None,
+    field_path: str,
+    states: list[str],
+) -> list[str]:
+    """Resolve a field-sourced transition endpoint to its payload const/enum.
+
+    Falling back to the full state list keeps the gate permissive when the
+    field cannot be resolved, but a resolvable const/enum narrows the edge so
+    that field-sourced writes cannot fabricate reachability (the exact hole
+    OPEN-FLOW-PROTO-013 hid in)."""
+    if not payload_schema_ref or not field_path.startswith("payload."):
+        return list(states)
+    resolved = _supply_resolve_ref(schema_files, "", payload_schema_ref)
+    if resolved is None:
+        return list(states)
+    file, _def_name, node = resolved
+
+    def deref(current_file: str, current: Any) -> tuple[str, Any]:
+        for _ in range(6):
+            if isinstance(current, dict) and "$ref" in current:
+                r = _supply_resolve_ref(schema_files, current_file, current["$ref"])
+                if r is None:
+                    return current_file, None
+                current_file, _d, current = r
+            else:
+                break
+        return current_file, current
+
+    for part in field_path.split(".")[1:]:
+        file, node = deref(file, node)
+        if not isinstance(node, dict):
+            return list(states)
+        props = node.get("properties")
+        if not isinstance(props, dict) or part not in props:
+            return list(states)
+        node = props[part]
+    file, node = deref(file, node)
+    if isinstance(node, dict):
+        if "const" in node:
+            return [node["const"]]
+        enum_values = node.get("enum")
+        if isinstance(enum_values, list) and enum_values:
+            return list(enum_values)
+    return list(states)
+
+
+def check_fsm_state_reachability(lint: Lint) -> None:
+    """Every fsm cell family must declare exactly one entry idiom
+    (initial_state | initial_states | template) and every declared state must
+    be reachable from the entry set through registered cell writes; every
+    allowed transition must have a write that can perform it and no write may
+    leave the allowed transition table. This is the gate OPEN-FLOW-PROTO-013
+    was missing."""
+    registry_path = ARTIFACTS / "registry" / "contract-registry.json"
+    contract = load_json(lint, registry_path)
+    if not isinstance(contract, dict):
+        return
+    event_kind_registry = contract.get("event_kind_registry") or {}
+    fsm_contracts = event_kind_registry.get("fsm_contracts") or {}
+    fsm_templates = event_kind_registry.get("fsm_templates") or {}
+    cell_contracts = event_kind_registry.get("cell_contracts") or {}
+    schema_files = _supply_schema_files(lint)
+    payload_refs: dict[str, str] = {}
+    for row in event_kind_registry.get("event_kinds") or []:
+        kind = row.get("event_kind")
+        ref = row.get("payload_schema_ref")
+        if isinstance(kind, str) and isinstance(ref, str):
+            payload_refs[kind] = ref
+
+    writes_by_family: dict[str, list[tuple[str, dict[str, Any]]]] = {}
+    for event_kind, cell_contract in cell_contracts.items():
+        for write in cell_contract.get("cell_writes") or []:
+            if write.get("lattice") != "fsm":
+                continue
+            family = write.get("cell_family")
+            projection = write.get("effect_projection") or {}
+            if family and projection.get("kind") in ("transition", "transition_to"):
+                writes_by_family.setdefault(family, []).append((event_kind, projection))
+
+    fsm_exemption_rows = [
+        row
+        for row in _supply_load_exemptions(lint)
+        if row["kind"] == "fsm_transition"
+    ]
+    waived_states: dict[str, set[str]] = {}
+    waived_transitions: dict[str, set[tuple[str, str]]] = {}
+    for row in fsm_exemption_rows:
+        waived_states.setdefault(row["fsm_family"], set()).update(row["states"])
+        waived_transitions.setdefault(row["fsm_family"], set()).update(
+            tuple(pair) for pair in row["transitions"]
+        )
+    fsm_used_rows: set[str] = set()
+
+    for template_name, template in fsm_templates.items():
+        unknown = set(template.keys()) - _FSM_TEMPLATE_KEYS
+        if unknown:
+            lint.fail(
+                registry_path,
+                f"fsm_templates.{template_name}: unknown keys {sorted(unknown)}",
+            )
+
+    for family, declared in fsm_contracts.items():
+        unknown = set(declared.keys()) - _FSM_CONTRACT_KEYS
+        if unknown:
+            lint.fail(
+                registry_path,
+                f"fsm_contracts.{family}: unknown keys {sorted(unknown)}; the "
+                "entry idiom key set is closed",
+            )
+            continue
+        entry_keys = [
+            key
+            for key in ("initial_state", "initial_states", "template")
+            if key in declared
+        ]
+        if len(entry_keys) != 1:
+            lint.fail(
+                registry_path,
+                f"fsm_contracts.{family}: exactly one of initial_state / "
+                f"initial_states / template must be declared, found {entry_keys}",
+            )
+            continue
+        contract_view = declared
+        if "template" in declared:
+            template = fsm_templates.get(declared["template"])
+            if not isinstance(template, dict):
+                lint.fail(
+                    registry_path,
+                    f"fsm_contracts.{family}: unknown template {declared['template']}",
+                )
+                continue
+            contract_view = dict(template)
+            contract_view.update(
+                {key: value for key, value in declared.items() if key != "template"}
+            )
+        states = list(contract_view.get("states") or [])
+        if not states:
+            lint.fail(registry_path, f"fsm_contracts.{family}: states must be non-empty")
+            continue
+        entry_states = []
+        if contract_view.get("initial_state") in states:
+            entry_states.append(contract_view["initial_state"])
+        for state in contract_view.get("initial_states") or []:
+            if state in states:
+                entry_states.append(state)
+            else:
+                lint.fail(
+                    registry_path,
+                    f"fsm_contracts.{family}: initial state {state} not in states",
+                )
+        allowed = {tuple(pair) for pair in contract_view.get("allowed_transitions") or []}
+        instance_parameters = declared.get("instance_parameters") or {}
+        for conditional in contract_view.get("conditional_transitions") or []:
+            condition = conditional.get("when") or {}
+            parameter = condition.get("parameter")
+            if instance_parameters.get(parameter) == condition.get("const"):
+                allowed.add(tuple(conditional.get("transition") or ()))
+
+        edges: list[tuple[str, str, str]] = []
+        for event_kind, projection in writes_by_family.get(family, []):
+            payload_ref = payload_refs.get(event_kind)
+            to_source = projection.get("to") or {}
+            if "const" in to_source:
+                to_states = [to_source["const"]]
+            elif isinstance(to_source.get("field"), str):
+                to_states = _fsm_field_states(
+                    schema_files, payload_ref, to_source["field"], states
+                )
+            else:
+                to_states = list(states)
+            if projection.get("kind") == "transition":
+                from_source = projection.get("from") or {}
+                if "const" in from_source:
+                    from_states = (
+                        [_FSM_ABSENT]
+                        if from_source["const"] is None
+                        else [from_source["const"]]
+                    )
+                elif isinstance(from_source.get("field"), str):
+                    from_states = _fsm_field_states(
+                        schema_files, payload_ref, from_source["field"], states
+                    )
+                else:
+                    from_states = list(states)
+            else:
+                from_states = list(states)
+            for from_state in from_states:
+                for to_state in to_states:
+                    if to_state not in states:
+                        lint.fail(
+                            registry_path,
+                            f"fsm_contracts.{family}: {event_kind} writes to "
+                            f"undeclared state {to_state}",
+                        )
+                        continue
+                    edges.append((from_state, to_state, event_kind))
+            # Only const->const writes are checked against the transition
+            # table here: field-sourced from/to values are constrained by the
+            # reducer against the frozen prestate at admission
+            # (event-and-patch.md transition_to semantics), so the synthetic
+            # expansion above must not be treated as a declared write pair.
+            if projection.get("kind") == "transition":
+                from_source = projection.get("from") or {}
+                to_source = projection.get("to") or {}
+                if (
+                    "const" in from_source
+                    and from_source["const"] is not None
+                    and "const" in to_source
+                    and (from_source["const"], to_source["const"]) not in allowed
+                ):
+                    lint.fail(
+                        registry_path,
+                        f"fsm_contracts.{family}: {event_kind} writes "
+                        f"{from_source['const']} -> {to_source['const']} "
+                        "outside allowed_transitions",
+                    )
+
+        if not entry_states and not any(edge[0] == _FSM_ABSENT for edge in edges):
+            lint.fail(
+                registry_path,
+                f"fsm_contracts.{family}: no entry — neither an initial state "
+                "nor an absent-state creation write exists",
+            )
+            continue
+        reachable = set(entry_states)
+        changed = True
+        while changed:
+            changed = False
+            for from_state, to_state, _event_kind in edges:
+                if to_state in reachable:
+                    continue
+                if from_state == _FSM_ABSENT or from_state in reachable:
+                    reachable.add(to_state)
+                    changed = True
+        family_waived_states = waived_states.get(family, set())
+        family_waived_transitions = waived_transitions.get(family, set())
+        unreachable = [state for state in states if state not in reachable]
+        waived_unreachable = [s for s in unreachable if s in family_waived_states]
+        unreachable = [s for s in unreachable if s not in family_waived_states]
+        if unreachable:
+            lint.fail(
+                registry_path,
+                f"fsm_contracts.{family}: states unreachable from the entry set "
+                f"through registered writes: {unreachable}",
+            )
+        covered_pairs = set()
+        for from_state, to_state, _event_kind in edges:
+            if from_state == _FSM_ABSENT:
+                continue
+            covered_pairs.add((from_state, to_state))
+        dead_allowed = sorted(pair for pair in allowed if pair not in covered_pairs)
+        waived_dead = [p for p in dead_allowed if p in family_waived_transitions]
+        dead_allowed = [p for p in dead_allowed if p not in family_waived_transitions]
+        if dead_allowed:
+            lint.fail(
+                registry_path,
+                f"fsm_contracts.{family}: allowed transitions with no registered "
+                f"write: {dead_allowed}",
+            )
+        if waived_unreachable or waived_dead:
+            for row in fsm_exemption_rows:
+                if row["fsm_family"] != family:
+                    continue
+                if any(s in row["states"] for s in waived_unreachable) or any(
+                    list(p) in row["transitions"] for p in waived_dead
+                ):
+                    fsm_used_rows.add(row["exemption_id"])
+
+    for row in fsm_exemption_rows:
+        if row["exemption_id"] not in fsm_used_rows:
+            lint.fail(
+                SUPPLY_EXEMPTION_REGISTRY_PATH,
+                f"{row['exemption_id']}: stale fsm exemption row waives no "
+                "failing state or transition; delete the row now that the "
+                "machine contract carries the write",
+            )
 
 
 if __name__ == "__main__":
