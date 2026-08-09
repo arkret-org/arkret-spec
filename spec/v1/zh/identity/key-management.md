@@ -442,7 +442,7 @@ reserved -> did_published -> pcr_accepted -> account_bound -> completed
 
 PCR accepted 前，账号只有 provisional reservation。新设备通过同一账号强认证并持有同一 identity root 时，可以取得递增 lease fence，继承 principal/DID reservation，以新 device descriptor 重签 fresh transcript 并 exact resume。两个 unit 并发时 deterministic PCR create-once 只允许一个 winner；若旧设备 unit 已先 accepted，新设备必须改走 §5.0.3 re-anchor。
 
-PCR 尚未 accepted 且 identity root 也丢失时，可以在强 re-auth、风险检查和 cooldown 后显式放弃 provisional identity，以全新 root/DID/PCR 开始；已发布 entry 0 作为 orphan anchor，不得复用或声称连续性，registry 必须保留 tombstone/audit reservation。
+PCR 尚未 accepted 且 identity root 也丢失时，可以显式放弃 provisional identity，以全新 root/DID/PCR 开始。放弃 provisional identity MUST 是显式用户动作，MUST NOT 由普通账号登录、session 恢复、lease fence 递增或任何自动流程触发；MUST 在执行前向用户明示后果——旧 entry 0 将永久不可用且**无法注销**，其上不存在可延续的业务状态。重认证强度、风险检查项与冷却期时长属**部署治理**，实现 SHOULD 施加与账号敏感操作同级的重认证与冷却，具体由部署自定，本规范不规定也不强制。放弃后：已发布 entry 0 作为 orphan anchor，不得复用或声称连续性，registry 必须保留 tombstone/audit reservation。
 
 **orphan anchor 的后续处置属部署治理，不由本规范定义（normative 边界）**：该 entry 0 的 root 已丢失，
 而 did:webvh 的 deactivation 需要 controller 签名，因此它**永久不可注销且公开可解析**。
