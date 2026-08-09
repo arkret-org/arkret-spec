@@ -18,7 +18,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
-      "sha256": "073856699c04e7fc8ac6676e3c447735efbbc89469ef591fcde427460bab708b"
+      "sha256": "e31d29bc4852f0b038a71e7bfed2667853312f54ebf37c7b61669d1ee0dd6253"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
@@ -70,7 +70,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "d98addcab4c4233ea005d3d1b39e5ac30d44236da39ad6ba8bdd28c193eebedf"
+      "sha256": "8960641019cdb467f1ca3f43fc66decdb0c9bafd139c36dadcaa3e6195c5ad21"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
@@ -338,7 +338,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "b0f03c5849b6e763bfcb7f561c379737d044f70ae1b7d511a5a3de324f61d07d"
+      "sha256": "02506566b7855c2567a2da1a1a42cbcb3ac2680478bf5ba321d5f19f57f33773"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",

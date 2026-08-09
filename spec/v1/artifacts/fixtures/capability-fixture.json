@@ -423,7 +423,7 @@
       "name": "authority_chain_multi_level",
       "vector_id": "ak.vector.capability.authority_chain.v1",
       "base": {
-        "grant_id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
+        "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
         "root_event_id": "ak:event:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
         "subject": "did:webvh:z6mkfixture:root-admin.example.com",
         "actions": [
@@ -440,9 +440,9 @@
       "expected": {
         "authorized": true,
         "valid_chain": [
-          "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
-          "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
-          "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_"
+          "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
+          "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
+          "ak:grant:AfRvTwL9UUVlA868BCCvPbdzYVW8u3JC2w3JgU_Fixho"
         ],
         "constraints_checked": {
           "time": true,
@@ -462,11 +462,11 @@
           },
           "actor_id": "did:webvh:z6mkfixture:root-admin.example.com",
           "payload": {
-            "grant_id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
+            "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
             "issuer_authority_refs": [
               {
                 "kind": "grant",
-                "grant_id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_"
+                "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN"
               }
             ],
             "subject": "did:webvh:z6mkfixture:ops.example.com",
@@ -497,12 +497,12 @@
           },
           "refs": [
             {
-              "id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
+              "id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
               "role": "authorized_by",
               "critical": true
             },
             {
-              "id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
+              "id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
               "role": "issuer_authority",
               "critical": true
             }
@@ -518,11 +518,11 @@
           },
           "actor_id": "did:webvh:z6mkfixture:ops.example.com",
           "payload": {
-            "grant_id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
+            "grant_id": "ak:grant:AfRvTwL9UUVlA868BCCvPbdzYVW8u3JC2w3JgU_Fixho",
             "issuer_authority_refs": [
               {
                 "kind": "grant",
-                "grant_id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_"
+                "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ"
               }
             ],
             "subject": "did:webvh:z6mkfixture:intern.example.com",
@@ -555,12 +555,12 @@
           },
           "refs": [
             {
-              "id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
+              "id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
               "role": "authorized_by",
               "critical": true
             },
             {
-              "id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
+              "id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
               "role": "issuer_authority",
               "critical": true
             }
@@ -1340,15 +1340,15 @@
         "authority_root_refs": [
           {
             "kind": "realm_root",
-            "realm_id": "ak:realm:AVZ1835sQh0Y3uMim4KZnxZb_qomFvlrcFS2eO7FDg-t",
-            "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
-            "authority_generation": 7
-          },
-          {
-            "kind": "realm_root",
             "realm_id": "ak:realm:AQR6JrPsVeVt0dDRALL7pRvJ5B_HoY-rhXjQgRKDtppW",
             "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
             "authority_generation": 2
+          },
+          {
+            "kind": "realm_root",
+            "realm_id": "ak:realm:AVZ1835sQh0Y3uMim4KZnxZb_qomFvlrcFS2eO7FDg-t",
+            "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+            "authority_generation": 7
           }
         ],
         "independent_state_roots_equal": true,

@@ -106,7 +106,7 @@
           "ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
           "ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe"
         ],
-        "frontier_digest": "sha256:c1b2e97b69fc7fa6765972391384aa59c9a36a3598bc096c30af552a451f6cf4"
+        "frontier_digest": "sha256:5ecef8bd5d25d016da5444d21cde286e222d56119aa59f9b1de7b0fe2013b53d"
       }
     },
     {
@@ -1092,7 +1092,7 @@
     "transcript_label_utf8_nul": "ak-realm-actor-frontier-v1\u0000",
     "digest_algorithm": "sha256",
     "canonical_json": "{\"actor_id\":\"did:web:alice.example\",\"frontier_event_ids\":[\"ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\",\"ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe\"],\"kind\":\"realm_actor\",\"next_actor_seq\":43,\"realm_id\":\"ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\"}",
-    "expected_digest": "sha256:c1b2e97b69fc7fa6765972391384aa59c9a36a3598bc096c30af552a451f6cf4"
+    "expected_digest": "sha256:5ecef8bd5d25d016da5444d21cde286e222d56119aa59f9b1de7b0fe2013b53d"
   },
   "e2ee_decryption_pending": {
     "event_id": "ak:event:AY4rjZ5eX4tirzUMKIQZ0K26SIcvduWsg-p90KQ2PMVZ",
