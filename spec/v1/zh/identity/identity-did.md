@@ -470,6 +470,30 @@ DID method 或 registry 不可用时，节点 MUST NOT 把“暂时无法解析�
 
 > **不可达 / 缓存降级行为的单一权威源**：`did:webvh` hosting / registry 不可达时的 cache-only degraded mode、per-entry 7 天 cache age 上限、24h fallback 总时长上限、低风险只读封闭集合与 fail-closed 不变量统一见 §3.4（cache-only degraded mode）与 §4.2.1（健康状态机）。本节**不重复**这些阈值与缓存规则，只承载下面 DID 之间 continuity / 迁移相关的独有规则。
 
+**principal DID 的 hosting portability：v1 明确不支持（normative）**
+
+`did:webvh` 的 `parameters.portable` 允许在保留 SCID 与可验证历史的前提下搬迁 DID 的 web 托管位置。
+**Arkret v1 不支持 principal DID 的 hosting portability，实现 MUST NOT 依赖该参数改变身份判定。**
+
+原因是标识符形态与身份判定的耦合：`did:webvh:<scid>:<host-and-path>` 把主机名放进标识符本身，
+搬迁会改变完整 DID 字符串；而 §4.2 要求历史 Event 的 `actor_id` MUST NOT 被重写，
+§6 的 method-portability invariant 又禁止上层分支读取 SCID 等 method-private 字段来判定身份等价。
+两条相加的结果是：**在 v1 语义下，搬迁后的 DID 就是另一个 principal。**
+
+因此：
+
+- 解析方遇到 `parameters.portable` 为真的 DID 时 **MUST NOT** 因此把新旧位置视为同一 principal；
+  身份判定继续以完整 canonical DID 字符串为准；
+- 确实搬迁了托管位置的 DID **MUST** 按本节的 continuity migration 处理，与换 method 同路；
+- 实现 **MUST NOT** 自行以 SCID 相等推断 continuity —— 那会绕过双向 continuity proof 的验证要求。
+
+> **已裁决的后续方向（2026-08-09，chris）**：长期方向是把 continuity migration 从"降级路径"
+> 提升为**受支持的一等迁移功能**（提供工具、保证双向 proof 可验、UI 体面地表达"同一控制者的延续"），
+> 而不是去放宽 §6 让上层按 SCID 认人——后者要改动身份等价的判定基础，代价与收益不成比例。
+> 设计与实现均未开始，登记在 `arkret-work/review/spec-open`。
+> 注意在该模型下 **PCR 不随 DID 迁移**：PCR 的作用域是 (DID, Principal Server)，
+> 搬迁托管不改变用户在原 Principal Server 上的账号与 PCR。
+
 continuity / 迁移独有规则：
 
 - 用户迁移到新 DID（同 method 或换 method）时，历史 Event 的 `actor_id`、grant `subject` 和 proof `verification_method` MUST NOT 被重写。迁移必须表现为新的 signed continuity proof、profile/account binding、membership update 或 capability re-grant。
