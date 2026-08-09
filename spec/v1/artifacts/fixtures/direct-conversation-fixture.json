@@ -6,13 +6,13 @@
     "ak.vector.contact.next_prepare_input.v1",
     "ak.vector.contact.pending_incoming_request_receipt.v1",
     "ak.vector.direct_conversation.realm_shape.v1",
-    "ak.vector.direct_conversation.founding_authoring_material.v1", "ak.vector.direct_conversation.founding_unit.v1",
+    "ak.vector.direct_conversation.repair_dispatch.v1", "ak.vector.direct_conversation.founding_authoring_material.v1", "ak.vector.direct_conversation.founding_unit.v1",
     "ak.vector.direct_conversation.founding_admission.v1",
     "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
     "ak.vector.direct_conversation.send_blocker_authority.v1",
     "ak.vector.direct_conversation.suspend_rejoin.v1"
   ],
-  "version": "2026-08-12",
+  "version": "2026-08-13",
   "spec_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#55-caller-authored-founding-unitsource-唯一-slot-与-acceptance-receipt",
   "source_refs": [
     "spec/v1/zh/identity/contact-and-direct-conversation.md",
@@ -885,6 +885,22 @@
         "same Realm and main Strand are returned",
         "no KeyPackage claim occurs",
         "the query-only resolver performs no create phase"
+      ]
+    },
+    {
+      "name": "repair_dispatch_is_a_non_authorizing_durable_trigger",
+      "vector_id": "ak.vector.direct_conversation.repair_dispatch.v1",
+      "precondition": "the pair has an accepted binding, one participant has an accepted ak.member.rejoin.own, the MLS group needs a replacement generation, and the peer participant is offline",
+      "action": "send ak.member.repair.request to the peer through the durable to-device queue and let the peer come back online",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "the request is a DeviceMessageEnvelope, never an EventEnvelope, and never enters Realm history, reducer state or the Seal chain",
+        "the request is not carried on the Signal rail, whose 120 second live envelope cannot reach an offline peer",
+        "the request carries no Event bytes, no MLS material and no authority: the peer re-verifies requester identity, the accepted rejoin, both directional Contact heads and generation staleness from the signed event log before authoring anything",
+        "a request whose observed_active_generation_ref is stale is dropped instead of producing a second replacement generation",
+        "the peer consumes exactly the one KeyPackage named by requester_keypackage_ref",
+        "there is no ack, receipt or refusal code: the durable Commit, Welcome and activation are the only response, and refusal is simply a generation that never advances",
+        "concurrent repairers are resolved by the existing candidate fanout cap and security_barrier CAS, with no repair-specific winner rule"
       ]
     },
     {

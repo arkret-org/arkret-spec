@@ -305,6 +305,25 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.member.repair.request"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/member_repair_request_content"
+          }
+        }
+      }
     }
   ],
   "$defs": {
@@ -550,6 +569,50 @@
           "additionalProperties": false
         }
       ]
+    },
+    "member_repair_request_content": {
+      "type": "object",
+      "description": "ak.member.repair.request to-device content (contact-and-direct-conversation.md 8.2.1). A participant that has rejoined membership asks the current peer participant to author the MLS Remove/re-add Commit and Welcome that a replacement generation needs, because no actor may sign for another. Same non-authorizing trigger shape as ak.realm_key.request: it carries no Event bytes, no MLS material and no authority, and the peer MUST re-verify every gate from the signed event log before authoring anything.",
+      "required": [
+        "realm_id",
+        "requester_principal_id",
+        "requester_device_id",
+        "requester_keypackage_ref",
+        "observed_active_generation_ref",
+        "rejoin_event_id",
+        "created_at"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "#/$defs/realm_id",
+          "description": "The pair's immutable Direct Conversation Realm. Repair never creates a successor Realm, Strand or binding."
+        },
+        "requester_principal_id": {
+          "$ref": "#/$defs/did",
+          "description": "MUST equal the requesting device proof's principal: no actor may ask for repair on another participant's behalf."
+        },
+        "requester_device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "requester_keypackage_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The single KeyPackage the peer claims for the re-add, so exactly one KeyPackage is consumed and the peer never has to guess which of the requester's packages to use."
+        },
+        "observed_active_generation_ref": {
+          "$ref": "#/$defs/hash",
+          "description": "Digest of the active generation cell value the requester observed. A peer that sees a newer active generation MUST drop the request as already repaired instead of authoring a second replacement."
+        },
+        "rejoin_event_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The requester's accepted ak.member.rejoin.own Event. The peer MUST verify it is accepted and subject-matched; an unaccepted or absent rejoin means there is nothing to repair yet."
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
     },
     "key_verification_content": {
       "type": "object",

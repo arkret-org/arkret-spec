@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9187,
+    "total_properties": 9196,
     "total_schema_documents": 156,
     "by_presence_class": {
-      "optional": 2762,
+      "optional": 2763,
       "optional_defaulted": 67,
-      "required": 5996,
+      "required": 6004,
       "required_nullable": 112,
       "tristate": 250
     },
@@ -4615,6 +4615,13 @@
         "/$defs/key_verification_content/properties/timestamp": "optional",
         "/$defs/key_verification_content/properties/transaction_id": "required",
         "/$defs/key_verification_content/properties/verified_keys": "optional",
+        "/$defs/member_repair_request_content/properties/created_at": "required",
+        "/$defs/member_repair_request_content/properties/observed_active_generation_ref": "required",
+        "/$defs/member_repair_request_content/properties/realm_id": "required",
+        "/$defs/member_repair_request_content/properties/rejoin_event_id": "required",
+        "/$defs/member_repair_request_content/properties/requester_device_id": "required",
+        "/$defs/member_repair_request_content/properties/requester_keypackage_ref": "required",
+        "/$defs/member_repair_request_content/properties/requester_principal_id": "required",
         "/$defs/realm_key_request_content/properties/created_at": "required",
         "/$defs/realm_key_request_content/properties/key_scope": "required",
         "/$defs/realm_key_request_content/properties/recipient_device_id": "required",
@@ -4645,6 +4652,8 @@
         "/allOf/1/then/properties/content": "tristate",
         "/allOf/10/if/properties/kind": "required",
         "/allOf/10/then/properties/content": "optional",
+        "/allOf/11/if/properties/kind": "required",
+        "/allOf/11/then/properties/content": "optional",
         "/allOf/2/if/properties/kind": "required",
         "/allOf/2/then/properties/content": "tristate",
         "/allOf/3/if/properties/kind": "required",

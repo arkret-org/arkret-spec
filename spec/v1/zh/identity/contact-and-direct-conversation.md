@@ -494,6 +494,61 @@ repair **MUST NOT** 读取 `created_by`、founder 身份或 bootstrap authority�
 
 repair 档的授权面是封闭的：`ak.authority.direct_conversation_repair.v1` 的 `action_allowlist` 恰为 `ak.member.rejoin.own` 一条，该 action 的 evaluator check 锁死 `leave -> join` 且要求 `actor` 等于 membership subject。因此在 repair source 下出示 `ak.member.leave.own` **MUST** 拒绝——日常自退归 `ak.authority.direct_conversation_participant.v1`，两档职责不重叠；代对方 join、以 repair 承载首次 join 或第三 participant、以及用 `ak.member.rejoin.own` 反向做 `join -> leave` 同样 **MUST** 拒绝。只测行为面（复用同一 Realm、投影新 generation、不下发旧 epoch key）而不断言 action 名与 authority source 的向量 **MUST NOT** 被当作该授权面的覆盖；本条的规范执行向量是 `ak.vector.capability.direct_conversation_repair_authority.v1`。
 
+#### 8.2.1 replacement repair 的跨作者调度（normative）
+
+`generation = current + 1` 的 replacement 需要**两个不同 actor** 各自签名：回归方 author
+自己的 `ak.member.rejoin.own`，而 MLS Remove/re-add Commit 与 Welcome 只能由 **current peer
+participant** author（回归方无法把自己加进 MLS group）；activation 又必须由持有私态的那一方
+author（§7.3）。因此仅有 authority 是不够的——还需要一条把"该对端出手了"这一调度信号送达
+对端的通道，且对端 **MAY 长时间离线**。
+
+**carrier 是 `ak.member.repair.request`，形态与 `ak.realm_key.request` 逐条对齐**
+（[`../crypto-media/device-lifecycle.md` §13.2](../crypto-media/device-lifecycle.md)）：它是
+`DeviceMessageEnvelope` 上的可靠 to-device 触发消息，走 device message 队列（服务端以
+`ServiceDescribe.supported_features` 的 `ak.feature.member_repair.peer_relay.v1` 声明中继能力），
+**MUST NOT** 使用 durable `EventEnvelope`，**MUST NOT** 进入 Realm history、reducer state 或
+Seal 链，也 **MUST NOT** 走 Signal——Signal 是 ≤120s 的 live rail，离线对端收不到，且
+[`../sync/signal.md` §5](../sync/signal.md) 已把密钥分发/历史恢复类消息划归 to-device。
+content 见 [`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json)
+的 `member_repair_request_content`。
+
+**它是非授权性的触发信号。** 对端 **MUST NOT** 因为收到请求就 author 任何东西，而是从
+**签名事件日志**独立重验下列全部，任一不过即静默丢弃：
+
+1. `requester_principal_id` **MUST** 等于该 to-device 消息 device proof 的 principal，且
+   **MUST** 是本 pair 的另一 participant——**不接受代他人请求**，也 **MUST NOT** 因请求出现
+   而引入第三 participant；
+2. `rejoin_event_id` **MUST** 是已 accepted 的 `ak.member.rejoin.own` 且 subject 与
+   `requester_principal_id` 一致——尚无已接受的 rejoin 就没有需要修的东西；
+3. 双方 current directional Contact head **MUST** 仍有效：任一方向已撤回时 §8.2 要求
+   KeyPackage claim、MLS Add 与发送保持拒绝，**MUST NOT** 因 repair 请求而放行；
+4. `observed_active_generation_ref` 陈旧（对端已见更新的 active generation）时 **MUST** 丢弃，
+   **MUST NOT** author 第二个 replacement；
+5. `requester_keypackage_ref` **MUST** 属于 `requester_principal_id` 的 current authorized
+   device，且对端 **MUST** 恰好消费这一个 KeyPackage（claim/consume 语义见
+   [`../crypto-media/device-lifecycle.md` §9](../crypto-media/device-lifecycle.md)）。
+
+**没有 ack / receipt carrier，这是有意的。** 应答就是 **durable Event 本身**——对端提交的
+Commit/Welcome 与随后的 activation；请求方从 §9.1 resolver 的 `active_mls_generation_ref`
+推进观察到完成。这与 `ak.realm_key.request` 由 durable `ak.realm_key.share` 应答同构。
+规范 **MUST NOT** 为 repair 新增 ack、receipt、拒绝码或 `SignalPayload` 变体：拒绝在协议上
+不是事实，只是 generation 没有推进；请求方看到的仍是既有 resolver 状态。
+
+**离线、重试与并发**全部复用既有语义，**MUST NOT** 另立机制：
+
+- 队列本身是可靠且 durable 的，对端上线后照常收取；`expires_at` 到期后请求方 **MAY** 用新
+  `message_id` 重发；同一 `message_id` 配不同 canonical content **MUST** 以
+  `duplicate_conflict`（`message_id_conflict`）拒绝；
+- 请求方 **MUST NOT** 因为发过请求就等待或降级任何校验——它 **MAY** 在对端 push 式自发修复
+  时直接观察到 generation 推进（等同于 §13.2 的 push 豁免）；
+- 并发 winner 完全由 §7.3 决定：同 predecessor 下未 active 候选硬上限 16、第 17 个
+  `mls_generation_proposal_fanout_exceeded`、`security_barrier` CAS 选出唯一 active，
+  两个不同值都被 accepted 时按既有 `⊥` conflict recovery。**MUST NOT** 为 repair 新增
+  barrier、quorum 或 winner 规则。
+
+本条的规范执行向量是
+[`ak.vector.direct_conversation.repair_dispatch.v1`](../../artifacts/registry/vector-registry.json)。
+
 ### 8.3 binding 与日常 authority
 
 `ak.direct_conversation.bound` **MUST NOT** 承担阻止第二个 Realm 的职责——唯一性来自 §5.4 的 admission。它是 coordinates 与首次 exact-pair generation 的 participant 可见凭证，wire payload 绑定 `pair_key`、`participants_unordered[2]`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 `authorization_basis` 与 `initial_exact_pair_generation_ref`。`binding_digest` 是下述内容的 receiver-derived semantic digest，**不是 wire 字段**；producer **MUST NOT** 在 payload 中携带它，receiver 也 **MUST NOT** 从任何上游值采信它。

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.2",
+  "version": "2026-08-10.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T16:00:00Z",
+  "generated_at": "2026-08-10T17:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1858,6 +1858,19 @@
         "direct-conversation-fixture.json"
       ],
       "description": "The creation_required resolver outcome carries next_founding_input with member names identical to the founding unit submission, exactly one founder_basis_evidence branch, no Event bytes or coordinates, temporarily_unavailable when the material cannot be assembled, and submission-side re-verification that never trusts the echoed copy.",
+      "source_refs": [
+        "spec/v1/zh/identity/contact-and-direct-conversation.md",
+        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.repair_dispatch.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-fixture.json"
+      ],
+      "description": "Cross-author replacement repair dispatch: ak.member.repair.request is a durable to-device trigger that carries no Event bytes and no authority, the peer re-verifies requester identity, accepted rejoin, both directional Contact heads, generation staleness and single KeyPackage consumption from the signed event log, refusal is silence with no ack or receipt carrier, and the durable Commit/Welcome plus activation are the only response.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
