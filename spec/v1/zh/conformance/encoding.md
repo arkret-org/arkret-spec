@@ -225,7 +225,7 @@ ak:<kind>:<uuid>
 
 `<kind>` 是 canonical bytes 的一部分。实现 MUST NOT 把 `ak:receipt:<id>` 改写成 `ak:event:<id>`，也 MUST NOT 因为字段名叫 `receipt_id` 就在验证时补前缀。字段名可以辅助 schema 校验，但不能替代 signed wire ID。
 
-producer-allocated typed ID 继续使用 [RFC 9562](https://datatracker.ietf.org/doc/html/rfc9562) UUIDv7；`event_id`、registry 中 `id_form=event_derived` 或 `id_form=suite_tagged_full_digest` 的对象 ID，以及 `id_form=derivation_tagged_full_digest` 的 Realm ID 不是 UUID，而使用固定 33-octet token。kind 的形态由 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 唯一决定，调用点不得自行选择，也不得把这些 token 放入 PostgreSQL `uuid` / `BYTEA(16)`。
+producer-allocated typed ID 继续使用 [RFC 9562](https://datatracker.ietf.org/doc/html/rfc9562) UUIDv7；`event_id`、以及 registry 中 `id_form=event_derived`（含 Realm ID）或 `id_form=suite_tagged_full_digest` 的对象 ID 不是 UUID，而使用固定 33-octet token。kind 的形态由 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 唯一决定，调用点不得自行选择，也不得把这些 token 放入 PostgreSQL `uuid` / `BYTEA(16)`。
 
 ### 4.0 suite-tagged 264-bit full-digest ID（normative）
 
