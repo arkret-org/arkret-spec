@@ -255,32 +255,34 @@ Event ID 保留底层 256-bit digest 的指定目标与碰撞安全强度；额�
 
 派生对象 ID 的规则见 [`../models/common-fields.md`](../models/common-fields.md)；Realm token header 见 §4.1；`event_id` 的携带与重算义务见 §6。
 
-### 4.1 derivation-tagged 264-bit Realm ID（normative）
+### 4.1 264-bit Realm ID（normative）
 
-所有 Realm ID 统一为 `ak:realm:` 加 44-character unpadded Base64URL token；解码后恰为 33 octets：
+所有 Realm ID 统一为 `ak:realm:` 加 44-character unpadded Base64URL token；解码后恰为 33 octets，
+**布局与 Event ID 完全相同**：
 
 ```text
-realm_header = (derivation_class << 4) | digest_suite
+realm_header = (reserved_zero << 4) | digest_suite
 realm_id_bytes[0]     = realm_header
 realm_id_bytes[1..32] = full_digest[0..31]
 realm_id = "ak:realm:" || base64url_no_pad(realm_id_bytes)
 ```
 
-v1 header 注册表：
+**高 nibble 永久保留并 MUST 为 `0x0`。** v1 早期版本曾把它用作 `derivation_class`，登记 `0x1`
+为 `principal_subject_derived` 以承载 Principal Control Realm 的独立派生；PCR 收敛为 event-derived
+后该分支已删除，Realm 只剩一种派生算法，该 nibble 因此不再承载信息。任何非零高 nibble
+MUST NOT 产出，收到 MUST 以 `realm_id_not_event_derived` fail closed。
 
-| 高 nibble `derivation_class` | 含义 | digest preimage authority |
-| --- | --- | --- |
-| `0x0` | `event_derived` | `ak.realm.create` Event digest preimage |
-| `0x1` | reserved（历史 `principal_subject_derived`，v1 已删除） | 激活前非法：MUST NOT 产出，收到 MUST 以 `realm_id_not_event_derived` 拒绝 |
-| `0x2..0xE` | reserved | 激活前非法 |
-| `0xF` | format-control | 不得作为身份类别 |
+低 nibble 是 digest-suite code。v1 Realm identity 的算法固定为 SHA-256，因此只有 `digest_suite=0x1`
+合法；`0x0` 与 `0x2..0xF` 均为非法/保留。普通 Event 可以登记其它 suite，但这不会自动使其成为
+Realm-eligible suite；v1 create Event 必须使用 suite wire code `0x01`，否则不能逐字节重类型为 Realm。
 
-低 nibble 预留 digest-suite code 空间，但 v1 Realm identity 的算法已经固定为 SHA-256，因此只有
-`digest_suite=0x1` 合法；`0x0` 与 `0x2..0xF` 均为非法/保留。普通 Event 可以登记其它 suite，
-但这不会自动使其成为 Realm-eligible suite；v1 Collaboration Realm 的 create Event 必须使用
-suite wire code `0x01`，否则不能逐字节重类型为 Realm。
+由于两侧 header 语义已经一致，`ak.realm.create` 的 33-octet Event token **逐字节即是**该 Realm 的
+token，重类型只替换 `ak:event:` / `ak:realm:` 前缀，不改变任何一个字节。任何 UUID 形态、
+reserved nibble 非零、Realm header 不是 `0x01`，或 digest 重算不一致，都 MUST fail closed。
 
-Event-derived Realm 的 `derivation_class=0x0`，与 Event ID 固定为零的 reserved nibble 结构相同，所以 33-octet token MUST 可逐字节直接重类型；v1 唯一合法值为 SHA-256 `0x01`。Principal Control Realm 的 suite 同样固定为 SHA-256、header 固定为 `0x11`，并保留完整 32-octet subject digest。任何 UUID 形态、Event reserved nibble 非零、未知/保留 Realm class、Realm header 不是 `0x01`/`0x11`、class 与 signed genesis `purpose` 不一致，或 digest 重算不一致，都 MUST fail closed。
+> **不得用该 nibble 编码 Realm 类别。** Realm **是什么**由签名 create payload 的 `purpose` 表达；
+> 新增 `purpose` 取值不得、也无法再新增 header 类别，实现 MUST NOT 从 `realm_id` 反推 `purpose`。
+> 判定 Realm 类别的唯一权威是已验证的 genesis Event payload。
 
 数据库实现 MAY 与 Event 一样为 Realm 分配仅本地可见的 surrogate `pk`，并让 Event、投影和 Realm
 业务表通过 `realm_pk` 外键关联。该 `pk` 不是协议身份，MUST NOT 出现在 wire、canonical JSON、签名、

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.11",
+  "version": "2026-08-09.12",
   "source_of_truth": false,
-  "generated_at": "2026-08-09T22:00:00Z",
+  "generated_at": "2026-08-10T00:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -192,34 +192,8 @@
       ],
       "payload": "Realm create",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_create_payload",
-      "id_source": "event_derived_or_subject_derived",
+      "id_source": "event_derived",
       "id_kind": "realm",
-      "id_source_variants": [
-        {
-          "when": {
-            "payload_path": "object.purpose",
-            "const": "principal_control"
-          },
-          "id_source": "subject_derived",
-          "subject_field": "actor_id",
-          "derivation": "pcr_subject_realm_token_v1"
-        },
-        {
-          "when": {
-            "payload_path": "object.purpose",
-            "const": "managed_agent_control"
-          },
-          "id_source": "subject_derived",
-          "subject_field": "actor_id",
-          "derivation": "pcr_subject_realm_token_v1"
-        },
-        {
-          "when": {
-            "otherwise": true
-          },
-          "id_source": "event_derived"
-        }
-      ],
       "plane": "control",
       "sealed": true,
       "cell_writes": [

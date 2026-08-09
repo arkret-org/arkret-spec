@@ -1,14 +1,13 @@
 {
-  "version": "2026-08-09.5",
+  "version": "2026-08-09.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-09T22:00:00Z",
+  "generated_at": "2026-08-10T00:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
   "wire_form_generation": {
     "producer_allocated": "ak:<kind>:<uuidv7>",
     "event_derived": "ak:<kind>:<44-char-event-token>",
-    "derivation_tagged_full_digest": "ak:<kind>:<44-char-derivation-tagged-full-digest-token>",
     "suite_tagged_full_digest": "ak:<kind>:<44-char-suite-tagged-full-digest-token>"
   },
   "storage_rules": [
@@ -16,10 +15,10 @@
     "Storage implementations MAY store producer-allocated raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the ak:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
     "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
     "The <kind> segment is part of the signed/canonical wire value. It MUST NOT be changed, inferred differently, or stripped during verification, forwarding, backfill, or replay.",
-    "The payload construction MUST be fixed by that kind's id_form and identity_authority columns, never chosen per call site: producer_allocated uses UUIDv7; event_derived uses the creating Event's 33-byte token; suite_tagged_full_digest uses a full uint8 digest-suite code followed by the complete 32-byte digest under its registered kind-specific preimage contract; derivation_tagged_full_digest uses the registered kind-specific derivation contract. v1 Event and suite-tagged identities accept only registered active suite codes with high nibble 0x0; this constraint does not turn that nibble into a derivation class. A UUID version nibble, digest-suite byte, or derivation header alone never proves identity authority.",
+    "The payload construction MUST be fixed by that kind's id_form and identity_authority columns, never chosen per call site: producer_allocated uses UUIDv7; event_derived uses the creating Event's 33-byte token; suite_tagged_full_digest uses a full uint8 digest-suite code followed by the complete 32-byte digest under its registered kind-specific preimage contract. v1 Event and suite-tagged identities accept only registered active suite codes with high nibble 0x0; this constraint does not turn that nibble into a derivation class. A UUID version nibble or digest-suite byte alone never proves identity authority.",
     "A producer_allocated UUIDv7 is never a globally sufficient protocol identity. Its canonical identity key is (mint_authority, typed_id), where mint_authority is the DID whose accepted proof authorized the first durable appearance of that ID. Bare typed-ID lookup, cross-authority deduplication, and last-writer-wins collision repair are forbidden.",
-    "Storage implementations MAY store producer_allocated UUID values as raw 16-byte UUIDs. Event-derived, suite-tagged full-digest, and derivation-tagged full-digest IDs MUST instead store their raw 33-byte token; they MUST NOT use a native UUID column.",
-    "The id_form is fixed by registry kind and never chosen per call site: producer_allocated uses RFC 9562 UUIDv7; event_derived uses the same canonical 33-byte token as its creating Event ID; suite_tagged_full_digest uses a full uint8 digest suite code followed by all 32 digest octets; derivation_tagged_full_digest uses a 4-bit derivation class, 4-bit digest suite, and all 32 digest octets. All three token forms serialize as 44 unpadded Base64URL characters.",
+    "Storage implementations MAY store producer_allocated UUID values as raw 16-byte UUIDs. Event-derived and suite-tagged full-digest IDs MUST instead store their raw 33-byte token; they MUST NOT use a native UUID column.",
+    "The id_form is fixed by registry kind and never chosen per call site: producer_allocated uses RFC 9562 UUIDv7; event_derived uses the same canonical 33-byte token as its creating Event ID; suite_tagged_full_digest uses a full uint8 digest suite code followed by all 32 digest octets. Both token forms serialize as 44 unpadded Base64URL characters.",
     "A database MAY intern any full Realm wire identity in a canonical Realm table and use a database-local surrogate pk for joins, indexes, and foreign keys. That pk is never serialized or signed. The canonical table MUST retain a unique lossless 33-byte Realm identity (or its full typed wire form), and every realm_pk foreign key MUST resolve to the same wire Realm identity carried by the protocol record."
   ],
   "producer_allocated_identity_contract": {
@@ -132,24 +131,19 @@
   "realm_token_layout": {
     "wire_form": "ak:realm:<44-char-base64url-no-pad>",
     "decoded_length_bytes": 33,
-    "header": "(derivation_class << 4) | digest_suite",
-    "derivation_classes": {
-      "0": "event_derived",
-      "1": "reserved_removed_principal_subject_derived",
-      "2..14": "reserved",
-      "15": "format_control"
-    },
+    "header": "(reserved_zero << 4) | digest_suite",
+    "reserved_high_nibble": 0,
+    "nonzero_reserved_nibble": "permanently_invalid",
+    "digest_suite_range": "1..1",
     "digest_suites": {
       "1": "sha256",
       "2..14": "reserved",
       "0": "invalid",
       "15": "reserved"
     },
-    "event_derived_retype_compatibility": "Realm class 0 is byte-identical to the Event zero reserved nibble and leaves the low-nibble suite code unchanged; v1 Realm identity is fixed to SHA-256, so only a creating Event with header 0x01 is Realm-eligible.",
-    "removed_derivation_classes": {
-      "1": "principal_subject_derived removed in v1: PCR realm ids are event-derived like every other Realm. Header 0x11 MUST NOT be produced and MUST be rejected as realm_id_not_event_derived."
-    },
-    "derivation_class_is_not_purpose": "The high nibble records how the id was derived, never what the Realm is for. New purpose values MUST NOT add derivation classes, and implementations MUST NOT infer purpose from realm_id."
+    "digest_length_bytes": 32,
+    "event_derived_retype_compatibility": "Realm and Event token headers are now identical, so an ak.realm.create Event token is byte-identical to its Realm token and retyping only swaps the ak:event: / ak:realm: prefix. v1 Realm identity is fixed to SHA-256, so only a creating Event with header 0x01 is Realm-eligible.",
+    "removed_derivation_class_nibble": "v1 briefly used the high nibble as a derivation_class with 0x1 = principal_subject_derived for Principal Control Realms. PCR ids are now event-derived like every other Realm, leaving one derivation algorithm, so the nibble carries no information and is permanently reserved zero. It MUST NOT be repurposed to encode Realm purpose or any other category."
   },
   "special_forms": [
     {
@@ -779,18 +773,18 @@
       "kind": "realm",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ak:realm:<44-char-derivation-tagged-full-digest-token>",
+      "wire_form": "ak:realm:<44-char-event-token>",
       "referenceability": [
         "relation_endpoint",
         "read_cursor_scope_kind"
       ],
       "description": "Realm object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy.",
-      "id_form": "derivation_tagged_full_digest",
-      "identity_authority": "event_or_subject_transcript",
+      "id_form": "event_derived",
+      "identity_authority": "event",
       "genesis_event_kinds": [
         "ak.realm.create"
       ],
-      "id_form_note": "All Realm IDs are 33-byte derivation-tagged full-digest tokens (encoding.md section 4.1). Collaboration Realms use header 0x0S and directly retype the creating Event token; SHA-256 is 0x01. Principal Control Realms use header 0x11 and the full SHA-256 digest of UTF8(\"ak:realm:principal-control:v1:\") || UTF8(canonical_principal_did), preserving DID-only addressability. UUID Realm IDs are invalid; the header class and signed create purpose must agree."
+      "id_form_note": "All Realm IDs are 33-byte Event tokens (encoding.md section 4.1): reserved-zero high nibble, uint4 digest suite, then all 32 digest octets, encoded as 44 unpadded Base64URL characters. The token is byte-identical to its ak.realm.create Event token; retyping only swaps the typed prefix."
     },
     {
       "kind": "transaction",

@@ -594,7 +594,7 @@ Authority 对 non-DID audience 的 fail-closed 校验一致。preimage 不含独
 signed claim。verifier MUST 验证 JWT signature、issuer key 的 accepted-at 历史，并从 signed claims
 重算 preimage、digest 与 typed ID，要求结果与 `jti` 逐字节相等。仅验证 `ak:session_grant:` 外形不构成
 有效验证。该 ID 的 `id_form=suite_tagged_full_digest`，是 33-octet `uint8 digest-suite wire code ||
-32-octet digest` token；它不是 Realm 的 derivation-tagged `4-bit class || 4-bit suite` header，不是 Event
+32-octet digest` token；它不是 Realm / Event 的 `reserved-zero nibble || 4-bit suite` header，不是 Event
 ID，也不是 `ak:grant:` Capability
 GrantId；不得提供 Event retype、`from_event_id` 或 accepted-Event marker 路径。跨 issuer 的 durable
 identity/replay key MUST 使用 `(issuer_did, typed_id)`。

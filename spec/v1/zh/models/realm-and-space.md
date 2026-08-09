@@ -251,7 +251,7 @@ canonical wire 恰为 43 chars，禁止 padding、非 URL-safe alphabet、31/33 
 Realm 之外的 create-once 对象没有这个问题：它们的 ID 只出现在 payload，且按 [`common-fields.md` §6.0](./common-fields.md) 一律省略。
 
 **Principal Control Realm 与 managed Agent PCR 不再是本节的例外（normative）**：v1 早期版本曾让 PCR 的
-`realm_id` 由 principal DID 确定性派生（`derivation_class=0x1`，`principal_subject_derived`）。该分支已删除。
+`realm_id` 由 principal DID 确定性派生（header `0x11`，`principal_subject_derived`）。该分支已删除。
 **全部 Realm——含 human PCR 与 managed Agent PCR——一律按 §2.5.0 的通则从各自 genesis Event 派生
 `realm_id`**，使用同一个 33-octet / 44-character Realm token wire form，不使用 UUID。
 
@@ -266,13 +266,21 @@ event-derived 天然按创建事件区分，同时使 `realm_id` 承诺 create E
 `realm_already_exists` 不再拦截重复。Principal Server MUST 在**账号维度**（其本地 accounts 记录）强制
 该唯一性，并在冲突时零写入拒绝；实现 MUST NOT 依赖 id 相等来发现并发 genesis。
 
-`realm_token[0]` 按 nibble 拆分：高 4 位是 `derivation_class`，低 4 位是 `digest_suite`。v1 登记 `derivation_class=0x0` 为 `event_derived`，且 Realm 算法固定为 `digest_suite=0x1`（SHA-256）。因此 v1 **唯一**有效 header 是 `0x01`。`0x1`（历史 `principal_subject_derived`）**保留且非法：v1 实现 MUST NOT 产出，收到 MUST 以 `realm_id_not_event_derived` 拒绝**；`0x2..0xE` derivation class 保留，`0xF` class 为 format-control；低 nibble `0x0` 与 `0x2..0xF` 非法/保留。Event ID 使用同一 suite 位置，但高 nibble 不是可分配 suite 空间：它永久保留并 MUST 为 `0x0`。普通 Event 支持其它低-nibble suite 不代表 Realm 自动支持。
+`realm_token[0]` 按 nibble 拆分：**高 4 位永久保留并 MUST 为 `0x0`**，低 4 位是 `digest_suite`。
+v1 Realm 算法固定为 `digest_suite=0x1`（SHA-256），因此 v1 唯一合法 header 是 `0x01`。
+早期版本曾把高 nibble 用作 `derivation_class`（`0x1` = `principal_subject_derived`）以承载 PCR 的独立
+派生；PCR 收敛为 event-derived 后只剩一种派生算法，该 nibble 不再承载信息，语义与 Event ID 的
+reserved nibble 完全一致。任何非零高 nibble MUST NOT 产出，收到 MUST 以 `realm_id_not_event_derived`
+拒绝。低 nibble `0x0` 与 `0x2..0xF` 非法/保留；普通 Event 支持其它低-nibble suite 不代表 Realm 自动支持。
 
 PCR 的**身份锚**与其 `realm_id` 是两件事：realm id 按上述通则由 genesis Event 派生，而该 PCR 属于哪个 principal 由 create 携带的唯一 critical root anchor ref 决定（见 [`../identity/key-management.md` §5.0.1](../identity/key-management.md)）。远端 verifier 需要判定"某 Seal 是否属于该 principal 的 PCR"时，MUST 以已签名的 `pcr_genesis_unit` receipt 中承诺的 `realm_id` 为准，MUST NOT 从 principal DID 自行重算。
 
 因此 `ak:realm:` 始终只有一种物理形态：`ak:realm:<44-char-token>`，解码后恰为 33 octets。所有 Realm（含 human PCR 与 managed Agent PCR）都重类型其 create Event 的 token（header `0x0S`）。它不是 producer 自选。
 
-**`derivation_class` 与 `purpose` 是两个正交的轴，MUST NOT 互相编码**：header 的高 nibble 只说明 id **如何派生**，收敛为 event-derived 后 v1 只剩 `0x0` 一个合法值；Realm **是什么**由签名 create payload 的 `purpose` 表达，与 id 无关。因此新增 `purpose` 取值（如 `managed_agent_control`）**不得**、也不需要新增 derivation class；实现 MUST NOT 试图从 `realm_id` 反推 `purpose`。判定 Realm 类别的唯一权威是已验证的 genesis Event payload，receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用点自选，不得接受 UUID Realm ID，也不得把 Realm token 存入原生 UUID / `BYTEA(16)`；推荐存储为完整 typed string 或 raw `BYTEA(33)`。
+**Realm id 不编码 Realm 类别。** header 只说明 token 布局与 digest suite，收敛后已无可分配的类别空间；
+Realm **是什么**由签名 create payload 的 `purpose` 表达。新增 `purpose` 取值不改变 id 形态，
+实现 MUST NOT 从 `realm_id` 反推 `purpose`——判定类别的唯一权威是已验证的 genesis Event payload，
+receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用点自选，不得接受 UUID Realm ID，也不得把 Realm token 存入原生 UUID / `BYTEA(16)`；推荐存储为完整 typed string 或 raw `BYTEA(33)`。
 
 持久化实现 MAY 建立 `canonical_realms(pk, identity, wire_id, ...)` 一类本地 intern 表，并以
 `realm_pk` 作为 Event、投影和 Realm 业务表的物理外键；这与 Event 的本地 `event_pk` 分层相同。
@@ -705,7 +713,7 @@ Group 不是资源容器，也不是安全边界。Group 是 principal / actor �
 
 完整 ID 列表与 ID kind registry 见 [common-fields.md](./common-fields.md) §6。Realm / Space 相关：
 
-- `ak:realm:<44-char-derivation-tagged-full-digest-token>`
+- `ak:realm:<44-char-event-token>`
 - `ak:space:<44-char-event-token>`
 
 ## 6. 规范性引用

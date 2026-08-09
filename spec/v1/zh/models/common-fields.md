@@ -543,7 +543,7 @@ object_id ≡ retype(create_event.event_id, object_kind)
 Protocol typed identifier / reference 的 wire value MUST 使用带类型前缀的稳定字符串：
 
 ```text
-ak:realm:<44-char-derivation-tagged-full-digest-token>
+ak:realm:<44-char-event-token>
 ak:space:<event-token>
 ak:strand:<event-token>
 ak:message:<event-token>
@@ -568,11 +568,10 @@ typed ID 的 token 构造 MUST 由
 唯一固定：`producer_allocated` 使用 UUIDv7（time-ordered），`event_derived` 使用
 [`../conformance/encoding.md` §4.0](../conformance/encoding.md) 定义的 33-octet suite-tagged 完整 digest token；
 `suite_tagged_full_digest` 同样使用 §4.0 的完整 uint8 digest-suite code 加 32-octet digest，但其 preimage 与
-authority 由 kind-specific registry contract 固定；`derivation_tagged_full_digest` 使用
-[`../conformance/encoding.md` §4.1](../conformance/encoding.md)
-的统一 33-octet token，高 nibble 固定身份派生类别、低 nibble 固定 digest suite；具体 preimage 与 authority
-由该 kind 的 registry contract 固定。调用点 MUST NOT 自行选择
-派生类别，也不得把 Event、Realm 或 Event-derived typed ID 降级为 UUIDv7。content-addressed form
+authority 由 kind-specific registry contract 固定。Realm ID 属 `event_derived`：它使用
+[`../conformance/encoding.md` §4.1](../conformance/encoding.md) 的 33-octet token，高 nibble 永久保留为零、
+低 nibble 固定 digest suite，与其 `ak.realm.create` Event token 逐字节相同。调用点 MUST NOT 自行选择
+id_form，也不得把 Event、Realm 或 Event-derived typed ID 降级为 UUIDv7。content-addressed form
 使用对应 digest。
 
 所有 typed ID 的总表是 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)；它同时列出

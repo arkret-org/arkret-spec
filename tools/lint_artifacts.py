@@ -3032,7 +3032,6 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     expected_wire_form_generation = {
         "producer_allocated": "ak:<kind>:<uuidv7>",
         "event_derived": "ak:<kind>:<44-char-event-token>",
-        "derivation_tagged_full_digest": "ak:<kind>:<44-char-derivation-tagged-full-digest-token>",
         "suite_tagged_full_digest": "ak:<kind>:<44-char-suite-tagged-full-digest-token>",
     }
     if id_registry.get("wire_form_generation") != expected_wire_form_generation:
