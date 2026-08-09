@@ -70,11 +70,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "57b5ab0494306d06986cd5d3c3fa19f9e64ac1330e9ed1b6c686c7f1d668a652"
+      "sha256": "d98addcab4c4233ea005d3d1b39e5ac30d44236da39ad6ba8bdd28c193eebedf"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "b8c6e4b2655c1b5382fd902b53de5304caa1f6e184219486dd228e533d749fb2"
+      "sha256": "1602a92fde3cfa7519c763469599a76655e374c58d92baa5467d701d7f8afb7e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -338,7 +338,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "2325e34710fef091368ea29bdca9668bfaceb9b4f784f3017652647db2992a50"
+      "sha256": "b0f03c5849b6e763bfcb7f561c379737d044f70ae1b7d511a5a3de324f61d07d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",

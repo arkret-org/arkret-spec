@@ -90,7 +90,7 @@
         "actor_id": "did:web:alice.example",
         "next_actor_seq": 0,
         "frontier_event_ids": [],
-        "frontier_digest": "sha256:4e14285bf450dff49220316ffa2ef2258c2be1a389e09aae86d26a797d894233"
+        "frontier_digest": "sha256:4bf4476c4eee171fcd96e1943e7af863ff1cf0e0f81b365a3bb0638f0ef233be"
       }
     },
     {
