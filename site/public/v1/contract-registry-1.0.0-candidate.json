@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.15",
+  "version": "2026-08-09.16",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T03:00:00Z",
+  "generated_at": "2026-08-10T04:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -9186,10 +9186,6 @@
         }
       },
       {
-        "schema_id": "ak.schema.did_key_log_entry.v1",
-        "file": "schemas/did-key-log-entry.schema.json"
-      },
-      {
         "schema_id": "ak.schema.directory_operations.v1",
         "file": "schemas/directory-operations.schema.json",
         "status": "active",
@@ -9761,7 +9757,9 @@
           "normative_ref": "zh/identity/contact-and-direct-conversation.md"
         }
       }
-    ]
+    ],
+    "version": "2026-08-09.16",
+    "generated_at": "2026-08-10T04:00:00Z"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -9902,8 +9900,8 @@
         "15": "reserved"
       },
       "digest_length_bytes": 32,
-      "event_derived_retype_compatibility": "Realm and Event token headers are now identical, so an ak.realm.create Event token is byte-identical to its Realm token and retyping only swaps the ak:event: / ak:realm: prefix. v1 Realm identity is fixed to SHA-256, so only a creating Event with header 0x01 is Realm-eligible.",
-      "removed_derivation_class_nibble": "v1 briefly used the high nibble as a derivation_class with 0x1 = principal_subject_derived for Principal Control Realms. PCR ids are now event-derived like every other Realm, leaving one derivation algorithm, so the nibble carries no information and is permanently reserved zero. It MUST NOT be repurposed to encode Realm purpose or any other category."
+      "event_derived_retype_compatibility": "Realm and Event token headers are identical, so an ak.realm.create Event token is byte-identical to its Realm token and retyping only swaps the ak:event: / ak:realm: prefix. v1 Realm identity is fixed to SHA-256, so only a creating Event with header 0x01 is Realm-eligible.",
+      "high_nibble_carries_no_category": "The high nibble is reserved zero and carries no category information. Realm purpose lives in the signed create payload; implementations MUST NOT infer purpose from realm_id."
     },
     "special_forms": [
       {
@@ -10586,8 +10584,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-08-09.7",
-    "generated_at": "2026-08-10T00:00:00Z"
+    "version": "2026-08-09.8",
+    "generated_at": "2026-08-10T04:00:00Z"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",

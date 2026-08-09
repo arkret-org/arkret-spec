@@ -406,14 +406,19 @@ GET /_arkret/root/identity/log?did=<did>&cursor=<cursor>&limit=<n>
 - 重建 DID Document
 - 验证 `key_log` 与 registry head 一致
 
-默认情况下，返回的每个 log entry MUST validate as `did-key-log-entry.schema.json`：`seq=0` 表示 inception 且不得携带 `prev_event_digest`；`seq>0` 必须携带 `prev_event_digest`，并且该值必须等于前一条 accepted entry 的 `head_event_digest`。`operation` 是规范化操作 kind；DID-method-specific 原始操作对象放在 `operation_body`，不得使用通用 JSON Patch 形态。
+**返回 method-native 形态，Arkret 不定义自有的日志信封（normative）**。响应是
+`IdentityLogListOutcome`：`method` 声明该日志属于哪个 DID method，`entries[]` 是**逐字原样**的
+method-native 条目。对 `did:webvh`，每条就是其 `did.jsonl` 条目，携带原生 `versionId`、
+entryHash 链与 Data Integrity proof；验证完全按 `did:webvh` method specification 进行。
 
-generic 形态的 digest、hash chain 与 proof transcript 的唯一规范定义在 [`../identity/identity-did.md` §4.4](../identity/identity-did.md)。本 transport surface MUST 原样返回符合该节与 `did-key-log-entry.schema.json` 的 entry，不得删除 proof binding 的 `context` / `seq`，也不得另定义 transport-specific transcript。
+服务端 MUST NOT 重新编号、重新链接、重新签名或以任何方式重解释这些条目，也 MUST NOT 定义
+平行的 digest / hash chain / proof transcript —— 对同一份历史存在第二套各自签名的表示时，
+两者可能不一致而规范无法裁决谁为准。规范性说明见
+[`../identity/identity-did.md` §4.4](../identity/identity-did.md)。
 
-- Verifier 顺序固定：先重算并 constant-time 比对 `head_event_digest` 与 `proof.payload_digest`，再构造 binding object 并验证 detached JWS；任一步失败 MUST 拒绝该 entry 及其后续链段。实现 MUST NOT 用字段拼接字符串、裸 hex 或任何非 canonical JSON 形态替代上述 transcript。
-- 签名者授权：`proofs[]` 的 `verification_method` MUST 按该 DID method 的原生控制规则验证；不得把“上一 entry 的 key 验下一 entry”当成通用规则。`seq=0` 由该 entry 声明的 cold identity root 自签。对启用 pre-rotation 的 did:webvh，entry N 的 proof 必须由 **entry N 当前显式 `updateKeys`** 验证，且当前 key 的 canonical multikey hash 必须命中 entry N-1 的 `nextKeyHashes`；省略当前 `updateKeys`、沿用 previous key、复用 spent key均拒绝。其它 method 依其注册 adapter 的 update/recovery 规则。registry host MUST NOT 以自身 key 代替 controller 签名；registry / witness 对 head 状态的背书走 identity receipt，不进入 entry `proofs[]`。
+**没有原生历史的 method MUST 如实报告**：`did:web` 的响应 `native_history=false` 且 `entries` 为空。
+服务端 MUST NOT 合成它并不具备的条目、序号或链。
 
-did method 原生日志有更强互操作格式时 MAY 直接返回该 method 的原生 accepted log entry，例如 `did:webvh` 的 Data Integrity proof 日志；这种服务 MUST 在 `describe.experimental_features[]` 中声明对应 feature id（例如 `ak.feature.identity.webvh_native_log.v1`），并且 `operation_body` / proof 语义 MUST 可按该 DID method 的规范重建同一 DID Document head。未声明该 experimental feature 的 `ak.root.identity.log.read.list` 响应仍 MUST 使用 `did-key-log-entry.schema.json`。
 
 #### 3.1.4 提交 DID 更新
 

@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9116,
-    "total_schema_documents": 157,
+    "total_properties": 9109,
+    "total_schema_documents": 156,
     "by_presence_class": {
       "optional": 2758,
       "optional_defaulted": 67,
-      "required": 5927,
-      "required_nullable": 114,
+      "required": 5921,
+      "required_nullable": 113,
       "tristate": 250
     },
     "tristate_occurrences": 250,
@@ -4713,26 +4713,6 @@
       "conditionally_required": [
         "/properties/audience",
         "/properties/transfer_proof"
-      ]
-    },
-    "did-key-log-entry.schema.json": {
-      "schema_ids": [
-        "ak.schema.did_key_log_entry.v1"
-      ],
-      "properties": {
-        "/allOf/0/if/properties/seq": "required",
-        "/allOf/1/if/properties/seq": "required_nullable",
-        "/properties/created_at": "required",
-        "/properties/did": "required",
-        "/properties/head_event_digest": "required",
-        "/properties/operation": "required",
-        "/properties/operation_body": "required",
-        "/properties/prev_event_digest": "optional",
-        "/properties/proofs": "required",
-        "/properties/seq": "required"
-      },
-      "conditionally_required": [
-        "/properties/prev_event_digest"
       ]
     },
     "did-webvh-witness-receipt.schema.json": {
@@ -11540,8 +11520,11 @@
         "/$defs/IdentityDocumentView/properties/did_document": "required",
         "/$defs/IdentityDocumentView/properties/method_evidence": "optional",
         "/$defs/IdentityDocumentView/properties/normalized_view": "optional",
-        "/$defs/IdentityLogListOutcome/properties/events": "required",
+        "/$defs/IdentityLogListOutcome/properties/did": "required",
+        "/$defs/IdentityLogListOutcome/properties/entries": "required",
         "/$defs/IdentityLogListOutcome/properties/has_more": "required",
+        "/$defs/IdentityLogListOutcome/properties/method": "required",
+        "/$defs/IdentityLogListOutcome/properties/native_history": "optional",
         "/$defs/IdentityLogListOutcome/properties/next_cursor": "optional",
         "/$defs/IdentityReceiptListOutcome/properties/receipts": "required",
         "/$defs/IdentityReceiptListOutcome/properties/threshold_met": "optional",

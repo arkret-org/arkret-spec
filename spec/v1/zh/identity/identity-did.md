@@ -487,13 +487,6 @@ DID method 或 registry 不可用时，节点 MUST NOT 把“暂时无法解析�
 - 确实搬迁了托管位置的 DID **MUST** 按本节的 continuity migration 处理，与换 method 同路；
 - 实现 **MUST NOT** 自行以 SCID 相等推断 continuity —— 那会绕过双向 continuity proof 的验证要求。
 
-> **已裁决的后续方向（2026-08-09，chris）**：长期方向是把 continuity migration 从"降级路径"
-> 提升为**受支持的一等迁移功能**（提供工具、保证双向 proof 可验、UI 体面地表达"同一控制者的延续"），
-> 而不是去放宽 §6 让上层按 SCID 认人——后者要改动身份等价的判定基础，代价与收益不成比例。
-> 设计与实现均未开始，登记在 `arkret-work/review/spec-open`。
-> 注意在该模型下 **PCR 不随 DID 迁移**：PCR 的作用域是 (DID, Principal Server)，
-> 搬迁托管不改变用户在原 Principal Server 上的账号与 PCR。
-
 continuity / 迁移独有规则：
 
 - 用户迁移到新 DID（同 method 或换 method）时，历史 Event 的 `actor_id`、grant `subject` 和 proof `verification_method` MUST NOT 被重写。迁移必须表现为新的 signed continuity proof、profile/account binding、membership update 或 capability re-grant。
@@ -550,29 +543,23 @@ assertion method。顶层 `audience` 与 proof `audience` 必须同时缺失，�
 `payload_digest`，再构造上述 binding object 验证 JWS。直接签 receipt body、遗漏
 `context`、复用 `ak.event-proof-v1` 或只签 proof 字段都必须拒绝。
 
-### 4.4 DID key-log entry digest 与 proof transcript
+### 4.4 DID 日志的返回形态（normative）
 
-`did-key-log-entry.schema.json` 的 generic log entry 使用本节作为 digest、hash chain 与 proof binding 的唯一规范真源；transport 文档只引用本节，不得复述或改写前像。
+**Arkret 不为 DID 日志定义任何自有的 entry 信封、序号、哈希链或 proof transcript。**
+DID method 已经提供了这些：`did:webvh` 有 `versionId`、entryHash 链与 Data Integrity proof，
+按其 method specification 验证即可。
 
-1. `head_event_digest` 是 entry 的自身 digest：从 entry 中移除 `proofs` 与 `head_event_digest` 两个字段，按 [`../conformance/encoding.md` §2](../conformance/encoding.md) 的 canonical JSON 编码，再按该 entry 所选 active digest suite 计算 typed digest。
-2. `seq > 0` 时，`prev_event_digest` MUST 等于前一条 accepted entry 按步骤 1 重算的 `head_event_digest`；`seq = 0` 时禁止该字段。Identity Receipt 所见证的 `head_event_digest` 同样指步骤 1 的值。
-3. 每条 proof 的 `payload_digest = canonical_digest(entry_without_proofs)`：只移除整个 `proofs` 字段，保留已写入的 `head_event_digest`。
-4. `detached_jws` payload segment MUST 为空。被签字节 MUST 是下列对象的 JCS bytes；可选键只在 proof 携带对应非空值时出现：
+`GET /_arkret/root/identity/log`（[`../sync/service-surface.md` §3.1.3](../sync/service-surface.md)）
+MUST 逐字返回该 DID 的 **method-native** 日志条目：
 
-```json
-{
-  "context": "ak.did-key-log-entry-proof-v1",
-  "payload_digest": "sha256:<canonical entry hash>",
-  "did": "<entry.did>",
-  "seq": 0,
-  "verification_method": "<proof.verification_method>",
-  "created_at": "<proof.created_at>",
-  "domain": "<proof.domain if present>",
-  "audience": "<proof.audience if present>"
-}
-```
+- `method` 字段声明该日志属于哪个 DID method，消费方据此分派解析与验证；
+- `entries[]` 是**原样**的 method-native 条目，Arkret MUST NOT 重新编号、重新链接、
+  重新签名或以任何方式重解释它们；
+- 验证完全按该 method 的规范进行；本规范不复述、不改写其前像。
 
-`context` 固定为 `proof-context-registry.json` 登记的 `ak.did-key-log-entry-proof-v1`，`seq` MUST 逐值等于 entry `seq`。缺失、额外或不相等的 binding 字段、未知 context、payload digest 不匹配均 MUST 在 controller 签名验证前 fail closed。`verification_method` 必须是该 operation 在前一 accepted entry 状态下授权的 controller key；registry host 不得替换为自身 key。
+**没有原生历史的 method（`did:web`）MUST 如实报告**：`native_history=false` 且 `entries` 为空。
+服务端 MUST NOT 合成该 method 并不具备的条目、序号或哈希链——那不会凭空产生它没有的安全性，
+只会把"此 method 无可验证历史"这一事实包装得看不出来。
 
 ## 5. Resolver、Auth Server 与组织授权
 

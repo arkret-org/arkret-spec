@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-09.3",
-  "generated_at": "2026-08-09T19:00:00Z",
+  "version": "2026-08-10",
+  "generated_at": "2026-08-10T04:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2513,7 +2513,6 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ak.schema.did_key_log_entry.v1",
         "ak.schema.identity_receipt.v1",
         "ak.schema.handle_claim.v1",
         "ak.schema.key_transparency.v1"
@@ -2637,7 +2636,6 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ak.schema.did_key_log_entry.v1",
         "ak.schema.identity_receipt.v1",
         "ak.schema.handle_claim.v1",
         "ak.schema.key_transparency.v1"
@@ -2675,7 +2673,6 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.key_transparency.v1",
-        "ak.schema.did_key_log_entry.v1",
         "ak.schema.identity_receipt.v1"
       ],
       "required_fixtures": [

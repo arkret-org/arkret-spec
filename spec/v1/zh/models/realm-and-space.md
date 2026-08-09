@@ -250,12 +250,11 @@ canonical wire 恰为 43 chars，禁止 padding、非 URL-safe alphabet、31/33 
 
 Realm 之外的 create-once 对象没有这个问题：它们的 ID 只出现在 payload，且按 [`common-fields.md` §6.0](./common-fields.md) 一律省略。
 
-**Principal Control Realm 与 managed Agent PCR 不再是本节的例外（normative）**：v1 早期版本曾让 PCR 的
-`realm_id` 由 principal DID 确定性派生（header `0x11`，`principal_subject_derived`）。该分支已删除。
-**全部 Realm——含 human PCR 与 managed Agent PCR——一律按 §2.5.0 的通则从各自 genesis Event 派生
+**Principal Control Realm 与 managed Agent PCR 适用本节通则（normative）**：
+**全部 Realm——含 human PCR 与 managed Agent PCR——一律按 §2.5.0 从各自 genesis Event 派生
 `realm_id`**，使用同一个 33-octet / 44-character Realm token wire form，不使用 UUID。
 
-删除理由：PCR 的作用域是「某个 DID 在**当前 Principal Server** 上的账号」，同一 DID 在不同 Principal
+理由：PCR 的作用域是「某个 DID 在**当前 Principal Server** 上的账号」，同一 DID 在不同 Principal
 Server 上是完全独立、不可迁移的 PCR。subject-derived 派生只以 principal DID 为输入，会让这些互不相关的
 PCR 算出**同一个 `realm_id`**，使该 id 无法标识"哪一个 PCR"——而 PCR 的 realm id、genesis receipt 与 Seal
 都会作为设备授权权威证据进入联邦（见 [`../sync/federation.md`](../sync/federation.md) 与
@@ -268,9 +267,7 @@ event-derived 天然按创建事件区分，同时使 `realm_id` 承诺 create E
 
 `realm_token[0]` 按 nibble 拆分：**高 4 位永久保留并 MUST 为 `0x0`**，低 4 位是 `digest_suite`。
 v1 Realm 算法固定为 `digest_suite=0x1`（SHA-256），因此 v1 唯一合法 header 是 `0x01`。
-早期版本曾把高 nibble 用作 `derivation_class`（`0x1` = `principal_subject_derived`）以承载 PCR 的独立
-派生；PCR 收敛为 event-derived 后只剩一种派生算法，该 nibble 不再承载信息，语义与 Event ID 的
-reserved nibble 完全一致。任何非零高 nibble MUST NOT 产出，收到 MUST 以 `realm_id_not_event_derived`
+该 nibble 不承载派生类别信息，语义与 Event ID 的 reserved nibble 完全一致。任何非零高 nibble MUST NOT 产出，收到 MUST 以 `realm_id_not_event_derived`
 拒绝。低 nibble `0x0` 与 `0x2..0xF` 非法/保留；普通 Event 支持其它低-nibble suite 不代表 Realm 自动支持。
 
 PCR 的**身份锚**与其 `realm_id` 是两件事：realm id 按上述通则由 genesis Event 派生，而该 PCR 属于哪个 principal 由 create 携带的唯一 critical root anchor ref 决定（见 [`../identity/key-management.md` §5.0.1](../identity/key-management.md)）。远端 verifier 需要判定"某 Seal 是否属于该 principal 的 PCR"时，MUST 以已签名的 `pcr_genesis_unit` receipt 中承诺的 `realm_id` 为准，MUST NOT 从 principal DID 自行重算。
@@ -288,7 +285,7 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 `wire_id` 必须能 canonical round-trip；写入关联行时必须确认 `realm_pk` 与其 wire `realm_id` 相同，
 不得因本地 `pk` 相同或不同改变协议身份、重放、冲突或首次接触判断。
 
-固定 KAT 与负例由 `ak.vector.object_identity.subject_derived_realm.v1` 承载；该向量在本次收敛后 MUST 改为覆盖"PCR 亦 event-derived"与"header `0x1` 一律拒绝"两组断言。
+固定 KAT 与负例由 `ak.vector.object_identity.event_derived_realm.v1` 承载。
 
 **首次接触校验义务（normative）**：receiver 首次接触某个 `realm_id` 时 MUST：
 

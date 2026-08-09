@@ -125,7 +125,6 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | `ak.schema.snapshot.v1` | Snapshot Manifest |
 | `ak.schema.grant_constraint.v1` | Grant Constraint |
 | `ak.schema.resource_selector.v1` | Resource Selector |
-| `ak.schema.did_key_log_entry.v1` | DID Key Log Entry |
 | `ak.schema.did_continuity_proof.v1` | DID Continuity Proof |
 | `ak.schema.identity_receipt.v1` | Identity Receipt |
 | `ak.schema.identity_link.v1` | Minimal-metadata E2EE identity link |

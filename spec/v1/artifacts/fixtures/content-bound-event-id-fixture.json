@@ -7,12 +7,12 @@
   "covers_vectors": [
     "ak.vector.event_id.content_bound.v1",
     "ak.vector.object_identity.event_derived.v1",
-    "ak.vector.object_identity.subject_derived_realm.v1"
+    "ak.vector.object_identity.event_derived_realm.v1"
   ],
   "cases": [
     {
-      "name": "principal_control_realm_id_is_event_derived_and_legacy_subject_header_rejected",
-      "vector_id": "ak.vector.object_identity.subject_derived_realm.v1",
+      "name": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+      "vector_id": "ak.vector.object_identity.event_derived_realm.v1",
       "principal_id": "did:webvh:z6mkfixture:alice.example",
       "layout": {
         "reserved_high_nibble": 0,
@@ -26,16 +26,7 @@
         "realm_header_hex": "01",
         "realm_id_source": "retype_of_genesis_ak_realm_create_event_token",
         "retype_is_byte_identical": true,
-        "note": "PCR realm ids are event-derived like every other Realm; the Realm token equals its ak.realm.create Event token byte for byte and retyping only swaps the typed prefix."
-      },
-      "rejected_legacy_form": {
-        "realm_header_hex": "11",
-        "removed_derivation_class": "principal_subject_derived",
-        "legacy_domain_utf8_hex": "616b3a7265616c6d3a7072696e636970616c2d636f6e74726f6c3a76313a",
-        "legacy_sha256_digest": "984ba56e2ecf486cfbe0cab2c7a30677848ab632b02dcd0ed4f2bf01bdba5712",
-        "legacy_realm_id": "ak:realm:EZhLpW4uz0hs--DKssejBneEirYysC3NDtTyvwG9ulcS",
-        "expected_outcome": "rejected",
-        "expected_error": "realm_id_not_event_derived"
+        "note": "Realm ids are event-derived: the Realm token equals its ak.realm.create Event token byte for byte and retyping only swaps the typed prefix."
       },
       "expected": {
         "outcome": "accepted",
@@ -43,6 +34,13 @@
         "nonzero_reserved_nibble": "rejected",
         "same_did_on_different_principal_servers": "distinct_realm_ids",
         "same_account_second_genesis": "rejected_by_principal_server_account_uniqueness"
+      },
+      "rejected_form": {
+        "realm_header_hex": "11",
+        "reason": "non-zero reserved high nibble",
+        "realm_id": "ak:realm:EZhLpW4uz0hs--DKssejBneEirYysC3NDtTyvwG9ulcS",
+        "expected_outcome": "rejected",
+        "expected_error": "realm_id_not_event_derived"
       }
     },
     {

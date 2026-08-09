@@ -1339,32 +1339,6 @@
       }
     },
     {
-      "name": "did_key_log_entry_seq_requires_previous_hash_valid",
-      "schema_ref": "schemas/did-key-log-entry.schema.json",
-      "expect_valid": true,
-      "instance": {
-        "did": "did:webvh:z6mkfixture:alice.example",
-        "seq": 1,
-        "operation": "rotate",
-        "prev_event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "head_event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "operation_body": {
-          "method": "webvh",
-          "rotate_to": "did:webvh:z6mkfixture:alice.example#key-2"
-        },
-        "created_at": "2026-05-20T00:00:00.000Z",
-        "proofs": [
-          {
-            "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
-            "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-            "created_at": "2026-05-20T00:00:00.000Z",
-            "jws": "a..b"
-          }
-        ]
-      }
-    },
-    {
       "name": "agent_key_authorize_payload_valid",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_key_authorize_payload",
       "expect_valid": true,

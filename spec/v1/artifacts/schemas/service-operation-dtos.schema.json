@@ -2601,16 +2601,30 @@
     },
     "IdentityLogListOutcome": {
       "type": "object",
-      "description": "Result of ak.root.identity.log.read.list — paginated DID key-log entries for the requested DID.",
+      "description": "Result of ak.root.identity.log.read.list. Entries are returned in the DID method's own native log form: for did:webvh each entry is a verbatim did.jsonl log entry with its native versionId, entryHash chain and Data Integrity proof. Arkret defines no parallel entry envelope, sequence numbering, hash chain or proof transcript over DID logs — the method already provides all of them, and a second signed representation of the same history could disagree with the first. Methods without a native history (did:web) MUST report that rather than being wrapped in a shape that implies one.",
       "required": [
-        "events",
+        "did",
+        "method",
+        "entries",
         "has_more"
       ],
       "properties": {
-        "events": {
+        "did": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "method": {
+          "type": "string",
+          "description": "DID method of the returned log, e.g. did:webvh. Consumers dispatch parsing and verification on this value."
+        },
+        "native_history": {
+          "type": "boolean",
+          "description": "False when the method has no native key history at all (did:web). Such a response MUST return an empty entries array; the server MUST NOT synthesise entries, sequence numbers or a chain the method does not have."
+        },
+        "entries": {
           "type": "array",
+          "description": "Verbatim method-native log entries in method order. Arkret does not reinterpret, renumber or re-sign them; verification follows the method specification.",
           "items": {
-            "$ref": "./did-key-log-entry.schema.json"
+            "type": "object"
           }
         },
         "next_cursor": {

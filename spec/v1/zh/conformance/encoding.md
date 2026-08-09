@@ -267,10 +267,9 @@ realm_id_bytes[1..32] = full_digest[0..31]
 realm_id = "ak:realm:" || base64url_no_pad(realm_id_bytes)
 ```
 
-**高 nibble 永久保留并 MUST 为 `0x0`。** v1 早期版本曾把它用作 `derivation_class`，登记 `0x1`
-为 `principal_subject_derived` 以承载 Principal Control Realm 的独立派生；PCR 收敛为 event-derived
-后该分支已删除，Realm 只剩一种派生算法，该 nibble 因此不再承载信息。任何非零高 nibble
-MUST NOT 产出，收到 MUST 以 `realm_id_not_event_derived` fail closed。
+**高 nibble 永久保留并 MUST 为 `0x0`。** Realm 只有一种派生算法，该 nibble 不承载信息，
+语义与 Event ID 的 reserved nibble 一致。任何非零高 nibble MUST NOT 产出，
+收到 MUST 以 `realm_id_not_event_derived` fail closed。
 
 低 nibble 是 digest-suite code。v1 Realm identity 的算法固定为 SHA-256，因此只有 `digest_suite=0x1`
 合法；`0x0` 与 `0x2..0xF` 均为非法/保留。普通 Event 可以登记其它 suite，但这不会自动使其成为
