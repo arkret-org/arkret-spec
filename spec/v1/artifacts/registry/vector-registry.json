@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.6",
+  "version": "2026-08-09.9",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T05:00:00Z",
+  "generated_at": "2026-08-10T09:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1601,6 +1601,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.contact.next_prepare_input.v1",
+      "status": "active",
+      "domain": "contact",
+      "applies_to_fixtures": [
+        "direct-conversation-fixture.json"
+      ],
+      "description": "The ak.self.contact.read.list projection carries the closed next_prepare_input successor cursor: an accepted row MUST carry it and the five non-authorable contact_state values MUST NOT, its basis_id, version and predecessor_event_ref are copied verbatim into the scope_update and tombstone prepare phases, version is the next Event's version and predecessor_event_ref is the current lineage head rather than that head's predecessor, and a stale cursor is refused with contact_lineage_conflict or contact_scope_stale and MUST be re-read rather than guessed or retried unchanged.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
+        "spec/v1/zh/identity/contact-and-direct-conversation.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.content.long_text_boundaries.v1",
       "status": "active",
       "domain": "content",
@@ -1684,6 +1697,18 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.device_pairing.accepted_device_attestation.v1",
+      "status": "active",
+      "domain": "device_pairing",
+      "scope": "universal",
+      "description": "accepted_device pairing signs a closed target-owned possession attestation under ak.device-authorize-accepted-device-possession-proof-v1 whose only replay boundary is the pairing challenge transcript digest: the approving device and the Account Authority each rebuild it independently, it is the sole authority for hpke_key and algorithms, short-link and to-device share one schema and one domain, transcripts never cross between root_anchored and accepted_device, and the target device fails closed before local assembly when the accepted Event does not match its attestation or the expected principal_id.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/crypto-media/device-lifecycle.md",
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
       ]
     },
     {
@@ -2958,6 +2983,20 @@
       ]
     },
     {
+      "vector_id": "ak.vector.history_sharing.direct_conversation_profile_baseline.v1",
+      "status": "active",
+      "domain": "history_sharing",
+      "applies_to_fixtures": [
+        "history-crypto-closure-fixture.json"
+      ],
+      "description": "A Direct Conversation Realm takes its effective ak.realm.history_sharing_policy from the ak.profile.direct_conversation_realm.v1 fixed baseline: the generation-0 provisional history key share to the exact peer is released without an accepted policy Event and must not be refused because pre_join_history is deny, archive_node and recovery_service key sources are withheld, and a post-repair rejoin gets no key for the absence window.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
+        "spec/v1/zh/governance/history-visibility.md",
+        "spec/v1/zh/identity/contact-and-direct-conversation.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.history_sharing.e2ee_prejoin_key_share_policy.v1",
       "status": "active",
       "domain": "history_sharing",
@@ -2976,7 +3015,7 @@
       "applies_to_fixtures": [
         "history-crypto-closure-fixture.json"
       ],
-      "description": "A Principal Control Realm takes its effective ak.realm.history_sharing_policy from the ak.profile.principal_control_realm.v1 fixed baseline: restricted visibility is satisfied without an accepted policy Event, the Realm object must not declare the policy, the PCR must not emit the policy Event, release is clamped to the receiving device's ak.device.authorize frontier, and ordinary Collaboration Realms get no implied baseline.",
+      "description": "A Principal Control Realm takes its effective ak.realm.history_sharing_policy from the ak.profile.principal_control_realm.v1 fixed baseline: restricted visibility is satisfied without an accepted policy Event, the Realm object must not declare the policy, the PCR must not emit the policy Event, release is clamped to the receiving device's ak.device.authorize frontier, and a Collaboration Realm other than a Direct Conversation Realm gets no implied baseline.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
         "spec/v1/zh/governance/history-visibility.md",

@@ -164,6 +164,25 @@ transport receipt；收到更高 incoming signed head时 target service 立即�
 current proof仅阻止 Contact-based create/send：existing binding resolver仍返回原坐标，并在 `found.send_blockers[]`
 报告 `contact_scope_stale`。proof stale 绝不把 accepted basis回滚为 pending，也不得隐藏 participant 坐标。
 
+`ak.self.contact.read.list` 的 `contact_list_row` **MUST** 用封闭子对象 `next_prepare_input` 承载下一次写入的输入。其
+`basis_id`、`version`、`predecessor_event_ref` 三个字段与 `ak.self.contact.command.scope_update` /
+`ak.self.contact.command.tombstone` 的 prepare 分支逐字同名，客户端 **MUST** 原样抄入，**MUST NOT** 改名映射、重算或
+另行推导。容器名承担时态消歧：其中的 `version` 是**下一条 Event 要携带的**版本号，即 current head version + 1，故最小值
+为 2；`predecessor_event_ref` 是**当前 lineage head 的 Event ID**，即下一条 Event 的前驱，而不是当前 head 自己的前驱。
+同一 row 的 `request_event_ref` / `response_event_ref` / `tombstone_event_ref` 只是投影摘要，**MUST NOT** 被当作权威
+链头拼装 successor。
+
+该子对象只在能 author 后继时出现，省略本身就是“现在不可 author”的表达，**MUST NOT** 为此另造 error code 或扩充
+`contact_state`。按 `contact_state` 逐值判定：`accepted` **MUST** 携带；`pending_outgoing`、`pending_incoming`、
+`rejected`、`expired`、`tombstoned` **MUST NOT** 携带——前两者尚未建立 basis 与 lineage，后三者是 terminal 且 basis 与
+lineage 永不复活。glare 机械派生的 basis 直接投影为 accepted 时同样 **MUST** 携带，此时 `predecessor_event_ref` 是该
+issuer 自己的 request head。scope 全集替换为空只把非 terminal basis 投影为 `suspended`，其 `contact_state` 仍是
+`accepted`，因此仍 **MUST** 携带该子对象，否则后续显式 widen 无从 author。
+
+游标可能陈旧。服务端 prepare 侧已有 `contact_lineage_conflict`（409）与 `contact_scope_stale`（409），持陈旧游标的
+prepare 只会被拒且零写入；被拒后客户端 **MUST** 重读 `ak.self.contact.read.list` 并以新值重试，**MUST NOT** 猜测
+lineage，也 **MUST NOT** 以同一组值重试。本条的规范执行向量是 `ak.vector.contact.next_prepare_input.v1`。
+
 不存在、policy deny、过期、未授权与 quarantined 对无权主体必须使用相同 opaque failure。
 
 ## 4. Contact operation surface
@@ -178,7 +197,7 @@ Message Signature只能额外叠加，不能替代其中任一项。实现 **MUS
 | `ak.self.contact.command.reject` | 独立 proposal terminal reject与 rejection receipt；不得复用 respond body |
 | `ak.self.contact.command.scope_update` | issuer-local full-set replacement |
 | `ak.self.contact.command.tombstone` | accepted basis terminal，旧 refs永久消费 |
-| `ak.self.contact.read.list` | 从 verified basis与双方 directional current heads投影 |
+| `ak.self.contact.read.list` | 从 verified basis与双方 directional current heads投影；accepted row 另携 §3 的 `next_prepare_input` 游标 |
 | `ak.peer.contacts.command.submit` | closed XOR peer carrier；原 bytes + exact receipt/current proof |
 | `ak.self.direct_conversation.read.resolve` | §9.1 的唯一 DM 查询入口；closed outcome，不携 create phase 分支 |
 | `ak.self.events.command.submit` | 其 `direct_conversation_founding` branch 是 §5.5 的唯一 DM founding 提交入口 |
@@ -375,7 +394,11 @@ Genesis Seal **MUST** 覆盖三条 Event、普通 Realm create 的全部 require
 - `content_encryption_floor=e2ee_required` 且 `metadata_encryption_floor=e2ee_required`；
 - `history_visibility=joined` 与 exact-peer-only history sharing。
 
-同批 facet Event 重复或覆盖这些值 **MUST** 拒绝；后续普通 policy Move 试图改变固定 baseline 亦 **MUST** 拒绝。此处的 pre-join 只表示 peer 尚未成为 MLS leaf——§6.1 已使其自 Realm Genesis 起 joined。
+同批 facet Event 重复或覆盖这些值 **MUST** 拒绝；后续普通 policy Move 试图改变固定 baseline 亦 **MUST** 拒绝。
+
+上列最后一项的 "exact-peer-only history sharing" 不是散文修饰，它的唯一字面值是 `ak.profile.direct_conversation_realm.v1` 的 `history_sharing_policy_fixed_baseline.value`：DC 与 PCR 是 v1 仅有的两个 profile-fixed baseline 例外（见 [`../governance/history-visibility.md` §3](../governance/history-visibility.md)）。DC 结构上永远发不出 `ak.realm.history_sharing_policy`——§6.1 的 founding unit 恰三条、第四条 **MUST** 以 `direct_conversation_founding_unit_invalid` 整组拒绝，`ak.authority.direct_conversation_bootstrap_participant.v1` 与 `ak.authority.direct_conversation_participant.v1` 的 `action_allowlist` 都没有能 author policy Event 的 action，§8.3 又禁止 `found` 后恢复 owner / admin authority——因此该字面值**就是**该 Realm 的 effective `ak.realm.history_sharing_policy`。key source 与 reducer **MUST** 按它执行 history-visibility §6 的 key-share 判定，**MUST NOT** 因"没有 accepted policy Event"报 `history_sharing_policy_missing`。其中 `allowed_receiver_states=["active_member"]` 承载 exact-peer-only 语义（profile 锁死 exact-two participants），`allowed_key_sources` 排除 `archive_node` / `recovery_service` 以维持两人独占，`post_removal_recovery="deny"` 对齐 §8.2。
+
+**两个 "pre-join" 指不同的东西，实现 MUST NOT 混淆**：baseline 里 `pre_join_history` 的 pre-join 指**成为 Realm 成员之前**；DC 中 peer 的 `join_frontier` 就是 Realm Genesis，Realm 内不存在 `T0` 更早的 Event，故该字段结构性不会被触发，取 `deny` 只是如实陈述本 profile 从不释放加入前历史。而本节此处的 pre-join 只表示 peer 尚未成为 MLS leaf——§6.1 已使其自 Realm Genesis 起 joined——那段 generation-0 历史 **MUST** 共享，实现 **MUST NOT** 因 `pre_join_history="deny"` 拒发 §7.2 的 generation-0 provisional history key share。本条的规范执行向量是 `ak.vector.history_sharing.direct_conversation_profile_baseline.v1`。
 
 notary value 与 CBA profile **MUST** 从 trust domain 已 accepted 的 DM deployment policy 与 founder current service binding 确定性派生，caller **MUST NOT** 自选。单侧创建只保证不依赖 peer 设备与 peer Principal Server；若所选普通 notary profile 本身需要其它不可达 signer，创建仍按普通 CBA 规则 pending。
 

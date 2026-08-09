@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-07-30",
+  "version": "2026-08-10",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.edge_cases.v1"
@@ -25,7 +25,8 @@
     "ak.vector.join_policy.gate_axis_orthogonality.v1",
     "ak.vector.invite.quarantine_disclosure_indistinguishable.v1",
     "ak.vector.invite.claim_expiry_canonical_time.v1",
-    "ak.vector.device_pairing.challenge_transcript.v1"
+    "ak.vector.device_pairing.challenge_transcript.v1",
+    "ak.vector.device_pairing.accepted_device_attestation.v1"
   ],
   "cases": [
     {
@@ -505,6 +506,42 @@
         "stage accepts only the canonical PublicKey shape and rejects a challenge proof minted before server challenge material exists",
         "the gate request selects exactly one staged or to-device transcript path",
         "the to-device path binds gate_audience to the Account Authority origin rather than requester-controlled input"
+      ]
+    },
+    {
+      "name": "device_pairing_accepted_device_attestation",
+      "vector_id": "ak.vector.device_pairing.accepted_device_attestation.v1",
+      "variants": [
+        "closed_attestation_round_trip",
+        "shared_attestation_shape_across_paths",
+        "key_material_authority_is_attestation_only",
+        "attestation_challenge_digest_mismatch",
+        "attestation_hpke_key_disagrees_with_request",
+        "attestation_hpke_key_disagrees_with_payload",
+        "attestation_algorithms_disagree_with_payload",
+        "attestation_device_public_key_disagrees_with_staged_key",
+        "root_anchored_transcript_used_for_accepted_device",
+        "accepted_device_transcript_used_for_root_anchored",
+        "attestation_echoed_through_unauthenticated_surface",
+        "target_assembly_principal_id_unexpected",
+        "target_assembly_device_signature_not_byte_identical",
+        "target_assembly_before_accepted_event_check"
+      ],
+      "expected": {
+        "positive_decision": "accept",
+        "negative_decision": "reject",
+        "accepted_device_domain": "ak.device-authorize-accepted-device-possession-proof-v1",
+        "root_anchored_domain": "ak.device-authorize-possession-proof-v1",
+        "target_failure_mode": "fail_closed_and_warn_user"
+      },
+      "assertions": [
+        "the accepted_device possession object is closed over device_id, device_public_key, hpke_key, algorithms, device_key_algorithm, authorization_binding_kind and pairing_challenge_transcript_digest, and over nothing the approving device chooses",
+        "the approving device and the Account Authority each rebuild that object independently and never accept a requester-supplied attestation copy",
+        "pairing_challenge_transcript_digest is compared against a locally recomputed challenge transcript before signature verification",
+        "hpke_key and algorithms are read only from the verified attestation; neither the stage request nor the bootstrap carries them",
+        "short-link and to-device share one attestation schema and one domain because the digest already carries the path discriminator",
+        "a transcript minted for one authorization_binding_kind never verifies for the other in either direction",
+        "the target device fetches the accepted authorize Event and verifies byte-identical device_signature, byte-identical key material and an expected principal_id before it assembles the identity locally"
       ]
     }
   ]

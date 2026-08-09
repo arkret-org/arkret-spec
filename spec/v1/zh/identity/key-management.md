@@ -476,9 +476,9 @@ gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入
 
 1. 新设备本地生成 device key。
 2. 新设备先通过 `ak.gate.account.command.issue_session_grant` 获得 fresh-device restricted session grant，或通过二维码/手动码把同等 pairing payload 交给旧设备。该 grant 只能用于同 principal 的 `ak.key.verification.*` bootstrap；在 step 5 的 authorize Event 已 durable accepted 且新设备出现在 current durable device list 之前，MUST NOT 读取 E2EE history、解锁 key backup、发送或接收 `ak.secret.request/send`。SAS/QR 成功只允许进入授权确认，不构成 secret-transfer 例外。
-3. 新设备通过 `POST /_arkret/self/device_messages` 向同 principal 的已授权设备发送 `ak.key.verification.request`。content MUST 至少包含 `transaction_id`、`from_device`、`methods`、`timestamp`、`expires_at`；用于设备授权时 SHOULD 带 `purpose="same_principal_device_authorization"`、`pairing_code`、`new_device_pubkey`（canonical `PublicKey`）、`challenge_proof`、`gate_audience`、`request_canonical_digest` 与 `device_metadata?`（wire 示例见 [`device-lifecycle.md` §7](../crypto-media/device-lifecycle.md)）。
+3. 新设备通过 `POST /_arkret/self/device_messages` 向同 principal 的已授权设备发送 `ak.key.verification.request`。content MUST 至少包含 `transaction_id`、`from_device`、`methods`、`timestamp`、`expires_at`；用于设备授权时 SHOULD 带 `purpose="same_principal_device_authorization"`、`pairing_code`、`new_device_pubkey`（canonical `PublicKey`）、`challenge_proof`、`target_attestation`（`accepted_device` possession attestation，本路径下 `hpke_key` / `algorithms` 的唯一权威来源，见 [`device-lifecycle.md` §5.2](../crypto-media/device-lifecycle.md) §5.2.2）、`gate_audience`、`request_canonical_digest` 与 `device_metadata?`（wire 示例见 [`device-lifecycle.md` §7](../crypto-media/device-lifecycle.md)）。
 4. 已授权设备的主接收路径是 `GET /_arkret/self/account/subscribe` 的 `delta.to_device.messages[]`；push 只能作为唤醒提示。若 `delta.to_device.limited=true`、本地 dispatcher 需要补洞，或旧设备当前没有完整 account subscribe，才使用 `GET /_arkret/self/device_messages?after=<cursor>&limit=n` 补拉。UI MUST 显示 requesting device metadata 与 pairing code，要求用户和新设备屏幕上的 code 比对。
-5. 用户在已授权设备上批准并完成 SAS/QR transcript 后，该设备先对完整 `ak.device.authorize` payload 签署 Event Initial Submission，再调用 `POST /_arkret/gate/account/device-pair`，提交 transcript 绑定的 `pairing_code`、`new_device_pubkey`、`challenge_proof`、payload 内 exact `hpke_key`、exact `device_signature`、完整 `authorize_event` 与当前设备 fresh proof；`challenge_proof` 的 transcript 与验签规则见 [`device-lifecycle.md` §2.1.2](../crypto-media/device-lifecycle.md)。服务端必须按普通 Event admission 接受该 exact submission，不得自行 mint Event 或直接写 device projection。`/_arkret/self/devices/pairing-requests*` 不是 v1 core approval surface。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
+5. 用户在已授权设备上批准并完成 SAS/QR transcript 后，该设备先验签 `target_attestation`、从中取出 `hpke_key` 与 `algorithms`（MUST NOT 从服务端响应或 UI 输入取），据此对完整 `ak.device.authorize` payload 签署 Event Initial Submission，再调用 `POST /_arkret/gate/account/device-pair`，提交 transcript 绑定的 `pairing_code`、`new_device_pubkey`、`challenge_proof`、payload 内 exact `hpke_key`、exact `device_signature`、完整 `authorize_event` 与当前设备 fresh proof；`challenge_proof` 的 transcript 与验签规则见 [`device-lifecycle.md` §2.1.2](../crypto-media/device-lifecycle.md)，target `device_signature` 的 `accepted_device` possession domain 与签名对象见 [`device-lifecycle.md` §5.2](../crypto-media/device-lifecycle.md) §5.2.2。服务端必须按普通 Event admission 接受该 exact submission，不得自行 mint Event 或直接写 device projection。`/_arkret/self/devices/pairing-requests*` 不是 v1 core approval surface。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
 6. Events API / identity registry durable 接受并传播 `ak.device.authorize` 与 `ak.device.list_update`；gate 返回 `authorized_event_ref` 或等价引用。新设备可通过 `ak.key.verification.done` 中的 hint、重新签发/升级后的 session grant、或后续 account subscribe/device list baseline 观察结果，但 MUST 以 durable device list 为准；只有观察到该 exact authorize Event 已进入 current durable device list 后，才可发送 `ak.secret.request`、开始同步 Event history、Realm membership 和必要的 MLS Welcome / key share。
 
 如果用户没有任何可用的已授权设备，UI SHOULD 明确优先提示"在已有设备确认"；确认不可用后，才进入恢复密钥 / social recovery 路径。新设备仅凭登录 session grant MUST NOT 获得 E2EE history key。
@@ -493,14 +493,14 @@ gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入
   "hpke_key": "z6LS...",
   "algorithms": ["ak.mls.v1"],
   "device_key_algorithm": "Ed25519",
-  "authorized_by": "did:webvh:...:alice.example",
+  "authorized_by": "ak:device:01964136-8000-7000-8000-000000000000",
   "authorization_binding_kind": "accepted_device",
   "not_before": "2026-04-26T00:00:00.000Z",
   "device_signature": "base64url..."
 }
 ```
 
-批准方 accepted device 以 authorize Event proof 对完整 payload 签名，method 是 `` `{principal_id}#{authorized_by_device_id}` ``；新设备仅以 `device_signature` 证明持有 candidate key。candidate overlay 只用于 root-anchored genesis/re-anchor，普通 pairing 不允许目标设备自我授权。
+`authorization_binding_kind="accepted_device"` 下 `authorized_by` 是**批准设备自己的 `device_id`**，不是它所属 principal 的 DID；只有 `root_anchored` 才用 identity-root principal DID。批准方 accepted device 以 authorize Event proof 对完整 payload 签名，method 逐字等于 `` `{principal_id}#{authorized_by}` ``，该 proof 也是 `principal_id` / `authorized_by` / `not_before` / `expires_at` / `scopes` 的唯一签名承载；新设备的 `device_signature` 只在 `accepted_device` possession transcript 上证明持有 candidate key 与自己的 `hpke_key` / `algorithms`（见 [`device-lifecycle.md` §5.2](../crypto-media/device-lifecycle.md) §5.2.2），并在本地装配前按 §5.4.1 反查该 Event。candidate overlay 只用于 root-anchored genesis/re-anchor，普通 pairing 不允许目标设备自我授权。
 
 ### 5.2 设备吊销
 

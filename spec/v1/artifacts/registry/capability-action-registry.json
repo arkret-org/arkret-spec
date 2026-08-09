@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.17",
+  "version": "2026-08-09.20",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T05:00:00Z",
+  "generated_at": "2026-08-10T09:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -621,6 +621,22 @@
       "profile": "ak.profile.membership_join_compensation.v1",
       "event_mapping_kind": "scope_suffix_variant",
       "notes": "Accepted-at compensation for a delegated/admin-authored join only. It authorizes one fresh standard remove transition for the exact admission and old membership incarnation; it grants no Realm admin capability."
+    },
+    {
+      "action": "ak.member.rejoin.own",
+      "category": "membership",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "membership_transition_is_leave_to_join",
+        "actor_equals_membership_subject"
+      ],
+      "target_event_kinds": [
+        "ak.member.state"
+      ],
+      "profile": "ak.profile.direct_conversation_repair.v1",
+      "event_mapping_kind": "scope_suffix_variant",
+      "notes": "Direct Conversation exact-pair self-rejoin only. It never authorizes a first join, a third participant, or a join authored on behalf of the other participant, and it never authorizes any grant, policy, admin, Strand or binding change."
     },
     {
       "action": "ak.message.create",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 10,
+  "version": 11,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -3300,7 +3300,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The Realm E2EE history sharing policy is a mutable policy facet cell (ak.component.realm.history_sharing_policy.v1), never a create-locked property of the closed realm.schema.json object. Principal Control Realms do not declare it at all: the ak.profile.principal_control_realm.v1 profile fixes the effective baseline value (zh/models/realm-and-space.md §2.8.1)."
+      "notes": "The Realm E2EE history sharing policy is a mutable policy facet cell (ak.component.realm.history_sharing_policy.v1), never a create-locked property of the closed realm.schema.json object. Two profiles do not declare it at all because they can never emit that Event: ak.profile.principal_control_realm.v1 fixes the effective baseline value for a Principal Control Realm (zh/models/realm-and-space.md §2.8.1) and ak.profile.direct_conversation_realm.v1 fixes it for a Direct Conversation Realm (zh/identity/contact-and-direct-conversation.md §6.2)."
     },
     {
       "id": "retention_policy",

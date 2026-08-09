@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.17",
+  "version": "2026-08-09.20",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T05:00:00Z",
+  "generated_at": "2026-08-10T09:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
@@ -125,7 +125,7 @@
       "binding_event_kind": "ak.direct_conversation.bound",
       "binding_ref_role": "direct_conversation_binding",
       "action_allowlist": [
-        "ak.member.leave.own"
+        "ak.member.rejoin.own"
       ],
       "activation_checks": [
         "stable_binding_exact",

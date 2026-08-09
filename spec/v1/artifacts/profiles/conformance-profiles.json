@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-10",
-  "generated_at": "2026-08-10T04:00:00Z",
+  "version": "2026-08-10.2",
+  "generated_at": "2026-08-10T08:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1257,7 +1257,12 @@
       "required_fixtures": [
         "schema-validation-fixture.json",
         "encoding-fixture.json",
-        "direct-conversation-fixture.json"
+        "direct-conversation-fixture.json",
+        "history-crypto-closure-fixture.json"
+      ],
+      "required_vectors": [
+        "ak.vector.contact.next_prepare_input.v1",
+        "ak.vector.history_sharing.direct_conversation_profile_baseline.v1"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -1278,6 +1283,27 @@
         "encryption_profile": "mls_rfc9420",
         "content_encryption_floor": "e2ee_required",
         "metadata_encryption_floor": "e2ee_required"
+      },
+      "history_sharing_policy_fixed_baseline": {
+        "rationale": "zh/governance/history-visibility.md section 6 condition 2 requires an effective ak.realm.history_sharing_policy before every ak.realm_key.share; the requirement is unconditional and is not limited to restricted visibility. A Direct Conversation Realm can never publish one: the founding unit is the closed three-Event unit create + peer ak.member.state{join} + main ak.strand.create and a fourth Event MUST reject the whole unit, neither ak.authority.direct_conversation_bootstrap_participant.v1 nor ak.authority.direct_conversation_participant.v1 carries any action that could author a policy facet, and zh/identity/contact-and-direct-conversation.md section 8.3 forbids restoring owner or admin authority after found. This profile therefore supplies the effective value, exactly as ak.profile.principal_control_realm.v1 does for a PCR; key sources and reducers MUST evaluate Direct Conversation history key share against this literal value and MUST NOT raise history_sharing_policy_missing for the absence of an accepted policy Event. Producers MUST NOT declare history_sharing_policy on the Realm object and MUST NOT append a policy Event to the founding unit. Field decisions: default_key_share=event_time_visibility is correct because history_visibility=joined and the peer is a Realm member from Realm Genesis onward (section 6.2), so the event-time judgement alone already releases generation-0 history. allowed_receiver_states=[active_member] is the machine-readable form of the exact-peer-only history sharing baseline, since the profile pins exactly two participants and an active member can only be one of that pair. allowed_key_sources keeps own_device, verified_member_device and key_backup, the last covering a participant restoring across their own devices from their own backup, and deliberately omits archive_node and recovery_service, which are third parties and would break the two-party exclusivity this profile exists to guarantee. post_removal_recovery=deny matches section 8.2, where a returning participant MUST NOT obtain history it had no right to decrypt before rejoining, and the new_mls_generation_history_isolated rule of ak.profile.direct_conversation_repair.v1. restricted_rules is deliberately absent because history_visibility is joined, not restricted, so that rule set is never consulted. Two different meanings of pre-join MUST NOT be conflated. pre_join_history here means before becoming a Realm member; in a Direct Conversation the peer join_frontier is Realm Genesis itself, so no Event in the Realm has a T0 earlier than it, the field is structurally never reached, and deny behaves identically to any allowing value; deny is chosen only to state truthfully that this profile never releases pre-membership history. The pre-join wording in section 6.2 means something else entirely, namely that the peer is not yet an MLS leaf, and that generation-0 history MUST be shared: implementations MUST NOT refuse the generation-0 provisional history key share of ak.authority.direct_conversation_bootstrap_participant.v1 because pre_join_history=deny. No release_range_clamp counterpart is registered here. The PCR clamp exists because its restricted_rules[].range=all_visible_at_t0 is a policy ceiling wider than the interval a newly authorized device may actually receive; this baseline declares no restricted_rules and therefore no range at all, and default_key_share=event_time_visibility delegates the released interval entirely to the section 3 joined event-time judgement, which is already self-clamping because an absence window between leave and rejoin is not T0-visible to the returning participant. The normative conformance vector for this clause is ak.vector.history_sharing.direct_conversation_profile_baseline.v1.",
+        "value": {
+          "version": 1,
+          "default_key_share": "event_time_visibility",
+          "pre_join_history": "deny",
+          "post_removal_recovery": "deny",
+          "allowed_key_sources": [
+            "own_device",
+            "verified_member_device",
+            "key_backup"
+          ],
+          "allowed_receiver_states": [
+            "active_member"
+          ],
+          "audit": {
+            "share_audit_event_required": true,
+            "access_audit_required": true
+          }
+        }
       },
       "binding_invariants": [
         "schema_refs MUST contain ak.profile.direct_conversation_realm.v1 and fields.collaboration_role MUST equal direct_conversation; either marker without the other is schema_violation.",

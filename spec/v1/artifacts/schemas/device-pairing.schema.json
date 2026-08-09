@@ -36,6 +36,15 @@
       "pattern": "^[A-Za-z0-9_-]+$",
       "minLength": 1
     },
+    "algorithm_list": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/non_empty_string"
+      },
+      "description": "Algorithm ids supported by the target device, sorted by UTF-8 bytewise order and deduplicated before they enter any transcript."
+    },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
@@ -116,6 +125,54 @@
       },
       "additionalProperties": false
     },
+    "device_pairing_target_attestation": {
+      "type": "object",
+      "description": "Closed possession attestation the target device produces for the accepted_device pairing path, and the only authority for its hpke_key and algorithms: neither the staged record nor the bootstrap carries them, so the approving device reads them here after the signature verifies and copies them byte-for-byte into the ak.device.authorize payload. Signing input is UTF8(\"ak.device-authorize-accepted-device-possession-proof-v1\\n\") || canonical_json({algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key, hpke_key, pairing_challenge_transcript_digest}); see crypto-media/device-lifecycle.md section 5.2.2. The object is closed over target-owned material plus this pairing challenge, so the target can build it before it knows which sibling will approve and what principal_id, authorized_by, not_before, expires_at or scopes that sibling will choose; those values are carried by the approving device Event proof instead. It travels only over the out-of-band channel (QR fragment or to-device message) and MUST NOT be posted back through the unauthenticated stage or resolve surface. It is never a wire field of ak.gate.account.command.pair_device: every member is already recomputable there from the request payload and the Account Authority own challenge transcript.",
+      "required": [
+        "device_id",
+        "device_public_key",
+        "hpke_key",
+        "algorithms",
+        "device_key_algorithm",
+        "authorization_binding_kind",
+        "pairing_challenge_transcript_digest",
+        "device_signature"
+      ],
+      "properties": {
+        "device_id": {
+          "$ref": "#/$defs/device_id",
+          "description": "MUST equal new_device_pubkey.kid."
+        },
+        "device_public_key": {
+          "type": "string",
+          "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
+          "description": "Self-describing did:key form of the same Ed25519 key as new_device_pubkey.key. A verifier MUST reject an attestation whose device_public_key decodes to different key bytes than the staged or forwarded new_device_pubkey."
+        },
+        "hpke_key": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Target device X25519 HPKE public key. This attestation is its authority; a service MUST NOT supply or substitute it."
+        },
+        "algorithms": {
+          "$ref": "#/$defs/algorithm_list"
+        },
+        "device_key_algorithm": {
+          "const": "Ed25519"
+        },
+        "authorization_binding_kind": {
+          "const": "accepted_device",
+          "description": "This transcript exists only for accepted_device pairing. root_anchored genesis and re-anchor keep the full ak.device-authorize-possession-proof-v1 object, and a transcript from one binding kind MUST NOT be accepted for the other."
+        },
+        "pairing_challenge_transcript_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "MUST equal device_pairing_challenge_proof.transcript_digest of this same pairing challenge. It is the single replay boundary of this attestation: path A commits through it to device_pairing_request_id, pairing_code, gate_audience, expires_at, server_nonce, client_nonce and new_device_pubkey_digest, and path B to transaction_id, request_canonical_digest, expires_at, gate_audience, pairing_code and new_device_pubkey_digest. A verifier MUST recompute the challenge transcript itself and reject a digest that does not match this pairing."
+        },
+        "device_signature": {
+          "$ref": "./event-payload.schema.json#/$defs/signature_material",
+          "description": "Ed25519 signature by the private key of device_public_key over the canonical signing input above. The approving device MUST copy it byte-for-byte into device_authorize_payload.device_signature and into the pair_device request device_signature."
+        }
+      },
+      "additionalProperties": false
+    },
     "device_pairing_request_id": {
       "$ref": "./agent-operations.schema.json#/$defs/device_pairing_request_id"
     },
@@ -148,7 +205,7 @@
     },
     "device_pairing_stage_request_body": {
       "type": "object",
-      "description": "Unauthenticated stage request that mints a fresh account-less pending pairing record. It carries only the canonical public key and a client nonce: the challenge proof cannot exist yet, because it must commit to the request id, pairing code, expiry, gate audience and server nonce that this call mints. The record binds no principal and grants nothing until an authenticated device authorizes it.",
+      "description": "Unauthenticated stage request that mints a fresh account-less pending pairing record. It carries only the canonical public key and a client nonce: the challenge proof cannot exist yet, because it must commit to the request id, pairing code, expiry, gate audience and server nonce that this call mints. It also deliberately omits hpke_key and algorithms; those reach the approving device inside the signed device_pairing_target_attestation over the out-of-band channel, so the anonymous staging surface never accumulates long-term device key material or a device algorithm fingerprint. The record binds no principal and grants nothing until an authenticated device authorizes it.",
       "required": [
         "new_device_pubkey",
         "client_nonce"
@@ -213,7 +270,7 @@
     },
     "device_pairing_bootstrap": {
       "type": "object",
-      "description": "Pairing material handed to an already-authorized device after resolving a device-pairing short link. It carries the server-minted challenge material so the authorized device can recompute the ak.device-pairing.challenge.v1 transcript and verify the proof it received out of band from the new device. It does NOT carry the proof itself: the staging surface is unauthenticated and never sees it. This is not a session grant, capability grant or long-term secret; the authorized device still drives ak.gate.account.command.pair_device to complete authorization.",
+      "description": "Pairing material handed to an already-authorized device after resolving a device-pairing short link. It carries the server-minted challenge material so the authorized device can recompute the ak.device-pairing.challenge.v1 transcript and verify the proof it received out of band from the new device. It does NOT carry the proof itself, nor the device_pairing_target_attestation, nor the hpke_key and algorithms that attestation signs: the staging surface is unauthenticated and never sees any of them, and mirroring signed values here would only create a second, non-authoritative copy. This is not a session grant, capability grant or long-term secret; the authorized device still drives ak.gate.account.command.pair_device to complete authorization.",
       "required": [
         "arkret_base_url",
         "device_pairing_request_id",
@@ -290,7 +347,8 @@
           "$ref": "#/$defs/device_id"
         },
         "authorized_event_ref": {
-          "$ref": "#/$defs/event_id"
+          "$ref": "#/$defs/event_id",
+          "description": "Accepted ak.device.authorize Event id. It is the entry point for the mandatory pre-assembly check in crypto-media/device-lifecycle.md section 5.4.1: before the target device assembles the identity locally it MUST fetch this Event and confirm byte-identical device_signature, byte-identical device_public_key, hpke_key and algorithms, and an expected principal_id, or fail closed."
         }
       },
       "allOf": [

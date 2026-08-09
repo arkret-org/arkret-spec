@@ -5085,6 +5085,14 @@ paths:
       - bearerAuth: []
         dpopProof: []
       summary: List the holder's contact projection.
+      description: |
+        An accepted row also carries the closed next_prepare_input cursor. Its
+        basis_id, version and predecessor_event_ref are copied verbatim into the
+        prepare phase of /_arkret/self/contacts/scope-update or
+        /_arkret/self/contacts/tombstone; version is the version the next Event
+        carries and predecessor_event_ref is the current lineage head. Every
+        other contact_state omits the cursor, and the projected request,
+        response and tombstone event refs are never authoritative lineage heads.
       parameters:
       - name: state
         in: query
@@ -6691,6 +6699,9 @@ paths:
         mints a fresh device_pairing_request_id and 8-character Crockford-style
         40-bit CSPRNG pairing_code and
         stores a bounded-TTL account-less record in state pending_authorization.
+        The staged record deliberately carries no hpke_key, no algorithms, no
+        challenge proof and no target attestation: those reach the approving
+        device only over the out-of-band channel, and MUST NOT be mirrored here.
         The staged record binds no principal and grants nothing until an
         authenticated device authorizes it. Each call mints a fresh request, so
         blind retries duplicate staged records.
@@ -6720,6 +6731,9 @@ paths:
         DevicePairingBootstrap. The token is sent in the JSON body; QR/link
         handoff SHOULD carry it in the URL fragment so HTTP servers, proxies,
         and Referer logs do not receive the token in path or query string.
+        The bootstrap carries only server-minted challenge material: never the
+        challenge proof, never the target attestation, and never the hpke_key
+        and algorithms that attestation signs.
         Unknown id, pairing_code mismatch, expiry, or a non-pending record all
         return an indistinguishable not_found.
       requestBody:
@@ -6750,9 +6764,13 @@ paths:
         URL path or query string; a record miss and a pairing_code mismatch are
         indistinguishable (both not_found). Once an authenticated device has
         authorized the pairing the outcome carries state authorized plus
-        required device_id and authorized_event_ref. A valid credential for an
-        expired record reports state expired during a bounded cleanup retention
-        period and becomes not_found after deletion.
+        required device_id and authorized_event_ref. authorized_event_ref is
+        the entry point for the mandatory pre-assembly check: the target device
+        MUST fetch that accepted ak.device.authorize and confirm byte-identical
+        device_signature, byte-identical key material and an expected
+        principal_id before assembling the identity locally. A valid credential
+        for an expired record reports state expired during a bounded cleanup
+        retention period and becomes not_found after deletion.
       requestBody:
         required: true
         content:

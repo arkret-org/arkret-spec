@@ -14,7 +14,8 @@
     "ak.vector.disappearing.on_last_read_offline_window.v1",
     "ak.vector.preview.token_scoped_stripped_state.v1",
     "ak.vector.history_sharing.e2ee_prejoin_key_share_policy.v1",
-    "ak.vector.history_sharing.principal_control_profile_baseline.v1"
+    "ak.vector.history_sharing.principal_control_profile_baseline.v1",
+    "ak.vector.history_sharing.direct_conversation_profile_baseline.v1"
   ],
   "cases": [
     {
@@ -536,10 +537,121 @@
           "history_visibility": "restricted",
           "history_sharing_policy": null,
           "accepted_history_sharing_policy_event_present": false,
-          "baseline_scope": "only ak.profile.principal_control_realm.v1 supplies a profile-fixed baseline",
+          "baseline_scope": "only ak.profile.principal_control_realm.v1 and ak.profile.direct_conversation_realm.v1 supply a profile-fixed baseline; a Collaboration Realm claiming neither profile gets no implied baseline",
           "expected": {
             "decision": "reject",
             "reason": "history_sharing_policy_missing"
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.history_sharing.direct_conversation_profile_baseline.v1",
+      "assertions": [
+        "direct_conversation_key_share_is_evaluated_against_the_profile_fixed_baseline_without_an_accepted_policy_event",
+        "generation_zero_provisional_history_key_share_to_the_exact_peer_is_released",
+        "pre_join_history_deny_must_not_refuse_the_generation_zero_provisional_history_key_share",
+        "direct_conversation_baseline_excludes_archive_node_and_recovery_service_key_sources",
+        "post_repair_rejoin_gets_no_key_for_the_absence_window",
+        "direct_conversation_realm_object_must_not_declare_history_sharing_policy"
+      ],
+      "scenarios": [
+        {
+          "name": "generation_zero_provisional_history_share_to_exact_peer",
+          "realm_profile": "ak.profile.direct_conversation_realm.v1",
+          "history_visibility": "joined",
+          "history_sharing_policy": "profile_fixed_baseline",
+          "accepted_history_sharing_policy_event_present": false,
+          "authorization_ref": "ak.authority.direct_conversation_bootstrap_participant.v1",
+          "bootstrap_phase": "provisional_history_send",
+          "receiver_class": "active_member",
+          "receiver_is_exact_peer": true,
+          "receiver_join_frontier": "realm_genesis",
+          "requested_range": "mls_generation_0_exporter_epoch",
+          "key_source": "verified_member_device",
+          "expected": {
+            "decision": "share_key",
+            "history_sharing_policy_missing_raised": false,
+            "share_audit_event_required": true
+          }
+        },
+        {
+          "name": "pre_join_history_deny_must_not_block_generation_zero",
+          "realm_profile": "ak.profile.direct_conversation_realm.v1",
+          "history_visibility": "joined",
+          "history_sharing_policy": "profile_fixed_baseline",
+          "pre_join_history": "deny",
+          "receiver_class": "active_member",
+          "receiver_is_exact_peer": true,
+          "receiver_join_frontier": "realm_genesis",
+          "requested_range": "mls_generation_0_exporter_epoch",
+          "key_source": "verified_member_device",
+          "pre_join_disambiguation": "pre_join_history means before Realm membership and the peer is a member from Realm Genesis onward, so no Event has an earlier T0; the pre-join wording of contact-and-direct-conversation.md section 6.2 only means the peer is not yet an MLS leaf",
+          "expected": {
+            "decision": "share_key",
+            "withheld_for_pre_join_history": false
+          }
+        },
+        {
+          "name": "direct_conversation_archive_node_source",
+          "realm_profile": "ak.profile.direct_conversation_realm.v1",
+          "history_visibility": "joined",
+          "history_sharing_policy": "profile_fixed_baseline",
+          "receiver_class": "active_member",
+          "receiver_is_exact_peer": true,
+          "key_source": "archive_node",
+          "expected": {
+            "decision": "withhold",
+            "reason": "policy_denied"
+          }
+        },
+        {
+          "name": "direct_conversation_recovery_service_source",
+          "realm_profile": "ak.profile.direct_conversation_realm.v1",
+          "history_visibility": "joined",
+          "history_sharing_policy": "profile_fixed_baseline",
+          "receiver_class": "active_member",
+          "receiver_is_exact_peer": true,
+          "key_source": "recovery_service",
+          "expected": {
+            "decision": "withhold",
+            "reason": "policy_denied"
+          }
+        },
+        {
+          "name": "post_repair_rejoin_absence_window_key_share",
+          "realm_profile": "ak.profile.direct_conversation_realm.v1",
+          "repair_profile": "ak.profile.direct_conversation_repair.v1",
+          "history_visibility": "joined",
+          "history_sharing_policy": "profile_fixed_baseline",
+          "post_removal_recovery": "deny",
+          "receiver_class": "active_member",
+          "receiver_is_exact_peer": true,
+          "receiver_membership_sequence": "join_leave_rejoin",
+          "requested_range": "events_authored_during_the_absence_window",
+          "key_source": "verified_member_device",
+          "expected": {
+            "decision": "withhold",
+            "reason": "history_not_visible"
+          }
+        },
+        {
+          "name": "direct_conversation_object_declares_history_sharing_policy",
+          "realm_profile": "ak.profile.direct_conversation_realm.v1",
+          "mutation": "ak.realm.create carries payload.object.history_sharing_policy",
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        },
+        {
+          "name": "direct_conversation_founding_unit_appends_history_sharing_policy",
+          "realm_profile": "ak.profile.direct_conversation_realm.v1",
+          "mutation": "append ak.realm.history_sharing_policy as a fourth Event of the founding unit",
+          "expected": {
+            "decision": "reject",
+            "reason": "direct_conversation_founding_unit_invalid",
+            "writes": 0
           }
         }
       ]

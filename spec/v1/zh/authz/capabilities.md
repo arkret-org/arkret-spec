@@ -379,6 +379,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.invite.claim`
 - `ak.invite.revoke`
 - `ak.member.leave.own`（risk_tier=medium；profile=`ak.profile.direct_conversation_realm.v1`；scope_suffix_variant，target=`ak.member.state`；只允许 `actor_id == payload.actor_id` 的 `join → leave`，不得 leave/ban 对方或执行 join）
+- `ak.member.rejoin.own`（risk_tier=medium；profile=`ak.profile.direct_conversation_repair.v1`；scope_suffix_variant，target=`ak.member.state`；Direct Conversation exact-pair self-rejoin 专用，只允许 `actor_id == payload.actor_id` 的 `leave → join`，不得承载首次 join、第三 participant 或代对方 join，也不得取得 grant/policy/admin/Strand/binding 变更权）
 - `ak.realm.join.review`（候选 capability，与 candidate join-policy event 配对：审核 `member.application`、签发 `member.application.review`；详见 [`../governance/join-policy.md` §7](../governance/join-policy.md)。capability-action-registry 中 `profile = "ak.profile.candidate.join_policy.v1"`：未声明该候选 profile 的 receiver MUST 按 registry_rules 把本 action 视为 unknown，default risk_tier=high。Join-policy 正式登记前，本 capability 不属于 v1 active conformance。**Candidate / Profile-only**：`ak.realm.join.review` 不是 v1 base conformance 必需 capability；base v1 实现把 review 结果承载为 signed receipt（`review_receipt_digest`），并把 `ak.invite.create.refs[role='join_authorised_by']` 指向该 receipt digest（见 [`../governance/join-policy.md` §7.5](../governance/join-policy.md)）。只有声明 join-policy candidate profile 的部署才需要注册该 capability。）
 - `ak.approval.vote`
 - `ak.moderation.decision`（写入 sealed moderation state cell；详见 [`policy-server.md` §7.1](./policy-server.md)）

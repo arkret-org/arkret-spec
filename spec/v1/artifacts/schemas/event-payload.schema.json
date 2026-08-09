@@ -3867,7 +3867,7 @@
     },
     "device_authorize_payload": {
       "type": "object",
-      "description": "Closed authorization record shared by genesis, accepted-device pairing, and identity-root re-anchor. For root_anchored genesis/re-anchor, the authorize Event proof is made by the candidate device through the unit-local overlay. For accepted_device pairing, the authorize Event proof signer MUST be the current active device named by authorized_by; device_signature separately proves possession by the new target device.",
+      "description": "Closed authorization record shared by genesis, accepted-device pairing, and identity-root re-anchor. For root_anchored genesis/re-anchor, the authorize Event proof is made by the candidate device through the unit-local overlay and device_signature covers the whole authorization core. For accepted_device pairing, the authorize Event proof signer MUST be the current active device named by authorized_by, and that proof is what binds principal_id, authorized_by, not_before, expires_at and scopes; device_signature separately proves possession by the new target device over the closed target-owned transcript, because the target cannot know those approver-chosen values when it builds its attestation.",
       "required": [
         "principal_id",
         "device_id",
@@ -3892,17 +3892,18 @@
         },
         "hpke_key": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "Device HPKE public key used for secret/key envelope sealing. It is covered by the possession transcript and by the surrounding root anchor or accepted-device Event proof; services MUST NOT substitute it."
+          "description": "Device HPKE public key used for secret/key envelope sealing. It is covered by the possession transcript and by the surrounding root anchor or accepted-device Event proof; services MUST NOT substitute it. For accepted_device pairing its authority is the target device_pairing_target_attestation, which the approving device reads only after that attestation verifies."
         },
         "algorithms": {
           "$ref": "#/$defs/string_list",
-          "description": "Canonical sorted unique algorithm ids supported by this device. Enters device trust binding transcript together with device_public_key and hpke_key."
+          "description": "Canonical sorted unique algorithm ids supported by this device. Enters device trust binding transcript together with device_public_key and hpke_key. For accepted_device pairing its authority is the target device_pairing_target_attestation, not any service-supplied or staged copy."
         },
         "device_key_algorithm": {
           "const": "Ed25519"
         },
         "authorized_by": {
-          "$ref": "#/$defs/device_or_principal_ref"
+          "$ref": "#/$defs/device_or_principal_ref",
+          "description": "Under root_anchored this is the identity-root principal DID that committed the genesis or re-anchor unit. Under accepted_device it is the approving device id (ak:device:<uuid>) at the accepted generation, never that device principal DID."
         },
         "authorization_binding_kind": {
           "type": "string",
@@ -3923,7 +3924,7 @@
         },
         "device_signature": {
           "$ref": "#/$defs/signature_material",
-          "description": "Required Ed25519 proof of possession by the private key corresponding to device_public_key over ak.device-authorize-possession-proof-v1. The transcript includes authorization_binding_kind and excludes all signature material. DPoP/session keys cannot satisfy this proof."
+          "description": "Required Ed25519 proof of possession by the private key corresponding to device_public_key. The signing domain is selected by authorization_binding_kind, not fixed: root_anchored uses ak.device-authorize-possession-proof-v1 over the full authorization core, and accepted_device uses ak.device-authorize-accepted-device-possession-proof-v1 over the closed target-owned object plus this pairing challenge transcript digest (crypto-media/device-lifecycle.md section 5.2.2). Both transcripts include authorization_binding_kind and exclude all signature material, so a transcript minted for one binding kind can never verify for the other. DPoP/session keys cannot satisfy this proof."
         },
         "recovery_session_id": {
           "type": "string",

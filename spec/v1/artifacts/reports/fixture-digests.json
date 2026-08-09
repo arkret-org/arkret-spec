@@ -110,7 +110,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "e47d2d73314cdc0e2a896fb1629103d535dd75fe0cf6d0faff8a7851ed36adb8"
+      "sha256": "052f5bd1e14b2bebf481f7c8018a169ef8967d53afd812fdbc88fd7037a1e236"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
@@ -150,7 +150,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
-      "sha256": "952fe18d5f782e790ffb0a477ad88efb88c32b37179f46331359659e17b702cb"
+      "sha256": "22d4119580ee68e299fd3f397264bc92ba4cf9bd6d7fb1a72d39ebf4468b160f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -250,7 +250,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "d31ff8de83150a2c2483ebfd390828017ae251ca4309ee778b2b8c49e87bbeae"
+      "sha256": "e3f47f6f4ee45a0f3573b9a6f9468c05ba2067fe241187bf7550527afe7d377f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",

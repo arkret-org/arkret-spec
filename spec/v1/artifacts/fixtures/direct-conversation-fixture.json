@@ -3,12 +3,13 @@
   "fixture_kind": "schema_and_semantic",
   "profile": "ak.profile.direct_conversation_realm.v1",
   "covers_vectors": [
+    "ak.vector.contact.next_prepare_input.v1",
     "ak.vector.direct_conversation.realm_shape.v1",
     "ak.vector.direct_conversation.founding_unit.v1",
     "ak.vector.direct_conversation.founding_admission.v1",
     "ak.vector.direct_conversation.suspend_rejoin.v1"
   ],
-  "version": "2026-08-08",
+  "version": "2026-08-10",
   "spec_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#55-caller-authored-founding-unitsource-唯一-slot-与-acceptance-receipt",
   "source_refs": [
     "spec/v1/zh/identity/contact-and-direct-conversation.md",
@@ -18,7 +19,7 @@
     "spec/v1/artifacts/schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
     "spec/v1/artifacts/profiles/conformance-profiles.json#profile_requirements"
   ],
-  "description": "Schema and semantic vectors for one stable Direct Conversation per pair: the caller-authored three-Event founding unit and its self/peer carrier branches, first-valid-unit slot admission across same-server, dual-server and multi-device concurrency, suspend/rejoin, MLS-generation separation, participant authority and root masking.",
+  "description": "Schema and semantic vectors for one stable Direct Conversation per pair: the caller-authored three-Event founding unit and its self/peer carrier branches, first-valid-unit slot admission across same-server, dual-server and multi-device concurrency, suspend/rejoin, MLS-generation separation, participant authority and root masking, plus the Contact list next_prepare_input successor cursor that authors the scope_update and tombstone prepare phases the same Contact lineage feeds.",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -197,6 +198,154 @@
         "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
         "binding_event_ref": "ak:event:Aci8tEQxldhmJuDsi_caXxu_rN07TGxrWiNcxyJLPBCc",
         "state": "retired"
+      }
+    },
+    {
+      "name": "accepted_contact_row_carries_next_prepare_input",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "principal_id": "did:webvh:z6mkfixture:bob.example"
+        },
+        "state": "accepted",
+        "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+        "response_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",
+        "next_prepare_input": {
+          "basis_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
+          "version": 2,
+          "predecessor_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA"
+        },
+        "granted_to_peer_scopes": [
+          "invite",
+          "direct_message"
+        ],
+        "granted_by_peer_scopes": [
+          "direct_message"
+        ],
+        "bidirectional_scopes": [
+          "direct_message"
+        ]
+      }
+    },
+    {
+      "name": "tombstone_prepare_accepts_verbatim_next_prepare_input",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "phase": "prepare",
+        "operation_id": "ak:operation:019a0000-0000-7000-8000-00000000c001",
+        "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4B1",
+        "peer": {
+          "kind": "human",
+          "principal_id": "did:webvh:z6mkfixture:bob.example"
+        },
+        "basis_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
+        "version": 2,
+        "predecessor_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA"
+      }
+    },
+    {
+      "name": "scope_update_prepare_accepts_verbatim_next_prepare_input",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "phase": "prepare",
+        "operation_id": "ak:operation:019a0000-0000-7000-8000-00000000c002",
+        "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4B2",
+        "peer": {
+          "kind": "human",
+          "principal_id": "did:webvh:z6mkfixture:bob.example"
+        },
+        "basis_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
+        "version": 2,
+        "predecessor_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",
+        "granted_to_peer_scopes": [
+          "direct_message"
+        ]
+      }
+    },
+    {
+      "name": "accepted_contact_row_without_next_prepare_input_rejected",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": false,
+      "first_expected_error": "contains:'next_prepare_input' is a required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "principal_id": "did:webvh:z6mkfixture:bob.example"
+        },
+        "state": "accepted",
+        "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+        "response_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",
+        "granted_to_peer_scopes": [
+          "invite",
+          "direct_message"
+        ],
+        "granted_by_peer_scopes": [
+          "direct_message"
+        ],
+        "bidirectional_scopes": [
+          "direct_message"
+        ]
+      }
+    },
+    {
+      "name": "tombstoned_contact_row_rejects_next_prepare_input",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under {'required': ['next_prepare_input']}",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "principal_id": "did:webvh:z6mkfixture:bob.example"
+        },
+        "state": "tombstoned",
+        "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+        "response_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",
+        "tombstone_event_ref": "ak:event:AYfTCWV0E89xVyBGDdUxp2r9d3MQJAcRVbZC9QZPVXYK",
+        "next_prepare_input": {
+          "basis_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
+          "version": 3,
+          "predecessor_event_ref": "ak:event:AYfTCWV0E89xVyBGDdUxp2r9d3MQJAcRVbZC9QZPVXYK"
+        },
+        "granted_to_peer_scopes": [],
+        "granted_by_peer_scopes": [],
+        "bidirectional_scopes": []
+      }
+    },
+    {
+      "name": "pending_incoming_contact_row_rejects_next_prepare_input",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under {'required': ['next_prepare_input']}",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "principal_id": "did:webvh:z6mkfixture:bob.example"
+        },
+        "state": "pending_incoming",
+        "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+        "next_prepare_input": {
+          "basis_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
+          "version": 2,
+          "predecessor_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ"
+        },
+        "granted_to_peer_scopes": [],
+        "granted_by_peer_scopes": [
+          "direct_message"
+        ],
+        "bidirectional_scopes": []
       }
     },
     {
@@ -662,6 +811,42 @@
       "expected_reason_code": "direct_conversation_participant_authority_denied",
       "assertions": [
         "resolver remains found or suspended independently"
+      ]
+    },
+    {
+      "name": "list_next_prepare_input_authors_scope_update_and_tombstone",
+      "precondition": "one accepted non-terminal Contact basis whose issuer-local lineage head is at version 1",
+      "action": "read ak.self.contact.read.list and copy next_prepare_input into the prepare phase of ak.self.contact.command.scope_update and of ak.self.contact.command.tombstone",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "the accepted row carries next_prepare_input and the three field names are byte-identical to the prepare fields that consume them",
+        "version equals current head version plus one and predecessor_event_ref equals the current lineage head Event ID, not the predecessor of that head",
+        "both prepare phases are accepted with the values copied verbatim and no client-side renaming, recomputation or derivation occurs",
+        "the same row is projected for a glare-derived basis, where predecessor_event_ref is the issuer's own request head",
+        "an empty granted_to_peer_scopes replacement keeps contact_state accepted and the row still carries the cursor so a later widen stays authorable"
+      ]
+    },
+    {
+      "name": "non_authorable_contact_states_omit_next_prepare_input",
+      "precondition": "rows in pending_outgoing, pending_incoming, rejected, expired and tombstoned",
+      "action": "read ak.self.contact.read.list",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "no row in these five states carries next_prepare_input, because the first two have no basis or lineage yet and the last three are terminal",
+        "the omission alone expresses that no successor is authorable now and no extra error code or contact_state value is introduced",
+        "a client MUST NOT assemble a successor from request_event_ref, response_event_ref or tombstone_event_ref"
+      ]
+    },
+    {
+      "name": "stale_next_prepare_input_is_refused_and_reread",
+      "precondition": "the holder holds a next_prepare_input read before a concurrent accepted successor advanced the lineage head",
+      "action": "prepare ak.self.contact.command.scope_update or ak.self.contact.command.tombstone with the stale triple",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "contact_lineage_conflict",
+      "assertions": [
+        "prepare is refused with zero writes and a scope replacement whose current proof is stale is refused with contact_scope_stale",
+        "the client re-reads ak.self.contact.read.list and retries with the fresh cursor",
+        "the client never guesses a lineage head and never retries the same triple"
       ]
     }
   ]

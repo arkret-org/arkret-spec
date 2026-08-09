@@ -37,7 +37,7 @@
         "required": [
           "history_sharing_policy"
         ],
-        "$comment": "forbidden Realm policy field; the E2EE history sharing policy is the ak.realm.history_sharing_policy facet cell, and Principal Control Realms take a profile-fixed baseline instead. See zh/governance/history-visibility.md section 6 and zh/models/realm-and-space.md section 2.8.1."
+        "$comment": "forbidden Realm policy field; the E2EE history sharing policy is the ak.realm.history_sharing_policy facet cell, and the two profiles that can never emit that Event take a profile-fixed baseline instead: ak.profile.principal_control_realm.v1 and ak.profile.direct_conversation_realm.v1. See zh/governance/history-visibility.md section 3, zh/models/realm-and-space.md section 2.8.1 and zh/identity/contact-and-direct-conversation.md section 6.2."
       },
       {
         "required": [
