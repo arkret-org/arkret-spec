@@ -90,13 +90,14 @@
     },
     "fields": {
       "type": "object",
-      "description": "Product/profile fields. Security-relevant discriminators such as purpose=principal_control and collaboration_role=direct_conversation are schema constrained below; other product fields remain extension-defined.",
+      "description": "Product/profile fields. Security-relevant discriminators such as purpose in {principal_control, managed_agent_control} and collaboration_role=direct_conversation are schema constrained below; other product fields remain extension-defined.",
       "properties": {
         "purpose": {
           "type": "string",
-          "enum": [
-            "principal_control"
-          ]
+        "enum": [
+          "principal_control",
+          "managed_agent_control"
+        ]
         },
         "collaboration_role": {
           "type": "string",

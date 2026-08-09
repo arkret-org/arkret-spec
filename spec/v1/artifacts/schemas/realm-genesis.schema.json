@@ -25,7 +25,8 @@
       "enum": [
         "collaboration",
         "direct_conversation",
-        "principal_control"
+        "principal_control",
+        "managed_agent_control"
       ]
     },
     "genesis_salt": {
@@ -35,7 +36,7 @@
     },
     "founding_device_descriptor": {
       "$ref": "#/$defs/founding_device_descriptor",
-      "description": "Principal Control Realm only. The identity root commits to the exact founding device material and the canonical founding authorize payload digest."
+      "description": "Human Principal Control Realm genesis only. The identity root commits to the exact founding device material and the canonical founding authorize payload digest. The enclosing pcr_genesis_unit requires it; managed Agent PCR genesis MUST omit it."
     },
     "trust_domain": {
       "$ref": "./realm.schema.json#/$defs/trust_domain"
@@ -75,7 +76,10 @@
       "if": {
         "properties": {
           "purpose": {
-            "const": "principal_control"
+            "enum": [
+              "principal_control",
+              "managed_agent_control"
+            ]
           }
         },
         "required": [
@@ -83,9 +87,6 @@
         ]
       },
       "then": {
-        "required": [
-          "founding_device_descriptor"
-        ],
         "not": {
           "required": [
             "genesis_salt"
@@ -102,13 +103,26 @@
           ]
         }
       }
+    },
+    {
+      "not": {
+        "properties": {
+          "purpose": {
+            "const": "managed_agent_control"
+          }
+        },
+        "required": [
+          "purpose",
+          "founding_device_descriptor"
+        ]
+      }
     }
   ],
   "additionalProperties": false,
   "$defs": {
     "founding_device_descriptor": {
       "type": "object",
-      "description": "Closed founding-device commitment embedded in the root-signed human Principal Control Realm genesis payload and required by pcr_genesis_unit. It is not an independent signed object. Managed Agent PCR creation uses its existing controller-authorized branch and omits this human-device descriptor.",
+      "description": "Closed founding-device commitment embedded in the root-signed human Principal Control Realm genesis payload and required by pcr_genesis_unit. It is not an independent signed object. Managed Agent PCR creation omits this human-device descriptor.",
       "required": [
         "descriptor_version",
         "device_id",

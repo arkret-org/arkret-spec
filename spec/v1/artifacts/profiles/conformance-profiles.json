@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-09.2",
-  "generated_at": "2026-08-09T13:00:00Z",
+  "version": "2026-08-09.3",
+  "generated_at": "2026-08-09T19:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1572,7 +1572,7 @@
       },
       "binding_invariants": [
         "realm_id MUST equal the principal_control_realm_id resolved for the principal DID.",
-        "fields.purpose MUST be principal_control and schema_refs MUST contain ak.profile.principal_control_realm.v1.",
+        "fields.purpose MUST be principal_control for human/organization PCRs or managed_agent_control for managed Agent PCRs; schema_refs MUST contain ak.profile.principal_control_realm.v1 in both cases.",
         "Within a Principal Control Realm, ak.policy.set is admitted only for ak.root.identity.recovery_policy.command.publish with canonical payload {policy_id,value}, value.schema=ak.schema.recovery_policy.v1, equal policy ids, and no state/reason; admitting another policy family or bypassing ordinary Event, lease, reducer, allowlist, or Seal processing is non-conformant.",
         "encryption_profile MUST be mls_rfc9420; PCRs MUST NOT use none or external.",
         "content_encryption_floor and metadata_encryption_floor MUST both be e2ee_required; a PCR genesis declaring either floor below e2ee_required MUST be rejected (no plaintext-floor PCR exists in v1).",

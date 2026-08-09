@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9096,
+    "total_properties": 9097,
     "total_schema_documents": 157,
     "by_presence_class": {
       "optional": 2758,
       "optional_defaulted": 67,
-      "required": 5904,
+      "required": 5905,
       "required_nullable": 114,
       "tristate": 253
     },
@@ -9892,6 +9892,7 @@
         "/$defs/founding_device_descriptor/properties/hpke_key_algorithm": "required",
         "/$defs/founding_device_descriptor/properties/hpke_key_digest": "required",
         "/allOf/0/if/properties/purpose": "required",
+        "/allOf/1/not/properties/purpose": "required",
         "/properties/capability_action_registry_digest": "required",
         "/properties/digest_algorithm": "required",
         "/properties/encryption_profile": "required",
@@ -9907,7 +9908,6 @@
         "/properties/trust_domain": "required"
       },
       "conditionally_required": [
-        "/properties/founding_device_descriptor",
         "/properties/genesis_salt"
       ]
     },

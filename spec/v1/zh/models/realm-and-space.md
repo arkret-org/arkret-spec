@@ -279,7 +279,7 @@ realm_id = "ak:realm:" || base64url_no_pad(realm_token)
 
 1. 先定位该 Realm 的 `ak.realm.create` 并取得其完整 canonical bytes；
 2. 对所有分支重算并校验 `event_id`；
-3. 若 `purpose="principal_control"`，从签名 Event 的 canonical `actor_id` principal DID 按本节 transcript 派生 `realm_id`，校验对应 root/controller anchor，并拒绝 `genesis_salt`；否则校验 `retype(event_id) == realm_id` 且 `genesis_salt` 为 canonical Base64URL-no-pad 的 32 octets；
+3. 若 `purpose ∈ {"principal_control", "managed_agent_control"}`，从签名 Event 的 canonical `actor_id` principal DID 按本节 transcript 派生 `realm_id`，校验对应 root/controller anchor，并拒绝 `genesis_salt`；否则校验 `retype(event_id) == realm_id` 且 `genesis_salt` 为 canonical Base64URL-no-pad 的 32 octets；
 4. 取得并验证完整 ordered genesis unit 与其 genesis Seal/state commitment；identity 或 genesis closure 任一未完成前 MUST NOT 接受该 Realm 的后续 Event、Seal 或 effective Realm projection；
 5. 把该 genesis 与完整初始 facet commitment 持久化为该 `realm_id` 的永久本地绑定；
 6. 此后出现的任何不同 genesis MUST 拒绝，MUST NOT 因为它先到、更新、或来自"更权威"的 peer 而覆盖。
@@ -300,7 +300,7 @@ realm_id = "ak:realm:" || base64url_no_pad(realm_token)
 
 `ak.realm.create` 是 Realm 生命周期的 genesis event，只建立 Realm identity/security core、create log、notary、reducer profile 与终身稳定的 authority root。显示内容、policy 与 membership 都由同一原子 bootstrap unit 中各自的 registered facet Event 建立。
 
-**Human Principal Control Realm 分支（normative）**：当 create 满足 `purpose="principal_control"`、PCR profile、`actor_id=principal DID`、省略 `genesis_salt` 与唯一 critical `did_inception` root anchor 时，root-signed genesis 必须携带 `FoundingDeviceDescriptor`，第二条固定为 founding-device-signed `ak.device.authorize`。两条通过 `ak.peer.principal_genesis.command.submit` 原子接受，均免 `seal_basis`；descriptor 与 authorize payload 必须逐字段/digest 相等。Managed Agent PCR 保留其 controller-authorized subject-derived branch，不使用 human `pcr_genesis_unit` 或 `FoundingDeviceDescriptor`。
+**Human Principal Control Realm 分支（normative）**：当 create 满足 `purpose="principal_control"`、PCR profile、`actor_id=principal DID`、省略 `genesis_salt` 与唯一 critical `did_inception` root anchor 时，root-signed genesis 必须携带 `FoundingDeviceDescriptor`，第二条固定为 founding-device-signed `ak.device.authorize`。两条通过 `ak.peer.principal_genesis.command.submit` 原子接受，均免 `seal_basis`；descriptor 与 authorize payload 必须逐字段/digest 相等。Managed Agent PCR 的 controller-authorized subject-derived branch MUST 使用 `purpose="managed_agent_control"`，且不使用 human `pcr_genesis_unit` 或 `FoundingDeviceDescriptor`。
 
 以下五项是 `ak.realm.create` 的完整 registered writes。任何实现不得由 create 顺带写 profile、member 或 Agent lifecycle 状态。
 
@@ -455,7 +455,7 @@ Realm（ak.schema.realm.v1，schema 层统一）
 
 - 与 principal DID **1:1 绑定**，由 `principal_control_realm_id` 标识，由 DID method 的 inception 证据钉死（参见 [`identity/key-management.md` §4.1 与 §5.0](../identity/key-management.md)）。
 - Genesis discriminator 与 effective projection MUST：
-  - create genesis `purpose = "principal_control"`
+  - human / organization PCR create genesis `purpose = "principal_control"`；managed Agent PCR create genesis `purpose = "managed_agent_control"`
   - `schema_refs` 包含 `ak.profile.principal_control_realm.v1`
   - `encryption_profile = "mls_rfc9420"`；PCR 在 v1 中不允许 `none` 或 `external`，schema / reducer MUST fail closed。
   - effective `content_encryption_floor = "e2ee_required"` 且 `metadata_encryption_floor = "e2ee_required"`。v1 不存在"明文地板的 PCR"：两条 floor 由 PCR profile baseline 固定，不是 genesis object 的 producer 字段。

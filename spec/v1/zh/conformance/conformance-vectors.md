@@ -3915,7 +3915,7 @@ Expected:
 Steps:
 
 1. Provision Agent DID `A`，controller DID 为 `C`；Agent DID Document 写唯一 `ArkretPrincipalControlRealm` service entry，分配 `PCR_A`，并只固定 immutable `requested_scope` 的域分离 digest；完整 scope 由 controller-private disclosure 出示，controller 已有 `PCR_C`。
-2. Controller 按 delegation 创建 `PCR_A` genesis：对 basis-free candidate create 重算 founding
+2. Controller 按 delegation 创建 `purpose="managed_agent_control"` 且不携带 `founding_device_descriptor` / `genesis_salt` 的 `PCR_A` genesis：对 basis-free candidate create 重算 founding
    `NotaryValue` / `authority_set_ref`，由 `C` 的当前 device 为 exact Event digest 签 proposal
    receipt，再以 `EventSubmitContext=AnchorUnit` 提交。receiver 在一个事务写 canonical create、
    receipt 与 pending Control index；controller 随后提交无 predecessor 且覆盖该 digest 的首 Seal，
@@ -3927,7 +3927,7 @@ Steps:
 Expected:
 
 - `PCR_A != PCR_C`，且 receiver 必须从 Agent DID accepted-at history 验证 service entry 的 PCR/controller/authorization/digest 四元组，再验证 controller-signed private disclosure 后使用 scope；不得验证实现私有派生算法或信任服务本地 scope row。
-- `PCR_A.created_by == PCR_A.notary == A`，purpose/profile/history/encryption floor 全部满足 PCR invariant。
+- `PCR_A.created_by == PCR_A.notary == A`，`purpose="managed_agent_control"`，profile/history/encryption floor 全部满足 PCR invariant；descriptor 或 genesis salt 任一出现都必须 fail closed。
 - Controller 写 Agent PCR 时 `actor_id=A`、`executed_by=C`，proof method 属于 C，delegation 覆盖目标 kind；不得伪造 A 签名。
 - basis-free create 仍必须返回并持久化 controller-device Control Proposal Ack；首 Seal 提交前 pending
   index 必须存在同一 digest，提交后该 digest、Seal lineage 与 registered effects 必须在同一事务

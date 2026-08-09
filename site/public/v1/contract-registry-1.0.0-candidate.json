@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.7",
+  "version": "2026-08-09.10",
   "source_of_truth": true,
-  "generated_at": "2026-08-09T18:00:00Z",
+  "generated_at": "2026-08-09T21:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -349,7 +349,7 @@
       "capability_gated": "Gated by capability actions. The authorizing actions are exactly the ones whose target_event_kinds list this kind in capability-action-registry; there is no second per-event list. Reducer MUST verify the actor holds a matching action grant. Fail-closed.",
       "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
       "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
-      "delegated_pcr_genesis": "Admitted only for a principal_control ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A managed Native Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed principal branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
+      "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A purpose=managed_agent_control Native Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed purpose=principal_control branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
       "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
       "did_root_anchor": "Admitted only by the closed identity-root anchor verifier. v1 permits this class for a self-principal PCR genesis ak.realm.create bound to entry 0 through one critical did_inception ref, and for root-anchored ak.device.reanchor bound to the accepted registry head through one critical did_recovery_anchor ref. This verifier is the sole exception to generic Event verification_method-controller equality: verification_method MUST instead equal an active controller-proof verification method from the referenced entry, and the verifier validates it against the accepted did:webvh history/update authority without rewriting its did:key controller to actor_id. Root/update authority MUST NOT authorize any other Event kind. Batch shape, DID history, active update authority, full frontier CAS and conflict-slot checks remain mandatory.",
       "direct_conversation_agent_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_agent_provision pointing to an accepted ak.agent.provision Event. Used solely for the controller-to-own-Agent Direct Conversation branch, which has no Contact basis. The verifier cross-binds participants to exactly that controller and Agent, requires the Direct Conversation profile rather than a PCR profile, checks the controller binding is current, and fixes founder = controller so the Agent runtime key never needs Direct Conversation founding scope. This role is structurally exclusive with direct_conversation_basis and with the managed-Agent PCR agent_provision role.",
@@ -5526,7 +5526,7 @@
           {
             "when": {
               "payload_path": "object.purpose",
-              "const": "principal_control",
+              "const": "managed_agent_control",
               "ref_role": "agent_provision",
               "ref_critical": true,
               "ref_exact_count": 1,
@@ -5593,6 +5593,15 @@
             "when": {
               "payload_path": "object.purpose",
               "const": "principal_control"
+            },
+            "id_source": "subject_derived",
+            "subject_field": "actor_id",
+            "derivation": "pcr_subject_realm_token_v1"
+          },
+          {
+            "when": {
+              "payload_path": "object.purpose",
+              "const": "managed_agent_control"
             },
             "id_source": "subject_derived",
             "subject_field": "actor_id",
