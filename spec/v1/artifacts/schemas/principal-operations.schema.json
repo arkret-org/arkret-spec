@@ -469,6 +469,9 @@
         "account_authority_id",
         "principal_id",
         "pcr_realm_id",
+        "did_version_id",
+        "log_head_digest",
+        "control_key_digest",
         "idempotency_key",
         "registration_request_digest",
         "identity_creation_control_proof",
@@ -483,6 +486,19 @@
         },
         "pcr_realm_id": {
           "$ref": "#/$defs/realm_id"
+        },
+        "did_version_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Validated did:webvh inception versionId. It MUST match the same fields in identity_creation_control_proof and the accepted registry log."
+        },
+        "log_head_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "SHA-256 digest of the exact method-native DID inception log entry seen by the Account Authority and committed by the identity root proof."
+        },
+        "control_key_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "SHA-256 digest of the active inception update key committed by the identity root proof."
         },
         "idempotency_key": {
           "type": "string",

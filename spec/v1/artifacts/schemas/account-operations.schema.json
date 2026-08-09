@@ -108,6 +108,10 @@
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]{22,128}$"
     },
+    "account_subject": {
+      "$ref": "#/$defs/sha256_digest",
+      "description": "Deployment-local, non-reversible stable account subject: SHA-256 over utf8('ak.account-subject.v1\\n') followed by RFC 8785 JCS of {account_authority_id, service_account_id}. It binds one authenticated service account into the identity-root transcript without disclosing the raw local account id."
+    },
     "dpop_jkt": {
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]{43}$",
@@ -365,7 +369,7 @@
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
-          "description": "Handoff expiry. Issued lifetime MUST be no greater than 1 hour; 1 hour is also the v1 default."
+          "description": "Lease expiry. Issued lifetime MUST be no greater than 15 minutes; 15 minutes is also the v1 default."
         },
         "reserved_identity": {
           "$ref": "#/$defs/reserved_identity_creation"
@@ -395,7 +399,8 @@
           "type": "object",
           "required": [
             "state",
-            "retry_after_ms"
+            "retry_after_ms",
+            "expires_at"
           ],
           "properties": {
             "state": {
@@ -404,6 +409,10 @@
             "retry_after_ms": {
               "type": "integer",
               "minimum": 1
+            },
+            "expires_at": {
+              "$ref": "#/$defs/timestamp",
+              "description": "Expiry of the conflicting live identity-creation lease. The client uses this authenticated upper bound for waiting UI; it conveys no holder identity or authority."
             }
           },
           "additionalProperties": false
@@ -447,6 +456,7 @@
       "required": [
         "request_id",
         "account_handle",
+        "account_subject",
         "account_handoff_grant",
         "expires_at",
         "allowed_operations",
@@ -459,6 +469,10 @@
         "account_handle": {
           "$ref": "./handle-claim.schema.json#/properties/handle",
           "description": "Canonical handle of the authenticated service account. This unsigned UX hint is only for display and local artifact naming; it MUST NOT be treated as principal identity evidence, authorization, or a service-account-to-principal binding."
+        },
+        "account_subject": {
+          "$ref": "#/$defs/account_subject",
+          "description": "Stable subject for the authenticated service account. The client freezes this value from the DPoP-bound handoff and MUST require the identity-binding challenge to echo it byte-for-byte before signing."
         },
         "preferred_locale": {
           "type": "string",
@@ -539,8 +553,12 @@
         "challenge_id",
         "challenge",
         "purpose",
+        "account_subject",
         "principal_id",
         "operation_digest",
+        "did_version_id",
+        "log_head_digest",
+        "control_key_digest",
         "pcr_realm_id",
         "realm_create_payload_digest",
         "founding_authorize_payload_digest",
@@ -569,12 +587,28 @@
         "purpose": {
           "const": "account_binding_and_pcr_genesis"
         },
+        "account_subject": {
+          "$ref": "#/$defs/account_subject"
+        },
         "principal_id": {
           "$ref": "#/$defs/did"
         },
         "operation_digest": {
           "$ref": "#/$defs/sha256_digest",
           "description": "sha256:<lowercase-hex> of SHA-256 over RFC 8785 JCS bytes of the complete request did_operation object."
+        },
+        "did_version_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Validated did:webvh inception versionId copied into the root-control transcript."
+        },
+        "log_head_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "SHA-256 over RFC 8785 JCS bytes of the exact method-native inception log entry."
+        },
+        "control_key_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "SHA-256 over the active inception updateKeys[0] public multikey bytes; never private key material or a next-key commitment."
         },
         "pcr_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -642,8 +676,12 @@
         "challenge_id",
         "challenge",
         "purpose",
+        "account_subject",
         "principal_id",
         "operation_digest",
+        "did_version_id",
+        "log_head_digest",
+        "control_key_digest",
         "pcr_realm_id",
         "realm_create_payload_digest",
         "founding_authorize_payload_digest",
@@ -674,10 +712,23 @@
         "purpose": {
           "const": "account_binding_and_pcr_genesis"
         },
+        "account_subject": {
+          "$ref": "#/$defs/account_subject"
+        },
         "principal_id": {
           "$ref": "#/$defs/did"
         },
         "operation_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "did_version_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "log_head_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "control_key_digest": {
           "$ref": "#/$defs/sha256_digest"
         },
         "pcr_realm_id": {
@@ -774,15 +825,29 @@
       "type": "object",
       "required": [
         "binding_state",
+        "account_authority_id",
+        "account_subject",
+        "principal_id",
         "identity_creation_lease_id",
         "lease_fence",
         "operation_status",
         "operation_digest",
-        "head_event_digest"
+        "head_event_digest",
+        "issued_at",
+        "proof"
       ],
       "properties": {
         "binding_state": {
           "const": "bound"
+        },
+        "account_authority_id": {
+          "$ref": "#/$defs/did"
+        },
+        "account_subject": {
+          "$ref": "#/$defs/account_subject"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
         },
         "identity_creation_lease_id": {
           "$ref": "#/$defs/opaque_registration_id"
@@ -802,7 +867,15 @@
           "$ref": "#/$defs/sha256_digest"
         },
         "head_event_digest": {
-          "$ref": "#/$defs/sha256_digest"
+          "$ref": "#/$defs/sha256_digest",
+          "description": "DID registry log head digest for the exact did:webvh inception entry accepted during this binding saga; it is not a PCR Event head."
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "description": "Account Authority detached proof. payload_digest is SHA-256 over RFC 8785 JCS of the complete receipt with proof omitted. JWS signs canonical_json({context:'ak.account-binding-receipt-proof-v1', payload_digest, account_authority_id, account_subject, principal_id, verification_method, created_at}); proof.created_at MUST equal issued_at and verification_method MUST be an assertion method of account_authority_id valid at issued_at."
         }
       },
       "additionalProperties": false

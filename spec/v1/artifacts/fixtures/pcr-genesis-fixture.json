@@ -6,7 +6,8 @@
     "entrypoint": "ak.suite.identity.pcr_genesis.v1"
   },
   "covers_vectors": [
-    "ak.vector.identity.pcr_genesis.v1"
+    "ak.vector.identity.pcr_genesis.v1",
+    "ak.vector.identity.registration_saga.v1"
   ],
   "digest_domains": {
     "identity_creation_control_proof": "ak.identity-creation-control-proof-v1",
@@ -86,6 +87,47 @@
     "atomic": true,
     "create_once": true
   },
+  "registration_saga_cases": [
+    {
+      "name": "crash_after_did_published_then_exact_resume",
+      "initial_state": "reserved",
+      "fault_after": "did_published",
+      "retry": "same_request_identity_and_canonical_bytes",
+      "expected": "resume_to_completed_without_second_did_or_pcr_or_grant"
+    },
+    {
+      "name": "stale_holder_after_fence",
+      "initial_state": "did_published",
+      "mutation": "increment_lease_fence_and_change_holder_jkt",
+      "retry": "old_holder",
+      "expected": "identity_creation_lease_fenced_zero_writes"
+    },
+    {
+      "name": "single_use_challenge_distinguishes_terminal_states",
+      "attempts": [
+        "expired_unconsumed",
+        "consumed_different_canonical_digest",
+        "consumed_exact_successful_replay"
+      ],
+      "expected": [
+        "identity_creation_challenge_expired",
+        "identity_creation_challenge_already_consumed",
+        "return_recorded_outcome"
+      ]
+    },
+    {
+      "name": "client_rejects_echo_or_post_read_mismatch",
+      "mutations": [
+        "account_subject",
+        "principal_id",
+        "did_version_id",
+        "log_head_digest",
+        "control_key_digest",
+        "did_history_0_canonical_bytes"
+      ],
+      "expected": "fail_closed_before_sign_or_adopt"
+    }
+  ],
   "mutation_cases": [
     {
       "field": "founding_device_descriptor.device_id",
@@ -181,8 +223,12 @@
       "challenge_id": "genesis-challenge-000001",
       "challenge": "AAAAAAAAAAAAAAAAAAAAAA",
       "purpose": "account_binding_and_pcr_genesis",
+      "account_subject": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
       "principal_id": "did:webvh:z6mkfixture:alice.example",
       "operation_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "did_version_id": "1-fixturegenesis",
+      "log_head_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "control_key_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
       "pcr_realm_id": "ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8",
       "realm_create_payload_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
       "founding_authorize_payload_digest": "sha256:ae3a0c670ad963bf20b883a37ea7189ea058b4a58a969a466356cefed570a1dc",
@@ -201,8 +247,8 @@
       "expires_at": "2026-08-09T00:05:00.000Z",
       "verification_key_multibase": "z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1"
     },
-    "canonical_json": "{\"audience\":\"did:webvh:z6mkfixture:account.example\",\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"challenge_id\":\"genesis-challenge-000001\",\"dpop_jkt\":\"RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI\",\"expires_at\":\"2026-08-09T00:05:00.000Z\",\"founding_authorize_payload_digest\":\"sha256:ae3a0c670ad963bf20b883a37ea7189ea058b4a58a969a466356cefed570a1dc\",\"genesis_unit_kinds\":[\"ak.realm.create\",\"ak.device.authorize\"],\"identity_creation_lease_id\":\"genesis-lease-fence-0001\",\"initial_session_request_digest\":\"sha256:3451eb81f17528ac108212eef20e8052afc053ab78e97d1b57c41c230e95e195\",\"issued_at\":\"2026-08-09T00:00:00.000Z\",\"lease_fence\":1,\"operation_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"origin\":\"https://account.example\",\"pcr_realm_id\":\"ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8\",\"principal_id\":\"did:webvh:z6mkfixture:alice.example\",\"proof_kind\":\"did_webvh_inception_update_key\",\"purpose\":\"account_binding_and_pcr_genesis\",\"realm_create_payload_digest\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"trust_domain\":\"fixture.example\",\"verification_key_multibase\":\"z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1\"}",
-    "canonical_json_sha256": "sha256:69a5d151a5560ece7eee4f893a082dbc8325586a6fed9ad6d2acb1f8fc224a05",
+    "canonical_json": "{\"account_subject\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"audience\":\"did:webvh:z6mkfixture:account.example\",\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"challenge_id\":\"genesis-challenge-000001\",\"control_key_digest\":\"sha256:6666666666666666666666666666666666666666666666666666666666666666\",\"did_version_id\":\"1-fixturegenesis\",\"dpop_jkt\":\"RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI\",\"expires_at\":\"2026-08-09T00:05:00.000Z\",\"founding_authorize_payload_digest\":\"sha256:ae3a0c670ad963bf20b883a37ea7189ea058b4a58a969a466356cefed570a1dc\",\"genesis_unit_kinds\":[\"ak.realm.create\",\"ak.device.authorize\"],\"identity_creation_lease_id\":\"genesis-lease-fence-0001\",\"initial_session_request_digest\":\"sha256:3451eb81f17528ac108212eef20e8052afc053ab78e97d1b57c41c230e95e195\",\"issued_at\":\"2026-08-09T00:00:00.000Z\",\"lease_fence\":1,\"log_head_digest\":\"sha256:5555555555555555555555555555555555555555555555555555555555555555\",\"operation_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"origin\":\"https://account.example\",\"pcr_realm_id\":\"ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8\",\"principal_id\":\"did:webvh:z6mkfixture:alice.example\",\"proof_kind\":\"did_webvh_inception_update_key\",\"purpose\":\"account_binding_and_pcr_genesis\",\"realm_create_payload_digest\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"trust_domain\":\"fixture.example\",\"verification_key_multibase\":\"z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1\"}",
+    "canonical_json_sha256": "sha256:46f2b7a117209650a0eb06552b16340477804fc328ee00245f8e0275e75e2eee",
     "forbidden_fields": [
       "realm_create_event_id",
       "founding_authorize_event_id",

@@ -307,7 +307,7 @@ policy_digest = "sha256:" + lowercase_hex(SHA-256(RFC8785_JCS(policy_snapshot)))
   `high` tier 的 `synchronous_refresh_or_fail_closed` 处理；**不存在**默认为「任意缓存
   皆可」的路径；registry 只固定 id 与 `risk_tier`，数值窗口仍由部署申报（见本节末）；
 - `high` tier 的 action 集合至少覆盖并逐字引用 [`identity-did.md` §3.4](./identity-did.md)
-  的高风险枚举；`high` 不得消费 stale binding，必须同步 refresh 或 fail closed，
+  的高风险枚举（明确包括 principal registration 与 PCR genesis）；`high` 不得消费 stale binding，必须同步 refresh 或 fail closed，
   `fresh_for_seconds` 与 `hard_expiry_seconds` 全部有限且
   `0 < fresh_for <= hard_expiry`，没有 stale consumption window；
 - `low` 只允许 registry 明列的 accepted-only 只读 / replay 路径：stale 可用且不得因普通

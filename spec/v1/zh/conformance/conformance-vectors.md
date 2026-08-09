@@ -3650,6 +3650,24 @@ Expected：
 - 第 2/3 步全部 fail closed、零写入。
 - 第 4 步只有一个 create-once winner；re-anchor 第二条使用同一 candidate overlay，接受后旧 generation devices fenced。
 
+### 10.9.0.1 Vector: Identity Registration Saga Crash / Fence / Client Binding
+
+`vector_id`: `ak.vector.identity.registration_saga.v1`
+
+Steps：
+
+1. 在 saga 刚 durable 到 `did_published` 后模拟进程崩溃，以相同 request identity 与 canonical bytes 重试。
+2. lease 过期后由新 holder 递增 fence；旧 holder 分别尝试续租、消费 challenge 与 register。
+3. 分别提交 expired-unconsumed challenge、consumed + different digest、consumed + exact successful replay。
+4. 在客户端签名前逐一篡改 challenge 回显的 `account_subject`、principal、operation digest 或三项 DID log pin；成功响应后再篡改 signed binding receipt 或回读 `history[0]`。
+
+Expected：
+
+- 第 1 步从 frozen checkpoint 单调续跑到 completed，不产生第二 DID、PCR 或 grant。
+- 第 2 步全部以 `identity_creation_lease_fenced` 零写入失败，reserved identity 与 checkpoint 归新 fence 继承。
+- 第 3 步依次为 `identity_creation_challenge_expired`、`identity_creation_challenge_already_consumed`、返回原 recorded outcome。
+- 第 4 步在 root 签名前或 identity adoption 前 fail closed；客户端不得用服务端返回值覆盖本地 frozen root。
+
 ### 10.9.1 Vector: Device Revocation Seal Binding
 
 `vector_id`: `ak.vector.device.revocation_seal_binding.v1`

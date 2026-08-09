@@ -259,6 +259,9 @@
         "kind",
         "principal_id",
         "realm_id",
+        "did_version_id",
+        "log_head_digest",
+        "control_key_digest",
         "create_digest",
         "founding_authorize_digest",
         "accepted_device_id",
@@ -276,6 +279,19 @@
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "did_version_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The exact did:webvh inception versionId pinned by the identity-root control proof and used to initialize current_device_generation_ref."
+        },
+        "log_head_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/hash",
+          "description": "The exact DID inception log head digest accepted for this PCR genesis."
+        },
+        "control_key_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/hash",
+          "description": "Digest of the inception identity-root update key pinned by the control proof."
         },
         "create_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/hash",

@@ -940,7 +940,7 @@
             }
           }
         },
-        "description": "did_recovery backups MUST use recovery_public_key (key-management.md §5.0.1 recovery-material gate), MUST carry recovery_policy_ref matching the active recovery policy, and MUST cover that field in auth_data.signed_fields. passphrase_kdf and secret_storage_key are forbidden for did_recovery; threshold_recovery and hardware_wrapped_key are recovery policy / proof-layer factors, not key-backup recipient methods."
+        "description": "did_recovery backups MUST use recovery_public_key (key-management.md §5.0.4 recovery-material gate), MUST carry recovery_policy_ref matching the active recovery policy, and MUST cover that field in auth_data.signed_fields. passphrase_kdf and secret_storage_key are forbidden for did_recovery; threshold_recovery and hardware_wrapped_key are recovery policy / proof-layer factors, not key-backup recipient methods."
       }
     },
     {

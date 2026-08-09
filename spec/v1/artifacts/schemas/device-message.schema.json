@@ -365,7 +365,7 @@
         "recipient_hpke_public_key": {
           "type": "string",
           "minLength": 1,
-          "description": "base64url X25519 HPKE public key the requesting device controls and the responder seals to. SHOULD be the device hpke_key or the ephemeral key already established by the bound SAS verification transcript."
+          "description": "base64url X25519 HPKE public key the requesting device controls and the responder seals to. It MUST be byte-identical to the hpke_key registered for from_device in the current accepted device projection. A responder MUST fail closed on any mismatch and MUST NOT accept an ephemeral key merely because it appeared in a bound SAS verification transcript; SAS authenticates device signing keys, not HPKE sealing keys."
         }
       },
       "additionalProperties": true
@@ -671,7 +671,8 @@
             "device_revoked",
             "untrusted_device",
             "policy_denied",
-            "accepted_by_other_device"
+            "accepted_by_other_device",
+            "device_generation_fenced"
           ]
         },
         "reason": {

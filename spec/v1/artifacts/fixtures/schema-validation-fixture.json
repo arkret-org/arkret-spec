@@ -890,6 +890,19 @@
               ],
               "kind": "single_did"
             },
+            "founding_device_descriptor": {
+              "descriptor_version": 1,
+              "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
+              "device_public_key": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+              "device_key_digest": "sha256:3fa973b9a2ef96b14861c224438f604e3bb0a8cb872772aa6d3b3d80f5710c0b",
+              "device_key_algorithm": "Ed25519",
+              "device_key_purpose": "event_signing_and_mls_identity",
+              "hpke_key": "z6LSfixtureFoundingHpkeKey",
+              "hpke_key_digest": "sha256:9e086dd9b7db70b10713bfa6ff80d0960d048d52ce6ad9140e980d7acffb51be",
+              "hpke_key_algorithm": "X25519",
+              "algorithms": ["ak.mls.v1"],
+              "founding_authorize_payload_digest": "sha256:ae3a0c670ad963bf20b883a37ea7189ea058b4a58a969a466356cefed570a1dc"
+            },
             "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a"
           }
         },
@@ -942,6 +955,19 @@
                 "did:webvh:z6mkfixture:alice.example"
               ],
               "kind": "single_did"
+            },
+            "founding_device_descriptor": {
+              "descriptor_version": 1,
+              "device_id": "ak:device:019a0000-0000-7000-8000-000000000002",
+              "device_public_key": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+              "device_key_digest": "sha256:3fa973b9a2ef96b14861c224438f604e3bb0a8cb872772aa6d3b3d80f5710c0b",
+              "device_key_algorithm": "Ed25519",
+              "device_key_purpose": "event_signing_and_mls_identity",
+              "hpke_key": "z6LSfixtureFoundingHpkeKey",
+              "hpke_key_digest": "sha256:9e086dd9b7db70b10713bfa6ff80d0960d048d52ce6ad9140e980d7acffb51be",
+              "hpke_key_algorithm": "X25519",
+              "algorithms": ["ak.mls.v1"],
+              "founding_authorize_payload_digest": "sha256:ae3a0c670ad963bf20b883a37ea7189ea058b4a58a969a466356cefed570a1dc"
             },
             "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a"
           }
@@ -999,6 +1025,19 @@
                 "did:webvh:z6mkfixture:alice-recovery.example"
               ],
               "kind": "single_did"
+            },
+            "founding_device_descriptor": {
+              "descriptor_version": 1,
+              "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
+              "device_public_key": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+              "device_key_digest": "sha256:3fa973b9a2ef96b14861c224438f604e3bb0a8cb872772aa6d3b3d80f5710c0b",
+              "device_key_algorithm": "Ed25519",
+              "device_key_purpose": "event_signing_and_mls_identity",
+              "hpke_key": "z6LSfixtureFoundingHpkeKey",
+              "hpke_key_digest": "sha256:9e086dd9b7db70b10713bfa6ff80d0960d048d52ce6ad9140e980d7acffb51be",
+              "hpke_key_algorithm": "X25519",
+              "algorithms": ["ak.mls.v1"],
+              "founding_authorize_payload_digest": "sha256:ae3a0c670ad963bf20b883a37ea7189ea058b4a58a969a466356cefed570a1dc"
             },
             "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a"
           }

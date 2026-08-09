@@ -226,7 +226,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
-      "sha256": "acaed65bd268b4f4c8fe2386f33caffdef579310975faa70598a72665de07b0f"
+      "sha256": "f0385a28fc44703dd60a502799574f55956011e1aaa7c4118b35c27e594e9998"
     },
     {
       "path": "spec/v1/artifacts/fixtures/policy-server-fixture.json",
@@ -286,7 +286,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "1005974b5e85c011fc85e480ba8914c2b960f663205769b1619f38f6512a662d"
+      "sha256": "9ae63b72ea7aa3297f84aad849af65b030f81da081295253be48afe4102a8ac5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

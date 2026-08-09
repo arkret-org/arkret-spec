@@ -377,6 +377,8 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | `contact_request_pending_ttl` | 默认且最大 14 days | 见 [contact-and-direct-conversation.md](../identity/contact-and-direct-conversation.md) §3。双方分别从 accepted request 的 canonical `created_at` 计时；超窗的 accept/respond MUST fail closed，不得由本地配置放宽。 |
 | `identity_creation_lease` TTL | 默认且最大 15 minutes | 见 [account-lifecycle.md](../identity/account-lifecycle.md) §2.1.2；超过时 Account Authority MUST refuse issuance。 |
 | `account_handoff_grant` TTL | 默认且最大 1 hour | 见 [account-lifecycle.md](../identity/account-lifecycle.md) §2.1.2；无 refresh 语义，过期后必须重新认证。 |
+| identity-creation handoff / lease acquisition | 每 `(service_account_id, audience)` 滚动 10 minutes 最多 5 次 | 首次取得、过期后 fence 与不同 holder 尝试都计数；同 request_id exact replay 不重复计数。超限 MUST 返回 `rate_limited` 且不取得/推进 fence。部署 MAY 更严格，但必须在 Service Describe 暴露实际值。 |
+| same-holder identity-creation lease renewal | 每 `(service_account_id, audience, holder_jkt)` 每 60 seconds 最多 1 次且每小时最多 12 次 | 同 request_id exact replay 不重复计数；续租必须继续经过风险检查，超限不得延长 `expires_at`。busy holder 不能通过轮询替另一 holder 续租。 |
 | `terminal_parent_repair_window` | 30 days | 跨 Realm parent 指向 terminal Realm 时，引用方 MUST 在窗口内 reparent、archive 或 tombstone；见 [realm-and-space.md](../models/realm-and-space.md) §2.6.1。 |
 | `erasure_propagation_window_ms` | 默认且最大 604,800,000 ms（7 days） | 见 [realm-and-space.md](../models/realm-and-space.md) §2.6.2。超窗未回执的 peer MUST 标 `timed_out`，issuing receipt 的 `fanout_status` MUST 为 `incomplete`。 |
 | `deactivation_propagation_window_ms` | 最大 600,000 ms（10 min） | 见 [federation.md](../sync/federation.md) §4.4.1。超窗 MUST 标 `deactivation_federation_incomplete`，并暂停受影响主体的新 onboard / grant / KeyPackage 路径。 |

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.6",
+  "version": "2026-08-09.7",
   "source_of_truth": true,
-  "generated_at": "2026-08-09T17:00:00Z",
+  "generated_at": "2026-08-09T18:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -11469,7 +11469,7 @@
         "operation_id": "ak.gate.account.command.issue_identity_binding_challenge",
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/identity-binding-challenges",
-        "notes": "Authenticated by Authorization: DPoP <account_handoff_grant> plus a matching DPoP header. The Account Authority verifies the current lease holder and fence, validates the complete unpublished DID operation, derives principal_id and its canonical operation digest, persists the public operation checkpoint, renews the same-holder lease, and issues a <=300s single-use challenge bound to account, holder cnf.jkt, lease/fence, principal_id, operation digest, audience, origin, trust domain, purpose, and expiry. Repeating the same request_id returns the same unconsumed challenge. Challenge state MUST be shared durable state, not process-local memory.",
+        "notes": "Authenticated by Authorization: DPoP <account_handoff_grant> plus a matching DPoP header. The Account Authority verifies the current lease holder and fence, validates the complete unpublished DID operation, derives principal_id, its canonical operation digest, did_version_id, log_head_digest, and control_key_digest, persists the public operation checkpoint, rate-limits same-holder renewal, and issues a <=300s single-use challenge bound to account_subject, holder cnf.jkt, lease/fence, all derived DID pins, audience, origin, trust domain, purpose, and expiry. Repeating the same request_id returns the same unconsumed challenge. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "request_id",
@@ -11478,7 +11478,7 @@
         "response_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_outcome",
         "durable_effect": {
           "kind": "none",
-          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+          "rationale": "persists_only_a_service_local_single_use_challenge_and_public_did_operation_checkpoint_no_event_is_authored"
         }
       },
       {
@@ -11570,7 +11570,7 @@
         "http": "POST /_arkret/gate/account/device-pair",
         "grpc": "GateAccount/DevicePair",
         "mq": "gate.account.command.pair_device",
-        "notes": "Authorizes a sibling device after the verified current device confirms the SAS/QR transcript. When device_pairing_request_id is present, the Account Authority MUST atomically require and consume the unexpired pending staged record whose pairing_code and new_device_pubkey exactly match the request, and MUST verify challenge_proof by recomputing the ak.device-pairing.challenge.v1 transcript from that staged record (device-lifecycle.md section 2.1.2); a mismatch or a failing signature performs no device authorization. A byte-equality comparison of the proof is NOT sufficient.",
+        "notes": "Authorizes a sibling device only after the verified current-device UI displays requesting-device metadata, device/key fingerprint, pairing code and gate audience and obtains explicit user confirmation. The request carries exact hpke_key, candidate device_signature and the complete current-device-signed ak.device.authorize EventInitialSubmission. The authority recomputes the pairing transcript, requires request fields to equal the Event payload, and sends that exact submission through ordinary Event admission. It MUST NOT mint or replace the Event or write the device projection directly. When device_pairing_request_id is present, staged-record consumption and durable Event acceptance are atomically correlated; any mismatch performs zero authorization.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
@@ -11582,8 +11582,10 @@
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome",
         "durable_effect": {
-          "kind": "none",
-          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.device.authorize"
+          ]
         }
       },
       {
@@ -11639,11 +11641,24 @@
         "idempotency_mechanism": "canonical_hash",
         "canonical_hash_input": "full_body",
         "retry_safe": true,
+        "uncertain_outcome": {
+          "strategy": "replay_same_operation",
+          "operation_id": "ak.gate.account.command.register",
+          "requires_same_request_identity_and_canonical_intent": true,
+          "terminal_outcomes": [
+            "session_grant_replay_expired",
+            "session_grant_replay_terminal",
+            "session_grant_replay_indeterminate"
+          ]
+        },
         "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_request_body",
         "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_outcome",
         "durable_effect": {
-          "kind": "none",
-          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.realm.create",
+            "ak.device.authorize"
+          ]
         }
       },
       {
@@ -11695,7 +11710,7 @@
         "operation_id": "ak.gate.account.exchange.create_handoff",
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/authentication-handoffs",
-        "notes": "Account Authority exchanges an OIDC authorization code for an opaque, short-lived account_handoff_grant bound to the request DPoP key. The handoff is not ak.session.grant, has no refresh-token semantics, and its closed operation allowlist is issue_identity_binding_challenge, register, and issue_session_grant. It returns bound, identity_creation_active, or identity_creation_busy state and atomically acquires, renews, or fences an identity-creation lease for the authenticated service account. Repeating the same request_id returns the same live outcome. A different holder cannot take an unexpired lease; after expiry, a newly authenticated holder for the same service account may fence it and must preserve any reserved principal_id, operation digest, and public DID-operation checkpoint.",
+        "notes": "Account Authority exchanges an OIDC authorization code for an opaque, short-lived account_handoff_grant bound to the request DPoP key and returns the deployment-local stable account_subject. The handoff is not ak.session.grant, has no refresh-token semantics, and its closed operation allowlist is issue_identity_binding_challenge, register, issue_session_grant, and issue_recovery_completion_grant. It returns bound, identity_creation_active, or identity_creation_busy state and atomically acquires, renews, or fences a rate-limited identity-creation lease for the authenticated service account. Busy includes the conflicting live lease expires_at without holder identity. Repeating the same request_id returns the same live outcome. A different holder cannot take an unexpired lease; after expiry, a newly authenticated holder may fence it and must preserve all frozen checkpoints.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "request_id",
@@ -11704,7 +11719,7 @@
         "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_outcome",
         "durable_effect": {
           "kind": "none",
-          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+          "rationale": "persists_only_service_local_dpop_handoff_lease_fence_and_account_binding_state_no_event_is_authored"
         }
       },
       {

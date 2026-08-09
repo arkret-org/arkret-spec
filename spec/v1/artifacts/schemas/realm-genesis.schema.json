@@ -83,6 +83,9 @@
         ]
       },
       "then": {
+        "required": [
+          "founding_device_descriptor"
+        ],
         "not": {
           "required": [
             "genesis_salt"

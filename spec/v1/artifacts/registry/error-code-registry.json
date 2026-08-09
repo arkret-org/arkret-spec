@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-09.3",
+  "version": "2026-08-09.4",
   "codes": [
     {
       "code": "bad_json",
@@ -3119,6 +3119,30 @@
         "identity_creation"
       ],
       "description": "The identity-creation lease fence is no longer current. A stale holder cannot publish or complete the frozen account/principal registration."
+    },
+    {
+      "code": "identity_creation_challenge_expired",
+      "applies_to": [
+        "identity_creation",
+        "service_call"
+      ],
+      "description": "The persisted identity-binding challenge expired before first successful consumption. The Account Authority MUST reject before publishing the DID operation or relaying PCR genesis, and the client must obtain a fresh challenge for the same frozen draft. This code is distinct from the Policy Server challenge_expired reason."
+    },
+    {
+      "code": "identity_creation_challenge_already_consumed",
+      "applies_to": [
+        "identity_creation",
+        "service_call"
+      ],
+      "description": "The identity-binding challenge was already consumed and the request is not a byte-identical replay whose canonical request digest matches the stored successful outcome. The Account Authority MUST reject it before any state transition; an exact replay returns the recorded outcome instead of this code."
+    },
+    {
+      "code": "account_binding_principal_mismatch",
+      "applies_to": [
+        "identity_creation",
+        "client_validation"
+      ],
+      "description": "The authenticated service account is already bound to a principal_id different from the DID locally derived from the frozen identity-creation draft. The client MUST fail closed, visibly disclose the conflict, and MUST NOT adopt the returned principal or silently regenerate a replacement identity."
     },
     {
       "code": "identity_link_no_longer_visible",
