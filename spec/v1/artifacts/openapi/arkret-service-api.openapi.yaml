@@ -958,6 +958,10 @@ components:
       $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome
     DevicePairingStatusRequestBody:
       $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body
+    DidBindingChallengeOutcome:
+      $ref: ../schemas/account-operations.schema.json#/$defs/did_binding_challenge_outcome
+    DidBindingChallengeRequestBody:
+      $ref: ../schemas/account-operations.schema.json#/$defs/did_binding_challenge_request_body
     DidOperationSubmitOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome
     DidOperationSubmitRequestBody:
@@ -8634,6 +8638,50 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/IdentityBindingChallengeRequestBody'
+  /_arkret/gate/account/did-binding-challenges:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ak.gate.account.command.issue_did_binding_challenge
+      security:
+      - accountHandoffAuth: []
+        dpopProof: []
+      x-arkret-auth:
+        public_metadata: false
+        holder_bound_authorization: true
+        notes: Authorization is `DPoP <account_handoff_grant>` and MUST match the DPoP header key.
+      summary: Issue a control challenge for binding an already-published DID.
+      description: |
+        Resolves the supplied already-published DID at the high freshness tier
+        (synchronous refresh or fail closed), derives did_version_id,
+        log_head_digest and control_key_digest from the resolved current entry,
+        and issues a server-generated single-use challenge with a freshness
+        window no longer than 300 seconds.
+
+        Caller-supplied DID history is never accepted. Deployments that do not
+        host the DID additionally require method-native witness or freshness
+        evidence, because co-locating the registry with the Principal Server
+        does not extend that trust to third-party DIDs.
+
+        This operation reserves no principal and performs no PCR genesis; it
+        only proves current control of an existing DID. Repeating the same
+        request_id returns the same unconsumed challenge.
+      responses:
+        '200':
+          description: Persisted DID-binding challenge transcript.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DidBindingChallengeOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DidBindingChallengeRequestBody'
   /_arkret/gate/account/register:
     servers:
     - url: https://{host}

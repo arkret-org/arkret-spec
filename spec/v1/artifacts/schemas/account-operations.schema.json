@@ -244,19 +244,52 @@
       "additionalProperties": false
     },
     "account_registration_control_proof": {
-      "description": "Control proof for binding an already-published DID through account register. OIDC, passkey, or agent authentication alone is insufficient to establish DID control; account-first inception instead uses identity_creation_control_proof.",
+      "description": "Control proof for binding an already-published DID through account register. OIDC, passkey, or agent authentication alone is insufficient to establish DID control. The signing key MUST be the current active update key (parameters.updateKeys[0]) of the DID entry pinned by did_version_id, selected from the verified DID history and never from a request-supplied key or a DID Document verificationMethod. The proof MUST replay the durable challenge issued by ak.gate.account.command.issue_did_binding_challenge.",
       "allOf": [
         {
           "$ref": "#/$defs/account_lifecycle_proof"
         },
         {
+          "required": [
+            "verification_method",
+            "account_subject",
+            "did_version_id",
+            "log_head_digest",
+            "control_key_digest",
+            "origin",
+            "trust_domain"
+          ],
           "properties": {
             "proof_kind": {
               "type": "string",
               "enum": [
-                "did_bound_signature",
-                "paired_device_proof"
+                "did_bound_signature"
               ]
+            },
+            "account_subject": {
+              "$ref": "#/$defs/non_empty_string",
+              "description": "Service account subject this DID is being bound to. Signed so the proof cannot be replayed to bind the same DID to a different account."
+            },
+            "did_version_id": {
+              "$ref": "#/$defs/non_empty_string",
+              "description": "did:webvh versionId of the entry whose active update key signed this proof."
+            },
+            "log_head_digest": {
+              "$ref": "#/$defs/sha256_digest"
+            },
+            "control_key_digest": {
+              "$ref": "#/$defs/sha256_digest",
+              "description": "SHA-256 over the canonical multikey bytes of that entry's parameters.updateKeys[0]."
+            },
+            "origin": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "trust_domain": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "witness_evidence": {
+              "$ref": "#/$defs/non_empty_string",
+              "description": "Method-native witness / freshness evidence digest for the external DID, required by deployments that do not host the DID themselves."
             }
           }
         }
@@ -608,7 +641,7 @@
         },
         "control_key_digest": {
           "$ref": "#/$defs/sha256_digest",
-          "description": "SHA-256 over the active inception updateKeys[0] public multikey bytes; never private key material or a next-key commitment."
+          "description": "SHA-256 over the canonical multikey bytes of the current active update key (parameters.updateKeys[0]) of the DID entry pinned by did_version_id; never private key material or a next-key commitment. For account-first inception that entry is entry 0; for an already-published DID it is the entry current at binding time, so a spent inception key is never required."
         },
         "pcr_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -1601,6 +1634,101 @@
             "$ref": "#/$defs/grant_id"
           },
           "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "did_binding_challenge_request_body": {
+      "type": "object",
+      "description": "Request a single-use challenge for binding an ALREADY-PUBLISHED DID to the authenticated service account. Unlike identity_binding_challenge_request_body this carries no unpublished did_operation and no PCR genesis digests: the DID already exists, and the Account Authority resolves it rather than reserving it.",
+      "required": [
+        "request_id",
+        "principal_id"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did",
+          "description": "The already-published DID to bind. The Account Authority MUST resolve it at the high freshness tier (synchronous refresh or fail closed) and MUST NOT accept caller-supplied DID history."
+        }
+      },
+      "additionalProperties": false
+    },
+    "did_binding_challenge_outcome": {
+      "type": "object",
+      "description": "Persisted, single-use server challenge for binding an already-published DID. The client copies every field from challenge_id through expires_at into account_registration_control_proof, adds proof_kind and verification_method, and signs with the current active update key of the entry pinned by did_version_id. The client MUST byte-compare every echoed field against what it expects before signing and MUST fail closed on any mismatch. request_id is idempotency metadata and is not part of the signed transcript.",
+      "required": [
+        "request_id",
+        "challenge_id",
+        "challenge",
+        "purpose",
+        "account_subject",
+        "principal_id",
+        "did_version_id",
+        "log_head_digest",
+        "control_key_digest",
+        "dpop_jkt",
+        "audience",
+        "origin",
+        "trust_domain",
+        "issued_at",
+        "expires_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "challenge_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
+        "challenge": {
+          "type": "string",
+          "minLength": 22
+        },
+        "purpose": {
+          "const": "account_binding_for_published_did"
+        },
+        "account_subject": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Service account subject that will own the binding. Signed so the proof cannot be replayed against another account."
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "did_version_id": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "versionId of the entry the Account Authority resolved as current; the proof MUST be signed by that entry's active update key."
+        },
+        "log_head_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "control_key_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "witness_evidence": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Method-native witness / freshness evidence digest resolved for this DID. Deployments that do not host the DID MUST require it: same-origin trust between registry and Principal Server does not extend to third-party DIDs."
+        },
+        "dpop_jkt": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "audience": {
+          "$ref": "#/$defs/did"
+        },
+        "origin": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "trust_domain": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Issued lifetime MUST be no greater than 300 seconds."
         }
       },
       "additionalProperties": false

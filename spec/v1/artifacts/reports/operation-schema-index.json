@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.12",
+  "version": "2026-08-09.13",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T00:00:00Z",
+  "generated_at": "2026-08-10T01:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1025,6 +1025,63 @@
           "genesis_unit_kinds",
           "identity_creation_lease_id",
           "lease_fence",
+          "dpop_jkt",
+          "audience",
+          "origin",
+          "trust_domain",
+          "issued_at",
+          "expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.gate.account.command.issue_did_binding_challenge",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/did_binding_challenge_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "principal_id"
+        ],
+        "properties": [
+          "request_id",
+          "principal_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/did_binding_challenge_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "challenge_id",
+          "challenge",
+          "purpose",
+          "account_subject",
+          "principal_id",
+          "did_version_id",
+          "log_head_digest",
+          "control_key_digest",
+          "dpop_jkt",
+          "audience",
+          "origin",
+          "trust_domain",
+          "issued_at",
+          "expires_at"
+        ],
+        "properties": [
+          "request_id",
+          "challenge_id",
+          "challenge",
+          "purpose",
+          "account_subject",
+          "principal_id",
+          "did_version_id",
+          "log_head_digest",
+          "control_key_digest",
+          "witness_evidence",
           "dpop_jkt",
           "audience",
           "origin",

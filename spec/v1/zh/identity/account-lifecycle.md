@@ -44,8 +44,10 @@ Account Authority 必须使用 holder-bound handoff；普通 OAuth token、OIDC 
 
 1. 客户端提交 OIDC code exchange proof 与 RFC 9449 DPoP；Account Authority 验 issuer/client/redirect/state/nonce/PKCE 并返回最多 1 hour 的 opaque `account_handoff_grant` 与 deployment-local `account_subject`。handoff 本身不是 SessionGrant、没有 refresh 语义，不能直接访问 `/_arkret/self/*`；其闭合权限集是 issue identity-binding challenge、register、issue session grant 与 issue recovery-completion grant。对已绑定账号，pre-registration handoff 可以换取该账号 principal 的 Standard SessionGrant，因此 OIDC 凭据失陷会暴露服务端可见状态与 grant scope 内操作；但攻击者仍不能缺少 accepted device Event proof 而代表用户写 Event、取得 E2EE 明文或授权设备。
 2. Account Authority 原子取得最多 15 minutes 的 `identity_creation_lease`，持久化 `(service_account,audience,lease_id,holder_jkt,fence,expires_at,reserved_principal_id?,reserved_operation_digest?,state)`；同一账号同一 audience 同时只有一个 live holder。handoff 取得与同 holder 续租都必须按 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §6.1 限速并经过风险检查；busy 响应除 `retry_after_ms` 外必须回显冲突 live lease 的 `expires_at`，供客户端显示确定等待上界，不得披露 holder key 或原始账号 id。
-3. 客户端生成并签署 did:webvh entry 0、确定性 PCR id、`FoundingDeviceDescriptor` 与 ordered genesis unit。这里以及 Arkret v1 其他 identity 文本中的 **entry 0** 是零基 history 数组的 `history[0]`（即 inception entry），不是 did:webvh 原生序号 0；其原生 log `seq` 是 `1`，`versionId` 必须以 `1-` 开头。实现不得用 `seq == 0` 判定 inception。客户端从该 exact entry 冻结 `did_version_id`、method-native `log_head_digest` 与 active inception `control_key_digest`。它还构造 `InitialSessionGrantRequest {device_id,session_public_key,audience,requested_scope}`；`session_public_key` 是当前 handoff DPoP public JWK 的 RFC 8785 canonical string，其 RFC 7638 thumbprint必须等于 handoff `cnf.jkt`。
-4. challenge 与 `identity_creation_control_proof` 必须承诺 `account_subject`、principal/PCR id、DID operation digest、`did_version_id`、`log_head_digest`、`control_key_digest`、create payload digest、founding authorize payload digest、`initial_session_request_digest`、closed unit kinds、lease/fence、DPoP JKT、audience/origin/trust-domain 与最多 300 秒窗口。DID operation digest 是完整 typed `DidOperationSubmitRequestBody` 的 canonical digest；它不是仅对 method-native log entry 计算的 event digest，验证方必须从已接受的 inception wrapper 字段重构并复算前者。对 did:webvh，proof key只能是 entry 0 `parameters.updateKeys[0]`，不能从 DID Document authentication/service fragment 选择。Event id 与 envelope digest 禁止进入 transcript。客户端在签名前 MUST 把 challenge 回显的 `account_subject`、`principal_id`、`operation_digest`、`pcr_realm_id`、三项 DID log pin、三个 payload digest、`initial_session_request_digest`、`genesis_unit_kinds`、lease/fence、`dpop_jkt`、`audience`、`origin`、`trust_domain`、issued/expiry window 与本地 frozen draft / handoff 逐字节比较；任一不符都必须 fail closed 且不得生成 root 签名。
+3. 客户端生成并签署 did:webvh entry 0、确定性 PCR id、`FoundingDeviceDescriptor` 与 ordered genesis unit。这里以及 Arkret v1 其他 identity 文本中的 **entry 0** 是零基 history 数组的 `history[0]`（即 inception entry），不是 did:webvh 原生序号 0；其原生 log `seq` 是 `1`，`versionId` 必须以 `1-` 开头。实现不得用 `seq == 0` 判定 inception。客户端从该 exact entry 冻结 `did_version_id`、method-native `log_head_digest` 与该 entry 的 current active update key 的 `control_key_digest`。它还构造 `InitialSessionGrantRequest {device_id,session_public_key,audience,requested_scope}`；`session_public_key` 是当前 handoff DPoP public JWK 的 RFC 8785 canonical string，其 RFC 7638 thumbprint必须等于 handoff `cnf.jkt`。
+4. challenge 与 `identity_creation_control_proof` 必须承诺 `account_subject`、principal/PCR id、DID operation digest、`did_version_id`、`log_head_digest`、`control_key_digest`、create payload digest、founding authorize payload digest、`initial_session_request_digest`、closed unit kinds、lease/fence、DPoP JKT、audience/origin/trust-domain 与最多 300 秒窗口。DID operation digest 是完整 typed `DidOperationSubmitRequestBody` 的 canonical digest；它不是仅对 method-native log entry 计算的 event digest，验证方必须从已接受的 inception wrapper 字段重构并复算前者。对 did:webvh，proof key MUST 是 `did_version_id` 所钉的那个 entry 的 **current active update key**（`parameters.updateKeys[0]`），且其 canonical multikey 的 SHA-256 MUST 等于承诺的 `control_key_digest`；不能从 DID Document 的 authentication / service fragment 选择，也不得采信请求自带的 key。account-first inception 时该 entry 就是 entry 0，因此本规则与既有行为一致；对已发布且已轮换的 DID，它锚在建号时刻的当前控制权而不是创世代次——后者可能早已 spent 且不可再签。
+
+**身份锚与签名者是两件事，MUST NOT 混用**：create 携带的唯一 critical `did_inception` ref 回答"这个 PCR 属于**哪一个** DID"（由 SCID 与 hash chain 从当前 entry 一路验回 inception 保证），`did_version_id` / `log_head_digest` / `control_key_digest` 三元组回答"建号时刻**谁**控制它"。验证方 MUST 分别校验两者，MUST NOT 因为 ref 指向 inception 就要求 inception key 签名。Event id 与 envelope digest 禁止进入 transcript。客户端在签名前 MUST 把 challenge 回显的 `account_subject`、`principal_id`、`operation_digest`、`pcr_realm_id`、三项 DID log pin、三个 payload digest、`initial_session_request_digest`、`genesis_unit_kinds`、lease/fence、`dpop_jkt`、`audience`、`origin`、`trust_domain`、issued/expiry window 与本地 frozen draft / handoff 逐字节比较；任一不符都必须 fail closed 且不得生成 root 签名。
 5. `register` 携带 exact DID operation、root control proof、`pcr_genesis_unit` 与 `initial_session`。Account Authority CAS 验证 holder/lease/fence/reservation/challenge，冻结 canonical request，再执行单调 saga：
 
 ```text
@@ -63,6 +65,41 @@ reserved -> did_published -> pcr_accepted -> account_bound -> completed
 若设备在 PCR accepted 前物理损毁，新 holder 在旧 lease 过期后可递增 fence、继承 principal/DID reservation，用同一 identity root 对新 challenge 与新 founding device unit重签。deterministic PCR create-once 使并发 unit 只有一个 winner；若旧 unit 已先 accepted，新设备必须走 root re-anchor，不能再次 genesis。若 PCR 未 accepted 且 identity root 也丢失，可在强 re-auth、风险检查和 cooldown 后显式放弃 provisional identity并新建 root/DID/PCR；旧 entry 0 是 orphan anchor，Account Authority / registry 必须保留 tombstone/audit reservation、不得复用或声称连续性，handle 释放遵守独立 namespace policy。PCR 已 accepted 且无可满足 recovery proof 时必须 fail closed。
 
 账号认证凭据与 principal Recovery Key 是两套正交权力：重置账号密码不能轮换 DID、授权设备或解密 E2EE；Recovery Key 也不能重置账号密码。
+
+### 2.1.2a 绑定已发布 DID（normative）
+
+`account_register_request_body` 的 `proof` 分支用于把一个**已经发布**的 DID 绑定到已认证的服务账号，
+与 `identity_creation` 分支互斥。它不创建 DID、不保留 principal、不执行 PCR genesis。
+
+**要求 DID 控制权证明的适用范围**：控制权证明只在**断言或改变"这个账号就是这个 DID"**的操作上要求，
+不是每请求。封闭清单为：本节的绑定、账号注销 / 擦除、换绑 / 解绑、以及 root-anchored re-anchor。
+在已成立的绑定**之下**进行的操作不在此列——PCR 内 profile 由 device 签名的 Realm Event 承载，
+账号侧属性（邮箱、密码、恢复联系人）由账号认证把关；二者都 MUST NOT 要求 DID 控制权证明。
+
+1. 客户端调用 `ak.gate.account.command.issue_did_binding_challenge`，只提交 `principal_id`。
+   Account Authority MUST 自行按 [`did-usage-and-verification.md` §5.4](./did-usage-and-verification.md)
+   的 `high` tier 解析该 DID（同步刷新或 fail closed），并从解析出的 current entry 推导
+   `did_version_id`、`log_head_digest` 与 `control_key_digest`。**MUST NOT 接受调用方自报的 DID history。**
+2. **不自托管该 DID 的部署 MUST 另行要求 method-native witness / freshness 证据。**
+   接受 registry 与 Principal Server 同源是对**自有 DID** 的裁决，**不外延到第三方 DID**：
+   自有 DID 的断言是"这是本服务的一个用户"，外部 DID 的断言是"这个账号就是某第三方身份"，
+   后者会被导出给依赖方，是有外部爆炸半径的冒充面。
+3. 客户端把 challenge 回显字段**逐字节比对**本地期望值后，才用 `did_version_id` 所钉 entry 的
+   **current active update key** 签 `account_registration_control_proof`；任一不符 MUST fail closed
+   且不得签名。验证方 MUST 从已验证 DID history 选取该 key，MUST NOT 采信请求自带的 key
+   或 DID Document 的 verificationMethod。
+4. **Soland MUST 独立解析该 DID 并自行重验该证明**，不得采信 Account Authority 的结论；
+   S2S 签名只认证传输来源。
+5. 绑定成立后，Principal Server 以其**本地账号记录**为运营真相，**MUST NOT** 对外部 DID 托管方
+   产生运行时硬依赖：解析只发生在上述核心操作时刻，其余操作零回源。核心操作时刻不可达 ⇒
+   该操作 fail closed，日常操作不受影响。
+6. **绑定的时效性**：核心操作时 MUST 重验控制权。重验失败（该 DID 已轮换给他人或已 deactivate）时，
+   账号 MUST 进入显式的受限状态并要求用户重新证明控制权或走显式解绑；
+   **MUST NOT 自动解绑**——那会把外部 DID 的控制权变更变成本地账号状态的单方控制通道。
+
+PCR 的作用域是「某个 DID 在**当前 Principal Server** 上的账号」：同一 DID 在不同 Principal Server 上
+是完全独立、互不相关、不可迁移的账号与 PCR。全网模型是「特定 Principal Server 上的一个 DID ↔
+一个 arkret 账号」，各 Principal Server 自行治理其系统下的账号。
 
 ### 2.1.3 SessionGrant 不确定结果与开发期 clean break
 

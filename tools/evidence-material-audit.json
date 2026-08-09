@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 108,
+  "audited_occurrence_count": 110,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -65,6 +65,13 @@
         "attestation"
       ],
       "reason": "Carries the registered heterogeneous registration policy material."
+    },
+    {
+      "file": "account-operations.schema.json",
+      "key": "witness_evidence",
+      "occurrences": 2,
+      "disposition": "qualifier",
+      "reason": "Method-native did:webvh witness / freshness evidence digest for an externally hosted DID. It is public log-derived material, carries no secret, and only pins which witnessed history state the Account Authority resolved."
     },
     {
       "file": "account-subscribe-frame.schema.json",
