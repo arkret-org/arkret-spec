@@ -99,6 +99,22 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
             errors,
         )
 
+    def test_caller_signed_subtree_is_client_local(self) -> None:
+        # SUPPLY-005 regression: the recovery terminal receipt is signed by the
+        # replacement device that is also the caller, so neither the object nor
+        # anything nested inside it is owed by a read surface. Without subtree
+        # propagation the evidence-shaped leaves under it fail.
+        errors = self._run()
+        self.assertFalse(
+            [
+                error
+                for error in errors
+                if "issue_recovery_completion_grant" in error
+                and "terminal_receipt" in error
+            ],
+            errors,
+        )
+
     def test_stale_exemption_row_fails(self) -> None:
         # A row that matches nothing is debt bookkeeping rot: the finding it
         # covered was fixed, so the row must be deleted in the same change.

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.1",
+  "version": "2026-08-10.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T00:00:01Z",
+  "generated_at": "2026-08-10T00:00:02Z",
   "description": "Closed named-exemption registry for zh/sync/service-http-binding.md 2.2.2. That section requires every gate-scoped required request input (evidence-shaped or CAS/echo-shaped leaves, and untyped required objects) to have a registered supply source, and every declared FSM state and allowed transition to have a registered write. Rows carry individually adjudicated exceptions in two kinds: request_input rows per operation and json-path prefix, fsm_transition rows per cell family with the waived states and transitions. Structural rules live in the machine gate, not here: this registry only carries individually adjudicated exceptions so that a blanket category can never be smuggled in as a row.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.request_material_supply\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -107,19 +107,6 @@
       "review_anchor": {
         "file": "arkret-work/review/spec-open/2026-08-10-request-evidence-tiering.md",
         "heading": "SUPPLY-001"
-      }
-    },
-    {
-      "exemption_id": "ak.exemption.request_material_supply.recovery_grant_terminal_receipt.v1",
-      "status": "active",
-      "kind": "request_input",
-      "operation_id": "ak.gate.account.command.issue_recovery_completion_grant",
-      "json_path_prefix": "terminal_receipt",
-      "disposition": "open_finding",
-      "rationale": "The grant issuance requires the full coordinator-signed terminal receipt object, but terminal_result only returns receipt_id plus the completion attestation (which already binds terminal_receipt_id and terminal_receipt_digest) and accepted_steps only return output refs and digests; no response surface returns the receipt object, so the caller cannot construct the request. Candidate fixes recorded in the review entry: supply the receipt via terminal_result, or drop the field as attestation-bound redundancy.",
-      "review_anchor": {
-        "file": "arkret-work/review/spec-open/2026-08-10-request-evidence-tiering.md",
-        "heading": "SUPPLY-005"
       }
     },
     {

@@ -13897,12 +13897,20 @@ _SUPPLY_DID_LOG_DERIVED_NAMES = frozenset(
     {"did_entry_ref", "previous_entry_ref", "expected_entry_ref"}
 )
 _SUPPLY_DID_LOG_DERIVED_DEFS = frozenset({"did_generation_ref"})
-# Caller-signed statements whose issuer IS the requester (join-policy.md 7:
-# applicant-signed application/cancel receipts, reviewer-signed review
-# receipt). The evidence-shaped name notwithstanding, the caller authors and
-# signs the object locally, so no read surface owes it to them.
-_SUPPLY_CALLER_SIGNED_DEFS = frozenset(
-    {"application_receipt", "review_receipt", "cancel_receipt"}
+# Caller-signed objects: the schema pins the signing key to the caller itself,
+# so the caller authors the bytes and no read surface owes them to it.
+# join-policy.md 7 applicant/reviewer receipts; the recovery terminal receipt
+# is signed by the replacement device's accepted device key (recovery-receipt
+# .schema.json auth_data forbids service keys) and that same device is the
+# issue_recovery_completion_grant caller. Entries are schema identities: a
+# $defs name or a bare-file schema path.
+_SUPPLY_CALLER_SIGNED_SCHEMAS = frozenset(
+    {
+        "application_receipt",
+        "review_receipt",
+        "cancel_receipt",
+        "schemas/recovery-receipt.schema.json",
+    }
 )
 # peer/edge submitters are servers or applet hosts presenting their own
 # projections; open is the out-of-band handoff surface (QR / external
@@ -14008,6 +14016,7 @@ def _supply_walk_demand(
     chain_required: bool,
     supplied_defs: set,
     covered: bool,
+    caller_signed: bool = False,
 ) -> None:
     if not isinstance(node, dict):
         return
@@ -14029,6 +14038,9 @@ def _supply_walk_demand(
             chain_required,
             supplied_defs,
             covered or key in supplied_defs,
+            caller_signed
+            or rdef in _SUPPLY_CALLER_SIGNED_SCHEMAS
+            or rfile in _SUPPLY_CALLER_SIGNED_SCHEMAS,
         )
         return
     for comb in ("oneOf", "anyOf", "allOf"):
@@ -14043,6 +14055,7 @@ def _supply_walk_demand(
                 chain_required,
                 supplied_defs,
                 covered,
+                caller_signed,
             )
     items = node.get("items")
     if isinstance(items, dict):
@@ -14056,6 +14069,7 @@ def _supply_walk_demand(
             chain_required,
             supplied_defs,
             covered,
+            caller_signed,
         )
     props = node.get("properties")
     if not isinstance(props, dict):
@@ -14073,6 +14087,7 @@ def _supply_walk_demand(
         is_required = prop_name in required
         field_path = f"{path}.{prop_name}" if path else prop_name
         ref_def = ""
+        ref_file = ""
         ref_supplied = False
         resolved_sub = sub
         resolved_file = file
@@ -14080,9 +14095,15 @@ def _supply_walk_demand(
             resolved = _supply_resolve_ref(schema_files, file, sub["$ref"])
             if resolved is not None:
                 ref_def = resolved[1]
+                ref_file = resolved[0]
                 ref_supplied = (resolved[0], resolved[1]) in supplied_defs
                 resolved_file = resolved[0]
                 resolved_sub = resolved[2]
+        field_caller_signed = (
+            caller_signed
+            or ref_def in _SUPPLY_CALLER_SIGNED_SCHEMAS
+            or ref_file in _SUPPLY_CALLER_SIGNED_SCHEMAS
+        )
         is_union = (
             isinstance(resolved_sub, dict)
             and isinstance(resolved_sub.get("oneOf"), list)
@@ -14109,6 +14130,7 @@ def _supply_walk_demand(
                     True,
                     supplied_defs,
                     covered or ref_supplied,
+                    field_caller_signed,
                 )
                 branches.append(branch_out)
             out.append(
@@ -14117,6 +14139,8 @@ def _supply_walk_demand(
                     "path": field_path,
                     "name": prop_name,
                     "ref_def": ref_def,
+                    "ref_file": ref_file,
+                    "caller_signed": field_caller_signed,
                     "chain_required": chain_required,
                     "covered": covered or ref_supplied,
                     "untyped": False,
@@ -14133,6 +14157,8 @@ def _supply_walk_demand(
                     "path": field_path,
                     "name": prop_name,
                     "ref_def": ref_def,
+                    "ref_file": ref_file,
+                    "caller_signed": field_caller_signed,
                     "chain_required": chain_required,
                     "covered": covered or ref_supplied,
                     "untyped": _supply_is_untyped_object(sub),
@@ -14151,6 +14177,7 @@ def _supply_walk_demand(
             chain_required and is_required,
             supplied_defs,
             covered or ref_supplied,
+            field_caller_signed,
         )
 
 
@@ -14402,7 +14429,7 @@ def check_request_material_supply_closure(lint: Lint) -> None:
                 or ref_def in _SUPPLY_DID_LOG_DERIVED_DEFS
             ):
                 return False
-            if ref_def in _SUPPLY_CALLER_SIGNED_DEFS:
+            if demand["caller_signed"]:
                 return False
             if not untyped:
                 if demand["covered"]:
