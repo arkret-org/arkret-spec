@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.1",
+  "version": "2026-08-10.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T14:00:00Z",
+  "generated_at": "2026-08-10T16:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1845,6 +1845,19 @@
         "direct-conversation-fixture.json"
       ],
       "description": "One accepted founding unit per (founder_id, trust_domain_id, pair_key) slot across same-Principal-Server, dual-Principal-Server and founder multi-device concurrency: first valid unit wins, the loser gets direct_conversation_slot_already_committed with zero writes, exact replay returns the byte-identical receipt without advancing accepted_at, the same idempotency key with a different unit is duplicate_conflict, every crash point converges to the same coordinates, and the federation branch reports a missing bounded dependency as a top-level retryable dependency_missing rather than a partial.",
+      "source_refs": [
+        "spec/v1/zh/identity/contact-and-direct-conversation.md",
+        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.founding_authoring_material.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-fixture.json"
+      ],
+      "description": "The creation_required resolver outcome carries next_founding_input with member names identical to the founding unit submission, exactly one founder_basis_evidence branch, no Event bytes or coordinates, temporarily_unavailable when the material cannot be assembled, and submission-side re-verification that never trusts the echoed copy.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"

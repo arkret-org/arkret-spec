@@ -9756,6 +9756,12 @@ def check_error_code_closure(lint: Lint) -> None:
         # (contact-and-direct-conversation.md §9.1); it ends in _unavailable and
         # would otherwise trip the code-shape heuristic.
         "history_key_unavailable",
+        # Direct Conversation resolver outcome state, not a reason code
+        # (direct-conversation-operations.schema.json#/$defs/
+        # direct_conversation_resolve_outcome, contact-and-direct-conversation
+        # .md §9.1). It ends in _required and appears on sentences about what
+        # the resolver returns, so it would otherwise trip the heuristic.
+        "creation_required",
     }
 
     for path in markdown_files():

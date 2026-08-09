@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9184,
+    "total_properties": 9187,
     "total_schema_documents": 156,
     "by_presence_class": {
       "optional": 2762,
       "optional_defaulted": 67,
-      "required": 5993,
+      "required": 5996,
       "required_nullable": 112,
       "tristate": 250
     },
@@ -4854,6 +4854,9 @@
         "/$defs/direct_conversation_founding_acceptance_receipt/properties/proof": "required",
         "/$defs/direct_conversation_founding_acceptance_receipt/properties/realm_id": "required",
         "/$defs/direct_conversation_founding_acceptance_receipt/properties/slot_committed": "required",
+        "/$defs/direct_conversation_founding_input/properties/founder_basis_evidence": "required",
+        "/$defs/direct_conversation_founding_input/properties/source_service_binding": "required",
+        "/$defs/direct_conversation_resolve_outcome/oneOf/0/properties/next_founding_input": "required",
         "/$defs/direct_conversation_resolve_outcome/oneOf/0/properties/state": "required",
         "/$defs/direct_conversation_resolve_outcome/oneOf/1/properties/blockers": "required",
         "/$defs/direct_conversation_resolve_outcome/oneOf/1/properties/state": "required",

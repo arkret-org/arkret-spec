@@ -6306,6 +6306,7 @@
         ],
         "properties": [
           "state",
+          "next_founding_input",
           "blockers",
           "retry_after_ms",
           "coordinates",
@@ -6318,10 +6319,12 @@
             "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
             "schema_kind": null,
             "required": [
-              "state"
+              "state",
+              "next_founding_input"
             ],
             "properties": [
-              "state"
+              "state",
+              "next_founding_input"
             ],
             "closed": true
           },

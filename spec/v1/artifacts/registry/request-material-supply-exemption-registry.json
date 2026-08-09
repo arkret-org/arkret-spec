@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.3",
+  "version": "2026-08-10.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T00:00:03Z",
+  "generated_at": "2026-08-10T00:00:04Z",
   "description": "Closed named-exemption registry for zh/sync/service-http-binding.md 2.2.2. That section requires every gate-scoped required request input (evidence-shaped or CAS/echo-shaped leaves, and untyped required objects) to have a registered supply source, and every declared FSM state and allowed transition to have a registered write. Rows carry individually adjudicated exceptions in two kinds: request_input rows per operation and json-path prefix, fsm_transition rows per cell family with the waived states and transitions. Structural rules live in the machine gate, not here: this registry only carries individually adjudicated exceptions so that a blanket category can never be smuggled in as a row.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.request_material_supply\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -45,32 +45,6 @@
     "review_anchor_shape": "Relative path from the arkret workspace root plus a heading substring that MUST appear verbatim in that file. Only consulted for open_finding and deferred_supply rows; the gate skips the file check when the workspace root is absent (spec repo checked out alone)."
   },
   "exemptions": [
-    {
-      "exemption_id": "ak.exemption.request_material_supply.dc_founding_founder_basis_evidence.v1",
-      "status": "active",
-      "kind": "request_input",
-      "operation_id": "ak.self.events.command.submit",
-      "json_path_prefix": "founder_basis_evidence",
-      "disposition": "open_finding",
-      "rationale": "DirectConversationFoundingUnitSubmission requires the full founder basis evidence bundle and continuity chain, but no holder read surface returns them, so the founder cannot construct the submission. Adjudicated fix: the resolver creation_required variant will carry the authoring material with byte-identical field names (decisions/0020 six-1); until that wave lands this stays an enumerated gap and downstream stays fail closed.",
-      "review_anchor": {
-        "file": "arkret-work/review/spec-open/2026-08-09-end-to-end-flow-protocol-blockers.md",
-        "heading": "OPEN-FLOW-PROTO-011"
-      }
-    },
-    {
-      "exemption_id": "ak.exemption.request_material_supply.dc_founding_source_service_binding.v1",
-      "status": "active",
-      "kind": "request_input",
-      "operation_id": "ak.self.events.command.submit",
-      "json_path_prefix": "source_service_binding",
-      "disposition": "open_finding",
-      "rationale": "Same gap and same adjudicated fix as the founder basis evidence row: no read surface returns the current AcceptedAtServiceBinding with its authority evidence, so the self-surface founding submission cannot be built. Closes together with OPEN-FLOW-PROTO-011.",
-      "review_anchor": {
-        "file": "arkret-work/review/spec-open/2026-08-09-end-to-end-flow-protocol-blockers.md",
-        "heading": "OPEN-FLOW-PROTO-011"
-      }
-    },
     {
       "exemption_id": "ak.exemption.request_material_supply.directory_announce_discovery_state.v1",
       "status": "active",

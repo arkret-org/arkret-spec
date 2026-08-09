@@ -6,13 +6,13 @@
     "ak.vector.contact.next_prepare_input.v1",
     "ak.vector.contact.pending_incoming_request_receipt.v1",
     "ak.vector.direct_conversation.realm_shape.v1",
-    "ak.vector.direct_conversation.founding_unit.v1",
+    "ak.vector.direct_conversation.founding_authoring_material.v1", "ak.vector.direct_conversation.founding_unit.v1",
     "ak.vector.direct_conversation.founding_admission.v1",
     "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
     "ak.vector.direct_conversation.send_blocker_authority.v1",
     "ak.vector.direct_conversation.suspend_rejoin.v1"
   ],
-  "version": "2026-08-11",
+  "version": "2026-08-12",
   "spec_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#55-caller-authored-founding-unitsource-唯一-slot-与-acceptance-receipt",
   "source_refs": [
     "spec/v1/zh/identity/contact-and-direct-conversation.md",
@@ -885,6 +885,21 @@
         "same Realm and main Strand are returned",
         "no KeyPackage claim occurs",
         "the query-only resolver performs no create phase"
+      ]
+    },
+    {
+      "name": "creation_required_carries_the_authoring_material",
+      "vector_id": "ak.vector.direct_conversation.founding_authoring_material.v1",
+      "precondition": "the pair has an accepted Contact basis and no accepted Direct Conversation Realm; the caller is the founder and the current gates allow creation",
+      "action": "resolve the pair through ak.self.direct_conversation.read.resolve",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "state is creation_required and next_founding_input is present",
+        "next_founding_input member names equal the DirectConversationFoundingUnitSubmission members byte for byte, so the caller copies founder_basis_evidence and source_service_binding across with no renaming map",
+        "exactly one founder_basis_evidence branch is returned for this pair, human for a peer Contact founding and controller_agent for an own-Agent founding",
+        "the container carries no Event bytes, no coordinates, no idempotency_key and no receipt: the founder still authors and signs all three Events",
+        "a service that cannot assemble or verify the material returns temporarily_unavailable instead of a creation_required outcome without the container",
+        "the submission re-verifies the material against the service's own current state and never trusts the echoed copy"
       ]
     },
     {

@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 110,
+  "audited_occurrence_count": 111,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -209,6 +209,14 @@
       "occurrences": 1,
       "disposition": "derived_summary",
       "reason": "Commits the exact portable Contact basis evidence bundle that the founder's source Principal Server verified when it atomically accepted the Direct Conversation founding unit and closed its local unique slot."
+    },
+    {
+      "file": "direct-conversation-operations.schema.json",
+      "key": "founder_basis_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "commitment"],
+      "reason": "Verbatim echo of the DirectConversationFoundingUnitSubmission member, returned by the creation_required resolver outcome so the founder can construct the unit at all; same closed XOR branches and same material families as the service-operation-dtos.schema.json registration."
     },
     {
       "file": "event-envelope.schema.json",

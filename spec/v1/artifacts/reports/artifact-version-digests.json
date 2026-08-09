@@ -201,9 +201,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/request-material-supply-exemption-registry.json",
-      "version": "2026-08-10.3",
-      "generated_at": "2026-08-10T00:00:03Z",
-      "content_digest": "sha256:b06b8459f81f952009b6a6fb4fc258567ebc861db0a50189417fc6661b71ea01"
+      "version": "2026-08-10.4",
+      "generated_at": "2026-08-10T00:00:04Z",
+      "content_digest": "sha256:b563181a3c7a21ee0502047fcd6f15ebb8b1472c16b510759f5856df0b66a07b"
     },
     {
       "path": "spec/v1/artifacts/registry/runner-kind-registry.json",
@@ -243,9 +243,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-08-10.1",
-      "generated_at": "2026-08-10T14:00:00Z",
-      "content_digest": "sha256:c7ae020144646c1ce6391964c8f954c5a067c3dc35a749ff70fc087bd1a8132e"
+      "version": "2026-08-10.2",
+      "generated_at": "2026-08-10T16:00:00Z",
+      "content_digest": "sha256:1e1cef17fc00708bf627a0edf97f1922088af4057a797f90074f968b629cda4c"
     }
   ]
 }

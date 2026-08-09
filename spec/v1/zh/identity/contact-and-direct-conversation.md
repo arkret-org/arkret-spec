@@ -533,7 +533,7 @@ binding **MUST NOT** 携带 `binding_state`、`supersedes_binding_ref`、永久 
 
 | state | 条件 |
 | --- | --- |
-| `creation_required` | 无 accepted DM Realm，本方 `== founder`，且 current gate 允许创建 |
+| `creation_required` | 无 accepted DM Realm，本方 `== founder`，且 current gate 允许创建；**MUST** 携带 §9.1.1 的 `next_founding_input` |
 | `creation_blocked` | 无 accepted DM Realm 且本方 `== founder`，但 current Contact/account/Agent/profile/notary gate 确定性拒绝；**MUST NOT** 分配 UUID 或诱导重试 |
 | `awaiting_founder` | 无 accepted DM Realm 且本方 `!= founder`；等待时长 **MUST NOT** 改变 create authority |
 | `provisional` | 唯一 founding unit 已 accepted 但尚无合法 binding；只可执行 §7.2 的封闭 bootstrap 动作 |
@@ -544,6 +544,42 @@ binding **MUST NOT** 携带 `binding_state`、`supersedes_binding_ref`、永久 
 求值优先级固定：依赖不足以验证 current basis 或 founder 时 `temporarily_unavailable`；无 Realm 时区分 `creation_blocked | creation_required | awaiting_founder`；有 Realm 后 identity/materialization/terminal/notary 冲突优先 `suspended`；否则无 binding 为 `provisional`；最后才在 binding、generation 与 daily gates 齐备时 `found`。`retry_after` 只是调度提示，**MUST NOT** 产生 fallback authority。
 
 existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库存、grant/policy freshness 或 MLS reconcile 而被隐藏。
+
+#### 9.1.1 `creation_required` 的 authoring material（normative）
+
+`DirectConversationFoundingUnitSubmission` 必填 `founder_basis_evidence` 与
+`source_service_binding`，二者都是**服务端自己持有**的对象（前者由 Contact 证据投影得到，
+后者就是本服务签发并接受的 binding）。若 resolver 只回一个无 material 的
+`creation_required`，则 founder 在协议层不可能构造该 unit——这正是
+[`service-http-binding.md` §2.2.2](../sync/service-http-binding.md) 供给闭合律禁止的形态。
+因此：
+
+- `creation_required` **MUST** 携带 `next_founding_input`，其成员名与 submission 的对应成员
+  **逐字节一致**（`founder_basis_evidence`、`source_service_binding`），caller 原样搬运，
+  **MUST NOT** 引入任何改名映射；服务端 **MUST NOT** 在该容器里附带 Event bytes、坐标、
+  `idempotency_key` 或 receipt——三条 Event 仍由 founder 自签，服务端**永不**代签。
+- 服务端 **MUST** 按本 pair 选择唯一分支：peer Contact founding 用 `human` 分支（含完整
+  bundle 与 root continuity chain），own-Agent founding 用 `controller_agent` 分支；
+  **MUST NOT** 同时返回两个分支，也 **MUST NOT** 返回与 §5.4 验证口径不同的另一份证据。
+- **无料时不得返回本状态**：服务端组装不出或验证不了该 material 时 **MUST** 返回
+  `temporarily_unavailable`，**MUST NOT** 返回不带容器的 `creation_required`，也 **MUST NOT**
+  为此新增错误码或状态值——求值优先级表里 `temporarily_unavailable` 本就覆盖"依赖不可验证"。
+- **新鲜度**：该 material 是响应时刻的快照，**不是** authority。caller **MUST NOT** 跨
+  Contact 状态变化复用它；material 在提交时已陈旧的，submission 侧按 §5.4/§6 既有校验拒绝
+  （basis 不匹配、continuity 断链、binding 非 current），**MUST NOT** 因为它来自 resolver
+  就放宽任何一条校验，服务端也 **MUST NOT** 把 caller 回传的 material 当作可信输入——
+  它 **MUST** 以自己 current 的那份重新验证。
+- **并发 founder 设备**：同一 founder 的多台设备 **MAY** 同时取得 `creation_required` 与
+  相同 material；胜负仍只由 §5.5 的 `(founder_id, trust_domain_id, pair_key)` slot CAS 决定，
+  失败方得到 `direct_conversation_slot_already_committed` 后 **MUST** 改走 resolver 取回既有
+  坐标，**MUST NOT** 用自己那份 unit 重试。material 相同不构成"两份 unit 等价"。
+
+联邦面（`ak.peer.events.command.submit` 的同形字段）由 source 服务器在 server-to-server
+一跳上投影供给，**MUST NOT** 要求 founder 客户端亲手跨服务器搬运这些证据。
+
+实现 **MUST** 执行 [`ak.vector.direct_conversation.founding_authoring_material.v1`](../../artifacts/registry/vector-registry.json)：
+它断言容器存在性、成员名逐字一致、单一分支、无 Event bytes / 坐标 / receipt、无料时降为
+`temporarily_unavailable`，以及提交侧对回传 material 的重新验证。
 
 **send blocker 的权威边界（normative）。** wire 上的封闭枚举 `direct_conversation_send_blocker`（[`direct-conversation-operations.schema.json`](../../artifacts/schemas/direct-conversation-operations.schema.json)）**MUST** 只承载 server-verifiable blocker：服务端 **MUST** 能从它有权读取的 accepted authoritative state 证明该值，**MUST NOT** 猜测、解密或把客户端自报当作 authority。因此 `personal_blocked` 与 `history_key_unavailable` **MUST NOT** 出现在该枚举中——`ak.account.blocklist` 是 holder-private account data，经不可信服务同步时只以对 holder 设备加密的形式存在；某条历史 MLS secret 是否已安装是端侧私有密钥状态。任何让服务端权威判定这两者的做法都要么拆掉那条加密不变量，要么把未认证声明当成事实。服务端返回这两个值 **MUST** 直接构成 `schema_violation`，客户端 **MUST** 拒绝，**MUST NOT** 以"容忍未知 blocker 字符串"的方式接受。
 
