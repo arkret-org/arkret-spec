@@ -9519,6 +9519,13 @@ def check_error_code_closure(lint: Lint) -> None:
         # §5, service-http-binding.md §1015); the bare frame.kind ends in
         # _required and would otherwise trip the code-shape heuristic.
         "resync_required",
+        # Direct Conversation client-local send blocker, not a reason code and
+        # deliberately absent from every wire surface. Registered in
+        # conformance-profiles.json under
+        # ak.profile.direct_conversation_realm.v1#client_local_send_blockers
+        # (contact-and-direct-conversation.md §9.1); it ends in _unavailable and
+        # would otherwise trip the code-shape heuristic.
+        "history_key_unavailable",
     }
 
     for path in markdown_files():

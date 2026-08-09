@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.9",
+  "version": "2026-08-09.10",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T09:00:00Z",
+  "generated_at": "2026-08-10T10:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1601,6 +1601,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.capability.direct_conversation_repair_authority.v1",
+      "status": "active",
+      "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
+      "description": "Authority-surface coverage for ak.authority.direct_conversation_repair.v1, whose action_allowlist is exactly ak.member.rejoin.own. A self leave -> join ak.member.state under the repair source matches that action and reports it as the matched authority source; joining on behalf of the other participant, carrying a first join, admitting a third participant, presenting ak.member.leave.own under the repair source (daily self-leave belongs to the participant authority) and running rejoin.own backwards as join -> leave all fail closed. Behavioural rejoin vectors that never name the action or the authority source would stay green with an empty allowlist and therefore do not cover this.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/capability-fixture.json",
+        "spec/v1/zh/identity/contact-and-direct-conversation.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.contact.next_prepare_input.v1",
       "status": "active",
       "domain": "contact",
@@ -1608,6 +1621,19 @@
         "direct-conversation-fixture.json"
       ],
       "description": "The ak.self.contact.read.list projection carries the closed next_prepare_input successor cursor: an accepted row MUST carry it and the five non-authorable contact_state values MUST NOT, its basis_id, version and predecessor_event_ref are copied verbatim into the scope_update and tombstone prepare phases, version is the next Event's version and predecessor_event_ref is the current lineage head rather than that head's predecessor, and a stale cursor is refused with contact_lineage_conflict or contact_scope_stale and MUST be re-read rather than guessed or retried unchanged.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
+        "spec/v1/zh/identity/contact-and-direct-conversation.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
+      "status": "active",
+      "domain": "contact",
+      "applies_to_fixtures": [
+        "direct-conversation-fixture.json"
+      ],
+      "description": "The ak.self.contact.read.list projection carries the complete signed request_receipt on a pending_incoming row, so respond and reject become authorable: the field name is byte-identical to the prepare field that consumes it, it is copied verbatim and never narrowed to a reference, and because it is signed by the peer's source service rather than by the holder's own server the client verifies it independently instead of trusting its server's retelling. pending_outgoing, accepted, rejected, expired and tombstoned rows MUST NOT carry it, a glare pair is structurally never pending_incoming so respond and reject stay forbidden without a new code, and a consumed receipt is refused by prepare with zero writes and MUST be re-read rather than cached or replayed.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
@@ -1812,6 +1838,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-fixture.json"
+      ],
+      "description": "The hard cap of sixteen not-yet-active candidate MLS groups under one Direct Conversation active-generation predecessor: the sixteenth candidate MUST be admitted, the seventeenth MUST be refused with the exact registered code mls_generation_proposal_fanout_exceeded at HTTP 409 on both the self and the peer Event submit entry points, the refusal is not rate_limited and carries no retry window, and the pair MUST NOT be quarantined - coordinates, binding, membership, the current active generation and the resolver state all stay unchanged and the refusal writes nothing.",
+      "source_refs": [
+        "spec/v1/zh/identity/contact-and-direct-conversation.md",
+        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.direct_conversation.pair_key.v1",
       "status": "active",
       "domain": "direct_conversation",
@@ -1832,6 +1871,19 @@
       ],
       "description": "Direct Conversation Realm profile/discriminator bidirectional schema guard, MLS and closed-join shape, exact-two membership, no-Space policy and main-Strand invariants.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.send_blocker_authority.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-fixture.json"
+      ],
+      "description": "The Direct Conversation resolver reports only server-verifiable send blockers. personal_blocked and history_key_unavailable are absent from the closed wire enum because holder blocklist state is encrypted to holder devices and history key installation is device-private, so a reply carrying either value is a schema_violation; they are carried instead by the closed client-local blocker set, which never appears on any wire surface and never turns the resolver state into suspended. presence_offline and keypackage_empty remain server-verifiable but are returned only to an existing exact-pair participant, and a non-participant probe gets the same opaque failure as a nonexistent pair.",
+      "source_refs": [
+        "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
       ]
     },

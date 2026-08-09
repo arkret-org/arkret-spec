@@ -70,7 +70,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "8960641019cdb467f1ca3f43fc66decdb0c9bafd139c36dadcaa3e6195c5ad21"
+      "sha256": "2eb957526311dfb907ee62363aced4fe0e16a28692a4fd42e3934df6dd0b230f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
@@ -110,7 +110,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "052f5bd1e14b2bebf481f7c8018a169ef8967d53afd812fdbc88fd7037a1e236"
+      "sha256": "6e988af904b4ea50689f8d862afe36360a4757327a62c03ffdf4b75eca697234"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",

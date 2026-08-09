@@ -628,6 +628,10 @@
         "request_event_ref": {
           "$ref": "#/$defs/event_id"
         },
+        "request_receipt": {
+          "$ref": "#/$defs/request_acceptance_receipt",
+          "description": "Closed prepare input for answering one incoming Contact proposal, carried only by the ak.self.contact.read.list projection. It is the complete signed request_acceptance_receipt object, not narrowed to a reference, and the field name is byte-identical to the request_receipt field of the prepare branch of ak.self.contact.command.respond and ak.self.contact.command.reject, so a client copies it verbatim; the prepare contract is unchanged and a client MUST NOT rename, rebuild or re-derive the receipt, and MUST NOT assemble one from request_event_ref, which is a projection summary. Unlike next_prepare_input this receipt is issued and signed by the PEER's source service rather than by the holder's own server, which is exactly why handing the object itself to the holder client has real cross-server verification value: the client verifies the issuer signature, the issuer service key at accepted_at and the receipt's binding to the exact request Event ref and digest on its own, instead of unconditionally believing its own server's retelling. Presence is fixed by contact_state: a pending_incoming row MUST carry it, and a pending_outgoing, accepted, rejected, expired or tombstoned row MUST NOT, because pending_outgoing is the holder's own outstanding proposal with no incoming request to answer and the other four have a consumed admission slot or a terminal basis. A glare pair is therefore never receipt-bearing: the holder's own unconsumed outgoing request keeps the row pending_outgoing while glare evidence is incomplete, and the mechanically derived glare basis projects accepted, which matches the rule that the glare branch forbids respond and reject. Absence is the sole encoding of 'respond and reject are not authorable now'; no extra error code and no extra contact_state value expresses it. When the slot has moved on, prepare refuses with zero writes; the client MUST re-read this operation rather than cache, guess or replay a consumed receipt."
+        },
         "response_event_ref": {
           "$ref": "#/$defs/event_id"
         },
@@ -685,6 +689,30 @@
             "not": {
               "required": [
                 "next_prepare_input"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "pending_incoming"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "request_receipt"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "request_receipt"
               ]
             }
           }

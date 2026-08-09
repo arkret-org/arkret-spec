@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9123,
+    "total_properties": 9125,
     "total_schema_documents": 156,
     "by_presence_class": {
-      "optional": 2760,
+      "optional": 2761,
       "optional_defaulted": 67,
-      "required": 5933,
+      "required": 5934,
       "required_nullable": 113,
       "tristate": 250
     },
@@ -4073,6 +4073,7 @@
         "/$defs/contact_list/properties/has_more": "required",
         "/$defs/contact_list/properties/next_cursor": "optional",
         "/$defs/contact_list_row/allOf/0/if/properties/state": "required",
+        "/$defs/contact_list_row/allOf/1/if/properties/state": "required",
         "/$defs/contact_list_row/properties/agents": "optional",
         "/$defs/contact_list_row/properties/bidirectional_scopes": "required",
         "/$defs/contact_list_row/properties/direct_conversation": "optional",
@@ -4083,6 +4084,7 @@
         "/$defs/contact_list_row/properties/peer": "required",
         "/$defs/contact_list_row/properties/peer_service_id": "optional",
         "/$defs/contact_list_row/properties/request_event_ref": "optional",
+        "/$defs/contact_list_row/properties/request_receipt": "optional",
         "/$defs/contact_list_row/properties/response_event_ref": "optional",
         "/$defs/contact_list_row/properties/state": "required",
         "/$defs/contact_list_row/properties/tombstone_event_ref": "optional",
@@ -4400,6 +4402,7 @@
         "/$defs/contact_basis_evidence_bundle/properties/normal_response_receipt",
         "/$defs/contact_lineage/properties/predecessor_event_ref",
         "/$defs/contact_list_row/properties/next_prepare_input",
+        "/$defs/contact_list_row/properties/request_receipt",
         "/$defs/peer_contact_control_receipt/properties/result_digest",
         "/$defs/peer_contact_event_submit_outcome/properties/current_proof",
         "/$defs/request_acceptance_receipt_core/properties/slot_predecessor"

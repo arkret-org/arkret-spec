@@ -1341,6 +1341,7 @@ components:
               - contact_scope_stale
               - contact_lineage_conflict
               - membership_compensation_conflict
+              - mls_generation_proposal_fanout_exceeded
             message:
               type: string
             retry_after_ms:
@@ -5093,6 +5094,16 @@ paths:
         carries and predecessor_event_ref is the current lineage head. Every
         other contact_state omits the cursor, and the projected request,
         response and tombstone event refs are never authoritative lineage heads.
+        A pending_incoming row likewise carries request_receipt, the complete
+        signed request_acceptance_receipt copied verbatim into the prepare phase
+        of /_arkret/self/contacts/respond or /_arkret/self/contacts/reject. That
+        receipt is signed by the peer's source service rather than by this
+        server, so the client verifies it itself instead of trusting this
+        server's retelling. Every other contact_state omits it: pending_outgoing
+        has no incoming request to answer, and accepted, rejected, expired and
+        tombstoned have a consumed slot or a terminal basis. A glare pair is
+        never pending_incoming, which is why the glare ban on respond and reject
+        needs no extra error code.
       parameters:
       - name: state
         in: query

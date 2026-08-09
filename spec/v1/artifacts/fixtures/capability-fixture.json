@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.authz.capability.v1"
   },
   "profile": "ak.vector_group.capability.v1",
-  "version": "2026-08-02",
+  "version": "2026-08-11",
   "fixtures": [
     {
       "name": "direct_card_update_grant_allows_update",
@@ -1425,6 +1425,160 @@
           "expected": {
             "decision": "deny",
             "reason_code": "direct_conversation_participant_authority_denied"
+          }
+        }
+      ]
+    },
+    {
+      "name": "direct_conversation_repair_authority_is_rejoin_only",
+      "vector_id": "ak.vector.capability.direct_conversation_repair_authority.v1",
+      "authority_source": {
+        "authority_source_id": "ak.authority.direct_conversation_repair.v1",
+        "profile": "ak.profile.direct_conversation_repair.v1",
+        "action_allowlist": [
+          "ak.member.rejoin.own"
+        ],
+        "conversation_state": "suspended",
+        "immutable_binding_present": true,
+        "pair_key": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "realm_id": "ak:realm:AcYGY8ZRyGHMzMU3fHFMRtic9x8qg46bPq-9isnKp_zt",
+        "main_strand_id": "ak:strand:AQCooTvyYLNAsRHuLw7hmAZKYW2dExbzTyvmrxsRrDa9",
+        "participants": [
+          "did:webvh:z6mkfixture:alice.example",
+          "did:webvh:z6mkfixture:bob.example"
+        ],
+        "active_members": [
+          "did:webvh:z6mkfixture:alice.example"
+        ]
+      },
+      "cases": [
+        {
+          "name": "self_rejoin_matches_rejoin_action",
+          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
+          "event_kind": "ak.member.state",
+          "action": "ak.member.rejoin.own",
+          "membership_subject": "did:webvh:z6mkfixture:bob.example",
+          "membership_transition": {
+            "from": "leave",
+            "to": "join"
+          },
+          "expected": {
+            "decision": "allow",
+            "matched_authority_source": "ak.authority.direct_conversation_repair.v1",
+            "matched_action": "ak.member.rejoin.own",
+            "matched_evaluator_checks": [
+              "membership_transition_is_leave_to_join",
+              "actor_equals_membership_subject"
+            ]
+          }
+        },
+        {
+          "name": "rejoin_on_behalf_of_the_other_participant_denied",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
+          "event_kind": "ak.member.state",
+          "action": "ak.member.rejoin.own",
+          "membership_subject": "did:webvh:z6mkfixture:bob.example",
+          "membership_transition": {
+            "from": "leave",
+            "to": "join"
+          },
+          "expected": {
+            "decision": "deny",
+            "reason_code": "capability_denied",
+            "failed_evaluator_check": "actor_equals_membership_subject"
+          }
+        },
+        {
+          "name": "repair_cannot_carry_a_first_join",
+          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
+          "event_kind": "ak.member.state",
+          "action": "ak.member.rejoin.own",
+          "membership_subject": "did:webvh:z6mkfixture:bob.example",
+          "membership_transition": {
+            "from": null,
+            "to": "join"
+          },
+          "expected": {
+            "decision": "deny",
+            "reason_code": "capability_denied",
+            "failed_evaluator_check": "membership_transition_is_leave_to_join"
+          }
+        },
+        {
+          "name": "repair_cannot_admit_a_third_participant",
+          "actor_id": "did:webvh:z6mkfixture:carol.example",
+          "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
+          "event_kind": "ak.member.state",
+          "action": "ak.member.rejoin.own",
+          "membership_subject": "did:webvh:z6mkfixture:carol.example",
+          "membership_transition": {
+            "from": null,
+            "to": "join"
+          },
+          "expected": {
+            "decision": "deny",
+            "reason_code": "direct_conversation_third_party_member_forbidden",
+            "failed_evaluator_check": "exact_two_participant_mask"
+          }
+        },
+        {
+          "name": "leave_own_is_not_in_the_repair_allowlist",
+          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
+          "event_kind": "ak.member.state",
+          "action": "ak.member.leave.own",
+          "membership_subject": "did:webvh:z6mkfixture:bob.example",
+          "membership_transition": {
+            "from": "join",
+            "to": "leave"
+          },
+          "expected": {
+            "decision": "deny",
+            "reason_code": "capability_denied",
+            "action_not_in_allowlist": true,
+            "correct_authority_source": "ak.authority.direct_conversation_participant.v1"
+          }
+        },
+        {
+          "name": "rejoin_own_cannot_run_the_transition_backwards",
+          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
+          "event_kind": "ak.member.state",
+          "action": "ak.member.rejoin.own",
+          "membership_subject": "did:webvh:z6mkfixture:bob.example",
+          "membership_transition": {
+            "from": "join",
+            "to": "leave"
+          },
+          "expected": {
+            "decision": "deny",
+            "reason_code": "capability_denied",
+            "failed_evaluator_check": "membership_transition_is_leave_to_join"
+          }
+        },
+        {
+          "name": "daily_self_leave_still_uses_participant_authority",
+          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "presented_authority_source": "ak.authority.direct_conversation_participant.v1",
+          "event_kind": "ak.member.state",
+          "action": "ak.member.leave.own",
+          "membership_subject": "did:webvh:z6mkfixture:bob.example",
+          "membership_transition": {
+            "from": "join",
+            "to": "leave"
+          },
+          "override_conversation_state": "found",
+          "override_active_members": [
+            "did:webvh:z6mkfixture:alice.example",
+            "did:webvh:z6mkfixture:bob.example"
+          ],
+          "expected": {
+            "decision": "allow",
+            "matched_authority_source": "ak.authority.direct_conversation_participant.v1",
+            "matched_action": "ak.member.leave.own"
           }
         }
       ]

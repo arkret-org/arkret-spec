@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-09.5",
+  "version": "2026-08-09.6",
   "codes": [
     {
       "code": "bad_json",
@@ -1687,6 +1687,12 @@
       "http_status": 409,
       "scope": "endpoint",
       "description": "A compensation delegation/action/executor/admission/incarnation binding is wrong, already consumed or conflicts with the current membership provenance. Newer incarnations are never removed; absent or superseded destinations return their registered signed no-write outcomes."
+    },
+    {
+      "code": "mls_generation_proposal_fanout_exceeded",
+      "http_status": 409,
+      "scope": "both",
+      "description": "Sixteen not-yet-active candidate MLS groups already exist under one Direct Conversation active-generation predecessor, so the seventeenth ak.direct_conversation.mls_generation.activate candidate is refused. The cap is a hard structural bound and not a rate limit: 409 is correct and 429 is not, waiting alone never clears it, and progress requires one existing candidate to be activated by the cell or to expire. Only the offending candidate is refused with zero writes; the pair MUST NOT be quarantined and its coordinates, binding, membership and current active generation stay untouched. Servers MUST NOT promise a retry window through retry_after_ms for this code. Semantically it is the Direct Conversation sibling of contact_lineage_conflict rather than of rate_limited. See zh/identity/contact-and-direct-conversation.md §7.3."
     }
   ],
   "reason_codes": [

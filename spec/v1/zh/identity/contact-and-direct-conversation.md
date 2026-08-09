@@ -183,6 +183,27 @@ issuer 自己的 request head。scope 全集替换为空只把非 terminal basis
 prepare 只会被拒且零写入；被拒后客户端 **MUST** 重读 `ak.self.contact.read.list` 并以新值重试，**MUST NOT** 猜测
 lineage，也 **MUST NOT** 以同一组值重试。本条的规范执行向量是 `ak.vector.contact.next_prepare_input.v1`。
 
+同一 row 还 **MUST** 用 `request_receipt` 承载**回应一条 incoming 提案**所需的 prepare 输入。它是完整签名的
+`request_acceptance_receipt` 对象，**MUST NOT** 收窄为引用，也 **MUST NOT** 改变 respond / reject 的 prepare 契约；
+字段名与 `ak.self.contact.command.respond` / `ak.self.contact.command.reject` 的 prepare 分支逐字同名，客户端
+**MUST** 原样抄入，**MUST NOT** 改名、重建或从 `request_event_ref` 拼装。与 `next_prepare_input` 的关键差异在于**签发者**：
+该 receipt 由**对端的** source service 签发，不是 holder 自己的服务器签的。正因如此，把对象本身交给 holder 客户端
+具有真实的跨服务器验证价值——客户端 **MUST** 自行验证 issuer 签名、`accepted_at` 时点的 issuer service key，以及
+receipt 对 exact request Event ref/digest 的绑定，而不是无条件相信自己服务器的转述。
+
+按 `contact_state` 逐值判定：只有 `pending_incoming` **MUST** 携带；`pending_outgoing`、`accepted`、`rejected`、
+`expired`、`tombstoned` **MUST NOT** 携带——`pending_outgoing` 是 holder 自己发起、尚未有结果的提案，没有待回应的
+incoming request，其余四者的 admission slot 已被消费或 basis 已终态。glare 因此**结构上不会**出现携带 receipt 的 row：
+holder 自己那条尚未被消费的 outgoing request 使该 row 在 glare 证据齐备前保持 `pending_outgoing`，证据齐备后机械派生的
+basis 直接投影为 `accepted`，两段都不是 `pending_incoming`——这与 §2 “glare 禁止 respond/reject” 完全一致。实现
+**MUST NOT** 因为收到对端并发 request 就把 `pending_outgoing` 改判为 `pending_incoming`，那会诱导客户端去 author 一条
+必被拒的 respond。
+
+省略本身就是“现在不可 author respond / reject”的表达，**MUST NOT** 为此另造 error code，也 **MUST NOT** 扩充
+`contact_state`。slot 已被 normal、glare 或 reject 之一消费后，携旧 receipt 的 prepare **MUST** 零写入拒绝；客户端
+**MUST** 重读 `ak.self.contact.read.list`，**MUST NOT** 缓存、猜测或重放已消费的 receipt。本条的规范执行向量是
+`ak.vector.contact.pending_incoming_request_receipt.v1`。
+
 不存在、policy deny、过期、未授权与 quarantined 对无权主体必须使用相同 opaque failure。
 
 ## 4. Contact operation surface
@@ -197,7 +218,7 @@ Message Signature只能额外叠加，不能替代其中任一项。实现 **MUS
 | `ak.self.contact.command.reject` | 独立 proposal terminal reject与 rejection receipt；不得复用 respond body |
 | `ak.self.contact.command.scope_update` | issuer-local full-set replacement |
 | `ak.self.contact.command.tombstone` | accepted basis terminal，旧 refs永久消费 |
-| `ak.self.contact.read.list` | 从 verified basis与双方 directional current heads投影；accepted row 另携 §3 的 `next_prepare_input` 游标 |
+| `ak.self.contact.read.list` | 从 verified basis与双方 directional current heads投影；accepted row 另携 §3 的 `next_prepare_input` 游标，`pending_incoming` row 另携 §3 的 `request_receipt` |
 | `ak.peer.contacts.command.submit` | closed XOR peer carrier；原 bytes + exact receipt/current proof |
 | `ak.self.direct_conversation.read.resolve` | §9.1 的唯一 DM 查询入口；closed outcome，不携 create phase 分支 |
 | `ak.self.events.command.submit` | 其 `direct_conversation_founding` branch 是 §5.5 的唯一 DM founding 提交入口 |
@@ -441,6 +462,8 @@ DM Realm **MUST** 登记 singleton control cell `ak.component.direct_conversatio
 
 跳代、回退、把未 active group 当 predecessor、`u64::MAX` 或省略 causal basis **MUST** 拒绝。同一 predecessor 下未 active 的候选 group 硬上限为 16，第 17 个以 `mls_generation_proposal_fanout_exceeded` 拒绝，**MUST NOT** quarantine 整个 pair。
 
+该 code 登记在 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)，`http_status=409`、`scope=both`，self 与 peer 两条 Event 提交入口都 **MUST** 使用它。这是硬结构上限而非限速：实现 **MUST NOT** 改用 `rate_limited`（429），**MUST NOT** 通过 `retry_after_ms` 承诺重试窗口；只有既有候选之一被 cell 选中激活或过期，第 17 个才可能被接受。拒绝 **MUST** 零写入且只针对该候选：pair 的坐标、binding、成员集与 current active generation **MUST** 保持不变，resolver **MUST NOT** 因此转为 `suspended`。本条的规范执行向量是 `ak.vector.direct_conversation.mls_generation_candidate_fanout.v1`。
+
 并发 activation **MUST** 逐字复用所选普通 Realm notary profile 的 `security_barrier` 规则；本规范 **MUST NOT** 为 Direct Conversation 新增专属 barrier 或 quorum，也 **MUST NOT** 宣称裸 CAS 自身能自动选出 loser。未获 finality 的 proposal 基于新 head 重建；若 signer equivocation 确实使两个不同值 accepted，cell 进入 `⊥` 并走既有 conflict recovery。
 
 provisional Message **MUST** 引用 Event-time active generation 0；`found` 后的普通 Message **MUST** 引用 Event-time active exact-pair generation。未 active group 上的 Message **MUST** 拒绝。后来的合法 activation **MUST NOT** 追溯否定旧 Message。
@@ -449,7 +472,7 @@ provisional Message **MUST** 引用 Event-time active generation 0；`found` 后
 
 固定 `mls_exporter_aead_v1` 使 per-epoch `history_secret` 可保留、可重新封装，其 FS/PCS 按 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10 退化为限定形态。该取舍 **MUST** 在 profile 中声明并对双方可查。需要更强前向保密的部署 **MUST** 另立 `mls_rfc9420` 变体 profile，并接受后加入设备无法读取历史。
 
-founder **MUST** 在对方 `ak.realm_key.share` durable receipt 到达前保留相关 epoch `history_secret`，**MUST NOT** 按普通 epoch GC。确认丢失后，相关 Message **MUST** 以 `history_key_unavailable` 呈现为永久不可送达，**MUST NOT** 停留在含混的发送中状态。
+founder **MUST** 在对方 `ak.realm_key.share` durable receipt 到达前保留相关 epoch `history_secret`，**MUST NOT** 按普通 epoch GC。确认丢失后，相关 Message **MUST** 以 `history_key_unavailable` 呈现为永久不可送达，**MUST NOT** 停留在含混的发送中状态。该值是 §9.1 的 client-local blocker，由持有该密钥状态的客户端自行判定；服务端 **MUST NOT** 在 wire 上返回它。
 
 ## 8. Stable identity、repair 与 participant authority
 
@@ -468,6 +491,8 @@ exact-pair repair 的唯一 carrier 是标准 `ak.member.state{join}` `EventInit
 repair **MUST NOT** 读取 `created_by`、founder 身份或 bootstrap authority。current group 不可恢复时按 §7.3 创建 `generation = current + 1` replacement；回归方 **MUST NOT** 取得加入前无权解密的历史，历史访问仍按 event-time visibility 与 history-sharing policy 裁决。
 
 任一 directional Contact 已撤回时，self-rejoin **MAY** 恢复成员位，但 KeyPackage claim、MLS Add 与发送 **MUST** 保持拒绝，resolver 返回 `suspended`；repair **MUST NOT** 恢复已撤回的同意。
+
+repair 档的授权面是封闭的：`ak.authority.direct_conversation_repair.v1` 的 `action_allowlist` 恰为 `ak.member.rejoin.own` 一条，该 action 的 evaluator check 锁死 `leave -> join` 且要求 `actor` 等于 membership subject。因此在 repair source 下出示 `ak.member.leave.own` **MUST** 拒绝——日常自退归 `ak.authority.direct_conversation_participant.v1`，两档职责不重叠；代对方 join、以 repair 承载首次 join 或第三 participant、以及用 `ak.member.rejoin.own` 反向做 `join -> leave` 同样 **MUST** 拒绝。只测行为面（复用同一 Realm、投影新 generation、不下发旧 epoch key）而不断言 action 名与 authority source 的向量 **MUST NOT** 被当作该授权面的覆盖；本条的规范执行向量是 `ak.vector.capability.direct_conversation_repair_authority.v1`。
 
 ### 8.3 binding 与日常 authority
 
@@ -519,6 +544,22 @@ binding **MUST NOT** 携带 `binding_state`、`supersedes_binding_ref`、永久 
 求值优先级固定：依赖不足以验证 current basis 或 founder 时 `temporarily_unavailable`；无 Realm 时区分 `creation_blocked | creation_required | awaiting_founder`；有 Realm 后 identity/materialization/terminal/notary 冲突优先 `suspended`；否则无 binding 为 `provisional`；最后才在 binding、generation 与 daily gates 齐备时 `found`。`retry_after` 只是调度提示，**MUST NOT** 产生 fallback authority。
 
 existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库存、grant/policy freshness 或 MLS reconcile 而被隐藏。
+
+**send blocker 的权威边界（normative）。** wire 上的封闭枚举 `direct_conversation_send_blocker`（[`direct-conversation-operations.schema.json`](../../artifacts/schemas/direct-conversation-operations.schema.json)）**MUST** 只承载 server-verifiable blocker：服务端 **MUST** 能从它有权读取的 accepted authoritative state 证明该值，**MUST NOT** 猜测、解密或把客户端自报当作 authority。因此 `personal_blocked` 与 `history_key_unavailable` **MUST NOT** 出现在该枚举中——`ak.account.blocklist` 是 holder-private account data，经不可信服务同步时只以对 holder 设备加密的形式存在；某条历史 MLS secret 是否已安装是端侧私有密钥状态。任何让服务端权威判定这两者的做法都要么拆掉那条加密不变量，要么把未认证声明当成事实。服务端返回这两个值 **MUST** 直接构成 `schema_violation`，客户端 **MUST** 拒绝，**MUST NOT** 以"容忍未知 blocker 字符串"的方式接受。
+
+这两个值改由封闭的 **client-local blocker 集合** 承载，登记在 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `ak.profile.direct_conversation_realm.v1#client_local_send_blockers`，其值恰为：
+
+```text
+client_local_send_blocker = "personal_blocked" | "history_key_unavailable"
+```
+
+该集合 **MUST NOT** 出现在任何 wire 面：不进入 resolver outcome、任何 operation 的 request/response、任何 Event payload，也不进入 peer carrier 或联邦面。客户端在本地把它与 wire 返回的 `found.send_blockers[]` 合并，再决定是否放行发送。本规范只定义该封闭集合的语义与取值；类型实现属于共享 SDK 层，各客户端 **MUST NOT** 各自另立一套值。
+
+client-local blocker **MUST NOT** 令 resolver 返回 `suspended`，也 **MUST NOT** 改变任何 wire 状态：它只影响客户端本地是否放行发送。否则服务端状态会被本地状态污染，同一 pair 在两台设备上会得到不同的 resolver 结论。
+
+`presence_offline` 与 `keypackage_empty` 保留在 wire（服务端确有可证事实），但 **MUST** 只对该 pair 的 existing exact-pair participant 返回；其它任何调用方 **MUST** 得到与"该 pair 不存在"逐字相同的 opaque failure，**MUST NOT** 借这两个值做非参与者枚举或探测。反过来，真实 participant 的 existing 坐标 **MUST NOT** 因为对端离线或 KeyPackage 库存为空而被隐藏。
+
+**连带后果（normative 提示）。** 因为拉黑是单方面本地过滤，"我拉黑了对方，所以发不出去"这件事**只有客户端自己知道**：服务端不知道，对端也不知道，而且本就不该知道——让任一方知道就等于把 holder-private blocklist 泄漏出去。这正是拉黑应有的语义，但习惯"发送前先问服务器要状态"的实现会在这里踩空：resolver 会返回 `found` 且 `send_blockers[]` 为空，发送仍 **MUST** 被客户端本地拦下。实现 **MUST NOT** 为了让服务端"看见"拉黑而新增任何上报、同步或探测通道。本条的规范执行向量是 `ak.vector.direct_conversation.send_blocker_authority.v1`。
 
 ### 9.2 隐私
 

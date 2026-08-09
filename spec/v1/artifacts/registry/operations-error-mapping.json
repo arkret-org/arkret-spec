@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-10",
+  "version": "2026-08-10.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T01:00:00Z",
+  "generated_at": "2026-08-10T02:00:00Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -559,8 +559,10 @@
         "quarantine",
         "stale_peer",
         "delivery_binding_stale",
-        "delivery_binding_handed_over"
-      ]
+        "delivery_binding_handed_over",
+        "mls_generation_proposal_fanout_exceeded"
+      ],
+      "description": "mls_generation_proposal_fanout_exceeded (409) is the federated counterpart of the self branch: a Direct Conversation activation candidate arriving from the peer service is refused once sixteen not-yet-active candidates already sit under the same predecessor. It is a hard structural cap rather than a rate limit, so the sender MUST NOT treat it as retry-after backoff and MUST NOT quarantine the pair; only the offending candidate is refused, with zero writes."
     },
     {
       "operation_id": "ak.peer.events.read.describe",
@@ -1365,9 +1367,10 @@
         "stale_seal_ref",
         "seal_ref_unknown",
         "realm_frozen",
-        "quarantine"
+        "quarantine",
+        "mls_generation_proposal_fanout_exceeded"
       ],
-      "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes. ak.invite.claim-specific reducer reasons remain internal/audit-facing when exposed through non-enumerable invite claim flows."
+      "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes. ak.invite.claim-specific reducer reasons remain internal/audit-facing when exposed through non-enumerable invite claim flows. mls_generation_proposal_fanout_exceeded (409) refuses the seventeenth not-yet-active Direct Conversation activation candidate under one predecessor; it is a hard structural cap and not a rate limit, so it carries no retry window, it is never rate_limited (429), and it refuses only that candidate with zero writes while leaving the pair unquarantined."
     },
     {
       "operation_id": "ak.self.events.command.submit_seal",

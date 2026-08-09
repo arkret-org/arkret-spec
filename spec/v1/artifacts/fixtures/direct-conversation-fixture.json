@@ -4,12 +4,15 @@
   "profile": "ak.profile.direct_conversation_realm.v1",
   "covers_vectors": [
     "ak.vector.contact.next_prepare_input.v1",
+    "ak.vector.contact.pending_incoming_request_receipt.v1",
     "ak.vector.direct_conversation.realm_shape.v1",
     "ak.vector.direct_conversation.founding_unit.v1",
     "ak.vector.direct_conversation.founding_admission.v1",
+    "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
+    "ak.vector.direct_conversation.send_blocker_authority.v1",
     "ak.vector.direct_conversation.suspend_rejoin.v1"
   ],
-  "version": "2026-08-10",
+  "version": "2026-08-11",
   "spec_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#55-caller-authored-founding-unitsource-唯一-slot-与-acceptance-receipt",
   "source_refs": [
     "spec/v1/zh/identity/contact-and-direct-conversation.md",
@@ -19,7 +22,7 @@
     "spec/v1/artifacts/schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
     "spec/v1/artifacts/profiles/conformance-profiles.json#profile_requirements"
   ],
-  "description": "Schema and semantic vectors for one stable Direct Conversation per pair: the caller-authored three-Event founding unit and its self/peer carrier branches, first-valid-unit slot admission across same-server, dual-server and multi-device concurrency, suspend/rejoin, MLS-generation separation, participant authority and root masking, plus the Contact list next_prepare_input successor cursor that authors the scope_update and tombstone prepare phases the same Contact lineage feeds.",
+  "description": "Schema and semantic vectors for one stable Direct Conversation per pair: the caller-authored three-Event founding unit and its self/peer carrier branches, first-valid-unit slot admission across same-server, dual-server and multi-device concurrency, suspend/rejoin, MLS-generation separation, participant authority and root masking, plus the Contact list next_prepare_input successor cursor and the pending_incoming request_receipt that author the respond, reject, scope_update and tombstone prepare phases the same Contact lineage feeds, the sixteen-candidate active-generation fanout cap, and the server-verifiable narrowing of the resolver send blocker set.",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -336,6 +339,30 @@
         },
         "state": "pending_incoming",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+        "request_receipt": {
+          "core": {
+            "holder": {
+              "kind": "human",
+              "principal_id": "did:webvh:z6mkfixture:bob.example"
+            },
+            "peer": {
+              "kind": "human",
+              "principal_id": "did:webvh:z6mkfixture:alice.example"
+            },
+            "slot_version": 1,
+            "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+            "request_digest": "sha256:2f1d0e5c8b7a69483726150493827160f5e4d3c2b1a0998877665544332211ff",
+            "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
+            "accepted_at": "2026-08-08T00:00:00.000Z",
+            "issuer": "did:web:peer-ps.example"
+          },
+          "receipt_digest": "sha256:0b1c2d3e4f5061728394a5b6c7d8e9f00112233445566778899aabbccddeeff0",
+          "signature": {
+            "verification_method": "did:web:peer-ps.example#key-1",
+            "created_at": "2026-08-08T00:00:00.000Z",
+            "jws": "eyJhbGciOiJFZERTQSJ9-cmVxdWVzdC1yZWNlaXB0LWZpeHR1cmU"
+          }
+        },
         "next_prepare_input": {
           "basis_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
           "version": 2,
@@ -346,6 +373,200 @@
           "direct_message"
         ],
         "bidirectional_scopes": []
+      }
+    },
+    {
+      "name": "pending_incoming_contact_row_carries_request_receipt",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "principal_id": "did:webvh:z6mkfixture:bob.example"
+        },
+        "state": "pending_incoming",
+        "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+        "request_receipt": {
+          "core": {
+            "holder": {
+              "kind": "human",
+              "principal_id": "did:webvh:z6mkfixture:bob.example"
+            },
+            "peer": {
+              "kind": "human",
+              "principal_id": "did:webvh:z6mkfixture:alice.example"
+            },
+            "slot_version": 1,
+            "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+            "request_digest": "sha256:2f1d0e5c8b7a69483726150493827160f5e4d3c2b1a0998877665544332211ff",
+            "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
+            "accepted_at": "2026-08-08T00:00:00.000Z",
+            "issuer": "did:web:peer-ps.example"
+          },
+          "receipt_digest": "sha256:0b1c2d3e4f5061728394a5b6c7d8e9f00112233445566778899aabbccddeeff0",
+          "signature": {
+            "verification_method": "did:web:peer-ps.example#key-1",
+            "created_at": "2026-08-08T00:00:00.000Z",
+            "jws": "eyJhbGciOiJFZERTQSJ9-cmVxdWVzdC1yZWNlaXB0LWZpeHR1cmU"
+          }
+        },
+        "granted_to_peer_scopes": [],
+        "granted_by_peer_scopes": [
+          "direct_message"
+        ],
+        "bidirectional_scopes": []
+      }
+    },
+    {
+      "name": "pending_incoming_contact_row_without_request_receipt_rejected",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": false,
+      "first_expected_error": "contains:'request_receipt' is a required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "principal_id": "did:webvh:z6mkfixture:bob.example"
+        },
+        "state": "pending_incoming",
+        "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+        "granted_to_peer_scopes": [],
+        "granted_by_peer_scopes": [
+          "direct_message"
+        ],
+        "bidirectional_scopes": []
+      }
+    },
+    {
+      "name": "accepted_contact_row_rejects_request_receipt",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under {'required': ['request_receipt']}",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "principal_id": "did:webvh:z6mkfixture:bob.example"
+        },
+        "state": "accepted",
+        "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+        "request_receipt": {
+          "core": {
+            "holder": {
+              "kind": "human",
+              "principal_id": "did:webvh:z6mkfixture:bob.example"
+            },
+            "peer": {
+              "kind": "human",
+              "principal_id": "did:webvh:z6mkfixture:alice.example"
+            },
+            "slot_version": 1,
+            "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+            "request_digest": "sha256:2f1d0e5c8b7a69483726150493827160f5e4d3c2b1a0998877665544332211ff",
+            "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
+            "accepted_at": "2026-08-08T00:00:00.000Z",
+            "issuer": "did:web:peer-ps.example"
+          },
+          "receipt_digest": "sha256:0b1c2d3e4f5061728394a5b6c7d8e9f00112233445566778899aabbccddeeff0",
+          "signature": {
+            "verification_method": "did:web:peer-ps.example#key-1",
+            "created_at": "2026-08-08T00:00:00.000Z",
+            "jws": "eyJhbGciOiJFZERTQSJ9-cmVxdWVzdC1yZWNlaXB0LWZpeHR1cmU"
+          }
+        },
+        "response_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",
+        "next_prepare_input": {
+          "basis_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
+          "version": 2,
+          "predecessor_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA"
+        },
+        "granted_to_peer_scopes": [
+          "direct_message"
+        ],
+        "granted_by_peer_scopes": [
+          "direct_message"
+        ],
+        "bidirectional_scopes": [
+          "direct_message"
+        ]
+      }
+    },
+    {
+      "name": "respond_prepare_accepts_verbatim_request_receipt",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "phase": "prepare",
+        "operation_id": "ak:operation:019a0000-0000-7000-8000-00000000c003",
+        "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4B3",
+        "request_receipt": {
+          "core": {
+            "holder": {
+              "kind": "human",
+              "principal_id": "did:webvh:z6mkfixture:bob.example"
+            },
+            "peer": {
+              "kind": "human",
+              "principal_id": "did:webvh:z6mkfixture:alice.example"
+            },
+            "slot_version": 1,
+            "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+            "request_digest": "sha256:2f1d0e5c8b7a69483726150493827160f5e4d3c2b1a0998877665544332211ff",
+            "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
+            "accepted_at": "2026-08-08T00:00:00.000Z",
+            "issuer": "did:web:peer-ps.example"
+          },
+          "receipt_digest": "sha256:0b1c2d3e4f5061728394a5b6c7d8e9f00112233445566778899aabbccddeeff0",
+          "signature": {
+            "verification_method": "did:web:peer-ps.example#key-1",
+            "created_at": "2026-08-08T00:00:00.000Z",
+            "jws": "eyJhbGciOiJFZERTQSJ9-cmVxdWVzdC1yZWNlaXB0LWZpeHR1cmU"
+          }
+        },
+        "action": "accept",
+        "granted_to_peer_scopes": [
+          "direct_message"
+        ]
+      }
+    },
+    {
+      "name": "reject_prepare_accepts_verbatim_request_receipt",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_request",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "phase": "prepare",
+        "operation_id": "ak:operation:019a0000-0000-7000-8000-00000000c004",
+        "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4B4",
+        "request_receipt": {
+          "core": {
+            "holder": {
+              "kind": "human",
+              "principal_id": "did:webvh:z6mkfixture:bob.example"
+            },
+            "peer": {
+              "kind": "human",
+              "principal_id": "did:webvh:z6mkfixture:alice.example"
+            },
+            "slot_version": 1,
+            "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+            "request_digest": "sha256:2f1d0e5c8b7a69483726150493827160f5e4d3c2b1a0998877665544332211ff",
+            "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
+            "accepted_at": "2026-08-08T00:00:00.000Z",
+            "issuer": "did:web:peer-ps.example"
+          },
+          "receipt_digest": "sha256:0b1c2d3e4f5061728394a5b6c7d8e9f00112233445566778899aabbccddeeff0",
+          "signature": {
+            "verification_method": "did:web:peer-ps.example#key-1",
+            "created_at": "2026-08-08T00:00:00.000Z",
+            "jws": "eyJhbGciOiJFZERTQSJ9-cmVxdWVzdC1yZWNlaXB0LWZpeHR1cmU"
+          }
+        },
+        "action": "reject"
       }
     },
     {
@@ -847,6 +1068,107 @@
         "prepare is refused with zero writes and a scope replacement whose current proof is stale is refused with contact_scope_stale",
         "the client re-reads ak.self.contact.read.list and retries with the fresh cursor",
         "the client never guesses a lineage head and never retries the same triple"
+      ]
+    },
+    {
+      "name": "sixteenth_generation_candidate_is_admitted",
+      "vector_id": "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
+      "precondition": "fifteen not-yet-active candidate MLS groups already reference the same active-generation predecessor whole value",
+      "action": "submit the sixteenth ak.direct_conversation.mls_generation.activate candidate through ak.self.events.command.submit",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "the sixteenth candidate is admitted because the cap is sixteen and not fifteen",
+        "no candidate is activated by admission alone; the singleton cell still selects exactly one",
+        "the pair coordinates, binding, membership and current active generation are unchanged"
+      ]
+    },
+    {
+      "name": "seventeenth_generation_candidate_is_refused_with_exact_code",
+      "vector_id": "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
+      "precondition": "sixteen not-yet-active candidate MLS groups already reference the same active-generation predecessor whole value",
+      "action": "submit the seventeenth candidate through ak.self.events.command.submit and again through ak.peer.events.command.submit",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "mls_generation_proposal_fanout_exceeded",
+      "assertions": [
+        "both entry points refuse with that exact registered code at HTTP 409 and write nothing",
+        "the refusal is never reported as rate_limited and carries no retry_after_ms window, because activating or expiring an existing candidate is the only way forward",
+        "a generic failed_precondition or conflict is not an acceptable substitute once the code is registered"
+      ]
+    },
+    {
+      "name": "generation_candidate_fanout_refusal_does_not_quarantine_the_pair",
+      "vector_id": "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
+      "precondition": "the seventeenth candidate was just refused with mls_generation_proposal_fanout_exceeded",
+      "action": "resolve the pair and send an ordinary Message on the current active generation",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "the pair is not quarantined and the resolver still returns the same coordinates and active_mls_generation_ref",
+        "the resolver state does not become suspended and no send blocker is added for the refusal",
+        "the sixteen existing candidates are retained; the refusal removes none of them"
+      ]
+    },
+    {
+      "name": "resolver_send_blockers_are_server_verifiable_only",
+      "vector_id": "ak.vector.direct_conversation.send_blocker_authority.v1",
+      "precondition": "the holder blocked the peer in ak.account.blocklist and one historical epoch secret was never installed on this device",
+      "action": "resolve the pair through ak.self.direct_conversation.read.resolve",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "found.send_blockers[] carries only blockers the service can prove from accepted authoritative state",
+        "personal_blocked and history_key_unavailable are absent from the wire enum, so the service cannot report them even if it wanted to",
+        "the resolver state stays found; the client-local blockers do not turn it into suspended",
+        "the client merges its own client-local blockers on top of the wire set before deciding whether to release the send"
+      ]
+    },
+    {
+      "name": "resolver_returning_a_client_local_blocker_is_schema_violation",
+      "vector_id": "ak.vector.direct_conversation.send_blocker_authority.v1",
+      "precondition": "a service attempts to report a holder-private or device-private fact on the wire",
+      "action": "return found.send_blockers containing personal_blocked or history_key_unavailable",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "assertions": [
+        "the closed direct_conversation_send_blocker enum no longer contains either value, so the reply fails schema validation at the client",
+        "the client MUST NOT accept the value by tolerating an unknown blocker string",
+        "no server-side evaluation of the holder blocklist or of device-local history key installation is protocol evidence"
+      ]
+    },
+    {
+      "name": "presence_and_keypackage_blockers_are_participant_only",
+      "vector_id": "ak.vector.direct_conversation.send_blocker_authority.v1",
+      "precondition": "the caller is not one of the two exact-pair participants of the requested pair",
+      "action": "probe ak.self.direct_conversation.read.resolve for that pair to learn peer presence or KeyPackage inventory",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "direct_conversation_unavailable",
+      "assertions": [
+        "presence_offline and keypackage_empty are returned only to an existing exact-pair participant of that pair",
+        "a non-participant gets the same opaque failure as for a pair that does not exist, so the blockers cannot be used as an enumeration oracle",
+        "an existing pair is never hidden from a real participant merely because a peer is offline or has no KeyPackage inventory"
+      ]
+    },
+    {
+      "name": "pending_incoming_row_authors_respond_and_reject",
+      "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
+      "precondition": "the holder holds one verified mirror of a peer-authored ak.contact.requested plus the request_acceptance_receipt issued by the peer's own source service",
+      "action": "read ak.self.contact.read.list and copy request_receipt into the prepare phase of ak.self.contact.command.respond and of ak.self.contact.command.reject",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "the pending_incoming row carries the complete signed request_receipt object and the field name is byte-identical to the prepare field that consumes it",
+        "both prepare phases accept the receipt copied verbatim, with no narrowing to a reference and no change to the prepare contract",
+        "the receipt issuer is the peer's source service, not the holder's own server, so the client verifies the signature itself instead of trusting its server's retelling",
+        "the same receipt digest is the one that derives the normal basis, so respond and reject consume the identical bytes"
+      ]
+    },
+    {
+      "name": "non_pending_incoming_states_omit_request_receipt",
+      "vector_id": "ak.vector.contact.pending_incoming_request_receipt.v1",
+      "precondition": "rows in pending_outgoing, accepted, rejected, expired and tombstoned",
+      "action": "read ak.self.contact.read.list",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "no row in these five states carries request_receipt, because pending_outgoing has no incoming request to answer and the other four have a consumed slot or a terminal basis",
+        "the omission alone expresses that respond and reject are not authorable now; no error code and no contact_state value is added for it",
+        "a glare pair never presents a receipt-bearing row: an unconsumed outgoing request in the holder's own slot keeps the row pending_outgoing while glare evidence is still incomplete, and the mechanically derived basis projects accepted, so the row is never pending_incoming and respond and reject stay forbidden throughout"
       ]
     }
   ]

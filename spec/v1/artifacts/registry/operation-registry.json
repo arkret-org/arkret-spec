@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.17",
+  "version": "2026-08-09.18",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T09:00:00Z",
+  "generated_at": "2026-08-10T10:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -2867,7 +2867,7 @@
       "http": "GET /_arkret/self/contacts",
       "grpc": "SelfContact/List",
       "mq": "self.contact.query.list",
-      "notes": "Holder contact projection from source-signed request/response receipts, issuer-local Contact lineages and current signed head leases. An accepted row also carries the closed next_prepare_input cursor whose basis_id, version and predecessor_event_ref are copied verbatim into the prepare phase of ak.self.contact.command.scope_update or ak.self.contact.command.tombstone; every other contact_state omits it, and the projected request/response/tombstone event refs are never authoritative lineage heads. Private Consent and account-data notes are never Contact authority.",
+      "notes": "Holder contact projection from source-signed request/response receipts, issuer-local Contact lineages and current signed head leases. An accepted row also carries the closed next_prepare_input cursor whose basis_id, version and predecessor_event_ref are copied verbatim into the prepare phase of ak.self.contact.command.scope_update or ak.self.contact.command.tombstone; every other contact_state omits it, and the projected request/response/tombstone event refs are never authoritative lineage heads. A pending_incoming row likewise carries request_receipt, the complete signed request_acceptance_receipt copied verbatim into the prepare phase of ak.self.contact.command.respond or ak.self.contact.command.reject; it is signed by the peer's source service rather than by this server, so the client verifies it independently instead of trusting this server's retelling. Every other contact_state omits it, because pending_outgoing has no incoming request to answer and accepted, rejected, expired and tombstoned have a consumed admission slot or a terminal basis; a glare pair is never pending_incoming, so the glare ban on respond and reject needs no extra code. Private Consent and account-data notes are never Contact authority.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list"

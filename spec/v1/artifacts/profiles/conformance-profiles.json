@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-10.2",
-  "generated_at": "2026-08-10T08:00:00Z",
+  "version": "2026-08-10.3",
+  "generated_at": "2026-08-10T12:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1262,6 +1262,9 @@
       ],
       "required_vectors": [
         "ak.vector.contact.next_prepare_input.v1",
+        "ak.vector.contact.pending_incoming_request_receipt.v1",
+        "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
+        "ak.vector.direct_conversation.send_blocker_authority.v1",
         "ak.vector.history_sharing.direct_conversation_profile_baseline.v1"
       ],
       "optional_extensions": [],
@@ -1305,6 +1308,19 @@
           }
         }
       },
+      "client_local_send_blockers": {
+        "rationale": "The Direct Conversation resolver may only report send blockers it can prove from accepted authoritative state. Two facts are structurally outside that boundary. ak.account.blocklist is holder-private account data that a synchronizing service is required to hold encrypted to holder devices only, so a service that evaluated personal_blocked would have to break that encryption invariant; and whether a given historical MLS secret was ever installed is device-private key state, so a client self-report of history_key_unavailable is a claim, not authority. Both values are therefore removed from the closed wire enum direct_conversation_send_blocker rather than merely annotated there: after removal a service that returns one produces a machine-detectable schema_violation, whereas an annotation would eventually be violated silently. They are carried instead by this closed client-local set, which is evaluated only on the holder's own device from state only that device holds. presence_offline and keypackage_empty stay on the wire because the service does hold provable facts for them, but they are visible only to an existing exact-pair participant of that pair, so they cannot serve as an enumeration oracle. The consequence is deliberate and MUST be documented by implementers: after a block, the fact that sending is refused is known only to the blocking client - not to its own service and not to the peer - and neither of them is entitled to know it. Implementations that habitually ask the server for send state will find the resolver returning found with an empty send_blockers[] and MUST still refuse the send locally. The normative conformance vector for this clause is ak.vector.direct_conversation.send_blocker_authority.v1.",
+        "values": [
+          "personal_blocked",
+          "history_key_unavailable"
+        ],
+        "rules": [
+          "These values MUST NOT appear on any wire surface: not in direct_conversation_send_blocker, not in any operation request or response, not in any Event payload, and not on the peer carrier or federation surface.",
+          "A client MUST merge this local set with the server-returned found.send_blockers[] before releasing a send, and MUST fail closed locally when a local blocker applies.",
+          "A client-local blocker MUST NOT cause the resolver to return suspended and MUST NOT alter any wire state, so that server state is never polluted by device-local state and two devices of the same holder never disagree about the resolver outcome.",
+          "Implementations MUST NOT add any reporting, synchronization or probing channel whose purpose is to make the service or the peer aware that a client-local blocker applies."
+        ]
+      },
       "binding_invariants": [
         "schema_refs MUST contain ak.profile.direct_conversation_realm.v1 and fields.collaboration_role MUST equal direct_conversation; either marker without the other is schema_violation.",
         "content_encryption_floor and metadata_encryption_floor MUST both equal e2ee_required.",
@@ -1320,7 +1336,9 @@
         "The binding is immutable and fixes pair_key, participant pair, Realm and main Strand exactly once. It carries no authored lifecycle state or MLS group; current MLS generation is a separate accepted-history projection.",
         "Leave, ban, block, either directional Contact terminal and participant terminal state suspend new writes without destroying the binding or creating a successor Realm. Consent changes never affect Personal DM authority. Recovery reuses the same Realm and MUST NOT automatically redeliver old epoch keys or history secrets.",
         "Principal-private deletion and global content/key erasure retain stable pair, Realm and main Strand identity. The resolver never returns a competing candidate or performs winner selection.",
-        "Participant authority and root-owner masking are conjunctive profile admission rules and MUST be evaluated from the same accepted evidence basis as the target action; neither created_by nor membership alone is an authorization source."
+        "Participant authority and root-owner masking are conjunctive profile admission rules and MUST be evaluated from the same accepted evidence basis as the target action; neither created_by nor membership alone is an authorization source.",
+        "The effective ak.realm.history_sharing_policy of a Direct Conversation Realm is history_sharing_policy_fixed_baseline.value, supplied by this profile. Key sources and reducers MUST evaluate every ak.realm_key.share in this Realm against that literal value and MUST NOT raise history_sharing_policy_missing for the absence of an accepted policy Event. Producers MUST NOT declare history_sharing_policy on the Realm object and MUST NOT emit ak.realm.history_sharing_policy into this Realm: the founding unit is closed at exactly three Events so a fourth Event MUST reject the whole unit, neither ak.authority.direct_conversation_bootstrap_participant.v1 nor ak.authority.direct_conversation_participant.v1 carries an action that could author a policy facet, and owner or admin authority MUST NOT be restored after found. history_visibility here is joined, so the baseline declares no restricted_rules and none is ever consulted; the peer is a Realm member from Realm Genesis onward, so pre_join_history is structurally never reached and MUST NOT be used to refuse the generation-0 provisional history key share.",
+        "The two client-local send blockers of client_local_send_blockers MUST NOT appear on any wire surface, and the resolver MUST NOT return suspended because one of them applies; the resolver reports only server-verifiable blockers, and personal_blocked or history_key_unavailable on the wire is a schema_violation."
       ],
       "participant_authority": {
         "authority_source_id": "ak.authority.direct_conversation_participant.v1",
@@ -3369,7 +3387,12 @@
         "ak.schema.principal_operations.v1"
       ],
       "required_fixtures": [
-        "direct-conversation-fixture.json"
+        "direct-conversation-fixture.json",
+        "capability-fixture.json"
+      ],
+      "required_vectors": [
+        "ak.vector.capability.direct_conversation_repair_authority.v1",
+        "ak.vector.direct_conversation.suspend_rejoin.v1"
       ],
       "optional_extensions": [],
       "authority_source": "ak.authority.direct_conversation_repair.v1",
@@ -3378,7 +3401,9 @@
         "exact_two_participant_mask",
         "human_self_or_owned_agent_controller_closed_xor",
         "current_signed_directional_contact_heads",
-        "new_mls_generation_has_no_prejoin_history"
+        "new_mls_generation_has_no_prejoin_history",
+        "repair_action_allowlist_is_exactly_member_rejoin_own",
+        "repair_source_never_authorizes_member_leave_own"
       ],
       "feature_discovery": {
         "required": [
