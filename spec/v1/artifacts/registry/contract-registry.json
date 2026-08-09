@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.23",
+  "version": "2026-08-10.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T12:00:00Z",
+  "generated_at": "2026-08-10T15:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -616,6 +616,21 @@
               "kind": "set",
               "value": {
                 "field": "payload"
+              }
+            }
+          },
+          {
+            "cell_family": "ak.component.agent.principal_control_realm_claim.v1",
+            "cell_subject": {
+              "field": "payload.principal_control_realm_id",
+              "kind": "id:realm"
+            },
+            "lattice": "cas_register",
+            "bottom": "reject",
+            "effect_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload.agent_id"
               }
             }
           },
@@ -3731,6 +3746,29 @@
                 "projected_value": true
               }
             }
+          },
+          {
+            "cell_family": "ak.component.agent.status.v1",
+            "cell_subject": {
+              "field": "envelope.actor_id",
+              "kind": "did"
+            },
+            "lattice": "fsm",
+            "bottom": "reject",
+            "condition": {
+              "kind": "field_equals",
+              "field": "payload.object.purpose",
+              "const": "managed_agent_control"
+            },
+            "effect_projection": {
+              "kind": "transition",
+              "from": {
+                "const": "uninitialized"
+              },
+              "to": {
+                "const": "active"
+              }
+            }
           }
         ],
         "concurrency_class": "security_barrier"
@@ -5528,9 +5566,6 @@
             "when": {
               "payload_path": "object.purpose",
               "const": "managed_agent_control",
-              "ref_role": "agent_provision",
-              "ref_critical": true,
-              "ref_exact_count": 1,
               "top_level_fields_present": [
                 "executed_by",
                 "authorization_ref"
@@ -5542,7 +5577,7 @@
             "when": {
               "payload_path": "object.purpose",
               "const": "principal_control",
-              "ref_role": "agent_provision",
+              "ref_role": "did_inception",
               "ref_exact_count": 0,
               "top_level_fields_present": [
                 "executed_by",
@@ -6659,7 +6694,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Controller-authored native personal Agent provisioning fact. One Event proof binds the allocated Agent DID/PCR, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability and selector cells; no nested payload proof or partial two-Event state is valid.",
+        "payload": "Controller-authored native personal Agent provisioning fact. One Event proof binds the allocated Agent DID, the forward-declared managed Agent PCR realm id, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability, selector and realm-id-claim cells; no nested payload proof or partial two-Event state is valid. The declared managed Agent PCR genesis arrives in a later separate submission whose admission reverse-looks-up this declaration.",
         "payload_schema_ref": "schemas/agent-provision.schema.json",
         "id_source": "reference"
       },
@@ -11036,6 +11071,8 @@
         "operations": [
           "ak.gate.account.command.pair_agent_key",
           "ak.self.agent.command.provision",
+          "ak.self.agent.command.issue_provisioning_abandonment_challenge",
+          "ak.self.agent.command.abandon_provisioning",
           "ak.self.agent.command.renew_pairing",
           "ak.self.agent.read.list",
           "ak.self.agent.resource.get",
@@ -12656,6 +12693,23 @@
         }
       },
       {
+        "operation_id": "ak.self.agent.command.abandon_provisioning",
+        "http": "POST /_arkret/self/agent-provisioning-abandonments",
+        "grpc": "SelfAgent/AbandonProvisioning",
+        "mq": "self.agent.command.abandon_provisioning",
+        "notes": "Consume an agent-provisioning abandonment challenge and explicitly give up an accepted ak.agent.provision whose declared managed Agent PCR genesis will never be submitted (zh/identity/key-management.md section 3.6.3). Authenticated by the controller user_session; the presented credentials MUST be fresh and MUST NOT be the ones presented when the challenge was issued, while re-authentication strength, risk checks and cooldown are deployment governance. One transaction consumes the challenge, releases the agent_slug selector claim and the principal_control_realm_id claim, records the tombstone / audit reservation and suppresses every holder-readable trace of the allocation; any step failing means zero writes. If the genesis was accepted between issuance and confirmation the request MUST fail with agent_pcr_genesis_already_accepted and MUST NOT abandon anything, because an established Agent is retired through ak.self.agent.command.deactivate. Replaying the same request_id returns the same terminal outcome and MUST NOT produce a second tombstone. The accepted provision Event stays in the controller PCR history and the abandoned realm id MUST NOT be reused.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "request_id",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_request_body",
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "releases_only_service_local_slug_and_realm_id_claims_and_records_a_tombstone_audit_reservation_no_event_is_authored"
+        }
+      },
+      {
         "operation_id": "ak.self.agent.command.deactivate",
         "http": "POST /_arkret/self/agents/{agent_id}/deactivate",
         "grpc": "SelfAgent/Deactivate",
@@ -12675,6 +12729,23 @@
           "event_kinds": [
             "ak.self.agent.deactivate"
           ]
+        }
+      },
+      {
+        "operation_id": "ak.self.agent.command.issue_provisioning_abandonment_challenge",
+        "http": "POST /_arkret/self/agent-provisioning-abandonment-challenges",
+        "grpc": "SelfAgent/IssueProvisioningAbandonmentChallenge",
+        "mq": "self.agent.command.issue_provisioning_abandonment_challenge",
+        "notes": "Issue the single-use challenge that authorizes explicitly abandoning an accepted ak.agent.provision whose declared managed Agent PCR genesis was never accepted (zh/identity/key-management.md section 3.6.3). Authenticated by the controller user_session. The service requires agent_id, principal_control_realm_id and allocation_handle to equal the authenticated controller's accepted provision, and MUST refuse to issue a challenge once that genesis is accepted. The <=300s single-use challenge is bound to the controller account_subject, holder key, agent_id, agent_slug, the declared principal_control_realm_id, the allocation, the closed consequence disclosure, audience, origin, trust domain, purpose and expiry. Repeating the same request_id returns the same unconsumed challenge. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states. This operation abandons nothing by itself and MUST NOT be reachable from lease expiry, garbage collection or any automated flow.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "request_id",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_request_body",
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "persists_only_a_service_local_single_use_challenge_no_event_is_authored"
         }
       },
       {
@@ -14558,8 +14629,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-09.20",
-    "generated_at": "2026-08-10T12:00:00Z"
+    "version": "2026-08-10.2",
+    "generated_at": "2026-08-10T15:00:00Z"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -16394,6 +16465,16 @@
         "event_mapping_kind": "non_event_surface"
       },
       {
+        "action": "ak.self.agent.command.abandon_provisioning",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "migration_group": "ak._0008_agent_provisioning",
+        "event_mapping_kind": "non_event_surface"
+      },
+      {
         "action": "ak.self.agent.command.deactivate",
         "category": "management",
         "risk_tier": "high",
@@ -16403,6 +16484,16 @@
         ],
         "profile": "ak.profile.personal_agent_provisioning.v1",
         "event_mapping_kind": "operation_verb"
+      },
+      {
+        "action": "ak.self.agent.command.issue_provisioning_abandonment_challenge",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "migration_group": "ak._0008_agent_provisioning",
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "ak.self.agent.command.pause",

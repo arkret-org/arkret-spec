@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-10.4",
-  "generated_at": "2026-08-10T13:00:00Z",
+  "version": "2026-08-10.5",
+  "generated_at": "2026-08-10T14:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1624,6 +1624,7 @@
         "Control events MUST bind principal_id / device_id / session grant audience to the same principal DID or an explicitly trusted recovery/session issuer.",
         "A managed Agent principal_control_realm_id and immutable requested_scope commitment MUST be verified from the unique ArkretPrincipalControlRealm DID service entry at accepted-at; the public entry fixes only realm_id, controller_did, authorization_ref and the domain-separated requested_scope_digest. The complete scope MUST come from a controller-signed verifier/audience/challenge-bound private disclosure whose digest matches that commitment. Implementation-private deterministic derivation or a service-local Agent row is not protocol evidence.",
         "Managed Agent PCR genesis created_by and notary MUST equal the Agent DID; a controller authoring under delegation MUST be recorded as executed_by and MUST NOT synthesize an Agent signature.",
+        "A managed Agent PCR genesis carries no anchor ref: delegated_pcr_genesis is selected by payload.object.purpose alone, and admission MUST instead reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). No match means zero writes. The genesis MUST arrive in a submission separate from that provision, because a same-unit or same-batch pair is the unconstructible shape encoding.md 6.0.1 forbids. The managed Agent PCR and its controller PCR MUST be hosted by the same Principal Server, since the reverse look-up and the realm-id claim uniqueness are both local decisions.",
         "The effective ak.realm.history_sharing_policy of a PCR is history_sharing_policy_fixed_baseline.value, supplied by this profile. Producers MUST NOT declare history_sharing_policy on the Realm object and MUST NOT emit ak.realm.history_sharing_policy into a PCR; that kind is absent from realm_event_kind_policy.allowed_event_kinds and the write MUST be rejected with principal_control_event_kind_forbidden.",
         "A PCR MUST NOT carry a Realm alias. ak.realm.alias is absent from realm_event_kind_policy.allowed_event_kinds, so a PCR is addressable only by realm_id; a human-readable alias on an identity-infrastructure control stream would publish the principal's control Realm under a guessable name."
       ]
@@ -3147,6 +3148,8 @@
       ],
       "required_endpoints": [
         "ak.self.agent.command.provision",
+        "ak.self.agent.command.issue_provisioning_abandonment_challenge",
+        "ak.self.agent.command.abandon_provisioning",
         "ak.self.agent.command.renew_pairing",
         "ak.gate.account.command.pair_agent_key",
         "ak.self.keys.backups.resource.replace",

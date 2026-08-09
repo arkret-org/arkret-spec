@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-10.2",
+  "version": "2026-08-10.4",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T11:00:00Z",
+  "generated_at": "2026-08-10T15:00:00Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -919,6 +919,18 @@
       "description": "cas_conflict when expected_revision does not equal the accepted per-key revision; error.details use account_data_cas_conflict_details so the client can merge and re-issue exactly one write."
     },
     {
+      "operation_id": "ak.self.agent.command.abandon_provisioning",
+      "http_alias": "POST /_arkret/self/agent-provisioning-abandonments",
+      "operation_specific": [
+        "failed_precondition",
+        "duplicate_conflict",
+        "agent_provisioning_challenge_expired",
+        "agent_provisioning_challenge_already_consumed",
+        "agent_pcr_genesis_already_accepted"
+      ],
+      "description": "Consumes the abandonment challenge and releases the slug and realm-id claims in one transaction. failed_precondition covers an unknown challenge, a challenge bound to another controller, agent, allocation or realm id, credentials replayed from the challenge-issuing call, and a confirmation that pins different values; duplicate_conflict covers the same request_id with different canonical intent; the two agent_provisioning_challenge_* codes keep expiry and prior consumption distinct, while an exact replay of the same request_id returns the recorded outcome instead of an error; agent_pcr_genesis_already_accepted is the stable terminal for a genesis accepted after the challenge was issued and never abandons anything."
+    },
+    {
       "operation_id": "ak.self.agent.command.deactivate",
       "http_alias": "POST /_arkret/self/agents/{agent_id}/deactivate",
       "operation_specific": [
@@ -927,6 +939,16 @@
         "controller_signed_event_required"
       ],
       "description": "agent_deactivated is returned for idempotent re-deactivation of an already-terminal Agent. Missing or invalid proof on the sole controller-authored lifecycle Event returns controller_signed_event_required. Once that Event is accepted, the terminal parent lifecycle gate immediately makes every child authorization ineffective; client-supplied key/grant revoke bundles are schema-invalid and asynchronous cleanup failure cannot roll back deactivation."
+    },
+    {
+      "operation_id": "ak.self.agent.command.issue_provisioning_abandonment_challenge",
+      "http_alias": "POST /_arkret/self/agent-provisioning-abandonment-challenges",
+      "operation_specific": [
+        "failed_precondition",
+        "duplicate_conflict",
+        "agent_pcr_genesis_already_accepted"
+      ],
+      "description": "Issues the durable single-use challenge that makes abandoning an accepted-but-never-genesised Agent provisioning explicit. failed_precondition covers an agent_id, principal_control_realm_id or allocation_handle that is not the authenticated controller's accepted provisioning; duplicate_conflict covers the same request_id with different canonical intent; agent_pcr_genesis_already_accepted covers a managed Agent PCR genesis that is already accepted, for which no abandonment challenge may be issued."
     },
     {
       "operation_id": "ak.self.agent.command.pause",
@@ -947,7 +969,7 @@
         "accountability_grant_missing",
         "agent_requested_scope_commitment_invalid"
       ],
-      "description": "Provision a native personal Agent principal. Before any side effect the controller must have an accepted recovery policy. prepare allocates the managed Agent DID/PCR binding without durable state; commit accepts exactly one controller-signed ak.agent.provision Event and atomically derives provision, accountability and selector projections in one reducer transaction. requested_scope establishes the global Agent key/session ceiling but produces no Realm capability grant. The controller E2EE client subsequently creates Agent PCR MLS/genesis/Profile state and its managed recovery backup. The operation never accepts the former two-Event accountability/selector form, pre-writes ak.agent.key.authorize or lets the server generate Agent PCR MLS private state."
+      "description": "Provision a native personal Agent principal. Before any side effect the controller must have an accepted recovery policy. prepare allocates the managed Agent DID and allocation handle without durable state and without choosing a PCR id; commit accepts exactly one controller-signed ak.agent.provision Event that forward-declares the realm id the controller derived from its locally frozen genesis create, and atomically derives provision, accountability, selector and realm-id-claim projections in one reducer transaction, returning awaiting_pcr_genesis until that genesis is accepted in a separate submission. requested_scope establishes the global Agent key/session ceiling but produces no Realm capability grant. The controller E2EE client subsequently creates Agent PCR MLS/genesis/Profile state and its managed recovery backup. The operation never accepts the former two-Event accountability/selector form, pre-writes ak.agent.key.authorize or lets the server generate Agent PCR MLS private state."
     },
     {
       "operation_id": "ak.self.agent.command.renew_pairing",

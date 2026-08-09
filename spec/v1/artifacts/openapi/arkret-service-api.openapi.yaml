@@ -353,6 +353,14 @@ components:
       $ref: ../schemas/principal-operations.schema.json#/$defs/participation_replace_request
     AgentPauseRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_pause_request_body
+    AgentProvisioningAbandonmentChallengeOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_outcome
+    AgentProvisioningAbandonmentChallengeRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_request_body
+    AgentProvisioningAbandonmentOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_outcome
+    AgentProvisioningAbandonmentRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_request_body
     AgentProvisionOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_outcome
     AgentProvisionRequestBody:
@@ -9310,13 +9318,13 @@ paths:
                 $ref: '#/components/schemas/AgentList'
     post:
       operationId: ak.self.agent.command.provision
-      description: Two-phase native personal Agent provisioning. phase=prepare validates prerequisites and returns an Agent DID/PCR allocation, controller PCR, delegation ref, and requested_scope_digest without publishing durable Agent state. The controller verifies the digest and uses the Arkret SDK canonical authoring API to create one controller-signed ak.agent.provision Event with no nested proof. phase=commit carries the same allocation, private requested_scope, and that Event; ordinary admission atomically projects provision, accountability and selector cells before publishing the Agent DID binding and pairing handle. requested_scope is the immutable global Agent ceiling, not a grant. Provisioning creates no Agent profile, key authorization, Realm capability grant, or Agent PCR MLS private state; after status=complete, the controller E2EE client locally bootstraps and backs up the Agent PCR before pairing can commit.
+      description: Two-phase native personal Agent provisioning. phase=prepare validates prerequisites and returns an Agent DID allocation, controller PCR, delegation ref, and requested_scope_digest without publishing durable Agent state. The controller freezes the managed Agent PCR ak.realm.create envelope locally, derives principal_control_realm_id as retype of its event_id, and uses the Arkret SDK canonical authoring API to create one controller-signed ak.agent.provision Event with no nested proof that forward-declares that realm id. phase=commit carries the same allocation, private requested_scope, and that Event; ordinary admission atomically projects provision, accountability, selector and realm-id-claim cells and returns status=awaiting_pcr_genesis. The genesis create MUST be submitted separately afterwards, never in the same unit or batch; only its acceptance publishes the Agent DID binding and pairing handle and moves this outcome to complete. requested_scope is the immutable global Agent ceiling, not a grant. Provisioning creates no Agent profile, key authorization, Realm capability grant, or Agent PCR MLS private state.
       security:
       - bearerAuth: []
         dpopProof: []
       responses:
         '200':
-          description: Prepare returns status=awaiting_controller_event and an allocation; commit returns status=complete with pending PCR recovery and the runtime pairing handle.
+          description: Prepare returns status=awaiting_controller_event and an allocation; commit returns status=awaiting_pcr_genesis; replaying commit after the managed Agent PCR genesis is accepted returns status=complete with pending PCR recovery and the runtime pairing handle.
           content:
             application/json:
               schema:
@@ -9327,6 +9335,79 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentProvisionRequestBody'
+  /_arkret/self/agent-provisioning-abandonment-challenges:
+    post:
+      operationId: ak.self.agent.command.issue_provisioning_abandonment_challenge
+      description: |
+        Issues a single-use challenge for explicitly giving up an accepted
+        ak.agent.provision whose declared managed Agent PCR genesis was never
+        accepted. The service requires agent_id, principal_control_realm_id and
+        allocation_handle to equal the authenticated controller's accepted
+        provisioning, and MUST refuse once that genesis is accepted.
+
+        The challenge binds the controller account subject and holder key, the
+        agent and its slug, the declared realm id, the allocation, the closed
+        consequence disclosure, audience, origin, trust domain, purpose, and an
+        expiry no more than 300 seconds out. Challenge state is durable shared
+        state; expiry and prior consumption are distinct terminal states.
+
+        This operation abandons nothing on its own. Lease expiry, garbage
+        collection and every other automated path never fetch a challenge,
+        which is what makes the abandonment structurally explicit.
+      security:
+      - bearerAuth: []
+        dpopProof: []
+      responses:
+        '200':
+          description: Persisted agent-provisioning abandonment challenge transcript.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentProvisioningAbandonmentChallengeOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentProvisioningAbandonmentChallengeRequestBody'
+  /_arkret/self/agent-provisioning-abandonments:
+    post:
+      operationId: ak.self.agent.command.abandon_provisioning
+      description: |
+        Consumes the abandonment challenge and performs the abandonment in one
+        transaction: release the agent_slug selector claim and the
+        principal_control_realm_id claim, record the tombstone / audit
+        reservation, and suppress every holder-readable trace of the
+        allocation. Any step failing means zero writes. The presented
+        credentials MUST be fresh and MUST NOT be the ones presented when the
+        challenge was issued; re-authentication strength, risk checks and
+        cooldown are deployment governance.
+
+        If the managed Agent PCR genesis was accepted between challenge
+        issuance and confirmation the request fails with
+        agent_pcr_genesis_already_accepted and abandons nothing: an established
+        Agent is retired through ak.self.agent.command.deactivate.
+
+        Replaying the same request_id returns the recorded terminal outcome and
+        never produces a second tombstone. The accepted ak.agent.provision
+        Event stays in the controller PCR history, and the abandoned realm id
+        is never reused.
+      security:
+      - bearerAuth: []
+        dpopProof: []
+      responses:
+        '200':
+          description: Recorded terminal outcome of the explicit provisioning abandonment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentProvisioningAbandonmentOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentProvisioningAbandonmentRequestBody'
   /_arkret/self/agents/{agent_id}:
     get:
       operationId: ak.self.agent.resource.get

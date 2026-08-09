@@ -164,13 +164,13 @@ v1 不定义独立的 agent key rotate 事件：key 替换统一通过 §3.6.1 �
 
 `ak.profile.personal_agent_provisioning.v1` 定义了一条面向普通用户的 personal native agent 流程，以现有 agent key 原语为基础:
 
-- **Provisioning** (`POST /_arkret/self/agents`, operation `ak.self.agent.command.provision`) 是闭合的两阶段 operation。`phase=prepare` 只校验 controller recovery 等先决条件并保留 managed Agent DID、专用 `principal_control_realm_id`、controller PCR 与 delegation ref；它 MUST NOT 发布 durable Agent/DID/PCR、accountability、selector、pairing、grant 或其它可观察副作用。controller 必须以 `(agent_id, controller_id, requested_scope)` 重算返回的域分离 `requested_scope_digest`，不匹配时停止。随后 controller MUST 调用 `arkret-rust-sdk` 的统一 authoring API 生成恰好一个 controller-owned `ak.agent.provision` `EventInitialSubmission`；其闭合 payload 同时绑定 allocation、controller delegation、`accountability_scope=agent_operator`、selector 与 `requested_scope_digest`，不含内层 proof。Event `actor_id` MUST 是 authenticated controller、`realm_id` MUST 是返回的 controller PCR；Event proof 是唯一签名。`phase=commit` 原样携带服务端 allocation、完整 private `requested_scope` 与该 submission；Principal Server 必须通过普通 Event schema/proof/authz/frontier/reducer admission 接受它，不得用 service key 代签、接受 `dev-proof`，或绕过 admission 直接写 canonical store。一次 accepted reducer transaction MUST 原子写入 provision、accountability 与 selector 三个 cell；不得暴露部分完成状态。只有该 Event durable accepted 后才能在 Agent DID accepted inception history 的唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 写入闭合四字段 controller delegation + `requested_scope_digest` commitment、创建 pairing handle 并返回 `status=complete`。完整 `requested_scope` 始终保持 controller-private，不得进入公开 DID history 或 durable Event。精确 commit 重试以 allocation 与 submission 的 Event id/canonical bytes/publication evidence bytes 为身份，MUST 返回首次 complete outcome；同 Event id 不同 bytes 或不同 evidence MUST conflict。恢复 MUST 重放同一 submission 并依靠 Event admission 幂等完成，MUST NOT 另造 Event id、proof、lease、receipt 或重复 fact。
-  `requested_scope` 是该 Agent key/session 的**全局硬上限而不是授权**：`actions[]` 中的内容 action 只表示以后在某 Realm 中可被单独 grant 的最大 action 集；省略的内容 action 不能由 Realm / Circle / Strand grant、session 或 participation gate 补回。operation/service resource 约束服务面；显式内容 resource selector 只进一步收窄以后允许附加的 Realm 内容资源。Provisioning MUST NOT 从 `requested_scope` 物化 `ak.capability.grant`；后续 grant 必须满足 `grant.actions ⊆ requested_scope.actions` 并继续按 AND 收窄。Participation selection 是独立的动作时 deny gate，不属于 provision commitment。complete 返回 Agent PCR binding、`requested_scope_digest` 与一次性 `pairing_request_id` + `pairing_code`；`pairing_code` MUST 由 CSPRNG 生成且熵不少于 128 bit。此时 Agent PCR bootstrap/recovery state 是 `pending`；controller E2EE client 随后按 §4.1 本地生成 Agent PCR MLS state、提交 Agent PCR genesis 与 Agent profile Event，并按 §7.5.6 上传 controller-owned managed-PCR recovery backup。服务端、Account Authority 与 Principal Server MUST NOT 生成或短暂持有 Agent PCR MLS private state。流程不写入独立 `ak.self.agent.command.provision` Event，也不得在首次 runtime pairing 前伪造或预写 `ak.agent.key.authorize`。
+- **Provisioning** (`POST /_arkret/self/agents`, operation `ak.self.agent.command.provision`) 是闭合的两阶段 operation。`phase=prepare` 只校验 controller recovery 等先决条件并保留 managed Agent DID、controller PCR 与 delegation ref；它 MUST NOT 分配 `principal_control_realm_id`（该值只能由 controller 按 §3.6.3 从本地冻结的 genesis create 派生），也 MUST NOT 发布 durable Agent/DID/PCR、accountability、selector、pairing、grant 或其它可观察副作用。controller 必须以 `(agent_id, controller_id, requested_scope)` 重算返回的域分离 `requested_scope_digest`，不匹配时停止。随后 controller MUST 调用 `arkret-rust-sdk` 的统一 authoring API 生成恰好一个 controller-owned `ak.agent.provision` `EventInitialSubmission`；其闭合 payload 同时绑定 allocation、controller delegation、`accountability_scope=agent_operator`、selector、`requested_scope_digest` 与前向声明的 `principal_control_realm_id`（§3.6.3），不含内层 proof。Event `actor_id` MUST 是 authenticated controller、`realm_id` MUST 是返回的 controller PCR；Event proof 是唯一签名。`phase=commit` 原样携带服务端 allocation、完整 private `requested_scope` 与该 submission；Principal Server 必须通过普通 Event schema/proof/authz/frontier/reducer admission 接受它，不得用 service key 代签、接受 `dev-proof`，或绕过 admission 直接写 canonical store。一次 accepted reducer transaction MUST 原子写入 provision、accountability、selector 与 realm-id claim 四个 cell；不得暴露部分完成状态。该 Event durable accepted 只把 outcome 推进到 `status=awaiting_pcr_genesis`；只有 §3.6.3 的 managed Agent PCR genesis 也被接受之后，才能在 Agent DID accepted inception history 的唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 写入闭合四字段 controller delegation + `requested_scope_digest` commitment、创建 pairing handle 并返回 `status=complete`。完整 `requested_scope` 始终保持 controller-private，不得进入公开 DID history 或 durable Event。精确 commit 重试以 allocation 与 submission 的 Event id/canonical bytes/publication evidence bytes 为身份，MUST 返回该身份**当前**的 durable outcome（genesis 未接受时为 `awaiting_pcr_genesis`，已接受后为同一 complete outcome）；同 Event id 不同 bytes 或不同 evidence MUST conflict。恢复 MUST 重放同一 submission 并依靠 Event admission 幂等完成，MUST NOT 另造 Event id、proof、lease、receipt 或重复 fact。
+  `requested_scope` 是该 Agent key/session 的**全局硬上限而不是授权**：`actions[]` 中的内容 action 只表示以后在某 Realm 中可被单独 grant 的最大 action 集；省略的内容 action 不能由 Realm / Circle / Strand grant、session 或 participation gate 补回。operation/service resource 约束服务面；显式内容 resource selector 只进一步收窄以后允许附加的 Realm 内容资源。Provisioning MUST NOT 从 `requested_scope` 物化 `ak.capability.grant`；后续 grant 必须满足 `grant.actions ⊆ requested_scope.actions` 并继续按 AND 收窄。Participation selection 是独立的动作时 deny gate，不属于 provision commitment。complete 返回 Agent PCR binding、`requested_scope_digest` 与一次性 `pairing_request_id` + `pairing_code`；`pairing_code` MUST 由 CSPRNG 生成且熵不少于 128 bit。此时 Agent PCR bootstrap/recovery state 是 `pending`；controller E2EE client 在提交 §3.6.3 的 genesis 时已按 §4.1 本地生成 Agent PCR MLS state，其后提交 Agent profile Event，并按 §7.5.6 上传 controller-owned managed-PCR recovery backup。服务端、Account Authority 与 Principal Server MUST NOT 生成或短暂持有 Agent PCR MLS private state。流程不写入独立 `ak.self.agent.command.provision` Event，也不得在首次 runtime pairing 前伪造或预写 `ak.agent.key.authorize`。
 - `requested_scope` 在 v1 provision request 中 MUST 存在，且 Agent principal 创建后 immutable；实现不得把省略解释为 unconstrained 或 deny-all，也不得通过 renew-pairing、同 key re-authorization、Realm 加入或 policy 更新修改它。需要改变（包括扩大）该全局 ceiling 时必须 provision 新 Agent principal。后续 `ak.agent.key.authorize.payload.agent_key_scope` MAY 比它更窄，但 MUST 满足 actions/resources/constraints 的 selector-narrowing 子集规则；不得要求两者完全相等。Receiver 不得信任 service-local row 声称的 ceiling：必须按 authorizing object 的 accepted-at 解析 Agent DID history，验证 §4.1 的公开 digest commitment，并取得有效的 `ak.schema.agent_requested_scope_disclosure.v1` 私有披露，重算 digest 后再求子集。具体 digest、资源覆盖和 mandatory constraint 规则以 [`../authz/capabilities.md` §9.1](../authz/capabilities.md) 为准。
 - **Runtime key pairing** (`POST /_arkret/gate/account/agent-key-pair`, operation `ak.gate.account.command.pair_agent_key`):agent runtime 本地生成 key pair、提交 public key + proof-of-possession + 可选 `runtime_attestation`(v1 baseline `kind="self_asserted"`)。请求还 MUST 携带 controller 签名的 `requested_scope_disclosure`，其 request/challenge 来自权威 pairing verifier。Controller 签发的 `ak.agent.key.authorize.payload.approval_evidence` MUST 使用 `kind="pairing_request"`，带 `pairing_request_id` 且与请求体 bit-identical，并以 `request_canonical_digest` 绑定本次 pairing request、以 `approved_by` 绑定 controller；该分支 MUST NOT 带 `evidence_ref`，因为短期 `pairing_request_id` 不是 durable object ref，也不存在需要伪造自引用的独立 approval Event。其他 evidence kind 继续以 `evidence_ref` 引用可在 Event frontier 重放的 durable grant / approval / proposal / policy object。首次配对与 replacement re-pairing commit 前，endpoint MUST 针对 **authorize Event 被接受前的 current frontier** 验证 `pcr_recovery.status="ready"`：controller 的当前 active `mls_history` series 尾部必须含 §7.5.6 的 Agent PCR `mls_group_state`，其 controller recovery policy、managed-principal binding 与 Agent PCR accepted frontier/MLS epoch 均为当前值；`pending`、`stale`、缺失或无法验证时 MUST fail closed(`agent_pcr_recovery_not_ready`)且不得消费 pairing handle。`authorize_event` MUST 是普通 `EventInitialSubmission`，其 `event` 写入 Agent PCR：`realm_id` MUST 等于 Agent DID Document 的 `ArkretPrincipalControlRealm.serviceEndpoint.realm_id`，`actor_id` MUST 等于 `agent_id`，`executed_by` MUST 等于 controller DID，`authorization_ref` MUST 等于该 service binding 的 controller delegation DID URL；proof verification method MUST 属于 controller 或其当前授权设备；submission 必须携带普通 publication authority evidence，服务端不得代签 receipt。写入 controller PCR、令 `actor_id=controller`，或由 Account Authority / Principal Server 重新签名均 MUST 拒绝。Pairing endpoint MUST 按 authorize Event accepted-at 验证同一 DID service entry 的 digest commitment，校验私有披露的 controller/verifier/audience/challenge/freshness/proof，重算 `requested_scope_digest`，再校验 `agent_key_scope` 是披露 scope 的收窄子集；还 MUST 校验 `verification_method` 逐字等于 `` `{agent_id}#{device_id}` ``，其中 `device_id` 是同一请求 / session grant 绑定的稳定 Native Agent endpoint。不匹配 fail closed(`reason="verification_method_principal_mismatch"`)。该相等只把 runtime key 与 Signal / MLS endpoint 绑定，MUST NOT 产生 `ak.device.authorize` 或把 Agent 降级为普通 device identity。披露不得复制进 `authorize_event`、通知或任何 durable/public history。首次调用只可把 `ak.agent.key.authorize` 作为 pending control Event durable 入库，并 MUST 返回 `activation_state="awaiting_accepted_frontier"`；durable Event 本身不是 accepted authorization witness，服务端此时不得消费 pairing handle、移除审批通知、写 active key projection 或签发 Agent session。Controller E2EE client MUST 随后以当前 Controller 设备签发覆盖该 Event 的 managed Agent-PCR successor Seal，再以完全相同的 body 与 `Idempotency-Key` 重试。只有服务端能从该 accepted Seal 构造 `status=active` 的完整 portable Agent signer evidence 后，才能原子激活 runtime、消费 handle、终止通知并返回 `activation_state="active"`；缺少 witness 的任何 reconciler 或重试都必须继续保持 awaiting。该 Seal 推进 Agent PCR frontier 后，`pcr_recovery` MUST 暂时投影为 `stale`，直到 producer 追加覆盖新 frontier 的 active-series 尾部；这不回滚已完成的 key activation，但会阻断下一次 pairing commit。若该 agent 此前已存在 active authorized key(runtime replacement re-pairing,见「Pairing 续期」),controller-signed payload 的 `supersedes[]` MUST 精确列出全部既有 active authorization，reducer 在接受该单一 Event 的同一事务中原子替换；被替换 key 已签发的 active session MUST 在 revocation freshness window 内 fail closed,MUST NOT 自然存活到原 TTL。
 
   当 `gate_account_base` 的 Account Authority 与保存 Agent pairing record / Agent PCR 的 Principal Server 分离时，Account Authority MUST 以完全相同的 `AgentKeyPairRequestBody` 将同一 `ak.gate.account.command.pair_agent_key` 委托到该 Principal Server 的 canonical `POST /_arkret/gate/account/agent-key-pair`，使用部署内 S2S bearer 或 §3 HTTP Message Signature 认证，并携带 `Idempotency-Key=authorize_event.event.event_id`。下游 MUST 独立重做 current pairing、runtime PoP、controller Event proof、publication authority evidence、Agent PCR / delegation、scope 与 replacement 校验；不得信任上游“已验证”布尔值。该委托是同一标准 operation 的部署内执行，不是新的 fan-out operation；实现 MUST NOT 用任何非注册端点或自定义 queue envelope 承载这项协议职责。Account Authority MUST 透明转发下游的两阶段 outcome；只有下游返回与 `authorize_event.event.event_id` 一致的 `authorize_event_ref`、`activation_state="active"` 且 activation 已 durable 后，才能把本地 authorization 标为 active。`awaiting_accepted_frontier`、本地入库或入队均不构成激活成功。
-- **Lifecycle、readiness 与 presence 正交（normative）**：通用 Agent list/get view 只暴露 §3.6.3 的三轴；`key_state` 不重复 lifecycle/readiness/presence，也不包含 `runtime_state`。后者只允许作为 pairing poll 的 operation-specific 诊断，从被轮询 handle 与 key facts 机械派生：无 active accepted key 且存在未过期 bootstrap handle → `pending_runtime_key`；无 active key 且 bootstrap handle 已过期 → `pairing_expired`；有 active key 且无未消费 replacement handle → `ready`；有 active key 且存在未过期 replacement handle → `replacing`。它 MUST NOT 被直接写入或提升成产品状态，并必须映射进 generic readiness blocker（无 key → `runtime_key_missing`，open handle → `pairing_open`）。session 签发仍由 lifecycle 与授权链治理；poll 的 `replacing` 不改变旧 key 的 session 语义，真正安全边界是 pair commit 的原子 supersede。
+- **Lifecycle、readiness 与 presence 正交（normative）**：通用 Agent list/get view 只暴露 [`../models/actor.md` §3.3](../models/actor.md) 的三轴；`key_state` 不重复 lifecycle/readiness/presence，也不包含 `runtime_state`。后者只允许作为 pairing poll 的 operation-specific 诊断，从被轮询 handle 与 key facts 机械派生：无 active accepted key 且存在未过期 bootstrap handle → `pending_runtime_key`；无 active key 且 bootstrap handle 已过期 → `pairing_expired`；有 active key 且无未消费 replacement handle → `ready`；有 active key 且存在未过期 replacement handle → `replacing`。它 MUST NOT 被直接写入或提升成产品状态，并必须映射进 generic readiness blocker（无 key → `runtime_key_missing`，open handle → `pairing_open`）。session 签发仍由 lifecycle 与授权链治理；poll 的 `replacing` 不改变旧 key 的 session 语义，真正安全边界是 pair commit 的原子 supersede。
 - **Pairing 失败清理**:仅适用于从未完成首次 key 授权的 Agent。`pairing.expires_at` 到达且未完成 pairing 时，服务关闭并省略 open-handle fields；generic readiness 保持 `not_ready` + `runtime_key_missing`，对过期 handle 的 pairing poll 报 `runtime_state=pairing_expired`。服务不得因此创建、撤销或改写任何 Realm grant，也不得改变 lifecycle 意图。已持有 authorized key 的 Agent 的 replacement handle 过期没有任何副作用：lifecycle、既有 key 与 grant 均不变，open fields 消失，readiness 移除 `pairing_open`；其 poll 不得报 `pairing_expired`。
 - **Pairing 续期** (`POST /_arkret/self/agents/{agent_id}/renew-pairing`, operation `ak.self.agent.command.renew_pairing`):controller MAY 对无 active accepted runtime key 的 bootstrap Agent或已持有 active authorized key 的 Agent(lifecycle `active` 或 `paused`)原地重开 pairing；`deactivated` MUST 拒绝。每个 Agent 同一时刻至多一个 open pairing handle。
   - 服务 MUST 签发全新的一次性 `pairing_request_id` + `pairing_code` + `pairing.expires_at`，并 MUST 使该 agent 此前签发的所有 pairing handle 永久不可解析(与过期 handle 一致的 anti-enumeration 语义:handle 是一次性的，principal 不是)。
@@ -235,7 +235,8 @@ subject；`cell_value` 是 closed、canonical sorted OR-set entry array，每项
 `<event_id>:<write_index>` dot，value 必须是 schema-valid authorize/revoke payload。Agent lifecycle `cell_ref` MUST
 由 `agent_id` 派生，`cell_value` 是 closed lifecycle 值；`accepted_status_event`、provenance、registered reducer write、
 Seal delta/lineage 和 state leaf 必须互相重算一致。首次 active 的唯一 provenance 是 managed Agent delegated PCR
-genesis `ak.realm.create` 对恰好一个 critical `refs[] role=agent_provision` 的条件写；服务私有 row、FSM 默认值或
+genesis `ak.realm.create` 在 `payload.object.purpose == "managed_agent_control"` 上的条件写（subject 取
+`envelope.actor_id`，`uninitialized -> active`，见 §3.6.3）；服务私有 row、FSM 默认值或
 organization-governed PCR 都不能合成首次 active witness。
 
 每个 state witness 都必须携带完整 signed Seal、closed `cell_value`、leaf digest/index/count 与 inclusion proof。
@@ -345,6 +346,82 @@ Pairing record 与 account notification projection 的 add/update/remove MUST �
 
 Controller 通过 `ak.self.account.stream.subscribe.notifications.items[]` 发现请求；声明支持的服务 MUST 在 `ServiceDescribe.supported_features` 列出 `ak.feature.agent_runtime_approval_notifications.v1`。只有 describe 已成功解析且缺少该 token 时，controller 客户端才能启用 30 秒起、带 jitter、最大 60 秒的 list/get fallback；describe 未解析、应用隐藏或离线时不得轮询。未配对 runtime 仍通过 `ak.open.agent_pairing.read.runtime_key_request_status` 有界轮询；HTTP response MUST 携带 `Retry-After`，客户端采用 1s/2s/5s/10s 后最大 30s，并遵守更长的服务端值，在 pairing 过期后停止。
 
+#### 3.6.3 Managed Agent PCR genesis 的构造顺序（normative）
+
+Agent PCR 的 `realm_id` 按 [`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md) 只能等于其 genesis
+`ak.realm.create` 的 `retype(event_id)`，而 `ak.agent.provision` 的闭合 payload 又必须携带该 id。两者只有
+一种可构造顺序，实现 MUST 精确按此执行：
+
+1. **controller 本地冻结 genesis 信封**。`phase=prepare` 冻结 provision payload 侧的 allocation 与
+   `requested_scope_digest`；controller 用它在本地组装 managed Agent PCR 的完整 `ak.realm.create` canonical
+   bytes（`purpose="managed_agent_control"`、`genesis_salt`、`executed_by`、`authorization_ref` 等一次成型），
+   自己按 [`../conformance/encoding.md` §4.0](../conformance/encoding.md) 算出 `event_id`，再取
+   `realm_id = retype(event_id, "realm")`。该 create **此刻不提交**。
+2. **提交 `ak.agent.provision`**。payload 保留 `principal_control_realm_id`，其值就是上一步算出的 id；它是
+   对一条**尚未提交**的 Event 的**前向声明**。这是 [`../conformance/encoding.md` §6.0.1](../conformance/encoding.md)
+   的具名 C 类例外 `ak.exemption.preimage_identity.agent_provision_principal_control_realm_id.v1`：
+   genesis 的原像不含 provision 的任何标识、引用或 digest，依赖方向严格单向，两条 Event 都可构造。
+3. **另一次提交 genesis create**。该 create MUST 在一次**独立的提交**中送出，MUST NOT 与 provision 同属
+   一个原子 unit 或同一 ordered submit batch——那正是 §6.0.1 B 类禁令，会让两条 Event 互为原像而不可构造。
+   Genesis admission MUST 反查：controller PCR 中是否存在一条**已 accepted** 的 `ak.agent.provision`，其
+   `payload.principal_control_realm_id` 逐字等于 `retype(本 create 的 event_id)`。无匹配 MUST 零写入拒绝。
+
+该 create **不再携带** `refs[] role=agent_provision`：provision 先于 create 成型，create 若引用它会在 create
+被组装之前就要求知道一个不在冻结范围内的值，且反查已经提供同等且更强的绑定（ref 只声明"我指向某条
+provision"，反查证明"某条 accepted provision 恰好声明了我"）。`delegated_pcr_genesis` 因此改由
+`payload.object.purpose` 判别。
+
+**声明唯一性（normative）**：同一 controller PCR 内，`ak.agent.provision` 以 `payload.principal_control_realm_id`
+为 subject 写一个 `cas_register`、`bottom=reject` 的 cell；两条 provision 声明同一 realm id 时第二条 MUST 被
+拒绝且零写入。该 cell 只覆盖同一 controller PCR。跨 controller 的重复声明由 Principal Server 的**本地唯一
+索引**兜底：同一部署内任意两条 accepted provision MUST NOT 声明同一 `principal_control_realm_id`，冲突
+MUST 零写入拒绝。两层合起来使"一个 realm id 至多一条 provision 声明"成立。
+
+**同 Principal Server 承载（normative）**：managed Agent PCR 与其 controller PCR MUST 由**同一个 Principal
+Server** 承载。genesis admission 的反查是一次本地投影查询，跨服务器时它既没有可信的查询面，也没有可
+线性化的唯一性判定点；上面的本地唯一索引同样是部署内事实。这不改变 PCR 的既有作用域语义——PCR 的
+作用域本来就是 `(DID, Principal Server)`。
+
+**中间态不外显（normative）**：provision 被接受、genesis 尚未接受的窗口内，该 Agent 对外**不存在**。
+`ak.self.agent.command.provision` 的 outcome 停在 `status=awaiting_pcr_genesis`；Agent DID 的
+`ArkretPrincipalControlRealm` service entry、pairing handle 与 `ak.self.agent.read.list` /
+`ak.self.agent.resource.get` 的可见性**全部推迟到 genesis 被接受之后**。因此不存在"lifecycle 取什么值"、
+"能否 pause/deactivate"、"readiness 该报哪个 blocker"这三个问题：没有可投影的 Agent 对象。genesis 被接受时
+才一次性发布 DID service entry、创建 pairing handle、把 lifecycle 写入 `active`（见 §3.6.3 下一段与
+[`../models/actor.md` §3.3](../models/actor.md)），并把 outcome 推进到 `status=complete`。
+
+**genesis 是唯一的首次 active 写入（normative）**：`ak.component.agent.status.v1` 的 FSM 只有
+`uninitialized -> active` 一条离开初始态的边，而 `ak.self.agent.pause` / `resume` / `deactivate` 都要求非
+`uninitialized` 的前驱。因此 managed Agent PCR genesis `ak.realm.create` 在
+`payload.object.purpose == "managed_agent_control"` 时 MUST 条件写入该 cell，subject 取 `envelope.actor_id`
+（即 Agent DID），transition 为 `uninitialized -> active`。非 `managed_agent_control` 的 create MUST NOT 触发
+该写入。服务私有 row、FSM 默认值或 organization-governed PCR 都不能合成首次 active witness。
+
+**显式放弃（normative）**：genesis 可能永远不来（controller 放弃、客户端丢失冻结的 create bytes）。此时
+provision 事实已经 durable accepted，slug 与该 realm id claim 被占住，而柜子永远不会建起来。协议 MUST
+提供显式收场，且 MUST NOT 用 lease 过期、垃圾回收或超时静默释放。承载它的是封闭的两步 operation 对，
+形状对位 §5.0.2 的 provisional identity abandonment：
+`ak.self.agent.command.issue_provisioning_abandonment_challenge` 取 challenge，
+`ak.self.agent.command.abandon_provisioning` 确认。
+
+- challenge 单次使用、`<=300` 秒、保存在 shared durable state（不是进程内存），并钉死要放弃的
+  `agent_id`、该 provision 声明的 `principal_control_realm_id`、`allocation_handle`、`agent_slug`、
+  controller `account_subject` 与 holder key、必须向用户展示的封闭后果集合 `consequence_disclosure`、
+  audience、origin、trust domain、purpose 与 expiry；重复同一 `request_id` 返回同一未消费 challenge，
+  expiry 与已消费是不同终态。
+- 确认调用 MUST 出示一份新鲜凭据，MUST NOT 复用签发 challenge 时那一份。重认证强度、风险检查项与
+  冷却期时长属**部署治理**，本规范不规定。
+- **原子边界**：消费 challenge、释放 `agent_slug` selector claim 与 `principal_control_realm_id` claim、
+  写 tombstone / audit reservation、抑制该 allocation 的全部 holder 可读痕迹，MUST 在一个事务内完成，
+  任一步失败零写入。同 `request_id` 重放 MUST 返回同一终态，MUST NOT 产生第二条 tombstone。
+- **并发**：challenge 签发与确认之间 genesis 已被接纳时，确认 MUST 以稳定终态 `agent_pcr_genesis_already_accepted`
+  失败且 MUST NOT 放弃任何东西——Agent 既已成立，该走的是 `ak.self.agent.command.deactivate`。判定依据是
+  challenge 钉死的 `principal_control_realm_id` 与 allocation，不是本地推断。
+
+被放弃的 provision Event 本身仍是 controller PCR 中一条 accepted 的历史事实，MUST NOT 被删除或重写；
+放弃只释放 slug 与 realm id claim 并写下 tombstone。被放弃的 `principal_control_realm_id` MUST NOT 被后续
+provision 复用。
+
 ### 3.7 MLS KeyPackage Key
 
 MLS KeyPackage key 用于加入加密 Realm。
@@ -399,7 +476,7 @@ Native Personal Agent 是独立 DID principal，不继承 controller 的 PCR 或
 
 该边界的 conformance vector 为 `ak.vector.agent.managed_pcr_separation.v1`。
 
-Agent PCR genesis MUST 使用 `purpose="managed_agent_control"`，MUST NOT 携带 human-only `founding_device_descriptor`（`genesis_salt` 与其它 Realm 一样必填），并遵守共享 PCR profile、`history_visibility=restricted`、`encryption_profile=mls_rfc9420` 与两条 `e2ee_required` floor；`created_by` 与 notary 都是 Agent DID。Controller 受托创建或写入 Agent PCR 时，Event `actor_id` 是 Agent DID（控制事实所属 principal），`executed_by` 是 controller DID，`authorization_ref` 是上述 DID delegation 或其可验证 materialized grant；proof verification method 必须属于 controller，不得由服务端伪造 Agent 签名。Agent PCR 的 MLS group state MUST 由 controller E2EE client 本地生成；服务端只能保存 ciphertext、公开 envelope metadata 与 reducer 所需的承诺/证明，不得生成、托管或解密该 private state。Agent profile、`ak.agent.key.authorize/revoke` 与 `ak.self.agent.pause/resume/deactivate` 写入 Agent PCR。Controller-owned `ak.agent.provision` 保持在 controller PCR，并原子投影 Agent provisioning、accountability 与 selector 事实；后续独立变更仍可使用通用 accountability/selector Event。Realm-specific capability grant 仍写入所治理 action 所属 Realm。Pairing request 与 approval notification永远不写入任一 PCR。
+Agent PCR genesis MUST 使用 `purpose="managed_agent_control"`，MUST NOT 携带 human-only `founding_device_descriptor`（`genesis_salt` 与其它 Realm 一样必填），并遵守共享 PCR profile、`history_visibility=restricted`、`encryption_profile=mls_rfc9420` 与两条 `e2ee_required` floor；`created_by` 与 notary 都是 Agent DID。Controller 受托创建或写入 Agent PCR 时，Event `actor_id` 是 Agent DID（控制事实所属 principal），`executed_by` 是 controller DID，`authorization_ref` 是上述 DID delegation 或其可验证 materialized grant；proof verification method 必须属于 controller，不得由服务端伪造 Agent 签名。Agent PCR 的 MLS group state MUST 由 controller E2EE client 本地生成；服务端只能保存 ciphertext、公开 envelope metadata 与 reducer 所需的承诺/证明，不得生成、托管或解密该 private state。Agent profile、`ak.agent.key.authorize/revoke` 与 `ak.self.agent.pause/resume/deactivate` 写入 Agent PCR。Controller-owned `ak.agent.provision` 保持在 controller PCR，并原子投影 Agent provisioning、accountability、selector 与 `principal_control_realm_id` claim 事实；后续独立变更仍可使用通用 accountability/selector Event。该 provision MUST 先于 Agent PCR genesis 成型并在另一次提交中被接受，genesis 的准入由 §3.6.3 的反查绑定，二者 MUST 由同一 Principal Server 承载。Realm-specific capability grant 仍写入所治理 action 所属 Realm。Pairing request 与 approval notification永远不写入任一 PCR。
 
 Agent PCR 的 Event Seal 仍由 `POST /_arkret/self/events/seals` 提交。若 accepted Agent DID delegation 的 purpose 覆盖 `principal_control_realm_recovery`，该 delegation 同时授权当前 controller device 为此 managed PCR 的 delegated notary signer；receiver MUST 从唯一 signed managed-PCR create Event 精确验证 `(Agent DID, controller DID, realm_id, authorization_ref)`。Managed PCR Event 必须由 producer 签名 Realm `scope_ref`，reducer 独立复核。首个非空 Seal MUST 无 predecessor 并原子覆盖 managed PCR founding anchor unit；Principal Server、Account Authority 或其他 service 不得用 service key 代替 Agent/controller 签署。
 

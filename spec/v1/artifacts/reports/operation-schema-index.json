@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.23",
+  "version": "2026-08-10.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T12:00:00Z",
+  "generated_at": "2026-08-10T15:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -4038,6 +4038,50 @@
       }
     },
     {
+      "operation_id": "ak.self.agent.command.abandon_provisioning",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "challenge_id",
+          "challenge",
+          "agent_id",
+          "principal_control_realm_id",
+          "allocation_handle"
+        ],
+        "properties": [
+          "request_id",
+          "challenge_id",
+          "challenge",
+          "agent_id",
+          "principal_control_realm_id",
+          "allocation_handle"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "status",
+          "agent_id",
+          "principal_control_realm_id",
+          "abandoned_at"
+        ],
+        "properties": [
+          "request_id",
+          "status",
+          "agent_id",
+          "principal_control_realm_id",
+          "abandoned_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.agent.command.deactivate",
       "success_shape_kind": "typed_response",
       "request": {
@@ -4062,6 +4106,68 @@
         "properties": [
           "ok",
           "status"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.agent.command.issue_provisioning_abandonment_challenge",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "agent_id",
+          "principal_control_realm_id",
+          "allocation_handle"
+        ],
+        "properties": [
+          "request_id",
+          "agent_id",
+          "principal_control_realm_id",
+          "allocation_handle"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "challenge_id",
+          "challenge",
+          "purpose",
+          "account_subject",
+          "agent_id",
+          "agent_slug",
+          "principal_control_realm_id",
+          "allocation_handle",
+          "consequence_disclosure",
+          "dpop_jkt",
+          "audience",
+          "origin",
+          "trust_domain",
+          "issued_at",
+          "expires_at"
+        ],
+        "properties": [
+          "request_id",
+          "challenge_id",
+          "challenge",
+          "purpose",
+          "account_subject",
+          "agent_id",
+          "agent_slug",
+          "principal_control_realm_id",
+          "allocation_handle",
+          "consequence_disclosure",
+          "dpop_jkt",
+          "audience",
+          "origin",
+          "trust_domain",
+          "issued_at",
+          "expires_at"
         ],
         "closed": true
       }
@@ -4146,6 +4252,17 @@
             "schema_kind": null,
             "required": [
               "controller_realm_id",
+              "allocation_handle"
+            ],
+            "properties": [
+              "status"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+            "schema_kind": null,
+            "required": [
               "allocation_handle"
             ],
             "properties": [

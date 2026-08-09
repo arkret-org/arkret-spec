@@ -1525,6 +1525,142 @@
       }
     },
     {
+      "name": "agent_provision_awaiting_pcr_genesis_outcome_valid",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "expect_valid": true,
+      "instance": {
+        "status": "awaiting_pcr_genesis",
+        "agent_id": "did:webvh:z6mkfixture:agent.example",
+        "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
+        "allocation_handle": "agent-provision-allocation.fixture.signature",
+        "controller_authorization_ref": "did:webvh:z6mkfixture:agent.example#controller-delegation",
+        "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "name": "agent_provision_awaiting_pcr_genesis_outcome_with_pairing_rejected",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "status": "awaiting_pcr_genesis",
+        "agent_id": "did:webvh:z6mkfixture:agent.example",
+        "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
+        "allocation_handle": "agent-provision-allocation.fixture.signature",
+        "controller_authorization_ref": "did:webvh:z6mkfixture:agent.example#controller-delegation",
+        "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "pairing_request_id": "pairing-request-001",
+        "expires_at": "2026-05-20T00:05:00.000Z"
+      }
+    },
+    {
+      "name": "agent_provision_awaiting_pcr_genesis_outcome_with_controller_realm_rejected",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "status": "awaiting_pcr_genesis",
+        "agent_id": "did:webvh:z6mkfixture:agent.example",
+        "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
+        "controller_realm_id": "ak:realm:AYBGpqDYene9KtftYqWtL5_FQo0mOXnIfmxo68YdgJ_A",
+        "allocation_handle": "agent-provision-allocation.fixture.signature",
+        "controller_authorization_ref": "did:webvh:z6mkfixture:agent.example#controller-delegation",
+        "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "name": "agent_provisioning_abandonment_challenge_outcome_valid",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_outcome",
+      "expect_valid": true,
+      "instance": {
+        "request_id": "ak:operation:019a7360-0000-7000-8000-000000000205",
+        "challenge_id": "agent-provisioning-abandonment-challenge-001",
+        "challenge": "Zm9vYmFyZm9vYmFyZm9vYmFyZm9v",
+        "purpose": "agent_provisioning_abandonment",
+        "account_subject": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "agent_id": "did:webvh:z6mkfixture:agent.example",
+        "agent_slug": "summary",
+        "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
+        "allocation_handle": "agent-provision-allocation.fixture.signature",
+        "consequence_disclosure": [
+          "declared_principal_control_realm_id_is_permanently_unusable",
+          "agent_slug_is_released_for_reuse",
+          "accepted_provision_event_stays_in_controller_pcr_history",
+          "a_new_agent_must_be_provisioned_from_scratch"
+        ],
+        "dpop_jkt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaj",
+        "audience": "did:webvh:z6mkfixture:principal.example",
+        "origin": "https://principal.example",
+        "trust_domain": "ak:trust_domain:did.webvh.principal.example",
+        "issued_at": "2026-05-20T00:00:00.000Z",
+        "expires_at": "2026-05-20T00:05:00.000Z"
+      }
+    },
+    {
+      "name": "agent_provisioning_abandonment_challenge_outcome_rejects_partial_disclosure",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_outcome",
+      "expect_valid": false,
+      "first_expected_error": "contains:consequence_disclosure",
+      "instance": {
+        "request_id": "ak:operation:019a7360-0000-7000-8000-000000000205",
+        "challenge_id": "agent-provisioning-abandonment-challenge-001",
+        "challenge": "Zm9vYmFyZm9vYmFyZm9vYmFyZm9v",
+        "purpose": "agent_provisioning_abandonment",
+        "account_subject": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "agent_id": "did:webvh:z6mkfixture:agent.example",
+        "agent_slug": "summary",
+        "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
+        "allocation_handle": "agent-provision-allocation.fixture.signature",
+        "consequence_disclosure": [
+          "declared_principal_control_realm_id_is_permanently_unusable",
+          "agent_slug_is_released_for_reuse"
+        ],
+        "dpop_jkt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaj",
+        "audience": "did:webvh:z6mkfixture:principal.example",
+        "origin": "https://principal.example",
+        "trust_domain": "ak:trust_domain:did.webvh.principal.example",
+        "issued_at": "2026-05-20T00:00:00.000Z",
+        "expires_at": "2026-05-20T00:05:00.000Z"
+      }
+    },
+    {
+      "name": "agent_provisioning_abandonment_request_valid",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_request_body",
+      "expect_valid": true,
+      "instance": {
+        "request_id": "ak:operation:019a7360-0000-7000-8000-000000000207",
+        "challenge_id": "agent-provisioning-abandonment-challenge-001",
+        "challenge": "Zm9vYmFyZm9vYmFyZm9vYmFyZm9v",
+        "agent_id": "did:webvh:z6mkfixture:agent.example",
+        "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
+        "allocation_handle": "agent-provision-allocation.fixture.signature"
+      }
+    },
+    {
+      "name": "agent_provisioning_abandonment_request_without_challenge_rejected",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_request_body",
+      "expect_valid": false,
+      "first_expected_error": "contains:challenge",
+      "instance": {
+        "request_id": "ak:operation:019a7360-0000-7000-8000-000000000207",
+        "agent_id": "did:webvh:z6mkfixture:agent.example",
+        "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
+        "allocation_handle": "agent-provision-allocation.fixture.signature"
+      }
+    },
+    {
+      "name": "agent_provisioning_abandonment_outcome_valid",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_outcome",
+      "expect_valid": true,
+      "instance": {
+        "request_id": "ak:operation:019a7360-0000-7000-8000-000000000207",
+        "status": "abandoned",
+        "agent_id": "did:webvh:z6mkfixture:agent.example",
+        "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
+        "abandoned_at": "2026-05-20T00:02:00.000Z"
+      }
+    },
+    {
       "name": "invite_third_party_offline_token_valid",
       "schema_ref": "schemas/invite.schema.json",
       "expect_valid": true,

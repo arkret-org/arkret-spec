@@ -280,7 +280,7 @@ founder **MUST** 从该 pair 的**根 founder basis** 派生，而非从 current
 | `direct_conversation_basis` | `direct_conversation_genesis` | human↔human、Agent↔第三方 |
 | `direct_conversation_agent_provision` | `direct_conversation_agent_genesis` | controller↔自己的 owned Agent |
 
-两个 role **MUST** exact XOR，且 **MUST NOT** 复用既有 `agent_provision`（该 role 继续只判别 managed-Agent PCR genesis，见 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md)）。DM variants、PCR variants 与 ordinary Realm 的 `when` 条件 **MUST** 结构互斥；零命中或多命中 **MUST** `schema_violation`，**MUST NOT** 按 registry 顺序取第一条。
+两个 role **MUST** exact XOR。managed-Agent PCR genesis 不再使用任何 ref role 判别：它按 `payload.object.purpose="managed_agent_control"` 选择 `delegated_pcr_genesis`，并以准入反查 accepted `ak.agent.provision` 的前向声明取代旧 ref（见 [`./key-management.md` §3.6.3](./key-management.md)），因此这里的两个 DM role **MUST NOT** 与之混用。DM variants、PCR variants 与 ordinary Realm 的 `when` 条件 **MUST** 结构互斥；零命中或多命中 **MUST** `schema_violation`，**MUST NOT** 按 registry 顺序取第一条。
 
 `direct_conversation_genesis` **MUST** 逐项验证，任一不符整组零写入：
 
@@ -599,7 +599,7 @@ Conformance **MUST** 覆盖：
 - 同对象 UUID 不同 Genesis 继续走 `object_identity_conflict`，**MUST NOT** 与 pair materialization conflict 合并为一个 selector；
 - 终态：`destroy` 与任意 `tombstone` 拒绝；合法 archive/freeze 及其反向操作沿普通路径生效且坐标不变；违规 terminal 后 slot 保持关闭且 resolver `suspended`；
 - binding：逐字节 KAT 覆盖固定 domain、closed `binding_object`、participants / authorization refs 换序归一、`created_at` 与 Event author/proof 排除，任一语义字段改变必须产生不同 digest；双方并发同 semantic endorsement 得到两个 core OR-Set dot 且不 `⊥`；同 actor 重复在领域视图只计一个；不同 semantic digest 在 effect projection 前拒绝；current Contact/service refresh 不改 binding digest；
-- owned Agent：controller↔own-Agent 只携 `direct_conversation_agent_provision` 时命中 DM variant；改携既有 `agent_provision`、同时携两个 DM roles 或 DM/PCR variants 多命中均零写入拒绝；Agent↔第三方分别覆盖 founder=Agent 与 founder=other；
+- owned Agent：controller↔own-Agent 只携 `direct_conversation_agent_provision` 时命中 DM variant；改用 `purpose="managed_agent_control"`（那是 PCR genesis 分支，见 [`./key-management.md` §3.6.3](./key-management.md)）、同时携两个 DM roles 或 DM/PCR variants 多命中均零写入拒绝；Agent↔第三方分别覆盖 founder=Agent 与 founder=other；
 - 隐私：非 participant 对任意阶段的 pair 查询与不存在逐字相同。
 
 synthetic glare accepted Event、跨双方 CAS、server next-action、successor Realm/Strand、timeout takeover、min-UUID 归一、server-allocated founding ID、reserved/materializing draft、min-service-DID coordinator 与 view-dependent effect digest **MUST** 由负例拒绝。

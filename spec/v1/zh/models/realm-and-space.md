@@ -291,7 +291,7 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 
 1. 先定位该 Realm 的 `ak.realm.create` 并取得其完整 canonical bytes；
 2. 对所有分支重算并校验 `event_id`；
-3. 对**所有** `purpose` 校验 `retype(event_id) == realm_id`，且 `genesis_salt` 为 canonical Base64URL-no-pad 的 32 octets；`purpose ∈ {"principal_control", "managed_agent_control"}` 时另需校验 create 携带的唯一 critical root/controller anchor ref；
+3. 对**所有** `purpose` 校验 `retype(event_id) == realm_id`，且 `genesis_salt` 为 canonical Base64URL-no-pad 的 32 octets；`purpose="principal_control"` 走 `did_root_anchor` 分支时另需校验 create 携带的唯一 critical `did_inception` root anchor ref，走 organization-governed `delegated_pcr_genesis` 分支时改验 `executed_by` / `authorization_ref` 的 governance delegation（该分支 MUST 不含 `did_inception`，两分支因此结构互斥）；`purpose="managed_agent_control"` 时 create **不携带任何 anchor ref**，改为反查 controller PCR 中是否已存在 accepted 的 `ak.agent.provision` 声明了 `retype(本 create 的 event_id)`，无匹配 MUST 零写入拒绝（见 [`../identity/key-management.md` §3.6.3](../identity/key-management.md)）；
 4. 取得并验证完整 ordered genesis unit 与其 genesis Seal/state commitment；identity 或 genesis closure 任一未完成前 MUST NOT 接受该 Realm 的后续 Event、Seal 或 effective Realm projection；
 5. 把该 genesis 与完整初始 facet commitment 持久化为该 `realm_id` 的永久本地绑定；
 6. 此后出现的任何不同 genesis MUST 拒绝，MUST NOT 因为它先到、更新、或来自"更权威"的 peer 而覆盖。

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.23",
+  "version": "2026-08-10.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T12:00:00Z",
+  "generated_at": "2026-08-10T15:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -133,9 +133,6 @@
           "when": {
             "payload_path": "object.purpose",
             "const": "managed_agent_control",
-            "ref_role": "agent_provision",
-            "ref_critical": true,
-            "ref_exact_count": 1,
             "top_level_fields_present": [
               "executed_by",
               "authorization_ref"
@@ -147,7 +144,7 @@
           "when": {
             "payload_path": "object.purpose",
             "const": "principal_control",
-            "ref_role": "agent_provision",
+            "ref_role": "did_inception",
             "ref_exact_count": 0,
             "top_level_fields_present": [
               "executed_by",
@@ -282,6 +279,29 @@
             "kind": "set",
             "value": {
               "projected_value": true
+            }
+          }
+        },
+        {
+          "cell_family": "ak.component.agent.status.v1",
+          "cell_subject": {
+            "field": "envelope.actor_id",
+            "kind": "did"
+          },
+          "lattice": "fsm",
+          "bottom": "reject",
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.object.purpose",
+            "const": "managed_agent_control"
+          },
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "uninitialized"
+            },
+            "to": {
+              "const": "active"
             }
           }
         }
@@ -3632,7 +3652,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Controller-authored native personal Agent provisioning fact. One Event proof binds the allocated Agent DID/PCR, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability and selector cells; no nested payload proof or partial two-Event state is valid.",
+      "payload": "Controller-authored native personal Agent provisioning fact. One Event proof binds the allocated Agent DID, the forward-declared managed Agent PCR realm id, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability, selector and realm-id-claim cells; no nested payload proof or partial two-Event state is valid. The declared managed Agent PCR genesis arrives in a later separate submission whose admission reverse-looks-up this declaration.",
       "payload_schema_ref": "schemas/agent-provision.schema.json",
       "id_source": "reference",
       "plane": "control",
@@ -3669,6 +3689,21 @@
             "kind": "set",
             "value": {
               "field": "payload"
+            }
+          }
+        },
+        {
+          "cell_family": "ak.component.agent.principal_control_realm_claim.v1",
+          "cell_subject": {
+            "field": "payload.principal_control_realm_id",
+            "kind": "id:realm"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.agent_id"
             }
           }
         },

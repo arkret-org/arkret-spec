@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.23",
+  "version": "2026-08-10.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T12:00:00Z",
+  "generated_at": "2026-08-10T15:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1836,6 +1836,16 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
+      "action": "ak.self.agent.command.abandon_provisioning",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "migration_group": "ak._0008_agent_provisioning",
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
       "action": "ak.self.agent.command.deactivate",
       "category": "management",
       "risk_tier": "high",
@@ -1845,6 +1855,16 @@
       ],
       "profile": "ak.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "operation_verb"
+    },
+    {
+      "action": "ak.self.agent.command.issue_provisioning_abandonment_challenge",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "migration_group": "ak._0008_agent_provisioning",
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "ak.self.agent.command.pause",

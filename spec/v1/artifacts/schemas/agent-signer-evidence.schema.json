@@ -483,8 +483,8 @@
       "required": ["kind", "realm_create_event_id", "agent_provision_event_id"],
       "properties": {
         "kind": { "const": "delegated_pcr_genesis" },
-        "realm_create_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
-        "agent_provision_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" }
+        "realm_create_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref", "description": "Accepted managed Agent PCR genesis ak.realm.create that materialized the first active status. This evidence object is assembled after both Events are accepted and never enters either digest preimage." },
+        "agent_provision_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref", "description": "Accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(realm_create_event_id). The genesis create carries no reference to it, so a verifier resolves it by that reverse look-up." }
       },
       "additionalProperties": false
     },

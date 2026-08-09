@@ -1,0 +1,80 @@
+{
+  "version": "2026-08-10",
+  "source_of_truth": true,
+  "generated_at": "2026-08-10T00:00:00Z",
+  "description": "Closed named-exemption registry for zh/conformance/encoding.md 6.0.1. That section forbids any field inside the event_digest preimage from committing to an Event identity. Class A (the enclosing Event's own event_id/event_digest and their retype results) and class B (a not-yet-formed sibling of the same atomic unit or ordered submit batch) are unconditional: they have no fixed point and this registry MUST NOT carry a row for them. Only class C, a one-way forward declaration naming a later Event from another submission whose canonical bytes the author already froze locally, is registerable, and only with the compensating admission checks recorded here. Every active row MUST also appear in the 6.0.1 closed list table; the prose table and this registry are bound in both directions.",
+  "registry_rules": {
+    "exemption_id_pattern": "^ak\\.exemption\\.preimage_identity\\.[a-z0-9_]+\\.v[0-9]+$",
+    "allowed_kinds": [
+      "envelope_omission",
+      "forward_declaration"
+    ],
+    "allowed_status": [
+      "active",
+      "retired"
+    ],
+    "forbidden_commitment_directions": [
+      "self_identity",
+      "same_unit_sibling"
+    ],
+    "forbidden_direction_rationale": "Class A and class B commitments make the digest preimage contain a function of the digest itself. No ordering of the unit can produce a value that survives the encoding.md 4.0 recompute-and-compare, so the shape is unconstructible rather than merely risky. Accepting such a row here would present an impossible construction as a ruling; the machine gate MUST fail instead.",
+    "prose_binding": "spec/v1/zh/conformance/encoding.md#601-原像内禁止承诺-event-标识normative",
+    "machine_gate": "tools/lint_artifacts.py:preimage_event_identity",
+    "candidate_field_scope": "Schema properties named event_id, *_event_id, *_event_ref or *_event_digest, plus any property whose description declares that its value is derived from an Event identity (retype(...), event-derived and equivalent derivation wording)."
+  },
+  "exemptions": [
+    {
+      "exemption_id": "ak.exemption.preimage_identity.realm_genesis.v1",
+      "status": "active",
+      "kind": "envelope_omission",
+      "subject": {
+        "event_kind": "ak.realm.create",
+        "omitted_fields": [
+          "the Event envelope realm_id",
+          "the realm_id member of the Event envelope scope_ref",
+          "the create payload object id"
+        ]
+      },
+      "commitment_direction": "none_omitted",
+      "one_way_rationale": "realm_id = retype(event_id) is a function of the digest whose preimage would otherwise contain it. The exemption is an omission, not a commitment: the three fields never enter the preimage, and every receiver derives realm_id forward from the accepted event_id exactly once.",
+      "target_fixed_when": "not_applicable_no_target",
+      "admission_compensating_checks": [
+        "the Event envelope realm_id MUST be absent and its scope_ref MUST be the realm_genesis form that carries no realm_id",
+        "the create payload object id MUST be absent",
+        "receiver MUST recompute event_id from the canonical bytes and derive realm_id = retype(event_id, \"realm\"); a carried or mismatching value is rejected with realm_id_not_event_derived"
+      ],
+      "absent_target_semantics": "not_applicable_no_target",
+      "conformance_vector_ids": [
+        "ak.vector.object_identity.event_derived_realm.v1",
+        "ak.vector.event_id.content_bound.v1"
+      ],
+      "spec_anchor": "spec/v1/zh/models/realm-and-space.md#250-realm_id-由-genesis-event-派生且自证normative"
+    },
+    {
+      "exemption_id": "ak.exemption.preimage_identity.agent_provision_principal_control_realm_id.v1",
+      "status": "active",
+      "kind": "forward_declaration",
+      "subject": {
+        "event_kind": "ak.agent.provision",
+        "schema_file": "schemas/agent-provision.schema.json",
+        "json_path": "$.properties",
+        "field": "principal_control_realm_id"
+      },
+      "commitment_direction": "later_submission_target",
+      "one_way_rationale": "The controller freezes the managed Agent PCR ak.realm.create envelope locally, computes its event_id, and only then authors the provision Event that declares realm_id = retype(event_id). The genesis preimage contains no provision identity, no provision reference and no provision digest, so the dependency runs in exactly one direction and both Events remain constructible.",
+      "target_fixed_when": "controller_freezes_the_genesis_envelope_before_authoring_the_provision_event",
+      "admission_compensating_checks": [
+        "the genesis ak.realm.create MUST be submitted separately from the provision Event; the same atomic unit or ordered submit batch is the forbidden class B shape and MUST be rejected",
+        "genesis admission MUST reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id); no match means zero writes",
+        "the controller PCR carries a cas_register, bottom=reject cell keyed by payload.principal_control_realm_id, so two provision Events MUST NOT declare the same realm id",
+        "the managed Agent PCR and its controller PCR MUST be hosted by the same Principal Server, because the reverse look-up is a local projection query"
+      ],
+      "absent_target_semantics": "The declared Realm simply never comes into existence. The provision fact stays accepted and the operation stays at awaiting_pcr_genesis: no DID service entry, pairing handle or list/get visibility is published, and the Agent never reaches lifecycle active. The controller releases the slug and this realm id claim through the explicit agent provisioning abandonment operation pair; nothing expires the claim implicitly.",
+      "conformance_vector_ids": [
+        "ak.vector.agent.provision.v1",
+        "ak.vector.event_id.content_bound.v1"
+      ],
+      "spec_anchor": "spec/v1/zh/identity/key-management.md#363-managed-agent-pcr-genesis-的构造顺序normative"
+    }
+  ]
+}

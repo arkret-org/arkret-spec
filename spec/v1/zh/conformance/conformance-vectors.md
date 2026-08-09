@@ -3844,7 +3844,7 @@ Expected：
 
 Steps:
 
-1. Controller 调用 `ak.self.agent.command.provision`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限。prepare 返回 allocation 与 digest 且没有 durable side effect；Controller 按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算并逐字匹配，再用 SDK author 一个无内层 proof 的 `ak.agent.provision` Event。commit 只接受该单一 Event，并在一个 reducer transaction 原子投影 provision/accountability/selector，随后返回 `pairing_request_id`。Agent DID accepted inception history 的唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 只固定 digest，公开 entry 不含完整 scope。provisioning 不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope` 的变体必须 schema validation 失败。
+1. Controller 调用 `ak.self.agent.command.provision`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限。prepare 返回 allocation 与 digest 且没有 durable side effect，也不分配 Agent PCR id；Controller 按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算并逐字匹配，本地冻结 managed Agent PCR `ak.realm.create` 信封、自算 `event_id` 并取 `principal_control_realm_id = retype(event_id, "realm")`，再用 SDK author 一个无内层 proof、前向声明该值的 `ak.agent.provision` Event。commit 只接受该单一 Event，并在一个 reducer transaction 原子投影 provision/accountability/selector/realm-id-claim，返回 `status=awaiting_pcr_genesis`。Controller 随后在**另一次提交**中送出该 genesis create，其准入反查本 PCR 内是否已有 accepted provision 声明了 `retype(该 create 的 event_id)`；accepted 后才写 Agent DID service entry、返回 `pairing_request_id` 并把 outcome 推进到 `complete`。Agent DID accepted inception history 的唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 只固定 digest，公开 entry 不含完整 scope。provisioning 不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope` 的变体必须 schema validation 失败；把 provision 与 genesis 放进同一批提交的变体必须以 `event_id_digest_mismatch` 失败。
 2. Agent runtime 生成 key pair，取得 pairing verifier 签名的 presentation request/challenge；controller 生成符合 `ak.schema.agent_requested_scope_disclosure.v1`、绑定该 verifier/audience/challenge 且接收窗口不超过 300 秒的私有披露，与 key pair request 一起提交。controller-signed `ak.agent.key.authorize.payload.agent_key_scope` 使用 actions/resources/constraints 的严格子集。另提交一个超出 action/resource ceiling 或删除 provision mandatory constraint 的变体。
 3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_id` bit-identical。
 4. 批准后写入 `ak.agent.key.authorize`；随后为该 Agent 提交一个 controller-authored `ak.capability.grant` `EventInitialSubmission` 以附加更窄的 Realm-scoped grant。其 `event.payload.grant` 不含内层 proof，Event envelope proof 是唯一 durable issuer signature；另分别尝试提交 body-local proof、让服务端代签/合成 Event、含未 provision action及超出显式内容 resource ceiling 的变体。
@@ -3853,6 +3853,7 @@ Expected:
 
 - 第 3 步 verification_method 与 agent_id 不一致时 MUST `failed_precondition` `reason=verification_method_principal_mismatch`。
 - 第 1 步 DID commitment 必须与 fixture 固定 digest 匹配；`ak.agent.provision` Event proof 是唯一签名，payload 出现内层 proof、拆成 accountability/selector Event pair 或 reducer 暴露部分 projection 都 MUST reject。公开 service endpoint 必须是 `{realm_id, controller_did, authorization_ref, requested_scope_digest}` 闭合四元组，出现 `requested_scope` 或其它 scope/resource/constraint 明文字段 MUST reject。
+- 第 1 步的 `principal_control_realm_id` 必须逐字等于 controller 本地算出的 `retype(genesis event_id)`，且按声明顺序真的可推导（可构造性证明），不产生 `event_id_digest_mismatch`；服务端自选该值、无 accepted provision 声明本 create、两条 provision 声明同一 realm id 三种形态 MUST 分别 fail closed 且零写入。genesis 尚未接受时 Agent DID service entry、pairing handle 与 `ak.self.agent.read.list` / `ak.self.agent.resource.get` MUST 都不暴露该 Agent。
 - 第 2 步 disclosure 的 controller proof、request/challenge 单次性、verifier/audience、接收窗口与 digest 必须全部通过；缺失、摘要不匹配、重放或错 audience MUST fail closed，且不得退回服务本地 Agent row 作为权威来源。完整 disclosure 不得进入 authorize Event、Realm history、pairing code 或通知。
 - 在第 4 步之前，任何 `agent_key_proof` session grant 请求 MUST fail closed。
 - 第 2 步更窄 key scope MUST 接受；任何 action/resource 越界或删除 mandatory constraint 的 key scope MUST fail closed。实现不得要求 key scope 与 provision scope 完全相等。
@@ -3900,6 +3901,46 @@ Expected:
 - 第 4 步 MUST NOT 改写历史 mention target；旧消息仍指向 `AgentSDID`。
 - 第 5 步 MUST fail closed：客户端不得构造 mention node；实现可提示 picker 选择或把输入保留为普通文本。服务端若收到仅靠 metadata 声称 selector 的事件，也必须只按 `subject_id` 和已验证 agent state 判定。
 
+### 11.1.2 Vector: Agent PCR Genesis 前向声明与反查
+
+`vector_id`: `ak.vector.agent.pcr_genesis_declaration.v1`
+
+Steps:
+
+1. Controller 完成 `ak.self.agent.command.provision` 的 prepare，本地组装 managed Agent PCR `ak.realm.create` 的完整 canonical bytes，按 [`./encoding.md` §4.0](./encoding.md) 自算 `event_id`，取 `realm_id = retype(event_id, "realm")`。该 create 此刻不提交。
+2. commit 提交 `ak.agent.provision`，payload 的 `principal_control_realm_id` 就是上一步的值；服务端接受后返回 `status=awaiting_pcr_genesis`。
+3. 归档：客户端崩溃重启，从 durable intent 恢复同一 create bytes；重放 commit 返回同一 `awaiting_pcr_genesis` 而不是第二条 provision。
+4. 在**另一次提交**中送出该 create；admission 反查 controller PCR 中已 accepted 的 provision 声明，命中后接受。
+5. 变体 A：provision 与 create 同批提交；变体 B：create 的 realm id 没有任何 accepted provision 声明；变体 C：第二条 provision 声明同一 `principal_control_realm_id`；变体 D：服务端自选 `principal_control_realm_id` 而不是采用 controller 的声明；变体 E：controller PCR 与 Agent PCR 分属两个 Principal Server。
+
+Expected:
+
+- 第 4 步 accepted create 的 `retype(event_id)` 与第 2 步声明值**逐字相等**；实现 MUST NOT 用相似度、前缀或本地映射代替逐字比较。
+- 第 1 至 4 步全程不产生 `event_id_digest_mismatch`——这是 [`./encoding.md` §6.0.1](./encoding.md) 具名 C 类例外的可构造性证明，其 KAT 见 `content-bound-event-id-fixture.json`。
+- 第 4 步 accepted 后 `ak.component.agent.status.v1` 从 `uninitialized` 迁到 `active`，Agent DID service entry 与 pairing handle 同时发布，provision outcome 变为 `complete`。genesis 之前 list/get MUST 不返回该 Agent。
+- 变体 A MUST 以 `event_id_digest_mismatch` 拒绝（§6.0.1 B 类，不可豁免）；变体 B MUST 以 `agent_pcr_genesis_declaration_missing` 零写入拒绝；变体 C MUST 以 `agent_pcr_genesis_declaration_conflict` 零写入拒绝且不改动既有 claim；变体 D 与变体 E MUST fail closed。
+- `purpose != "managed_agent_control"` 的 `ak.realm.create` MUST NOT 触发 agent-status 写入，也不做该反查。
+
+### 11.1.3 Vector: Agent Provisioning 显式放弃
+
+`vector_id`: `ak.vector.agent.provisioning_abandonment.v1`
+
+Steps:
+
+1. 在 §11.1.2 第 2 步之后（provision accepted、genesis 未提交），controller 调用 `ak.self.agent.command.issue_provisioning_abandonment_challenge`，取得钉死 `agent_id` / `agent_slug` / `principal_control_realm_id` / `allocation_handle` 与封闭后果集合的一次性 challenge。
+2. controller 出示新鲜凭据调用 `ak.self.agent.command.abandon_provisioning`，在一个事务内消费 challenge、释放 slug selector claim 与 realm id claim、写 tombstone/audit reservation。
+3. 同 `request_id` 重放确认。
+4. 变体 A：不取 challenge 直接确认；变体 B：复用签发 challenge 时那一份凭据；变体 C：challenge 过期后确认；变体 D：challenge 已消费后以不同 canonical intent 再确认；变体 E：challenge 签发与确认之间 genesis 已被接纳。
+
+Expected:
+
+- 第 2 步之后同一 `agent_slug` 可被同一 controller 的新 provision 重新占用；被放弃的 `principal_control_realm_id` MUST NOT 被任何后续 provision 复用。
+- 被放弃的 `ak.agent.provision` Event 仍留在 controller PCR history 中，MUST NOT 被删除或重写；放弃只释放 claim 并写 tombstone。
+- 第 3 步返回与第 2 步 byte-identical 的终态，且系统中只有**一条** tombstone。
+- 变体 A、B MUST 以 `failed_precondition` 拒绝；变体 C MUST 以 `agent_provisioning_challenge_expired`、变体 D MUST 以 `agent_provisioning_challenge_already_consumed` 拒绝；四者均零写入。
+- 变体 E MUST 以稳定终态 `agent_pcr_genesis_already_accepted` 失败，MUST NOT 放弃任何东西、MUST NOT 消费 challenge，并提示改走 `ak.self.agent.command.deactivate`。
+
+
 ### 11.2 Vector: Pairing Expiry Auto-Revoke
 
 `vector_id`: `ak.vector.agent.pairing_expiry.v1`
@@ -3942,15 +3983,17 @@ Expected:
 
 Steps:
 
-1. Provision Agent DID `A`，controller DID 为 `C`；Agent DID Document 写唯一 `ArkretPrincipalControlRealm` service entry，分配 `PCR_A`，并只固定 immutable `requested_scope` 的域分离 digest；完整 scope 由 controller-private disclosure 出示，controller 已有 `PCR_C`。
-2. Controller 按 delegation 创建 `purpose="managed_agent_control"`、携带 `genesis_salt`、不携带 `founding_device_descriptor` 的 `PCR_A` genesis：对 basis-free candidate create 重算 founding
+1. Controller DID `C`（已有 `PCR_C`）为 Agent DID `A` 走 provision prepare：分配 `A` 与 allocation，只固定 immutable `requested_scope` 的域分离 digest，完整 scope 由 controller-private disclosure 出示。controller 随后**本地冻结** `purpose="managed_agent_control"`、携带 `genesis_salt`、不携带 `founding_device_descriptor` 的 `PCR_A` genesis create 的完整 canonical bytes，自算 `event_id`，取 `PCR_A = retype(event_id, "realm")`；此时 create 尚未提交。
+2. Provisioning 的单一 `ak.agent.provision` Event 写入 `PCR_C`，其 `principal_control_realm_id` 前向声明上一步算出的 `PCR_A`（[`./encoding.md` §6.0.1](./encoding.md) 具名 C 类例外），并原子投影 provisioning、accountability、selector 与 realm-id claim facts；无论 `requested_scope` 是否列出内容 action 或显式内容 resource selector，都不得产生 pending / active capability grant。内容授权只能由后续独立、写入对应受治理 Realm 的 `ak.capability.grant` Event 产生；CapabilityGrantBody 无内层签名，唯一 durable issuer signature 是 Event envelope proof。operation/service scope 同样不生成隐式 `ak.event.read` 或其它内容 grant。此时 outcome 停在 `status=awaiting_pcr_genesis`，DID service entry、pairing handle 与 list/get 可见性一律尚未发布。
+3. Controller 在**另一次提交**中送出该 genesis create（MUST NOT 与第 2 步同批）：对 basis-free candidate create 重算 founding
    `NotaryValue` / `authority_set_ref`，由 `C` 的当前 device 为 exact Event digest 签 proposal
-   receipt，再以 `EventSubmitContext=AnchorUnit` 提交。receiver 在一个事务写 canonical create、
-   receipt 与 pending Control index；controller 随后提交无 predecessor 且覆盖该 digest 的首 Seal，
-   receiver 在一个事务写 Seal/cell effects并标记 pending digest sealed。之后再写 Agent
-   profile/key/lifecycle facts。
-3. Provisioning 的单一 `ak.agent.provision` Event 写入 `PCR_C`，并原子投影 provisioning、accountability 与 selector facts；无论 `requested_scope` 是否列出内容 action 或显式内容 resource selector，都不得产生 pending / active capability grant。内容授权只能由后续独立、写入对应受治理 Realm 的 `ak.capability.grant` Event 产生；CapabilityGrantBody 无内层签名，唯一 durable issuer signature 是 Event envelope proof。operation/service scope 同样不生成隐式 `ak.event.read` 或其它内容 grant。
-4. 变体 A：实现把 `PCR_C` deterministic id 当作 Agent PCR；变体 B：在 `PCR_A` 或 `PCR_C` id 上创建缺 PCR marker、restricted history、MLS profile 或任一 E2EE floor 的 Realm；变体 C：服务端以 Agent DID 伪造 proof，省略 `executed_by=C` / `authorization_ref`，或引用的 delegation purpose/resource scope 不覆盖目标 Event kind/PCR；变体 D：把 `requested_scope` 当作 Realm grant、在 provisioning 时物化内容权限，或接受超出 `requested_scope.actions[]` 的后续 Realm grant；变体 E：anchor validator 禁止 receipt、按 `seal_basis` 缺失跳过 pending index，或让首 Seal 在 PostgreSQL / durable store 以 `control Event ... not in store` 失败。Participation selection 可独立保存，但不得补回任何缺失 authority。
+   receipt，再以 `EventSubmitContext=AnchorUnit` 提交。admission 先反查 `PCR_C` 中是否存在 accepted 的
+   `ak.agent.provision` 声明了 `retype(本 create 的 event_id)`；命中后 receiver 在一个事务写 canonical create、
+   receipt 与 pending Control index，并条件写 `ak.component.agent.status.v1` 的 `uninitialized -> active`；
+   controller 随后提交无 predecessor 且覆盖该 digest 的首 Seal，
+   receiver 在一个事务写 Seal/cell effects并标记 pending digest sealed。genesis accepted 后才发布 Agent DID
+   service entry、pairing handle 并把 outcome 推进到 `status=complete`；之后再写 Agent profile/key/lifecycle facts。
+4. 变体 A：实现把 `PCR_C` deterministic id 当作 Agent PCR；变体 B：在 `PCR_A` 或 `PCR_C` id 上创建缺 PCR marker、restricted history、MLS profile 或任一 E2EE floor 的 Realm；变体 C：服务端以 Agent DID 伪造 proof，省略 `executed_by=C` / `authorization_ref`，或引用的 delegation purpose/resource scope 不覆盖目标 Event kind/PCR；变体 D：把 `requested_scope` 当作 Realm grant、在 provisioning 时物化内容权限，或接受超出 `requested_scope.actions[]` 的后续 Realm grant；变体 E：anchor validator 禁止 receipt、按 `seal_basis` 缺失跳过 pending index，或让首 Seal 在 PostgreSQL / durable store 以 `control Event ... not in store` 失败；变体 F：把第 2、3 步放进同一原子 unit / 同一 ordered submit batch 提交；变体 G：提交一条没有任何 accepted provision 声明其派生 realm id 的 genesis create；变体 H：提交第二条声明同一 `principal_control_realm_id` 的 provision。Participation selection 可独立保存，但不得补回任何缺失 authority。
 
 Expected:
 
@@ -3960,8 +4003,10 @@ Expected:
 - basis-free create 仍必须返回并持久化 controller-device Control Proposal Ack；首 Seal 提交前 pending
   index 必须存在同一 digest，提交后该 digest、Seal lineage 与 registered effects 必须在同一事务
   转为 sealed/accepted。memory 与 PostgreSQL adapter 必须产生相同结果。
-- Agent profile、key authorize/revoke、lifecycle 只进入 `PCR_A`；单一 provision Event及其 accountability/selector projections 只进入 `PCR_C`；Realm-specific capability grant 只进入其所治理 Realm；pairing request/notification 不进入任一 PCR。
-- 四个变体全部 fail closed，且不得留下非 PCR Realm 占用任一 principal control id，也不得扩大 Agent 的内容权限。
+- Agent profile、key authorize/revoke、lifecycle 只进入 `PCR_A`；单一 provision Event及其 accountability/selector/realm-id-claim projections 只进入 `PCR_C`；Realm-specific capability grant 只进入其所治理 Realm；pairing request/notification 不进入任一 PCR。
+- `PCR_A` 逐字等于 controller 在第 1 步本地算出的值；genesis accepted 时 `ak.component.agent.status.v1` 从 `uninitialized` 迁到 `active`，且这是唯一能离开 `uninitialized` 的写入。`purpose != "managed_agent_control"` 的 create MUST NOT 触发该写入。
+- `PCR_A` 与 `PCR_C` MUST 由同一 Principal Server 承载；反查与 realm-id claim 唯一性都是本地判定。
+- 八个变体全部 fail closed，且不得留下非 PCR Realm 占用任一 principal control id，也不得扩大 Agent 的内容权限。变体 F MUST 以 `event_id_digest_mismatch` 被拒（§6.0.1 B 类禁令），变体 G MUST 零写入拒绝，变体 H 的第二条 provision MUST 被 `cas_register` / `bottom=reject` claim cell 拒绝。
 
 ### 11.2.3 Vector: Managed Agent PCR Recovery
 

@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.personal_agent_provisioning.v1",
-  "version": "2026-08-04",
+  "version": "2026-08-10",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -8,6 +8,8 @@
   },
   "covers_vectors": [
     "ak.vector.agent.provision.v1",
+    "ak.vector.agent.pcr_genesis_declaration.v1",
+    "ak.vector.agent.provisioning_abandonment.v1",
     "ak.vector.agent.requested_scope_privacy.v1",
     "ak.vector.agent.pairing_expiry.v1",
     "ak.vector.agent.runtime_key_binding.v1",
@@ -293,7 +295,7 @@
         "agent provision operation id remains ak.self.agent.command.provision",
         "agent provision capability action matches the operation id",
         "provision fails without a controller recovery policy before creating any Agent DID, PCR, or grant side effect",
-        "prepare allocates agent_id and principal_control_realm_id without durable Agent, PCR, accountability, selector, pairing or grant side effects",
+        "prepare allocates agent_id and the allocation handle without durable Agent, PCR, accountability, selector, pairing or grant side effects, and MUST NOT allocate principal_control_realm_id",
         "the controller recomputes requested_scope_digest and uses the Arkret SDK canonical authoring API for one ak.agent.provision Event",
         "the provision payload carries no nested proof; the Event envelope proof is the only signature",
         "the provision Event passes the ordinary Event proof verifier and admission pipeline; a service-authored or dev-proof substitute is rejected in every mode",
@@ -311,6 +313,171 @@
         "a narrower Realm grant is accepted while an omitted action or out-of-ceiling content resource is rejected with agent_grant_exceeds_requested_scope",
         "missing accountability grants fail with accountability_grant_missing"
       ]
+    },
+    {
+      "name": "agent_pcr_genesis_forward_declaration",
+      "vector_id": "ak.vector.agent.pcr_genesis_declaration.v1",
+      "runner": "cotest::conformance::agent_vectors::run_agent_pcr_genesis_declaration_vector",
+      "frozen_genesis": {
+        "purpose": "managed_agent_control",
+        "kat_case_ref": "content-bound-event-id-fixture.json#agent_provision_forward_declaration_is_constructible",
+        "derived_event_id": "ak:event:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-",
+        "derived_realm_id": "ak:realm:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-"
+      },
+      "declared_in_provision": {
+        "kat_case_ref": "content-bound-event-id-fixture.json#agent_provision_declares_the_frozen_genesis_realm_id",
+        "principal_control_realm_id": "ak:realm:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-",
+        "derived_event_id": "ak:event:ARHxCFg6VPrOIvvCcWcsGkJZ_J4zIvQqGjMnRVsGg-Xi"
+      },
+      "assertions": [
+        "prepare returns no principal_control_realm_id; the controller derives it from the locally frozen genesis create",
+        "the accepted provision returns status=awaiting_pcr_genesis and publishes no DID service entry, pairing handle or list/get visibility",
+        "a crash between the two submissions is recovered by replaying the same frozen create bytes; replaying commit returns the same awaiting_pcr_genesis outcome and never authors a second provision",
+        "the genesis create is submitted separately and carries no refs entry naming the provision",
+        "genesis admission reverse-looks-up an accepted ak.agent.provision whose payload.principal_control_realm_id equals retype of this create event_id",
+        "retype of the accepted genesis event_id equals the declared principal_control_realm_id byte for byte",
+        "the whole sequence derives without event_id_digest_mismatch, which is the constructibility proof for the named encoding.md 6.0.1 class C exemption",
+        "accepting the genesis moves ak.component.agent.status.v1 from uninitialized to active and only then publishes the DID service entry, the pairing handle and status=complete",
+        "an ak.realm.create whose purpose is not managed_agent_control triggers neither the agent-status write nor the reverse look-up"
+      ]
+    },
+    {
+      "name": "agent_pcr_genesis_same_batch_rejected",
+      "vector_id": "ak.vector.agent.pcr_genesis_declaration.v1",
+      "submission": "ak.agent.provision and its declared managed_agent_control ak.realm.create in one ordered submit batch",
+      "expected": {
+        "outcome": "rejected",
+        "error": "event_id_digest_mismatch",
+        "exemptible": false,
+        "writes": 0
+      }
+    },
+    {
+      "name": "agent_pcr_genesis_without_declaration_rejected",
+      "vector_id": "ak.vector.agent.pcr_genesis_declaration.v1",
+      "submission": "managed_agent_control ak.realm.create whose retyped event_id no accepted ak.agent.provision declares",
+      "expected": {
+        "outcome": "rejected",
+        "error": "failed_precondition",
+        "reason_code": "agent_pcr_genesis_declaration_missing",
+        "writes": 0
+      }
+    },
+    {
+      "name": "two_provisions_declaring_one_realm_id_rejected",
+      "vector_id": "ak.vector.agent.pcr_genesis_declaration.v1",
+      "submission": "second ak.agent.provision declaring an already claimed principal_control_realm_id",
+      "claim_cell": {
+        "cell_family": "ak.component.agent.principal_control_realm_claim.v1",
+        "lattice": "cas_register",
+        "bottom": "reject"
+      },
+      "expected": {
+        "outcome": "rejected",
+        "error": "failed_precondition",
+        "reason_code": "agent_pcr_genesis_declaration_conflict",
+        "existing_claim_unchanged": true,
+        "writes": 0
+      }
+    },
+    {
+      "name": "agent_provisioning_abandonment",
+      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
+      "runner": "cotest::conformance::agent_vectors::run_agent_provisioning_abandonment_vector",
+      "challenge": {
+        "purpose": "agent_provisioning_abandonment",
+        "single_use": true,
+        "max_lifetime_seconds": 300,
+        "storage": "shared_durable_state",
+        "pins": [
+          "account_subject",
+          "dpop_jkt",
+          "agent_id",
+          "agent_slug",
+          "principal_control_realm_id",
+          "allocation_handle",
+          "consequence_disclosure",
+          "audience",
+          "origin",
+          "trust_domain",
+          "expires_at"
+        ]
+      },
+      "assertions": [
+        "the challenge is only issuable while the provision is accepted and its declared managed Agent PCR genesis is not",
+        "the confirmation presents fresh credentials and rejects the ones presented when the challenge was issued",
+        "one transaction consumes the challenge, releases the agent_slug selector claim and the principal_control_realm_id claim and records the tombstone / audit reservation; any step failing means zero writes",
+        "after release the same agent_slug is claimable again by a new provision from the same controller",
+        "the abandoned principal_control_realm_id is never reused by a later provision",
+        "the accepted ak.agent.provision Event stays in the controller PCR history and is neither deleted nor rewritten",
+        "replaying the same request_id returns a byte-identical terminal outcome and exactly one tombstone exists"
+      ]
+    },
+    {
+      "name": "agent_provisioning_abandonment_without_challenge_rejected",
+      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
+      "submission": "abandon_provisioning with no previously issued challenge",
+      "expected": {
+        "outcome": "rejected",
+        "error": "failed_precondition",
+        "writes": 0
+      }
+    },
+    {
+      "name": "agent_provisioning_abandonment_replayed_credentials_rejected",
+      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
+      "submission": "abandon_provisioning presenting the same credentials used to issue the challenge",
+      "expected": {
+        "outcome": "rejected",
+        "error": "failed_precondition",
+        "writes": 0
+      }
+    },
+    {
+      "name": "agent_provisioning_abandonment_expired_challenge_rejected",
+      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
+      "submission": "abandon_provisioning after the challenge expired",
+      "expected": {
+        "outcome": "rejected",
+        "error": "failed_precondition",
+        "reason_code": "agent_provisioning_challenge_expired",
+        "writes": 0
+      }
+    },
+    {
+      "name": "agent_provisioning_abandonment_consumed_challenge_rejected",
+      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
+      "submission": "abandon_provisioning reusing a consumed challenge with different canonical intent",
+      "expected": {
+        "outcome": "rejected",
+        "error": "failed_precondition",
+        "reason_code": "agent_provisioning_challenge_already_consumed",
+        "writes": 0
+      }
+    },
+    {
+      "name": "agent_provisioning_abandonment_after_genesis_rejected",
+      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
+      "submission": "abandon_provisioning after the managed Agent PCR genesis was accepted between issuance and confirmation",
+      "expected": {
+        "outcome": "rejected",
+        "error": "failed_precondition",
+        "reason_code": "agent_pcr_genesis_already_accepted",
+        "abandoned": false,
+        "challenge_consumed": false,
+        "tombstone_count": 0,
+        "remediation_operation": "ak.self.agent.command.deactivate"
+      }
+    },
+    {
+      "name": "agent_provisioning_abandonment_replay_has_one_tombstone",
+      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
+      "submission": "abandon_provisioning replayed with the same request_id after success",
+      "expected": {
+        "outcome": "accepted",
+        "byte_identical_outcome": true,
+        "tombstone_count": 1
+      }
     },
     {
       "name": "agent_requested_scope_privacy",

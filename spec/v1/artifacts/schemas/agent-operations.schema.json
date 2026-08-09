@@ -1062,7 +1062,7 @@
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
-          "description": "Service-allocated Principal Control Realm id for the new Agent. It is distinct from the controller PCR in provision_event."
+          "description": "Agent PCR realm id the controller derived as retype(event_id) of the managed Agent PCR ak.realm.create envelope it froze locally, and signed into provision_event. A service MUST NOT choose it; commit MUST reject any value that differs from the provision payload byte for byte. It is distinct from the controller PCR that carries provision_event. This transport field is not inside any digest preimage; the ordering the controller MUST follow is key-management.md 3.6.3 and the named encoding.md 6.0.1 exemption on the payload field."
         },
         "slug": {
           "$ref": "#/$defs/agent_slug"
@@ -1133,6 +1133,7 @@
     },
     "agent_provision_outcome": {
       "type": "object",
+      "description": "Three-stage outcome. prepare returns awaiting_controller_event with the allocation the controller signs against. An accepted ak.agent.provision moves it to awaiting_pcr_genesis, where the Agent still does not exist outside this outcome: no DID service entry, no pairing handle and no list/get visibility. Only an accepted managed Agent PCR genesis produces complete. A controller who will never submit that genesis releases the slug and realm-id claim through ak.self.agent.command.abandon_provisioning; nothing releases it implicitly.",
       "required": [
         "status",
         "agent_id",
@@ -1144,6 +1145,7 @@
         "status": {
           "enum": [
             "awaiting_controller_event",
+            "awaiting_pcr_genesis",
             "complete"
           ]
         },
@@ -1151,7 +1153,8 @@
           "$ref": "#/$defs/did"
         },
         "principal_control_realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Agent PCR realm id the controller derived locally as retype(event_id) of the managed Agent PCR genesis it froze, and declared in the provision payload. Until that genesis is accepted this is a claim, not a live Realm."
         },
         "controller_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
@@ -1229,6 +1232,45 @@
           }
         },
         {
+          "properties": {
+            "status": {
+              "const": "awaiting_pcr_genesis"
+            }
+          },
+          "required": [
+            "allocation_handle"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "controller_realm_id"
+                ]
+              },
+              {
+                "required": [
+                  "pcr_recovery"
+                ]
+              },
+              {
+                "required": [
+                  "pairing_request_id"
+                ]
+              },
+              {
+                "required": [
+                  "pairing_code"
+                ]
+              },
+              {
+                "required": [
+                  "expires_at"
+                ]
+              }
+            ]
+          }
+        },
+        {
           "required": [
             "pcr_recovery",
             "pairing_request_id",
@@ -1255,6 +1297,183 @@
           }
         }
       ],
+      "additionalProperties": false
+    },
+    "agent_provisioning_abandonment_challenge_request_body": {
+      "type": "object",
+      "description": "Request the single-use challenge that makes abandoning an accepted-but-never-genesised Agent provisioning explicit. It applies only while ak.agent.provision is accepted and the declared managed Agent PCR genesis has not been accepted, so the Agent has no PCR, no DID service entry, no pairing handle and no list/get projection. agent_id, principal_control_realm_id and allocation_handle pin exactly which provisioning is being given up.",
+      "required": [
+        "request_id",
+        "agent_id",
+        "principal_control_realm_id",
+        "allocation_handle"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+        },
+        "agent_id": {
+          "$ref": "#/$defs/did"
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Realm id the accepted provision declared. The service MUST reject any other value and MUST NOT issue a challenge once the genesis for it is accepted."
+        },
+        "allocation_handle": {
+          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_provisioning_abandonment_consequence_disclosure": {
+      "type": "array",
+      "description": "Closed ordered set of consequences the client MUST present before it may submit the confirmation. The protocol fixes which consequences must be disclosed; the localized wording is deployment-owned. It is not a self-asserted acknowledgement receipt, which would be forgeable; the anti-automation property comes from the challenge itself, which no ordinary flow ever fetches.",
+      "const": [
+        "declared_principal_control_realm_id_is_permanently_unusable",
+        "agent_slug_is_released_for_reuse",
+        "accepted_provision_event_stays_in_controller_pcr_history",
+        "a_new_agent_must_be_provisioned_from_scratch"
+      ]
+    },
+    "agent_provisioning_abandonment_challenge_outcome": {
+      "type": "object",
+      "description": "Persisted, single-use server challenge for abandoning an Agent provisioning whose PCR genesis never arrived. It is the evidence that the abandonment was an explicit controller action. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states.",
+      "required": [
+        "request_id",
+        "challenge_id",
+        "challenge",
+        "purpose",
+        "account_subject",
+        "agent_id",
+        "agent_slug",
+        "principal_control_realm_id",
+        "allocation_handle",
+        "consequence_disclosure",
+        "dpop_jkt",
+        "audience",
+        "origin",
+        "trust_domain",
+        "issued_at",
+        "expires_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+        },
+        "challenge_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+        },
+        "challenge": {
+          "type": "string",
+          "minLength": 22
+        },
+        "purpose": {
+          "const": "agent_provisioning_abandonment"
+        },
+        "account_subject": {
+          "$ref": "./account-operations.schema.json#/$defs/account_subject"
+        },
+        "agent_id": {
+          "$ref": "#/$defs/did"
+        },
+        "agent_slug": {
+          "$ref": "#/$defs/agent_slug"
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "allocation_handle": {
+          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+        },
+        "consequence_disclosure": {
+          "$ref": "#/$defs/agent_provisioning_abandonment_consequence_disclosure"
+        },
+        "dpop_jkt": {
+          "$ref": "./account-operations.schema.json#/$defs/dpop_jkt"
+        },
+        "audience": {
+          "$ref": "#/$defs/did"
+        },
+        "origin": {
+          "type": "string",
+          "format": "uri"
+        },
+        "trust_domain": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "MUST be at most 300 seconds after issued_at."
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_provisioning_abandonment_request_body": {
+      "type": "object",
+      "description": "Confirm the explicit abandonment of an Agent provisioning whose PCR genesis never arrived. It MUST present fresh credentials and MUST NOT reuse the ones presented when the challenge was issued; how strong that re-authentication is, which risk checks run and how long any cooldown lasts are deployment governance and are deliberately not specified here.",
+      "required": [
+        "request_id",
+        "challenge_id",
+        "challenge",
+        "agent_id",
+        "principal_control_realm_id",
+        "allocation_handle"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/operation_id",
+          "description": "Idempotency identity of the abandonment. Replaying it returns the recorded terminal outcome and MUST NOT produce a second tombstone."
+        },
+        "challenge_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+        },
+        "challenge": {
+          "type": "string",
+          "minLength": 22
+        },
+        "agent_id": {
+          "$ref": "#/$defs/did"
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "allocation_handle": {
+          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_provisioning_abandonment_outcome": {
+      "type": "object",
+      "description": "Recorded terminal outcome of an explicit provisioning abandonment. One transaction consumed the challenge, released the agent_slug selector claim and the principal_control_realm_id claim, recorded the tombstone / audit reservation and suppressed every holder-readable trace of the allocation. There is exactly one success terminal; every other terminal is an error reply. The accepted ak.agent.provision Event itself stays in the controller PCR history and is never deleted or rewritten.",
+      "required": [
+        "request_id",
+        "status",
+        "agent_id",
+        "principal_control_realm_id",
+        "abandoned_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+        },
+        "status": {
+          "const": "abandoned"
+        },
+        "agent_id": {
+          "$ref": "#/$defs/did"
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "The abandoned realm-id claim. It MUST NOT be reused by a later provision, and no Realm will ever exist at it."
+        },
+        "abandoned_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
       "additionalProperties": false
     },
     "agent_renew_pairing_request_body": {

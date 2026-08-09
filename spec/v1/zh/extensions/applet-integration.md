@@ -102,7 +102,7 @@ Native personal AI agent(由 controller 通过 `ak.self.agent.command.provision`
 
 | 维度 | Native personal agent | Applet-managed Ghost Actor |
 | --- | --- | --- |
-| 创建路径 | `ak.self.agent.command.provision` 先无副作用分配 Agent DID/PCR binding，再接受唯一 controller-signed `ak.agent.provision` Event并在一个 reducer transaction 原子派生 provision/accountability/selector projection；必填 `requested_scope` 只建立 immutable 全局 ceiling，不生成 `ak.capability.grant`。controller E2EE client 随后本地生成并提交 Agent PCR genesis/Profile 与恢复备份，首次 `ak.agent.key.authorize` 只在 pairing commit 时提交 | `ak.applet.registration` + Applet bot/Ghost Actor 注册 |
+| 创建路径 | `ak.self.agent.command.provision` 先无副作用分配 Agent DID 与 delegation 坐标，controller 本地冻结 Agent PCR genesis 信封并取 `retype(event_id)` 作为 `principal_control_realm_id`，再接受唯一 controller-signed `ak.agent.provision` Event并在一个 reducer transaction 原子派生 provision/accountability/selector/realm-id-claim projection；必填 `requested_scope` 只建立 immutable 全局 ceiling，不生成 `ak.capability.grant`。controller E2EE client 随后在**另一次提交**中送出该 Agent PCR genesis（准入反查上述声明），accepted 后 outcome 才成为 `complete`；Profile 与恢复备份继续独立提交，首次 `ak.agent.key.authorize` 只在 pairing commit 时提交 | `ak.applet.registration` + Applet bot/Ghost Actor 注册 |
 | `accountable_principal_ids` | 指向 controller principal，显式 `ak.identity.accountability_grant` | 初始 Profile 指向签署同一 aggregate accountability grant 的外部 service DID；Applet controller 关系由 registration / install 表达 |
 | Runtime credential | 通过 `POST /_arkret/gate/account/agent-key-pair` pairing 得到 `ak.agent.key.authorize` 绑定的 key | Applet 管辖，通常是 Applet service DID + HTTP signature |
 | Session 路径 | `POST /_arkret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `ak.edge.applet.command.transaction` 与 Applet 的 delegated session |

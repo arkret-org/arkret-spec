@@ -8,11 +8,11 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 68,
+    "total_fields": 69,
     "by_classification": {
       "bounded_free_text": 7,
       "closed_enum": 31,
-      "closed_literal": 10,
+      "closed_literal": 11,
       "validated_open_reason_code": 17,
       "validated_open_token": 3
     },
@@ -83,6 +83,14 @@
       "pointer": "#/$defs/agent_provision_outcome/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "agent-operations.schema.json",
+      "shape": "agent_provisioning_abandonment_outcome",
+      "field": "status",
+      "pointer": "#/$defs/agent_provisioning_abandonment_outcome/properties/status",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
     },
     {
       "schema_file": "agent-operations.schema.json",

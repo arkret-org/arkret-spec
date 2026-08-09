@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.20",
+  "version": "2026-08-10.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T12:00:00Z",
+  "generated_at": "2026-08-10T15:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -452,6 +452,8 @@
       "operations": [
         "ak.gate.account.command.pair_agent_key",
         "ak.self.agent.command.provision",
+        "ak.self.agent.command.issue_provisioning_abandonment_challenge",
+        "ak.self.agent.command.abandon_provisioning",
         "ak.self.agent.command.renew_pairing",
         "ak.self.agent.read.list",
         "ak.self.agent.resource.get",
@@ -2072,6 +2074,23 @@
       }
     },
     {
+      "operation_id": "ak.self.agent.command.abandon_provisioning",
+      "http": "POST /_arkret/self/agent-provisioning-abandonments",
+      "grpc": "SelfAgent/AbandonProvisioning",
+      "mq": "self.agent.command.abandon_provisioning",
+      "notes": "Consume an agent-provisioning abandonment challenge and explicitly give up an accepted ak.agent.provision whose declared managed Agent PCR genesis will never be submitted (zh/identity/key-management.md section 3.6.3). Authenticated by the controller user_session; the presented credentials MUST be fresh and MUST NOT be the ones presented when the challenge was issued, while re-authentication strength, risk checks and cooldown are deployment governance. One transaction consumes the challenge, releases the agent_slug selector claim and the principal_control_realm_id claim, records the tombstone / audit reservation and suppresses every holder-readable trace of the allocation; any step failing means zero writes. If the genesis was accepted between issuance and confirmation the request MUST fail with agent_pcr_genesis_already_accepted and MUST NOT abandon anything, because an established Agent is retired through ak.self.agent.command.deactivate. Replaying the same request_id returns the same terminal outcome and MUST NOT produce a second tombstone. The accepted provision Event stays in the controller PCR history and the abandoned realm id MUST NOT be reused.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "request_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "releases_only_service_local_slug_and_realm_id_claims_and_records_a_tombstone_audit_reservation_no_event_is_authored"
+      }
+    },
+    {
       "operation_id": "ak.self.agent.command.deactivate",
       "http": "POST /_arkret/self/agents/{agent_id}/deactivate",
       "grpc": "SelfAgent/Deactivate",
@@ -2091,6 +2110,23 @@
         "event_kinds": [
           "ak.self.agent.deactivate"
         ]
+      }
+    },
+    {
+      "operation_id": "ak.self.agent.command.issue_provisioning_abandonment_challenge",
+      "http": "POST /_arkret/self/agent-provisioning-abandonment-challenges",
+      "grpc": "SelfAgent/IssueProvisioningAbandonmentChallenge",
+      "mq": "self.agent.command.issue_provisioning_abandonment_challenge",
+      "notes": "Issue the single-use challenge that authorizes explicitly abandoning an accepted ak.agent.provision whose declared managed Agent PCR genesis was never accepted (zh/identity/key-management.md section 3.6.3). Authenticated by the controller user_session. The service requires agent_id, principal_control_realm_id and allocation_handle to equal the authenticated controller's accepted provision, and MUST refuse to issue a challenge once that genesis is accepted. The <=300s single-use challenge is bound to the controller account_subject, holder key, agent_id, agent_slug, the declared principal_control_realm_id, the allocation, the closed consequence disclosure, audience, origin, trust domain, purpose and expiry. Repeating the same request_id returns the same unconsumed challenge. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states. This operation abandons nothing by itself and MUST NOT be reachable from lease expiry, garbage collection or any automated flow.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "request_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "persists_only_a_service_local_single_use_challenge_no_event_is_authored"
       }
     },
     {

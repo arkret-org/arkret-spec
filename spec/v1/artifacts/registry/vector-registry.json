@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.11",
+  "version": "2026-08-10.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T13:00:00Z",
+  "generated_at": "2026-08-10T14:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -286,6 +286,32 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.agent.pcr_genesis_declaration.v1",
+      "status": "active",
+      "domain": "agent",
+      "description": "Managed Agent PCR genesis is constructed in one order only: the controller freezes the genesis create locally, derives realm_id = retype(event_id), declares it forward in ak.agent.provision, and submits the genesis in a separate submission whose admission reverse-looks-up that accepted declaration. Covers the byte-for-byte match, the awaiting_pcr_genesis intermediate state that exposes nothing, the uninitialized -> active transition on acceptance, and rejection of same-batch submission, an undeclared genesis, a duplicate realm-id claim, a service-chosen realm id and a cross-server split.",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.agent.provisioning_abandonment.v1",
+      "status": "active",
+      "domain": "agent",
+      "description": "Explicit two-step abandonment of an accepted ak.agent.provision whose managed Agent PCR genesis will never arrive: a single-use challenge pins the agent, slug, declared realm id and allocation, and one transaction consumes it, releases both claims and records exactly one tombstone. Covers slug reuse after release, the permanently unusable realm-id claim, replay returning one terminal outcome, and rejection without a challenge, with replayed credentials, after expiry, after consumption, and once the genesis is accepted.",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
       ]
     },
     {

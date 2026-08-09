@@ -18,11 +18,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
-      "sha256": "e31d29bc4852f0b038a71e7bfed2667853312f54ebf37c7b61669d1ee0dd6253"
+      "sha256": "468c848aa61411dc2c1238947a2bce68f2a85ecd469997658cdd19f949bc1323"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "03c8a78815ec3468e2fbe9a74d1e0019c75048d4c2c1d454dd696e6062a7d17f"
+      "sha256": "93c71d1fada36016cd4457f6fe5335c797c8364250b5d365de03047ad81d2209"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
@@ -82,7 +82,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "d58ea2b95f992e0cfbad845fc7f8fa48285e75328744806a38a210c7f843cc7f"
+      "sha256": "a55385f33d9373659973167e156bacec2c8bb42750d98018055591d685d487a3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/control-proposal-ack-fixture.json",
@@ -162,7 +162,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json",
-      "sha256": "67ad55918e4320806fa6b5080973aac5cfe75627c3f0776b2df21d9218de8e46"
+      "sha256": "a407ba647516ffeee71200831ca8b215883a9971281be796ba12c8d677c2193e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
@@ -286,7 +286,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "f05088d600d6b4e835681f7d05cff45a4acd4f99d59500cb265669e719444eda"
+      "sha256": "bdf3c4990cf1193aad3522bdaf7925a66f441d2821ad0d748936ad666731dc09"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

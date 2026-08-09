@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.23",
+  "version": "2026-08-10.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T12:00:00Z",
+  "generated_at": "2026-08-10T15:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,12 +18,12 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 225,
+    "total_operations": 227,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "service_describe": 5,
       "streaming_frame_schema": 3,
-      "typed_schema": 215
+      "typed_schema": 217
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -38,7 +38,7 @@
         "binary_or_redirect": 2,
         "service_describe": 1,
         "streaming_frame_schema": 1,
-        "typed_schema": 147
+        "typed_schema": 149
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -1479,6 +1479,20 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
+      "operation_id": "ak.self.agent.command.abandon_provisioning",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/agent-provisioning-abandonments",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AgentProvisioningAbandonmentRequestBody",
+        "response": "#/components/schemas/AgentProvisioningAbandonmentOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
       "operation_id": "ak.self.agent.command.deactivate",
       "surface_class": "extension",
       "http": "POST /_arkret/self/agents/{agent_id}/deactivate",
@@ -1488,6 +1502,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentDeactivateRequestBody",
         "response": "#/components/schemas/AgentLifecycleState"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.agent.command.issue_provisioning_abandonment_challenge",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/agent-provisioning-abandonment-challenges",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provisioning_abandonment_challenge_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AgentProvisioningAbandonmentChallengeRequestBody",
+        "response": "#/components/schemas/AgentProvisioningAbandonmentChallengeOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

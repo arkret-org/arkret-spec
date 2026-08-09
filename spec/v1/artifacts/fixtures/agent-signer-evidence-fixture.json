@@ -125,15 +125,17 @@
       "expected": "verified"
     },
     {
-      "name": "agent_genesis_active_requires_provision_ref",
+      "name": "agent_genesis_active_requires_accepted_provision_declaration",
       "provenance.kind": "delegated_pcr_genesis",
-      "critical_agent_provision_ref_count": 1,
+      "genesis_realm_purpose": "managed_agent_control",
+      "accepted_provision_declares_genesis_derived_realm_id": true,
       "expected": "verified"
     },
     {
       "name": "organization_pcr_cannot_materialize_agent_active",
       "principal_kind": "organization",
-      "critical_agent_provision_ref_count": 0,
+      "genesis_realm_purpose": "principal_control",
+      "accepted_provision_declares_genesis_derived_realm_id": false,
       "expected": "rejected",
       "reason": "agent_authorization_inactive"
     },

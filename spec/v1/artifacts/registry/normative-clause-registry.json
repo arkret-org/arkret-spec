@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.5",
+  "version": "2026-08-10.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-09T18:00:00Z",
+  "generated_at": "2026-08-10T14:00:00Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -68,7 +68,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#6-signature",
-      "section_digest": "sha256:f43aeb7daa7dcf5153e5868c3f675e8e512363a33bf9d61e4b3be66f3637112b",
+      "section_digest": "sha256:480f7cce03887d0a9dae00ff6e1858ffca0fda6713d76680250dac3c422eb015",
       "requirement": "The signature carrier MUST cryptographically protect its algorithm selection, and the binding payload MUST bind domain and audience; a signature valid for one algorithm, domain or audience MUST NOT verify for another.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -475,8 +475,8 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#601-原像内禁止承诺-event-标识normative",
-      "section_digest": "sha256:0434f56ff5b5e1dd8186beea84c4c3823decb6298f6626f5cb3e8dbf00e98219",
-      "requirement": "Fields inside the event_digest preimage MUST NOT commit to the enclosing Event's own event_id or event_digest, nor to the event_id or envelope digest of a not-yet-formed sibling Event in the same atomic unit or ordered submit batch; such a commitment has no fixed point and MUST be rejected as event_id_digest_mismatch. Commitments of that kind MUST instead use the counterpart's payload digest or a structure outside the preimage (proofs, receipts).",
+      "section_digest": "sha256:92ab61150786411440384a8ea4473ef61ea2bf6b6412629ac0f2e16a2dcc20ee",
+      "requirement": "Fields inside the event_digest preimage MUST NOT commit to the enclosing Event's own event_id, event_digest or any retype of them, nor to the identity of a not-yet-formed sibling Event in the same atomic unit or ordered submit batch; those two classes have no fixed point, MUST be rejected as event_id_digest_mismatch, and MUST NOT be exempted by any registry. Commitments of that kind MUST instead use the counterpart's payload digest or a structure outside the preimage (proofs, receipts). A one-way forward declaration naming a later Event from a separate submission whose canonical bytes the author already froze is constructible and MUST be allowed only when preimage-identity-exemption-registry.json carries an active row for exactly that field and the field's own description declares the forward commitment.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.event_id.content_bound.v1"

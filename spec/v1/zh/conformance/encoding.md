@@ -440,16 +440,22 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned`、`actor
 上面 `realm_id` 的循环论证不限于「Event 自己派生出来的 ID」。形态 B 生效后，`event_id` 与
 `event_digest` 互为函数，因此**任何进入 preimage 的字段**（`payload`、`refs`、`prev_refs`、
 `scope_ref`、`preconditions` 等——即除 `proofs` / `unsigned` / `actor_kind` / `event_id` 之外
-的全部 envelope 字段）：
+的全部 envelope 字段）**原则上 MUST NOT 承诺任何 Event 标识**。按被承诺对象在本 Event 构造时
+是否已经成型，该禁令分三类，三类的可豁免性**不同**，MUST NOT 混为一谈：
 
-- **MUST NOT** 承诺**本 Event 自己**的 `event_id` 或 `event_digest`；
-- **MUST NOT** 承诺**同一原子 unit / 同一 ordered submit batch 内、尚未成型的兄弟 Event** 的
-  `event_id` 或信封 `event_digest`。
+- **A 类（自指）**：承诺**本 Event 自己**的 `event_id`、`event_digest`，或由二者 `retype` 得到
+  的任何标识（`realm_id`、object id 等）；
+- **B 类（同 unit 兄弟）**：承诺**同一原子 unit / 同一 ordered submit batch 内、尚未成型的兄弟
+  Event** 的 `event_id`、信封 `event_digest` 或其 `retype` 结果；
+- **C 类（跨提交前向声明）**：承诺**另一次提交中、内容已在本地冻结**的后续 Event 的 `event_id`
+  或其 `retype` 结果。
 
-违反任一条即产生无解原像（两侧都是密码学哈希，不存在可迭代的不动点），该 unit 无论实现如何
-排序都不可能构造出通过 §4.0 重算比对的取值，运行期表现为 `event_id_digest_mismatch`。
+**A 类与 B 类永不可豁免。**违反任一条即产生无解原像（两侧都是密码学哈希，不存在可迭代的不动
+点），该 unit 无论实现如何排序都不可能构造出通过 §4.0 重算比对的取值，运行期表现为
+`event_id_digest_mismatch`。下面的具名例外登记表 **MUST NOT** 接受 A 类或 B 类形状；登记表里出现
+该形状即是登记表本身有缺陷，机器门禁 MUST 失败，MUST NOT 被读作已裁决的豁免。
 
-需要这类承诺时，只有两条合法承载：
+需要 A/B 类那种承诺时，只有两条合法承载：
 
 1. **对方的 payload digest**——payload 先于两条信封成型，依赖方向因此单向。这是同一 unit 内
    互相承诺的标准写法，见 [`../identity/key-management.md` §5.0.3](../identity/key-management.md)
@@ -460,15 +466,44 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned`、`actor
 **已成型的历史 Event 不受本条约束**：`prev_refs`、`refs` 与 payload 引用**已 accepted** 的
 Event id/digest 始终合法——它们的取值在本 Event 构造前已经固定，不参与本 Event 的求解。
 
-本条的封闭例外清单只有一项，即上面 `ak.realm.create` 的 `realm_genesis`（Event 自派生 ID 的
-特例）；新增例外 MUST 在本节显式登记，MUST NOT 由实现自行推断。conformance 入口沿用
-`ak.vector.event_id.content_bound.v1`：每个跨 Event 原子 unit MUST 同时提供按单向顺序可派生的
-正例，与旧互引形状必须被 `event_id_digest_mismatch` 拒绝的负例。
+**C 类可构造，但只有具名登记后才被允许（normative）**：作者在提交本 Event 之前已经在本地冻结
+了目标 Event 的完整 canonical bytes，因此能先算出目标的 `event_id` 再把它写进本 Event 的
+preimage。依赖方向仍然单向——目标 Event 的原像不含本 Event 的任何标识——所以没有 A/B 类的不动点
+问题。它换来的代价是把「目标一定会以逐字相同的 bytes 被提交」变成一个**只能由 admission 补偿的
+假设**，因此 MUST NOT 由实现自行推断。每一条 C 类例外 MUST 同时满足：
 
-机器门禁是 `tools/lint_artifacts.py` 的 `preimage_event_identity`：schema 中凡
-`event_id` / `*_event_id` / `*_event_ref` / `*_event_digest` 字段，其 description 若声明指向
-enclosing Event 或同 unit / 同 batch 的兄弟 Event，即失败。它拦的是**声明出来的语义**，因此新增
-承载时 description 必须如实写明指向谁——用含糊措辞绕过该 lint 等同于绕过本节。
+1. 出现在下面的封闭清单表中，并携带其 `exemption_id`；
+2. 在 [`preimage-identity-exemption-registry.json`](../../artifacts/registry/preimage-identity-exemption-registry.json)
+   登记一行 active 记录，钉住承诺方向与单向理由、目标冻结时点、准入补偿校验、目标始终不出现时
+   的语义，以及覆盖它的 conformance vector；
+3. 该字段的 schema `description` 如实写明它承诺的是哪一条**尚未提交**的 Event，并引用本节。
+
+三者缺一即门禁失败。正文清单与 registry 是**双向绑定**：清单表中的每个 `exemption_id` 必须在
+registry 有 active 行，registry 的每一条 active 行也必须出现在清单表中。
+
+**封闭例外清单**：
+
+| `exemption_id` | 类别 | 主体 | 承诺方向 |
+| --- | --- | --- | --- |
+| `ak.exemption.preimage_identity.realm_genesis.v1` | 省略（不构成承诺） | `ak.realm.create` 的 `envelope.realm_id`、`envelope.scope_ref` 与 `payload.object.id` | 不承诺；三者一律省略，receiver 按 §4.0 从 `event_id` 前向派生 |
+| `ak.exemption.preimage_identity.agent_provision_principal_control_realm_id.v1` | C 类前向声明 | `ak.agent.provision` payload 的 `principal_control_realm_id` | 单向：provision 承诺**另一次提交**的 managed Agent PCR genesis 的 `retype(event_id)`；该 genesis 的原像不含 provision 的任何标识 |
+
+第一行就是上面 `ak.realm.create` 的 `realm_genesis` 例外，形态是**省略**而不是承诺，因此不受 C 类
+补偿要求约束；它进入登记表只是为了让「本节的例外集合」有唯一机器可读来源。第二行的完整时序、
+准入反查与唯一性约束见 [`../identity/key-management.md` §3.6.3](../identity/key-management.md)。
+
+conformance 入口沿用 `ak.vector.event_id.content_bound.v1`：每个跨 Event 原子 unit MUST 同时提供按单向顺序可派生的
+正例，与旧互引形状必须被 `event_id_digest_mismatch` 拒绝的负例；每条 C 类例外 MUST 另有一个
+**可构造性证明**向量，展示按其声明顺序真的能推导出该值而不产生 `event_id_digest_mismatch`。
+
+机器门禁是 `tools/lint_artifacts.py` 的 `preimage_event_identity`。它**不再靠读措辞决定放行**，而是
+查登记表：判定范围是 `event_id` / `*_event_id` / `*_event_ref` / `*_event_digest` 名族，外加
+description 自称由 Event 标识派生（`retype(...)`、event-derived 等派生语）的字段；范围内字段的
+description 若声明指向 enclosing Event 或同 unit / 同 batch 的兄弟 Event，**无条件**失败，
+若声明指向另一次提交中尚未成型的 Event，则必须在登记表中有 active 行，否则失败。门禁同时做反向
+自检：登记行指向的 schema / 字段必须存在、其 description 必须仍如实声明该前向承诺并引用本节、
+`conformance_vector_ids` 必须都是 active 向量、`exemption_id` 必须同时出现在上面的清单表中。
+用含糊措辞让字段落出判定范围等同于绕过本节。
 
 ### 6.1 Signature Suite registered set
 

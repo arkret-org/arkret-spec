@@ -317,16 +317,55 @@
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
       "input": {
         "event_kind": "ak.realm.create",
-        "realm_purpose": "principal_control",
+        "realm_purpose": "managed_agent_control",
         "did_inception_ref_count": 0,
+        "agent_provision_ref_count": 0,
         "actor_kind": "agent",
         "executed_by_present": true,
         "authorization_ref_matches_agent_pcr_delegation": true,
+        "accepted_provision_declares_this_derived_realm_id": true,
         "realm_matches_agent_did_service": true
       },
       "expected": {
         "decision": "accept",
         "admission": "delegated_pcr_genesis"
+      }
+    },
+    {
+      "name": "reject_managed_agent_pcr_genesis_without_accepted_provision_declaration",
+      "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
+      "input": {
+        "event_kind": "ak.realm.create",
+        "realm_purpose": "managed_agent_control",
+        "did_inception_ref_count": 0,
+        "agent_provision_ref_count": 0,
+        "actor_kind": "agent",
+        "executed_by_present": true,
+        "authorization_ref_matches_agent_pcr_delegation": true,
+        "accepted_provision_declares_this_derived_realm_id": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition",
+        "reason_code": "agent_pcr_genesis_declaration_missing",
+        "writes": 0
+      }
+    },
+    {
+      "name": "reject_principal_control_genesis_matching_both_root_anchor_and_delegated_branches",
+      "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
+      "input": {
+        "event_kind": "ak.realm.create",
+        "realm_purpose": "principal_control",
+        "did_inception_ref_count": 1,
+        "actor_kind": "user",
+        "executed_by_present": true,
+        "authorization_ref_present": true
+      },
+      "expected": {
+        "decision": "accept",
+        "admission": "did_root_anchor",
+        "note": "The organization-governed delegated branch now requires did_inception_ref_count=0, so exactly one variant matches instead of two; a double hit would have been fail-closed."
       }
     },
     {
