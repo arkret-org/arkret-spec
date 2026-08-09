@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.3",
+  "version": "2026-08-09.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-09T18:00:00Z",
+  "generated_at": "2026-08-09T22:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4266,7 +4266,7 @@
       "applies_to_fixtures": [
         "content-bound-event-id-fixture.json"
       ],
-      "description": "Principal Control Realm ids use the unified 33-byte Realm token: header 0x11 (principal_subject_derived + sha256) followed by the full SHA-256 digest of UTF8(\"ak:realm:principal-control:v1:\") || UTF8(canonical principal DID). The 44-character token preserves all 256 digest bits; UUID Realm IDs are rejected. The create Event still omits realm_id, and receivers require both header class and signed purpose=principal_control before recomputing the subject transcript.",
+      "description": "Principal Control Realm ids are event-derived like every other Realm: header 0x01 (event_derived + sha256) retyped from the genesis ak.realm.create Event id. The removed subject-derived header 0x11 MUST be rejected as realm_id_not_event_derived. The 44-character token preserves all 256 digest bits; UUID Realm IDs are rejected. The create Event still omits realm_id, and receivers require both header class and signed purpose=principal_control before recomputing the subject transcript.",
       "source_refs": [
         "spec/v1/zh/models/realm-and-space.md",
         "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json"

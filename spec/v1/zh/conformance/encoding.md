@@ -271,7 +271,7 @@ v1 header 注册表：
 | 高 nibble `derivation_class` | 含义 | digest preimage authority |
 | --- | --- | --- |
 | `0x0` | `event_derived` | `ak.realm.create` Event digest preimage |
-| `0x1` | `principal_subject_derived` | `SHA-256(UTF8("ak" ":" "realm" ":" "principal-control" ":" "v1" ":") || UTF8(canonical_principal_did))` |
+| `0x1` | reserved（历史 `principal_subject_derived`，v1 已删除） | 激活前非法：MUST NOT 产出，收到 MUST 以 `realm_id_not_event_derived` 拒绝 |
 | `0x2..0xE` | reserved | 激活前非法 |
 | `0xF` | format-control | 不得作为身份类别 |
 

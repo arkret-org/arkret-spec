@@ -51,7 +51,7 @@
     },
     "accepted_seal": {
       "$ref": "./seal.schema.json",
-      "description": "Current Seal whose recursively covered control Event set includes every authorization_chain Event digest and whose Realm id is the principal's deterministic PCR."
+      "description": "Current Seal whose recursively covered control Event set includes every authorization_chain Event digest and whose Realm id equals the realm id committed in principal_genesis_receipt. Verifiers MUST NOT recompute a PCR realm id from the principal DID: PCR ids are event-derived and are scoped to one Principal Server, so the signed receipt is the only authority for which PCR this evidence belongs to."
     },
     "current_device_projection": {
       "type": "object",

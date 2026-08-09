@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.4",
+  "version": "2026-08-09.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-09T16:00:00Z",
+  "generated_at": "2026-08-09T22:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -135,7 +135,7 @@
     "header": "(derivation_class << 4) | digest_suite",
     "derivation_classes": {
       "0": "event_derived",
-      "1": "principal_subject_derived",
+      "1": "reserved_removed_principal_subject_derived",
       "2..14": "reserved",
       "15": "format_control"
     },
@@ -146,9 +146,10 @@
       "15": "reserved"
     },
     "event_derived_retype_compatibility": "Realm class 0 is byte-identical to the Event zero reserved nibble and leaves the low-nibble suite code unchanged; v1 Realm identity is fixed to SHA-256, so only a creating Event with header 0x01 is Realm-eligible.",
-    "principal_control_header": 17,
-    "principal_control_domain": "ak:realm:principal-control:v1:",
-    "principal_control_digest_suite": "sha256"
+    "removed_derivation_classes": {
+      "1": "principal_subject_derived removed in v1: PCR realm ids are event-derived like every other Realm. Header 0x11 MUST NOT be produced and MUST be rejected as realm_id_not_event_derived."
+    },
+    "derivation_class_is_not_purpose": "The high nibble records how the id was derived, never what the Realm is for. New purpose values MUST NOT add derivation classes, and implementations MUST NOT infer purpose from realm_id."
   },
   "special_forms": [
     {

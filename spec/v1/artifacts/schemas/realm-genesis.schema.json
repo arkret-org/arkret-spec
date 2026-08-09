@@ -6,6 +6,7 @@
   "required": [
     "schema",
     "purpose",
+    "genesis_salt",
     "trust_domain",
     "schema_refs",
     "reducer_profile",
@@ -76,10 +77,7 @@
       "if": {
         "properties": {
           "purpose": {
-            "enum": [
-              "principal_control",
-              "managed_agent_control"
-            ]
+            "const": "principal_control"
           }
         },
         "required": [
@@ -87,35 +85,18 @@
         ]
       },
       "then": {
-        "not": {
-          "required": [
-            "genesis_salt"
-          ]
-        }
+        "required": [
+          "founding_device_descriptor"
+        ]
       },
       "else": {
-        "required": [
-          "genesis_salt"
-        ],
         "not": {
           "required": [
             "founding_device_descriptor"
           ]
         }
-      }
-    },
-    {
-      "not": {
-        "properties": {
-          "purpose": {
-            "const": "managed_agent_control"
-          }
-        },
-        "required": [
-          "purpose",
-          "founding_device_descriptor"
-        ]
-      }
+      },
+      "description": "founding_device_descriptor is exclusive to human Principal Control Realm genesis. managed_agent_control, collaboration and direct_conversation genesis MUST omit it. genesis_salt is required for every purpose since PCR genesis is event-derived like any other Realm."
     }
   ],
   "additionalProperties": false,

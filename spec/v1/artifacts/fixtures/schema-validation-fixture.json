@@ -21,6 +21,7 @@
       "instance": {
         "schema": "ak.schema.realm_genesis.v1",
         "purpose": "managed_agent_control",
+        "genesis_salt": "LZ0hVf-TRkfzGtDoMxdCa7YIjlU98qPVlcCCFmt9MLc",
         "trust_domain": "ak:trust_domain:did.webvh.agent.example",
         "schema_refs": [
           "ak.schema.realm.v1",
@@ -913,6 +914,7 @@
           "object": {
             "schema": "ak.schema.realm_genesis.v1",
             "purpose": "principal_control",
+            "genesis_salt": "LZ0hVf-TRkfzGtDoMxdCa7YIjlU98qPVlcCCFmt9MLc",
             "trust_domain": "ak:trust_domain:did.webvh.alice.example",
             "schema_refs": [
               "ak.schema.realm.v1",
@@ -940,7 +942,9 @@
               "hpke_key": "z6LSfixtureFoundingHpkeKey",
               "hpke_key_digest": "sha256:9e086dd9b7db70b10713bfa6ff80d0960d048d52ce6ad9140e980d7acffb51be",
               "hpke_key_algorithm": "X25519",
-              "algorithms": ["ak.mls.v1"],
+              "algorithms": [
+                "ak.mls.v1"
+              ],
               "founding_authorize_payload_digest": "sha256:ae3a0c670ad963bf20b883a37ea7189ea058b4a58a969a466356cefed570a1dc"
             },
             "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a"
@@ -979,6 +983,7 @@
           "object": {
             "schema": "ak.schema.realm_genesis.v1",
             "purpose": "managed_agent_control",
+            "genesis_salt": "LZ0hVf-TRkfzGtDoMxdCa7YIjlU98qPVlcCCFmt9MLc",
             "trust_domain": "ak:trust_domain:did.webvh.alice.example",
             "schema_refs": [
               "ak.schema.realm.v1",
@@ -1036,6 +1041,7 @@
           "object": {
             "schema": "ak.schema.realm_genesis.v1",
             "purpose": "principal_control",
+            "genesis_salt": "LZ0hVf-TRkfzGtDoMxdCa7YIjlU98qPVlcCCFmt9MLc",
             "trust_domain": "ak:trust_domain:did.webvh.alice.example",
             "schema_refs": [
               "ak.schema.realm.v1",
@@ -1063,7 +1069,9 @@
               "hpke_key": "z6LSfixtureFoundingHpkeKey",
               "hpke_key_digest": "sha256:9e086dd9b7db70b10713bfa6ff80d0960d048d52ce6ad9140e980d7acffb51be",
               "hpke_key_algorithm": "X25519",
-              "algorithms": ["ak.mls.v1"],
+              "algorithms": [
+                "ak.mls.v1"
+              ],
               "founding_authorize_payload_digest": "sha256:ae3a0c670ad963bf20b883a37ea7189ea058b4a58a969a466356cefed570a1dc"
             },
             "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a"
