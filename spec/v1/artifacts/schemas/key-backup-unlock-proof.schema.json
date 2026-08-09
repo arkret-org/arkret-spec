@@ -69,7 +69,7 @@
       "properties": {
         "verification_method": {
           "$ref": "#/$defs/did_url",
-          "description": "DID URL for either the accepted requesting device key after authorization, or the recovery-session proof key before did_recovery unlock."
+          "description": "DID URL for either the accepted requesting device key after authorization, or the recovery-session proof key before a recovery_public_key unlock."
         },
         "signature_algorithm": {
           "type": "string",
@@ -191,8 +191,7 @@
     "backup_kind": {
       "type": "string",
       "enum": [
-        "did_recovery",
-        "secret_storage",
+                "secret_storage",
         "mls_history"
       ]
     },

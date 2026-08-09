@@ -1072,7 +1072,6 @@ Device / Key Server 的 `ak.keys.backups.*` endpoint MUST 只接受 `ak.schema.k
 
 | Secret 类别 | `backup_kind` |
 | --- | --- |
-| DID 恢复材料 | `did_recovery` |
 | 账户级 secret-storage material | `secret_storage` |
 | MLS epoch / Realm history secret | `mls_history` |
 | 外部托管或 profile 自定义 account secret | `secret_storage` |
@@ -1169,7 +1168,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 规则：
 
 - 备份 metadata MUST 绑定 actor DID、device id、backup id、backup class、created_at、ciphertext digest 和加密参数。
-- `backup_kind="did_recovery"` 的 wire envelope MUST 使用 `recipient_method="recovery_public_key"`。任何 backup class 只要使用 `recovery_public_key`，就 MUST 携带顶层 `recovery_policy_ref{policy_id, policy_version}` 并由 `auth_data.signed_fields` 覆盖；`recipient_key_ref` 只能解析到该 accepted policy 的 `recovery_key_agreements[]`。`did_recovery` 的 ref 必须等于当前 active policy；`mls_history` / `secret_storage` 仍须按 accepted policy history、active-series 与轮换规则拒绝回滚。不一致 MUST `recovery_policy_mismatch`。只有 `secret_storage_key` 等非 recovery-public-key 方法携带的 `recovery_policy_ref` 才是可选 hint；任何 policy ref 都不得替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
+- 任何 backup class 只要使用 `recovery_public_key`，就 MUST 携带顶层 `recovery_policy_ref{policy_id, policy_version}` 并由 `auth_data.signed_fields` 覆盖；`recipient_key_ref` 只能解析到该 accepted policy 的 `recovery_key_agreements[]`。`mls_history` / `secret_storage` 在读取/恢复时须按 accepted policy history、active-series 与轮换规则拒绝回滚。不一致 MUST `recovery_policy_mismatch`。只有 `secret_storage_key` 等非 recovery-public-key 方法携带的 `recovery_policy_ref` 才是可选 hint；任何 policy ref 都不得替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
 - 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名，并携带当前 accepted `device_authorize_event_id`；`frontier_ref` 只允许 `device_generation_ref`。`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_kind`、`backup_version`、`series_id`、`series_seq`、`supersedes`、`encryption`、`contents` 与 `ciphertext_digest`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`，携带 `recovery_policy_ref` 时还 MUST 覆盖 `recovery_policy_ref`。签名链必须链接到当前 PCR device authorization evidence。
 - 服务端 MUST 只允许同一 actor 的当前授权设备、满足 recovery policy 的恢复流程，或 policy 明确授权的组织恢复服务读取备份密文。
 - 含 Agent PCR managed item 的 envelope MUST 使用 `recovery_public_key`，携带 controller 当前 `recovery_policy_ref`，并让 public index、plaintext keybag 与 AEAD AAD 对同一 `managed_principal_binding` canonical set 达成逐字一致；服务端在接受上传前 MUST 按 envelope `created_at` 验证 Agent DID/PCR/controller/delegation binding。该验证只证明 controller 当时有权托管密钥，不让服务端获得解密能力，也不让历史解密能力替代当前 Agent DID authoring authorization。
@@ -1209,7 +1208,7 @@ DELETE /_arkret/self/keys/backups/{backup_id}
 
 要求：
 
-- 服务端 MUST 在收到 user erasure 请求（参见 `ak.audit.erasure_receipt` / `ak.schema.erasure_receipt.v1`）时，按 erasure receipt 的 `scope` 与 `subject` 处理对应 backup envelope：若 `subject.kind="principal"` 且 `scope.storage_boundary` 涵盖 `device_secret_store`，相应 `did_recovery` / `secret_storage` envelope MUST 被删除并产出 `ak.schema.erasure_receipt.v1` 子条目。
+- 服务端 MUST 在收到 user erasure 请求（参见 `ak.audit.erasure_receipt` / `ak.schema.erasure_receipt.v1`）时，按 erasure receipt 的 `scope` 与 `subject` 处理对应 backup envelope：若 `subject.kind="principal"` 且 `scope.storage_boundary` 涵盖 `device_secret_store`，相应 `secret_storage` envelope MUST 被删除并产出 `ak.schema.erasure_receipt.v1` 子条目。
 - 用户主动删除自身备份与 erasure 流程区分清晰：常规 `DELETE` 不写 erasure receipt，但 `identity/key-management.md` §7.8 的高风险审计仍要求落地 `ak.audit.accessed` (`access_kind="key_backup_delete"`).
 - `legal_hold=true` 的 envelope MUST 被服务端拒绝删除（即便提供 high-risk proof）；解除 hold MUST 由声明该 hold 的 Policy Server 通过 policy update 完成，并写入审计。
 - 同一 series 内的 retention 必须保证链不被打破：服务端 MUST NOT 删除 active series 的非尾部 envelope；旧 series 只有在已经被 active-series record 移出 primary source 后，才 MAY 按 retention / erasure 策略整组删除或迁移。若该删除属于`SecurityRotationTransaction`，两个backup kind的pointer、逐series进度、partial retry与complete confirmation一律以[`identity/security-transactions.md` §3](../identity/security-transactions.md)为准。

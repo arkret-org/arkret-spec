@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-09.4",
+  "version": "2026-08-09.5",
   "codes": [
     {
       "code": "bad_json",
@@ -1422,7 +1422,7 @@
       "code": "first_backup_gate_unsatisfied",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The first did_recovery backup gate requirements are not satisfied."
+      "description": "The recovery-material gate requirements (first accepted Seal and genesis recovery policy) are not satisfied."
     },
     {
       "code": "fresh_device_scope_violation",

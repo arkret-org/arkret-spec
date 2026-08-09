@@ -36,7 +36,7 @@ Arkret 身份由 DID principal 表示，但用户访问通常经过一个或多�
 
 用户可以先完成邮箱、passkey、OIDC/SSO 或企业账号登录，而无需理解 DID。但未完成 principal binding 的 session 只能执行 registration/risk/device initialization，不能作为最终 actor 写 Realm、MLS、capability 或 federation state。
 
-客户端必须在首个网络副作用前本地生成并 durable 保存 recovery/identity-root、device identity、HPKE、DPoP keys 与完整 onboarding draft。服务端不得生成或持有 identity root/device private key。PCR genesis accepted 后仍必须完成首个 Seal、genesis recovery policy 与 `did_recovery` backup，才能解除 `recovery_material_pending` 业务写门。
+客户端必须在首个网络副作用前本地生成并 durable 保存 recovery/identity-root、device identity、HPKE、DPoP keys 与完整 onboarding draft。服务端不得生成或持有 identity root/device private key。PCR genesis accepted 后仍必须完成首个 Seal 与 genesis recovery policy，才能解除 `recovery_material_pending`；该门的作用范围是进入 E2EE Realm（创建/加入）之前。
 
 ### 2.1.2 Account handoff、PCR genesis 与首次 Standard grant（normative）
 

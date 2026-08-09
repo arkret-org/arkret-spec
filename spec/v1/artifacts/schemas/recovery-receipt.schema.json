@@ -160,8 +160,7 @@
           "backup_kind": {
             "type": "string",
             "enum": [
-              "did_recovery",
-              "secret_storage",
+                            "secret_storage",
               "mls_history"
             ]
           },

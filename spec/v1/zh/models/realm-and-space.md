@@ -189,7 +189,7 @@ monolithic `ak.realm.update` 与 `ak.component.realm.metadata.v1` 已删除。�
 规则（normative）：
 
 - **粒度 = 组织组合，不在 Realm 上加旋钮**：爆炸半径 = 某 org 拥有的 Realm 集合；要更细隔离就把敏感 Realm 的 `owning_organizations` 指向更细的 org（例如独立的 HR org），而不是给 Realm 加 RRK 粒度机制。父组织保留访问 = 把父 org 的 RRK 也列入 `recovery_recipients`（显式、成员可见，无暗继承）。
-- **域隔离**：`verification_method` 指向的 RRK MUST 是 history-recovery 域专用 key，独立于 `principal_id` 的 `did_recovery` 域钥匙（[`../identity/key-management.md` §7.1](../identity/key-management.md)）；攻破"能解 Realm 历史"MUST NOT 等于"能改组织身份"。
+- **域隔离**：`verification_method` 指向的 RRK MUST 是 history-recovery 域专用 key，独立于 `principal_id` 由 [`../identity/key-management.md` §3.3](../identity/key-management.md) `backup_hpke_ikm` 派生的 backup-HPKE key（wire 名 `recovery_public_key`）；攻破"能解 Realm 历史"MUST NOT 等于"能改组织身份"。
 - **成员可见**：`mode != none` 时客户端 MUST 按 [`../crypto-media/encryption-and-audit.md` §2.10.8](../crypto-media/encryption-and-audit.md) 披露义务向成员展示恢复方可验证身份与 mode。
 - **写入路径**：`durability_policy` 经 `ak.realm.policy_bundle` 写入（不新增 event kind），随 `policy_revision` 单调推进；变更 MUST 由后续 `ak.mls.commit` 覆盖 frontier 后对新 epoch 的封存义务生效。
 - **scheme 约束**：`mode != none` 仅在 `content_scheme=mls_exporter_aead_v1` 时有效；在 `mls_rfc9420` Realm 上声明 `mode != none` MUST `failed_precondition`（reason=`durability_scheme_incompatible`），因为后者无可交付 `history_secret`。

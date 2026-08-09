@@ -76,7 +76,7 @@ identity root key 表示 DID method 的初始与后继更新控制材料。对 A
 - root private key MUST 从生成起冷持有，不得由服务端生成或持有，也不得在任何设备上长期驻留；
 - root public key MUST NOT 出现在 principal DID Document 的 `verificationMethod` 中，root private key MUST NOT 充当 device key、MLS leaf key、KeyPackage key、session key 或入册权威 key；
 - root 的 Event 签名权限是封闭白名单：仅允许签自体 principal 的 PCR genesis `ak.realm.create` 与恢复 `ak.device.reanchor`；其他 Event 即使携带 DID entry ref 也不得启用 root-anchor 验签路径；
-- root 还可签合规 DID log controller proof，以及 recovery-material gate 的离线 sealed receipt；除此之外不得签普通 Arkret 操作；
+- root 还可签合规 DID log controller proof；除此之外不得签普通 Arkret 操作。因此 root 的签名用途恰为三项：PCR genesis `ak.realm.create`、恢复 `ak.device.reanchor`、DID log controller proof；
 - 每个后继 root 公钥 MUST 不同于全部已激活 root；一代 root 被后继 entry 取代后即 spent，MUST NOT 再出现在任何后继 `updateKeys` 或 `nextKeyHashes` 中。
 
 ### 3.2 Principal High-Privilege Signing
@@ -455,7 +455,9 @@ re-anchor 与 genesis 使用同一 candidate overlay/verifier 内核。接受 re
 
 #### 5.0.4 Recovery-material gate（normative）
 
-Genesis/re-anchor accepted 只建立可认证设备，不等于 recovery ready。在首个 accepted Seal、由该设备签署的 genesis recovery policy 以及 `did_recovery` backup put 全部完成前，PCR 必须保持 `recovery_material_pending` 并拒绝业务写。此 gate 不回滚已 accepted identity/device state；失败后客户端 exact resume。
+Genesis/re-anchor accepted 只建立可认证设备，不等于 recovery ready。在首个 accepted Seal 与由该设备签署的 genesis recovery policy 都完成前，PCR 必须保持 `recovery_material_pending`。此 gate 不回滚已 accepted identity/device state；失败后客户端 exact resume。
+
+gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入前 MUST 完成**（与 §7.11 一致）；gate 未完成时允许读取与非 E2EE 的本地/账号级操作。gate 期间允许的封闭写入集合恰为：该 PCR 的首个 Seal、genesis recovery policy、以及 genesis unit 自身产生的 device projection 更新（`ak.device.list_update`）；其余 Realm 写入 MUST fail closed。
 
 ### 5.1 新设备加入（首台设备已存在）
 
@@ -663,7 +665,9 @@ SessionGrant 签发而扩张为日常 Event signer。
 
 ### 7.1 备份内容
 
-backup domain 必须分离：`did_recovery`、`secret_storage`、`mls_history` 与 encrypted private account data 使用不同 envelope/subdomain key。Identity root seed、recovery secret、助记词、HKDF PRK、device private identity key、session/DPoP private key和任何可直接克隆设备身份的材料绝对不得上传。新设备必须生成新的 device key，并通过 pairing 或 root re-anchor 获得授权。
+backup domain 必须分离：`secret_storage`、`mls_history` 与 encrypted private account data 使用不同 envelope/subdomain key。Identity root seed、recovery secret、助记词、HKDF PRK、device private identity key、session/DPoP private key和任何可直接克隆设备身份的材料绝对不得上传。**该禁止清单是"身份控制权不可经备份泄露"这一保护的唯一且完整来源：因此不存在任何 `backup_kind` / `recipient_method` 组合可以解出身份控制权，实现 MUST NOT 把上述材料塞进 `secret_storage` 或任何其它 backup class。** 新设备必须生成新的 device key，并通过 pairing 或 root re-anchor 获得授权。
+
+身份恢复本身不需要任何备份：identity root 的全部代次由 recovery secret 经 §3.3 的 HKDF 确定性派生，DID log 公开可解析，root generation index 又 MUST 从已验证 canonical DID history 重建。三者齐备，没有剩余需要加密托管的身份材料，因此 v1 不设独立的 DID-recovery backup class。
 
 `secret_storage` 可以保存账户级非身份 secret（例如 MLS account secret、account-data namespace/value encryption secret 与私有 cache）；`mls_history` 只保存明确 policy 允许恢复的群组状态。单一 passphrase 不得同时成为 DID recovery 与 E2EE history 的唯一保护。
 
@@ -732,26 +736,24 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 
 #### 7.5.0 `backup_kind` × `recipient_method` 合法组合矩阵（normative）
 
-`backup_kind`（仅 `did_recovery` / `secret_storage` / `mls_history` 三类，§7.1）与 `recipient_method` 的组合不是自由叉乘。下表是合法组合的**集中**声明；producer MUST NOT 写入标 `forbidden` 的组合，receiver / 服务端遇到 `forbidden` 组合或本表未列出的组合 MUST fail closed（reason 见各格），即作为兜底也不允许：
+`backup_kind`（仅 `secret_storage` / `mls_history` 两类，§7.1）与 `recipient_method` 的组合不是自由叉乘。下表是合法组合的**集中**声明；producer MUST NOT 写入标 `forbidden` 的组合，receiver / 服务端遇到 `forbidden` 组合或本表未列出的组合 MUST fail closed（reason 见各格），即作为兜底也不允许：
 
 | `backup_kind` ＼ `recipient_method` | `passphrase_kdf` | `recovery_public_key` | `secret_storage_key` |
 | --- | --- | --- | --- |
-| `did_recovery` | forbidden: `did_recovery_passphrase_forbidden` | allowed: MUST 带顶层 `recovery_policy_ref{policy_id, policy_version}` == 当前 accepted recovery policy，否则 `recovery_policy_mismatch` | forbidden: `did_recovery_secret_storage_key_forbidden`（DID recovery 不得依赖 device-local secret storage root） |
 | `secret_storage` | allowed（见 §7.5.1）: §7.2 / §7.5.1 Argon2id 或显式 degraded PBKDF2；新创建 envelope 满足 §7.2 机器下限 | allowed（新写入 SHOULD 优先，见 §7.5.1） | allowed: 仅现有持有 root key 的设备本地缓存/同步，新设备 MUST NOT 直接 bootstrap，否则循环依赖 |
 | `mls_history` | forbidden: `mls_history_passphrase_forbidden` | allowed：MUST 带签名覆盖的 `recovery_policy_ref` | allowed：释放仍以 active-series record / frontier_ref / Realm-MLS 授权 / 设备状态为准 |
 
 集中要点（与下列 §7.5.1–§7.5.5 的分散规则一致，本表为 normative summary）：
 
-- **`passphrase_kdf` 仅 `secret_storage`**：`did_recovery` 与 `mls_history` MUST NOT 使用 `passphrase_kdf`，即便作为 fallback 也不允许（单一口令不得直接控制 DID recovery 或解锁 MLS 历史）。需要口令参与时，口令只能先解锁 `secret_storage` root、recovery private key、threshold share 或 hardware wrapper 的本地保护层，再由 `recovery_public_key` / `secret_storage_key` 完成对应 `backup_kind` 的释放。
-- **`did_recovery` 只能用 `recovery_public_key`**：`did_recovery` 的唯一合法 `recipient_method` 是 `recovery_public_key`。envelope 顶层 `recovery_policy_ref{policy_id, policy_version}` MUST 等于当前 accepted `ak.schema.recovery_policy.v1`，并进入 `auth_data.signed_fields`；不一致 MUST `recovery_policy_mismatch`（fail closed）。
-  - **recovery 私钥释放强度（normative 澄清）**：本矩阵在 envelope 层禁止 `did_recovery` 用低熵口令派生（`passphrase_kdf` / `secret_storage_key`），确保 DID recovery 不被单一**低熵**口令直接控制。recovery **私钥本身**的释放强度由 §8 recovery policy 的 `allowed_proof_kinds` 决定：当 policy 仅配置单个 `recovery_unlock`（单把高熵 24 词助记词签名）时，恢复强度即等同于该单一高熵助记词——这是 v1 default profile **有意接受**的取舍（高熵单因子 ≠ 低熵口令）。高价值 / 组织账号 SHOULD 按 §7.11（"高价值账号 SHOULD 支持门限恢复"）对 `did_recovery` 释放叠加门限（`threshold_recovery`）或多 `proof_kind`，不依赖单一可窃取秘密。
+- **`passphrase_kdf` 仅 `secret_storage`**：`mls_history` MUST NOT 使用 `passphrase_kdf`，即便作为 fallback 也不允许（单一口令不得直接解锁 MLS 历史）。需要口令参与时，口令只能先解锁 `secret_storage` root、recovery private key、threshold share 或 hardware wrapper 的本地保护层，再由 `recovery_public_key` / `secret_storage_key` 完成对应 `backup_kind` 的释放。
+- **recovery 私钥释放强度（normative 澄清）**：本矩阵在 envelope 层禁止 `mls_history` 用低熵口令派生（`passphrase_kdf`），确保 E2EE 历史不被单一**低熵**口令直接控制。recovery **私钥本身**的释放强度由 §8 recovery policy 的 `allowed_proof_kinds` 决定：当 policy 仅配置单个 `recovery_unlock`（单把高熵 24 词助记词签名）时，恢复强度即等同于该单一高熵助记词——这是 v1 default profile **有意接受**的取舍（高熵单因子 ≠ 低熵口令）。高价值 / 组织账号 SHOULD 按 §7.11（"高价值账号 SHOULD 支持门限恢复"）叠加门限（`threshold_recovery`）或多 `proof_kind`，不依赖单一可窃取秘密。
 - **`secret_storage_key` 不可 bootstrap**：新设备 MUST NOT 通过 `secret_storage_key` envelope 直接 bootstrap，必须先用 `passphrase_kdf` 或经 recovery policy 释放的 `recovery_public_key` 解出 root secret storage key（消除"新设备能解 wire envelope"的循环依赖）。
 - **门限/硬件属于 recovery policy 层**：threshold、hardware module、trusted recovery service 可以保护 recovery private key 或 secret storage root 的释放，但不得作为 `ak.schema.key_backup.v1.encryption.recipient_method`。相关 proof transcript 由 §8 recovery policy 与 `ak.schema.recovery_session.v1` 约束。
 - 所有 fail-closed 判定 MUST 在解密尝试之前完成；服务端 / receiver 不得对 `forbidden` 组合"先解密再检查"。
 
 #### 7.5.1 `passphrase_kdf`
 
-参考 §7.2：Argon2id（或显式 degraded PBKDF2）派生 root key，HKDF 派生 `commitment_key` 与 `nonce_key`，AEAD AAD 覆盖全部 envelope metadata。`passphrase_kdf` 仅用于 `secret_storage` envelope；`mls_history` 与 `did_recovery` envelope MUST NOT 使用 `passphrase_kdf`，即使作为 fallback 也不允许。需要用户口令参与 DID recovery 或 MLS 历史恢复的实现 MUST 让口令先解锁 `secret_storage` root、recovery key、threshold share 或 hardware wrapper 的本地保护层，而不是在 wire 上发布 `backup_kind="mls_history"` / `backup_kind="did_recovery", recipient_method="passphrase_kdf"` 的 envelope。
+参考 §7.2：Argon2id（或显式 degraded PBKDF2）派生 root key，HKDF 派生 `commitment_key` 与 `nonce_key`，AEAD AAD 覆盖全部 envelope metadata。`passphrase_kdf` 仅用于 `secret_storage` envelope；`mls_history` envelope MUST NOT 使用 `passphrase_kdf`，即使作为 fallback 也不允许。需要用户口令参与 MLS 历史恢复的实现 MUST 让口令先解锁 `secret_storage` root、recovery key、threshold share 或 hardware wrapper 的本地保护层，而不是在 wire 上发布 `backup_kind="mls_history", recipient_method="passphrase_kdf"` 的 envelope。
 
 **与 recovery secret 的关系（normative）**：内容恢复的标准用户凭证是 §3.3 recovery secret；它经固定域派生 backup-HPKE key。实现 SHOULD NOT 引入独立 vault 口令作为标准凭证。
 
@@ -766,7 +768,7 @@ DEK 通过 HPKE（base mode）加密给 `recovery_public_key`：
 - HPKE suite MUST 是 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 中的 active 行，由 `encryption.hpke_suite` 选定；该字段缺省时 MUST 解释为 default-MUST 行 `ak.hpke_x25519_aead_chacha20poly1305.v1`。`aead.name` MUST 等于所选 suite 的 AEAD。遇到未登记、非 active 或 reserved-未激活的 suite id，receiver MUST fail closed（`unsupported_hpke_suite`），MUST NOT 自由组合未登记的 KEM/KDF/AEAD，也 MUST NOT 仅凭 `aead.name` 推断 suite 参数。P-256 KEM 互操作经 profile-gated 行 `ak.hpke_p256_aead_aes256gcm.v1`（`ak.profile.hpke.p256.v1`）提供。HPKE 单发 base-mode 由 key schedule 内部派生 AEAD nonce，故 `recovery_public_key` envelope 不携带 wire `nonce`。
 - HPKE `info` MUST 包含 `canonical_json({backup_id, series_id, series_seq, actor_id, backup_kind, backup_version, created_at})`；HPKE `aad` MUST 等于 envelope 的 AEAD AAD。
 - 普通 DID root generation 轮换不改变 backup-HPKE key。只有 recovery secret handoff 才改变 recipient key；handoff 后所有 active backup class MUST 按 §3.3 建新 series/重封装并推进 signed active-series pointer。
-- 任何 `recipient_method="recovery_public_key"` envelope 都 MUST 携带 `recovery_policy_ref{policy_id, policy_version}` 并由 `auth_data.signed_fields` 覆盖；`recipient_key_ref` 只在该 accepted policy 的 `recovery_key_agreements[]` 中解析。`backup_kind="did_recovery"` 时该 ref 还 MUST 等于当前 active policy；其它 backup class 在读取/恢复时也必须验证 referenced policy 仍属于该 principal 的 accepted policy history，并按 active-series 与轮换规则拒绝回滚。不匹配 MUST `recovery_policy_mismatch`。这项 policy 绑定不替代 MLS 历史或 secret-storage 的独立授权判断。
+- 任何 `recipient_method="recovery_public_key"` envelope 都 MUST 携带 `recovery_policy_ref{policy_id, policy_version}` 并由 `auth_data.signed_fields` 覆盖；`recipient_key_ref` 只在该 accepted policy 的 `recovery_key_agreements[]` 中解析。各 backup class 在读取/恢复时 MUST 验证 referenced policy 仍属于该 principal 的 accepted policy history，并按 active-series 与轮换规则拒绝回滚。不匹配 MUST `recovery_policy_mismatch`。这项 policy 绑定不替代 MLS 历史或 secret-storage 的独立授权判断。
 - **备份接收 key 的角色隔离（normative）**：wire 名称 `recovery_public_key` 指 §3.3 派生的 X25519 backup-HPKE public key。它与 Ed25519 recovery-proof key、任一代 identity root 是不同 key，但三者来自同一用户 recovery secret。实现 MUST NOT 在 `secret_storage` 中再制造第四把长期 backup keypair，也不得把 Ed25519 key 转换成 X25519 key。
 
 recovery policy 中两类 key 必须显式配对：`recovery_keys[]` 每项携带 recovery-proof 签名 `public_key_multibase` 与独立 `key_agreement_ref`；该 ref 必须唯一解析到同一 policy 的 `recovery_key_agreements[]`。后者 `use="backup_hpke"`，只能接收备份，不能验 recovery proof 或授权 DID/Event。两数组与配对 ref 均进入 `auth_data.signed_fields`；缺项、悬空或重复 ref、同一 key material、suite 不匹配、已撤销/过期、DID Document-only 旁路均 fail closed，并由 `ak.vector.identity.recovery_key_role_separation.v1` 执行验证。
@@ -827,11 +829,10 @@ controller fresh-device recovery 仍先完成自己的普通 §7.3 / `device-lif
 - 在尝试解密任何备份 envelope 之前，向用户展示：`backup_kind`、`series_id`、`series_seq`、`backup_version`、`encryption.recipient_method`、`encryption.aead.aead_profile?`（缺省时显示 `aead.name`）、`principal_id`、`device_id`（当前请求恢复的新设备）与 `frontier_ref.device_generation_ref`。
 - 在使用 `passphrase_kdf` 时，明确展示 KDF（Argon2id / PBKDF2）与参数；用 PBKDF2 的 envelope MUST 在 UI 中显示 `degraded_profile_reason`，且不得自动选用 PBKDF2 envelope 当 Argon2id envelope 同时存在。
 - 在 envelope 携带 `mixed_secret_storage=true` 时 MUST 显著警告"该备份同时保护身份签名与 E2EE 历史，单一口令被攻破将同时丢失两者"；非 `personal_node` profile 下 MUST 直接拒绝展示此类 envelope 作为 primary recovery source。
-- 在 `did_recovery` 域使用 `passphrase_kdf` 单独路径时 MUST 拒绝继续（参见 §7.5.1）。
-- 对 `did_recovery` envelope，展示当前 envelope 的 `recovery_policy_ref.policy_id` / `policy_version` 与当前 accepted recovery policy 的一致性；其它 envelope 携带 `recovery_policy_ref` 时也 MUST 展示并验证。不一致时 MUST `recovery_policy_mismatch`，并指向"更新 recovery policy"流程而不是默默继续。
+- envelope 携带 `recovery_policy_ref` 时 MUST 展示当前 envelope 的 `policy_id` / `policy_version` 与当前 accepted recovery policy 的一致性并验证。不一致时 MUST `recovery_policy_mismatch`，并指向"更新 recovery policy"流程而不是默默继续。
 - 不得从本地缓存读取用户先前确认的 fingerprint / passphrase / OOB token 跳过当次显式确认。本地缓存 MAY 用于自动补全，但用户 MUST 显式提交本次输入。
 - 在 §7.4 列出的禁用证明类型（历史明文、邮箱验证码、撤销设备等）被用户尝试时 MUST 给出可读的拒绝原因。
-- **无恢复路径（SPOF）账号的 fresh-device 登录警示**：当目标 principal 的 `active_policy=null` 且用户既没有 identity-root / recovery secret，也没有 §5.0.4 offline-sealed receipt 时，fresh-device policy recovery 与 `did_recovery` backup unlock MUST fail closed（§8）。此时 UI MUST 在进入任何恢复尝试之前明示“该账号没有可满足的恢复路径，只能在一台已授权的旧设备上确认”；用户若持有有效 identity-root / recovery secret，UI MUST 改为提供 §5.0.3 / [`../crypto-media/device-lifecycle.md` §14](../crypto-media/device-lifecycle.md) 的 root-anchored re-anchor，而不得错误阻断。展示或确认 24 词 Recovery Key 时还 MUST 显著警告：任何取得全部词语的人都可能永久接管身份；除非此前已接受的 guardian / witness / organization policy 能拒绝仅凭旧 secret 的恢复，否则泄露后无法靠轮换追回既有控制权。
+- **无恢复路径（SPOF）账号的 fresh-device 登录警示**：当目标 principal 的 `active_policy=null` 且用户没有 identity-root / recovery secret 时，fresh-device policy recovery MUST fail closed（§8）。此时 UI MUST 在进入任何恢复尝试之前明示“该账号没有可满足的恢复路径，只能在一台已授权的旧设备上确认”；用户若持有有效 identity-root / recovery secret，UI MUST 改为提供 §5.0.3 / [`../crypto-media/device-lifecycle.md` §14](../crypto-media/device-lifecycle.md) 的 root-anchored re-anchor，而不得错误阻断。展示或确认 24 词 Recovery Key 时还 MUST 显著警告：任何取得全部词语的人都可能永久接管身份；除非此前已接受的 guardian / witness / organization policy 能拒绝仅凭旧 secret 的恢复，否则泄露后无法靠轮换追回既有控制权。
 
 ### 7.7.1 Backup Unlock Proof 与 Plaintext Keybag（normative）
 
@@ -927,7 +928,7 @@ v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybr
 
 E2EE Realm（effective `content_encryption_floor` 或 `metadata_encryption_floor` 为 `e2ee_required`，含 PCR 与任何加密协作 Realm）的创建或加入会产生该用户独有的 MLS group secret；若此时账号尚无可用恢复路径，丢失唯一设备即永久丢失这些内容。因此：
 
-- 客户端在 `recovery_state` 未配置（`active_policy=null` 且无 §5.0.4 offline-sealed receipt）时，发起任何 post-bootstrap E2EE Realm 创建/加入前 MUST 完成 recovery-material gate；PCR bootstrap 是唯一豁免。
+- 客户端在 `recovery_state` 未配置（`active_policy=null`）时，发起任何 post-bootstrap E2EE Realm 创建/加入前 MUST 完成 recovery-material gate；PCR bootstrap 是唯一豁免。
 - `ak.profile.personal_node.v1` MAY 允许用户在明确告知"丢失本设备将永久丢失该 Realm 内容"后**显式跳过**，并维持 / 标记 `single_point_of_failure=true`、持续提醒；`small_team` 及以上 deployment profile SHOULD 阻断创建 / 加入，直至 recovery policy 配置完成。
 - `ak.profile.personal_agent_provisioning.v1` 对 Native Personal Agent 收紧上一条例外：即使部署同时声明 `ak.profile.personal_node.v1`，controller 没有 accepted recovery policy 时 `ak.self.agent.command.provision` MUST 在产生 Agent DID / PCR / grant 副作用前 fail closed；Agent PCR bootstrap 后、§7.5.6 首份 controller-owned recovery envelope accepted 前，Agent 只能保持 `pending_runtime_key` 且 pairing commit MUST `agent_pcr_recovery_not_ready`。不得以 `single_point_of_failure=true`、服务端托管 MLS secret 或为 Agent 生成另一套助记词绕过。
 - 该前置门是客户端编排义务，不替代服务端的 floor ratchet 与 PCR 校验；它针对的是"加密材料先于恢复路径产生"的时间窗，而非加密本身是否启用。
@@ -994,7 +995,7 @@ recovery secret 疑似泄露时 MUST 按 §3.3 分流：有独立权威才允许
 - 对恢复操作做高风险 UI，且 §7.7 的 UI 字段展示要求 MUST 被遵守
 - 对设备列表显示最近活动和授权来源
 - 对吊销操作做不可抵赖记录
-- 在发布 entry 0 前执行 custody-confirmation gate，并在 PCR bootstrap 后阻塞所有 post-bootstrap 持久写入直至 recovery-material gate 完成
+- 在发布 entry 0 前执行 custody-confirmation gate，并在 PCR bootstrap 后按 §5.0.4 的范围阻塞 E2EE Realm 创建/加入直至 recovery-material gate 完成
 
 实现 SHOULD：
 
@@ -1010,7 +1011,7 @@ Arkret v1 对设备、会话和恢复要求如下：
 - Device record JSON Schema 由 `../models/common-fields.md`（`id:device` 类型与 typed-id 规则）与 `../crypto-media/device-lifecycle.md` 共同固定。设备记录 MUST 绑定 principal DID、device id、verification method、算法、创建时间、撤销状态和签名链。
 - `ak.device.authorize` 与 `ak.device.revoke` MUST 进入 schema registry，并按 event auth 规则验证。`ak.device.revoke` 的控制面位置由其 Control Move 信封 `seal_basis`（授权基准，签名覆盖）与覆盖它的 accepted Seal（生效切点）表达，payload 不携带 frontier 字段；撤销后设备不得产生新的有效 session grant、KeyPackage 或 to-device write。
 - Session grant MUST 绑定 principal DID、device id、service DID / audience、scope、过期时间、proof 和 revocation reference；服务账户登录不得替代 DID 控制权。
-- Backup envelope test vector MUST 覆盖：加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定、服务端不可解密要求、`series_seq` 严格单调、`supersedes` / `supersedes_digest` 链完整、`mixed_secret_storage=true` 在 non-personal_node profile 下被拒绝、`did_recovery` 域使用 `passphrase_kdf` 的 envelope 被拒绝(该域只允许 `recovery_public_key`)、§7.8 服务端限速与跨 actor 拒绝。
+- Backup envelope test vector MUST 覆盖：加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定、服务端不可解密要求、`series_seq` 严格单调、`supersedes` / `supersedes_digest` 链完整、`mixed_secret_storage=true` 在 non-personal_node profile 下被拒绝、`mls_history` 域使用 `passphrase_kdf` 的 envelope 被拒绝、§7.8 服务端限速与跨 actor 拒绝。
 - MLS KeyPackage binding MUST 覆盖 principal DID、device id、KeyPackage hash、签名 verification method、有效期和撤销检查；客户端 MUST 拒绝未绑定 DID / device trust chain 的 KeyPackage。
 - Recovery policy grammar 由 `ak.schema.recovery_policy.v1`（`artifacts/schemas/recovery-policy.schema.json`）规范化；publish / rotate / share-revoke 的 wire 形态由 §8.1 描述。grammar MUST 表达 threshold、share holder、not_before、expires_at、allowed_proof_kinds、approval requirement 与 audit event；恢复只改变控制链，不自动授予内容读取或业务 capability。
 - Recovery policy publication 的 `ak.vector.identity.recovery_policy_publication.v1` MUST 由至少两个独立 runner 覆盖 canonical `EventInitialSubmission`、PCR allowlist/reducer/Seal admission、threshold recovery signing/HPKE key 闭包、issuer projection、跨字段不一致、未 Seal retry 与特殊写路径绕过拒绝。

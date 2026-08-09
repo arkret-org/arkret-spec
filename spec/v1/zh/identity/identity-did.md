@@ -852,7 +852,7 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 规则：
 
 - RRK 的 HPKE 公钥 MUST 以标准 `verificationMethod`（`type=Multikey`）承载，并 MUST 同时被 `keyAgreement` 关系引用（它用于 encryption-to / 密钥协商）。`ArkretRealmHistoryRecoveryKey` service entry 的 `serviceEndpoint.verificationMethod` MUST 指向该 VM，`serviceEndpoint.domain` MUST 为 `mls_history`。
-- **域隔离（MUST）**：RRK MUST 独立于该主体 `did_recovery` 域的恢复钥匙（[`key-management.md` §7.1](./key-management.md)）。同一把 key MUST NOT 既作 `did_recovery` 又作 `ArkretRealmHistoryRecoveryKey`；攻破"能解 Realm 历史"MUST NOT 等于"能改该主体身份"。
+- **域隔离（MUST）**：RRK MUST 独立于该主体由 [`key-management.md` §3.3](./key-management.md) `backup_hpke_ikm` 派生的 backup-HPKE key（wire 名 `recovery_public_key`）。同一把 key MUST NOT 既作该 backup-HPKE key 又作 `ArkretRealmHistoryRecoveryKey`；攻破"能解 Realm 历史"MUST NOT 等于"能改该主体身份"。
 - **引用校验**：Realm `durability_policy.recovery_recipients[].verification_method` MUST 等于某个 `principal_id` 当前 DID Document 中、被一条 active `ArkretRealmHistoryRecoveryKey` service entry 指定的 VM；解析不到、已撤销或未被该 service entry 指定时，封存方 MUST fail closed（`durability_recovery_recipient_unverified`），MUST NOT 回退到任意 key。
 - **轮换按时点解析**:RRK 轮换进入 DID method 可验证历史；receiver 复验历史 RRK 封存的 `ak.realm_key.share` 时 MUST 按封存 Event 的 accepted-at 对该主体 DID 做按时点解析，用当时 active 的 RRK 验证，与 §4.2 / [`key-management.md` §5.0.1](./key-management.md) 的按时点解析纪律一致。
 - RRK 私钥的离线保管、门限拆分与释放走 [`key-management.md` §8](./key-management.md) recovery policy（24 词 / threshold / hardware），subject 为该 principal、域为 history-recovery。

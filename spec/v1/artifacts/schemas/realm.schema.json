@@ -300,7 +300,7 @@
         },
         "recovery_recipients": {
           "type": "array",
-          "description": "Recovery recipients (RRK holders). MUST be non-empty when mode != none. Each verification_method MUST point to a verification method designated by an active ArkretRealmHistoryRecoveryKey service entry published by principal_id, domain-separated from the principal's did_recovery key.",
+          "description": "Recovery recipients (RRK holders). MUST be non-empty when mode != none. Each verification_method MUST point to a verification method designated by an active ArkretRealmHistoryRecoveryKey service entry published by principal_id, domain-separated from the principal's backup-HPKE key (key-management.md §3.3 backup_hpke_ikm, wire name recovery_public_key).",
           "items": {
             "$ref": "#/$defs/recovery_recipient"
           },
@@ -1032,7 +1032,7 @@
         },
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url",
-          "description": "Reference to a verification method in principal_id's DID Document designated by an active ArkretRealmHistoryRecoveryKey service entry (identity/identity-did.md §8.3). The RRK HPKE public key; history-recovery domain, separate from did_recovery."
+          "description": "Reference to a verification method in principal_id's DID Document designated by an active ArkretRealmHistoryRecoveryKey service entry (identity/identity-did.md §8.3). The RRK HPKE public key; history-recovery domain, separate from the backup-HPKE key derived per key-management.md §3.3."
         },
         "controller_organization": {
           "$ref": "#/$defs/did",

@@ -15,16 +15,16 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9097,
+    "total_properties": 9092,
     "total_schema_documents": 157,
     "by_presence_class": {
-      "optional": 2758,
+      "optional": 2757,
       "optional_defaulted": 67,
-      "required": 5905,
+      "required": 5904,
       "required_nullable": 114,
-      "tristate": 253
+      "tristate": 250
     },
-    "tristate_occurrences": 253,
+    "tristate_occurrences": 250,
     "tristate_audit_targets": 157,
     "tristate_sdk_dispositions": {
       "absent_null_equivalent": 148,
@@ -137,17 +137,14 @@
     "key-backup.schema.json/allOf/2/then/properties/encryption",
     "key-backup.schema.json/allOf/3/then/properties/auth_data",
     "key-backup.schema.json/allOf/3/then/properties/auth_data/properties/signed_fields",
-    "key-backup.schema.json/allOf/4/then/properties/auth_data",
-    "key-backup.schema.json/allOf/4/then/properties/auth_data/properties/signed_fields",
     "key-backup.schema.json/allOf/4/then/properties/encryption",
-    "key-backup.schema.json/allOf/5/then/properties/encryption",
-    "key-backup.schema.json/allOf/5/then/properties/encryption/properties/kdf",
+    "key-backup.schema.json/allOf/4/then/properties/encryption/properties/kdf",
+    "key-backup.schema.json/allOf/6/then/properties/auth_data",
+    "key-backup.schema.json/allOf/6/then/properties/auth_data/properties/signed_fields",
     "key-backup.schema.json/allOf/7/then/properties/auth_data",
     "key-backup.schema.json/allOf/7/then/properties/auth_data/properties/signed_fields",
     "key-backup.schema.json/allOf/8/then/properties/auth_data",
     "key-backup.schema.json/allOf/8/then/properties/auth_data/properties/signed_fields",
-    "key-backup.schema.json/allOf/9/then/properties/auth_data",
-    "key-backup.schema.json/allOf/9/then/properties/auth_data/properties/signed_fields",
     "key-backup.schema.json/properties/encryption/allOf/0/then/properties/aead",
     "key-backup.schema.json/properties/encryption/allOf/1/then/properties/aead",
     "key-backup.schema.json/properties/encryption/allOf/2/then/properties/aead",
@@ -966,10 +963,9 @@
       "instance_path": "/auth_data",
       "occurrences": [
         "/allOf/3/then/properties/auth_data",
-        "/allOf/4/then/properties/auth_data",
+        "/allOf/6/then/properties/auth_data",
         "/allOf/7/then/properties/auth_data",
-        "/allOf/8/then/properties/auth_data",
-        "/allOf/9/then/properties/auth_data"
+        "/allOf/8/then/properties/auth_data"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -980,10 +976,9 @@
       "instance_path": "/auth_data/signed_fields",
       "occurrences": [
         "/allOf/3/then/properties/auth_data/properties/signed_fields",
-        "/allOf/4/then/properties/auth_data/properties/signed_fields",
+        "/allOf/6/then/properties/auth_data/properties/signed_fields",
         "/allOf/7/then/properties/auth_data/properties/signed_fields",
-        "/allOf/8/then/properties/auth_data/properties/signed_fields",
-        "/allOf/9/then/properties/auth_data/properties/signed_fields"
+        "/allOf/8/then/properties/auth_data/properties/signed_fields"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1026,8 +1021,7 @@
       "occurrences": [
         "/allOf/0/then/properties/encryption",
         "/allOf/2/then/properties/encryption",
-        "/allOf/4/then/properties/encryption",
-        "/allOf/5/then/properties/encryption"
+        "/allOf/4/then/properties/encryption"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1049,7 +1043,7 @@
       "shape": "#",
       "instance_path": "/encryption/kdf",
       "occurrences": [
-        "/allOf/5/then/properties/encryption/properties/kdf"
+        "/allOf/4/then/properties/encryption/properties/kdf"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -8006,30 +8000,25 @@
         "/allOf/3/if/properties/encryption/properties/recipient_method": "required",
         "/allOf/3/then/properties/auth_data": "tristate",
         "/allOf/3/then/properties/auth_data/properties/signed_fields": "tristate",
-        "/allOf/4/if/properties/backup_kind": "required",
-        "/allOf/4/then/properties/auth_data": "tristate",
-        "/allOf/4/then/properties/auth_data/properties/signed_fields": "tristate",
+        "/allOf/4/if/properties/encryption": "required_nullable",
+        "/allOf/4/if/properties/encryption/properties/recipient_method": "required",
+        "/allOf/4/if/properties/mixed_secret_storage": "required",
         "/allOf/4/then/properties/encryption": "tristate",
-        "/allOf/4/then/properties/encryption/properties/recipient_method": "optional",
-        "/allOf/5/if/properties/encryption": "required_nullable",
-        "/allOf/5/if/properties/encryption/properties/recipient_method": "required",
-        "/allOf/5/if/properties/mixed_secret_storage": "required",
-        "/allOf/5/then/properties/encryption": "tristate",
-        "/allOf/5/then/properties/encryption/properties/kdf": "tristate",
-        "/allOf/5/then/properties/encryption/properties/kdf/properties/name": "required",
-        "/allOf/5/then/properties/encryption/properties/kdf/properties/params": "required_nullable",
-        "/allOf/5/then/properties/encryption/properties/kdf/properties/params/properties/iterations": "required",
-        "/allOf/5/then/properties/encryption/properties/kdf/properties/params/properties/memory_kib": "required",
-        "/allOf/5/then/properties/encryption/properties/kdf/properties/params/properties/parallelism": "required",
+        "/allOf/4/then/properties/encryption/properties/kdf": "tristate",
+        "/allOf/4/then/properties/encryption/properties/kdf/properties/name": "required",
+        "/allOf/4/then/properties/encryption/properties/kdf/properties/params": "required_nullable",
+        "/allOf/4/then/properties/encryption/properties/kdf/properties/params/properties/iterations": "required",
+        "/allOf/4/then/properties/encryption/properties/kdf/properties/params/properties/memory_kib": "required",
+        "/allOf/4/then/properties/encryption/properties/kdf/properties/params/properties/parallelism": "required",
+        "/allOf/5/if/properties/series_seq": "required",
         "/allOf/6/if/properties/series_seq": "required",
-        "/allOf/7/if/properties/series_seq": "required",
+        "/allOf/6/then/properties/auth_data": "tristate",
+        "/allOf/6/then/properties/auth_data/properties/signed_fields": "tristate",
+        "/allOf/6/then/properties/supersedes": "required",
         "/allOf/7/then/properties/auth_data": "tristate",
         "/allOf/7/then/properties/auth_data/properties/signed_fields": "tristate",
-        "/allOf/7/then/properties/supersedes": "required",
         "/allOf/8/then/properties/auth_data": "tristate",
         "/allOf/8/then/properties/auth_data/properties/signed_fields": "tristate",
-        "/allOf/9/then/properties/auth_data": "tristate",
-        "/allOf/9/then/properties/auth_data/properties/signed_fields": "tristate",
         "/properties/actor_id": "required",
         "/properties/auth_data": "required",
         "/properties/auth_data/properties/device_authorize_event_id": "required",

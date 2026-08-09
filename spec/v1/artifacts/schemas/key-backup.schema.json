@@ -33,7 +33,6 @@
     "backup_kind": {
       "type": "string",
       "enum": [
-        "did_recovery",
         "secret_storage",
         "mls_history"
       ]
@@ -97,7 +96,7 @@
     },
     "recovery_policy_ref": {
       "type": "object",
-      "description": "Required for backup_kind=did_recovery and optional as a signed recovery-strand hint for other backup classes. Binds the backup envelope to the active recovery policy version under which it was produced. Receivers MUST compare this tuple to the currently accepted recovery policy before using a did_recovery envelope; when present on other classes, mismatch fails as recovery_policy_mismatch but the field does not replace active-series, frontier, Realm/MLS authorization, or device-state checks. This is intentionally separate from frontier_ref: it binds the recovery authorization surface, not only the device trust generation or control-stream position.",
+      "description": "Required whenever encryption.recipient_method is recovery_public_key, and optional as a signed recovery-strand hint otherwise. Binds the backup envelope to the active recovery policy version under which it was produced. Receivers MUST compare this tuple to the currently accepted recovery policy before using such an envelope; mismatch fails as recovery_policy_mismatch, but the field does not replace active-series, frontier, Realm/MLS authorization, or device-state checks. This is intentionally separate from frontier_ref: it binds the recovery authorization surface, not only the device trust generation or control-stream position.",
       "required": [
         "policy_id",
         "policy_version"
@@ -431,7 +430,7 @@
       "properties": {
         "hkdf_info": {
           "type": "string",
-          "pattern": "^arkret-key-backup/(did_recovery|secret_storage|mls_history)/[a-z][a-z0-9_]{0,63}/v1$"
+          "pattern": "^arkret-key-backup/(secret_storage|mls_history)/[a-z][a-z0-9_]{0,63}/v1$"
         },
         "subdomain": {
           "type": "string",
@@ -466,7 +465,6 @@
             "backup_kind": {
               "type": "string",
               "enum": [
-                "did_recovery",
                 "secret_storage",
                 "mls_history"
               ]
@@ -900,48 +898,6 @@
         }
       },
       "description": "Every recovery_public_key envelope is bound to one accepted recovery-policy version. The recipient_key_ref resolves only within that policy's recovery_key_agreements array, and recovery_policy_ref is signed even when backup_kind is secret_storage or mls_history."
-    },
-    {
-      "if": {
-        "properties": {
-          "backup_kind": {
-            "const": "did_recovery"
-          }
-        },
-        "required": [
-          "backup_kind"
-        ]
-      },
-      "then": {
-        "required": [
-          "recovery_policy_ref"
-        ],
-        "properties": {
-          "encryption": {
-            "properties": {
-              "recipient_method": {
-                "enum": [
-                  "recovery_public_key"
-                ]
-              }
-            }
-          },
-          "auth_data": {
-            "properties": {
-              "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "recovery_policy_ref"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        },
-        "description": "did_recovery backups MUST use recovery_public_key (key-management.md §5.0.4 recovery-material gate), MUST carry recovery_policy_ref matching the active recovery policy, and MUST cover that field in auth_data.signed_fields. passphrase_kdf and secret_storage_key are forbidden for did_recovery; threshold_recovery and hardware_wrapped_key are recovery policy / proof-layer factors, not key-backup recipient methods."
-      }
     },
     {
       "if": {
