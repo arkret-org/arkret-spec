@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-09.6",
+  "version": "2026-08-09.7",
   "codes": [
     {
       "code": "bad_json",
@@ -3141,6 +3141,14 @@
         "service_call"
       ],
       "description": "The identity-binding challenge was already consumed and the request is not a byte-identical replay whose canonical request digest matches the stored successful outcome. The Account Authority MUST reject it before any state transition; an exact replay returns the recorded outcome instead of this code."
+    },
+    {
+      "code": "identity_creation_already_accepted",
+      "applies_to": [
+        "identity_creation",
+        "service_call"
+      ],
+      "description": "The Principal Control Realm for the provisional identity was accepted between abandonment-challenge issuance and the abandonment confirmation, so the identity now exists and MUST NOT be abandoned. The Account Authority decides this from the did_version_id and identity-creation lease fence pinned by the challenge, MUST return this stable terminal outcome with zero writes, and MUST NOT record an orphan anchor tombstone, suppress the checkpoint or release the lease. Removing an established identity is the account deletion / erasure path, not provisional-identity abandonment. See zh/identity/key-management.md §5.0.2."
     },
     {
       "code": "account_binding_principal_mismatch",

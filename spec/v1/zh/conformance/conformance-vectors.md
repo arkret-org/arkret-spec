@@ -3668,6 +3668,34 @@ Expected：
 - 第 3 步依次为 `identity_creation_challenge_expired`、`identity_creation_challenge_already_consumed`、返回原 recorded outcome。
 - 第 4 步在 root 签名前或 identity adoption 前 fail closed；客户端不得用服务端返回值覆盖本地 frozen root。
 
+### 10.9.0.2 Vector: Provisional Identity Explicit Abandonment
+
+`vector_id`: `ak.vector.identity.provisional_identity_abandonment.v1`
+
+Steps：
+
+1. PCR 未 accepted 且 identity root 已丢失。以当前 lease holder 的 handoff grant 调用
+   `ak.gate.account.command.issue_identity_abandonment_challenge`，再以**另一份新鲜** handoff grant 调用
+   `ak.gate.account.command.abandon_identity_creation` 完成放弃。
+2. 不取 challenge，直接调用确认；以及取到 challenge 后复用签发它的那份 handoff grant 再确认。
+3. challenge 已签发、尚未确认时让该 PCR 被 accepted，然后提交确认。
+4. 成功放弃后重新取 handoff，读取该账号所有 holder 可读面上的 `reserved_identity_creation`。
+5. 以同一 `request_id` 与同一 canonical bytes 重放确认；并分别提交 expired-unconsumed challenge
+   与 consumed + different canonical digest。
+
+Expected：
+
+- 第 1 步一个事务内消费 challenge、写 orphan anchor tombstone/audit reservation、抑制 checkpoint 并释放 lease；
+  `status=abandoned`，任一步失败则零写入。
+- 第 2 步全部拒绝：省略 `challenge_id` / `challenge` 是 `schema_violation`，未签发过的 challenge 与复用的
+  handoff grant 分别是 `failed_precondition` 与 `proof_invalid`，三者均零写入。
+- 第 3 步以 `identity_creation_already_accepted` 稳定终态失败，**未执行放弃**，不写 tombstone、不抑制 checkpoint、
+  不释放 lease；判定依据是 challenge 钉死的 `did_version_id` 与 lease fence。
+- 第 4 步在**所有** holder 可读面都读不到 `reserved_identity_creation`（含
+  `identity_creation_lease.reserved_identity`）；这是安全性质，不是清理策略。
+- 第 5 步重放返回同一终态且**只有一条** tombstone；expired 与 consumed 分别返回
+  `identity_creation_challenge_expired` 与 `identity_creation_challenge_already_consumed`。
+
 ### 10.9.1 Vector: Device Revocation Seal Binding
 
 `vector_id`: `ak.vector.device.revocation_seal_binding.v1`

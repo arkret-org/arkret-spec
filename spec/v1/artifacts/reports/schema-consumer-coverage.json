@@ -204,7 +204,9 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
+          "ak.gate.account.command.abandon_identity_creation",
           "ak.gate.account.command.issue_did_binding_challenge",
+          "ak.gate.account.command.issue_identity_abandonment_challenge",
           "ak.gate.account.command.issue_identity_binding_challenge",
           "ak.gate.account.command.register",
           "ak.gate.account.command.revoke_session",

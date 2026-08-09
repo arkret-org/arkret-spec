@@ -1573,6 +1573,14 @@ components:
       additionalProperties: false
     HandleClaim:
       $ref: ../schemas/handle-claim.schema.json
+    IdentityAbandonmentChallengeOutcome:
+      $ref: ../schemas/account-operations.schema.json#/$defs/identity_abandonment_challenge_outcome
+    IdentityAbandonmentChallengeRequestBody:
+      $ref: ../schemas/account-operations.schema.json#/$defs/identity_abandonment_challenge_request_body
+    IdentityAbandonmentOutcome:
+      $ref: ../schemas/account-operations.schema.json#/$defs/identity_abandonment_outcome
+    IdentityAbandonmentRequestBody:
+      $ref: ../schemas/account-operations.schema.json#/$defs/identity_abandonment_request_body
     IdentityBindingChallengeOutcome:
       $ref: ../schemas/account-operations.schema.json#/$defs/identity_binding_challenge_outcome
     IdentityBindingChallengeRequestBody:
@@ -4150,7 +4158,9 @@ paths:
         signature authenticates transport and correlation only. The Principal
         Server independently verifies the identity-root creation transcript,
         ordered root-signed realm create, founding-device possession signature,
-        deterministic PCR id, create-once fence and all payload commitments.
+        event-derived PCR id, account-dimension create-once fence and all
+        payload commitments. The PCR id is retype(create.event_id); it is never
+        derived from the principal DID or subject and is never server-chosen.
         It accepts both Events or neither and returns a durable batch receipt
         whose scope.kind is pcr_genesis_unit. Exact retries return that receipt;
         a conflicting genesis for an existing PCR performs zero writes.
@@ -4176,7 +4186,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PcrGenesisSubmitOutcome'
         '409':
-          description: The deterministic PCR already has a different authoritative genesis.
+          description: The account already has a different authoritative PCR genesis. Event-derived ids never collide across two genesis attempts, so this uniqueness is enforced at the account dimension rather than by realm_id equality.
           content:
             application/json:
               schema:
@@ -8711,6 +8721,99 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DidBindingChallengeRequestBody'
+  /_arkret/gate/account/identity-abandonment-challenges:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ak.gate.account.command.issue_identity_abandonment_challenge
+      security:
+      - accountHandoffAuth: []
+        dpopProof: []
+      x-arkret-auth:
+        public_metadata: false
+        holder_bound_authorization: true
+        notes: Authorization is `DPoP <account_handoff_grant>` and MUST match the DPoP header key, current lease holder, and lease fence. The PCR was never accepted, so the holder has no principal and no principal-bound ak.session.grant can exist.
+      summary: Issue a challenge that makes abandoning a provisional identity explicit.
+      description: |
+        Issues a server-generated single-use challenge for giving up a
+        provisional identity whose Principal Control Realm was never accepted
+        and whose identity root is lost. The Account Authority requires the
+        supplied principal_id and did_version_id to equal the
+        holder-authenticated reserved_identity_creation checkpoint, and MUST
+        refuse once that PCR is accepted.
+
+        The challenge binds the authenticated service account, handoff holder
+        key, lease and fence, the abandoned principal and DID entry, the closed
+        consequence disclosure, audience, origin, trust domain, purpose, and an
+        expiry no more than 300 seconds out. Challenge state is durable shared
+        state; expiry and prior consumption are distinct terminal states.
+
+        This operation abandons nothing on its own. Ordinary login, session
+        resume, lease fence advance and any other automated flow never fetch a
+        challenge, which is what makes the abandonment structurally explicit.
+      responses:
+        '200':
+          description: Persisted identity-abandonment challenge transcript.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityAbandonmentChallengeOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdentityAbandonmentChallengeRequestBody'
+  /_arkret/gate/account/identity-abandonments:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ak.gate.account.command.abandon_identity_creation
+      security:
+      - accountHandoffAuth: []
+        dpopProof: []
+      x-arkret-auth:
+        public_metadata: false
+        holder_bound_authorization: true
+        notes: Authorization is `DPoP <account_handoff_grant>` and MUST match the DPoP header key. The presented handoff MUST be a fresh one and MUST NOT be the grant presented when the challenge was issued; the authentication strength behind it is deployment governance.
+      summary: Explicitly abandon a provisional identity whose PCR was never accepted.
+      description: |
+        Consumes the abandonment challenge and performs the abandonment in one
+        transaction: record the orphan-anchor tombstone / audit reservation,
+        suppress the reserved_identity_creation checkpoint on every
+        holder-readable surface, and release the identity-creation lease. Any
+        step failing means zero writes.
+
+        If the PCR was accepted between challenge issuance and confirmation the
+        request fails with identity_creation_already_accepted and abandons
+        nothing: an established identity is removed through account deletion,
+        not through provisional-identity abandonment.
+
+        Replaying the same request_id returns the recorded terminal outcome and
+        never produces a second tombstone. The abandoned entry 0 remains a
+        permanently unusable orphan anchor that cannot be deactivated; whether
+        it is annotated on a discovery surface, when its handle and namespace
+        are released and how long the reservation is retained are deployment
+        governance.
+      responses:
+        '200':
+          description: Recorded terminal outcome of the explicit abandonment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityAbandonmentOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdentityAbandonmentRequestBody'
   /_arkret/gate/account/register:
     servers:
     - url: https://{host}

@@ -405,7 +405,8 @@
           "description": "Lease expiry. Issued lifetime MUST be no greater than 15 minutes; 15 minutes is also the v1 default."
         },
         "reserved_identity": {
-          "$ref": "#/$defs/reserved_identity_creation"
+          "$ref": "#/$defs/reserved_identity_creation",
+          "description": "Holder-authenticated identity-creation checkpoint carried while a reservation exists. It MUST be omitted once the provisional identity has been explicitly abandoned through ak.gate.account.command.abandon_identity_creation: after abandonment the checkpoint MUST NOT remain readable on this or any other holder-readable surface, because leaving it would keep publishing that some account once tried to create an identity. That is a security property, not a cleanup policy."
         }
       },
       "additionalProperties": false
@@ -526,10 +527,13 @@
         "allowed_operations": {
           "const": [
             "ak.gate.account.command.issue_identity_binding_challenge",
+            "ak.gate.account.command.issue_identity_abandonment_challenge",
+            "ak.gate.account.command.abandon_identity_creation",
             "ak.gate.account.command.register",
             "ak.gate.account.command.issue_session_grant",
             "ak.gate.account.command.issue_recovery_completion_grant"
-          ]
+          ],
+          "description": "Closed set of operations this handoff may be presented at. The two abandonment operations are members because a never-accepted PCR leaves the holder without a principal, so no principal-bound ak.session.grant can carry them; membership here does not widen the handoff into a session credential."
         },
         "binding": {
           "$ref": "#/$defs/account_handoff_binding"
@@ -1729,6 +1733,200 @@
         "expires_at": {
           "$ref": "#/$defs/timestamp",
           "description": "Issued lifetime MUST be no greater than 300 seconds."
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_abandonment_challenge_request_body": {
+      "type": "object",
+      "description": "Request the single-use challenge that makes abandoning a provisional identity explicit. It applies only while the Principal Control Realm was never accepted and the identity root is lost, so the caller can sign nothing and the account handoff grant is the only available credential. principal_id and did_version_id pin exactly which reservation is being given up.",
+      "required": [
+        "request_id",
+        "identity_creation_lease_id",
+        "lease_fence",
+        "principal_id",
+        "did_version_id"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "identity_creation_lease_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
+        "lease_fence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did",
+          "description": "Provisional principal recorded in the holder-authenticated reserved_identity_creation checkpoint. The Account Authority MUST reject any other value and MUST NOT issue a challenge for a principal whose PCR is already accepted."
+        },
+        "did_version_id": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "versionId of the published entry 0 that becomes the orphan anchor. Pinning it lets the confirmation detect a PCR acceptance that landed after the challenge was issued instead of abandoning a live identity."
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_abandonment_consequence_disclosure": {
+      "type": "array",
+      "description": "Closed ordered set of consequences the client MUST present before it may submit the confirmation. The protocol fixes which consequences must be disclosed; the localized wording is deployment-owned. This list is not a self-asserted acknowledgement receipt, which would be forgeable; the anti-automation property comes from the challenge itself, which no login, session resume, lease fence advance or other automated flow ever fetches.",
+      "const": [
+        "orphan_anchor_permanently_unusable",
+        "orphan_anchor_cannot_be_deactivated",
+        "no_continuable_state_on_the_orphan_anchor",
+        "a_new_identity_root_did_and_pcr_must_be_created"
+      ]
+    },
+    "identity_abandonment_challenge_outcome": {
+      "type": "object",
+      "description": "Persisted, single-use server challenge for provisional identity abandonment. It is the evidence that the abandonment was an explicit user action: the identity root is lost, so the holder cannot sign a confirmation. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states.",
+      "required": [
+        "request_id",
+        "challenge_id",
+        "challenge",
+        "purpose",
+        "account_subject",
+        "principal_id",
+        "did_version_id",
+        "identity_creation_lease_id",
+        "lease_fence",
+        "consequence_disclosure",
+        "dpop_jkt",
+        "audience",
+        "origin",
+        "trust_domain",
+        "issued_at",
+        "expires_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "challenge_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
+        "challenge": {
+          "type": "string",
+          "minLength": 22
+        },
+        "purpose": {
+          "const": "provisional_identity_abandonment"
+        },
+        "account_subject": {
+          "$ref": "#/$defs/account_subject"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "did_version_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "identity_creation_lease_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
+        "lease_fence": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Identity-creation lease fence at issuance. The confirmation MUST be rejected when the current fence differs, so a concurrent holder cannot have its reservation abandoned underneath it."
+        },
+        "consequence_disclosure": {
+          "$ref": "#/$defs/identity_abandonment_consequence_disclosure"
+        },
+        "dpop_jkt": {
+          "$ref": "#/$defs/dpop_jkt"
+        },
+        "audience": {
+          "$ref": "#/$defs/did"
+        },
+        "origin": {
+          "type": "string",
+          "format": "uri"
+        },
+        "trust_domain": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "MUST be at most 300 seconds after issued_at."
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_abandonment_request_body": {
+      "type": "object",
+      "description": "Confirm the explicit abandonment of a provisional identity. It MUST present a fresh account handoff grant and MUST NOT reuse the grant presented when the challenge was issued; how strong the authentication behind that fresh handoff is, which risk checks run and how long any cooldown lasts are deployment governance and are deliberately not specified here.",
+      "required": [
+        "request_id",
+        "challenge_id",
+        "challenge",
+        "identity_creation_lease_id",
+        "lease_fence",
+        "principal_id",
+        "did_version_id"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/request_id",
+          "description": "Idempotency identity of the abandonment. Replaying it returns the recorded terminal outcome and MUST NOT produce a second orphan-anchor tombstone."
+        },
+        "challenge_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
+        "challenge": {
+          "type": "string",
+          "minLength": 22
+        },
+        "identity_creation_lease_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
+        "lease_fence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "did_version_id": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_abandonment_outcome": {
+      "type": "object",
+      "description": "Recorded terminal outcome of an explicit abandonment. One transaction consumed the challenge, recorded the orphan-anchor tombstone / audit reservation, suppressed the reserved_identity_creation checkpoint on every holder-readable surface and released the identity-creation lease. There is exactly one success terminal; every other terminal is an error reply. Whether the orphan anchor is annotated on a discovery surface, when its handle and namespace are released and how long the reservation is retained are deployment governance and are not carried here.",
+      "required": [
+        "request_id",
+        "status",
+        "account_subject",
+        "principal_id",
+        "did_version_id",
+        "abandoned_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "status": {
+          "const": "abandoned"
+        },
+        "account_subject": {
+          "$ref": "#/$defs/account_subject"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did",
+          "description": "The abandoned provisional principal. Its published entry 0 is now a permanently unusable orphan anchor: it MUST NOT be reused and continuity MUST NOT be claimed over it."
+        },
+        "did_version_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "abandoned_at": {
+          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false

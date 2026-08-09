@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.21",
+  "version": "2026-08-09.23",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T10:00:00Z",
+  "generated_at": "2026-08-10T12:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1088,6 +1088,118 @@
           "trust_domain",
           "issued_at",
           "expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.gate.account.command.issue_identity_abandonment_challenge",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_challenge_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "identity_creation_lease_id",
+          "lease_fence",
+          "principal_id",
+          "did_version_id"
+        ],
+        "properties": [
+          "request_id",
+          "identity_creation_lease_id",
+          "lease_fence",
+          "principal_id",
+          "did_version_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_challenge_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "challenge_id",
+          "challenge",
+          "purpose",
+          "account_subject",
+          "principal_id",
+          "did_version_id",
+          "identity_creation_lease_id",
+          "lease_fence",
+          "consequence_disclosure",
+          "dpop_jkt",
+          "audience",
+          "origin",
+          "trust_domain",
+          "issued_at",
+          "expires_at"
+        ],
+        "properties": [
+          "request_id",
+          "challenge_id",
+          "challenge",
+          "purpose",
+          "account_subject",
+          "principal_id",
+          "did_version_id",
+          "identity_creation_lease_id",
+          "lease_fence",
+          "consequence_disclosure",
+          "dpop_jkt",
+          "audience",
+          "origin",
+          "trust_domain",
+          "issued_at",
+          "expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.gate.account.command.abandon_identity_creation",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "challenge_id",
+          "challenge",
+          "identity_creation_lease_id",
+          "lease_fence",
+          "principal_id",
+          "did_version_id"
+        ],
+        "properties": [
+          "request_id",
+          "challenge_id",
+          "challenge",
+          "identity_creation_lease_id",
+          "lease_fence",
+          "principal_id",
+          "did_version_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "status",
+          "account_subject",
+          "principal_id",
+          "did_version_id",
+          "abandoned_at"
+        ],
+        "properties": [
+          "request_id",
+          "status",
+          "account_subject",
+          "principal_id",
+          "did_version_id",
+          "abandoned_at"
         ],
         "closed": true
       }

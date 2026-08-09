@@ -440,9 +440,38 @@ reserved -> did_published -> pcr_accepted -> account_bound -> completed
 
 #### 5.0.2 注册中设备丢失（normative）
 
-PCR accepted 前，账号只有 provisional reservation。新设备通过同一账号强认证并持有同一 identity root 时，可以取得递增 lease fence，继承 principal/DID reservation，以新 device descriptor 重签 fresh transcript 并 exact resume。两个 unit 并发时 deterministic PCR create-once 只允许一个 winner；若旧设备 unit 已先 accepted，新设备必须改走 §5.0.3 re-anchor。
+PCR accepted 前，账号只有 provisional reservation。新设备通过同一账号强认证并持有同一 identity root 时，可以取得递增 lease fence，继承 principal/DID reservation，以新 device descriptor 重签 fresh transcript 并 exact resume。两个 unit 并发时**账号维度**的 PCR create-once 只允许一个 winner（event-derived 下两次 genesis 的 `realm_id` 必然不同，实现 MUST NOT 依赖 id 碰撞发现并发，见 [`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)）；若旧设备 unit 已先 accepted，新设备必须改走 §5.0.3 re-anchor。
 
 PCR 尚未 accepted 且 identity root 也丢失时，可以显式放弃 provisional identity，以全新 root/DID/PCR 开始。放弃 provisional identity MUST 是显式用户动作，MUST NOT 由普通账号登录、session 恢复、lease fence 递增或任何自动流程触发；MUST 在执行前向用户明示后果——旧 entry 0 将永久不可用且**无法注销**，其上不存在可延续的业务状态。重认证强度、风险检查项与冷却期时长属**部署治理**，实现 SHOULD 施加与账号敏感操作同级的重认证与冷却，具体由部署自定，本规范不规定也不强制。放弃后：已发布 entry 0 作为 orphan anchor，不得复用或声称连续性，registry 必须保留 tombstone/audit reservation。
+
+**执行放弃的唯一 operation 对（normative）**：显式放弃由封闭的两步 operation 承载，
+`ak.gate.account.command.issue_identity_abandonment_challenge` 取 challenge，
+`ak.gate.account.command.abandon_identity_creation` 确认；形状对位既有的
+`issue_identity_binding_challenge` + `register`。实现 MUST NOT 另造 abandon 入口，也 MUST NOT
+用 lease expiry、fence takeover 或垃圾回收模拟显式放弃。
+
+- **凭据被逼定**：PCR 从未被 accepted ⇒ 用户没有 principal ⇒ 不存在绑定 principal 的 `ak.session.grant`。
+  两个 operation 因此都只能由 account handoff grant 授权，并已加入
+  `ak.gate.account.exchange.create_handoff` 的封闭 operation 白名单。
+- **"显式"由 challenge 结构保证**：根已丢失，用户签不了确认书，客户端自报的"我已阅读"可伪造。
+  challenge 单次使用、≤300 秒、保存在 shared durable state（不是进程内存），并钉死 `account_subject`、
+  holder `cnf.jkt`、本次要放弃的 `principal_id` 与 `did_version_id`、当前 lease id 与 fence、必须向用户
+  展示的封闭后果集合 `consequence_disclosure`、audience、origin、trust domain、purpose 与 expiry；
+  重复同一 `request_id` 返回同一未消费 challenge，expiry 与已消费是不同终态。上一段"MUST NOT 由
+  登录 / session 恢复 / fence 递增 / 任何自动流程触发"正落在这里：自动流程不会先取 challenge，
+  因此结构上做不到。
+- **确认必须新鲜**：确认调用 MUST 出示一份新鲜的 handoff grant，MUST NOT 复用签发 challenge 时那一份。
+  "要不要重认证"是协议保证；**重认证强度、风险检查项与冷却期时长仍属部署治理，本规范不规定**。
+- **并发**：challenge 签发与确认之间 PCR 被 accepted 时，确认 MUST 以 `identity_creation_already_accepted`
+  失败且 MUST NOT 执行放弃——身份既已成立，该走的是账号删除流程。判定依据是 challenge 钉死的
+  `did_version_id` 与 lease fence，不是本地推断。
+- **原子边界**：消费 challenge、写 orphan anchor tombstone/audit reservation、从**所有** holder 可读面
+  抑制 `reserved_identity_creation` checkpoint、释放 identity-creation lease，MUST 在一个事务内完成，
+  任一步失败零写入。同 `request_id` 重放 MUST 返回同一终态，MUST NOT 产生第二条 tombstone。
+
+放弃后该 reservation 的 `reserved_identity_creation` checkpoint **MUST NOT** 继续作为"某账号曾尝试创建身份"
+的可读痕迹对外提供——包括后续 handoff 的 `identity_creation_lease.reserved_identity`——只保留 tombstone/audit
+所需的最小记录。这是安全性质，不是清理策略。
 
 **orphan anchor 的后续处置属部署治理，不由本规范定义（normative 边界）**：该 entry 0 的 root 已丢失，
 而 did:webvh 的 deactivation 需要 controller 签名，因此它**永久不可注销且公开可解析**。

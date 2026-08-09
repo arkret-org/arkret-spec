@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.10",
+  "version": "2026-08-09.11",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T10:00:00Z",
+  "generated_at": "2026-08-10T13:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3260,6 +3260,19 @@
         "pcr-genesis-fixture.json"
       ],
       "description": "Root-committed FoundingDeviceDescriptor, device possession, one-way authorize payload digest binding, ordered atomic create-once PCR genesis unit, extended identity creation transcript, exact replay and mutation rejection.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.provisional_identity_abandonment.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "pcr-genesis-fixture.json"
+      ],
+      "description": "Explicit abandonment of a provisional identity whose PCR was never accepted is a two-step account handoff challenge plus confirmation: a confirmation without a challenge or reusing the challenge-issuing handoff is rejected with zero writes, a PCR accepted between issuance and confirmation fails with the stable identity_creation_already_accepted terminal and abandons nothing, the successful path commits challenge consumption, orphan-anchor tombstone, checkpoint suppression and lease release in one transaction, the reserved_identity_creation checkpoint is afterwards unreadable on every holder-readable surface, and replaying the same request_id returns the same terminal outcome with exactly one tombstone.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

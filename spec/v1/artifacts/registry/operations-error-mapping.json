@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-10.1",
+  "version": "2026-08-10.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T02:00:00Z",
+  "generated_at": "2026-08-10T11:00:00Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -251,6 +251,32 @@
         "unsupported_did_method"
       ],
       "description": "Resolves an already-published DID and issues a durable single-use control challenge. proof_invalid covers handoff/DPoP holder mismatch; failed_precondition covers rate limiting and DID state that cannot be resolved at the required freshness tier; duplicate_conflict covers the same request_id with different canonical intent; did_not_found and unsupported_did_method cover resolution outcomes that MUST fail closed rather than fall back to caller-supplied history."
+    },
+    {
+      "operation_id": "ak.gate.account.command.issue_identity_abandonment_challenge",
+      "http_alias": "POST /_arkret/gate/account/identity-abandonment-challenges",
+      "operation_specific": [
+        "proof_invalid",
+        "failed_precondition",
+        "duplicate_conflict",
+        "identity_creation_lease_fenced",
+        "identity_creation_already_accepted"
+      ],
+      "description": "Issues the durable single-use challenge that makes abandoning a provisional identity explicit. proof_invalid covers handoff/DPoP holder mismatch; failed_precondition covers a principal_id or did_version_id that is not the holder-authenticated reserved_identity_creation checkpoint; identity_creation_lease_fenced covers a stale or non-holder lease/fence; duplicate_conflict covers the same request_id with different canonical intent; identity_creation_already_accepted covers a PCR that is already accepted, for which no abandonment challenge may be issued."
+    },
+    {
+      "operation_id": "ak.gate.account.command.abandon_identity_creation",
+      "http_alias": "POST /_arkret/gate/account/identity-abandonments",
+      "operation_specific": [
+        "proof_invalid",
+        "failed_precondition",
+        "duplicate_conflict",
+        "identity_creation_lease_fenced",
+        "identity_creation_challenge_expired",
+        "identity_creation_challenge_already_consumed",
+        "identity_creation_already_accepted"
+      ],
+      "description": "Consumes the abandonment challenge and performs the abandonment in one transaction. proof_invalid covers handoff/DPoP holder mismatch and a handoff replayed from the challenge-issuing call; failed_precondition covers an unknown challenge, a challenge bound to another account, holder, lease or principal, and a confirmation that pins a different principal_id or did_version_id; the two identity_creation_challenge_* codes keep expiry and prior consumption distinct, while an exact replay of the same request_id returns the recorded outcome instead of an error; identity_creation_already_accepted is the stable terminal for a PCR accepted after the challenge was issued and never abandons anything."
     },
     {
       "operation_id": "ak.gate.account.command.issue_session_grant",

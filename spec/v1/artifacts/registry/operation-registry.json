@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.18",
+  "version": "2026-08-09.20",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T10:00:00Z",
+  "generated_at": "2026-08-10T12:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -432,6 +432,8 @@
         "ak.gate.account.exchange.create_handoff",
         "ak.gate.account.command.issue_identity_binding_challenge",
         "ak.gate.account.command.issue_did_binding_challenge",
+        "ak.gate.account.command.issue_identity_abandonment_challenge",
+        "ak.gate.account.command.abandon_identity_creation",
         "ak.gate.account.command.register",
         "ak.gate.account.command.pair_device",
         "ak.gate.account.command.issue_session_grant",
@@ -892,6 +894,38 @@
       }
     },
     {
+      "operation_id": "ak.gate.account.command.issue_identity_abandonment_challenge",
+      "http_only_variant": true,
+      "http": "POST /_arkret/gate/account/identity-abandonment-challenges",
+      "notes": "Issue a single-use challenge that authorizes explicitly abandoning a provisional identity whose PCR was never accepted (zh/identity/key-management.md §5.0.2). Authenticated by Authorization: DPoP <account_handoff_grant> plus a matching DPoP header, and by nothing else: the PCR was never accepted, so the holder has no principal and therefore no principal-bound ak.session.grant. The Account Authority verifies the current lease holder and fence, requires principal_id and did_version_id to equal the holder-authenticated reserved_identity_creation checkpoint, and MUST refuse to issue a challenge once that PCR is accepted. The <=300s single-use challenge is bound to account_subject, holder cnf.jkt, the abandoned principal_id, did_version_id, lease id and fence, the closed consequence disclosure, audience, origin, trust domain, purpose and expiry. Repeating the same request_id returns the same unconsumed challenge. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states. This operation abandons nothing by itself and MUST NOT be reachable from ordinary login, session resume, lease fence advance or any automated flow.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "request_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_challenge_request_body",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_challenge_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "persists_only_a_service_local_single_use_challenge_no_event_is_authored"
+      }
+    },
+    {
+      "operation_id": "ak.gate.account.command.abandon_identity_creation",
+      "http_only_variant": true,
+      "http": "POST /_arkret/gate/account/identity-abandonments",
+      "notes": "Consume an identity-abandonment challenge and explicitly abandon the provisional identity. Authenticated by Authorization: DPoP <account_handoff_grant> plus a matching DPoP header; the presented handoff MUST be a fresh one and MUST NOT be the grant that was presented when the challenge was issued. Whether that fresh handoff required re-authentication, which risk checks ran and how long any cooldown lasts are deployment governance and are deliberately not specified. One transaction consumes the challenge, records the orphan anchor tombstone / audit reservation, suppresses the reserved_identity_creation checkpoint on every holder-readable surface and releases the identity-creation lease; any step failing means zero writes. If the PCR was accepted between issuance and confirmation the request MUST fail with identity_creation_already_accepted and MUST NOT abandon anything, because removing an established identity is the account deletion path. Replaying the same request_id returns the same terminal outcome and MUST NOT produce a second tombstone. The abandoned entry 0 stays a permanently unusable orphan anchor; its later handling is deployment governance.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "request_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_request_body",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "records_only_a_service_local_orphan_anchor_tombstone_audit_reservation_and_releases_the_identity_creation_lease_no_event_is_authored"
+      }
+    },
+    {
       "operation_id": "ak.gate.account.command.issue_session_grant",
       "http": "POST /_arkret/gate/account/session-grants",
       "grpc": "GateAccount/IssueSessionGrant",
@@ -1126,7 +1160,7 @@
       "operation_id": "ak.gate.account.exchange.create_handoff",
       "http_only_variant": true,
       "http": "POST /_arkret/gate/account/authentication-handoffs",
-      "notes": "Account Authority exchanges an OIDC authorization code for an opaque, short-lived account_handoff_grant bound to the request DPoP key and returns the deployment-local stable account_subject. The handoff is not ak.session.grant, has no refresh-token semantics, and its closed operation allowlist is issue_identity_binding_challenge, register, issue_session_grant, and issue_recovery_completion_grant. It returns bound, identity_creation_active, or identity_creation_busy state and atomically acquires, renews, or fences a rate-limited identity-creation lease for the authenticated service account. Busy includes the conflicting live lease expires_at without holder identity. Repeating the same request_id returns the same live outcome. A different holder cannot take an unexpired lease; after expiry, a newly authenticated holder may fence it and must preserve all frozen checkpoints.",
+      "notes": "Account Authority exchanges an OIDC authorization code for an opaque, short-lived account_handoff_grant bound to the request DPoP key and returns the deployment-local stable account_subject. The handoff is not ak.session.grant, has no refresh-token semantics, and its closed operation allowlist is issue_identity_binding_challenge, issue_identity_abandonment_challenge, abandon_identity_creation, register, issue_session_grant, and issue_recovery_completion_grant. The two abandonment operations are on that list because a never-accepted PCR leaves the holder without a principal, so no principal-bound ak.session.grant can exist to carry them. It returns bound, identity_creation_active, or identity_creation_busy state and atomically acquires, renews, or fences a rate-limited identity-creation lease for the authenticated service account. Busy includes the conflicting live lease expires_at without holder identity. Repeating the same request_id returns the same live outcome. A different holder cannot take an unexpired lease; after expiry, a newly authenticated holder may fence it and must preserve all frozen checkpoints.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "request_id",
@@ -1619,7 +1653,7 @@
       "http": "POST /_arkret/peer/principal-genesis",
       "grpc": "PeerPrincipalGenesis/Submit",
       "mq": "peer.principal_genesis.command.submit",
-      "notes": "Account Authority transparently relays the exact client-signed PCR genesis unit after authenticating the service account and freezing the account/principal reservation. The outer service signature is transport authentication only. Principal admission independently validates the DID inception root, identity_creation_control_proof, deterministic PCR id, empty frontier, ordered root-signed create plus founding-device-signed authorize, single-direction payload digest binding, lease fence and expiry. Acceptance is create-once and atomic; exact replay returns the original pcr_genesis_unit receipt and a conflicting unit performs zero writes.",
+      "notes": "Account Authority transparently relays the exact client-signed PCR genesis unit after authenticating the service account and freezing the account/principal reservation. The outer service signature is transport authentication only. Principal admission independently validates the DID inception root, identity_creation_control_proof, the event-derived PCR id retype(create.event_id) which is never derived from the principal DID or subject and is never server-chosen, empty frontier, ordered root-signed create plus founding-device-signed authorize, single-direction payload digest binding, lease fence and expiry. Acceptance is atomic and create-once at the account dimension: two genesis attempts produce two different realm_id values, so implementations MUST NOT detect concurrency by id equality. Exact replay returns the original pcr_genesis_unit receipt and a conflicting unit performs zero writes.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",

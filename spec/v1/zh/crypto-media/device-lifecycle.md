@@ -247,7 +247,7 @@ Arkret v1 只有一个 principal device model：DID 是 identity-root key log；
 1. `ak.realm.create`：由 DID entry 0 的 active identity root 签名；`realm_genesis.fields.purpose` 必须是 `principal_control`，并携带 `FoundingDeviceDescriptor`。
 2. `ak.device.authorize`：由 descriptor 中 `device_public_key` 对 possession transcript 和 Event proof 各自签名；`authorization_binding_kind="root_anchored"`；`prev_refs` 只能含第一条 create Event id。
 
-identity root 只单向承诺两条 Event 的 payload digest，不承诺 Event id 或 envelope digest。create payload 中的 descriptor 与 authorize payload 必须在 `principal_id`、`device_id`、device/HPKE key、算法集合和 authorize payload digest 上逐字一致。Principal Server 必须验证确定性 PCR id、空 frontier、create-once、当前 identity-creation lease fence/expiry 及完整 root/device proofs，然后在一个数据库原子边界内接受两条 Event；任一步失败均零写入。
+identity root 只单向承诺两条 Event 的 payload digest，不承诺 Event id 或 envelope digest。create payload 中的 descriptor 与 authorize payload 必须在 `principal_id`、`device_id`、device/HPKE key、算法集合和 authorize payload digest 上逐字一致。Principal Server 必须验证 event-derived PCR id（`retype(create.event_id)`，见 [`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)；它不由 principal DID 或 subject 派生）、空 frontier、**账号维度**的 create-once、当前 identity-creation lease fence/expiry 及完整 root/device proofs，然后在一个数据库原子边界内接受两条 Event；任一步失败均零写入。
 
 首设备无需已有设备、账号权威或管理员批准。Account Authority 的 S2S signature 只证明 transport source，不能替代 identity root 或 device proof。
 

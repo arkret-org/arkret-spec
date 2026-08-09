@@ -7,7 +7,8 @@
   },
   "covers_vectors": [
     "ak.vector.identity.pcr_genesis.v1",
-    "ak.vector.identity.registration_saga.v1"
+    "ak.vector.identity.registration_saga.v1",
+    "ak.vector.identity.provisional_identity_abandonment.v1"
   ],
   "digest_domains": {
     "identity_creation_control_proof": "ak.identity-creation-control-proof-v1",
@@ -266,6 +267,109 @@
       "did:key candidate",
       "pre-existing accepted-device directory entry",
       "any fragment other than the complete device_id"
+    ]
+  },
+  "provisional_identity_abandonment": {
+    "vector_id": "ak.vector.identity.provisional_identity_abandonment.v1",
+    "credential": "account_handoff_grant",
+    "credential_rationale": "The PCR was never accepted, so the holder has no principal and no principal-bound ak.session.grant can exist.",
+    "challenge_operation": "ak.gate.account.command.issue_identity_abandonment_challenge",
+    "confirm_operation": "ak.gate.account.command.abandon_identity_creation",
+    "challenge": {
+      "request_id": "abandonment-request-000001",
+      "challenge_id": "abandonment-challenge-000001",
+      "challenge": "BBBBBBBBBBBBBBBBBBBBBB",
+      "purpose": "provisional_identity_abandonment",
+      "account_subject": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "principal_id": "did:webvh:z6mkfixture:alice.example",
+      "did_version_id": "1-fixturegenesis",
+      "identity_creation_lease_id": "genesis-lease-fence-0001",
+      "lease_fence": 1,
+      "consequence_disclosure": [
+        "orphan_anchor_permanently_unusable",
+        "orphan_anchor_cannot_be_deactivated",
+        "no_continuable_state_on_the_orphan_anchor",
+        "a_new_identity_root_did_and_pcr_must_be_created"
+      ],
+      "dpop_jkt": "RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI",
+      "audience": "did:webvh:z6mkfixture:account.example",
+      "origin": "https://account.example",
+      "trust_domain": "fixture.example",
+      "issued_at": "2026-08-09T00:00:00.000Z",
+      "expires_at": "2026-08-09T00:05:00.000Z"
+    },
+    "atomic_writes": [
+      "consume_abandonment_challenge",
+      "record_orphan_anchor_tombstone_audit_reservation",
+      "suppress_reserved_identity_creation_on_every_holder_readable_surface",
+      "release_identity_creation_lease"
+    ],
+    "atomic": true,
+    "cases": [
+      {
+        "name": "challenge_then_confirm_with_a_fresh_handoff",
+        "steps": [
+          "issue_abandonment_challenge_with_current_lease_holder_handoff",
+          "confirm_with_a_different_fresh_account_handoff_grant"
+        ],
+        "expected": "status_abandoned_with_all_four_atomic_writes_committed_together"
+      },
+      {
+        "name": "confirm_without_a_challenge_is_rejected",
+        "attempts": [
+          "omit_challenge_id_and_challenge",
+          "present_a_challenge_id_that_was_never_issued",
+          "reuse_the_handoff_grant_that_obtained_the_challenge"
+        ],
+        "expected": [
+          "schema_violation",
+          "failed_precondition",
+          "proof_invalid"
+        ],
+        "zero_writes": true
+      },
+      {
+        "name": "pcr_accepted_between_issuance_and_confirmation",
+        "fault_after": "abandonment_challenge_issued",
+        "mutation": "accept_the_pcr_genesis_unit_before_confirmation",
+        "decided_from": [
+          "challenge.did_version_id",
+          "challenge.lease_fence"
+        ],
+        "expected": "identity_creation_already_accepted",
+        "zero_writes": true,
+        "notes": "Stable terminal. Removing an established identity is the account deletion path, not provisional-identity abandonment."
+      },
+      {
+        "name": "reserved_identity_creation_is_unreadable_after_abandonment",
+        "read_surfaces": [
+          "account_handoff_outcome.binding.identity_creation_lease.reserved_identity"
+        ],
+        "expected": "absent_on_every_holder_readable_surface",
+        "notes": "Security property, not a cleanup policy."
+      },
+      {
+        "name": "same_request_id_replay_keeps_one_tombstone",
+        "attempts": [
+          "replay_same_request_id_and_canonical_bytes",
+          "expired_unconsumed_challenge",
+          "consumed_challenge_with_different_canonical_digest"
+        ],
+        "expected": [
+          "return_recorded_outcome",
+          "identity_creation_challenge_expired",
+          "identity_creation_challenge_already_consumed"
+        ],
+        "orphan_anchor_tombstone_count": 1
+      }
+    ],
+    "deployment_governance_not_specified": [
+      "re_authentication_strength",
+      "risk_check_set",
+      "cooldown_duration",
+      "orphan_anchor_discovery_annotation",
+      "handle_and_namespace_release",
+      "retention_period"
     ]
   }
 }

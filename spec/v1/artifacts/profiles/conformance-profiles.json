@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-10.3",
-  "generated_at": "2026-08-10T12:00:00Z",
+  "version": "2026-08-10.4",
+  "generated_at": "2026-08-10T13:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2607,6 +2607,8 @@
         "ak.gate.account.command.issue_session_grant",
         "ak.gate.account.exchange.create_handoff",
         "ak.gate.account.command.issue_identity_binding_challenge",
+        "ak.gate.account.command.issue_identity_abandonment_challenge",
+        "ak.gate.account.command.abandon_identity_creation",
         "ak.gate.account.command.register",
         "ak.self.policy.read.check",
         "session_grant_introspection",
@@ -2641,7 +2643,8 @@
         "not_identity_registry_must": "Auth Server MUST NOT claim `ak.profile.identity_registry.v1`; any DID document / key-log surface it exposes MUST be declared on `compat_surfaces[]` as `delegated_resolver` rather than self-claimed canonical authority.",
         "not_principal_server_must": "Auth Server MUST NOT claim `ak.profile.principal_server.v1`; Realm event acceptance is the principal server role and is incompatible with auth-server-only deployments.",
         "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run.",
-        "account_status_publication_must": "An Auth Server acting as Account Authority MUST first obtain the PCR-bound issuer actor frontier and accepted Seal frontier through ak.peer.account_status.read.authoring_basis, then sign authority_evidence and publish every ak.account.status transition through ak.peer.account_status.command.submit to the bound Principal Server; it MUST NOT synthesize an empty basis, impersonate a holder session, or use a deployment-private route."
+        "account_status_publication_must": "An Auth Server acting as Account Authority MUST first obtain the PCR-bound issuer actor frontier and accepted Seal frontier through ak.peer.account_status.read.authoring_basis, then sign authority_evidence and publish every ak.account.status transition through ak.peer.account_status.command.submit to the bound Principal Server; it MUST NOT synthesize an empty basis, impersonate a holder session, or use a deployment-private route.",
+        "provisional_identity_abandonment_must": "An Auth Server that offers provisional-identity abandonment MUST expose it as the two-step issue_identity_abandonment_challenge + abandon_identity_creation pair and MUST NOT reach the same effect from login, session resume, lease expiry, fence takeover or garbage collection. Both operations are authorized by the account handoff grant alone, because a never-accepted PCR leaves the holder without a principal and therefore without any principal-bound ak.session.grant; the confirmation MUST present a fresh handoff and MUST NOT reuse the grant that obtained the challenge. The challenge is single-use, at most 300 seconds, held in shared durable state, and pins account_subject, holder cnf.jkt, the abandoned principal_id and did_version_id, the identity-creation lease id and fence, and the closed consequence disclosure; expiry and prior consumption remain distinct terminal states. Consuming the challenge, recording the orphan-anchor tombstone / audit reservation, suppressing the reserved_identity_creation checkpoint on every holder-readable surface and releasing the lease MUST commit in one transaction with zero writes on any failure, and replaying the same request_id MUST return the same terminal outcome without a second tombstone. A PCR accepted between issuance and confirmation MUST fail with identity_creation_already_accepted and MUST NOT abandon anything. Re-authentication strength, risk checks, cooldown length, orphan-anchor discovery annotation, handle and namespace release and retention are deployment governance and are not conformance criteria."
       }
     },
     "ak.profile.public_network_identity.v1": {
