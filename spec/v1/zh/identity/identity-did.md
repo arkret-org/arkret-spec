@@ -91,7 +91,7 @@ did:webvh:<scid>:<host-and-path>
 
 默认值只表示"当系统需要为新用户创建 principal DID、且用户未明确选择其他 method 时使用 `did:webvh`"。协议仍然允许其他现有 DID method，只要实现能按该 method 的规范完成解析、控制权验证、（可选的）历史验证和服务委托验证。
 
-> **残留暴露面与 Key Transparency profile（informative）**：`did:webvh` 的 `did.jsonl` hash chain + 可选 witness 提供的是**单个 DID 自身**控制权变更的可验证性。它**不**提供跨命名空间、可被任意第三方持续 monitor 的全局 Key Transparency 账本（CONIKS / Apple Contact Key Verification 类）。因此 v1 目录层的 equivocation 检测依赖各 DID 自身的 witness 覆盖与 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) 的资源自签名，**hosting domain 对不同 verifier 出示不同 key 的针对性 split-view（尤其 `did:web` service method 与 `personal_node` 降级路径）是已知残留暴露面**。实现 MAY 声明可选 identity extension profile `ak.profile.key_transparency.v1` 来收敛该暴露面：该 profile 为 `handle / principal DID / PCR authorization frontier digest / KeyPackage publication digest` 提供 label→value append-only log，entry 必须携带 inclusion proof 与 consistency proof；log fork 以双签或等价 split-view evidence 暴露，monitor/auditor 验证结果可进入目录解析响应或 identity receipt。该 profile 不改变 v1 core Event bytes；未声明该 profile 的实现按普通 DID witness 与 directory 自签名规则互通。
+> **残留暴露面与 Key Transparency profile（informative）**：本条已在 [`../security/server-threat-model.md` §2.1a](../security/server-threat-model.md) 登记为**知情接受的 residual risk**，两处必须同步维护。`did:webvh` 的 `did.jsonl` hash chain + 可选 witness 提供的是**单个 DID 自身**控制权变更的可验证性。它**不**提供跨命名空间、可被任意第三方持续 monitor 的全局 Key Transparency 账本（CONIKS / Apple Contact Key Verification 类）。因此 v1 目录层的 equivocation 检测依赖各 DID 自身的 witness 覆盖与 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) 的资源自签名，**hosting domain 对不同 verifier 出示不同 key 的针对性 split-view（尤其 `did:web` service method 与 `personal_node` 降级路径）是已知残留暴露面**。实现 MAY 声明可选 identity extension profile `ak.profile.key_transparency.v1` 来收敛该暴露面：该 profile 为 `handle / principal DID / PCR authorization frontier digest / KeyPackage publication digest` 提供 label→value append-only log，entry 必须携带 inclusion proof 与 consistency proof；log fork 以双签或等价 split-view evidence 暴露，monitor/auditor 验证结果可进入目录解析响应或 identity receipt。该 profile 不改变 v1 core Event bytes；未声明该 profile 的实现按普通 DID witness 与 directory 自签名规则互通。
 
 ### 3.1 Method Selection
 
@@ -211,7 +211,7 @@ Arkret v1 core conformance 要求如下：
 - Resolver MUST 在 outage diagnostics 中暴露 `webvh_unreachable` 标记 + `cached_evidence_age_ms`,让客户端 UI 显式提示用户。客户端 UI MUST 在 fallback 期间向用户展示 banner-level 警示("身份历史链暂不可达，仅显示本地缓存内容"),不得静默继续。
 - Fallback 总时长 MUST ≤ 24 小时（hosting 不可达期间对应 §4.2.1 `degraded_hosting_unreachable` 健康状态；**注意不是** `degraded_no_witness`——后者是 hosting 仍可达但缺 witness,触发条件与本节 cache-only fallback 互斥）；部署 policy MAY 缩短该窗口，MUST NOT 延长到超过 24 小时。超时后即使是低风险只读也 MUST fail closed，resolver MUST 进入 §4.2.1 的 `stale_history` 或 `write_unavailable` 状态，强制用户等待恢复或切换 resolver。
 - 即使仍处于允许的 cache-only outage 窗口，单条 `did:webvh` cache entry 的 `cached_evidence_age_ms` 超过 7 天时也 MUST fail closed；resolver MUST 暴露 `webvh_cache_too_stale` diagnostic，不得把过旧 evidence 用于新的高风险写入、capability 重建、service delegation 或 snapshot witness 接收。**两个窗口是 AND 关系**：24 小时 outage fallback 上限与 7 天 per-entry cache age 上限互相独立成立，任一触发即 MUST fail closed；resolver 不得通过"outage 窗口尚未到 24h"为理由继续使用 age > 7d 的 cache entry，亦不得通过"cache entry 仍 < 7d"为理由把 outage fallback 总时长延长到 24h 以上。
-- Cache entry 写入 / 刷新不能只信任单一 resolver 自报。`small_team`、`organization`、`high_security_organization` 与 `sovereign_deployment` profile 中，用于高风险写入（device authorization、capability grant/revoke、service authority、membership change、root re-anchor）的 `did:webvh` cache entry MUST 绑定至少两个 witness signatures，或绑定来自两个 distinct controlling organization 的 witness / watcher evidence；只有一个 witness 的 entry MAY 用于低风险历史读取，但 MUST 标记 `single_witness_cache_degraded`，不得用于新的高风险控制判断。`personal_node` profile 可保留单 witness cache，但必须在 deployment profile 中显式声明并向用户暴露降级状态。
+- Cache entry 写入 / 刷新不能只信任单一 resolver 自报。`small_team`、`organization`、`high_security_organization` 与 `sovereign_deployment` profile 中，用于高风险写入（device authorization、capability grant/revoke、service authority、membership change、root re-anchor）的 `did:webvh` cache entry MUST 绑定至少两个 witness signatures，或绑定来自两个 distinct controlling organization 的 witness evidence；v1 **没有** watcher evidence 的 method-evidence 载体——[`did-usage-and-verification.md` §5.2](./did-usage-and-verification.md) 只登记 `webvh_log` 一行且要求未知 method evidence kind 一律 fail closed，因此 watcher 不能用于满足本要求；只有一个 witness 的 entry MAY 用于低风险历史读取，但 MUST 标记 `single_witness_cache_degraded`，不得用于新的高风险控制判断。`personal_node` profile 可保留单 witness cache，但必须在 deployment profile 中显式声明并向用户暴露降级状态。
 
 > **Log-backed witness 增强（informative scope）**：`did:webvh` witness 可以采用 transparency-log 形态（append-only Merkle log + 第三方可独立审计 consistency / inclusion proof + 抗 split-view）。当前 v1 baseline 仍为"≥2 witness from distinct controlling org"（见上一条 `small_team` / `organization` 等 profile 的离散 witness 签名要求）；log-backed witness 是下述高保障 profile 的加固项，不改变 base v1 的 witness 语义。
 
@@ -248,7 +248,9 @@ artifact。
 及其它未登记键**都不是** method 输入。注意 §4.1 resolver policy 示例中的
 `require_witness` / `witness_threshold` / `trusted_witnesses` 是 **verifier 本地部署配置**的形状，
 不是 DID log parameter；把它们当作 log parameter 解析会把 verifier 自己的信任配置
-误认成 holder 的声明。
+误认成 holder 的声明。**`trusted_witnesses` 的元素 MUST 与 §3.4.1 的 `parameters.witness.witnesses[].id`
+使用同一标识符空间（`did:key`），否则该白名单无法与 log 中声明的 witness 逐字比对而形同虚设；
+部署配置里出现 `did:webvh` 或其它形态的 witness 标识符 MUST 视为配置错误并 fail closed。**
 
 **缺失与 malformed 是两件事**：`parameters.witness` 缺席表示该 DID 未声明 method witness；
 而对象存在但形状不合法、threshold 越界、witness id 重复或非 `did:key`、proof 缺失或不足 threshold，
@@ -426,8 +428,8 @@ Resolver policy MUST 至少定义：
       "require_witness": "required",
       "witness_threshold": 1,
       "trusted_witnesses": [
-        "did:webvh:zFEcxx2zsuYLbjx2ncBvnE9sW:witness-a.example",
-        "did:webvh:zJ9Q5oVHyeFp6SKXd9HcMpBpY:witness-b.example"
+        "did:key:z6MkfixtureWitnessAaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "did:key:z6MkfixtureWitnessBbbbbbbbbbbbbbbbbbbbbbbbbbb"
       ],
       "outage_mode": "cache_only_low_risk_read",
       "outage_max_duration_ms": 86400000

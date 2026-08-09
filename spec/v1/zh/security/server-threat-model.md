@@ -125,6 +125,9 @@ sidebar:
 - **#23 联邦流量模式旁观** —— 详见 §2.1 #23 正文；profile 定义见 [`conformance/conformance-profiles.md` §11.1](../conformance/conformance-profiles.md)（`ak.profile.traffic_metadata_hardened.v1`）。
 - **Sender 元数据对承载服务可见（acknowledged residual exposure，informative）** —— v1 baseline 接受 Event Envelope 顶层 `actor_id` 对承载它的 Principal Server / Sync Service **始终明文可见**（见 [`sync/operations-sync.md` §14](../sync/operations-sync.md) 字段可见性分级把 `actor_id` 列为路由 / 签名归属元数据）。即"谁在何时给谁发"对受托承载服务可观测，base v1 不提供 sender-anonymity 通道。这是 acknowledged residual exposure，与 #23 联邦流量旁观同属"承载服务可见的元数据面"；未来加固方向（sealed-sender 风格的对中转服务隐藏 `actor_id` 通道、OHTTP / oblivious relay 提升为 event-submit / push / directory 的可选元数据隐私基线）列为未来 profile，不在 v1 core。实现 MUST NOT 把 E2EE 正文加密误表述为隐藏 sender 元数据。
 
+- **did:webvh split-view（hosting domain 对不同 verifier 出示不同 key / 历史）** —— base v1 不直接防御。`did:webvh` 的 SCID 自证与 entry hash chain 使**静默改写**对任何已 pin 过旧 head 的一方不可能，但它们不阻止 hosting 方对不同 verifier 出示不同 history。v1 目录层的 equivocation 检测依赖各 DID 自身的 witness 覆盖，而 **witness 在 base v1 是可选的**（`parameters.witness` 缺席表示该 DID 未声明 method witness，不是解析失败），`personal_node` 更被明确豁免。缓解手段：客户端 pin 与比对（[`../identity/account-lifecycle.md` §2.1.2](../identity/account-lifecycle.md) 的客户端回比与 binding 冲突 fail closed）、PCR genesis 的 `{did_version_id, log_head_digest, control_key_digest}` 三项 pin 使事后改写对任何持有 receipt 的一方可检测。可选升级：独立 witness、`ak.profile.key_transparency.v1`、或把 DID 托管与 Principal Server 分离到不同信任域。**本条是知情接受的 residual risk：本部署形态允许 registry 与 Principal Server 同源，因此上述客户端侧检测是主要残余防线，而不是可选增强。**
+- **base v1 不要求 consistency proof** —— 证明 log append-only、历史未被改写的 consistency proof 只在 `high_security_organization` 与 `sovereign_deployment` profile 是 MUST；base v1（含 `small_team` / `organization`）以离散 witness 签名为准，不要求 log-backed transparency。因此"历史未被截断"在默认部署下不可由协议独立证明。
+
 ### 2.2 当前协议中不成立的攻击项
 
 - 回退重试链路细节（如不可控网关转发回路）
@@ -168,7 +171,7 @@ sidebar:
 | 重放 | 是 | `request_id` 与 canonical hash 绑定；`event_id` 重复且内容不同 reject；`duplicate_conflict`。 |
 | 配置误用 | 是 | 变更审计、最小默认权限、fail-closed。 |
 | 拓扑污染 | 是 | service list 与发现结果签名可验证，目录/Realm 官方背书需双重签名。 |
-| 解析污染 | 是 | resolver trust domain pinning，`did:web` 与 method adapter 证据核验。 |
+| 解析污染 | **部分** | resolver trust domain pinning、method adapter 证据核验、SCID 自证与 entry hash chain、freshness profile 的同步刷新或 fail closed。**默认 `did:webvh` 部署对 hosting 方 split-view 与历史截断不构成完整缓解**——witness 在 base v1 可选、consistency proof 仅高保障 profile 要求，见 §2.1a 的两条 residual risk。 |
 | 冲突/分叉 | 是 | fork 检测、冲突源 quarantine + backfill re-check。 |
 | 快照投毒 | 是 | snapshot manifest 与 chunk hash 链路签名、frontier 一致性双重校验。 |
 | 跨域边界绕过 | 是 | source/destination/scope 每一层 must-bind 校验，禁止空域回退。 |
