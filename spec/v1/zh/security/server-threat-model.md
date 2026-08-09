@@ -60,7 +60,7 @@ sidebar:
     篡改目录、`sync_endpoints`、`service_id`、`plaintext_visible_services`、官方组织/Realm 背书引用，影响服务选择、传播路径与明文可见边界。
 
 13. **身份解析污染（DID Resolver / Registry Tampering）**
-    污染 DID resolver、registry、witness 可信链或 `did:web` 域绑定，错误承认身份控制权。
+    污染 DID resolver、registry、witness 可信链，或 `did:web` / `did:webvh` 的域绑定与 `did.jsonl` 托管，错误承认身份控制权。**默认 method 是 `did:webvh`**，其 hosting 方 split-view 与历史截断只被部分缓解，见 §2.1a。
 
 14. **历史冲突与 fork 影响（Fork / Duplicate Conflict）**
     利用伪造的 `event_id` / canonical bytes 不匹配、完整 hash collision evidence、Seal DAG / coverage 分叉制造 Lattice bottom 或错误 CBA query basis。

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.13",
+  "version": "2026-08-09.14",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T01:00:00Z",
+  "generated_at": "2026-08-10T02:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -1068,7 +1068,13 @@
         "event_kinds": [
           "ak.realm.create",
           "ak.device.authorize"
-        ]
+        ],
+        "cross_service_effects": [
+          "public_did_log_entry_published",
+          "pcr_genesis_unit_accepted_on_principal_server",
+          "account_to_principal_binding_committed"
+        ],
+        "irreversibility_note": "Beyond authoring the genesis Events this operation publishes a public did:webvh log entry and commits a one-account-one-principal binding that can never be rebound. Retry and audit logic MUST treat it as cross-service irreversible even though the closed durable_effect kind vocabulary can only name the Event-log half."
       }
     },
     {
