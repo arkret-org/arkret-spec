@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.16",
+  "version": "2026-08-09.17",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T04:00:00Z",
+  "generated_at": "2026-08-10T05:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -9759,7 +9759,7 @@
       }
     ],
     "version": "2026-08-09.16",
-    "generated_at": "2026-08-10T04:00:00Z"
+    "generated_at": "2026-08-10T05:00:00Z"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -9773,7 +9773,7 @@
       "Storage implementations MAY store producer-allocated raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the ak:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
       "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
       "The <kind> segment is part of the signed/canonical wire value. It MUST NOT be changed, inferred differently, or stripped during verification, forwarding, backfill, or replay.",
-      "The payload construction MUST be fixed by that kind's id_form and identity_authority columns, never chosen per call site: producer_allocated uses UUIDv7; event_derived uses the creating Event's 33-byte token; suite_tagged_full_digest uses a full uint8 digest-suite code followed by the complete 32-byte digest under its registered kind-specific preimage contract. v1 Event and suite-tagged identities accept only registered active suite codes with high nibble 0x0; this constraint does not turn that nibble into a derivation class. A UUID version nibble or digest-suite byte alone never proves identity authority.",
+      "The payload construction MUST be fixed by that kind's id_form and identity_authority columns, never chosen per call site: producer_allocated uses UUIDv7; event_derived uses the creating Event's 33-byte token; suite_tagged_full_digest uses a full uint8 digest-suite code followed by the complete 32-byte digest under its registered kind-specific preimage contract. v1 Event and suite-tagged identities accept only registered active suite codes with high nibble 0x0; this constraint does not give that nibble any meaning beyond the suite code. A UUID version nibble or digest-suite byte alone never proves identity authority.",
       "A producer_allocated UUIDv7 is never a globally sufficient protocol identity. Its canonical identity key is (mint_authority, typed_id), where mint_authority is the DID whose accepted proof authorized the first durable appearance of that ID. Bare typed-ID lookup, cross-authority deduplication, and last-writer-wins collision repair are forbidden.",
       "Storage implementations MAY store producer_allocated UUID values as raw 16-byte UUIDs. Event-derived and suite-tagged full-digest IDs MUST instead store their raw 33-byte token; they MUST NOT use a native UUID column.",
       "The id_form is fixed by registry kind and never chosen per call site: producer_allocated uses RFC 9562 UUIDv7; event_derived uses the same canonical 33-byte token as its creating Event ID; suite_tagged_full_digest uses a full uint8 digest suite code followed by all 32 digest octets. Both token forms serialize as 44 unpadded Base64URL characters.",
@@ -10584,8 +10584,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-08-09.8",
-    "generated_at": "2026-08-10T04:00:00Z"
+    "version": "2026-08-09.9",
+    "generated_at": "2026-08-10T05:00:00Z"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",

@@ -94,16 +94,18 @@ class SessionGrantKatTests(unittest.TestCase):
         self.assertEqual(codes, {"sha256": 0x01, "blake3": 0x02, "cbor.sha256": 0x03})
         self.assertTrue(all(code & 0xF0 == 0 for code in codes.values()))
 
-    def test_realm_nibble_tagged_id_form_is_rejected_for_session_grant(self) -> None:
+    def test_non_suite_tagged_id_form_is_rejected_for_session_grant(self) -> None:
         contract = copy.deepcopy(self.contract)
         row = next(
             row
             for row in contract["id_kind_registry"]["id_kinds"]
             if row["kind"] == "session_grant"
         )
-        row["id_form"] = "derivation_tagged_full_digest"
+        row["id_form"] = "event_derived"
         errors = self._check(contract=contract)
-        self.assertTrue(any("not the Realm nibble-tagged form" in error for error in errors), errors)
+        self.assertTrue(
+            any("id_form must be suite_tagged_full_digest" in error for error in errors), errors
+        )
 
     def test_grant_token_must_be_suite_code_plus_full_digest(self) -> None:
         fixture = copy.deepcopy(self.fixture)

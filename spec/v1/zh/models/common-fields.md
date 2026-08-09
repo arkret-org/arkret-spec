@@ -532,13 +532,13 @@ object_id ≡ retype(create_event.event_id, object_kind)
   namespace；例如一个 Event 可同时派生 `ak:report:<T>` 与 `ak:moderation_queue_item:<T>`，二者不是同一
   完整 typed ID。未在 registry 登记的额外派生、同一 kind 的多个对象或 caller 自选 ID 一律禁止。
 - **`event_id` 是完整密码学身份。**canonical Event store 必须保存完整 33-octet raw token 或等价 typed string；重算验证通过前不得物化对象。
-- `ak.realm.create` 的 wire envelope 与 payload 都省略 `realm_id`，receiver 按 `purpose` 选择 event-derived Collaboration Realm 或 subject-derived PCR 规则；见 [`realm-and-space.md` §2.5](./realm-and-space.md)。
+- `ak.realm.create` 的 wire envelope 与 payload 都省略 `realm_id`，receiver 对所有 `purpose` 一律按 `retype(event_id)` 派生；见 [`realm-and-space.md` §2.5](./realm-and-space.md)。
 
 若两个不同 canonical create Event 在同一 suite 下发生完整 256-bit hash collision，它们会得到同一 Event ID，重类型后也争用同一对象 ID。此时必须按 [`../sync/operations-sync.md` §12](../sync/operations-sync.md) 隔离两条 Event、其派生对象与未 final writes，在协议外裁决前不得物化任一对象。
 
 本节的 conformance 入口是 `ak.vector.object_identity.event_derived.v1`（机读 fixture 见 [`content-bound-event-id-fixture.json`](../../artifacts/fixtures/content-bound-event-id-fixture.json)）：它固定 `retype(event_id)` 的 KAT、`realm_id` 的自证校验，以及 `object_id_not_event_derived` / `realm_id_not_event_derived` 两条拒绝路径。
 
-`id_source` 的其它取值：`subject_derived` 表示从 registry 固定的 canonical subject transcript 派生；`event_derived_or_subject_derived` 表示由机器可读 `id_source_variants[]` 按签名 payload 选择互斥分支；`reference` 表示该 kind 引用一个别处创建的对象；`not_an_object_id` 表示该字段不是 typed 对象 ID（DID、命名空间字符串、profile-scoped form）。**每个 active kind MUST 声明其一**，registry lint 在缺声明时失败——覆盖面由机器保证，不依赖人工枚举。
+`id_source` 的其它取值：`reference` 表示该 kind 引用一个别处创建的对象；`not_an_object_id` 表示该字段不是 typed 对象 ID（DID、命名空间字符串、profile-scoped form）。**每个 active kind MUST 声明其一**，registry lint 在缺声明时失败——覆盖面由机器保证，不依赖人工枚举。
 
 Protocol typed identifier / reference 的 wire value MUST 使用带类型前缀的稳定字符串：
 
@@ -581,7 +581,7 @@ id_form，也不得把 Event、Realm 或 Event-derived typed ID 降级为 UUIDv7
 `ak.capability.grant` 的 Event ID 重类型化为相同 33-octet token。`ak:session_grant:` 则是
 `identity_authority="issuer_record"` 的 `suite_tagged_full_digest`：从 closed
 `ak.session_grant.issuance.v1` preimage 派生，并以 `(issuer_did, typed_id)` 作为 storage identity key；它
-不是 Event ID。其首字节是完整 digest-suite wire code，不得按 Realm 的“高 4 位 derivation class + 低 4 位
+不是 Event ID。其首字节是完整 digest-suite wire code，不得按 Realm 的“保留零 nibble + 低 4 位
 suite”解释；具体合同见 [`../identity/key-management.md` §6.1](../identity/key-management.md)。
 
 `producer_allocated` UUIDv7 只提供时间排序与随机冲突概率，**不证明谁有权分配该 ID**。其协议身份键 MUST 是 `(mint_authority, typed_id)`，`mint_authority` 是该 ID 首次持久出现时通过接收校验的 genesis proof signer DID。存储与索引 MUST 原子保留这个二元组：同 authority + 同 ID + 同内容是幂等重放；同 authority + 同 ID + 不同内容 MUST 拒绝并隔离；不同 authority 即使 UUID 相同也是不同身份。裸 typed-ID 查找、跨 authority 去重、last-writer-wins 修复以及未绑定签名的预占位都 MUST fail closed。该规则由 ID registry 顶层 `producer_allocated_identity_contract` 机读定义，所有 `identity_authority="producer_signature"` 行统一继承。

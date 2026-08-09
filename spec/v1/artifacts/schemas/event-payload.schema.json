@@ -8486,7 +8486,7 @@
     },
     "realm_create_payload": {
       "type": "object",
-      "description": "Minimal identity and security-root payload for ak.realm.create. User-visible, mutable, policy and reducer-derived Realm state is carried only by registered bootstrap facets. Event-derived branches require a canonical 32-octet genesis_salt; subject-derived Principal Control Realm branches forbid it.",
+      "description": "Minimal identity and security-root payload for ak.realm.create. User-visible, mutable, policy and reducer-derived Realm state is carried only by registered bootstrap facets. Every genesis, including Principal Control Realm and managed Agent PCR, requires a canonical 32-octet genesis_salt.",
       "required": [
         "object"
       ],

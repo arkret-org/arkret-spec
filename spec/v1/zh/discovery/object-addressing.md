@@ -60,7 +60,7 @@ web+arkret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 - **realm 是身份，进 path；join routing 不进 URL query。** realm 脱离 path 则 strand 无法定位（授权 / 解析以 Realm 为根，见 [`models/circle.md`](../models/circle.md)）；加入时可用的 Realm ingress service 由 `resolve_realm` / `resolve_target` 返回的 `join_candidates[]` 给出，不写入地址本体。
 - **Strand / Message 地址 MUST 携带 `realm/<realm>`**；缺少 Realm 根时解析方 MUST fail closed（返回 `not_found`），不得做全网 strand_id 猜测。
 - **`<realm>` 段消歧（normative）**：该段匹配 canonical 44-character Base64URL-no-pad Realm token 时解释为
-  `realm_id`，并在重建 `ak:realm:<token>` 后按 id-kind registry 校验 derivation class、digest suite 与 canonical 重编码；否则该段必须匹配
+  `realm_id`，并在重建 `ak:realm:<token>` 后按 id-kind registry 校验保留零高 nibble、digest suite 与 canonical 重编码；否则该段必须匹配
   **realm alias** 的 canonical grammar `<localpart>:<domain>`（见 §3.3）。判据等价：合法 44-character token
   → `realm_id`，含 `:` 且符合 alias grammar → alias。`<strand>` / `<msg>` 段**只**接受各自
   44-character Event-derived token。path 内裸 token 是 URI 压缩形态；进入 token target descriptor

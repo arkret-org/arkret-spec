@@ -440,7 +440,7 @@ def check_documents(
         id_row = session_grant_rows[0]
         if id_row.get("id_form") != "suite_tagged_full_digest":
             errors.append(
-                "session_grant id_form must be suite_tagged_full_digest, not the Realm nibble-tagged form"
+                "session_grant id_form must be suite_tagged_full_digest"
             )
         if id_row.get("identity_authority") != "issuer_record":
             errors.append("session_grant identity_authority must be issuer_record")

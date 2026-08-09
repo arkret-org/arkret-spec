@@ -584,7 +584,7 @@ JWT jti = grant_id
 `sha256_digest_suite_wire_code` MUST 取自
 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json)，不得复制 Event token 的私有
 常量。它在当前 profile 中是完整 `0x01` byte；v1 只接受高 nibble 为零的 active suite code，但不得把该
-零 nibble 解释成 Realm derivation class。`issuance_nonce` MUST 是 issuer 为本次逻辑签发生成的 256-bit CSPRNG nonce，并以恰好 32 octets
+零 nibble 解释成 Realm 的保留高 nibble。`issuance_nonce` MUST 是 issuer 为本次逻辑签发生成的 256-bit CSPRNG nonce，并以恰好 32 octets
 的无 padding Base64URL 作为 signed claim。`scopes` MUST 在授权求交后按协议 byte-wise 排序去重；时间
 MUST 使用 UTC canonical millisecond；optional 字段无值时 MUST 省略而非写 `null`。
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.5",
+  "version": "2026-08-09.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T04:00:00Z",
+  "generated_at": "2026-08-10T05:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4240,7 +4240,7 @@
       "applies_to_fixtures": [
         "content-bound-event-id-fixture.json"
       ],
-      "description": "Event-derived create-once object ids are retyped from the create Event's own event_id: create payloads omit the id, Collaboration Realm ak.realm.create omits realm_id and uses the realm_genesis scope, and receivers derive both. The complete typed ID is the identity key: one Event may derive at most one object per registered kind and may derive several different kinds without collision; ak.self.moderation.report fixes the two-output report + moderation_queue_item KAT. Principal Control Realm uses the separate subject-derived vector.",
+      "description": "Event-derived create-once object ids are retyped from the create Event's own event_id: create payloads omit the id, every ak.realm.create omits realm_id and uses the realm_genesis scope, and receivers derive both. The complete typed ID is the identity key: one Event may derive at most one object per registered kind and may derive several different kinds without collision; ak.self.moderation.report fixes the two-output report + moderation_queue_item KAT.",
       "source_refs": [
         "spec/v1/zh/models/common-fields.md",
         "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json"

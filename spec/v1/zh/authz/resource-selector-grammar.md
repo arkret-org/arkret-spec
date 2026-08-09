@@ -211,7 +211,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 
 ### 3.2 词法规则（reference）
 
-- `realm_id`：`ak:realm:` 后只接受 44-char Event token。header 高 nibble 区分 Event-derived (`0x0`) 与 Principal subject-derived (`0x1`)，低 nibble 是 digest suite；header class 必须与 genesis `purpose` 一致。
+- `realm_id`：`ak:realm:` 后只接受 44-char Event token。header 高 nibble 永久保留并 MUST 为 `0x0`，低 nibble 是 digest suite；非零高 nibble MUST 以 `realm_id_not_event_derived` 拒绝。header 不编码 Realm 类别——类别由签名 create payload 的 `purpose` 表达。
 - `space_id`、`circle_id`、`strand_id`、`message_id`、`morph_id`、`relation_id`、`view_id`：
   对应 typed prefix 后接创建 Event 的 44-char suite-tagged完整digest token。
 - `event_id`：`ak:event:` 后接44-char suite-tagged完整digest token。

@@ -255,8 +255,8 @@ Realm 之外的 create-once 对象没有这个问题：它们的 ID 只出现在
 `realm_id`**，使用同一个 33-octet / 44-character Realm token wire form，不使用 UUID。
 
 理由：PCR 的作用域是「某个 DID 在**当前 Principal Server** 上的账号」，同一 DID 在不同 Principal
-Server 上是完全独立、不可迁移的 PCR。subject-derived 派生只以 principal DID 为输入，会让这些互不相关的
-PCR 算出**同一个 `realm_id`**，使该 id 无法标识"哪一个 PCR"——而 PCR 的 realm id、genesis receipt 与 Seal
+Server 上是完全独立、不可迁移的 PCR。因此 `realm_id` MUST NOT 只由 principal DID 决定：那样会让这些互不
+相关的 PCR 算出**同一个 `realm_id`**，使该 id 无法标识"哪一个 PCR"——而 PCR 的 realm id、genesis receipt 与 Seal
 都会作为设备授权权威证据进入联邦（见 [`../sync/federation.md`](../sync/federation.md) 与
 `federated-device-signing-key-evidence.schema.json`），碰撞会让远端 verifier 无法区分两个 PS 上的设备目录。
 event-derived 天然按创建事件区分，同时使 `realm_id` 承诺 create Event 的完整内容。
@@ -312,7 +312,7 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 
 `ak.realm.create` 是 Realm 生命周期的 genesis event，只建立 Realm identity/security core、create log、notary、reducer profile 与终身稳定的 authority root。显示内容、policy 与 membership 都由同一原子 bootstrap unit 中各自的 registered facet Event 建立。
 
-**Human Principal Control Realm 分支（normative）**：当 create 满足 `purpose="principal_control"`、PCR profile、`actor_id=principal DID` 与唯一 critical `did_inception` root anchor 时，root-signed genesis 必须携带 `FoundingDeviceDescriptor`，第二条固定为 founding-device-signed `ak.device.authorize`。两条通过 `ak.peer.principal_genesis.command.submit` 原子接受，均免 `seal_basis`；descriptor 与 authorize payload 必须逐字段/digest 相等。Managed Agent PCR 的 controller-authorized subject-derived branch MUST 使用 `purpose="managed_agent_control"`，且不使用 human `pcr_genesis_unit` 或 `FoundingDeviceDescriptor`。
+**Human Principal Control Realm 分支（normative）**：当 create 满足 `purpose="principal_control"`、PCR profile、`actor_id=principal DID` 与唯一 critical `did_inception` root anchor 时，root-signed genesis 必须携带 `FoundingDeviceDescriptor`，第二条固定为 founding-device-signed `ak.device.authorize`。两条通过 `ak.peer.principal_genesis.command.submit` 原子接受，均免 `seal_basis`；descriptor 与 authorize payload 必须逐字段/digest 相等。Managed Agent PCR 的 controller-authorized 分支 MUST 使用 `purpose="managed_agent_control"`，且不使用 human `pcr_genesis_unit` 或 `FoundingDeviceDescriptor`。
 
 以下五项是 `ak.realm.create` 的完整 registered writes。任何实现不得由 create 顺带写 profile、member 或 Agent lifecycle 状态。
 

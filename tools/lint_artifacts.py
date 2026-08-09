@@ -3083,7 +3083,6 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     for kind, row in id_by_kind.items():
         if row.get("id_form") not in {
             "event_derived",
-            "derivation_tagged_full_digest",
             "suite_tagged_full_digest",
         }:
             continue
@@ -3189,20 +3188,6 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                         id_path,
                         f"{id_kind} genesis Event {genesis_kind} does not point back to this id kind",
                     )
-        elif id_form == "derivation_tagged_full_digest":
-            if id_kind == "realm":
-                if authority != "event_or_subject_transcript":
-                    lint.fail(
-                        id_path,
-                        "realm derivation-tagged row must declare identity_authority=event_or_subject_transcript",
-                    )
-                if not isinstance(genesis_kinds, list) or not genesis_kinds:
-                    lint.fail(id_path, "realm derivation-tagged row must declare genesis_event_kinds")
-            else:
-                lint.fail(
-                    id_path,
-                    f"{id_kind} has no registered derivation_tagged_full_digest authority contract",
-                )
         elif id_form == "suite_tagged_full_digest":
             if id_kind != "session_grant":
                 lint.fail(
@@ -3720,7 +3705,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             row.get("kind")
             for row in (id_rows if isinstance(id_rows, list) else [])
             if isinstance(row, dict)
-            and row.get("id_form") in {"derivation_tagged_full_digest", "suite_tagged_full_digest"}
+            and row.get("id_form") == "suite_tagged_full_digest"
         },
         "special_id_kinds": special_id_kinds,
         "operation_ids": operation_ids,
@@ -6827,19 +6812,6 @@ def check_id_form_wire_schema_alignment(lint: Lint) -> None:
             for schema_path, pattern in matching:
                 if "{44}" not in pattern and "-7[0-9a-f]{3}-" in pattern:
                     lint.fail(schema_path, f"event-derived {kind} schema retains a UUID-only pattern")
-        elif id_form == "derivation_tagged_full_digest":
-            expected_wire = f"ak:{kind}:<44-char-derivation-tagged-full-digest-token>"
-            if wire_form != expected_wire:
-                lint.fail(registry_path, f"{kind} derivation-tagged wire_form must equal {expected_wire!r}")
-            matching = [
-                (path, pattern)
-                for path, pattern in pattern_rows
-                if pattern.startswith(f"^ak:{kind}:")
-            ]
-            if not matching:
-                lint.fail(registry_path, f"{kind} derivation-tagged ID has no schema regex")
-            if matching and not any("{44}" in pattern for _, pattern in matching):
-                lint.fail(registry_path, f"derivation-tagged {kind} schemas never require a 44-character token")
         elif id_form == "suite_tagged_full_digest":
             expected_wire = f"ak:{kind}:<44-char-suite-tagged-full-digest-token>"
             if wire_form != expected_wire:
@@ -8686,17 +8658,20 @@ def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str
             if len(token) != 33:
                 lint.fail(path, f"{json_path} has invalid ak:realm: decoded token must be 33 bytes")
                 return
-            derivation_class = token[0] >> 4
+            reserved_nibble = token[0] >> 4
             digest_suite = token[0] & 0x0F
-            if derivation_class not in {0, 1}:
-                lint.fail(path, f"{json_path} has invalid ak:realm: unknown derivation class 0x{derivation_class:x}")
+            if reserved_nibble != 0:
+                lint.fail(
+                    path,
+                    f"{json_path} has invalid ak:realm: reserved high nibble must be 0x0, found 0x{reserved_nibble:x}",
+                )
             if digest_suite != 1:
                 lint.fail(path, f"{json_path} has invalid ak:realm: v1 Realm derivation is fixed to SHA-256")
         elif token_kind in known.get("digest_token_id_kinds", set()):
             if not EVENT_TOKEN_RE.fullmatch(candidate):
                 lint.fail(
                     path,
-                    f"{json_path} has invalid ak:{token_kind}: expected canonical 44-char derivation-tagged token",
+                    f"{json_path} has invalid ak:{token_kind}: expected canonical 44-char suite-tagged token",
                 )
                 return
             try:
@@ -8735,6 +8710,12 @@ def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str
             lint.fail(path, f"{json_path} has empty ak:{token_kind}: special reference")
         return
     lint.fail(path, f"{json_path} references unregistered typed ID kind: ak:{token_kind}:")
+
+
+# Fixture branches that deliberately carry a malformed token as the conformance
+# negative.  Validating them would assert the very wire form they exist to reject,
+# so only the typed-ID kind is checked there.
+NEGATIVE_TOKEN_PATH_SEGMENTS = (".rejected_form.", ".rejected_forms.")
 
 
 def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
@@ -8796,8 +8777,16 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
             if key == "constraint_kind" and value not in known["constraint_types"]:
                 lint.fail(path, f"{json_path} uses invalid constraint_kind: {value}")
 
+            negative_token_branch = any(
+                segment in f"{json_path}." for segment in NEGATIVE_TOKEN_PATH_SEGMENTS
+            )
             for match in TYPED_ID_TOKEN_RE.finditer(value):
-                check_typed_id_token(lint, path, json_path, match.group(1), match.group(2), known)
+                kind = match.group(1)
+                if negative_token_branch:
+                    if kind not in known["id_kinds"] and kind not in known["special_id_kinds"]:
+                        lint.fail(path, f"{json_path} references unregistered typed ID kind: ak:{kind}:")
+                    continue
+                check_typed_id_token(lint, path, json_path, kind, match.group(2), known)
 
 
 def check_snapshot_merkle_fixture(lint: Lint) -> None:
