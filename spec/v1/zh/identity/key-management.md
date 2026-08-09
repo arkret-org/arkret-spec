@@ -442,7 +442,18 @@ reserved -> did_published -> pcr_accepted -> account_bound -> completed
 
 PCR accepted 前，账号只有 provisional reservation。新设备通过同一账号强认证并持有同一 identity root 时，可以取得递增 lease fence，继承 principal/DID reservation，以新 device descriptor 重签 fresh transcript 并 exact resume。两个 unit 并发时 deterministic PCR create-once 只允许一个 winner；若旧设备 unit 已先 accepted，新设备必须改走 §5.0.3 re-anchor。
 
-PCR 尚未 accepted 且 identity root 也丢失时，可以在强 re-auth、风险检查和 cooldown 后显式放弃 provisional identity，以全新 root/DID/PCR 开始；已发布 entry 0 作为 orphan anchor，不得复用或声称连续性，registry 必须保留 tombstone/audit reservation，handle 的释放只能按独立 namespace policy。PCR 已 accepted 时账号认证绝不能替代 recovery proof。
+PCR 尚未 accepted 且 identity root 也丢失时，可以在强 re-auth、风险检查和 cooldown 后显式放弃 provisional identity，以全新 root/DID/PCR 开始；已发布 entry 0 作为 orphan anchor，不得复用或声称连续性，registry 必须保留 tombstone/audit reservation。
+
+**orphan anchor 的后续处置属部署治理，不由本规范定义（normative 边界）**：该 entry 0 的 root 已丢失，
+而 did:webvh 的 deactivation 需要 controller 签名，因此它**永久不可注销且公开可解析**。
+托管方 MUST NOT 代签任何 log entry 来标记它（[`identity-did.md` §3.7](./identity-did.md) I-1：
+hosting 不等于 control）。是否在部署自有的发现面上标注、handle 与 namespace 何时释放、
+保留多久，都由该部署的运营方按自身治理策略决定，本规范不规定，也**不要求**实现具备该能力。
+
+**但有一条协议层约束必须保持**：某个 Principal Server 上没有该 DID 的 accepted PCR
+**只是本地事实**。PCR 的作用域是 (DID, Principal Server)，同一 DID 在别的 Principal Server 上
+可能完全正常。解析方与联邦对端 MUST NOT 把"某个部署报告无账号"推断为"该 DID 已失效"
+或据此拒绝其在其它 Principal Server 上的有效证据。PCR 已 accepted 时账号认证绝不能替代 recovery proof。
 
 #### 5.0.3 Root-Anchored Re-anchor Unit（normative）
 
