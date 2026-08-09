@@ -4950,10 +4950,12 @@
           "enum": [
             "revoked",
             "expired",
+            "send_failed",
             "revoked_by_capability_loss",
             "revoked_by_inviter_left",
             "invalidated_by_rate_limit"
-          ]
+          ],
+          "description": "Terminal invalidation of a pending invite, carried by an authorized writer's signed Control Move. send_failed and expired are observations the writer commits explicitly (third-party-invites.md 6.1); neither may be written by a local timer or delivery retry loop."
         },
         "reason": {
           "type": "string"

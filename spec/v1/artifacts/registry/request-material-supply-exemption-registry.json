@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.2",
+  "version": "2026-08-10.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T00:00:02Z",
+  "generated_at": "2026-08-10T00:00:03Z",
   "description": "Closed named-exemption registry for zh/sync/service-http-binding.md 2.2.2. That section requires every gate-scoped required request input (evidence-shaped or CAS/echo-shaped leaves, and untyped required objects) to have a registered supply source, and every declared FSM state and allowed transition to have a registered write. Rows carry individually adjudicated exceptions in two kinds: request_input rows per operation and json-path prefix, fsm_transition rows per cell family with the waived states and transitions. Structural rules live in the machine gate, not here: this registry only carries individually adjudicated exceptions so that a blanket category can never be smuggled in as a row.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.request_material_supply\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -45,31 +45,6 @@
     "review_anchor_shape": "Relative path from the arkret workspace root plus a heading substring that MUST appear verbatim in that file. Only consulted for open_finding and deferred_supply rows; the gate skips the file check when the workspace root is absent (spec repo checked out alone)."
   },
   "exemptions": [
-    {
-      "exemption_id": "ak.exemption.request_material_supply.invite_send_failed_unwritten.v1",
-      "status": "active",
-      "kind": "fsm_transition",
-      "fsm_family": "ak.component.invite.lifecycle.v1",
-      "states": [
-        "send_failed"
-      ],
-      "transitions": [
-        [
-          "pending",
-          "send_failed"
-        ],
-        [
-          "send_failed",
-          "pending"
-        ]
-      ],
-      "disposition": "open_finding",
-      "rationale": "third-party-invites.md 6.1 normatively requires the server to transition pending -> send_failed with a send_failure_reason after delivery retry exhaustion, but no registered cell write can perform it: cancel target_state is {rejected, revoked} and revoke target_state excludes send_failed, so the state is unreachable in the machine contract. The closure wave must register the carrying server-attested write and decide whether the send_failed -> pending latitude is simply wrong, since resend is specified as a new invite_id rather than a revival.",
-      "review_anchor": {
-        "file": "arkret-work/review/spec-open/2026-08-10-request-evidence-tiering.md",
-        "heading": "FSM-001"
-      }
-    },
     {
       "exemption_id": "ak.exemption.request_material_supply.dc_founding_founder_basis_evidence.v1",
       "status": "active",
