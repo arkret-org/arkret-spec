@@ -201,9 +201,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/request-material-supply-exemption-registry.json",
-      "version": "2026-08-10.4",
-      "generated_at": "2026-08-10T00:00:04Z",
-      "content_digest": "sha256:b563181a3c7a21ee0502047fcd6f15ebb8b1472c16b510759f5856df0b66a07b"
+      "version": "2026-08-10.5",
+      "generated_at": "2026-08-10T00:00:05Z",
+      "content_digest": "sha256:f7c9bf7e8f09841e20b39e1f1c91de291fc6877a72621a04b07da11c48a4fe8a"
     },
     {
       "path": "spec/v1/artifacts/registry/runner-kind-registry.json",

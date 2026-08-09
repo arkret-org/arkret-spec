@@ -1455,7 +1455,7 @@
       "required": [
         "resource_kind",
         "resource_id",
-        "discovery_state",
+        "discovery_event",
         "source_refs",
         "as_of",
         "principal_server_did"
@@ -1486,10 +1486,31 @@
             }
           ]
         },
-        "discovery_state": {
-          "type": "object",
-          "description": "Signed ak.{kind}.discovery payload, including its proof.",
-          "additionalProperties": true
+        "discovery_event": {
+          "allOf": [
+            {
+              "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "ak.realm.discovery",
+                    "ak.organization.discovery",
+                    "ak.actor.discovery",
+                    "ak.applet.discovery",
+                    "ak.handle.discovery"
+                  ]
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          ],
+          "description": "The accepted ak.{kind}.discovery Event itself, delivered in its original signed form exactly as peer contact delivery carries the original ak.contact.* Event. kind MUST correspond to resource_kind and the Event's own proofs carry the resource governance signature, so no second signed copy of the same fact is defined (discovery-directory.md 8.3)."
         },
         "source_refs": {
           "type": "array",

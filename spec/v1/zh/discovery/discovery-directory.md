@@ -518,7 +518,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 **认证**：
 
 - Transport 层：HTTP Message Signature（RFC 9421）由资源所在 Principal Server 的 service DID 签发，绑定 `Source-Service-ID` header。
-- Payload 层：`discovery_state.proof.detached_jws` 由资源 governance key（按资源 DID document 解析）签发，与 `ak.organization.discovery` / `ak.realm.discovery` 的 effective signer 一致。
+- Payload 层：`discovery_event` 是**已接受的 `ak.{kind}.discovery` Event 原件**，其自身 `proofs[]` 即资源 governance key 的签名（按资源 DID document 解析 effective signer）。规范**不再**定义第二份对同一事实的 detached 签名副本——同一事实两种签名形态必然漂移，且 Event 之外的“payload 内含 proof”形态在本模型中没有可移植的 canonical bytes 定义。
 
 **请求字段**：
 
@@ -526,10 +526,10 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 | --- | --- | --- | --- |
 | `resource_kind` | `enum(realm, organization, actor, applet, handle)` | required | 资源类别。 |
 | `resource_id` | `id \| did \| handle` | required | 资源主键：Realm 用 `ak:realm:...`；Organization / Actor / Applet 用 DID；handle 用 canonical handle string。 |
-| `discovery_state` | `object` | required | 完整签名 `ak.{kind}.discovery` payload（含 `proof`）。MUST 与真相源 byte-for-byte 一致。 |
+| `discovery_event` | `SignedEvent` | required | 已接受的 `ak.{kind}.discovery` Event 原件，逐字节等于真相源（[`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）。`kind` MUST 与 `resource_kind` 对应：`realm`→`ak.realm.discovery`、`organization`→`ak.organization.discovery`、`actor`→`ak.actor.discovery`、`applet`→`ak.applet.discovery`、`handle`→`ak.handle.discovery`；不对应 MUST 拒绝。投递原签名 Event 与 `/_arkret/peer/contacts` 投递原签名 `ak.contact.*` Event 同形。 |
 | `source_refs` | `id[]` | required | 真相源 event id 列表，至少包含产生当前 effective discovery state 的 seal / state event id。 |
 | `as_of` | `timestamp` | required | 资源端声明的 effective 时间；与服务端时间偏差 > 5 min MUST 拒绝（`signature_stale`）。 |
-| `policy_revision` | `string` | required | `discovery_state` 对应的 effective policy revision；Realm 资源必须等于 Event kind `ak.realm.policy_bundle` 的 payload path `policy_revision` 或由该 revision 派生。 |
+| `policy_revision` | `string` | required | `discovery_event` 对应的 effective policy revision；Realm 资源必须等于 Event kind `ak.realm.policy_bundle` 的 payload path `policy_revision` 或由该 revision 派生。 |
 | `principal_server_did` | `did` | required | 当前资源真相源所在的 Principal Server service DID（用于 Directory 在需要时 pull 验证）。 |
 | `ttl_seconds` | `int` | optional | 期望保留时长；缺省采用 `default_ttl_seconds`。MUST ≤ `max_ttl_seconds`（§8.6）。 |
 | `supersedes_announce_id` | `ak:announce:<uuidv7>` | optional | 上一次 announce id；用于幂等替换与 audit 链接。该 id 只在签发它的 Directory 内有权威含义。 |
@@ -559,20 +559,26 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
   "source_refs": [
     "ak:event:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
   ],
-  "discovery_state": {
+  "discovery_event": {
     "kind": "ak.organization.discovery",
-    "organization_did": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
-    "discoverability": "public",
-    "directory_services": [
-      "did:webvh:zAvx6fqPK7h5rBjBiBRbmLmd6:directory.example",
-      "did:webvh:z43vHHHeh32Hnyv6t7X3t33Xs:directory.acme.example"
+    "payload": {
+      "organization_did": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
+      "value": {
+        "discoverability": "public",
+        "directory_services": [
+          "did:webvh:zAvx6fqPK7h5rBjBiBRbmLmd6:directory.example",
+          "did:webvh:z43vHHHeh32Hnyv6t7X3t33Xs:directory.acme.example"
+        ],
+        "profile_visibility": { "...": "..." }
+      }
+    },
+    "proofs": [
+      {
+        "verification_method": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example#governance-key-1",
+        "...": "..."
+      }
     ],
-    "profile_visibility": { "...": "..." },
-    "proof": {
-      "kind": "detached_jws",
-      "verification_method": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example#governance-key-1",
-      "jws": "..."
-    }
+    "...": "..."
   }
 }
 ```
@@ -584,7 +590,7 @@ Pull 模式不得调用资源 Principal Server 的 `/_arkret/self/events/*`。�
 Directory 拉取流程：
 
 1. 按本地 trust root / 已配对资源列表，定期向资源 Principal Server 的 Directory 专用读取面发 state-only query。
-2. Principal Server 返回最新 effective discovery state（含 `proof`）。
+2. Principal Server 返回最新 effective discovery Event 原件（与 push 模式的 `discovery_event` 是同一对象，不另造 state-only 形态）。
 3. Directory 按 §8.5 验签后写入或更新本地索引。
 
 可选的 webhook 辅助：Directory MAY 调用 `ak.find.directory.push.command.register`（§9）让资源 Principal Server 在 discovery state 变更时主动 webhook 通知（fan-out 优化），但**协议级 freshness 仍以 §8.6 为准**——通知缺失或迟到不得使 stale 条目复活。
@@ -594,8 +600,8 @@ Directory 拉取流程：
 Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
 
 1. **Transport layer**：验证 HTTP Message Signature（push）或 service binding + TLS（pull）。
-2. **Discovery proof**：验证 `discovery_state.proof.detached_jws` 由资源 governance key 有效签发，签发时间在 key 当前 epoch 内（按 DID document key history）。
-3. **Directory authorization**：确认 `discovery_state.directory_services` 数组包含本 Directory 的 service DID。
+2. **Discovery proof**：按 Event proof 既有规则验证 `discovery_event` 的 `proofs[]`（重算 canonical bytes 与 `event_id` 并逐字节比对），确认 effective signer 是资源 governance key 且签发时间在 key 当前 epoch 内（按 DID document key history）；`kind` 与 `resource_kind` 不对应 MUST 拒绝。
+3. **Directory authorization**：确认 `discovery_event` payload 的 `directory_services` 数组包含本 Directory 的 service DID。
 4. **Source refs sanity**：MAY 通过 pull 抽查 `source_refs` 中至少一个 seal 在资源 Principal Server 上可解析、frontier 一致。Directory MUST 对**首次 ingest** 的资源至少抽查一次。
 5. **Accept policy**：对照本地 `accept_policy` 检查资源 DID method、trust root、配额、abuse 黑名单。
 
@@ -614,7 +620,7 @@ Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
 - 资源 MUST 在 `next_revalidation_after` 之前发起 re-announce 或允许 Directory pull-refresh。
 - TTL + grace 过期后未续约的 entry MUST 在查询结果中标记 `stale=true`；Directory MAY 在再延迟 24h 后从索引中移除。
 - 资源 governance key 在 ingest 期间发生 rotation：MUST 在下一次 announce 中携带新 key 的签名；Directory MUST 在验证 DID document key history 后接受。
-- Discovery state 内容未变但需要续约时，资源 MAY 重新提交相同 `discovery_state` + 新 `as_of`，Directory MUST 视为有效续约（按 `(resource_id, as_of)` 幂等）。
+- Discovery state 内容未变但需要续约时，资源 MAY 重新提交相同 `discovery_event` + 新 `as_of`，Directory MUST 视为有效续约（按 `(resource_id, as_of)` 幂等）。
 - Directory MUST 拒绝 `as_of` 早于已存 entry `as_of`，或 `policy_revision` 小于已存 entry `policy_revision` 的 announce（`policy_revision_rollback`）。
 
 ### 8.7 撤销
@@ -711,7 +717,7 @@ ingest 通道 MUST 防御：
 - **Quota burning**：Directory MUST 对 per-resource、per-Principal Server、per-IP 限流；超限返回 `rate_limited`。
 - **Source-ref 伪造**：Directory MUST 拒绝 `source_refs` 中包含本 Directory 不能从声明的 Principal Server 解析得到的 event id 的 announce。
 - **撤销规避**：Directory MUST NOT 接受 `as_of` 早于已记录 withdraw 时间的 announce（`takedown_in_force`）。
-- **Policy rollback**：Directory MUST 拒绝 `discovery_state` 的 `policy_revision` 严格小于当前已索引版本的 announce（`policy_revision_rollback`）。
+- **Policy rollback**：Directory MUST 拒绝 `discovery_event` 的 `policy_revision` 严格小于当前已索引版本的 announce（`policy_revision_rollback`）。
 
 Directory operator MAY 维护资源黑名单（abuse、垃圾、法律）；命中黑名单时 MUST 直接返回 `accept_policy_denied`，不得进入 ingest 流程后再静默丢弃。
 
@@ -963,7 +969,7 @@ Directory-capable implementations MUST test：
 
 - `ak.vector.directory.announce_bidirectional_opt_in.v1`：announce accepted when directory DID listed in `directory_services` and signature valid。
 - `ak.vector.directory.announce_directory_not_authorized.v1`：announce rejected with `directory_not_authorized` when directory DID NOT listed。
-- `ak.vector.directory.announce_bad_signature.v1`：announce rejected with `invalid_signature` on bad `discovery_state.proof`。
+- `ak.vector.directory.announce_bad_signature.v1`：announce rejected with `invalid_signature` on a bad `discovery_event` proof。
 - `ak.vector.directory.announce_signature_stale.v1`：announce rejected with `signature_stale` when `as_of` skew > 5 min。
 - `ak.vector.directory.policy_revision_rollback.v1`：announce rejected with `policy_revision_rollback` when `as_of` earlier than indexed entry。
 - `ak.vector.directory.accept_policy_denied.v1`：announce rejected with `accept_policy_denied` when resource outside policy。

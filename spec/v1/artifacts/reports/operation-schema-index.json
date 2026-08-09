@@ -255,7 +255,7 @@
         "required": [
           "resource_kind",
           "resource_id",
-          "discovery_state",
+          "discovery_event",
           "source_refs",
           "as_of",
           "principal_server_did"
@@ -263,7 +263,7 @@
         "properties": [
           "resource_kind",
           "resource_id",
-          "discovery_state",
+          "discovery_event",
           "source_refs",
           "as_of",
           "principal_server_did",

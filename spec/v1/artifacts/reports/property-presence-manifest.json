@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9196,
+    "total_properties": 9197,
     "total_schema_documents": 156,
     "by_presence_class": {
       "optional": 2763,
       "optional_defaulted": 67,
-      "required": 6004,
+      "required": 6005,
       "required_nullable": 112,
       "tristate": 250
     },
@@ -11481,7 +11481,8 @@
         "/$defs/DirectoryAnnounceOutcome/properties/next_revalidation_after": "required",
         "/$defs/DirectoryAnnounceOutcome/properties/warnings": "optional",
         "/$defs/DirectoryAnnounceRequestBody/properties/as_of": "required",
-        "/$defs/DirectoryAnnounceRequestBody/properties/discovery_state": "required",
+        "/$defs/DirectoryAnnounceRequestBody/properties/discovery_event": "required",
+        "/$defs/DirectoryAnnounceRequestBody/properties/discovery_event/allOf/1/properties/kind": "required",
         "/$defs/DirectoryAnnounceRequestBody/properties/principal_server_did": "required",
         "/$defs/DirectoryAnnounceRequestBody/properties/resource_id": "required",
         "/$defs/DirectoryAnnounceRequestBody/properties/resource_kind": "required",

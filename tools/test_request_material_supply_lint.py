@@ -31,7 +31,7 @@ REGISTRY_PATH = (
 ).resolve()
 AGENT_OPERATIONS_PATH = (ARTIFACTS / "schemas" / "agent-operations.schema.json").resolve()
 
-FOUNDER_ROW = "ak.exemption.request_material_supply.dc_founding_founder_basis_evidence.v1"
+DID_OPERATION_ROW = "ak.exemption.request_material_supply.root_submit_did_operation.v1"
 
 
 class RequestMaterialSupplyLintTest(unittest.TestCase):
@@ -62,20 +62,23 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
     def test_committed_tree_passes(self) -> None:
         self.assertEqual(self._run(), [])
 
-    def test_deleting_an_open_finding_row_resurfaces_the_demand(self) -> None:
-        # An open finding must stay enumerated: removing its row does not make
-        # the gap disappear, it makes the gate fail again.
+    def test_deleting_an_exemption_row_resurfaces_the_demand(self) -> None:
+        # An exemption is a live waiver, not a one-time blessing: removing the
+        # row must make the underlying demand fail again immediately.
         def mutate(registry):
             registry["exemptions"] = [
                 row
                 for row in registry["exemptions"]
-                if row["exemption_id"] != FOUNDER_ROW
+                if row["exemption_id"] != DID_OPERATION_ROW
             ]
 
         errors = self._run(json_mutations={REGISTRY_PATH: mutate})
         self.assertTrue(
-            any("founder_basis_evidence" in e and "no constructible branch" in e for e in errors)
-            or any("founder_basis_evidence" in e for e in errors),
+            any(
+                "ak.root.identity.command.submit_did_operation" in error
+                and "operation" in error
+                for error in errors
+            ),
             errors,
         )
 
@@ -143,14 +146,30 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
         self.assertTrue(any("disposition" in e for e in errors), errors)
 
     def test_open_finding_requires_review_anchor(self) -> None:
+        # An open finding must stay traceable to a live review entry, so that
+        # closing the finding forces the row out in the same change.
         def mutate(registry):
             for row in registry["exemptions"]:
-                if row["exemption_id"] == FOUNDER_ROW:
+                if row["exemption_id"] == DID_OPERATION_ROW:
+                    row["disposition"] = "open_finding"
                     row["review_anchor"] = None
 
         errors = self._run(json_mutations={REGISTRY_PATH: mutate})
+        self.assertTrue(any("review_anchor" in error for error in errors), errors)
+
+    def test_open_finding_anchor_must_resolve_to_a_live_review_entry(self) -> None:
+        def mutate(registry):
+            for row in registry["exemptions"]:
+                if row["exemption_id"] == DID_OPERATION_ROW:
+                    row["disposition"] = "open_finding"
+                    row["review_anchor"] = {
+                        "file": "arkret-work/review/spec-open/2026-08-10-request-evidence-tiering.md",
+                        "heading": "A HEADING THAT WAS NEVER WRITTEN",
+                    }
+
+        errors = self._run(json_mutations={REGISTRY_PATH: mutate})
         self.assertTrue(
-            any("review_anchor" in e for e in errors),
+            any("review_anchor heading not found" in error for error in errors),
             errors,
         )
 
