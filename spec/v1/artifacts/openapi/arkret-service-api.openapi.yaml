@@ -8580,7 +8580,7 @@ paths:
         renews the current holder's identity-creation lease. A different holder
         receives identity_creation_busy while the lease is live. After expiry,
         a newly authenticated holder for the same service account fences the old
-        lease and inherits any public reserved DID-operation checkpoint. For a
+        lease and inherits any reserved DID-operation checkpoint. For a
         bound account the response carries principal_id so the handoff can be
         exchanged at /session-grants.
       responses:
@@ -8614,7 +8614,7 @@ paths:
       summary: Reserve a DID inception operation and issue a fresh root-control challenge.
       description: |
         Validates the complete unpublished DID operation, derives principal_id
-        and its canonical digest, persists the public operation checkpoint, and
+        and its canonical digest, persists the holder-authenticated operation checkpoint, and
         issues a server-generated single-use challenge with a freshness window
         no longer than 300 seconds. Challenge state is durable shared state and
         binds the authenticated service account, handoff holder key, lease and

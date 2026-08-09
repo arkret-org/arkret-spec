@@ -62,7 +62,9 @@ reserved -> did_published -> pcr_accepted -> account_bound -> completed
 
 `AccountRegisterOutcome.binding_receipt` 必须是 Account Authority 以 `ak.account-binding-receipt-proof-v1` 签发的可验证 receipt，闭合绑定 `account_subject`、`principal_id`、DID log head、lease/fence 与 operation digest；客户端必须验证 proof 与当前 Account Authority DID 历史。注册成功后客户端还 MUST 直接回读 `did.jsonl`，验证完整 did:webvh history，并把 `history[0]` 的 canonical bytes、`versionId`、log head 与 control key 和本地 frozen draft / signed receipt 逐字比较；任何冲突都必须 fail closed、显著披露且不得采用服务端返回的替代 identity。后续 handoff 若返回 `binding.state="bound"` 且 `principal_id` 不等于本地 frozen/derived DID，客户端同样必须以 `account_binding_principal_mismatch` fail closed，不得静默接受、覆盖本地 root 或重新生成身份。
 
-若设备在 PCR accepted 前物理损毁，新 holder 在旧 lease 过期后可递增 fence、继承 principal/DID reservation，用同一 identity root 对新 challenge 与新 founding device unit重签。deterministic PCR create-once 使并发 unit 只有一个 winner；若旧 unit 已先 accepted，新设备必须走 root re-anchor，不能再次 genesis。若 PCR 未 accepted 且 identity root 也丢失，可在强 re-auth、风险检查和 cooldown 后显式放弃 provisional identity并新建 root/DID/PCR；旧 entry 0 是 orphan anchor，Account Authority / registry 必须保留 tombstone/audit reservation、不得复用或声称连续性，handle 释放遵守独立 namespace policy。PCR 已 accepted 且无可满足 recovery proof 时必须 fail closed。
+若设备在 PCR accepted 前物理损毁，新 holder 在旧 lease 过期后可递增 fence、继承 principal/DID reservation，用同一 identity root 对新 challenge 与新 founding device unit重签。deterministic PCR create-once 使并发 unit 只有一个 winner；若旧 unit 已先 accepted，新设备必须走 root re-anchor，不能再次 genesis。若 PCR 未 accepted 且 identity root 也丢失，可在强 re-auth、风险检查和 cooldown 后显式放弃 provisional identity并新建 root/DID/PCR；旧 entry 0 是 orphan anchor，Account Authority / registry 必须保留 tombstone/audit reservation、不得复用或声称连续性；orphan anchor 的后续清理（发现面标注、handle 与 namespace 释放、保留期）属**部署治理**，见 [`key-management.md` §5.0.2](./key-management.md)，本规范不定义。该 reservation 的 `reserved_identity_creation` checkpoint 从来不是公开对象；**显式放弃后它 MUST NOT 继续作为"某账号曾尝试创建身份"的可读痕迹对外提供**，只保留 tombstone/audit 所需的最小记录。这是安全性质，不是清理策略。
+
+**未完成 reservation 的回收时机属实现策略，本规范只作建议、不强制**：实现 SHOULD 为未完成的 reservation 设定有界生命周期并到期丢弃；`identity_creation_lease` 的 15 分钟 TTL 已经限定了 holder 独占窗口，回收窗口取同量级（例如半小时）是合理默认。具体时长、是否需要用户显式确认、以及与风控冷却期如何叠加，由部署自行决定；本规范不规定，也不要求实现具备自动回收能力。PCR 已 accepted 且无可满足 recovery proof 时必须 fail closed。
 
 账号认证凭据与 principal Recovery Key 是两套正交权力：重置账号密码不能轮换 DID、授权设备或解密 E2EE；Recovery Key 也不能重置账号密码。
 
@@ -110,7 +112,7 @@ replay 命中 expired outcome 时返回 `session_grant_replay_expired`；命中 
 必须取得新的 one-shot proof 与 request identity 后重新认证。
 
 account-first onboarding 在上述终态恢复时 MUST 复用 §2.1.2 的 identity-creation lease fence 与
-`reserved_principal_id` / `reserved_operation_digest` / public DID-operation checkpoint：新 holder 在租约
+`reserved_principal_id` / `reserved_operation_digest` / holder-authenticated DID-operation checkpoint：新 holder 在租约
 到期并 fence 后继续同一身份创建，不得重做已经 accepted 的 DID operation，也不得重新生成 Recovery
 Key。普通登录则回到认证入口。
 

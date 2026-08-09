@@ -365,7 +365,7 @@
     },
     "reserved_identity_creation": {
       "type": "object",
-      "description": "Public, server-persisted identity-creation checkpoint. It contains the exact unpublished or already-published DID operation, never recovery words, seed material, private keys, or an encrypted root export.",
+      "description": "Server-persisted identity-creation checkpoint, readable only by the authenticated current holder of the owning service account's identity-creation lease. It is NOT public: an unfinished reservation would otherwise leak that a specific account is mid-registration, and abandoning it would leave a permanent public trace. Once registration completes the public artifact is the published DID log entry itself, so this checkpoint never needs to become public. It contains the exact unpublished or already-published DID operation, never recovery words, seed material, private keys, or an encrypted root export.",
       "required": [
         "principal_id",
         "operation_digest",

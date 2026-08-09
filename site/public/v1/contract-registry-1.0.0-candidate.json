@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.14",
+  "version": "2026-08-09.15",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T02:00:00Z",
+  "generated_at": "2026-08-10T03:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -11449,7 +11449,7 @@
         "operation_id": "ak.gate.account.command.issue_identity_binding_challenge",
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/identity-binding-challenges",
-        "notes": "Authenticated by Authorization: DPoP <account_handoff_grant> plus a matching DPoP header. The Account Authority verifies the current lease holder and fence, validates the complete unpublished DID operation, derives principal_id, its canonical operation digest, did_version_id, log_head_digest, and control_key_digest, persists the public operation checkpoint, rate-limits same-holder renewal, and issues a <=300s single-use challenge bound to account_subject, holder cnf.jkt, lease/fence, all derived DID pins, audience, origin, trust domain, purpose, and expiry. Repeating the same request_id returns the same unconsumed challenge. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states.",
+        "notes": "Authenticated by Authorization: DPoP <account_handoff_grant> plus a matching DPoP header. The Account Authority verifies the current lease holder and fence, validates the complete unpublished DID operation, derives principal_id, its canonical operation digest, did_version_id, log_head_digest, and control_key_digest, persists the holder-authenticated operation checkpoint, rate-limits same-holder renewal, and issues a <=300s single-use challenge bound to account_subject, holder cnf.jkt, lease/fence, all derived DID pins, audience, origin, trust domain, purpose, and expiry. Repeating the same request_id returns the same unconsumed challenge. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "request_id",
@@ -11458,7 +11458,7 @@
         "response_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_outcome",
         "durable_effect": {
           "kind": "none",
-          "rationale": "persists_only_a_service_local_single_use_challenge_and_public_did_operation_checkpoint_no_event_is_authored"
+          "rationale": "persists_only_a_service_local_single_use_challenge_and_holder_authenticated_did_operation_checkpoint_no_event_is_authored"
         }
       },
       {
@@ -14526,8 +14526,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-09.14",
-    "generated_at": "2026-08-10T02:00:00Z"
+    "version": "2026-08-09.15",
+    "generated_at": "2026-08-10T03:00:00Z"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
