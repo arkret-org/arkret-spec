@@ -5570,7 +5570,7 @@ Expected:
 - 两个实现的 genesis `state_root` MUST 逐字节相同（KAT）。
 - creator membership 必须来自 bootstrap unit 末尾的显式 `ak.member.state{join}`，其 cell MUST 有 inclusion proof；create reducer 自行隐式写 membership 视为额外未登记投影。
 - `ak.component.realm.genesis.v1`、`ak.component.realm.profile.v1` 与所有 required bootstrap facet MUST 在 genesis Seal 即出现在 leaf 集合中；事后补写视为不合规（负例）。
-- PCR 与 Direct Conversation 两条 bootstrap 分支使用同一 create projection 集合；PCR genesis 明确不得携带 `genesis_salt`，event-derived Realm 必须携带。
+- PCR 与 Direct Conversation 两条 bootstrap 分支使用同一 create projection 集合；两者与其它 Realm 一样 MUST 携带 `genesis_salt`，PCR 分支的差别只在 `founding_device_descriptor` 的取舍。
 - 负例：实现漏执行任一已登记 write 后重算 `state_root`，MUST 与正例不同并被 `apply_seal` step 11 拒为 `rejected_seal`。
 
 ### 23.3 Null cell subject 的 wire 形态与 leaf 顺序

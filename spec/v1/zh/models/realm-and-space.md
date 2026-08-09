@@ -238,7 +238,7 @@ receiver 派生：realm_id = retype(event_id, "realm")
 
 违反 MUST `schema_violation`，`reason_code=realm_id_not_event_derived`。
 
-普通 Collaboration、Direct Conversation 与其它 event-derived Realm 的 closed genesis object MUST 使用 `schema="ak.schema.realm_genesis.v1"`，并携带：`purpose`、`genesis_salt`、`trust_domain`、`schema_refs`、`reducer_profile`、`digest_algorithm`、`security_class`、`encryption_profile`、`notary_profile`、`notary`、`capability_action_registry_digest`。其中：
+每一个 Realm——Collaboration、Direct Conversation、human PCR 与 managed Agent PCR——的 closed genesis object MUST 使用 `schema="ak.schema.realm_genesis.v1"`，并携带：`purpose`、`genesis_salt`、`trust_domain`、`schema_refs`、`reducer_profile`、`digest_algorithm`、`security_class`、`encryption_profile`、`notary_profile`、`notary`、`capability_action_registry_digest`。其中：
 
 ```text
 genesis_salt = base64url_no_pad(CSPRNG(32 octets))
