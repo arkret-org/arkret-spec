@@ -3,7 +3,7 @@ title: Key Management
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-10
+updated: 2026-08-11
 ---
 
 ## 0. 规范语言
@@ -51,7 +51,7 @@ updated: 2026-08-10
 - 加密群组密钥
 - 恢复密钥
 
-长期身份锚点不得用于日常签名。identity root 的 Arkret Event 白名单仅为 §3.1 的 PCR genesis 与 root-anchored re-anchor；普通授权、recovery policy、capability 与业务 Event 必须由当前 generation 的 accepted device、policy quorum 或短期 session/device key 路径完成。
+长期身份锚点不得用于日常签名。human DID control 只直接参与注册锚、method successor、current external claim，以及 policy 显式启用的可选 DID-root recovery factor；普通授权、recovery policy、capability 与业务 Event 必须由当前 PCR generation 的 accepted device、policy quorum 或短期 session/device key 路径完成。
 
 ### 2.3 所有授权都必须可撤销
 
@@ -516,11 +516,11 @@ Native Personal Agent 不建立独立的面向用户 Recovery Key，也不得要
 
 ### 5.0 PCR Genesis 与首设备
 
-首次设备授权不是账号服务签发的临时 credential，也不是在 PCR 创建后的第二个审批流程。客户端在任何外部副作用前必须 durable 保存 recovery/identity-root、device identity、HPKE、DPoP keys 与完整 registration draft，然后一次构造：
+首次设备授权不是账号服务签发的临时 credential，也不是在 PCR 创建后的第二个审批流程。客户端在任何外部副作用前必须 durable 保存 recovery material、method control material（若有）、device identity、HPKE、DPoP keys 与完整 registration draft，然后一次构造：
 
-- did:webvh entry 0（Arkret 零基 history 的 `history[0]`，即 did:webvh 原生 `seq=1` 且 `versionId` 以 `1-` 开头的 inception entry），active update key 即 identity root；由 adapter 从其 `full_id` 投影稳定 `principal_id=did_core_id`；DID Document 不承载设备目录或设备授权 service；实现不得把 Arkret 的逻辑 entry index 误作原生 log sequence；
-- 扩展 `identity_creation_control_proof`，由同一 identity root 签名并承诺 principal/PCR id、`full_id`、DID operation digest、create payload digest、founding authorize payload digest、首个 Standard session request digest、lease fence、DPoP/audience/origin/trust-domain 与 expiry；
-- ordered `pcr_genesis_unit=[ak.realm.create, ak.device.authorize]`。create 由 identity root 签名；authorize 由 founding device 自签，`authorization_binding_kind="root_anchored"`。
+- method-specific registration artifact：did:webvh inception/current entry、did:web HTTPS Document，或 did:key local expansion；active adapter 从 canonical `full_id` 投影稳定 `principal_id=did_core_id`，并冻结 bootstrap trust 与 control evidence；
+- `identity_creation_control_proof`，由注册时 current control key 签名并承诺 principal/PCR id、`full_id`、method evidence digest、create/authorize payload digest、首个 Standard session request digest、lease fence、DPoP/audience/origin/trust-domain 与 expiry；
+- ordered `pcr_genesis_unit=[ak.realm.create, ak.device.authorize]`。create 由 registration control key 签名；authorize 由 founding device 自签，`authorization_binding_kind="registration_anchor"`。
 
 create 的 `initial_resolution` MUST 携带 `{full_id,method_history_head,version_id?}`。Principal Server 验证通过后把它作为 PCR current resolution 持久化；不得只存在 Account Authority 的 registration saga 中。
 
@@ -540,7 +540,7 @@ reserved -> did_published -> pcr_accepted -> account_bound -> completed
 
 #### 5.0.2 注册中设备丢失（normative）
 
-PCR accepted 前，账号只有 provisional reservation。新设备通过同一账号强认证并持有同一 identity root 时，可以取得递增 lease fence，继承 principal/DID reservation，以新 device descriptor 重签 fresh transcript 并 exact resume。两个 unit 并发时**账号维度**的 PCR create-once 只允许一个 winner（event-derived 下两次 genesis 的 `realm_id` 必然不同，实现 MUST NOT 依赖 id 碰撞发现并发，见 [`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)）；若旧设备 unit 已先 accepted，新设备必须改走 §5.0.3 re-anchor。
+PCR accepted 前，账号只有 provisional reservation。新设备通过同一账号强认证并持有同一 registration control 时，可以取得递增 lease fence，继承 principal/DID reservation，以新 device descriptor 重签 fresh transcript 并 exact resume。两个 unit 并发时**账号维度**的 PCR create-once 只允许一个 winner；若旧设备 unit 已先 accepted，新设备必须按 §5.0.3 走已接受 recovery policy，不能再次 genesis。
 
 PCR 尚未 accepted 且 identity root 也丢失时，可以显式放弃 provisional identity，以全新 root/DID/PCR 开始。放弃 provisional identity MUST 是显式用户动作，MUST NOT 由普通账号登录、session 恢复、lease fence 递增或任何自动流程触发；MUST 在执行前向用户明示后果——旧 entry 0 将永久不可用且**无法注销**，其上不存在可延续的业务状态。重认证强度、风险检查项与冷却期时长属**部署治理**，实现 SHOULD 施加与账号敏感操作同级的重认证与冷却，具体由部署自定，本规范不规定也不强制。放弃后：已发布 entry 0 作为 orphan anchor，不得复用或声称连续性，registry 必须保留 tombstone/audit reservation。
 
@@ -584,14 +584,25 @@ hosting 不等于 control）。是否在部署自有的发现面上标注、hand
 可能完全正常。解析方与联邦对端 MUST NOT 把"某个部署报告无账号"推断为"该主体已失效"
 或据此拒绝其在其它 Principal Server 上的有效证据。PCR 已 accepted 时账号认证绝不能替代 recovery proof。
 
-#### 5.0.3 Root-Anchored Re-anchor Unit（normative）
+#### 5.0.3 PCR-Policy Re-anchor Unit（normative）
 
-全设备丢失时，客户端先发布由 active update/recovery key 授权的下一个 DID entry；若该 entry 改变 `full_id` 或 method history head，必须同时准备 `ak.identity.resolution.update`。随后原子提交：
+全设备丢失时，基础恢复直接使用丢失前已进入 accepted Seal/control state 的 PCR recovery policy。客户端
+建立 recovery session，提交满足 policy 的 recovery secret、device quorum、trusted recovery service 或
+threshold proof；验证通过后原子提交：
 
-1. root-signed `ak.device.reanchor`，其 `replacement_authorize_payload_digest` 单向承诺第二条 payload；
-2. replacement device 自签 `ak.device.authorize`，`authorization_binding_kind="root_anchored"`，`prev_refs` 只含 re-anchor Event id。
+1. policy-authorized `ak.device.reanchor`，携带 `recovery_authority_kind="pcr_policy"`、policy/session ref、
+   `previous_device_generation`、严格递增的 `new_device_generation` 与 replacement authorize payload digest；
+2. replacement device 自签 `ak.device.authorize`，`authorization_binding_kind="pcr_recovery"`，`prev_refs`
+   只含 re-anchor Event id。
 
-re-anchor 与 genesis 使用同一 candidate overlay/verifier 内核。resolution Event 必须从 accepted current head 做 CAS，并保持 adapter projection 等于原 `did_core_id`；否则这不是 re-anchor，而是新主体注册。接受 receipt 后 resolution cell 与 `current_device_generation_ref` 一致推进到新 DID version，旧 generation devices 全部 fenced。Coordinator 步骤只有 `publish_did_entry -> submit_reanchor_unit -> issue_terminal_receipt`。
+`new_device_generation` 是 PCR-local monotonic generation ref，MUST NOT 等于或派生自 DID `versionId`。
+generation CAS 接受后 fence 全部旧 generation device；resolution cell 不变。
+
+DID-root recovery 是独立可选 factor。只有当前 accepted policy 明确列出 `did_root`、adapter 同时满足
+`verifiable_control_history` 与 `pre_rotation_commitment` 时，re-anchor 才可携带
+`recovery_authority_kind="did_root"` 与 accepted-at current-root evidence。未启用、已撤销或 method 不支持
+时 MUST `unsupported_feature`/`recovery_policy_mismatch`。DID publication/resolution update 仅在该分支或
+用户同时执行 method successor 时出现；即使同一 transaction 协调，两种 cell/CAS 仍正交。
 
 #### 5.0.4 Recovery-material gate（normative）
 
@@ -629,7 +640,7 @@ gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入
 }
 ```
 
-`authorization_binding_kind="accepted_device"` 下 `authorized_by` 是**批准设备自己的 `device_id`**，不是它所属 principal 的 `did_core_id`；只有 `root_anchored` 才用 identity-root principal `did_core_id`。批准方 accepted device 以 authorize Event proof 对完整 payload 签名；`verification_method` 必须由当前已验证 `full_id` 通过 adapter 构造成绑定 `authorized_by` 的 DID URL，解析后的 base 必须投影为 `principal_id`。该 proof 也是 `principal_id` / `authorized_by` / `not_before` / `expires_at` / `scopes` 的唯一签名承载；新设备的 `device_signature` 只在 `accepted_device` possession transcript 上证明持有 candidate key 与自己的 `hpke_key` / `algorithms`（见 [`device-lifecycle.md` §5.2](../crypto-media/device-lifecycle.md) §5.2.2），并在本地装配前按 §5.4.1 反查该 Event。candidate overlay 只用于 root-anchored genesis/re-anchor，普通 pairing 不允许目标设备自我授权。
+`authorization_binding_kind="accepted_device"` 下 `authorized_by` 是**批准设备自己的 `device_id`**，不是它所属 principal 的 `did_core_id`；`registration_anchor` 与 `pcr_recovery` 才使用目标 authority instance 的 principal `did_core_id`。批准方 accepted device 以 authorize Event proof 对完整 payload 签名；`verification_method` 必须由该 Event accepted-at 的 `full_id` 与 method evidence 验证，解析后的 base 必须投影为 `principal_id`，不得要求 current DID resolution。该 proof 也是 `principal_id` / `authorized_by` / `not_before` / `expires_at` / `scopes` 的唯一签名承载；新设备的 `device_signature` 只在 `accepted_device` possession transcript 上证明持有 candidate key 与自己的 `hpke_key` / `algorithms`。candidate overlay 只用于 registration genesis 与 PCR recovery unit，普通 pairing 不允许目标设备自我授权。
 
 ### 5.2 设备吊销
 
@@ -805,7 +816,7 @@ SessionGrant 签发而扩张为日常 Event signer。
 
 ### 7.1 备份内容
 
-backup domain 必须分离：`secret_storage`、`mls_history` 与 encrypted private account data 使用不同 envelope/subdomain key。Identity root seed、recovery secret、助记词、HKDF PRK、device private identity key、session/DPoP private key和任何可直接克隆设备身份的材料绝对不得上传。**该禁止清单是"身份控制权不可经备份泄露"这一保护的唯一且完整来源：因此不存在任何 `backup_kind` / `recipient_method` 组合可以解出身份控制权，实现 MUST NOT 把上述材料塞进 `secret_storage` 或任何其它 backup class。** 新设备必须生成新的 device key，并通过 pairing 或 root re-anchor 获得授权。
+backup domain 必须分离：`secret_storage`、`mls_history` 与 encrypted private account data 使用不同 envelope/subdomain key。Identity root seed、recovery secret、助记词、HKDF PRK、device private identity key、session/DPoP private key和任何可直接克隆设备身份的材料绝对不得上传。**该禁止清单是"身份控制权不可经备份泄露"这一保护的唯一且完整来源。** 新设备必须生成新的 device key，并通过 accepted-device pairing 或 PCR-policy recovery 获得授权。
 
 身份恢复本身不需要任何备份：identity root 的全部代次由 recovery secret 经 §3.3 的 HKDF 确定性派生，DID log 公开可解析，root generation index 又 MUST 从已验证 canonical DID history 重建。三者齐备，没有剩余需要加密托管的身份材料，因此 v1 不设独立的 DID-recovery backup class。
 
@@ -871,7 +882,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 `auth_data.verification_method` 必须是 DID URL：其 bare `full_id` 经 method adapter 投影必须等于
 `actor_id`，fragment 必须等于 `device_id`；不得把 core `actor_id` 直接拼接 fragment。
 `device_authorize_event_id` 必须解析为该 device 在 envelope frontier 的 accepted authorization。Verifier
-重放 root-anchored PCR genesis/re-anchor 与后续 device chain，检查 generation、revocation、Seal coverage，
+重放 registration-anchor PCR genesis、PCR-policy re-anchor 与后续 device chain，检查 authority instance、generation、revocation、Seal coverage，
 再用 authorize payload 的 device key 验 envelope signature。账号 session 或服务端裸 key assertion都不能替代这条链。
 
 ### 7.5 Recipient Method Profiles
@@ -976,7 +987,7 @@ controller fresh-device recovery 仍先完成自己的普通 §7.3 / `device-lif
 - envelope 携带 `recovery_policy_ref` 时 MUST 展示当前 envelope 的 `policy_id` / `policy_version` 与当前 accepted recovery policy 的一致性并验证。不一致时 MUST `recovery_policy_mismatch`，并指向"更新 recovery policy"流程而不是默默继续。
 - 不得从本地缓存读取用户先前确认的 fingerprint / passphrase / OOB token 跳过当次显式确认。本地缓存 MAY 用于自动补全，但用户 MUST 显式提交本次输入。
 - 在 §7.4 列出的禁用证明类型（历史明文、邮箱验证码、撤销设备等）被用户尝试时 MUST 给出可读的拒绝原因。
-- **无恢复路径（SPOF）账号的 fresh-device 登录警示**：当目标 principal 的 `active_policy=null` 且用户没有 identity-root / recovery secret 时，fresh-device policy recovery MUST fail closed（§8）。此时 UI MUST 在进入任何恢复尝试之前明示“该账号没有可满足的恢复路径，只能在一台已授权的旧设备上确认”；用户若持有有效 identity-root / recovery secret，UI MUST 改为提供 §5.0.3 / [`../crypto-media/device-lifecycle.md` §14](../crypto-media/device-lifecycle.md) 的 root-anchored re-anchor，而不得错误阻断。展示或确认 24 词 Recovery Key 时还 MUST 显著警告：任何取得全部词语的人都可能永久接管身份；除非此前已接受的 guardian / witness / organization policy 能拒绝仅凭旧 secret 的恢复，否则泄露后无法靠轮换追回既有控制权。
+- **无恢复路径（SPOF）账号的 fresh-device 登录警示**：`active_policy=null` 时 fresh-device recovery MUST fail closed，并提示只能由旧设备确认。存在 policy 时，UI 只展示其已接受 proof kinds；`did_root` 未启用时不得因用户持有当前 DID control 就提供重锚，启用时必须显著披露其接管风险。
 
 ### 7.7.1 Backup Unlock Proof 与 Plaintext Keybag（normative）
 
@@ -1090,7 +1101,7 @@ Recovery policy 的所有发布、轮换和撤销均进入 PCR control stream。
 - **revoke share**：当某个 share holder 被怀疑泄露时，policy holder 可发布只更新 `threshold.shares[i].revoked_at` 与 `revocation_reason_code` 的 rotate envelope。recovery coordinator MUST 拒绝任何 `revoked_at != null` 的 share，即便 commitment 仍能通过。`reshare_policy.max_share_age_seconds` 到期后未 reshare 的 share 在 coordinator 侧 MUST 被视为 stale，UI MUST 提醒用户。
 - **revoke policy**：用 `expires_at = now`、`allowed_proof_kinds = []`、或专门的 `policy_id` revoke 进入 principal control stream；revoke 之后只有写入新 policy 才能恢复账号——这是高代价动作，必须配 §7.7 UI 警告。
 
-任何允许的恢复方式（principal_signing / device_quorum / trusted_recovery_service / threshold_recovery / recovery_unlock）的 proof transcript MUST 绑定 `(policy_id, version, recovery_session_id)`；不绑定的 proof MUST `recovery_evidence_unbound`。Device recovery 场景还 MUST 使用 `crypto-media/device-lifecycle.md` §14 定义的 canonical transcript，其字段集同时绑定 `principal_id`、`requesting_device_id`、`trust_domain`、`identity_model="root_anchored"`、`model_generation_ref`、session `challenge`、session `created_at` 与 `expires_at`；`model_generation_ref` 必须等于 PCR current device generation 所锚定的 DID `versionId`。
+任何允许的恢复方式（did_root / device_quorum / trusted_recovery_service / threshold_recovery / recovery_unlock）的 proof transcript MUST 绑定 `(authority_instance_digest, policy_id, version, recovery_session_id)`；不绑定的 proof MUST `recovery_evidence_unbound`。Device recovery 场景还 MUST 使用 `crypto-media/device-lifecycle.md` §14 定义的 canonical transcript，其字段集同时绑定 `principal_id`、`requesting_device_id`、`trust_domain`、`identity_model="pcr_policy"`、`model_generation_ref`、session `challenge`、session `created_at` 与 `expires_at`；`model_generation_ref` 必须等于 PCR current device generation，且不得由 DID `versionId` 推导。`did_root` 仅在冻结 policy 显式启用时成立。
 
 ### 8.2 Holder 取回与防滥用
 

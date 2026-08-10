@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-authority.schema.json",
   "title": "Arkret Recovery Completion Carriers",
-  "description": "Closed recovery completion attestation and Standard-grant issuance carriers. Device re-anchor authorization is root-anchored and requires no Account Authority ticket or temporary recovery grant.",
+  "description": "Closed recovery completion attestation and Standard-grant issuance carriers. Device recovery is authorized by the accepted PCR recovery policy; an optional DID-root proof is only one explicitly enabled factor.",
   "$defs": {
     "canonical_public_material": {
       "type": "object",
@@ -36,9 +36,9 @@
       },
       "additionalProperties": false
     },
-    "did_generation_ref": {
-      "type": "string",
-      "pattern": "^[1-9][0-9]*-[^\\s]+$"
+    "pcr_generation_ref": {
+      "type": "integer",
+      "minimum": 1
     },
     "event_id": {
       "type": "string",
@@ -97,7 +97,7 @@
           "$ref": "#/$defs/event_id"
         },
         "result_model_generation_ref": {
-          "$ref": "#/$defs/did_generation_ref"
+          "$ref": "#/$defs/pcr_generation_ref"
         },
         "initial_session": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/InitialSessionGrantRequest",
@@ -172,7 +172,7 @@
           "$ref": "#/$defs/hash"
         },
         "result_model_generation_ref": {
-          "$ref": "#/$defs/did_generation_ref"
+          "$ref": "#/$defs/pcr_generation_ref"
         },
         "completed_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

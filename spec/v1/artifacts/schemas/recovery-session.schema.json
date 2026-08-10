@@ -44,12 +44,12 @@
       "description": "base64url(no padding) encoding of 256 bits from a CSPRNG. The value is single-use and bound to one recovery_session_id."
     },
     "identity_model": {
-      "const": "root_anchored",
-      "description": "The sole v1 recovery identity model. Identity root history anchors the re-anchor Event; device authorization state remains in the PCR."
+      "const": "pcr_policy",
+      "description": "The v1 base recovery model: an accepted PCR recovery policy directly authorizes the next device generation. Current DID control is not implicit."
     },
-    "did_version_id": {
-      "type": "string",
-      "pattern": "^[1-9][0-9]*-[^\\s]+$"
+    "pcr_generation_ref": {
+      "type": "integer",
+      "minimum": 1
     },
     "recovery_policy_ref": {
       "type": "object",
@@ -81,7 +81,7 @@
     "proof_kind": {
       "type": "string",
       "enum": [
-        "principal_signing",
+        "did_root",
         "recovery_unlock",
         "device_quorum",
         "trusted_recovery_service",
@@ -110,7 +110,7 @@
     },
     "publication_authority_context": {
       "type": "object",
-      "description": "Server-snapshotted accepted authority policy for publishing the root-anchored re-anchor Event. It never grants the replacement device a generic lease issuer role.",
+      "description": "Server-snapshotted accepted PCR recovery authority for publishing the re-anchor unit. It never grants the replacement device a generic lease issuer role.",
       "required": [
         "identity_model",
         "basis_ref",
@@ -121,7 +121,7 @@
       ],
       "properties": {
         "identity_model": {
-          "const": "root_anchored"
+          "const": "pcr_policy"
         },
         "basis_ref": {
           "$ref": "./offline-publication.schema.json#/$defs/authorization_lease/properties/basis_ref"
@@ -164,7 +164,6 @@
         "updated_at",
         "current_device_generation_ref",
         "device_generation_status",
-        "registry_head",
         "accepted_seal_frontier"
       ],
       "properties": {
@@ -195,8 +194,8 @@
           "$ref": "#/$defs/identity_model"
         },
         "current_device_generation_ref": {
-          "$ref": "#/$defs/did_version_id",
-          "description": "Reducer-managed identity-root device generation snapshotted at session creation."
+          "$ref": "#/$defs/pcr_generation_ref",
+          "description": "Reducer-managed PCR device generation snapshotted at session creation."
         },
         "device_generation_status": {
           "type": "string",
@@ -319,7 +318,7 @@
       },
       "additionalProperties": false
     },
-    "principal_signing_proof": {
+    "did_root_proof": {
       "type": "object",
       "required": [
         "kind",
@@ -330,7 +329,7 @@
       ],
       "properties": {
         "kind": {
-          "const": "principal_signing"
+          "const": "did_root"
         },
         "challenge": {
           "$ref": "#/$defs/challenge",
@@ -338,7 +337,7 @@
         },
         "verification_method": {
           "$ref": "#/$defs/did_url",
-          "description": "Principal-grade DID control verification method authorized by the active recovery policy."
+          "description": "Current DID-root verification method, accepted only when the frozen PCR recovery policy explicitly enables this revocable factor."
         },
         "signature_algorithm": {
           "type": "string",
@@ -574,7 +573,7 @@
         "proof": {
           "oneOf": [
             {
-              "$ref": "#/$defs/principal_signing_proof"
+              "$ref": "#/$defs/did_root_proof"
             },
             {
               "$ref": "#/$defs/recovery_unlock_proof"
@@ -617,7 +616,7 @@
       },
       "additionalProperties": false
     },
-    "principal_signing_transcript": {
+    "did_root_transcript": {
       "type": "object",
       "required": [
         "schema",
@@ -640,7 +639,7 @@
           "const": "ak.identity.recovery_proof.v1"
         },
         "kind": {
-          "const": "principal_signing"
+          "const": "did_root"
         },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -665,8 +664,8 @@
           "$ref": "#/$defs/identity_model"
         },
         "model_generation_ref": {
-          "$ref": "#/$defs/did_version_id",
-          "description": "Accepted DID versionId that anchors the current device generation."
+          "$ref": "#/$defs/pcr_generation_ref",
+          "description": "Accepted PCR generation fenced by this recovery. DID method versioning is orthogonal."
         },
         "publication_authority_context_digest": {
           "$ref": "#/$defs/hash"
@@ -734,7 +733,7 @@
           "$ref": "#/$defs/identity_model"
         },
         "model_generation_ref": {
-          "$ref": "#/$defs/did_version_id",
+          "$ref": "#/$defs/pcr_generation_ref",
           "description": "Accepted DID versionId that anchors the current device generation."
         },
         "publication_authority_context_digest": {

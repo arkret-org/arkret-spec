@@ -1,0 +1,24 @@
+{
+  "suite": "did_pcr_authority_boundary",
+  "fixture_kind": "semantic",
+  "runner": {"kind":"named_suite","entrypoint":"ak.suite.identity.did_pcr_authority_boundary.v1"},
+  "version": "2026-08-11",
+  "covers_vectors": ["ak.vector.identity.did_pcr_authority_boundary.v1"],
+  "spec_anchor": "spec/v1/zh/identity/did-usage-and-verification.md#4-did-authority-调用点封闭表normative",
+  "semantic_cases": [
+    {"name":"did_web_domain_transfer_cannot_take_over_existing_pcr","given":"a later controller proves current control of the same did:web full_id but holds no proof from the frozen authority instance","action":"login, reanchor, authorize or revoke a device, write an Event, or erase the old account","expected":"reject","reason_code":"principal_authority_instance_mismatch","invariants":["old PCR remains usable","only the current external claim becomes stale"]},
+    {"name":"second_server_pcr_cannot_satisfy_old_relationship","given":"PCR-B is independently valid for the same did:web core_id on Principal Server B","action":"use PCR-B evidence for a Realm membership, grant or Contact frozen to PCR-A","expected":"reject","reason_code":"principal_authority_instance_mismatch"},
+    {"name":"webvh_successor_pcr_cannot_substitute","given":"method history validates a legal same-core webvh successor and PCR-B genesis","action":"substitute PCR-B for a business binding frozen to PCR-A without an explicit Realm rebind","expected":"reject","reason_code":"principal_authority_instance_mismatch"},
+    {"name":"did_outage_does_not_block_human_pcr_actions","given":"the DID host and resolver are unreachable while PCR-A frontier is fresh","action":"write a PCR-authorized Event, revoke a device or grant, commit MLS, leave a Realm, or erase the account","expected":"accept","invariants":["no DID resolver call","PCR freshness is still enforced"]},
+    {"name":"did_outage_blocks_only_registered_current_calls","given":"the DID host is unreachable","action":"submit a resolution successor, current external claim, DID-governed delegation or enabled DID-root recovery proof","expected":"reject","reason_code":"current_did_authority_unavailable"},
+    {"name":"historical_device_evidence_survives_current_rotation","given":"registration accepted-at evidence is valid and the current DID controller has since rotated","action":"verify the frozen genesis and device authorization chain","expected":"accept","invariants":["using the current key as the genesis key rejects with historical_did_evidence_invalid"]},
+    {"name":"resolution_update_requires_both_authorities","given":"a same-core resolution update is proposed","action":"evaluate method successor, exact PCR author and guarded resolution-cell CAS","expected":"accept_only_if_all_three_pass","reason_codes":["did_method_successor_invalid","pcr_authority_stale"]},
+    {"name":"did_key_human_anchor_has_full_pcr_lifecycle","given":"a did:key anchor completed registration","action":"use account, devices, recovery policy, sessions and PCR Events","expected":"accept","invariants":["method update rejects unsupported_feature","relocation rejects unsupported_feature","DID-root recovery rejects unsupported_feature"]},
+    {"name":"did_root_recovery_is_opt_in","given":"a current DID root signs recovery","action":"submit it to PCR-A","expected":"accept_only_if_policy_enabled_and_fresh","invariants":["disabled factor rejects","authority instance, policy version and PCR generation CAS are mandatory"]},
+    {"name":"account_lifecycle_ignores_unrelated_did_failure","given":"the DID is unreachable or deactivated","action":"resume soft logout or erase using the required account/PCR authority","expected":"accept","invariants":["current DID proof alone is insufficient"]},
+    {"name":"role_scoped_did_failure","given":"organization or service current DID delegation is invalid","action":"compare its DID-governed action with an unrelated human PCR action","expected":"governed_action_rejects_human_pcr_action_unaffected"},
+    {"name":"simultaneous_pcrs_are_partitioned","given":"the same core_id has valid PCR-A and PCR-B on two Principal Servers","action":"operate accounts, devices, recovery, sessions, resolutions and KeyPackages","expected":"accept_only_with_each_instances_own_lineage","reason_code_on_cross_use":"principal_authority_instance_mismatch"},
+    {"name":"public_keys_do_not_link_or_classify_people","given":"two authority instances use either equal or different DID/device public keys","action":"infer authority equality or natural-person equality","expected":"reject","invariants":["v1 defines no cross-PCR link or merge proof"]},
+    {"name":"did_call_site_registry_is_exact","given":"operation and event-kind did_authority fields plus the freshness call_sites registry","action":"run artifact lint","expected":"sets_and_objects_match_bidirectionally","invariants":["risk tier creates no implicit DID call"]}
+  ]
+}

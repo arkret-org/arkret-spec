@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 156,
+  "audited_occurrence_count": 208,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -308,6 +308,22 @@
     },
     {
       "file": "federated-device-signing-key-evidence.schema.json",
+      "key": "method_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "commitment"],
+      "reason": "Registration-time adapter-native material may combine method proofs, witness attestations and immutable history commitments."
+    },
+    {
+      "file": "federated-device-signing-key-evidence.schema.json",
+      "key": "registration_did_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "commitment"],
+      "reason": "Closed accepted-at registration evidence that preserves DID control, adapter and method-history material without requiring current resolution."
+    },
+    {
+      "file": "federated-device-signing-key-evidence.schema.json",
       "key": "range_completeness_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -507,6 +523,22 @@
       "occurrences": 8,
       "disposition": "registry_contract",
       "reason": "Declares conformance evidence kinds rather than a wire material instance."
+    },
+    {
+      "file": "principal-service-binding.schema.json",
+      "key": "principal_authorization_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt", "commitment"],
+      "reason": "Portable PCR-lineage device evidence that authorizes an accepted-at Principal Server binding without current human DID control."
+    },
+    {
+      "file": "principal-service-binding-operations.schema.json",
+      "key": "principal_authorization_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt", "commitment"],
+      "reason": "Operation input carrying the registered PCR-lineage evidence for the principal authorization proof."
     },
     {
       "file": "principal-service-binding.schema.json",
@@ -789,6 +821,55 @@
       "disposition": "polymorphic_container",
       "material_families": ["proof", "attestation", "commitment"],
       "reason": "Carries the recipient Native Agent signer proof, authority attestations and accepted-state commitments for KeyPackage delivery."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "evidence_class",
+      "occurrences": 13,
+      "disposition": "registry_contract",
+      "reason": "Closed DID-authority evidence classification on exact operation and Event call sites; it carries no evidence instance."
+    },
+    {
+      "file": "did-freshness-profile-registry.json",
+      "key": "evidence_classes",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Closed registry metadata separating current DID, accepted-at history, PCR freshness and method-successor validation classes."
+    },
+    {
+      "file": "did-freshness-profile-registry.json",
+      "key": "evidence_class",
+      "occurrences": 19,
+      "disposition": "registry_contract",
+      "reason": "Bidirectional call-site metadata distinguishing registration, historical, current, successor, recovery and governance checks."
+    },
+    {
+      "file": "did-method-adapter-registry.json",
+      "key": "evidence_class",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Generated adapter metadata naming its method-evidence classification."
+    },
+    {
+      "file": "event-kind-registry.json",
+      "key": "evidence_class",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Generated exact DID-authority call-site classification for the resolution successor Event."
+    },
+    {
+      "file": "operation-registry.json",
+      "key": "evidence_class",
+      "occurrences": 11,
+      "disposition": "registry_contract",
+      "reason": "Generated exact DID-authority call-site classification for registered operations."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "key": "did_root_evidence_digest",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Digest commitment to optional DID-root proof material; the proof remains a separately verified policy-enabled factor."
     }
   ]
 }

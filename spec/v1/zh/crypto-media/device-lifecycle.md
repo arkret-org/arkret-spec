@@ -3,7 +3,7 @@ title: Device Lifecycle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-08-11
 ---
 
 ## 0. 规范语言
@@ -244,8 +244,8 @@ Arkret v1 只有一个 principal device model：DID 是 identity-root key log；
 
 首次创建 PCR 必须提交一个 closed ordered unit：
 
-1. `ak.realm.create`：由 DID entry 0 的 active identity root 签名；`realm_genesis.fields.purpose` 必须是 `principal_control`，并携带 `FoundingDeviceDescriptor`。
-2. `ak.device.authorize`：由 descriptor 中 `device_public_key` 对 possession transcript 和 Event proof 各自签名；`authorization_binding_kind="root_anchored"`；`prev_refs` 只能含第一条 create Event id。
+1. `ak.realm.create`：由 registration-time DID control key 签名；`realm_genesis.fields.purpose` 必须是 `principal_control`，并携带 `FoundingDeviceDescriptor` 与 durable registration evidence digest。
+2. `ak.device.authorize`：由 descriptor 中 `device_public_key` 对 possession transcript 和 Event proof 各自签名；`authorization_binding_kind="registration_anchor"`；`prev_refs` 只能含第一条 create Event id。
 
 identity root 只单向承诺两条 Event 的 payload digest，不承诺 Event id 或 envelope digest。create payload 中的 descriptor 与 authorize payload 必须在 `principal_id`、`device_id`、device/HPKE key、算法集合和 authorize payload digest 上逐字一致。Principal Server 必须验证 event-derived PCR id（`retype(create.event_id)`，见 [`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)；它不由 principal DID 或 subject 派生）、空 frontier、**账号维度**的 create-once、当前 identity-creation lease fence/expiry 及完整 root/device proofs，然后在一个数据库原子边界内接受两条 Event；任一步失败均零写入。
 
@@ -253,16 +253,17 @@ identity root 只单向承诺两条 Event 的 payload digest，不承诺 Event i
 
 ### 5.2 Device possession transcript（normative）
 
-`device_signature` 的 domain **由 `authorization_binding_kind` 判别**，不是单一固定值。`authorization_binding_kind` 只有两个取值，各自对应一个 domain 与一个封闭签名对象；两个对象的成员集合互不相同，因此为一个 binding kind 铸出的 transcript 结构上不可能验过另一个：
+`device_signature` 的 domain **由 `authorization_binding_kind` 判别**，不是单一固定值。该字段有三个取值，各自对应一个 domain 与一个封闭签名对象：
 
-- `root_anchored`：PCR genesis 或 root re-anchor unit 的第二条 authorize；domain `ak.device-authorize-possession-proof-v1`，见 §5.2.1。
+- `registration_anchor`：PCR genesis 的第二条 authorize；domain `ak.device-authorize-possession-proof-v1`，见 §5.2.1。
+- `pcr_recovery`：PCR-policy 或显式 DID-root recovery unit 的第二条 authorize；domain `ak.device-authorize-recovery-possession-proof-v1`，并绑定 recovery session/policy/generation。
 - `accepted_device`：已有 accepted device 批准新设备；domain `ak.device-authorize-accepted-device-possession-proof-v1`，见 §5.2.2。
 
-两个 domain 都登记在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)。verifier MUST 先从 payload 的 `authorization_binding_kind` 选定 domain 与成员集合，MUST NOT 试第二个 domain，也 MUST NOT 接受跨 binding kind 复用的 transcript。
+三个 domain 都登记在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)。verifier MUST 先从 payload 的 `authorization_binding_kind` 选定 domain 与成员集合，MUST NOT 尝试其它 domain，也 MUST NOT 接受跨 binding kind 复用的 transcript。
 
-#### 5.2.1 `root_anchored` possession transcript（normative）
+#### 5.2.1 registration/recovery possession transcript（normative）
 
-genesis / re-anchor 时候选设备自己 author 整个封闭 unit，§5.1 的每个成员在签名时它都已知，因此签名对象覆盖完整 authorization core：
+genesis / recovery 时候选设备自己 author 整个封闭 unit，因此签名对象覆盖完整 authorization core；recovery 分支还必须加入 policy/session/generation binding：
 
 ```json
 {
@@ -272,16 +273,16 @@ genesis / re-anchor 时候选设备自己 author 整个封闭 unit，§5.1 的�
   "hpke_key": "z...",
   "algorithms": ["..."],
   "device_key_algorithm": "Ed25519",
-  "authorized_by": "did:webvh:...",
+  "authorized_by": "ak:did_core:webvh:zExamplePrincipalScid",
   "not_before": "2026-08-09T00:00:00.000Z",
   "expires_at": null,
   "scopes": null,
   "recovery_session_id": null,
-  "authorization_binding_kind": "root_anchored"
+  "authorization_binding_kind": "registration_anchor"
 }
 ```
 
-`algorithms` 必须先按 UTF-8 bytewise 排序去重；缺失的 optional 字段在 transcript 中规范化为 `null`。签名字段、Event id、envelope digest 及其它 proof material 不进入该对象。该分支下 `authorized_by` 是提交 genesis / re-anchor unit 的 identity-root principal DID（本例即 `principal_id` 自身），不是设备 id。
+`algorithms` 必须先按 UTF-8 bytewise 排序去重；缺失的 optional 字段在 transcript 中规范化为 `null`。签名字段、Event id、envelope digest 及其它 proof material 不进入该对象。`registration_anchor` 下 `authorized_by=principal_id`；`pcr_recovery` 的 authority 来自 re-anchor Event 所绑定的 accepted recovery policy，而不是 current DID controller。
 
 #### 5.2.2 `accepted_device` possession attestation（normative）
 
@@ -308,7 +309,7 @@ genesis / re-anchor 时候选设备自己 author 整个封闭 unit，§5.1 的�
 
 因此跨 request（`device_pairing_request_id` / `transaction_id` + nonce）、跨 Account Authority（`gate_audience`）、跨过期窗口（`expires_at`）与换 key（`new_device_pubkey_digest`）的重放全部被阻断，强度与 §2.1.2 的 challenge proof 完全相同；一个为别的配对铸出的 attestation 在本次配对里永远验不过。
 
-从该对象移出的 `principal_id` / `authorized_by` / `not_before` / `expires_at` / `scopes` / `recovery_session_id` 改由**批准设备的 Event proof** 承担：`accepted_device` authorize 的 `proof.verification_method` MUST 是批准 principal 已验证 `full_id` 下的 DID URL；verifier MUST 取其 bare `full_id`，经已登记 method adapter 验证并要求 `project(full_id) == principal_id`（稳定 `did_core_id`），同时要求 fragment 逐字等于 `signing_device_id`，且 `signing_device_id` 必须是 payload.`authorized_by`（§5.3）。实现不得把 `principal_id` core 与 device fragment 直接拼成 DID URL，因为 `did_core_id` 不是 DID。该 proof 正好由知道这些值的那一方签名，且覆盖完整 canonical Event bytes（含整个 payload）。两个签名合起来覆盖的字段集合不小于 `root_anchored` 单签名覆盖的集合，没有字段落空。目标设备对 `principal_id` 的确认不由该 proof 承担，而由 §5.4.1 的装配前强制校验承担。
+从该对象移出的 `principal_id` / `authorized_by` / `not_before` / `expires_at` / `scopes` / `recovery_session_id` 改由**批准设备的 Event proof** 承担：`accepted_device` authorize 的 `proof.verification_method` MUST 使用该授权 Event accepted-at 的 `full_id` 与 method evidence，而不是 current DID resolution；verifier MUST 取其 bare `full_id`，经已登记 method adapter 验证并要求 `project(full_id) == principal_id`，同时要求 fragment 逐字等于 `signing_device_id`，且 `signing_device_id` 必须是 payload.`authorized_by`（§5.3）。实现不得把 `principal_id` core 与 device fragment 直接拼成 DID URL。该 proof 覆盖完整 canonical Event bytes；两个签名合起来覆盖的字段集合不小于 `registration_anchor` / `pcr_recovery` 单签名覆盖的集合。目标设备对 `principal_id` 的确认由 §5.4.1 的装配前强制校验承担。
 
 **wire 形态与载体（normative）**：该 attestation 的 wire 形态是 [`device-pairing.schema.json`](../../artifacts/schemas/device-pairing.schema.json) 的 `device_pairing_target_attestation`（上述七个成员加 `device_signature`）。它与 `challenge_proof` 一样**只走带外通道**——路径 A 的二维码 fragment、路径 B 的 to-device 消息——并且 **MUST NOT 经免认证 stage / resolve 面回传给 server**：暂存面是匿名的，让它持有该 attestation 既无必要也扩大攻击面（§2.1.1 第 2 条的既有隐私边界）。
 
@@ -348,7 +349,7 @@ genesis / re-anchor 时候选设备自己 author 整个封闭 unit，§5.1 的�
 
 ### 5.5 Device trust projection（normative）
 
-设备 trust state 仅由 accepted PCR evidence 决定：root-committed genesis、accepted-device authorize、root re-anchor、revoke/list update 与 accepted Seal/frontier。DID resolver 只提供 identity-root history 和 re-anchor generation basis，不提供设备目录。
+设备 trust state 仅由 accepted PCR evidence 决定：registration-anchor genesis、accepted-device authorize、PCR-policy re-anchor、revoke/list update 与 accepted Seal/frontier。DID resolver 不提供设备目录或 generation basis。
 
 远端 receiver 必须取得 `principal_genesis_receipt + authorization_chain + accepted_seal + current_device_projection + range_completeness_evidence`。`authorization_chain` 在此不是只挑成功授权 hop，而是从 genesis 到 current Seal、足以重放目标 projection 的完整相关 PCR control history，包含 authorize/revoke/reanchor/list moves；range-completeness attestation 必须证明该区间没有被 source 隐藏 reducer input。Receiver 自行重放并要求 target status=`active`、`authorized_generation_ref == current_device_generation_ref`、generation status=`active`，再与 current projection逐字段比较。外层 source 对“未撤销”的断言不构成 authority。只有 Event payload、proof 与 evidence 的 principal/device/key/generation/frontier 全部一致时才是 `verified`；缺失、gap、witness disagreement 或 stale evidence保持 `unresolved`，不得 TOFU。
 
@@ -675,7 +676,7 @@ POST /_arkret/self/keys/claim
 receiver 必须验证：
 
 1. `principal_genesis_receipt` 覆盖 root-signed PCR create 与 founding authorize；
-2. authorization chain 从该 founding state，经 accepted-device authorize 或 root re-anchor，到目标 `device_authorize_event_id`；
+2. authorization chain 从该 founding state，经 accepted-device authorize 或 PCR-policy re-anchor，到目标 `device_authorize_event_id`；
 3. accepted Seal 覆盖链的当前 frontier，device 未 revoke/conflict，`authorized_generation_ref == current_device_generation_ref`；
 4. row 的 signing/HPKE key 与 authorize payload 逐字一致。
 
@@ -1301,7 +1302,7 @@ DELETE /_arkret/self/keys/backups/{backup_id}
 
 `GET /_arkret/self/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_kind=<class>` 过滤；响应 MUST 按 `series_seq` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。当仅按 `backup_kind` 查询且返回多个 series 时，server / client MUST NOT 用返回顺序、最大 `series_seq` 或最新 `created_at` 推断 active series；恢复方 MUST 使用 `identity/key-management.md` §7.6 的 `ak.key_backup.active_series` / `ak.schema.key_backup_active_series.v1` signed active-series record。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 `identity/key-management.md` §7.8 的限速。
 
-`unlock` 返回完整 encrypted backup object：request body MUST 携带 `ak.schema.key_backup_unlock_proof.v1`（见 `identity/key-management.md` §7.7.1），并受 §7.8 的 fresh device proof 与 rate limit 约束。普通单对象 `delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明；active series 内的非尾部 envelope MUST NOT 被单独删除，删除链尾部 envelope MUST 同时附 §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）并写入高风险审计。设备revoke后的旧series不得循环调用该单对象operation充当事务完成证据；它必须走[`identity/security-transactions.md` §3](../identity/security-transactions.md)的transaction-bound `ak.self.keys.backup_series.command.erase`并取得完整typed confirmation。
+`unlock` 返回完整 encrypted backup object：request body MUST 携带 `ak.schema.key_backup_unlock_proof.v1`，并受 fresh PCR device proof 与 rate limit 约束。普通单对象 `delete` MUST 要求当前设备或 accepted recovery policy 允许的高风险证明；current DID proof 只有在同一 authority instance 的 policy 显式启用 DID-root factor 时才可进入。active series 的删除还必须遵守 transaction-bound erase 合同，不得用单对象 operation 伪造完成证据。
 
 ### 12.2 Retention and Erasure
 
@@ -1485,16 +1486,23 @@ to-device 触发消息，与 `ak.key.verification.request` 同类，使用
 
 **push 豁免与落点（优化路径，normative）**：持有相应 `history_secret` 且已确认接收方 read-eligible 的 source MAY 不等 `ak.realm_key.request`、直接提交 durable `ak.realm_key.share`，仍 MUST 通过 §13 完整闸门与上述等价 recipient/device/policy 校验。其可行**落点是 admission（发 `ak.mls.welcome` 之时），不是 invite 之时**——invite 时被邀请者尚未发布 KeyPackage / 设备公钥，无可封装目标，故 invite 只能携带历史**资格意图**（policy 声明该 invitee 可看的 range），不能携带 sealed key。push 的 seal 目标 MUST 是**接收方掌握私钥的设备 HPKE 公钥**（§2.10.4）——MLS KeyPackage init key 的私钥通常不暴露供带外解封，故 admin **不能**直接用 claim 到的 KeyPackage init key seal。因此 push-at-admission **仅当**接收设备已发布/可获取一把专用设备 HPKE 公钥时成立；否则历史交付走 **request 驱动**:receiver 在 `ak.realm_key.request.recipient_hpke_public_key` 中广告其设备 HPKE 公钥，provider 据此 seal 并提交 share。admin 不持有的更早 epoch 同样由 receiver 事后按本节 pull 补全。
 
-## 14. Root-Anchored Device Recovery
+## 14. PCR-Policy Device Recovery
 
-全设备丢失时，账号重新登录不能替代 identity/recovery proof。持有 DID active update/recovery key 的用户发布下一个 method-native DID entry，并提交与 genesis 同构的两条 Event re-anchor unit：
+全设备丢失时，账号重新登录不能替代 PCR recovery proof。基础路径由丢失前已进入 accepted Seal 的
+recovery policy 授权，并提交两条 Event：
 
-1. root-signed `ak.device.reanchor` 承诺 replacement authorize payload digest，携带唯一 critical `did_recovery_anchor` ref，并要求 `new_device_generation == did_version_id`；
-2. replacement device 自签 `ak.device.authorize`，`authorization_binding_kind="root_anchored"`，`prev_refs` 只指向 re-anchor Event，使用 §5.3 的 candidate overlay 验证。
+1. policy-authorized `ak.device.reanchor` 绑定 policy/version/session、authority instance、replacement
+   authorize payload digest 与 monotonic PCR generation CAS；
+2. replacement device 自签 `ak.device.authorize`，`authorization_binding_kind="pcr_recovery"`，
+   `prev_refs` 只指向 re-anchor Event。
 
-两条 Event 必须原子接受，receipt `scope.kind="device_reanchor_unit"`。接受后 generation fence 使旧 generation 的全部设备失效；旧设备即使恢复上线也不能提交普通 Event。Coordinator 只有 `publish_did_entry -> submit_reanchor_unit -> issue_terminal_receipt`，不存在另一个服务签发 replacement authorize 的步骤。
+两条 Event 必须原子接受，receipt `scope.kind="device_reanchor_unit"`。接受后 generation fence 使旧
+generation 全部失效。`current_device_generation_ref` 是 PCR-local monotonic ref，MUST NOT 使用或等于
+DID `versionId`；resolution cell 不随基础恢复推进。
 
-PCR 已存在时不得重走 genesis。若 genesis 已接受但首设备在 recovery policy/backup ready 前物理损毁，identity root 仍可直接执行本节 re-anchor；随后必须重新完成 recovery-material gate。若 identity root/recovery proof 也丢失，则只能满足 PCR 已接受 recovery policy；没有可满足的 policy 必须 fail closed。
+DID-root 只是在 recovery policy 中显式启用、可撤销的一种 proof kind。当前 DID root 本身不能
+re-anchor；method 不支持 history/pre-rotation 或 policy 未启用时必须拒绝。只有该分支或用户同时执行
+resolution successor 时 transaction 才包含 DID publication；DID host outage 不影响 PCR-policy 分支。
 
 ### 14.1 Device lifecycle 与 trust 正交状态
 

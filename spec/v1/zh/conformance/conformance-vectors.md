@@ -3,10 +3,12 @@ title: Conformance Vectors
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-01
+updated: 2026-08-11
 ---
 
 本文是 v1 conformance 测试向量的人类阅读入口，按域分组呈现核心 normative steps。完整 active vector 集合的机器真相源是 `artifacts/registry/vector-registry.json`；测试 runner MUST 从 registry 的 `source_refs` 加载本文件、领域文档与 fixture，不得假定本文件正文穷尽列出所有 vector id。
+
+`ak.vector.identity.did_pcr_authority_boundary.v1` 覆盖 human DID 注册锚与注册后 PCR authority 的边界：同 core 双 PCR、controller 转手、历史 accepted-at evidence、DID outage、method successor 双重授权、可选 DID-root recovery、account lifecycle 以及 operation/event-kind freshness 映射。测试器 MUST 运行 `did-pcr-authority-boundary-fixture.json` 的全部 semantic cases；仅比较 `core_id`、按 risk tier 隐式触发 current DID，或以相同 public key 自动 link/merge 的实现均不合格。
 
 1. Encoding & Crypto（canonical JSON、digest、signature binding、HLC、cursor、encrypted envelope）
 2. CBA · Lattice（DataEvent acceptance、Control Move Seal finality、cas_register、Seal DAG）

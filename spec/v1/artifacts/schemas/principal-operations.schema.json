@@ -489,7 +489,7 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/long_lived_principal_full_id",
+          "$ref": "./common-ids.schema.json#/$defs/human_principal_full_id",
           "description": "Complete registration DID. The Principal Server independently validates method evidence and requires project(full_id)=principal_id before accepting genesis."
         },
         "pcr_realm_id": {

@@ -2,15 +2,8 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/principal-service-binding.schema.json",
   "title": "Arkret Principal Service Binding",
-  "description": "Portable accepted-at binding between a principal and the Principal Server that hosted it, plus a bounded three-party-signed cutover chain to the current transport source.",
-  "oneOf": [
-    {
-      "$ref": "#/$defs/accepted_at_service_binding"
-    },
-    {
-      "$ref": "#/$defs/principal_service_binding_continuity"
-    }
-  ],
+  "description": "Portable accepted-at binding between exactly one PrincipalAuthorityInstance and its Principal Server. It is not a global current-service pointer and cannot be continued to another PCR or Principal Server.",
+  "$ref": "#/$defs/accepted_at_service_binding",
   "$defs": {
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -55,9 +48,10 @@
     },
     "accepted_at_service_binding_core": {
       "type": "object",
-      "description": "Frozen accepted-at binding core returned by ak.self.principal_service_binding.command.prepare. binding_digest = H('ak.principal-service-binding.v1', the RFC 8785 canonical object formed by every property here except binding_digest). authorization_challenge is service-generated, single-use and therefore binds the principal proof to this exact prepare instead of permitting an old proof to complete a later challenge. authority_evidence.document_digest MUST equal document_digest. A first binding omits predecessor_binding_digest and is accepted only when no current binding exists; a same-service renewal requires predecessor_binding_digest to equal the complete current binding digest under an atomic CAS.",
+      "description": "Frozen accepted-at binding core returned by ak.self.principal_service_binding.command.prepare. binding_digest = H('ak.principal-service-binding.v1', the RFC 8785 canonical object formed by every property here except binding_digest). authority_instance selects one PCR; authority_evidence describes only the service signing key, never principal authority. A same-service renewal stays inside the same authority instance.",
       "required": [
         "principal_id",
+        "authority_instance",
         "service_id",
         "trust_domain",
         "service_kind",
@@ -74,6 +68,10 @@
       "properties": {
         "principal_id": {
           "$ref": "#/$defs/did_core_id"
+        },
+        "authority_instance": {
+          "$ref": "./principal-authority-instance.schema.json",
+          "description": "principal_id MUST equal authority_instance.principal_id and service_id MUST equal authority_instance.principal_server_id."
         },
         "service_id": {
           "$ref": "#/$defs/did_core_id"
@@ -142,7 +140,7 @@
       }
     },
     "accepted_at_service_binding": {
-      "description": "Closed accepted-at snapshot installed by the two-phase self binding operation. principal_authorization_proof signs H('ak.principal-service-binding-proof.v1', {binding_digest,accepted_at,proof_purpose:'principal_authorization',verification_method,audience:service_id}); service_acceptance_proof signs the same closed object with proof_purpose='service_acceptance' and service_verification_method.id. Both signatures use the exact frozen core, fixed UTC-millisecond accepted_at and distinct proof purposes; neither proof enters binding_digest.",
+      "description": "Closed accepted-at snapshot installed by the two-phase self binding operation. principal_authorization_proof is made by a current accepted device/recovery authority from authority_instance and is independently replayable through principal_authorization_evidence; it is never a current DID-controller proof. service_acceptance_proof uses the service key. Neither proof enters binding_digest.",
       "allOf": [
         {
           "$ref": "#/$defs/accepted_at_service_binding_core"
@@ -151,7 +149,8 @@
           "type": "object",
           "required": [
             "service_acceptance_proof",
-            "principal_authorization_proof"
+            "principal_authorization_proof",
+            "principal_authorization_evidence"
           ],
           "properties": {
             "service_acceptance_proof": {
@@ -159,91 +158,15 @@
             },
             "principal_authorization_proof": {
               "$ref": "./principal-operations.schema.json#/$defs/signature"
+            },
+            "principal_authorization_evidence": {
+              "$ref": "./federated-device-signing-key-evidence.schema.json",
+              "description": "Must match authority_instance byte-for-byte and authorize principal_authorization_proof at accepted_at."
             }
           }
         }
       ],
       "unevaluatedProperties": false
-    },
-    "principal_service_cutover": {
-      "type": "object",
-      "description": "One cutover edge. All three proofs sign H('ak.principal-service-cutover.v1', this object without principal_proof, previous_service_proof and new_service_proof). The principal proof prevents two services from transferring a principal between themselves; the old-service proof closes the prior writer fence; the new-service proof accepts the new binding. new_binding.principal_id and trust_domain MUST match the edge, new_binding.service_id MUST equal new_service_id, and new_binding.accepted_at MUST equal effective_at.",
-      "required": [
-        "principal_id",
-        "trust_domain",
-        "previous_service_id",
-        "new_service_id",
-        "previous_binding_digest",
-        "new_binding",
-        "cutover_sequence",
-        "fence_digest",
-        "effective_at",
-        "principal_proof",
-        "previous_service_proof",
-        "new_service_proof"
-      ],
-      "properties": {
-        "principal_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "trust_domain": {
-          "type": "string",
-          "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
-        },
-        "previous_service_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "new_service_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "previous_binding_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "new_binding": {
-          "$ref": "#/$defs/accepted_at_service_binding"
-        },
-        "cutover_sequence": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "fence_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "principal_proof": {
-          "$ref": "./principal-operations.schema.json#/$defs/signature"
-        },
-        "previous_service_proof": {
-          "$ref": "./principal-operations.schema.json#/$defs/signature"
-        },
-        "new_service_proof": {
-          "$ref": "./principal-operations.schema.json#/$defs/signature"
-        }
-      },
-      "additionalProperties": false
-    },
-    "principal_service_binding_continuity": {
-      "type": "object",
-      "description": "Accepted-at binding followed by zero or more cutovers. Edges are in ascending cutover_sequence, the first previous_binding_digest equals accepted_binding.binding_digest, every later edge links to the preceding new_binding, service_id values MUST NOT repeat, and the final binding service_id MUST equal the authenticated transport Source-Service-ID. An empty cutovers array requires accepted_binding.service_id to equal Source-Service-ID.",
-      "required": [
-        "accepted_binding",
-        "cutovers"
-      ],
-      "properties": {
-        "accepted_binding": {
-          "$ref": "#/$defs/accepted_at_service_binding"
-        },
-        "cutovers": {
-          "type": "array",
-          "maxItems": 16,
-          "items": {
-            "$ref": "#/$defs/principal_service_cutover"
-          }
-        }
-      },
-      "additionalProperties": false
     }
   }
 }

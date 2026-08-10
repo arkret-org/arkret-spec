@@ -3,7 +3,7 @@ title: DID 使用与验证边界
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-31
+updated: 2026-08-11
 ---
 
 ## 0. 规范语言
@@ -28,11 +28,17 @@ resolve。字段来源于 DID **不等于**读取或写入该字段时必须解�
 2. **标识使用**：以完整 `did_core_id` 逐字比较、索引、去重、路由或匹配授权主体；
 3. **签名验证**：使用已经接受并固定到相应 auth-state / key epoch 的公钥验证某个 proof；
 4. **DID 权威验证**：按 DID method adapter、resolver policy、history / controller proof 与 trust
-   evidence 验证 `project(full_id) == expected did_core_id` 以及该历史位置控制哪些 key / delegation。
+   evidence 验证 `project(full_id) == expected did_core_id` 以及指定历史位置控制哪些 key / delegation。
 
 第 1 项在 wire ingress 执行；第 2 项是普通业务路径；第 3 项按签名对象的协议要求执行；只有
 第 4 项属于本文所称的“验证 DID”。前三项不得被实现成“顺便在线解析 DID”。DID 权威验证是
 少量、显式的信任边界操作，不能成为普通对象读取、列表渲染或每次 Event 提交的隐式前置条件。
+
+对 human principal，DID 权威验证还必须分成两个互不替代的时态：注册时或 Event accepted-at
+时点的历史证据用于重放已经成立的身份/PCR 起源；current DID evidence 只用于当前外部身份声明、
+method successor、显式启用的 DID-root recovery。历史验证不得查询最新 DID head 后用当前
+controller 替代旧 key；current controller 也不得仅凭 `core_id` 相同取得既有 PCR、membership、grant、
+contact、session 或 account lifecycle authority。
 
 ## 2. DID 派生身份字段总表
 
@@ -186,22 +192,31 @@ Document 解析、history 验证或网络请求：
 
 ## 4. DID 权威验证的封闭触发条件
 
-只有下表情形需要建立、刷新或替换 DID 权威绑定：
+调用点必须先选择下表中的证据类别，再决定是否存在 DID authority call。动作的 `risk_tier` 与
+DID freshness 是正交维度；高风险只要求其**实际授权根**新鲜，不能自动推导“刷新 DID”。
 
-| 触发场景 | 必须验证的内容 | 是否允许复用既有验证结果 |
-| --- | --- | --- |
-| 一个此前未被本 trust domain 接受的 `full_id` 首次跨越信任边界 | method allowlist、`project(full_id)==expected did_core_id`、DID Document / method history、controller proof、role / purpose、必要 witness evidence | 仅当已有结果绑定相同 full/core、trust domain、purpose、policy digest 与可接受 freshness 时可复用。 |
-| 账号注册、认领、恢复或 service account 与 principal identity 首次绑定 | `full_id` 当前控制 proof、core 投影、session / device、audience、nonce、有效期与 account binding | 不得用邮箱、OIDC `sub`、passkey 登录成功或仅有 identity 字符串替代。 |
-| 出现新的 `verification_method`、device generation、agent signer epoch、service signing key 或 controller | 新 key 的 controller / delegation、用途、有效期、前序 history / authorization | 已接受旧 key 不能自动授权新 key。 |
-| 同一 core 下的 resolution/key rotation、recovery、deactivation 或 service route / delegation 变更 | 精确历史版本、previous head / sequence、recovery/successor proof、目标 trust domain 与 policy；若投影 core 改变则必须作为新 identity | 必须按事件接受时点或显式 pinned version 验证，不能只看当前文档。 |
-| 新 service `did_core_id` 被加入 federation peer、plaintext-visible service、media / push / audit / directory / policy allowlist | `full_id` control、core 投影、service kind、signed route record、trust domain、policy scope | 已验证的同一 service binding/record 在有效期内可复用；普通请求不重复解析。 |
-| membership / MLS admission 引入此前未接受的 principal、pairwise DID 映射或新的 delivery service binding | principal / pairwise link、KeyPackage / device or agent key binding、service binding | 既有 active member 的普通消息、presence、read receipt 不触发。 |
-| 高风险写入显式要求的 freshness 已过期，或收到 rotation / deactivation / witness fork / policy-change invalidation | 与该风险级别对应的最新 method evidence 或指定历史版本 | 低风险读路径不得因后台刷新失败而偷偷 live fallback；高风险操作 fail closed 或等待刷新。本表所称「高风险」**就是** [`identity-did.md` §3.4](./identity-did.md) 的 normative 枚举（新写入、grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Realm、accepting invite）；freshness 阈值与 stale 行为由调用点引用的 §5.4 freshness profile 决定，不由实现自由发挥。 |
-| 验证第三方 claim / receipt / attestation 时，本地没有其 issuer key 的已接受绑定 | issuer DID、verification method、claim purpose / audience / status / revocation | 同 issuer、key epoch、purpose 与 policy 下可复用。 |
+| 证据类别 | 封闭触发场景 | 必须验证的内容 | freshness |
+| --- | --- | --- | --- |
+| `registration_control` | human principal 注册、把已发布 DID 首次绑定到新建 PCR | 注册时 current `full_id` control proof、adapter 投影、bootstrap trust、method head/version、control-key digest、PCR genesis receipt | 注册 challenge 窗口内同步验证；accepted 后冻结为历史证据。 |
+| `accepted_at_history` | 首次重放 PCR genesis、历史 device/Agent/service authorization 或历史 receipt，且本地没有其 pinned evidence | 证据所钉 accepted-at position 的 full/core 投影、key、method evidence 与 receipt/Seal lineage | 以被钉时点为准；不得要求 current head 或 current controller。 |
+| `current_external_claim` | 当前外部身份 badge/claim、当前 DID delegation/controller 声明 | 最新 method state、current controller/delegation、deactivation 与调用点 policy | 调用点登记的 current profile。失败只使该 claim stale/unavailable。 |
+| `method_successor` | `ak.identity.resolution.update`、webvh relocation、DID rotation/deactivation publication | 从 PCR accepted resolution head 到候选 head 的 method-native successor、same-core projection、current PCR author 与 CAS | 同步刷新或 fail closed；PCR author 与 method successor 缺一不可。 |
+| `optional_did_root_recovery` | 账号的 accepted recovery policy 明确启用了 DID-root factor，且该 factor 正在被使用 | policy opt-in、current DID root/history、pre-rotation、recovery session、PCR generation CAS | 同步刷新或 fail closed；未启用时 current root proof 必须拒绝。 |
+| `ongoing_governance` | organization、managed Agent 或 service 的角色合同明确把 DID controller/delegation/key state 定为持续 authority | 角色、purpose、current delegation/key、history、policy 与 audience | 由具体 operation/action 登记；不得外推到 human PCR。 |
 
-除上述触发条件外，业务代码 MUST NOT 自行增加“保险起见再 resolve 一次”的路径。若一个业务
-动作认为需要 DID 权威验证，它必须能指出本表中的触发场景、所需 purpose 与 freshness policy；
-无法指出时应按普通身份锚点处理。
+下列操作对 human principal **不创建 DID authority call**：普通或高风险 Event 写入、device
+authorize/revoke、PCR-policy recovery、capability grant/revoke、MLS commit、membership/join/invite、
+session 恢复、账号删除/擦除、Contact 与既有 delivery binding 使用。它们必须验证 fresh PCR、device、
+recovery policy、capability、MLS、account 或 service authority；DID host 不可达不得改变这些状态。
+
+出现新的 human device generation 或 `verification_method` 不自动触发 current DID 验证。device key
+必须从已接受 PCR authorization chain 取得；`verification_method` 的 bare `full_id` 只经 adapter 做
+确定性 core 投影，fragment 选择该链中的 key。只有链中某一步本身使用了上表的 DID-root factor，才
+为该步携带并验证相应 accepted-at DID evidence。
+
+除上述触发条件外，业务代码 MUST NOT 自行增加“保险起见再 resolve 一次”的路径。真实调用点
+必须在 operation/action registry 中携带 `did_authority`，逐字声明 `evidence_class`、`purpose` 与
+`freshness_profile_id`；没有该字段的 operation/action MUST NOT 调用 authority resolver。
 
 ## 5. 验证结果、缓存与失效
 
@@ -311,14 +326,14 @@ policy_digest = "sha256:" + lowercase_hex(SHA-256(RFC8785_JCS(policy_snapshot)))
 `refresh_after` / `expires_at` 的必填性与取值由**已登记的 freshness profile** 决定
 （[`did-binding-contracts.schema.json#/$defs/freshness_profile`](../../artifacts/schemas/did-binding-contracts.schema.json)）：
 
-- 每个 DID authority call site MUST 经 operation / action 登记显式引用一个
+- 每个 DID authority call site MUST 经 operation / action 的 `did_authority` 对象显式引用一个
   [`did-freshness-profile-registry.json`](../../artifacts/registry/did-freshness-profile-registry.json)
   已登记的 `freshness_profile_id`；不得靠「directory 一类」这样的自然语言猜档，更不得由
   实现方或部署自行编造 id。未知 id、未登记 action 或 method selector 不匹配时，一律按
   `high` tier 的 `synchronous_refresh_or_fail_closed` 处理；**不存在**默认为「任意缓存
   皆可」的路径；registry 只固定 id 与 `risk_tier`，数值窗口仍由部署申报（见本节末）；
-- `high` tier 的 action 集合至少覆盖并逐字引用 [`identity-did.md` §3.4](./identity-did.md)
-  的高风险枚举（明确包括 principal registration 与 PCR genesis）；`high` 不得消费 stale binding，必须同步 refresh 或 fail closed，
+- `high` tier 只覆盖登记为 current-DID-dependent 的调用点；principal registration、method successor、
+  optional DID-root recovery 与 ongoing governance 的 current 检查属于此列。`high` 不得消费 stale binding，必须同步 refresh 或 fail closed，
   `fresh_for_seconds` 与 `hard_expiry_seconds` 全部有限且
   `0 < fresh_for <= hard_expiry`，没有 stale consumption window；
 - `low` 只允许 registry 明列的 accepted-only 只读 / replay 路径：stale 可用且不得因普通
@@ -336,6 +351,10 @@ policy_digest = "sha256:" + lowercase_hex(SHA-256(RFC8785_JCS(policy_snapshot)))
   的申报值，在 `fresh_for-1` / `fresh_for` / `stale_grace` / `stale_grace+1` 边界断言行为，
   并断言 `low` 的 authority call = 0、`medium` 只调度一次后台 refresh、`high` 同步 refresh
   失败即 fail closed；无需全网统一分钟数即可移植。
+
+registry lint MUST 双向验证：所有 `did_authority` 引用的 profile 存在且 evidence class 与 profile
+用途相容；所有列入 DID authority call-site 清单的 operation/action 恰有一个引用；未列入的项不得
+携带引用。`risk_tier`、动作名称包含 `recovery`/`device` 或自然语言“高风险”均不得参与推导。
 
 ### 5.5 limited trust：逐 pin 记录，构造期一致性是协议义务
 

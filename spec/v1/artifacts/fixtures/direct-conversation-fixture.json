@@ -803,8 +803,7 @@
       "expected_reason_code": "schema_violation",
       "instance": {
         "unit_kind": "direct_conversation_founding",
-        "source_service_continuity": {
-          "accepted_binding": {
+        "source_service_binding": {
             "principal_id": "ak:did_core:webvh:z6mkfixturefounderexample",
             "service_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
             "trust_domain": "ak:trust_domain:fixture",
@@ -838,8 +837,6 @@
               "created_at": "2026-08-01T00:00:00.000Z",
               "jws": "a"
             }
-          },
-          "cutovers": []
         },
         "service_binding_ref": {
           "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",

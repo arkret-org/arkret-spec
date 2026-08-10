@@ -48,7 +48,7 @@
     "binding": {
       "oneOf": [
         {
-          "$ref": "#/$defs/root_anchored_recovery_binding"
+          "$ref": "#/$defs/pcr_policy_recovery_binding"
         },
         {
           "$ref": "#/$defs/security_rotation_binding"
@@ -58,7 +58,7 @@
     "prepared_plan": {
       "oneOf": [
         {
-          "$ref": "#/$defs/root_anchored_recovery_plan"
+          "$ref": "#/$defs/pcr_policy_recovery_plan"
         },
         {
           "$ref": "#/$defs/security_rotation_plan"
@@ -116,18 +116,18 @@
       "then": {
         "properties": {
           "binding": {
-            "$ref": "#/$defs/root_anchored_recovery_binding"
+            "$ref": "#/$defs/pcr_policy_recovery_binding"
           },
           "prepared_plan": {
-            "$ref": "#/$defs/root_anchored_recovery_plan"
+            "$ref": "#/$defs/pcr_policy_recovery_plan"
           },
           "accepted_steps": {
-            "$ref": "#/$defs/root_anchored_accepted_steps"
+            "$ref": "#/$defs/pcr_policy_accepted_steps"
           },
           "next_required_step": {
             "oneOf": [
               {
-                "$ref": "#/$defs/root_anchored_recovery_step"
+                "$ref": "#/$defs/pcr_policy_recovery_step"
               },
               {
                 "type": "null"
@@ -137,7 +137,7 @@
         },
         "allOf": [
           {
-            "$ref": "#/$defs/root_anchored_progress_contract"
+            "$ref": "#/$defs/pcr_policy_progress_contract"
           }
         ]
       },
@@ -754,9 +754,9 @@
         }
       ]
     },
-    "did_generation_ref": {
-      "type": "string",
-      "pattern": "^[1-9][0-9]*-[^\\s]+$"
+    "pcr_generation_ref": {
+      "type": "integer",
+      "minimum": 1
     },
     "event_id": {
       "type": "string",
@@ -876,7 +876,7 @@
     },
     "prepared_event_unit": {
       "type": "object",
-      "description": "Exact typed Event submit request and its persisted canonical bytes. The request MUST be a batch whose Event ids and kinds equal the enclosing closed plan. For a root-anchored re-anchor unit, the replacement authorize proof.verification_method bare DID component MUST project through its registered adapter to principal_id and its fragment MUST equal the replacement device_id. It is verified through a unit-local candidate overlay to that authorize payload's device_public_key before any directory mutation; did_core_id string concatenation, did:key and pre-existing-directory fallback are forbidden.",
+      "description": "Exact typed Event submit request and persisted canonical bytes. A PCR recovery unit contains reanchor plus replacement authorize for the same authority instance/session/generation CAS; candidate possession is verified through the unit-local overlay before mutation and never by resolving current human DID.",
       "required": [
         "operation_id",
         "destination_service_id",
@@ -947,10 +947,10 @@
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "binding": {
-          "$ref": "#/$defs/root_anchored_recovery_binding"
+          "$ref": "#/$defs/pcr_policy_recovery_binding"
         },
         "prepared_plan": {
-          "$ref": "#/$defs/root_anchored_recovery_plan"
+          "$ref": "#/$defs/pcr_policy_recovery_plan"
         },
         "prepared_plan_digest": {
           "$ref": "#/$defs/hash"
@@ -962,13 +962,10 @@
       "type": "string",
       "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "root_anchored_accepted_steps": {
+    "pcr_policy_accepted_steps": {
       "type": "array",
-      "maxItems": 3,
+      "maxItems": 2,
       "prefixItems": [
-        {
-          "$ref": "#/$defs/accepted_publish_did_entry"
-        },
         {
           "$ref": "#/$defs/accepted_submit_reanchor_unit"
         },
@@ -978,7 +975,7 @@
       ],
       "items": false
     },
-    "root_anchored_progress_contract": {
+    "pcr_policy_progress_contract": {
       "allOf": [
         {
           "if": {
@@ -1003,7 +1000,7 @@
                     "maxItems": 0
                   },
                   "next_required_step": {
-                    "const": "publish_did_entry"
+                    "const": "submit_reanchor_unit"
                   },
                   "state": {
                     "enum": [
@@ -1018,20 +1015,6 @@
                   "accepted_steps": {
                     "minItems": 1,
                     "maxItems": 1
-                  },
-                  "next_required_step": {
-                    "const": "submit_reanchor_unit"
-                  },
-                  "state": {
-                    "const": "running"
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "accepted_steps": {
-                    "minItems": 2,
-                    "maxItems": 2
                   },
                   "next_required_step": {
                     "const": "issue_terminal_receipt"
@@ -1058,38 +1041,33 @@
           "then": {
             "properties": {
               "accepted_steps": {
-                "minItems": 3,
-                "maxItems": 3
+                "minItems": 2,
+                "maxItems": 2
               }
             }
           }
         }
       ]
     },
-    "root_anchored_recovery_binding": {
+    "pcr_policy_recovery_binding": {
       "type": "object",
       "required": [
         "identity_model",
         "recovery_session_id",
         "replacement_device_id",
-        "did_entry_ref",
         "reanchor_event_id",
         "authorize_event_id",
         "terminal_receipt_id"
       ],
       "properties": {
         "identity_model": {
-          "const": "root_anchored"
+          "const": "pcr_policy"
         },
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id"
         },
         "replacement_device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
-        },
-        "did_entry_ref": {
-          "type": "string",
-          "minLength": 1
         },
         "reanchor_event_id": {
           "$ref": "#/$defs/event_id"
@@ -1103,7 +1081,7 @@
       },
       "additionalProperties": false
     },
-    "root_anchored_recovery_plan": {
+    "pcr_policy_recovery_plan": {
       "type": "object",
       "required": [
         "identity_model",
@@ -1111,12 +1089,11 @@
         "proof_digest",
         "previous_model_generation_ref",
         "result_model_generation_ref",
-        "did_publication",
         "reanchor_unit"
       ],
       "properties": {
         "identity_model": {
-          "const": "root_anchored"
+          "const": "pcr_policy"
         },
         "recovery_session_snapshot_digest": {
           "$ref": "#/$defs/hash"
@@ -1125,13 +1102,10 @@
           "$ref": "#/$defs/hash"
         },
         "previous_model_generation_ref": {
-          "$ref": "#/$defs/did_generation_ref"
+          "$ref": "#/$defs/pcr_generation_ref"
         },
         "result_model_generation_ref": {
-          "$ref": "#/$defs/did_generation_ref"
-        },
-        "did_publication": {
-          "$ref": "#/$defs/prepared_did_publication"
+          "$ref": "#/$defs/pcr_generation_ref"
         },
         "reanchor_unit": {
           "$ref": "#/$defs/prepared_event_unit"
@@ -1139,10 +1113,9 @@
       },
       "additionalProperties": false
     },
-    "root_anchored_recovery_step": {
+    "pcr_policy_recovery_step": {
       "type": "string",
       "enum": [
-        "publish_did_entry",
         "submit_reanchor_unit",
         "issue_terminal_receipt"
       ]

@@ -1,9 +1,20 @@
 {
-  "version": "2026-08-10.7",
+  "version": "2026-08-11.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T23:50:00Z",
+  "generated_at": "2026-08-11T12:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
+    {
+      "vector_id": "ak.vector.identity.did_pcr_authority_boundary.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": ["did-pcr-authority-boundary-fixture.json"],
+      "description": "Security sequences for registration-only human DID authority, PCR-instance anti-substitution, optional DID-root recovery, outage isolation and exact freshness call-site registration.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/did-pcr-authority-boundary-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
     {
       "vector_id": "ak.vector.aad_visibility.policy_ceiling.v1",
       "status": "active",
@@ -3284,7 +3295,6 @@
         "ak.profile.sovereign_deployment.v1"
       ],
       "source_refs": [
-        "spec/v1/zh/identity/identity-did.md",
         "spec/v1/artifacts/schemas/key-transparency.schema.json",
         "spec/v1/artifacts/fixtures/key-transparency-fixture.json"
       ]

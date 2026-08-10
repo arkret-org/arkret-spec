@@ -34,7 +34,7 @@
     },
     "principal_service_binding_prepare_request_body": {
       "type": "object",
-      "description": "Request a service-generated frozen binding core. Omitting expected_current_binding_digest is a create-if-absent CAS; supplying it is a same-service replacement CAS. The service resolves the authenticated principal's current DID authority itself and never accepts caller-supplied service metadata, authority evidence, timestamps or binding fields.",
+      "description": "Request a service-generated frozen binding core. Omitting expected_current_binding_digest is a create-if-absent CAS; supplying it is a same-service replacement CAS for the same PrincipalAuthorityInstance. The service reads the authenticated principal's accepted PCR authority and its own current service-key evidence; it does not resolve current human DID authority.",
       "required": [
         "request_id"
       ],
@@ -84,12 +84,13 @@
     },
     "principal_service_binding_commit_request_body": {
       "type": "object",
-      "description": "Commit the exact frozen draft. The verifier loads challenge state, recomputes binding_digest and the principal proof transcript, resolves the proof method at binding_draft.accepted_at, and requires that method to be current principal authorization. The client never submits a service proof or reconstructed binding object.",
+      "description": "Commit the exact frozen draft. The verifier loads challenge state, recomputes binding_digest and verifies principal_authorization_proof against a current accepted device/recovery authority in binding_draft.authority_instance. Current DID control is neither required nor sufficient. The client never submits a service proof or reconstructed binding object.",
       "required": [
         "request_id",
         "challenge_id",
         "binding_digest",
-        "principal_authorization_proof"
+        "principal_authorization_proof",
+        "principal_authorization_evidence"
       ],
       "properties": {
         "request_id": {
@@ -103,6 +104,9 @@
         },
         "principal_authorization_proof": {
           "$ref": "./principal-operations.schema.json#/$defs/signature"
+        },
+        "principal_authorization_evidence": {
+          "$ref": "./federated-device-signing-key-evidence.schema.json"
         }
       },
       "additionalProperties": false

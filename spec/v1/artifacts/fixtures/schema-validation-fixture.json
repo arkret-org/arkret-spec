@@ -2076,11 +2076,11 @@
       "first_expected_error": "$: Additional properties are not allowed ('unexpected' was unexpected)"
     },
     {
-      "name": "recovery_session_principal_signing_proof_valid",
-      "schema_ref": "schemas/recovery-session.schema.json#/$defs/principal_signing_proof",
+      "name": "recovery_session_did_root_proof_valid",
+      "schema_ref": "schemas/recovery-session.schema.json#/$defs/did_root_proof",
       "expect_valid": true,
       "instance": {
-        "kind": "principal_signing",
+        "kind": "did_root",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "verification_method": "did:webvh:z6mkfixture:alice.example#k",
         "signature": "c2ln",
@@ -2088,11 +2088,11 @@
       }
     },
     {
-      "name": "recovery_session_principal_signing_proof_missing_signature_algorithm_rejected",
-      "schema_ref": "schemas/recovery-session.schema.json#/$defs/principal_signing_proof",
+      "name": "recovery_session_did_root_proof_missing_signature_algorithm_rejected",
+      "schema_ref": "schemas/recovery-session.schema.json#/$defs/did_root_proof",
       "expect_valid": false,
       "instance": {
-        "kind": "principal_signing",
+        "kind": "did_root",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "verification_method": "did:webvh:z6mkfixture:alice.example#k",
         "signature": "c2ln"
@@ -3151,9 +3151,19 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "did_version_id": "2-recovery",
-        "previous_device_generation": "1-genesis",
-        "new_device_generation": "2-recovery",
+        "authority_instance": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "principal_server_id": "ak:did_core:web:ps.example",
+          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "recovery_authority_kind": "pcr_policy",
+        "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
+        "recovery_policy_version": 1,
+        "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-000000000099",
+        "previous_device_generation": 1,
+        "new_device_generation": 2,
         "pre_fence_basis": {
           "leaves": [
             "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -3171,9 +3181,19 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "did_version_id": "2-recovery",
-        "previous_device_generation": "1-genesis",
-        "new_device_generation": "2-recovery",
+        "authority_instance": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "principal_server_id": "ak:did_core:web:ps.example",
+          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "recovery_authority_kind": "pcr_policy",
+        "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
+        "recovery_policy_version": 1,
+        "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-000000000099",
+        "previous_device_generation": 1,
+        "new_device_generation": 2,
         "pre_fence_basis": {
           "leaves": [
             "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -3189,9 +3209,19 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "did_version_id": "2-recovery",
-        "previous_device_generation": "1-genesis",
-        "new_device_generation": "2-recovery",
+        "authority_instance": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "principal_server_id": "ak:did_core:web:ps.example",
+          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "recovery_authority_kind": "pcr_policy",
+        "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
+        "recovery_policy_version": 1,
+        "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-000000000099",
+        "previous_device_generation": 1,
+        "new_device_generation": 2,
         "pre_fence_basis": {
           "leaves": [
             "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -3209,9 +3239,19 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "did_version_id": "2-recovery",
-        "previous_device_generation": "1-genesis",
-        "new_device_generation": "2-recovery",
+        "authority_instance": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "principal_server_id": "ak:did_core:web:ps.example",
+          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "recovery_authority_kind": "pcr_policy",
+        "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
+        "recovery_policy_version": 1,
+        "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-000000000099",
+        "previous_device_generation": 1,
+        "new_device_generation": 2,
         "pre_fence_basis": {
           "leaves": [
             "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

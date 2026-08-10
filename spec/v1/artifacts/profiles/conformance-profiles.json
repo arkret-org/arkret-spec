@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-11.1",
-  "generated_at": "2026-08-11T00:30:00Z",
+  "version": "2026-08-11.2",
+  "generated_at": "2026-08-11T12:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -4017,7 +4017,9 @@
       "identity": {
         "principal_method_default": "did:webvh",
         "allowed_principal_methods": [
-          "did:webvh"
+          "did:webvh",
+          "did:web",
+          "did:key"
         ],
         "service_method_default": "did:webvh",
         "allowed_service_methods": [
@@ -4076,7 +4078,9 @@
       "identity": {
         "principal_method_default": "did:webvh",
         "allowed_principal_methods": [
-          "did:webvh"
+          "did:webvh",
+          "did:web",
+          "did:key"
         ],
         "service_method_default": "did:webvh",
         "allowed_service_methods": [
@@ -4131,7 +4135,9 @@
       "identity": {
         "principal_method_default": "did:webvh",
         "allowed_principal_methods": [
-          "did:webvh"
+          "did:webvh",
+          "did:web",
+          "did:key"
         ],
         "service_method_default": "did:webvh",
         "allowed_service_methods": [
@@ -4198,7 +4204,9 @@
       "identity": {
         "principal_method_default": "did:webvh",
         "allowed_principal_methods": [
-          "did:webvh"
+          "did:webvh",
+          "did:web",
+          "did:key"
         ],
         "service_method_default": "did:webvh",
         "allowed_service_methods": [

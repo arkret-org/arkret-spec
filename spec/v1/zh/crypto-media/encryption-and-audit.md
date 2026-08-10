@@ -31,7 +31,7 @@ Arkret 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.ietf
 - **发布位置**：Actor 通过 signed Event 发布自己的 `KeyPackage`，或者在其 DID Document 的 `service` 中指定独立的 `MLS Delivery Service` 节点入口。
 - **生命周期验证**：其他客户端在拉取 `KeyPackage` 时，MUST 独立验证 claim response 携带的
   portable authorization evidence。DID method history 只验证 identity root；普通设备签名 key
-  只来自 root-anchored PCR genesis、完整 control history、accepted Seal 与 current device projection，
+  只来自 registration-anchor PCR genesis、完整 control history、accepted Seal 与 current device projection，
   **MUST NOT** 回退到 DID Document verification method。Native Agent 则验证 current-admission
   `AgentSignerEvidence`，两分支不得互相 fallback，也不得以 Principal Server 裸投影替代。
 
@@ -568,7 +568,7 @@ Claim 成功后：
 
 - KeyPackage 进入 `claimed`，并绑定 claim/requester/intended Realm、capability/digest、expiry 与 claimed endpoint 的 accepted authorization ref。普通 device 必须且只能使用 `device_authorize_event_id`；Native Agent runtime 必须且只能使用 `agent_key_authorize_event_id`。
 - 同一 KeyPackage 不得被第二个 Realm/group、requester 或 Welcome 重复使用。
-- Welcome `claim_ref` 携带 `{claim_id,keypackage_ref,keypackage_digest,capabilities_digest}` 加上述二选一 authorization ref，并进入 governance/AAD transcript。接收端解密前必须验证所有 digest、capability subset 和 ref 指向 current active accepted authorization；device 分支还要验证 root-anchored PCR evidence、current device generation、未撤销状态与 MLS LeafNode/signature key 一致。
+- Welcome `claim_ref` 携带 `{claim_id,keypackage_ref,keypackage_digest,capabilities_digest}` 加上述二选一 authorization ref，并进入 governance/AAD transcript。接收端解密前必须验证所有 digest、capability subset 和 ref 指向 current active accepted authorization；device 分支还要验证冻结 authority instance 的 PCR evidence、current generation、未撤销状态与 MLS LeafNode/signature key 一致。
 - 若 device 在 claim 与 Welcome 之间 revoke、re-anchor fenced 或其 authorization 被替换，未消费 claim 失效；发送方必须以 current `device_authorize_event_id` 新建 claim。Agent authorization revoke/supersede/expiry 同理。
 - 返回 KeyPackage 时必须附 endpoint signature 与 target portable authorization evidence：普通 device
   claim record 必须且只能携 `target_device_signing_key_evidence`，Native Agent record 必须且只能携

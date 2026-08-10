@@ -135,6 +135,7 @@
       "type": "object",
       "required": [
         "subject_id",
+        "principal_authority_instance",
         "recipient_service_id",
         "service_resolution"
       ],
@@ -142,6 +143,10 @@
         "subject_id": {
           "$ref": "#/$defs/did_core_id",
           "description": "Principal DID whose private Contact projection receives this fact."
+        },
+        "principal_authority_instance": {
+          "$ref": "./principal-authority-instance.schema.json",
+          "description": "Immutable PCR lineage selected for this Contact participant. principal_id and principal_server_id MUST equal subject_id and recipient_service_id."
         },
         "recipient_service_id": {
           "$ref": "#/$defs/did_core_id",

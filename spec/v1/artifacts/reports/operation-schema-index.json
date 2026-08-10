@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.1",
+  "version": "2026-08-11.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-11T00:30:00Z",
+  "generated_at": "2026-08-11T13:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2911,7 +2911,7 @@
           "unit_kind",
           "source_acceptance_receipt",
           "founder_basis_evidence",
-          "source_service_continuity"
+          "source_service_binding"
         ],
         "closed": true,
         "variants": [
@@ -2939,14 +2939,14 @@
               "events",
               "source_acceptance_receipt",
               "founder_basis_evidence",
-              "source_service_continuity"
+              "source_service_binding"
             ],
             "properties": [
               "unit_kind",
               "events",
               "source_acceptance_receipt",
               "founder_basis_evidence",
-              "source_service_continuity",
+              "source_service_binding",
               "cba_proof_bundles",
               "signer_key_evidence"
             ],
@@ -3931,7 +3931,6 @@
           "updated_at",
           "current_device_generation_ref",
           "device_generation_status",
-          "registry_head",
           "accepted_seal_frontier"
         ],
         "properties": [
@@ -4016,7 +4015,6 @@
           "updated_at",
           "current_device_generation_ref",
           "device_generation_status",
-          "registry_head",
           "accepted_seal_frontier"
         ],
         "properties": [
@@ -6765,13 +6763,15 @@
           "request_id",
           "challenge_id",
           "binding_digest",
-          "principal_authorization_proof"
+          "principal_authorization_proof",
+          "principal_authorization_evidence"
         ],
         "properties": [
           "request_id",
           "challenge_id",
           "binding_digest",
-          "principal_authorization_proof"
+          "principal_authorization_proof",
+          "principal_authorization_evidence"
         ],
         "closed": true
       },

@@ -1290,7 +1290,7 @@
         "events",
         "source_acceptance_receipt",
         "founder_basis_evidence",
-        "source_service_continuity"
+        "source_service_binding"
       ],
       "properties": {
         "unit_kind": {
@@ -1311,9 +1311,9 @@
         "founder_basis_evidence": {
           "$ref": "#/$defs/DirectConversationFounderBasisEvidence"
         },
-        "source_service_continuity": {
-          "$ref": "./principal-service-binding.schema.json#/$defs/principal_service_binding_continuity",
-          "description": "Portable accepted-at binding for source_acceptance_receipt. accepted_binding.binding_digest MUST equal receipt.issuer_service_binding_digest, accepted_binding.service_id MUST equal receipt.issuer_service_id, principal_id MUST equal receipt.founder_id and accepted_at MUST equal receipt.accepted_at. The final binding after cutovers MUST equal the authenticated Source-Service-ID."
+        "source_service_binding": {
+          "$ref": "./principal-service-binding.schema.json#/$defs/accepted_at_service_binding",
+          "description": "Portable accepted-at binding for source_acceptance_receipt. binding_digest MUST equal receipt.issuer_service_binding_digest, service_id MUST equal receipt.issuer_service_id and authenticated Source-Service-ID, principal_id MUST equal receipt.founder_id, and authority_instance MUST equal the Contact basis frozen instance. Another same-core PCR is rejected."
         },
         "cba_proof_bundles": {
           "type": "array",

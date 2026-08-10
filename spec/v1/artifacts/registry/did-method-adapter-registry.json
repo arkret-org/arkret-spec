@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.1",
+  "version": "2026-08-11.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-11T00:30:00Z",
+  "generated_at": "2026-08-11T13:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -11,7 +11,7 @@
     "A new full_id is an update of an existing principal or service only when the same active adapter projects it to the identical did_core_id. A method or core change creates a new identity and cannot inherit authorization through a continuity assertion.",
     "DID URLs are constructed and compared from the verified full_id under the adapter's DID URL rules. A did_core_id is never used as a DID URL base.",
     "A full_id is a canonical bare DID and therefore contains no path, query or fragment. Each active adapter deterministically emits method_history_head, version_id and service_resolution_event_ref according to its registered rules, including synthetic values for methods without native history.",
-    "For a generic Event proof, the verifier extracts the canonical bare full_id base from proof.verification_method, validates the active adapter and key at the cited method history, projects that full_id, and compares the resulting did_core_id to executed_by when present or actor_id otherwise. The did_root_anchor admission variant is the sole registered exception.",
+    "For a generic Event proof, the verifier extracts the canonical bare full_id base from proof.verification_method, validates the active adapter and key at the cited accepted-at method history, projects that full_id, and compares the resulting did_core_id to executed_by when present or actor_id otherwise. registration_anchor and pcr_recovery are the only registered special admissions and never convert current DID control into generic human PCR authority.",
     "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:cell:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current cell and MUST cross-bind payload.previous_resolution_event_ref and payload.previous_method_history_head."
   ],
   "principal_resolution_contract": {
@@ -42,6 +42,10 @@
     },
     "update_successor": {
       "event_kind": "ak.identity.resolution.update",
+      "did_authority": {
+        "evidence_class": "method_successor",
+        "freshness_profile_id": "ak.did_freshness.method_successor.v1"
+      },
       "required_realm_rule": "event.realm_id == derive_identity_control_realm(event.actor_id)",
       "required_precondition": {
         "cell": "ak:cell:ak.component.identity.resolution.v1:null",
@@ -87,6 +91,8 @@
       "resolution_components": [
         "host-and-path"
       ],
+      "human_principal_anchor": true,
+      "ongoing_did_governance": true,
       "self_certifying_genesis": true,
       "native_history": true,
       "verifiable_control_history": true,
@@ -114,6 +120,8 @@
       "full_id_shape": "did:web:<canonical-method-specific-id>",
       "core_projection": "ak:did_core:web:<canonical-method-specific-id>",
       "resolution_components": [],
+      "human_principal_anchor": true,
+      "ongoing_did_governance": false,
       "self_certifying_genesis": false,
       "native_history": false,
       "verifiable_control_history": false,
@@ -139,6 +147,8 @@
       "full_id_shape": "did:key:<canonical-multibase-method-specific-id>",
       "core_projection": "ak:did_core:key:<canonical-multibase-method-specific-id>",
       "resolution_components": [],
+      "human_principal_anchor": true,
+      "ongoing_did_governance": false,
       "self_certifying_genesis": true,
       "native_history": false,
       "verifiable_control_history": false,
@@ -159,11 +169,25 @@
     }
   ],
   "role_requirements": {
-    "long_lived_principal": {
+    "human_principal_anchor": {
       "required_adapter_properties": {
-        "self_certifying_genesis": true,
+        "human_principal_anchor": true
+      }
+    },
+    "human_did_root_recovery": {
+      "required_adapter_properties": {
         "verifiable_control_history": true,
         "pre_rotation_commitment": true
+      }
+    },
+    "human_relocatable": {
+      "required_adapter_properties": {
+        "relocation_preserves_core": true
+      }
+    },
+    "ongoing_did_governance": {
+      "required_adapter_properties": {
+        "ongoing_did_governance": true
       }
     },
     "service": {

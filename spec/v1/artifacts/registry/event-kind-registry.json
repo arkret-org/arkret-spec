@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.1",
+  "version": "2026-08-11.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-11T00:30:00Z",
+  "generated_at": "2026-08-11T13:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -15,7 +15,8 @@
     "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
     "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A purpose=managed_agent_control Native Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed purpose=principal_control branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
     "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
-    "did_root_anchor": "Admitted only by the closed identity-root anchor verifier. v1 permits this class for a self-principal PCR genesis ak.realm.create bound to entry 0 through one critical did_inception ref, and for root-anchored ak.device.reanchor bound to the accepted registry head through one critical did_recovery_anchor ref. This verifier is the sole exception to generic Event verification_method-controller equality: verification_method MUST instead equal an active controller-proof verification method from the referenced entry, and the verifier validates it against the accepted did:webvh history/update authority without rewriting its did:key controller to actor_id. Root/update authority MUST NOT authorize any other Event kind. Batch shape, DID history, active update authority, full frontier CAS and conflict-slot checks remain mandatory.",
+    "registration_anchor": "Admitted only for self-principal PCR genesis using durable registration-time DID control evidence and one critical did_inception ref. The verifier validates the accepted-at adapter/method evidence and project(full_id)=actor_id; current DID state after registration is irrelevant.",
+    "pcr_recovery": "Admitted only for ak.device.reanchor under the authority instance's accepted PCR recovery policy/session and monotonic generation CAS. did_root is merely one optional policy-enabled factor. A current DID proof without the matching authority instance and policy cannot enter this class.",
     "direct_conversation_agent_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_agent_provision pointing to an accepted ak.agent.provision Event. Used solely for the controller-to-own-Agent Direct Conversation branch, which has no Contact basis. The verifier cross-binds participants to exactly that controller and Agent, requires the Direct Conversation profile rather than a PCR profile, checks the controller binding is current, and fixes founder = controller so the Agent runtime key never needs Direct Conversation founding scope. This role is structurally exclusive with direct_conversation_basis and with the managed-Agent PCR agent_provision role.",
     "direct_conversation_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_basis pointing to the portable Contact basis evidence bundle and its continuity chain to the pair's root founder basis. The verifier derives founder from the root basis core (normal branch: the sorted_pair_members entry that is not the request_event_ref issuer, i.e. the responder; glare branch: the requests[0] issuer), then requires created_by == actor_id == founder, recomputes pair_key from sorted_pair_members and the trust domain, and pins the Direct Conversation profile, exact-two participants and the create-locked encryption and history baseline. Accepted-at basis validity and current directional Contact gates are evaluated separately so Event validity never depends on delivery order.",
     "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
@@ -127,7 +128,7 @@
             "ref_critical": true,
             "ref_exact_count": 1
           },
-          "admission": "did_root_anchor"
+          "admission": "registration_anchor"
         },
         {
           "when": {
@@ -1639,6 +1640,10 @@
     },
     {
       "event_kind": "ak.identity.resolution.update",
+      "did_authority": {
+        "evidence_class": "method_successor",
+        "freshness_profile_id": "ak.did_freshness.method_successor.v1"
+      },
       "category": "identity",
       "status": "active",
       "wire_scope": "durable_event",
@@ -4626,8 +4631,8 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "admission": "did_root_anchor",
-      "payload": "DID-root recovery re-anchor. Accepted only as the first event of an atomic re-anchor plus replacement-authorize unit in a principal control Realm. It fences the old device generation against the complete accepted Seal frontier and preserves every same-version candidate for deterministic conflict quarantine.",
+      "admission": "pcr_recovery",
+      "payload": "PCR-policy recovery re-anchor. Accepted only as the first event of an atomic re-anchor plus replacement-authorize unit for the exact authority instance. It fences the old PCR generation against the complete accepted Seal frontier. DID-root possession is accepted only as an explicitly enabled optional policy factor.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "id_source": "not_an_object_id",
       "plane": "control",

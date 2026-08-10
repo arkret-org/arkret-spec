@@ -3928,7 +3928,7 @@
     },
     "device_authorize_payload": {
       "type": "object",
-      "description": "Closed authorization record shared by genesis, accepted-device pairing, and identity-root re-anchor. For root_anchored genesis/re-anchor, the authorize Event proof is made by the candidate device through the unit-local overlay and device_signature covers the whole authorization core. For accepted_device pairing, the authorize Event proof signer MUST be the current active device named by authorized_by, and that proof is what binds principal_id, authorized_by, not_before, expires_at and scopes; device_signature separately proves possession by the new target device over the closed target-owned transcript, because the target cannot know those approver-chosen values when it builds its attestation.",
+      "description": "Closed authorization record shared by registration genesis, PCR-policy recovery, and accepted-device pairing. registration_anchor and pcr_recovery use a candidate-device possession proof over the full authorization core; pcr_recovery is admitted only beside an accepted recovery session and monotonic PCR generation CAS. accepted_device uses the current accepted approving device. None of these branches derives human authority from current DID state.",
       "required": [
         "principal_id",
         "device_id",
@@ -3964,15 +3964,16 @@
         },
         "authorized_by": {
           "$ref": "#/$defs/device_or_principal_ref",
-          "description": "Under root_anchored this is the identity-root principal DID that committed the genesis or re-anchor unit. Under accepted_device it is the approving device id (ak:device:<uuid>) at the accepted generation, never that device principal DID."
+          "description": "Under registration_anchor this is the principal whose durable registration control evidence was accepted. Under pcr_recovery it is the same principal selected by the recovery session and authority instance. Under accepted_device it is the approving device id at the accepted generation."
         },
         "authorization_binding_kind": {
           "type": "string",
           "enum": [
-            "root_anchored",
+            "registration_anchor",
+            "pcr_recovery",
             "accepted_device"
           ],
-          "description": "root_anchored is valid only in the second slot of an accepted PCR genesis or device re-anchor unit. accepted_device requires the Event proof.verification_method bare DID component to project through its registered adapter to principal_id and its fragment to equal authorized_by, where authorized_by is a current active device id at the accepted generation; appending to did_core_id is forbidden and the target device cannot authorize itself."
+          "description": "registration_anchor is valid only in accepted PCR genesis; pcr_recovery only in a recovery unit authorized by the accepted PCR recovery policy; accepted_device requires an active approving device. No branch permits a same-core foreign PCR lineage."
         },
         "scopes": {
           "$ref": "#/$defs/string_list"
@@ -3985,12 +3986,12 @@
         },
         "device_signature": {
           "$ref": "#/$defs/signature_material",
-          "description": "Required Ed25519 proof of possession by the private key corresponding to device_public_key. The signing domain is selected by authorization_binding_kind, not fixed: root_anchored uses ak.device-authorize-possession-proof-v1 over the full authorization core, and accepted_device uses ak.device-authorize-accepted-device-possession-proof-v1 over the closed target-owned object plus this pairing challenge transcript digest (crypto-media/device-lifecycle.md section 5.2.2). Both transcripts include authorization_binding_kind and exclude all signature material, so a transcript minted for one binding kind can never verify for the other. DPoP/session keys cannot satisfy this proof."
+          "description": "Required Ed25519 possession proof. registration_anchor uses ak.device-authorize-possession-proof-v1, pcr_recovery uses ak.device-authorize-recovery-possession-proof-v1, and accepted_device uses ak.device-authorize-accepted-device-possession-proof-v1. All transcripts bind authorization_binding_kind and cannot be substituted across branches."
         },
         "recovery_session_id": {
           "type": "string",
           "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Present when this authorization was produced by the root-anchored recovery strand. It is included in the device possession transcript and omitted for genesis and ordinary accepted-device pairing."
+          "description": "Required by the pcr_recovery branch and omitted for registration_anchor and ordinary accepted_device pairing."
         }
       },
       "additionalProperties": false
@@ -4112,10 +4113,14 @@
     },
     "device_reanchor_payload": {
       "type": "object",
-      "description": "Closed payload for the identity-root recovery anchor. Fields are ordered identity, DID generation, accepted pre-fence basis, then the exact replacement authorization binding. The binding commits to the replacement authorize payload digest, never to that Event's id or envelope digest: the authorize envelope carries the re-anchor event_id in prev_refs, and every event_id is a function of its own signed content, so an id or envelope binding would make the two Events preimages of each other. Generation projection fields are reducer-managed and MUST NOT be added here.",
+      "description": "Closed PCR recovery payload. It selects one immutable authority instance, one pre-accepted recovery policy/session and a monotonic PCR generation CAS. DID publication is absent from the base branch; did_root is an optional explicitly enabled factor and contributes only did_root_evidence_digest.",
       "required": [
         "principal_id",
-        "did_version_id",
+        "authority_instance",
+        "recovery_authority_kind",
+        "recovery_policy_id",
+        "recovery_policy_version",
+        "recovery_session_id",
         "previous_device_generation",
         "new_device_generation",
         "pre_fence_basis",
@@ -4125,19 +4130,37 @@
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "did_version_id": {
+        "authority_instance": {
+          "$ref": "./principal-authority-instance.schema.json"
+        },
+        "recovery_authority_kind": {
           "type": "string",
-          "pattern": "^[1-9][0-9]*-[^\\s]+$",
-          "description": "Verified did:webvh entry versionId. Its numeric prefix defines the re-anchor conflict slot."
+          "enum": ["pcr_policy", "did_root"]
+        },
+        "recovery_policy_id": {
+          "type": "string",
+          "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "recovery_policy_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "recovery_session_id": {
+          "type": "string",
+          "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "previous_device_generation": {
-          "type": "string",
-          "pattern": "^[1-9][0-9]*-[^\\s]+$"
+          "type": "integer",
+          "minimum": 1
         },
         "new_device_generation": {
-          "type": "string",
-          "pattern": "^[1-9][0-9]*-[^\\s]+$",
-          "description": "MUST equal did_version_id."
+          "type": "integer",
+          "minimum": 2,
+          "description": "Must be the immediate monotonic successor of previous_device_generation."
+        },
+        "did_root_evidence_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Required only when recovery_authority_kind=did_root; proves the optional factor enabled by the frozen PCR policy."
         },
         "pre_fence_basis": {
           "oneOf": [
@@ -4177,7 +4200,14 @@
           "description": "canonical_digest of the replacement ak.device.authorize payload object, using the Realm live digest suite."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {"properties": {"recovery_authority_kind": {"const": "did_root"}}, "required": ["recovery_authority_kind"]},
+          "then": {"required": ["did_root_evidence_digest"]},
+          "else": {"not": {"required": ["did_root_evidence_digest"]}}
+        }
+      ]
     },
     "device_revoke_payload": {
       "type": "object",
@@ -5711,6 +5741,10 @@
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "principal_authority_instance": {
+          "$ref": "./principal-authority-instance.schema.json",
+          "description": "Required by admission whenever actor_id is a human principal. The first accepted join freezes this immutable PCR lineage; later same-core evidence MUST match it byte-for-byte. Organization/service/ephemeral role branches use their own explicit authority contract and omit this field."
         },
         "membership": {
           "$ref": "#/$defs/membership_state"

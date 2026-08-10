@@ -3,7 +3,7 @@ title: 安全事务资源
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-28
+updated: 2026-08-11
 ---
 
 # 安全事务资源
@@ -98,19 +98,27 @@ transaction binding、prepared plan 和 accepted-step ledger 的第二个公开�
 
 ## 2. RecoveryTransaction
 
-RecoveryTransaction 只有 `identity_model="root_anchored"`。binding 固定 recovery session、replacement device、DID entry/version、re-anchor/authorize Event ids 与 terminal receipt；prepared plan 固定完整 method-native DID publication 与 ordered re-anchor unit。
+RecoveryTransaction 的基础 `identity_model="pcr_policy"`。binding 固定 authority instance、recovery
+session/policy、replacement device、previous/result PCR generation、re-anchor/authorize Event ids 与 terminal
+receipt；prepared plan 固定 ordered re-anchor unit，不含 DID publication。
 
-步骤严格为：
+基础步骤严格为：
 
 ```text
-publish_did_entry -> submit_reanchor_unit -> issue_terminal_receipt
+submit_reanchor_unit -> issue_terminal_receipt
 ```
 
-`publish_did_entry` 只提交预先持久化的 exact client-signed DID operation；`submit_reanchor_unit` 原样提交 root-signed `ak.device.reanchor` 与 replacement-device-signed `ak.device.authorize`。第二条 Event 的 `proof.verification_method` MUST 是 replacement principal 已验证 `full_id` 下的 DID URL；verifier 取其 bare `full_id`，经已登记 method adapter 验证并要求 `project(full_id) == principal_id`（稳定 `did_core_id`），同时要求 fragment 逐字等于 `replacement_device_id`，再由 unit-local candidate overlay 映射到 authorize payload key。不得从 `principal_id` core 与 replacement device fragment 拼接 verification method，因为 `did_core_id` 不是 DID。Coordinator 不持有 root/device private key，不生成、更改或代签 Event。
+`submit_reanchor_unit` 原样提交 policy-authorized `ak.device.reanchor` 与 replacement-device-signed
+`ak.device.authorize`。Principal Server 验证 accepted recovery policy/session、proof threshold、payload digest
+单向承诺、Event predecessor、candidate possession、monotonic generation CAS 与 old-device fence，再原子接受
+两条 Event。Account Authority/transport signature 不构成内容 authority；coordinator 不持有 recovery/device
+private key，不生成、更改或代签 Event。
 
-Principal Server 必须验证 DID history/active root、recovery session/policy、payload digest单向承诺、Event predecessor、candidate possession、generation CAS 与 old-device fence，然后原子接受两条 Event并返回 `device_reanchor_unit` receipt。没有账号服务 authority ticket或 replacement authorize signer；transport service signature不构成内容 authority。
-
-`issue_terminal_receipt` 的 client attestation 必须覆盖完整 recovery receipt及其 accepted re-anchor receipt。DID publication 已成功而 unit 暂时失败时，resource 保持可 exact resume，不得回滚 DID history或换用不同 plan。
+可选 `identity_model="did_root_factor"` 只有在 accepted policy 显式启用且 adapter 满足 history/pre-rotation
+要求时合法。该分支可在 `submit_reanchor_unit` 前增加 `publish_did_entry`，并把 exact method-native
+publication/current-root evidence 固定到 plan。DID publication 与 PCR generation 各自使用独立 CAS；
+publication 已接受而 unit 失败时可 exact resume，但不得令 resolution 自动推进或让 current root 绕过
+PCR policy。`did:key`、`did:web` 或未启用 factor 的账号请求该分支 MUST `unsupported_feature`。
 
 ## 3. SecurityRotationTransaction
 

@@ -105,6 +105,10 @@
       "sha256": "ee67d9f467ee3d1c1bbcfb90b75f725bab30bf41202c4a2e5ade2e393968f1ee"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/did-pcr-authority-boundary-fixture.json",
+      "sha256": "a1509f00510447b7c8adc608fc919a39c1141574bd4b73aa6a9d75aaccd16300"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json",
       "sha256": "5301ce4852903b823719827a786da52dbcd0b4f5ffd56d20b77025ac79b443c8"
     },
@@ -114,7 +118,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "45fbe0496e61ed9455dcac04073cdfe8852dca4e08c1c99bb11297a8b3d305e5"
+      "sha256": "aac360133b0e8d586ea1a53d5e9e9b6e0f300d84d599d67dd079d5e44d9fc3ee"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
@@ -230,7 +234,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
-      "sha256": "08d3f81b97ec0d3ad63c798eb2533bdcf82d944a0c3a17247b10b20b02ee5b92"
+      "sha256": "5740899d04380421fad701f2297595fcc22627ab0b2d670e54184d10b4f44ed0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/policy-server-fixture.json",
@@ -290,7 +294,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "e389b7eedcbebb37cf1a2f26d8ddc6bfe8e6c115723d67d93dcb711e978c4244"
+      "sha256": "d76bfeb7ef822a6d677f883e6a7fe5396c32faa0e354020dbebd8395fcb023c7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

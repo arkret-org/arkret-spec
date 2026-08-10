@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-10.4",
+  "version": "2026-08-11.1",
   "source_of_truth": true,
   "description": "Canonical domain-separation contexts for Arkret detached proofs. Context is part of the canonical signing binding object and is not a wire field in the generic proof shape.",
   "registry_rules": [
@@ -225,6 +225,23 @@
         "authorization_binding_kind"
       ],
       "defined_in": "zh/crypto-media/device-lifecycle.md",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload"
+    },
+    {
+      "context": "ak.device-authorize-recovery-possession-proof-v1",
+      "object_family": "device_authorize_recovery_possession",
+      "binding_fields": [
+        "principal_id",
+        "device_id",
+        "device_public_key",
+        "hpke_key",
+        "algorithms",
+        "device_key_algorithm",
+        "authorized_by",
+        "recovery_session_id",
+        "authorization_binding_kind"
+      ],
+      "defined_in": "zh/crypto-media/device-lifecycle.md#14-全设备丢失恢复与设备重锚定",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload"
     },
     {

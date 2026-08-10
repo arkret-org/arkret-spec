@@ -149,7 +149,7 @@
           "initial_resolution": {
             "properties": {
               "full_id": {
-                "$ref": "./common-ids.schema.json#/$defs/long_lived_principal_full_id"
+                "$ref": "./common-ids.schema.json#/$defs/human_principal_full_id"
               }
             }
           },

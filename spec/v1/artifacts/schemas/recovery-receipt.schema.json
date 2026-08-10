@@ -17,6 +17,7 @@
     "trust_domain",
     "new_device_id",
     "identity_model",
+    "recovery_authority_kind",
     "previous_model_generation_ref",
     "result_model_generation_ref",
     "authorization_event_id",
@@ -28,8 +29,7 @@
     "completed_at",
     "auth_data",
     "reanchor_event_id",
-    "reanchor_batch_receipt_id",
-    "did_entry_ref"
+    "reanchor_batch_receipt_id"
   ],
   "properties": {
     "schema": {
@@ -76,17 +76,22 @@
       "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "identity_model": {
-      "const": "root_anchored"
+      "const": "pcr_policy"
+    },
+    "recovery_authority_kind": {
+      "type": "string",
+      "enum": ["pcr_policy", "did_root"],
+      "description": "did_root is valid only when the accepted PCR policy explicitly enabled that optional factor."
     },
     "previous_model_generation_ref": {
-      "type": "string",
-      "pattern": "^[1-9][0-9]*-[^\\s]+$",
-      "description": "Identity-root DID versionId snapshotted at recovery-session creation."
+      "type": "integer",
+      "minimum": 1,
+      "description": "PCR device generation snapshotted at recovery-session creation."
     },
     "result_model_generation_ref": {
-      "type": "string",
-      "pattern": "^[1-9][0-9]*-[^\\s]+$",
-      "description": "Accepted re-anchor DID versionId after completion."
+      "type": "integer",
+      "minimum": 2,
+      "description": "Accepted monotonic PCR device generation after completion."
     },
     "authorization_event_id": {
       "type": "string",
@@ -115,7 +120,7 @@
         "kind": {
           "type": "string",
           "enum": [
-            "principal_signing",
+            "did_root",
             "recovery_unlock",
             "device_quorum",
             "trusted_recovery_service",

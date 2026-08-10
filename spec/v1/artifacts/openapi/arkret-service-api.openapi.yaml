@@ -1130,6 +1130,11 @@ components:
               - bad_json
               - bad_query
               - schema_violation
+              - historical_did_evidence_invalid
+              - current_did_authority_unavailable
+              - pcr_authority_stale
+              - did_method_successor_invalid
+              - principal_authority_instance_mismatch
               - agent_signer_evidence_missing
               - agent_signer_evidence_stale
               - agent_authorization_inactive

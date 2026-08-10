@@ -160,7 +160,7 @@
         },
         "authorization_binding_kind": {
           "const": "accepted_device",
-          "description": "This transcript exists only for accepted_device pairing. root_anchored genesis and re-anchor keep the full ak.device-authorize-possession-proof-v1 object, and a transcript from one binding kind MUST NOT be accepted for the other."
+          "description": "This transcript exists only for accepted_device pairing. registration_anchor and pcr_recovery use their separate full possession objects, and a transcript from one binding kind MUST NOT be accepted for another."
         },
         "pairing_challenge_transcript_digest": {
           "$ref": "#/$defs/hash",

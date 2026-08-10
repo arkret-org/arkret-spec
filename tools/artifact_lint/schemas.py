@@ -93,7 +93,7 @@ _STABLE_CORE_ID_FIELDS = {
 _FULL_ID_REF_TARGETS = {
     "/$defs/did_full_id",
     "/$defs/webvh_full_id",
-    "/$defs/long_lived_principal_full_id",
+    "/$defs/human_principal_full_id",
     "/$defs/ephemeral_pairwise_principal_full_id",
     "/$defs/did_key_full_id",
 }
@@ -151,7 +151,7 @@ def check_did_full_id_allowlist(lint: Lint) -> None:
                     forwarding_definition = child_pointer == "/$defs/did_full_id/$ref"
                     common_subtype_definition = (
                         owner.name == "common-ids.schema.json"
-                        and child_pointer == "/$defs/long_lived_principal_full_id/$ref"
+                        and child_pointer == "/$defs/human_principal_full_id/$ref"
                     )
                     if not forwarding_definition and not common_subtype_definition:
                         observed.add(absolute)
@@ -2409,7 +2409,7 @@ def check_did_and_device_constraints(lint: Lint) -> None:
 
     common_ids_path = ARTIFACTS / "schemas" / "common-ids.schema.json"
     common_defs = schema_docs.get("common-ids.schema.json", {}).get("$defs", {})
-    long_lived = common_defs.get("long_lived_principal_full_id", {})
+    human_principal = common_defs.get("human_principal_full_id", {})
 
     adapter_registry_path = ARTIFACTS / "registry" / "did-method-adapter-registry.json"
     adapter_registry = load_json(lint, adapter_registry_path)
@@ -2485,20 +2485,20 @@ def check_did_and_device_constraints(lint: Lint) -> None:
                 eligible.append(method)
         return eligible
 
-    principal_methods = methods_eligible_for("long_lived_principal")
+    principal_methods = methods_eligible_for("human_principal_anchor")
     service_methods = methods_eligible_for("service")
     actor_methods = methods_eligible_for("realm_local_ephemeral_actor")
 
-    long_lived_pattern = str(long_lived.get("pattern", "")) if isinstance(long_lived, dict) else ""
+    human_principal_pattern = str(human_principal.get("pattern", "")) if isinstance(human_principal, dict) else ""
     principal_schema_matches_registry = bool(principal_methods) and (
-        long_lived_pattern.startswith(f"^{principal_methods[0]}:")
+        human_principal_pattern.startswith(f"^{principal_methods[0]}:")
         if len(principal_methods) == 1
-        else all(f"{method}:" in long_lived_pattern for method in principal_methods)
+        else all(f"{method}:" in human_principal_pattern for method in principal_methods)
     )
     if not principal_schema_matches_registry:
         lint.fail(
             common_ids_path,
-            "$defs.long_lived_principal_full_id must admit the registry-derived long-lived principal methods "
+            "$defs.human_principal_full_id must admit the registry-derived human principal anchor methods "
             f"{principal_methods!r}",
         )
 
@@ -2508,10 +2508,10 @@ def check_did_and_device_constraints(lint: Lint) -> None:
         .get("$defs", {})
         .get("did_full_id", {})
     )
-    if account_full_id.get("$ref") != "./common-ids.schema.json#/$defs/long_lived_principal_full_id":
+    if account_full_id.get("$ref") != "./common-ids.schema.json#/$defs/human_principal_full_id":
         lint.fail(
             account_schema_path,
-            "account registration full_id must use the closed registry-derived long-lived principal schema",
+            "account registration full_id must use the closed registry-derived human principal schema",
         )
 
     principal_schema_path = ARTIFACTS / "schemas" / "principal-operations.schema.json"
@@ -2522,20 +2522,20 @@ def check_did_and_device_constraints(lint: Lint) -> None:
         .get("properties", {})
         .get("full_id", {})
     )
-    if pcr_full_id.get("$ref") != "./common-ids.schema.json#/$defs/long_lived_principal_full_id":
+    if pcr_full_id.get("$ref") != "./common-ids.schema.json#/$defs/human_principal_full_id":
         lint.fail(
             principal_schema_path,
-            "account-authority PCR genesis full_id must use the closed registry-derived long-lived principal schema",
+            "account-authority PCR genesis full_id must use the closed registry-derived human principal schema",
         )
 
     realm_genesis_path = ARTIFACTS / "schemas" / "realm-genesis.schema.json"
     realm_genesis_doc = schema_docs.get("realm-genesis.schema.json", {})
     realm_genesis_text = canonical_json(realm_genesis_doc)
-    for required_token in ("#/$defs/long_lived_principal_full_id",):
+    for required_token in ("#/$defs/human_principal_full_id",):
         if required_token not in realm_genesis_text:
             lint.fail(
                 realm_genesis_path,
-                f"identity-control genesis must use the closed registry-derived long-lived principal branch: missing {required_token}",
+                f"identity-control genesis must use the closed registry-derived human principal branch: missing {required_token}",
             )
     profiles_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
     profiles_doc = load_json(lint, profiles_path)
@@ -2578,12 +2578,12 @@ def check_did_and_device_constraints(lint: Lint) -> None:
         if "allowed_principal_methods" in identity and identity.get("allowed_principal_methods") != principal_methods:
             lint.fail(
                 profiles_path,
-                f"{profile_id}.identity.allowed_principal_methods must equal the registry-derived long-lived principal allowlist {principal_methods!r}",
+                f"{profile_id}.identity.allowed_principal_methods must equal the registry-derived human principal anchor allowlist {principal_methods!r}",
             )
         if "principal_method_default" in identity and identity.get("principal_method_default") not in principal_methods:
             lint.fail(
                 profiles_path,
-                f"{profile_id}.identity.principal_method_default must be in the registry-derived long-lived principal allowlist {principal_methods!r}",
+                f"{profile_id}.identity.principal_method_default must be in the registry-derived human principal anchor allowlist {principal_methods!r}",
             )
         if "service_method_default" in identity:
             if identity.get("allowed_service_methods") != service_methods:
@@ -2631,6 +2631,59 @@ def check_did_and_device_constraints(lint: Lint) -> None:
                 profiles_path,
                 f"{profile_id} must not require PCR/device lifecycle Event kinds when it declares allowed_actor_methods",
             )
+
+    freshness_path = ARTIFACTS / "registry" / "did-freshness-profile-registry.json"
+    freshness_doc = load_json(lint, freshness_path)
+    freshness_profiles = freshness_doc.get("profiles", []) if isinstance(freshness_doc, dict) else []
+    call_sites = freshness_doc.get("call_sites", []) if isinstance(freshness_doc, dict) else []
+    profile_ids = {
+        row.get("freshness_profile_id")
+        for row in freshness_profiles
+        if isinstance(row, dict) and isinstance(row.get("freshness_profile_id"), str)
+    }
+    declared_sites: dict[tuple[str, str], dict[str, Any]] = {}
+    for index, row in enumerate(call_sites if isinstance(call_sites, list) else []):
+        if not isinstance(row, dict):
+            lint.fail(freshness_path, f"call_sites[{index}] must be an object")
+            continue
+        key = (row.get("site_kind"), row.get("site_id"))
+        if not all(isinstance(part, str) and part for part in key):
+            lint.fail(freshness_path, f"call_sites[{index}] must identify site_kind and site_id")
+            continue
+        if key in declared_sites:
+            lint.fail(freshness_path, f"duplicate DID authority call site {key!r}")
+        declared_sites[key] = {name: value for name, value in row.items() if name not in {"site_kind", "site_id"}}
+        if row.get("freshness_profile_id") not in profile_ids:
+            lint.fail(freshness_path, f"{key!r} references an unknown freshness_profile_id")
+
+    contract_path = ARTIFACTS / "registry" / "contract-registry.json"
+    contract = load_json(lint, contract_path)
+    actual_sites: dict[tuple[str, str], dict[str, Any]] = {}
+    operations = contract.get("operation_registry", {}).get("operations", []) if isinstance(contract, dict) else []
+    event_kinds = contract.get("event_kind_registry", {}).get("event_kinds", []) if isinstance(contract, dict) else []
+    for kind, id_field, rows in (
+        ("operation", "operation_id", operations),
+        ("event_kind", "event_kind", event_kinds),
+    ):
+        for row in rows if isinstance(rows, list) else []:
+            if not isinstance(row, dict) or "did_authority" not in row:
+                continue
+            authority = row.get("did_authority")
+            site_id = row.get(id_field)
+            if not isinstance(authority, dict) or not isinstance(site_id, str):
+                lint.fail(contract_path, f"invalid did_authority registration on {kind} {site_id!r}")
+                continue
+            actual_sites[(kind, site_id)] = authority
+    if set(actual_sites) != set(declared_sites):
+        lint.fail(
+            freshness_path,
+            "DID authority call-site closure mismatch: "
+            f"missing_in_registry={sorted(set(actual_sites) - set(declared_sites))!r}, "
+            f"stale_in_registry={sorted(set(declared_sites) - set(actual_sites))!r}",
+        )
+    for key in sorted(set(actual_sites) & set(declared_sites)):
+        if actual_sites[key] != declared_sites[key]:
+            lint.fail(freshness_path, f"{key!r} does not byte-match its operation/event did_authority object")
 
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(openapi, dict):

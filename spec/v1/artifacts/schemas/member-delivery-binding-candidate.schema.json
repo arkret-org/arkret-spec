@@ -6,6 +6,7 @@
   "type": "object",
   "required": [
     "subject_id",
+    "principal_authority_instance",
     "handle",
     "member_delivery_binding",
     "issuer_service_id",
@@ -20,6 +21,10 @@
     "subject_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Stable principal did_core_id of the addressee. Materialised as payload.actor_id / cell subject in ak.member.state{membership=join}."
+    },
+    "principal_authority_instance": {
+      "$ref": "./principal-authority-instance.schema.json",
+      "description": "Immutable account/PCR lineage selected for subject_id. Its principal_id MUST equal subject_id and principal_server_id MUST equal member_delivery_binding.recipient_service_id."
     },
     "handle": {
       "$ref": "string-profiles.schema.json#/$defs/canonical_handle",

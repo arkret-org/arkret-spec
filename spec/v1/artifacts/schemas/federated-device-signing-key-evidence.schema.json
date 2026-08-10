@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/federated-device-signing-key-evidence.schema.json",
   "title": "Arkret Federated Device Signing Key Evidence",
-  "description": "Portable PCR-anchored device-key authorization evidence. A destination independently verifies the identity-root-signed PCR genesis, every accepted device authorization hop, and the Seal that covers the target authorization. DID resolution supplies only the identity root history; it is not a device authority or directory. Transport-only: this object never enters another Event digest, reducer, Seal, or timeline.",
+  "description": "Portable PCR-anchored device-key authorization evidence. A destination independently verifies registration-time DID evidence, the signed PCR genesis receipt, every accepted device authorization hop, and the Seal that covers the target authorization. Current DID resolution is neither required nor accepted as a substitute for historical evidence. Transport-only: this object never enters another Event digest, reducer, Seal, or timeline.",
   "type": "object",
   "required": [
     "actor_id",
@@ -10,7 +10,8 @@
     "verification_method",
     "device_signing_key",
     "authorization_accepted_at",
-    "principal_resolution",
+    "authority_instance",
+    "registration_did_evidence",
     "principal_genesis_receipt",
     "authorization_chain",
     "accepted_seal",
@@ -37,9 +38,13 @@
     "authorization_accepted_at": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "principal_resolution": {
-      "$ref": "./identity-resolution.schema.json#/$defs/principal_resolution_evidence",
-      "description": "Current PCR-published resolution evidence for actor_id. principal_resolution.principal_id MUST equal actor_id; the verifier independently validates the current full_id and method history before using verification_method."
+    "authority_instance": {
+      "$ref": "./principal-authority-instance.schema.json",
+      "description": "MUST reverse-bind actor_id and the principal genesis receipt below. A business relation that supplied an expected authority instance compares all fields byte-for-byte before accepting the device key."
+    },
+    "registration_did_evidence": {
+      "$ref": "#/$defs/registration_did_evidence",
+      "description": "Frozen evidence for the registration accepted-at position. A verifier MUST NOT replace it with a current DID Document, current webvh head or current controller key."
     },
     "principal_genesis_receipt": {
       "$ref": "./event-batch-receipt.schema.json",
@@ -55,7 +60,7 @@
     },
     "accepted_seal": {
       "$ref": "./seal.schema.json",
-      "description": "Current Seal whose recursively covered control Event set includes every authorization_chain Event digest and whose Realm id equals the realm id committed in principal_genesis_receipt. Verifiers MUST NOT recompute a PCR realm id from the principal DID: PCR ids are event-derived and are scoped to one Principal Server, so the signed receipt is the only authority for which PCR this evidence belongs to."
+      "description": "Accepted Seal whose recursively covered control Event set includes every authorization_chain Event digest and whose Realm id equals authority_instance.pcr_realm_id and the realm id committed in principal_genesis_receipt. Verifiers MUST NOT recompute a PCR realm id from the principal DID."
     },
     "current_device_projection": {
       "type": "object",
@@ -83,6 +88,57 @@
         ]
       },
       "minItems": 1
+    }
+  },
+  "$defs": {
+    "registration_did_evidence": {
+      "type": "object",
+      "required": [
+        "principal_id",
+        "full_id",
+        "adapter_version",
+        "accepted_at",
+        "method_history_head",
+        "version_id",
+        "control_key_digest",
+        "method_evidence",
+        "control_proof"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+        },
+        "adapter_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "method_history_head": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "control_key_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "method_evidence": {
+          "$ref": "./did-binding-contracts.schema.json#/$defs/evidence_receipt"
+        },
+        "control_proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature",
+          "description": "Registration control signature whose transcript digest is committed by the pcr_genesis_unit receipt."
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

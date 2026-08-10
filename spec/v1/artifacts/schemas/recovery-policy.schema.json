@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-policy.schema.json",
   "title": "Arkret Recovery Policy",
-  "description": "Normative grammar for a principal's recovery policy. Bound to the Principal Control Realm via signed publish / rotate / revoke control events; receivers MUST reject `recover`, `rotate` and root-anchored `ak.device.authorize` evidence whose proof family / threshold / approval requirement is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8 and crypto-media/device-lifecycle.md §15.",
+  "description": "Normative grammar for a principal's PCR recovery policy. Bound to one Principal Authority Instance through signed control events; receivers reject recovery and pcr_recovery device authorization whose proof family, threshold or optional DID-root factor is not allowed by the currently accepted policy.",
   "type": "object",
   "required": [
     "schema",
@@ -55,21 +55,21 @@
       "items": {
         "type": "string",
         "enum": [
-          "principal_signing",
+          "did_root",
           "recovery_unlock",
           "device_quorum",
           "trusted_recovery_service",
           "threshold_recovery"
         ]
       },
-      "description": "Which proof families this policy authorizes for recovery and root-anchored device re-entry. Each entry constrains the matching proof kind defined in device-lifecycle.md §14. Empty array is valid only for an explicit revocation policy that also sets expires_at."
+      "description": "Which proof families authorize PCR device re-entry. did_root is optional and revocable; omitting it guarantees current DID control alone cannot recover this authority instance."
     },
     "publication_authorization_rules": {
       "type": "array",
       "minItems": 0,
       "maxItems": 5,
       "uniqueItems": true,
-      "description": "Signed, deterministic projection inputs for root-anchored re-anchor publication. Exactly one rule per allowed_proof_kinds entry; an explicit revocation policy carries an empty array. Receivers rederive each issuer from the policy and its acceptance basis before trusting this declaration.",
+      "description": "Signed deterministic projection inputs for PCR recovery publication. Exactly one rule per allowed proof kind; a revoked policy carries an empty array.",
       "items": {
         "type": "object",
         "required": [
@@ -85,7 +85,7 @@
             "type": "string",
             "enum": [
               "device_quorum",
-              "principal_signing",
+              "did_root",
               "recovery_unlock",
               "threshold_recovery",
               "trusted_recovery_service"
@@ -95,7 +95,7 @@
             "type": "string",
             "enum": [
               "device_quorum",
-              "principal_signing",
+              "did_root",
               "recovery_unlock",
               "threshold_recovery",
               "trusted_recovery_service"
@@ -263,7 +263,7 @@
           },
           "authorization_verification_method": {
             "$ref": "#/$defs/did_url",
-            "description": "Exact full DID URL of the service verification method authorized to sign a root-anchored re-anchor publication lease. At the policy acceptance basis, the verifier MUST adapter-validate its canonical bare full_id controller and require project(full_id)=service_id; direct full-DID/core-id string comparison and did_core_id fragment concatenation are forbidden."
+            "description": "Exact verification method authorized by this accepted PCR recovery-policy rule. DID-root methods are valid only for proof_kind=did_root; service and quorum rules derive from their own accepted policy basis."
           },
           "attestation_required": {
             "type": "boolean",
@@ -1042,7 +1042,7 @@
           "items": {
             "type": "string",
             "enum": [
-              "principal_signing",
+              "did_root",
               "recovery_unlock",
               "device_quorum",
               "trusted_recovery_service",

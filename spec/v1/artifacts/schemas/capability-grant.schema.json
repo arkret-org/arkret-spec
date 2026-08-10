@@ -55,6 +55,10 @@
         }
       ]
     },
+    "subject_authority_instance": {
+      "$ref": "./principal-authority-instance.schema.json",
+      "description": "MUST be present when subject is a human principal did_core_id. It freezes the PCR lineage this grant accepts; a same-core proof from any other instance cannot exercise or inherit the grant. Omitted for condition selectors and roles governed by a different explicit authority contract."
+    },
     "actions": {
       "type": "array",
       "items": {

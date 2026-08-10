@@ -61,7 +61,7 @@
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "did_full_id": {
-      "$ref": "./common-ids.schema.json#/$defs/long_lived_principal_full_id"
+      "$ref": "./common-ids.schema.json#/$defs/human_principal_full_id"
     },
     "did_url": {
       "type": "string",

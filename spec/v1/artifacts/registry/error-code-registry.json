@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-10.6",
+  "version": "2026-08-11.2",
   "codes": [
     {
       "code": "bad_json",
@@ -18,6 +18,36 @@
       "http_status": 422,
       "scope": "both",
       "description": "Parsed input does not satisfy the declared schema contract."
+    },
+    {
+      "code": "historical_did_evidence_invalid",
+      "http_status": 422,
+      "scope": "both",
+      "description": "Registration-time or Event accepted-at DID evidence cannot be replayed at its frozen historical boundary. Current DID state MUST NOT be substituted."
+    },
+    {
+      "code": "current_did_authority_unavailable",
+      "http_status": 503,
+      "scope": "both",
+      "description": "A call site explicitly registered as current-DID-dependent cannot obtain fresh current authority. Unrelated human PCR operations remain available."
+    },
+    {
+      "code": "pcr_authority_stale",
+      "http_status": 409,
+      "scope": "both",
+      "description": "The accepted PCR authority frontier, device generation, recovery-policy version or authority-instance binding is stale. DID freshness cannot repair this failure."
+    },
+    {
+      "code": "did_method_successor_invalid",
+      "http_status": 409,
+      "scope": "both",
+      "description": "The proposed current resolution is not a valid method-native same-core successor. A valid PCR author proof alone cannot advance it."
+    },
+    {
+      "code": "principal_authority_instance_mismatch",
+      "http_status": 403,
+      "scope": "both",
+      "description": "Evidence belongs to a different Principal Server, PCR Realm or genesis-receipt lineage, even if principal_id and public keys match."
     },
     {
       "code": "agent_signer_evidence_missing",
