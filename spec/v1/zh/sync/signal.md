@@ -413,7 +413,7 @@ stream frame kind、cursor 或 replay rail。
 producer 在首帧前 MUST：
 
 1. 预生成最终 `ak.message.create` 的 `event_id`；
-2. 以同一个 UUIDv7 把它重类型为 `ak:message:<uuidv7>`，作为每帧 `message_id`；
+2. 把该 EventId 的完整 33-octet token 重类型为 `ak:message:<44-char-event-token>`，作为每帧 `message_id`；
 3. 持久化 `{event_id, attempt, stream_id}`；`message_id` 只能从 `event_id` 派生，不是第二份
    producer-chosen identity。
 

@@ -27,7 +27,7 @@
             "contiguous_delta",
             "newer_keyframe"
           ],
-          "final_event": "direct_message_create_with_same_retyped_uuid_and_scope"
+          "final_event": "direct_message_create_with_same_retyped_event_token_and_scope"
         }
       },
       "expected": {

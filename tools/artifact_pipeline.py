@@ -45,7 +45,7 @@ ARTIFACTS = SPEC_ROOT / "artifacts"
 REGISTRY = ARTIFACTS / "registry"
 CONTRACT_REGISTRY_PATH = REGISTRY / "contract-registry.json"
 PROFILE_REGISTRY_PATH = ARTIFACTS / "profiles" / "conformance-profiles.json"
-LINT_SCRIPT = Path(__file__).with_name("lint_artifacts.py")
+LINT_MODULE = "tools.artifact_lint"
 PROSE_LINT_SCRIPT = Path(__file__).with_name("lint_spec.py")
 FIXTURE_DIGEST_SCRIPT = Path(__file__).with_name("check_fixture_digests.py")
 SESSION_GRANT_KAT_SCRIPT = Path(__file__).with_name("check_session_grant_kat.py")
@@ -1001,7 +1001,7 @@ def check_operation_schema_index() -> list[str]:
 
 
 def run_lint() -> int:
-    result = subprocess.run([sys.executable, str(LINT_SCRIPT)], cwd=ROOT)
+    result = subprocess.run([sys.executable, "-m", LINT_MODULE], cwd=ROOT)
     return result.returncode
 
 

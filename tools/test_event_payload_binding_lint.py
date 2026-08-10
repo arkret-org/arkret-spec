@@ -3,20 +3,14 @@
 from __future__ import annotations
 
 import copy
-import importlib.util
 import sys
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "tools"))
-MODULE_SPEC = importlib.util.spec_from_file_location(
-    "lint_artifacts", ROOT / "tools" / "lint_artifacts.py"
-)
-assert MODULE_SPEC is not None and MODULE_SPEC.loader is not None
-lint_artifacts = importlib.util.module_from_spec(MODULE_SPEC)
-MODULE_SPEC.loader.exec_module(lint_artifacts)
+sys.path.insert(0, str(ROOT))
+
+from tools.artifact_lint import core, schemas
 
 ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
 CONTRACT_REGISTRY = ARTIFACTS / "registry" / "contract-registry.json"
@@ -27,13 +21,13 @@ EVENT_PAYLOAD = ARTIFACTS / "schemas" / "event-payload.schema.json"
 class EventPayloadBindingLintTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.contract_registry = lint_artifacts.parse_json_text(
+        cls.contract_registry = core.parse_json_text(
             CONTRACT_REGISTRY.read_text(encoding="utf-8")
         )
-        cls.event_envelope = lint_artifacts.parse_json_text(
+        cls.event_envelope = core.parse_json_text(
             EVENT_ENVELOPE.read_text(encoding="utf-8")
         )
-        cls.event_payload = lint_artifacts.parse_json_text(
+        cls.event_payload = core.parse_json_text(
             EVENT_PAYLOAD.read_text(encoding="utf-8")
         )
         rows = cls.contract_registry["event_kind_registry"]["event_kinds"]
@@ -69,7 +63,7 @@ class EventPayloadBindingLintTest(unittest.TestCase):
         if payload_mutation is not None:
             payload_mutation(payload)
 
-        original_load_json = lint_artifacts.load_json
+        original_load_json = schemas.load_json
 
         def load_json_with_mutation(lint, path):
             resolved = path.resolve()
@@ -81,13 +75,13 @@ class EventPayloadBindingLintTest(unittest.TestCase):
                 return payload
             return original_load_json(lint, path)
 
-        lint_artifacts.load_json = load_json_with_mutation
+        schemas.load_json = load_json_with_mutation
         try:
-            lint = lint_artifacts.Lint()
-            lint_artifacts.check_event_schema_coverage(lint, self.known)
+            lint = schemas.Lint()
+            schemas.check_event_schema_coverage(lint, self.known)
             return lint.errors
         finally:
-            lint_artifacts.load_json = original_load_json
+            schemas.load_json = original_load_json
 
     @staticmethod
     def _row(registry, kind: str):
@@ -162,11 +156,11 @@ class EventPayloadBindingLintTest(unittest.TestCase):
 
     def test_stale_shared_dispatch_allowlist_fails(self) -> None:
         probe = ("ak.message.create", "stale_probe_payload")
-        lint_artifacts.LEGACY_SHARED_PAYLOAD_DISPATCH.add(probe)
+        schemas.LEGACY_SHARED_PAYLOAD_DISPATCH.add(probe)
         try:
             errors = self._lint()
         finally:
-            lint_artifacts.LEGACY_SHARED_PAYLOAD_DISPATCH.remove(probe)
+            schemas.LEGACY_SHARED_PAYLOAD_DISPATCH.remove(probe)
         self.assertTrue(
             any("stale LEGACY_SHARED_PAYLOAD_DISPATCH" in error for error in errors),
             errors,

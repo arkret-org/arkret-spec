@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-10.1",
+  "version": "2026-08-10.2",
   "codes": [
     {
       "code": "bad_json",
@@ -2769,7 +2769,7 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "A second accepted Direct Conversation Realm was observed for the same pair_key while both carried apparently valid founder admission and source acceptance receipts, indicating slot, cutover-fence or signature equivocation by a trusted current Principal Server. Both Realms freeze new Message, membership, policy, MLS and binding writes and all evidence is retained; implementations MUST NOT pick a winner by UUID or arrival order, tombstone either Realm, or migrate history. See zh/identity/contact-and-direct-conversation.md §5.7."
+      "description": "A second accepted Direct Conversation Realm was observed for the same pair_key while both carried apparently valid founder admission and source acceptance receipts, indicating slot, cutover-fence or signature equivocation by a trusted current Principal Server. Both Realms freeze new Message, membership, policy, MLS and binding writes and all evidence is retained; implementations MUST NOT pick a winner by Realm-token lexical order or arrival order, tombstone either Realm, or migrate history. See zh/identity/contact-and-direct-conversation.md §5.7."
     },
     {
       "code": "direct_conversation_participant_authority_denied",
@@ -3867,7 +3867,7 @@
       "applies_to": [
         "event_envelope"
       ],
-      "description": "Sub-reason for schema_violation when a create Event carries an object identifier in its payload for an object kind whose id MUST be derived from the create Event's event_id. Create payloads MUST omit the id; the reducer materialises it by retyping the event_id UUID. See zh/models/common-fields.md."
+      "description": "Sub-reason for schema_violation when a create Event carries an object identifier in its payload for an object kind whose id MUST be derived from the create Event's event_id. Create payloads MUST omit the id; the reducer materialises it by retyping the complete event-derived EventId token. See zh/models/common-fields.md."
     },
     {
       "code": "ok",

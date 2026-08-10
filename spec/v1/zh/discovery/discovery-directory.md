@@ -861,7 +861,7 @@ Result：
       "owning_organizations": [
         "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example"
       ],
-      "preview_ref": "ak:event:<uuid>",
+"preview_ref": "ak:event:<44-char-event-token>",
       "join_candidates": [
         {
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",

@@ -28,7 +28,7 @@ updated: 2026-07-13
 | `enum(...)` | 枚举字符串。 |
 | `timestamp` | RFC 3339 UTC string，必须以 `Z` 结尾。 |
 | `did` | DID URI string。 |
-| `id:<kind>` | `ak:<kind>:<uuid>` typed ID，或该 kind 在 `id-kind-registry.json` 声明的特殊 wire form。 |
+| `id:<kind>` | `ak:<kind>:<payload>` typed ID；payload 由该 kind 在 `id-kind-registry.json` 声明的 `id_form` 唯一决定。 |
 | `ref:<kind>` | 指向 `<kind>` 的 typed reference material；wire form 同样由 `id-kind-registry.json` 或对应 profile 声明，但字段语义是因果 / proof / content-addressed / profile-scoped reference，而不是普通对象主键。 |
 | `hash` | 自描述 `<digest-suite>:<lowercase_hex_digest>`（suite 取 `digest-suite-registry.json` 的 active 套件，如 `sha256:` / `blake3:`；实际套件由 Realm `digest_algorithm` 决定）。 |
 | `cursor` | `ak:cursor:<base64url>` opaque string。 |
@@ -41,8 +41,8 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 | 形态 | 语义 | 示例 |
 | --- | --- | --- |
 | `ak.<symbol-path>` | **符号名称 / 注册表词汇**。`.` 只表达命名空间与分类层级；值命名一种 event、operation、schema、profile、capability action、content kind、Cell Family 或 namespaced key，不直接充当某个协议对象实例的 typed reference。 | `ak.message.create`、`ak.self.events.command.submit`、`ak.schema.event.v1`、`ak.component.strand.discussion.timeline.v1` |
-| `ak:<kind>:<payload>` | **具体实例或引用**。第一个 `:` 把 Arkret namespace 与 ref kind 分开，第二个 `:` 开始该 kind 的实例载荷；载荷由 `id-kind-registry.json` 对应 kind 的 wire form 决定。 | `ak:message:<uuid>`、`ak:strand:<uuid>`、`ak:seal:sha256:<digest>`、`ak:trust_domain:<scope>` |
-| `ak:cell:<cell-family>:<subject>` | **复合 typed reference**。外层 `ak:cell:` 表示 CellRef；`<cell-family>` MUST 原样嵌入完整的点分 `ak.component.<facet-path>.v<n>` 符号名称；`<subject>` MAY 自身是一个带 `:` 的 typed reference。 | `ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:<uuid>` |
+| `ak:<kind>:<payload>` | **具体实例或引用**。第一个 `:` 把 Arkret namespace 与 ref kind 分开，第二个 `:` 开始该 kind 的实例载荷；载荷由 `id-kind-registry.json` 对应 kind 的 wire form 决定。 | `ak:message:<44-char-event-token>`、`ak:strand:<44-char-event-token>`、`ak:seal:sha256:<digest>`、`ak:trust_domain:<scope>` |
+| `ak:cell:<cell-family>:<subject>` | **复合 typed reference**。外层 `ak:cell:` 表示 CellRef；`<cell-family>` MUST 原样嵌入完整的点分 `ak.component.<facet-path>.v<n>` 符号名称；`<subject>` MAY 自身是一个带 `:` 的 typed reference。 | `ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:<44-char-event-token>` |
 
 因此，看到 `ak:` 先按“typed ref / special-form ref”解析，看到 `ak.` 先按“registry symbol / namespaced key”解析。CellRef 中同时出现两者是有意的类型组合，不是可选拼写：省略内层 family 的 `ak.` 限定、把外层 CellRef 写成点分名称，或将 `ak.component.*` family 改写为冒号分隔，均不是 canonical wire。完整 typed-ref special forms 以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 和 [`encoding.md` §4](../conformance/encoding.md) 为准；各点分 symbol 的合法 segment、版本后缀及登记边界以对应 registry/schema 为准。任何缺席于当前 registry/schema 的前缀或拼写都不是 alias，parser MUST fail closed。
 
@@ -554,8 +554,8 @@ ak:event:<event-token>
 ak:view:<event-token>
 ak:policy:<uuid>
 ak:capability:<uuid>     # abstract capability definition reference（非签名 grant；签名 grant 用 ak:grant:）；真源 artifacts/registry/id-kind-registry.json `capability` 条目
-ak:grant:<uuid>
-ak:invite:<uuid>
+ak:grant:<44-char-event-token>
+ak:invite:<44-char-event-token>
 ak:applet:<uuid>
 ak:blob:<uuid>                 # blob metadata row id
 ak:blob:sha256:...             # content-addressed special form（sha256:<hex>，digest-suite 见 digest-suite-registry.json）

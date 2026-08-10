@@ -57,25 +57,26 @@ updated: 2026-05-25
 | `artifacts/registry/schema-registry.json` | generated | 由 `contract-registry.json#schema_registry` 派生；schema_id → 文件位置的机器视图。 |
 | `artifacts/schemas/event-payload.schema.json` | canonical | 手工撰写的 JSON Schema（payload class 与各 `$defs/*_payload`）。新增 payload class 时必须同时在 `contract-registry.json` 注册对应 `event_kind` + `schema_id`，使派生 registry 与 schema 文件互相覆盖。 |
 | `artifacts/schemas/event-envelope.schema.json` | canonical | 手工撰写的 Event Envelope JSON Schema；其 payload 取值空间通过 `event-kind-registry.json` 与 payload schema 的 `$defs` 闭合，而非在 envelope 内重复枚举。 |
-| `zh/conformance/schema-registry.md` | prose 镜像 | 是 `schema-registry.json` 的人类可读叙述视图；二者必须一致。`tools/artifact_pipeline.py check` + `tools/lint_artifacts.py` 对 schema_id 集合、文件路径与 `$ref` 完整性做交叉校验，drift 阻塞 CI。 |
+| `zh/conformance/schema-registry.md` | prose 镜像 | 是 `schema-registry.json` 的人类可读叙述视图；二者必须一致。`tools/artifact_pipeline.py check` + `tools/artifact_lint` 对 schema_id 集合、文件路径与 `$ref` 完整性做交叉校验，drift 阻塞 CI。 |
 
 判定规则：
 
 - canonical artifact（schemas / contract-registry）是手工真源；generated registry view 必须由 pipeline 重生成，绝不手工补丁。
 - 新增或修改某 `ak.*` event kind 时，`contract-registry.json`、对应 payload schema `$defs`、由此派生的 `event-kind-registry.json` / `schema-registry.json` 与 `schema-registry.md` 必须在同一变更内一致更新；只改其一即视为 drift。
 - 每个 active 标准 Event kind **MUST** 在 `contract-registry.json` 中显式声明唯一 `payload_schema_ref`，且该引用 **MUST** 与 `event-envelope.schema.json` 对该 kind 的唯一 payload dispatch 完全一致并解析到现存 schema 位置。消费方 **MUST NOT** 从 kind 拼写、schema 命名约定或通用 fallback 推断 payload schema；缺失、悬空、重复或分叉的绑定必须 fail closed。
-- 任意一处的 schema_id / event_kind / typed-ID 出现而其余真源缺失，`artifact_pipeline.py check` 与 `lint_artifacts.py` 会拦截。
+- 任意一处的 schema_id / event_kind / typed-ID 出现而其余真源缺失，`artifact_pipeline.py check` 与 `artifact_lint` 会拦截。
 
 ## 2. 维护与校验流水线
 
 ```bash
 python tools/artifact_pipeline.py generate   # 重新生成派生 registry view
 python tools/regenerate_fixture_digests.py   # 从 canonical input 单向重算 SHA-256 KAT
-python tools/artifact_pipeline.py check      # 对照 catalog 检查派生视图 + 调用 lint_artifacts.py
+python -m tools.artifact_lint                # 单独运行跨构件 lint
+python tools/artifact_pipeline.py check      # 对照 catalog 检查派生视图 + 调用 artifact_lint
 ```
 
 `generate` 重写 `1.2` 中列出的派生文件。`check` 对每个派生文件做精确字符串对比，
-然后调用 `tools/lint_artifacts.py`。lint 的覆盖范围：
+然后调用 `python -m tools.artifact_lint`。lint 的覆盖范围：
 
 - 注册表内部交叉引用一致性（event_kind ↔ schema、operation ↔ surface group ↔ profile 等）
 - registry-manifest 与实际 `registry/` 文件清单一致
@@ -84,7 +85,7 @@ python tools/artifact_pipeline.py check      # 对照 catalog 检查派生视图
 - `ServiceDescribe.required` 在 OpenAPI 与 `service-describe.schema.json` 之间保持一致，且所有 describe path 返回 `ServiceDescribe`
 - registry / artifact 文本中的 `zh/<path>.md`、`schemas/*.json` 与 `artifacts/<path>` 引用必须存在
 - active Event.kind 不得写成 `.vN` 版本化名称；core 文档不得残留旧 Room-scope 术语；硬编码 operation count 与占位章节号会被拦截
-- 选定完整对象示例的 schema required-field drift（见 `lint_artifacts.py::FULL_MARKDOWN_EXAMPLE_SCHEMAS`）
+- 选定完整对象示例的 schema required-field drift（见 `tools/artifact_lint/core.py::FULL_MARKDOWN_EXAMPLE_SCHEMAS`）
 - Markdown fenced JSON 可以用 ````json schema=schemas/<name>.schema.json` 声明 schema；lint 会对该 JSON 块运行 JSON Schema validation
 - `artifacts/fixtures/*.json` 可声明 `schema_validation_cases[]`，对 EventEnvelope、Seal、Cursor、Invite、ServiceDescribe 等核心对象执行正/负 schema validation
 - fixture 中的 canonical input、canonical bytes、digest 与 signature MUST 由上述参考脚本单向重算并由 lint 比对；不得手工维护互不闭合的 input / expected bytes / digest / signature，也不得只在 prose 中声明不可复算值。

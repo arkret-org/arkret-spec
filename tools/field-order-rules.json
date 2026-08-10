@@ -1,5 +1,5 @@
 {
-  "$comment": "Declarative field-ordering rules for tools/lint_artifacts.py check_field_order. The canonical narrative lives in models/common-fields.md §3. Ordered groups follow the object-category convention surfaced in the spec: identity/schema/scope, subject/issuer, body, validity, issuance, and audit. Leading-group, precedence, immediate-follow, ordered-group, and role-placement rules are enforced as lint errors; a schema object opts into the leading-group prefix when its required array begins with its complete present leading group.",
+  "$comment": "Declarative field-ordering rules for tools/artifact_lint check_field_order. The canonical narrative lives in models/common-fields.md §3. Ordered groups follow the object-category convention surfaced in the spec: identity/schema/scope, subject/issuer, body, validity, issuance, and audit. Leading-group, precedence, immediate-follow, ordered-group, and role-placement rules are enforced as lint errors; a schema object opts into the leading-group prefix when its required array begins with its complete present leading group.",
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md",
   "leading_group": [

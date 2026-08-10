@@ -1047,7 +1047,7 @@ Grant envelope 字段、签名规则与必填性以
 [`artifacts/schemas/capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json)
 为准；下述示例展示 grant 上下文中的典型 typed constraint 组合，不引入新规则。
 
-> Grant 撤销 MUST 表达为 accepted `ak.capability.revoke` Event 指向 `ak:grant:<uuid>`；
+> Grant 撤销 MUST 表达为 accepted `ak.capability.revoke` Event 指向 `ak:grant:<44-char-event-token>`；
 > Arkret v1 不注册 `ak:revocation-list:*` typed ID。
 
 #### 20.3.1 Field-level 与 Type 限制

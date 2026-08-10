@@ -9,20 +9,14 @@ expects the gate to fail.
 from __future__ import annotations
 
 import copy
-import importlib.util
 import sys
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "tools"))
-MODULE_SPEC = importlib.util.spec_from_file_location(
-    "lint_artifacts", ROOT / "tools" / "lint_artifacts.py"
-)
-assert MODULE_SPEC is not None and MODULE_SPEC.loader is not None
-lint_artifacts = importlib.util.module_from_spec(MODULE_SPEC)
-MODULE_SPEC.loader.exec_module(lint_artifacts)
+sys.path.insert(0, str(ROOT))
+
+from tools.artifact_lint import schemas as lint_artifacts
 
 ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
 CONTRACT_PATH = (ARTIFACTS / "registry" / "contract-registry.json").resolve()

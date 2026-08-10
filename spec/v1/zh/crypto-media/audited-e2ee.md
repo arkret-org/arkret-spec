@@ -151,7 +151,7 @@ Authorization 只授予一个有界 release 窗口，不是一次性永久凭证
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `release_id` | yes | `ak:audit_release:<uuid>`。 |
+| `release_id` | yes | `ak:audit_release:<44-char-event-token>`。 |
 | `session_id` | yes | 对应 session。 |
 | `binding_id` | yes | 对应 active binding。 |
 | `realm_id` / `effective_scope` | yes | release scope。 |

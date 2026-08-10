@@ -10,20 +10,14 @@ properties.
 from __future__ import annotations
 
 import copy
-import importlib.util
 import sys
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "tools"))
-MODULE_SPEC = importlib.util.spec_from_file_location(
-    "lint_artifacts", ROOT / "tools" / "lint_artifacts.py"
-)
-assert MODULE_SPEC is not None and MODULE_SPEC.loader is not None
-lint_artifacts = importlib.util.module_from_spec(MODULE_SPEC)
-MODULE_SPEC.loader.exec_module(lint_artifacts)
+sys.path.insert(0, str(ROOT))
+
+from tools.artifact_lint import bindings, core
 
 ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
 REGISTRY_PATH = (
@@ -37,11 +31,12 @@ DID_OPERATION_ROW = "ak.exemption.request_material_supply.root_submit_did_operat
 class RequestMaterialSupplyLintTest(unittest.TestCase):
     def _run(self, *, json_mutations=None) -> list[str]:
         json_mutations = json_mutations or {}
-        original_load_json = lint_artifacts.load_json
+        original_binding_load_json = bindings.load_json
+        original_core_load_json = core.load_json
 
         mutated_json: dict[Path, object] = {}
         for path, mutate in json_mutations.items():
-            document = copy.deepcopy(original_load_json(lint_artifacts.Lint(), path))
+            document = copy.deepcopy(original_core_load_json(core.Lint(), path))
             mutate(document)
             mutated_json[path.resolve()] = document
 
@@ -49,15 +44,17 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
             resolved = path.resolve()
             if resolved in mutated_json:
                 return mutated_json[resolved]
-            return original_load_json(lint, path)
+            return original_core_load_json(lint, path)
 
-        lint_artifacts.load_json = load_json_with_mutation
+        bindings.load_json = load_json_with_mutation
+        core.load_json = load_json_with_mutation
         try:
-            lint = lint_artifacts.Lint()
-            lint_artifacts.check_request_material_supply_closure(lint)
+            lint = core.Lint()
+            bindings.check_request_material_supply_closure(lint)
             return lint.errors
         finally:
-            lint_artifacts.load_json = original_load_json
+            bindings.load_json = original_binding_load_json
+            core.load_json = original_core_load_json
 
     def test_committed_tree_passes(self) -> None:
         self.assertEqual(self._run(), [])
@@ -163,7 +160,7 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
                 if row["exemption_id"] == DID_OPERATION_ROW:
                     row["disposition"] = "open_finding"
                     row["review_anchor"] = {
-                        "file": "arkret-work/review/spec-open/2026-08-10-request-evidence-tiering.md",
+                        "file": "arkret-work/review/spec-open/2026-08-09-principal-did-migration-support.md",
                         "heading": "A HEADING THAT WAS NEVER WRITTEN",
                     }
 

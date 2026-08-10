@@ -210,18 +210,25 @@ snapshot、event-set 与 Seal root 因而共用一套 byte-level 实现；任何
 协议 wire / canonical object 层的 typed ID 格式：
 
 ```text
-ak:<kind>:<uuid>
+ak:<kind>:<payload>
 ```
 
 标准 `kind` 的机器可读 source of truth 是 `artifacts/registry/id-kind-registry.json`。本文只定义通用规则。
 
-`ak:` 前缀表示 Arkret 协议命名空间；`<kind>` 表示对象或引用类型；`<uuid>` 是该类型下的稳定 ID。完整 typed ID 是 wire value 的一部分，MUST 出现在：
+`ak:` 前缀表示 Arkret 协议命名空间；`<kind>` 表示对象或引用类型；`<payload>` 是该 kind 的
+`id_form` 唯一决定的稳定身份载荷。完整 typed ID 是 wire value 的一部分，MUST 出现在：
 
 - Event Envelope、canonical object、receipt、snapshot、fixture 和 OpenAPI / non-HTTP DTO。
 - canonical JSON、签名 payload、`event_digest`、cursor 内部 state、federation payload、audit log。
 - 跨服务引用、日志和错误响应中需要自描述对象类型的字段。
 
-数据库或本地索引实现 MAY 不把 `ak:<kind>:` 前缀作为主键的一部分存储——例如直接用 PostgreSQL `uuid` / `BYTEA(16)` 列存 16 字节 raw value，由表名或显式 `kind` 列提供类型上下文。实现若这样存储，MUST 在进入 canonical JSON、签名、hash、联邦转发、sync cursor、audit replay 或 API response 前恢复完整 typed ID。接收方验证签名、hash、backfill 或 replay 时，MUST 按完整 typed ID 比较，MUST NOT 用数据库 row id、自增 id、表名推断或隐式转换替代 wire value。
+数据库或本地索引实现 MAY 不把 `ak:<kind>:` 前缀作为主键的一部分存储：`producer_allocated`
+kind 可使用 PostgreSQL `uuid` / `BYTEA(16)` 保存完整 UUID；Event 与 `event_derived` /
+`suite_tagged_full_digest` kind 则必须保存完整 33-byte token（例如 `BYTEA(33)`），不得截断为 UUID。
+实现也 MAY 另设仅本地可见的 surrogate row key，但 canonical identity 列必须无损保留，并在进入
+canonical JSON、签名、hash、联邦转发、sync cursor、audit replay 或 API response 前恢复完整 typed ID。
+接收方验证签名、hash、backfill 或 replay 时，MUST 按完整 typed ID 比较，MUST NOT 用数据库 row id、
+自增 id、表名推断或隐式转换替代 wire value。
 
 `<kind>` 是 canonical bytes 的一部分。实现 MUST NOT 把 `ak:receipt:<id>` 改写成 `ak:event:<id>`，也 MUST NOT 因为字段名叫 `receipt_id` 就在验证时补前缀。字段名可以辅助 schema 校验，但不能替代 signed wire ID。
 
@@ -289,7 +296,8 @@ hash、同步 cursor、联邦消息或审计引用中。canonical Realm 表 MUST
 身份（或可无损恢复它的完整 typed wire form）；任何 `realm_pk` 关联都 MUST 与协议记录携带的
 `realm_id` 解析为同一身份。实现不得以本地 `pk` 替代首次接触重算、跨库导入、重放或冲突判断。
 
-Realm 的高 nibble 只编码身份派生类别，不编码 `direct_conversation`、organization、managed Agent 等产品/profile 分类。后者继续由签名 genesis schema/profile 判定，不能占用 identity header。
+Realm 的高 nibble 固定为零，既不编码身份派生类别，也不编码 `direct_conversation`、organization、
+managed Agent 等产品/profile 分类。后者继续由签名 genesis schema/profile 判定，不能占用 identity header。
 
 本节的 conformance 入口是 `ak.vector.event_id.content_bound.v1`（机读 fixture 见 [`content-bound-event-id-fixture.json`](../../artifacts/fixtures/content-bound-event-id-fixture.json)）：它固定 SHA-256 / BLAKE3 bytes、canonical Base64URL、suite mismatch、unknown/reserved code、错误完整 digest、padding与长度负例。
 
@@ -829,7 +837,7 @@ rank_between(left, right):
 - 实现 MUST NOT 直接使用 `a|b|c` 这种管道分隔字符串作为复合 subject。canonical cell id、签名输入、state map 索引 MUST 使用 hash 形态。
 - cell subject 的 registry 字段来源必须显式命名：payload 来源写成 `payload.<具名路径>`，Event Envelope 来源写成 `envelope.<字段>`；裸字段名与“先查 payload、再查 envelope”的 fallback 求值一律未定义并 MUST `schema_violation`。v1 的 envelope 来源白名单只包含 `envelope.actor_id` 与 `envelope.event_id` 两项；`envelope.realm_id`、`envelope.executed_by` 及其它未登记字段均不得用于 subject。
 
-  `envelope.event_id` 是白名单里唯一一个**不按字面取值**的来源，且只能出现在 `{"kind": "id:<对象种类>", "field": "envelope.event_id"}` 这一形态里：求值结果 MUST 是把该 create Event 自身 `event_id` 的 UUID 载荷原样换成 `ak:<对象种类>:` 前缀后的**派生对象 ID**（`zh/models/common-fields.md` §6.0），而不是原始的 `ak:event:…` 字符串。理由是结构性的——同一对象的后续 Event 用 `payload.<种类>_id` 定位 cell，若 create 用原始 event id 作 subject，create 与其后所有更新会落在两个不同的 cell 上，`head_eq` 前置条件与 `state_root` 叶集当场分叉。`id:<对象种类>` MUST 是 registry 中 `id_source = event_derived` 的种类；指向 producer 自行分配的种类一律 `schema_violation`。composite / tuple / coalesce 的分量位置里出现裸 `envelope.event_id` 同样是 `schema_violation`：那里没有携带目标种类，无法派生。registry 中的 payload 路径 MAY 是点分嵌套路径（如 `payload.key_scope.effective_scope.realm_id`），但每一段 MUST 是该对象的具名字段，且最终取值 MUST 是上一条定义的 JSON scalar；路径中出现数组下标、通配或非具名段一律 `schema_violation`。
+  `envelope.event_id` 是白名单里唯一一个**不按字面取值**的来源，且只能出现在 `{"kind": "id:<对象种类>", "field": "envelope.event_id"}` 这一形态里：求值结果 MUST 是把该 create Event 自身 `event_id` 的完整 33-octet token 原样换成 `ak:<对象种类>:` 前缀后的**派生对象 ID**（`zh/models/common-fields.md` §6.0），而不是原始的 `ak:event:…` 字符串。理由是结构性的——同一对象的后续 Event 用 `payload.<种类>_id` 定位 cell，若 create 用原始 event id 作 subject，create 与其后所有更新会落在两个不同的 cell 上，`head_eq` 前置条件与 `state_root` 叶集当场分叉。`id:<对象种类>` MUST 是 registry 中 `id_source = event_derived` 的种类；指向 producer 自行分配的种类一律 `schema_violation`。composite / tuple / coalesce 的分量位置里出现裸 `envelope.event_id` 同样是 `schema_violation`：那里没有携带目标种类，无法派生。registry 中的 payload 路径 MAY 是点分嵌套路径（如 `payload.key_scope.effective_scope.realm_id`），但每一段 MUST 是该对象的具名字段，且最终取值 MUST 是上一条定义的 JSON scalar；路径中出现数组下标、通配或非具名段一律 `schema_violation`。
 - **单字段与 `coalesce` subject（normative）**：普通单字段 subject 直接取 registry `field` 指向的 schema-validated scalar。非复合 subject MAY 使用封闭 descriptor `{"kind":"coalesce","fields":[<字段路径>…]}` 在一个稳定 cell family 被多个显式 payload 分支或 payload class 共用时定址；receiver MUST 按 `fields[]` 登记顺序选择第一个存在的字段，所选值必须是该路径 schema 声明的 canonical scalar。schema 必须保证每个合法 payload 至少一个候选存在；全部缺失、首个存在值非 scalar、未知成员、空 `fields[]` 或重复路径均 MUST `schema_violation`。`coalesce` 的 canonical subject 就是所选 scalar 的 canonical wire value，不额外 hash descriptor 或字段名。它只允许作为**整个非复合 subject** 的显式跨分支兼容 descriptor；不得放入 `components[]`，不得替代下一条的判别式 `select`，也不得靠未登记字段或 payload 形状产生新分支。artifact gate MUST 解析 Event-kind payload dispatch 并验证：单字段路径、每个 composite component、`select.selector` 与每个 schema 可达 branch 的 `field` 均存在且终点为 scalar；`coalesce` 至少一个候选路径在路由 class 中存在且每个存在的候选为 scalar。
 - **判别式 `select` component（normative）**：`components[]` 的元素 MAY 是一个 `select` 对象，用于在同一 cell family 内按显式判别值选择该 component 的取值字段。形态固定为 `{"kind":"select","selector":<字段路径>,"branches":{<判别值>:{"field":<字段路径>,"forbidden_fields":[<字段路径>…]}}}`，`branches` 是封闭映射，`forbidden_fields` 可选。求值规则：读取 `selector` 指向的、已通过 schema 校验的**原始字符串**，与 branch key 逐字匹配，MUST NOT 做大小写折叠、Unicode 归一化或别名解析；命中 branch 后取其 `field` 的标量值作为该 component。`select` 只选择 component 的**取值**，MUST NOT 改变 `components_array` 的元素数目或顺序——同一 cell family 的所有分支共享同一 arity 与同一顺序。
 

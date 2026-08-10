@@ -26,11 +26,11 @@ updated: 2026-07-02
 
 | Envelope | 形态 | 用途 |
 | --- | --- | --- |
-| **逻辑 ID** | `ak:strand:<uuid>`（不变） | 协议内部 / `resolve_*` 输入。它是不透明 ID，不是 URI，**MUST NOT** 携带 `action` / token。 |
+| **逻辑 ID** | `ak:strand:<44-char-event-token>`（不变） | 协议内部 / `resolve_*` 输入。它是不透明 ID，不是 URI，**MUST NOT** 携带 `action` / token。 |
 | **`web+arkret:` URI scheme** | `web+arkret:realm/…/strand/…?action=view` | "在 App 打开"。原生 app 经 OS 级 handler 直接接收；web 客户端经 `navigator.registerProtocolHandler('web+arkret', <https-template>)` 登记（约束见 §5）。 |
 | **HTTPS 落地链接** | `https://<landing>/#realm/…/strand/…?action=view` | 用户复制粘贴的默认形态；`#` 之后整体 = 同一 grammar。`<landing>` 域名由部署方选定，本协议**不**指定中心化落地域名。 |
 
-`web+arkret:` 与 HTTPS 落地形态共用同一 §3 grammar parser，只是外壳不同（裸接 scheme vs 接在 `#` 后）。逻辑 ID grammar（`ak:<kind>:<uuid>`）见 [`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)，本文不重复定义。
+`web+arkret:` 与 HTTPS 落地形态共用同一 §3 grammar parser，只是外壳不同（裸接 scheme vs 接在 `#` 后）。逻辑 ID grammar（`ak:<kind>:<payload>`，payload 形态由 kind 的 `id_form` 决定）见 [`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)，本文不重复定义。
 
 ## 3. 地址 grammar
 
@@ -42,7 +42,7 @@ web+arkret:realm/<realm>/strand/<strand>/m/<msg>?action=view
 
 | 部分 | 承载 | 规则 |
 | --- | --- | --- |
-| **path** | containment 链 = 身份 + 解析顺序 | path keyword 携带对象类型，值是**裸 UUID**（剥掉 `ak:<kind>:` sigil）。层级固定 `realm/<r>` ⊃ `strand/<f>` ⊃ `m/<msg>`。 |
+| **path** | containment 链 = 身份 + 解析顺序 | path keyword 携带对象类型，值是剥掉 `ak:<kind>:` 前缀的**完整 44-character event-derived token**。层级固定 `realm/<r>` ⊃ `strand/<f>` ⊃ `m/<msg>`。 |
 | **query** | 非身份提示 + 授权组件 | `action`、`lt`、`tok`（见 §3.2 / §4）。 |
 | **fragment** | 隐私敏感位（仅 HTTPS 形态） | 见 §5。 |
 
@@ -161,8 +161,8 @@ token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段�
 ```json
 {
   "realm_id": "ak:realm:<44-char-token>",
-  "strand_id": "ak:strand:<uuid>",
-  "message_id": "ak:message:<uuid>",
+  "strand_id": "ak:strand:<44-char-event-token>",
+  "message_id": "ak:message:<44-char-event-token>",
   "address_link_kind": "invite"
 }
 ```

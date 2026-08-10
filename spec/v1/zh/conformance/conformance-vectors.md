@@ -6147,7 +6147,7 @@ Runner MUST 覆盖：
 3. UTF-8 preview 16 KiB−1/16 KiB/16 KiB+1、增长比 2 边界、15 秒 keyframe 边界、
    truncated 后周期 keyframe，以及最大 quote/backslash JSON 转义仍装入 48/64 KiB Signal
    两层上限；
-4. `message_id` 等于 planned create `event_id` 的重类型 UUID；create payload 出现
+4. `message_id` 等于 planned create `event_id` 的完整 token 重类型结果；create payload 出现
    `message_id` 必须 `schema_violation`；
 5. direct final 的 actor/device/security scope/Realm/Strand/track 任一不匹配，或 final
    携带 `executed_by` 时，不得绑定 preview；全部匹配时 final 立即替换并终止所有 attempts；

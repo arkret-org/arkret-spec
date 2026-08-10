@@ -82,7 +82,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "a55385f33d9373659973167e156bacec2c8bb42750d98018055591d685d487a3"
+      "sha256": "8deb8f60aeab17915f2b201876d0122053082b0b920711330a2755e43648eb0e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/control-proposal-ack-fixture.json",
@@ -322,7 +322,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-message-stream-fixture.json",
-      "sha256": "489f2ee9fa8a7700ab2c337c98bbb172c3fae15c6bbcaa052c9de940f01fd92b"
+      "sha256": "5364e88ce9043b6d2f182d6093f270f32b39981bf4120a7e87841cc61c249141"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-sequence-high-water-fixture.json",

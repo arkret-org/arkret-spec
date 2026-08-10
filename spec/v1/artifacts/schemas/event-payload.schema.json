@@ -7112,7 +7112,7 @@
           "items": {
             "$ref": "#/$defs/or_set_dot"
           },
-          "description": "Exact add dots being removed. Every dot's event_id segment MUST equal the uuid of decision_ref, so a lift can only revoke the appealed decision; adds from other issuers stay active and keep folding by hard_deny > quarantine > require_review. A lift is a partial revocation, so or_set_remove_observed is forbidden here - it would remove every surviving add on the cell. See zh/models/event-and-patch.md section 2.4.2 and zh/governance/content-moderation.md section 5.5.2."
+          "description": "Exact add dots being removed. Every dot's event_id segment MUST equal the complete EventId token of decision_ref, so a lift can only revoke the appealed decision; adds from other issuers stay active and keep folding by hard_deny > quarantine > require_review. A lift is a partial revocation, so or_set_remove_observed is forbidden here - it would remove every surviving add on the cell. See zh/models/event-and-patch.md section 2.4.2 and zh/governance/content-moderation.md section 5.5.2."
         },
         "reason_code": {
           "type": "string",

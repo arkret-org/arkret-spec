@@ -91,13 +91,13 @@ flowchart TB
 
 **lift 的移除集合（normative）**：`ak.moderation.decision.lift` 的 payload MUST 携带
 `observed_dots[]`，reducer 精确投影为 `{"kind":"or_set_remove_dots","dots":{"field":"payload.observed_dots"}}`，
-移除集合与该数组**逐字节相等**。每个 dot 的 `event_id` 段 MUST 等于 `decision_ref` 的 uuid——
+移除集合与该数组**逐字节相等**。每个 dot 的 `event_id` 段 MUST 等于 `decision_ref` 的完整 EventId token——
 这就是上一条"不得隐式 lift 其它 issuer 的 decision"的机器可读形式。
 
 lift MUST NOT 使用 `or_set_remove_observed`：该形态移除冻结前态下该 cell 上**全部**存活 add
 dot，会连带撤销其它 issuer 的 decision；[`../models/event-and-patch.md` §2.4.2](../models/event-and-patch.md)
 逐字禁止用它做部分撤销。`decision_ref` 与 `observed_dots[]` 不可互相替代：前者是
-`ak:event:<uuid>`，dot 是 `ak:event:<uuid>:<write_index>`，二者永不逐字节相等，而 §2.4.2
+`ak:event:<44-char-event-token>`，dot 是 `ak:event:<44-char-event-token>:<write_index>`，二者永不逐字节相等，而 §2.4.2
 不提供 `event_ref -> dot` 的派生式。
 
 §5.5.2 的 `modify` 路径由此天然成立：同 batch 内 lift 只移除被指名的旧 decision dot，

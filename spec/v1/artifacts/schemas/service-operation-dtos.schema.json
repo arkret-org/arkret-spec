@@ -4064,7 +4064,7 @@
         },
         "is_default": {
           "type": "boolean",
-          "description": "DERIVED, not independent storage: true iff strand_id == the parent Realm projection's default_strand_id (the authoritative pointer written by ak.realm.set_default_strand). The projector computes this from Realm.default_strand_id; a stale/dangling pointer never resolves to is_default=true because the reducer rejects set_default_strand against a non-existent Strand. Clients identify the Realm's default discussion Strand deterministically from this flag (or equivalently from Realm.default_strand_id) and MUST NOT infer the default from any Strand-reuses-Realm-UUID or other implementation detail. See zh/models/strand-and-message.md (default-Strand discovery)."
+          "description": "DERIVED, not independent storage: true iff strand_id == the parent Realm projection's default_strand_id (the authoritative pointer written by ak.realm.set_default_strand). The projector computes this from Realm.default_strand_id; a stale/dangling pointer never resolves to is_default=true because the reducer rejects set_default_strand against a non-existent Strand. Clients identify the Realm's default discussion Strand deterministically from this flag (or equivalently from Realm.default_strand_id) and MUST NOT infer the default from any Strand-reuses-Realm-token or other implementation detail. See zh/models/strand-and-message.md (default-Strand discovery)."
         }
       }
     },

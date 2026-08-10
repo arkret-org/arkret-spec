@@ -70,7 +70,7 @@ class AccountabilityScopeDescriptorLintTest(unittest.TestCase):
             )
 
             result = subprocess.run(
-                [sys.executable, str(sandbox / "tools" / "lint_artifacts.py")],
+                [sys.executable, "-m", "tools.artifact_lint"],
                 cwd=sandbox,
                 capture_output=True,
                 check=False,
@@ -88,8 +88,9 @@ class AccountabilityScopeDescriptorLintTest(unittest.TestCase):
             ):
                 self.assertIn(expected, diagnostics)
 
-        lint_source = (ROOT / "tools" / "lint_artifacts.py").read_text(
-            encoding="utf-8"
+        lint_source = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in (ROOT / "tools" / "artifact_lint").glob("*.py")
         )
         self.assertNotIn("finding 09", lint_source.lower())
 

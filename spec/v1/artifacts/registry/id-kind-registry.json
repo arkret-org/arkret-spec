@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.9",
+  "version": "2026-08-10.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T05:00:00Z",
+  "generated_at": "2026-08-10T18:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -374,7 +374,7 @@
       "category": "authz",
       "status": "active",
       "wire_form": "ak:capability:<uuidv7>",
-      "description": "Abstract capability definition reference ID; signed grant objects use ak:grant:<uuid>.",
+      "description": "Abstract capability definition reference ID; signed grant objects use ak:grant:<44-char-event-token>.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },

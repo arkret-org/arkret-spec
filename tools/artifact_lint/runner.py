@@ -1,0 +1,417 @@
+"""Command-line orchestration for the artifact lint phases."""
+
+from __future__ import annotations
+
+from .core import (
+    Any,
+    Lint,
+    argparse,
+    load_json_schema_for_uri,
+    parse_json_file,
+    parse_yaml_file,
+    read_text,
+    schema_format_checker,
+    sys,
+    time,
+)
+
+from .foundation import (
+    check_event_id_suite_registry,
+    check_id_form_wire_schema_alignment,
+    check_proof_context_registry,
+    check_protocol_layer_registry,
+    check_registries,
+    check_registry_manifest,
+    check_retired_event_id_contract,
+    check_state_contract_closure,
+    check_text_files_utf8_no_nul,
+    check_timestamp_profile_single_source,
+)
+
+from .schemas import (
+    check_circle_lifecycle_basis_vector,
+    check_circle_membership_enum_single_source,
+    check_classification_context_paths,
+    check_did_and_device_constraints,
+    check_event_reference_inventory,
+    check_event_schema_coverage,
+    check_fsm_state_reachability,
+    check_null_cell_subject_wire_form,
+    check_operation_clause_registry,
+    check_preimage_event_identity_commitments,
+    check_profile_requirements,
+    check_read_scope_schema_closure,
+    check_reducer_payload_closure,
+    check_schema_refs,
+    check_sdk_conformance_contract,
+    check_signed_object_closure,
+    check_vector_group_requirements,
+    check_wire_schema_no_bare_scope,
+)
+
+from .bindings import (
+    check_binding_completeness_index,
+    check_binding_variant_non_http,
+    check_capability_action_event_mapping,
+    check_event_admission_coverage,
+    check_openapi_auth_semantics,
+    check_openapi_core_selector_constraints,
+    check_openapi_dedicated_operation_schemas,
+    check_openapi_error_enum_alignment,
+    check_openapi_schema_component_order,
+    check_operation_binding_metadata,
+    check_operation_dto_closure,
+    check_operation_durable_effect_contract,
+    check_operation_field_table_schema_refs,
+    check_operation_surfaces,
+    check_policy_check_alignment,
+    check_request_material_supply_closure,
+    check_service_describe_alignment,
+)
+
+from .fixtures import (
+    check_account_data_key_registry,
+    check_applet_revoke_saga_contract,
+    check_canonical_digest_fixtures,
+    check_content_bound_event_id_fixture,
+    check_crypto_signature_fixture,
+    check_cryptographic_suite_kat_bindings,
+    check_declared_canonical_json_strings,
+    check_direct_conversation_digest_vectors,
+    check_encrypted_envelope_digest_vector,
+    check_erasure_verification_contract,
+    check_event_batch_receipt_normalization_vector,
+    check_fixture_runner_contract,
+    check_fixtures,
+    check_mls_governance_proof_fixture,
+    check_normative_clause_registry,
+    check_one_of_branch_discriminability,
+    check_producer_allocated_identity_vectors,
+    check_reducer_profile_registry,
+    check_schema_fixture_canonical_public_material,
+    check_security_closure_fixture,
+    check_snapshot_merkle_fixture,
+    check_stated_preimage_matches_stated_digest,
+    check_string_profile_format_vectors,
+    check_vector_reference_closure,
+    check_vector_registry,
+    check_websocket_binding_fixture,
+)
+
+from .prose import (
+    check_account_notification_prose_schema_alignment,
+    check_canonical_digest_alias,
+    check_common_object_field_matrix,
+    check_content_composite_uses_parts,
+    check_cross_doc_anchors,
+    check_cross_source_drift,
+    check_directory_field_drift,
+    check_envelope_subject_source_whitelist,
+    check_event_log_operations_carry_a_signed_event,
+    check_event_proof_digest_shape,
+    check_join_policy_gate_id_uniqueness,
+    check_keypackage_claim_proof_shape,
+    check_legacy_announce_id_form,
+    check_markdown_examples,
+    check_markdown_links,
+    check_naming_predicates,
+    check_non_normative_frontmatter,
+    check_normative_prose_role_names,
+    check_profile_dependency_graph,
+    check_release_readiness_counts,
+    check_text_reference_targets,
+    check_typed_id_prose_consistency,
+)
+
+from .safety import (
+    check_action_reference_closure,
+    check_alg_registry,
+    check_device_messages_cursor_binding,
+    check_error_code_closure,
+    check_error_code_registry_uniqueness,
+    check_exporter_label_registry,
+    check_field_order,
+    check_fixture_reject_reason_closure,
+    check_mls_governance_proof_bounds,
+    check_mls_pq_suite_registration,
+    check_model_required_field_table_coverage,
+    check_openapi_no_floating_number,
+    check_operations_error_mapping_closure,
+    check_service_kind_registry,
+)
+
+
+
+def run_lint_phase(
+    index: int,
+    total: int,
+    label: str,
+    checks: list[tuple[str, Any]],
+    *,
+    quiet: bool,
+    timing: bool,
+) -> dict[str, Any]:
+    if not quiet:
+        print(f"[lint {index}/{total}] {label} ...", file=sys.stderr, flush=True)
+    phase_started = time.perf_counter()
+    results: dict[str, Any] = {}
+    for name, check in checks:
+        started = time.perf_counter()
+        results[name] = check()
+        if timing:
+            print(
+                f"  {name}: {time.perf_counter() - started:.3f}s",
+                file=sys.stderr,
+                flush=True,
+            )
+    if not quiet:
+        print(
+            f"[lint {index}/{total}] {label} done "
+            f"({time.perf_counter() - phase_started:.2f}s)",
+            file=sys.stderr,
+            flush=True,
+        )
+    return results
+
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--quiet", action="store_true", help="suppress phase progress")
+    parser.add_argument(
+        "--timing",
+        action="store_true",
+        help="print individual check timings in addition to phase progress",
+    )
+    args = parser.parse_args(argv)
+    lint = Lint()
+    started = time.perf_counter()
+
+    for cached in (
+        read_text,
+        parse_json_file,
+        parse_yaml_file,
+        load_json_schema_for_uri,
+        schema_format_checker,
+    ):
+        cached.cache_clear()
+
+    phase_count = 6
+    foundation = run_lint_phase(
+        1,
+        phase_count,
+        "基础文件与规范注册表",
+        [
+            ("text_encoding", lambda: check_text_files_utf8_no_nul(lint)),
+            ("registry_manifest", lambda: check_registry_manifest(lint)),
+            ("timestamp_profile", lambda: check_timestamp_profile_single_source(lint)),
+            ("proof_contexts", lambda: check_proof_context_registry(lint)),
+            ("event_id_suite_registry", lambda: check_event_id_suite_registry(lint)),
+            ("retired_event_id_contract", lambda: check_retired_event_id_contract(lint)),
+            ("registries", lambda: check_registries(lint)),
+            ("id_form_wire_schema", lambda: check_id_form_wire_schema_alignment(lint)),
+            ("state_contract_closure", lambda: check_state_contract_closure(lint)),
+            ("protocol_layers", lambda: check_protocol_layer_registry(lint)),
+        ],
+        quiet=args.quiet,
+        timing=args.timing,
+    )
+    known = foundation["registries"]
+
+    run_lint_phase(
+        2,
+        phase_count,
+        "Schema、profile 与授权闭包",
+        [
+            ("schema_refs", lambda: check_schema_refs(lint, known)),
+            ("profile_requirements", lambda: check_profile_requirements(lint, known)),
+            ("sdk_conformance", lambda: check_sdk_conformance_contract(lint)),
+            ("operation_clauses", lambda: check_operation_clause_registry(lint)),
+            ("vector_groups", lambda: check_vector_group_requirements(lint, known)),
+            ("event_schema_coverage", lambda: check_event_schema_coverage(lint, known)),
+            ("event_reference_inventory", lambda: check_event_reference_inventory(lint)),
+            ("wire_scope", lambda: check_wire_schema_no_bare_scope(lint)),
+            (
+                "preimage_event_identity",
+                lambda: check_preimage_event_identity_commitments(lint),
+            ),
+            ("fsm_reachability", lambda: check_fsm_state_reachability(lint)),
+            ("read_scope", lambda: check_read_scope_schema_closure(lint)),
+            ("signed_objects", lambda: check_signed_object_closure(lint)),
+            ("reducer_payloads", lambda: check_reducer_payload_closure(lint)),
+            ("circle_membership", lambda: check_circle_membership_enum_single_source(lint)),
+            ("null_cell_subject", lambda: check_null_cell_subject_wire_form(lint)),
+            (
+                "classification_contexts",
+                lambda: check_classification_context_paths(lint),
+            ),
+            ("circle_lifecycle", lambda: check_circle_lifecycle_basis_vector(lint)),
+            ("did_device", lambda: check_did_and_device_constraints(lint)),
+        ],
+        quiet=args.quiet,
+        timing=args.timing,
+    )
+
+    run_lint_phase(
+        3,
+        phase_count,
+        "OpenAPI 与 operation 绑定",
+        [
+            ("openapi_component_order", lambda: check_openapi_schema_component_order(lint)),
+            ("operation_surfaces", lambda: check_operation_surfaces(lint, known)),
+            (
+                "operation_durable_effect",
+                lambda: check_operation_durable_effect_contract(lint),
+            ),
+            ("service_describe", lambda: check_service_describe_alignment(lint)),
+            ("policy_check", lambda: check_policy_check_alignment(lint)),
+            ("dedicated_schemas", lambda: check_openapi_dedicated_operation_schemas(lint)),
+            ("core_selectors", lambda: check_openapi_core_selector_constraints(lint)),
+            ("openapi_auth", lambda: check_openapi_auth_semantics(lint)),
+            ("openapi_errors", lambda: check_openapi_error_enum_alignment(lint)),
+            ("binding_metadata", lambda: check_operation_binding_metadata(lint)),
+            ("binding_index", lambda: check_binding_completeness_index(lint)),
+            ("field_table_refs", lambda: check_operation_field_table_schema_refs(lint)),
+            ("non_http_variants", lambda: check_binding_variant_non_http(lint)),
+            ("capability_mapping", lambda: check_capability_action_event_mapping(lint)),
+            ("event_admission", lambda: check_event_admission_coverage(lint)),
+            ("dto_closure", lambda: check_operation_dto_closure(lint)),
+            (
+                "request_material_supply",
+                lambda: check_request_material_supply_closure(lint),
+            ),
+        ],
+        quiet=args.quiet,
+        timing=args.timing,
+    )
+
+    run_lint_phase(
+        4,
+        phase_count,
+        "Fixtures、样例与向量",
+        [
+            ("account_data_keys", lambda: check_account_data_key_registry(lint, known)),
+            ("vector_registry", lambda: check_vector_registry(lint)),
+            ("crypto_suite_kats", lambda: check_cryptographic_suite_kat_bindings(lint)),
+            ("normative_clauses", lambda: check_normative_clause_registry(lint)),
+            ("vector_refs", lambda: check_vector_reference_closure(lint)),
+            ("security_fixture", lambda: check_security_closure_fixture(lint)),
+            ("fixtures", lambda: check_fixtures(lint, known)),
+            ("event_id_fixture", lambda: check_content_bound_event_id_fixture(lint)),
+            ("erasure_verification", lambda: check_erasure_verification_contract(lint)),
+            ("producer_id_vectors", lambda: check_producer_allocated_identity_vectors(lint)),
+            ("applet_revoke_saga", lambda: check_applet_revoke_saga_contract(lint)),
+            ("snapshot_merkle", lambda: check_snapshot_merkle_fixture(lint)),
+            ("fixture_runner", lambda: check_fixture_runner_contract(lint)),
+            ("websocket_binding", lambda: check_websocket_binding_fixture(lint)),
+            ("crypto_signatures", lambda: check_crypto_signature_fixture(lint)),
+            ("canonical_digests", lambda: check_canonical_digest_fixtures(lint)),
+            (
+                "direct_conversation_digests",
+                lambda: check_direct_conversation_digest_vectors(lint),
+            ),
+            ("batch_receipt", lambda: check_event_batch_receipt_normalization_vector(lint)),
+            (
+                "stated_preimage_digest",
+                lambda: check_stated_preimage_matches_stated_digest(lint),
+            ),
+            (
+                "canonical_public_material",
+                lambda: check_schema_fixture_canonical_public_material(lint),
+            ),
+            ("encrypted_digest", lambda: check_encrypted_envelope_digest_vector(lint)),
+            ("string_profiles", lambda: check_string_profile_format_vectors(lint)),
+            ("one_of_branches", lambda: check_one_of_branch_discriminability(lint)),
+            ("canonical_strings", lambda: check_declared_canonical_json_strings(lint)),
+            ("reducer_profiles", lambda: check_reducer_profile_registry(lint)),
+            ("mls_proof", lambda: check_mls_governance_proof_fixture(lint)),
+        ],
+        quiet=args.quiet,
+        timing=args.timing,
+    )
+
+    run_lint_phase(
+        5,
+        phase_count,
+        "正文引用与结构化命名",
+        [
+            ("text_targets", lambda: check_text_reference_targets(lint)),
+            ("cross_source", lambda: check_cross_source_drift(lint, known)),
+            ("markdown_links", lambda: check_markdown_links(lint)),
+            ("markdown_examples", lambda: check_markdown_examples(lint, known)),
+            ("naming_predicates", lambda: check_naming_predicates(lint)),
+            ("profile_graph", lambda: check_profile_dependency_graph(lint)),
+            ("field_matrix", lambda: check_common_object_field_matrix(lint)),
+            ("keypackage_claim_proof_shape", lambda: check_keypackage_claim_proof_shape(lint)),
+            ("event_proof_digest", lambda: check_event_proof_digest_shape(lint)),
+            ("digest_alias", lambda: check_canonical_digest_alias(lint)),
+            ("announce_ids", lambda: check_legacy_announce_id_form(lint)),
+            ("directory_fields", lambda: check_directory_field_drift(lint)),
+            ("typed_id_prose", lambda: check_typed_id_prose_consistency(lint)),
+            (
+                "event_log_signed_request",
+                lambda: check_event_log_operations_carry_a_signed_event(lint),
+            ),
+            (
+                "envelope_subject_sources",
+                lambda: check_envelope_subject_source_whitelist(lint),
+            ),
+            ("join_policy_ids", lambda: check_join_policy_gate_id_uniqueness(lint)),
+            ("composite_parts", lambda: check_content_composite_uses_parts(lint)),
+            ("release_counts", lambda: check_release_readiness_counts(lint, known)),
+            ("cross_doc_anchors", lambda: check_cross_doc_anchors(lint)),
+            ("non_normative_frontmatter", lambda: check_non_normative_frontmatter(lint)),
+            ("normative_roles", lambda: check_normative_prose_role_names(lint)),
+            ("account_notification", lambda: check_account_notification_prose_schema_alignment(lint)),
+        ],
+        quiet=args.quiet,
+        timing=args.timing,
+    )
+
+    run_lint_phase(
+        6,
+        phase_count,
+        "错误、字段顺序与安全边界",
+        [
+            ("error_uniqueness", lambda: check_error_code_registry_uniqueness(lint)),
+            ("error_mapping", lambda: check_operations_error_mapping_closure(lint)),
+            ("fixture_reasons", lambda: check_fixture_reject_reason_closure(lint)),
+            ("error_closure", lambda: check_error_code_closure(lint)),
+            ("openapi_numbers", lambda: check_openapi_no_floating_number(lint)),
+            ("field_order", lambda: check_field_order(lint)),
+            ("required_field_tables", lambda: check_model_required_field_table_coverage(lint)),
+            ("exporter_labels", lambda: check_exporter_label_registry(lint)),
+            ("algs", lambda: check_alg_registry(lint)),
+            ("mls_bounds", lambda: check_mls_governance_proof_bounds(lint)),
+            ("mls_pq", lambda: check_mls_pq_suite_registration(lint)),
+            ("service_kinds", lambda: check_service_kind_registry(lint)),
+            ("action_refs", lambda: check_action_reference_closure(lint)),
+            ("device_cursor", lambda: check_device_messages_cursor_binding(lint)),
+        ],
+        quiet=args.quiet,
+        timing=args.timing,
+    )
+
+    if lint.warnings:
+        print("Artifact registry lint warnings:", file=sys.stderr)
+        for warning in lint.warnings:
+            print(f"- {warning}", file=sys.stderr)
+
+    if lint.errors:
+        print("Artifact registry lint failed:", file=sys.stderr)
+        for error in lint.errors:
+            print(f"- {error}", file=sys.stderr)
+        return 1
+
+    print(
+        "Artifact registry lint passed "
+        f"({len(known['event_kinds'])} event kinds, "
+        f"{len(known['schema_ids'])} schemas, "
+        f"{len(known['id_kinds'])} typed ID kinds, "
+        f"{len(known['operation_ids'])} operations, "
+        f"{len(known['claimable_profiles'])} claimable profiles, "
+        f"{len(known['profiles'])} profile id references, "
+        f"{time.perf_counter() - started:.2f}s)."
+    )
+    return 0
+

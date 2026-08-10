@@ -3,20 +3,14 @@
 from __future__ import annotations
 
 import copy
-import importlib.util
 import sys
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "tools"))
-MODULE_SPEC = importlib.util.spec_from_file_location(
-    "lint_artifacts", ROOT / "tools" / "lint_artifacts.py"
-)
-assert MODULE_SPEC is not None and MODULE_SPEC.loader is not None
-lint_artifacts = importlib.util.module_from_spec(MODULE_SPEC)
-MODULE_SPEC.loader.exec_module(lint_artifacts)
+sys.path.insert(0, str(ROOT))
+
+from tools.artifact_lint import core, schemas
 
 
 class CellSubjectPathLintTest(unittest.TestCase):
@@ -37,31 +31,31 @@ class CellSubjectPathLintTest(unittest.TestCase):
             / "registry"
             / "event-kind-registry.json"
         )
-        event_schema = lint_artifacts.parse_json_text(
+        event_schema = core.parse_json_text(
             event_schema_path.read_text(encoding="utf-8")
         )
-        registry = lint_artifacts.parse_json_text(
+        registry = core.parse_json_text(
             registry_path.read_text(encoding="utf-8")
         )
         mutated = copy.deepcopy(registry)
         mutate(mutated)
 
-        original_load_json = lint_artifacts.load_json
+        original_load_json = schemas.load_json
 
         def load_json_with_mutation(lint, path):
             if path.resolve() == registry_path.resolve():
                 return mutated
             return original_load_json(lint, path)
 
-        lint_artifacts.load_json = load_json_with_mutation
+        schemas.load_json = load_json_with_mutation
         try:
-            lint = lint_artifacts.Lint()
-            lint_artifacts.check_composite_subject_terminal_types(
+            lint = schemas.Lint()
+            schemas.check_composite_subject_terminal_types(
                 lint, event_schema_path, event_schema
             )
             return lint.errors
         finally:
-            lint_artifacts.load_json = original_load_json
+            schemas.load_json = original_load_json
 
     def test_missing_single_field_endpoint_fails_closed(self) -> None:
         def mutate(registry):

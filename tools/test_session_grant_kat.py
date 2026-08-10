@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 import copy
+import sys
 import unittest
+from pathlib import Path
 
-from tools import check_session_grant_kat, lint_artifacts
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
+from tools import check_session_grant_kat
+from tools.artifact_lint import core as artifact_lint_core
 
 class SessionGrantKatTests(unittest.TestCase):
     @classmethod
@@ -156,7 +161,7 @@ class SessionGrantKatTests(unittest.TestCase):
         self.assertTrue(any("requires exactly holder_binding" in error for error in errors), errors)
 
     def test_credential_binding_xor_is_enforced_by_json_schema(self) -> None:
-        validator = lint_artifacts.schema_validator(
+        validator = artifact_lint_core.schema_validator(
             check_session_grant_kat.CLAIMS_SCHEMA_PATH.resolve(),
             "#/$defs/SignedSessionGrantClaims",
         )
@@ -176,7 +181,7 @@ class SessionGrantKatTests(unittest.TestCase):
         )
 
     def test_introspection_grant_requires_cnf_jkt_but_inactive_may_omit_grant(self) -> None:
-        validator = lint_artifacts.schema_validator(
+        validator = artifact_lint_core.schema_validator(
             check_session_grant_kat.CLAIMS_SCHEMA_PATH.resolve(),
             "#/$defs/SessionGrantIntrospectOutcome",
         )

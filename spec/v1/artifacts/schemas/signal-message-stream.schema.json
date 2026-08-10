@@ -46,7 +46,7 @@
         },
         "message_id": {
           "$ref": "#/$defs/message_id",
-          "description": "Predeclared final Message identity, derived by retyping the UUIDv7 of the planned ak.message.create Event.event_id."
+          "description": "Predeclared final Message identity, derived by retyping the complete 33-octet token of the planned ak.message.create Event.event_id."
         },
         "attempt": {
           "type": "integer",

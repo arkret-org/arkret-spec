@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regenerate SHA-256 canonical-JSON digest expectations in fixture artifacts.
 
-Only the input/digest pairs recognized by ``lint_artifacts.py`` are updated.
+Only the input/digest pairs recognized by ``artifact_lint`` are updated.
 The script is deterministic and intentionally does not handle signatures or
 non-SHA-256 suites.
 """

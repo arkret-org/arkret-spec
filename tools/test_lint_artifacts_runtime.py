@@ -2,26 +2,20 @@
 
 from __future__ import annotations
 
-import importlib.util
 import sys
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "tools"))
-MODULE_SPEC = importlib.util.spec_from_file_location(
-    "lint_artifacts_runtime", ROOT / "tools" / "lint_artifacts.py"
-)
-assert MODULE_SPEC is not None and MODULE_SPEC.loader is not None
-lint_artifacts = importlib.util.module_from_spec(MODULE_SPEC)
-MODULE_SPEC.loader.exec_module(lint_artifacts)
+sys.path.insert(0, str(ROOT))
+
+from tools.artifact_lint import bindings, core
 
 
 class LintArtifactsRuntimeTest(unittest.TestCase):
     def test_success_shape_uses_response_media_type(self) -> None:
         self.assertEqual(
-            lint_artifacts.infer_openapi_success_shape(
+            bindings.infer_openapi_success_shape(
                 "get",
                 {
                     "application/x-ndjson": {
@@ -32,20 +26,20 @@ class LintArtifactsRuntimeTest(unittest.TestCase):
             "event_stream",
         )
         self.assertEqual(
-            lint_artifacts.infer_openapi_success_shape(
+            bindings.infer_openapi_success_shape(
                 "get",
                 {"application/octet-stream": {"schema": {"type": "string"}}},
             ),
             "binary_stream",
         )
         self.assertEqual(
-            lint_artifacts.infer_openapi_success_shape("head", {}),
+            bindings.infer_openapi_success_shape("head", {}),
             "metadata_headers",
         )
 
     def test_unrelated_kind_is_not_classified_as_event(self) -> None:
-        lint = lint_artifacts.Lint()
-        lint_artifacts.check_event_envelope_candidates(
+        lint = core.Lint()
+        core.check_event_envelope_candidates(
             lint,
             ROOT / "synthetic.json",
             {"kind": "ak.typing", "ciphertext": "opaque"},
@@ -54,8 +48,8 @@ class LintArtifactsRuntimeTest(unittest.TestCase):
         self.assertEqual(lint.errors, [])
 
     def test_event_identity_fields_enable_event_kind_validation(self) -> None:
-        lint = lint_artifacts.Lint()
-        lint_artifacts.check_event_envelope_candidates(
+        lint = core.Lint()
+        core.check_event_envelope_candidates(
             lint,
             ROOT / "synthetic.json",
             {
@@ -72,8 +66,8 @@ class LintArtifactsRuntimeTest(unittest.TestCase):
         )
 
     def test_rejected_case_may_contain_intentionally_invalid_event(self) -> None:
-        lint = lint_artifacts.Lint()
-        lint_artifacts.check_event_envelope_candidates(
+        lint = core.Lint()
+        core.check_event_envelope_candidates(
             lint,
             ROOT / "synthetic.json",
             {

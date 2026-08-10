@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-07",
+  "version": "2026-08-10",
   "source_of_truth": true,
   "description": "Canonical registry of standard Account Data key patterns. Account Data is actor/private state written through ak.account_data.set unless a row explicitly lists another actor-private event kind. Every row MUST declare its cross-device merge primitive (merge_strategy) and delete semantics (deletion_mode); see spec/v1/zh/models/account-data.md section 5.",
   "registry_rules": [
@@ -360,7 +360,7 @@
       ],
       "merge_strategy": "cas_register",
       "deletion_mode": "physical_delete",
-      "description": "Account-Authority-owned versioned per-scope Agent participation selection. scope_key is realm:<realm_uuid> | circle:<realm_uuid>:<circle_uuid> | strand:<realm_uuid>:<strand_uuid>. The record stores only target_scope, the required five-bit selection, and its CAS version. It grants no capability and copies no ceiling/effective value; target enforcement intersects current selection with current local governance/deployment ceilings, ordinary capability and lifecycle. See zh/models/private-objects.md §4.1.",
+      "description": "Account-Authority-owned versioned per-scope Agent participation selection. scope_key is realm:<realm_id> | circle:<realm_id>:<circle_id> | strand:<realm_id>:<strand_id>, where every placeholder is the complete typed token including its ak:<kind>: prefix. The record stores only target_scope, the required five-bit selection, and its CAS version. It grants no capability and copies no ceiling/effective value; target enforcement intersects current selection with current local governance/deployment ceilings, ordinary capability and lifecycle. See zh/models/private-objects.md §4.1.",
       "source_refs": [
         "spec/v1/zh/models/private-objects.md"
       ]

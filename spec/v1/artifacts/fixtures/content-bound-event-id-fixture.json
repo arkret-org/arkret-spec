@@ -168,7 +168,7 @@
       "identity_key": "full_typed_id",
       "expected": {
         "outcome": "accepted",
-        "all_uuid_payloads_equal_event_id": true,
+        "all_retyped_tokens_equal_event_id": true,
         "full_typed_ids_unique": true,
         "maximum_objects_per_typed_kind": 1
       }

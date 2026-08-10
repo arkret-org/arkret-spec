@@ -41,7 +41,7 @@ site/
 └── ...                            # 协议站（npm 项目）
 tools/
 ├── artifact_pipeline.py           # registry 生成 / drift check
-├── lint_artifacts.py              # 跨构件 + markdown 引用一致性 lint
+├── artifact_lint/                  # 分域的跨构件 + Markdown 一致性 lint 包
 └── migrations/                    # 历史一次性迁移脚本；不属于日常流水线
 ```
 

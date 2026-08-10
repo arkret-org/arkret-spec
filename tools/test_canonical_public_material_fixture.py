@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import copy
+import sys
 import unittest
 from pathlib import Path
 
-from tools import lint_artifacts
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
+from tools.artifact_lint import fixtures as lint_artifacts
 
 class CanonicalPublicMaterialFixtureTests(unittest.TestCase):
     def _lint(self, mutate=None) -> list[str]:
