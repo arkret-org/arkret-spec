@@ -7,6 +7,7 @@
   "required": [
     "realm_id",
     "service_id",
+    "service_resolution",
     "service_kind",
     "role",
     "operations",
@@ -22,8 +23,12 @@
       "description": "Realm this candidate is bound to. Verifiers MUST reject a candidate used for any other Realm."
     },
     "service_id": {
-      "$ref": "#/$defs/did",
-      "description": "Service DID that can receive or relay join-side submissions for this Realm."
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "description": "Stable service core_id that can receive or relay join-side submissions for this Realm."
+    },
+    "service_resolution": {
+      "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
+      "description": "First-hop signed ServiceResolutionRecord material for service_id, inline or through current_record_url. Callers MUST validate the record proof, method-native history, project(full_id)=service_id, freshness, canonical base_url and route-binding projection before transport, then use GET /_arkret/describe only as second-hop capability/metadata confirmation."
     },
     "service_kind": {
       "type": "string",
@@ -50,7 +55,7 @@
     "endpoint": {
       "type": "string",
       "format": "uri",
-      "description": "Optional endpoint hint. Callers MUST re-resolve the service DID document before transport and MUST NOT treat this field as authority."
+      "description": "Optional non-authoritative endpoint hint. Callers MUST NOT route from this field or a DID Document endpoint; they MUST obtain and validate service_resolution, use its canonical base_url for first transport, and confirm capabilities through GET /_arkret/describe."
     },
     "operations": {
       "type": "array",
@@ -97,7 +102,7 @@
         "federation_redirect",
         "local_cache"
       ],
-      "description": "Where this routing hint came from. Receivers still validate against current Realm policy and service DID documents."
+      "description": "Where this routing hint came from. Receivers still validate current Realm policy and the signed ServiceResolutionRecord; route authority comes from the validated record, while GET /_arkret/describe is only second-hop capability and metadata confirmation."
     },
     "source_refs": {
       "type": "array",
@@ -159,10 +164,6 @@
     }
   ],
   "$defs": {
-    "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
-    },
     "event_id": {
       "type": "string",
 "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"

@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.mls_governance_binding.full.v1",
-  "version": "2026-08-02",
+  "version": "2026-08-03",
   "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
@@ -12,9 +12,9 @@
       "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
       "expect_valid": true,
       "instance": {
-        "target_principal_id": "did:webvh:z6mkfixture:bob.example",
+        "target_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "requester": "did:webvh:z6mkfixture:alice.example",
+        "requester": "ak:did_core:webvh:z6mkfixture",
         "required_capabilities": [
           "mls"
         ],
@@ -25,7 +25,7 @@
           "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
           "payload_digest": "sha256:543132a4a5fa1862cab667aa7903a53f7b8e267775bc5e3bce82e56a85b71efd",
           "created_at": "2026-07-31T00:00:00.000Z",
-          "audience": "did:webvh:z6mkfixture:ps.example",
+          "audience": "ak:did_core:webvh:z6mkfixturepsexample",
           "proof_purpose": "holder_acceptance",
           "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
         }
@@ -37,9 +37,9 @@
       "expect_valid": false,
       "first_expected_error": "contains:holder_acceptance_proof",
       "instance": {
-        "target_principal_id": "did:webvh:z6mkfixture:bob.example",
+        "target_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "requester": "did:webvh:z6mkfixture:alice.example",
+        "requester": "ak:did_core:webvh:z6mkfixture",
         "required_capabilities": [
           "mls"
         ],
@@ -53,9 +53,9 @@
       "expect_valid": false,
       "first_expected_error": "contains:holder_acceptance_proof",
       "instance": {
-        "target_principal_id": "did:webvh:z6mkfixture:bob.example",
+        "target_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "requester": "did:webvh:z6mkfixture:alice.example",
+        "requester": "ak:did_core:webvh:z6mkfixture",
         "required_capabilities": [
           "mls"
         ],
@@ -67,7 +67,7 @@
             "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
             "payload_digest": "sha256:543132a4a5fa1862cab667aa7903a53f7b8e267775bc5e3bce82e56a85b71efd",
             "created_at": "2026-07-31T00:00:00.000Z",
-            "audience": "did:webvh:z6mkfixture:ps.example",
+            "audience": "ak:did_core:webvh:z6mkfixturepsexample",
             "proof_purpose": "holder_acceptance",
             "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
           },
@@ -76,7 +76,7 @@
             "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
             "payload_digest": "sha256:543132a4a5fa1862cab667aa7903a53f7b8e267775bc5e3bce82e56a85b71efd",
             "created_at": "2026-07-31T00:00:00.000Z",
-            "audience": "did:webvh:z6mkfixture:ps.example",
+            "audience": "ak:did_core:webvh:z6mkfixturepsexample",
             "proof_purpose": "holder_acceptance",
             "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
           }
@@ -89,9 +89,9 @@
       "expect_valid": false,
       "first_expected_error": "contains:claim_nonce",
       "instance": {
-        "target_principal_id": "did:webvh:z6mkfixture:bob.example",
+        "target_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "requester": "did:webvh:z6mkfixture:alice.example",
+        "requester": "ak:did_core:webvh:z6mkfixture",
         "required_capabilities": [
           "mls"
         ],
@@ -102,7 +102,7 @@
           "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
           "payload_digest": "sha256:543132a4a5fa1862cab667aa7903a53f7b8e267775bc5e3bce82e56a85b71efd",
           "created_at": "2026-07-31T00:00:00.000Z",
-          "audience": "did:webvh:z6mkfixture:ps.example",
+          "audience": "ak:did_core:webvh:z6mkfixturepsexample",
           "proof_purpose": "holder_acceptance",
           "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
         }
@@ -124,8 +124,8 @@
       "name": "exhaustion_claim_limits",
       "vector_id": "ak.vector.keypackage.exhaustion_claim_limits.v1",
       "kind": "claim_pool_limits",
-      "target_principal_id": "did:webvh:z6mkfixture:alice.example",
-      "requester_service_id": "did:webvh:z6mkfixture:ps.example",
+      "target_principal_id": "ak:did_core:webvh:z6mkfixture",
+      "requester_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
       "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
       "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "keypackage_min_available": 2,
@@ -176,7 +176,7 @@
       "vector_id": "ak.vector.keypackage.last_resort_claim_and_reuse.v1",
       "kind": "last_resort_claim_reuse",
       "feature": "ak.feature.mls_last_resort_keypackage.v1",
-      "target_principal_id": "did:webvh:z6mkfixture:alice.example",
+      "target_principal_id": "ak:did_core:webvh:z6mkfixture",
       "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
       "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "normal_keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
@@ -260,8 +260,8 @@
       "name": "peer_claim_atomic_idempotency",
       "vector_id": "ak.vector.keypackage.peer_claim_atomic_idempotency.v1",
       "kind": "peer_claim_linearization_and_recovery",
-      "source_service_id": "did:webvh:z6mkfixture:server-alpha.example",
-      "destination_service_id": "did:webvh:z6mkfixture:server-beta.example",
+      "source_service_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
+      "destination_service_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample",
       "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
       "idempotency_key": "AAAAAAAAAAAAAAAAAAAAAQ",
       "request_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -283,35 +283,36 @@
       },
       "assertions": [
         "claim ledger uniqueness is scoped by source_service_id and claim_request_id",
-        "claim CAS and the serialized success outcome commit at one linearization boundary",
+        "claim CAS, target portable evidence and the serialized success outcome commit at one linearization boundary",
         "an uncertain caller queries the original request instead of issuing a fresh claim",
-        "same request id with another canonical digest cannot mutate KeyPackage state"
+        "same request id with another canonical digest cannot mutate KeyPackage state",
+        "exact replay and query return byte-identical target evidence rather than regenerating it against a later authority snapshot"
       ]
     },
     {
       "name": "self_claim_authorization_idempotency",
       "vector_id": "ak.vector.keypackage.self_claim_authorization_idempotency.v1",
       "kind": "self_claim_authorization_and_linearization",
-      "authority_service_id": "did:webvh:z6mkfixture:ps.example",
+      "authority_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
       "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
       "device_authorization_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
       "model_generation_ref": "1-QmCotestPrincipalGeneration",
       "proof_free_request": {
-        "target_principal_id": "did:webvh:z6mkfixture:bob.example",
+        "target_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "requester": "did:webvh:z6mkfixture:alice.example",
+        "requester": "ak:did_core:webvh:z6mkfixture",
         "required_capabilities": [
           "mls"
         ],
         "claim_nonce": "AAAAAAAAAAAAAAAAAAAAAA",
         "expires_at": "2026-07-31T00:05:00.000Z"
       },
-      "canonical_proof_free_request_json": "{\"claim_nonce\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"expires_at\":\"2026-07-31T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"requester\":\"did:webvh:z6mkfixture:alice.example\",\"required_capabilities\":[\"mls\"],\"target_principal_id\":\"did:webvh:z6mkfixture:bob.example\"}",
+      "canonical_proof_free_request_json": "{\"claim_nonce\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"expires_at\":\"2026-07-31T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"requester\":\"did:webvh:z6mkfixture:alice.example\",\"required_capabilities\":[\"mls\"],\"target_principal_id\":\"did:webvh:z6mkfixturebobexample:bob.example\"}",
       "payload_digest": "sha256:543132a4a5fa1862cab667aa7903a53f7b8e267775bc5e3bce82e56a85b71efd",
-      "canonical_proof_binding_json": "{\"audience\":\"did:webvh:z6mkfixture:ps.example\",\"claim_nonce\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"context\":\"ak.keypackage-claim-request-proof-v1\",\"created_at\":\"2026-07-31T00:00:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"payload_digest\":\"sha256:543132a4a5fa1862cab667aa7903a53f7b8e267775bc5e3bce82e56a85b71efd\",\"proof_purpose\":\"holder_acceptance\",\"requester\":\"did:webvh:z6mkfixture:alice.example\",\"target_principal_id\":\"did:webvh:z6mkfixture:bob.example\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001\"}",
+      "canonical_proof_binding_json": "{\"audience\":\"did:webvh:z6mkfixturepsexample:ps.example\",\"claim_nonce\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"context\":\"ak.keypackage-claim-request-proof-v1\",\"created_at\":\"2026-07-31T00:00:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"payload_digest\":\"sha256:543132a4a5fa1862cab667aa7903a53f7b8e267775bc5e3bce82e56a85b71efd\",\"proof_purpose\":\"holder_acceptance\",\"requester\":\"did:webvh:z6mkfixture:alice.example\",\"target_principal_id\":\"did:webvh:z6mkfixturebobexample:bob.example\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001\"}",
       "proof_binding_digest": "sha256:cd4e951de3a5c62b608671045d95628e88dc4a37003aa862dcf750c7b63b724c",
       "object_identity": {
-        "requester": "did:webvh:z6mkfixture:alice.example",
+        "requester": "ak:did_core:webvh:z6mkfixture",
         "claim_nonce": "AAAAAAAAAAAAAAAAAAAAAA"
       },
       "sequence": [
@@ -355,12 +356,12 @@
       "vector_id": "ak.vector.keypackage.peer_claim_double_authorization_privacy.v1",
       "kind": "peer_claim_authorization_and_anti_enumeration",
       "claim_purpose": "direct_conversation",
-      "source_service_id": "did:webvh:z6mkfixture:server-alpha.example",
-      "destination_service_id": "did:webvh:z6mkfixture:server-beta.example",
+      "source_service_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
+      "destination_service_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample",
       "source_trust_domain": "ak:trust_domain:fixture.example",
       "destination_trust_domain": "ak:trust_domain:fixture.example",
-      "requester": "did:webvh:z6mkfixture:alice.example",
-      "target_principal_id": "did:webvh:z6mkfixture:bob.example",
+      "requester": "ak:did_core:webvh:z6mkfixture",
+      "target_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
       "pair_key": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
       "intended_realm_id": "ak:realm:AS-0RWJz6zv6mr92HyIWAP4vU2xUwY46P0DKOC-3MxLT",
       "strand_id": "ak:strand:AYmiUmxJsrv2V7hZQD_aDNP3rUe8_9sFQPkW2-tYFaKp",
@@ -375,7 +376,13 @@
         "contact_not_accepted",
         "target_directional_contact_scope_missing",
         "required_capability_not_in_keypackage",
-        "last_resort_allowed_true"
+        "last_resort_allowed_true",
+        "missing_target_device_signing_key_evidence",
+        "truncated_target_device_authorization_chain",
+        "target_device_projection_mismatch",
+        "device_claim_with_target_agent_signer_evidence",
+        "agent_claim_with_target_device_signing_key_evidence",
+        "target_agent_observation_request_digest_mismatch"
       ],
       "expected": {
         "authenticated_business_mutations_external_error": "claim_failed",
@@ -393,7 +400,11 @@
         "the participant signature binds the exact request and service/trust-domain destination",
         "the destination independently enforces both directional Contact heads/scopes, capability and authority gates without consulting Consent",
         "Direct Conversation peer claim never falls back to a last-resort KeyPackage",
-        "business failures do not expose target inventory or per-device reasons"
+        "business failures do not expose target inventory or per-device reasons",
+        "a successful human-device claim carries complete target_device_signing_key_evidence with no fixed semantic history-entry cap and the requester independently replays it before installing the KeyPackage",
+        "a successful Native Agent claim instead carries current target_agent_signer_evidence bound to this operation, exact request digest, requester verifier and claim request challenge",
+        "claims_digest and the destination receipt cover returned evidence bytes but never replace the underlying identity-root, Seal and current-authority verification",
+        "device and Agent evidence branches are exact XOR and cannot fall back to one another"
       ]
     },
     {

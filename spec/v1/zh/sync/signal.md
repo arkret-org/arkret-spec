@@ -105,8 +105,10 @@ Signal 业务引用持久化。send outcome MAY 原样返回该 digest 用于诊
    evidence 求值。两类都与 `seal_ref` 无关；目标 Realm 的 Seal 不覆盖、也无法定位另一个
    principal-control Realm 的 device / Agent-key 状态。
 
-`proof.verification_method` MUST 逐字等于 `` `{sender_actor_id}#{sender_device_id}` ``；
-逐字相等只是 sender endpoint 与签名方法的完整性条件，不能代替授权验证。普通 principal
+`proof.verification_method` MUST 是 DID URL：去掉 fragment 后的 bare full DID 经对应 method
+adapter 投影必须逐字等于 `sender_actor_id`，fragment 必须逐字等于 `sender_device_id`；不得把
+`core_id` 与 fragment 直接拼接成 DID URL。该绑定只是 sender endpoint 与签名方法的完整性条件，
+不能代替授权验证。普通 principal
 的 verifier MUST 用 `(sender_actor_id, sender_device_id)` 从 current accepted
 principal-control / device-directory frontier 解析权威 verify key，并验证完整的 root-anchored PCR authorization chain、当前 active generation 与撤销状态。Native Agent 的
 verifier MUST 要求该 `sender_device_id` 等于 Agent session / MLS endpoint 的稳定绑定，并以
@@ -222,8 +224,8 @@ conformance（`ak.vector.signal.device_authorization_domain.v1`）至少覆盖�
 
 1. 设备在 current directory 为 active、授权晚于 `seal_ref`：设备授权检查通过；
 2. 设备在 `seal_ref` 时曾 active、当前已 revoked / fenced / conflicted：拒绝；
-3. fragment 看似为 device id 但完整 `verification_method` 不逐字等于
-   `` `{sender_actor_id}#{sender_device_id}` ``：拒绝；
+3. fragment 看似为 device id，但 `verification_method` 的 bare full DID 经 adapter 投影不等于
+   `sender_actor_id`，或 fragment 不等于 `sender_device_id`：拒绝；
 4. current directory key 或 Tier-2 / service-attested 信任锚缺失：拒绝；
 5. 设备 current active 但 sender 在 Realm `seal_ref` 下无 scope 发送资格或缺
    `signal_class` action：拒绝。

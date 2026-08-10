@@ -11,7 +11,7 @@
       "grants": [
         {
           "id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
-          "issuer": "did:webvh:z6mkfixture:owner.example",
+          "issuer": "did:webvh:z6mkfixtureownerexample:owner.example",
           "subject": "did:webvh:z6mkfixture:alice.example",
           "actions": [
             "ak.strand.read",
@@ -27,7 +27,7 @@
         }
       ],
       "request": {
-        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixture",
         "action": "ak.strand.update",
         "resource": {
           "kind": "strand",
@@ -47,7 +47,7 @@
       "grants": [
         {
           "id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
-          "issuer": "did:webvh:z6mkfixture:owner.example",
+          "issuer": "did:webvh:z6mkfixtureownerexample:owner.example",
           "subject": "did:webvh:z6mkfixture:alice.example",
           "actions": [
             "ak.strand.read",
@@ -63,7 +63,7 @@
         }
       ],
       "request": {
-        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixture",
         "action": "ak.message.create",
         "resource": {
           "kind": "strand",
@@ -82,7 +82,7 @@
       "vector_id": "ak.vector.capability.membership_is_not_baseline.v1",
       "memberships": [
         {
-          "actor_id": "did:webvh:z6mkfixture:member.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturememberexample",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "membership": "join"
         }
@@ -91,7 +91,7 @@
       "requests": [
         {
           "label": "message_create",
-          "actor_id": "did:webvh:z6mkfixture:member.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturememberexample",
           "action": "ak.message.create",
           "resource": {
             "kind": "strand",
@@ -105,7 +105,7 @@
         },
         {
           "label": "pin_add",
-          "actor_id": "did:webvh:z6mkfixture:member.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturememberexample",
           "action": "ak.pin.add",
           "resource": {
             "kind": "strand",
@@ -119,7 +119,7 @@
         },
         {
           "label": "rsvp_set",
-          "actor_id": "did:webvh:z6mkfixture:member.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturememberexample",
           "action": "ak.rsvp.set",
           "resource": {
             "kind": "strand",
@@ -133,7 +133,7 @@
         },
         {
           "label": "policy_manage",
-          "actor_id": "did:webvh:z6mkfixture:member.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturememberexample",
           "action": "ak.policy.manage",
           "resource": {
             "kind": "realm",
@@ -146,7 +146,7 @@
         },
         {
           "label": "relation_create",
-          "actor_id": "did:webvh:z6mkfixture:member.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturememberexample",
           "action": "ak.relation.create",
           "resource": {
             "kind": "relation",
@@ -160,7 +160,7 @@
         },
         {
           "label": "morph_create",
-          "actor_id": "did:webvh:z6mkfixture:member.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturememberexample",
           "action": "ak.morph.create",
           "resource": {
             "kind": "morph",
@@ -376,8 +376,8 @@
       "vector_id": "ak.vector.capability.approval_constraint.v1",
       "grant": {
         "id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
-        "issuer": "did:webvh:z6mkfixture:owner.example",
-        "subject": "did:webvh:z6mkfixture:agent.example",
+        "issuer": "did:webvh:z6mkfixtureownerexample:owner.example",
+        "subject": "did:webvh:z6mkfixtureagentexample:agent.example",
         "actions": [
           "ak.agent.action_request"
         ],
@@ -425,17 +425,17 @@
       "base": {
         "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
         "root_event_id": "ak:event:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
-        "subject": "did:webvh:z6mkfixture:root-admin.example.com",
+        "subject": "did:webvh:z6mkfixturerootadminexamplecom:root-admin.example.com",
         "actions": [
           "ak.realm.admin"
         ]
       },
       "action_query": {
-        "actor_id": "did:webvh:z6mkfixture:intern.example.com",
+        "actor_id": "ak:did_core:webvh:z6mkfixtureinternexamplecom",
         "action": "ak.invite.create",
         "resource": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
         "request_time": "2026-04-26T01:00:00.000Z",
-        "request_audience": "did:webvh:z6mkfixture:vendor.example"
+        "request_audience": "did:webvh:z6mkfixturevendorexample:vendor.example"
       },
       "expected": {
         "authorized": true,
@@ -460,7 +460,7 @@
             "kind": "realm",
             "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE"
           },
-          "actor_id": "did:webvh:z6mkfixture:root-admin.example.com",
+          "actor_id": "ak:did_core:webvh:z6mkfixturerootadminexamplecom",
           "payload": {
             "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
             "issuer_authority_refs": [
@@ -469,7 +469,7 @@
                 "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN"
               }
             ],
-            "subject": "did:webvh:z6mkfixture:ops.example.com",
+            "subject": "did:webvh:z6mkfixtureopsexamplecom:ops.example.com",
             "resources": [
               {
                 "kind": "realm",
@@ -516,7 +516,7 @@
             "kind": "realm",
             "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE"
           },
-          "actor_id": "did:webvh:z6mkfixture:ops.example.com",
+          "actor_id": "ak:did_core:webvh:z6mkfixtureopsexamplecom",
           "payload": {
             "grant_id": "ak:grant:AfRvTwL9UUVlA868BCCvPbdzYVW8u3JC2w3JgU_Fixho",
             "issuer_authority_refs": [
@@ -525,7 +525,7 @@
                 "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ"
               }
             ],
-            "subject": "did:webvh:z6mkfixture:intern.example.com",
+            "subject": "did:webvh:z6mkfixtureinternexamplecom:intern.example.com",
             "resources": [
               {
                 "kind": "realm",
@@ -547,8 +547,8 @@
                 "constraint_kind": "scope_limitation",
                 "effect": "allow",
                 "allowed_audiences": [
-                  "did:webvh:z6mkfixture:partner.example",
-                  "did:webvh:z6mkfixture:vendor.example"
+                  "did:webvh:z6mkfixturepartnerexample:partner.example",
+                  "did:webvh:z6mkfixturevendorexample:vendor.example"
                 ]
               }
             ]
@@ -578,7 +578,7 @@
           "created_at": "2026-04-26T00:00:00.000Z",
           "payload": {
             "grant_id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
-            "subject": "did:webvh:z6mkfixture:alice.example.com",
+            "subject": "did:webvh:z6mkfixturealiceexamplecom:alice.example.com",
             "actions": [
               "ak.message.create"
             ]
@@ -597,14 +597,14 @@
           "kind": "ak.member.state",
           "created_at": "2026-04-26T00:00:02.000Z",
           "payload": {
-            "actor_id": "did:webvh:z6mkfixture:alice.example.com",
+            "actor_id": "ak:did_core:webvh:z6mkfixturealiceexamplecom",
             "membership": "leave"
           }
         },
         {
           "event_id": "ak:event:Afv1yWZ8P95DkVvSjRmG15U-fD6yyypjxGbutLtCoxBH",
           "kind": "ak.message.create",
-          "actor_id": "did:webvh:z6mkfixture:alice.example.com",
+          "actor_id": "ak:did_core:webvh:z6mkfixturealiceexamplecom",
           "created_at": "2026-04-26T00:00:03.000Z",
           "payload": {
             "strand_id": "ak:strand:Ae9FKI-adZOvEof5zBY1v2PJYeqAmPAKj9s4TgyujhGW",
@@ -634,7 +634,7 @@
       "grants": [
         {
           "grant_id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
-          "subject": "did:webvh:z6mkfixture:alice.example.com",
+          "subject": "did:webvh:z6mkfixturealiceexamplecom:alice.example.com",
           "actions": [
             "ak.strand.update"
           ]
@@ -647,7 +647,7 @@
               "grant_id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_"
             }
           ],
-          "subject": "did:webvh:z6mkfixture:bob.example.com",
+          "subject": "did:webvh:z6mkfixturebobexamplecom:bob.example.com",
           "actions": [
             "ak.strand.update"
           ]
@@ -691,10 +691,10 @@
             "ak.realm.create",
             "ak.realm.policy_bundle"
           ],
-          "created_by": "did:webvh:z6mkfixture:founder.example",
+          "created_by": "ak:did_core:webvh:z6mkfixturefounderexample",
           "authority_root_cell": "ak:cell:ak.component.realm.authority_root.v1:null",
           "authority_root_value": {
-            "controller_id": "did:webvh:z6mkfixture:founder.example",
+            "controller_id": "did:webvh:z6mkfixturefounderexample:founder.example",
             "controller_epoch": 0,
             "authority_generation": 0,
             "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a"
@@ -728,9 +728,9 @@
           "batch_order": [
             "ak.realm.create"
           ],
-          "created_by": "did:webvh:z6mkfixture:founder.example",
+          "created_by": "ak:did_core:webvh:z6mkfixturefounderexample",
           "authority_root_value": {
-            "controller_id": "did:webvh:z6mkfixture:other.example",
+            "controller_id": "did:webvh:z6mkfixtureotherexample:other.example",
             "controller_epoch": 1,
             "authority_generation": 1,
             "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
@@ -747,7 +747,7 @@
           "batch_order": [
             "ak.realm.create"
           ],
-          "created_by": "did:webvh:z6mkfixture:founder.example",
+          "created_by": "ak:did_core:webvh:z6mkfixturefounderexample",
           "capability_action_registry_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
           "registry_snapshot_retrievable": false,
           "expected": {
@@ -763,7 +763,7 @@
             "ak.realm.create",
             "ak.capability.grant"
           ],
-          "created_by": "did:webvh:z6mkfixture:founder.example",
+          "created_by": "ak:did_core:webvh:z6mkfixturefounderexample",
           "legacy_self_grant_actions": [
             "ak.realm.admin",
             "ak.capability.grant",
@@ -820,7 +820,7 @@
           "registration": {
             "event_kind": "ak.applet.registration",
             "applet_id": "ak:applet:01964120-1000-7000-8000-000000000000",
-            "service_id": "did:webvh:z6mkfixture:bridge.example",
+            "service_id": "ak:did_core:webvh:z6mkfixturebridgeexample",
             "registration_epoch": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "claimed_profiles": [
               "ak.profile.applet_service.v1",
@@ -831,7 +831,7 @@
             ]
           },
           "grant": {
-            "subject": "did:webvh:z6mkfixture:bridge.example",
+            "subject": "did:webvh:z6mkfixturebridgeexample:bridge.example",
             "actions": [
               "ak.applet.ghost.provision"
             ],
@@ -840,7 +840,7 @@
                 "constraint_kind": "authority_control",
                 "constraint_subkind": "applet_authority",
                 "applet_id": "ak:applet:01964120-1000-7000-8000-000000000000",
-                "executed_by": "did:webvh:z6mkfixture:bridge.example",
+                "executed_by": "ak:did_core:webvh:z6mkfixturebridgeexample",
                 "registration_epoch": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
               }
             ],
@@ -1379,17 +1379,17 @@
         "main_strand_id": "ak:strand:AQCooTvyYLNAsRHuLw7hmAZKYW2dExbzTyvmrxsRrDa9",
         "participants": [
           "did:webvh:z6mkfixture:alice.example",
-          "did:webvh:z6mkfixture:bob.example"
+          "did:webvh:z6mkfixturebobexample:bob.example"
         ],
         "active_members": [
           "did:webvh:z6mkfixture:alice.example",
-          "did:webvh:z6mkfixture:bob.example"
+          "did:webvh:z6mkfixturebobexample:bob.example"
         ]
       },
       "cases": [
         {
           "name": "peer_message_allowed_without_grant",
-          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "action": "ak.message.create",
           "ordinary_grants": [],
           "expected": {
@@ -1399,7 +1399,7 @@
         },
         {
           "name": "root_generation_reset_does_not_revoke_source",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "action": "ak.mls.commit",
           "authority_generation_before": 0,
           "authority_generation_after": 1,
@@ -1411,7 +1411,7 @@
         {
           "name": "membership_alone_never_selects_source",
           "override_immutable_binding_present": false,
-          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "action": "ak.message.create",
           "expected": {
             "decision": "deny",
@@ -1420,7 +1420,7 @@
         },
         {
           "name": "source_cannot_issue_child_grant",
-          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "action": "ak.capability.grant",
           "expected": {
             "decision": "deny",
@@ -1445,7 +1445,7 @@
         "main_strand_id": "ak:strand:AQCooTvyYLNAsRHuLw7hmAZKYW2dExbzTyvmrxsRrDa9",
         "participants": [
           "did:webvh:z6mkfixture:alice.example",
-          "did:webvh:z6mkfixture:bob.example"
+          "did:webvh:z6mkfixturebobexample:bob.example"
         ],
         "active_members": [
           "did:webvh:z6mkfixture:alice.example"
@@ -1454,11 +1454,11 @@
       "cases": [
         {
           "name": "self_rejoin_matches_rejoin_action",
-          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
           "event_kind": "ak.member.state",
           "action": "ak.member.rejoin.own",
-          "membership_subject": "did:webvh:z6mkfixture:bob.example",
+          "membership_subject": "did:webvh:z6mkfixturebobexample:bob.example",
           "membership_transition": {
             "from": "leave",
             "to": "join"
@@ -1475,11 +1475,11 @@
         },
         {
           "name": "rejoin_on_behalf_of_the_other_participant_denied",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
           "event_kind": "ak.member.state",
           "action": "ak.member.rejoin.own",
-          "membership_subject": "did:webvh:z6mkfixture:bob.example",
+          "membership_subject": "did:webvh:z6mkfixturebobexample:bob.example",
           "membership_transition": {
             "from": "leave",
             "to": "join"
@@ -1492,11 +1492,11 @@
         },
         {
           "name": "repair_cannot_carry_a_first_join",
-          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
           "event_kind": "ak.member.state",
           "action": "ak.member.rejoin.own",
-          "membership_subject": "did:webvh:z6mkfixture:bob.example",
+          "membership_subject": "did:webvh:z6mkfixturebobexample:bob.example",
           "membership_transition": {
             "from": null,
             "to": "join"
@@ -1509,11 +1509,11 @@
         },
         {
           "name": "repair_cannot_admit_a_third_participant",
-          "actor_id": "did:webvh:z6mkfixture:carol.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturecarolexample",
           "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
           "event_kind": "ak.member.state",
           "action": "ak.member.rejoin.own",
-          "membership_subject": "did:webvh:z6mkfixture:carol.example",
+          "membership_subject": "did:webvh:z6mkfixturecarolexample:carol.example",
           "membership_transition": {
             "from": null,
             "to": "join"
@@ -1526,11 +1526,11 @@
         },
         {
           "name": "leave_own_is_not_in_the_repair_allowlist",
-          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
           "event_kind": "ak.member.state",
           "action": "ak.member.leave.own",
-          "membership_subject": "did:webvh:z6mkfixture:bob.example",
+          "membership_subject": "did:webvh:z6mkfixturebobexample:bob.example",
           "membership_transition": {
             "from": "join",
             "to": "leave"
@@ -1544,11 +1544,11 @@
         },
         {
           "name": "rejoin_own_cannot_run_the_transition_backwards",
-          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "presented_authority_source": "ak.authority.direct_conversation_repair.v1",
           "event_kind": "ak.member.state",
           "action": "ak.member.rejoin.own",
-          "membership_subject": "did:webvh:z6mkfixture:bob.example",
+          "membership_subject": "did:webvh:z6mkfixturebobexample:bob.example",
           "membership_transition": {
             "from": "join",
             "to": "leave"
@@ -1561,11 +1561,11 @@
         },
         {
           "name": "daily_self_leave_still_uses_participant_authority",
-          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "presented_authority_source": "ak.authority.direct_conversation_participant.v1",
           "event_kind": "ak.member.state",
           "action": "ak.member.leave.own",
-          "membership_subject": "did:webvh:z6mkfixture:bob.example",
+          "membership_subject": "did:webvh:z6mkfixturebobexample:bob.example",
           "membership_transition": {
             "from": "join",
             "to": "leave"
@@ -1573,7 +1573,7 @@
           "override_conversation_state": "found",
           "override_active_members": [
             "did:webvh:z6mkfixture:alice.example",
-            "did:webvh:z6mkfixture:bob.example"
+            "did:webvh:z6mkfixturebobexample:bob.example"
           ],
           "expected": {
             "decision": "allow",

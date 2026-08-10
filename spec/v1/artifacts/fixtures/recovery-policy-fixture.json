@@ -23,7 +23,7 @@
             "kind": "realm",
             "realm_id": "ak:realm:AXtxKIJQOEbsj64qEDHyTFTAvWbj5-6ahXYDh50NuJQM"
           },
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "actor_seq": 3,
           "created_at": "2026-07-29T02:00:00.000Z",
           "prev_refs": [],
@@ -38,7 +38,7 @@
             "value": {
               "schema": "ak.schema.recovery_policy.v1",
               "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000003",
-              "principal_id": "did:webvh:z6mkfixture:alice.example",
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
               "version": 1,
               "supersedes": null,
               "trust_domain": "ak:trust_domain:fixture.example",
@@ -82,7 +82,7 @@
               "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
             ]
           },
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "device_id": "ak:device:019a8200-0000-7000-8000-000000000004",
           "scope_ref": {
             "kind": "realm",
@@ -157,7 +157,7 @@
         "value": {
           "schema": "ak.schema.recovery_policy.v1",
           "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
-          "principal_id": "did:webvh:z6mkfixture:alice.example",
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
           "version": 1,
           "supersedes": null,
           "trust_domain": "ak:trust_domain:fixture.example",
@@ -195,7 +195,7 @@
         "value": {
           "schema": "ak.schema.recovery_policy.v1",
           "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
-          "principal_id": "did:webvh:z6mkfixture:alice.example",
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
           "version": 1,
           "supersedes": null,
           "trust_domain": "ak:trust_domain:fixture.example",
@@ -234,7 +234,7 @@
         "value": {
           "schema": "ak.schema.recovery_policy.v1",
           "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
-          "principal_id": "did:webvh:z6mkfixture:alice.example",
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
           "version": 1,
           "supersedes": null,
           "trust_domain": "ak:trust_domain:fixture.example",
@@ -271,7 +271,7 @@
       "instance": {
         "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
         "schema": "ak.schema.recovery_policy.v1",
-        "principal_id": "did:webvh:z6mkfixture:alice.example"
+        "principal_id": "ak:did_core:webvh:z6mkfixture"
       }
     },
     {
@@ -282,7 +282,7 @@
       "instance": {
         "schema": "ak.schema.recovery_policy.v1",
         "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000007",
-        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
         "version": 1,
         "supersedes": null,
         "trust_domain": "ak:trust_domain:fixture.example",
@@ -311,7 +311,7 @@
           "shares": [
             {
               "share_id": "s1",
-              "holder": "did:webvh:z6mkfixture:bob.example",
+              "holder": "ak:did_core:webvh:z6mkfixturebobexample",
               "transport": "hpke_x25519",
               "share_commitment": {
                 "algorithm": "feldman_vss_sha256",
@@ -320,7 +320,7 @@
             },
             {
               "share_id": "s2",
-              "holder": "did:webvh:z6mkfixture:carol.example",
+              "holder": "ak:did_core:webvh:z6mkfixturecarolexample",
               "transport": "hpke_x25519",
               "share_commitment": {
                 "algorithm": "feldman_vss_sha256",

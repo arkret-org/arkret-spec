@@ -40,10 +40,9 @@
       "$ref": "string-profiles.schema.json#/$defs/short_text",
       "maxLength": 4096
     },
-    "reporter": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
-    },
+      "reporter": {
+        "$ref": "./common-ids.schema.json#/$defs/core_id"
+      },
     "evidence_refs": {
       "type": "array",
       "items": {
@@ -91,10 +90,9 @@
     },
     "routed_to": {
       "type": "array",
-      "items": {
-        "type": "string",
-        "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
-      }
+        "items": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        }
     }
   },
   "allOf": [
@@ -122,8 +120,7 @@
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -223,7 +220,7 @@
           ],
           "properties": {
             "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did"
+              "$ref": "./common-ids.schema.json#/$defs/core_id"
             },
             "device_id": {
               "type": "string",

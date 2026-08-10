@@ -21,8 +21,8 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did",
-      "description": "Effective member actor DID in this Realm. MAY be a Realm-scoped pairwise DID."
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "description": "Effective member actor core_id in this Realm. MAY represent a Realm-scoped pairwise identity."
     },
     "subject_id": {
       "$ref": "#/$defs/did",
@@ -84,8 +84,7 @@
   },
   "$defs": {
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

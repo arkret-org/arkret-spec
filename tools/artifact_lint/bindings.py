@@ -744,6 +744,8 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         "ak.open.mimi.read.provider_directory",
         "ak.root.identity.registry.read.describe",
         "ak.self.account.read.describe",
+        "ak.open.identity.read.resolution",
+        "ak.open.service.read.resolution",
         "ak.find.directory.read.describe",
         "ak.edge.applet.read.describe",
         "ak.edge.applet.read.protocol_metadata",

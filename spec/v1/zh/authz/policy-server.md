@@ -22,10 +22,10 @@ Realm 可通过 state event 声明策略服务：
 {
   "kind": "ak.realm.policy_server",
   "payload": {
-    "policy_server_did": "did:webvh:z9oyrNdJAoqkAh5Remo6dZUdV:policy.example.com",
+    "policy_server_did": "ak:did_core:webvh:z9oyrNdJAoqkAh5Remo6dZUdV",
     "policy_server_url": "https://policy.example.com/_arkret/self/policy/check",
     "public_keys": [
-      "did:webvh:z9oyrNdJAoqkAh5Remo6dZUdV:policy.example.com#key-1"
+      "ak:did_core:webvh:z9oyrNdJAoqkAh5Remo6dZUdV"
     ],
     "applies_to": [
       "join",
@@ -130,10 +130,10 @@ Content-Type: application/json
 | `realm_id` | body | `id` | required | 相关 Realm；进入 cache key、policy transcript 和 obligation `bound_to.realm_id`。纯账号级检查 MUST 使用 principal control Realm id。 |
 | `request_canonical_digest` | body | `sha256:<hash>` | required | 被检查请求或事件 preview 的 canonical hash。 |
 | `action` | body | `string` | required | 待检查动作，例如 `ak.message.create`。 |
-| `actor_id` | body | `did` | required | 发起动作的 Actor DID。 |
+| `actor_id` | body | `core_id` | required | 发起动作 Actor 的稳定业务身份。 |
 | `device_id` | body | `id` | optional | 发起设备。 |
 | `source` | body | `object` | required | 调用来源摘要。 |
-| `source.service_id` | body | `did` | required | 调用服务 DID。 |
+| `source.service_id` | body | `core_id` | required | 调用服务的稳定业务身份。 |
 | `source.service_kind` | body | `string` | required | 调用服务类型。 |
 | `source.source_ip_digest` | body | `sha256:<hash>` | optional | 来源 IP 的 keyed 不可链接派生值；派生与轮换规则见 §3.1。MUST NOT 是对 IP 地址的裸 SHA-256。 |
 | `source.signed_transport` | body | `boolean` | required | 请求是否由签名 transport 保护。 |
@@ -148,10 +148,10 @@ Content-Type: application/json
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "action": "ak.message.create",
-  "actor_id": "did:webvh:...",
+  "actor_id": "ak:did_core:webvh:...",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "source": {
-    "service_id": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
+    "service_id": "ak:did_core:webvh:z5CVGhWHEfRe1HhKLRueCrxfD",
     "service_kind": "principal_server",
     "source_ip_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "signed_transport": true
@@ -160,14 +160,14 @@ Content-Type: application/json
     "kind": "ak.message.create",
     "content_digest": "sha256:...",
     "redacted_content": {
-      "mentions": ["did:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip:bob.example.com"],
+      "mentions": ["ak:did_core:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip"],
       "media": [{"blob_id": "blob:...", "mime": "image/png"}]
     }
   },
   "auth_context": {
     "membership": "join",
     "capability_ids": ["grant:..."],
-    "origin_service": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example"
+    "origin_service": "ak:did_core:webvh:z5CVGhWHEfRe1HhKLRueCrxfD"
   }
 }
 ```
@@ -192,10 +192,10 @@ Content-Type: application/json
 | `request_id` | `string` | required | 回显请求 ID。 |
 | `bound_to` | `object` | required | Policy Server 回签的请求绑定；MUST 至少包含 `realm_id`、`actor_id`、`action`、`request_canonical_digest`、`policy_server_id`，调用方缓存或复用 decision 前必须逐字段比较。 |
 | `bound_to.realm_id` | `id` | required | 等于 request `realm_id`。 |
-| `bound_to.actor_id` | `did` | required | 等于 request `actor_id`。 |
+| `bound_to.actor_id` | `core_id` | required | 等于 request `actor_id`。 |
 | `bound_to.action` | `string` | required | 等于 request `action`。 |
 | `bound_to.request_canonical_digest` | `sha256:<hash>` | required | 等于 request `request_canonical_digest`。 |
-| `bound_to.policy_server_id` | `did` | required | 签发该 decision 的 Policy Server DID；必须与 declaration `policy_server_did` 和 `signature.kid` 控制者一致。 |
+| `bound_to.policy_server_id` | `core_id` | required | 签发该 decision 的 Policy Server 稳定身份；declaration 的 service binding 必须指向同一 core，且 `signature.kid` 的 bare full DID 经 adapter 投影后必须与其一致。 |
 | `decision` | `enum(allow,soft_deny,hard_deny,quarantine,require_review)` | required | 策略决策。 |
 | `reason_code` | `string` | required | 稳定原因码。 |
 | `expires_at` | `datetime` | required | 决策缓存过期时间。 |
@@ -223,10 +223,10 @@ Content-Type: application/json
   "request_id": "polreq_01",
   "bound_to": {
     "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-    "actor_id": "did:webvh:...",
+    "actor_id": "ak:did_core:webvh:...",
     "action": "ak.message.create",
     "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "policy_server_id": "did:webvh:z9oyrNdJAoqkAh5Remo6dZUdV:policy.example.com"
+    "policy_server_id": "ak:did_core:webvh:z9oyrNdJAoqkAh5Remo6dZUdV"
   },
   "decision": "allow",
   "reason_code": "ok",
@@ -293,7 +293,7 @@ Content-Type: application/json
 
 ```json
 {
-  "actor_id": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:bob",
+  "actor_id": "ak:did_core:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x",
   "action": "member.application",
   "request_canonical_digest": "sha256:...",
   "device_id": "ak:device:..."
@@ -313,7 +313,7 @@ provider 颁发的 challenge proof 形态：
 ```json
 {
   "challenge_id": "chg_01HXY9PM0AB6Y7VN2C7M4WG5KQ",
-  "issued_by": "did:webvh:zaeuR1WGwz5pkZueKCmyqGFqu:captcha.example",
+  "issued_by": "ak:did_core:webvh:zaeuR1WGwz5pkZueKCmyqGFqu",
   "issued_at": "2026-04-26T00:00:00Z",
   "expires_at": "2026-04-26T00:05:00Z",
   "bound_to": { "...": "echo of obligation.bound_to" },
@@ -344,7 +344,7 @@ Policy decision 签名输入 MUST 包含：
 - `request_id`
 - `bound_to.request_canonical_digest`
 - `bound_to.realm_id`（被评估对象所属的 Realm ID;**v1 normative**）
-- `bound_to.actor_id`（被评估 actor DID;**v1 normative**）
+- `bound_to.actor_id`（被评估 actor 的 `core_id`;**v1 normative**）
 - `bound_to.action`（被评估的 capability action token）
 - `bound_to.policy_server_id`
 - decision

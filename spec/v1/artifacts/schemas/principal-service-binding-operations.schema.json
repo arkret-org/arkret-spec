@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/principal-service-binding-operations.schema.json",
+  "title": "Arkret Principal Service Binding Operations",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/principal_service_binding_prepare_request_body"
+    },
+    {
+      "$ref": "#/$defs/principal_service_binding_prepare_outcome"
+    },
+    {
+      "$ref": "#/$defs/principal_service_binding_commit_request_body"
+    },
+    {
+      "$ref": "#/$defs/principal_service_binding_commit_outcome"
+    }
+  ],
+  "$defs": {
+    "request_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{22,128}$"
+    },
+    "challenge_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{22,128}$"
+    },
+    "timestamp": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "principal_service_binding_prepare_request_body": {
+      "type": "object",
+      "description": "Request a service-generated frozen binding core. Omitting expected_current_binding_digest is a create-if-absent CAS; supplying it is a same-service replacement CAS. The service resolves the authenticated principal's current DID authority itself and never accepts caller-supplied service metadata, authority evidence, timestamps or binding fields.",
+      "required": [
+        "request_id"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "expected_current_binding_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "principal_service_binding_prepare_outcome": {
+      "type": "object",
+      "description": "Durable single-use challenge plus the exact binding core the principal authorizes. binding_draft.authorization_challenge equals challenge_id byte for byte and is covered by binding_digest. accepted_at and not_before equal issued_at byte for byte. expires_at bounds challenge use, not binding validity; optional binding_draft.expires_at is independently chosen by service policy. Exact request_id replay returns the same unconsumed outcome; same request_id with different intent is duplicate_conflict.",
+      "required": [
+        "request_id",
+        "challenge_id",
+        "binding_draft",
+        "issued_at",
+        "expires_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "challenge_id": {
+          "$ref": "#/$defs/challenge_id"
+        },
+        "binding_draft": {
+          "allOf": [
+            {
+              "$ref": "./principal-service-binding.schema.json#/$defs/accepted_at_service_binding_core"
+            }
+          ],
+          "unevaluatedProperties": false
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "principal_service_binding_commit_request_body": {
+      "type": "object",
+      "description": "Commit the exact frozen draft. The verifier loads challenge state, recomputes binding_digest and the principal proof transcript, resolves the proof method at binding_draft.accepted_at, and requires that method to be current principal authorization. The client never submits a service proof or reconstructed binding object.",
+      "required": [
+        "request_id",
+        "challenge_id",
+        "binding_digest",
+        "principal_authorization_proof"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "challenge_id": {
+          "$ref": "#/$defs/challenge_id"
+        },
+        "binding_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "principal_authorization_proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "principal_service_binding_commit_outcome": {
+      "type": "object",
+      "required": [
+        "binding"
+      ],
+      "properties": {
+        "binding": {
+          "$ref": "./principal-service-binding.schema.json#/$defs/accepted_at_service_binding"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

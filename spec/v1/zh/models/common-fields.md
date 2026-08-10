@@ -129,6 +129,7 @@ expected_<role>_<kind>_id
 - Event Envelope、Receipt、Attestation、Key Backup、Applet 等协议 artifact 或非通用 materialized object MAY 使用 `<artifact>_id` 作为自身标识（例如 `event_id`、`receipt_id`、`attestation_id`、`backup_id`、`applet_id`），因为这些对象经常与 `realm_id`、`actor_id`、`policy_id`、`device_id` 等并列并进入签名 transcript，需要在混合上下文中消歧。该例外不得反向用于 Realm / Space / Strand / Message / Morph / Relation / View / Policy / Actor Profile 等普通 canonical object。
 - 单一具体 kind MUST 在字段名中出现 kind slug，例如 `space_id`、`parent_space_id`、`default_realm_id`、`scope_circle_id`、`policy_id`、`retention_policy_id`。
 - protocol responsibility subject 使用 `_id`，即使 wire value 是 DID，例如 `actor_id`、`principal_id`、`subject_id`、`agent_id`、`controller_id`、`watcher_actor_id`。角色词是限定词时不得再插入额外的 `principal` 限定词；`principal_id` 本身以 principal 为中心词，继续保留。
+- 上述稳定 principal / service identity 字段在 v1 承载 `core_id`：`ak:did_core:<method>:<core>`。需要实际解析 DID 时另用 `full_id`；不得因字段以 `_id` 结尾而把当前完整 DID 存入业务主键。
 - Event payload 若写入某个 materialized object / projection 字段的值，payload 字段名 MUST 与该物化字段同名。操作目标、CAS expected head、audit target、selector target 等事件操作角色 MAY 加 role prefix，例如 `space_id` 与 `expected_parent_space_id`。
 
 #### 2.1.2 `_ref` / `_refs`
@@ -146,9 +147,9 @@ expected_<role>_<kind>_id
 
 #### 2.1.3 Service identity 与 `_did`
 
-Service identity 字段统一使用 `service_id` / `<role>_service_id`，即使 wire value 是 DID；例如 `service_id`、`recipient_service_id`、`source_service_id`、`destination_service_id`、`verification_service_id`。该规则用于把 service 作为协议身份角色表达，并与 `actor_id`、`principal_id`、`controller_id` 等责任主体命名保持一致。schema description MUST 明确这些字段承载 DID。
+Service identity 字段统一使用 `service_id` / `<role>_service_id`；例如 `service_id`、`recipient_service_id`、`source_service_id`、`destination_service_id`、`verification_service_id`。这些稳定引用承载 service `core_id`，并与 `actor_id`、`principal_id`、`controller_id` 等责任主体命名保持一致。schema description MUST 明确其承载 `ak:did_core:<method>:<core>`，不得描述成可直接解析 endpoint 的完整 DID。
 
-`_did` 仅保留给不属于 service identity 字段族、且必须强调 DID ecosystem 原始术语的 material，例如 pairwise DID、DID continuity proof 或 operator DID。例：`pairwise_did`、`old_did`、`new_did`、`operator_did`、`push_gateway_did`。`principal_server_did` 是既有 Principal Server 专名，不作为 `service_id` 的别名，也不受 service identity 字段族规则影响。
+`_did` 仅保留给不属于 service identity 字段族、且必须强调 DID ecosystem 原始术语的 material，例如 pairwise DID 或 operator DID。例：`pairwise_did`、`operator_did`、`push_gateway_did`。v1 不再为跨 DID continuity 定义专用 `_did` 字段。`principal_server_did` 是既有 Principal Server 专名，不作为 `service_id` 的别名，也不受 service identity 字段族规则影响。
 
 普通协议责任主体不得使用 `_did`；使用 `actor_id`、`principal_id`、`subject_id`、`recipient_principal_id`、`agent_id`、`audit_service_actor_id` 等 `_id` 字段。
 
@@ -163,9 +164,9 @@ Service identity 字段统一使用 `service_id` / `<role>_service_id`，即使 
 | `id` | yes | `id:*` | typed ID 前缀决定对象种类（`ak:strand:` 即 strand 对象，依此类推）。 | 对象稳定 ID；前缀就是 type，不再单独写 `type` 字段。 |
 | `schema` | yes | `string` | SHOULD 是 `ak.schema.*.vN` 或反向域名 schema id。 | 验证 schema id。 |
 | `realm_id` | conditional | `id:realm` | Realm 外对象可省略。 | 所属 Realm。 |
-| `created_by` | conditional | `did` | 系统派生对象可由 `derived_from` 替代。 | 创建主体（创建该对象的 Event 的 `actor_id`）。 |
+| `created_by` | conditional | `core_id` | 系统派生对象可由 `derived_from` 替代。 | 创建主体（创建该对象的 Event 的 `actor_id`）。 |
 | `created_at` | yes | `timestamp` | 不能作为因果真相。 | 创建时间。 |
-| `updated_by` | no | `did` | 更新时 SHOULD 设置。 | 最近更新主体。 |
+| `updated_by` | no | `core_id` | 更新时 SHOULD 设置。 | 最近更新主体。 |
 | `updated_at` | no | `timestamp` | MUST be no earlier than `created_at`。 | 最近更新时间。 |
 | `state_changed_at` | R when state≠active | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Circle / Space / Strand / Message / Morph / Relation / View）当 `state != active` 时 MUST 写入（逐对象必填性矩阵见 §3.1，统一标记 `R when state≠active`）;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值。权威值为 `max(Event.created_at, first_covering_sealed_at)`；`first_covering_sealed_at` 是覆盖该 Move 的全部 accepted Seal 中 `sealed_at` 的最小值，data-plane Event 或尚未被 Seal 覆盖时只取 `created_at`。MUST be no earlier than `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
 | `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时可用（v1 适用对象 = Strand / Morph，详见 §5.3）；二者在通用 schema 中均可省略，具体 profile MAY 收紧为必填。取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。Strand 的 `metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason`，以及 Morph 的 `fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
@@ -273,7 +274,16 @@ Service identity 字段统一使用 `service_id` / `<role>_service_id`，即使 
 
 ### 4.1 DID 适用边界
 
-DID 是 Arkret 的主体标识，不是普通协作对象 ID。标准协作对象（Realm / Circle / Space /
+主体标识分为两种强类型：
+
+| 类型 | wire 形态 | 用途 |
+| --- | --- | --- |
+| `core_id` | `ak:did_core:<method>:<core>` | Event、principal / service reference、membership、capability、业务数据库关联与相等判断。 |
+| `full_id` | 标准 bare DID，例如 `did:webvh:<scid>:<host>` | 注册、DID resolution、method-native operation、DID Document / history 验证。 |
+
+`full_id ≅ core_id + method-specific resolution` 只是 adapter 语义，不是字符串拼接格式。只有已登记 DID method adapter 可以从 `full_id` 投影 `core_id`；普通业务代码 MUST NOT 自行拆解或反向构造。一个 `full_id` 投影到的 `core_id` 必须唯一。DID URL 不属于 `full_id`：`verification_method` 等 DID URL 必须在验证 `full_id` 后由相同 adapter 处理，禁止把 fragment 直接拼到 `core_id`。
+
+`core_id` 是 Arkret 的稳定主体标识，`full_id` 是其当前 DID resolution material；二者都不是普通协作对象 ID。标准协作对象（Realm / Circle / Space /
 Strand / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用
 `ak:<kind>:` typed ID 作为对象 ID；设备也不是 actor 主体，其标识是
 `device_id`（`ak:device:<uuidv7>`），没有设备 DID。
@@ -284,24 +294,24 @@ DID 当作身份锚点、仅在封闭触发条件下验证 DID 控制权”的�
 本节不复制总表，避免字段新增后出现两份不一致清单。
 
 仅作为内容、容器、投影或关系事实存在的对象，不需要也不得发明独立 DID；它们通过 typed ID
-被引用，通过 `created_by` / `updated_by` 等字段关联到 DID 主体。字段里出现 DID 只声明
+被引用，通过 `created_by` / `updated_by` 等字段关联到主体 `core_id`。字段里出现完整 DID 只声明
 value category，不会自动触发 DID Document 解析或在线验证。
 
 ### 4.2 主体引用字段
 
 | 字段 | 出现对象 | 含义 |
 | --- | --- | --- |
-| `actor_id` | Event Envelope、Read Cursor、Notification | 直接执行该 Event / 拥有该私有状态的 actor DID（`actor_kind` 决定它是 user / agent / service 等）；普通业务按身份锚点使用，验证边界见 §4.1 的引用。 |
-| `watcher_actor_id` / `target_actor_id` / `writer_actor_id` | Event payload、Audit payload | 带角色限定的 actor DID-as-id；字段名必须说明角色，避免回退到模糊的 `actor_did`。 |
-| `principal_id` | Actor Profile | Profile 对应的 principal DID；权限根。 |
+| `actor_id` | Event Envelope、Read Cursor、Notification | 直接执行该 Event / 拥有该私有状态的 actor `core_id`（`actor_kind` 决定它是 user / agent / service 等）；普通业务按身份锚点使用，验证边界见 §4.1 的引用。 |
+| `watcher_actor_id` / `target_actor_id` / `writer_actor_id` | Event payload、Audit payload | 带角色限定的 actor `core_id`；字段名必须说明角色，避免回退到模糊的 `actor_did`。 |
+| `principal_id` | Actor Profile | Profile 对应的 principal `core_id`；稳定权限主体引用。 |
 | `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的 Event 的 `actor_id`，由 reducer 派生。Realm 的 `created_by` 还承担 genesis member bootstrap 的 authorizing principal 语义。 |
-| `issuer` | Capability Grant、Identity Receipt、Handle Claim、Agent Selector Claim | 签发授权、receipt 或 claim 的 DID；必须持有签发权限。 |
-| `subject` | Capability Grant、Handle Claim、Agent Selector Claim | 被授权 DID、selector condition，或 claim 绑定的目标 DID。claim 层 raw subject 使用 `subject`；进入具体协议 transcript / mention / delivery candidate 后才使用 `subject_id`。 |
-| `controller_subject` | Agent Selector Claim | 拥有 controller-scoped agent selector namespace 的 controller principal DID；因处于 claim 层使用 `subject` 词汇，不使用 `controller_subject_id`。事件 mention metadata 快照才使用 `controller_subject_id`。 |
-| `subject_id` | Mention reference、Handle / invite / delivery binding candidate | 当 subject 必须是具体 principal DID 且进入可验证 transcript 时使用；generic / raw handle claim 和 agent selector claim subject 仍使用 `subject`。`MemberDeliveryBindingCandidate.subject_id` MUST equal 上游 handle claim 的 `subject`。 |
-| `inviter` / `invitee` | Invite | 邀请方 DID / 被邀请 DID。 |
-| `accountable_principal_ids` | Actor Profile | 该 Actor Profile 声明可问责到的一组 principal DID（每个条目须有对应 active `ak.identity.accountability_grant` 背书）。array 形态使用 `_ids` 复数，与 agent key payload 的 scalar `accountable_principal_id` 共用同一 accountability 主体词汇；责任主体一律走 `_id` / `_ids`，不使用 `_to` 介词后缀或裸关系短语。 |
-| `agent_id` / `audit_service_actor_id` | Agent key payload、Audit release evidence | agent / audit release service 作为协议责任主体时使用 DID-as-id；承载运行或托管服务身份时另用 `service_id`。 |
+| `issuer` | Capability Grant、Identity Receipt、Handle Claim、Agent Selector Claim | 签发授权、receipt 或 claim 的主体 `core_id`；必须持有签发权限。 |
+| `subject` | Capability Grant、Handle Claim、Agent Selector Claim | 被授权 principal `core_id`、selector condition，或 claim 绑定的目标 `core_id`。claim 层 raw subject 使用 `subject`；进入具体协议 transcript / mention / delivery candidate 后才使用 `subject_id`。 |
+| `controller_subject` | Agent Selector Claim | 拥有 controller-scoped agent selector namespace 的 controller principal `core_id`；因处于 claim 层使用 `subject` 词汇，不使用 `controller_subject_id`。事件 mention metadata 快照才使用 `controller_subject_id`。 |
+| `subject_id` | Mention reference、Handle / invite / delivery binding candidate | 当 subject 必须是具体 principal `core_id` 且进入可验证 transcript 时使用；generic / raw handle claim 和 agent selector claim subject 仍使用 `subject`。`MemberDeliveryBindingCandidate.subject_id` MUST equal 上游 handle claim 的 `subject`。 |
+| `inviter` / `invitee` | Invite | 邀请方 / 被邀请方 `core_id`。 |
+| `accountable_principal_ids` | Actor Profile | 该 Actor Profile 声明可问责到的一组 principal `core_id`（每个条目须有对应 active `ak.identity.accountability_grant` 背书）。array 形态使用 `_ids` 复数，与 agent key payload 的 scalar `accountable_principal_id` 共用同一 accountability 主体词汇；责任主体一律走 `_id` / `_ids`，不使用 `_to` 介词后缀或裸关系短语。 |
+| `agent_id` / `audit_service_actor_id` | Agent key payload、Audit release evidence | agent / audit release service 作为协议责任主体时使用 `core_id`；承载运行或托管服务身份时另用 `service_id`。 |
 
 这些不是同一字段的别名，每条都有独立语义角色；该表用于读 spec 时快速建立对应关系。
 
@@ -317,7 +327,7 @@ value category，不会自动触发 DID Document 解析或在线验证。
 | 角色名词 | 类别 | 权威定义 | 角色语义 |
 | --- | --- | --- | --- |
 | `issuer` | id 字段（§4.2） | §4.1 / §4.2；[glossary `Capability Grant` / `Control Move`](../overview/glossary.md) | 签发 Capability Grant / Identity Receipt 或签署 DataEvent / Control Move 的主体 DID；必须持有对应签发权限。 |
-| `subject` / `subject_id` | id 字段（§4.2） | §4.1 / §4.2；[glossary `Subject`](../overview/glossary.md) | Capability grant 的授予对象：`subject` 为 DID 或 condition selector，`subject_id` 用于必须是具体 principal DID 且进入可验证 transcript 的场景。 |
+| `subject` / `subject_id` | id 字段（§4.2） | §4.1 / §4.2；[glossary `Subject`](../overview/glossary.md) | Capability grant 的授予对象：`subject` 为 principal `core_id` 或 condition selector，`subject_id` 用于必须是具体 principal `core_id` 且进入可验证 transcript 的场景。 |
 | `inviter` / `invitee` | id 字段（§4.2） | §4.1 / §4.2；[`governance-objects.md` §5 Invite](./governance-objects.md)；[`invite.schema.json`](../../artifacts/schemas/invite.schema.json) | 邀请方 DID / 被邀请方 DID；3PID 邀请可暂无 `invitee`，认领后必须绑定可验证主体。member 引用形态另用 `inviter_member_ref` / `invitee_member_ref`（见 [`invite-delivery-request.schema.json`](../../artifacts/schemas/invite-delivery-request.schema.json)）。 |
 | `holder` | 叙述性角色名词 | [`consent-model.md` §2.1](../identity/consent-model.md)；[`client-preferences.md`](../discovery/client-preferences.md)；[glossary `Consent`](../overview/glossary.md) | consent / blocklist / recovery share / pairwise 假名等 holder-private 状态的归属主体；只有 holder 本人或其显式授权的 controller / agent 可写。 |
 | `notary` | 叙述性角色名词 | [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)；[glossary `Seal` / `Notary Cell`](../overview/glossary.md)；[`capabilities.md`](../authz/capabilities.md) | Seal ordering authority：对 Move frontier 签名承诺的主体；由 `notary_cell`（`cas_register + bottom=reject`）授权，冲突时触发 Realm-wide Seal pause。 |
@@ -613,9 +623,9 @@ suite-tagged 完整 digest token，此外 `ak:trust_domain:` 是 deployment-scop
   "id": "ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
   "schema": "ak.schema.strand.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "created_by": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+  "created_by": "ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH",
   "created_at": "2026-04-26T00:00:00Z",
-  "updated_by": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+  "updated_by": "ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH",
   "updated_at": "2026-04-26T00:00:00Z"
 }
 ```

@@ -47,7 +47,7 @@
       "$ref": "#/$defs/hash"
     },
     "publisher_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "published_at": {
       "$ref": "./time.schema.json#/$defs/timestamp"

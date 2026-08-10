@@ -1,0 +1,1477 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/identity-resolution.schema.json",
+  "title": "Arkret Identity Resolution",
+  "description": "Canonical core_id/full_id resolution state, owner-published evidence and service-route bootstrap contracts. A full_id is a standard bare DID and a core_id is the stable Arkret business identity projected by a registered DID method adapter.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/principal_resolution_evidence"
+    },
+    {
+      "$ref": "#/$defs/service_resolution_record"
+    },
+    {
+      "$ref": "#/$defs/service_route_handover_notice"
+    }
+  ],
+  "$defs": {
+    "sha256_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Lowercase hexadecimal SHA-256 digest."
+    },
+    "method_evidence_boundary": {
+      "type": "object",
+      "description": "Inclusive adapter-defined history interval covered by this evidence. For a method without native history the from and to values are identical synthetic values for the one verified state.",
+      "required": [
+        "from_method_history_head",
+        "from_version_id",
+        "to_method_history_head",
+        "to_version_id"
+      ],
+      "properties": {
+        "from_method_history_head": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "from_version_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "to_method_history_head": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "to_version_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      },
+      "additionalProperties": false
+    },
+    "webvh_method_history_evidence": {
+      "type": "object",
+      "description": "Bounded did:webvh log, proof and witness material routed to adapter did:webvh:1.0. Canonical encoded evidence MUST NOT exceed 1 MiB; a larger history is split into separately verified bounded responses.",
+      "required": [
+        "adapter_version",
+        "evidence_kind",
+        "boundary",
+        "evidence"
+      ],
+      "properties": {
+        "adapter_version": {
+          "const": "did:webvh:1.0"
+        },
+        "evidence_kind": {
+          "const": "webvh_log"
+        },
+        "boundary": {
+          "$ref": "#/$defs/method_evidence_boundary"
+        },
+        "evidence": {
+          "$ref": "./did-binding-contracts.schema.json#/$defs/evidence_receipt",
+          "description": "Closed canonical evidence receipt for exactly the inclusive boundary. method MUST be webvh and method_proofs MUST carry the matching webvh_log row; the public evidence evaluator checks its history_head against boundary.to_method_history_head."
+        }
+      },
+      "additionalProperties": false
+    },
+    "did_web_method_history_evidence": {
+      "type": "object",
+      "description": "Bounded current DID Document retrieval evidence routed to adapter did:web:1. The boundary endpoints MUST be identical synthetic values. Canonical encoded evidence MUST NOT exceed 1 MiB.",
+      "required": [
+        "adapter_version",
+        "evidence_kind",
+        "boundary",
+        "evidence"
+      ],
+      "properties": {
+        "adapter_version": {
+          "const": "did:web:1"
+        },
+        "evidence_kind": {
+          "const": "did_web_document"
+        },
+        "boundary": {
+          "$ref": "#/$defs/method_evidence_boundary"
+        },
+        "evidence": {
+          "$ref": "./did-binding-contracts.schema.json#/$defs/evidence_receipt",
+          "description": "Closed canonical document-bound evidence receipt. method MUST be web and method_proofs MUST be empty; document_digest and boundary synthetic head are cross-checked by the public evidence evaluator."
+        }
+      },
+      "additionalProperties": false
+    },
+    "did_key_method_history_evidence": {
+      "type": "object",
+      "description": "Bounded deterministic local expansion evidence routed to adapter did:key:1. The boundary endpoints MUST be identical synthetic values. Canonical encoded evidence MUST NOT exceed 1 MiB.",
+      "required": [
+        "adapter_version",
+        "evidence_kind",
+        "boundary",
+        "evidence"
+      ],
+      "properties": {
+        "adapter_version": {
+          "const": "did:key:1"
+        },
+        "evidence_kind": {
+          "const": "did_key_expansion"
+        },
+        "boundary": {
+          "$ref": "#/$defs/method_evidence_boundary"
+        },
+        "evidence": {
+          "$ref": "./did-binding-contracts.schema.json#/$defs/evidence_receipt",
+          "description": "Closed canonical local-expansion evidence receipt. method MUST be key and method_proofs MUST be empty; the public evidence evaluator recomputes document_digest and the synthetic boundary directly from full_id."
+        }
+      },
+      "additionalProperties": false
+    },
+    "method_history_evidence": {
+      "description": "Adapter-routed evidence. adapter_version and evidence_kind are a closed discriminator pair; unknown adapters or mismatched pairs fail closed.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/webvh_method_history_evidence"
+        },
+        {
+          "$ref": "#/$defs/did_web_method_history_evidence"
+        },
+        {
+          "$ref": "#/$defs/did_key_method_history_evidence"
+        }
+      ]
+    },
+    "resolution_commitment": {
+      "type": "object",
+      "description": "Owner-committed current full_id and method-native history position. For a deterministic method, method_history_head and version_id use the adapter-defined deterministic canonical values; they are never omitted.",
+      "required": [
+        "full_id",
+        "method_history_head",
+        "version_id"
+      ],
+      "properties": {
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/full_id"
+        },
+        "method_history_head": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "version_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      },
+      "additionalProperties": false
+    },
+    "resolution_projection": {
+      "type": "object",
+      "required": [
+        "full_id",
+        "method_history_head",
+        "version_id",
+        "resolution_event_ref",
+        "updated_at"
+      ],
+      "properties": {
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/full_id"
+        },
+        "method_history_head": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "version_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "resolution_event_ref": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "updated_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "principal_resolution_update_payload": {
+      "type": "object",
+      "description": "Payload for ak.identity.resolution.update in the actor's Principal Control Realm. Admission projects full_id to the envelope actor_id and performs a strict CAS against both predecessor fields before accepting a method-valid successor.",
+      "required": [
+        "next",
+        "previous_resolution_event_ref",
+        "previous_method_history_head"
+      ],
+      "properties": {
+        "next": {
+          "$ref": "#/$defs/resolution_commitment"
+        },
+        "previous_resolution_event_ref": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "previous_method_history_head": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      },
+      "additionalProperties": false
+    },
+    "principal_genesis_event": {
+      "allOf": [
+        {
+          "$ref": "./event-envelope.schema.json"
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "actor_id",
+            "scope_ref",
+            "payload"
+          ],
+          "properties": {
+            "kind": {
+              "const": "ak.realm.create"
+            },
+            "scope_ref": {
+              "type": "object",
+              "required": [
+                "kind"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "realm_genesis"
+                }
+              }
+            },
+            "payload": {
+              "type": "object",
+              "required": [
+                "object"
+              ],
+              "properties": {
+                "object": {
+                  "type": "object",
+                  "required": [
+                    "purpose",
+                    "initial_resolution"
+                  ],
+                  "properties": {
+                    "purpose": {
+                      "enum": [
+                        "principal_control",
+                        "managed_agent_control"
+                      ]
+                    },
+                    "initial_resolution": {
+                      "$ref": "#/$defs/resolution_commitment"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "The accepted identity-control Realm genesis Event. It is resolution history head 0 and commits the initial resolution; its derived Realm id, actor, purpose and initial projection are cross-bound by the principal resolution evidence evaluator."
+    },
+    "resolution_update_event": {
+      "allOf": [
+        {
+          "$ref": "./event-envelope.schema.json"
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "ak.identity.resolution.update"
+            }
+          }
+        }
+      ],
+      "description": "One accepted post-genesis resolution successor Event. Its exact resolution-cell head_eq precondition and predecessor fields are mandatory under Event dispatch."
+    },
+    "current_resolution_event": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/principal_genesis_event"
+        },
+        {
+          "$ref": "#/$defs/resolution_update_event"
+        }
+      ]
+    },
+    "resolution_cell_proof": {
+      "type": "object",
+      "description": "Merkle inclusion proof that the singleton PCR resolution cell has the stated current value under accepted_seal. The cell_ref is always ak:cell:ak.component.identity.resolution.v1:null.",
+      "required": [
+        "cell_ref",
+        "cell_value",
+        "seal_id",
+        "state_root",
+        "leaf_digest",
+        "leaf_index",
+        "leaf_count",
+        "inclusion_proof"
+      ],
+      "properties": {
+        "cell_ref": {
+          "const": "ak:cell:ak.component.identity.resolution.v1:null"
+        },
+        "cell_value": {
+          "$ref": "#/$defs/resolution_projection"
+        },
+        "seal_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        },
+        "state_root": {
+          "$ref": "./event-envelope.schema.json#/$defs/hash"
+        },
+        "leaf_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/hash"
+        },
+        "leaf_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "leaf_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "inclusion_proof": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "./event-envelope.schema.json#/$defs/hash"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "principal_resolution_evidence": {
+      "type": "object",
+      "description": "Portable resolution-only evidence bound to one identity-control Realm genesis and its current singleton resolution cell. It intentionally excludes unrelated PCR device, recovery and session history. The verifier derives the PCR Realm, validates purpose/actor/kind and every supplied contiguous resolution-history segment, validates accepted Seal coverage and cell inclusion, then independently resolves method evidence for the current full_id. Omitted older history never becomes an absence claim.",
+      "required": [
+        "principal_id",
+        "principal_control_realm_id",
+        "principal_genesis_event",
+        "current_resolution_event",
+        "predecessor_resolution_events",
+        "accepted_seal",
+        "resolution_cell_proof"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Realm id derived from principal_genesis_event under the registered PCR derivation rule; it is not a producer-selected alternate scope."
+        },
+        "principal_genesis_event": {
+          "$ref": "#/$defs/principal_genesis_event"
+        },
+        "current_resolution_event": {
+          "$ref": "#/$defs/current_resolution_event"
+        },
+        "predecessor_resolution_events": {
+          "type": "array",
+          "maxItems": 256,
+          "description": "Selected post-genesis resolution update Events preceding current_resolution_event, ordered from the current event's immediate predecessor toward older events and contiguous for the supplied range. The genesis Event is carried separately and MUST NOT be repeated here. If the selected range does not reach head 0, the oldest supplied Event's guarded predecessor projection is the next audit cursor; omitted history is unknown rather than absent.",
+          "items": {
+            "$ref": "#/$defs/resolution_update_event"
+          }
+        },
+        "accepted_seal": {
+          "$ref": "./seal.schema.json"
+        },
+        "resolution_cell_proof": {
+          "$ref": "#/$defs/resolution_cell_proof"
+        },
+        "method_history_evidence": {
+          "$ref": "#/$defs/method_history_evidence"
+        }
+      },
+      "additionalProperties": false
+    },
+    "service_resolution_record_core": {
+      "type": "object",
+      "description": "Signed first-hop service route material. It lets a consumer map a stable service core_id to a candidate full_id; it is not an endpoint authorization by itself.",
+      "required": [
+        "service_id",
+        "service_kind",
+        "full_id",
+        "method_history_head",
+        "version_id",
+        "resolution_event_ref",
+        "record_sequence",
+        "previous_record_digest",
+        "current_record_url",
+        "base_url",
+        "describe_digest",
+        "issued_at",
+        "refresh_after",
+        "expires_at"
+      ],
+      "properties": {
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "service_kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "Registered ServiceDescribe role selected at this route. The describe request MUST use this value when the base URL hosts multiple roles."
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/full_id"
+        },
+        "method_history_head": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "version_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "resolution_event_ref": {
+          "type": "string",
+          "pattern": "^(did-webvh-entry-sha256|did-web-document-sha256|did-key-full-id-sha256):[0-9a-f]{64}$",
+          "maxLength": 96,
+          "description": "Adapter-canonical service control-state reference. It MUST equal the active adapter row's service_resolution_event_ref_rule for this full_id and method_history_head: did:webvh maps to did-webvh-entry-sha256, did:web maps to did-web-document-sha256, and did:key maps to did-key-full-id-sha256."
+        },
+        "record_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Exact signed-record sequence within one service core_id. The first record is 0; every accepted same-core successor is exactly the immediately previous record_sequence plus one. Gaps, reuse and rollback fail closed."
+        },
+        "previous_record_digest": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/sha256_digest"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "sha256 over RFC 8785 JCS of the immediately previous complete signed ServiceResolutionRecord, including proof, or null exactly when record_sequence is 0."
+        },
+        "current_record_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://[^?#]+$",
+          "maxLength": 2048,
+          "description": "No-redirect HTTPS current-record URL. It MUST equal canonical base_url plus _arkret/open/services/{RFC3986-percent-encoded service_id}/resolution. A fetched successor's independently verified signed value becomes the next refresh URL; an old record or redirect cannot retarget it. Fetchers apply SSRF, DNS-rebinding, response-size and timeout controls and trust only verified record bytes."
+        },
+        "base_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://[^?#]+/$",
+          "maxLength": 2048,
+          "description": "Canonical first-hop HTTPS base: lowercase scheme and host, normalized path, no query or fragment, exactly one trailing slash. The consumer resolves _arkret/describe relative to this value without following cross-origin redirects and cross-checks the returned binding."
+        },
+        "describe_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "sha256 over RFC 8785 JCS of {service_id, service_kind, service_resolution, http_json_base_url} projected from ServiceDescribe. Dynamic capabilities, limits, rate policy and x_* fields are intentionally excluded."
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "MUST be <= refresh_after and strictly earlier than expires_at."
+        },
+        "refresh_after": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "MUST satisfy issued_at <= refresh_after < expires_at. At or after this time a cache refreshes current_record_url before a security-sensitive use."
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "MUST be later than refresh_after. An expired record is never routable; current_record_url may provide a verified successor with the same service_id."
+        }
+      },
+      "additionalProperties": false
+    },
+    "service_resolution_record": {
+      "type": "object",
+      "description": "Portable signed ServiceResolutionRecord. Its record digest is sha256:<lowercase-hex SHA-256 of RFC 8785 JCS of this complete object including proof>. Separately, payload_digest is sha256 over RFC 8785 JCS of record. The detached proof signs canonical_json({context:'ak.service-resolution-record-proof-v1', payload_digest, service_id, service_kind, full_id, method_history_head, version_id, resolution_event_ref, record_sequence, previous_record_digest, current_record_url, base_url, describe_digest, issued_at, refresh_after, expires_at, verification_method, created_at, domain?, audience?}) under a service control key accepted at method_history_head; proof.created_at MUST equal record.issued_at. The verifier also enforces project(full_id)=service_id, the adapter-canonical history/version/event-ref mapping, record_sequence=0 iff previous_record_digest=null, exact plus-one same-core succession, and the timestamp ordering declared by the record fields.",
+      "required": [
+        "record",
+        "proof"
+      ],
+      "properties": {
+        "record": {
+          "$ref": "#/$defs/service_resolution_record_core"
+        },
+        "proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "service_route_handover_notice_core": {
+      "type": "object",
+      "description": "Portable future-route sidecar bound to one current ServiceResolutionRecord. It never changes the current route, never consumes record_sequence and never authorizes Realm, device, KeyPackage, repair or other business payload bytes. The evaluator enforces issued_at <= not_before <= cutover_at < grace_until <= expires_at for scheduled notices; candidate_record_url is the mechanical no-redirect service-resolution path below canonical candidate_base_url. A receiver accepts the candidate only after it returns the exact same service_id/service_kind, record_sequence=from_record_sequence+1 and previous_record_digest=from_record_digest in a formally verified ServiceResolutionRecord followed by describe reverse binding.",
+      "required": [
+        "service_id",
+        "service_kind",
+        "handover_id",
+        "notice_revision",
+        "state",
+        "from_record_sequence",
+        "from_record_digest",
+        "previous_notice_digest",
+        "issued_at",
+        "expires_at"
+      ],
+      "properties": {
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "service_kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "handover_id": {
+          "type": "string",
+          "pattern": "^ak:service_route_handover:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Service-local UUIDv7 identity. It is stable across every scheduled update and cancellation in one notice chain."
+        },
+        "notice_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647,
+          "description": "The first notice is revision 0. Every accepted update or cancellation is exactly predecessor revision plus one."
+        },
+        "state": {
+          "enum": [
+            "scheduled",
+            "cancelled"
+          ]
+        },
+        "from_record_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "from_record_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "Exact complete signed-record digest at the notice basis. It MUST equal the receiver's durable last-seen/current digest for from_record_sequence; a stale or unrelated basis is never accepted silently."
+        },
+        "candidate_base_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://[^?#]+/$",
+          "maxLength": 2048
+        },
+        "candidate_record_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://[^?#]+$",
+          "maxLength": 2048
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "not_before": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Before this instant only bounded public record/describe preflight is allowed and it cannot update route state or carry business bytes. Clock skew may delay local use but cannot advance it."
+        },
+        "cutover_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "grace_until": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "previous_notice_digest": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/sha256_digest"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Null exactly for notice_revision 0; otherwise the digest of the immediately previous complete signed notice."
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "notice_revision": {
+                "const": 0
+              }
+            },
+            "required": [
+              "notice_revision"
+            ]
+          },
+          "then": {
+            "properties": {
+              "previous_notice_digest": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "previous_notice_digest": {
+                "$ref": "#/$defs/sha256_digest"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "scheduled"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "candidate_base_url",
+              "candidate_record_url",
+              "not_before",
+              "cutover_at",
+              "grace_until"
+            ]
+          },
+          "else": {
+            "properties": {
+              "notice_revision": {
+                "minimum": 1
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "candidate_base_url"
+                  ]
+                },
+                {
+                  "required": [
+                    "candidate_record_url"
+                  ]
+                },
+                {
+                  "required": [
+                    "not_before"
+                  ]
+                },
+                {
+                  "required": [
+                    "cutover_at"
+                  ]
+                },
+                {
+                  "required": [
+                    "grace_until"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "service_route_handover_proof_transcript": {
+      "type": "object",
+      "description": "RFC 8785 canonical detached-signature transcript. payload_digest is over the complete notice core. Optional candidate/time members are present exactly for state=scheduled. The evaluator also requires proof.created_at=issued_at and resolves verification_method through the notice service's current method history; a mirror key is never valid here.",
+      "required": [
+        "context",
+        "payload_digest",
+        "service_id",
+        "service_kind",
+        "handover_id",
+        "notice_revision",
+        "state",
+        "from_record_sequence",
+        "from_record_digest",
+        "previous_notice_digest",
+        "issued_at",
+        "expires_at",
+        "verification_method",
+        "created_at"
+      ],
+      "properties": {
+        "context": {
+          "const": "ak.service-route-handover-notice-proof-v1"
+        },
+        "payload_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "service_kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "handover_id": {
+          "type": "string",
+          "pattern": "^ak:service_route_handover:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "notice_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "state": {
+          "enum": [
+            "scheduled",
+            "cancelled"
+          ]
+        },
+        "from_record_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "from_record_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "candidate_base_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://[^?#]+/$",
+          "maxLength": 2048
+        },
+        "candidate_record_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://[^?#]+$",
+          "maxLength": 2048
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "not_before": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "cutover_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "grace_until": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "previous_notice_digest": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/sha256_digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "created_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "domain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "audience": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "scheduled"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "candidate_base_url",
+              "candidate_record_url",
+              "not_before",
+              "cutover_at",
+              "grace_until"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "candidate_base_url"
+                  ]
+                },
+                {
+                  "required": [
+                    "candidate_record_url"
+                  ]
+                },
+                {
+                  "required": [
+                    "not_before"
+                  ]
+                },
+                {
+                  "required": [
+                    "cutover_at"
+                  ]
+                },
+                {
+                  "required": [
+                    "grace_until"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "service_route_handover_notice": {
+      "type": "object",
+      "description": "Complete target-service-signed handover artifact. Its notice digest is SHA-256 over RFC 8785 JCS of this complete object including proof. Publishing or mirroring it does not make candidate_base_url current and cannot replace a formally verified successor ServiceResolutionRecord.",
+      "required": [
+        "notice",
+        "proof"
+      ],
+      "properties": {
+        "notice": {
+          "$ref": "#/$defs/service_route_handover_notice_core"
+        },
+        "proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "service_resolution_mirror_artifact": {
+      "type": "object",
+      "description": "Closed exact-one carrier for target-signed route material. A peer or mirror transports the selected artifact byte-for-byte and cannot replace it with a self-signed URL assertion.",
+      "properties": {
+        "service_resolution_record": {
+          "$ref": "#/$defs/service_resolution_record"
+        },
+        "service_route_handover_notice": {
+          "$ref": "#/$defs/service_route_handover_notice"
+        }
+      },
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "service_resolution_record"
+          ]
+        },
+        {
+          "required": [
+            "service_route_handover_notice"
+          ]
+        }
+      ]
+    },
+    "service_resolution_artifact_key": {
+      "description": "Canonical durable-ledger key for one mirrored artifact family.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "artifact_family",
+            "service_id",
+            "record_sequence"
+          ],
+          "properties": {
+            "artifact_family": {
+              "const": "service_resolution_record"
+            },
+            "service_id": {
+              "$ref": "./common-ids.schema.json#/$defs/core_id"
+            },
+            "record_sequence": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "artifact_family",
+            "service_id",
+            "handover_id",
+            "notice_revision"
+          ],
+          "properties": {
+            "artifact_family": {
+              "const": "service_route_handover_notice"
+            },
+            "service_id": {
+              "$ref": "./common-ids.schema.json#/$defs/core_id"
+            },
+            "handover_id": {
+              "type": "string",
+              "pattern": "^ak:service_route_handover:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "notice_revision": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2147483647
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "service_resolution_publish_request": {
+      "type": "object",
+      "description": "Publishes exactly one target-signed record or notice into a Realm-scoped peer mirror. The authenticated Source-Service-ID, not an untrusted body field, supplies source_service_id. artifact_digest is over the exact complete selected artifact. The receiver validates current federation-peer authority, target visibility/delegation, target proof, basis, chain, freshness and bounds before any durable write.",
+      "required": [
+        "request_id",
+        "realm_id",
+        "artifact_digest"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "artifact_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "service_resolution_record": {
+          "$ref": "#/$defs/service_resolution_record"
+        },
+        "service_route_handover_notice": {
+          "$ref": "#/$defs/service_route_handover_notice"
+        }
+      },
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "service_resolution_record"
+          ]
+        },
+        {
+          "required": [
+            "service_route_handover_notice"
+          ]
+        }
+      ]
+    },
+    "service_resolution_publish_ack_core": {
+      "type": "object",
+      "description": "Receiver-authored durable exact-digest acknowledgement. Transport idempotency is keyed by (source_service_id, realm_id, request_id) and binds request_digest: an exact retry returns the original ack and a different request digest is duplicate_conflict. Artifact integrity is independently keyed by (source_service_id, realm_id, artifact_key): the same artifact key with another artifact_digest is duplicate_conflict with zero overwrite, while a new request_id for identical artifact bytes may receive a new ack cross-bound to that request.",
+      "required": [
+        "request_id",
+        "source_service_id",
+        "receiver_service_id",
+        "realm_id",
+        "request_digest",
+        "artifact_key",
+        "artifact_digest",
+        "accepted_at"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "source_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "receiver_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "request_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "SHA-256 over RFC 8785 JCS of the complete service_resolution_publish_request."
+        },
+        "artifact_key": {
+          "$ref": "#/$defs/service_resolution_artifact_key"
+        },
+        "artifact_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "service_resolution_publish_ack_proof_transcript": {
+      "type": "object",
+      "required": [
+        "context",
+        "payload_digest",
+        "request_id",
+        "source_service_id",
+        "receiver_service_id",
+        "realm_id",
+        "request_digest",
+        "artifact_key",
+        "artifact_digest",
+        "accepted_at",
+        "verification_method",
+        "created_at"
+      ],
+      "properties": {
+        "context": {
+          "const": "ak.service-resolution-publish-ack-proof-v1"
+        },
+        "payload_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "source_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "receiver_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "request_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "artifact_key": {
+          "$ref": "#/$defs/service_resolution_artifact_key"
+        },
+        "artifact_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "created_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "service_resolution_publish_ack": {
+      "type": "object",
+      "required": [
+        "ack",
+        "proof"
+      ],
+      "properties": {
+        "ack": {
+          "$ref": "#/$defs/service_resolution_publish_ack_core"
+        },
+        "proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "service_resolution_publish_outcome": {
+      "type": "object",
+      "required": [
+        "ack"
+      ],
+      "properties": {
+        "ack": {
+          "$ref": "#/$defs/service_resolution_publish_ack"
+        }
+      },
+      "additionalProperties": false
+    },
+    "service_resolution_resolve_request": {
+      "type": "object",
+      "description": "Realm-scoped anti-enumeration query for target-signed successor material. requester authority comes from the authenticated peer service and current Realm relationship. target_service_id must already be visible to requester through an effective member delivery binding, sync_endpoints or explicit service delegation. Unknown, unauthorized, invisible and not-held outcomes are externally indistinguishable.",
+      "required": [
+        "realm_id",
+        "target_service_id",
+        "target_service_kind",
+        "known_record_sequence",
+        "known_record_digest"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "target_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "target_service_kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "known_record_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "known_record_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "known_notice_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "max_records": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 32,
+          "default": 32
+        },
+        "max_response_bytes": {
+          "type": "integer",
+          "minimum": 4096,
+          "maximum": 262144,
+          "default": 262144
+        }
+      },
+      "additionalProperties": false
+    },
+    "service_resolution_resolve_outcome": {
+      "type": "object",
+      "description": "Bounded continuous target-signed successor supply. successor_records begins exactly at known_record_sequence+1 with predecessor known_record_digest and remains plus-one/digest-contiguous. handover_notice, when present, is the single active non-expired target notice on the returned/current basis. has_more never permits accepting a gap. The canonical response is at most 256 KiB. The requester independently verifies every target proof, method history, time, chain and describe binding; same sequence with different valid target-signed digests is a route fork and enters quarantine, never a majority or reachability choice.",
+      "required": [
+        "successor_records",
+        "has_more"
+      ],
+      "properties": {
+        "successor_records": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/service_resolution_record"
+          }
+        },
+        "handover_notice": {
+          "$ref": "#/$defs/service_route_handover_notice"
+        },
+        "has_more": {
+          "type": "boolean",
+          "description": "True only when more continuous target-signed records are held beyond the bounded response. The caller continues from the last verified record; it never skips the omitted segment."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "has_more": {
+                "const": true
+              }
+            },
+            "required": [
+              "has_more"
+            ]
+          },
+          "then": {
+            "properties": {
+              "successor_records": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "service_resolution_last_seen_floor": {
+      "type": "object",
+      "description": "Durable remote ServiceResolutionRecord anti-rollback floor, distinct from route cache and service_route_notice_state. It survives process restart and cache eviction. The record floor advances only after target proof, exact successor chain, method history, freshness and describe reverse binding all pass. Same record sequence with a different valid target-signed digest is a fork quarantine, not last-writer-wins.",
+      "required": [
+        "service_id",
+        "service_kind",
+        "record_sequence",
+        "record_digest",
+        "verified_at"
+      ],
+      "properties": {
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "service_kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "record_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "record_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "verified_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "service_route_notice_state": {
+      "type": "object",
+      "description": "Durable accepted handover-notice state, independent from the ServiceResolutionRecord floor and TTL route cache. It survives restart and is retained until cancellation, formal successor completion or signed expiry. A scheduled entry is usable only while state=scheduled and now<expires_at, and only against the exact from_record floor. A cancelled entry remains durable evidence that the candidate must not be used. Same revision with another digest is a fork quarantine.",
+      "required": [
+        "service_id",
+        "service_kind",
+        "handover_id",
+        "notice_revision",
+        "notice_digest",
+        "state",
+        "from_record_sequence",
+        "from_record_digest",
+        "expires_at",
+        "verified_at"
+      ],
+      "properties": {
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "service_kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "handover_id": {
+          "type": "string",
+          "pattern": "^ak:service_route_handover:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "notice_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "notice_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "state": {
+          "enum": [
+            "scheduled",
+            "cancelled"
+          ]
+        },
+        "from_record_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "from_record_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "verified_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "service_route_cache_entry": {
+      "type": "object",
+      "description": "Replaceable TTL performance cache derived from one already verified durable floor. It is not authority and MAY disappear on restart. Cache freshness never permits accepting a sequence below service_resolution_last_seen_floor, extending signed expires_at, bypassing describe, or turning a notice candidate into a current route.",
+      "required": [
+        "service_id",
+        "service_kind",
+        "full_id",
+        "method_history_head",
+        "record_sequence",
+        "record_digest",
+        "base_url",
+        "current_record_url",
+        "describe_digest",
+        "verified_at",
+        "refresh_after",
+        "expires_at",
+        "cached_at",
+        "cache_expires_at"
+      ],
+      "properties": {
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "service_kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/full_id"
+        },
+        "method_history_head": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "record_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "record_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "base_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://[^?#]+/$",
+          "maxLength": 2048
+        },
+        "current_record_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://[^?#]+$",
+          "maxLength": 2048
+        },
+        "describe_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "verified_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "refresh_after": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Signed record refresh trigger; it does not extend expires_at or authorize a future candidate."
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Signed ServiceResolutionRecord hard expiry. The cache is never routable at or after this instant."
+        },
+        "cached_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "cache_expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Local TTL no later than the signed record expires_at. Implementations enforce cache_expires_at <= expires_at and refresh_after < expires_at."
+        }
+      },
+      "additionalProperties": false
+    },
+    "route_mirror_hint": {
+      "type": "object",
+      "description": "Transport-only hint for one route-mirror service. mirror_service_id is only a stable lookup identity and MUST be paired with independently verifiable service_resolution first-hop material; neither the core_id nor the carrier authorizes target-service routing or Realm access.",
+      "required": [
+        "mirror_service_id",
+        "service_resolution"
+      ],
+      "properties": {
+        "mirror_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Stable core_id of the candidate route-mirror service. A bare core_id is never a route or authority."
+        },
+        "service_resolution": {
+          "$ref": "#/$defs/service_resolution_carrier",
+          "description": "Verifiable first-hop carrier for the mirror itself: either an inline signed current record or its current_record_url locator. A naked URL is forbidden. The target service route still requires Realm-scoped resolve authorization and target-signed material."
+        }
+      },
+      "additionalProperties": false
+    },
+    "route_assistance": {
+      "type": "object",
+      "description": "Optional short-TTL, transport-only route recovery hints for invite locator, invite delivery, or Contact bootstrap. At least one member is required. Effective usability is bounded by the earliest containing locator/invite/contact bootstrap expiry and each fetched record or signed notice expiry. This object MUST NOT enter Event canonical bytes, a Realm member cell, capability or authorization state. Its notice and mirror carriers never extend an outer token/receipt TTL and never authorize delivery, route switching or Realm access.",
+      "properties": {
+        "handover_notice": {
+          "$ref": "#/$defs/service_route_handover_notice",
+          "description": "At most one complete target-signed active handover notice. It is only a candidate-discovery hint; the receiver still requires a basis-matching formal successor ServiceResolutionRecord and describe verification."
+        },
+        "mirror_hints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/route_mirror_hint"
+          },
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "description": "At most four independently routable mirror hints. Each item carries the mirror core_id together with a service_resolution_carrier; bare URLs and bare core ids are not valid items."
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "handover_notice"
+          ]
+        },
+        {
+          "required": [
+            "mirror_hints"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "service_resolution_carrier": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "inline"
+          ],
+          "properties": {
+            "inline": {
+              "$ref": "#/$defs/service_resolution_record"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "current_record_url"
+          ],
+          "properties": {
+            "current_record_url": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https://[^?#]+$",
+              "minLength": 1,
+              "maxLength": 2048,
+              "description": "Directly dereferenceable stable HTTPS URL for the current signed record. Redirects are not followed unless the redirected origin is independently authorized. Fetchers enforce SSRF, DNS-rebinding, size and timeout policy."
+            },
+            "pinned_record_digest": {
+              "$ref": "#/$defs/sha256_digest",
+              "description": "Optional sha256 over RFC 8785 JCS of the complete signed record expected for the version that produced this carrier. It pins that version only; a later refresh may return a different digest after the fetched same-core successor independently verifies."
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

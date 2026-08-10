@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.4",
+  "version": "2026-08-10.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T18:00:00Z",
+  "generated_at": "2026-08-10T23:50:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,12 +18,12 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 227,
+    "total_operations": 236,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "service_describe": 5,
       "streaming_frame_schema": 3,
-      "typed_schema": 217
+      "typed_schema": 226
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,13 +32,13 @@
         "typed_schema": 34
       },
       "deployment_local": {
-        "typed_schema": 15
+        "typed_schema": 16
       },
       "extension": {
         "binary_or_redirect": 2,
         "service_describe": 1,
         "streaming_frame_schema": 1,
-        "typed_schema": 149
+        "typed_schema": 157
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -446,6 +446,20 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
+      "operation_id": "ak.gate.account.command.issue_controller_gate_attestation",
+      "surface_class": "deployment_local",
+      "http": "POST /_arkret/gate/account/controller-gate-attestations",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_request",
+      "response_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ControllerAccountGateAttestationIssueRequestBody",
+        "response": "#/components/schemas/ControllerAccountGateAttestationIssueOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
       "operation_id": "ak.gate.account.command.issue_did_binding_challenge",
       "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/did-binding-challenges",
@@ -726,6 +740,19 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
+      "operation_id": "ak.open.identity.read.resolution",
+      "surface_class": "extension",
+      "http": "GET /_arkret/open/principals/{principal_id}/resolution",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_evidence",
+      "openapi_component_refs": {
+        "response": "../schemas/identity-resolution.schema.json#/$defs/principal_resolution_evidence"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
       "operation_id": "ak.open.invite_locator.read.resolve",
       "surface_class": "extension",
       "http": "POST /_arkret/open/invite-locators/resolve",
@@ -892,6 +919,19 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
+      "operation_id": "ak.open.service.read.resolution",
+      "surface_class": "extension",
+      "http": "GET /_arkret/open/services/{service_id}/resolution",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_record",
+      "openapi_component_refs": {
+        "response": "../schemas/identity-resolution.schema.json#/$defs/service_resolution_record"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
       "operation_id": "ak.peer.account_status.command.submit",
       "surface_class": "extension",
       "http": "POST /_arkret/peer/account-status",
@@ -929,6 +969,20 @@
       "openapi_component_refs": {
         "request": "../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
         "response": "../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.direct_conversation.command.repair_relay",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/direct-conversations/repair-relay",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_relay_request",
+      "response_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_enqueue_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DirectConversationRepairRelayRequestBody",
+        "response": "#/components/schemas/DirectConversationRepairEnqueueOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1085,6 +1139,31 @@
         "request": "#/components/schemas/PcrGenesisSubmitRequestBody",
         "response": "#/components/schemas/PcrGenesisSubmitOutcome"
       },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.service_resolution.command.publish",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/service-resolution/publish",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_request",
+      "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ServiceResolutionPublishRequestBody",
+        "response": "#/components/schemas/ServiceResolutionPublishOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.service_resolution.read.resolve",
+      "surface_class": "extension",
+      "http": "QUERY /_arkret/peer/service-resolution/resolve",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_request",
+      "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_outcome",
+      "openapi_component_refs": {},
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
@@ -2227,6 +2306,20 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
+      "operation_id": "ak.self.direct_conversation.command.repair_dispatch",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/direct-conversations/repair-dispatch",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_dispatch_request",
+      "response_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_enqueue_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DirectConversationRepairDispatchRequestBody",
+        "response": "#/components/schemas/DirectConversationRepairEnqueueOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
       "operation_id": "ak.self.direct_conversation.read.resolve",
       "surface_class": "extension",
       "http": "POST /_arkret/self/direct-conversations/resolve",
@@ -2661,6 +2754,34 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/PolicyCheckRequestBody",
         "response": "#/components/schemas/PolicyCheckOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.principal_service_binding.command.commit",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/principal-service-bindings/commit",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_request_body",
+      "response_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/PrincipalServiceBindingCommitRequestBody",
+        "response": "#/components/schemas/PrincipalServiceBindingCommitOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.principal_service_binding.command.prepare",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/principal-service-bindings/prepare",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_request_body",
+      "response_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/PrincipalServiceBindingPrepareRequestBody",
+        "response": "#/components/schemas/PrincipalServiceBindingPrepareOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

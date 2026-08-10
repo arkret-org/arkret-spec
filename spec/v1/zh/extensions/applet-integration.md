@@ -87,10 +87,10 @@ Applet 的主要可见 Actor。Bot Actor 可以加入 Realm、被 mention、发�
 外部网络用户在 Arkret 中的镜像 Actor。例如 Slack 用户 `U123` 映射为一个独立 Actor DID：
 
 ```text
-did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123
+did:webvh:z6MkGhostU123:slack-bridge.example
 ```
 
-`#fragment` 只用于 DID URL 形式的 verification method（例如 `did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123#key-1`），不得作为 `actor_id` / `bot_actor_id` 的一部分。
+`#fragment` 只用于 DID URL 形式的 verification method（例如 `did:webvh:z6MkGhostU123:slack-bridge.example#key-1`），不得作为 `actor_id` / `bot_actor_id` 的一部分。稳定 `actor_id` 使用其 adapter projection `ak:did_core:webvh:z6MkGhostU123`；每个 Ghost 必须有自己的 validated SCID，不能复用 Applet service SCID 后仅靠 host/path 区分。
 
 Ghost Actor MUST 带有 `accountable_principal_ids`，且本节 provisioning aggregate 创建的初始 Profile MUST 只包含提交并签署同请求 `accountability_grant_event` 的外部 service DID。Applet controller 与 Ghost 的生命周期关系由 active Applet registration / install 记录表达，不得在缺少 controller 自己签发的 active `ak.identity.accountability_grant` 时把 controller DID 复制进该数组；后续若要增加 controller，必须先独立提交该 controller 的 grant，再按普通 Profile update 规则更新。外部网络来源（protocol / network id / user id）记录在 `profile_fields.external_ref`。问责字段以 actor-profile schema 的 `accountable_principal_ids` 为唯一权威形态（见 [`applet-schema.md`](./applet-schema.md) 与 §9）；`accountability` 嵌套对象不是合法 wire 形态。
 
@@ -133,10 +133,10 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 {
   "kind": "ak.applet.registration",
   "applet_id": "ak:applet:21532600-0000-7000-8000-000000000000",
-  "service_id": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example",
-  "controller_id": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
+  "service_id": "ak:did_core:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
+  "controller_id": "ak:did_core:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn",
   "base_url": "https://slack-bridge.example/applet",
-  "bot_actor_id": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:bot",
+  "bot_actor_id": "ak:did_core:webvh:z6MkSlackBridgeBotScid",
   "claimed_profiles": [
     "ak.profile.applet_service.v1",
     "ak.profile.applet_bridge.v1"
@@ -194,8 +194,8 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 ### 4.1 Registration 规则
 
 - `applet_id` MUST 稳定。
-- `service_id` MUST 可解析，并声明 Applet endpoint。
-- `controller_id` MUST 对 registration 签名。
+- `service_id` MUST 是稳定 service `core_id`；注册时提供的 `full_id` 必须经 adapter 投影到它，当前 endpoint 通过 verified ServiceResolutionRecord 取得。
+- `controller_id` MUST 是 controller `core_id`；registration proof VM 的 bare `full_id` 必须经 adapter 投影到它并通过签名验证。
 - `claimed_profiles` MUST 从已验证 package 原样复制到 durable registration，至少包含
   `ak.profile.applet_service.v1`；profile-bound authority 只读取 accepted Event，不得读取
   preview/package cache。
@@ -405,10 +405,10 @@ Base URL 来自 registration 的 `base_url`。
 
 | operation_id | surface / 调用方向 | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- | --- |
-| `ak.edge.applet.read.ping` | edge（节点→Applet） | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_id: did`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
-| `ak.edge.applet.read.describe` | edge（节点→Applet） | 无 | 无 | `applet_id: id`; `service_id: did`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |
-| `ak.edge.applet.command.transaction` | edge（节点→Applet） | `header.Idempotency-Key: string`; `source_service_id: did`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service DID、HTTP signature、event signature、namespace 和 capability。 |
-| `ak.edge.applet.actor.read.resolve` | edge（节点→Applet） | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
+| `ak.edge.applet.read.ping` | edge（节点→Applet） | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_id: core_id`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
+| `ak.edge.applet.read.describe` | edge（节点→Applet） | 无 | 无 | `applet_id: id`; `service_id: core_id`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |
+| `ak.edge.applet.command.transaction` | edge（节点→Applet） | `header.Idempotency-Key: string`; `source_service_id: core_id`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service `core_id`、对应 full/VM 投影、HTTP signature、event signature、namespace 和 capability。 |
+| `ak.edge.applet.actor.read.resolve` | edge（节点→Applet） | `path.actor_id: core_id` | 无 | `exists: boolean`; `actor_id: core_id?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
 | `ak.edge.applet.realm.read.resolve` | edge（节点→Applet） | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
 | `ak.edge.applet.read.protocol_metadata` | edge（节点→Applet） | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_definitions: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
 | `ak.edge.applet.third_party_users.read.list` | edge（节点→Applet） | `query.protocol: string`; 外部 ID query 字段 | 无 | `actor_id: did?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 registration namespace 内。 |
@@ -431,7 +431,7 @@ GET /_arkret/edge/applet/ping
 {
   "ok": true,
   "applet_id": "ak:applet:21532600-0000-7000-8000-000000000000",
-  "service_id": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example",
+  "service_id": "ak:did_core:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
   "protocol_version": "1.0"
 }
 ```
@@ -457,13 +457,13 @@ Arkret Sync Service / Events API 向 Applet 推送事件批次。
 
 ```json
 {
-  "source_service_id": "did:webvh:z7SrvceTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:server.example",
+  "source_service_id": "ak:did_core:webvh:z7SrvceTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
   "events": [
     {
       "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
       "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "kind": "ak.message.create",
-      "actor_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example",
+      "actor_id": "ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
       "payload": {}
     }
   ],
@@ -471,7 +471,7 @@ Arkret Sync Service / Events API 向 Applet 推送事件批次。
     {
       "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "scope_ref": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-      "sender_actor_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example",
+      "sender_actor_id": "ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
       "sender_device_id": "ak:device:019640ed-8000-7000-8000-000000000001",
       "seal_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
       "signal_class": "session",
@@ -527,14 +527,14 @@ Arkret Sync Service / Events API 向 Applet 推送事件批次。
 transaction push 是 service↔service 调用，**两个方向**都 MUST 携带**逐次投递**的 RFC 9421 HTTP Message Signature（per-delivery source signature），接收方 MUST 在处理任何 event / 副作用前先验签；纯 `Authorization: Bearer`（无 `Signature`）的 transaction push MUST 被拒绝。两方向不可只靠 bearer，也不可只在首次握手时验签一次：
 
 - **node → Applet**（§7.3 上文，Arkret 节点向 Applet 推送）：Applet 端 MUST 按 `Source-Service-ID` 的 accepted service key binding 取得当前有效 verification method，并逐次验证 HTTP Message Signature；逐次验签不等于逐次在线解析 DID。新 service / key、binding invalidation 或显式 freshness 失效时才进入 DID authority resolution。`Destination-Service-ID` MUST 等于接收 Applet registration 的 `service_id`。Applet registration 的 `webhook_auth` 在该方向声明 transaction endpoint 要求 `http_message_signature` 与可接受算法；`webhook_auth.key_ref` MUST NOT 被解释成任意 Arkret 节点的来源 key。
-- **app/bridge → arkret edge inbound**（`POST /_arkret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 arkret edge 推送外部网络 transaction）：arkret edge 接收方 MUST 先用 `Source-Service-ID` 找到 active effective install（§4b.1）与当前 effective Applet registration，再要求签名 `keyid` / verification method 等于该 registration 的 `webhook_auth.key_ref`（其 DID 部分 MUST 等于 registration `service_id` / header `Source-Service-ID`），并逐次验签。缺签名、签名无效、`Source-Service-ID` 与 registration 不一致、`webhook_auth.key_ref` 不属于该 Applet service DID 或无 active install 时 MUST fail closed。
+- **app/bridge → arkret edge inbound**（`POST /_arkret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 arkret edge 推送外部网络 transaction）：arkret edge 接收方 MUST 先用 `Source-Service-ID`（service `core_id`）找到 active effective install（§4b.1）与当前 effective Applet registration，再要求签名 `keyid` / verification method 等于该 registration 的 `webhook_auth.key_ref`；接收方从该 DID URL 取得 bare controller `full_id`，用已登记 adapter 验证并要求 `project(full_id) == registration.service_id == Source-Service-ID`，不得把 full DID 与 core header 直接比较，并逐次验签。缺签名、签名无效、投影不一致、`webhook_auth.key_ref` 未被该 Applet service 当前状态授权或无 active install 时 MUST fail closed。
 
 **覆盖 header 集（MUST，与 [`../sync/federation.md` §3.2](../sync/federation.md) service-to-service 签名对称）**：签名 transcript MUST 覆盖以下 RFC 9421 derived components 与 header：
 
 - `@method`、`@target-uri`、`@authority`
 - `content-digest`（按 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 覆盖 exact canonical HTTP content bytes；transaction push 总是带 body，故 MUST 携带唯一 `sha-256` member 的 `Content-Digest`）
 - `source-service-id`（header `Source-Service-ID`，等于 body `source_service_id`）
-- `destination-service-id`（header `Destination-Service-ID`，等于接收方 service DID）
+- `destination-service-id`（header `Destination-Service-ID`，等于接收方 service `core_id`）
 - `idempotency-key`（header `Idempotency-Key`；参与幂等 / replay key，MUST 进入 transcript）
 - 签名 parameters MUST 含 `created` 与 `expires`；时效窗口判据沿用 [`../sync/federation.md` §3.2](../sync/federation.md)（`expires - created` ≤ 300s、`created` ±30s skew、`expires` 未过期），落在窗口外的逐字节重放即便 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝。
 
@@ -575,7 +575,7 @@ GET /_arkret/edge/applet/actors/{actor_id}
 ```json
 {
   "exists": true,
-  "actor_id": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123",
+  "actor_id": "ak:did_core:webvh:z6MkGhostU123",
   "display_name": "Alice on Slack",
   "external_ref": {
     "protocol": "slack",
@@ -678,7 +678,7 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
 {
   "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
   "realm_id": "ak:realm:Adoyg50aOV537gzxNy87EOdUlHiIujznqwZcMLSGFmzg",
-  "actor_id": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123",
+  "actor_id": "ak:did_core:webvh:z6MkGhostU123",
   "actor_seq": 17,
   "kind": "ak.message.create",
   "applet_id": "ak:applet:21532600-0000-7000-8000-000000000000",
@@ -702,7 +702,7 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
   "proofs": [
     {
       "kind": "detached_jws",
-      "verification_method": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123#key-1",
+      "verification_method": "did:webvh:z6MkGhostU123:slack-bridge.example#key-1",
       "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "created_at": "2026-04-26T00:00:01Z",
       "jws": "a..b"
@@ -723,7 +723,7 @@ Ghost Actor profile SHOULD 包含（以下为 schema 合法形态；字段与约
 {
   "id": "ak:actor_profile:ARqc1CPEkB79f9R5Lv-dwsj7VZbUKXbAYPl3sEhUufeZ",
   "schema": "ak.schema.actor_profile.v1",
-  "principal_id": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123",
+  "principal_id": "ak:did_core:webvh:z6MkGhostU123",
   "actor_kind": "integration",
   "display_name": "Alice on Slack",
   "accountable_principal_ids": [
@@ -816,8 +816,8 @@ Alice via Calendar Applet
 
 ```json
 {
-  "actor_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example",
-  "executed_by": "did:webvh:z9CalAppTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:calendar-applet.example#agent",
+  "actor_id": "ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
+  "executed_by": "ak:did_core:webvh:z9CalAppTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
   "authorization_ref": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ",
   "applet_id": "ak:applet:8a0baad5-6000-7000-8000-000000000000"
 }

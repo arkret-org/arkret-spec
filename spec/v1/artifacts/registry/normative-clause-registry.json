@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.3",
+  "version": "2026-08-10.8",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T18:00:00Z",
+  "generated_at": "2026-08-10T23:50:00Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -176,13 +176,14 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:d602f6ac2ae43a68d0fb902dd5f0d883c6d99fcd00a2ef4dd44570f4f398a5e0",
-      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, encryption floors MUST NOT be downgraded, an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling, every encrypted envelope MUST commit its exact scope_ref through the unconditional domain-separated aad.scope_digest and receivers MUST recompute it on decrypt, every MLS epoch MUST bind the independently re-derived security frontier for its accepted key-access state, and epoch-0 leaf indices MUST be recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
+      "section_digest": "sha256:1d077de04a7f6471866cb7b6292343030393fb4967898fe19e66779c47ab07ae",
+      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, every peer claim returns branch-matched portable target signer evidence that the requester independently verifies without DID-document device-key or service-projection fallback, encryption floors MUST NOT be downgraded, an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling, every encrypted envelope MUST commit its exact scope_ref through the unconditional domain-separated aad.scope_digest and receivers MUST recompute it on decrypt, every MLS epoch MUST bind the independently re-derived security frontier for its accepted key-access state, and epoch-0 leaf indices MUST be recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.encoding.encrypted_envelope_digest.v1",
         "ak.vector.mls.rfc9420_mti_kat.v1",
         "ak.vector.mls.welcome_keypackage_hash.v1",
+        "ak.vector.keypackage.peer_claim_double_authorization_privacy.v1",
         "ak.vector.mls.security_frontier_key_access_only.v1",
         "ak.vector.mls.governance_proof.materializer.v1",
         "ak.vector.mls.governance_proof.verifier.v1",
@@ -244,7 +245,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:9288abf1af8d2fa9a0eb01f54df90fa238ba7365051b391e2c1ed87de4aba0d3",
+      "section_digest": "sha256:edd0444486dd266187b34d043299e53d6f1a967c13605a98897e4d6bb8a0c6c1",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -308,7 +309,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
-      "section_digest": "sha256:6b388344e77866f9256e74c2befbf17b82998326d36fabd9eb7490af0e2d03b2",
+      "section_digest": "sha256:a13172aed79940a77ffb3aa757f8d8a3e2744a56f6ceaab0580629b28e28a816",
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -337,7 +338,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
-      "section_digest": "sha256:2de8abbcdfb0c4086037b43e04422b80eb35280a021bd93a6d7ca75aabe0c91c",
+      "section_digest": "sha256:b77387bf445a4fb227a9a8494256a28002207796dbe0f908f3582184f5fed690",
       "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, replaying the same state is a no-op, and concurrent siblings resolve to bottom.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -352,7 +353,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/governance-objects.md#5-invite",
-      "section_digest": "sha256:e391ff60836dcd51bd9814c6392db8506ff50a5f14a5950a39ec1a17d08e370c",
+      "section_digest": "sha256:7e18217b0c339c4134a3cf0fc407cc631500ed2d4ca5d08a3104d07131b40919",
       "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the membership transition is atomic with the claim.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -404,7 +405,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/governance/member-delivery-binding.md#5-路由不可降级normative",
-      "section_digest": "sha256:9a2d66f15b1c86860fffead9b760bb11c69fbcb5d704473437e4947a26a13cd5",
+      "section_digest": "sha256:71b9e9aec6ebc55ef1f12e2b93d08725579ccdbc3def77ecb46a9dba8451c570",
       "requirement": "Member delivery binding never silently downgrades: a stale binding frontier, an expired handover grace window or an unresolvable binding MUST fail closed instead of routing to the previous service.",
       "testability_grade": "vector",
       "evidence_refs": [

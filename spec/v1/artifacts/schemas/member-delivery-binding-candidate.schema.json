@@ -18,9 +18,8 @@
   ],
   "properties": {
     "subject_id": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-      "description": "Principal DID of the addressee. Materialised as payload.actor_id / cell subject in ak.member.state{membership=join}."
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "description": "Stable principal core_id of the addressee. Materialised as payload.actor_id / cell subject in ak.member.state{membership=join}."
     },
     "handle": {
       "$ref": "string-profiles.schema.json#/$defs/canonical_handle",
@@ -38,12 +37,16 @@
       "type": "object",
       "required": [
         "recipient_service_id",
+        "service_resolution",
         "binding_source"
       ],
       "properties": {
         "recipient_service_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "service_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
+          "description": "First-hop resolution material for recipient_service_id. The reducer verifies its binding and freshness before materialising the delivery binding."
         },
         "recipient_service_kind": {
           "const": "principal_server"
@@ -86,9 +89,8 @@
       "additionalProperties": false
     },
     "issuer_service_id": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-      "description": "Service DID that signed the candidate (Directory service DID, Principal Server service DID, or Organization service DID)."
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "description": "Stable service core_id of the signer (Directory service, Principal Server, or Organization service)."
     },
     "audience": {
       "type": "string",
@@ -118,7 +120,7 @@
         "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
       "minItems": 1,
-      "description": "At least one proof binding handle, subject_id, member_delivery_binding.recipient_service_id, audience, issuer_service_id, issued_at, expires_at and (when present) claim_digest. issued_at MUST be inside the signed transcript so an MITM cannot widen the replay-protection window by rewriting it; verifiers MUST reject proofs whose canonical transcript omits issued_at."
+      "description": "At least one proof binding handle, subject_id, member_delivery_binding (including service_resolution), audience, issuer_service_id, issued_at, expires_at and (when present) claim_digest. issued_at MUST be inside the signed transcript so an MITM cannot widen the replay-protection window by rewriting it; verifiers MUST reject proofs whose canonical transcript omits issued_at."
     },
     "claim_digest": {
       "type": "string",

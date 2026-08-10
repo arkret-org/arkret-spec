@@ -26,8 +26,8 @@
       "semantic_outcome": "accept",
       "instance": {
         "schema": "ak.schema.key_transparency.v1",
-        "log_service_id": "did:webvh:z6mkfixture:transparency.example",
-        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "log_service_id": "ak:did_core:webvh:z6mkfixturetransparencyexample",
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
         "key_material_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "log_head": {
           "leaf_count": 8,
@@ -50,13 +50,13 @@
         },
         "witness_signatures": [
           {
-            "witness_did": "did:webvh:z6mkfixture:witness-a.example",
-            "verification_method": "did:webvh:z6mkfixture:witness-a.example#key-1",
+            "witness_did": "ak:did_core:webvh:z6mkfixturewitnessaexample",
+            "verification_method": "did:webvh:z6mkfixturewitnessaexample:witness-a.example#key-1",
             "signature": "signature-placeholder-a"
           },
           {
-            "witness_did": "did:webvh:z6mkfixture:witness-b.example",
-            "verification_method": "did:webvh:z6mkfixture:witness-b.example#key-1",
+            "witness_did": "ak:did_core:webvh:z6mkfixturewitnessbexample",
+            "verification_method": "did:webvh:z6mkfixturewitnessbexample:witness-b.example#key-1",
             "signature": "signature-placeholder-b"
           }
         ]
@@ -71,8 +71,8 @@
       "expected_reason_code": "key_transparency_proof_missing",
       "instance": {
         "schema": "ak.schema.key_transparency.v1",
-        "log_service_id": "did:webvh:z6mkfixture:transparency.example",
-        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "log_service_id": "ak:did_core:webvh:z6mkfixturetransparencyexample",
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
         "key_material_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "log_head": {
           "leaf_count": 8,
@@ -86,13 +86,13 @@
         },
         "witness_signatures": [
           {
-            "witness_did": "did:webvh:z6mkfixture:witness-a.example",
-            "verification_method": "did:webvh:z6mkfixture:witness-a.example#key-1",
+            "witness_did": "ak:did_core:webvh:z6mkfixturewitnessaexample",
+            "verification_method": "did:webvh:z6mkfixturewitnessaexample:witness-a.example#key-1",
             "signature": "signature-placeholder-a"
           },
           {
-            "witness_did": "did:webvh:z6mkfixture:witness-b.example",
-            "verification_method": "did:webvh:z6mkfixture:witness-b.example#key-1",
+            "witness_did": "ak:did_core:webvh:z6mkfixturewitnessbexample",
+            "verification_method": "did:webvh:z6mkfixturewitnessbexample:witness-b.example#key-1",
             "signature": "signature-placeholder-b"
           }
         ]

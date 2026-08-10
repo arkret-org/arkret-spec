@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.personal_agent_provisioning.v1",
-  "version": "2026-08-10",
+  "version": "2026-08-11",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -29,7 +29,7 @@
       "expect_valid": true,
       "instance": {
         "pairing_request_id": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
-        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "agent_id": "ak:did_core:webvh:z6mkagent",
         "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
         "public_key": {
           "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -41,7 +41,7 @@
           "kind": "agent_runtime_key_possession",
           "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
           "challenge": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
-          "audience": "did:webvh:z6mkfixture:pair.example",
+          "audience": "ak:did_core:webvh:z6mkfixturepairexample",
           "created_at": "2026-07-17T13:45:07.734Z",
           "expires_at": "2026-07-17T13:50:07.734Z",
           "runtime_key_binding_digest": "sha256:1e06d0f56c0e3d78fe94833228c370693c793fdc679f977212b0f039360acedd",
@@ -58,7 +58,7 @@
       "first_expected_error": "contains:pairing_code",
       "instance": {
         "pairing_request_id": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
-        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "agent_id": "ak:did_core:webvh:z6mkagent",
         "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
         "public_key": {
           "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -70,7 +70,7 @@
           "kind": "agent_runtime_key_possession",
           "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
           "challenge": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
-          "audience": "did:webvh:z6mkfixture:pair.example",
+          "audience": "ak:did_core:webvh:z6mkfixturepairexample",
           "created_at": "2026-07-17T13:45:07.734Z",
           "expires_at": "2026-07-17T13:50:07.734Z",
           "runtime_key_binding_digest": "sha256:a2d4f27ec366e970e2f4f7853414c2ce3ec266d720bc77c0fcb0a513e86bd3f7",
@@ -88,7 +88,7 @@
       "first_expected_error": "contains:requested_scope_disclosure",
       "instance": {
         "pairing_request_id": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
-        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "agent_id": "ak:did_core:webvh:z6mkagent",
         "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
         "public_key": {
           "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -100,7 +100,7 @@
           "kind": "agent_runtime_key_possession",
           "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
           "challenge": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
-          "audience": "did:webvh:z6mkfixture:pair.example",
+          "audience": "ak:did_core:webvh:z6mkfixturepairexample",
           "created_at": "2026-07-17T13:45:07.734Z",
           "expires_at": "2026-07-17T13:50:07.734Z",
           "runtime_key_binding_digest": "sha256:a2d4f27ec366e970e2f4f7853414c2ce3ec266d720bc77c0fcb0a513e86bd3f7",
@@ -118,7 +118,7 @@
       "first_expected_error": "contains:proof_of_possession",
       "instance": {
         "pairing_request_id": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
-        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "agent_id": "ak:did_core:webvh:z6mkagent",
         "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
         "public_key": {
           "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -132,13 +132,57 @@
       }
     },
     {
+      "name": "agent_provision_prepare_outcome_omits_unavailable_pcr_id",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "expect_valid": true,
+      "instance": {
+        "status": "awaiting_controller_event",
+        "agent_id": "ak:did_core:webvh:z6mkagent",
+        "full_id": "did:webvh:z6mkagent:agent.example",
+        "controller_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
+        "allocation_handle": "allocation_handle_01",
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
+        "requested_scope_digest": "sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042"
+      }
+    },
+    {
+      "name": "agent_provision_prepare_outcome_rejects_future_pcr_id",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "expect_valid": false,
+      "first_expected_error": "contains:principal_control_realm_id",
+      "instance": {
+        "status": "awaiting_controller_event",
+        "agent_id": "ak:did_core:webvh:z6mkagent",
+        "full_id": "did:webvh:z6mkagent:agent.example",
+        "principal_control_realm_id": "ak:realm:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-",
+        "controller_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
+        "allocation_handle": "allocation_handle_01",
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
+        "requested_scope_digest": "sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042"
+      }
+    },
+    {
+      "name": "agent_provision_commit_outcome_requires_declared_pcr_id",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "expect_valid": true,
+      "instance": {
+        "status": "awaiting_pcr_genesis",
+        "agent_id": "ak:did_core:webvh:z6mkagent",
+        "full_id": "did:webvh:z6mkagent:agent.example",
+        "principal_control_realm_id": "ak:realm:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-",
+        "allocation_handle": "allocation_handle_01",
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
+        "requested_scope_digest": "sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042"
+      }
+    },
+    {
       "name": "agent_provision_payload_single_event_valid",
       "schema_ref": "schemas/agent-provision.schema.json",
       "expect_valid": true,
       "instance": {
         "schema": "ak.schema.agent_provision.v1",
-        "agent_id": "did:webvh:z6mkagent:agent.example",
-        "controller_id": "did:webvh:z6mkcontroller:controller.example",
+        "agent_id": "ak:did_core:webvh:z6mkagent",
+        "controller_id": "ak:did_core:webvh:z6mkcontroller",
         "principal_control_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
         "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
         "agent_slug": "summary",
@@ -155,8 +199,8 @@
       "first_expected_error": "contains:proofs",
       "instance": {
         "schema": "ak.schema.agent_provision.v1",
-        "agent_id": "did:webvh:z6mkagent:agent.example",
-        "controller_id": "did:webvh:z6mkcontroller:controller.example",
+        "agent_id": "ak:did_core:webvh:z6mkagent",
+        "controller_id": "ak:did_core:webvh:z6mkcontroller",
         "principal_control_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
         "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
         "agent_slug": "summary",
@@ -194,7 +238,7 @@
       "expect_valid": false,
       "first_expected_error": "contains:runtime_state",
       "instance": {
-        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "agent_id": "ak:did_core:webvh:z6mkagent",
         "slug": "summary",
         "lifecycle": "active",
         "readiness": {
@@ -217,8 +261,8 @@
       "expect_valid": false,
       "first_expected_error": "contains:runtime_state",
       "instance": {
-        "agent_id": "did:webvh:z6mkagent:agent.example",
-        "controller_id": "did:webvh:z6mkcontroller:controller.example",
+        "agent_id": "ak:did_core:webvh:z6mkagent",
+        "controller_id": "ak:did_core:webvh:z6mkcontroller",
         "principal_control_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
         "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
         "status": "active",
@@ -269,8 +313,8 @@
       "vector_id": "ak.vector.agent.provision.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_provision_vector",
       "requested_scope_commitment": {
-        "agent_id": "did:webvh:z6mkagent:agent.example",
-        "controller_id": "did:webvh:z6mkcontroller:controller.example",
+        "agent_id": "ak:did_core:webvh:z6mkagent",
+        "controller_id": "ak:did_core:webvh:z6mkcontroller",
         "requested_scope": {
           "actions": [
             "ak.event.read",
@@ -486,8 +530,8 @@
       "disclosure": {
         "schema": "ak.schema.agent_requested_scope_disclosure.v1",
         "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-        "agent_id": "did:webvh:z6mkagent:agent.example",
-        "controller_id": "did:webvh:z6mkcontroller:controller.example",
+        "agent_id": "ak:did_core:webvh:z6mkagent",
+        "controller_id": "ak:did_core:webvh:z6mkcontroller",
         "requested_scope": {
           "actions": [
             "ak.event.read",
@@ -546,7 +590,7 @@
       "name": "agent_runtime_key_binding",
       "vector_id": "ak.vector.agent.runtime_key_binding.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_runtime_key_binding_vector",
-      "canonical_binding_json": "{\"agent_id\":\"did:webvh:z6mkagent:agent.example\",\"attestation_digest\":\"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b\",\"kind\":\"ak.agent.runtime_key_binding.v1\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"public_key_digest\":\"sha256:30bde072332c796c2bfa2cca05564e592d49a6dd11719cfdb8a918c0897486a4\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
+      "canonical_binding_json": "{\"agent_id\":\"ak:did_core:webvh:z6mkagent\",\"attestation_digest\":\"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b\",\"kind\":\"ak.agent.runtime_key_binding.v1\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"public_key_digest\":\"sha256:30bde072332c796c2bfa2cca05564e592d49a6dd11719cfdb8a918c0897486a4\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
       "source_public_key": {
         "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "kid": "did:webvh:z6mkagent:agent.example#runtime-1",
@@ -556,10 +600,10 @@
       "source_runtime_attestation": null,
       "expected_public_key_digest": "sha256:30bde072332c796c2bfa2cca05564e592d49a6dd11719cfdb8a918c0897486a4",
       "expected_attestation_digest": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
-      "expected_binding_digest": "sha256:7ddf1d73489d73196f9f88e6fef5d0ce8808538377dd2924bbb105db807c3c2d",
+      "expected_binding_digest": "sha256:d9bfa43d517f962dd5fa8e1a8873dce0de410bffec06b553ea03dd01e330460f",
       "pairing_request_binding_input": {
-        "controller_id": "did:webvh:z6mkcontroller:controller.example",
-        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "controller_id": "ak:did_core:webvh:z6mkcontroller",
+        "agent_id": "ak:did_core:webvh:z6mkagent",
         "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
         "pairing_request_id": "pairing_request:01964137-0000-7000-8000-000000000000",
         "pairing_code": "AAAAAAAAAAAAAAAAAAAAAA",
@@ -570,26 +614,26 @@
           "2026-07-17T13:50:07.734997Z",
           "2026-07-17T21:50:07.734+08:00"
         ],
-        "audience": "did:webvh:z6mkfixture:pair.example"
+        "audience": "ak:did_core:webvh:z6mkfixturepairexample"
       },
       "canonical_pairing_expires_at": "2026-07-17T13:50:07.734Z",
       "proof_of_possession": {
         "kind": "agent_runtime_key_possession",
         "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
         "challenge": "pairing_request:01964137-0000-7000-8000-000000000000",
-        "audience": "did:webvh:z6mkfixture:pair.example",
+        "audience": "ak:did_core:webvh:z6mkfixturepairexample",
         "created_at": "2026-07-17T13:45:07.734Z",
         "expires_at": "2026-07-17T13:50:07.734Z",
-        "runtime_key_binding_digest": "sha256:7ddf1d73489d73196f9f88e6fef5d0ce8808538377dd2924bbb105db807c3c2d",
-        "transcript_digest": "sha256:7bd8241f2e3ba3ed9259605f151954f27a60e6a07dd95263ae066da3a4e841ba",
+        "runtime_key_binding_digest": "sha256:d9bfa43d517f962dd5fa8e1a8873dce0de410bffec06b553ea03dd01e330460f",
+        "transcript_digest": "sha256:694b26b7615ddca6aa74550604bc595fdf221b03dd9b17427e3f253ad28711d2",
         "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "signature_algorithm": "Ed25519"
       },
-      "canonical_possession_transcript_json": "{\"audience\":\"did:webvh:z6mkfixture:pair.example\",\"challenge\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"context\":\"ak.agent-runtime-key-possession-proof-v1\",\"created_at\":\"2026-07-17T13:45:07.734Z\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"agent_runtime_key_possession\",\"pairing_code\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"runtime_key_binding_digest\":\"sha256:7ddf1d73489d73196f9f88e6fef5d0ce8808538377dd2924bbb105db807c3c2d\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
-      "expected_possession_transcript_digest": "sha256:7bd8241f2e3ba3ed9259605f151954f27a60e6a07dd95263ae066da3a4e841ba",
-      "expected_proof_of_possession_digest": "sha256:ded1c69af751938f17563df6952565efa9e368fabd8d46f7c6291d1596541848",
-      "canonical_pairing_request_binding_json": "{\"agent_id\":\"did:webvh:z6mkagent:agent.example\",\"audience\":\"did:webvh:z6mkfixture:pair.example\",\"controller_id\":\"did:webvh:z6mkcontroller:controller.example\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"ak.agent.key_pairing_request_binding.v1\",\"operation_id\":\"ak.gate.account.command.pair_agent_key\",\"pairing_code\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"proof_of_possession_digest\":\"sha256:ded1c69af751938f17563df6952565efa9e368fabd8d46f7c6291d1596541848\",\"runtime_key_binding_digest\":\"sha256:7ddf1d73489d73196f9f88e6fef5d0ce8808538377dd2924bbb105db807c3c2d\"}",
-      "expected_pairing_request_binding_digest": "sha256:2ab8238dd2ed9f259428397e578db199d02b21f31edc565efec9faa2dcca3068",
+      "canonical_possession_transcript_json": "{\"audience\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"challenge\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"context\":\"ak.agent-runtime-key-possession-proof-v1\",\"created_at\":\"2026-07-17T13:45:07.734Z\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"agent_runtime_key_possession\",\"pairing_code\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"runtime_key_binding_digest\":\"sha256:d9bfa43d517f962dd5fa8e1a8873dce0de410bffec06b553ea03dd01e330460f\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
+      "expected_possession_transcript_digest": "sha256:694b26b7615ddca6aa74550604bc595fdf221b03dd9b17427e3f253ad28711d2",
+      "expected_proof_of_possession_digest": "sha256:6692332ce24096fb2c761cdfb76617fd8029df3fe6ab29fa2a144d6dcbf3686e",
+      "canonical_pairing_request_binding_json": "{\"agent_id\":\"ak:did_core:webvh:z6mkagent\",\"audience\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"controller_id\":\"ak:did_core:webvh:z6mkcontroller\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"ak.agent.key_pairing_request_binding.v1\",\"operation_id\":\"ak.gate.account.command.pair_agent_key\",\"pairing_code\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"proof_of_possession_digest\":\"sha256:6692332ce24096fb2c761cdfb76617fd8029df3fe6ab29fa2a144d6dcbf3686e\",\"runtime_key_binding_digest\":\"sha256:d9bfa43d517f962dd5fa8e1a8873dce0de410bffec06b553ea03dd01e330460f\"}",
+      "expected_pairing_request_binding_digest": "sha256:3a2b725ec80c4ec47fb1aed666ce87ad13cdb5abd680927f3b2787eb7ceb6a02",
       "assertions": [
         "same stable binding retry retains approval_request_id and notification id and emits action update",
         "a runtime persists and reuses one local key binding for an open pairing_request_id across process restart and channel delete/recreate",

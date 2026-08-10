@@ -26,7 +26,7 @@
       "$ref": "#/$defs/recovery_session_id"
     },
     "principal_id": {
-      "$ref": "#/$defs/did"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "requesting_device_id": {
       "$ref": "#/$defs/device_id"
@@ -158,8 +158,7 @@
   "additionalProperties": false,
   "$defs": {
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "did_url": {
       "type": "string",
@@ -191,7 +190,7 @@
     "backup_kind": {
       "type": "string",
       "enum": [
-                "secret_storage",
+        "secret_storage",
         "mls_history"
       ]
     },

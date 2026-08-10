@@ -28,7 +28,7 @@
   ],
   "$defs": {
     "did": {
-      "$ref": "./common-ids.schema.json#/$defs/did"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -592,7 +592,7 @@
           ]
         },
         "actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "occurred_at": {
           "$ref": "#/$defs/timestamp"

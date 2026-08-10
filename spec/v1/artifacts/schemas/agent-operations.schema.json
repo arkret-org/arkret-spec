@@ -85,8 +85,10 @@
   ],
   "$defs": {
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    },
+    "full_id": {
+      "$ref": "./common-ids.schema.json#/$defs/full_id"
     },
     "blob_ref": {
       "type": "string",
@@ -466,7 +468,7 @@
           "$ref": "#/$defs/did"
         },
         "controller_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -706,7 +708,7 @@
         },
         "challenge_proof": {
           "$ref": "./device-pairing.schema.json#/$defs/device_pairing_challenge_proof",
-      "description": "Structured proof of possession of new_device_pubkey. The Account Authority MUST recompute the signing transcript itself and MUST NOT settle for byte equality against a stored copy. Which transcript applies is fixed by the request shape: with device_pairing_request_id it is ak.device-pairing.challenge.v1 rebuilt from the staged record; with challenge_transcript it is ak.device-pairing.challenge.to_device.v1 rebuilt from those inputs plus the Account Authority own gate_audience origin. The digest of that recomputed transcript is also the value the target device_signature commits to, so one recomputation gates both proofs. A mismatched transcript_digest, a transcript name that does not match the request shape, a kid other than new_device_pubkey.kid, or a failing signature MUST NOT authorize a device."
+          "description": "Structured proof of possession of new_device_pubkey. The Account Authority MUST recompute the signing transcript itself and MUST NOT settle for byte equality against a stored copy. Which transcript applies is fixed by the request shape: with device_pairing_request_id it is ak.device-pairing.challenge.v1 rebuilt from the staged record; with challenge_transcript it is ak.device-pairing.challenge.to_device.v1 rebuilt from those inputs plus the Account Authority own gate_audience origin. The digest of that recomputed transcript is also the value the target device_signature commits to, so one recomputation gates both proofs. A mismatched transcript_digest, a transcript name that does not match the request shape, a kid other than new_device_pubkey.kid, or a failing signature MUST NOT authorize a device."
         },
         "hpke_key": {
           "$ref": "#/$defs/non_empty_string",
@@ -718,7 +720,7 @@
         },
         "authorize_event": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
-          "description": "Fully signed ak.device.authorize initial submission authored by a current accepted device. The service MUST admit this exact Event through the ordinary Event validation/reducer path; it MUST NOT mint an Event id, rewrite the Event, or directly insert a device projection. The payload MUST name the target new_device_pubkey.kid, hpke_key and device_signature from this request, set authorization_binding_kind=accepted_device, and name the approving current device id in authorized_by. proof.verification_method MUST equal principal_id + '#' + authorized_by: that Event proof, not the target device_signature, is what binds principal_id, authorized_by, not_before, expires_at and scopes, because only the approving device knows those values."
+          "description": "Fully signed ak.device.authorize initial submission authored by a current accepted device. The service MUST admit this exact Event through the ordinary Event validation/reducer path; it MUST NOT mint an Event id, rewrite the Event, or directly insert a device projection. The payload MUST name the target new_device_pubkey.kid, hpke_key and device_signature from this request, set authorization_binding_kind=accepted_device, and name the approving current device id in authorized_by. The proof.verification_method bare DID component MUST project through its registered adapter to principal_id and its fragment MUST equal authorized_by; appending a fragment to core_id is forbidden. That Event proof, not the target device_signature, binds principal_id, authorized_by, not_before, expires_at and scopes, because only the approving device knows those values."
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
@@ -1036,7 +1038,7 @@
     },
     "agent_provision_request_body": {
       "type": "object",
-      "description": "Two-phase controller-authored Agent provisioning. prepare validates prerequisites and allocates the Agent DID and Agent PCR id without publishing durable Agent state. The controller recomputes requested_scope_digest, uses the Arkret SDK to author one ak.agent.provision Event, and returns the same allocation in commit. The service admits that Event before publishing the DID binding and pairing handle. Provisioning never creates an Agent profile, key authorization or Realm capability grant.",
+      "description": "Two-phase controller-authored Agent provisioning. prepare validates prerequisites and allocates a complete Agent full_id, projects its stable agent_id core_id, and returns both with an opaque allocation handle without publishing durable Agent state or choosing an Agent PCR id. After receiving them, the controller freezes the managed-Agent PCR genesis with matching initial_resolution, derives principal_control_realm_id as retype(create.event_id), authors one ak.agent.provision Event that declares that exact value, and returns the same allocation in commit. The service admits that Event before publishing the DID binding and pairing handle. Provisioning never creates an Agent profile, key authorization or Realm capability grant.",
       "required": [
         "phase",
         "operation_id",
@@ -1059,6 +1061,9 @@
         },
         "agent_id": {
           "$ref": "#/$defs/did"
+        },
+        "full_id": {
+          "$ref": "#/$defs/full_id"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
@@ -1099,6 +1104,11 @@
               },
               {
                 "required": [
+                  "full_id"
+                ]
+              },
+              {
+                "required": [
                   "principal_control_realm_id"
                 ]
               },
@@ -1118,6 +1128,7 @@
         {
           "required": [
             "agent_id",
+            "full_id",
             "principal_control_realm_id",
             "allocation_handle",
             "provision_event"
@@ -1137,7 +1148,7 @@
       "required": [
         "status",
         "agent_id",
-        "principal_control_realm_id",
+        "full_id",
         "controller_authorization_ref",
         "requested_scope_digest"
       ],
@@ -1151,6 +1162,10 @@
         },
         "agent_id": {
           "$ref": "#/$defs/did"
+        },
+        "full_id": {
+          "$ref": "#/$defs/full_id",
+          "description": "Complete Agent DID whose registered adapter projection is agent_id; managed-Agent PCR genesis initial_resolution MUST commit this value and its verified method head."
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
@@ -1210,6 +1225,11 @@
             "anyOf": [
               {
                 "required": [
+                  "principal_control_realm_id"
+                ]
+              },
+              {
+                "required": [
                   "pcr_recovery"
                 ]
               },
@@ -1238,6 +1258,7 @@
             }
           },
           "required": [
+            "principal_control_realm_id",
             "allocation_handle"
           ],
           "not": {
@@ -1272,6 +1293,7 @@
         },
         {
           "required": [
+            "principal_control_realm_id",
             "pcr_recovery",
             "pairing_request_id",
             "expires_at"
@@ -1554,7 +1576,7 @@
           "format": "uri"
         },
         "service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "agent_id": {
           "$ref": "#/$defs/did"

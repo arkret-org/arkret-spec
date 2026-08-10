@@ -73,7 +73,7 @@
             "is_primary": true
           }
         },
-        "created_by": "did:webvh:z6mkfixture:alice.example",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
         "created_at": "2026-06-01T00:00:00.000Z"
       }
     },
@@ -100,7 +100,7 @@
             "is_primary": true
           }
         },
-        "created_by": "did:webvh:z6mkfixture:alice.example",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
         "created_at": "2026-06-01T00:00:00.000Z"
       }
     },
@@ -133,7 +133,7 @@
             "is_primary": true
           }
         },
-        "created_by": "did:webvh:z6mkfixture:alice.example",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
         "created_at": "2026-06-01T00:00:00.000Z"
       }
     },
@@ -157,7 +157,7 @@
             "is_primary": true
           }
         },
-        "created_by": "did:webvh:z6mkfixture:alice.example",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
         "created_at": "2026-06-01T00:00:00.000Z"
       }
     },
@@ -183,7 +183,7 @@
             "is_primary": true
           }
         },
-        "created_by": "did:webvh:z6mkfixture:alice.example",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
         "created_at": "2026-06-01T00:00:00.000Z"
       }
     },
@@ -210,7 +210,7 @@
             "is_primary": true
           }
         },
-        "created_by": "did:webvh:z6mkfixture:alice.example",
+        "created_by": "ak:did_core:webvh:z6mkfixture",
         "created_at": "2026-06-01T00:00:00.000Z"
       }
     },
@@ -609,12 +609,12 @@
         "status": "confirmed",
         "attendees": [
           {
-            "actor_id": "did:webvh:z6mkfixture:alice.example",
+            "actor_id": "ak:did_core:webvh:z6mkfixture",
             "role": "organizer",
             "display_name_snapshot": "Alice"
           },
           {
-            "actor_id": "did:webvh:z6mkfixture:bob.example"
+            "actor_id": "ak:did_core:webvh:z6mkfixturebobexample"
           }
         ]
       }
@@ -635,11 +635,11 @@
         "status": "confirmed",
         "attendees": [
           {
-            "actor_id": "did:webvh:z6mkfixture:alice.example",
+            "actor_id": "ak:did_core:webvh:z6mkfixture",
             "role": "organizer"
           },
           {
-            "actor_id": "did:webvh:z6mkfixture:bob.example",
+            "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
             "role": "organizer"
           }
         ]

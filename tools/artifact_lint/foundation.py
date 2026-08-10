@@ -482,10 +482,15 @@ def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) 
         if source == "field":
             lint_field_path(lint, path, f"{member_ref}.field", member["field"])
         elif source == "envelope_field":
-            if member["envelope_field"] not in {"actor_id", "created_at", "realm_id"}:
+            if member["envelope_field"] not in {
+                "actor_id",
+                "created_at",
+                "event_id",
+                "realm_id",
+            }:
                 lint.fail(
                     path,
-                    f"{member_ref}.envelope_field must be actor_id, created_at, or realm_id",
+                    f"{member_ref}.envelope_field must be actor_id, created_at, event_id, or realm_id",
                 )
         elif source == "select":
             lint_select_component(lint, path, f"{member_ref}.select", member["select"])

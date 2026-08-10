@@ -173,7 +173,12 @@ transport MUST 各自通过 binding profile 单独 normative 化。
 ```json
 {
   "service_kind": "principal_server",
-  "service_id": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
+  "service_id": "ak:did_core:webvh:z5CVGhWHEfRe1HhKLRueCrxfD",
+  "service_resolution": {
+    "full_id": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
+    "method_history_head": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "version_id": "3"
+  },
   "supported_bindings": [
     {
       "kind": "http_json",

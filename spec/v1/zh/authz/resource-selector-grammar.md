@@ -337,7 +337,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 这些 selector 主要用于管理、审计、schema / policy 更新、邀请和 actor-private 状态：
 
 - `event:<realm>:<event_id>` 匹配特定 Event；`event:<realm>:*` 匹配 Realm 内 Event metadata。读取 Event payload 仍受对象、track、history、redaction 和 E2EE 约束。
-- `actor:<did>` 匹配 principal / service / agent DID；不得匹配 handle、邮箱或 OAuth subject。`actor:*` 不是 v1 合法 selector：`resource-selector.schema.json` 要求 `actor_id` 是具体 DID，parser / reducer 若遇到 actor wildcard MUST 以 `schema_violation` + `selector_actor_wildcard_forbidden` 拒绝。
+- `actor:<core_id>` 匹配 principal / service / agent 的稳定业务身份；不得匹配 handle、邮箱或 OAuth subject。`actor:*` 不是 v1 合法 selector：`resource-selector.schema.json` 要求 `actor_id` 是具体 `core_id`，parser / reducer 若遇到 actor wildcard MUST 以 `schema_violation` + `selector_actor_wildcard_forbidden` 拒绝。
 - `policy:<realm>:<policy_id>` 与 `schema:<schema_ref>` 用于 policy / schema 管理授权。canonical JSON 字段名为 `schema_ref`。
 - `invite:<realm>:<invite_id>` 用于邀请创建、查看、撤销或接受。
 

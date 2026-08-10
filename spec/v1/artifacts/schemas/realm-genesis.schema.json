@@ -39,6 +39,10 @@
       "$ref": "#/$defs/founding_device_descriptor",
       "description": "Human Principal Control Realm genesis only. The identity root commits to the exact founding device material and the canonical founding authorize payload digest. The enclosing pcr_genesis_unit requires it; managed Agent PCR genesis MUST omit it."
     },
+    "initial_resolution": {
+      "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment",
+      "description": "Root-committed initial full_id and DID method history position for a Principal Control Realm or managed Agent control Realm. The admitting service MUST verify that project(full_id) equals the genesis actor_id before accepting the closed genesis unit."
+    },
     "trust_domain": {
       "$ref": "./realm.schema.json#/$defs/trust_domain"
     },
@@ -97,6 +101,68 @@
         }
       },
       "description": "founding_device_descriptor is exclusive to human Principal Control Realm genesis. managed_agent_control, collaboration and direct_conversation genesis MUST omit it. genesis_salt is required for every purpose since PCR genesis is event-derived like any other Realm."
+    },
+    {
+      "if": {
+        "properties": {
+          "purpose": {
+            "enum": [
+              "principal_control",
+              "managed_agent_control"
+            ]
+          }
+        },
+        "required": [
+          "purpose"
+        ]
+      },
+      "then": {
+        "required": [
+          "initial_resolution"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "initial_resolution"
+          ]
+        }
+      },
+      "description": "Only identity-control Realm genesis carries initial_resolution, and every such genesis carries it. Collaboration/direct-conversation Realms MUST omit it."
+    },
+    {
+      "if": {
+        "properties": {
+          "purpose": {
+            "enum": [
+              "principal_control",
+              "managed_agent_control"
+            ]
+          }
+        },
+        "required": [
+          "purpose"
+        ]
+      },
+      "then": {
+        "properties": {
+          "initial_resolution": {
+            "properties": {
+              "full_id": {
+                "$ref": "./common-ids.schema.json#/$defs/long_lived_principal_full_id"
+              }
+            }
+          },
+          "schema_refs": {
+            "not": {
+              "contains": {
+                "const": "ak.profile.ephemeral_pairwise_principal.v1"
+              }
+            }
+          }
+        }
+      },
+      "description": "Identity-control genesis admits only the closed long-lived did:webvh principal method. Ephemeral pairwise did:key actors are MLS LeafNode-bound Realm-local authors and never create a PCR. Deployment-local policy cannot add another method."
     }
   ],
   "additionalProperties": false,

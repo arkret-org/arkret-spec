@@ -164,6 +164,7 @@ grpc:
       Set: ak.self.invite_receive_policy.resource.replace
     SelfDirectConversation:
       Resolve: ak.self.direct_conversation.read.resolve
+      RepairDispatch: ak.self.direct_conversation.command.repair_dispatch
     FindDirectory:
       Announce: ak.find.directory.command.announce
       Describe: ak.find.directory.read.describe
@@ -214,11 +215,16 @@ grpc:
     PeerContacts:
       Submit: ak.peer.contacts.command.submit
     PeerDirectConversationOperationControl:
+    PeerDirectConversation:
+      RepairRelay: ak.peer.direct_conversation.command.repair_relay
     PeerKeys:
       KeyPackagesClaim: ak.peer.keys.keypackages.command.claim
       KeyPackagesClaimQuery: ak.peer.keys.keypackages.read.claim
     PeerSnapshot:
       Head: ak.peer.snapshot.read.manifest_head
+    PeerServiceResolution:
+      Publish: ak.peer.service_resolution.command.publish
+      Resolve: ak.peer.service_resolution.read.resolve
     PeerSignal:
       Relay: ak.peer.signal.command.relay
     SelfSignal:
@@ -289,6 +295,10 @@ grpc:
       Stage: ak.open.device_pairing.command.stage
       Resolve: ak.open.device_pairing.read.resolve
       Status: ak.open.device_pairing.read.status
+    OpenIdentity:
+      Resolution: ak.open.identity.read.resolution
+    OpenService:
+      Resolution: ak.open.service.read.resolution
     OpenInviteLocator:
       Resolve: ak.open.invite_locator.read.resolve
     SelfInviteLocator:
@@ -369,6 +379,8 @@ mq:
     peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim
     peer.keys.keypackages.query.claim: ak.peer.keys.keypackages.read.claim
     peer.snapshot.query.manifest_head: ak.peer.snapshot.read.manifest_head
+    peer.service_resolution.command.publish: ak.peer.service_resolution.command.publish
+    peer.service_resolution.query.resolve: ak.peer.service_resolution.read.resolve
     peer.signal.command.relay: ak.peer.signal.command.relay
     self.signal.command.send: ak.self.signal.command.send
     self.signal.stream.subscribe: ak.self.signal.stream.subscribe
@@ -405,6 +417,8 @@ mq:
     self.invite_receive_policy.resource.get: ak.self.invite_receive_policy.resource.get
     self.invite_receive_policy.resource.replace: ak.self.invite_receive_policy.resource.replace
     self.direct_conversation.query.resolve: ak.self.direct_conversation.read.resolve
+    self.direct_conversation.command.repair_dispatch: ak.self.direct_conversation.command.repair_dispatch
+    peer.direct_conversation.command.repair_relay: ak.peer.direct_conversation.command.repair_relay
     self.circle.command.create: ak.self.circle.command.create
     self.circle.query.list: ak.self.circle.read.list
     self.circle.resource.get: ak.self.circle.resource.get
@@ -487,6 +501,8 @@ mq:
     open.device_pairing.command.stage: ak.open.device_pairing.command.stage
     open.device_pairing.query.resolve: ak.open.device_pairing.read.resolve
     open.device_pairing.query.status: ak.open.device_pairing.read.status
+    open.identity.query.resolution: ak.open.identity.read.resolution
+    open.service.query.resolution: ak.open.service.read.resolution
     edge.push.command.notify: ak.edge.push.command.notify
     self.authz.query.check: ak.self.authz.read.check
 libp2p:

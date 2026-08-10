@@ -37,10 +37,10 @@
         "realm_id": "ak:realm:AUu6GayQb7-Knno7Ar5EA6ndAgK47WhZI_ViA21yHqDE",
         "controller_id": "did:webvh:z6mkfixture:alice.example",
         "owned_agent_ids": [
-          "did:webvh:z6mkfixture:assistant.agents.example"
+          "did:webvh:z6mkfixtureassistantagentsexample:assistant.agents.example"
         ],
         "effective_agent_ids": [
-          "did:webvh:z6mkfixture:assistant.agents.example"
+          "did:webvh:z6mkfixtureassistantagentsexample:assistant.agents.example"
         ]
       },
       "assertions": [

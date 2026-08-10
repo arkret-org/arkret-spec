@@ -12,25 +12,25 @@
       "vector_id": "ak.vector.membership.delivery_binding.explicit.v1",
       "given_state": {
         "realm_id": "ak:realm:AetVOSm6aZhwAmuyJOLfU97VXd6it32eeFtRHiqrRyfJ",
-        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
+        "actor_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
         "delivery_binding_policy": {
           "allowed_binding_sources": [
             "explicit"
           ],
           "allowed_recipient_services": [
-            "did:webvh:z6mkfixture:principal.acme.example"
+            "did:webvh:z6mkfixtureprincipalacmeexample:principal.acme.example"
           ],
           "required_endorsers": [
-            "did:webvh:z6mkfixture:acme.example"
+            "did:webvh:z6mkfixtureacmeexample:acme.example"
           ]
         },
         "service_acceptance_events": [
           {
             "event_id": "ak:event:AX8dnXKxevlgfFVveXrrOv2EsH17lfDMuGWDWryItfd6",
-            "verification_method": "did:webvh:z6mkfixture:principal.acme.example#key-1",
+            "verification_method": "did:webvh:z6mkfixtureprincipalacmeexample:principal.acme.example#key-1",
             "scope_realm_id": "ak:realm:AetVOSm6aZhwAmuyJOLfU97VXd6it32eeFtRHiqrRyfJ",
             "endorsed_by": [
-              "did:webvh:z6mkfixture:acme.example"
+              "did:webvh:z6mkfixtureacmeexample:acme.example"
             ]
           }
         ]
@@ -40,11 +40,11 @@
         "event_kind": "ak.member.state",
         "payload": {
           "realm_id": "ak:realm:AetVOSm6aZhwAmuyJOLfU97VXd6it32eeFtRHiqrRyfJ",
-          "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
+          "actor_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
           "membership": "join",
           "delivery_status": "routable",
           "delivery_binding": {
-            "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
+            "recipient_service_id": "ak:did_core:webvh:z6mkfixtureprincipalacmeexample",
             "recipient_service_kind": "principal_server",
             "binding_scope": "realm",
             "binding_source": "explicit",
@@ -68,7 +68,7 @@
       },
       "expected": {
         "outcome": "accepted",
-        "delivery_route": "did:webvh:z6mkfixture:principal.acme.example",
+        "delivery_route": "did:webvh:z6mkfixtureprincipalacmeexample:principal.acme.example",
         "must_not_query_did_document_after_accept": true
       }
     },
@@ -76,13 +76,13 @@
       "vector_id": "ak.vector.membership.delivery_binding.did_document_default.v1",
       "given_state": {
         "realm_id": "ak:realm:AetVOSm6aZhwAmuyJOLfU97VXd6it32eeFtRHiqrRyfJ",
-        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
+        "actor_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
         "delivery_binding_policy": {
           "did_document_default_allowed": true
         },
         "did_document_service": {
           "service_kind": "ArkretPrincipalServer",
-          "recipient_service_id": "did:webvh:z6mkfixture:personal.alice.example",
+          "recipient_service_id": "ak:did_core:webvh:z6mkfixturepersonalaliceexample",
           "canonical_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
         }
       },
@@ -91,11 +91,11 @@
         "event_kind": "ak.member.state",
         "payload": {
           "realm_id": "ak:realm:AetVOSm6aZhwAmuyJOLfU97VXd6it32eeFtRHiqrRyfJ",
-          "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
+          "actor_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
           "membership": "join",
           "delivery_status": "routable",
           "delivery_binding": {
-            "recipient_service_id": "did:webvh:z6mkfixture:personal.alice.example",
+            "recipient_service_id": "ak:did_core:webvh:z6mkfixturepersonalaliceexample",
             "recipient_service_kind": "principal_server",
             "binding_scope": "realm",
             "binding_source": "did_document_default",
@@ -113,7 +113,7 @@
       },
       "expected": {
         "outcome": "accepted",
-        "delivery_route": "did:webvh:z6mkfixture:personal.alice.example",
+        "delivery_route": "did:webvh:z6mkfixturepersonalaliceexample:personal.alice.example",
         "missing_did_document_digest_reason_code": "schema_violation",
         "policy_disallow_reason_code": "delivery_binding_policy_mismatch",
         "must_not_runtime_fallback_to_did_document": true
@@ -132,7 +132,7 @@
         "event_kind": "ak.member.state",
         "payload": {
           "realm_id": "ak:realm:AetVOSm6aZhwAmuyJOLfU97VXd6it32eeFtRHiqrRyfJ",
-          "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
+          "actor_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
           "membership": "join",
           "delivery_status": "unroutable"
         }
@@ -150,27 +150,27 @@
         "initial_frontier": "F0",
         "rebind_frontier": "F1",
         "leave_frontier": "F2",
-        "old_service": "did:webvh:z6mkfixture:personal.alice.example",
-        "new_service": "did:webvh:z6mkfixture:principal.acme.example"
+        "old_service": "did:webvh:z6mkfixturepersonalaliceexample:personal.alice.example",
+        "new_service": "did:webvh:z6mkfixtureprincipalacmeexample:principal.acme.example"
       },
       "operation": "federation_delivery_route_resolution",
       "sequence": [
         {
           "frontier": "F0",
-          "expected_route": "did:webvh:z6mkfixture:personal.alice.example"
+          "expected_route": "did:webvh:z6mkfixturepersonalaliceexample:personal.alice.example"
         },
         {
           "frontier": "less_than_F1",
-          "sent_to": "did:webvh:z6mkfixture:personal.alice.example",
+          "sent_to": "did:webvh:z6mkfixturepersonalaliceexample:personal.alice.example",
           "expected_response": {
             "reason_code": "delivery_binding_stale",
-            "new_recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
+            "new_recipient_service_id": "did:webvh:z6mkfixtureprincipalacmeexample:principal.acme.example",
             "handover_frontier": "F1"
           }
         },
         {
           "frontier": "greater_or_equal_F1",
-          "sent_to": "did:webvh:z6mkfixture:personal.alice.example",
+          "sent_to": "did:webvh:z6mkfixturepersonalaliceexample:personal.alice.example",
           "expected_response": {
             "reason_code": "delivery_binding_handed_over"
           }
@@ -195,7 +195,7 @@
             "organization_policy"
           ],
           "allowed_recipient_services": [
-            "did:webvh:z6mkfixture:principal.acme.example"
+            "did:webvh:z6mkfixtureprincipalacmeexample:principal.acme.example"
           ]
         }
       },
@@ -204,11 +204,11 @@
         "event_kind": "ak.member.state",
         "payload": {
           "realm_id": "ak:realm:AetVOSm6aZhwAmuyJOLfU97VXd6it32eeFtRHiqrRyfJ",
-          "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
+          "actor_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
           "membership": "join",
           "delivery_status": "routable",
           "delivery_binding": {
-            "recipient_service_id": "did:webvh:z6mkfixture:untrusted.example",
+            "recipient_service_id": "ak:did_core:webvh:z6mkfixtureuntrustedexample",
             "recipient_service_kind": "principal_server",
             "binding_scope": "realm",
             "binding_source": "explicit",
@@ -236,16 +236,16 @@
                 "explicit"
               ],
               "allowed_recipient_services": [
-                "did:webvh:z6mkfixture:principal.acme.example"
+                "did:webvh:z6mkfixtureprincipalacmeexample:principal.acme.example"
               ],
               "required_endorsers": [
-                "did:webvh:z6mkfixture:acme.example"
+                "did:webvh:z6mkfixtureacmeexample:acme.example"
               ]
             },
             "service_acceptance_events": [
               {
                 "event_id": "ak:event:ARIc1zjXaw04zZgMuhMCrwmouCUhvYeExPe11AygUAj6",
-                "verification_method": "did:webvh:z6mkfixture:principal.acme.example#key-1",
+                "verification_method": "did:webvh:z6mkfixtureprincipalacmeexample:principal.acme.example#key-1",
                 "scope_realm_id": "ak:realm:AetVOSm6aZhwAmuyJOLfU97VXd6it32eeFtRHiqrRyfJ",
                 "endorsed_by": []
               }
@@ -255,11 +255,11 @@
             "event_kind": "ak.member.state",
             "payload": {
               "realm_id": "ak:realm:AetVOSm6aZhwAmuyJOLfU97VXd6it32eeFtRHiqrRyfJ",
-              "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
+              "actor_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
               "membership": "join",
               "delivery_status": "routable",
               "delivery_binding": {
-                "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
+                "recipient_service_id": "ak:did_core:webvh:z6mkfixtureprincipalacmeexample",
                 "recipient_service_kind": "principal_server",
                 "binding_scope": "realm",
                 "binding_source": "explicit",

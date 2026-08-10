@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.4",
+  "version": "2026-08-10.8",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T18:00:00Z",
+  "generated_at": "2026-08-10T23:50:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -90,6 +90,12 @@
       "file": "registry/id-kind-registry.json",
       "section": "id_kind_registry",
       "description": "Generated registry view for ak:<kind>: typed ID prefixes and storage/wire rules."
+    },
+    {
+      "name": "did_method_adapters",
+      "file": "registry/did-method-adapter-registry.json",
+      "section": "did_method_adapter_registry",
+      "description": "Generated registry view for full_id validation, core_id projection and method-native resolution evidence rules."
     },
     {
       "name": "operations",
@@ -2020,29 +2026,49 @@
         ],
         "concurrency_class": "security_barrier"
       },
-      "ak.did.proof": {
-        "plane": "data",
-        "sealed": false,
+      "ak.identity.resolution.update": {
+        "plane": "control",
+        "sealed": true,
         "cell_writes": [
           {
-            "cell_family": "ak.component.identity.proof_log.v1",
-            "cell_subject": {
-              "kind": "did",
-              "field": "payload.did"
+            "cell_family": "ak.component.identity.resolution.v1",
+            "cell_subject": null,
+            "lattice": "cas_register",
+            "bottom": "reject",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "full_id",
+                  "field": "payload.next.full_id"
+                },
+                {
+                  "name": "method_history_head",
+                  "field": "payload.next.method_history_head"
+                },
+                {
+                  "name": "version_id",
+                  "field": "payload.next.version_id"
+                },
+                {
+                  "name": "resolution_event_ref",
+                  "envelope_field": "event_id"
+                },
+                {
+                  "name": "updated_at",
+                  "envelope_field": "created_at"
+                }
+              ]
             },
-            "lattice": "ordered_log",
-            "bottom": "expose",
             "effect_projection": {
-              "kind": "append",
+              "kind": "set",
               "value": {
-                "field": "payload"
-              },
-              "issuer_seq": {
-                "envelope_field": "actor_seq"
+                "projected_value": true
               }
             }
           }
-        ]
+        ],
+        "concurrency_class": "security_barrier"
       },
       "ak.direct_conversation.bound": {
         "plane": "control",
@@ -3684,6 +3710,48 @@
               },
               "issuer_seq": {
                 "const": 0
+              }
+            }
+          },
+          {
+            "cell_family": "ak.component.identity.resolution.v1",
+            "cell_subject": null,
+            "lattice": "cas_register",
+            "bottom": "reject",
+            "initial_value": "__unset__",
+            "condition": {
+              "kind": "field_present",
+              "field": "payload.object.initial_resolution"
+            },
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "full_id",
+                  "field": "payload.object.initial_resolution.full_id"
+                },
+                {
+                  "name": "method_history_head",
+                  "field": "payload.object.initial_resolution.method_history_head"
+                },
+                {
+                  "name": "version_id",
+                  "field": "payload.object.initial_resolution.version_id"
+                },
+                {
+                  "name": "resolution_event_ref",
+                  "envelope_field": "event_id"
+                },
+                {
+                  "name": "updated_at",
+                  "envelope_field": "created_at"
+                }
+              ]
+            },
+            "effect_projection": {
+              "kind": "set",
+              "value": {
+                "projected_value": true
               }
             }
           },
@@ -6082,14 +6150,14 @@
         "id_source": "not_an_object_id"
       },
       {
-        "event_kind": "ak.did.proof",
+        "event_kind": "ak.identity.resolution.update",
         "category": "identity",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "DID proof object or event",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/did_proof_state_payload",
+        "payload": "Owner-authored CAS update of the PCR current full_id resolution projection. Admission requires exactly one head_eq guard for ak:cell:ak.component.identity.resolution.v1:null and cross-binds both payload predecessor fields to that guarded whole value; the Event remains the auditable history source.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/identity_resolution_update_payload",
         "id_source": "not_an_object_id"
       },
       {
@@ -6959,8 +7027,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Actor profile update",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_patch_payload",
+        "payload": "Actor profile update; resolution and every resolution.* path are forbidden because the PCR resolution cell is the sole write authority for that materialized projection.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/actor_profile_update_payload",
         "id_source": "reference"
       },
       {
@@ -8601,6 +8669,20 @@
         "description": "Privacy-minimal Account Authority attestation of the controller principal lifecycle gate; never carries service-local account identity or a raw account cell."
       },
       {
+        "schema_id": "ak.schema.controller_account_gate_attestation_issue_request.v1",
+        "file": "schemas/agent-signer-evidence-operations.schema.json",
+        "fragment": "#/$defs/controller_account_gate_attestation_issue_request",
+        "status": "active",
+        "description": "Authenticated S2S request from a Native Agent PCR authority for the controller Account Authority lifecycle gate needed to assemble signer evidence."
+      },
+      {
+        "schema_id": "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+        "file": "schemas/agent-signer-evidence-operations.schema.json",
+        "fragment": "#/$defs/controller_account_gate_attestation_issue_outcome",
+        "status": "active",
+        "description": "Closed issuance outcome carrying one privacy-minimal controller Account Authority gate attestation."
+      },
+      {
         "schema_id": "ak.schema.agent_signer_admission_receipt.v1",
         "file": "schemas/agent-signer-evidence.schema.json",
         "fragment": "#/$defs/event_admission_receipt",
@@ -9223,14 +9305,14 @@
         "description": "Closed request/response DTO bundle for Directory discovery search, resolve, private contact discovery, handle lookup, agent selector lookup, and push webhook registration operations."
       },
       {
-        "schema_id": "ak.schema.did_continuity_proof.v1",
-        "file": "schemas/did-continuity-proof.schema.json",
+        "schema_id": "ak.schema.identity_resolution.v1",
+        "file": "schemas/identity-resolution.schema.json",
         "status": "active",
-        "description": "Signed DID continuity / migration proof payload",
+        "description": "Principal resolution projection/update/evidence and signed service resolution record contracts for the core_id/full_id model.",
         "consumer_binding": {
-          "kind": "dynamic_schema_ref",
-          "selector": "schema=ak.schema.did_continuity_proof.v1",
-          "normative_ref": "zh/identity/key-management.md"
+          "kind": "standalone_schema_alias",
+          "selector": "principal resolution evidence or service resolution record",
+          "normative_ref": "zh/identity/identity-did.md"
         }
       },
       {
@@ -9789,8 +9871,8 @@
         }
       }
     ],
-    "version": "2026-08-09.16",
-    "generated_at": "2026-08-10T05:00:00Z"
+    "version": "2026-08-10.1",
+    "generated_at": "2026-08-10T21:00:00Z"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -9997,6 +10079,13 @@
         "status": "active",
         "storage_recommendation": "Store canonical tuple fields separately when indexing cell state.",
         "description": "Canonical protocol cell identifier. The complete ak.component.<facet-path>.v<n> family identifier is embedded unchanged after ak:cell:. When the registry declares cell_subject: null for a family, the canonical subject segment is the literal ASCII string 'null' (ak:cell:<component>:null); the cell is located by the Event envelope realm_id and implementations MUST NOT encode realm_id, Realm role classification, or any payload-derived value into that segment. See spec/v1/zh/conformance/encoding.md section 4."
+      },
+      {
+        "kind": "did_core",
+        "wire_form": "ak:did_core:<method>:<core>",
+        "status": "active",
+        "storage_recommendation": "Store the complete canonical value for equality and indexing; generic consumers MUST NOT split or normalize the adapter-defined core segment.",
+        "description": "Stable DID-derived principal, actor or service identity core. It is not a DID, is not directly resolvable, and MUST be projected only by a registered DID method adapter from a canonical bare full_id. Registered as a special form rather than an id_form because its identity authority is the external DID method, not an Arkret producer or Event digest."
       },
       {
         "kind": "trust_domain",
@@ -10525,6 +10614,15 @@
         "identity_authority": "producer_signature"
       },
       {
+        "kind": "service_route_handover",
+        "category": "transport",
+        "status": "active",
+        "wire_form": "ak:service_route_handover:<uuidv7>",
+        "description": "Service-local planned route handover chain ID. The target service allocates it once and reuses it across scheduled updates and cancellation revisions for the same handover.",
+        "id_form": "producer_allocated",
+        "identity_authority": "producer_signature"
+      },
+      {
         "kind": "snapshot",
         "category": "snapshot",
         "status": "active",
@@ -10615,8 +10713,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-08-10.1",
-    "generated_at": "2026-08-10T18:00:00Z"
+    "version": "2026-08-10.3",
+    "generated_at": "2026-08-10T23:50:00Z"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -10750,9 +10848,12 @@
           "ak.peer.events.read.frontier",
           "ak.peer.invites.command.submit",
           "ak.peer.contacts.command.submit",
+          "ak.peer.direct_conversation.command.repair_relay",
           "ak.peer.keys.keypackages.command.claim",
           "ak.peer.keys.keypackages.read.claim",
           "ak.peer.snapshot.read.manifest_head",
+          "ak.peer.service_resolution.command.publish",
+          "ak.peer.service_resolution.read.resolve",
           "ak.peer.signal.command.relay",
           "ak.peer.principal_genesis.command.submit"
         ],
@@ -10794,7 +10895,16 @@
           "ak.self.invite_locator.command.issue",
           "ak.self.invite_locator.command.rotate",
           "ak.self.invite_locator.command.revoke",
-          "ak.self.direct_conversation.read.resolve"
+          "ak.self.direct_conversation.read.resolve",
+          "ak.self.direct_conversation.command.repair_dispatch"
+        ],
+        "surface_class": "extension"
+      },
+      {
+        "surface": "principal_service_binding",
+        "operations": [
+          "ak.self.principal_service_binding.command.prepare",
+          "ak.self.principal_service_binding.command.commit"
         ],
         "surface_class": "extension"
       },
@@ -11042,9 +11152,18 @@
         "surface_class": "extension"
       },
       {
+        "surface": "identity_resolution",
+        "operations": [
+          "ak.open.identity.read.resolution",
+          "ak.open.service.read.resolution"
+        ],
+        "surface_class": "extension"
+      },
+      {
         "surface": "account_auth",
         "operations": [
           "ak.gate.account.exchange.create_handoff",
+          "ak.gate.account.command.issue_controller_gate_attestation",
           "ak.gate.account.command.issue_identity_binding_challenge",
           "ak.gate.account.command.issue_did_binding_challenge",
           "ak.gate.account.command.issue_identity_abandonment_challenge",
@@ -11129,7 +11248,7 @@
               "audit_field": "source_signature_anchor",
               "request_body_field": false,
               "node_to_applet": "Source-Service-ID current service DID verification method; Destination-Service-ID MUST equal the Applet registration service_id.",
-              "applet_to_arkret_inbound": "Applet registration webhook_auth.key_ref; DID part MUST equal Source-Service-ID and the active effective install service_id."
+              "applet_to_arkret_inbound": "Applet registration webhook_auth.key_ref; its canonical bare full_id MUST be validated by the registered method adapter and project to both Source-Service-ID and the active effective install service_id. Direct full-DID/core-id comparison and core_id fragment concatenation are forbidden."
             },
             "idempotency_identity_fields": [
               "operation_id",
@@ -11479,6 +11598,22 @@
         }
       },
       {
+        "operation_id": "ak.gate.account.command.issue_controller_gate_attestation",
+        "http_only_variant": true,
+        "http": "POST /_arkret/gate/account/controller-gate-attestations",
+        "notes": "Account Authority S2S producer operation for Native Agent signer evidence. The request carries agent_authority_service_resolution: the current signed ServiceResolutionRecord, adapter-discriminated method evidence and authenticated normalized DID Document. The receiver independently validates method evidence, document digest, record proof/currentness, project(full_id), and active assertion key before verifying an RFC 9421 signature that covers method, target URI/path, Content-Digest, Source/Destination-Service-ID, operation id and request id. A core_id, URL, bearer or caller-supplied public key is never the verification key source; bearer may only be an additional deployment gate. The authenticated source service MUST equal request.agent_authority_service_id and MUST byte-match service_id in request.principal_id's current AcceptedAtServiceBinding; that Principal Server is the Agent PCR authority under the managed-Agent same-server invariant. Ordinary clients and a caller-supplied account identity are forbidden. The Account Authority reads its own authoritative account binding/status projection, selects account_binding_default or account_status_event basis, and signs the closed controller_account_gate_attestation under domain ak.controller-account-gate-v1. issued_at <= expires_at and expires_at-issued_at MUST be <=300s. Unknown principal, missing current service binding, wrong source service and unauthorized caller are indistinguishable not_found outcomes and disclose no account status. Exact request_id plus canonical intent replay returns the byte-identical outcome while retained; same request_id with different principal or service is duplicate_conflict with zero issuance. The attestation is intentionally a reusable short-TTL controller-lifecycle snapshot and omits operation, request_digest, audience and challenge: per-request current_observation and outer_attestation bind its digest to those exact values, so a bare gate replay cannot validate another request. account_id and raw account cells never enter the request, outcome, logs visible to the caller or portable evidence.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "request_id",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_request",
+        "response_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "issues_only_a_short_lived_signed_gate_attestation_and_may_retain_a_service_local_exact_replay_record"
+        }
+      },
+      {
         "operation_id": "ak.gate.account.command.issue_identity_binding_challenge",
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/identity-binding-challenges",
@@ -11498,7 +11633,7 @@
         "operation_id": "ak.gate.account.command.issue_did_binding_challenge",
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/did-binding-challenges",
-        "notes": "Issue a single-use challenge for binding an ALREADY-PUBLISHED DID to the authenticated service account. Authenticated by Authorization: DPoP <account_handoff_grant> plus a matching DPoP header. Unlike issue_identity_binding_challenge the caller supplies principal_id rather than an unpublished DID operation: the Account Authority MUST resolve that DID itself at the high freshness tier (synchronous refresh or fail closed), MUST NOT accept caller-supplied history, and derives did_version_id, log_head_digest and control_key_digest from the resolved current entry. Deployments that do not host the DID MUST additionally require method-native witness / freshness evidence, because accepting registry and Principal Server co-location does not extend trust to third-party DIDs. The <=300s single-use challenge is bound to account_subject, holder cnf.jkt, the resolved DID pins, audience, origin, trust domain, purpose and expiry. Repeating the same request_id returns the same unconsumed challenge. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states. This operation performs no PCR genesis and reserves no principal: it only proves current control of an existing DID.",
+        "notes": "Issue a single-use challenge for binding an ALREADY-PUBLISHED full_id to the authenticated service account under stable principal_id. Authenticated by Authorization: DPoP <account_handoff_grant> plus a matching DPoP header. Unlike issue_identity_binding_challenge the caller supplies principal_id plus full_id rather than an unpublished DID operation: the Account Authority MUST resolve full_id itself at the high freshness tier (synchronous refresh or fail closed), MUST require the registered adapter to project(full_id)=principal_id, MUST NOT attempt to resolve core_id, MUST NOT accept caller-supplied history, and derives did_version_id, log_head_digest and control_key_digest from the resolved current entry. Deployments that do not host the DID MUST additionally require method-native witness / freshness evidence, because accepting registry and Principal Server co-location does not extend trust to third-party DIDs. The <=300s single-use challenge and returned control proof bind account_subject, principal_id, full_id, holder cnf.jkt, the resolved DID pins, audience, origin, trust domain, purpose and expiry. Repeating the same request_id returns the same unconsumed challenge. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states. This operation performs no PCR genesis and reserves no principal: it only proves current control of an existing DID.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "request_id",
@@ -11696,7 +11831,7 @@
         "http": "POST /_arkret/gate/account/register",
         "grpc": "GateAccount/Register",
         "mq": "gate.account.command.register",
-        "notes": "Canonical account creation/binding operation. In the account-first identity_creation branch the caller MUST present Authorization: DPoP <account_handoff_grant> plus matching DPoP, the current lease/fence, the exact reserved DID inception operation, and a fresh identity-root control proof over the persisted challenge transcript. For did:webvh the verifier takes parameters.updateKeys[0] of the entry pinned by did_version_id (the root is not a DID Document verificationMethod), requires verification_key_multibase to match it exactly, and requires its canonical multikey SHA-256 to equal control_key_digest. For account-first inception that entry is entry 0. The Account Authority CAS-validates account/holder/lease/fence/reservation, consumes the challenge, submits the DID operation internally, accepts only accepted or byte-identical duplicate with a verified head digest, and writes the service-account binding. The (account, principal_id, operation_digest) result is idempotent; published-but-not-yet-bound state is durably completed for that same account and can never be rebound to another account. The operation never accepts recovery words, seed material, or identity-root private keys.",
+        "notes": "Canonical account creation/binding operation. The body selects exactly one branch: an already-published DID control proof, or account-first identity_creation. Both branches submit outer full_id and principal_id; every repeated full_id/principal_id in the selected proof, identity-creation object and PCR genesis initial_resolution MUST equal the outer values byte-for-byte. The Account Authority independently validates the registered method adapter and requires project(full_id)=principal_id. The published-DID proof branch uses the durable challenge pins and creates no identity-creation lease or PCR genesis. In the account-first identity_creation branch the caller MUST additionally present Authorization: DPoP <account_handoff_grant> plus matching DPoP, the current lease/fence, the exact reserved DID inception operation, and a fresh identity-root control proof over the persisted challenge transcript. For did:webvh the verifier takes parameters.updateKeys[0] of the entry pinned by did_version_id (the root is not a DID Document verificationMethod), requires verification_key_multibase to match it exactly, and requires its canonical multikey SHA-256 to equal control_key_digest. For account-first inception that entry is entry 0. The Account Authority CAS-validates account/holder/lease/fence/reservation, consumes the challenge, submits the DID operation internally, accepts only accepted or byte-identical duplicate with a verified head digest, derives pcr_realm_id only by retyping the exact root-signed ak.realm.create event_id, and writes the service-account binding. Account-first PCR genesis persists the same verified full_id, method_history_head and version_id in initial_resolution. Every success returns a signed binding_receipt that binds binding_kind, principal_id, full_id, did_version_id and control_key_digest; identity_creation_lease_id and lease_fence appear only for binding_kind=identity_creation. The (account, principal_id, operation_digest) result is idempotent; published-but-not-yet-bound state is durably completed for that same account and can never be rebound to another account. The operation never accepts recovery words, seed material, or identity-root private keys.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "canonical_hash",
@@ -11871,6 +12006,26 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body",
         "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome"
+      },
+      {
+        "operation_id": "ak.open.identity.read.resolution",
+        "http": "GET /_arkret/open/principals/{principal_id}/resolution",
+        "grpc": "OpenIdentity/Resolution",
+        "mq": "open.identity.query.resolution",
+        "notes": "Reads the owner-published current principal resolution evidence from the known Principal Server. history_depth bounds selective history disclosure; after_resolution_event_ref requests only the successor chain after a known ancestor and never exposes unrelated PCR control history. This is a second-hop evidence fetch, not a global resolver or authorization oracle. Sensitive consumers fetch fresh, validate PCR Event/Seal/cell evidence, independently run the registered DID method adapter, and require project(full_id)=principal_id; durable storage of arbitrary remote-principal bindings is not required.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "schema_resource",
+        "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_evidence"
+      },
+      {
+        "operation_id": "ak.open.service.read.resolution",
+        "http": "GET /_arkret/open/services/{service_id}/resolution",
+        "grpc": "OpenService/Resolution",
+        "mq": "open.service.query.resolution",
+        "notes": "Returns the current signed ServiceResolutionRecord at the stable current_record_url carried by bootstrap material. TLS is transport only. Consumers verify the record proof, method history, project(full_id)=service_id, time ordering, record_sequence/previous_record_digest and describe binding. Same-core successors refresh route caches without Realm rebind; a changed core_id requires a new authorized service binding.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "schema_resource",
+        "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_record"
       },
       {
         "operation_id": "ak.open.invite_locator.read.resolve",
@@ -12118,6 +12273,23 @@
         }
       },
       {
+        "operation_id": "ak.peer.direct_conversation.command.repair_relay",
+        "http": "POST /_arkret/peer/direct-conversations/repair-relay",
+        "grpc": "PeerDirectConversation/RepairRelay",
+        "mq": "peer.direct_conversation.command.repair_relay",
+        "notes": "Service-authenticated relay for an exact requester-authorized ak.member.repair.request. The source copies request_id, content and detached requester authorization byte for byte from the accepted self dispatch, appends exactly one portable device or Native Agent current-authority evidence branch, and covers the complete body with Content-Digest and RFC 9421. The destination independently binds requester identity, accepted rejoin actor and subject, authorization Event, current evidence and exact requester_keypackage_ref signer. In one transaction keyed by (Source-Service-ID, request_id), it freezes request_digest, resolves the peer participant from the accepted Direct Conversation binding, and atomically chooses one closed recipient branch: snapshot every currently authorized human device and enqueue all stable distinct message ids, or enqueue one stable message id to the Native Agent's current active runtime endpoint from accepted agent-key/session binding. Exact replay returns the stored byte-identical outcome; a different digest is duplicate_conflict. Success proves only durable enqueue, never business repair acceptance.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "idempotency_key",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_relay_request",
+        "response_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_enqueue_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "atomically_freezes_one_closed_recipient_target_snapshot_and_queue_batch_without_authoring_an_event"
+        }
+      },
+      {
         "operation_id": "ak.peer.erasure_receipt.command.submit",
         "http": "POST /_arkret/peer/erasure-receipts",
         "grpc": "PeerErasureReceipts/Submit",
@@ -12227,7 +12399,7 @@
         "http": "POST /_arkret/peer/keys/keypackages/claim",
         "grpc": "PeerKeys/KeyPackagesClaim",
         "mq": "peer.keys.keypackages.command.claim",
-        "notes": "Atomic cross-Principal-Server KeyPackage claim. The destination KeyPackage authority is the sole CAS authority and MUST validate both the requester participant authorization and the outer source-service HTTP Message Signature. Idempotency is scoped by (Source-Service-ID, claim_request_id) and binds the canonical request digest; duplicate transport delivery returns the original outcome, but callers MUST use the query operation rather than replaying the command after an uncertain outcome. Success omits inventory counts and per-device failures.",
+        "notes": "Atomic cross-Principal-Server KeyPackage claim. The destination KeyPackage authority is the sole CAS authority and MUST validate both requester portable authorization evidence, the requester participant authorization and the outer source-service HTTP Message Signature. Every successful human-device claim record carries complete target_device_signing_key_evidence without a semantic history-entry cap; every Native Agent record instead carries request-bound current target_agent_signer_evidence. The requester independently verifies the returned root/Seal/current authority before installing the KeyPackage; the destination service receipt is transport integrity, not signer authority. Idempotency is scoped by (Source-Service-ID, claim_request_id) and binds the canonical request digest; duplicate transport delivery returns the original byte-identical outcome, but callers MUST use the query operation rather than replaying the command after an uncertain outcome. Success omits inventory counts and per-device failures.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -12284,6 +12456,36 @@
             "ak.device.authorize"
           ]
         }
+      },
+      {
+        "operation_id": "ak.peer.service_resolution.command.publish",
+        "http": "POST /_arkret/peer/service-resolution/publish",
+        "grpc": "PeerServiceResolution/Publish",
+        "mq": "peer.service_resolution.command.publish",
+        "notes": "Realm-scoped service-authenticated publication of exactly one target-signed ServiceResolutionRecord or ServiceRouteHandoverNotice. Idempotency-Key is required, is covered by the HTTP Message Signature, and MUST equal body.request_id. Transport replay is keyed by (Source-Service-ID, realm_id, request_id) and binds the complete canonical request digest: exact replay returns the original ack and a different digest is duplicate_conflict. Artifact integrity is independently keyed by (Source-Service-ID, realm_id, target service_id, artifact family/key/revision): the same artifact key with another digest conflicts with zero overwrite. The receiver validates source peer authority, target visibility, exact artifact_digest, target proof, full_id-to-core projection, sequential record/notice basis, time rules and hard bounds before writing its service-local mirror ledger. The receiver-signed ack cross-binds both keys, request_digest and accepted time; it proves durable receipt of exact bytes only and never makes a URL authoritative or declares a migration safe unless the deployment-required peer set has all acked.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 262144,
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "idempotency_key",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_request",
+        "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_durable_route_mirror_ledger_and_ack_only_no_realm_event"
+        }
+      },
+      {
+        "operation_id": "ak.peer.service_resolution.read.resolve",
+        "http": "QUERY /_arkret/peer/service-resolution/resolve",
+        "grpc": "PeerServiceResolution/Resolve",
+        "mq": "peer.service_resolution.query.resolve",
+        "notes": "Read-only Realm-scoped recovery of at most 32 continuous target-signed successor records and one active target-signed handover notice within a caller-selected response budget capped at 256 KiB. The authenticated requester must be a current allowed federation peer and must already be authorized to know the target service core through an effective member delivery binding, sync_endpoints or explicit service delegation. Unknown, unauthorized, invisible, not-held and unavailable are outwardly indistinguishable and query/source/target rate limits prevent enumeration. The responder never returns a mirror-signed bare URL. The requester independently verifies every target proof, exact chain, freshness, method history and describe reverse binding; same sequence with different valid target-signed digests enters route-fork quarantine rather than majority, arrival-order or reachability selection.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 16384,
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_request",
+        "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_outcome"
       },
       {
         "operation_id": "ak.peer.signal.command.relay",
@@ -12357,7 +12559,7 @@
         "http": "POST /_arkret/root/identity/organization-registrations:ensure",
         "grpc": "RootIdentity/EnsureOrganizationRegistration",
         "mq": "root.identity.organization_registration.command.ensure",
-        "notes": "Establish the local binding for an external, already-published Organization DID, keyed on organization_id. The caller pins the resolved version_id and log_head_digest and proves control with a method-native proof whose kind is a closed two-member discriminator; creating a new Organization DID is a separate inception ceremony and has no member here. The control proof binds local_admin_subject, so a captured proof cannot be resubmitted naming a different beneficiary. Idempotency is per generation, not per organization: replaying the current generation's request returns created=false, while a request after revoke, or one that changes local_admin_subject or the scope set, opens registration_generation+1 with created=true. Without that generation the terminal revoked state and the organization-keyed idempotency would contradict each other. This operation registers a reference and a local administrative delegation only: it does not host the DID's method history, does not make this deployment the controller, and creates no Realm, membership, notary, capability or service delegation.",
+        "notes": "Establish the local binding for an external, already-published Organization DID. The request MUST carry stable organization_id as core_id plus the current published full_id; the receiver independently resolves and validates full_id with the registered method adapter and requires project(full_id)=organization_id. The referenced challenge MUST bind both identifiers, local_admin_subject and the requested scope set, and the method-native control transcript MUST bind organization_id, full_id, the pinned version_id/log_head_digest and that challenge context. The outcome and signed receipt echo both identifiers; the receipt also binds version_id and control_key_digest so the accepted control state remains auditable. Creating a new Organization DID is a separate inception ceremony and has no member here. Idempotency is per generation: replaying the current generation's byte-identical request returns created=false, while a request after revoke, or one that changes local_admin_subject or the scope set, opens registration_generation+1 with created=true. This operation registers a reference and local administrative delegation only: it does not host the DID's method history, make this deployment the controller, or create Realm, membership, notary, capability or service delegation.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -12374,7 +12576,7 @@
         "http": "POST /_arkret/root/identity/organization-registrations:prepare",
         "grpc": "RootIdentity/PrepareOrganizationRegistration",
         "mq": "root.identity.organization_registration.command.prepare",
-        "notes": "Issue a single-use control challenge for an external Organization DID. Two phases are mandatory: the registry issues and remembers the challenge, then the caller proves control against it. Folding the challenge into ensure would let the caller supply its own, at which point the receiver can establish neither freshness nor single use. The challenge binds purpose, audience, origin, trust domain, nonce, the requested scope set, the beneficiary local_admin_subject, and a window of at most 300 seconds, and MUST be consumed on first use. Binding the beneficiary here rather than only in the request is what stops a captured proof from being redirected: a proof that names only the organization and the version says nothing about who receives the scopes. Deliberately not idempotent: every call mints a fresh nonce, because reusing one challenge across attempts is exactly the replay window single use exists to close. A retry therefore yields a different challenge and the caller MUST prove against the newest one.",
+        "notes": "Issue a single-use control challenge for an external, already-published Organization DID. The request MUST carry stable organization_id as core_id and the current published full_id; before issuing the challenge the registry independently resolves and validates full_id with the registered method adapter and requires project(full_id)=organization_id. The response challenge echoes and binds both identifiers together with purpose, audience, origin, trust domain, nonce, requested scopes, beneficiary local_admin_subject and a window of at most 300 seconds. Two phases are mandatory: the registry remembers this challenge, then ensure supplies a method-native proof over the same control transcript. Folding the challenge into ensure would let the caller supply its own, defeating freshness and single use. The challenge MUST be consumed on first successful use. Deliberately not idempotent: every call mints a fresh nonce, and the caller MUST prove against the newest challenge.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
@@ -12396,7 +12598,7 @@
         "http": "POST /_arkret/root/identity/organization-registrations:refresh",
         "grpc": "RootIdentity/RefreshOrganizationRegistration",
         "mq": "root.identity.organization_registration.command.refresh",
-        "notes": "Re-prove control at a newer resolved version and re-issue the receipt, returning created=false. Scopes are not renegotiated here; a scope change is a new ensure. Refresh exists because a binding pinned to one version stops proving current control the moment the organization rotates its controller, and because a first-time proof must not authorise the relationship indefinitely.",
+        "notes": "Re-prove control at a newer resolved version and re-issue the receipt, returning created=false. The request MUST carry stable organization_id as core_id and the current published full_id; the receiver independently resolves and validates full_id with the registered method adapter and requires project(full_id)=organization_id. The fresh challenge and method-native control transcript bind both identifiers plus the refreshed version_id/log_head_digest. The refreshed outcome and signed receipt echo organization_id and full_id and bind version_id and control_key_digest. A same-core full_id refresh updates resolution/control state, not identity. Scopes are not renegotiated here; a scope change is a new ensure. Refresh exists because a binding pinned to one version stops proving current control after controller rotation and a first-time proof must not authorise the relationship indefinitely.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -12413,7 +12615,7 @@
         "http": "POST /_arkret/root/identity/organization-registrations:revoke",
         "grpc": "RootIdentity/RevokeOrganizationRegistration",
         "mq": "root.identity.organization_registration.command.revoke",
-        "notes": "Withdraw the local binding, returning a receipt with status=revoked and created=false. Local act with local effect only: it does not modify, deactivate or annotate the external DID's method history, which this deployment does not control. revoked is terminal; re-establishing the relationship requires a fresh ensure with a new challenge and proof.",
+        "notes": "Withdraw the local binding by stable organization_id core_id only, returning the current binding outcome with a receipt whose status=revoked and created=false. No full_id is required because revoke addresses the already-bound local identity rather than resolving or proving fresh external control. This local act does not modify, deactivate or annotate the external DID's method history. revoked is terminal for the generation; re-establishing the relationship requires a fresh ensure with full_id, a new challenge and a new control proof.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -12430,7 +12632,7 @@
         "http": "GET /_arkret/root/identity/organization-registrations",
         "grpc": "RootIdentity/GetOrganizationRegistration",
         "mq": "root.identity.organization_registration.resource.get",
-        "notes": "Read the local binding for one Organization DID without creating or mutating state; returns created=false. Only bindings the caller is authorised to manage or see are returned. A caller with no such authorisation MUST receive the same not-found answer as for an organization that was never registered, so the query cannot be used to enumerate which organizations a deployment has bound.",
+        "notes": "Read the local binding by stable organization_id core_id without creating or mutating state; returns created=false. The outcome includes the current published full_id and signed receipt, with project(full_id)=organization_id and receipt/control-state bindings defined by OrganizationRegistrationOutcome and OrganizationRegistrationReceipt. Only bindings the caller is authorised to manage or see are returned. A caller with no such authorisation MUST receive the same not-found answer as for an organization that was never registered, so the query cannot enumerate which organizations a deployment has bound.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome"
@@ -12545,7 +12747,7 @@
         "http": "POST /_arkret/root/identity/service-registrations:ensure",
         "grpc": "RootIdentity/EnsureServiceRegistration",
         "mq": "root.identity.service_registration.command.ensure",
-        "notes": "Idempotently return or create the service DID bound to the canonical (service_kind, public_base) registration key. The client supplies and controls a signed did:webvh inception operation; the Provider verifies the proof and endpoint binding and never receives private key material. Provider persistence MUST enforce UNIQUE(service_kind, public_base) and MUST reject an existing hosted document that declares the same key even when the mapping row is absent.",
+        "notes": "Idempotently return or create the service identity bound to the canonical (service_kind, public_base) registration key. The client supplies full_id plus the client-controlled signed did:webvh inception operation; the Provider verifies the proof, requires state.id=full_id, projects full_id to the returned service_id core_id, and never receives private key material. Provider persistence MUST enforce UNIQUE(service_kind, public_base) and MUST reject an existing hosted document that declares the same key even when the mapping row is absent.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -13623,11 +13825,60 @@
         "http": "POST /_arkret/self/direct-conversations/resolve",
         "grpc": "SelfDirectConversation/Resolve",
         "mq": "self.direct_conversation.query.resolve",
-        "notes": "Query-only resolver for the pair's single stable Direct Conversation. It never creates: a Direct Conversation Realm is created solely by the founder derived from the pair's root Contact basis (normal branch takes the responder, glare branch takes the requests[0] issuer) through the direct_conversation_genesis admission variant of ak.realm.create. Outcomes are evaluated in a fixed order and expose creation_required, creation_blocked, awaiting_founder, provisional, found, suspended or temporarily_unavailable. Waiting never grants create authority to the non-founder and there is no timeout fallback or takeover.",
+        "notes": "Query-only resolver for the pair's single stable Direct Conversation. It never creates: a Direct Conversation Realm is created solely by the founder derived from the pair's root Contact basis (normal branch takes the responder, glare branch takes the requests[0] issuer) through the direct_conversation_genesis admission variant of ak.realm.create. Outcomes are evaluated in a fixed order and expose creation_required, creation_blocked, awaiting_founder, provisional, found, suspended or temporarily_unavailable. Whenever an accepted active-generation singleton exists the response carries active_mls_generation_ref and sha256(RFC8785_JCS(current accepted cell whole value)) as one pair; found always carries both, and a repairable suspended state never hides them. Waiting never grants create authority to the non-founder and there is no timeout fallback or takeover.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request",
         "response_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome"
+      },
+      {
+        "operation_id": "ak.self.direct_conversation.command.repair_dispatch",
+        "http": "POST /_arkret/self/direct-conversations/repair-dispatch",
+        "grpc": "SelfDirectConversation/RepairDispatch",
+        "mq": "self.direct_conversation.command.repair_dispatch",
+        "notes": "Authenticated requester command for durable Direct Conversation replacement-repair delivery. The caller supplies one request_id, exact non-authorizing repair content and a closed device-or-Native-Agent detached authorization, but never recipient targets. In one source transaction keyed by the authenticated requester and request_id, the service validates current participant/rejoin/contact/generation gates, freezes request_digest plus the current destination Principal Server binding, persists the byte-identical peer-relay body and outbox state, and returns only after the destination has durably atomically enqueued its frozen closed human-device-fanout or Native-Agent-runtime target. Exact replay returns the original byte-identical outcome; a changed digest is duplicate_conflict. No Event or repair acknowledgement is synthesized.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "request_id",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_dispatch_request",
+        "response_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_enqueue_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "persists_a_byte_identical_service_local_peer_relay_outbox_without_authoring_an_event"
+        }
+      },
+      {
+        "operation_id": "ak.self.principal_service_binding.command.prepare",
+        "http_only_variant": true,
+        "http": "POST /_arkret/self/principal-service-bindings/prepare",
+        "notes": "Authenticated principal session requests one durable frozen AcceptedAtServiceBinding core after DID publication and PCR acceptance. The service derives current DID authority evidence, its own service metadata/key/origins and timestamps; the caller supplies none of them. Omitting expected_current_binding_digest is create-if-absent, supplying it is same-service renewal CAS. The service-generated challenge is copied into binding_draft.authorization_challenge and therefore binding_digest. Same request_id and intent replays the same unconsumed draft; different intent conflicts.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "request_id",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_request_body",
+        "response_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "persists_only_a_service_local_single_use_frozen_binding_challenge_no_event_is_authored"
+        }
+      },
+      {
+        "operation_id": "ak.self.principal_service_binding.command.commit",
+        "http_only_variant": true,
+        "http": "POST /_arkret/self/principal-service-bindings/commit",
+        "notes": "Commit the exact durable binding draft with a principal proof whose method is valid at accepted_at. The service recomputes both transcripts and atomically CAS-installs the immutable accepted binding, signs the service-acceptance proof, consumes the challenge and stores the byte-identical outcome. Exact request replay returns that outcome; challenge reuse, expiry, digest/proof mismatch or a moved current pointer writes nothing.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "request_id",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_request_body",
+        "response_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_current_binding_cas_and_portable_signed_snapshot_no_event_is_authored"
+        }
       },
       {
         "operation_id": "ak.self.events.command.submit",
@@ -14625,8 +14876,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-10.2",
-    "generated_at": "2026-08-10T15:00:00Z"
+    "version": "2026-08-10.5",
+    "generated_at": "2026-08-10T23:45:00Z"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -17066,6 +17317,144 @@
             "canonical_zone": "America/Argentina/Buenos_Aires"
           }
         ]
+      }
+    ]
+  },
+  "did_method_adapter_registry": {
+    "registry_rules": [
+      "Only an active adapter row can validate a full_id or project it to core_id. DID syntax alone never admits a method.",
+      "project is a method-defined semantic transform over a canonical bare full_id, not generic string concatenation or prefix removal. Receivers compare the complete projected core_id byte-for-byte.",
+      "Every adapter validates method-native control, deactivation, currentness and history evidence according to its trust profile before returning a verified projection. Unknown methods and unknown adapter versions fail closed.",
+      "A new full_id is an update of an existing principal or service only when the same active adapter projects it to the identical core_id. A method or core change creates a new identity and cannot inherit authorization through a continuity assertion.",
+      "DID URLs are constructed and compared from the verified full_id under the adapter's DID URL rules. A core_id is never used as a DID URL base.",
+      "A full_id is a canonical bare DID and therefore contains no path, query or fragment. Each active adapter deterministically emits method_history_head, version_id and service_resolution_event_ref according to its registered rules, including synthetic values for methods without native history.",
+      "For a generic Event proof, the verifier extracts the canonical bare full_id base from proof.verification_method, validates the active adapter and key at the cited method history, projects that full_id, and compares the resulting core_id to executed_by when present or actor_id otherwise. The did_root_anchor admission variant is the sole registered exception.",
+      "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:cell:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current cell and MUST cross-bind payload.previous_resolution_event_ref and payload.previous_method_history_head."
+    ],
+    "principal_resolution_contract": {
+      "version": "ak.identity.resolution.contract.v1",
+      "cell_ref": "ak:cell:ak.component.identity.resolution.v1:null",
+      "cell_value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
+      "profile_write_policy": {
+        "create_forbidden_members": [
+          "id",
+          "resolution",
+          "updated_by",
+          "updated_at"
+        ],
+        "update_forbidden_path_pattern": "^resolution(?:\\.|$)",
+        "failure": "schema_violation"
+      },
+      "genesis_head": {
+        "event_kind": "ak.realm.create",
+        "head_index": 0,
+        "scope_kind": "realm_genesis",
+        "allowed_purposes": [
+          "principal_control",
+          "managed_agent_control"
+        ],
+        "principal_rule": "event.actor_id == project(payload.object.initial_resolution.full_id)",
+        "realm_rule": "derive_identity_control_realm(event) == evidence.principal_control_realm_id",
+        "projection_rule": "cell_value = payload.object.initial_resolution + {resolution_event_ref:event.event_id, updated_at:event.created_at}"
+      },
+      "update_successor": {
+        "event_kind": "ak.identity.resolution.update",
+        "required_realm_rule": "event.realm_id == derive_identity_control_realm(event.actor_id)",
+        "required_precondition": {
+          "cell": "ak:cell:ak.component.identity.resolution.v1:null",
+          "op": "head_eq",
+          "value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
+          "cardinality": 1
+        },
+        "predecessor_rules": [
+          "payload.previous_resolution_event_ref == precondition.value.resolution_event_ref",
+          "payload.previous_method_history_head == precondition.value.method_history_head",
+          "project(payload.next.full_id) == event.actor_id"
+        ],
+        "projection_rule": "cell_value = payload.next + {resolution_event_ref:event.event_id, updated_at:event.created_at}"
+      },
+      "public_evidence_evaluator": {
+        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_evidence",
+        "checks": [
+          "principal_genesis_event.kind == ak.realm.create and principal_genesis_event is resolution head 0",
+          "principal_genesis_event.actor_id == principal_id",
+          "principal_genesis_event.payload.object.purpose is principal_control or managed_agent_control",
+          "project(principal_genesis_event.payload.object.initial_resolution.full_id) == principal_id",
+          "derive_identity_control_realm(principal_genesis_event) == principal_control_realm_id",
+          "every post-genesis event is ak.identity.resolution.update with actor_id == principal_id and realm_id == principal_control_realm_id",
+          "if current_resolution_event is principal_genesis_event then predecessor_resolution_events is empty; otherwise predecessor_resolution_events[0] is the current Event's guarded immediate predecessor when history_depth is nonzero",
+          "the supplied resolution events form a contiguous immediate-predecessor segment backward from current_resolution_event under the exact guarded whole-cell values; if the segment reaches head 0 it terminates at principal_genesis_event, otherwise the oldest guarded predecessor is the next audit cursor and omitted history is never treated as absent",
+          "accepted_seal.realm_id == principal_control_realm_id and accepted_seal recursively covers both principal_genesis_event.event_digest and current_resolution_event.event_digest",
+          "resolution_cell_proof.seal_id == accepted_seal.id and resolution_cell_proof.state_root == accepted_seal.state_root",
+          "resolution_cell_proof.cell_value.resolution_event_ref == current_resolution_event.event_id",
+          "resolution_cell_proof.cell_value equals the registry projection of current_resolution_event",
+          "project(resolution_cell_proof.cell_value.full_id) == principal_id",
+          "method_history_evidence boundary and currentness validate under the adapter selected by cell_value.full_id"
+        ],
+        "failure": "invalid_or_dependency_pending"
+      }
+    },
+    "adapters": [
+      {
+        "method": "did:webvh",
+        "adapter_version": "did:webvh:1.0",
+        "status": "active",
+        "full_id_shape": "did:webvh:<scid>:<host-and-path>",
+        "core_projection": "ak:did_core:webvh:<validated-scid>",
+        "resolution_components": [
+          "host-and-path"
+        ],
+        "native_history": true,
+        "method_evidence_kind": "webvh_log",
+        "method_history_head_rule": "sha256:<lowercase-hex SHA-256 of RFC 8785 JCS of the verified current did:webvh log entry>",
+        "version_id_rule": "The exact method-native versionId of that same verified current did:webvh log entry, serialized as a non-empty string.",
+        "service_resolution_event_ref_rule": "did-webvh-entry-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",
+        "required_evidence": [
+          "scid_derivation",
+          "entry_hash_chain",
+          "controller_proof",
+          "method_history_head",
+          "version_id"
+        ],
+        "relocation_preserves_core": true
+      },
+      {
+        "method": "did:web",
+        "adapter_version": "did:web:1",
+        "status": "active",
+        "full_id_shape": "did:web:<canonical-method-specific-id>",
+        "core_projection": "ak:did_core:web:<canonical-method-specific-id>",
+        "resolution_components": [],
+        "native_history": false,
+        "method_evidence_kind": "did_web_document",
+        "method_history_head_rule": "sha256:<lowercase-hex SHA-256 of RFC 8785 JCS of the verified current DID Document>",
+        "version_id_rule": "synthetic-jcs-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",
+        "service_resolution_event_ref_rule": "did-web-document-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",
+        "required_evidence": [
+          "https_did_document",
+          "method_history_head",
+          "version_id"
+        ],
+        "relocation_preserves_core": false
+      },
+      {
+        "method": "did:key",
+        "adapter_version": "did:key:1",
+        "status": "active",
+        "full_id_shape": "did:key:<canonical-multibase-method-specific-id>",
+        "core_projection": "ak:did_core:key:<canonical-multibase-method-specific-id>",
+        "resolution_components": [],
+        "native_history": false,
+        "method_evidence_kind": "did_key_expansion",
+        "method_history_head_rule": "sha256:<lowercase-hex SHA-256 of the UTF-8 bytes of canonical full_id>",
+        "version_id_rule": "synthetic-full-id-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",
+        "service_resolution_event_ref_rule": "did-key-full-id-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",
+        "required_evidence": [
+          "local_key_expansion",
+          "method_history_head",
+          "version_id"
+        ],
+        "relocation_preserves_core": false
       }
     ]
   },

@@ -2,8 +2,77 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-signer-evidence-operations.schema.json",
   "title": "Arkret Agent Signer Evidence Operations",
-  "description": "Authenticated, anti-enumeration query shapes for portable Native Agent signer evidence.",
+  "description": "Authenticated, anti-enumeration operation shapes for producing and resolving portable Native Agent signer evidence.",
   "$defs": {
+    "controller_account_gate_attestation_issue_request": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "principal_id",
+        "agent_authority_service_id",
+        "agent_authority_service_resolution"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Controller principal whose Account Authority lifecycle gate is being attested."
+        },
+        "agent_authority_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Native Agent PCR authority service assembling signer evidence. It MUST equal both the authenticated S2S caller and service_id in the controller principal's current AcceptedAtServiceBinding."
+        },
+        "agent_authority_service_resolution": {
+          "$ref": "#/$defs/authenticated_service_resolution",
+          "description": "Current signed route and method-native control evidence for the Agent PCR authority. The Account Authority verifies this carrier before using its RFC 9421 keyid; a core_id, URL, bearer token or self-asserted public key is never a key source."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Closed S2S request for the Account Authority-owned controller lifecycle gate. Agent state, account_id and raw account cell material are deliberately absent."
+    },
+    "authenticated_service_resolution": {
+      "type": "object",
+      "required": [
+        "service_resolution_record",
+        "method_history_evidence",
+        "normalized_did_document"
+      ],
+      "properties": {
+        "service_resolution_record": {
+          "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_record"
+        },
+        "method_history_evidence": {
+          "$ref": "./identity-resolution.schema.json#/$defs/method_history_evidence"
+        },
+        "normalized_did_document": {
+          "type": "object",
+          "description": "Exact normalized DID Document whose canonical digest equals method_history_evidence.evidence.document_digest. Its id MUST equal service_resolution_record.record.full_id; the record proof and HTTP Signature keyid MUST name a currently authorized assertionMethod in this document. The method-native evidence evaluator, not this caller assertion, authenticates the document."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Self-contained verification input for high-risk inbound service authentication. The receiver validates method evidence against the document and signed record, enforces record freshness/currentness and only then verifies the RFC 9421 request."
+    },
+    "controller_account_gate_attestation_issue_outcome": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "controller_account_gate_attestation"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "controller_account_gate_attestation": {
+          "$ref": "./agent-signer-evidence.schema.json#/$defs/controller_account_gate_attestation"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Byte-stable issuance outcome. The embedded attestation is the only Account Authority material admitted into AgentSignerEvidence."
+    },
     "query_request": {
       "type": "object",
       "required": [
@@ -46,7 +115,7 @@
       "properties": {
         "verification_mode": { "const": "current_admission" },
         "agent_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "verification_method": {
           "type": "string",
@@ -55,8 +124,8 @@
         },
         "operation_id": { "$ref": "./principal-operations.schema.json#/$defs/operation_id" },
         "request_digest": { "$ref": "./agent-signer-evidence.schema.json#/$defs/sha256" },
-        "verifier_id": { "$ref": "./common-ids.schema.json#/$defs/did" },
-        "audience": { "$ref": "./common-ids.schema.json#/$defs/did" },
+        "verifier_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "audience": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
         "challenge": { "type": "string", "minLength": 16, "maxLength": 512 }
       },
       "additionalProperties": false
@@ -66,11 +135,11 @@
       "required": ["verification_mode", "agent_id", "verification_method", "event_id", "event_digest", "receiver_service_id"],
       "properties": {
         "verification_mode": { "const": "historical_event" },
-        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/did" },
+        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
         "verification_method": { "type": "string", "format": "uri", "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$" },
         "event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
         "event_digest": { "$ref": "./agent-signer-evidence.schema.json#/$defs/hash" },
-        "receiver_service_id": { "$ref": "./common-ids.schema.json#/$defs/did" }
+        "receiver_service_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" }
       },
       "additionalProperties": false
     },

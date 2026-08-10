@@ -94,8 +94,7 @@
   },
   "$defs": {
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "agent_slug": {
       "$ref": "string-profiles.schema.json#/$defs/agent_slug"

@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-10.4",
+  "version": "2026-08-10.7",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T15:00:00Z",
+  "generated_at": "2026-08-10T23:45:00Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -231,6 +231,14 @@
       "description": "Server-to-server session-grant introspection (RFC 7662-style). Read-only validation: returns active/status/grant-metadata in a 200 body (including not_found / audience_mismatch as statuses, not error replies), so it has no operation-specific error codes beyond the universal failure surface (e.g. bad_json for a malformed id, the universal auth codes when the introspection bearer is missing)."
     },
     {
+      "operation_id": "ak.gate.account.command.issue_controller_gate_attestation",
+      "http_alias": "POST /_arkret/gate/account/controller-gate-attestations",
+      "operation_specific": [
+        "duplicate_conflict"
+      ],
+      "description": "Authenticated S2S issuance. Unknown principal, missing current service binding, wrong source service and unauthorized caller use the universal non-enumerating not_found surface; duplicate_conflict covers request_id reuse with a different canonical intent."
+    },
+    {
       "operation_id": "ak.gate.account.command.issue_identity_binding_challenge",
       "http_alias": "POST /_arkret/gate/account/identity-binding-challenges",
       "operation_specific": [
@@ -441,6 +449,18 @@
       "http_alias": "POST /_arkret/open/device-pairing/requests/status",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. A record miss and a pairing_code mismatch MUST be indistinguishable (both not_found)."
+    },
+    {
+      "operation_id": "ak.open.identity.read.resolution",
+      "http_alias": "GET /_arkret/open/principals/{principal_id}/resolution",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface. An unknown or non-public principal returns not_found; the response itself is evidence and never an authorization decision."
+    },
+    {
+      "operation_id": "ak.open.service.read.resolution",
+      "http_alias": "GET /_arkret/open/services/{service_id}/resolution",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface. Unknown service identities return not_found; callers independently validate every returned signed record."
     },
     {
       "operation_id": "ak.open.invite_locator.read.resolve",
@@ -674,6 +694,26 @@
         "initial_session_request_mismatch"
       ],
       "description": "Atomically accepts the exact root-committed PCR genesis pair. Transport service authentication is not content authority; any proof, commitment, create-once or fence failure performs zero writes."
+    },
+    {
+      "operation_id": "ak.peer.service_resolution.command.publish",
+      "http_alias": "POST /_arkret/peer/service-resolution/publish",
+      "operation_specific": [
+        "duplicate_conflict",
+        "service_route_notice_basis_stale",
+        "service_route_notice_conflict",
+        "service_route_notice_cancelled",
+        "service_route_notice_expired",
+        "service_route_fork",
+        "service_resolution_mirror_response_limit"
+      ],
+      "description": "Accepts one exact target-signed route artifact into a durable service-local mirror ledger. Authorization/invisibility failures remain minimally disclosing; same durable key with different bytes is duplicate_conflict and performs zero overwrite."
+    },
+    {
+      "operation_id": "ak.peer.service_resolution.read.resolve",
+      "http_alias": "QUERY /_arkret/peer/service-resolution/resolve",
+      "operation_specific": [],
+      "description": "Returns only bounded continuous target-signed material to an already authorized Realm peer. Pre-gate failures use the same minimally disclosing capability_denied response; after the gate, unknown, invisible, not-held, cancelled, expired, gap and fork conditions use the same not_found response. Detailed route reasons are private audit state only and never appear as operation-specific wire codes. Universal rate and size limits remain available."
     },
     {
       "operation_id": "ak.peer.signal.command.relay",
@@ -1402,6 +1442,48 @@
         "direct_conversation_unavailable"
       ],
       "description": "Idempotent resolver for a pair's one stable conversation. Existing conversations return found or suspended without a KeyPackage lookup. All undisclosable no-binding, peer and directional Contact failures collapse to direct_conversation_unavailable; Consent is not queried. Typed success states are found, creation_required, suspended and temporarily_unavailable."
+    },
+    {
+      "operation_id": "ak.self.direct_conversation.command.repair_dispatch",
+      "http_alias": "POST /_arkret/self/direct-conversations/repair-dispatch",
+      "operation_specific": [
+        "duplicate_conflict",
+        "failed_precondition",
+        "direct_conversation_unavailable"
+      ],
+      "description": "Requester-scoped durable repair outbox. Missing or undisclosable pair authority collapses to direct_conversation_unavailable; stale rejoin/generation/evidence is failed_precondition; reuse of request_id with a different canonical request is duplicate_conflict. No recipient device or Agent-runtime target is disclosed."
+    },
+    {
+      "operation_id": "ak.peer.direct_conversation.command.repair_relay",
+      "http_alias": "POST /_arkret/peer/direct-conversations/repair-relay",
+      "operation_specific": [
+        "duplicate_conflict",
+        "failed_precondition",
+        "direct_conversation_unavailable"
+      ],
+      "description": "Service-authenticated atomic recipient enqueue. Reuse of (Source-Service-ID, request_id) with a changed request digest is duplicate_conflict and writes nothing. Invalid/stale portable requester authority or repair gates are failed_precondition; hidden pair/recipient state is direct_conversation_unavailable. Partial human-device fanout and Agent endpoint fallback are forbidden."
+    },
+    {
+      "operation_id": "ak.self.principal_service_binding.command.prepare",
+      "http_alias": "POST /_arkret/self/principal-service-bindings/prepare",
+      "operation_specific": [
+        "duplicate_conflict",
+        "cas_conflict",
+        "failed_precondition"
+      ],
+      "description": "A request_id intent conflict, create-if-absent or renewal CAS mismatch, or an unaccepted/stale principal authority writes no binding draft beyond an exact replay of the original durable challenge."
+    },
+    {
+      "operation_id": "ak.self.principal_service_binding.command.commit",
+      "http_alias": "POST /_arkret/self/principal-service-bindings/commit",
+      "operation_specific": [
+        "duplicate_conflict",
+        "challenge_expired",
+        "cas_conflict",
+        "invalid_signature",
+        "failed_precondition"
+      ],
+      "description": "Challenge reuse with different material, expiry, current-binding CAS loss, proof failure or stale authority consumes and installs nothing. Exact replay of a committed request returns the stored byte-identical binding outcome."
     },
     {
       "operation_id": "ak.self.events.command.submit",

@@ -8,6 +8,7 @@
     "schema",
     "subject_id",
     "recipient_service_id",
+    "service_resolution",
     "issued_at",
     "expires_at",
     "locator_ref_digest",
@@ -18,12 +19,20 @@
       "const": "ak.schema.principal_locator.v1"
     },
     "subject_id": {
-      "$ref": "#/$defs/did",
-      "description": "Principal DID of the invite recipient. v1 core defaults principal DIDs to did:webvh; did:web is only valid for principal identity when an explicit deployment profile or resolver policy allows it."
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "description": "Stable principal core_id of the invite recipient."
     },
     "recipient_service_id": {
-      "$ref": "#/$defs/did",
-      "description": "Principal Server service DID that accepts invite delivery for subject_id."
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "description": "Stable Principal Server service core_id that accepts invite delivery for subject_id."
+    },
+    "service_resolution": {
+      "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
+      "description": "First-hop resolution material for recipient_service_id; it is covered by the locator proofs."
+    },
+    "route_assistance": {
+      "$ref": "./identity-resolution.schema.json#/$defs/route_assistance",
+      "description": "Optional transport-only route recovery hints covered by the locator proof. They MUST NOT enter an invite Event or Realm member cell, do not extend this locator's expires_at, and do not authorize delivery or route switching."
     },
     "recipient_service_kind": {
       "const": "principal_server",
@@ -87,10 +96,6 @@
   },
   "additionalProperties": false,
   "$defs": {
-    "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
-    },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },

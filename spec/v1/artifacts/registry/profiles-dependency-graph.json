@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-09.1",
+  "version": "2026-08-10.2",
   "kind": "profiles_dependency_graph",
   "source_role": "generated",
-  "generated_at": "2026-08-09T12:00:00Z",
+  "generated_at": "2026-08-10T23:50:00Z",
   "source_of_truth": false,
   "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
   "generated_by": "tools/lint_artifacts.py#check_profile_dependency_graph",
@@ -50,6 +50,7 @@
     "ak.profile.draft_sync.v1",
     "ak.profile.e2ee_client.v1",
     "ak.profile.e2ee_relaxed.v1",
+    "ak.profile.ephemeral_pairwise_principal.v1",
     "ak.profile.encoding.cbor.v1",
     "ak.profile.encoding.multihash.v1",
     "ak.profile.enterprise_client.v1",
@@ -102,6 +103,7 @@
     "ak.profile.search.blind_index.v1",
     "ak.profile.search.client_index.v1",
     "ak.profile.search.forward_private.v1",
+    "ak.profile.service_resolution_mirror.v1",
     "ak.profile.signal_message_stream.v1",
     "ak.profile.signal_peer_relay.v1",
     "ak.profile.signature.ecdsa_p256.v1",
@@ -199,6 +201,11 @@
       "from": "ak.profile.e2ee_relaxed.v1",
       "to": "ak.profile.mls_governance_binding.full.v1",
       "kind": "mutually_exclusive_with"
+    },
+    {
+      "from": "ak.profile.ephemeral_pairwise_principal.v1",
+      "to": "ak.profile.e2ee_client.v1",
+      "kind": "inherits"
     },
     {
       "from": "ak.profile.enterprise_client.v1",
@@ -343,6 +350,11 @@
     {
       "from": "ak.profile.search.forward_private.v1",
       "to": "ak.profile.search.blind_index.v1",
+      "kind": "inherits"
+    },
+    {
+      "from": "ak.profile.service_resolution_mirror.v1",
+      "to": "ak.profile.federation_minimal.v1",
       "kind": "inherits"
     },
     {

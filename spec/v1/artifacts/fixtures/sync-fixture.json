@@ -13,9 +13,9 @@
       "instance": {
         "message_id": "ak:device_message:01964137-1000-7000-8000-000000000010",
         "kind": "ak.key.verification.request",
-        "sender_principal_id": "did:webvh:z6mkfixture:alice.example",
+        "sender_principal_id": "ak:did_core:webvh:z6mkfixture",
         "sender_device_id": "ak:device:01964137-1000-7000-8000-000000000011",
-        "recipient_principal_id": "did:webvh:z6mkfixture:alice.example",
+        "recipient_principal_id": "ak:did_core:webvh:z6mkfixture",
         "recipient_device_id": "ak:device:01964137-1000-7000-8000-000000000012",
         "sent_at": "2026-07-16T08:00:00.000Z",
         "expires_at": "2026-07-16T08:10:00.000Z",
@@ -37,9 +37,9 @@
       "first_expected_error": "$: 'message_id' is a required property",
       "instance": {
         "kind": "ak.key.verification.request",
-        "sender_principal_id": "did:webvh:z6mkfixture:alice.example",
+        "sender_principal_id": "ak:did_core:webvh:z6mkfixture",
         "sender_device_id": "ak:device:01964137-1000-7000-8000-000000000011",
-        "recipient_principal_id": "did:webvh:z6mkfixture:alice.example",
+        "recipient_principal_id": "ak:did_core:webvh:z6mkfixture",
         "recipient_device_id": "ak:device:01964137-1000-7000-8000-000000000012",
         "sent_at": "2026-07-16T08:00:00.000Z",
         "expires_at": "2026-07-16T08:10:00.000Z",
@@ -87,7 +87,7 @@
       "instance": {
         "kind": "realm_actor",
         "realm_id": "ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
-        "actor_id": "did:web:alice.example",
+        "actor_id": "ak:did_core:web:alice.example",
         "next_actor_seq": 0,
         "frontier_event_ids": [],
         "frontier_digest": "sha256:4bf4476c4eee171fcd96e1943e7af863ff1cf0e0f81b365a3bb0638f0ef233be"
@@ -100,7 +100,7 @@
       "instance": {
         "kind": "realm_actor",
         "realm_id": "ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
-        "actor_id": "did:web:alice.example",
+        "actor_id": "ak:did_core:web:alice.example",
         "next_actor_seq": 43,
         "frontier_event_ids": [
           "ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
@@ -115,7 +115,7 @@
       "expect_valid": false,
       "first_expected_error": "contains:is not valid under any of the given schemas",
       "instance": {
-        "actor_id": "did:web:alice.example",
+        "actor_id": "ak:did_core:web:alice.example",
         "actor_seq": 42,
         "event_id": "ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G"
       }
@@ -128,7 +128,7 @@
       "instance": {
         "kind": "realm_actor",
         "realm_id": "ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
-        "actor_id": "did:web:alice.example",
+        "actor_id": "ak:did_core:web:alice.example",
         "next_actor_seq": 1,
         "frontier_event_ids": [],
         "frontier_digest": "sha256:4e14285bf450dff49220316ffa2ef2258c2be1a389e09aae86d26a797d894233"
@@ -503,26 +503,26 @@
       "created_at": "2026-04-26T00:00:00.000Z",
       "event_set_commitment": {
         "algorithm": "merkle_event_set_v1",
-        "root": "sha256:07180a0ea93c2c63435c957851b12202bf4e6fc87a6dc5d723393f1dcedea33d",
+        "root": "sha256:f4760c510ee72b1abe2e93a56a8ec46652ce9fdde2f67b0ff7f83e68e8b72f0e",
         "covered_event_count": 20,
         "actor_seq_ranges": [
           {
-            "actor_id": "did:webvh:z6mkfixture:alice.example",
+            "actor_id": "ak:did_core:webvh:z6mkfixture",
             "from_seq": 100,
             "to_seq": 106,
-            "root": "sha256:0320aa74f4765dfcf452e49cb2d6152cbad67918097cbab82e141a9a9c6c7200"
+            "root": "sha256:0425a019ba6c03196317f0374f6c7f839fb0b354d84767f01e77232bd1f501fc"
           },
           {
-            "actor_id": "did:webvh:z6mkfixture:bob.example",
+            "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
             "from_seq": 200,
             "to_seq": 206,
-            "root": "sha256:06d99b463fec3647b0a0c3120edca32c55b6bab2fd6d0170325359bd4129f8e3"
+            "root": "sha256:6f7ad9617f8d215e63f73841bd28a18dc43d3f047f0b1eaeb23675bb19771f71"
           },
           {
-            "actor_id": "did:webvh:z6mkfixture:chrid.example",
+            "actor_id": "ak:did_core:webvh:z6mkfixturechridexample",
             "from_seq": 300,
             "to_seq": 305,
-            "root": "sha256:106c603243d37fc251d00536de43fc1210fbf9f8b6409a2ea331b3ba9f41bd34"
+            "root": "sha256:926ecc9afa780165b75cfc27c79668ded742aaad660f44383ca1572b1926d237"
           }
         ]
       },
@@ -537,140 +537,140 @@
       {
         "event_id": "ak:event:Ac42hj9Rtrr50WOX_7Ppr1BrKEqBb3LUh-VZQ8H9l01t",
         "event_digest": "sha256:ce36863f51b6baf9d16397ffb3e9af506b284a816f72d487e55943c1fd974d6d",
-        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixture",
         "actor_seq": 100,
         "hlc": "01970e589d21-0001-a13f9c2e"
       },
       {
         "event_id": "ak:event:AXhnFV5Z1IQLoN3E6KIQXvXC2gZkOioMUYkc1BrgY-uX",
         "event_digest": "sha256:7867155e59d4840ba0ddc4e8a2105ef5c2da06643a2a0c51891cd41ae063eb97",
-        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixture",
         "actor_seq": 101,
         "hlc": "01970e589d21-0004-a13f9c2e"
       },
       {
         "event_id": "ak:event:AVl2EkoRaIDjPzl9wKkTaG4bK34RBDoZkAd9X42tuPBc",
         "event_digest": "sha256:5976124a116880e33f397dc0a913686e1b2b7e11043a1990077d5f8dadb8f05c",
-        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixture",
         "actor_seq": 102,
         "hlc": "01970e589d21-0007-a13f9c2e"
       },
       {
         "event_id": "ak:event:Acp3MeEb1RCi2Gc4rrcwsRUxzutqGl8MIewrJb8FSSN8",
         "event_digest": "sha256:ca7731e11bd510a2d86738aeb730b11531ceeb6a1a5f0c21ec2b25bf0549237c",
-        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixture",
         "actor_seq": 103,
         "hlc": "01970e589d21-000a-a13f9c2e"
       },
       {
         "event_id": "ak:event:AaeXwW-HKeopvq8qI-qHyFjQhkmz5xKEGiS3r44m_dQf",
         "event_digest": "sha256:a797c16f8729ea29beaf2a23ea87c858d08649b3e712841a24b7af8e26fdd41f",
-        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixture",
         "actor_seq": 104,
         "hlc": "01970e589d21-000d-a13f9c2e"
       },
       {
         "event_id": "ak:event:AUyghvX0vaBOhfHnMMThakTga7SK2RphnINRZb8-qAln",
         "event_digest": "sha256:4ca086f5f4bda04e85f1e730c4e16a44e06bb48ad91a619c835165bf3ea80967",
-        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixture",
         "actor_seq": 105,
         "hlc": "01970e589d21-0010-a13f9c2e"
       },
       {
         "event_id": "ak:event:Ab5GLkaoAxsaecOj33pa72mGJ8OmttYm2PoEdZSYdvs0",
         "event_digest": "sha256:be462e46a8031b1a79c3a3df7a5aef698627c3a6b6d626d8fa0475949876fb34",
-        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixture",
         "actor_seq": 106,
         "hlc": "01970e589d21-0013-a13f9c2e"
       },
       {
         "event_id": "ak:event:AbTj0U51GSeeajUvd211qQWp3pon79ttgC_k5wAiSt4u",
         "event_digest": "sha256:b4e3d14e7519279e6a352f776d75a905a9de9a27efdb6d802fe4e700224ade2e",
-        "actor_id": "did:webvh:z6mkfixture:bob.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
         "actor_seq": 200,
         "hlc": "01970e589d21-0002-a13f9c2e"
       },
       {
         "event_id": "ak:event:AS5G5ni7T2X5ORneykz8yyLQ_aWbhUZK87imnpVSM_ke",
         "event_digest": "sha256:2e46e678bb4f65f93919deca4cfccb22d0fda59b85464af3b8a69e955233f91e",
-        "actor_id": "did:webvh:z6mkfixture:bob.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
         "actor_seq": 201,
         "hlc": "01970e589d21-0005-a13f9c2e"
       },
       {
         "event_id": "ak:event:AQ26vJzDt-3X-EI08YXRh_7gvX5kI63WXVPzeu3Z_tsB",
         "event_digest": "sha256:0dbabc9cc3b7edd7f84234f185d187fee0bd7e6423add65d53f37aedd9fedb01",
-        "actor_id": "did:webvh:z6mkfixture:bob.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
         "actor_seq": 202,
         "hlc": "01970e589d21-0008-a13f9c2e"
       },
       {
         "event_id": "ak:event:ARguaCyE10zdfKZVLHvQGl4JpsNQCgHRErJXaWIAVd8D",
         "event_digest": "sha256:182e682c84d74cdd7ca6552c7bd01a5e09a6c3500a01d112b25769620055df03",
-        "actor_id": "did:webvh:z6mkfixture:bob.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
         "actor_seq": 203,
         "hlc": "01970e589d21-000b-a13f9c2e"
       },
       {
         "event_id": "ak:event:AUKLp9kb0rOOQO5rqsDYLsERNRrHJVNSbsqcCRCzf-GC",
         "event_digest": "sha256:428ba7d91bd2b38e40ee6baac0d82ec111351ac72553526eca9c0910b37fe182",
-        "actor_id": "did:webvh:z6mkfixture:bob.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
         "actor_seq": 204,
         "hlc": "01970e589d21-000e-a13f9c2e"
       },
       {
         "event_id": "ak:event:ASOctnsh_XJ0LznJ-jckkvf-90WeJgIwsKDOnmrD4uVR",
         "event_digest": "sha256:239cb67b21fd72742f39c9fa372492f7fef7459e260230b0a0ce9e6ac3e2e551",
-        "actor_id": "did:webvh:z6mkfixture:bob.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
         "actor_seq": 205,
         "hlc": "01970e589d21-0011-a13f9c2e"
       },
       {
         "event_id": "ak:event:AX-TJxDp4Ve7G4V1Gnb-LxSBY-V34fj6sL3LkE9P5D7S",
         "event_digest": "sha256:7f932710e9e157bb1b85751a76fe2f148163e577e1f8fab0bdcb904f4fe43ed2",
-        "actor_id": "did:webvh:z6mkfixture:bob.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
         "actor_seq": 206,
         "hlc": "01970e589d21-0014-a13f9c2e"
       },
       {
         "event_id": "ak:event:ARRBulUH-WWNm-opsNlWfmkARo4BU_qZAZTg8PlGmWlL",
         "event_digest": "sha256:1441ba5507f9658d9bea29b0d9567e6900468e0153fa990194e0f0f94699694b",
-        "actor_id": "did:webvh:z6mkfixture:chrid.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixturechridexample",
         "actor_seq": 300,
         "hlc": "01970e589d21-0003-a13f9c2e"
       },
       {
         "event_id": "ak:event:Ad7pt71lk8-pDUjobGvNWc9ozJl-RQCkmPszxVPCG6Ez",
         "event_digest": "sha256:dee9b7bd6593cfa90d48e86c6bcd59cf68cc997e4500a498fb33c553c21ba133",
-        "actor_id": "did:webvh:z6mkfixture:chrid.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixturechridexample",
         "actor_seq": 301,
         "hlc": "01970e589d21-0006-a13f9c2e"
       },
       {
         "event_id": "ak:event:AUvu9PUFPxcNfCv9aRgOpePtbjzkh6FLbn46Z5U1i4J3",
         "event_digest": "sha256:4beef4f5053f170d7c2bfd69180ea5e3ed6e3ce487a14b6e7e3a6795358b8277",
-        "actor_id": "did:webvh:z6mkfixture:chrid.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixturechridexample",
         "actor_seq": 302,
         "hlc": "01970e589d21-0009-a13f9c2e"
       },
       {
         "event_id": "ak:event:AYAXnjSi2Mrwe3TLoufNeO0JRnFlA-jCDFzOSgjO2VvQ",
         "event_digest": "sha256:80179e34a2d8caf07b74cba2e7cd78ed0946716503e8c20c5cce4a08ced95bd0",
-        "actor_id": "did:webvh:z6mkfixture:chrid.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixturechridexample",
         "actor_seq": 303,
         "hlc": "01970e589d21-000c-a13f9c2e"
       },
       {
         "event_id": "ak:event:AcXytjrCnBW90mDchNEKvsF5IMtynGpqPRX3SJKvBqgK",
         "event_digest": "sha256:c5f2b63ac29c15bdd260dc84d10abec17920cb729c6a6a3d15f74892af06a80a",
-        "actor_id": "did:webvh:z6mkfixture:chrid.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixturechridexample",
         "actor_seq": 304,
         "hlc": "01970e589d21-000f-a13f9c2e"
       },
       {
         "event_id": "ak:event:AW-AT0_FtZSq4Vlw3pcTQgogU0NBHPiBInJXzvf5f7bM",
         "event_digest": "sha256:6f804f4fc5b594aae15970de9713420a205343411cf881227257cef7f97fb6cc",
-        "actor_id": "did:webvh:z6mkfixture:chrid.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixturechridexample",
         "actor_seq": 305,
         "hlc": "01970e589d21-0012-a13f9c2e"
       }
@@ -802,19 +802,19 @@
         },
         {
           "kind": "actor_seq_range",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "from_seq": 100,
           "to_seq": 199
         },
         {
           "kind": "actor_seq_range",
-          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "from_seq": 200,
           "to_seq": 299
         },
         {
           "kind": "actor_seq_range",
-          "actor_id": "did:webvh:z6mkfixture:chrid.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturechridexample",
           "from_seq": 300,
           "to_seq": 399
         }
@@ -822,7 +822,7 @@
     },
     "base_response": {
       "commitment_algorithm": "merkle_event_set_v1",
-      "commitment_root": "sha256:07180a0ea93c2c63435c957851b12202bf4e6fc87a6dc5d723393f1dcedea33d",
+      "commitment_root": "sha256:f4760c510ee72b1abe2e93a56a8ec46652ce9fdde2f67b0ff7f83e68e8b72f0e",
       "proofs": [
         {
           "kind": "event_id",
@@ -906,7 +906,7 @@
         },
         {
           "kind": "actor_seq_range",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "from_seq": 100,
           "to_seq": 199,
           "gap_attribution": [
@@ -919,7 +919,7 @@
         },
         {
           "kind": "actor_seq_range",
-          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "from_seq": 200,
           "to_seq": 299,
           "gap_attribution": [
@@ -932,7 +932,7 @@
         },
         {
           "kind": "actor_seq_range",
-          "actor_id": "did:webvh:z6mkfixture:chrid.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturechridexample",
           "from_seq": 300,
           "to_seq": 399,
           "gap_attribution": [
@@ -993,7 +993,7 @@
       {
         "name": "entire_unknown_actor_omitted_without_independent_witness",
         "mutation": "omit_actor_and_all_of_its_events_then_recompute_issuer_signature_root_count_and_actor_seq_ranges",
-        "omitted_actor_id": "did:webvh:z6mkfixture:david.example",
+        "omitted_actor_id": "did:webvh:z6mkfixturedavidexample:david.example",
         "issuer_internal_consistency": "valid",
         "independent_actor_set_witness": null,
         "raw_replay_completed": false,
@@ -1091,7 +1091,7 @@
     "vector_id": "ak.vector.actor_frontier.realm_scoped.v1",
     "transcript_label_utf8_nul": "ak-realm-actor-frontier-v1\u0000",
     "digest_algorithm": "sha256",
-    "canonical_json": "{\"actor_id\":\"did:web:alice.example\",\"frontier_event_ids\":[\"ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\",\"ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe\"],\"kind\":\"realm_actor\",\"next_actor_seq\":43,\"realm_id\":\"ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\"}",
+    "canonical_json": "{\"actor_id\":\"ak:did_core:web:alice.example\",\"frontier_event_ids\":[\"ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\",\"ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe\"],\"kind\":\"realm_actor\",\"next_actor_seq\":43,\"realm_id\":\"ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\"}",
     "expected_digest": "sha256:5ecef8bd5d25d016da5444d21cde286e222d56119aa59f9b1de7b0fe2013b53d"
   },
   "e2ee_decryption_pending": {

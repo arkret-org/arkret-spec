@@ -37,7 +37,12 @@
       "expected_reason_code": "schema_violation",
       "first_expected_error": "contains:calendar_tzdb_versions",
       "instance": {
-        "service_id": "did:webvh:z6mkfixture:server-alpha.example",
+        "service_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
+        "service_resolution": {
+          "full_id": "did:webvh:z6mkfixtureserveralphaexample:server-alpha.example",
+          "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version_id": "1"
+        },
         "trust_domain": "ak:trust_domain:example.test",
         "service_kind": "principal_server",
         "protocol_version": "1.0",

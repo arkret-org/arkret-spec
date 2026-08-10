@@ -80,6 +80,49 @@ def ensure_relative_file(lint: Lint, owner: Path, base: Path, ref: str, label: s
     return target
 
 
+_STABLE_CORE_ID_FIELDS = {
+    "principal_id",
+    "actor_id",
+    "controller_id",
+    "service_id",
+    "recipient_principal_id",
+    "target_principal_id",
+}
+
+
+def check_stable_identity_fields_use_core_id(lint: Lint) -> None:
+    """Stable business identity fields must never regress to bare/full DID refs."""
+    schema_root = ARTIFACTS / "schemas"
+    for path in sorted(schema_root.rglob("*.json")):
+        document = load_json(lint, path)
+        if not isinstance(document, dict):
+            continue
+        for json_path, value, key in walk_json(document):
+            if key != "properties" or not isinstance(value, dict):
+                continue
+            for field in sorted(_STABLE_CORE_ID_FIELDS & value.keys()):
+                schema = value[field]
+                if not isinstance(schema, dict):
+                    continue
+                refs = [
+                    nested_value
+                    for _, nested_value, nested_key in walk_json(schema)
+                    if nested_key == "$ref" and isinstance(nested_value, str)
+                ]
+                forbidden_refs = [
+                    ref
+                    for ref in refs
+                    if "/$defs/did" in ref
+                    or "/$defs/full_id" in ref
+                    or ref.endswith("/$defs/ActorDid")
+                ]
+                if forbidden_refs:
+                    lint.fail(
+                        path,
+                        f"{json_path}.{field}: stable identity field must reference core_id, got {forbidden_refs}",
+                    )
+
+
 
 def ensure_cross_file_pointer(
     lint: Lint, owner: Path, target: Path, ref: str, label: str
@@ -2261,6 +2304,134 @@ def check_did_and_device_constraints(lint: Lint) -> None:
                             "profile (common-ids.schema.json#/$defs/did_url); see "
                             "identity/did-usage-and-verification.md section 2.2.1",
                         )
+
+    common_ids_path = ARTIFACTS / "schemas" / "common-ids.schema.json"
+    common_defs = schema_docs.get("common-ids.schema.json", {}).get("$defs", {})
+    long_lived = common_defs.get("long_lived_principal_full_id", {})
+    ephemeral = common_defs.get("ephemeral_pairwise_principal_full_id", {})
+    if not isinstance(long_lived, dict) or not str(long_lived.get("pattern", "")).startswith(
+        "^did:webvh:"
+    ):
+        lint.fail(
+            common_ids_path,
+            "$defs.long_lived_principal_full_id must be a closed did:webvh schema",
+        )
+    if not isinstance(ephemeral, dict) or not str(ephemeral.get("pattern", "")).startswith(
+        "^did:key:"
+    ):
+        lint.fail(
+            common_ids_path,
+            "$defs.ephemeral_pairwise_principal_full_id must be a closed did:key schema",
+        )
+
+    account_schema_path = ARTIFACTS / "schemas" / "account-operations.schema.json"
+    account_full_id = (
+        schema_docs.get("account-operations.schema.json", {})
+        .get("$defs", {})
+        .get("full_id", {})
+    )
+    if account_full_id.get("$ref") != "./common-ids.schema.json#/$defs/long_lived_principal_full_id":
+        lint.fail(
+            account_schema_path,
+            "account registration full_id must use the closed long-lived did:webvh principal schema",
+        )
+
+    principal_schema_path = ARTIFACTS / "schemas" / "principal-operations.schema.json"
+    pcr_full_id = (
+        schema_docs.get("principal-operations.schema.json", {})
+        .get("$defs", {})
+        .get("pcr_genesis_submit_request", {})
+        .get("properties", {})
+        .get("full_id", {})
+    )
+    if pcr_full_id.get("$ref") != "./common-ids.schema.json#/$defs/long_lived_principal_full_id":
+        lint.fail(
+            principal_schema_path,
+            "account-authority PCR genesis full_id must use the closed long-lived did:webvh schema",
+        )
+
+    realm_genesis_path = ARTIFACTS / "schemas" / "realm-genesis.schema.json"
+    realm_genesis_doc = schema_docs.get("realm-genesis.schema.json", {})
+    realm_genesis_text = canonical_json(realm_genesis_doc)
+    for required_token in ("#/$defs/long_lived_principal_full_id",):
+        if required_token not in realm_genesis_text:
+            lint.fail(
+                realm_genesis_path,
+                f"identity-control genesis must use the closed did:webvh principal branch: missing {required_token}",
+            )
+    for forbidden_token in ("#/$defs/ephemeral_pairwise_principal_full_id",):
+        if forbidden_token in realm_genesis_text:
+            lint.fail(
+                realm_genesis_path,
+                f"ephemeral pairwise actors are MLS LeafNode-bound and must not enter PCR genesis: found {forbidden_token}",
+            )
+    ephemeral_profile_forbidden = any(
+        isinstance(branch, dict)
+        and branch.get("then", {})
+        .get("properties", {})
+        .get("schema_refs", {})
+        .get("not", {})
+        .get("contains", {})
+        .get("const")
+        == "ak.profile.ephemeral_pairwise_principal.v1"
+        for branch in realm_genesis_doc.get("allOf", [])
+    ) if isinstance(realm_genesis_doc, dict) else False
+    if not ephemeral_profile_forbidden:
+        lint.fail(
+            realm_genesis_path,
+            "identity-control genesis must explicitly forbid the ephemeral pairwise profile in schema_refs",
+        )
+
+    profiles_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
+    profiles_doc = load_json(lint, profiles_path)
+    profiles = profiles_doc.get("profile_requirements", {}) if isinstance(profiles_doc, dict) else {}
+    if not isinstance(profiles, dict):
+        lint.fail(profiles_path, "profiles must be an object")
+        profiles = {}
+    ephemeral_profile = profiles.get("ak.profile.ephemeral_pairwise_principal.v1")
+    if not isinstance(ephemeral_profile, dict):
+        lint.fail(profiles_path, "missing ak.profile.ephemeral_pairwise_principal.v1")
+    else:
+        identity = ephemeral_profile.get("identity", {})
+        if identity.get("allowed_principal_methods") != ["did:key"]:
+            lint.fail(
+                profiles_path,
+                "ephemeral pairwise profile must admit exactly did:key",
+            )
+        if identity.get("long_lived_principal") is not False:
+            lint.fail(
+                profiles_path,
+                "ephemeral pairwise profile must set long_lived_principal=false",
+            )
+        expected_closed_flags = {
+            "account_registration_allowed": False,
+            "principal_control_realm_allowed": False,
+            "device_directory_allowed": False,
+            "author_trust_anchor": "accepted_exact_epoch_mls_leafnode",
+            "key_scope": "one_realm_no_reuse",
+        }
+        for field, expected in expected_closed_flags.items():
+            if identity.get(field) != expected:
+                lint.fail(
+                    profiles_path,
+                    f"ephemeral pairwise profile identity.{field} must equal {expected!r}",
+                )
+        if ephemeral_profile.get("required_event_kinds") != []:
+            lint.fail(
+                profiles_path,
+                "ephemeral pairwise profile must not require PCR/device lifecycle Event kinds",
+            )
+    for profile_id, profile in profiles.items():
+        if profile_id == "ak.profile.ephemeral_pairwise_principal.v1" or not isinstance(profile, dict):
+            continue
+        identity = profile.get("identity")
+        if not isinstance(identity, dict) or "allowed_principal_methods" not in identity:
+            continue
+        if identity.get("allowed_principal_methods") != ["did:webvh"]:
+            lint.fail(
+                profiles_path,
+                f"{profile_id}.identity.allowed_principal_methods must equal the closed long-lived principal allowlist ['did:webvh']",
+            )
 
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(openapi, dict):

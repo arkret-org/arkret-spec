@@ -347,8 +347,7 @@
   ],
   "$defs": {
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -394,7 +393,7 @@
           "type": "array",
           "items": {
             "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
           }
         },
         "actor_frontiers": {
@@ -408,7 +407,7 @@
             ],
             "properties": {
               "actor_id": {
-                "$ref": "#/$defs/did"
+                "$ref": "./common-ids.schema.json#/$defs/core_id"
               },
               "actor_seq": {
                 "type": "integer",
@@ -416,7 +415,7 @@
               },
               "event_id": {
                 "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+                "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
               },
               "hlc": {
                 "type": "string",

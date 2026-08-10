@@ -30,7 +30,7 @@
           "description": "Authorization basis. Ordinary publication uses an accepted Seal or signed multi-leaf seal_basis. Only a caller-validated registered genesis unit may use the exact anchor_unit digest commitment."
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"

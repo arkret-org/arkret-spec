@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.3",
+  "version": "2026-08-10.7",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T17:00:00Z",
+  "generated_at": "2026-08-10T23:50:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1870,7 +1870,7 @@
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "Cross-author replacement repair dispatch: ak.member.repair.request is a durable to-device trigger that carries no Event bytes and no authority, the peer re-verifies requester identity, accepted rejoin, both directional Contact heads, generation staleness and single KeyPackage consumption from the signed event log, refusal is silence with no ack or receipt carrier, and the durable Commit/Welcome plus activation are the only response.",
+        "description": "Cross-author replacement repair dispatch: registered self dispatch freezes a byte-identical peer relay outbox; the destination atomically freezes either all current authorized human devices or one current Native-Agent runtime endpoint and enqueues all-or-zero; requester authority is closed device|native_agent and byte-bound to accepted rejoin and KeyPackage signer evidence; repair claims consume only the exact target_keypackage_ref through a closed human-device|native-agent selector; durable Commit/Welcome plus activation remain the only business response.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
@@ -3227,7 +3227,6 @@
         "auth-session-proof-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/zh/identity/identity-did.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
       ]
@@ -5192,6 +5191,19 @@
         "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json"
       ],
       "description": "Recovery A/B and SecurityRotation crash, response-loss, restart, exact/conflicting replay, staged-secret loss, terminal replay and multi-backup-kind erase ordering."
+    },
+    {
+      "vector_id": "ak.vector.service_resolution.handover_mirror.v1",
+      "status": "active",
+      "domain": "service_resolution",
+      "applies_to_fixtures": [
+        "service-route-handover-mirror-fixture.json"
+      ],
+      "description": "FLOW-GAP-015 closure for target-signed planned service-route handover and Realm-scoped mirror recovery: exact current basis and time ordering, cancellation continuity, no notice-authorized business traffic, same-core formal successor validation, durable publish acknowledgement and replay conflict, bounded visibility-blinded resolve, fork quarantine, durable anti-rollback floor with replaceable TTL cache, delivery-binding rebind boundary, and bilateral cross-ack cutover.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/service-route-handover-mirror-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
     },
     {
       "vector_id": "ak.vector.session.bare_bearer_rejected_protected.v1",

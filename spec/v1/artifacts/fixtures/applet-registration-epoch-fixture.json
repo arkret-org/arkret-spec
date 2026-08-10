@@ -17,10 +17,10 @@
       "derived_registration": {
         "kind": "ak.applet.registration",
         "applet_id": "ak:applet:01904100-0000-7000-8000-aaaaaaaaaaaa",
-        "service_id": "did:webvh:z6mkfixture:applet.example",
+        "service_id": "ak:did_core:webvh:z6mkfixtureappletexample",
         "controller_id": "did:webvh:z6mkfixture:alice.example",
         "base_url": "https://applet.example/cx",
-        "bot_actor_id": "did:webvh:z6mkfixture:bot.example",
+        "bot_actor_id": "did:webvh:z6mkfixturebotexample:bot.example",
         "protocols": [
           "ak.applet.v1",
           "slack"
@@ -29,7 +29,7 @@
           "actors": [
             {
               "exclusive": true,
-              "pattern": "did:webvh:z6mkfixture:applet.example:ghost:*"
+              "pattern": "did:webvh:z6mkfixtureappletexampleghost:applet.example:ghost:*"
             }
           ],
           "realms": [],
@@ -45,7 +45,7 @@
         "created_at": "2026-07-12T00:00:00.000Z"
       },
       "service_did_document": {
-        "service_id": "did:webvh:z6mkfixture:applet.example",
+        "service_id": "ak:did_core:webvh:z6mkfixtureappletexample",
         "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "method_version": {
           "method": "did:webvh",
@@ -55,11 +55,11 @@
       },
       "accepted_signing_keys": [
         {
-          "key_ref": "did:webvh:z6mkfixture:applet.example#server-key-1",
+          "key_ref": "did:webvh:z6mkfixtureappletexample:applet.example#server-key-1",
           "public_key_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
         {
-          "key_ref": "did:webvh:z6mkfixture:applet.example#server-key-2",
+          "key_ref": "did:webvh:z6mkfixtureappletexample:applet.example#server-key-2",
           "public_key_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
         }
       ],
@@ -73,7 +73,7 @@
         ]
       },
       "webhook_auth": {
-        "key_ref": "did:webvh:z6mkfixture:applet.example#server-key-1",
+        "key_ref": "did:webvh:z6mkfixtureappletexample:applet.example#server-key-1",
         "kind": "http_message_signature",
         "accepted_signature_algorithms": [
           "ed25519"
@@ -100,8 +100,8 @@
         }
       }
     },
-    "canonical_bytes_utf8": "{\"accepted_signing_keys\":[{\"key_ref\":\"did:webvh:z6mkfixture:applet.example#server-key-1\",\"public_key_digest\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"},{\"key_ref\":\"did:webvh:z6mkfixture:applet.example#server-key-2\",\"public_key_digest\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"}],\"derived_registration\":{\"applet_id\":\"ak:applet:01904100-0000-7000-8000-aaaaaaaaaaaa\",\"base_url\":\"https://applet.example/cx\",\"bot_actor_id\":\"did:webvh:z6mkfixture:bot.example\",\"controller_id\":\"did:webvh:z6mkfixture:alice.example\",\"created_at\":\"2026-07-12T00:00:00.000Z\",\"kind\":\"ak.applet.registration\",\"namespaces\":{\"actors\":[{\"exclusive\":true,\"pattern\":\"did:webvh:z6mkfixture:applet.example:ghost:*\"}],\"handles\":[],\"realms\":[]},\"protocols\":[\"ak.applet.v1\",\"slack\"],\"rate_limited\":true,\"receive_events\":true,\"receive_signals\":false,\"requested_scopes\":[\"ak.message.create\",\"ak.reaction.add\"],\"service_id\":\"did:webvh:z6mkfixture:applet.example\"},\"endpoint_policy\":{\"endpoints\":[{\"auth\":\"webhook_signature\",\"method\":\"POST\",\"path\":\"/_arkret/edge/applet/transactions\"}]},\"schema\":\"ak.schema.applet_registration_epoch_transcript.v1\",\"security_policy\":{\"claimed_profiles\":[\"ak.profile.applet_service.v1\"],\"delegation_policy\":{\"enabled\":false},\"e2ee_policy\":{\"enabled\":false,\"mls_join_requested\":false},\"ghost_policy\":{\"enabled\":false},\"limits\":{\"max_payload_bytes\":1048576,\"max_transaction_events\":64,\"rate_limit_per_minute\":120}},\"service_did_document\":{\"document_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"method_version\":{\"method\":\"did:webvh\",\"unversioned_refetch\":false,\"version_id\":\"QmRegistrationVersion1\"},\"service_id\":\"did:webvh:z6mkfixture:applet.example\"},\"webhook_auth\":{\"accepted_signature_algorithms\":[\"ed25519\"],\"key_ref\":\"did:webvh:z6mkfixture:applet.example#server-key-1\",\"kind\":\"http_message_signature\"}}",
-    "expected_registration_epoch": "sha256:46c37f9b63997b1d37d921f1df956d3e77d3b80e18c94f89769f9c96ded413e8"
+    "canonical_bytes_utf8": "{\"accepted_signing_keys\":[{\"key_ref\":\"did:webvh:z6mkfixtureappletexample:applet.example#server-key-1\",\"public_key_digest\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"},{\"key_ref\":\"did:webvh:z6mkfixtureappletexample:applet.example#server-key-2\",\"public_key_digest\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"}],\"derived_registration\":{\"applet_id\":\"ak:applet:01904100-0000-7000-8000-aaaaaaaaaaaa\",\"base_url\":\"https://applet.example/cx\",\"bot_actor_id\":\"did:webvh:z6mkfixturebotexample:bot.example\",\"controller_id\":\"did:webvh:z6mkfixture:alice.example\",\"created_at\":\"2026-07-12T00:00:00.000Z\",\"kind\":\"ak.applet.registration\",\"namespaces\":{\"actors\":[{\"exclusive\":true,\"pattern\":\"did:webvh:z6mkfixtureappletexampleghost:applet.example:ghost:*\"}],\"handles\":[],\"realms\":[]},\"protocols\":[\"ak.applet.v1\",\"slack\"],\"rate_limited\":true,\"receive_events\":true,\"receive_signals\":false,\"requested_scopes\":[\"ak.message.create\",\"ak.reaction.add\"],\"service_id\":\"ak:did_core:webvh:z6mkfixtureappletexample\"},\"endpoint_policy\":{\"endpoints\":[{\"auth\":\"webhook_signature\",\"method\":\"POST\",\"path\":\"/_arkret/edge/applet/transactions\"}]},\"schema\":\"ak.schema.applet_registration_epoch_transcript.v1\",\"security_policy\":{\"claimed_profiles\":[\"ak.profile.applet_service.v1\"],\"delegation_policy\":{\"enabled\":false},\"e2ee_policy\":{\"enabled\":false,\"mls_join_requested\":false},\"ghost_policy\":{\"enabled\":false},\"limits\":{\"max_payload_bytes\":1048576,\"max_transaction_events\":64,\"rate_limit_per_minute\":120}},\"service_did_document\":{\"document_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"method_version\":{\"method\":\"did:webvh\",\"unversioned_refetch\":false,\"version_id\":\"QmRegistrationVersion1\"},\"service_id\":\"ak:did_core:webvh:z6mkfixtureappletexample\"},\"webhook_auth\":{\"accepted_signature_algorithms\":[\"ed25519\"],\"key_ref\":\"did:webvh:z6mkfixtureappletexample:applet.example#server-key-1\",\"kind\":\"http_message_signature\"}}",
+    "expected_registration_epoch": "sha256:bfa0945c809ec5bcff37362c6bb89e705a2c75df5350012bdc5a7f62725c0fe8"
   },
   "negative": [
     {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.1",
+  "version": "2026-08-10.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T18:00:00Z",
+  "generated_at": "2026-08-10T23:50:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -208,6 +208,13 @@
       "status": "active",
       "storage_recommendation": "Store canonical tuple fields separately when indexing cell state.",
       "description": "Canonical protocol cell identifier. The complete ak.component.<facet-path>.v<n> family identifier is embedded unchanged after ak:cell:. When the registry declares cell_subject: null for a family, the canonical subject segment is the literal ASCII string 'null' (ak:cell:<component>:null); the cell is located by the Event envelope realm_id and implementations MUST NOT encode realm_id, Realm role classification, or any payload-derived value into that segment. See spec/v1/zh/conformance/encoding.md section 4."
+    },
+    {
+      "kind": "did_core",
+      "wire_form": "ak:did_core:<method>:<core>",
+      "status": "active",
+      "storage_recommendation": "Store the complete canonical value for equality and indexing; generic consumers MUST NOT split or normalize the adapter-defined core segment.",
+      "description": "Stable DID-derived principal, actor or service identity core. It is not a DID, is not directly resolvable, and MUST be projected only by a registered DID method adapter from a canonical bare full_id. Registered as a special form rather than an id_form because its identity authority is the external DID method, not an Arkret producer or Event digest."
     },
     {
       "kind": "trust_domain",
@@ -732,6 +739,15 @@
       "status": "active",
       "wire_form": "ak:request:<uuidv7>",
       "description": "Request/correlation ID",
+      "id_form": "producer_allocated",
+      "identity_authority": "producer_signature"
+    },
+    {
+      "kind": "service_route_handover",
+      "category": "transport",
+      "status": "active",
+      "wire_form": "ak:service_route_handover:<uuidv7>",
+      "description": "Service-local planned route handover chain ID. The target service allocates it once and reuses it across scheduled updates and cancellation revisions for the same handover.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },

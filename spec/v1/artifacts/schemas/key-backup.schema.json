@@ -24,7 +24,7 @@
       "pattern": "^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "device_id": {
       "type": "string",
@@ -452,7 +452,7 @@
               "const": "ak.schema.key_backup.v1"
             },
             "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did"
+              "$ref": "./common-ids.schema.json#/$defs/core_id"
             },
             "device_id": {
               "type": [
@@ -1124,10 +1124,10 @@
       ],
       "properties": {
         "managed_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"

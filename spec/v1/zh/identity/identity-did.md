@@ -3,7 +3,7 @@ title: DID Identity
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-08-10
 ---
 
 ## 0. 规范语言
@@ -12,13 +12,14 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-Arkret 使用 DID 作为稳定身份根。Handle、邮箱、组织用户名和第三方账号都只是可验证属性，不是协议主键。
+Arkret 使用 `core_id` 作为稳定身份根，使用 `full_id` 携带可由 DID method 解析和验证的当前 resolution。Handle、邮箱、组织用户名和第三方账号都只是可验证属性，不是协议主键。
 
 本文定义：
 
 - DID method 选择策略
 - 默认 DID method
 - resolver policy 与 method adapter
+- `core_id` / `full_id` 投影与 PCR resolution 发布
 - DID Document normalized view
 - 组织账号绑定的 DID proof
 
@@ -26,13 +27,24 @@ DID / DID URL 字段总表，以及“何时只把 DID 当作身份锚点、何�
 边界见 [`did-usage-and-verification.md`](./did-usage-and-verification.md)。本文只定义真正进入
 DID authority path 后的方法、证据与解析规则，不要求普通业务路径重复解析 DID。
 
-Arkret v1 不定义、注册或推荐任何自有 DID method。实现和用户 MUST 使用已有 DID method，例如 `did:webvh`、`did:web`、`did:key`、`did:pkh`、`did:plc`，或本地 trust policy 明确允许的其他公开 DID method。
+Arkret v1 不定义、注册或推荐任何自有 DID method。v1 主体创建面使用封闭 method 集：可注册、可拥有
+账号/PCR 的长期 principal MUST 使用 `did:webvh`；显式声明 `ak.profile.ephemeral_pairwise_principal.v1`
+的 Realm-local 临时 pairwise actor MAY 使用 `did:key`，但它只由 exact MLS LeafNode 约束且不进入
+账号/PCR/设备目录；service 默认使用 `did:webvh`，并 MAY 在显式 no-history service profile
+下使用 `did:web`。未被该封闭集合和对应 profile 登记的 method MUST `unsupported_did_method`，本地
+trust policy 不得自行扩大可互操作的 principal 创建面。
 
 ## 2. 核心原则
 
-### 2.1 稳定主体引用 MUST 使用 DID
+### 2.1 稳定主体引用 MUST 使用 `core_id`
 
-协议中的主体引用 MUST 使用 DID，而不是 handle。
+协议中的持久主体引用 MUST 使用 `core_id`，而不是 handle 或当前 `full_id`。v1 wire 形态固定为：
+
+```text
+ak:did_core:<method>:<core>
+```
+
+`<method>` 是不含 `did:` 前缀的已登记 method 名，`<core>` 是该 method adapter 从完整 DID 投影出的稳定、不透明 identity core。业务层 MUST 对完整 `core_id` 做逐字节比较，不得解析 `<core>` 猜测 method-private 语义。
 
 包括：
 
@@ -47,22 +59,45 @@ Arkret v1 不定义、注册或推荐任何自有 DID method。实现和用户 M
 
 实现 MAY 允许用户使用 `@alice:example.org`、`alice@example.org`、组织用户名、OIDC subject、邀请链接或其他人类可读标识完成发现、登录、邀请和账号恢复。
 
-这些标识是 user-facing identifier、service account id、handle、3PID 或 bridge alias；它们不是协议主键。实现首次建立账号、session、device、membership、federation peer 或 service delegation 信任绑定时，MUST 将其绑定到 principal DID 与 device，并按本地 trust policy 完成 [`did-usage-and-verification.md` §4](./did-usage-and-verification.md) 要求的权威验证。后续持久 Event 仍须逐条验签与授权，但命中既有 accepted auth-state / key epoch 时 MUST 复用该绑定，不得把每次 Event 接收都解释为重新解析 DID。
+这些标识是 user-facing identifier、service account id、handle、3PID 或 bridge alias；它们不是协议主键。实现首次建立账号、session、device、membership、federation peer 或 service delegation 信任绑定时，MUST 要求提交 `full_id`，用已登记 method adapter 独立验证并投影为 principal `core_id`，再绑定到 device。后续持久 Event 仍须逐条验签与授权，但命中既有 accepted auth-state / key epoch 时 MUST 复用该绑定，不得把每次 Event 接收都解释为重新解析 DID。
 
-如果用户尚无显式 DID，Auth Server MAY 编排 account-first onboarding，但 principal identity root 与 entry 0 必须由客户端生成、保管并签名；Auth Server/identity registry 只能在自有域名下托管客户端已签名的 `did.jsonl` 并提供 witness 接入，不得代用户生成或持有 root。Arkret v1 core 默认 principal/service method 是 `did:webvh`；`did:web` 仅用于显式 no-history service 或 `personal_node` principal。hosting outage 只允许 §3.4 cache-only degraded mode，不得 live fallback。hosted log 的 method history、witness 与 service-account binding 必须可审计；设备目录、recovery policy 和业务授权只存在于 PCR，hosting 所有权不等于 DID 控制权。
+如果用户尚无显式 DID，Auth Server MAY 编排 account-first onboarding，但 principal identity root 与 entry 0 必须由客户端生成、保管并签名；Auth Server/identity registry 只能在自有域名下托管客户端已签名的 `did.jsonl` 并提供 witness 接入，不得代用户生成或持有 root。Arkret v1 长期 principal method 是 `did:webvh`；service 默认同样使用 `did:webvh`，仅显式 no-history service profile 可使用 `did:web`。hosting outage 只允许 §3.4 cache-only degraded mode，不得 live fallback。hosted log 的 method history、witness 与 service-account binding 必须可审计；设备目录、recovery policy、当前 resolution 发布和业务授权存在于 PCR，hosting 所有权不等于 DID 控制权。
+
+#### 2.1.2 `core_id` / `full_id` 模型（normative）
+
+`full_id` 是符合 W3C DID syntax 的**完整 bare DID**，不含 fragment、query 或 path；它携带特定 method 当前解析所需的 resolution。`core_id` 是 method adapter 对 `full_id` 的稳定投影：
+
+```text
+project(full_id) -> core_id
+full_id ≅ core_id + method-specific resolution
+```
+
+上式是语义关系，不是通用字符串拼接算法。实现 MUST NOT 用截断、分隔符切割、模板拼接或把任意 resolution suffix 附到 `core_id` 的方式构造 `full_id`；只有 [`did-method-adapter-registry.json`](../../artifacts/registry/did-method-adapter-registry.json) 登记的 method adapter 可以执行 `parse`、`project`、`resolve`、canonicalization 与 DID URL 构造。adapter MUST 拒绝无法产生唯一 `core_id` 的输入。
+
+以下边界固定：
+
+- Event `actor_id`、principal / service reference、membership、capability subject 与业务数据库稳定关联使用 `core_id`。
+- 注册、首次 service binding、method-native operation、DID Document 获取以及需要最新控制状态的验证提交 `full_id`。
+- 同一个 `core_id` 的 resolution 更新不改变主体；改变 method 或 `<core>` 会产生另一个 `core_id`，MUST NOT 作为“迁移”冒充原主体。
+- `verification_method` 等 DID URL MUST 由已验证的 `full_id` 及 method adapter 构造和比较；不得把 fragment 直接拼到 `core_id`，也不得用 `core_id` 与 DID URL 做字符串前缀比较。
 
 ### 2.2 DID 持久，密钥 SHOULD 可轮换
 
 普通密钥轮换 SHOULD NOT 改变 DID。
 
-长期 principal DID SHOULD 选择支持 key rotation、recovery、deactivation 或可验证历史的 DID method。`did:key` 和 `did:pkh` 属于生成式 DID method，通常不支持 DID document 更新、停用或内建恢复；它们 MAY 用于临时主体、邀请、bootstrap、钱包绑定或测试，但除非 Realm / organization policy 明确允许，MUST NOT 作为默认长期用户 DID。（注:设备不在此列——设备不是独立 DID 主体，其密钥是所属 principal DID 下的 verification method，见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。）
+长期 principal DID MUST 使用支持 key rotation、recovery、deactivation 与可验证历史的 v1
+`did:webvh` adapter。`did:key` 只允许用于显式 `ak.profile.ephemeral_pairwise_principal.v1` 的
+Realm-local 临时 pairwise actor；它不创建账号、PCR 或设备授权链。邀请、bootstrap 或测试若没有
+声明该 profile，也不得借用 `did:key` 创建普通 principal。`did:pkh`、`did:plc` 与其它 method 不属于 v1 principal 创建面，Realm / organization
+本地 policy 不得把它们加入该封闭 allowlist。（设备不在此列——设备不是独立 DID 主体，其密钥是所属
+principal `full_id` 下的 verification method，见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。）
 
 ### 2.3 DID Document 不是身份画像
 
 DID Document SHOULD 只承载：
 
 - 可验证控制材料
-- 最小服务发现入口
+- 可选的 service control/delegation 证明（不得作为 `core_id -> URL` 的通用首跳）
 - method-specific 更新、恢复或历史所需状态
 
 DID Document MUST NOT 被用作跨组织身份画像。邮箱、跨组织 handle、第三方账号和隐私敏感属性应通过 claim / presentation 按需证明。
@@ -73,13 +108,14 @@ Managed Agent 的完整 `requested_scope`（包括 resource selector 与 mandato
 
 ## 3. 默认 DID 方法
 
-Arkret v1 core 部署的 **default principal DID method 与 default service DID method 都是 `did:webvh`**：
+Arkret v1 core 部署的 **唯一长期 principal DID method 与 default service DID method 都是 `did:webvh`**：
 
 ```text
 did:webvh:<scid>:<host-and-path>
 ```
 
-`did:web` 仅作为 **显式声明的 no-history service method** 与 **`personal_node` deployment profile 的可选 principal method**；不得作为 `small_team` / `organization` / `high_security_organization` / `sovereign_deployment` profile 的默认 principal method，也不得作为 v1 core 默认 service method。
+`did:web` 仅作为 **显式声明的 no-history service method**；任何 deployment profile（包括
+`personal_node`）都不得用它创建 principal，也不得把它作为 `did:webvh` outage fallback。
 
 选择 `did:webvh` 作为 v1 core principal 默认的原因：
 
@@ -87,24 +123,25 @@ did:webvh:<scid>:<host-and-path>
 - DNS 劫持、TLS 证书失窃或域名转移在 `did:web` 上是静默的——攻击者可以替换 DID Document 而不留任何可被 verifier 检测的证据。`did:webvh` 通过 entry hash chain + controller proof + witness 让任何身份控制权变更都进入可验证账本，与 Arkret 自身 signed-event chain 范式同构。
 - 它与 Arkret 的 service DID 发现模型兼容，部署门槛仅比 `did:web` 多一份 `did.jsonl` 文件；service DID 若显式降级到 `did:web`，必须把 `history_evidence_kind="none"` / no-history trust profile 暴露给 verifier，不得伪装成默认强度。
 
-为什么 `did:web` 不能是 v1 core principal 默认：`did:web` 没有可验证 DID 文档历史，攻击者控制 hosting domain 后可以把 DID Document 替换成自己的 `verificationMethod` 而 verifier 无从检测。把它作为长期 principal 默认会让协议安全模型整体退化到 DNS+TLS 强度。
+为什么 `did:web` 不能进入 v1 principal allowlist：`did:web` 没有可验证 DID 文档历史，攻击者控制 hosting domain 后可以把 DID Document 替换成自己的 `verificationMethod` 而 verifier 无从检测。把它用于长期 principal 会让协议安全模型整体退化到 DNS+TLS 强度。
 
-默认值只表示"当系统需要为新用户创建 principal DID、且用户未明确选择其他 method 时使用 `did:webvh`"。协议仍然允许其他现有 DID method，只要实现能按该 method 的规范完成解析、控制权验证、（可选的）历史验证和服务委托验证。
+`did:webvh` 在长期 principal 创建面不是可被用户或部署覆盖的默认值，而是封闭 allowlist 的唯一值。
+扩展实现可以解析其它 method 的外部材料，但不得把“能够解析”解释为“能够创建 v1 principal”；未来
+新增长期 principal method 必须先在规范登记 adapter、创建 profile、完整历史/恢复安全要求与 conformance
+vector，不能由实现本地开启。
 
-> **残留暴露面与 Key Transparency profile（informative）**：本条已在 [`../security/server-threat-model.md` §2.1a](../security/server-threat-model.md) 登记为**知情接受的 residual risk**，两处必须同步维护。`did:webvh` 的 `did.jsonl` hash chain + 可选 witness 提供的是**单个 DID 自身**控制权变更的可验证性。它**不**提供跨命名空间、可被任意第三方持续 monitor 的全局 Key Transparency 账本（CONIKS / Apple Contact Key Verification 类）。因此 v1 目录层的 equivocation 检测依赖各 DID 自身的 witness 覆盖与 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) 的资源自签名，**hosting domain 对不同 verifier 出示不同 key 的针对性 split-view（尤其 `did:web` service method 与 `personal_node` 降级路径）是已知残留暴露面**。实现 MAY 声明可选 identity extension profile `ak.profile.key_transparency.v1` 来收敛该暴露面：该 profile 为 `handle / principal DID / PCR authorization frontier digest / KeyPackage publication digest` 提供 label→value append-only log，entry 必须携带 inclusion proof 与 consistency proof；log fork 以双签或等价 split-view evidence 暴露，monitor/auditor 验证结果可进入目录解析响应或 identity receipt。该 profile 不改变 v1 core Event bytes；未声明该 profile 的实现按普通 DID witness 与 directory 自签名规则互通。
+> **残留暴露面与 Key Transparency profile（informative）**：本条已在 [`../security/server-threat-model.md` §2.1a](../security/server-threat-model.md) 登记为**知情接受的 residual risk**，两处必须同步维护。`did:webvh` 的 `did.jsonl` hash chain + 可选 witness 提供的是**单个 DID 自身**控制权变更的可验证性。它**不**提供跨命名空间、可被任意第三方持续 monitor 的全局 Key Transparency 账本（CONIKS / Apple Contact Key Verification 类）。因此 v1 目录层的 equivocation 检测依赖各 DID 自身的 witness 覆盖与 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) 的资源自签名；显式 no-history `did:web` service 的针对性 split-view 是已知残留暴露面，但不再扩散到 principal。实现 MAY 声明可选 identity extension profile `ak.profile.key_transparency.v1` 来收敛该暴露面：该 profile 为 `handle / principal core_id / PCR authorization frontier digest / KeyPackage publication digest` 提供 label→value append-only log，entry 必须携带 inclusion proof 与 consistency proof；log fork 以双签或等价 split-view evidence 暴露，monitor/auditor 验证结果可进入目录解析响应或 identity receipt。该 profile 不改变 v1 core Event bytes；未声明该 profile 的实现按普通 DID witness 与 directory 自签名规则互通。
 
 ### 3.1 Method Selection
 
 | 场景 | 默认 / 推荐 DID method | 说明 |
 | --- | --- | --- |
-| 普通个人 principal DID（`small_team` / `organization` / 更高 profile） | `did:webvh` | v1 core 默认 principal method。无域名用户由 Auth Server 在组织子域代为托管 `did.jsonl`。 |
-| `personal_node` profile principal DID（单人节点、低 stakes） | `did:webvh` SHOULD，`did:web` MAY | 单人自托管可降级为 `did:web`，但 deployment profile MUST 显式声明 `principal_method=did:web`。 |
+| 任意长期 principal（包括 `personal_node`、`small_team`、`organization` 与更高 profile） | `did:webvh` | v1 core 唯一长期 principal method。无域名用户由 Auth Server 在组织子域代为托管客户端签名的 `did.jsonl`。 |
 | 组织 DID | `did:webvh` | v1 core MUST-support；治理 / 合规部署强制可验证 history chain。 |
 | Service DID | `did:webvh` SHOULD / default；`did:web` MAY 显式声明 no-history profile | 服务发现虽依赖域名和 HTTPS endpoint，但 service DID 同样签发协议交易、describe、HTTP Message Signature 与 delegation；默认需要可审计历史。低风险或外部互通服务 MAY 使用 `did:web`，但 MUST 在 ServiceDescribe / resolver evidence 中声明无历史信任强度。 |
-| 临时主体、测试、一次性邀请、bootstrap | `did:key` | 本地可解析、无网络依赖；不支持轮换 / 恢复，MUST NOT 作为默认长期身份。设备不选 DID method（设备非独立主体）。 |
-| 钱包 / 链上账号绑定（interop extension） | `did:pkh` | 只在钱包控制权就是业务身份根时使用；由 chain-binding interop extension profile 承载，不属于 v1 core 互操作必需。 |
-| AT Protocol 互通（interop extension） | `did:plc` adapter | 仅作为 AT Protocol bridge / interop adapter；由独立 interop extension profile 承载，不属于 v1 core 互操作必需。 |
-| 高安全或隔离部署 | `did:webvh`（默认） + policy 指定的额外 method | sovereign / enclave / 内网 PKI / KERI 等可作为辅助；MUST 明确 resolver trust roots 与 witness 集合。 |
+| 显式 ephemeral pairwise actor principal | `did:key` | 必须声明 `ak.profile.ephemeral_pairwise_principal.v1`；只在已声明 minimal-metadata profile 的 Realm 内由 exact accepted MLS LeafNode 约束，不创建账号/PCR/设备目录，不可升级为长期 principal。 |
+| 钱包、AT Protocol 或其它 interop identity | interop extension 自有 method | 可以作为外部 claim/bridge identity，但不进入 v1 principal 创建 allowlist；需要 Arkret principal 时必须另建 `did:webvh` principal 并走显式业务绑定。 |
+| 高安全或隔离部署 | `did:webvh` | sovereign / enclave / 内网部署可以收紧 resolver trust roots 与 witness 集合，不得本地扩展长期 principal method allowlist。 |
 
 ### 3.1.1 DID method 选择决策树
 
@@ -116,26 +153,21 @@ flowchart TB
 
     Q1 -- "service endpoint<br/>(Principal Server / Policy / Media)" --> SVC["did:webvh<br/>(v1 core 默认 service method)<br/>did:web 仅显式 no-history profile"]
 
-    Q1 -- "principal<br/>(用户 / 组织)" --> Q2{"deployment profile？"}
+    Q1 -- "长期 principal<br/>(用户 / 组织)" --> PRINCIPAL["did:webvh<br/>(唯一长期 principal method)<br/>所有 deployment profile 相同"]
 
-    Q1 -- "临时 / 邀请<br/>bootstrap / 测试" --> KEY["did:key<br/>本地可解析 / 无网络依赖<br/>不支持轮换 / 恢复<br/>MUST NOT 作为长期主体<br/>(设备不选 method，非独立主体)"]
+    Q1 -- "Realm-local ephemeral pairwise actor" --> KEY["did:key<br/>必须声明 ephemeral pairwise profile<br/>exact MLS LeafNode 是唯一 authority<br/>无账号 / PCR / 设备目录"]
 
     Q1 -- "钱包 / 链上账号绑定<br/>(interop extension)" --> PKH["did:pkh<br/>仅当钱包控制权就是业务身份根"]
 
     Q1 -- "AT Protocol 互通<br/>(interop extension)" --> PLC["did:plc adapter<br/>独立 interop extension profile"]
 
-    Q2 -- "personal_node<br/>(单人节点 / 低 stakes)" --> PN["did:webvh SHOULD<br/>did:web MAY<br/>(profile 必须显式声明 principal_method=did:web)"]
-
-    Q2 -- "small_team / organization<br/>high_security_organization<br/>sovereign_deployment" --> ORG["did:webvh<br/>(v1 core 默认 principal method)<br/>did.jsonl 历史链 + SCID + witness"]
-
-    Q2 -- "高安全 / 隔离部署<br/>额外辅助" --> EXTRA["did:webvh + policy 指定<br/>(KERI / 内网 PKI / sovereign 注册)<br/>MUST 明确 resolver trust roots"]
 ```
 
 读图要点：
 
-- `did:web` 不能作为 v1 core principal 或 service 默认（`personal_node` profile 例外）：没有可验证文档历史，DNS 劫持 / TLS 失窃即可静默改写控制权。service DID 使用 `did:web` 时必须被显式标为 no-history trust profile。
+- `did:web` 不能作为任何 v1 principal；service DID 使用 `did:web` 时必须被显式标为 no-history trust profile。
 - `did:webvh` hosting 暂时不可达时 MAY 进入 cache-only degraded mode；该模式只消费此前已验证的本地 evidence，不得 live fallback 到 `did:web`。
-- `did:pkh` / `did:plc` 是 interop extension profile，不属于 v1 core 互操作必需。
+- `did:pkh` / `did:plc` 等是 interop extension identity，不属于 v1 principal 创建面。
 
 ### 3.2 标识域名与服务域名的解耦
 
@@ -144,32 +176,31 @@ DID 托管域名、Principal Server 服务域名和 handle 域名是**三个独�
 | 标识层 | 由谁决定 | 解析/验证通道 | 示例 |
 | --- | --- | --- | --- |
 | DID 历史托管域名 | DID method 与 SCID（一旦签发即写入历史链） | `did:webvh` `did.jsonl` + entry hash chain + witness | `did:webvh:<scid>:users.acme.example` |
-| Principal Server 服务域名 | DID Document 中 `service` entry 的 `serviceEndpoint`，受组织/用户 service delegation 控制 | DID Document service binding + service DID 解析 + describe 响应 + `destination` 绑定（见 [federation.md §6](../sync/federation.md)） | `https://principal-7.cluster.acme.example:8443` |
+| Principal Server 服务域名 | current signed `ServiceResolutionRecord.base_url`，且该 record 的 service control identity 必须经过 method adapter / DID history 验证 | 业务授权的 service binding + current record + describe 第二跳 + `destination` 绑定（见 [federation.md §6](../sync/federation.md)） | `https://principal-7.cluster.acme.example:8443/` |
 | Handle 域名 | Holder 选择并通过双向验证发布 | DNS TXT / HTTPS well-known + DID Document `alsoKnownAs` 双向验证（见 [identity-handles.md §5–§6](./identity-handles.md)） | `alice.example.com`、`@alice:example.org` |
 
 要点：
 
 - DID 字符串中出现的域名（例如 `did:webvh:...:users.acme.example` 中的 `users.acme.example`）只表示 `did.jsonl` 历史的托管位置，**不**承诺该域名运行 Principal Server，也**不**是用户公开 handle。
-- 用户/组织搬迁 Principal Server、变更端口、增加 mirror、切换到第三方 host 时，正确路径是更新 DID Document 中的 service entry 并重新签发 service delegation；这条路径会进入可验证历史，不依赖 DNS+TLS 的现时强度。
-- DID Document 中的 `ArkretPrincipalServer` service entry 是该 DID 的默认服务发现入口，不是所有 Realm 的强制投递入口。某个 Realm 中已接受的 `ak.member.state{membership="join"}` 若携带 `delivery_binding.recipient_service_id`，该 Realm 的事件、sync、to-device、push 与 KeyPackage 投递 MUST 优先使用该 binding。只有 Realm policy 允许 `did_document_default` fallback，且 fallback 结果已在 join 时物化为 `delivery_binding`（含 `did_document_digest` / `resolved_at`）时，DID Document 默认 endpoint 才能作为该 Realm 的投递路径。
+- 用户/组织搬迁 Principal Server、变更端口、增加 mirror 或切换第三方 host 时，service owner 发布同一 service `core_id` 的 signed successor `ServiceResolutionRecord`；调用方验证 record chain、`full_id` method history、proof 与 freshness。同-core route refresh 不触发 member rebind，service core 改变才必须显式 rebind。
+- DID Document 中即使存在 `ArkretPrincipalServer` service entry，也不是默认或 Realm-scoped 路由 authority。某个 Realm 中已接受的 `ak.member.state{membership="join"}` 必须携带 `delivery_binding.recipient_service_id + service_resolution`；该 Realm 的事件、sync、to-device、push 与 KeyPackage 投递只使用该 binding，不存在 `did_document_default` runtime fallback。
 - **DID 只作为 identity anchor。** Principal DID method log 只承载 active update root、pre-rotation commitment、method-native history 与 witness evidence。DID Document 不得用 `service`、verification relationship 或 fragment 指派设备 authority，也不得承载设备、recovery policy、capability 或业务 profile state。
-- **设备密钥不写入 DID method key log。** `device_public_key` 只由 PCR accepted `ak.device.authorize` 进入设备集投影。普通业务 Event proof 按 `{principal_did}#{device_id}` 从 accepted PCR evidence 解析，并执行 device-generation fence；不得回退到 DID Document verification method。
+- **设备密钥不写入 DID method key log。** `device_public_key` 只由 PCR accepted `ak.device.authorize` 进入设备集投影。普通业务 Event proof 保留签名时的完整 DID URL；verifier 将其 bare `full_id` 经 adapter 投影为 Event `actor_id`，并以 fragment 选择 accepted PCR device evidence、执行 generation fence。不得把 core `actor_id` 拼接 fragment，也不得回退到 DID Document verification method 充当设备授权。
 - Genesis/re-anchor verifier 只从对应 DID history 解析 identity root。首设备和 replacement device 的 candidate key来自同批 descriptor/authorize payload，通过 unit-local overlay 验证；DID resolver 不提供该 key。
 - Handle（例如 `@alice:acme.example` / `alice@acme.example`，canonical `alice:acme.example`）属于 Handle 层，不属于 DID method 或 DID Document service discovery。它 MAY 解析出 `subject DID + member_delivery_binding`，但该结果只有在加入 Realm 时被物化为 `delivery_binding` 并通过 Realm policy 校验后，才成为 Realm-scoped 投递路径。
 - Handle 域名（含品牌域名）与 DID 托管域名可以完全无关。例如品牌持有者可以使用 `alice:alice.example.com` 作为公开 handle，而 DID 仍然由 `users.someprovider.example` 托管，只要 `alsoKnownAs` 与 issuer claim 双向验证一致。
-- [federation.md §6.3](../sync/federation.md) 的 `https://<domain>/.well-known/arkret/server` 仅作为 bootstrap 候选发现 hint，**不是**身份解析必经路径，也不能授权联邦请求；权威服务发现源仍然是 DID Document 的 service entry。
+- [federation.md §6.3](../sync/federation.md) 的 `https://<domain>/.well-known/arkret/server` 仅作为 bootstrap 候选发现 hint，**不是**身份解析必经路径，也不能授权联邦请求；可路由服务必须来自业务授权的 service binding，并通过 current `ServiceResolutionRecord` 独立验证。DID Document 只证明 `full_id` 的 control/history，不是 `core_id -> URL` 的通用首跳。
 - 实现 MUST NOT 引入"DID 字符串 → 实际服务地址"的额外带外重定向（例如类 Matrix `.well-known/matrix/server` 的间接），因为这会把信任根退化到 DNS+TLS 即时强度，与选择 `did:webvh` 而不是 `did:web` 作为 v1 core 默认 principal method 的初衷冲突（见 §3.4）。
 
 ### 3.3 支持要求
 
 Arkret v1 core conformance 要求如下：
 
-- Core resolver / verifier MUST 支持 DID Core 解析 / 验证抽象、`did:webvh`、`did:web` 和 `did:key`。
-  - `did:webvh` 是 v1 core 默认 principal method（`personal_node` profile 例外，见 §3.1）；Arkret v1 的 method adapter 精确钉定为 `did:webvh:1.0`。method evidence 的 `parameters.method` MUST 等于 `did:webvh:1.0`；缺失该字段或出现其他版本 MUST `unsupported_did_method`，不得自动选择外部规范的“最新版”。未来 method 版本只有在 Arkret 规范显式注册新的 adapter、profile 要求与 conformance vector 后才能使用。
-  - `did:web` 是 `personal_node` profile 的可选 principal method，也是显式 no-history service profile 可用的 service method。它不是 v1 core 默认 service method，也不是 `did:webvh` outage fallback；outage 行为见 §3.4 cache-only degraded mode。
-  - `did:key` 用于测试、bootstrap、一次性邀请、pairwise DID 和 registry outage 时的本地可验证身份材料。设备本身不是独立 DID 主体；principal bootstrap 的 identity root 位于 DID method history，首设备 key 只进入设备集投影。
-- AT Protocol interop（`did:plc` adapter）、wallet binding（`did:pkh`）、KERI 等 method 是 **interop extension profile**；core 实现 MAY 不支持，profile 化承载的好处是把仍在演进的子规范隔离在 core 互操作之外。
-- 实现 MAY 支持其他现有 DID method，但 MUST 保留 raw method evidence，并声明 trust profile。
+- Core resolver / verifier MUST 支持 DID Core 解析 / 验证抽象、`did:webvh`、`did:web` 和 `did:key`，但 method 能被解析不代表可用于任意角色。
+  - `did:webvh:1.0` 是 v1 唯一长期 principal method，也是 default service method。method evidence 的 `parameters.method` MUST 等于 `did:webvh:1.0`；缺失或未知版本 MUST `unsupported_did_method`。
+  - `did:web` 只用于显式 no-history service profile，不是 principal method，也不是 `did:webvh` outage fallback。
+  - `did:key` 只用于显式 ephemeral pairwise principal profile 下的 Realm-local MLS LeafNode 作者，以及非-principal 的本地可验证材料。它不进入账号/PCR/设备目录；设备本身不是独立 DID 主体。
+- AT Protocol interop（`did:plc`）、wallet binding（`did:pkh`）、KERI 等 method 可以由 extension 解析为外部 claim，但不得由 implementation-local policy 加入 v1 principal 创建 allowlist。
 - 实现 MUST NOT 将任何外部 DID Document 重写为 Arkret 私有 DID method。
 
 ### 3.4 `did:webvh` 作为 v1 core 默认
@@ -188,7 +219,7 @@ Arkret v1 core conformance 要求如下：
 
 具体规则:
 
-- **Cache-only,不解析 live `did:web` document**:fallback 期间 resolver MAY 返回 `did:webvh` 主体此前已验证的本地 cache(含 cache age 元数据);MUST NOT 退化为对 `did:web:<同 hosting domain>` 的 live resolve,即使该 hosting domain 此刻返回 200。`did:web` fallback 仅当 §3.1 表格中明确允许 `did:web` 作 principal method 的 deployment profile(目前仅 `personal_node`)显式声明 `principal_method=did:web` 时才生效——那是 deployment profile 选择，不是 outage fallback 路径。
+- **Cache-only,不解析 live `did:web` document**:fallback 期间 resolver MAY 返回 `did:webvh` 主体此前已验证的本地 cache(含 cache age 元数据);MUST NOT 退化为对 `did:web:<同 hosting domain>` 的 live resolve,即使该 hosting domain 此刻返回 200。v1 不存在允许 `did:web` principal 的 deployment profile。
 - 该 fallback **仅**适用于**低风险只读**操作。本规范定义的"低风险只读"集合是**封闭的**:
   - Allowed: 已缓存 DID Document 的本地展示(handle 解析、display name 渲染)
   - Allowed: 已缓存对象的本地展示(已存在的 Strand / Message / Space / Morph 渲染)
@@ -219,7 +250,7 @@ Arkret v1 core conformance 要求如下：
 
 > **`ak.profile.key_transparency.v1` 覆盖范围（normative，profile-gated）**：上述 log-backed witness 覆盖 `did:webvh` cache entry / witness evidence；`ak.profile.key_transparency.v1` 进一步覆盖 PCR 内的 device key、authorization frontier 与 KeyPackage 发布，目标是检测“服务器对不同 verifier 出示不同 key 集合”的 key material split-view。该 profile 的最小映射为 principal label → PCR genesis/authorization frontier digest + active device key set digest + KeyPackage publication digest；log 运营方与 auditor 角色可与 did:webvh witness 运营方合并。实现声明该 profile 后，目录解析、identity receipt 或 principal control projection MUST 给 verifier 提供符合 [`key-transparency.schema.json`](../../artifacts/schemas/key-transparency.schema.json)（`ak.schema.key_transparency.v1`）的 evidence，其中同时包含 log head、inclusion proof、从已信任旧 head 到当前 head 的 consistency proof，以及至少两个 distinct controlling organization 的 witness signatures。缺失或验证失败 MUST `key_transparency_proof_missing`，高风险 key material 使用路径 MUST fail closed。`ak.vector.identity.key_transparency_proofs.v1` 与 `key-transparency-fixture.json` 是该要求的可执行证据。
 >
-> **为什么 fallback 是 "cache-only" 而不是 "did:web 等价行为"**(rationale):允许 fallback "退化为 `did:web` 等价行为(仅当前状态)" 实际等于默许 resolver 在 hosting 不可达时切换到 live `did:web` resolve。攻击模型:hosting domain 在 `did:webvh` 的 SCID hash chain 之上叠加 DNS/TLS 控制，如果只在 unreachable 时退化为 `did:web` live,等于把信任根**主动**从 method-history-sealed 降级到 DNS+TLS 当前状态——攻击者可以**故意**让 hosting 短暂不可达(BGP / CDN / DNS hijack 都可触发),迫使 resolver 切换到攻击者控制的 live document。Cache-only mode 关闭这条降级路径:即使 hosting 不可达,resolver 也只能从此前已 sealed 的 evidence 读取，无新信任根可被攻击者注入。`did:web` 作为 principal method 仅由部署侧主动选择(`personal_node`),不是 outage fallback。
+> **为什么 fallback 是 "cache-only" 而不是 "did:web 等价行为"**(rationale):允许 fallback "退化为 `did:web` 等价行为(仅当前状态)" 实际等于默许 resolver 在 hosting 不可达时切换到 live `did:web` resolve。攻击模型:hosting domain 在 `did:webvh` 的 SCID hash chain 之上叠加 DNS/TLS 控制，如果只在 unreachable 时退化为 `did:web` live,等于把信任根**主动**从 method-history-sealed 降级到 DNS+TLS 当前状态——攻击者可以**故意**让 hosting 短暂不可达(BGP / CDN / DNS hijack 都可触发),迫使 resolver 切换到攻击者控制的 live document。Cache-only mode 关闭这条降级路径:即使 hosting 不可达,resolver 也只能从此前已 sealed 的 evidence 读取，无新信任根可被攻击者注入。`did:web` 从不属于 v1 principal allowlist，因此也不存在 deployment fallback。
 
 完整 method-specific 操作（创建、轮换、恢复、deactivation、history validation）的规范见
 DIF / identity.foundation `did:webvh` method specification（<https://identity.foundation/didwebvh/v1.0/>）
@@ -366,10 +397,10 @@ Service Identity Provider 的标准操作是：
 
 `ServiceRegistrationReceipt` 采用 Arkret 统一 detached JWS，不引入 Data Integrity cryptosuite 例外。transcript 只能按下列步骤构造：
 
-1. 令 `receipt_claims` 为不含 `registration_receipt_id` 与 `proof` 的对象 `{registration_key, service_id, version_id, log_head_digest, control_key_digest, issued_at, provider_service_id}`；`registration_receipt_id = "ak:service_registration_receipt:" || hex(SHA-256(canonical_json(receipt_claims)))`。
+1. 令 `receipt_claims` 为不含 `registration_receipt_id` 与 `proof` 的对象 `{registration_key, service_id, full_id, version_id, log_head_digest, control_key_digest, issued_at, provider_service_id}`；`registration_receipt_id = "ak:service_registration_receipt:" || hex(SHA-256(canonical_json(receipt_claims)))`。
 2. 令 `document` 为包含 `registration_receipt_id`、但删除整个 `proof` 后的完整 receipt；`payload_digest = "sha256:" || hex(SHA-256(canonical_json(document)))`。
 3. detached JWS MUST 签 `canonical_json({context:"ak.service-registration-receipt-proof-v1", payload_digest, provider_service_id, registration_receipt_id, verification_method, created_at, domain?, audience?})`。`created_at` MUST 等于 receipt `issued_at`；代码块 / 对象书写顺序不构成 byte order，key 顺序唯一由 [`encoding.md` §2](../conformance/encoding.md) 决定。
-4. `provider_service_id` MUST 是 `did:webvh`；`verification_method` MUST 在 receipt 签发时属于其 `assertionMethod`。消费者 MUST 解析该 DID 的可验证历史并验证签名；transport bearer、mTLS、HTTPS 成功或 proof 结构校验均不得替代密码学验证。identity bundle 的离线恢复同样 MUST 完成上述验证。
+4. `provider_service_id` MUST 是 Provider 的稳定 service `core_id`。消费者 MUST 取得 Provider 当前 `full_id`，用已登记 method adapter 验证其 method-native history 并要求 `project(full_id) == provider_service_id`；`verification_method` 的 bare controller DID MUST 等于该 `full_id`，且该 method 在 receipt 签发时属于对应 DID Document 的 `assertionMethod`。不得把 `provider_service_id` 当作可解析 DID，也不得把 VM controller full DID 与它直接作字符串相等比较；transport bearer、mTLS、HTTPS 成功或 proof 结构校验均不得替代密码学验证。identity bundle 的离线恢复同样 MUST 完成上述验证。
 
 Provider 是 hosting 方而非控制者。transport bearer、mTLS 或内网凭据只认证部署通道；inception、rotation、endpoint update 与 registration-key migration 仍 MUST 由服务持有的 WebVH control/update key 签名。Provider 不得生成、接收或托管调用方私钥。服务自身必须持久化 active signing key ref、active control key ref、**next control key material**、version 与 receipt；B 类若要求数据库灾难后保持 DID，其可验证 identity bundle backend MUST 同时保存当前与下一代 control key material，否则不得声称可保持 DID。
 
@@ -392,10 +423,10 @@ Arkret 把身份解析抽象为 `Identity Resolution Infrastructure`，而不是
 | --- | --- | --- |
 | `did:webvh` | 不需要公共 registry（high-trust profile 默认 method）。 | `did.jsonl` history、SCID、entry hash chain、controller proof、watcher / witness evidence、HTTPS / DNS 校验。 |
 | `did:web` | 不需要公共 registry。 | HTTPS / DNS / 域名治理、TLS / PKI、method-specific DID Document 获取与校验。无历史链——只能反映"当前 DID Document 状态"。 |
-| `did:key` | 不需要。 | 本地 method resolver 从 DID 字符串展开 DID Document；适合临时主体、测试、一次性邀请或 bootstrap principal。设备自身没有 DID；设备公钥可以用 `did:key` 作自描述 key material，但设备身份仍由 `device_id` + principal 下的 authorization 表达。 |
+| `did:key` | 不需要。 | 本地 method resolver 从 DID 字符串展开 DID Document；适合作为测试、一次性邀请、bootstrap 或设备公钥的自描述 key material。只有显式 ephemeral pairwise profile 可在 minimal-metadata Realm 中把它投影为 LeafNode-bound 短期 actor；该 actor 无账号/PCR/设备目录。设备身份仍由 `device_id` + 长期 principal 下的 authorization 表达。 |
 | `did:pkh` | 不需要 Arkret registry。 | CAIP-10 / chain-specific account validation、wallet proof、chain namespace policy；通常不支持 DID document update / deactivation。 |
 | `did:plc` | 需要可接受的 PLC directory / mirror / audit source（AT Protocol interop adapter）。 | 验证 PLC operation chain、genesis / previous op hash、rotation keys、recovery state、DID Document、service bindings 和 directory transparency evidence。仅在声明 AT 互通 profile 的部署中需要。 |
-| 其他现有 DID method（KERI 等） | 取决于 method。 | 保留 raw DID Document 与 method-specific proof，并映射到 Arkret normalized principal view。 |
+| 其他现有 DID method（KERI 等） | 取决于 method。 | extension MAY 保留 raw DID Document 与 method-specific proof 并映射为外部 claim view；不得据此创建 v1 principal。 |
 
 使用 `did:key` 或 `did:pkh` 不表示“不需要身份解析”。它只表示通常不需要公共可写 registry。
 客户端、Auth Server、Principal Server 和 Policy / Authz 仍然必须具备对应 DID method 的
@@ -408,7 +439,9 @@ resolver / verifier，供 [`did-usage-and-verification.md` §4](./did-usage-and-
 Resolver policy MUST 至少定义：
 
 - allowed methods：当前部署接受哪些 DID method。
-- default principal method：v1 core 默认 SHOULD 为 `did:webvh`；`personal_node` profile MAY 降级为 `did:web` 但必须在 deployment profile 中显式声明 `principal_method=did:web`。私有组织、enclave、本地测试或 AT 互通部署 MAY 选用其他 method，但必须在 profile 中明确声明。
+- principal method：可注册的长期 principal 固定为 `did:webvh`；Realm-local ephemeral pairwise actor 固定为
+  `did:key` 且必须声明 `ak.profile.ephemeral_pairwise_principal.v1`，并以 exact accepted MLS LeafNode 为唯一 authority。deployment policy 只能收紧，
+  不得加入 `did:web` 或其它长期 principal method。
 - trust roots：webvh witness / watcher、DNS / HTTPS trust、PLC directory / mirror（仅 AT 互通）、KERI watcher、chain namespace allowlist 等。
 - method capability：该 method 是否支持 rotation、recovery、deactivation、service endpoint、historical resolution、witness evidence。
 - privacy handling：是否允许公开解析、是否需要 holder-approved proof、pairwise DID 是否禁止 directory 查询。
@@ -435,13 +468,17 @@ Resolver policy MUST 至少定义：
       "outage_max_duration_ms": 86400000
     },
     "did:web": {
-      "role": ["service", "personal_node_principal_optional"],
+      "role": ["service_no_history"],
       "https_required": true,
-      "principal_allowed_profiles": ["personal_node"]
+      "principal_allowed_profiles": []
     },
     "did:key": {
-      "role": ["temporary_principal", "test", "bootstrap"],
-      "long_lived_principal": "deny"
+      "role": ["realm_local_ephemeral_pairwise_actor", "non_principal_test_material"],
+      "principal_allowed_profiles": ["ak.profile.ephemeral_pairwise_principal.v1"],
+      "long_lived_principal": "deny",
+      "account_registration": "deny",
+      "principal_control_realm": "deny",
+      "author_trust_anchor": "accepted_exact_epoch_mls_leafnode"
     }
   }
 }
@@ -462,39 +499,26 @@ Resolver policy MUST 至少定义：
 
 `role: "interop_principal"` 表示该 DID 只在 AT 互通边界内被当作 principal；Arkret 自身的默认创建路径不签发 `did:plc`。
 
-> **关于 `did:webvh` outage policy 字段命名**：v1 resolver policy MUST NOT 接受 `fallback_to_did_web` 这种字段名，因为它在语义上暗示 outage 期间 resolver 会切换到 `did:web` 的 live HTTP 解析路径——这与 §3.4 的 cache-only degraded mode 不变量（见 §3.4，尤其"Cache-only 不解析 live `did:web` document"规则）直接矛盾。本规范使用 `outage_mode`（取值 `cache_only_low_risk_read` 等）+ `outage_max_duration_ms`（语义见 §3.4 的 24h fallback 上限）来表达 outage 行为；任何带有 `fallback_to_did_web` 名字的字段在 resolver policy load 时 MUST `schema_violation`，不得被实现解释成 `did:webvh` 可以临时降级为 `did:web` 的"信号"。如果部署确实需要把 `did:web` 作为 principal method 使用，那是 §3.1 中的 `personal_node` deployment profile 选项（`principal_method=did:web`），属于显式部署选择，与 outage fallback 无关。
+> **关于 `did:webvh` outage policy 字段命名**：v1 resolver policy MUST NOT 接受 `fallback_to_did_web` 这种字段名，因为它在语义上暗示 outage 期间 resolver 会切换到 `did:web` 的 live HTTP 解析路径——这与 §3.4 的 cache-only degraded mode 不变量（见 §3.4，尤其"Cache-only 不解析 live `did:web` document"规则）直接矛盾。本规范使用 `outage_mode`（取值 `cache_only_low_risk_read` 等）+ `outage_max_duration_ms`（语义见 §3.4 的 24h fallback 上限）来表达 outage 行为；任何带有 `fallback_to_did_web` 名字的字段在 resolver policy load 时 MUST `schema_violation`。v1 不存在 `did:web` principal profile，部署也不得把该字段解释为本地扩展入口。
 
-### 4.2 DID Method Continuity
+### 4.2 Resolution 的 PCR 持久化与审计发布
 
-DID method 或 registry 不可用时，节点 MUST NOT 把“暂时无法解析”解释为“身份仍然有效”。Resolver MUST fail closed，但实现还必须提供可恢复的用户路径。
+principal 创建时，注册方 MUST 接收 `full_id`，用 method adapter 验证其 inception/current control、method history 与本地 trust policy，并确认 `project(full_id)` 逐字等于待创建的 `core_id`。验证通过后，PCR genesis 的 `initial_resolution` MUST 同时承诺 `full_id`、`method_history_head` 与 `version_id`；服务端不得只把它留在临时注册会话或私有账号表。
 
-> **不可达 / 缓存降级行为的单一权威源**：`did:webvh` hosting / registry 不可达时的 cache-only degraded mode、per-entry 7 天 cache age 上限、24h fallback 总时长上限、低风险只读封闭集合与 fail-closed 不变量统一见 §3.4（cache-only degraded mode）与 §4.2.1（健康状态机）。本节**不重复**这些阈值与缓存规则，只承载下面 DID 之间 continuity / 迁移相关的独有规则。
+PCR reducer MUST 以 create-locked cell family `ak.component.identity.resolution.v1` 初始化当前 resolution。后续更新只允许 durable Event `ak.identity.resolution.update`，其 payload 至少携带新 `full_id`、新 history head、新 `version_id`、前一 resolution Event ref 与前一 history head。admission MUST 验证：
 
-**principal DID 的 hosting portability：v1 明确不支持（normative）**
+- 新 `full_id` 经同一 method adapter 投影后仍逐字等于 PCR principal `core_id`；
+- method-native history 从 accepted current head 连续推进，且新 entry 的控制 proof、witness/freshness 与本地 policy 有效；
+- `previous_resolution_event_ref` 与 `previous_method_history_head` 同时命中 accepted current cell，禁止跳头、回滚和并发覆盖；
+- Event author、proof 与 PCR 当前控制状态闭合，Principal Server 的声明或 transport 身份不能替代 method-native 验证。
 
-`did:webvh` 的 `parameters.portable` 允许在保留 SCID 与可验证历史的前提下搬迁 DID 的 web 托管位置。
-**Arkret v1 不支持 principal DID 的 hosting portability，实现 MUST NOT 依赖该参数改变身份判定。**
+上述两个 history position 字段不得由实现自由命名或省略。`did:webvh:1.0` 的 `method_history_head` 是当前已验证 log entry 的 RFC 8785 JCS SHA-256，`version_id` 是同一 entry 的 method-native `versionId`；`did:web:1` 使用当前已验证 DID Document 的 RFC 8785 JCS SHA-256，并以同一摘要构造 `synthetic-jcs-sha256:<hex>`；`did:key:1` 使用 canonical `full_id` UTF-8 字节的 SHA-256，并以同一摘要构造 `synthetic-full-id-sha256:<hex>`。算法与字符串格式以 `contract-registry.json` 的 active adapter row 为唯一权威。
 
-原因是标识符形态与身份判定的耦合：`did:webvh:<scid>:<host-and-path>` 把主机名放进标识符本身，
-搬迁会改变完整 DID 字符串；而 §4.2 要求历史 Event 的 `actor_id` MUST NOT 被重写，
-§6 的 method-portability invariant 又禁止上层分支读取 SCID 等 method-private 字段来判定身份等价。
-两条相加的结果是：**在 v1 语义下，搬迁后的 DID 就是另一个 principal。**
+Profile 是该 cell 的公开 **current projection**，可以发布当前 `full_id`、history head、version、resolution Event ref 与更新时间；Profile 不是授权根。公开 operation `ak.open.identity.read.resolution` 返回 current projection，并可按请求附带选择性的 `principal_resolution_evidence` 历史；evidence MUST 包含所披露的 resolution Event、对应 Seal/cell proof 与从目标 Event 到当前 accepted head 所需的连续性材料。`predecessor_resolution_events` 只允许 resolution Event、按近到远排列且每个响应最多 256 项；更深历史必须拆成分别带 Seal/cell proof 的有界响应。`method_history_evidence` MUST 以已登记的 `adapter_version` + `evidence_kind` 判别并携带明确的 from/to history head 与 version 边界，unknown/mismatch fail closed，单份 canonical evidence 不得超过 1 MiB。实现 MAY 隐去无关 Event，但不得把未证明的数组或服务端自报“已验证”布尔值当成审计历史。
 
-因此：
+外部接收方**不要求**为任意其他 principal 持久保存 resolution binding。普通 profile 浏览可以消费公开 projection；遇到账户绑定、恢复、设备授权、敏感 service delegation 或其它要求最新控制状态的操作时，接收方 MUST 重新取得最新 projection/evidence，再用自己的 method adapter 与 trust policy 独立验证。实现 MAY 使用短 TTL / last-seen cache 减少重复网络开销，但 cache 不是权威状态，且不能越过 operation 的 freshness 要求；无法取得或验证最新值时高风险操作 MUST fail closed。
 
-- 解析方遇到 `parameters.portable` 为真的 DID 时 **MUST NOT** 因此把新旧位置视为同一 principal；
-  身份判定继续以完整 canonical DID 字符串为准；
-- 确实搬迁了托管位置的 DID **MUST** 按本节的 continuity migration 处理，与换 method 同路；
-- 实现 **MUST NOT** 自行以 SCID 相等推断 continuity —— 那会绕过双向 continuity proof 的验证要求。
-
-continuity / 迁移独有规则：
-
-- 用户迁移到新 DID（同 method 或换 method）时，历史 Event 的 `actor_id`、grant `subject` 和 proof `verification_method` MUST NOT 被重写。迁移必须表现为新的 signed continuity proof、profile/account binding、membership update 或 capability re-grant。
-- 若原 DID 仍可解析，continuity proof MUST 由原 DID 当前有效控制密钥签署，并绑定 `old_did`、`new_did`、purpose、audience、issued_at、expires_at、目标 Realm / service 范围和接收 deployment 的 `trust_domain`。Verifier MUST 拒绝未签名、`trust_domain` 不匹配、`audience` 不匹配、`issued_at` 超出接收端 skew 窗口或 `expires_at - issued_at` 超过部署声明最大窗口的 continuity proof；默认最大窗口 SHOULD ≤ 24 小时，组织 / high-security deployment MAY 收紧。continuity proof 若被设计为跨 deployment 全局声明，必须为每个目标 `trust_domain` 生成独立 proof 或明确走公开 DID Document service entry + 目标 deployment acceptance proof 的验证路径，不能复用同一签名字节跨域放行高风险迁移。
-- 原 DID Document 若仍可解析，MUST 暴露 `service` entry `type="ArkretContinuityProof"`，其 `serviceEndpoint` 指向可获取 continuity proof 的 HTTPS URL 或 content-addressed ref。Verifier MUST 同时校验该 service entry、continuity proof 签名和 proof 中的 `old_did_document_digest`；缺少 service entry 或 hash 不匹配时 MUST NOT 把 Directory / Handle 返回的新 DID 当作连续身份。
-- 新 DID Document MUST 暴露反向 `ArkretContinuityAccepted` service entry 或等价 signed acceptance proof，绑定同一 `old_did` / `new_did` / `issued_at`。单向声明只能作为发现线索，不能完成 continuity。
-- 若原 method 永久不可用且无法验证原控制密钥，只能走 Realm / organization policy 定义的恢复流程，例如 threshold governance、recovery service attestation 或管理员重新邀请；客户端必须向用户明确这是恢复/重绑定，而不是无缝 DID 所有权延续。
-- Principal Server、Directory 或 Handle 服务 MAY 帮助发现新 DID，但不得单独证明 DID continuity。
+DID hosting 位置或其它 resolution 成分变化，只要 adapter 仍投影为同一个 `core_id`，就是上述 resolution update；历史 Event 的 `actor_id`、grant subject 与 membership reference 不变。若 method 或 identity core 改变并产生不同 `core_id`，则是新主体：旧主体的 Event、设备、capability、账号和 Realm membership MUST NOT 通过旧式 DID continuity proof、双方 continuity 声明、SCID 猜测或 profile 重写自动继承。需要转移业务关系时必须走普通 re-grant、重新邀请、账号显式换绑或治理恢复，并在 UI 中明确显示主体已改变。
 
 #### 4.2.1 `did:webvh` 健康检查
 
@@ -507,17 +531,18 @@ continuity / 迁移独有规则：
 - `stale_history` 或 `untrusted` 时，resolver MUST fail closed；MUST NOT 用缓存 handle、DNS、Principal Server 声明或用户登录态替代 DID 历史链。
 - 客户端和服务端 SHOULD 暴露 outage diagnostics，包括使用的 hosting / mirror、entry head、witness 列表、evidence age 和下一次 retry 时间。
 
-#### 4.2.2 跨 method 迁移路径
+#### 4.2.2 更换 method 或 identity core
 
-实现 MUST 支持从其它 method（例如 `did:web` 升级、`did:plc` 互通历史、`did:key` 临时身份转长期身份）到 `did:webvh` 的计划迁移路径，而不只是在事故后恢复——这是 conformance 必备能力（`personal_node` profile 升级到 `small_team` 必经此路径，见 [`key-management.md` §5.0.3](./key-management.md)）：
+从 `did:web` 改为 `did:webvh`、从临时 `did:key` 改为长期 method，或任何导致 adapter 产出不同 `core_id` 的变化，均创建新主体，不属于 resolution update。实现 MUST 支持通过显式业务流程把允许转移的关系重新建立到新主体，但 MUST NOT 声明两个 `core_id` 密码学等价，也不得改写旧 Event。
 
-> **`purpose` 取值边界**：一般迁移使用 `principal_migration`。`personal_node`(`did:web`) → `small_team`(`did:webvh`) 的弱根升级必须改用 `principal_method_upgrade`，并附加 [`key-management.md` §5.0.3](./key-management.md) 的 OOB cold-root fingerprint 确认与旧 method root + 新 entry-0 controller 双签 `signature_chain`；不得用一般迁移绕过。
+1. 新的长期主体用自己的 `did:webvh` `full_id` 完成独立注册、adapter 验证与 PCR genesis；旧 pairwise actor 不参与该注册，也不是新主体的 control proof。
+2. 旧主体仍可控制时，可分别对账号换绑、Handle 更新、Realm 重新邀请或 capability re-grant 发起显式授权；这些授权只控制对应业务对象，不形成全局 identity continuity。
+3. 旧主体不可控制时，只能使用目标 Realm / organization 已定义的 recovery 或 governance 路径；恢复结论不得伪装为旧 DID 控制 proof。
+4. 客户端 MUST 显示“主体已更换”以及哪些关系已重新建立；不得把它渲染成无痕 rename。
 
-1. 用户在原 DID 仍可解析时创建新 `did:webvh`，并发布 SCID、首个 `did.jsonl` entry 和（可选）witness evidence。
-2. 原 DID 当前有效控制密钥签署 continuity proof；新 DID 控制密钥反向签署 acceptance proof。
-3. Handle / service account / profile binding 指向新 DID，但历史 Event 仍保留旧 DID。
-4. Realm membership、capability grant、device/session control 和 MLS identity link 通过普通 Event 或 policy 流程重新绑定到新 DID。
-5. 客户端在 UI 中显示"已计划迁移"状态和原 DID 的验证历史，不把它当作无痕重命名。
+ephemeral pairwise actor principal 转为长期关系时也适用本节：它必须创建新的 `did:webvh` principal，
+再显式重建被允许转移的业务关系。所谓 OOB fingerprint 或双方签名 MAY 作为具体业务 re-binding 的
+强证据，但不改变 `core_id` 相等规则，也不构成 identity continuity。
 
 ### 4.3 Identity Receipt 签名 transcript
 
@@ -528,17 +553,20 @@ continuity / 迁移独有规则：
 {
   "context": "ak.identity-receipt-proof-v1",
   "payload_digest": "sha256:<64-hex>",
-  "registry_service_id": "did:webvh:<registry>",
+  "registry_service_id": "ak:did_core:webvh:<registry-core>",
   "did": "did:webvh:<subject>",
   "verification_method": "did:webvh:<registry>#<key-id>",
   "created_at": "<canonical RFC3339 timestamp>"
 }
 ```
 
+该对象族保留的 `did` 字段承载 subject `full_id`，不是稳定业务主键；receipt 对应的稳定主体必须由 adapter 投影后与其 `core_id` 绑定字段交叉验证。新对象族 SHOULD 直接命名为 `full_id`，避免把两种类型混为一谈。
+
 `domain` 与 `audience` 按该顺序在存在时追加。`context` 是 verifier 构造的固定对象族
 domain tag，不进入 receipt wire body。`signature.created_at` 必须与 receipt 顶层
-`created_at` 相等；`signature.verification_method` 必须是 `registry_service_id` 当前有效的
-assertion method。顶层 `audience` 与 proof `audience` 必须同时缺失，或同时为相同的单个
+`created_at` 相等；`signature.verification_method` 的 DID URL base 必须经 registry service 当前
+`full_id` 的 adapter 解析并投影为 `registry_service_id`，且该 method 必须是当前有效的 assertion
+method；不得把 fragment 拼到 `registry_service_id`。顶层 `audience` 与 proof `audience` 必须同时缺失，或同时为相同的单个
 字符串；此对象族禁止 array audience。Verifier 必须先重算并常量时间比较
 `payload_digest`，再构造上述 binding object 验证 JWS。直接签 receipt body、遗漏
 `context`、复用 `ak.event-proof-v1` 或只签 proof 字段都必须拒绝。
@@ -571,26 +599,26 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 | 层次 | 负责什么 | 不负责什么 |
 | --- | --- | --- |
-| Identity Resolution Infrastructure | 把 DID 解析为 DID Document、key state、method history、service delegation、witness evidence 或 method-specific proof。 | 不决定用户是否能登录某个组织，也不授予 Realm / Event 数据访问权。 |
-| Auth Server | 处理 passkey、OIDC、SSO、设备配对、账户恢复和 session grant，并把服务账户登录绑定到某个 DID / device。 | 不改变 DID 控制权；不替代 DID key proof；不决定所有组织授权。 |
-| Organization / Policy / Authz | 判断某个 DID、device、credential 或 capability 是否可以访问组织数据、Realm、Event、Applet 或管理动作。 | 不负责维护公共 DID 控制历史。 |
+| Identity Resolution Infrastructure | 验证 `full_id`，投影 `core_id`，并解析 DID Document、key state、method history、service delegation、witness evidence 或 method-specific proof。 | 不决定用户是否能登录某个组织，也不授予 Realm / Event 数据访问权。 |
+| Auth Server | 处理 passkey、OIDC、SSO、设备配对、账户恢复和 session grant，并把服务账户登录绑定到某个 principal `core_id` / device。 | 不改变 DID 控制权；不替代 method-native control proof；不决定所有组织授权。 |
+| Organization / Policy / Authz | 判断某个 principal `core_id`、device、credential 或 capability 是否可以访问组织数据、Realm、Event、Applet 或管理动作。 | 不负责维护公共 DID 控制历史。 |
 
-一个组织 MAY 自建 Auth Server，同时接受多种 DID method 的用户 DID。典型流程是：
+一个组织 MAY 自建 Auth Server；v1 principal 创建仍受封闭 method/profile 集约束。典型流程是：
 
-1. 用户提交 `did:webvh:...`（v1 core 默认）、`did:web:...`（service DID 或 `personal_node` profile principal）、handle、邀请链接或组织账号；声明 AT 互通的部署也接受 `did:plc:...`。
-2. 组织 Auth Server 按本地 trust policy 选择 resolver。v1 core 默认 principal 解析路径是 `did:webvh`（验证 `did.jsonl` 链 + SCID + entry hash chain + witness）；service DID 通常是 `did:web`；`personal_node` profile MAY 降级 principal 解析路径为 `did:web`；高安全部署可以只允许 allowlist 中的 resolver 和 trust roots。
+1. 用户提交长期 principal `did:webvh:...`、handle、邀请链接或组织账号；Realm-local pairwise `did:key` 不进入 Auth Server 账号绑定，`did:web` 只作为 service identity，interop method 只作为外部 claim。
+2. 组织 Auth Server 按本地 trust policy 选择 resolver。长期 principal 解析路径固定为 `did:webvh`（验证 `did.jsonl` 链 + SCID + entry hash chain + witness）；显式 no-history service MAY 使用 `did:web`；高安全部署可以进一步收紧 resolver 和 trust roots。
 3. Auth Server 或客户端解析 DID Document，校验 method history、witness / directory evidence、service delegation 和可接受的 trust domain。
 4. 用户用 DID 控制密钥、设备密钥、passkey / OIDC 绑定证明或组织要求的 VC presentation 完成登录绑定。
 5. Auth Server 只签发 session grant / device binding；组织 Policy / Authz 再基于 DID、credential、membership、invite、capability 和 Realm policy 决定可访问的数据范围。
 
-### 5.1 组织账号绑定的 DID Proof
+### 5.1 组织账号绑定的 identity control proof
 
-当用户用一个已有 DID 注册、认领或绑定组织 service account 时，Auth Server MUST 验证调用方当前控制该 DID。仅提交 DID 字符串、handle、邮箱验证码、OIDC subject 或组织用户名不足以建立 DID 绑定。
+当用户用一个已有身份注册、认领或绑定组织 service account 时，Auth Server MUST 要求提交 `full_id`，验证调用方当前控制该 DID，并确认 adapter 投影出的 `core_id` 与请求中的 `principal_id` 相等。仅提交 `core_id`、handle、邮箱验证码、OIDC subject 或组织用户名不足以建立绑定。
 
-推荐的 DID proof 是 challenge-response：
+推荐的 identity control proof 是 challenge-response：
 
-1. 用户提交待绑定的 DID。
-2. Auth Server 解析 DID Document，并按本地 trust policy 校验 method、history、witness / directory evidence、deactivation 状态和可接受的 trust domain。
+1. 用户提交待绑定的 `full_id`；若接口同时携带 `principal_id`，两者 MUST 满足 `project(full_id) == principal_id`。
+2. Auth Server 通过已登记 method adapter 解析 DID Document，并按本地 trust policy 校验 method、history、witness / directory evidence、deactivation 状态和可接受的 trust domain。
 3. Auth Server 生成一次性 challenge。challenge MUST 绑定用途、目标服务、origin / audience、过期时间和随机 nonce。
 4. 客户端使用该 DID 当前有效的 `authentication` verification method、已授权 device key，或被有效 session / device grant 覆盖的临时 key 签名 challenge。
 5. Auth Server 验证签名、verification method 当前有效性、challenge 未过期且未使用过。
@@ -600,10 +628,10 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 ```json
 {
-  "kind": "ak.did.proof",
   "purpose": "account_binding",
-  "did": "did:webvh:zQ3sh7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "audience": "did:webvh:zA5MZ8QSzW1MFABBM2ubUPuPY:auth.acme.example",
+  "principal_id": "ak:did_core:webvh:zQ3sh7p8K3pV4cXbKqL2nMsR9tWfH",
+  "full_id": "did:webvh:zQ3sh7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+  "audience": "ak:did_core:webvh:zA5MZ8QSzW1MFABBM2ubUPuPY",
   "origin": "https://auth.acme.example",
   "challenge": "base64url-random",
   "issued_at": "2026-04-26T00:00:00Z",
@@ -615,9 +643,9 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 该豁免判定 MUST 基于 **fresh control-stream frontier**（freshness 纪律见 [`../authz/capabilities.md` §18.2](../authz/capabilities.md)）。control stream 因分区 / outage 不可达、frontier stale 或 device 集投影 freshness 为 `unknown` 时，Auth Server **MUST** 保守按"存在 device record"处理（视为 multi-device，`device_id` 必填并被签名覆盖，缺 `device_id` 的 proof MUST NOT 被接受），**MUST NOT** 把"暂时读不到 device record"乐观解释为豁免成立。`did:webvh` resolver 处于 §3.4 cache-only degraded mode 时，account binding / 恢复属于该节列举的高风险写入，MUST 遵循 §3.4 的 fail-closed 不变量；与 [`account-lifecycle.md` §4](./account-lifecycle.md) soft-logout 恢复的同一 frontier 新鲜度要求对齐。
 
-Auth Server 在以下情况下 MUST NOT 接受 DID proof：
+Auth Server 在以下情况下 MUST NOT 接受 identity control proof：
 
-- DID 在组织 trust policy 下无法解析
+- `full_id` 在组织 trust policy 下无法解析，或其 adapter projection 不等于 `principal_id`
 - 验证方法当前未被授权用于身份认证或所声明的 device/session 路径
 - 签名未覆盖完整的 challenge payload
 - challenge 已过期、已使用、audience 不匹配或 origin 不匹配
@@ -625,7 +653,7 @@ Auth Server 在以下情况下 MUST NOT 接受 DID proof：
 - `issued_at` 晚于 Auth Server 当前时钟加 skew 容忍（即 proof 自称在未来签发）——此情况 MUST 拒绝，防止签发方把整个 `[issued_at, expires_at]` 窗口推到未来以延长可重放区间
 - DID 已停用或 method history 无效
 
-Conformance vector `ak.vector.identity.did_proof_replay_window.v1` 固定该 replay 边界：同一 challenge 第二次使用、跨 audience/origin 重放、`expires_at - issued_at > 300s`，以及 `issued_at` 超出接收端 skew 窗口的 proof 都必须 fail closed；服务端不得只靠签名正确性接受 DID proof。
+对应 replay vector 固定该边界：同一 challenge 第二次使用、跨 audience/origin 重放、`expires_at - issued_at > 300s`，以及 `issued_at` 超出接收端 skew 窗口的 proof 都必须 fail closed；服务端不得只靠签名正确性接受 proof。
 
 service account 绑定是组织本地状态。它不会把 DID 所有权转移给组织，也不会允许组织轮换、恢复或停用用户 DID，除非 DID 自身控制状态或 recovery policy 授权该动作。
 
@@ -637,7 +665,8 @@ Arkret 自有 envelope、API 参数、索引、policy input 和 reducer input �
 
 Normalized principal view SHOULD 包含：
 
-- `did`
+- `core_id`
+- `full_id`
 - `did_method`
 - `supported_profiles`
 - `raw_document_digest`
@@ -650,7 +679,7 @@ Normalized principal view SHOULD 包含：
 - `method_evidence`
 - `limitations`
 
-**Method-portability invariant（normative）**：除 DID method adapter / resolver policy / method-specific operation 层外，Arkret Event、capability、membership、MLS identity link、service binding 与 audit 语义 MUST 只依赖上述 normalized view 中的稳定语义字段，不得分支读取 `did:webvh` 的 SCID、entry hash chain、witness、versionId 等 method-private 字段。Method-private 证据只能保留在 `method_evidence` / `raw_history_ref` 并由对应 adapter 验证。替换默认 DID method 或执行 §4.2 continuity migration 时，历史 `actor_id` 与 proof bytes 保持不变，新 method 只产生新的 normalized view / continuity evidence / re-grant；MUST NOT 要求修改 core Event schema 或 reducer 语义。若某项 core 决策无法只凭 normalized view 与显式 policy 完成，实现 MUST fail closed，并把缺失能力登记为 method adapter limitation，而不是把 `did:webvh` 解析细节渗入 core。
+**Method-portability invariant（normative）**：除 DID method adapter / resolver policy / method-specific operation 层外，Arkret Event、capability、membership、MLS identity link、service binding 与 audit 语义 MUST 只依赖 `core_id` 及上述 normalized view 的稳定语义字段，不得分支读取 `did:webvh` 的 SCID、entry hash chain、witness、versionId 等 method-private 字段。Method-private 证据只能保留在 `method_evidence` / `raw_history_ref` 并由对应 adapter 验证。同一 `core_id` 的 resolution 更新不修改历史 `actor_id` 或 proof bytes；不同 `core_id` 只能按 §4.2.2 重新建立具体业务关系。若某项 core 决策无法只凭 normalized view 与显式 policy 完成，实现 MUST fail closed，并把缺失能力登记为 method adapter limitation，而不是把 `did:webvh` 解析细节渗入 core。
 
 Arkret MUST NOT：
 
@@ -749,7 +778,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
     },
     "service_delegations": [
       {
-        "service_id": "did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example",
+        "service_id": "ak:did_core:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ",
         "purposes": ["principal_server", "space_endorsement"],
         "validFrom": "2026-04-26T00:00:00Z",
         "validUntil": null
@@ -784,8 +813,6 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 | --- | --- | --- | --- |
 | `ArkretGovernanceService` | Organization | 组织治理 endpoint | 本节示例 |
 | `ArkretPrincipalServer` | Principal / Organization | 该 DID 的默认服务发现入口（非强制投递入口） | §3 |
-| `ArkretContinuityProof` | Principal / Organization | 原 DID 暴露的 continuity proof 获取入口（迁移时 MUST 暴露） | §4.2 |
-| `ArkretContinuityAccepted` | Principal / Organization | 新 DID 暴露的反向 continuity acceptance（迁移时 MUST 暴露） | §4.2 |
 | `ArkretRealmHistoryRecoveryKey` | Organization / Principal | 指定该主体的离线 Realm 历史恢复公钥（RRK），供 Realm `durability_policy` 引用 | §8.3 |
 
 客户端判断“谁控制该组织”时，应验证：
@@ -899,8 +926,9 @@ service type/endpoint 校验、`service_id` 主体名、Provider 默认托管 se
 把 organization 冒充 service 会让"本部署托管它的历史"这一含义随命名一起被继承。
 
 **两阶段是裁决结果，不是可选项。** `prepare` 由 registry 签发并记住 single-use challenge，
-绑定 `purpose` / `audience` / `origin` / `trust_domain` / `nonce` / `requested_scopes` /
-`local_admin_subject` 与 ≤300 秒窗口，首次使用即消费；`ensure` 才提交 proof。
+绑定 `purpose` / `audience` / `origin` / `trust_domain` / `nonce` / `organization_id: core_id` /
+`full_id` / `requested_scopes` / `local_admin_subject` 与 ≤300 秒窗口；registry 在签发前 MUST 独立验证
+`full_id` 并要求 `project(full_id) == organization_id`，首次使用即消费；`ensure` 才提交 proof。
 若把 challenge 折叠进 ensure，challenge 就由调用方自报，接收方既无法确定 freshness
 也无法保证单次消费。`prepare` 刻意不幂等：每次调用铸新 nonce。
 
@@ -912,7 +940,9 @@ service type/endpoint 校验、`service_id` 主体名、Provider 默认托管 se
 
 **proof MUST 绑定受益管理员。** control proof 的签名 transcript 是
 `canonical_json({context:'ak.organization-registration-control-proof-v1', challenge_id,
-organization_id, local_admin_subject, version_id, log_head_digest, verification_method, created_at})`。
+organization_id, full_id, local_admin_subject, version_id, log_head_digest, verification_method, created_at})`。
+其中 `organization_id` 是稳定 `core_id`，`full_id` 是当前 published bare DID；`ensure.full_id` MUST
+逐字等于 challenge 所载值，且 verifier MUST 独立要求 `project(full_id) == organization_id`。
 `local_admin_subject` 必须同时出现在 challenge 与 proof 中，且 `ensure` MUST 拒绝与所引用 challenge
 不一致的值（`organization_registration_challenge_invalid`）。
 **只绑定 organization 与 version 的 proof 不说明谁受益**：任何拿到该 proof 的人都能提交 `ensure`
@@ -942,7 +972,7 @@ organization_id, local_admin_subject, version_id, log_head_digest, verification_
 不得把自身包含进输入：
 
 1. `receipt_claims` 精确为不含 `registration_receipt_id` 与 `proof` 的对象
-   `{organization_id, registration_generation, version_id, log_head_digest, control_proof_kind,
+   `{organization_id, full_id, registration_generation, version_id, log_head_digest, control_proof_kind,
    control_key_digest, local_admin_subject, delegated_scopes, status, issued_at, expires_at,
    issuer_service_id}`；`registration_receipt_id = "ak:organization-registration-receipt:" ||
    hex(SHA-256(canonical_json(receipt_claims)))`。
@@ -950,7 +980,7 @@ organization_id, local_admin_subject, version_id, log_head_digest, verification_
    `proof.payload_digest = "sha256:" || hex(SHA-256(canonical_json(document)))`。
 3. detached JWS MUST 签
    `canonical_json({context:"ak.organization-registration-receipt-proof-v1", payload_digest,
-   issuer_service_id, registration_receipt_id, organization_id, verification_method, created_at,
+   issuer_service_id, registration_receipt_id, organization_id, full_id, verification_method, created_at,
    domain?, audience?})`；`created_at` MUST 等于 `issued_at`。任何实现把 receipt id 或 proof
    递归放回各自摘要输入都会得到不可构造的自引用合同，MUST 拒绝。
 
@@ -971,7 +1001,12 @@ organization_id, local_admin_subject, version_id, log_head_digest, verification_
 - `revoked`：终态。本地撤销，或外部 DID 被 deactivated 时**强制**转入——已停用的 DID 无法再被控制，
   refresh 永远不可能成功，因此不能停留在可刷新的 `stale`。重建关系只能走新的 `ensure`。
 
-`revoke` 只撤销本地 binding，不修改、不停用、不批注外部 DID 的 method history——本部署不控制它。
+`prepare`、`ensure` 与 `refresh` 请求都 MUST 携带 `organization_id: core_id` 和 current published
+`full_id`，并在接受前满足 `project(full_id) == organization_id`；outcome 与 receipt 同时记录两者。
+`refresh` 可在同一 core 下更新 `full_id` / `version_id`，不创建新 organization identity。
+`revoke` 请求则是 core-only：只用 `organization_id` 定址且禁止调用方提交 `full_id`；其 outcome / receipt
+回显既有 binding 记录的 `full_id`。`revoke` 只撤销本地 binding，不修改、不停用、不批注外部 DID 的
+method history——本部署不控制它。
 
 **scope 闭合。** `delegated_scopes` 取自封闭集合
 `organization_profile_manage` / `organization_realm_endorse` / `organization_service_delegate`，
@@ -996,13 +1031,13 @@ witness evidence 的 method 形状、proof 位置与 Arkret freshness 由 §3.4.
 
 ## 9. 验证规则
 
-节点接受写入前始终校验 wire schema、actor DID 语法、签名、事件所引用的 auth-state / key
+节点接受写入前始终校验 wire schema、actor `core_id` 语法、签名、事件所引用的 auth-state / key
 epoch、capability、membership 与 policy。若写入命中
 [`did-usage-and-verification.md` §4](./did-usage-and-verification.md) 的权威验证触发条件，还
 MUST 校验：
 
-1. DID method 在本地 resolver policy 中被允许。
-2. DID Document 可按 method-specific 规则解析。
+1. `full_id` 的 DID method 在本地 resolver policy 中被允许，且 adapter projection 逐字等于目标 `core_id`。
+2. DID Document 可按 method-specific 规则解析；DID URL 的 base / fragment 由 adapter 处理，不做 `core_id` 字符串前缀比较。
 3. method history / proof / evidence 满足该 method 的控制权规则。
 4. 目标 `authentication` / `assertionMethod` 在事件引用的历史时点或 pinned version 有效。
 5. service endpoint 或 service delegation 与当前 Realm policy、destination binding 和
@@ -1020,8 +1055,11 @@ MUST 校验：
 
 Arkret v1 对 DID 实现要求如下：
 
-- v1 core 默认 principal DID 创建与默认 service DID 创建 MUST 使用 `did:webvh`（见 §3 / §3.4），除非部署 policy 显式选择了另一个已有 DID method 并声明其 trust profile。`personal_node` deployment profile MAY 把 principal method 降级为 `did:web`，但 MUST 在 deployment profile 中显式声明 `principal_method=did:web`；其他 deployment profile（`small_team` / `organization` / `high_security_organization` / `sovereign_deployment`）MUST 使用 `did:webvh` 或更强 method 作为长期 principal。`did:web` 仅作为显式 no-history service method 与 `personal_node` 显式 principal method；`did:webvh` outage 只允许 cache-only degraded mode。
+- v1 长期 principal DID 创建 MUST 使用 `did:webvh`；只有显式
+  `ak.profile.ephemeral_pairwise_principal.v1` 可用 `did:key` 表示由 exact accepted MLS LeafNode 约束的 Realm-local 临时 pairwise actor，且不得创建账号/PCR/设备目录。default service
+  DID method 是 `did:webvh`，显式 no-history service profile MAY 使用 `did:web`。deployment policy 只能
+  收紧这些集合，不能增加 principal method；`did:webvh` outage 只允许 cache-only degraded mode。
 - Method adapter conformance tests MUST 覆盖 `did:webvh`、`did:web`、`did:key`；声明 AT Protocol interop profile 的实现 MUST 额外覆盖 `did:plc` adapter；声明 wallet interop profile 的实现 MUST 额外覆盖 `did:pkh`。
-- DID proof JSON Schema MUST 与 `../models/event-and-patch.md` §3 的 Proof 和 `../conformance/encoding.md` 的 canonical JSON 规则一致。
+- `core_id` / `full_id` projection、resolution Event、Profile current projection 与选择性 Seal/cell evidence MUST 有正负向 conformance coverage；旧式跨 DID continuity proof 不得恢复为身份等价机制。
 - Normalized principal view MUST 保留 raw document hash、method-specific proof、current control keys、service bindings、arkret bindings 和 evidence；不得丢弃外部 DID 的原始语义。
 - 无法验证 method history 的 adapter 只能声明 limited trust profile，并且 MUST NOT 被默认用于高风险组织、service delegation 或长期 principal 创建。

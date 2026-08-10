@@ -45,6 +45,7 @@ from .schemas import (
     check_schema_refs,
     check_sdk_conformance_contract,
     check_signed_object_closure,
+    check_stable_identity_fields_use_core_id,
     check_vector_group_requirements,
     check_wire_schema_no_bare_scope,
 )
@@ -247,6 +248,10 @@ def main(argv: list[str] | None = None) -> int:
             ),
             ("circle_lifecycle", lambda: check_circle_lifecycle_basis_vector(lint)),
             ("did_device", lambda: check_did_and_device_constraints(lint)),
+            (
+                "stable_identity_core_ids",
+                lambda: check_stable_identity_fields_use_core_id(lint),
+            ),
         ],
         quiet=args.quiet,
         timing=args.timing,

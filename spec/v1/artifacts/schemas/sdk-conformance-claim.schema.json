@@ -148,7 +148,7 @@
       ],
       "properties": {
         "id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "verification_method": {
           "type": "string",

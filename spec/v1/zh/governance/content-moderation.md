@@ -223,7 +223,7 @@ Canonical franking proof 结构（示例中的 digest / signature 字节以 `...
   "ciphertext_digest": "sha256:...",
   "aad_digest": "sha256:...",
   "sender_claim": {
-    "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
+    "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
     "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
     "mls_group_id_digest": "sha256:..."
   },
@@ -272,14 +272,14 @@ Franking 信任链：
 
 ```json
 {
-  "owner": "did:webvh:z6mkfixture:holder.example",
+  "owner": "ak:did_core:webvh:z6mkfixtureHolder",
   "version": 1,
   "entries": [
     {
       "entry_id": "ak:block:019640b3-cc00-7000-8000-000000000000",
       "target": {
         "kind": "actor",
-        "did": "did:webvh:zGMfBAbnRTYqW4943CVr9Dcii:spammer.example.com"
+        "did": "ak:did_core:webvh:zGMfBAbnRTYqW4943CVr9Dcii"
       },
       "mode": "block",
       "applies_to": ["messages", "mentions", "dm"],
@@ -359,7 +359,7 @@ Realm MAY 使用 `ak.realm.moderation_policy` state event 声明黑名单、允�
         },
         "action": "deny_join",
         "reason_code": "spam",
-        "created_by": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example#mod",
+        "created_by": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
         "created_at": "2026-04-26T00:00:00Z",
         "expires_at": null
       },
@@ -408,7 +408,7 @@ Realm MAY 使用 `ak.realm.moderation_policy` state event 声明黑名单、允�
 | --- | --- | --- |
 | `actor` | `did` | 单个 Actor / Principal。 |
 | `device` | `device_id` 或 `did` | 单个设备身份。 |
-| `service_id` | `did` | 单个 Principal Server、Sync Service、Federation peer 或其他 service DID。 |
+| `service_id` | `core_id` | 单个 Principal Server、Sync Service、Federation peer 或其他 service 的稳定业务身份。 |
 | `domain` | `domain`，可选 `match_subdomains` | 规范化 DNS A-label domain；只按 label 边界匹配。 |
 | `trust_domain` | `trust_domain` | 部署级 trust domain。 |
 | `organization` | `did` | Organization DID 或其签发的治理链。 |
@@ -418,7 +418,7 @@ Realm MAY 使用 `ak.realm.moderation_policy` state event 声明黑名单、允�
 
 Realm 级 server ACL 等价规则 MUST 使用 `service_id`、`domain` 或 `trust_domain` target 表达。`deny_write` / `deny_federation` 命中这些 target 时，接收方 MUST 拒绝该 peer 后续 service-to-service 写入、backfill push、完整 frontier probe 和默认 fanout；`quarantine_message` 命中时，事件不得进入普通用户可见视图，直到 sealed moderation decision 解除。`deny_join` 命中 server target 时，MUST 拒绝通过该 service DID 或 domain 发起的新 join / invite acceptance，但不会自动清扫已经 accepted 的成员；`deny_restricted_join` 只作用于 `default_join_rule=restricted` / `default_join_rule=knock_restricted` / `history_visibility=restricted` 或等价 restricted admission profile 的申请、knock、invite acceptance（术语以 [`join-policy.md` §4](./join-policy.md) 的 `default_join_rule` 枚举为准，`restricted` 与 `knock_restricted` 两值均落入本作用域），命中时 MUST fail closed，不得回退到普通 `deny_join` 之外的宽松路径。清扫既有成员必须通过 `ak.member.state{membership="ban"}`、grant revoke、MLS epoch rotation 或明确的 moderation decision 完成。
 
-Domain target 的匹配必须基于已验证 service DID / DID Document endpoint / member delivery binding 的规范化结果。实现 MUST NOT 对未经验证的裸字符串、display name、handle 后缀或用户输入 URL 做后缀封禁推断。
+Domain target 的匹配必须基于已验证 service `core_id` / current `ServiceResolutionRecord.base_url` / member delivery binding 的规范化结果。实现 MUST NOT 对未经验证的裸字符串、display name、handle 后缀或用户输入 URL 做后缀封禁推断。
 
 规则：
 
@@ -619,7 +619,7 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
       "target": {
         "kind": "claim_selector",
         "claim_kind": "org_membership",
-        "issuer": "did:webvh:zCJLLNnZDTQJWQp7tztodmPUc:untrusted.example"
+        "issuer": "ak:did_core:webvh:zCJLLNnZDTQJWQp7tztodmPUc"
       },
       "action": "deny_restricted_join"
     }

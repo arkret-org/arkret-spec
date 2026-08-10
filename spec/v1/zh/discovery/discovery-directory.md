@@ -525,12 +525,12 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `resource_kind` | `enum(realm, organization, actor, applet, handle)` | required | 资源类别。 |
-| `resource_id` | `id \| did \| handle` | required | 资源主键：Realm 用 `ak:realm:...`；Organization / Actor / Applet 用 DID；handle 用 canonical handle string。 |
+| `resource_id` | `id \| core_id \| handle` | required | 资源主键：Realm 用 `ak:realm:...`；Organization / Actor / Applet 用稳定 `core_id`；handle 用 canonical handle string。解析或验签所需 `full_id` 必须从相应 resolution evidence 取得。 |
 | `discovery_event` | `SignedEvent` | required | 已接受的 `ak.{kind}.discovery` Event 原件，逐字节等于真相源（[`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）。`kind` MUST 与 `resource_kind` 对应：`realm`→`ak.realm.discovery`、`organization`→`ak.organization.discovery`、`actor`→`ak.actor.discovery`、`applet`→`ak.applet.discovery`、`handle`→`ak.handle.discovery`；不对应 MUST 拒绝。投递原签名 Event 与 `/_arkret/peer/contacts` 投递原签名 `ak.contact.*` Event 同形。 |
 | `source_refs` | `id[]` | required | 真相源 event id 列表，至少包含产生当前 effective discovery state 的 seal / state event id。 |
 | `as_of` | `timestamp` | required | 资源端声明的 effective 时间；与服务端时间偏差 > 5 min MUST 拒绝（`signature_stale`）。 |
 | `policy_revision` | `string` | required | `discovery_event` 对应的 effective policy revision；Realm 资源必须等于 Event kind `ak.realm.policy_bundle` 的 payload path `policy_revision` 或由该 revision 派生。 |
-| `principal_server_did` | `did` | required | 当前资源真相源所在的 Principal Server service DID（用于 Directory 在需要时 pull 验证）。 |
+| `principal_server_did` | `core_id` | required | 当前资源真相源所在 Principal Server 的稳定 service `core_id`（字段名为兼容保留）；Directory 必须通过 verified ServiceResolutionRecord 映射当前 `full_id` / URL 后 pull 验证，不得把该值交给 DID resolver。 |
 | `ttl_seconds` | `int` | optional | 期望保留时长；缺省采用 `default_ttl_seconds`。MUST ≤ `max_ttl_seconds`（§8.6）。 |
 | `supersedes_announce_id` | `ak:announce:<uuidv7>` | optional | 上一次 announce id；用于幂等替换与 audit 链接。该 id 只在签发它的 Directory 内有权威含义。 |
 
@@ -551,8 +551,8 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 ```json
 {
   "resource_kind": "organization",
-  "resource_id": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
-  "principal_server_did": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example",
+  "resource_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
+  "principal_server_did": "ak:did_core:webvh:z3omZGak5a5es84Ph2kfPs4UP",
   "as_of": "2026-05-10T08:00:00Z",
   "policy_revision": "01JTV0KQ7K5ZP4VN6C9WEZK2X1",
   "ttl_seconds": 86400,
@@ -749,7 +749,7 @@ POST /_arkret/find/directory/push/register
 
 | operation_id | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- |
-| `ak.find.directory.read.describe` | 无 | 无 | `service_id: did`; `resource_kinds: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?`；以及 §8.9 全部 ingest 字段 | `public_metadata`；可限流。 |
+| `ak.find.directory.read.describe` | 无 | 无 | `service_id: core_id`; `resource_kinds: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?`；以及 §8.9 全部 ingest 字段 | `public_metadata`；可限流。 |
 | `ak.find.directory.read.search_realms` | 无 | `query: string`; `organization_did: did`; `source_realm_id: id`; `requester: did`; `proof_challenge: string`; `claim_presentations: DirectoryRestrictedClaimPresentation[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 每条 result MUST 含 §9.1 normative 字段；其余按 §3 / §11 过滤；restricted Realm 的 claim presentation 形态见 §2；隐藏资源不得泄露存在性。 |
 | `ak.find.directory.read.resolve_realm` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proof_challenge: string`; `claim_presentations: DirectoryRestrictedClaimPresentation[]` | `realm_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `join_candidates?: ak.schema.realm_join_candidate.v1[]` | `alias` 输入 MUST 解析自 effective `ak.component.realm.alias.v1`（唯一 wire 承载是 `ak.realm.alias`，tombstone 视为不存在；见 [`object-addressing.md` §3.3](./object-addressing.md)），Directory 行只是该 cell 的投影而非独立真相源。`join_candidates[]` 是 v1 join 路由的规范字段；当 resolver 支持结构化 candidate 且调用方有权得到 join 路由时 MUST 给出调用方可用且经过 policy 过滤的候选 ingress service。若隐私策略不能披露 candidate，响应 MUST 省略 `join_candidates[]`；客户端在取得候选列表前不得提交 join material。invite / restricted / secret Realm 对未授权请求使用统一 `not_found`。 |
 | `ak.find.directory.read.resolve_target` | `address: string`（object-addressing grammar） | `requester: did`; `proofs: proof[]`; `token: string` | `target_kind: enum(realm,strand,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; §9.1 全部通用字段 | `resolve_realm` 的对象级泛化（分享 Strand / Message / Realm 的深链解析）；realm 解析 MUST 委托同一 `resolve_realm` 路径，并继承 `join_candidates[]` 语义；`token` 仅在 `lt ∈ {invite, preview}` 的 link 类型下允许携带，reference 类型 MUST NOT 带 token（见 [`object-addressing.md` §4.1](./object-addressing.md)）；携带 `token` 时 MUST 按 target descriptor 逐级校验再走 join-policy；未授权统一 `not_found`。完整 grammar / token 绑定 / 隐私规则见 [`object-addressing.md`](./object-addressing.md)。 |
@@ -777,7 +777,7 @@ Directory MAY 解析 `@alice:acme.example`、`alice@acme.example`、`alice:acme.
 
 1. `subject` / `did` 是被寻址主体的 principal DID；两者同时出现时 MUST byte-for-byte 相同。
 2. `handle` 是 canonical handle（`<localpart>:<domain>` 主形态）；UI 字符串不得作为验签输入。
-3. `member_delivery_binding.recipient_service_id` 是 Principal Server service DID，且 claim issuer 对该 service DID 的使用有可验证授权。
+3. `member_delivery_binding.recipient_service_id` 是 Principal Server service `core_id`，且 claim issuer 对该 service identity 的使用有可验证授权。
 4. `claims[]` 至少包含一个可验证 handle claim、VC presentation 或 signed directory claim，绑定 `handle`、`subject`、`member_delivery_binding.recipient_service_id`、issuer、`audience`、`created_at`、`expires_at`。
 5. claim `audience` MUST 等于请求中 `realm_id`、requester service DID 或调用 profile 声明的 audience 之一；不一致 MUST 返回与"无可披露 claim"不可区分的统一拒绝。
 6. 当 intent 为 `invite` 或 `member_add` 时，`member_delivery_binding` 只能作为构造 `ak.member.state{membership="join"}.delivery_binding` 的输入；`member_delivery_binding.binding_source` 不得是 `did_document_default`；接收方 reducer 仍 MUST 按 Join Policy 独立验证。当 intent 为 `contact_request` 时，`member_delivery_binding` 只能作为构造 `contact_address.recipient_service_id` 与 `handle_claim` introduction evidence 的输入；接收方仍 MUST 按 subject receive policy 与 `receive_policy_constraints` 独立判定 drop / quarantine / notify。
@@ -865,7 +865,7 @@ Result：
       "join_candidates": [
         {
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-          "service_id": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example",
+          "service_id": "ak:did_core:webvh:z3omZGak5a5es84Ph2kfPs4UP",
           "service_kind": "principal_server",
           "role": "primary",
           "endpoint": "https://principal.acme.example",

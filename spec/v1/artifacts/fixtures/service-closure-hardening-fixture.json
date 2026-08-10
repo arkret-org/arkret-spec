@@ -28,14 +28,14 @@
       "state": {
         "invite_id": "ak:invite:AQSdMSVYQP78xQTP7_xycpRF0LZ8BTOV1U1lNLZqz2PL",
         "claim_nonce": "nonce-001",
-        "subject_id": "did:webvh:z6mkfixture:alice.example",
+        "subject_id": "ak:did_core:webvh:z6mkfixture",
         "binding_proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "binding_proof": "proof-for-alice"
       },
       "requests": [
         {
           "name": "idempotent_same_subject_replay",
-          "subject_id": "did:webvh:z6mkfixture:alice.example",
+          "subject_id": "ak:did_core:webvh:z6mkfixture",
           "binding_proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "expected": {
             "decision": "accept",
@@ -44,7 +44,7 @@
         },
         {
           "name": "resubject_to_mallory",
-          "subject_id": "did:webvh:z6mkfixture:mallory.example",
+          "subject_id": "ak:did_core:webvh:z6mkfixturemalloryexample",
           "binding_proof_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "expected": {
             "decision": "reject",
@@ -56,7 +56,7 @@
       ],
       "reducer_event": {
         "kind": "ak.invite.claim",
-        "subject_id": "did:webvh:z6mkfixture:mallory.example",
+        "subject_id": "ak:did_core:webvh:z6mkfixturemalloryexample",
         "invite_id": "ak:invite:AQSdMSVYQP78xQTP7_xycpRF0LZ8BTOV1U1lNLZqz2PL",
         "claim_nonce": "nonce-001",
         "expected": {
@@ -194,7 +194,7 @@
           "has_more": true,
           "next_cursor": "ak:cursor:projection-page-3",
           "cursor_binding": {
-            "caller": "did:webvh:z6mkfixture:mallory.example",
+            "caller": "did:webvh:z6mkfixturemalloryexample:mallory.example",
             "selector_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
             "purpose": "ak.self.space.read.list"
           },
@@ -217,16 +217,16 @@
           "name": "actor_seq_digest_disagreement",
           "witnesses": [
             {
-              "witness_id": "did:webvh:z6mkfixture:witness-a.example",
+              "witness_id": "did:webvh:z6mkfixturewitnessaexample:witness-a.example",
               "realm_id": "ak:realm:AdYSFbfyN8gSP0coWuZi_vu3NVmR3SR6UfZquaYJiKsn",
-              "actor_id": "did:webvh:z6mkfixture:alice.example",
+              "actor_id": "ak:did_core:webvh:z6mkfixture",
               "actor_seq": 7,
               "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
             },
             {
-              "witness_id": "did:webvh:z6mkfixture:witness-b.example",
+              "witness_id": "did:webvh:z6mkfixturewitnessbexample:witness-b.example",
               "realm_id": "ak:realm:AdYSFbfyN8gSP0coWuZi_vu3NVmR3SR6UfZquaYJiKsn",
-              "actor_id": "did:webvh:z6mkfixture:alice.example",
+              "actor_id": "ak:did_core:webvh:z6mkfixture",
               "actor_seq": 7,
               "event_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
             }
@@ -241,13 +241,13 @@
           "name": "range_root_disagreement",
           "attestations": [
             {
-              "issuer": "did:webvh:z6mkfixture:witness-a.example",
+              "issuer": "did:webvh:z6mkfixturewitnessaexample:witness-a.example",
               "from_frontier": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "to_frontier": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
               "range_root": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
             },
             {
-              "issuer": "did:webvh:z6mkfixture:witness-b.example",
+              "issuer": "did:webvh:z6mkfixturewitnessbexample:witness-b.example",
               "from_frontier": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "to_frontier": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
               "range_root": "sha256:9999999999999999999999999999999999999999999999999999999999999999"

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09.16",
+  "version": "2026-08-10.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T05:00:00Z",
+  "generated_at": "2026-08-10T21:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -83,6 +83,20 @@
       "fragment": "#/$defs/controller_account_gate_attestation",
       "status": "active",
       "description": "Privacy-minimal Account Authority attestation of the controller principal lifecycle gate; never carries service-local account identity or a raw account cell."
+    },
+    {
+      "schema_id": "ak.schema.controller_account_gate_attestation_issue_request.v1",
+      "file": "schemas/agent-signer-evidence-operations.schema.json",
+      "fragment": "#/$defs/controller_account_gate_attestation_issue_request",
+      "status": "active",
+      "description": "Authenticated S2S request from a Native Agent PCR authority for the controller Account Authority lifecycle gate needed to assemble signer evidence."
+    },
+    {
+      "schema_id": "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+      "file": "schemas/agent-signer-evidence-operations.schema.json",
+      "fragment": "#/$defs/controller_account_gate_attestation_issue_outcome",
+      "status": "active",
+      "description": "Closed issuance outcome carrying one privacy-minimal controller Account Authority gate attestation."
     },
     {
       "schema_id": "ak.schema.agent_signer_admission_receipt.v1",
@@ -707,14 +721,14 @@
       "description": "Closed request/response DTO bundle for Directory discovery search, resolve, private contact discovery, handle lookup, agent selector lookup, and push webhook registration operations."
     },
     {
-      "schema_id": "ak.schema.did_continuity_proof.v1",
-      "file": "schemas/did-continuity-proof.schema.json",
+      "schema_id": "ak.schema.identity_resolution.v1",
+      "file": "schemas/identity-resolution.schema.json",
       "status": "active",
-      "description": "Signed DID continuity / migration proof payload",
+      "description": "Principal resolution projection/update/evidence and signed service resolution record contracts for the core_id/full_id model.",
       "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "schema=ak.schema.did_continuity_proof.v1",
-        "normative_ref": "zh/identity/key-management.md"
+        "kind": "standalone_schema_alias",
+        "selector": "principal resolution evidence or service resolution record",
+        "normative_ref": "zh/identity/identity-did.md"
       }
     },
     {

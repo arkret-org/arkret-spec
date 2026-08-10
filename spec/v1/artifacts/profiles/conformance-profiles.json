@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-10.6",
-  "generated_at": "2026-08-10T17:00:00Z",
+  "version": "2026-08-10.9",
+  "generated_at": "2026-08-10T23:45:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -392,6 +392,7 @@
     "ak.profile.principal_server.v1",
     "ak.profile.directory_service.v1",
     "ak.profile.federation_minimal.v1",
+    "ak.profile.service_resolution_mirror.v1",
     "ak.profile.signal_peer_relay.v1",
     "ak.profile.signal_message_stream.v1",
     "ak.profile.federation.high_assurance.v1",
@@ -449,6 +450,7 @@
       "ak.profile.principal_server.v1",
       "ak.profile.directory_service.v1",
       "ak.profile.federation_minimal.v1",
+      "ak.profile.service_resolution_mirror.v1",
       "ak.profile.signal_peer_relay.v1",
       "ak.profile.federation.high_assurance.v1",
       "ak.profile.identity_registry.v1",
@@ -462,7 +464,8 @@
       "ak.profile.franking.v1",
       "ak.profile.morph.schema_migration_transformations.v1",
       "ak.profile.webrtc_media.v1",
-      "ak.profile.circle_conformance.v1"
+      "ak.profile.circle_conformance.v1",
+      "ak.profile.ephemeral_pairwise_principal.v1"
     ],
     "v1_minimal_interop_floor": [
       "ak.profile.core_event_store.v1"
@@ -498,6 +501,7 @@
   "identity_extension_profiles": [
     "ak.profile.public_network_identity.v1",
     "ak.profile.org_high_assurance_identity.v1",
+    "ak.profile.ephemeral_pairwise_principal.v1",
     "ak.profile.principal_control_realm.v1",
     "ak.profile.direct_conversation_realm.v1",
     "ak.profile.key_transparency.v1"
@@ -567,6 +571,7 @@
     "ak.profile.principal_server.v1": "server",
     "ak.profile.directory_service.v1": "directory",
     "ak.profile.federation_minimal.v1": "server",
+    "ak.profile.service_resolution_mirror.v1": "server",
     "ak.profile.signal_peer_relay.v1": "server",
     "ak.profile.signal_message_stream.v1": "client",
     "ak.profile.federation.high_assurance.v1": "server",
@@ -603,6 +608,7 @@
     "ak.profile.morph.schema_migration_transformations.v1": "server",
     "ak.profile.webrtc_media.v1": "gateway",
     "ak.profile.circle_conformance.v1": "interop",
+    "ak.profile.ephemeral_pairwise_principal.v1": "admin",
     "ak.profile.personal_node.v1": "admin",
     "ak.profile.small_team.v1": "admin",
     "ak.profile.organization.v1": "admin",
@@ -1193,6 +1199,7 @@
       "role": "admin",
       "description": "Fail-closed Realm role profile for one stable two-principal Direct Conversation. The role is identified only by schema_refs containing this profile together with fields.collaboration_role=direct_conversation.",
       "required_endpoints": [
+        "ak.self.direct_conversation.command.repair_dispatch",
         "ak.self.direct_conversation.read.resolve",
         "ak.self.contact.command.request",
         "ak.self.contact.command.respond",
@@ -1201,6 +1208,7 @@
         "ak.self.contact.command.tombstone",
         "ak.self.events.command.submit",
         "ak.peer.contacts.command.submit",
+        "ak.peer.direct_conversation.command.repair_relay",
         "ak.peer.keys.keypackages.command.claim",
         "ak.peer.keys.keypackages.read.claim",
         "ak.peer.events.command.submit",
@@ -1214,7 +1222,11 @@
         "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",
         "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
         "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
-        "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome"
+        "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
+        "schemas/device-message.schema.json#/$defs/member_repair_request_content",
+        "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_dispatch_request",
+        "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_relay_request",
+        "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_enqueue_outcome"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -1264,6 +1276,7 @@
         "ak.vector.contact.next_prepare_input.v1",
         "ak.vector.contact.pending_incoming_request_receipt.v1",
         "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
+        "ak.vector.direct_conversation.repair_dispatch.v1",
         "ak.vector.direct_conversation.send_blocker_authority.v1",
         "ak.vector.history_sharing.direct_conversation_profile_baseline.v1"
       ],
@@ -1273,6 +1286,7 @@
           "direct_conversation_realm_role",
           "direct_conversation_stable_binding_reducer",
           "direct_conversation_founding_unit_admission",
+          "direct_conversation_repair_peer_relay",
           "direct_conversation_suspend_rejoin",
           "direct_conversation_participant_authority",
           "direct_conversation_root_owner_mask"
@@ -1991,6 +2005,7 @@
     "ak.profile.agent_signer_evidence.v1": {
       "description": "Portable ordinary-Realm Native Agent signer authorization evidence. Producers publish one Agent authority snapshot with key and Agent-lifecycle witnesses, one privacy-minimal Account Authority controller gate, and a structural XOR between exact-request current observation and destination-signed historical Event admission receipt. Consumers independently verify all three orthogonal gates, reject cross-request replay, preserve accepted Event validity across later terminal transitions, and cross-bind encrypted Events to the historical MLS leaf.",
       "required_endpoints": [
+        "ak.gate.account.command.issue_controller_gate_attestation",
         "ak.self.agent_signer_evidence.read.resolve"
       ],
       "required_event_kinds": [
@@ -2001,6 +2016,8 @@
       "required_schemas": [
         "ak.schema.agent_signing_key_binding.v1",
         "ak.schema.controller_account_gate_attestation.v1",
+        "ak.schema.controller_account_gate_attestation_issue_request.v1",
+        "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
         "ak.schema.agent_signer_admission_receipt.v1",
         "ak.schema.agent_signer_evidence.v1",
         "ak.schema.agent_signer_evidence_query_request.v1",
@@ -2247,6 +2264,7 @@
       ],
       "required_endpoints": [
         "ak.server.read.describe",
+        "ak.open.identity.read.resolution",
         "ak.self.account.read.describe",
         "ak.self.account.stream.subscribe",
         "ak.self.events.stream.subscribe",
@@ -2258,6 +2276,7 @@
       ],
       "required_event_kinds": [
         "ak.realm.create",
+        "ak.identity.resolution.update",
         "ak.member.state",
         "ak.strand.create",
         "ak.message.create",
@@ -2272,6 +2291,7 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
+        "ak.schema.identity_resolution.v1",
         "ak.schema.account_subscribe_frame.v1",
         "ak.schema.snapshot.v1",
         "ak.schema.invite.v1",
@@ -2407,6 +2427,41 @@
         "downgrade_profile": "ak.profile.e2ee_relaxed.v1",
         "downgrade_admission": "Only closed or restricted federation may accept ak.profile.e2ee_relaxed.v1, and restricted federation MUST satisfy the bounded-SLA federation_guard in that profile. Open and quarantine federation MUST reject the relaxed downgrade.",
         "fail_closed_behavior": "A receiver that cannot verify the minimum profile, sees a missing/inconsistent binding_profile or reducer_profile, or cannot prove the relaxed federation guard MUST reject or quarantine the affected MLS artifact/DataEvent before advancing Realm frontier."
+      }
+    },
+    "ak.profile.service_resolution_mirror.v1": {
+      "role": "server",
+      "description": "Optional Realm-scoped route-availability profile. It implements target-signed planned handover publication and authorized peer mirror resolution without becoming service identity or route authority.",
+      "inherits": [
+        "ak.profile.federation_minimal.v1"
+      ],
+      "required_endpoints": [
+        "ak.peer.service_resolution.command.publish",
+        "ak.peer.service_resolution.read.resolve"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ak.schema.identity_resolution.v1"
+      ],
+      "required_fixtures": [
+        "service-route-handover-mirror-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "ak.feature.service_route_handover.v1",
+          "ak.feature.realm_service_resolution_mirror.v1",
+          "durable_service_resolution_last_seen_floor",
+          "route_cache_ttl_separate_from_rollback_floor"
+        ],
+        "unsupported_optional": "Omit the profile and both peer operations; normal current-record bootstrap and direct 1:1 handover remain usable when independently implemented, while an unannounced outage without another authorized carrier fails closed."
+      },
+      "additional_requirements": {
+        "target_signature_must": "A mirror returns only byte-exact target-service-signed ServiceResolutionRecord and ServiceRouteHandoverNotice values; its own transport signature can never authorize a bare URL.",
+        "visibility_must": "Requester and target must both be currently visible in the named Realm through effective binding, sync endpoint or explicit delegation; unknown, unauthorized, invisible and not-held responses are indistinguishable.",
+        "durability_must": "Remote record sequence/digest floors, notice revision/digest state and publish acknowledgements survive restart; replaceable TTL route cache is not this safety state.",
+        "bounds_must": "Resolve returns at most 32 continuous records and at most 256 KiB canonical response bytes."
       }
     },
     "ak.profile.signal_message_stream.v1": {
@@ -2550,7 +2605,7 @@
         "ak.root.identity.command.submit_did_operation"
       ],
       "required_event_kinds": [
-        "ak.did.proof",
+        "ak.identity.resolution.update",
         "ak.identity.disclosure_policy",
         "ak.identity.disclosure_receipt",
         "ak.identity.presentation_request",
@@ -2558,6 +2613,7 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
+        "ak.schema.identity_resolution.v1",
         "ak.schema.identity_receipt.v1",
         "ak.schema.handle_claim.v1",
         "ak.schema.key_transparency.v1"
@@ -3884,6 +3940,45 @@
         "unsupported_optional": "mark remote Realm unavailable"
       }
     },
+    "ak.profile.ephemeral_pairwise_principal.v1": {
+      "inherits": [
+        "ak.profile.e2ee_client.v1"
+      ],
+      "description": "Closed identity profile for an unlinkable, short-lived Realm-local pairwise actor principal. It is the only v1 principal profile that admits did:key, and only inside a Realm that has already declared ak.profile.mls.minimal_metadata_realm.v1. A fresh key MUST be generated per Realm and MUST NOT be reused across Realms. Authority comes exclusively from one accepted MLS group state whose active LeafNode credential identity equals the Event pairwise actor_id, while the Event proof verification-method base is a did:key full_id that projects to that actor_id and its public key equals the LeafNode signature_key. It creates no account, PCR, device-directory entry, Contact, capability, recovery state or cross-Realm identity, and cannot be enabled by deployment-local resolver policy alone.",
+      "required_endpoints": [
+        "ak.self.events.command.submit"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ak.schema.event.v1",
+        "ak.schema.identity_link.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "ephemeral_pairwise_principal",
+          "realm_pairwise_author_state"
+        ],
+        "unsupported_optional": "reject minimal-metadata pairwise authors"
+      },
+      "identity": {
+        "principal_method_default": "did:key",
+        "allowed_principal_methods": [
+          "did:key"
+        ],
+        "long_lived_principal": false,
+        "principal_method_upgrade_allowed": false,
+        "account_registration_allowed": false,
+        "principal_control_realm_allowed": false,
+        "device_directory_allowed": false,
+        "author_trust_anchor": "accepted_exact_epoch_mls_leafnode",
+        "key_scope": "one_realm_no_reuse"
+      }
+    },
     "ak.profile.personal_node.v1": {
       "inherits": [
         "ak.profile.principal_server_events_api.v1"
@@ -3922,18 +4017,16 @@
       "identity": {
         "principal_method_default": "did:webvh",
         "allowed_principal_methods": [
-          "did:webvh",
-          "did:web"
+          "did:webvh"
         ],
         "service_method_default": "did:webvh",
-        "principal_method_downgrade_allowed": true,
-        "downgrade_note": "Personal node MAY use did:web as principal method when explicitly declared. Upgrade to small_team or higher MUST migrate to did:webvh per identity-did.md §4.2.2."
+        "principal_method_downgrade_allowed": false
       },
       "account_authority": {
         "requirement": "recommended_self_hosted",
         "role_profile": "ak.profile.auth_server.v1",
         "escape_hatch": "external_delegated_declared",
-        "note": "personal_node SHOULD co-deploy a self-hosted Account Authority (Auth Server): account registration, recovery, device enrollment, session-grant issuance, and did.jsonl hosting for domainless users. The Account Authority MAY be co-located in the same process/node as the principal server (see architecture.md §2.8) but keeps a distinct service DID and boundary. A deployment MAY delegate to a shared/external auth server, but MUST declare the delegation in service-describe auth_metadata so the inherited trust dependency (control over account recovery, device enrollment, and DID continuity) is explicit and auditable. Service DID is obtained at startup via self-bootstrap (no manual mint) with config as a fail-closed pin; see identity/identity-did.md §3.7. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5, identity/identity-did.md §3.7."
+        "note": "personal_node SHOULD co-deploy a self-hosted Account Authority (Auth Server): account registration, recovery, device enrollment, session-grant issuance, and DID resolution hosting for domainless users. The Account Authority MAY be co-located in the same process/node as the principal server (see architecture.md §2.8) but keeps a distinct service core_id and boundary. A deployment MAY delegate to a shared/external auth server, but MUST declare the delegation in service-describe auth_metadata so the inherited trust dependency (control over account recovery, device enrollment, and resolution publication) is explicit and auditable. Service identity is obtained at startup via full_id self-bootstrap, projected to core_id, with config as a fail-closed pin; see identity/identity-did.md §3.7. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5, identity/identity-did.md §3.7."
       }
     },
     "ak.profile.small_team.v1": {
@@ -3988,7 +4081,7 @@
         "requirement": "recommended_self_hosted",
         "role_profile": "ak.profile.auth_server.v1",
         "escape_hatch": "external_delegated_declared",
-        "note": "small_team SHOULD co-deploy a self-hosted Account Authority (Auth Server): account registration, recovery, device enrollment, session-grant issuance, and did.jsonl hosting for domainless users. The Account Authority MAY be co-located in the same process/node as the principal server (see architecture.md §2.8) but keeps a distinct service DID and boundary. A deployment MAY delegate to a shared/external auth server, but MUST declare the delegation in service-describe auth_metadata so the inherited trust dependency (control over account recovery, device enrollment, and DID continuity) is explicit and auditable. Service DID is obtained at startup via self-bootstrap (no manual mint) with config as a fail-closed pin; see identity/identity-did.md §3.7. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5, identity/identity-did.md §3.7."
+        "note": "small_team SHOULD co-deploy a self-hosted Account Authority (Auth Server): account registration, recovery, device enrollment, session-grant issuance, and DID resolution hosting for domainless users. The Account Authority MAY be co-located in the same process/node as the principal server (see architecture.md §2.8) but keeps a distinct service core_id and boundary. A deployment MAY delegate to a shared/external auth server, but MUST declare the delegation in service-describe auth_metadata so the inherited trust dependency (control over account recovery, device enrollment, and resolution publication) is explicit and auditable. Service identity is obtained at startup via full_id self-bootstrap, projected to core_id, with config as a fail-closed pin; see identity/identity-did.md §3.7. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5, identity/identity-did.md §3.7."
       }
     },
     "ak.profile.organization.v1": {

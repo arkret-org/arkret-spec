@@ -204,7 +204,7 @@
           "pattern": "^[A-Za-z0-9._:-]{1,128}$"
         },
         "agent_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "requested_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -248,7 +248,7 @@
         "changed": {
           "type": "array",
           "items": {
-            "$ref": "./common-ids.schema.json#/$defs/did"
+            "$ref": "./common-ids.schema.json#/$defs/core_id"
           },
           "uniqueItems": true,
           "maxItems": 10000
@@ -256,7 +256,7 @@
         "left": {
           "type": "array",
           "items": {
-            "$ref": "./common-ids.schema.json#/$defs/did"
+            "$ref": "./common-ids.schema.json#/$defs/core_id"
           },
           "uniqueItems": true,
           "maxItems": 10000
@@ -349,7 +349,7 @@
           "pattern": "^ak:cell:"
         },
         "issuer": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "issuer_seq": {
           "type": "integer",
@@ -541,7 +541,7 @@
         "actor_profiles": {
           "type": "object",
           "patternProperties": {
-            "^did:[a-z0-9]+:[^\\s#?]+$": {
+            "^ak:did_core:[a-z0-9]+:[^\\s/?#]+$": {
               "type": "object",
               "properties": {
                 "display_name": {
@@ -626,7 +626,7 @@
         "heroes": {
           "type": "array",
           "items": {
-            "$ref": "./common-ids.schema.json#/$defs/did"
+            "$ref": "./common-ids.schema.json#/$defs/core_id"
           },
           "uniqueItems": true,
           "maxItems": 20
@@ -656,7 +656,7 @@
       ],
       "properties": {
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "membership": {
           "type": "string",
@@ -667,9 +667,8 @@
           ]
         },
         "subject_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-          "description": "Optional disclosed principal / holder DID for this member. Omit when subject disclosure is only available inside encrypted MemberIdentity or not authorized for the caller. Required whenever handle claim evidence or digest hints are included."
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Optional disclosed principal / holder core_id for this member. Omit when subject disclosure is only available inside encrypted MemberIdentity or not authorized for the caller. Required whenever handle claim evidence or digest hints are included."
         },
         "identity_event_ids": {
           "type": "array",

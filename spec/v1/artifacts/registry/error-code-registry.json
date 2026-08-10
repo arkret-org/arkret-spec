@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-10.2",
+  "version": "2026-08-10.5",
   "codes": [
     {
       "code": "bad_json",
@@ -1752,6 +1752,14 @@
       "description": "Sub-reason for schema_violation when actor-side submit payload carries `actor_kind`. The reducer derives actor_kind immutably from actor_id's Actor Profile after acceptance; submitters MUST NOT supply it. See zh/models/event-and-patch.md §2.1."
     },
     {
+      "code": "actor_session_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A minimal-metadata Realm Event used a principal/session identity combination that does not match the active Realm-scoped pairwise actor binding, or attempted that actor/session split outside the declared minimal-metadata profile. Receivers MUST reject instead of falling back to the long-lived principal identity. See zh/conformance/conformance-vectors.md minimal-metadata identity-link vectors."
+    },
+    {
       "code": "actor_signature_revoked",
       "applies_to": [
         "event_envelope",
@@ -3216,46 +3224,6 @@
         "moderation_report"
       ],
       "description": "Standard moderation reason: content alleged to violate applicable law (CSAM, threats, IP infringement, etc.)."
-    },
-    {
-      "code": "inception_upgrade_evidence_insufficient",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Cross-method principal upgrade (e.g. personal_node `did:web` -> small_team `did:webvh`) is missing the OOB fingerprint confirmation evidence or any of the required `transfer_proof` fields (key-management.md §5.0.5)."
-    },
-    {
-      "code": "inception_upgrade_evidence_stale",
-      "applies_to": [
-        "auth_decision",
-        "identity_resolution"
-      ],
-      "description": "Cross-method principal upgrade transfer_proof.old_did_document_fetched_at is older than the maximum 168h evidence window. Receiver MUST reject instead of accepting stale did:web evidence. See zh/identity/key-management.md §5.0.5."
-    },
-    {
-      "code": "inception_upgrade_fingerprint_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Cross-method principal upgrade evidence `inception_public_key_fingerprint` does not match the cold root key bound by the old method continuity evidence and verified in key-management.md §5.0.5."
-    },
-    {
-      "code": "inception_upgrade_old_document_hash_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Cross-method principal upgrade evidence `old_did_document_canonical_digest` does not match the receiver's canonicalised view of the current `old_did` DID Document. Indicates the hosting domain has been substituted after the upgrade was signed (key-management.md §5.0.5)."
-    },
-    {
-      "code": "inception_upgrade_signature_chain_invalid",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Cross-method principal upgrade `ak.did.proof.continuity` `signature_chain` is missing one of the two mandated signatures (the old method's continuity-evidence-bound cold root + the new method's entry-0 active cold root), uses a DID Document-only inception/verification key instead of the bound cold-root evidence key, or one of the signatures fails to verify (key-management.md §5.0.5)."
     },
     {
       "code": "inclusion_list_violation",
@@ -5327,6 +5295,70 @@
         "federation_transaction"
       ],
       "description": "Confirmed fork/witness evidence: two distinct canonical Event preimages independently recompute to the same complete suite-tagged event_id (full-hash collision evidence); a validated per-actor sibling set exceeds the registered single-bucket or per-position limit; a profile declares the observed sibling combination non-joinable; or witnesses required to sign the same complete (realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count) attestation payload return inconsistent values. A carried event_id whose recomputed digest differs is only event_id_digest_mismatch and MUST be rejected before quarantine. Different valid event_id values at the same (realm_id, actor_id, actor_seq) are not by themselves disagreement: event-and-patch.md §2.6 permits a bounded legal sibling set, which peers MUST reconcile by validated set union. Raw frontier_root / heads / range-root differences across different replication, disclosure, or attestation scopes also are not disagreement. The verifier MUST quarantine only the affected evidence scope and fail closed; recovery requires raw replay, an aligned same-scope quorum, or operator-approved fork resolution. See zh/sync/operations-sync.md §12 and zh/sync/federation.md §4.5.1."
+    },
+    {
+      "code": "service_route_notice_basis_stale",
+      "applies_to": [
+        "identity_resolution",
+        "federation_transaction"
+      ],
+      "description": "Internal route evaluator diagnosis for a notice whose exact record basis is not the receiver's durable floor. It MUST NOT be serialized by ak.peer.service_resolution.read.resolve; the outward response is the blinded not_found/capability-denied or universal failure surface."
+    },
+    {
+      "code": "service_route_notice_conflict",
+      "applies_to": [
+        "identity_resolution",
+        "federation_transaction"
+      ],
+      "description": "Internal route evaluator diagnosis for a notice revision/digest fork or duplicate-key conflict. It MUST NOT be serialized by the blinded peer resolve surface."
+    },
+    {
+      "code": "service_route_notice_cancelled",
+      "applies_to": [
+        "identity_resolution",
+        "service_call"
+      ],
+      "description": "Internal route evaluator diagnosis that a candidate belongs to an accepted cancelled notice. It MUST NOT be serialized by the blinded peer resolve surface."
+    },
+    {
+      "code": "service_route_notice_expired",
+      "applies_to": [
+        "identity_resolution",
+        "service_call"
+      ],
+      "description": "Internal route evaluator diagnosis that the signed handover validity window has expired. It MUST NOT be serialized by the blinded peer resolve surface."
+    },
+    {
+      "code": "service_route_successor_unavailable",
+      "applies_to": [
+        "identity_resolution",
+        "service_call"
+      ],
+      "description": "Internal route evaluator diagnosis that no exact formal successor record is available at the candidate or authorized mirror. It MUST NOT be serialized by the blinded peer resolve surface."
+    },
+    {
+      "code": "service_route_fork",
+      "applies_to": [
+        "identity_resolution",
+        "federation_transaction"
+      ],
+      "description": "Internal anti-rollback diagnosis for distinct valid target-signed artifacts at the same sequence/revision; the service route is quarantined. It MUST NOT be serialized by the blinded peer resolve surface."
+    },
+    {
+      "code": "service_resolution_mirror_response_gap",
+      "applies_to": [
+        "identity_resolution",
+        "federation_transaction"
+      ],
+      "description": "Internal peer-response diagnosis for a non-contiguous successor chain. It is a requester-local validation result and MUST NOT appear in the responder's wire error."
+    },
+    {
+      "code": "service_resolution_mirror_response_limit",
+      "applies_to": [
+        "identity_resolution",
+        "service_call"
+      ],
+      "description": "Internal peer-response diagnosis for the 32-record, 256-KiB or caller-selected budget limit. It MUST NOT be serialized by the blinded peer resolve surface, which uses the universal size failure."
     }
   ]
 }

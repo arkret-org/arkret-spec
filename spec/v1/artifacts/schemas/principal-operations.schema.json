@@ -88,8 +88,7 @@
       "$ref": "./common-ids.schema.json#/$defs/device_id"
     },
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "event_id": {
       "type": "string",
@@ -444,17 +443,21 @@
         "principal_id",
         "pcr_realm_id",
         "accepted_device_id",
+        "resolution",
         "receipt"
       ],
       "properties": {
         "principal_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "pcr_realm_id": {
           "$ref": "#/$defs/realm_id"
         },
         "accepted_device_id": {
           "$ref": "#/$defs/device_id"
+        },
+        "resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/resolution_projection"
         },
         "receipt": {
           "$ref": "./event-batch-receipt.schema.json"
@@ -468,6 +471,7 @@
       "required": [
         "account_authority_id",
         "principal_id",
+        "full_id",
         "pcr_realm_id",
         "did_version_id",
         "log_head_digest",
@@ -482,7 +486,11 @@
           "$ref": "#/$defs/did"
         },
         "principal_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/long_lived_principal_full_id",
+          "description": "Complete registration DID. The Principal Server independently validates method evidence and requires project(full_id)=principal_id before accepting genesis."
         },
         "pcr_realm_id": {
           "$ref": "#/$defs/realm_id"
@@ -519,7 +527,7 @@
     },
     "pcr_genesis_unit": {
       "type": "object",
-      "description": "Exact ordered, atomic PCR genesis unit. The first Event is identity-root signed ak.realm.create; the second is founding-device signed ak.device.authorize. The second Event proof.verification_method MUST be byte-identical to principal_id + '#' + device_id (where device_id is the complete ak:device UUID string), never a did:key. Before the accepted device directory exists, the verifier resolves that one canonical method through a unit-local candidate overlay to the descriptor/payload device_public_key; it MUST NOT consult or mutate the durable directory until every check succeeds. No partial acceptance is permitted.",
+      "description": "Exact ordered, atomic PCR genesis unit. The first Event is identity-root signed ak.realm.create; the second is founding-device signed ak.device.authorize. For the second Event proof.verification_method, the verifier parses the DID URL, requires the registered adapter to project its bare full DID component to principal_id, and requires its fragment to equal device_id (the complete ak:device UUID string); constructing a DID URL by appending to core_id is forbidden, and did:key is not accepted for this slot. Before the accepted device directory exists, the verifier resolves that one canonical method through a unit-local candidate overlay to the descriptor/payload device_public_key; it MUST NOT consult or mutate the durable directory until every check succeeds. No partial acceptance is permitted.",
       "required": [
         "events"
       ],
@@ -989,7 +997,7 @@
               "$ref": "#/$defs/realm_id"
             },
             "controller_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "./common-ids.schema.json#/$defs/core_id"
             },
             "context_ref": {
               "$ref": "#/$defs/sidecar_context_ref"

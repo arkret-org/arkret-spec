@@ -175,7 +175,7 @@
         ]
       },
       "receiver_state": {
-        "signer_controller": "did:webvh:z6mkfixture:mallory.example"
+        "signer_controller": "did:webvh:z6mkfixturemalloryexample:mallory.example"
       },
       "instance": {
         "id": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -189,7 +189,7 @@
         "completeness_root": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "notary_seq": 1,
         "notary_signature": {
-          "verification_method": "did:webvh:z6mkfixture:mallory.example#device-9",
+          "verification_method": "did:webvh:z6mkfixturemalloryexample:mallory.example#device-9",
           "payload_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "created_at": "2026-07-16T00:00:01.000Z",
           "jws": "e30..c2ln"

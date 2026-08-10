@@ -16,8 +16,8 @@
           "input": {
             "operation_id": "ak.peer.events.command.submit",
             "headers": {
-              "Source-Service-ID": "did:webvh:z6mkfixture:alpha.example",
-              "Destination-Service-ID": "did:webvh:z6mkfixture:beta.example",
+              "Source-Service-ID": "did:webvh:z6mkfixturealphaexample:alpha.example",
+              "Destination-Service-ID": "did:webvh:z6mkfixturebetaexample:beta.example",
               "Source-Trust-Domain": "ak:trust_domain:did.webvh.alpha.example",
               "Destination-Trust-Domain": "ak:trust_domain:did.webvh.beta.example",
               "Content-Digest": "sha-256=:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=:",
@@ -37,8 +37,8 @@
               "preconditions": {
                 "operation_id": "ak.peer.events.command.submit",
                 "headers": {
-                  "Source-Service-ID": "did:webvh:z6mkfixture:alpha.example",
-                  "Destination-Service-ID": "did:webvh:z6mkfixture:beta.example",
+                  "Source-Service-ID": "did:webvh:z6mkfixturealphaexample:alpha.example",
+                  "Destination-Service-ID": "did:webvh:z6mkfixturebetaexample:beta.example",
                   "Source-Trust-Domain": "ak:trust_domain:did.webvh.alpha.example",
                   "Destination-Trust-Domain": "ak:trust_domain:did.webvh.beta.example",
                   "Content-Digest": "sha-256=:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=:",
@@ -54,8 +54,8 @@
               "input": {
                 "operation_id": "ak.peer.events.command.submit",
                 "headers": {
-                  "Source-Service-ID": "did:webvh:z6mkfixture:alpha.example",
-                  "Destination-Service-ID": "did:webvh:z6mkfixture:beta.example",
+                  "Source-Service-ID": "did:webvh:z6mkfixturealphaexample:alpha.example",
+                  "Destination-Service-ID": "did:webvh:z6mkfixturebetaexample:beta.example",
                   "Source-Trust-Domain": "ak:trust_domain:did.webvh.alpha.example",
                   "Destination-Trust-Domain": "ak:trust_domain:did.webvh.beta.example",
                   "Content-Digest": "sha-256=:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=:",
@@ -214,7 +214,7 @@
           "name": "sfu_not_plaintext_visible",
           "input": {
             "media_service_decrypts": true,
-            "sfu_service_id": "did:webvh:z6mkfixture:sfu.example",
+            "sfu_service_id": "did:webvh:z6mkfixturesfuexample:sfu.example",
             "plaintext_visible_services": []
           },
           "expected": {
@@ -229,7 +229,7 @@
               "vector_id": "ak.vector.webrtc.media_plaintext_downgrade.v1",
               "preconditions": {
                 "media_service_decrypts": true,
-                "sfu_service_id": "did:webvh:z6mkfixture:sfu.example",
+                "sfu_service_id": "did:webvh:z6mkfixturesfuexample:sfu.example",
                 "plaintext_visible_services": []
               }
             },
@@ -239,7 +239,7 @@
               "canonicalization": "fixture_json_v1",
               "input": {
                 "media_service_decrypts": true,
-                "sfu_service_id": "did:webvh:z6mkfixture:sfu.example",
+                "sfu_service_id": "did:webvh:z6mkfixturesfuexample:sfu.example",
                 "plaintext_visible_services": []
               }
             },
@@ -262,9 +262,9 @@
           "input": {
             "media_service_decrypts": true,
             "security_frontier_covers_media_service_decrypts": true,
-            "sfu_service_id": "did:webvh:z6mkfixture:sfu.example",
+            "sfu_service_id": "did:webvh:z6mkfixturesfuexample:sfu.example",
             "plaintext_visible_services": [
-              "did:webvh:z6mkfixture:sfu.example"
+              "did:webvh:z6mkfixturesfuexample:sfu.example"
             ],
             "prominent_client_warning_present": false,
             "second_confirmation_completed": false

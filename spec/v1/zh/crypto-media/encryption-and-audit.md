@@ -29,7 +29,11 @@ Arkret 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.ietf
 ### 2.1 KeyPackage 与服务发现
 在参与 MLS 加密前，用户必须公布自己的 `KeyPackage`。
 - **发布位置**：Actor 通过 signed Event 发布自己的 `KeyPackage`，或者在其 DID Document 的 `service` 中指定独立的 `MLS Delivery Service` 节点入口。
-- **生命周期验证**：其他客户端在拉取 `KeyPackage` 时，MUST 通过 Actor 的 DID Document 与 Event history 验证该包的公钥签名，确保未被身份盗用。
+- **生命周期验证**：其他客户端在拉取 `KeyPackage` 时，MUST 独立验证 claim response 携带的
+  portable authorization evidence。DID method history 只验证 identity root；普通设备签名 key
+  只来自 root-anchored PCR genesis、完整 control history、accepted Seal 与 current device projection，
+  **MUST NOT** 回退到 DID Document verification method。Native Agent 则验证 current-admission
+  `AgentSignerEvidence`，两分支不得互相 fallback，也不得以 Principal Server 裸投影替代。
 
 ### 2.2 握手与组成员管理 (Welcome, Commit)
 MLS 维护了一颗成员密钥树 (Ratchet Tree)。在 Arkret 中，群组的密钥状态变动不依赖于独立的中心化分发服务器，而是映射到原生的 `Realm` 与 Event 模型中：
@@ -537,7 +541,7 @@ published -> claimed -> consumed
 {
   "kind": "ak.mls.keypackage",
   "keypackage_id": "ak:mls:kp:01JS...",
-  "principal_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
+  "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "keypackage_ref": "sha256:...",
   "keypackage_digest": "sha256:canonical_keypackage_bytes",
@@ -566,7 +570,10 @@ Claim 成功后：
 - 同一 KeyPackage 不得被第二个 Realm/group、requester 或 Welcome 重复使用。
 - Welcome `claim_ref` 携带 `{claim_id,keypackage_ref,keypackage_digest,capabilities_digest}` 加上述二选一 authorization ref，并进入 governance/AAD transcript。接收端解密前必须验证所有 digest、capability subset 和 ref 指向 current active accepted authorization；device 分支还要验证 root-anchored PCR evidence、current device generation、未撤销状态与 MLS LeafNode/signature key 一致。
 - 若 device 在 claim 与 Welcome 之间 revoke、re-anchor fenced 或其 authorization 被替换，未消费 claim 失效；发送方必须以 current `device_authorize_event_id` 新建 claim。Agent authorization revoke/supersede/expiry 同理。
-- 返回 KeyPackage 时必须附 endpoint signature 与 portable authorization evidence。device 与 Native Agent 两分支不能互相 fallback。
+- 返回 KeyPackage 时必须附 endpoint signature 与 target portable authorization evidence：普通 device
+  claim record 必须且只能携 `target_device_signing_key_evidence`，Native Agent record 必须且只能携
+  `target_agent_signer_evidence`。`claims_digest` 与目标服务 receipt 覆盖这些 bytes，但服务 proof
+  只防传输篡改，不替代客户端对内部 root / Seal / current authority 的独立验证。两分支不能互相 fallback。
 
 #### 2.6.1 Welcome `claim_envelope` 签名（normative）
 
@@ -623,11 +630,11 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
 
 Profile 规则：
 
-- Event Envelope 的 `actor_id` 仍然必须是 DID。minimal-metadata profile 中，`actor_id` SHOULD 使用 Realm-scoped pairwise DID，例如成员为该 Realm / Strand track 生成的 `did:key`、`did:peer` 或 policy 允许的其他 pseudonymous DID。实现不得把非 DID 字符串放入 `actor_id`。
-- 声明 minimal-metadata profile 的 Realm 中，MLS LeafNode MUST 使用 RFC 9420 `basic` credential，credential identity 必须是 Event `actor_id` 所用 Realm-scoped pairwise DID 的 UTF-8 字节；LeafNode `signature_key` 是该 pairwise sender 的内容作者性验签锚。不得改用真实 principal DID 作为该 credential identity，也不得要求服务端目录解析真实 principal 才能验签。
+- Event Envelope 的 `actor_id` 仍然必须是 `core_id`。minimal-metadata profile 中，它 SHOULD 使用由 Realm-scoped pairwise `full_id` 经注册 adapter 投影得到的 pairwise `core_id`；实现不得把完整 DID 或任意非 `core_id` 字符串放入 `actor_id`。
+- 声明 minimal-metadata profile 的 Realm 中，MLS LeafNode MUST 使用 RFC 9420 `basic` credential，credential identity 必须是 Event `actor_id` 所用 Realm-scoped pairwise `core_id` 的 UTF-8 字节；LeafNode `signature_key` 是该 pairwise sender 的内容作者性验签锚。不得改用真实 principal `core_id` 作为该 credential identity，也不得要求服务端目录解析真实 principal 才能验签。
 - 真实 `principal_id`、设备身份、display profile 和可选 handle MUST 放入端到端加密的 `ak.identity_link` application message 或 MLS private extension 中，只对当前 Realm members 可见。v1 的必需 wire shape 是 `ak.schema.identity_link.v1`；MLS private extension 只是等价承载，payload schema 不变。
-- `ak.identity_link` MUST 绑定 pairwise DID、principal DID、device id、realm id、trust domain、可选 strand id / track、MLS leaf index、MLS epoch、effective time 和签名证明；签名输入固定为 `utf8("ak.identity-link-v1\n") || canonical_json(identity-link object with proof.signature omitted)`。证明必须能从 principal DID 的控制链或 profile 声明的 disclosure proof 验证。Receiver MUST 在验证签名前检查 `trust_domain` 与当前接收上下文一致；不一致时不得接受该 pairwise DID -> principal DID 映射。
-- Sync / Federation 服务只可按 pairwise DID、realm id、epoch、event id / routing hash 和授权服务绑定路由；不得要求明文 principal DID 才能转发密文。
+- `ak.identity_link` MUST 绑定 pairwise `core_id`、principal `core_id`、device id、realm id、trust domain、可选 strand id / track、MLS leaf index、MLS epoch、effective time 和签名证明；签名输入固定为 `utf8("ak.identity-link-v1\n") || canonical_json(identity-link object with proof.signature omitted)`。证明的 `verification_method` 保持完整 DID URL，其 bare DID 必须经 adapter 投影到 `principal_id`，或由 profile 声明的 disclosure proof 验证。Receiver MUST 在验证签名前检查 `trust_domain` 与当前接收上下文一致；不一致时不得接受 pairwise -> principal 的 `core_id` 映射。
+- Sync / Federation 服务只可按 pairwise `core_id`、realm id、epoch、event id / routing hash 和授权服务绑定路由；不得要求明文 principal `full_id` 才能转发密文。
 - Capability、moderation、legal hold 或 enterprise policy 需要真实主体时，Realm policy MUST 在加入前声明 disclosure 条件。客户端不接受该 disclosure policy 时 MUST NOT 加入该 Realm。
 - 任何从 pairwise DID 到 principal DID 的服务端可见映射都 MUST 有明确 purpose、expiry、audience 和 audit record；默认不得写入公开 Realm history。
 
@@ -637,8 +644,8 @@ Profile 规则：
 {
   "schema": "ak.schema.identity_link.v1",
   "status": "active",
-  "pairwise_did": "did:key:z6Mkpseudonymous",
-  "principal_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+  "pairwise_actor_id": "ak:did_core:key:z6Mkpseudonymous",
+  "principal_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
   "device_id": "ak:device:019a6aa0-0000-7000-8000-000000000000",
   "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
   "trust_domain": "ak:trust_domain:did.webvh.example",
@@ -657,9 +664,9 @@ Profile 规则：
 
 Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验证发送者的 identity link、MLS credential、device trust 和对应 capability。无法建立映射时，该消息可被展示为未验证 pairwise sender，但不得被提升为已验证 principal DID 发送者。
 
-**Identity Link 缓存**：客户端 SHOULD 在本地设备存储中缓存已验证的 `ak.identity_link` 映射，key 为 `(realm_id, pairwise_did)`，value 中**MUST**额外携带签发时的 `policy_frontier_digest`（参见下方"Policy tightening 失效"）。缓存 value MUST 包含：验证时间、MLS epoch、principal DID、device id、签名证明摘要、`policy_frontier_digest`（绑定该缓存条目所依赖的 Realm policy 快照）。缓存失效规则：
+**Identity Link 缓存**：客户端 SHOULD 在本地设备存储中缓存已验证的 `ak.identity_link` 映射，key 为 `(realm_id, pairwise_actor_id)`，value 中**MUST**额外携带签发时的 `policy_frontier_digest`（参见下方"Policy tightening 失效"）。缓存 value MUST 包含：验证时间、MLS epoch、principal core id、device id、签名证明摘要、`policy_frontier_digest`（绑定该缓存条目所依赖的 Realm policy 快照）。缓存失效规则：
 
-- **Eager invalidation on member leave / ban / remove（normative MUST）**：当客户端处理一个 `ak.member.state` event（或等价的 ban / leave / remove governance Move）时，MUST **立即**（在该 event accepted 进入本地 frontier 的同一事务边界内）失效缓存中所有 `(realm_id == current_realm_id, pairwise_did → leaving_principal)` 的条目。**不得**等待 TTL 过期或 MLS epoch 推进——否则被移除成员的 pairwise→principal 映射会在其它成员客户端中残留至 TTL 末尾，泄露"X 在 T 时刻离开此 Realm"的时间侧信道，违反 minimal-metadata Realm 的核心隐私目标。
+- **Eager invalidation on member leave / ban / remove（normative MUST）**：当客户端处理一个 `ak.member.state` event（或等价的 ban / leave / remove governance Move）时，MUST **立即**（在该 event accepted 进入本地 frontier 的同一事务边界内）失效缓存中所有 `(realm_id == current_realm_id, pairwise_actor_id → leaving_principal)` 的条目。**不得**等待 TTL 过期或 MLS epoch 推进——否则被移除成员的 pairwise→principal 映射会在其它成员客户端中残留至 TTL 末尾，泄露"X 在 T 时刻离开此 Realm"的时间侧信道，违反 minimal-metadata Realm 的核心隐私目标。
 - MLS epoch 变更（任何 commit）时，MUST 检查并失效任何 epoch 匹配旧 epoch 的 stale 条目。
 - `ak.identity_link` 被更新或撤销时，MUST 替换旧条目。
 - **Eager invalidation on policy tightening（normative MUST）**：处理下列 Realm policy / disclosure policy event 时，客户端 MUST **立即**失效缓存中所有 `(realm_id == current_realm_id, *)` 条目——因为这些事件只可能**收紧**真实 principal 的可见性，旧缓存条目仍按更宽松的 policy 暴露 principal DID 会导致 UI / projection 把已收紧的真实身份继续展示给非授权成员：
@@ -866,11 +873,15 @@ scheme 选择是 Realm policy 字段 `content_scheme`（经 `ak.realm.policy_bun
 
 **与 minimal-metadata pairwise DID 的交互（normative）**：上述作者性校验把签名链接到"`actor_id` 当前授权的发送 leaf"。当 Realm 启用 §2.7 `ak.profile.mls.minimal_metadata_realm.v1` 时，Event Envelope 的 `actor_id` 是 **Realm-scoped pairwise DID**（不是真实 principal DID），作者性验签的唯一信任锚是该 Event 所引用 MLS group state 中的 active LeafNode credential；本路径 MUST NOT 查询 [`device-lifecycle.md` §8.2](./device-lifecycle.md) 的 principal-scoped `keys/query` 目录。
 
+该 pairwise actor 属于 `ak.profile.ephemeral_pairwise_principal.v1`，但不进入账号、PCR、Actor Profile 或设备目录，也不得取得 principal/session grant。客户端 MUST 为每个 Realm 生成全新的 pairwise key，按 Realm 隔离持久化，并禁止跨 Realm 复用同一 did:key/ActorId；备份恢复同一 Realm 时可以恢复同一 key，复制到另一 Realm 不可以。`ak.self.events.command.submit` 上的 bearer session 仅承担 transport 访问、滥用防护与限流：在普通 Event 中 `session.actor` 仍必须等于 `Event.actor_id`；只有本节加密内容且下面完整 LeafNode 验证成功时，服务端才可接受二者不等。membership gate 必须查询 `Event.actor_id` 自身的 current member cell，并同时要求该 actor 是 exact epoch 的 active unique Leaf；不得改查 bearer principal，也不得只凭 Leaf 绕过 Realm membership。该例外不得把 bearer actor 记录为 pairwise actor 的 identity link、不得授予 bearer 代 pairwise actor author 其它 Event 的能力，也不得绕过 scope 或 capability gate。
+
+SDK MUST 提供一个不上 wire、非 OpenAPI 的 typed `RealmPairwiseAuthorState` 作为唯一 authoring 输入，至少固定：`realm_id`、`pairwise_actor_id`、`pairwise_full_id`、`verification_method`、opaque local signing-key ref、`mls_group_id`、`epoch`、`accepted_group_state_ref`、`leaf_index` 与 `leaf_signature_key`。它 MAY 仅作为加密本地 checkpoint 序列化，MUST NOT 携带私钥或进入 Event payload。恢复/发送前必须重验：`did:key` FullId 投影为同一 ActorId；verification-method base 与 key 匹配；所指 accepted snapshot 的 Realm/group/epoch/ref 全相等；该 index 是 active basic credential 且 identity/key 与上述值相等；本地 key-scope ledger 只绑定本 Realm。snapshot/store key 至少为 `(realm_id, pairwise_actor_id, mls_group_id, accepted_group_state_ref)`；不得回退到账户 principal + `DeviceId` 的普通设备身份 carrier。
+
 Receiver MUST 按以下顺序验证：
 
 1. 从 encrypted envelope 的 `(group_id, epoch, key_ref.group_state_ref)` 解析并验证对应 accepted `ak.mls.genesis` / winning `ak.mls.commit` group state；不得退回 current epoch 或未验证的 ratchet-tree cache。
-2. 在该 epoch 的 active LeafNode 集合中查找 credential type=`basic` 且 credential identity 逐字节等于 `utf8(Event.actor_id)` 的 leaf；结果必须恰好一条。零条、重复 identity、leaf 已被该 epoch 的 Remove/Commit 排除或 credential type 不符时，MUST 以 `failed_precondition`、`reason_code=minimal_metadata_author_credential_invalid` 拒绝。
-3. Event `proof.verification_method` 必须由该 pairwise DID 控制，且解析出的公钥与该 LeafNode `signature_key` 逐字节相同；receiver 使用该 `signature_key` 验证 §2.10.3 的 Event proof。key mismatch、签名无效或算法不匹配同样使用 `minimal_metadata_author_credential_invalid` fail closed。
+2. 在该 epoch 的 active LeafNode 集合中查找 credential type=`basic` 且 credential identity 逐字节等于 `utf8(Event.actor_id)` 的 leaf；结果必须恰好一条。`Event.actor_id` 是由 pairwise `did:key` full_id 经已登记 adapter 投影得到的 `ActorId` core wire，不是 bare DID。零条、重复 identity、leaf 已被该 epoch 的 Remove/Commit 排除或 credential type 不符时，MUST 以 `failed_precondition`、`reason_code=minimal_metadata_author_credential_invalid` 拒绝。
+3. Event `proof.verification_method` 的 bare base 必须是 canonical `did:key` full_id，adapter 投影必须逐字等于 `Event.actor_id`，且从该 full_id/fragment 解码出的公钥与该 LeafNode `signature_key` 逐字节相同；receiver 使用该 `signature_key` 验证 §2.10.3 的 Event proof。projection、key、签名或算法任一不匹配同样使用 `minimal_metadata_author_credential_invalid` fail closed。
 4. 上述步骤只证明"某 active pairwise sender leaf 所写"。真实 principal 的揭示仍只走 §2.7 的端到端加密 `ak.identity_link`（pairwise DID → principal DID）；无法建立映射时 MUST 仅呈现为未验证 pairwise sender，MUST NOT 提升为已验证 principal。
 
 `ak.vector.identity_link.minimal_metadata_author_credential.v1` 固化合法 leaf、重复 identity、epoch/group-state rollback、removed leaf、signature-key mismatch 与禁止 principal-directory fallback 的行为。

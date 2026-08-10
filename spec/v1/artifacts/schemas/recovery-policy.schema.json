@@ -25,7 +25,7 @@
       "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "principal_id": {
-      "$ref": "#/$defs/did"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "version": {
       "type": "integer",
@@ -255,7 +255,7 @@
         ],
         "properties": {
           "service_id": {
-            "$ref": "#/$defs/did"
+            "$ref": "./common-ids.schema.json#/$defs/core_id"
           },
           "audience": {
             "type": "string",
@@ -263,7 +263,7 @@
           },
           "authorization_verification_method": {
             "$ref": "#/$defs/did_url",
-            "description": "Exact service verification method authorized to sign a root-anchored re-anchor publication lease. Its controller DID MUST equal service_id at the policy acceptance basis."
+            "description": "Exact full DID URL of the service verification method authorized to sign a root-anchored re-anchor publication lease. At the policy acceptance basis, the verifier MUST adapter-validate its canonical bare full_id controller and require project(full_id)=service_id; direct full-DID/core-id string comparison and core_id fragment concatenation are forbidden."
           },
           "attestation_required": {
             "type": "boolean",
@@ -850,8 +850,7 @@
       "description": "Recovery policy publication through the ordinary first-publication Event ingress. Cross-field validation additionally requires payload.policy_id=value.policy_id and actor/scope/lease to bind value.principal_id's Principal Control Realm."
     },
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "did_url": {
       "type": "string",
@@ -980,7 +979,7 @@
     },
     "event_id": {
       "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "policy_id_ref": {
       "type": "string",
@@ -1020,7 +1019,7 @@
           "$ref": "#/$defs/policy_id_ref"
         },
         "principal_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "version": {
           "type": "integer",
@@ -1112,7 +1111,7 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
           "description": "Resolved principal. Required when the request used an explicit principal_id selector; SHOULD be present on all authenticated reads."
         },
         "active_policy": {
@@ -1157,7 +1156,7 @@
           "$ref": "#/$defs/policy_id_ref"
         },
         "principal_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "version": {
           "type": "integer",

@@ -30,7 +30,7 @@
         {
           "name": "visible_at_t0_post_ban_still_recoverable",
           "event_id": "ak:event:AUdE2zhXd0lntgHQeE19ZjdPdxBByiW_E2MrxdxeIf72",
-          "receiver": "did:webvh:z6mkfixture:bob.example",
+          "receiver": "did:webvh:z6mkfixturebobexample:bob.example",
           "t0_visible": true,
           "t0_member": true,
           "post_t0_membership": "ban",
@@ -56,7 +56,7 @@
         {
           "name": "not_visible_at_t0_rejected",
           "event_id": "ak:event:AQ2m4BnNqhMa9oSEDUOMln4VCq335wtQNf-m8DkB31Ai",
-          "receiver": "did:webvh:z6mkfixture:bob.example",
+          "receiver": "did:webvh:z6mkfixturebobexample:bob.example",
           "t0_visible": false,
           "t0_member": false,
           "post_t0_membership": "join",
@@ -71,7 +71,7 @@
         {
           "name": "source_without_recheck_rejected",
           "event_id": "ak:event:AcCsaxV9bUi2UuZF8QlQC-_kgvrklP7Di9_a60uP8oR4",
-          "receiver": "did:webvh:z6mkfixture:bob.example",
+          "receiver": "did:webvh:z6mkfixturebobexample:bob.example",
           "t0_visible": true,
           "t0_member": true,
           "post_t0_membership": "active",
@@ -98,13 +98,13 @@
         "ttl_ms": 60000,
         "grace_ms": 5000,
         "eligible_principals": [
-          "did:webvh:z6mkfixture:bob.example",
-          "did:webvh:z6mkfixture:carol.example"
+          "did:webvh:z6mkfixturebobexample:bob.example",
+          "did:webvh:z6mkfixturecarolexample:carol.example"
         ]
       },
       "contributions": [
         {
-          "principal_id": "did:webvh:z6mkfixture:bob.example",
+          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "device_id": "ak:device:0196419b-0000-7000-8000-000000006101",
           "anchor_hlc": "01970e589d21-0001-a13f9c2e"
         }
@@ -148,7 +148,7 @@
         {
           "label": "bob_phone",
           "message_id": "ak:message:ASLABl2ntA2a7jNCeqq9HcQELB9bs4s0vuWyGzrcEj6X",
-          "principal_id": "did:webvh:z6mkfixture:bob.example",
+          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "device_id": "ak:device:0196419b-0000-7000-8000-000000006202",
           "hlc": "01970e589d21-0001-a13f9c2e",
           "opaque_token": "read-token-bob-m1"
@@ -156,7 +156,7 @@
         {
           "label": "bob_desktop_later",
           "message_id": "ak:message:ASLABl2ntA2a7jNCeqq9HcQELB9bs4s0vuWyGzrcEj6X",
-          "principal_id": "did:webvh:z6mkfixture:bob.example",
+          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "device_id": "ak:device:0196419b-0000-7000-8000-000000006203",
           "hlc": "01970e589d22-0001-a13f9c2e",
           "opaque_token": "read-token-bob-m1"
@@ -164,7 +164,7 @@
         {
           "label": "invalid_before_send_replay",
           "message_id": "ak:message:ASLABl2ntA2a7jNCeqq9HcQELB9bs4s0vuWyGzrcEj6X",
-          "principal_id": "did:webvh:z6mkfixture:bob.example",
+          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "device_id": "ak:device:0196419b-0000-7000-8000-000000006202",
           "hlc": "01970e589d20-0001-a13f9c2e",
           "opaque_token": "read-token-bob-m1"
@@ -172,7 +172,7 @@
         {
           "label": "cross_message_replay",
           "message_id": "ak:message:AYXg-_NuKt-H2NVuprDGcCSE2rcHRGG_avlU4D2Mgr0u",
-          "principal_id": "did:webvh:z6mkfixture:bob.example",
+          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "device_id": "ak:device:0196419b-0000-7000-8000-000000006202",
           "hlc": "01970e589d23-0001-a13f9c2e",
           "opaque_token": "read-token-bob-m1"
@@ -249,22 +249,22 @@
       "message_id": "ak:message:AdkSyT9HhYzsEtFf-5YsJK-z6R8Ime5KR0amOKMJGVbJ",
       "trigger": "on_last_read",
       "eligible_principals": [
-        "did:webvh:z6mkfixture:bob.example",
-        "did:webvh:z6mkfixture:carol.example",
-        "did:webvh:z6mkfixture:david.example"
+        "did:webvh:z6mkfixturebobexample:bob.example",
+        "did:webvh:z6mkfixturecarolexample:carol.example",
+        "did:webvh:z6mkfixturedavidexample:david.example"
       ],
       "contributions": [
         {
-          "principal_id": "did:webvh:z6mkfixture:bob.example",
+          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "device_id": "bob-phone"
         },
         {
-          "principal_id": "did:webvh:z6mkfixture:carol.example",
+          "principal_id": "ak:did_core:webvh:z6mkfixturecarolexample",
           "device_id": "carol-phone"
         }
       ],
       "unreachable_principals": [
-        "did:webvh:z6mkfixture:david.example"
+        "did:webvh:z6mkfixturedavidexample:david.example"
       ],
       "read_trigger_window_elapsed": true,
       "offline_devices": [
@@ -297,7 +297,7 @@
         ]
       },
       "token": {
-        "aud": "did:webvh:z6mkfixture:bob.example",
+        "aud": "did:webvh:z6mkfixturebobexample:bob.example",
         "target_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "address_link_kind": "preview",
         "ttl_seconds": 300
@@ -305,7 +305,7 @@
       "requests": [
         {
           "name": "bob_preview",
-          "caller": "did:webvh:z6mkfixture:bob.example",
+          "caller": "did:webvh:z6mkfixturebobexample:bob.example",
           "target_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "address_link_kind": "preview",
           "expected": {
@@ -321,7 +321,7 @@
         },
         {
           "name": "mallory_scope_confused_target",
-          "caller": "did:webvh:z6mkfixture:mallory.example",
+          "caller": "did:webvh:z6mkfixturemalloryexample:mallory.example",
           "target_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
           "address_link_kind": "preview",
           "expected": {
@@ -331,7 +331,7 @@
         },
         {
           "name": "address_link_kind_rewritten_to_invite",
-          "caller": "did:webvh:z6mkfixture:bob.example",
+          "caller": "did:webvh:z6mkfixturebobexample:bob.example",
           "target_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "address_link_kind": "invite",
           "expected": {

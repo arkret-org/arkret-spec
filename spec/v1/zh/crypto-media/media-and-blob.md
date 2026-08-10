@@ -24,7 +24,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
   "content_digest": "sha256:...",
   "size_bytes": 1234,
   "media_type": "image/png",
-  "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+  "created_by": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
   "created_at": "2026-04-26T00:00:00Z",
   "encryption": null
 }
@@ -459,7 +459,7 @@ Cache-Control: public, immutable, max-age=31536000
   "scheme": "ak.blob.presign.v1",
   "blob_ref": "ak:blob:sha256:0123456789abcdef...",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "issuer_service_id": "did:webvh:z9L9sKcFqigzdgN2ucF1V6ztq:blob.acme.example",
+  "issuer_service_id": "ak:did_core:webvh:z9L9sKcFqigzdgN2ucF1V6ztq",
   "issued_at": "2026-05-18T10:00:00Z",
   "expires_at": "2026-05-18T10:05:00Z",
   "purpose": "media_inline",

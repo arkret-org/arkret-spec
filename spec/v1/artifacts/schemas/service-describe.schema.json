@@ -10,6 +10,7 @@
   "additionalProperties": false,
   "required": [
     "service_id",
+    "service_resolution",
     "trust_domain",
     "service_kind",
     "protocol_version",
@@ -29,8 +30,12 @@
   ],
   "properties": {
     "service_id": {
-      "$ref": "#/$defs/did",
-      "description": "DID of the service endpoint making this describe claim."
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "description": "Stable core_id of the service making this describe claim. It cannot be resolved without service_resolution or another verified ServiceResolutionRecord."
+    },
+    "service_resolution": {
+      "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment",
+      "description": "Read-only current full_id commitment for this service role. Describe is a second-hop endpoint confirmation surface, not a core_id resolver: callers already need a candidate URL before fetching it and MUST verify the full_id projection, method evidence and endpoint reverse binding before updating a route cache."
     },
     "trust_domain": {
       "$ref": "#/$defs/trust_domain",
@@ -496,7 +501,7 @@
                 "minLength": 1
               },
               "service_id": {
-                "$ref": "#/$defs/did"
+                "$ref": "./common-ids.schema.json#/$defs/core_id"
               },
               "trust_domain": {
                 "$ref": "#/$defs/trust_domain"
@@ -852,9 +857,8 @@
             "description": "URI or transparency-log reference from which the verification artifact can be fetched."
           },
           "verifier_did": {
-            "type": "string",
-            "pattern": "^did:",
-            "description": "DID of the Conformance Verifier that signed the artifact statement."
+            "$ref": "./common-ids.schema.json#/$defs/core_id",
+            "description": "Stable core_id of the Conformance Verifier that signed the artifact statement. The artifact's full DID URL signing key is verified separately and its canonical bare full_id MUST project through the registered adapter to this value."
           },
           "signature": {
             "type": "string",
@@ -1140,10 +1144,6 @@
     }
   ],
   "$defs": {
-    "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
-    },
     "trust_domain": {
       "type": "string",
       "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"

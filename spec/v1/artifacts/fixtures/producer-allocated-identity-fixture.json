@@ -43,6 +43,7 @@
       "request",
       "rtc_participant",
       "scheduled_send",
+      "service_route_handover",
       "snapshot",
       "subscription",
       "transaction"
@@ -51,8 +52,8 @@
   "parameters": {
     "uuid": "019b5c20-0000-7000-8000-000000000001",
     "typed_id_template": "ak:{kind}:019b5c20-0000-7000-8000-000000000001",
-    "authority_a": "did:webvh:z6mkfixture:producer-a.example",
-    "authority_b": "did:webvh:z6mkfixture:producer-b.example",
+    "authority_a": "did:webvh:z6mkfixtureproduceraexample:producer-a.example",
+    "authority_b": "did:webvh:z6mkfixtureproducerbexample:producer-b.example",
     "binding_a": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "binding_b": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
   },

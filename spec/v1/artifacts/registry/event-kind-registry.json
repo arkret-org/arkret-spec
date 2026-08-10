@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.4",
+  "version": "2026-08-10.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T18:00:00Z",
+  "generated_at": "2026-08-10T23:50:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -219,6 +219,48 @@
             },
             "issuer_seq": {
               "const": 0
+            }
+          }
+        },
+        {
+          "cell_family": "ak.component.identity.resolution.v1",
+          "cell_subject": null,
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "initial_value": "__unset__",
+          "condition": {
+            "kind": "field_present",
+            "field": "payload.object.initial_resolution"
+          },
+          "value_projection": {
+            "kind": "object",
+            "members": [
+              {
+                "name": "full_id",
+                "field": "payload.object.initial_resolution.full_id"
+              },
+              {
+                "name": "method_history_head",
+                "field": "payload.object.initial_resolution.method_history_head"
+              },
+              {
+                "name": "version_id",
+                "field": "payload.object.initial_resolution.version_id"
+              },
+              {
+                "name": "resolution_event_ref",
+                "envelope_field": "event_id"
+              },
+              {
+                "name": "updated_at",
+                "envelope_field": "created_at"
+              }
+            ]
+          },
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "projected_value": true
             }
           }
         },
@@ -1596,37 +1638,57 @@
       "concurrency_class": "security_barrier"
     },
     {
-      "event_kind": "ak.did.proof",
+      "event_kind": "ak.identity.resolution.update",
       "category": "identity",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "DID proof object or event",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/did_proof_state_payload",
+      "payload": "Owner-authored CAS update of the PCR current full_id resolution projection. Admission requires exactly one head_eq guard for ak:cell:ak.component.identity.resolution.v1:null and cross-binds both payload predecessor fields to that guarded whole value; the Event remains the auditable history source.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/identity_resolution_update_payload",
       "id_source": "not_an_object_id",
-      "plane": "data",
-      "sealed": false,
+      "plane": "control",
+      "sealed": true,
       "cell_writes": [
         {
-          "cell_family": "ak.component.identity.proof_log.v1",
-          "cell_subject": {
-            "kind": "did",
-            "field": "payload.did"
+          "cell_family": "ak.component.identity.resolution.v1",
+          "cell_subject": null,
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "value_projection": {
+            "kind": "object",
+            "members": [
+              {
+                "name": "full_id",
+                "field": "payload.next.full_id"
+              },
+              {
+                "name": "method_history_head",
+                "field": "payload.next.method_history_head"
+              },
+              {
+                "name": "version_id",
+                "field": "payload.next.version_id"
+              },
+              {
+                "name": "resolution_event_ref",
+                "envelope_field": "event_id"
+              },
+              {
+                "name": "updated_at",
+                "envelope_field": "created_at"
+              }
+            ]
           },
-          "lattice": "ordered_log",
-          "bottom": "expose",
           "effect_projection": {
-            "kind": "append",
+            "kind": "set",
             "value": {
-              "field": "payload"
-            },
-            "issuer_seq": {
-              "envelope_field": "actor_seq"
+              "projected_value": true
             }
           }
         }
-      ]
+      ],
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.identity.disclosure_policy",
@@ -4460,8 +4522,8 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Actor profile update",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_patch_payload",
+      "payload": "Actor profile update; resolution and every resolution.* path are forbidden because the PCR resolution cell is the sole write authority for that materialized projection.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/actor_profile_update_payload",
       "id_source": "reference",
       "plane": "control",
       "sealed": true,

@@ -60,7 +60,7 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
     "soft_failed_digest": "sha256:...",
     "quarantined_digest": "sha256:..."
   },
-  "created_by": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
+  "created_by": "ak:did_core:webvh:z5CVGhWHEfRe1HhKLRueCrxfD",
   "created_at": "2026-04-26T00:00:00Z",
   "authority_binding": {
     "issuer": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
@@ -211,7 +211,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
     },
     {
       "kind": "actor_seq_range",
-      "actor_id": "did:webvh:...:alice.example",
+      "actor_id": "ak:did_core:webvh:zExampleAliceScid",
       "from_seq": 100,
       "to_seq": 199
     }
@@ -239,14 +239,14 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
       "leaf_canonical_entry": {
         "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
         "event_digest": "sha256:...",
-        "actor_id": "did:webvh:...:alice.example",
+        "actor_id": "ak:did_core:webvh:zExampleAliceScid",
         "actor_seq": 100,
         "hlc": "01970e589d21-0004-a13f9c2e"
       }
     },
     {
       "kind": "actor_seq_range",
-      "actor_id": "did:webvh:...:alice.example",
+      "actor_id": "ak:did_core:webvh:zExampleAliceScid",
       "from_seq": 100,
       "to_seq": 199,
       "ordered_set_slice": [

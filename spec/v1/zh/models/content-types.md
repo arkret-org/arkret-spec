@@ -42,7 +42,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
   "strand_id": "ak:strand:...",
   "track_name": "discussion",
   "state": "active",
-  "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+  "created_by": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
   "created_at": "2026-04-26T00:00:00Z",
 
   "content": {
@@ -512,7 +512,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
   "format": "markdown",
   "reply_context": {
     "message_ref": "ak:message:AREJHXyA5b4XzVmfdrdizHFynW5zdwUwC68C8O1D5B8y",
-    "sender_actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+    "sender_actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
     "excerpt": "这个方案可行吗？"
   }
 }

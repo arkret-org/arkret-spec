@@ -321,8 +321,9 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ActorAggregateFrontierView
     ActorDid:
       type: string
-      pattern: ^did:[a-z0-9]+:[^\s#?]+$
-      description: Bare DID used as a Arkret actor/principal identifier. DID URL fragments belong in verification_method, not actor_id/principal_id.
+      pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+      maxLength: 512
+      description: Stable Arkret actor/principal core_id. Full DID URLs belong in verification_method and MUST project through the registered adapter to actor_id/principal_id.
     ActorProfile:
       $ref: ../schemas/actor-profile.schema.json
     AgentDeactivateRequestBody:
@@ -921,6 +922,10 @@ components:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_outcome
     ContactTombstoneRequestBody:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_request
+    ControllerAccountGateAttestationIssueOutcome:
+      $ref: ../schemas/agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_outcome
+    ControllerAccountGateAttestationIssueRequestBody:
+      $ref: ../schemas/agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_request
     Cursor:
       type: string
       pattern: ^ak:cursor:[A-Za-z0-9_-]+$
@@ -974,6 +979,12 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome
     DidOperationSubmitRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody
+    DirectConversationRepairDispatchRequestBody:
+      $ref: ../schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_dispatch_request
+    DirectConversationRepairEnqueueOutcome:
+      $ref: ../schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_enqueue_outcome
+    DirectConversationRepairRelayRequestBody:
+      $ref: ../schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_relay_request
     DirectConversationResolveOutcome:
       $ref: ../schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome
     DirectConversationResolveRequestBody:
@@ -1826,6 +1837,14 @@ components:
       $ref: ../schemas/principal-locator.schema.json
     PrincipalLocatorResolveRequestBody:
       $ref: ../schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body
+    PrincipalServiceBindingCommitOutcome:
+      $ref: ../schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_outcome
+    PrincipalServiceBindingCommitRequestBody:
+      $ref: ../schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_request_body
+    PrincipalServiceBindingPrepareOutcome:
+      $ref: ../schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_outcome
+    PrincipalServiceBindingPrepareRequestBody:
+      $ref: ../schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_request_body
     Problem:
       type: object
       description: |
@@ -1871,7 +1890,8 @@ components:
           pattern: ^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         actor_id:
           type: string
-          pattern: ^did:[a-z0-9]+:[^\s#?]+$
+          pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+          maxLength: 512
       description: Read-model edge backing a Strand assigned_to Relation. relation_id is needed by clients to tombstone the assignment; actor_id mirrors the Relation to_ref.
     ProjectionMorphList:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList
@@ -2083,8 +2103,9 @@ components:
           type: array
           items:
             type: string
-            pattern: ^did:[a-z0-9]+:[^\s#?]+$
-          description: Derived current assignee Actor DIDs from visible active Relation(relation_kind=assigned_to, from_ref=strand_id). Empty or absent means the Strand is unassigned for this projection caller. This is read-model state, not canonical Strand object metadata.
+            pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+            maxLength: 512
+          description: Derived current assignee actor core_ids from visible active Relation(relation_kind=assigned_to, from_ref=strand_id). Empty or absent means the Strand is unassigned for this projection caller. This is read-model state, not canonical Strand object metadata.
         assigned_to_relations:
           type: array
           items:
@@ -2315,6 +2336,7 @@ components:
       - protocol_version
       - service_kind
       - service_id
+      - service_resolution
       - trust_domain
       - supported_profiles
       - supported_operations
@@ -2363,6 +2385,14 @@ components:
           - turn_service
         service_id:
           type: string
+          pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+          description: Stable service core_id. It is not itself a routable URL.
+        service_resolution:
+          $ref: ../schemas/identity-resolution.schema.json#/$defs/resolution_commitment
+          description: >-
+            Current owner-published full_id projection. Because the caller already
+            needed a verified first-hop route to reach describe, this field only
+            confirms the ServiceResolutionRecord used for that hop.
         trust_domain:
           type: string
           pattern: ^ak:trust_domain:[a-z0-9][a-z0-9._\-:]{0,127}$
@@ -2758,8 +2788,9 @@ components:
                 description: URI or transparency-log reference from which the verification artifact can be fetched.
               verifier_did:
                 type: string
-                pattern: ^did:[a-z0-9]+:[^\s#?]+$
-                description: DID of the Conformance Verifier that signed the artifact statement.
+                pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+                maxLength: 512
+                description: Stable core_id of the Conformance Verifier that signed the artifact statement. Its full DID URL signing key is verified separately and MUST project through the registered adapter to this value.
               signature:
                 type: string
                 minLength: 1
@@ -2815,12 +2846,25 @@ components:
             `verified_profiles` MUST be empty.
     ServiceId:
       type: string
-      pattern: ^did:[a-z0-9]+:[^\s#?]+$
-      description: Bare DID identifying a service endpoint.
+      pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+      maxLength: 512
+      description: Stable service core_id. Routing requires separately verified current service resolution material.
     ServiceRegistrationEnsureRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationEnsureRequestBody
     ServiceRegistrationOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome
+    ServiceResolutionPublishAck:
+      $ref: ../schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_ack
+    ServiceResolutionPublishOutcome:
+      $ref: ../schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_outcome
+    ServiceResolutionPublishRequestBody:
+      $ref: ../schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_request
+    ServiceResolutionResolveOutcome:
+      $ref: ../schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_outcome
+    ServiceResolutionResolveRequestBody:
+      $ref: ../schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_request
+    ServiceRouteHandoverNotice:
+      $ref: ../schemas/identity-resolution.schema.json#/$defs/service_route_handover_notice
     SessionGrantIntrospectOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectOutcome
     SessionGrantIntrospectRequestBody:
@@ -2976,7 +3020,8 @@ components:
             properties:
               actor_id:
                 type: string
-                pattern: ^did:[a-z0-9]+:[^\s#?]+$
+                pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+                maxLength: 512
               actor_seq:
                 type: integer
                 minimum: 0
@@ -3569,7 +3614,8 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^did:[a-z0-9]+:[^\s#?]+$
+          pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+          maxLength: 512
       responses:
         '200':
           description: Local organization binding the caller is authorised to see, with created=false
@@ -3694,7 +3740,8 @@ paths:
         required: false
         schema:
           type: string
-          pattern: ^did:[a-z0-9]+:[^\s#?]+$
+          pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+          maxLength: 512
         description: Optional target principal. If omitted, the server resolves the principal from the authenticated session or service proof.
       responses:
         '200':
@@ -4633,6 +4680,47 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome
+  /_arkret/peer/direct-conversations/repair-relay:
+    post:
+      operationId: ak.peer.direct_conversation.command.repair_relay
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Durably relay one exact requester-authorized Direct Conversation repair trigger.
+      description: |
+        The destination independently verifies the device-or-Native-Agent
+        requester evidence and the accepted repair gates. In one atomic ledger
+        transaction keyed by (Source-Service-ID, request_id), it freezes the
+        request digest and exactly one recipient branch: all current authorized
+        human devices, or one current active Native Agent runtime endpoint.
+        Exact replay returns the original outcome; a changed digest conflicts.
+        Success proves durable enqueue only and is not a business repair ack.
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        description: MUST equal body.request_id and be covered by the HTTP Message Signature.
+        schema:
+          type: string
+          minLength: 22
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectConversationRepairRelayRequestBody'
+      responses:
+        '200':
+          description: Byte-identical destination durable-enqueue outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectConversationRepairEnqueueOutcome'
   /_arkret/peer/keys/keypackages/claim:
     post:
       operationId: ak.peer.keys.keypackages.command.claim
@@ -4707,6 +4795,86 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PeerKeyPackagesClaimQueryOutcome'
+  /_arkret/peer/service-resolution/publish:
+    post:
+      operationId: ak.peer.service_resolution.command.publish
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Durably mirror one exact target-signed service route artifact.
+      description: |
+        The authenticated Realm peer publishes exactly one ServiceResolutionRecord
+        or ServiceRouteHandoverNotice. The receiver verifies current peer and target
+        visibility, exact target proof, full-to-core projection, basis/chain/time
+        rules and the 256 KiB body bound before durable acceptance. Idempotency-Key
+        is required, is covered by the HTTP Message Signature and MUST equal body.request_id.
+        Exact transport replay returns the original signed ack; an artifact integrity
+        key reused with different bytes is a zero-overwrite duplicate conflict. The ack
+        binds both keys and is receipt evidence, not URL authority.
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        description: MUST equal body.request_id byte-for-byte and be covered by the HTTP Message Signature.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 256
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceResolutionPublishRequestBody'
+      responses:
+        '200':
+          description: Receiver-signed durable exact-digest acknowledgement.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResolutionPublishOutcome'
+        '409':
+          description: Duplicate conflict, stale basis, notice conflict or route fork; zero overwrite.
+        '413':
+          description: Canonical request body exceeds 256 KiB.
+  /_arkret/peer/service-resolution/resolve:
+    query:
+      operationId: ak.peer.service_resolution.read.resolve
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Resolve bounded continuous target-signed service route successors.
+      description: |
+        Realm-scoped anti-enumeration recovery for a target service core already
+        visible to the authenticated federation peer. The response contains at most
+        32 continuous target-signed successor records, an optional active target-signed
+        notice and no mirror-signed bare URL; canonical response bytes are capped at
+        256 KiB. Unknown, unauthorized, invisible and not-held are indistinguishable.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceResolutionResolveRequestBody'
+      responses:
+        '200':
+          description: Bounded continuous target-signed route material.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResolutionResolveOutcome'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '413':
+          description: Requested or produced material exceeds the registered response budget.
   /_arkret/peer/signal:
     post:
       operationId: ak.peer.signal.command.relay
@@ -5567,6 +5735,83 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DirectConversationResolveOutcome'
+  /_arkret/self/direct-conversations/repair-dispatch:
+    post:
+      operationId: ak.self.direct_conversation.command.repair_dispatch
+      security:
+      - bearerAuth: []
+        dpopProof: []
+      summary: Persist and deliver one exact Direct Conversation replacement-repair trigger.
+      description: |
+        The authenticated requester supplies no recipient target. The source
+        service validates the current participant/rejoin/contact/generation
+        gates, freezes the exact peer-relay body and current destination binding
+        in a durable outbox, and retries byte-identically until the destination
+        confirms its atomic closed-target enqueue. A different body under the
+        same requester/request_id conflicts. Success is not a repair ack.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectConversationRepairDispatchRequestBody'
+      responses:
+        '200':
+          description: Byte-identical destination durable-enqueue outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectConversationRepairEnqueueOutcome'
+  /_arkret/self/principal-service-bindings/prepare:
+    post:
+      operationId: ak.self.principal_service_binding.command.prepare
+      security:
+      - bearerAuth: []
+        dpopProof: []
+      summary: Prepare a challenge-bound accepted-at Principal Server binding.
+      description: |
+        Available only after the principal DID and PCR are accepted. The service
+        derives the frozen binding core from current verified DID authority and
+        its own service metadata. Omitting expected_current_binding_digest is a
+        create-if-absent CAS; providing it is same-service renewal.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrincipalServiceBindingPrepareRequestBody'
+      responses:
+        '200':
+          description: Durable frozen binding draft and single-use challenge.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrincipalServiceBindingPrepareOutcome'
+  /_arkret/self/principal-service-bindings/commit:
+    post:
+      operationId: ak.self.principal_service_binding.command.commit
+      security:
+      - bearerAuth: []
+        dpopProof: []
+      summary: Commit the exact principal-authorized service binding draft.
+      description: |
+        The service loads the durable draft, verifies the principal proof at the
+        frozen accepted_at authority, then atomically performs current-binding
+        CAS, service acceptance signing, challenge consumption and exact replay
+        outcome persistence.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrincipalServiceBindingCommitRequestBody'
+      responses:
+        '200':
+          description: Installed immutable accepted-at service binding.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrincipalServiceBindingCommitOutcome'
   /_arkret/self/snapshot/head:
     get:
       operationId: ak.self.snapshot.read.manifest_head
@@ -6602,6 +6847,107 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ModerationReportOutcome'
+  /_arkret/open/principals/{principal_id}/resolution:
+    get:
+      operationId: ak.open.identity.read.resolution
+      security: []
+      x-arkret-auth:
+        public_metadata: true
+        proof_in_body: false
+      summary: Read the owner-published current principal resolution evidence.
+      description: |
+        Returns the Principal Control Realm's current resolution cell, accepted
+        Seal proof, current resolution Event and an optionally bounded predecessor
+        chain. The response is discovery evidence, never an authorization result.
+        A caller performing a sensitive operation MUST obtain a fresh response,
+        verify the PCR evidence, resolve the returned full_id with the registered
+        method adapter, and confirm project(full_id) equals principal_id. Callers
+        are not required to persist another principal's resolution binding.
+      parameters:
+      - name: principal_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+      - name: history_depth
+        in: query
+        required: false
+        description: Maximum number of predecessor resolution Events to disclose.
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 256
+          default: 0
+      - name: after_resolution_event_ref
+        in: query
+        required: false
+        description: >-
+          Return only the resolution successor chain after this already-known
+          Event when it is an ancestor of the current cell; an unknown or
+          non-ancestor reference returns not_found without exposing other PCR history.
+        schema:
+          type: string
+          pattern: ^ak:event:[A-Za-z0-9_-]{44}$
+      responses:
+        '200':
+          description: Current principal resolution evidence.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: no-store, no-transform
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/identity-resolution.schema.json#/$defs/principal_resolution_evidence
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/TemporarilyUnavailable'
+  /_arkret/open/services/{service_id}/resolution:
+    get:
+      operationId: ak.open.service.read.resolution
+      security: []
+      x-arkret-auth:
+        public_metadata: true
+        proof_in_body: false
+      summary: Read the current signed ServiceResolutionRecord.
+      description: |
+        Stable refresh surface named by ServiceResolutionRecord.current_record_url.
+        The server returns the current record for the exact stable service core_id.
+        TLS transports bytes but does not establish service identity; callers verify
+        the record proof, method history, core projection, time ordering, successor
+        sequence and describe binding. Cross-origin redirects are not followed unless
+        separately authorized, and clients apply SSRF, DNS-rebinding, size and timeout
+        controls. A same-core successor refreshes routing without a Realm rebind.
+      parameters:
+      - name: service_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+      responses:
+        '200':
+          description: Current signed service resolution record.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: no-store, no-transform
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/identity-resolution.schema.json#/$defs/service_resolution_record
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/open/invite-locators/resolve:
     post:
       operationId: ak.open.invite_locator.read.resolve
@@ -7412,7 +7758,7 @@ paths:
             request_body_field: false
             directions:
               node_to_applet: Source-Service-ID current service DID verification method; Destination-Service-ID MUST equal the Applet registration service_id.
-              applet_to_arkret_inbound: Applet registration webhook_auth.key_ref; DID part MUST equal Source-Service-ID and the active effective install service_id.
+              applet_to_arkret_inbound: Applet registration webhook_auth.key_ref; its canonical bare full_id MUST be validated by the registered method adapter and project to both Source-Service-ID and the active effective install service_id. Direct full-DID/core-id comparison and core_id fragment concatenation are forbidden.
           covered_components:
           - '@method'
           - '@target-uri'
@@ -7476,7 +7822,8 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^did:[a-z0-9]+:[^\s#?]+$
+          pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+          maxLength: 512
       responses:
         '200':
           description: Applet actor namespace resolve
@@ -9202,6 +9549,50 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SessionGrantIntrospectRequestBody'
+  /_arkret/gate/account/controller-gate-attestations:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ak.gate.account.command.issue_controller_gate_attestation
+      security:
+      - httpMessageSignature: []
+      x-arkret-auth:
+        public_metadata: false
+        holder_proof: false
+        notes: Authenticated S2S only. The receiver independently verifies the request's current signed ServiceResolutionRecord, method evidence and normalized DID Document before using its active assertion key for RFC 9421. Bearer does not replace the signature. The verified source service must equal request.agent_authority_service_id and service_id in the controller current AcceptedAtServiceBinding.
+      summary: Issue the Account Authority controller lifecycle gate used in Native Agent signer evidence.
+      description: |
+        The Account Authority reads its own current account binding/status
+        projection and signs one privacy-minimal controller lifecycle snapshot
+        under ak.controller-account-gate-v1. The attestation lifetime is at most
+        300 seconds. It intentionally omits operation, request digest, audience
+        and challenge because per-request current_observation and outer
+        attestation bind its digest to those exact values. Unknown principal,
+        missing current binding, wrong source service and unauthorized callers
+        are indistinguishable. No account_id or raw account cell is returned.
+        The HTTP signature covers method, target URI/path, Content-Digest,
+        Source/Destination-Service-ID, operation id and request id. CoreId,
+        URL, bearer and caller-supplied keys are not verification-key sources.
+      responses:
+        '200':
+          description: Byte-stable controller gate attestation issuance outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControllerAccountGateAttestationIssueOutcome'
+        '404':
+          description: Uniform non-enumerating outcome for unknown, unbound, wrong-service or unauthorized requests.
+        '409':
+          description: The request_id was already bound to a different canonical intent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ControllerAccountGateAttestationIssueRequestBody'
   /_arkret/gate/account/logout:
     servers:
     - url: https://{host}

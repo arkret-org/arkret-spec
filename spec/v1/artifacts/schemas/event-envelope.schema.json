@@ -33,7 +33,7 @@
       "description": "Required producer-signed security scope. It enters proof.event_digest and E2EE AAD. Reducers independently derive the Realm/Circle scope from the schema-validated payload and accepted references; missing dependencies, an underivable scope, realm_id mismatch, or any unequal field is fail closed. Exact product targets remain inside recipient-visible ciphertext."
     },
     "actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did",
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
       "description": "Principal whose Realm/cell state the Event mutates and to whom the durable fact is attributed. When executed_by is absent, the proof signer maps to actor_id. When executed_by is present, actor_id remains the principal of record while the actual executor and proof signer map to executed_by."
     },
     "executed_by": {
@@ -636,7 +636,6 @@
               "ak.device.list_update",
               "ak.device.reanchor",
               "ak.device.revoke",
-              "ak.did.proof",
               "ak.direct_conversation.bound",
               "ak.direct_conversation.mls_generation.activate",
               "ak.handle.discovery",
@@ -645,6 +644,7 @@
               "ak.identity.disclosure_receipt",
               "ak.identity.presentation_request",
               "ak.identity.presentation_response",
+              "ak.identity.resolution.update",
               "ak.invite.accept",
               "ak.invite.cancel",
               "ak.invite.claim",
@@ -1627,7 +1627,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/object_patch_payload"
+            "$ref": "./event-payload.schema.json#/$defs/actor_profile_update_payload"
           }
         }
       }
@@ -2126,7 +2126,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.did.proof"
+            "const": "ak.identity.resolution.update"
           }
         },
         "required": [
@@ -2134,9 +2134,37 @@
         ]
       },
       "then": {
+        "required": [
+          "realm_id",
+          "preconditions"
+        ],
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/did_proof_state_payload"
+            "$ref": "./event-payload.schema.json#/$defs/identity_resolution_update_payload"
+          },
+          "preconditions": {
+            "type": "array",
+            "contains": {
+              "$ref": "#/$defs/identity_resolution_head_precondition"
+            },
+            "minContains": 1,
+            "maxContains": 1,
+            "items": {
+              "if": {
+                "type": "object",
+                "required": [
+                  "cell"
+                ],
+                "properties": {
+                  "cell": {
+                    "const": "ak:cell:ak.component.identity.resolution.v1:null"
+                  }
+                }
+              },
+              "then": {
+                "$ref": "#/$defs/identity_resolution_head_precondition"
+              }
+            }
           }
         }
       }
@@ -4451,8 +4479,7 @@
       "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "external_ref": {
       "type": "object",
@@ -4725,6 +4752,35 @@
       },
       "additionalProperties": false
     },
+    "identity_resolution_head_precondition": {
+      "type": "object",
+      "required": [
+        "cell",
+        "predicate"
+      ],
+      "properties": {
+        "cell": {
+          "const": "ak:cell:ak.component.identity.resolution.v1:null"
+        },
+        "predicate": {
+          "type": "object",
+          "required": [
+            "op",
+            "value"
+          ],
+          "properties": {
+            "op": {
+              "const": "head_eq"
+            },
+            "value": {
+              "$ref": "./identity-resolution.schema.json#/$defs/resolution_projection"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "predicate": {
       "type": "object",
       "required": [
@@ -4826,7 +4882,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "DID URL of the Event-signing key. For principal device proofs the fragment MUST be the full device_id (`ak:device:<uuidv7>`), so receivers can resolve `(actor_id, device_id)` through the device directory. Generic verification strips fragment/query only for controller comparison and compares that controller DID bit-identically to actor_id or executed_by. The sole exception is an Event whose selected admission variant is did_root_anchor: its closed verifier MUST instead require verification_method to equal an active controller-proof verification method from the one critical did_inception/did_recovery_anchor entry and verify the controller proof/update authority against that referenced did:webvh history; a root did:key controller is not rewritten to the principal actor_id. This exception cannot apply to any other Event."
+          "description": "DID URL of the Event-signing key. Generic verification extracts the canonical bare full_id base under the active method adapter, validates that method history/key, projects the base full_id to core_id, and compares the result byte-for-byte with executed_by when present or actor_id otherwise; a core_id is never concatenated into a DID URL. For principal device proofs the fragment MUST be the full device_id (`ak:device:<uuidv7>`), so receivers can resolve `(actor_id, device_id)` through the device directory. The sole exception is an Event whose selected admission variant is did_root_anchor: its closed verifier MUST instead require verification_method to equal an active controller-proof verification method from the one critical did_inception/did_recovery_anchor entry and verify the controller proof/update authority against that referenced did:webvh history; a root did:key controller is not rewritten to the principal actor_id. This exception cannot apply to any other Event."
         },
         "event_digest": {
           "$ref": "#/$defs/hash"

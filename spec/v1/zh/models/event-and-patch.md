@@ -50,8 +50,8 @@ Schema id: `ak.schema.event.v1`
 | `kind` | yes | `string` | MUST 匹配 `^ak\.[a-z0-9_]+(\.[a-z0-9_]+)*$`；标准 kind MUST 登记于 `event-kind-registry.json`。Registry 的 reducer contract 声明内部 cell target、lattice、bottom 与投影。 | 事件 kind。 |
 | `realm_id` | yes | `id:realm` | Realm create 可在 payload 中建立。 | 所属 Realm。 |
 | `scope_ref` | yes | `object` | `{kind:realm, realm_id}` 或 `{kind:circle, realm_id, circle_id}`。由 producer 声明并进入 event digest、proof 与 E2EE AAD；reducer 从 payload 和 accepted references 独立派生后逐字段比对。 | 签名安全作用域。 |
-| `actor_id` | yes | `did` | 必须匹配 proof 控制链(`executed_by` 缺失时);`executed_by` 存在时 proof 控制链对齐 `executed_by`。 | 事件归属的 principal of record。 |
-| `executed_by` | conditional | `did` | agent / applet / delegated service 代 `actor_id` 写入时出现。出现时 MUST 与 `authorization_ref` 同时出现；Applet delegated 写入还 MUST 同时出现 `applet_id`。进入 canonical bytes、event digest、E2EE AAD。Receiver MUST 校验 proof `verification_method` 解析到 `executed_by`。 | act-on-behalf 时实际签发该 wire write 的主体。 |
+| `actor_id` | yes | `core_id` | 必须匹配 proof 控制链投影出的 `core_id`（`executed_by` 缺失时）；`executed_by` 存在时 proof 控制链投影对齐 `executed_by`。 | 事件归属的 principal of record。 |
+| `executed_by` | conditional | `core_id` | agent / applet / delegated service 代 `actor_id` 写入时出现。出现时 MUST 与 `authorization_ref` 同时出现；Applet delegated 写入还 MUST 同时出现 `applet_id`。进入 canonical bytes、event digest、E2EE AAD。Receiver MUST 解析 proof 的完整 DID URL `verification_method`，并校验其控制主体投影为 `executed_by`。 | act-on-behalf 时实际签发该 wire write 的主体。 |
 | `authorization_ref` | conditional | `id:grant`、`id:event`、DID delegation URL、root cell constant 或 registered authority source token | `executed_by` 存在时必填；Applet-originated 写入携带 `applet_id` 时也必填。普通委派优先引用已物化的 `ak:grant:*`；Event ref 只能指向产生 grant/delegation 的 accepted Event。Realm root 只能用封闭 `ak:cell:ak.component.realm.authority_root.v1:null`。DM 直接 participant 写入使用唯一注册常量 `ak.authority.direct_conversation_participant.v1` 并在 `refs[]` 携带 critical binding Event ref；任意其它 Event/cell 不得充当该 source。`executed_by` 的 DM 写入仍以本字段绑定 executor delegation，并独立叠加 participant source。 | act-on-behalf / root / profile authority 选择与引用。 |
 | `applet_id` | conditional | `id:applet` | Applet、Ghost Actor、bridge 或 delegated applet 路径引入 Event 时必填。进入 canonical bytes 与 event digest；出现时 MUST 同时出现 `authorization_ref`。 | signed Applet provenance。 |
 | `external_ref` | no | `object` | 外部网络 provenance。若用于回环防护、外部消息幂等、审计或用户可见出处，MUST 放在 Event Envelope 顶层并由签名覆盖；出现时 MUST 同时出现 `applet_id`。不得包含未授权外部正文明文。 | signed external provenance。 |
@@ -149,7 +149,7 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
     "kind": "realm",
     "realm_id": "ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV"
   },
-  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+  "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
   "actor_seq": 4,
   "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
@@ -162,7 +162,7 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
   ],
   "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "auth_context": {
-    "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+    "did": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
     "key_id": "device-1",
     "key_epoch": 7
   },
@@ -194,14 +194,14 @@ Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State converge
 - Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`ak:strand:` 等）即对象种类，不写单独的 `payload.object.type`。
 - `actor_id` 是该 Event 归属的 principal of record。**当 `executed_by` 存在时**(act-on-behalf),实际签发该 Event 的是 `executed_by` 表示的 agent / applet / delegated service principal,proof.verification_method 解析到 `executed_by`;`actor_id` 仍是 accountable principal,用于审计 / 渲染 / accountable_principal_ids 链。Receiver MUST 同时校验 `executed_by`、`authorization_ref` 指向的 active grant / delegation，以及对应 native agent key authorization 或 Applet registration / registration_epoch 绑定之间的一致性，否则 fail closed。物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`,但不得替代 Event proof、capability 或 CBA basis 校验。
 - `actor_kind` 是 reducer-stamped 投影，由 reducer 在接受 Event 时从 `actor_id` 的 Actor Profile 解析得到 immutable 值；它让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断该 Event 是 agent 行为(`actor_kind="agent"`) 还是 controller 行为。Actor 提交侧 MUST NOT 携带该字段。
-- 启用 `ak.profile.mls.minimal_metadata_realm.v1` 时，`actor_id` MAY 是 Realm / Strand track scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `ak.schema.identity_link.v1` payload（`ak.identity_link` application message / MLS private extension）、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
+- 启用 `ak.profile.mls.minimal_metadata_realm.v1` 时，`actor_id` MAY 是 Realm / Strand track scoped pairwise DID 投影得到的 `core_id`；其与真实 principal `core_id` 的映射必须通过加密的 `ak.schema.identity_link.v1` payload（`ak.identity_link` application message / MLS private extension）、claim disclosure 或 policy 声明验证，不得把非 `core_id` pseudonym 写入 `actor_id`。
 
 #### 2.4.1 Signer regime 分派与 Agent delegated transcript（normative）
 
 Receiver MUST 在解析任何验签 key 前先确定唯一 signer regime，不得把“上一种 key 解析失败”作为进入下一种 regime 的条件。分派输入只能是 Realm profile、Event envelope、已验证 actor/principal 类型与已登记 registration evidence：
 
 1. `ak.profile.mls.minimal_metadata_realm.v1` 只进入 minimal-metadata regime；按 Event 所引 `(group_id, epoch, group_state_ref)` 的唯一 active BasicCredential leaf 验证，禁止 principal-scoped directory、Agent evidence 或 device directory query。
-2. ordinary device proof 的 method 必须精确为 ``{signer_id}#{ak:device:<uuidv7>}``，只走 device-set / `keys/query` 的 cross-signed 或 enrollment-authority evidence。
+2. ordinary device proof 的 method MUST 是 signer 已验证 `full_id` 下的 DID URL：取 bare `full_id` 经已登记 method adapter 验证后，其投影 MUST 逐字等于 `signer_id`（稳定 `core_id`），fragment MUST 是完整 `ak:device:<uuidv7>`；不得从 `signer_id` core 拼接 fragment。该 regime 只走 device-set / `keys/query` 的 cross-signed 或 enrollment-authority evidence。
 3. ordinary Native Agent 必须由已验证 Agent principal 类型和 `ak.schema.agent_signer_evidence.v1` 共同确定；不得以 method fragment “不是 `ak:device:*`”推断。该分支禁止读取 device record。
 4. Applet、service 与 integration 必须走各自 registration epoch / service DID evidence，永不落入 Agent 分支。
 
@@ -643,7 +643,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
     "kind": "realm",
     "realm_id": "ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV"
   },
-  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+  "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
   "actor_seq": 5,
   "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
@@ -654,7 +654,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   "causal_refs": ["sha256:3333333333333333333333333333333333333333333333333333333333333333"],
   "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "auth_context": {
-    "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+    "did": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
     "key_id": "device-1",
     "key_epoch": 7
   },

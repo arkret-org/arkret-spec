@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_signer_evidence.v1",
-  "version": "2026-08-04",
+  "version": "2026-08-10.1",
   "suite": "agent_signer_evidence",
   "runner": {
     "kind": "named_suite",
@@ -123,6 +123,60 @@
       "contains_service_local_account_id": false,
       "contains_raw_account_cell": false,
       "expected": "verified"
+    },
+    {
+      "name": "producer_fetches_controller_gate_from_account_authority",
+      "operation_id": "ak.gate.account.command.issue_controller_gate_attestation",
+      "current_signed_service_resolution_record_verified": true,
+      "method_history_evidence_verified": true,
+      "normalized_document_digest_verified": true,
+      "rfc9421_covers_method_path_digest_source_destination_operation_request": true,
+      "verification_key_from_active_service_resolution": true,
+      "bearer_used_as_signature_substitute": false,
+      "authenticated_source_matches_agent_authority_service_id": true,
+      "current_principal_service_binding_matches_source": true,
+      "account_authority_projection_status": "active",
+      "issued_eligibility": "active",
+      "attestation_ttl_seconds": 300,
+      "expected": "issued"
+    },
+    {
+      "name": "controller_gate_exact_request_replay_is_byte_identical",
+      "same_request_id": true,
+      "same_canonical_intent": true,
+      "first_outcome_bytes_equal_replay": true,
+      "additional_attestations_issued": 0,
+      "expected": "issued"
+    },
+    {
+      "name": "controller_gate_request_id_conflict_is_zero_issuance",
+      "same_request_id": true,
+      "same_canonical_intent": false,
+      "additional_attestations_issued": 0,
+      "expected": "rejected",
+      "reason": "duplicate_conflict"
+    },
+    {
+      "name": "controller_gate_wrong_source_and_unknown_principal_are_indistinguishable",
+      "scenarios": [
+        "unknown_principal",
+        "missing_current_principal_service_binding",
+        "source_service_mismatch",
+        "unauthorized_service"
+      ],
+      "same_error_envelope": true,
+      "account_status_disclosed": false,
+      "expected": "rejected",
+      "reason": "not_found"
+    },
+    {
+      "name": "controller_gate_inactive_status_is_signed_not_forged_by_producer",
+      "account_authority_projection_status": "deactivated",
+      "issued_eligibility": "inactive",
+      "producer_overrode_eligibility": false,
+      "portable_outcome_contains_account_id": false,
+      "portable_outcome_contains_raw_account_cell": false,
+      "expected": "issued"
     },
     {
       "name": "agent_genesis_active_requires_accepted_provision_declaration",

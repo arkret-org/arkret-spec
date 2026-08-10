@@ -6,8 +6,7 @@
   "$ref": "#/$defs/recovery_session_state",
   "$defs": {
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "did_url": {
       "type": "string",
@@ -176,7 +175,7 @@
           "$ref": "#/$defs/recovery_session_id"
         },
         "principal_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id",
@@ -305,7 +304,7 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id"
@@ -473,7 +472,7 @@
           "$ref": "#/$defs/challenge"
         },
         "service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "audience": {
           "type": "string",
@@ -644,7 +643,7 @@
           "const": "principal_signing"
         },
         "principal_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id"
@@ -713,7 +712,7 @@
           "$ref": "#/$defs/proof_kind"
         },
         "principal_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id"

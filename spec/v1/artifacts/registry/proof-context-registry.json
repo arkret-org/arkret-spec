@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-10.2",
+  "version": "2026-08-10.4",
   "source_of_truth": true,
   "description": "Canonical domain-separation contexts for Arkret detached proofs. Context is part of the canonical signing binding object and is not a wire field in the generic proof shape.",
   "registry_rules": [
@@ -21,6 +21,33 @@
       ],
       "defined_in": "zh/identity/account-lifecycle.md",
       "schema_ref": "schemas/account-operations.schema.json"
+    },
+    {
+      "context": "ak.account-registration-control-proof-v1",
+      "object_family": "account_registration_control_proof",
+      "binding_fields": [
+        "proof_kind",
+        "challenge_id",
+        "challenge",
+        "purpose",
+        "request_canonical_digest",
+        "account_subject",
+        "principal_id",
+        "full_id",
+        "did_version_id",
+        "log_head_digest",
+        "control_key_digest",
+        "dpop_jkt",
+        "audience",
+        "origin",
+        "trust_domain",
+        "issued_at",
+        "expires_at",
+        "verification_method",
+        "witness_evidence?"
+      ],
+      "defined_in": "zh/identity/account-lifecycle.md",
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_registration_control_proof"
     },
     {
       "context": "ak.accountability-grant-proof-v1",
@@ -199,21 +226,6 @@
       ],
       "defined_in": "zh/crypto-media/device-lifecycle.md",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload"
-    },
-    {
-      "context": "ak.did-continuity-proof-v1",
-      "object_family": "did_continuity",
-      "binding_fields": [
-        "payload_digest",
-        "old_did",
-        "new_did",
-        "verification_method",
-        "created_at",
-        "domain?",
-        "audience?"
-      ],
-      "defined_in": "zh/identity/key-management.md",
-      "schema_ref": "schemas/did-continuity-proof.schema.json"
     },
     {
       "context": "ak.did-webvh-witness-receipt-proof-v1",
@@ -591,6 +603,80 @@
       ],
       "defined_in": "zh/identity/identity-did.md",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationReceipt"
+    },
+    {
+      "context": "ak.service-resolution-record-proof-v1",
+      "object_family": "service_resolution_record",
+      "binding_fields": [
+        "payload_digest",
+        "service_id",
+        "service_kind",
+        "full_id",
+        "method_history_head",
+        "version_id",
+        "resolution_event_ref",
+        "record_sequence",
+        "previous_record_digest",
+        "current_record_url",
+        "base_url",
+        "describe_digest",
+        "issued_at",
+        "refresh_after",
+        "expires_at",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/sync/service-surface.md",
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_record"
+    },
+    {
+      "context": "ak.service-resolution-publish-ack-proof-v1",
+      "object_family": "service_resolution_publish_ack",
+      "binding_fields": [
+        "payload_digest",
+        "request_id",
+        "source_service_id",
+        "receiver_service_id",
+        "realm_id",
+        "request_digest",
+        "artifact_key",
+        "artifact_digest",
+        "accepted_at",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/sync/federation.md",
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_ack"
+    },
+    {
+      "context": "ak.service-route-handover-notice-proof-v1",
+      "object_family": "service_route_handover_notice",
+      "binding_fields": [
+        "payload_digest",
+        "service_id",
+        "service_kind",
+        "handover_id",
+        "notice_revision",
+        "state",
+        "from_record_sequence",
+        "from_record_digest",
+        "candidate_base_url?",
+        "candidate_record_url?",
+        "not_before?",
+        "cutover_at?",
+        "grace_until?",
+        "previous_notice_digest",
+        "issued_at",
+        "expires_at",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/sync/service-surface.md",
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_route_handover_notice"
     },
     {
       "context": "ak.signal-proof-v1",

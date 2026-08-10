@@ -35,7 +35,7 @@
         {
           "name": "duplicate_json_key",
           "input_cursor": "ak:cursor:eyJ2IjoiMSIsInYiOiIxIiwicHVycG9zZSI6InN0cmVhbSIsImlzc3VlZF9hdCI6IjIwMjYtMDYtMDZUMDA6MDA6MDAuMDAwWiIsImV4cGlyZXNfYXQiOiIyMDk5LTEyLTMxVDIzOjU5OjU5LjAwMFoiLCJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diJ9",
-          "decoded_body_utf8": "{\"v\":\"1\",\"v\":\"1\",\"purpose\":\"stream\",\"issued_at\":\"2026-06-06T00:00:00.000Z\",\"expires_at\":\"2099-12-31T23:59:59.000Z\",\"h\":\"abcdefghijklmnopqrstuv\"}",
+          "decoded_body_utf8": "{\"expires_at\":\"2099-12-31T23:59:59.000Z\",\"h\":\"abcdefghijklmnopqrstuv\",\"issued_at\":\"2026-06-06T00:00:00.000Z\",\"purpose\":\"stream\",\"v\":\"1\"}",
           "expected_reason_code": "invalid_cursor",
           "violation": "duplicate JSON key violates canonical JSON ingress rules"
         },

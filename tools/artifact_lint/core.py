@@ -553,7 +553,6 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.invite.third_party", "invite_third_party_create_payload"),
     ("ak.morph.archive", "object_lifecycle_payload"),
     ("ak.morph.restore", "object_lifecycle_payload"),
-    ("ak.profile.update", "object_patch_payload"),
     ("ak.reaction.add", "reaction_payload"),
     ("ak.reaction.remove", "reaction_payload"),
     ("ak.realm.asset_privacy_policy", "state_payload"),

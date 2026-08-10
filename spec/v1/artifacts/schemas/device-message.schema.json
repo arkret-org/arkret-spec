@@ -31,7 +31,7 @@
       "$ref": "#/$defs/device_id"
     },
     "recipient_principal_id": {
-      "$ref": "#/$defs/did",
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
       "description": "Recipient Principal DID. Same naming rationale as sender_principal_id — device messages are not Realm-scoped, so Actor identity is not used. Pair with recipient_device_id for targeted device delivery."
     },
     "recipient_device_id": {
@@ -332,8 +332,7 @@
       "pattern": "^ak:device_message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "device_id": {
       "type": "string",
@@ -448,7 +447,7 @@
           "$ref": "#/$defs/realm_key_request_scope"
         },
         "recipient_principal_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "recipient_device_id": {
           "$ref": "#/$defs/device_id"
@@ -480,7 +479,7 @@
           ]
         },
         "target_principal_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
           "description": "Principal that owns target_source_ref (the to-device queue is addressed by (principal, device_id)). Carried so the relay routes directly without scanning Realm members to reverse-lookup the device's principal."
         },
         "created_at": {
@@ -576,11 +575,48 @@
       "required": [
         "realm_id",
         "requester_principal_id",
-        "requester_device_id",
         "requester_keypackage_ref",
-        "observed_active_generation_ref",
+        "observed_active_generation_value_digest",
         "rejoin_event_id",
         "created_at"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "requester_device_id"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "requester_agent_id"
+                ]
+              },
+              {
+                "required": [
+                  "requester_agent_verification_method"
+                ]
+              },
+              {
+                "required": [
+                  "agent_key_authorize_event_id"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "requester_agent_id",
+            "requester_agent_verification_method",
+            "agent_key_authorize_event_id"
+          ],
+          "not": {
+            "required": [
+              "requester_device_id"
+            ]
+          }
+        }
       ],
       "properties": {
         "realm_id": {
@@ -589,23 +625,37 @@
         },
         "requester_principal_id": {
           "$ref": "#/$defs/did",
-          "description": "MUST equal the requesting device proof's principal: no actor may ask for repair on another participant's behalf."
+          "description": "MUST equal the principal bound by the selected device or Native-Agent authorization/evidence branch: no actor may ask for repair on another participant's behalf."
         },
         "requester_device_id": {
-          "$ref": "#/$defs/device_id"
+          "$ref": "#/$defs/device_id",
+          "description": "Human-device branch only. MUST equal the detached repair authorization and portable device evidence device_id, and the exact KeyPackage selected by requester_keypackage_ref MUST belong to this current authorized device."
+        },
+        "requester_agent_id": {
+          "$ref": "#/$defs/did",
+          "description": "Native-Agent branch only. MUST equal requester_principal_id and the actor/subject of the accepted rejoin Event."
+        },
+        "requester_agent_verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[^\\s]+$",
+          "description": "Native-Agent runtime verification method that signed the repair authorization and the exact KeyPackage. It MUST match current AgentSignerEvidence byte for byte."
+        },
+        "agent_key_authorize_event_id": {
+          "type": "string",
+          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
+          "description": "Native-Agent branch current accepted ak.agent.key.authorize Event. It MUST match the current AgentSignerEvidence and the exact KeyPackage claim record."
         },
         "requester_keypackage_ref": {
           "type": "string",
           "minLength": 1,
           "description": "The single KeyPackage the peer claims for the re-add, so exactly one KeyPackage is consumed and the peer never has to guess which of the requester's packages to use."
         },
-        "observed_active_generation_ref": {
+        "observed_active_generation_value_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Digest of the active generation cell value the requester observed. A peer that sees a newer active generation MUST drop the request as already repaired instead of authoring a second replacement."
+          "description": "SHA-256 of RFC 8785 JCS for the complete accepted ak.component.direct_conversation.active_mls_generation.v1 cell value the requester observed, copied byte for byte from active_mls_generation_value_digest returned by the resolver. It is never derived from or replaced by active_mls_generation_ref. A peer that sees a different current whole-value digest MUST drop the request instead of authoring a second replacement."
         },
         "rejoin_event_id": {
-          "type": "string",
-          "minLength": 1,
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
           "description": "The requester's accepted ak.member.rejoin.own Event. The peer MUST verify it is accepted and subject-matched; an unaccepted or absent rejoin means there is nothing to repair yet."
         },
         "created_at": {

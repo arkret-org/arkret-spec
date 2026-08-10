@@ -40,13 +40,14 @@
       "notes": "Every binding field closes one replay path: purpose separates this signature from any other the organization makes, audience and trust_domain pin it to this deployment, origin pins the HTTP surface, nonce makes it unrepeatable, and the 300-second window bounds how long a captured proof stays useful.",
       "instance": {
         "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "purpose": "ak.organization-registration-control-proof-v1",
         "nonce": "cmVnaXN0cmF0aW9uLW5vbmNlLTAx",
-        "audience": "did:webvh:z6mkfixture:registry.example",
+        "audience": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "origin": "https://registry.example/",
         "trust_domain": "registry.example",
-        "local_admin_subject": "did:webvh:z6mkfixture:admin.example",
+        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [
           "organization_profile_manage"
         ],
@@ -61,7 +62,8 @@
       "semantic_outcome": "accept",
       "notes": "Single-signature branch. The pinned version_id plus log_head_digest is what makes the later receipt auditable; without it a receipt would assert control at an unknown point in the DID's history.",
       "instance": {
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "version_id": "3-zFixtureVersionThree",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
@@ -70,14 +72,14 @@
           "proofs": [
             {
               "kind": "detached_jws",
-              "verification_method": "did:webvh:z6mkfixture:acme.example#org-control-key-1",
-              "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-control-key-1",
+              "payload_digest": "sha256:ed55c2fcf3d9068aa145952f2486cdcff74a4bd1b2fade5e4a54973b2b380553",
               "created_at": "2026-05-01T00:01:00.000Z",
               "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             }
           ]
         },
-        "local_admin_subject": "did:webvh:z6mkfixture:admin.example",
+        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [
           "organization_profile_manage"
         ]
@@ -90,7 +92,8 @@
       "semantic_outcome": "accept",
       "notes": "Quorum branch with two distinct governance signatures meeting the declared threshold. Per identity-did.md §8.1 a witness attestation is not a quorum and MUST NOT be substituted here: witnessing proves history visibility, quorum proves governance authorisation.",
       "instance": {
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "version_id": "3-zFixtureVersionThree",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
@@ -100,21 +103,21 @@
           "proofs": [
             {
               "kind": "detached_jws",
-              "verification_method": "did:webvh:z6mkfixture:acme.example#org-governance-key-1",
-              "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-governance-key-1",
+              "payload_digest": "sha256:dc9bb06ace776f17b7734e9d5ed77f3ad7237bd59fb19957449666c672fd7763",
               "created_at": "2026-05-01T00:01:00.000Z",
               "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             },
             {
               "kind": "detached_jws",
-              "verification_method": "did:webvh:z6mkfixture:acme.example#org-governance-key-2",
-              "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-governance-key-2",
+              "payload_digest": "sha256:2eb81b9fb5dc1a9939b4be3e7373c703d4341e8b16576cec848e9373dc8a3f10",
               "created_at": "2026-05-01T00:01:00.000Z",
               "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             }
           ]
         },
-        "local_admin_subject": "did:webvh:z6mkfixture:admin.example",
+        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [
           "organization_realm_endorse"
         ]
@@ -127,25 +130,26 @@
       "semantic_outcome": "accept",
       "notes": "The receipt proves this deployment accepted a local binding and nothing more: it is not a Realm capability, not membership, not a notary designation and not a service delegation. control_proof_kind travels alongside control_key_digest so a later auditor can tell which commitment the digest is over without refetching the request.",
       "instance": {
-        "registration_receipt_id": "ak:organization-registration-receipt:0000000000000000000000000000000000000000000000000000000000000002",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "registration_receipt_id": "ak:organization-registration-receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "registration_generation": 1,
         "version_id": "3-zFixtureVersionThree",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "control_proof_kind": "resolved_verification_method",
         "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-        "local_admin_subject": "did:webvh:z6mkfixture:admin.example",
+        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
         "delegated_scopes": [
           "organization_profile_manage"
         ],
         "status": "active",
         "issued_at": "2026-05-01T00:01:00.000Z",
         "expires_at": "2026-08-01T00:00:00.000Z",
-        "issuer_service_id": "did:webvh:z6mkfixture:registry.example",
+        "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "proof": {
           "kind": "detached_jws",
-          "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-          "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "verification_method": "did:webvh:z6mkfixtureregistryexample:registry.example#registry-signing-key-1",
+          "payload_digest": "sha256:b6f74847c35730da7e9e503fbc5f496f4c4dbdca3183728538fb5741af9ead53",
           "created_at": "2026-05-01T00:01:00.000Z",
           "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
         }
@@ -165,7 +169,7 @@
         "proofs": [
           {
             "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:acme.example#org-control-key-1",
+            "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-control-key-1",
             "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "created_at": "2026-05-01T00:01:00.000Z",
             "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
@@ -186,7 +190,7 @@
         "proofs": [
           {
             "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:acme.example#org-governance-key-1",
+            "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-governance-key-1",
             "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "created_at": "2026-05-01T00:01:00.000Z",
             "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
@@ -203,24 +207,25 @@
       "expected_reason_code": "schema_violation",
       "notes": "An unbounded receipt would let a single first-time control proof authorise the organization relationship indefinitely, which is exactly what the refresh operation exists to prevent.",
       "instance": {
-        "registration_receipt_id": "ak:organization-registration-receipt:0000000000000000000000000000000000000000000000000000000000000002",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "registration_receipt_id": "ak:organization-registration-receipt:83d581e0f71e065f802934f17c562f542110c475b3b769ca833cd5ad48fa31f7",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "registration_generation": 1,
         "version_id": "3-zFixtureVersionThree",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "control_proof_kind": "resolved_verification_method",
         "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-        "local_admin_subject": "did:webvh:z6mkfixture:admin.example",
+        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
         "delegated_scopes": [
           "organization_profile_manage"
         ],
         "status": "active",
         "issued_at": "2026-05-01T00:01:00.000Z",
-        "issuer_service_id": "did:webvh:z6mkfixture:registry.example",
+        "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "proof": {
           "kind": "detached_jws",
-          "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-          "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "verification_method": "did:webvh:z6mkfixtureregistryexample:registry.example#registry-signing-key-1",
+          "payload_digest": "sha256:49bb5d047a014b657fb31d4a7ef45301fdc6e7a5444630cbbb0f63563188ad75",
           "created_at": "2026-05-01T00:01:00.000Z",
           "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
         }
@@ -235,8 +240,9 @@
       "expected_reason_code": "organization_registration_scope_unsupported",
       "notes": "The scope vocabulary is closed so a deployment cannot mint administrative authority the organization never consented to.",
       "instance": {
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
-        "local_admin_subject": "did:webvh:z6mkfixture:admin.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
+        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [
           "organization_realm_admin"
         ]
@@ -251,7 +257,8 @@
       "expected_reason_code": "schema_violation",
       "notes": "Binding the subject inside the attestation is what stops an attestation issued for one organization from being presented for another.",
       "instance": {
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "version_id": "3-zFixtureVersionThree",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
@@ -260,20 +267,20 @@
           "proofs": [
             {
               "kind": "detached_jws",
-              "verification_method": "did:webvh:z6mkfixture:acme.example#org-control-key-1",
-              "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-control-key-1",
+              "payload_digest": "sha256:ed55c2fcf3d9068aa145952f2486cdcff74a4bd1b2fade5e4a54973b2b380553",
               "created_at": "2026-05-01T00:01:00.000Z",
               "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             }
           ]
         },
-        "local_admin_subject": "did:webvh:z6mkfixture:admin.example",
+        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [
           "organization_profile_manage"
         ],
         "handle_attestation": {
           "handle": "acme",
-          "issuer": "did:web:handles.example",
+          "issuer": "ak:did_core:web:handles.example",
           "audience": "registry.example",
           "status": "active",
           "expires_at": "2026-08-01T00:00:00.000Z"
@@ -290,13 +297,14 @@
       "notes": "Schema-valid but the window is one hour. JSON Schema cannot compare two timestamps, so the receiver enforces the 300-second ceiling; a longer window buys nothing and widens the interval in which a captured proof remains usable.",
       "instance": {
         "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "purpose": "ak.organization-registration-control-proof-v1",
         "nonce": "cmVnaXN0cmF0aW9uLW5vbmNlLTAx",
-        "audience": "did:webvh:z6mkfixture:registry.example",
+        "audience": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "origin": "https://registry.example/",
         "trust_domain": "registry.example",
-        "local_admin_subject": "did:webvh:z6mkfixture:admin.example",
+        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [
           "organization_profile_manage"
         ],
@@ -318,7 +326,7 @@
         "proofs": [
           {
             "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:acme.example#org-governance-key-1",
+            "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-governance-key-1",
             "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "created_at": "2026-05-01T00:01:00.000Z",
             "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
@@ -336,11 +344,12 @@
       "notes": "Schema-valid but the challenge in challenge_valid requested only organization_profile_manage. The same challenge was already consumed by a successful request under a different canonical digest; consumption permits only a byte-identical retry. A scope mismatch means the control proof was produced for different authority than is now being claimed, so the binding MUST NOT be established.",
       "precondition": {
         "consumed_challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
-        "successful_request_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
-        "submitted_request_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+        "successful_request_digest": "sha256:5f17ec551cf7ea802fc7d698fb22837c9c2d9dfd40d61b9361a12d57daf3fe1b",
+        "submitted_request_digest": "sha256:bac8a3c6a131ecb24b5fe196a25fedd134510891d969997a5e588ddf63bc996b"
       },
       "instance": {
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "version_id": "3-zFixtureVersionThree",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
@@ -349,14 +358,14 @@
           "proofs": [
             {
               "kind": "detached_jws",
-              "verification_method": "did:webvh:z6mkfixture:acme.example#org-control-key-1",
-              "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-control-key-1",
+              "payload_digest": "sha256:ed55c2fcf3d9068aa145952f2486cdcff74a4bd1b2fade5e4a54973b2b380553",
               "created_at": "2026-05-01T00:01:00.000Z",
               "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             }
           ]
         },
-        "local_admin_subject": "did:webvh:z6mkfixture:admin.example",
+        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
         "requested_scopes": [
           "organization_profile_manage",
           "organization_service_delegate"
@@ -372,7 +381,8 @@
       "expected_reason_code": "organization_registration_revoked",
       "notes": "Schema-valid but the stored binding is revoked, which is terminal. Reviving it by refresh would erase the distinction between a withdrawn relationship and a merely stale one, and would let a binding forced to revoked by DID deactivation come back despite the DID no longer being controllable.",
       "instance": {
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "version_id": "4-zFixtureVersionFour",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
@@ -381,8 +391,8 @@
           "proofs": [
             {
               "kind": "detached_jws",
-              "verification_method": "did:webvh:z6mkfixture:acme.example#org-control-key-2",
-              "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-control-key-2",
+              "payload_digest": "sha256:bc11da070f69039eda8de957e3b477937f339085ecdad6323c4c71779d13587b",
               "created_at": "2026-05-02T00:01:00.000Z",
               "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             }
@@ -399,25 +409,26 @@
       "expected_reason_code": "organization_registration_stale",
       "notes": "Schema-valid stale receipt after a controller rotation. Low-risk reads may still consume it; a high-risk path MUST fail closed until refresh succeeds. stale rather than auto-invalidation was chosen because auto-invalidation lets an attacker force an unbind by triggering one rotation, while treating it as still valid lets a stolen-then-rotated organization keep its binding.",
       "instance": {
-        "registration_receipt_id": "ak:organization-registration-receipt:0000000000000000000000000000000000000000000000000000000000000003",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "registration_receipt_id": "ak:organization-registration-receipt:b0ba060fc3a15a3ccf437b075b1b69df2c7ca1399ec8ffb326597b4a66cf8957",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "registration_generation": 1,
         "version_id": "3-zFixtureVersionThree",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "control_proof_kind": "resolved_verification_method",
         "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-        "local_admin_subject": "did:webvh:z6mkfixture:admin.example",
+        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
         "delegated_scopes": [
           "organization_realm_endorse"
         ],
         "status": "stale",
         "issued_at": "2026-05-01T00:01:00.000Z",
         "expires_at": "2026-08-01T00:00:00.000Z",
-        "issuer_service_id": "did:webvh:z6mkfixture:registry.example",
+        "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "proof": {
           "kind": "detached_jws",
-          "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-          "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "verification_method": "did:webvh:z6mkfixtureregistryexample:registry.example#registry-signing-key-1",
+          "payload_digest": "sha256:22753b9f664e031c86eef072e75fd2c7662baac4922d29bfff1aa2a3da29d252",
           "created_at": "2026-05-01T00:01:00.000Z",
           "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
         }
@@ -432,7 +443,8 @@
       "expected_reason_code": "organization_registration_challenge_invalid",
       "notes": "Schema-valid but local_admin_subject differs from the value bound into challenge_valid and signed over by the control proof. This is the redirection attack the binding exists to stop: a proof that named only the organization and the version would let anyone who obtained it submit ensure naming themselves and receive the organization's administrative scopes. The receiver MUST compare against the stored challenge and reject.",
       "instance": {
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
         "version_id": "3-zFixtureVersionThree",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
@@ -441,14 +453,14 @@
           "proofs": [
             {
               "kind": "detached_jws",
-              "verification_method": "did:webvh:z6mkfixture:acme.example#org-control-key-1",
-              "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-control-key-1",
+              "payload_digest": "sha256:ed55c2fcf3d9068aa145952f2486cdcff74a4bd1b2fade5e4a54973b2b380553",
               "created_at": "2026-05-01T00:01:00.000Z",
               "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             }
           ]
         },
-        "local_admin_subject": "did:webvh:z6mkfixture:attacker.example",
+        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureattackerexample",
         "requested_scopes": [
           "organization_profile_manage"
         ]
@@ -462,33 +474,35 @@
       "notes": "Byte-identical retry of the request that successfully consumed this challenge: the challenge-consumption ledger digest matches, generation stays 1 and created is false. This is the only ensure replay that is idempotent; merely repeating organization/admin/scopes under a different challenge or request digest does not qualify.",
       "precondition": {
         "consumed_challenge_id": "ak:organization-registration-challenge:0000000000000000000000000000000000000000000000000000000000000001",
-        "successful_request_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
-        "submitted_request_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+        "successful_request_digest": "sha256:5f17ec551cf7ea802fc7d698fb22837c9c2d9dfd40d61b9361a12d57daf3fe1b",
+        "submitted_request_digest": "sha256:5f17ec551cf7ea802fc7d698fb22837c9c2d9dfd40d61b9361a12d57daf3fe1b"
       },
       "instance": {
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "registration_generation": 1,
         "version_id": "3-zFixtureVersionThree",
         "registration_receipt": {
-          "registration_receipt_id": "ak:organization-registration-receipt:0000000000000000000000000000000000000000000000000000000000000001",
-          "organization_id": "did:webvh:z6mkfixture:acme.example",
+          "registration_receipt_id": "ak:organization-registration-receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19",
+          "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+          "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
           "registration_generation": 1,
           "version_id": "3-zFixtureVersionThree",
           "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
           "control_proof_kind": "resolved_verification_method",
           "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-          "local_admin_subject": "did:webvh:z6mkfixture:admin.example",
+          "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
           "delegated_scopes": [
             "organization_profile_manage"
           ],
           "status": "active",
           "issued_at": "2026-05-01T00:01:00.000Z",
           "expires_at": "2026-08-01T00:00:00.000Z",
-          "issuer_service_id": "did:webvh:z6mkfixture:registry.example",
+          "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
           "proof": {
             "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-            "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "verification_method": "did:webvh:z6mkfixtureregistryexample:registry.example#registry-signing-key-1",
+            "payload_digest": "sha256:b6f74847c35730da7e9e503fbc5f496f4c4dbdca3183728538fb5741af9ead53",
             "created_at": "2026-05-01T00:01:00.000Z",
             "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
           }
@@ -503,29 +517,31 @@
       "semantic_outcome": "accept",
       "notes": "revoke ended generation 1; a later ensure opens generation 2 with created=true. Without the generation, 'revoked is terminal' and 'ensure is idempotent on organization_id' would contradict each other and an implementation would have to pick between returning the old terminal receipt, raising duplicate_conflict, and illegally reviving the terminal state.",
       "instance": {
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "registration_generation": 2,
         "version_id": "3-zFixtureVersionThree",
         "registration_receipt": {
-          "registration_receipt_id": "ak:organization-registration-receipt:0000000000000000000000000000000000000000000000000000000000000002",
-          "organization_id": "did:webvh:z6mkfixture:acme.example",
+          "registration_receipt_id": "ak:organization-registration-receipt:b92cf58c6758a128fd008a0fd1d3995e5d7f3f47e4b2bf06b5ec391bf6bbd09a",
+          "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+          "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
           "registration_generation": 2,
           "version_id": "3-zFixtureVersionThree",
           "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
           "control_proof_kind": "resolved_verification_method",
           "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-          "local_admin_subject": "did:webvh:z6mkfixture:admin.example",
+          "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
           "delegated_scopes": [
             "organization_profile_manage"
           ],
           "status": "active",
           "issued_at": "2026-05-01T00:01:00.000Z",
           "expires_at": "2026-08-01T00:00:00.000Z",
-          "issuer_service_id": "did:webvh:z6mkfixture:registry.example",
+          "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
           "proof": {
             "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-            "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "verification_method": "did:webvh:z6mkfixtureregistryexample:registry.example#registry-signing-key-1",
+            "payload_digest": "sha256:2851ecba4ac00d433baed98530daa8a998980c2a81bb4391ca70b62fa3a0b79b",
             "created_at": "2026-05-01T00:01:00.000Z",
             "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
           }
@@ -540,18 +556,20 @@
       "semantic_outcome": "accept",
       "notes": "Changing local_admin_subject or the scope set also opens a new generation, because the delegation being granted is not the one the previous receipt attests. Returning created=false here would let a widened delegation hide behind an idempotent replay. Publishing generation 2, terminating generation 1 with organization_registration_superseded and advancing the current pointer are one atomic transition.",
       "instance": {
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "registration_generation": 2,
         "version_id": "3-zFixtureVersionThree",
         "registration_receipt": {
-          "registration_receipt_id": "ak:organization-registration-receipt:0000000000000000000000000000000000000000000000000000000000000002",
-          "organization_id": "did:webvh:z6mkfixture:acme.example",
+          "registration_receipt_id": "ak:organization-registration-receipt:e11a6b849bac3054a61a24386d1592f41dda278e53566ada445c710394a3af90",
+          "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+          "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
           "registration_generation": 2,
           "version_id": "3-zFixtureVersionThree",
           "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
           "control_proof_kind": "resolved_verification_method",
           "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-          "local_admin_subject": "did:webvh:z6mkfixture:admin.example",
+          "local_admin_subject": "ak:did_core:webvh:z6mkfixtureadminexample",
           "delegated_scopes": [
             "organization_profile_manage",
             "organization_service_delegate"
@@ -559,11 +577,11 @@
           "status": "active",
           "issued_at": "2026-05-01T00:01:00.000Z",
           "expires_at": "2026-08-01T00:00:00.000Z",
-          "issuer_service_id": "did:webvh:z6mkfixture:registry.example",
+          "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
           "proof": {
             "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-            "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "verification_method": "did:webvh:z6mkfixtureregistryexample:registry.example#registry-signing-key-1",
+            "payload_digest": "sha256:cc07e168aef3311ef04eb72e4734525120822e5dc8ef1a088f8ecdabb06ce418",
             "created_at": "2026-05-01T00:01:00.000Z",
             "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
           }
@@ -584,25 +602,26 @@
         "current_registration_status": "active"
       },
       "instance": {
-        "registration_receipt_id": "ak:organization-registration-receipt:0000000000000000000000000000000000000000000000000000000000000001",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "registration_receipt_id": "ak:organization-registration-receipt:a0c4bd02ab8004a5917ad398d7b1578f4ec2ed249fce725507aa6c757563d404",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
+        "full_id": "did:webvh:z6mkfixtureacmeexample:acme.example",
         "registration_generation": 1,
         "version_id": "3-zFixtureVersionThree",
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "control_proof_kind": "resolved_verification_method",
         "control_key_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-        "local_admin_subject": "did:webvh:z6mkfixture:old-admin.example",
+        "local_admin_subject": "ak:did_core:webvh:z6mkfixtureoldadminexample",
         "delegated_scopes": [
           "organization_profile_manage"
         ],
         "status": "active",
         "issued_at": "2026-05-01T00:01:00.000Z",
         "expires_at": "2026-08-01T00:00:00.000Z",
-        "issuer_service_id": "did:webvh:z6mkfixture:registry.example",
+        "issuer_service_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "proof": {
           "kind": "detached_jws",
-          "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
-          "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "verification_method": "did:webvh:z6mkfixtureregistryexample:registry.example#registry-signing-key-1",
+          "payload_digest": "sha256:78769e9d3e4711291c133bfc2ca3d5c2e1cdeaf6620c657a2e8fd2834199e7e5",
           "created_at": "2026-05-01T00:01:00.000Z",
           "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
         }

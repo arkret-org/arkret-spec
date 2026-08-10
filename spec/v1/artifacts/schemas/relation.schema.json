@@ -150,8 +150,7 @@
       "pattern": "^[0-9A-Za-z]{1,128}$"
     },
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

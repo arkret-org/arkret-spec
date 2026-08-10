@@ -28,8 +28,8 @@
       "description": "Echo of the request call id. Bound into the signature to prevent cross-call replay."
     },
     "actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did",
-      "description": "Actor that may use this ICE configuration. Bound into the signature."
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "description": "Stable actor core_id that may use this ICE configuration. Bound into the signature."
     },
     "device_id": {
       "type": "string",

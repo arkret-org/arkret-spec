@@ -408,7 +408,7 @@ event_id ASC
 {
   "members": [
     {
-      "actor_id": "did:key:z6MkRealmPairwise...",
+      "actor_id": "ak:did_core:key:z6MkRealmPairwise...",
       "membership": "join",
       "identity_event_ids": [
         "ak:event:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6"
@@ -420,8 +420,8 @@ event_id ASC
         {
           "schema": "ak.schema.handle_claim.v1",
           "handle": "alice:acme.example",
-          "subject": "did:webvh:zQmPr8...",
-          "issuer": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
+          "subject": "ak:did_core:webvh:zQmPr8ExampleSubject",
+          "issuer": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
           "binding_state": "verified",
           "created_at": "2026-05-27T00:00:00Z",
           "expires_at": "2026-06-27T00:00:00Z",
@@ -466,7 +466,7 @@ event_id ASC
 ```json
 {
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "actor_id": "did:key:z6MkRealmPairwise...",
+  "actor_id": "ak:did_core:key:z6MkRealmPairwise...",
   "segment": "member_identity",
   "replaces": [
     {
@@ -518,8 +518,8 @@ MemberIdentity 明文对象形态（`identity_payload.member_identity`，或 `en
 {
   "schema": "ak.schema.member_identity.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "actor_id": "did:key:z6MkRealmPairwise...",
-  "subject_id": "did:webvh:zQmPr8...",
+  "actor_id": "ak:did_core:key:z6MkRealmPairwise...",
+  "subject_id": "ak:did_core:webvh:zQmPr8...",
   "display_profile": {
     "display_name": "Alice Zhang",
     "avatar_blob_ref": "ak:blob:sha256:..."

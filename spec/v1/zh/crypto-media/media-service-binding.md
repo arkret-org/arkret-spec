@@ -29,7 +29,7 @@ sidebar:
 {
   "kind": "ak.realm.media_service",
   "payload": {
-    "service_id": "did:webvh:z7ECJ5c1A1o5Xr1AdPqPCBD7L:media.example.com",
+    "service_id": "ak:did_core:webvh:z7ECJ5c1A1o5Xr1AdPqPCBD7L",
     "modes": [
       "turn",
       "sfu"
@@ -101,7 +101,7 @@ Content-Type: application/json
 {
   "realm_id": "ak:realm:...",
   "call_id": "ak:call:...",
-  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
+  "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
   "device_id": "ak:device:...",
   "focus_id": "fra-1",
   "capability_refs": ["ak:grant:..."],
@@ -123,7 +123,7 @@ Content-Type: application/json
     "realm_id": "ak:realm:...",
     "call_id": "ak:call:...",
     "focus_id": "fra-1",
-    "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
+    "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
     "device_id": "ak:device:...",
     "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
     "issued_at": "2026-05-27T12:29:56Z",

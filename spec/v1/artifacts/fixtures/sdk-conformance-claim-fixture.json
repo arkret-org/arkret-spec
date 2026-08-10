@@ -35,7 +35,7 @@
         "contract_digest": "sha256:d39906742ff96c62cf1ecff81d66d3ec9090e505c0b45c787d646816f7b44aa0",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
-          "id": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
           "verification_method": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd"
         },
         "clause_claims": [
@@ -76,8 +76,8 @@
         "contract_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
-          "id": "did:webvh:z6mkfixture:release.example",
-          "verification_method": "did:webvh:z6mkfixture:release.example#claim-key-1"
+          "id": "ak:did_core:webvh:z6mkfixturereleaseexample",
+          "verification_method": "did:webvh:z6mkfixturereleaseexample:release.example#claim-key-1"
         },
         "clause_claims": [
           {
@@ -93,7 +93,7 @@
           }
         ],
         "proof": {
-          "kid": "did:webvh:z6mkfixture:release.example#claim-key-1",
+          "kid": "did:webvh:z6mkfixturereleaseexample:release.example#claim-key-1",
           "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
           "signature_algorithm": "Ed25519"
         }
@@ -117,8 +117,8 @@
         "contract_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
-          "id": "did:webvh:z6mkfixture:release.example",
-          "verification_method": "did:webvh:z6mkfixture:release.example#claim-key-1"
+          "id": "ak:did_core:webvh:z6mkfixturereleaseexample",
+          "verification_method": "did:webvh:z6mkfixturereleaseexample:release.example#claim-key-1"
         },
         "clause_claims": [
           {
@@ -133,7 +133,7 @@
           }
         ],
         "proof": {
-          "kid": "did:webvh:z6mkfixture:release.example#claim-key-1",
+          "kid": "did:webvh:z6mkfixturereleaseexample:release.example#claim-key-1",
           "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
           "signature_algorithm": "Ed25519"
         }
@@ -157,8 +157,8 @@
         "contract_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
-          "id": "did:webvh:z6mkfixture:release.example",
-          "verification_method": "did:webvh:z6mkfixture:release.example#claim-key-1"
+          "id": "ak:did_core:webvh:z6mkfixturereleaseexample",
+          "verification_method": "did:webvh:z6mkfixturereleaseexample:release.example#claim-key-1"
         },
         "clause_claims": [
           {
@@ -174,7 +174,7 @@
           }
         ],
         "proof": {
-          "kid": "did:webvh:z6mkfixture:release.example#claim-key-1",
+          "kid": "did:webvh:z6mkfixturereleaseexample:release.example#claim-key-1",
           "signature": "not+base64url",
           "signature_algorithm": "Ed25519"
         }

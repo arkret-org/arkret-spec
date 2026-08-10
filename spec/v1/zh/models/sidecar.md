@@ -165,13 +165,13 @@ Sidecar 拥有独立 MLS group，但该 group 直接绑定 `sidecar_id`，不绑
   "domain": "ak.sidecar.participant_authority.v1",
   "sidecar_id": "ak:sidecar:...",
   "realm_id": "ak:realm:...",
-  "controller_id": "did:...",
-  "owned_agent_ids": ["did:..."],
-  "effective_agent_ids": ["did:..."]
+  "controller_id": "ak:did_core:webvh:zExampleControllerScid",
+  "owned_agent_ids": ["ak:did_core:webvh:zExampleOwnedAgentScid"],
+  "effective_agent_ids": ["ak:did_core:webvh:zExampleEffectiveAgentScid"]
 }
 ```
 
-两个 Agent 数组按 DID UTF-8 字节序排序去重。`control_frontier` 只能包含 Sidecar genesis、ownership、
+两个 Agent `core_id` 数组按 UTF-8 字节序排序去重。`control_frontier` 只能包含 Sidecar genesis、ownership、
 Agent lifecycle、authorization、Realm participation 与 key-readiness 的 accepted refs；不得包含 Circle
 membership 或 Sidecar selection Event。
 

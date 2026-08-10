@@ -44,8 +44,10 @@
   "additionalProperties": false,
   "$defs": {
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    },
+    "full_id": {
+      "$ref": "./common-ids.schema.json#/$defs/full_id"
     },
     "did_url": {
       "type": "string",
@@ -102,10 +104,10 @@
           ]
         },
         "service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "controller_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "base_url": {
           "type": "string",
@@ -142,13 +144,14 @@
     "service_did_document": {
       "type": "object",
       "required": [
-        "service_id",
+        "full_id",
         "document_digest",
         "method_version"
       ],
       "properties": {
-        "service_id": {
-          "$ref": "#/$defs/did"
+        "full_id": {
+          "$ref": "#/$defs/full_id",
+          "description": "Complete service DID whose adapter projection MUST equal derived_registration.service_id."
         },
         "document_digest": {
           "$ref": "#/$defs/hash"

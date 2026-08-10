@@ -106,7 +106,7 @@ RecoveryTransaction 只有 `identity_model="root_anchored"`。binding 固定 rec
 publish_did_entry -> submit_reanchor_unit -> issue_terminal_receipt
 ```
 
-`publish_did_entry` 只提交预先持久化的 exact client-signed DID operation；`submit_reanchor_unit` 原样提交 root-signed `ak.device.reanchor` 与 replacement-device-signed `ak.device.authorize`。第二条 Event proof method 必须等于 `` `{principal_id}#{replacement_device_id}` ``，由 unit-local candidate overlay 映射到 authorize payload key。Coordinator 不持有 root/device private key，不生成、更改或代签 Event。
+`publish_did_entry` 只提交预先持久化的 exact client-signed DID operation；`submit_reanchor_unit` 原样提交 root-signed `ak.device.reanchor` 与 replacement-device-signed `ak.device.authorize`。第二条 Event 的 `proof.verification_method` MUST 是 replacement principal 已验证 `full_id` 下的 DID URL；verifier 取其 bare `full_id`，经已登记 method adapter 验证并要求 `project(full_id) == principal_id`（稳定 `core_id`），同时要求 fragment 逐字等于 `replacement_device_id`，再由 unit-local candidate overlay 映射到 authorize payload key。不得从 `principal_id` core 与 replacement device fragment 拼接 verification method，因为 `core_id` 不是 DID。Coordinator 不持有 root/device private key，不生成、更改或代签 Event。
 
 Principal Server 必须验证 DID history/active root、recovery session/policy、payload digest单向承诺、Event predecessor、candidate possession、generation CAS 与 old-device fence，然后原子接受两条 Event并返回 `device_reanchor_unit` receipt。没有账号服务 authority ticket或 replacement authorize signer；transport service signature不构成内容 authority。
 

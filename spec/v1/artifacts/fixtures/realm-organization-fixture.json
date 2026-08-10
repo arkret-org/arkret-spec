@@ -37,7 +37,7 @@
       "instance": {
         "statement_id": "org-stmt-00000001",
         "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "relationship": "owner",
         "status": "active",
         "control_scopes": [
@@ -48,9 +48,9 @@
         "expires_at": null,
         "realm_frontier_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "authorization": {
-          "issuer": "did:webvh:z6mkfixture:acme.example",
+          "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
           "issuer_role": "organization_did",
-          "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
+          "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
@@ -67,7 +67,7 @@
       "instance": {
         "statement_id": "org-stmt-00000002",
         "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "relationship": "governance",
         "status": "active",
         "control_scopes": [
@@ -76,9 +76,9 @@
         ],
         "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
-          "issuer": "did:webvh:z6mkfixture:gov.acme.example",
+          "issuer": "ak:did_core:webvh:z6mkfixturegovacmeexample",
           "issuer_role": "governance_service",
-          "verification_method": "did:webvh:z6mkfixture:gov.acme.example#gov-signing-key-1",
+          "verification_method": "did:webvh:z6mkfixturegovacmeexample:gov.acme.example#gov-signing-key-1",
           "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
@@ -93,7 +93,7 @@
       "instance": {
         "statement_id": "org-stmt-00000003",
         "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "relationship": "governance",
         "status": "active",
         "control_scopes": [
@@ -101,13 +101,13 @@
           "moderation_policy"
         ],
         "issued_at": "2026-05-01T00:00:00.000Z",
-        "organization_policy_ref": "did:webvh:z6mkfixture:acme.example/governance/policy-1",
+        "organization_policy_ref": "did:webvh:z6mkfixtureacmeexample:acme.example/governance/policy-1",
         "authorization": {
-          "issuer": "did:webvh:z6mkfixture:gov.acme.example",
+          "issuer": "ak:did_core:webvh:z6mkfixturegovacmeexample",
           "issuer_role": "governance_service",
-          "verification_method": "did:webvh:z6mkfixture:gov.acme.example#gov-signing-key-1",
-          "delegation_ref": "did:webvh:z6mkfixture:acme.example/delegations/governance-service-1",
-          "executed_by": "did:webvh:z6mkfixture:admin.acme.example",
+          "verification_method": "did:webvh:z6mkfixturegovacmeexample:gov.acme.example#gov-signing-key-1",
+          "delegation_ref": "did:webvh:z6mkfixtureacmeexample:acme.example/delegations/governance-service-1",
+          "executed_by": "ak:did_core:webvh:z6mkfixtureadminacmeexample",
           "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
@@ -124,7 +124,7 @@
       "instance": {
         "statement_id": "org-stmt-00000004",
         "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "relationship": "sponsor",
         "status": "active",
         "control_scopes": [
@@ -132,9 +132,9 @@
         ],
         "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
-          "issuer": "did:webvh:z6mkfixture:aa.acme.example",
+          "issuer": "ak:did_core:webvh:z6mkfixtureaaacmeexample",
           "issuer_role": "account_authority",
-          "verification_method": "did:webvh:z6mkfixture:aa.acme.example#aa-signing-key-1",
+          "verification_method": "did:webvh:z6mkfixtureaaacmeexample:aa.acme.example#aa-signing-key-1",
           "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
@@ -149,7 +149,7 @@
       "instance": {
         "statement_id": "org-stmt-00000005",
         "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "relationship": "sponsor",
         "status": "active",
         "control_scopes": [
@@ -157,10 +157,10 @@
         ],
         "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
-          "issuer": "did:webvh:z6mkfixture:aa.acme.example",
+          "issuer": "ak:did_core:webvh:z6mkfixtureaaacmeexample",
           "issuer_role": "account_authority",
-          "verification_method": "did:webvh:z6mkfixture:aa.acme.example#aa-signing-key-1",
-          "delegation_ref": "did:webvh:z6mkfixture:acme.example/delegations/account-authority-1",
+          "verification_method": "did:webvh:z6mkfixtureaaacmeexample:aa.acme.example#aa-signing-key-1",
+          "delegation_ref": "did:webvh:z6mkfixtureacmeexample:acme.example/delegations/account-authority-1",
           "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
@@ -177,7 +177,7 @@
       "instance": {
         "statement_id": "org-stmt-00000006",
         "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "relationship": "owner",
         "status": "revoked",
         "control_scopes": [
@@ -185,9 +185,9 @@
         ],
         "issued_at": "2026-06-01T00:00:00.000Z",
         "authorization": {
-          "issuer": "did:webvh:z6mkfixture:acme.example",
+          "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
           "issuer_role": "organization_did",
-          "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
+          "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-06-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
@@ -202,7 +202,7 @@
       "instance": {
         "statement_id": "org-stmt-00000007",
         "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "relationship": "owner",
         "status": "revoked",
         "control_scopes": [
@@ -211,9 +211,9 @@
         "issued_at": "2026-06-01T00:00:00.000Z",
         "revokes_statement_id": "org-stmt-00000001",
         "authorization": {
-          "issuer": "did:webvh:z6mkfixture:acme.example",
+          "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
           "issuer_role": "organization_did",
-          "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
+          "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-06-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
@@ -230,7 +230,7 @@
       "instance": {
         "statement_id": "org-stmt-00000008",
         "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "relationship": "owner",
         "status": "active",
         "control_scopes": [
@@ -238,9 +238,9 @@
         ],
         "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
-          "issuer": "did:webvh:z6mkfixture:acme.example",
+          "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
           "issuer_role": "organization_did",
-          "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
+          "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-05-01T00:00:00.000Z"
         }
       }
@@ -256,7 +256,7 @@
       "instance": {
         "statement_id": "org-stmt-00000009",
         "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "relationship": "owner",
         "status": "active",
         "control_scopes": [
@@ -264,9 +264,9 @@
         ],
         "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
-          "issuer": "did:webvh:z6mkfixture:acme.example",
+          "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
           "issuer_role": "realm_admin",
-          "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
+          "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
@@ -283,7 +283,7 @@
       "instance": {
         "statement_id": "org-stmt-00000010",
         "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "relationship": "affiliate",
         "status": "active",
         "control_scopes": [
@@ -291,9 +291,9 @@
         ],
         "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
-          "issuer": "did:webvh:z6mkfixture:acme.example",
+          "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
           "issuer_role": "organization_did",
-          "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
+          "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
@@ -310,7 +310,7 @@
       "instance": {
         "statement_id": "org-stmt-00000011",
         "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "relationship": "owner",
         "status": "active",
         "control_scopes": [
@@ -320,9 +320,9 @@
         "not_before": "2026-01-01T00:00:00.000Z",
         "expires_at": "2026-02-01T00:00:00.000Z",
         "authorization": {
-          "issuer": "did:webvh:z6mkfixture:acme.example",
+          "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
           "issuer_role": "organization_did",
-          "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
+          "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-01-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
@@ -339,7 +339,7 @@
       "instance": {
         "statement_id": "org-stmt-00000012",
         "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "relationship": "owner",
         "status": "active",
         "control_scopes": [
@@ -349,9 +349,9 @@
         "not_before": "2027-01-01T00:00:00.000Z",
         "expires_at": null,
         "authorization": {
-          "issuer": "did:webvh:z6mkfixture:acme.example",
+          "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
           "issuer_role": "organization_did",
-          "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
+          "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-12-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
@@ -368,7 +368,7 @@
       "instance": {
         "statement_id": "org-stmt-00000013",
         "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "relationship": "governance",
         "status": "active",
         "control_scopes": [
@@ -377,10 +377,10 @@
         ],
         "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
-          "issuer": "did:webvh:z6mkfixture:gov.acme.example",
+          "issuer": "ak:did_core:webvh:z6mkfixturegovacmeexample",
           "issuer_role": "governance_service",
-          "verification_method": "did:webvh:z6mkfixture:gov.acme.example#gov-signing-key-1",
-          "delegation_ref": "did:webvh:z6mkfixture:acme.example/delegations/badge-only-1",
+          "verification_method": "did:webvh:z6mkfixturegovacmeexample:gov.acme.example#gov-signing-key-1",
+          "delegation_ref": "did:webvh:z6mkfixtureacmeexample:acme.example/delegations/badge-only-1",
           "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
@@ -397,7 +397,7 @@
       "instance": {
         "statement_id": "org-stmt-00000014",
         "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
-        "organization_id": "did:webvh:z6mkfixture:acme.example",
+        "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
         "relationship": "owner",
         "status": "active",
         "control_scopes": [
@@ -405,9 +405,9 @@
         ],
         "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
-          "issuer": "did:webvh:z6mkfixture:acme.example",
+          "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
           "issuer_role": "organization_did",
-          "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
+          "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }

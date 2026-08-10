@@ -8,11 +8,11 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 69,
+    "total_fields": 70,
     "by_classification": {
       "bounded_free_text": 7,
       "closed_enum": 31,
-      "closed_literal": 11,
+      "closed_literal": 12,
       "validated_open_reason_code": 17,
       "validated_open_token": 3
     },
@@ -243,6 +243,14 @@
       "pointer": "#/$defs/peer_contact_event_submit_outcome/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "direct-conversation-operations.schema.json",
+      "shape": "direct_conversation_repair_enqueue_outcome",
+      "field": "status",
+      "pointer": "#/$defs/direct_conversation_repair_enqueue_outcome/properties/status",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
     },
     {
       "schema_file": "erasure-receipt-operations.schema.json",

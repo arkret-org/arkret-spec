@@ -28,10 +28,10 @@
       "description": "Identifier of the signed ak.identity.presentation_request or an equivalent authenticated private challenge request. It is single-use at verifier_did."
     },
     "agent_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "controller_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "requested_scope": {
       "$ref": "./event-payload.schema.json#/$defs/agent_key_scope",
@@ -43,7 +43,7 @@
       "description": "MUST equal sha256(RFC8785/JCS({agent_id, controller_id, kind:'ak.agent.requested_scope_commitment.v1', requested_scope})) and the digest in the accepted-at Agent DID service binding."
     },
     "verifier_did": {
-      "$ref": "./common-ids.schema.json#/$defs/did",
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
       "description": "Exact verifier named by the presentation request. A different verifier MUST NOT accept or forward this disclosure as its own evidence."
     },
     "audience": {

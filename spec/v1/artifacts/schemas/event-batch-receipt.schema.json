@@ -200,7 +200,7 @@
       "type": "object",
       "properties": {
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -228,7 +228,7 @@
           "const": "device_reanchor_unit"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -275,7 +275,7 @@
           "const": "pcr_genesis_unit"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -314,7 +314,7 @@
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         }
       },
       "additionalProperties": false

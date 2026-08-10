@@ -49,7 +49,7 @@ updated: 2026-07-02
     "token_salt_id": "salt-2026-04-28-invite-001",
     "oob_code_kind": "offline_token",
     "token_entropy_bits": 128,
-    "verification_service_id": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example",
+    "verification_service_id": "ak:did_core:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt",
     "verification_public_key": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example#invite-001",
     "max_claims": 1
   },
@@ -101,13 +101,13 @@ forbidden: https://app.arkret.example/invite/<invite_token>                     
 
 ## 4. 认领流程 (Claiming)
 
-当 Bob 收到邮件并点击链接，他在客户端完成了注册并获得了自己的 `did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com`（v1 core 默认 principal DID method 为 `did:webvh`，见 [identity-did.md §3](../identity/identity-did.md)；`personal_node` profile 的 Bob 可选 `did:web:bob.example.com`，其他 deployment profile 不得使用 `did:web` 作为长期 principal）。接下来他需要认领这个邀请。
+当 Bob 收到邮件并点击链接，他在客户端完成注册，持有完整 `full_id = did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com`，其稳定业务身份为 `core_id = ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z`。接下来他需要认领这个邀请。
 
 ### 4.1 出示 Token 与绑定
 
-Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Realm 提交给 Alice 的身份验证服务。
+Bob 的客户端将 `invite_token`、自己的 `core_id`、用于独立验证的 `full_id`、设备证明和 intended Realm 提交给 Alice 的身份验证服务。
 身份验证服务验证 token、过期时间、claim 次数和 Realm 绑定无误后，原子消费该 token，并使用之前预留的**临时私钥 (对应 3.1 节的 `verification_public_key`)** 签署一个**绑定证明 (Binding Proof)**，声明：
-“持有该 Token 的人现在对应的 DID 是 `did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com`”。
+“持有该 Token 的人现在对应的稳定业务身份是 `ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z`”。
 
 **投递目标可审计（normative）**：由于验证服务是受信第三方（见 §2.1），其签发 `binding_proof` 时 MUST 在自身审计记录中记录该 token 在 §3.2 实际投递目标的 digest（例如 `delivery_target_digest = SHA-256(salt || canonical(3pid))`，使用与 `token_salt` 同级或独立的高熵 salt / pepper）。该 digest 不得写入公开持久化 Event（避免 3PID 枚举，与 §6 一致），但 MUST 进入验证服务的加密审计记录，使事后审计可以核对"该 token 是否被投递给 invite 声明的那个 3PID"。这样当验证服务被怀疑把 token 绑定到非声明 3PID（即把邀请重定向给攻击者）时，审计方可凭 invite 中声明的 3PID 重算 digest 与审计记录比对，检出该错配。
 
@@ -118,13 +118,13 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
 ```json schema=schemas/event-payload.schema.json#/$defs/invite_claim_payload
 {
   "invite_id": "ak:invite:AfVi-FmTYttG2uQeB67y7GdHhOrWGxBe0QaDAOwYnK01",
-  "subject_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
+  "subject_id": "ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
   "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
   "binding_proof": {
-    "verification_service_id": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example",
+    "verification_service_id": "ak:did_core:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt",
     "verification_method": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example#invite-001",
-    "subject_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
+    "subject_id": "ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
     "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "audience": "arkret.invite.claim",
     "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",

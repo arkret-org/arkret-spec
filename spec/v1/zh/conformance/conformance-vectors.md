@@ -306,7 +306,7 @@ ak.vector.encoding.event_digest.v1
     "kind": "realm",
     "realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"
   },
-  "actor_id": "did:webvh:z6mkfixture:alice.example",
+  "actor_id": "ak:did_core:webvh:z6mkfixture",
   "actor_seq": 1,
   "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
@@ -332,13 +332,13 @@ ak.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:webvh:z6mkfixture:alice.example","actor_seq":1,"auth_context":{"did":"did:webvh:z6mkfixture:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00.000Z","event_id":"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"strand_id":"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","refs":[],"scope_ref":{"kind":"realm","realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"},"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+{"actor_id":"ak:did_core:webvh:z6mkfixture","actor_seq":1,"auth_context":{"did":"did:webvh:z6mkfixture:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00.000Z","event_id":"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"strand_id":"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","refs":[],"scope_ref":{"kind":"realm","realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"},"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
 ```
 
 期望 digest：
 
 ```text
-sha256:e78bdef1ff9554389beeecefd8f1658081f2bd5db29d0229557fe04caf98dfbb
+sha256:f4d8a5c64697228753fa18e543d80722ee166a8fb7c9bc705935c87003c1e610
 ```
 
 判定规则：
@@ -361,9 +361,9 @@ ak.vector.encoding.event_batch_receipt_digest.v1
 {
   "schema": "ak.schema.event_batch_receipt.v1",
   "receipt_id": "ak:receipt:01964186-0000-7000-8000-000000000000",
-  "issuer": "did:webvh:z6mkfixture:alice.example",
+  "issuer": "ak:did_core:webvh:z6mkfixture",
   "scope": {
-    "actor_id": "did:webvh:z6mkfixture:alice.example"
+    "actor_id": "ak:did_core:webvh:z6mkfixture"
   },
   "frontier": {
     "actor_seq": 2,
@@ -380,13 +380,13 @@ ak.vector.encoding.event_batch_receipt_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111","sha256:2222222222222222222222222222222222222222222222222222222222222222"],"frontier":{"actor_seq":2,"event_digest":"sha256:2222222222222222222222222222222222222222222222222222222222222222"},"issuer":"did:webvh:z6mkfixture:alice.example","receipt_id":"ak:receipt:01964186-0000-7000-8000-000000000000","schema":"ak.schema.event_batch_receipt.v1","scope":{"actor_id":"did:webvh:z6mkfixture:alice.example"}}
+{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111","sha256:2222222222222222222222222222222222222222222222222222222222222222"],"frontier":{"actor_seq":2,"event_digest":"sha256:2222222222222222222222222222222222222222222222222222222222222222"},"issuer":"ak:did_core:webvh:z6mkfixture","receipt_id":"ak:receipt:01964186-0000-7000-8000-000000000000","schema":"ak.schema.event_batch_receipt.v1","scope":{"actor_id":"ak:did_core:webvh:z6mkfixture"}}
 ```
 
 期望 digest：
 
 ```text
-sha256:3cb4e27faaa5fca6c7e4bbf9a5a73c31d589e57b7f4b274139d1e35701c524ef
+sha256:c94a4851d786f84ce4ef63840ab7f5fcaab7dd63c46fcd7a6472aef03b6aa560
 ```
 
 失败条件：
@@ -410,7 +410,7 @@ ak.vector.encoding.signature_binding_payload.v1
 ```json
 {
   "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
-  "actor_id": "did:webvh:z6mkfixture:alice.example",
+  "actor_id": "ak:did_core:webvh:z6mkfixture",
   "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
   "created_at": "2026-04-26T00:00:00Z"
 }
@@ -419,13 +419,13 @@ ak.vector.encoding.signature_binding_payload.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:webvh:z6mkfixture:alice.example","created_at":"2026-04-26T00:00:00Z","event_digest":"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777","verification_method":"did:webvh:z6mkfixture:alice.example#device-1"}
+{"actor_id":"ak:did_core:webvh:z6mkfixture","created_at":"2026-04-26T00:00:00Z","event_digest":"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777","verification_method":"did:webvh:z6mkfixture:alice.example#device-1"}
 ```
 
 期望 digest：
 
 ```text
-sha256:d94c02b84f5805afb06cecbb6b2ff489b5675bc6989102ea72643536af17e4bc
+sha256:e7e32a7f26654175a2323581e83de4869b8c0b78606a3d52c8f89d714bf6ed6b
 ```
 
 判定规则：
@@ -1516,7 +1516,7 @@ ak.vector.redaction.preserve_fields.v1
     "event_id": "ak:event:ASwq0QFg8faJScGgZD2ETHGz8WhBMT09jmLQI16Q3Z-U",
     "kind": "ak.message.create",
     "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
-    "actor_id": "did:webvh:z6mkfixture:alice.example.com",
+    "actor_id": "ak:did_core:webvh:z6mkfixtureAlice",
     "created_at": "2026-04-26T00:00:00Z",
     "hlc": "01970e589d24-0001-aaaaaaaa",
     "prev_refs": [],
@@ -1547,7 +1547,7 @@ ak.vector.redaction.preserve_fields.v1
     "event_id": "ak:event:AVRqeKaVZkAqsTdzlqHhkhlOpz6hhmxOkZizc06Spg6N",
     "kind": "ak.redaction",
     "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
-    "actor_id": "did:webvh:z6mkfixture:alice.example.com",
+    "actor_id": "ak:did_core:webvh:z6mkfixtureAlice",
     "created_at": "2026-04-26T00:00:02Z",
     "hlc": "01970e589d24-0002-bbbbbbbb",
     "prev_refs": [
@@ -1671,7 +1671,7 @@ ak.vector.redaction.policy_scope.v1
       "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
       "created_at": "2026-04-26T00:00:01Z",
       "hlc": "01970e589d25-0001-22222222",
-      "actor_id": "did:webvh:z6mkfixture:policy-bot.example.com",
+      "actor_id": "ak:did_core:webvh:z6mkfixturePolicyBot",
       "payload": {
         "target_id": "ak:event:AXWWMHEhNONmNH2fWBozZKUEd47PDJKgGBYFfwmvv11u",
         "policy_scope": "public",
@@ -1682,7 +1682,7 @@ ak.vector.redaction.policy_scope.v1
       "event_id": "ak:event:AcUVVjcbKtBVp4-iT2lemOBe6JeEgEfWusYRwGMnyqbg",
       "kind": "ak.redaction",
       "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
-      "actor_id": "did:webvh:z6mkfixture:policy-admin.example",
+      "actor_id": "ak:did_core:webvh:z6mkfixturePolicyAdmin",
       "payload": {
         "redacts": "ak:event:AXWWMHEhNONmNH2fWBozZKUEd47PDJKgGBYFfwmvv11u",
         "reason_code": "policy_recall"
@@ -1800,7 +1800,7 @@ ak.vector.capability.authority_chain.v1
   "base": {
     "kind": "ak.capability.grant",
     "grant_id": "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we",
-    "subject": "did:webvh:z6mkfixture:root-admin.example.com",
+    "subject": "ak:did_core:webvh:z6mkfixtureRootAdmin",
     "actions": [
       "ak.realm.admin"
     ],
@@ -1811,11 +1811,11 @@ ak.vector.capability.authority_chain.v1
       "event_id": "ak:event:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ",
       "kind": "ak.capability.grant",
       "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
-      "actor_id": "did:webvh:z6mkfixture:root-admin.example.com",
+      "actor_id": "ak:did_core:webvh:z6mkfixtureRootAdmin",
       "payload": {
         "grant_id": "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we",
         "issuer_authority_refs": [{"kind": "grant", "grant_id": "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we"}],
-        "subject": "did:webvh:z6mkfixture:ops.example.com",
+        "subject": "ak:did_core:webvh:z6mkfixtureOps",
         "resources": [
           {
             "kind": "realm",
@@ -1849,11 +1849,11 @@ ak.vector.capability.authority_chain.v1
       "event_id": "ak:event:AfRvTwL9UUVlA868BCCvPbdzYVW8u3JC2w3JgU_Fixho",
       "kind": "ak.capability.grant",
       "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
-      "actor_id": "did:webvh:z6mkfixture:ops.example.com",
+      "actor_id": "ak:did_core:webvh:z6mkfixtureOps",
       "payload": {
         "grant_id": "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we",
         "issuer_authority_refs": [{"kind": "grant", "grant_id": "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we"}],
-        "subject": "did:webvh:z6mkfixture:intern.example.com",
+        "subject": "ak:did_core:webvh:z6mkfixtureIntern",
         "resources": [
           {
             "kind": "realm",
@@ -1887,7 +1887,7 @@ ak.vector.capability.authority_chain.v1
     }
   ],
   "action_query": {
-    "actor_id": "did:webvh:z6mkfixture:intern.example.com",
+    "actor_id": "ak:did_core:webvh:z6mkfixtureIntern",
     "action": "ak.invite.create",
     "resource": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
     "request_time": "2026-04-26T01:00:00Z",
@@ -1939,7 +1939,7 @@ ak.vector.capability.revoke_rollback.v1
       "kind": "ak.capability.grant",
       "payload": {
         "grant_id": "ak:grant:AU4F2tD66XxDdxMbkmhDwjv3NLmV3MuNzo4ZaaUG__we",
-        "subject": "did:webvh:z6mkfixture:alice.example.com",
+        "subject": "ak:did_core:webvh:z6mkfixtureAlice",
         "actions": [
           "ak.message.create"
         ]
@@ -1958,7 +1958,7 @@ ak.vector.capability.revoke_rollback.v1
       "event_id": "ak:event:AR2f0P9TRB3LOeowwoiHeTViBhQ_rMdZgiCZ7Gv5f4DY",
       "kind": "ak.member.state",
       "payload": {
-        "actor_id": "did:webvh:z6mkfixture:alice.example.com",
+        "actor_id": "ak:did_core:webvh:z6mkfixtureAlice",
         "membership": "leave"
       },
       "created_at": "2026-04-26T00:00:02Z"
@@ -1966,7 +1966,7 @@ ak.vector.capability.revoke_rollback.v1
     {
       "event_id": "ak:event:Afv1yWZ8P95DkVvSjRmG15U-fD6yyypjxGbutLtCoxBH",
       "kind": "ak.message.create",
-      "actor_id": "did:webvh:z6mkfixture:alice.example.com",
+      "actor_id": "ak:did_core:webvh:z6mkfixtureAlice",
       "created_at": "2026-04-26T00:00:03Z",
       "payload": {
         "strand_id": "ak:strand:Ae9FKI-adZOvEof5zBY1v2PJYeqAmPAKj9s4TgyujhGW",
@@ -2013,7 +2013,7 @@ ak.vector.capability.approval_constraint.v1
   "event": {
     "event_id": "ak:event:AT2jKggZg_JhHFDAk7sZIweG-eIZI8iycIfLAP8gEw_l",
     "kind": "ak.policy.action",
-    "actor_id": "did:webvh:z6mkfixture:contractor.example",
+    "actor_id": "ak:did_core:webvh:z6mkfixtureContractor",
     "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
     "hlc": "01970e589d26-0001-aaaaaaaa",
     "payload": {
@@ -2029,7 +2029,7 @@ ak.vector.capability.approval_constraint.v1
   "capabilities": [
     {
       "kind": "ak.capability.grant",
-      "subject": "did:webvh:z6mkfixture:contractor.example",
+      "subject": "ak:did_core:webvh:z6mkfixtureContractor",
       "actions": [
         "ak.realm.admin"
       ]
@@ -2174,7 +2174,7 @@ ak.vector.auth.sensitive_field_handling.v1
 ```json
 {
   "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-  "actor_id": "did:webvh:z6mkfixture:actor-a.example.com",
+  "actor_id": "ak:did_core:webvh:z6mkfixtureActorA",
   "actor_seq": 1,
   "hlc": "019b76daa800-0000-a13f9c2e",
   "prev_refs": [],
@@ -2304,7 +2304,7 @@ ak.vector.disappearing.on_last_read_offline_window.v1
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "kind": "board",
           "title": "Release Board",
-          "created_by": "did:webvh:z6mkfixture:alice.example.com",
+          "created_by": "ak:did_core:webvh:z6mkfixtureAlice",
           "created_at": "2026-04-26T00:00:00Z"
         }
       }
@@ -2323,7 +2323,7 @@ ak.vector.disappearing.on_last_read_offline_window.v1
           "kind": "list",
           "title": "Todo",
           "rank": "U",
-          "created_by": "did:webvh:z6mkfixture:alice.example.com",
+          "created_by": "ak:did_core:webvh:z6mkfixtureAlice",
           "created_at": "2026-04-26T00:00:00Z"
         }
       }
@@ -2347,7 +2347,7 @@ ak.vector.disappearing.on_last_read_offline_window.v1
             }
           },
           "stage": "planned",
-          "created_by": "did:webvh:z6mkfixture:alice.example.com",
+          "created_by": "ak:did_core:webvh:z6mkfixtureAlice",
           "created_at": "2026-04-26T00:00:00Z"
         },
         "initial_relations": [
@@ -2639,7 +2639,7 @@ Expected：
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "kind": "board",
           "title": "Release Board",
-          "created_by": "did:webvh:z6mkfixture:alice.example.com",
+          "created_by": "ak:did_core:webvh:z6mkfixtureAlice",
           "created_at": "2026-05-15T10:00:00Z"
         }
       }
@@ -2858,7 +2858,7 @@ Expected：
 - rebind 通过 causal frontier handover；
 - 撤销后投递立即停止。
 
-下列向量假设 Realm `ak:realm:AetVOSm6aZhwAmuyJOLfU97VXd6it32eeFtRHiqrRyfJ`、actor `did:webvh:01HV...:alice` 已存在；具体 id 仅作占位。本节是 normative vector description；机器可执行 fixture 位于 [`../../artifacts/fixtures/membership-delivery-binding-fixture.json`](../../artifacts/fixtures/membership-delivery-binding-fixture.json)，runner MUST 同时消费该 fixture 与本文 prose，不得再依赖未落地的目录约定。
+下列向量假设 Realm `ak:realm:AetVOSm6aZhwAmuyJOLfU97VXd6it32eeFtRHiqrRyfJ`、actor `ak:did_core:webvh:01HV...` 已存在；具体 id 仅作占位。本节是 normative vector description；机器可执行 fixture 位于 [`../../artifacts/fixtures/membership-delivery-binding-fixture.json`](../../artifacts/fixtures/membership-delivery-binding-fixture.json)，runner MUST 同时消费该 fixture 与本文 prose，不得再依赖未落地的目录约定。
 
 ### 7.2 Vector: `explicit` Binding 接受
 
@@ -2869,11 +2869,14 @@ Input — `ak.member.state{membership="join"}` Control Move payload：
 ```json
 {
   "realm_id": "ak:realm:AetVOSm6aZhwAmuyJOLfU97VXd6it32eeFtRHiqrRyfJ",
-  "actor_id": "did:webvh:01HV...:alice",
+  "actor_id": "ak:did_core:webvh:01HV...",
   "membership": "join",
   "delivery_status": "routable",
   "delivery_binding": {
-    "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
+    "recipient_service_id": "ak:did_core:webvh:z6mkfixturePrincipal",
+    "service_resolution": {
+      "current_record_url": "https://principal.acme.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturePrincipal/resolution"
+    },
     "recipient_service_kind": "principal_server",
     "binding_scope": "realm",
     "binding_source": "explicit",
@@ -2885,11 +2888,11 @@ Input — `ak.member.state{membership="join"}` Control Move payload：
 }
 ```
 
-预设：Realm policy `ak.realm.delivery_binding_policy` 声明 `allowed_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `did:webvh:z6mkfixture:principal.acme.example`、`required_endorsers` 含 `did:webvh:z6mkfixture:acme.example`，`service_acceptance_ref` 引用的 Event 由 `did:webvh:z6mkfixture:principal.acme.example` 签发且 scope 覆盖该 Realm，并由 `required_endorsers` 中的 `did:webvh:z6mkfixture:acme.example` 背书。
+预设：Realm policy `ak.realm.delivery_binding_policy` 声明 `allowed_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `ak:did_core:webvh:z6mkfixturePrincipal`、`required_endorsers` 含 `ak:did_core:webvh:z6mkfixtureAcme`，`service_acceptance_ref` 引用的 Event 由该 recipient service `core_id` 签发且 scope 覆盖该 Realm，并由 `required_endorsers` 中的组织 `core_id` 背书。
 
 期望：
 - reducer 接受 join Control Move；写入成员 cell。
-- 此后任何向 Alice 投递的 Realm S event/sync/to_device/push/key_packages MUST 走 `did:webvh:z6mkfixture:principal.acme.example`，**禁止**触发 DID Document service entry resolution。
+- 此后任何向 Alice 投递的 Realm S event/sync/to_device/push/key_packages MUST 走 binding 中 `ak:did_core:webvh:z6mkfixturePrincipal` 对应的已验证 `service_resolution` route，**禁止**触发 DID Document service entry resolution。
 
 ### 7.3 Vector: `did_document_default` Fallback 物化
 
@@ -2902,11 +2905,14 @@ Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `did_document_d
 ```json
 {
   "realm_id": "ak:realm:...",
-  "actor_id": "did:webvh:01HV...:alice",
+  "actor_id": "ak:did_core:webvh:01HV...",
   "membership": "join",
   "delivery_status": "routable",
   "delivery_binding": {
-    "recipient_service_id": "did:webvh:z6mkfixture:personal.alice.example",
+    "recipient_service_id": "ak:did_core:webvh:z6mkfixturePersonal",
+    "service_resolution": {
+      "current_record_url": "https://personal.alice.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturePersonal/resolution"
+    },
     "recipient_service_kind": "principal_server",
     "binding_scope": "realm",
     "binding_source": "did_document_default",
@@ -2932,7 +2938,7 @@ Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `unroutable_mem
 ```json
 {
   "realm_id": "ak:realm:...",
-  "actor_id": "did:webvh:01HV...:alice",
+  "actor_id": "ak:did_core:webvh:01HV...",
   "membership": "join",
   "delivery_status": "unroutable"
 }
@@ -2952,15 +2958,15 @@ Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `unroutable_mem
 
 序列：
 
-1. **Initial join**（`F0`）：Alice join with `recipient_service_id=did:webvh:z6mkfixture:personal.alice.example`，accepted。
-2. **Events 流量**：Realm 内事件 `E1, E2` 进入因果图，sender 将它们投递到 `did:webvh:z6mkfixture:personal.alice.example`。
-3. **Rebind**（`F1`）：Alice 提交同状态 `ak.member.state{membership="join"}` self-transition，新 binding 指向 `did:webvh:z6mkfixture:principal.acme.example`，签名按 `rebind_authorization` 规则。Control Move accepted。
+1. **Initial join**（`F0`）：Alice join with personal service `recipient_service_id=ak:did_core:webvh:z6mkfixturePersonal` 及匹配的 `service_resolution`，accepted。
+2. **Events 流量**：Realm 内事件 `E1, E2` 进入因果图，sender 按该 verified route 投递。
+3. **Rebind**（`F1`）：Alice 提交同状态 `ak.member.state{membership="join"}` self-transition，新 binding 指向组织 Principal Server 的 service `core_id` 与新 `service_resolution`，签名按 `rebind_authorization` 规则。Control Move accepted。
 4. **Post-rebind events**：sender 投递 `E3, E4` 时观察 `service_binding_ref.delivery_binding_frontier`：
-   - sender frontier ≥ `F1` → 投递到 `did:webvh:z6mkfixture:principal.acme.example`；
-   - sender frontier 仍 `< F1` 且投到旧 `did:webvh:z6mkfixture:personal.alice.example` → 旧服务在 `handover_grace_seconds` 内接受并返回 `delivery_binding_stale + new_recipient_service_id=did:webvh:z6mkfixture:principal.acme.example + handover_frontier=F1`；sender MUST 切换后重试，**不得**回退到 DID Document。
+   - sender frontier ≥ `F1` → 按新 binding 的 service `core_id` 与 verified route 投递；
+   - sender frontier 仍 `< F1` 且投到旧 route → 旧服务在 `handover_grace_seconds` 内接受并返回 `delivery_binding_stale + new_recipient_service_id=<new core_id> + handover_frontier=F1`；sender MUST 取得并验证新 binding carrier 后切换重试，**不得**回退到 DID Document。
    - sender frontier ≥ `F1` 但仍投到旧 → 旧服务 reject `delivery_binding_handed_over`。
 5. **Grace 结束**：旧服务停止接受新 Realm S event；本地 to-device 队列、push registration、MLS group share state 进入 destruction。
-6. **撤销**：Alice 离职，Org-A 治理 key 提交 `ak.member.state{membership="leave"}` 或 `ak.capability.revoke`。`F2` 之后 sender MUST NOT 继续向 `did:webvh:z6mkfixture:principal.acme.example` 投递该 Realm 的内容；MUST NOT 转而退回 `did:webvh:z6mkfixture:personal.alice.example`（DID Document fallback）；该 actor 在 Realm S 中变成 **non-member**。
+6. **撤销**：Alice 离职，Org-A 治理 key 提交 `ak.member.state{membership="leave"}` 或 `ak.capability.revoke`。`F2` 之后 sender MUST NOT 继续向新 binding route 投递该 Realm 的内容；MUST NOT 转而退回旧 personal route（DID Document fallback）；该 actor 在 Realm S 中变成 **non-member**。
 
 期望：
 - 整个序列中 sender 解析投递目标 MUST 完全依赖 effective member cell 的 `delivery_binding`，DID Document service entry 永远不被 query。
@@ -3010,7 +3016,7 @@ Input — 邀请方在 Acme 组织 Realm 中添加 `@alice:acme.example`。客�
   "handle": "@alice:acme.example",
   "intent": "member_add",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "requester": "did:webvh:z6mkfixture:bob.example",
+  "requester": "ak:did_core:webvh:z6mkfixtureBob",
   "proof_challenge": "ak.challenge-001"
 }
 ```
@@ -3019,8 +3025,8 @@ Directory 返回 verified handle claim：
 
 ```json
 {
-  "did": "did:webvh:z2dmjA1ice:users.acme.example",
-  "subject": "did:webvh:z2dmjA1ice:users.acme.example",
+  "did": "ak:did_core:webvh:z2dmjA1ice",
+  "subject": "ak:did_core:webvh:z2dmjA1ice",
   "handle": "alice:acme.example",
   "handle_aliases": [
     "acct:alice@acme.example"
@@ -3034,12 +3040,15 @@ Directory 返回 verified handle claim：
       "handle_aliases": [
         "acct:alice@acme.example"
       ],
-      "subject": "did:webvh:z2dmjA1ice:users.acme.example",
-      "issuer": "did:webvh:z6mkfixture:acme.example",
+      "subject": "ak:did_core:webvh:z2dmjA1ice",
+      "issuer": "ak:did_core:webvh:z6mkfixtureAcme",
       "binding_state": "verified",
       "audience": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "member_delivery_binding": {
-        "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
+        "recipient_service_id": "ak:did_core:webvh:z6mkfixturePrincipal",
+        "service_resolution": {
+          "current_record_url": "https://principal.acme.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturePrincipal/resolution"
+        },
         "recipient_service_kind": "principal_server",
         "binding_source": "organization_policy",
         "delivery_modes": [
@@ -3067,7 +3076,10 @@ Directory 返回 verified handle claim：
     }
   ],
   "member_delivery_binding": {
-    "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
+    "recipient_service_id": "ak:did_core:webvh:z6mkfixturePrincipal",
+    "service_resolution": {
+      "current_record_url": "https://principal.acme.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturePrincipal/resolution"
+    },
     "recipient_service_kind": "principal_server",
     "binding_source": "organization_policy",
     "delivery_modes": [
@@ -3086,8 +3098,8 @@ Directory 返回 verified handle claim：
 
 Expected join Control Move:
 
-- `payload.actor_id = did:webvh:z2dmjA1ice:users.acme.example`。
-- `payload.delivery_binding.recipient_service_id = did:webvh:z6mkfixture:principal.acme.example`。
+- `payload.actor_id = ak:did_core:webvh:z2dmjA1ice`。
+- `payload.delivery_binding.recipient_service_id = ak:did_core:webvh:z6mkfixturePrincipal`，并携带匹配的 `service_resolution` carrier。
 - `payload.delivery_binding.binding_source = organization_policy`。
 - `payload.delivery_binding.service_acceptance_ref` 与 `policy_event_ref` 来自 verified claim / policy。
 - Control Move payload MUST NOT 把 `@alice:acme.example` 当作 actor、cell subject 或 grant subject；受限 handle 明文 SHOULD NOT 进入公开 Realm history。
@@ -3322,7 +3334,7 @@ Expected：
 
 Steps：
 
-1. 第三方邀请 token 已被验证服务原子消费并签发了绑定 `subject_id=did:webvh:z6mkfixture:alice.example` 的 `binding_proof`。
+1. 第三方邀请 token 已被验证服务原子消费并签发了绑定 `subject_id=ak:did_core:webvh:z6mkfixtureAlice` 的 `binding_proof`。
 2. 攻击者用同一已消费 token 向验证服务发起第二次签发请求，指向不同 `subject_id=did:webvh:z6mkfixture:mallory.example`。
 3. 攻击者另把承载该已消费 token 重绑到不同 subject 的 `ak.invite.claim` Event 提交给 reducer。
 
@@ -3341,18 +3353,23 @@ Expected：
 
 Preconditions：
 
-- Realm 声明 `ak.profile.mls.minimal_metadata_realm.v1`；内容 Event `actor_id` 为 Realm-scoped pairwise DID。
+- Realm 声明 `ak.profile.mls.minimal_metadata_realm.v1`；内容 Event `actor_id` 为 Realm-scoped pairwise `ActorId` core，且该 actor 的 current member cell 为 active。
 - Encrypted envelope 固定 `(group_id, epoch, key_ref.group_state_ref)`，该 accepted group state 有一条 active RFC 9420 basic credential identity 等于 `utf8(actor_id)` 的 LeafNode。
+- Event proof verification-method 的 bare base 是 canonical `did:key` FullId，adapter 投影逐字等于 `actor_id`；transport bearer session actor 可以不同，但只承担访问与限流。
 
 Cases：
 
 1. 唯一 active leaf，Event proof key 与 LeafNode `signature_key` 相同且签名有效：接受为 verified pairwise author。
-2. 同一 pairwise identity 对应多条 active leaf、leaf 已在该 epoch 被移除、group-state ref 不是该 epoch winning state、proof key 与 leaf key 不同：均以 `minimal_metadata_author_credential_invalid` 拒绝。
-3. 实现尝试用 principal-scoped `keys/query` 兜底：拒绝该实现路径，目录调用计数必须为 0。
+2. 同一 pairwise identity 对应多条 active leaf、leaf 已在该 epoch 被移除、group-state ref 不是该 epoch winning state、verification-method base 投影为另一 actor、proof key 与 leaf key 不同：均以 `minimal_metadata_author_credential_invalid` 拒绝。
+3. pairwise actor 不是 current Realm member：以 `capability_denied` 拒绝；不得借 transport session 的 membership 放行。
+4. Realm 未声明 minimal-metadata profile 或 payload 不是本节加密内容而 actor/session 不同：以 `actor_session_mismatch` 拒绝。
+5. 客户端尝试把已绑定另一 Realm 的同一 pairwise key/ActorId 用于本 Realm：本地拒绝，网络提交计数为 0。
+6. 实现尝试用 principal-scoped `keys/query` 兜底：拒绝该实现路径，目录调用计数必须为 0。
 
 Expected：
 
 - 作者性验证只建立 pairwise sender leaf 身份，不揭示 principal；principal 提升仍依赖独立、端到端加密的 `ak.identity_link`。
+- transport bearer 不写入 identity link，不成为作者、member 或 capability authority。
 - Receiver 不得回退 current epoch、未验证 ratchet-tree cache、真实 principal DID 或 principal device directory。
 - 所有失败 case 都在内容进入 verified timeline 前 fail closed。
 
@@ -3639,7 +3656,7 @@ Expected：
 
 Steps：
 
-1. 构造 root-signed create + founding-device-signed authorize，并让 descriptor、payload digest、device/HPKE material、initial session request和 `{principal_id}#{device_id}` proof method全部一致。
+1. 构造 root-signed create + founding-device-signed authorize；第二条 Event 的 proof method 使用 founding principal 已验证 `full_id` 下的 DID URL，并让其 bare `full_id` 经 adapter 投影为 `principal_id`（`core_id`）、fragment 逐字等于 `device_id`，同时让 descriptor、payload digest、device/HPKE material 与 initial session request 全部一致；不得从 principal core 与 device fragment 拼接 verification method。
 2. 分别 mutation root/device signature、lease fence、DPoP JKT、scope、Event order/prev_refs、descriptor fields与 payload digest。
 3. 尝试把 authorize Event id/envelope digest加入 root transcript，或把 second proof method改为 `did:key`。
 4. 并发提交两个不同 genesis unit；随后对 winner执行 root re-anchor。
@@ -5433,11 +5450,11 @@ Expected：
 
 `vector_id`: `ak.vector.applet.transaction_source_signature_anchor.v1`
 
-本向量固化 applet transaction push 的逐次来源签名与幂等 replay MUST：`ak.edge.applet.command.transaction` 在 node→Applet 与 app/bridge→arkret inbound 两个方向都 MUST 携带 RFC 9421 HTTP Message Signature，covered components 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，签名参数含 `created` / `expires` 并满足 300s replay window；接收方 MUST 形成并持久化 `source_signature_anchor`，幂等 identity 绑定 `operation_id`、方向、source/destination service DID 与 `Idempotency-Key`，缓存记录绑定 canonical body digest 与 source anchor。来源 service 签名不替代每条 Event 的 actor / applet / capability 校验。
+本向量固化 applet transaction push 的逐次来源签名与幂等 replay MUST：`ak.edge.applet.command.transaction` 在 node→Applet 与 app/bridge→arkret inbound 两个方向都 MUST 携带 RFC 9421 HTTP Message Signature，covered components 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，签名参数含 `created` / `expires` 并满足 300s replay window；接收方 MUST 形成并持久化 `source_signature_anchor`，幂等 identity 绑定 `operation_id`、方向、source/destination service `core_id` 与 `Idempotency-Key`，缓存记录绑定 canonical body digest 与 source anchor。来源 service 签名不替代每条 Event 的 actor / applet / capability 校验。
 
 Steps：
 
-- **Case A — 合法 app/bridge→arkret inbound**：已安装 Applet registration `service_id=did:webvh:z6mkfixture:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:webvh:z6mkfixture:bridge.example#tx-1`，install active。Applet 提交 `POST /_arkret/edge/applet/transactions`，body exact bytes 是 Arkret canonical JSON、`Content-Encoding` absent，header `Source-Service-ID=did:webvh:z6mkfixture:bridge.example`、`Destination-Service-ID=did:webvh:z6mkfixture:principal.example`、`Idempotency-Key=tx-001`、`Content-Digest=sha-256=:...:` 且覆盖 exact body bytes；`Signature-Input` 覆盖 required components，`keyid=did:webvh:z6mkfixture:bridge.example#tx-1`，`created` / `expires` 在窗口内；body `source_service_id` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
+- **Case A — 合法 app/bridge→arkret inbound**：已安装 Applet registration `service_id=ak:did_core:webvh:z6mkfixtureBridge`，其已验证 `full_id=did:webvh:z6mkfixtureBridge:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:webvh:z6mkfixtureBridge:bridge.example#tx-1`，install active。Applet 提交 `POST /_arkret/edge/applet/transactions`，body exact bytes 是 Arkret canonical JSON、`Content-Encoding` absent，header `Source-Service-ID=ak:did_core:webvh:z6mkfixtureBridge`、`Destination-Service-ID=ak:did_core:webvh:z6mkfixturePrincipal`、`Idempotency-Key=tx-001`、`Content-Digest=sha-256=:...:` 且覆盖 exact body bytes；`Signature-Input` 覆盖 required components，`keyid=did:webvh:z6mkfixtureBridge:bridge.example#tx-1`，`created` / `expires` 在窗口内；接收方验证 `project(bare(keyid)) == Source-Service-ID == registration.service_id`，body `source_service_id` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
 - **Case B — 缺签名 / 纯 bearer**：同一 body 只携带 `Authorization: Bearer` 或完全缺少 `Signature` / `Signature-Input`。
 - **Case C — transcript / source / content 混淆**：签名覆盖的 `source-service-id`、header `Source-Service-ID` 或 body `source_service_id` 三者任一不同；或 `Destination-Service-ID` 不等于实际接收服务；或 `Content-Digest` 与 exact body bytes 不一致；或 body 是语义等价但非 canonical 的 JSON wire；或使用 `sha256=:` alias、trailer-only `Content-Digest` / `Content-Encoding`。对非 canonical wire、alias、trailer 与 content-coding mutation，sender MUST 重算适用的 digest 并用有效 Applet service key 重新签名，使 receiver 必须由相应 profile 规则而非偶然 signature mismatch 拒绝。
 - **Case D — idempotency replay**：重复 Case A 的相同 headers/body/signature anchor；随后再次使用同一 `(operation_id, direction, Source-Service-ID, Destination-Service-ID, Idempotency-Key)`，但改变 body digest、`webhook_auth.key_ref` / `keyid`、`registration_epoch` 或 actor namespace。
@@ -5447,7 +5464,7 @@ Expected：
 
 - **Case A**：MUST 接受或按事件级规则返回 partial outcome，并持久化 `source_signature_anchor`（绑定 operation、方向、source/destination、verification method、registration_epoch、`Idempotency-Key`、body digest、covered components、`created` / `expires`）与幂等 outcome。
 - **Case B**：MUST fail closed，HTTP 401，reason=`http_signature_required`；纯 bearer 不满足 transaction push 的 service-to-service 来源认证。
-- **Case C**：MUST 在处理任何 Event / 副作用前 fail closed，reason=`http_signature_invalid`；`Content-Digest` MUST 在 JSON 业务解析与验签前对 exact bytes 重算，header placement 与 wire canonical equality MUST 独立校验，source/destination DID mismatch 不得进入业务逻辑。parse-then-canonicalize、`sha256=:` alias、trailer-only digest 或 content coding 均不得通过。
+- **Case C**：MUST 在处理任何 Event / 副作用前 fail closed，reason=`http_signature_invalid`；`Content-Digest` MUST 在 JSON 业务解析与验签前对 exact bytes 重算，header placement 与 wire canonical equality MUST 独立校验，source/destination service `core_id` mismatch 或 verification-method controller 投影不一致不得进入业务逻辑。parse-then-canonicalize、`sha256=:` alias、trailer-only digest 或 content coding 均不得通过。
 - **Case D**：完全相同的 replay MUST 返回原 outcome 或等价成功且不得重复副作用；同一幂等 identity 但 body digest 或 `source_signature_anchor` 不一致时 MUST fail closed，认证已通过时 reason=`duplicate_conflict`，认证未通过时使用相应认证失败 reason。
 - **Case E**：无 active install MUST fail closed，reason=`applet_registration_unauthorized`；actor / namespace / grant 混淆 MUST fail closed（`applet_namespace_mismatch`、`capability_denied` 或 `applet_registration_unauthorized`），不得把来源 service 签名当成 native actor 授权。
 
@@ -6225,8 +6242,9 @@ endpoint / cipher suite / content profile / room policy、proof controller 与 `
 
 规则正文见 [`../sync/signal.md` §1 / §3](../sync/signal.md)。Runner MUST 覆盖 §3 conformance
 清单的五个 case：授权晚于 `seal_ref` 但 current active 的设备通过设备授权关；`seal_ref` 时
-active 但当前 revoked / fenced / conflicted 的设备被拒；`verification_method` 不逐字等于
-`{sender_actor_id}#{sender_device_id}` 被拒；current directory key 或 Tier-2 /
+active 但当前 revoked / fenced / conflicted 的设备被拒；`verification_method` 的 bare full DID
+经 method adapter 投影不等于 `sender_actor_id`，或 fragment 不等于 `sender_device_id` 时被拒；
+current directory key 或 Tier-2 /
 service-attested 信任锚缺失被拒；设备 current active 但 sender 无 Realm `seal_ref` 下 scope
 资格或 `signal_class` action 被拒。另 MUST 断言 `expires_at` 已过期的 envelope 在 local
 ingress 被 `invalid_param` 拒绝。
@@ -6242,6 +6260,59 @@ Runner MUST 加载 [`event-kind-payload-coverage-fixture.json`](../../artifacts/
 - `ak.relation.tombstone` 正例只携带 `relation_id` 与可选 `reason`，并解析到 `relation_tombstone_payload`；携带 `target_ref` / `patch` 的 update 形态 MUST schema-invalid。Registry cell subject 必须由 `payload.relation_id` 解析为 `id:relation`。
 - `ak.moderation.franking_proof` 正例必须通过 `moderation-report.schema.json#/$defs/franking_proof`，registry 与 Event Envelope 必须引用同一个 def；只带 `report_id` / `target_ref` 的 report-keyed 形态 MUST schema-invalid。Registry cell subject 必须由目标 `payload.event_id` 解析为 `id:event`，不得使用外层 proof Event 自身的 `event_id`，也不得退回不存在的 report 字段。
 - 任一显式 schema ref 不存在、ref fragment 不可解析、Event Envelope 错接到共享 `audit_payload` / `relation_update_payload`、或 cell subject 在所选 payload class 上无可解析标量端点，均 MUST 使本组失败；`event-payload.schema.json` 的定义包根 schema 不能替代上述两条 kind-specific 合同。
+## 35. Service route handover / Realm mirror closure vector
+
+`vector_id`: `ak.vector.service_resolution.handover_mirror.v1`
+
+Runner MUST 加载
+[`service-route-handover-mirror-fixture.json`](../../artifacts/fixtures/service-route-handover-mirror-fixture.json)，
+先按每个 case 的 `schema_ref` 执行
+[`identity-resolution.schema.json`](../../artifacts/schemas/identity-resolution.schema.json) Draft 2020-12
+校验，再执行以下跨对象语义；只验证单个 JSON shape、只验证 target proof 或只验证 URL 可达性均不构成通过：
+
+1. `scheduled` notice 必须满足
+   `issued_at <= not_before <= cutover_at < grace_until <= expires_at`，且
+   `from_record_sequence/from_record_digest` 精确命中 receiver durable current/last-seen floor；任一时间逆序、
+   stale sequence 或异 digest 都必须拒绝，且不得消耗 current record sequence。
+2. 同一 `handover_id` 的 cancellation 必须使用恰高一的 `notice_revision`、精确
+   `previous_notice_digest`，并省略全部 candidate/time 字段；same revision、跳 revision、异 digest 或在正式
+   successor 已接受后试图回滚均拒绝并 quarantine 相应 notice chain。
+3. notice 在任何时刻都不直接授权 Realm Event、to-device、KeyPackage、repair 或其它业务 bytes；
+   `not_before` 前至多允许不更新 route state 的 bounded public resolution/describe preflight。
+4. candidate 只有返回正式、target-signed、同 `service_id + service_kind`、
+   `record_sequence=from_record_sequence+1`、`previous_record_digest=from_record_digest` 的
+   `ServiceResolutionRecord`，并通过 method history、freshness、SSRF 与 describe reverse binding，才能成为
+   effective route。wrong core、sequence gap、wrong predecessor 或 describe mismatch 均 fail closed。
+5. `ak.peer.service_resolution.command.publish` 必须同时验证两个独立 durable 幂等键：transport key 是
+   `(source_service_id, realm_id, request_id)` 并绑定 complete canonical `request_digest`，HTTP
+   `Idempotency-Key` 必须逐字等于 body `request_id`；artifact integrity key 是
+   `(source_service_id, realm_id, artifact_key)` 并绑定 `artifact_digest`。同 transport key、同 request digest
+   返回原 ack；任一 key 的 digest 冲突都必须 `duplicate_conflict`、零覆盖。新 `request_id` 发布同一 artifact
+   bytes 可以得到一份与新 request 交叉绑定的新 ack，但不能产生第二份 artifact state。
+6. notice basis 不允许在同一 exact-one publish request 内夹带或隐含 record chain。receiver floor 落后时，
+   publisher 必须按 sequence 逐份 publish 每条缺失 `ServiceResolutionRecord`，逐份取得 durable ack 并推进
+   floor，最后才以新的独立 request publish notice；缺少任一前置 record ack 时 notice 必须
+   `service_route_notice_basis_stale`，且 notice ack 不得被解释为整条 record chain 的原子 ack。
+7. `ak.peer.service_resolution.read.resolve` 最多返回 32 条连续 successor，canonical response 至多
+   256 KiB；33 条与 256 KiB+1 均拒绝或截成仍连续的合法 page，不得跳 gap；
+   `successor_records=[]` 与 `has_more=true` 的组合必须 schema-invalid。认证/当前 peer/target visibility gate
+   失败统一为 `capability_denied`；通过 gate 后的 unknown、invisible、not-held、gap、fork、cancelled、expired
+   统一为 `not_found`。同一 blinded class 的 body、长度与 timing bucket 不可区分，具体原因只进私有审计，
+   不得泄露 Realm topology。
+8. 两个 mirror 对同一 service sequence 返回不同、但均通过 target proof 的 digest 时，必须进入
+   `service_route_fork` quarantine；不得按多数票、到达时间或 URL reachability 选 winner。
+9. record last-seen floor 与 accepted notice state 必须是相互独立的 durable 状态。restart 后 TTL cache 可以
+   完全丢失，但低于 record floor 的 replay 仍拒绝，已接受 cancellation 仍阻止 candidate，same revision 异
+   digest 仍触发 quarantine；notice expiry/completion 也不得降低 record floor。
+10. route cache 必须同时保留 target-signed `expires_at` 与本地 `cache_expires_at`，且本地值不得晚于 signed
+    expiry；任一边界到达即 hard miss。`now == cache_expires_at` 或 `now == expires_at` 均不得继续路由，
+    不得丢弃 signed expiry、以新本地 TTL 延长它、跳过 describe 或把 future notice candidate 当 current route。
+11. same-core 的 full DID / URL successor 只推进 route floor 与 cache，不写 Realm member rebind；candidate
+   改为新 core 必须由新的 delivery binding / rebind 授权，不能被 notice、mirror 或 cache 接受。
+12. 1:1 双方计划同时迁移时，只有 A durable ack B 的 exact notice 且 B durable ack A 的 exact notice 后，
+    才可报告 cross-ack preannouncement complete 并按共同 cutover/grace 关闭旧入口；任一 ack 缺失、仅内存、
+    digest 不一致或响应不确定时必须保留旧入口或其它已确认恢复面。
+
 ## Account status publication carrier
 
 `ak.vector.account_status.authority_publication.v1` MUST 覆盖：Account Authority 先以当前 binding version 的 `authority_evidence` 调用 `ak.peer.account_status.read.authoring_basis`，只有 Source-Service-ID 等于 issuer、account/principal/PCR/current delegation 全部匹配且 actor/Seal frontier 可验证时返回 typed basis；返回 actor_id/realm_id 不一致、degraded governance、synthetic empty PCR、stale/unresolved Seal 或过期 evidence 均零披露失败，query 本身零写入。producer 必须由返回 actor frontier 构造 `actor_seq/prev_refs`，由验证后的单一 Seal head 构造 `seal_basis.leaves`，不得使用 opaque peer frontier root 或私有 DTO。随后 Event actor/proof、payload account/principal 与 Principal Control Realm 全部一致时进入 `pending_seal -> accepted` 并返回 frontier digest/barrier cursor；相同 Idempotency-Key + byte-identical body 在 pending/accepted 两阶段均不创建第二条 Event且返回最新 operation state；同 key 异 body `duplicate_conflict`。Issuer、account、principal、PCR、authority ref、binding version、proof digest、HTTP Source/Destination 或 trust domain 任一不匹配均零写入失败。Receipted fanout 必须保留原 Event 并携 receiver-signed `account_status_receipts[]` / CBA closure；receipt 必须证明本地 accepted frontier且不含 AuthorizationLease，generic `IngressReceipt` 必须 schema-invalid；目标 ack 前 outbox 保持 pending，超窗投影 `deactivation_federation_incomplete=true`，最终 ack 后清零 flag 而不改写 Event payload。Holder session、第三方服务与通用 `ak.peer.events.command.submit` 缺 account authority evidence 的尝试都不得成为可接受 carrier。

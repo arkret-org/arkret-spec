@@ -53,7 +53,7 @@
           "const": "1.0"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "account_data_key": {
           "type": "string",

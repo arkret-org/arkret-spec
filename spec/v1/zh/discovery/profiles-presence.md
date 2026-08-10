@@ -23,14 +23,14 @@ updated: 2026-07-03
 
 ### 2.1 Profile 对象
 
-每个 Actor DID MAY 关联一个标准化的 `actor_profile` 对象，作为其公开身份信息。Profile 数据由 Actor 签名 Event 发布，并通过 Identity 解析或授权 Directory 被其他节点发现。对象字段以 [`../../artifacts/schemas/actor-profile.schema.json`](../../artifacts/schemas/actor-profile.schema.json) 为准；权限仍以 `principal_id` 指向的 DID / capability 为准。
+每个 Actor `core_id` MAY 关联一个标准化的 `actor_profile` 对象，作为其公开身份信息。Profile 数据由 Actor 签名 Event 发布，并通过 Identity 解析或授权 Directory 被其他节点发现。对象字段以 [`../../artifacts/schemas/actor-profile.schema.json`](../../artifacts/schemas/actor-profile.schema.json) 为准；权限仍以 `principal_id` 指向的稳定主体及其完整 DID 控制证明 / capability 为准。
 
 ```json
 {
   "id": "ak:actor_profile:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
   "schema": "ak.schema.actor_profile.v1",
   "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
-  "principal_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
+  "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
   "actor_kind": "user",
   "display_name": "Alice Chen",
   "handle": "alice",
@@ -45,7 +45,7 @@ updated: 2026-07-03
     "organization": "Acme Corp"
   },
   "created_at": "2026-04-26T00:00:00Z",
-  "updated_by": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
+  "updated_by": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
   "updated_at": "2026-04-26T00:01:00Z"
 }
 ```
@@ -59,7 +59,7 @@ updated: 2026-07-03
 | `id` | id:actor_profile | MUST | Profile 对象 ID。 |
 | `schema` | string | MUST | `ak.schema.actor_profile.v1`。 |
 | `realm_id` | id:realm | 可选 | Profile state 所属的 principal control Realm 或 profile materialization scope。存在时 MUST 与承载该 profile create/update 的 principal control Realm 或授权 materialization scope 一致；不得被当作协作 Realm membership 或读取权限。 |
-| `principal_id` | did | MUST | Actor / Principal DID。 |
+| `principal_id` | core_id | MUST | Actor / Principal 的稳定业务身份。 |
 | `actor_kind` | enum | MUST | `user`、`org`、`team`、`agent`、`service` 或 `integration`（不含 `device`：设备非 actor 主体，见 [`../models/actor.md` §2](../models/actor.md)）。 |
 | `display_name` | string | MUST | 人类可读的显示名（最大 128 字符）。 |
 | `handle` | string | 可选 | 本地或目录展示 handle。经 Directory / projection 披露时同受 §5 handle 披露 gate 约束（不得旁路 handle 搜索披露限制）。 |
@@ -69,7 +69,7 @@ updated: 2026-07-03
 | `accountable_principal_ids` | did[] | 可选 | agent / service / 托管账号的责任主体。 |
 | `profile_fields` | object | 可选 | 个人简介的 canonical 落点是 `profile_fields.bio`；此外可承载代词、时区、locale、状态消息与组织自定义展示字段。`bio` 与 `status_message` 各 MUST ≤ 256 字符（Unicode code point 计），并受 §3.3 相同的 NFC / 控制字符约束。`avatar_url` 不是协议字段；头像必须先保存为 Blob，再写入顶层 `avatar_blob_ref`。 |
 | `created_at` | timestamp | MUST | 创建时间。 |
-| `updated_by` | did | 可选 | 最近更新者；由 profile update Event actor 派生。 |
+| `updated_by` | core_id | 可选 | 最近更新者；由 profile update Event actor 派生。 |
 | `updated_at` | timestamp | 可选 | 最近更新时间。 |
 
 ### 2.3 Profile 创建与更新
@@ -81,7 +81,7 @@ Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到
   "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
   "kind": "ak.profile.create",
   "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
-  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
+  "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
   "actor_seq": 1,
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0001-a13f9c2e",
@@ -92,7 +92,7 @@ Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到
       "id": "ak:actor_profile:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
       "schema": "ak.schema.actor_profile.v1",
       "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
-      "principal_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
+      "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
       "actor_kind": "user",
       "display_name": "Alice Chen",
       "handle": "alice",
@@ -124,7 +124,7 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
   "event_id": "ak:event:AWxu9WEa6ZSBa79XtJFqrj3WsshthqPPUDPk-cMq5gZM",
   "kind": "ak.profile.update",
   "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
-  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
+  "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
   "actor_seq": 2,
   "created_at": "2026-04-26T00:01:00Z",
   "hlc": "01970e598d21-0001-a13f9c2e",
@@ -174,7 +174,7 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
   "event_id": "ak:event:AcWdky_9bM7PKl17K1UxMcj72H3_Ny9PoMhexJ2S-sK0",
   "kind": "ak.profile.realm_override",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
+  "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
   "actor_seq": 3,
   "created_at": "2026-04-26T00:02:00Z",
   "hlc": "01970e5a8d21-0001-a13f9c2e",

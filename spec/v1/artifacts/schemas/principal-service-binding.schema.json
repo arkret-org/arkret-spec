@@ -12,8 +12,11 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/did"
+    "core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    },
+    "full_id": {
+      "$ref": "./common-ids.schema.json#/$defs/full_id"
     },
     "did_url": {
       "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -38,7 +41,7 @@
           "$ref": "#/$defs/did_url"
         },
         "controller": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/full_id"
         },
         "type": {
           "const": "Multikey"
@@ -50,9 +53,9 @@
       },
       "additionalProperties": false
     },
-    "accepted_at_service_binding": {
+    "accepted_at_service_binding_core": {
       "type": "object",
-      "description": "Closed accepted-at snapshot. binding_digest = H('ak.principal-service-binding.v1', the object formed by the fields principal_id through expires_at, omitting binding_digest and both proofs). authority_evidence.document_digest MUST equal document_digest. service_acceptance_proof and principal_authorization_proof both sign H('ak.principal-service-binding-proof.v1', {binding_digest,accepted_at,proof_purpose,verification_method}); the former uses verification_method.id and the latter uses a key accepted for principal_id at accepted_at.",
+      "description": "Frozen accepted-at binding core returned by ak.self.principal_service_binding.command.prepare. binding_digest = H('ak.principal-service-binding.v1', the RFC 8785 canonical object formed by every property here except binding_digest). authorization_challenge is service-generated, single-use and therefore binds the principal proof to this exact prepare instead of permitting an old proof to complete a later challenge. authority_evidence.document_digest MUST equal document_digest. A first binding omits predecessor_binding_digest and is accepted only when no current binding exists; a same-service renewal requires predecessor_binding_digest to equal the complete current binding digest under an atomic CAS.",
       "required": [
         "principal_id",
         "service_id",
@@ -62,18 +65,18 @@
         "endpoint_origins",
         "document_digest",
         "authority_evidence",
+        "service_resolution",
+        "authorization_challenge",
         "not_before",
         "accepted_at",
-        "binding_digest",
-        "service_acceptance_proof",
-        "principal_authorization_proof"
+        "binding_digest"
       ],
       "properties": {
         "principal_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/core_id"
         },
         "service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/core_id"
         },
         "trust_domain": {
           "type": "string",
@@ -103,6 +106,15 @@
         "authority_evidence": {
           "$ref": "./did-binding-contracts.schema.json#/$defs/evidence_receipt"
         },
+        "service_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
+          "description": "First-hop route material for service_id. An inline record MUST name the same service_id; a referenced record MUST be fetched and independently verified before endpoint use."
+        },
+        "authorization_challenge": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,128}$",
+          "description": "Opaque service-generated challenge copied from the durable prepare record and included in binding_digest. It is never caller-selected or reused across distinct binding drafts."
+        },
         "history_head": {
           "type": "string",
           "minLength": 1
@@ -120,17 +132,38 @@
         "accepted_at": {
           "$ref": "#/$defs/timestamp"
         },
+        "predecessor_binding_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Exact current accepted binding digest replaced by this same-service renewal. Omitted only for the first accepted binding."
+        },
         "binding_digest": {
           "$ref": "#/$defs/hash"
-        },
-        "service_acceptance_proof": {
-          "$ref": "./principal-operations.schema.json#/$defs/signature"
-        },
-        "principal_authorization_proof": {
-          "$ref": "./principal-operations.schema.json#/$defs/signature"
         }
-      },
-      "additionalProperties": false
+      }
+    },
+    "accepted_at_service_binding": {
+      "description": "Closed accepted-at snapshot installed by the two-phase self binding operation. principal_authorization_proof signs H('ak.principal-service-binding-proof.v1', {binding_digest,accepted_at,proof_purpose:'principal_authorization',verification_method,audience:service_id}); service_acceptance_proof signs the same closed object with proof_purpose='service_acceptance' and service_verification_method.id. Both signatures use the exact frozen core, fixed UTC-millisecond accepted_at and distinct proof purposes; neither proof enters binding_digest.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/accepted_at_service_binding_core"
+        },
+        {
+          "type": "object",
+          "required": [
+            "service_acceptance_proof",
+            "principal_authorization_proof"
+          ],
+          "properties": {
+            "service_acceptance_proof": {
+              "$ref": "./principal-operations.schema.json#/$defs/signature"
+            },
+            "principal_authorization_proof": {
+              "$ref": "./principal-operations.schema.json#/$defs/signature"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
     },
     "principal_service_cutover": {
       "type": "object",
@@ -151,17 +184,17 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/core_id"
         },
         "trust_domain": {
           "type": "string",
           "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
         },
         "previous_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/core_id"
         },
         "new_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/core_id"
         },
         "previous_binding_digest": {
           "$ref": "#/$defs/hash"

@@ -259,7 +259,7 @@
           "plane": "data",
           "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "auth_context": {
-            "did": "did:webvh:z6mkfixture:bob.example",
+            "did": "did:webvh:z6mkfixturebobexample:bob.example",
             "key_id": "device-1",
             "key_epoch": 1
           }
@@ -602,13 +602,13 @@
       "name": "inclusion_list_obligation",
       "description": "A multi-signer notary Seal must discharge valid inclusion-list obligations by inclusion, signed reject, or pre-state verification failure proof.",
       "notary_profile": {
-        "proposer_id": "did:webvh:z6mkfixture:notary-proposer.example",
-        "signer_id": "did:webvh:z6mkfixture:notary-signer.example",
+        "proposer_id": "did:webvh:z6mkfixturenotaryproposerexample:notary-proposer.example",
+        "signer_id": "did:webvh:z6mkfixturenotarysignerexample:notary-signer.example",
         "kind": "threshold"
       },
       "inclusion_list": {
         "realm_id": "ak:realm:AdbrvqPXnyWuzHszTKHBTzBht7dhJzgDbqa5RxOlifAo",
-        "signer_id": "did:webvh:z6mkfixture:notary-signer.example",
+        "signer_id": "did:webvh:z6mkfixturenotarysignerexample:notary-signer.example",
         "list_seq": 7,
         "event_digests": [
           "sha256:7777777777777777777777777777777777777777777777777777777777777777"
@@ -617,7 +617,7 @@
         "created_at": "2026-06-11T00:00:00.000Z",
         "signature": {
           "kind": "detached_jws",
-          "verification_method": "did:webvh:z6mkfixture:notary-signer.example#key-1",
+          "verification_method": "did:webvh:z6mkfixturenotarysignerexample:notary-signer.example#key-1",
           "payload_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
           "created_at": "2026-06-11T00:00:00.000Z",
           "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
@@ -671,7 +671,7 @@
       "description": "Two different Seals signed by the same notary in the same slot authorize public equivocation evidence, quarantine the fork, and reject later Seals from that signer.",
       "fault_pair": {
         "realm_id": "ak:realm:AdbrvqPXnyWuzHszTKHBTzBht7dhJzgDbqa5RxOlifAo",
-        "signer_id": "did:webvh:z6mkfixture:notary.example",
+        "signer_id": "did:webvh:z6mkfixturenotaryexample:notary.example",
         "notary_seq": 42,
         "seal_a": {
           "id": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -686,7 +686,7 @@
         "event_kind": "ak.notary.fault.equivocation",
         "submitter_capability_refs": [],
         "payload": {
-          "signer_id": "did:webvh:z6mkfixture:notary.example",
+          "signer_id": "did:webvh:z6mkfixturenotaryexample:notary.example",
           "seal_a": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "seal_b": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         }
@@ -701,7 +701,7 @@
         "remaining_signer_policy": "continue_if_quorum_else_notary_paused"
       },
       "invalid_parallel_leaf_case": {
-        "signer_id": "did:webvh:z6mkfixture:other-notary.example",
+        "signer_id": "did:webvh:z6mkfixtureothernotaryexample:other-notary.example",
         "notary_seq": 43,
         "expected": {
           "result": "failed_precondition"
@@ -765,11 +765,11 @@
           "name": "n5_k3_quorum_intersection",
           "notary": {
             "members": [
-              "did:webvh:z6mkfixture:n1.example",
-              "did:webvh:z6mkfixture:n2.example",
-              "did:webvh:z6mkfixture:n3.example",
-              "did:webvh:z6mkfixture:n4.example",
-              "did:webvh:z6mkfixture:n5.example"
+              "did:webvh:z6mkfixturen1example:n1.example",
+              "did:webvh:z6mkfixturen2example:n2.example",
+              "did:webvh:z6mkfixturen3example:n3.example",
+              "did:webvh:z6mkfixturen4example:n4.example",
+              "did:webvh:z6mkfixturen5example:n5.example"
             ],
             "threshold": 3,
             "forensic_attribution": "quorum_intersection",
@@ -783,11 +783,11 @@
           "name": "n5_k3_waived_reject",
           "notary": {
             "members": [
-              "did:webvh:z6mkfixture:n1.example",
-              "did:webvh:z6mkfixture:n2.example",
-              "did:webvh:z6mkfixture:n3.example",
-              "did:webvh:z6mkfixture:n4.example",
-              "did:webvh:z6mkfixture:n5.example"
+              "did:webvh:z6mkfixturen1example:n1.example",
+              "did:webvh:z6mkfixturen2example:n2.example",
+              "did:webvh:z6mkfixturen3example:n3.example",
+              "did:webvh:z6mkfixturen4example:n4.example",
+              "did:webvh:z6mkfixturen5example:n5.example"
             ],
             "threshold": 3,
             "forensic_attribution": "waived",
@@ -802,10 +802,10 @@
           "name": "n4_k2_quorum_intersection_reject",
           "notary": {
             "members": [
-              "did:webvh:z6mkfixture:n1.example",
-              "did:webvh:z6mkfixture:n2.example",
-              "did:webvh:z6mkfixture:n3.example",
-              "did:webvh:z6mkfixture:n4.example"
+              "did:webvh:z6mkfixturen1example:n1.example",
+              "did:webvh:z6mkfixturen2example:n2.example",
+              "did:webvh:z6mkfixturen3example:n3.example",
+              "did:webvh:z6mkfixturen4example:n4.example"
             ],
             "threshold": 2,
             "forensic_attribution": "quorum_intersection",
@@ -820,9 +820,9 @@
           "name": "threshold_missing_forensic_attribution",
           "notary": {
             "members": [
-              "did:webvh:z6mkfixture:n1.example",
-              "did:webvh:z6mkfixture:n2.example",
-              "did:webvh:z6mkfixture:n3.example"
+              "did:webvh:z6mkfixturen1example:n1.example",
+              "did:webvh:z6mkfixturen2example:n2.example",
+              "did:webvh:z6mkfixturen3example:n3.example"
             ],
             "threshold": 2,
             "kind": "threshold"
@@ -964,7 +964,7 @@
     {
       "name": "actor_chain_realm_scope",
       "description": "Actor sequence and sibling detection are scoped to (realm_id, actor_id); equal actor_seq values in different Realms do not create a fork.",
-      "actor_id": "did:webvh:z6mkfixture:alice.example",
+      "actor_id": "ak:did_core:webvh:z6mkfixture",
       "cases": [
         {
           "name": "same_actor_and_seq_across_realms",

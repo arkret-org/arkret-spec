@@ -1,0 +1,143 @@
+{
+  "version": "2026-08-10.8",
+  "source_of_truth": false,
+  "generated_at": "2026-08-10T23:50:00Z",
+  "generated_from": "registry/contract-registry.json",
+  "generated_by": "tools/artifact_pipeline.py",
+  "registry_rules": [
+    "Only an active adapter row can validate a full_id or project it to core_id. DID syntax alone never admits a method.",
+    "project is a method-defined semantic transform over a canonical bare full_id, not generic string concatenation or prefix removal. Receivers compare the complete projected core_id byte-for-byte.",
+    "Every adapter validates method-native control, deactivation, currentness and history evidence according to its trust profile before returning a verified projection. Unknown methods and unknown adapter versions fail closed.",
+    "A new full_id is an update of an existing principal or service only when the same active adapter projects it to the identical core_id. A method or core change creates a new identity and cannot inherit authorization through a continuity assertion.",
+    "DID URLs are constructed and compared from the verified full_id under the adapter's DID URL rules. A core_id is never used as a DID URL base.",
+    "A full_id is a canonical bare DID and therefore contains no path, query or fragment. Each active adapter deterministically emits method_history_head, version_id and service_resolution_event_ref according to its registered rules, including synthetic values for methods without native history.",
+    "For a generic Event proof, the verifier extracts the canonical bare full_id base from proof.verification_method, validates the active adapter and key at the cited method history, projects that full_id, and compares the resulting core_id to executed_by when present or actor_id otherwise. The did_root_anchor admission variant is the sole registered exception.",
+    "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:cell:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current cell and MUST cross-bind payload.previous_resolution_event_ref and payload.previous_method_history_head."
+  ],
+  "principal_resolution_contract": {
+    "version": "ak.identity.resolution.contract.v1",
+    "cell_ref": "ak:cell:ak.component.identity.resolution.v1:null",
+    "cell_value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
+    "profile_write_policy": {
+      "create_forbidden_members": [
+        "id",
+        "resolution",
+        "updated_by",
+        "updated_at"
+      ],
+      "update_forbidden_path_pattern": "^resolution(?:\\.|$)",
+      "failure": "schema_violation"
+    },
+    "genesis_head": {
+      "event_kind": "ak.realm.create",
+      "head_index": 0,
+      "scope_kind": "realm_genesis",
+      "allowed_purposes": [
+        "principal_control",
+        "managed_agent_control"
+      ],
+      "principal_rule": "event.actor_id == project(payload.object.initial_resolution.full_id)",
+      "realm_rule": "derive_identity_control_realm(event) == evidence.principal_control_realm_id",
+      "projection_rule": "cell_value = payload.object.initial_resolution + {resolution_event_ref:event.event_id, updated_at:event.created_at}"
+    },
+    "update_successor": {
+      "event_kind": "ak.identity.resolution.update",
+      "required_realm_rule": "event.realm_id == derive_identity_control_realm(event.actor_id)",
+      "required_precondition": {
+        "cell": "ak:cell:ak.component.identity.resolution.v1:null",
+        "op": "head_eq",
+        "value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
+        "cardinality": 1
+      },
+      "predecessor_rules": [
+        "payload.previous_resolution_event_ref == precondition.value.resolution_event_ref",
+        "payload.previous_method_history_head == precondition.value.method_history_head",
+        "project(payload.next.full_id) == event.actor_id"
+      ],
+      "projection_rule": "cell_value = payload.next + {resolution_event_ref:event.event_id, updated_at:event.created_at}"
+    },
+    "public_evidence_evaluator": {
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_evidence",
+      "checks": [
+        "principal_genesis_event.kind == ak.realm.create and principal_genesis_event is resolution head 0",
+        "principal_genesis_event.actor_id == principal_id",
+        "principal_genesis_event.payload.object.purpose is principal_control or managed_agent_control",
+        "project(principal_genesis_event.payload.object.initial_resolution.full_id) == principal_id",
+        "derive_identity_control_realm(principal_genesis_event) == principal_control_realm_id",
+        "every post-genesis event is ak.identity.resolution.update with actor_id == principal_id and realm_id == principal_control_realm_id",
+        "if current_resolution_event is principal_genesis_event then predecessor_resolution_events is empty; otherwise predecessor_resolution_events[0] is the current Event's guarded immediate predecessor when history_depth is nonzero",
+        "the supplied resolution events form a contiguous immediate-predecessor segment backward from current_resolution_event under the exact guarded whole-cell values; if the segment reaches head 0 it terminates at principal_genesis_event, otherwise the oldest guarded predecessor is the next audit cursor and omitted history is never treated as absent",
+        "accepted_seal.realm_id == principal_control_realm_id and accepted_seal recursively covers both principal_genesis_event.event_digest and current_resolution_event.event_digest",
+        "resolution_cell_proof.seal_id == accepted_seal.id and resolution_cell_proof.state_root == accepted_seal.state_root",
+        "resolution_cell_proof.cell_value.resolution_event_ref == current_resolution_event.event_id",
+        "resolution_cell_proof.cell_value equals the registry projection of current_resolution_event",
+        "project(resolution_cell_proof.cell_value.full_id) == principal_id",
+        "method_history_evidence boundary and currentness validate under the adapter selected by cell_value.full_id"
+      ],
+      "failure": "invalid_or_dependency_pending"
+    }
+  },
+  "adapters": [
+    {
+      "method": "did:webvh",
+      "adapter_version": "did:webvh:1.0",
+      "status": "active",
+      "full_id_shape": "did:webvh:<scid>:<host-and-path>",
+      "core_projection": "ak:did_core:webvh:<validated-scid>",
+      "resolution_components": [
+        "host-and-path"
+      ],
+      "native_history": true,
+      "method_evidence_kind": "webvh_log",
+      "method_history_head_rule": "sha256:<lowercase-hex SHA-256 of RFC 8785 JCS of the verified current did:webvh log entry>",
+      "version_id_rule": "The exact method-native versionId of that same verified current did:webvh log entry, serialized as a non-empty string.",
+      "service_resolution_event_ref_rule": "did-webvh-entry-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",
+      "required_evidence": [
+        "scid_derivation",
+        "entry_hash_chain",
+        "controller_proof",
+        "method_history_head",
+        "version_id"
+      ],
+      "relocation_preserves_core": true
+    },
+    {
+      "method": "did:web",
+      "adapter_version": "did:web:1",
+      "status": "active",
+      "full_id_shape": "did:web:<canonical-method-specific-id>",
+      "core_projection": "ak:did_core:web:<canonical-method-specific-id>",
+      "resolution_components": [],
+      "native_history": false,
+      "method_evidence_kind": "did_web_document",
+      "method_history_head_rule": "sha256:<lowercase-hex SHA-256 of RFC 8785 JCS of the verified current DID Document>",
+      "version_id_rule": "synthetic-jcs-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",
+      "service_resolution_event_ref_rule": "did-web-document-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",
+      "required_evidence": [
+        "https_did_document",
+        "method_history_head",
+        "version_id"
+      ],
+      "relocation_preserves_core": false
+    },
+    {
+      "method": "did:key",
+      "adapter_version": "did:key:1",
+      "status": "active",
+      "full_id_shape": "did:key:<canonical-multibase-method-specific-id>",
+      "core_projection": "ak:did_core:key:<canonical-multibase-method-specific-id>",
+      "resolution_components": [],
+      "native_history": false,
+      "method_evidence_kind": "did_key_expansion",
+      "method_history_head_rule": "sha256:<lowercase-hex SHA-256 of the UTF-8 bytes of canonical full_id>",
+      "version_id_rule": "synthetic-full-id-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",
+      "service_resolution_event_ref_rule": "did-key-full-id-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",
+      "required_evidence": [
+        "local_key_expansion",
+        "method_history_head",
+        "version_id"
+      ],
+      "relocation_preserves_core": false
+    }
+  ]
+}

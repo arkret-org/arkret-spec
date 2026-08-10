@@ -258,11 +258,14 @@ applicant 直接提交：
   "kind": "ak.member.state",
   "payload": {
     "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-    "actor_id": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:bob",
+    "actor_id": "ak:did_core:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x",
     "membership": "join",
     "delivery_status": "routable",
     "delivery_binding": {
-      "recipient_service_id": "did:webvh:zumXV7yCE8UjvfwVEcio4oN3f:principal.org-a.example",
+      "recipient_service_id": "ak:did_core:webvh:zumXV7yCE8UjvfwVEcio4oN3f",
+      "service_resolution": {
+        "current_record_url": "https://principal.org-a.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3AzumXV7yCE8UjvfwVEcio4oN3f/resolution"
+      },
       "recipient_service_kind": "principal_server",
       "binding_scope": "realm",
       "binding_source": "explicit",
@@ -278,7 +281,7 @@ applicant 直接提交：
         "gate_id": "g-captcha",
         "challenge_proof": {
           "challenge_id": "chg_01HXY9PM0AB6Y7VN2C7M4WG5KQ",
-          "issued_by": "did:webvh:zaeuR1WGwz5pkZueKCmyqGFqu:captcha.example",
+          "issued_by": "ak:did_core:webvh:zaeuR1WGwz5pkZueKCmyqGFqu",
           "proof": "base64url:..."
         }
       }
@@ -537,7 +540,7 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
       "max_proof_age": "PT5M",
       "must_satisfy_before_resubmit": true,
       "bound_to": {
-        "actor_id": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:applicant",
+        "actor_id": "ak:did_core:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x",
         "action": "member.application",
         "request_canonical_digest": "sha256:...",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000"

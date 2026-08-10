@@ -33,9 +33,8 @@
   },
   "additionalProperties": false,
   "$defs": {
-    "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    "core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -55,16 +54,25 @@
       "type": "object",
       "required": [
         "subject_id",
-        "recipient_service_id"
+        "recipient_service_id",
+        "service_resolution"
       ],
       "properties": {
         "subject_id": {
-          "$ref": "#/$defs/did",
-          "description": "Principal DID of the invite recipient. v1 core defaults principal DIDs to did:webvh; did:web is only valid for principal identity when an explicit deployment profile or resolver policy allows it."
+          "$ref": "#/$defs/core_id",
+          "description": "Stable principal core_id of the invite recipient."
         },
         "recipient_service_id": {
-          "$ref": "#/$defs/did",
-          "description": "Principal Server service DID that accepts invite delivery for subject_id."
+          "$ref": "#/$defs/core_id",
+          "description": "Stable Principal Server service core_id that accepts invite delivery for subject_id."
+        },
+        "service_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
+          "description": "First-hop resolution material for recipient_service_id."
+        },
+        "route_assistance": {
+          "$ref": "./identity-resolution.schema.json#/$defs/route_assistance",
+          "description": "Optional transport-only hints for recovering the same recipient_service_id route. This field is outside invite_event canonical bytes and MUST NOT be copied into invite_delivery_target or any Realm member cell; it does not extend invite/locator TTL or authorize delivery."
         },
         "recipient_service_kind": {
           "const": "principal_server",
@@ -76,11 +84,15 @@
     "invite_delivery_target": {
       "type": "object",
       "required": [
-        "recipient_service_id"
+        "recipient_service_id",
+        "service_resolution"
       ],
       "properties": {
         "recipient_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/core_id"
+        },
+        "service_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier"
         },
         "recipient_service_kind": {
           "const": "principal_server",
@@ -198,8 +210,8 @@
           "description": "Optional builder evidence returned by a Directory or trusted issuer for intent=invite. When present, verifiers MUST check subject_id, handle, recipient_service_id, audience, issuer_service_id, expiry and proofs against this delivery."
         },
         "resolved_by": {
-          "$ref": "#/$defs/did",
-          "description": "Optional Directory or issuer service DID that supplied the handle resolution."
+          "$ref": "#/$defs/core_id",
+          "description": "Optional stable Directory or issuer service core_id that supplied the handle resolution."
         },
         "resolved_at": {
           "$ref": "#/$defs/timestamp"

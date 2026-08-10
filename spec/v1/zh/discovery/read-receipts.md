@@ -157,7 +157,7 @@ Read cursor schema：`ak.schema.read_cursor.v1`。Read Cursor 是 actor-private 
 {
   "id": "ak:read_cursor:01964137-0000-7000-8000-000000000001",
   "schema": "ak.schema.read_cursor.v1",
-  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+  "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "read_scope": {
@@ -211,7 +211,7 @@ Read Cursor 是 actor-private 状态。最小结构示例：
 
 ```json
 {
-  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+  "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "read_scope": {
@@ -238,7 +238,7 @@ schema：`ak.schema.read_receipt.v1`：
 {
   "kind": "ak.receipt.read",
   "payload_sequence": 41,
-  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+  "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
   "event_id": "ak:event:AZycRHG_Vh7FL6x4SaV77pX-yi8nr5VSwwO3wMWsBEja",
   "read_scope": {
     "kind": "strand",
@@ -256,7 +256,7 @@ Notification 是派生 projection，不是 canonical truth。schema：`ak.schema
 {
   "id": "ak:notification:01964157-8000-7000-8000-000000000000",
   "schema": "ak.schema.notification.v1",
-  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+  "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "source_event_id": "ak:event:AU_oCPn_WTIYBhptsMI1qfZ28EaYvJo6qGTYZmYG4u7J",
   "source_ref": "ak:message:Ac4grCTeSnv86UIA0vyN5mjzADSkwSSFvGCYIwTHoXqb",

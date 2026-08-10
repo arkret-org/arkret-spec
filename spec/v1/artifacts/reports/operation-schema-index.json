@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.4",
+  "version": "2026-08-10.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T18:00:00Z",
+  "generated_at": "2026-08-10T23:50:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -952,6 +952,40 @@
       }
     },
     {
+      "operation_id": "ak.gate.account.command.issue_controller_gate_attestation",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_request",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "principal_id",
+          "agent_authority_service_id",
+          "agent_authority_service_resolution"
+        ],
+        "properties": [
+          "request_id",
+          "principal_id",
+          "agent_authority_service_id",
+          "agent_authority_service_resolution"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "controller_account_gate_attestation"
+        ],
+        "properties": [
+          "request_id",
+          "controller_account_gate_attestation"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.gate.account.command.issue_identity_binding_challenge",
       "success_shape_kind": "typed_response",
       "request": {
@@ -961,6 +995,7 @@
           "request_id",
           "identity_creation_lease_id",
           "lease_fence",
+          "full_id",
           "did_operation",
           "pcr_realm_id",
           "realm_create_payload_digest",
@@ -971,6 +1006,7 @@
           "request_id",
           "identity_creation_lease_id",
           "lease_fence",
+          "full_id",
           "did_operation",
           "pcr_realm_id",
           "realm_create_payload_digest",
@@ -989,6 +1025,7 @@
           "purpose",
           "account_subject",
           "principal_id",
+          "full_id",
           "operation_digest",
           "did_version_id",
           "log_head_digest",
@@ -1014,6 +1051,7 @@
           "purpose",
           "account_subject",
           "principal_id",
+          "full_id",
           "operation_digest",
           "did_version_id",
           "log_head_digest",
@@ -1043,11 +1081,13 @@
         "schema_kind": "object",
         "required": [
           "request_id",
-          "principal_id"
+          "principal_id",
+          "full_id"
         ],
         "properties": [
           "request_id",
-          "principal_id"
+          "principal_id",
+          "full_id"
         ],
         "closed": true
       },
@@ -1061,6 +1101,7 @@
           "purpose",
           "account_subject",
           "principal_id",
+          "full_id",
           "did_version_id",
           "log_head_digest",
           "control_key_digest",
@@ -1078,6 +1119,7 @@
           "purpose",
           "account_subject",
           "principal_id",
+          "full_id",
           "did_version_id",
           "log_head_digest",
           "control_key_digest",
@@ -1496,19 +1538,30 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_request_body",
-        "schema_kind": "object",
-        "required": [
-          "principal_id"
-        ],
-        "properties": [
-          "principal_id",
-          "display_name",
-          "device_id",
-          "proof",
-          "identity_creation",
-          "policy_evidence"
-        ],
-        "closed": true
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_request_body",
+            "schema_kind": null,
+            "required": [
+              "proof"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_request_body",
+            "schema_kind": null,
+            "required": [
+              "identity_creation"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_outcome",
@@ -1516,7 +1569,8 @@
         "required": [
           "principal_id",
           "state",
-          "devices"
+          "devices",
+          "binding_receipt"
         ],
         "properties": [
           "principal_id",
@@ -1869,6 +1923,51 @@
       }
     },
     {
+      "operation_id": "ak.open.identity.read.resolution",
+      "success_shape_kind": "schema_resource",
+      "response": {
+        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_evidence",
+        "schema_kind": "object",
+        "required": [
+          "principal_id",
+          "principal_control_realm_id",
+          "principal_genesis_event",
+          "current_resolution_event",
+          "predecessor_resolution_events",
+          "accepted_seal",
+          "resolution_cell_proof"
+        ],
+        "properties": [
+          "principal_id",
+          "principal_control_realm_id",
+          "principal_genesis_event",
+          "current_resolution_event",
+          "predecessor_resolution_events",
+          "accepted_seal",
+          "resolution_cell_proof",
+          "method_history_evidence"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.open.service.read.resolution",
+      "success_shape_kind": "schema_resource",
+      "response": {
+        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_record",
+        "schema_kind": "object",
+        "required": [
+          "record",
+          "proof"
+        ],
+        "properties": [
+          "record",
+          "proof"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.open.invite_locator.read.resolve",
       "success_shape_kind": "typed_response",
       "request": {
@@ -1889,6 +1988,7 @@
           "schema",
           "subject_id",
           "recipient_service_id",
+          "service_resolution",
           "issued_at",
           "expires_at",
           "locator_ref_digest",
@@ -1898,6 +1998,8 @@
           "schema",
           "subject_id",
           "recipient_service_id",
+          "service_resolution",
+          "route_assistance",
           "recipient_service_kind",
           "issued_at",
           "expires_at",
@@ -2661,6 +2763,48 @@
       }
     },
     {
+      "operation_id": "ak.peer.direct_conversation.command.repair_relay",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_relay_request",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "content",
+          "requester_authorization",
+          "requester_evidence"
+        ],
+        "properties": [
+          "request_id",
+          "content",
+          "requester_authorization",
+          "requester_evidence"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_enqueue_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "request_digest",
+          "destination_service_id",
+          "status",
+          "recipient_target",
+          "accepted_at"
+        ],
+        "properties": [
+          "request_id",
+          "request_digest",
+          "destination_service_id",
+          "status",
+          "recipient_target",
+          "accepted_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.peer.erasure_receipt.command.submit",
       "success_shape_kind": "typed_response",
       "request": {
@@ -3027,13 +3171,18 @@
           "claim_nonce",
           "expires_at",
           "target_device_ids",
+          "target_keypackage_ref",
+          "target_agent_id",
+          "target_agent_verification_method",
+          "target_agent_key_authorize_event_id",
           "minimal_metadata_allowed",
           "timeout_ms",
           "strand_id",
           "pair_key",
           "last_resort_allowed",
           "requester_authorization",
-          "requester_signing_key_evidence"
+          "requester_signing_key_evidence",
+          "requester_agent_signer_evidence"
         ],
         "closed": true
       },
@@ -3160,6 +3309,7 @@
         "required": [
           "account_authority_id",
           "principal_id",
+          "full_id",
           "pcr_realm_id",
           "did_version_id",
           "log_head_digest",
@@ -3172,6 +3322,7 @@
         "properties": [
           "account_authority_id",
           "principal_id",
+          "full_id",
           "pcr_realm_id",
           "did_version_id",
           "log_head_digest",
@@ -3190,13 +3341,97 @@
           "principal_id",
           "pcr_realm_id",
           "accepted_device_id",
+          "resolution",
           "receipt"
         ],
         "properties": [
           "principal_id",
           "pcr_realm_id",
           "accepted_device_id",
+          "resolution",
           "receipt"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.service_resolution.command.publish",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_request",
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_request",
+            "schema_kind": null,
+            "required": [
+              "service_resolution_record"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_request",
+            "schema_kind": null,
+            "required": [
+              "service_route_handover_notice"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
+      },
+      "response": {
+        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_outcome",
+        "schema_kind": "object",
+        "required": [
+          "ack"
+        ],
+        "properties": [
+          "ack"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.service_resolution.read.resolve",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_request",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "target_service_id",
+          "target_service_kind",
+          "known_record_sequence",
+          "known_record_digest"
+        ],
+        "properties": [
+          "realm_id",
+          "target_service_id",
+          "target_service_kind",
+          "known_record_sequence",
+          "known_record_digest",
+          "known_notice_digest",
+          "max_records",
+          "max_response_bytes"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_resolve_outcome",
+        "schema_kind": "object",
+        "required": [
+          "successor_records",
+          "has_more"
+        ],
+        "properties": [
+          "successor_records",
+          "handover_notice",
+          "has_more"
         ],
         "closed": true
       }
@@ -3356,6 +3591,7 @@
         "schema_kind": "object",
         "required": [
           "organization_id",
+          "full_id",
           "challenge_id",
           "version_id",
           "log_head_digest",
@@ -3365,6 +3601,7 @@
         ],
         "properties": [
           "organization_id",
+          "full_id",
           "challenge_id",
           "version_id",
           "log_head_digest",
@@ -3380,6 +3617,7 @@
         "schema_kind": "object",
         "required": [
           "organization_id",
+          "full_id",
           "registration_generation",
           "version_id",
           "registration_receipt",
@@ -3387,6 +3625,7 @@
         ],
         "properties": [
           "organization_id",
+          "full_id",
           "registration_generation",
           "version_id",
           "registration_receipt",
@@ -3403,11 +3642,13 @@
         "schema_kind": "object",
         "required": [
           "organization_id",
+          "full_id",
           "local_admin_subject",
           "requested_scopes"
         ],
         "properties": [
           "organization_id",
+          "full_id",
           "local_admin_subject",
           "requested_scopes"
         ],
@@ -3419,6 +3660,7 @@
         "required": [
           "challenge_id",
           "organization_id",
+          "full_id",
           "purpose",
           "nonce",
           "audience",
@@ -3432,6 +3674,7 @@
         "properties": [
           "challenge_id",
           "organization_id",
+          "full_id",
           "purpose",
           "nonce",
           "audience",
@@ -3453,6 +3696,7 @@
         "schema_kind": "object",
         "required": [
           "organization_id",
+          "full_id",
           "challenge_id",
           "version_id",
           "log_head_digest",
@@ -3460,6 +3704,7 @@
         ],
         "properties": [
           "organization_id",
+          "full_id",
           "challenge_id",
           "version_id",
           "log_head_digest",
@@ -3472,6 +3717,7 @@
         "schema_kind": "object",
         "required": [
           "organization_id",
+          "full_id",
           "registration_generation",
           "version_id",
           "registration_receipt",
@@ -3479,6 +3725,7 @@
         ],
         "properties": [
           "organization_id",
+          "full_id",
           "registration_generation",
           "version_id",
           "registration_receipt",
@@ -3507,6 +3754,7 @@
         "schema_kind": "object",
         "required": [
           "organization_id",
+          "full_id",
           "registration_generation",
           "version_id",
           "registration_receipt",
@@ -3514,6 +3762,7 @@
         ],
         "properties": [
           "organization_id",
+          "full_id",
           "registration_generation",
           "version_id",
           "registration_receipt",
@@ -3530,6 +3779,7 @@
         "schema_kind": "object",
         "required": [
           "organization_id",
+          "full_id",
           "registration_generation",
           "version_id",
           "registration_receipt",
@@ -3537,6 +3787,7 @@
         ],
         "properties": [
           "organization_id",
+          "full_id",
           "registration_generation",
           "version_id",
           "registration_receipt",
@@ -3804,12 +4055,14 @@
         "required": [
           "service_kind",
           "public_base",
+          "full_id",
           "inception_operation",
           "idempotency_key"
         ],
         "properties": [
           "service_kind",
           "public_base",
+          "full_id",
           "inception_operation",
           "idempotency_key",
           "previous_receipt"
@@ -3821,6 +4074,7 @@
         "schema_kind": "object",
         "required": [
           "service_id",
+          "full_id",
           "did_document",
           "version_id",
           "registration_receipt",
@@ -3828,6 +4082,7 @@
         ],
         "properties": [
           "service_id",
+          "full_id",
           "did_document",
           "version_id",
           "registration_receipt",
@@ -3844,6 +4099,7 @@
         "schema_kind": "object",
         "required": [
           "service_id",
+          "full_id",
           "did_document",
           "version_id",
           "registration_receipt",
@@ -3851,6 +4107,7 @@
         ],
         "properties": [
           "service_id",
+          "full_id",
           "did_document",
           "version_id",
           "registration_receipt",
@@ -4227,6 +4484,7 @@
             "schema_kind": null,
             "required": [
               "agent_id",
+              "full_id",
               "principal_control_realm_id",
               "allocation_handle",
               "provision_event"
@@ -4263,6 +4521,7 @@
             "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
             "schema_kind": null,
             "required": [
+              "principal_control_realm_id",
               "allocation_handle"
             ],
             "properties": [
@@ -4274,6 +4533,7 @@
             "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
             "schema_kind": null,
             "required": [
+              "principal_control_realm_id",
               "pcr_recovery",
               "pairing_request_id",
               "expires_at"
@@ -6311,6 +6571,7 @@
           "retry_after_ms",
           "coordinates",
           "active_mls_generation_ref",
+          "active_mls_generation_value_digest",
           "send_blockers"
         ],
         "closed": true,
@@ -6363,7 +6624,8 @@
             "properties": [
               "state",
               "coordinates",
-              "active_mls_generation_ref"
+              "active_mls_generation_ref",
+              "active_mls_generation_value_digest"
             ],
             "closed": true
           },
@@ -6374,12 +6636,14 @@
               "state",
               "coordinates",
               "active_mls_generation_ref",
+              "active_mls_generation_value_digest",
               "send_blockers"
             ],
             "properties": [
               "state",
               "coordinates",
               "active_mls_generation_ref",
+              "active_mls_generation_value_digest",
               "send_blockers"
             ],
             "closed": true
@@ -6395,7 +6659,9 @@
             "properties": [
               "state",
               "coordinates",
-              "blockers"
+              "blockers",
+              "active_mls_generation_ref",
+              "active_mls_generation_value_digest"
             ],
             "closed": true
           },
@@ -6412,6 +6678,113 @@
             "closed": true
           }
         ]
+      }
+    },
+    {
+      "operation_id": "ak.self.direct_conversation.command.repair_dispatch",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_dispatch_request",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "content",
+          "requester_authorization"
+        ],
+        "properties": [
+          "request_id",
+          "content",
+          "requester_authorization"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_repair_enqueue_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "request_digest",
+          "destination_service_id",
+          "status",
+          "recipient_target",
+          "accepted_at"
+        ],
+        "properties": [
+          "request_id",
+          "request_digest",
+          "destination_service_id",
+          "status",
+          "recipient_target",
+          "accepted_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.principal_service_binding.command.prepare",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id"
+        ],
+        "properties": [
+          "request_id",
+          "expected_current_binding_digest"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "challenge_id",
+          "binding_draft",
+          "issued_at",
+          "expires_at"
+        ],
+        "properties": [
+          "request_id",
+          "challenge_id",
+          "binding_draft",
+          "issued_at",
+          "expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.principal_service_binding.command.commit",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "challenge_id",
+          "binding_digest",
+          "principal_authorization_proof"
+        ],
+        "properties": [
+          "request_id",
+          "challenge_id",
+          "binding_digest",
+          "principal_authorization_proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_outcome",
+        "schema_kind": "object",
+        "required": [
+          "binding"
+        ],
+        "properties": [
+          "binding"
+        ],
+        "closed": true
       }
     },
     {
@@ -7310,10 +7683,12 @@
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome",
         "schema_kind": "object",
         "required": [
-          "claims"
+          "claims",
+          "claim_receipt"
         ],
         "properties": [
           "claims",
+          "claim_receipt",
           "failures",
           "available_count"
         ],
@@ -7325,30 +7700,32 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body",
-        "schema_kind": "object",
-        "required": [
-          "owner_account_id",
-          "key_package_refs",
-          "consumer_device_id",
-          "claim_ids",
-          "welcome_ref",
-          "recipient_durable_receipt",
-          "signature"
-        ],
-        "properties": [
-          "owner_account_id",
-          "key_package_refs",
-          "consumer_device_id",
-          "signature",
-          "claim_ids",
-          "welcome_ref",
-          "recipient_durable_receipt",
-          "realm_id",
-          "strand_id",
-          "mls_group_id",
-          "epoch"
-        ],
-        "closed": true
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body",
+            "schema_kind": null,
+            "required": [
+              "consumer_device_id"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body",
+            "schema_kind": null,
+            "required": [
+              "consumer_agent_id",
+              "consumer_agent_verification_method",
+              "consumer_agent_key_authorize_event_id"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_outcome",

@@ -6,13 +6,18 @@
   "type": "object",
   "required": [
     "new_recipient_service_id",
+    "new_service_resolution",
     "handover_frontier",
     "handover_proof"
   ],
   "properties": {
     "new_recipient_service_id": {
-      "$ref": "#/$defs/did",
-      "description": "Target Principal Server service DID after rebind. MUST be within the current effective allowed_recipient_services / delivery binding policy allow set."
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "description": "Stable target Principal Server service core_id after rebind. MUST be within the current effective allowed_recipient_services / delivery binding policy allow set."
+    },
+    "new_service_resolution": {
+      "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
+      "description": "First-hop material for new_recipient_service_id. A sender verifies the handover and this resolution record before following the redirect."
     },
     "handover_frontier": {
       "$ref": "#/$defs/event_id_list",
@@ -33,11 +38,11 @@
           "description": "MUST equal the top-level handover_frontier."
         },
         "recipient_service_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
           "description": "MUST equal the top-level new_recipient_service_id."
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did",
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
           "description": "Rebind target principal; MUST equal target_principal_id."
         },
         "witness": {
@@ -57,10 +62,6 @@
   },
   "additionalProperties": false,
   "$defs": {
-    "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
-    },
     "event_id": {
       "type": "string",
 "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"

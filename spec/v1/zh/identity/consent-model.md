@@ -85,7 +85,7 @@ ControlMove(ak.consent.grant) {
   actor_id      = holder DID
   payload       = {
     consent_id: <consent_id>,
-    peer: "did:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip:bob.example.com",
+    peer: "ak:did_core:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip",
     consent_scope: "invite",
     not_before: "2026-05-07T00:00:00Z",
     expires_at: "2026-12-31T00:00:00Z",
@@ -117,7 +117,7 @@ Payload-only schema 示例：
 ```json schema=schemas/event-payload.schema.json#/$defs/consent_grant_payload
 {
   "consent_id": "ak:consent:019640ed-6000-7000-8000-000000000001",
-  "peer": "did:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip:bob.example.com",
+  "peer": "ak:did_core:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip",
   "consent_scope": "invite",
   "not_before": "2026-05-07T00:00:00.000Z",
   "expires_at": "2026-12-31T00:00:00.000Z",

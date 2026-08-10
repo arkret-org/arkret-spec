@@ -135,7 +135,8 @@
       "type": "object",
       "required": [
         "subject_id",
-        "recipient_service_id"
+        "recipient_service_id",
+        "service_resolution"
       ],
       "properties": {
         "subject_id": {
@@ -144,7 +145,15 @@
         },
         "recipient_service_id": {
           "$ref": "#/$defs/did",
-          "description": "Principal Server service DID that hosts subject_id and accepts this delivery."
+          "description": "Stable Principal Server service core_id that hosts subject_id and accepts this delivery."
+        },
+        "service_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
+          "description": "First-hop resolution material for recipient_service_id."
+        },
+        "route_assistance": {
+          "$ref": "./identity-resolution.schema.json#/$defs/route_assistance",
+          "description": "Optional transport-only hints for recovering the same recipient_service_id route during Contact delivery bootstrap. They are not part of the signed Contact Event, Contact projection, Realm member cell or authority state; they do not extend any token/receipt TTL or authorize delivery."
         },
         "recipient_service_kind": {
           "const": "principal_server"
@@ -163,7 +172,7 @@
           "$ref": "#/$defs/did"
         },
         "controller_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "display_name": {
           "type": "string",
@@ -656,7 +665,11 @@
         },
         "peer_service_id": {
           "$ref": "#/$defs/did",
-          "description": "Optional. Principal Server service DID hosting the peer, when known (e.g. learned from a cross-Principal-Server contact delivery). Lets the holder address responses/invites to the peer's home server. Omitted for same-Principal-Server contacts."
+          "description": "Optional stable Principal Server service core_id hosting the peer. Omitted for same-Principal-Server contacts."
+        },
+        "peer_service_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
+          "description": "Required bootstrap material whenever peer_service_id is present. It MAY be refreshed without changing peer_service_id."
         },
         "direct_conversation": {
           "$ref": "#/$defs/direct_conversation_summary"
@@ -718,6 +731,14 @@
           }
         }
       ],
+      "dependentRequired": {
+        "peer_service_id": [
+          "peer_service_resolution"
+        ],
+        "peer_service_resolution": [
+          "peer_service_id"
+        ]
+      },
       "additionalProperties": false
     },
     "contact_next_prepare_input": {
@@ -1251,7 +1272,7 @@
               "const": "human"
             },
             "principal_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "./common-ids.schema.json#/$defs/core_id"
             }
           },
           "additionalProperties": false
@@ -1271,7 +1292,7 @@
               "$ref": "#/$defs/did"
             },
             "controller_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "./common-ids.schema.json#/$defs/core_id"
             }
           },
           "additionalProperties": false
@@ -1742,8 +1763,7 @@
       "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
     },
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "direct_conversation_resolve_request_body": {
       "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request"
@@ -1779,7 +1799,7 @@
     },
     "event_id": {
       "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "glare_concurrency_attestation": {
       "type": "object",

@@ -502,9 +502,12 @@ participant** author（回归方无法把自己加进 MLS group）；activation 
 author（§7.3）。因此仅有 authority 是不够的——还需要一条把"该对端出手了"这一调度信号送达
 对端的通道，且对端 **MAY 长时间离线**。
 
-**carrier 是 `ak.member.repair.request`，形态与 `ak.realm_key.request` 逐条对齐**
+最终落入 recipient device queue 的 **carrier 是 `ak.member.repair.request`**，形态与
+`ak.realm_key.request` 逐条对齐
 （[`../crypto-media/device-lifecycle.md` §13.2](../crypto-media/device-lifecycle.md)）：它是
-`DeviceMessageEnvelope` 上的可靠 to-device 触发消息，走 device message 队列（服务端以
+human recipient 分支中是 `DeviceMessageEnvelope` 上的可靠 to-device 触发消息；Native Agent recipient
+分支把同一 closed content 投递到 accepted current Agent runtime endpoint。两者都走 destination durable
+queue（服务端以
 `ServiceDescribe.supported_features` 的 `ak.feature.member_repair.peer_relay.v1` 声明中继能力），
 **MUST NOT** 使用 durable `EventEnvelope`，**MUST NOT** 进入 Realm history、reducer state 或
 Seal 链，也 **MUST NOT** 走 Signal——Signal 是 ≤120s 的 live rail，离线对端收不到，且
@@ -512,32 +515,71 @@ Seal 链，也 **MUST NOT** 走 Signal——Signal 是 ≤120s 的 live rail，�
 content 见 [`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json)
 的 `member_repair_request_content`。
 
+客户端 **MUST NOT** 用通用 `ak.self.device_messages.command.send` 自己列举 peer device。唯一发送入口是
+`ak.self.direct_conversation.command.repair_dispatch`：请求只携稳定 `request_id`、exact content 与 requester
+detached authorization，不携 recipient device id。source Principal Server 验证 authenticated session、
+requester authority、accepted self-rejoin、双方 current directional Contact、immutable pair/Realm 与 observed
+active-generation whole-value digest 后，按 current accepted peer service binding 定位 destination，并通过
+`ak.peer.direct_conversation.command.repair_relay` 转交 exact request。relay body 由既有 RFC 9421 +
+`Content-Digest` 服务身份通道覆盖；source service 必须追加 portable requester authority evidence，但它与外层
+服务签名都只是 transport evidence，destination **MUST** 独立验证 requester 权威与下列 durable gates。
+
 **它是非授权性的触发信号。** 对端 **MUST NOT** 因为收到请求就 author 任何东西，而是从
 **签名事件日志**独立重验下列全部，任一不过即静默丢弃：
 
-1. `requester_principal_id` **MUST** 等于该 to-device 消息 device proof 的 principal，且
-   **MUST** 是本 pair 的另一 participant——**不接受代他人请求**，也 **MUST NOT** 因请求出现
-   而引入第三 participant；
+1. requester authorization 与 evidence 是封闭 XOR：human-device 分支的 `requester_device_id`、
+   `verification_method`、`device_authorize_event_id` 必须逐字节匹配 portable device authorization evidence；
+   Native Agent 分支的 `requester_agent_id`、`verification_method`、`agent_key_authorize_event_id` 必须逐字节
+   匹配 current `AgentSignerEvidence`。两分支的 requester identity 都必须等于
+   `requester_principal_id`、accepted rejoin Event 的 actor/subject 与 exact KeyPackage signer identity，且
+   **MUST** 是本 pair 的另一 participant——不接受代他人请求，也不得引入第三 participant；
 2. `rejoin_event_id` **MUST** 是已 accepted 的 `ak.member.rejoin.own` 且 subject 与
    `requester_principal_id` 一致——尚无已接受的 rejoin 就没有需要修的东西；
 3. 双方 current directional Contact head **MUST** 仍有效：任一方向已撤回时 §8.2 要求
    KeyPackage claim、MLS Add 与发送保持拒绝，**MUST NOT** 因 repair 请求而放行；
-4. `observed_active_generation_ref` 陈旧（对端已见更新的 active generation）时 **MUST** 丢弃，
-   **MUST NOT** author 第二个 replacement；
-5. `requester_keypackage_ref` **MUST** 属于 `requester_principal_id` 的 current authorized
-   device，且对端 **MUST** 恰好消费这一个 KeyPackage（claim/consume 语义见
+4. `observed_active_generation_value_digest` **MUST** 逐字节等于对端读取的 current
+   `ak.component.direct_conversation.active_mls_generation.v1` whole-value digest；该 digest 是
+   `sha256(RFC8785_JCS(current accepted cell whole value))`，不是 activation Event id 的 hash。
+   不相等表示 requester 观察陈旧，对端 **MUST** 丢弃且 **MUST NOT** author 第二个 replacement；
+5. `requester_keypackage_ref` **MUST** 属于上述 current authorized device / Native Agent signer。
+   peer author MLS Add 前调用 `ak.peer.keys.keypackages.command.claim` 时必须使用
+   `claim_purpose=direct_conversation_repair`、`target_keypackage_ref=requester_keypackage_ref`；claim outcome
+   的唯一 claim ref 必须与 request 逐字节相同。owner authority 只能原子 claim 该 exact、current、未消费、
+   非 last-resort 的普通 KeyPackage；wrong principal/device/signer、陈旧、已消费、已撤销或 ref 不匹配全部
+   通过同一 `claim_failed` 面 fail closed，不得退回按 device 任取一份（claim/consume 语义见
    [`../crypto-media/device-lifecycle.md` §9](../crypto-media/device-lifecycle.md)）。
 
-**没有 ack / receipt carrier，这是有意的。** 应答就是 **durable Event 本身**——对端提交的
-Commit/Welcome 与随后的 activation；请求方从 §9.1 resolver 的 `active_mls_generation_ref`
-推进观察到完成。这与 `ak.realm_key.request` 由 durable `ak.realm_key.share` 应答同构。
-规范 **MUST NOT** 为 repair 新增 ack、receipt、拒绝码或 `SignalPayload` 变体：拒绝在协议上
+repair dispatch 成功 outcome **只证明** destination service 已 durable 接受 relay 并完成一次原子
+device snapshot enqueue；它不是业务 ack / receipt。业务应答仍只有 **durable Event 本身**——对端提交的
+Commit/Welcome 与随后的 activation；请求方从 §9.1 resolver 的 `active_mls_generation_ref` 与
+`active_mls_generation_value_digest` 配对推进观察到完成。这与 `ak.realm_key.request` 由 durable
+`ak.realm_key.share` 应答同构。
+规范 **MUST NOT** 为 repair 新增 ack/receipt Event 或 `SignalPayload` 变体：拒绝在业务协议上
 不是事实，只是 generation 没有推进；请求方看到的仍是既有 resolver 状态。
 
 **离线、重试与并发**全部复用既有语义，**MUST NOT** 另立机制：
 
-- 队列本身是可靠且 durable 的，对端上线后照常收取；`expires_at` 到期后请求方 **MAY** 用新
-  `message_id` 重发；同一 `message_id` 配不同 canonical content **MUST** 以
+- source Principal Server 以 `(requester_principal_id, request_id)` 在一个 durable transaction 内固化 self
+  request digest、当时 current destination service binding、exact relay bytes 与 outbox 状态；exact replay
+  返回同一 dispatch outcome / pending 状态，另一 digest `duplicate_conflict` 且不得更换 destination 或重新
+  取证。network outcome 不确定时只能重发 exact same peer relay，不得生成新 request id 掩盖未知提交；
+- destination Principal Server 在一个 durable transaction 内，以 `(Source-Service-ID, request_id)`
+  固化 exact relay request digest，并从 accepted Direct Conversation binding 决定一个封闭 recipient target
+  分支：human principal 分支快照 **peer 全部 current authorized devices**，为每个 target 分配并冻结不同的
+  stable outer `message_id`，再将逐字节相同的 `member_repair_request_content` 原子入全部本地 per-device
+  queues；Native Agent 分支必须从 accepted Agent key/session binding 解析唯一 current active runtime endpoint，
+  冻结一个 stable `message_id` 并向该 endpoint 原子入队，且不得把 Agent 伪装成 `ak:device`。human snapshot
+  digest 是 `H('ak.member-repair-target-snapshot-human-v1', device-id 排序的
+  [{recipient_device_id,message_id}])`；Agent snapshot digest 是
+  `H('ak.member-repair-target-snapshot-native-agent-v1',
+  {recipient_agent_id,active_runtime_endpoint_ref,message_id})`。任一 target 写失败必须零入队。同
+  source/request/digest exact replay 返回 byte-identical 原 outcome，另一 digest
+  `duplicate_conflict` 且零写入；响应丢失或 worker 重启只能重放同一 snapshot / ids / bytes。批次之后
+  新授权设备不追溯加入旧批次，recipient 上线后仍从 durable log 重验 current authorization 与上述全部 gate；
+- 队列本身是可靠且 durable 的，对端上线后照常收取；`expires_at` 与 `message_id` 都是 destination
+  transaction 生成并冻结的 transport envelope/runtime queue 字段，不属于 caller 提交的
+  `member_repair_request_content`。外层 `expires_at` 到期后请求方 **MAY** 用新 repair `request_id` 重新
+  dispatch，由 destination 生成新的 `message_id`；同一 `message_id` 配不同 canonical content **MUST** 以
   `duplicate_conflict`（`message_id_conflict`）拒绝；
 - 请求方 **MUST NOT** 因为发过请求就等待或降级任何校验——它 **MAY** 在对端 push 式自发修复
   时直接观察到 generation 推进（等同于 §13.2 的 push 豁免）；
@@ -598,6 +640,12 @@ binding **MUST NOT** 携带 `binding_state`、`supersedes_binding_ref`、永久 
 
 求值优先级固定：依赖不足以验证 current basis 或 founder 时 `temporarily_unavailable`；无 Realm 时区分 `creation_blocked | creation_required | awaiting_founder`；有 Realm 后 identity/materialization/terminal/notary 冲突优先 `suspended`；否则无 binding 为 `provisional`；最后才在 binding、generation 与 daily gates 齐备时 `found`。`retry_after` 只是调度提示，**MUST NOT** 产生 fallback authority。
 
+resolver 对已存在的 active-generation singleton cell **MUST** 同时返回
+`active_mls_generation_ref` 与 `active_mls_generation_value_digest`，或同时省略二者；后者是
+`sha256(RFC8785_JCS(current accepted cell whole value))`。`found` 必有该二元组；`provisional` /
+`suspended` 在 cell 已存在时也必须携带，尤其 replacement repair 的 `suspended` 状态不得隐藏它。
+客户端 **MUST NOT** 从 Event ref、最大 generation、局部 MLS snapshot 或坐标猜 whole-value digest。
+
 existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库存、grant/policy freshness 或 MLS reconcile 而被隐藏。
 
 #### 9.1.1 `creation_required` 的 authoring material（normative）
@@ -635,6 +683,39 @@ existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库�
 实现 **MUST** 执行 [`ak.vector.direct_conversation.founding_authoring_material.v1`](../../artifacts/registry/vector-registry.json)：
 它断言容器存在性、成员名逐字一致、单一分支、无 Event bytes / 坐标 / receipt、无料时降为
 `temporarily_unavailable`，以及提交侧对回传 material 的重新验证。
+
+#### 9.1.2 accepted-at service binding 的建立与同服务续期（normative）
+
+`AcceptedAtServiceBinding` 只能在 principal DID 已发布、PCR 已 accepted 且 principal session 已建立后，
+通过 `ak.self.principal_service_binding.command.prepare` →
+`ak.self.principal_service_binding.command.commit` 两步建立；它 **MUST NOT** 被塞进首次 registration，
+因为其中的 DID `authority_evidence` 只有发布后才能由服务端验证，提前生成会形成未来值依赖。
+
+- prepare 只接受 `request_id` 与可选 `expected_current_binding_digest`。省略表示 create-if-absent；
+  携带表示 same-service renewal，且必须逐字节命中 current binding。服务端从 authenticated principal、
+  current verified DID authority、自己的 service key / trust domain / HTTPS origins 与自己的时钟组装
+  frozen core，caller **MUST NOT** 提交这些字段；
+- 服务端生成 single-use `challenge_id`，把它逐字节写入 core 的
+  `authorization_challenge`，令它进入 `binding_digest`；`accepted_at = not_before = issued_at`，
+  所有时间固定为 UTC millisecond。prepare outcome 与 challenge state 必须 durable；同 request/body
+  exact replay 返回同一未消费 outcome，同 request 不同 intent 为 `duplicate_conflict`；
+- principal 对精确 transcript
+  `H('ak.principal-service-binding-proof.v1', {binding_digest, accepted_at,
+  proof_purpose:'principal_authorization', verification_method, audience:service_id})` 签名；
+  `proof.created_at` 必须等于 `accepted_at`。commit 只携 request/challenge/digest/proof，服务端从
+  durable prepare record 取 draft，重算 digest，并按 `accepted_at` 的已验证 DID authority 验证 method；
+- commit 在一个事务中执行 current-binding CAS、写 immutable accepted binding、消费 challenge、
+  生成同结构但 `proof_purpose='service_acceptance'` 的 service proof，并保存 byte-identical outcome。
+  exact request replay返回原 outcome；同 challenge 配不同 request/digest/proof、过期、已被另一请求消费、
+  current pointer 已变化全部零写入 fail closed；
+- binding 是历史 accepted-at 证物，不做原地修改或删除。same-service renewal 以
+  `predecessor_binding_digest` 前向连接；principal/account/PCR lifecycle 不满足时 current use 被 gate
+  抑制，但历史 proof 仍可验证。跨服务迁移继续使用三方签名 `principal_service_cutover` continuity，
+  **MUST NOT** 把本地 renewal 冒充 cutover 或用“撤销历史 binding”替代 writer fence。
+
+resolver 只有在 current pointer 指向一份按上述流程完整验证的 binding 时，才可把它放入
+`next_founding_input.source_service_binding`；缺失、过期、CAS 冲突或 authority freshness 不足均返回
+`temporarily_unavailable`，不得现场代 principal 签名或从 service metadata 拼装一个 binding。
 
 **send blocker 的权威边界（normative）。** wire 上的封闭枚举 `direct_conversation_send_blocker`（[`direct-conversation-operations.schema.json`](../../artifacts/schemas/direct-conversation-operations.schema.json)）**MUST** 只承载 server-verifiable blocker：服务端 **MUST** 能从它有权读取的 accepted authoritative state 证明该值，**MUST NOT** 猜测、解密或把客户端自报当作 authority。因此 `personal_blocked` 与 `history_key_unavailable` **MUST NOT** 出现在该枚举中——`ak.account.blocklist` 是 holder-private account data，经不可信服务同步时只以对 holder 设备加密的形式存在；某条历史 MLS secret 是否已安装是端侧私有密钥状态。任何让服务端权威判定这两者的做法都要么拆掉那条加密不变量，要么把未认证声明当成事实。服务端返回这两个值 **MUST** 直接构成 `schema_violation`，客户端 **MUST** 拒绝，**MUST NOT** 以"容忍未知 blocker 字符串"的方式接受。
 

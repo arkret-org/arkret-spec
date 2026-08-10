@@ -57,7 +57,7 @@ Schema id: `ak.schema.actor_profile.v1`
 | `id` | yes | `id:actor_profile` | Actor Profile 是标准对象。 | Profile 对象 ID。 |
 | `schema` | yes | `ak.schema.actor_profile.v1` | const。 | Schema ID。 |
 | `realm_id` | no | `id:realm` | 全局 profile 可省略。 | 所属 Realm。 |
-| `principal_id` | yes | `did` | 权限仍以 DID/capability 为准。 | Principal DID。 |
+| `principal_id` | yes | `core_id` | 权限仍以经完整 DID 证明的稳定主体与 capability 为准。 | Principal 的稳定业务身份。 |
 | `actor_kind` | yes | `enum(user, org, team, agent, service, integration)` | 不含 `device`：设备非 actor 主体，见 §2 与 device-lifecycle §4。 | Actor 类型。 |
 | `display_name` | yes | `string` | 1..128 chars。 | 展示名。 |
 | `handle` | no | `string` | 必须通过 handle 双向验证后展示为 verified。 | 可读 handle。 |
@@ -67,14 +67,14 @@ Schema id: `ak.schema.actor_profile.v1`
 | `accountable_principal_ids` | no | `array<did>` | agent/托管账号 SHOULD 设置；每个 DID 必须由对应 `ak.identity.accountability_grant` 背书，详见 §3.3.1。 | 责任主体。 |
 | `profile_fields` | no | `object` | 不得包含未授权披露的私密 handle。 | 扩展展示字段。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `did` |  | 最近更新主体。 |
+| `updated_by` | no | `core_id` |  | 最近更新主体。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
 ### 3.3 `principal_id` 与 `actor_kind` 的语义
 
-`principal_id` 是授权、签名和审计归属的根；`actor_kind` 只是该 DID 在协作图中的展示和策略分类。
+`principal_id` 是授权、签名和审计归属的稳定 `core_id`；`actor_kind` 只是该主体在协作图中的展示和策略分类。
 
-- **设备不是 actor 主体（normative）**：`actor_kind` 不含 `device`，设备没有自己的 DID。设备的一切协作-图行动 MUST 以所属 user/org principal DID 作为 `actor_id`；设备身份通过 proof `verification_method`、`device_id`（`ak:device:<uuid>`）、`ak.device.authorize` 或 session grant 表达。需要 pairwise 匿名行动时，MUST 创建临时 pairwise **principal**（`did:key`，`actor_kind` 取 `user`/`agent` 等真实主体类型），而不是把设备当作独立主体；该临时 principal 仍需经正常 actor 登记，其设备同样通过 `ak.device.authorize` 从属于它。
+- **设备不是 actor 主体（normative）**：`actor_kind` 不含 `device`，设备没有自己的 DID。设备的一切普通协作-图行动 MUST 以所属 user/org principal `core_id` 作为 `actor_id`；设备身份通过 proof `verification_method`、`device_id`（`ak:device:<uuid>`）、`ak.device.authorize` 或 session grant 表达。唯一例外是声明 `ak.profile.mls.minimal_metadata_realm.v1` 的 Realm：发送方 MAY 使用显式 `ak.profile.ephemeral_pairwise_principal.v1` 的临时 pairwise **actor principal**（`did:key` 投影的 `core_id`，`actor_kind` 仍取 `user`/`agent` 等真实主体类型）。该 actor 不进入账号、PCR、Actor Profile 或设备目录；其作者 authority 仅来自 Event 所钉定 exact `(group_id, epoch, group_state_ref)` 中恰好一条 active LeafNode，且 credential identity 与 pairwise `full_id`、signature key 与 Event proof key 必须逐字一致。transport session 只承担访问与限流，不是作者授权，也不得被持久化为 identity link。
 - `team`、`agent`、`service` 和 `integration` MAY 使用独立 DID，也 MAY 由 `accountable_principal_ids` 指向控制/责任 principal；它们不会因为 `accountable_principal_ids` 自动继承权限。
 - `actor_kind` 的 wire enum 不包含 `agent_native`、`agent_ghost` 或 `ghost`。Native personal agent 使用 `actor_kind="agent"`，并由 `ak.profile.personal_agent_provisioning.v1` provisioning state 区分；Applet-managed Ghost Actor 使用现有 enum 中最贴合其主体类型的值（外部人类/账号镜像 SHOULD 使用 `integration`，Applet 托管 AI/automation MAY 使用 `agent`）。Realm policy 必须能通过 Applet provenance、`accountable_principal_ids`、profile 与 capability 分别控制 native personal agent 与 Applet / Ghost Actor，不得合并为单一 "automation allowed" 开关：
   - **Native personal agent**:由 controller 通过 `ak.self.agent.command.provision` 直接创建的一等 Arkret actor principal,拥有独立 DID document、`ak.identity.accountability_grant` 指向 controller、`ak.agent.key.authorize` 绑定的运行时 key。可被 mention / grant / revoke / pause / deactivate。
@@ -132,8 +132,8 @@ Accountability 状态按 `(issuer, subject, normalized exact scope set)` 独立�
 
 | 字段 | 出现对象 | 含义 |
 | --- | --- | --- |
-| `actor_id` | Event Envelope、Read Cursor、Notification | 直接执行该 Event / 拥有该私有状态的 actor DID。 |
-| `principal_id` | Actor Profile | Profile 对应的 principal DID；权限根。 |
+| `actor_id` | Event Envelope、Read Cursor、Notification | 直接执行该 Event / 拥有该私有状态的 actor `core_id`。 |
+| `principal_id` | Actor Profile | Profile 对应的 principal `core_id`；权限根。 |
 | `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的 Event 的 `actor_id`，由 reducer 派生。 |
 | `accountable_principal_ids` | Actor Profile | Agent / 托管账号的责任主体；不传染 capability。 |
 

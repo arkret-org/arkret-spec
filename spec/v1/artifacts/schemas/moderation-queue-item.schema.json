@@ -51,10 +51,9 @@
     },
     "assigned_to": {
       "type": "array",
-      "items": {
-        "type": "string",
-        "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
-      }
+        "items": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        }
     },
     "evidence_policy": {
       "type": "object",

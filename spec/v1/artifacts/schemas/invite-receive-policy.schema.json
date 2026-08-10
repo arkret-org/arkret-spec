@@ -17,7 +17,7 @@
     },
     "subject_id": {
       "$ref": "#/$defs/did",
-      "description": "Principal DID whose private invite receive policy this object configures. v1 core defaults principal DIDs to did:webvh; did:web is only valid for principal identity when an explicit deployment profile or resolver policy allows it."
+      "description": "Stable principal core_id whose private invite receive policy this object configures. A long-lived principal MUST originate from did:webvh; only ak.profile.ephemeral_pairwise_principal.v1 admits a did:key principal. did:web is never a principal method."
     },
     "holder_allowed_introduction_kinds": {
       "type": "array",
@@ -122,8 +122,7 @@
   "additionalProperties": false,
   "$defs": {
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "did_method": {
       "type": "string",

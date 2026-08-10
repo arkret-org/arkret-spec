@@ -86,7 +86,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
   "seq": 30,
   "data": {
     "action": "kick",
-    "target_actor_id": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
+    "target_actor_id": "ak:did_core:webvh:zHuXvTbhiRsj2KEPE64TLhzG4",
     "target_device_id": "ak:device:01964137-0000-7000-8000-000000000000",
     "reason": "policy_violation"
   }
@@ -136,7 +136,7 @@ Content-Type: application/json
 {
   "realm_id": "ak:realm:...",
   "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
-  "actor_id": "did:webvh:...",
+  "actor_id": "ak:did_core:webvh:zExampleActorScid",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "mode": "p2p"
 }
@@ -172,7 +172,7 @@ Content-Type: application/json
 {
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "call_id": "ak:call:AZ3zJ_lO73PnD-ttYUcaM8mzk0oqoKhTUrelyYjrz9Ww",
-  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+  "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "ttl_seconds": 600,
   "refresh_lead_seconds": 60,
@@ -422,7 +422,7 @@ Candidate payload:
     "audio_muted": true,
     "video_muted": true,
     "by": "moderator",
-    "target_actor_id": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
+    "target_actor_id": "ak:did_core:webvh:zHuXvTbhiRsj2KEPE64TLhzG4",
     "target_device_id": "ak:device:01964137-0000-7000-8000-000000000000"
   }
 }

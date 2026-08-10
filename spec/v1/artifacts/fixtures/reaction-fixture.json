@@ -17,7 +17,7 @@
         {
           "event_id": "ak:event:AZwvW3iEuBDjklBhqPTd1nmetaHgvhyZPMRSw1O0Lo09",
           "kind": "ak.reaction.add",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "payload": {
             "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "👍"
@@ -26,7 +26,7 @@
         {
           "event_id": "ak:event:AUf2xtyE57ZZaohpZd5c4pauIAY-llOyiouTwQ3ACbKx",
           "kind": "ak.reaction.remove",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "causal_refs": [
             "ak:event:AZwvW3iEuBDjklBhqPTd1nmetaHgvhyZPMRSw1O0Lo09"
           ],
@@ -53,7 +53,7 @@
         {
           "event_id": "ak:event:Acz5Z8v9_m87mYgXuhD1Plz2pKlHEaA-NeuC0Q0XfR_B",
           "kind": "ak.reaction.add",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "payload": {
             "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "🎉"
@@ -62,7 +62,7 @@
         {
           "event_id": "ak:event:ARSnYXotPDAESkfwMfQamRRQ29hjc5ru079X2_dAns5K",
           "kind": "ak.reaction.add",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "payload": {
             "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "🎉"
@@ -93,7 +93,7 @@
         {
           "event_id": "ak:event:AS3J3pVVS_mtaooCzDPBcqiIE1lZHsmTvtJczt7p11-O",
           "kind": "ak.reaction.add",
-          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "payload": {
             "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "🚀"
@@ -102,7 +102,7 @@
         {
           "event_id": "ak:event:ATf1dS9sHhqKJ60v8d-rImWMx2yJPtCFDAOicBsENUya",
           "kind": "ak.reaction.remove",
-          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "payload": {
             "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "🚀"
@@ -126,7 +126,7 @@
         {
           "event_id": "ak:event:AVW2YMCjH96Ya0tidiRb5_GzVRoKuwweJPiMlyg-BYg-",
           "kind": "ak.reaction.add",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "payload": {
             "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "👍"
@@ -135,7 +135,7 @@
         {
           "event_id": "ak:event:AUZzEfOZbaaGO3O08psLOtE3SWBybiMko8PkSCauHhco",
           "kind": "ak.reaction.add",
-          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "payload": {
             "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "👍"
@@ -149,7 +149,7 @@
             "key": "👍",
             "members": [
               "did:webvh:z6mkfixture:alice.example",
-              "did:webvh:z6mkfixture:bob.example"
+              "did:webvh:z6mkfixturebobexample:bob.example"
             ],
             "count": 2
           }
@@ -163,7 +163,7 @@
         {
           "event_id": "ak:event:AXbGyPkOSwVefaHhuAZUP7OiiZidG2qv23w805mFGLp5",
           "kind": "ak.reaction.add",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "payload": {
             "target_ref": "ak:message:AUSTGOjTqqpFAsG015mTJNnUTIcgVjKsuwTzMUBdYSoS",
             "key": "👀"
@@ -188,7 +188,7 @@
         {
           "event_id": "ak:event:AXFMw3CuLIsP_lZE6AHYq6g2qif47n2_tMTfgKyGSJi0",
           "kind": "ak.reaction.add",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "payload": {
             "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "❤"
@@ -197,7 +197,7 @@
         {
           "event_id": "ak:event:AbXtVFmOCReAby3wmBtjunNM7eQaf6djQ2v4dOl9tnR5",
           "kind": "ak.message.redact",
-          "actor_id": "did:webvh:z6mkfixture:owner.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixtureownerexample",
           "payload": {
             "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3"
           }
@@ -226,7 +226,7 @@
         {
           "event_id": "ak:event:AUtzHR4G9bSwLz3EzNQ0CON1Wr1uL7fpC6nYUvJpP_zd",
           "kind": "ak.reaction.add",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "payload": {
             "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
@@ -256,7 +256,7 @@
         {
           "event_id": "ak:event:AaIAXJ4uHhAQKSRb9ktqvm5RSMqQBaqMI7_UW6nuV1C_",
           "kind": "ak.reaction.add",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "payload": {
             "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
@@ -315,7 +315,7 @@
         {
           "event_id": "ak:event:AV6hyUZOXOouTOW6R1l5DrVQTrYqiQL2_ay5zJ7zIvRU",
           "kind": "ak.reaction.add",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "payload": {
             "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
@@ -344,7 +344,7 @@
         {
           "event_id": "ak:event:AefVwdo4QXWyQpDPe0xNTZt8YPExzBxckc7ZLvKlJmiM",
           "kind": "ak.reaction.add",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "payload": {
             "target_ref": "ak:message:AfqiwyiC1hHp_YsdM0HsTkDgsb9tByhfs3DVisO402t_",
             "key": "sha256:222222222222222222222222222222222222222222222222222222222222222b",
@@ -392,7 +392,7 @@
         {
           "event_id": "ak:event:AeQYV30t2Xu5gqopm9uNamXn_eJzYH7Uhb-IseTF8fat",
           "kind": "ak.reaction.add",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "payload": {
             "target_ref": "ak:message:AdrHt2fwTgdAv67bReYvUuF4_ex1vp3ajEhz-ZZ6ynV3",
             "key": "👍"
@@ -401,7 +401,7 @@
         {
           "event_id": "ak:event:AV4IwCEFsx6wjVui14P0fQsw9_lBVvUa501yWAT_SYQh",
           "kind": "ak.capability.revoke",
-          "actor_id": "did:webvh:z6mkfixture:owner.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixtureownerexample",
           "payload": {
             "target_ref": "did:webvh:z6mkfixture:alice.example",
             "actions": [
@@ -412,7 +412,7 @@
         {
           "event_id": "ak:event:AVM45xX11CYLpPFetDHI8y1zfThVwEt12DZ0xn-0asiA",
           "kind": "ak.reaction.add",
-          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "causal_refs": [
             "ak:event:AV4IwCEFsx6wjVui14P0fQsw9_lBVvUa501yWAT_SYQh"
           ],
@@ -443,7 +443,7 @@
       "name": "rate_limit_high_rate_reaction_burst",
       "notes": "Servers MAY rate-limit ak.reaction.add per actor; the reducer MUST treat rate-limited events as either rate_limited or quarantine, never as accepted-then-silently-dropped.",
       "events_meta": {
-        "actor_id": "did:webvh:z6mkfixture:bot.example",
+        "actor_id": "ak:did_core:webvh:z6mkfixturebotexample",
         "rate_per_second_observed": 200,
         "policy_limit_per_second": 20
       },

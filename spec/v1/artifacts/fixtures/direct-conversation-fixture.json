@@ -6,13 +6,15 @@
     "ak.vector.contact.next_prepare_input.v1",
     "ak.vector.contact.pending_incoming_request_receipt.v1",
     "ak.vector.direct_conversation.realm_shape.v1",
-    "ak.vector.direct_conversation.repair_dispatch.v1", "ak.vector.direct_conversation.founding_authoring_material.v1", "ak.vector.direct_conversation.founding_unit.v1",
+    "ak.vector.direct_conversation.repair_dispatch.v1",
+    "ak.vector.direct_conversation.founding_authoring_material.v1",
+    "ak.vector.direct_conversation.founding_unit.v1",
     "ak.vector.direct_conversation.founding_admission.v1",
     "ak.vector.direct_conversation.mls_generation_candidate_fanout.v1",
     "ak.vector.direct_conversation.send_blocker_authority.v1",
     "ak.vector.direct_conversation.suspend_rejoin.v1"
   ],
-  "version": "2026-08-13",
+  "version": "2026-08-14",
   "spec_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#55-caller-authored-founding-unitsource-唯一-slot-与-acceptance-receipt",
   "source_refs": [
     "spec/v1/zh/identity/contact-and-direct-conversation.md",
@@ -97,8 +99,8 @@
       "instance": {
         "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
         "participants_unordered": [
-          "did:webvh:z6mkfixture:alice.example",
-          "did:webvh:z6mkfixture:bob.example"
+          "ak:did_core:webvh:z6mkfixture",
+          "ak:did_core:webvh:z6mkfixturebobexample"
         ],
         "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
         "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
@@ -124,8 +126,8 @@
       "instance": {
         "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
         "participants_unordered": [
-          "did:webvh:z6mkfixture:alice.example",
-          "did:webvh:z6mkfixture:bob.example"
+          "ak:did_core:webvh:z6mkfixture",
+          "ak:did_core:webvh:z6mkfixturebobexample"
         ],
         "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
         "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
@@ -156,7 +158,8 @@
           "binding_event_ref": "ak:event:Aci8tEQxldhmJuDsi_caXxu_rN07TGxrWiNcxyJLPBCc"
         },
         "send_blockers": [],
-        "active_mls_generation_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y"
+        "active_mls_generation_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
+        "active_mls_generation_value_digest": "sha256:abababababababababababababababababababababababababababababababab"
       }
     },
     {
@@ -174,7 +177,9 @@
         },
         "blockers": [
           "contact_scope_stale"
-        ]
+        ],
+        "active_mls_generation_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
+        "active_mls_generation_value_digest": "sha256:abababababababababababababababababababababababababababababababab"
       }
     },
     {
@@ -211,7 +216,7 @@
       "instance": {
         "peer": {
           "kind": "human",
-          "principal_id": "did:webvh:z6mkfixture:bob.example"
+          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
         },
         "state": "accepted",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -244,7 +249,7 @@
         "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4B1",
         "peer": {
           "kind": "human",
-          "principal_id": "did:webvh:z6mkfixture:bob.example"
+          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
         },
         "basis_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
         "version": 2,
@@ -262,7 +267,7 @@
         "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4B2",
         "peer": {
           "kind": "human",
-          "principal_id": "did:webvh:z6mkfixture:bob.example"
+          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
         },
         "basis_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
         "version": 2,
@@ -282,7 +287,7 @@
       "instance": {
         "peer": {
           "kind": "human",
-          "principal_id": "did:webvh:z6mkfixture:bob.example"
+          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
         },
         "state": "accepted",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -309,7 +314,7 @@
       "instance": {
         "peer": {
           "kind": "human",
-          "principal_id": "did:webvh:z6mkfixture:bob.example"
+          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
         },
         "state": "tombstoned",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -335,7 +340,7 @@
       "instance": {
         "peer": {
           "kind": "human",
-          "principal_id": "did:webvh:z6mkfixture:bob.example"
+          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
         },
         "state": "pending_incoming",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -343,18 +348,18 @@
           "core": {
             "holder": {
               "kind": "human",
-              "principal_id": "did:webvh:z6mkfixture:bob.example"
+              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
             },
             "peer": {
               "kind": "human",
-              "principal_id": "did:webvh:z6mkfixture:alice.example"
+              "principal_id": "ak:did_core:webvh:z6mkfixture"
             },
             "slot_version": 1,
             "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
             "request_digest": "sha256:2f1d0e5c8b7a69483726150493827160f5e4d3c2b1a0998877665544332211ff",
             "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
             "accepted_at": "2026-08-08T00:00:00.000Z",
-            "issuer": "did:web:peer-ps.example"
+            "issuer": "ak:did_core:web:peer-ps.example"
           },
           "receipt_digest": "sha256:0b1c2d3e4f5061728394a5b6c7d8e9f00112233445566778899aabbccddeeff0",
           "signature": {
@@ -383,7 +388,7 @@
       "instance": {
         "peer": {
           "kind": "human",
-          "principal_id": "did:webvh:z6mkfixture:bob.example"
+          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
         },
         "state": "pending_incoming",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -391,18 +396,18 @@
           "core": {
             "holder": {
               "kind": "human",
-              "principal_id": "did:webvh:z6mkfixture:bob.example"
+              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
             },
             "peer": {
               "kind": "human",
-              "principal_id": "did:webvh:z6mkfixture:alice.example"
+              "principal_id": "ak:did_core:webvh:z6mkfixture"
             },
             "slot_version": 1,
             "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
             "request_digest": "sha256:2f1d0e5c8b7a69483726150493827160f5e4d3c2b1a0998877665544332211ff",
             "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
             "accepted_at": "2026-08-08T00:00:00.000Z",
-            "issuer": "did:web:peer-ps.example"
+            "issuer": "ak:did_core:web:peer-ps.example"
           },
           "receipt_digest": "sha256:0b1c2d3e4f5061728394a5b6c7d8e9f00112233445566778899aabbccddeeff0",
           "signature": {
@@ -428,7 +433,7 @@
       "instance": {
         "peer": {
           "kind": "human",
-          "principal_id": "did:webvh:z6mkfixture:bob.example"
+          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
         },
         "state": "pending_incoming",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -449,7 +454,7 @@
       "instance": {
         "peer": {
           "kind": "human",
-          "principal_id": "did:webvh:z6mkfixture:bob.example"
+          "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
         },
         "state": "accepted",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
@@ -457,18 +462,18 @@
           "core": {
             "holder": {
               "kind": "human",
-              "principal_id": "did:webvh:z6mkfixture:bob.example"
+              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
             },
             "peer": {
               "kind": "human",
-              "principal_id": "did:webvh:z6mkfixture:alice.example"
+              "principal_id": "ak:did_core:webvh:z6mkfixture"
             },
             "slot_version": 1,
             "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
             "request_digest": "sha256:2f1d0e5c8b7a69483726150493827160f5e4d3c2b1a0998877665544332211ff",
             "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
             "accepted_at": "2026-08-08T00:00:00.000Z",
-            "issuer": "did:web:peer-ps.example"
+            "issuer": "ak:did_core:web:peer-ps.example"
           },
           "receipt_digest": "sha256:0b1c2d3e4f5061728394a5b6c7d8e9f00112233445566778899aabbccddeeff0",
           "signature": {
@@ -507,18 +512,18 @@
           "core": {
             "holder": {
               "kind": "human",
-              "principal_id": "did:webvh:z6mkfixture:bob.example"
+              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
             },
             "peer": {
               "kind": "human",
-              "principal_id": "did:webvh:z6mkfixture:alice.example"
+              "principal_id": "ak:did_core:webvh:z6mkfixture"
             },
             "slot_version": 1,
             "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
             "request_digest": "sha256:2f1d0e5c8b7a69483726150493827160f5e4d3c2b1a0998877665544332211ff",
             "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
             "accepted_at": "2026-08-08T00:00:00.000Z",
-            "issuer": "did:web:peer-ps.example"
+            "issuer": "ak:did_core:web:peer-ps.example"
           },
           "receipt_digest": "sha256:0b1c2d3e4f5061728394a5b6c7d8e9f00112233445566778899aabbccddeeff0",
           "signature": {
@@ -546,18 +551,18 @@
           "core": {
             "holder": {
               "kind": "human",
-              "principal_id": "did:webvh:z6mkfixture:bob.example"
+              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
             },
             "peer": {
               "kind": "human",
-              "principal_id": "did:webvh:z6mkfixture:alice.example"
+              "principal_id": "ak:did_core:webvh:z6mkfixture"
             },
             "slot_version": 1,
             "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
             "request_digest": "sha256:2f1d0e5c8b7a69483726150493827160f5e4d3c2b1a0998877665544332211ff",
             "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
             "accepted_at": "2026-08-08T00:00:00.000Z",
-            "issuer": "did:web:peer-ps.example"
+            "issuer": "ak:did_core:web:peer-ps.example"
           },
           "receipt_digest": "sha256:0b1c2d3e4f5061728394a5b6c7d8e9f00112233445566778899aabbccddeeff0",
           "signature": {
@@ -584,7 +589,7 @@
         ],
         "receipt": {
           "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
-          "founder_id": "did:webvh:z6mkfixture:bob.example",
+          "founder_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -595,7 +600,7 @@
             "accepted_contact_evidence_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           },
           "slot_committed": true,
-          "issuer_service_id": "did:web:ps.example",
+          "issuer_service_id": "ak:did_core:web:ps.example",
           "issuer_service_binding_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
           "accepted_at": "2026-08-08T00:00:00.000Z",
           "proof": {
@@ -623,7 +628,7 @@
         ],
         "receipt": {
           "pair_key": "sha256:e8c24c1badc48eefa472a1700e87a6597a95aedfab8cbe3173f1622b9ad427b5",
-          "founder_id": "did:webvh:z6mkfixture:bob.example",
+          "founder_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -634,7 +639,7 @@
             "accepted_contact_evidence_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           },
           "slot_committed": true,
-          "issuer_service_id": "did:web:ps.example",
+          "issuer_service_id": "ak:did_core:web:ps.example",
           "issuer_service_binding_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
           "accepted_at": "2026-08-08T00:00:00.000Z",
           "proof": {
@@ -680,44 +685,44 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "direct_conversation_founding_unit_invalid",
       "instance": {
-      "unit_kind": "direct_conversation_founding",
-      "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4A6",
-      "source_service_binding": {
-        "principal_id": "did:webvh:z6mkfixture:founder.example",
-        "service_id": "did:webvh:z6mkfixture:principal.example",
-        "trust_domain": "ak:trust_domain:fixture",
-        "service_kind": "principal_server",
-        "service_verification_method": {
-          "id": "did:webvh:z6mkfixture:principal.example#key-1",
-          "controller": "did:webvh:z6mkfixture:principal.example",
-          "type": "Multikey",
-          "public_key_multibase": "z6MkhFixtureKey"
-        },
-        "endpoint_origins": [
-          "https://principal.example"
-        ],
-        "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "authority_evidence": {
-          "kind": "ak.did.binding_evidence.v1",
-          "method": "webvh",
+        "unit_kind": "direct_conversation_founding",
+        "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4A6",
+        "source_service_binding": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturefounderexample",
+          "service_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+          "trust_domain": "ak:trust_domain:fixture",
+          "service_kind": "principal_server",
+          "service_verification_method": {
+            "id": "did:webvh:z6mkfixtureprincipalexample:principal.example#key-1",
+            "controller": "did:webvh:z6mkfixtureprincipalexample:principal.example",
+            "type": "Multikey",
+            "public_key_multibase": "z6MkhFixtureKey"
+          },
+          "endpoint_origins": [
+            "https://principal.example"
+          ],
           "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "method_proofs": []
+          "authority_evidence": {
+            "kind": "ak.did.binding_evidence.v1",
+            "method": "webvh",
+            "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "method_proofs": []
+          },
+          "not_before": "2026-08-01T00:00:00.000Z",
+          "accepted_at": "2026-08-01T00:00:00.000Z",
+          "binding_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "service_acceptance_proof": {
+            "verification_method": "did:webvh:z6mkfixtureprincipalexample:principal.example#key-1",
+            "created_at": "2026-08-01T00:00:00.000Z",
+            "jws": "a"
+          },
+          "principal_authorization_proof": {
+            "verification_method": "did:webvh:z6mkfixturefounderexample:founder.example#key-1",
+            "created_at": "2026-08-01T00:00:00.000Z",
+            "jws": "a"
+          }
         },
-        "not_before": "2026-08-01T00:00:00.000Z",
-        "accepted_at": "2026-08-01T00:00:00.000Z",
-        "binding_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "service_acceptance_proof": {
-          "verification_method": "did:webvh:z6mkfixture:principal.example#key-1",
-          "created_at": "2026-08-01T00:00:00.000Z",
-          "jws": "a"
-        },
-        "principal_authorization_proof": {
-          "verification_method": "did:webvh:z6mkfixture:founder.example#key-1",
-          "created_at": "2026-08-01T00:00:00.000Z",
-          "jws": "a"
-        }
-      },
-      "events": [
+        "events": [
           {},
           {}
         ],
@@ -737,44 +742,44 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "direct_conversation_founding_unit_invalid",
       "instance": {
-      "unit_kind": "direct_conversation_founding",
-      "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4A6",
-      "source_service_binding": {
-        "principal_id": "did:webvh:z6mkfixture:founder.example",
-        "service_id": "did:webvh:z6mkfixture:principal.example",
-        "trust_domain": "ak:trust_domain:fixture",
-        "service_kind": "principal_server",
-        "service_verification_method": {
-          "id": "did:webvh:z6mkfixture:principal.example#key-1",
-          "controller": "did:webvh:z6mkfixture:principal.example",
-          "type": "Multikey",
-          "public_key_multibase": "z6MkhFixtureKey"
-        },
-        "endpoint_origins": [
-          "https://principal.example"
-        ],
-        "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "authority_evidence": {
-          "kind": "ak.did.binding_evidence.v1",
-          "method": "webvh",
+        "unit_kind": "direct_conversation_founding",
+        "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4A6",
+        "source_service_binding": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturefounderexample",
+          "service_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+          "trust_domain": "ak:trust_domain:fixture",
+          "service_kind": "principal_server",
+          "service_verification_method": {
+            "id": "did:webvh:z6mkfixtureprincipalexample:principal.example#key-1",
+            "controller": "did:webvh:z6mkfixtureprincipalexample:principal.example",
+            "type": "Multikey",
+            "public_key_multibase": "z6MkhFixtureKey"
+          },
+          "endpoint_origins": [
+            "https://principal.example"
+          ],
           "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "method_proofs": []
+          "authority_evidence": {
+            "kind": "ak.did.binding_evidence.v1",
+            "method": "webvh",
+            "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "method_proofs": []
+          },
+          "not_before": "2026-08-01T00:00:00.000Z",
+          "accepted_at": "2026-08-01T00:00:00.000Z",
+          "binding_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "service_acceptance_proof": {
+            "verification_method": "did:webvh:z6mkfixtureprincipalexample:principal.example#key-1",
+            "created_at": "2026-08-01T00:00:00.000Z",
+            "jws": "a"
+          },
+          "principal_authorization_proof": {
+            "verification_method": "did:webvh:z6mkfixturefounderexample:founder.example#key-1",
+            "created_at": "2026-08-01T00:00:00.000Z",
+            "jws": "a"
+          }
         },
-        "not_before": "2026-08-01T00:00:00.000Z",
-        "accepted_at": "2026-08-01T00:00:00.000Z",
-        "binding_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "service_acceptance_proof": {
-          "verification_method": "did:webvh:z6mkfixture:principal.example#key-1",
-          "created_at": "2026-08-01T00:00:00.000Z",
-          "jws": "a"
-        },
-        "principal_authorization_proof": {
-          "verification_method": "did:webvh:z6mkfixture:founder.example#key-1",
-          "created_at": "2026-08-01T00:00:00.000Z",
-          "jws": "a"
-        }
-      },
-      "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
         "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
         "events": [
           {},
@@ -797,46 +802,46 @@
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
-      "unit_kind": "direct_conversation_founding",
-      "source_service_continuity": {
-        "accepted_binding": {
-          "principal_id": "did:webvh:z6mkfixture:founder.example",
-          "service_id": "did:webvh:z6mkfixture:principal.example",
-          "trust_domain": "ak:trust_domain:fixture",
-          "service_kind": "principal_server",
-          "service_verification_method": {
-            "id": "did:webvh:z6mkfixture:principal.example#key-1",
-            "controller": "did:webvh:z6mkfixture:principal.example",
-            "type": "Multikey",
-            "public_key_multibase": "z6MkhFixtureKey"
-          },
-          "endpoint_origins": [
-            "https://principal.example"
-          ],
-          "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "authority_evidence": {
-            "kind": "ak.did.binding_evidence.v1",
-            "method": "webvh",
+        "unit_kind": "direct_conversation_founding",
+        "source_service_continuity": {
+          "accepted_binding": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturefounderexample",
+            "service_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+            "trust_domain": "ak:trust_domain:fixture",
+            "service_kind": "principal_server",
+            "service_verification_method": {
+              "id": "did:webvh:z6mkfixtureprincipalexample:principal.example#key-1",
+              "controller": "did:webvh:z6mkfixtureprincipalexample:principal.example",
+              "type": "Multikey",
+              "public_key_multibase": "z6MkhFixtureKey"
+            },
+            "endpoint_origins": [
+              "https://principal.example"
+            ],
             "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "method_proofs": []
+            "authority_evidence": {
+              "kind": "ak.did.binding_evidence.v1",
+              "method": "webvh",
+              "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "method_proofs": []
+            },
+            "not_before": "2026-08-01T00:00:00.000Z",
+            "accepted_at": "2026-08-01T00:00:00.000Z",
+            "binding_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "service_acceptance_proof": {
+              "verification_method": "did:webvh:z6mkfixtureprincipalexample:principal.example#key-1",
+              "created_at": "2026-08-01T00:00:00.000Z",
+              "jws": "a"
+            },
+            "principal_authorization_proof": {
+              "verification_method": "did:webvh:z6mkfixturefounderexample:founder.example#key-1",
+              "created_at": "2026-08-01T00:00:00.000Z",
+              "jws": "a"
+            }
           },
-          "not_before": "2026-08-01T00:00:00.000Z",
-          "accepted_at": "2026-08-01T00:00:00.000Z",
-          "binding_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "service_acceptance_proof": {
-            "verification_method": "did:webvh:z6mkfixture:principal.example#key-1",
-            "created_at": "2026-08-01T00:00:00.000Z",
-            "jws": "a"
-          },
-          "principal_authorization_proof": {
-            "verification_method": "did:webvh:z6mkfixture:founder.example#key-1",
-            "created_at": "2026-08-01T00:00:00.000Z",
-            "jws": "a"
-          }
+          "cutovers": []
         },
-        "cutovers": []
-      },
-      "service_binding_ref": {
+        "service_binding_ref": {
           "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "realm_policy_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "membership_frontier": [],
@@ -891,16 +896,69 @@
       "name": "repair_dispatch_is_a_non_authorizing_durable_trigger",
       "vector_id": "ak.vector.direct_conversation.repair_dispatch.v1",
       "precondition": "the pair has an accepted binding, one participant has an accepted ak.member.rejoin.own, the MLS group needs a replacement generation, and the peer participant is offline",
-      "action": "send ak.member.repair.request to the peer through the durable to-device queue and let the peer come back online",
+      "action": "submit one exact device-or-Native-Agent authorized request through ak.self.direct_conversation.command.repair_dispatch and let the source relay it through ak.peer.direct_conversation.command.repair_relay",
       "semantic_outcome": "accept",
       "assertions": [
-        "the request is a DeviceMessageEnvelope, never an EventEnvelope, and never enters Realm history, reducer state or the Seal chain",
+        "the self request and peer relay use their registered closed operation DTOs; only the destination's internal human-device branch creates DeviceMessageEnvelope values, while a Native Agent branch targets its accepted current runtime endpoint without inventing an ak:device id",
         "the request is not carried on the Signal rail, whose 120 second live envelope cannot reach an offline peer",
         "the request carries no Event bytes, no MLS material and no authority: the peer re-verifies requester identity, the accepted rejoin, both directional Contact heads and generation staleness from the signed event log before authoring anything",
-        "a request whose observed_active_generation_ref is stale is dropped instead of producing a second replacement generation",
-        "the peer consumes exactly the one KeyPackage named by requester_keypackage_ref",
+        "the resolver supplies active_mls_generation_ref and sha256(RFC8785_JCS(current accepted active-generation cell whole value)) as one pair in found and in every repairable suspended state",
+        "the request copies observed_active_generation_value_digest byte for byte from that resolver value and never hashes the Event ref or scans for a maximum generation",
+        "a request whose observed_active_generation_value_digest differs from the peer current whole-value digest is dropped instead of producing a second replacement generation",
+        "the source transaction freezes request digest, current destination binding, exact relay bytes and outbox before network delivery; retry and restart never rebuild from newer state",
+        "the destination transaction chooses exactly one recipient_target branch: human_principal atomically fans identical canonical content to every current-authorized-device snapshot with distinct stable message ids, or native_agent atomically targets the one current active accepted runtime endpoint",
+        "the exact KeyPackage claim uses one closed target selector: a human has exactly one target_device_ids entry; an Agent has target_agent_id, target_agent_verification_method and target_agent_key_authorize_event_id and forbids target_device_ids; both consume exactly requester_keypackage_ref",
         "there is no ack, receipt or refusal code: the durable Commit, Welcome and activation are the only response, and refusal is simply a generation that never advances",
         "concurrent repairers are resolved by the existing candidate fanout cap and security_barrier CAS, with no repair-specific winner rule"
+      ]
+    },
+    {
+      "name": "repair_relay_destination_atomic_replay",
+      "vector_id": "ak.vector.direct_conversation.repair_dispatch.v1",
+      "precondition": "one destination accepted the first relay under (Source-Service-ID, request_id) and persisted its terminal outcome",
+      "action": "redeliver the exact canonical relay body, then reuse request_id with one changed content byte",
+      "semantic_outcome": "accept_then_reject",
+      "assertions": [
+        "the exact replay returns the original byte-identical outcome without resnapshotting targets or allocating another message id",
+        "the changed digest returns duplicate_conflict and writes zero queue entries",
+        "a crash before the atomic commit leaves neither the request ledger nor any target queue item; a crash after commit exposes the complete original batch and outcome"
+      ]
+    },
+    {
+      "name": "repair_relay_human_recipient_snapshot_is_all_or_zero",
+      "vector_id": "ak.vector.direct_conversation.repair_dispatch.v1",
+      "precondition": "the accepted peer participant is human with three current authorized devices and the third queue write fails",
+      "action": "process the peer repair relay",
+      "semantic_outcome": "reject",
+      "assertions": [
+        "recipient_target.kind is human_principal",
+        "zero messages and zero terminal ledger outcome are committed",
+        "a retry may take one new authoritative snapshot only because no first transaction committed; once committed, later device authorization or revocation never mutates the frozen snapshot"
+      ]
+    },
+    {
+      "name": "repair_relay_native_agent_uses_runtime_not_device",
+      "vector_id": "ak.vector.direct_conversation.repair_dispatch.v1",
+      "precondition": "the accepted peer participant is a Native Agent with one current active runtime endpoint in accepted Agent key/session binding",
+      "action": "process the peer repair relay",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "recipient_target.kind is native_agent and enqueued_target_count is exactly one",
+        "the target snapshot transcript binds recipient_agent_id, active_runtime_endpoint_ref and stable message_id",
+        "no ak:device id, device projection or per-device queue is synthesized",
+        "missing, ambiguous, stale or inactive runtime binding fails closed with zero enqueue"
+      ]
+    },
+    {
+      "name": "repair_exact_keypackage_target_xor",
+      "vector_id": "ak.vector.direct_conversation.repair_dispatch.v1",
+      "precondition": "claim_purpose is direct_conversation_repair",
+      "action": "attempt human, Native Agent, mixed and stale exact selectors",
+      "semantic_outcome": "mixed",
+      "assertions": [
+        "human accepts only target_keypackage_ref plus exactly one target_device_ids and returns exactly that ref with matching device evidence",
+        "Native Agent accepts only target_keypackage_ref plus target_agent_id, target_agent_verification_method and target_agent_key_authorize_event_id and returns exactly that ref with matching AgentSignerEvidence",
+        "mixed human and Agent selectors, absent exact ref, another current package, last-resort, consumed, revoked, wrong signer or stale authority all return opaque claim_failed with zero consumption"
       ]
     },
     {
@@ -916,6 +974,22 @@
         "the container carries no Event bytes, no coordinates, no idempotency_key and no receipt: the founder still authors and signs all three Events",
         "a service that cannot assemble or verify the material returns temporarily_unavailable instead of a creation_required outcome without the container",
         "the submission re-verifies the material against the service's own current state and never trusts the echoed copy"
+      ]
+    },
+    {
+      "name": "accepted_service_binding_has_a_non_circular_producer",
+      "vector_id": "ak.vector.direct_conversation.founding_authoring_material.v1",
+      "precondition": "the founder DID and PCR are accepted and the authenticated principal has no current service binding",
+      "action": "prepare a frozen binding draft, sign its challenge-bound digest, commit it, then resolve a creation-required pair",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "binding establishment runs after DID publication so the service derives current authority_evidence without a future-value dependency",
+        "prepare accepts no caller-supplied service metadata, DID evidence, timestamps, challenge or binding core",
+        "authorization_challenge equals challenge_id and is inside binding_digest, so an old principal proof cannot complete a fresh challenge",
+        "principal proof and service proof use distinct proof_purpose values and created_at equals the frozen accepted_at",
+        "current-binding CAS, immutable accepted binding, challenge consumption, service proof and byte-identical replay outcome commit atomically",
+        "same-service renewal requires predecessor_binding_digest to equal the complete current binding digest; a CAS loser writes nothing",
+        "resolver returns the durable verified binding verbatim, while no binding or unverifiable authority yields temporarily_unavailable"
       ]
     },
     {
@@ -1133,7 +1207,7 @@
       "action": "resolve the pair and send an ordinary Message on the current active generation",
       "semantic_outcome": "accept",
       "assertions": [
-        "the pair is not quarantined and the resolver still returns the same coordinates and active_mls_generation_ref",
+        "the pair is not quarantined and the resolver still returns the same coordinates, active_mls_generation_ref and active_mls_generation_value_digest",
         "the resolver state does not become suspended and no send blocker is added for the refusal",
         "the sixteen existing candidates are retained; the refusal removes none of them"
       ]

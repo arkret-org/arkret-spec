@@ -65,8 +65,8 @@ ID 语义：
   "id": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ",
   "schema": "ak.schema.capability.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "issuer": "did:webvh:z6qRDFWgaBgTY3UGDLivJztno:acme.example.com",
-  "subject": "did:webvh:z8NNMm8UHw7JcDSuuZd34UisF:agent.copy.example.com",
+  "issuer": "ak:did_core:webvh:z6qRDFWgaBgTY3UGDLivJztno",
+  "subject": "ak:did_core:webvh:z8NNMm8UHw7JcDSuuZd34UisF",
   "issuer_authority_refs": [
     {
       "kind": "realm_root",

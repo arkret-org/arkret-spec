@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/list-handles-for-subject-response.schema.json",
   "title": "Arkret Directory Subject Handle List",
-  "description": "Result body for ak.find.directory.read.list_handles_for_subject. It lists currently visible handle claims for a disclosed holder/principal subject DID in the caller's context. Every claim in claims[] MUST have claim.subject byte-for-byte equal to this response subject.",
+  "description": "Result body for ak.find.directory.read.list_handles_for_subject. It lists currently visible handle claims for a disclosed holder/principal subject core_id in the caller's context. Every claim in claims[] MUST have claim.subject byte-for-byte equal to this response subject; proof DID URLs are compared only after adapter projection.",
   "type": "object",
   "required": [
     "subject",
@@ -11,11 +11,10 @@
     "has_more"
   ],
   "properties": {
-    "subject": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-      "description": "Holder/principal DID used as the reverse lookup key. This is not a Realm actor_id."
-    },
+      "subject": {
+        "$ref": "./common-ids.schema.json#/$defs/core_id",
+        "description": "Holder/principal core_id used as the reverse lookup key. This is not a Realm actor_id. Proof verification methods remain full DID URLs and are projected to this value by the registered method adapter."
+      },
     "claims": {
       "type": "array",
       "items": {

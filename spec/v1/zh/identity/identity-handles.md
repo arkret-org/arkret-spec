@@ -618,8 +618,8 @@ Handle 解析示例：
 {
   "schema": "ak.schema.handle_claim.v1",
   "handle": "alice:alice.dev",
-  "subject": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "issuer": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+  "subject": "ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH",
+  "issuer": "ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH",
   "binding_state": "verified",
   "created_at": "2026-05-19T00:00:00Z",
   "expires_at": "2026-08-19T00:00:00Z",
@@ -644,15 +644,18 @@ Handle 解析示例：
   "handle_aliases": [
     "acct:alice@acme.example"
   ],
-  "subject": "did:webvh:z2dmjA1ice:users.acme.example",
-  "issuer": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
-  "issuer_service_id": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example",
+  "subject": "ak:did_core:webvh:z2dmjA1ice",
+  "issuer": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
+  "issuer_service_id": "ak:did_core:webvh:z3omZGak5a5es84Ph2kfPs4UP",
   "claim_kind": "organization_handle",
   "visibility": "restricted",
   "binding_state": "verified",
   "audience": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "member_delivery_binding": {
-    "recipient_service_id": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example",
+    "recipient_service_id": "ak:did_core:webvh:z3omZGak5a5es84Ph2kfPs4UP",
+    "service_resolution": {
+      "current_record_url": "https://principal.acme.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az3omZGak5a5es84Ph2kfPs4UP/resolution"
+    },
     "recipient_service_kind": "principal_server",
     "binding_source": "organization_policy",
     "delivery_modes": [
@@ -1031,7 +1034,7 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
     {
       "claim_kind": "verified_handle",
       "issuer": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
-      "subject_id": "did:key:z6Mkgpairwise...",
+      "subject_id": "ak:did_core:key:z6Mkgpairwise...",
       "disclosure": "explicit",
       "fields": ["handle"],
       "value_constraints": {

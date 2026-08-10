@@ -94,10 +94,10 @@
       "properties": {
         "purpose": {
           "type": "string",
-        "enum": [
-          "principal_control",
-          "managed_agent_control"
-        ]
+          "enum": [
+            "principal_control",
+            "managed_agent_control"
+          ]
         },
         "collaboration_role": {
           "type": "string",
@@ -1004,8 +1004,7 @@
   ],
   "$defs": {
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "trust_domain": {
       "type": "string",
@@ -1027,7 +1026,7 @@
           "description": "Realm-unique stable id for this recovery recipient."
         },
         "principal_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
           "description": "Principal holding the RRK private key. SHOULD resolve to an Organization Principal for org_recovery_key/threshold; MAY be a personal principal for personal Realms."
         },
         "verification_method": {
@@ -1043,20 +1042,20 @@
     },
     "sync_endpoint": {
       "type": "object",
+      "description": "Realm-authorized shared service binding. service_id is the stable business identity; service_resolution supplies independently verifiable current route material. A bare endpoint URL is never an authority root.",
       "required": [
-        "did",
-        "endpoint",
+        "service_id",
+        "service_resolution",
         "role",
         "service_kind",
         "plaintext_visible"
       ],
       "properties": {
-        "did": {
-          "$ref": "#/$defs/did"
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
-        "endpoint": {
-          "type": "string",
-          "format": "uri"
+        "service_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier"
         },
         "role": {
           "type": "string",

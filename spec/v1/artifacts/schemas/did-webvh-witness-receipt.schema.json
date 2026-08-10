@@ -72,9 +72,8 @@
       "description": "Optional origin the proof was read from (the DID's own did-witness.json or a declared mirror). Recorded so a consumer can tell a first-party read from a mirrored one when adjudicating conflicting receipts."
     },
     "issuer_service_id": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-      "description": "Service DID of the Arkret service issuing this receipt. This is the trust root for the receipt itself, and is unrelated to the DID's own controller."
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "description": "Stable core_id of the Arkret service issuing this receipt. This is the trust root for the receipt itself, and is unrelated to the DID's own controller."
     },
     "trust_domain": {
       "type": "string",

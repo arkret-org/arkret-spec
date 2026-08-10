@@ -31,12 +31,12 @@
       "description": "Realm this attestation evidence is valid for. Verifier MUST require realm_id to match the MLS Welcome / Event Envelope Realm being joined or audited; identical audit_policy_version_digest values across Realms do not make evidence portable."
     },
     "audit_service_actor_id": {
-      "$ref": "#/$defs/did",
-      "description": "DID of the audit release service / applet actor whose controlled output path this evidence attests. MUST match the recipient_audit_actor_id or service actor accepted by the active ak.audit.applet_binding."
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "description": "Stable core_id of the audit release service / applet actor whose controlled output path this evidence attests. MUST match the recipient_audit_actor_id or service actor accepted by the active ak.audit.applet_binding."
     },
     "service_id": {
-      "$ref": "#/$defs/did",
-      "description": "Operating service DID hosting the audit applet or release service. MUST match the service_id in the active ak.audit.applet_binding / ak.audit.release chain."
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "description": "Stable operating service core_id hosting the audit applet or release service. MUST match the service_id in the active ak.audit.applet_binding / ak.audit.release chain."
     },
     "platform": {
       "type": "object",
@@ -239,8 +239,7 @@
   "additionalProperties": false,
   "$defs": {
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

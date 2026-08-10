@@ -18,7 +18,7 @@
       "const": "ak.schema.agent_sidecar_view_state.v1"
     },
     "controller_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "sidecar_id": {
       "$ref": "./common-ids.schema.json#/$defs/sidecar_id"

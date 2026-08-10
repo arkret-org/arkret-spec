@@ -600,14 +600,16 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 ### 11.1 服务发现缓存与委托
 
-服务 DID Document 中的 service endpoint 是服务身份与 endpoint 绑定的权威来源。域名级 bootstrap MAY 通过 `/.well-known/arkret/server` 或等价 signed metadata 暴露 endpoint 摘要，但接收方仍 MUST 校验：
+服务 owner 签名的 current `ServiceResolutionRecord` 是 service `core_id` 到候选 `base_url` 的首跳材料；它仍不是业务授权根。域名级 bootstrap MAY 通过 `/.well-known/arkret/server` 或等价 signed metadata 暴露 current-record URL，但接收方仍 MUST 校验：
 
 - HTTPS/TLS 名称与返回的 endpoint 一致；
-- service DID、DID Document service entry、describe 响应和 HTTP Message Signature 绑定一致；
+- record `full_id` 的 DID method history/control proof、`project(full_id)==service_id`、record proof/freshness、describe 第二跳和 HTTP Message Signature 绑定一致；
 - Realm policy 或 actor / organization service delegation 允许该服务角色；
-- metadata hash / version 未被本地策略标记为撤销或过期。
+- record/describe digest 与 sequence 未被本地策略标记为撤销、fork 或过期。
 
-服务发现结果 SHOULD 按 HTTP cache header 缓存。未提供显式缓存时间时，客户端 MAY 使用不超过 24 小时的默认 TTL；实现 SHOULD 对正缓存设置上限（建议不超过 48 小时），对失败缓存使用更短 TTL 或指数退避，避免一次临时故障长期破坏联邦。
+bootstrap hint MAY 按 HTTP cache header 缓存；signed record 的可用期只由其 `refresh_after` / `expires_at`
+控制，不得用 HTTP TTL 延长。实现 SHOULD 对失败缓存使用更短 TTL 或指数退避，避免一次临时故障长期
+破坏联邦；同-core successor 可刷新 cache，service core 改变必须等待业务 binding rebind。
 
 ### 11.2 出站网络目标策略与 SSRF 防护
 

@@ -11,7 +11,7 @@
   ],
   "shared": {
     "schema": "ak.schema.read_cursor.v1",
-    "actor_id": "did:webvh:z6mkalice:alice.example",
+    "actor_id": "ak:did_core:webvh:z6mkalice",
     "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
     "read_scope": {
       "kind": "realm"

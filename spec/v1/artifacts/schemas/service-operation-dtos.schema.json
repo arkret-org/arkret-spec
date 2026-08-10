@@ -305,7 +305,7 @@
           "const": "actor_aggregate"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "realms": {
           "type": "array",
@@ -318,9 +318,8 @@
       "additionalProperties": false
     },
     "ActorDid": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-      "description": "Bare DID used as a Arkret actor/principal identifier. DID URL fragments belong in verification_method, not actor_id/principal_id."
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "description": "Stable Arkret actor/principal core_id. DID URL fragments belong in verification_method, not actor_id/principal_id."
     },
     "AuthSessionLogoutOutcome": {
       "type": "object",
@@ -581,8 +580,8 @@
       ],
       "properties": {
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did",
-          "description": "Subject DID whose authorization is being checked."
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Subject core_id whose authorization is being checked."
         },
         "action": {
           "type": "string",
@@ -719,7 +718,7 @@
               "maxLength": 64
             },
             "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did"
+              "$ref": "./common-ids.schema.json#/$defs/core_id"
             },
             "device_id": {
               "type": "string",
@@ -797,7 +796,7 @@
           "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "device_id": {
           "type": "string",
@@ -1927,7 +1926,7 @@
       "description": "QUERY content for ak.self.events.read.describe.",
       "properties": {
         "actor_id": {
-          "$ref": "#/$defs/ActorDid"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "realm_id": {
           "$ref": "#/$defs/RealmId"
@@ -2030,7 +2029,7 @@
       ],
       "properties": {
         "actor_id": {
-          "$ref": "#/$defs/ActorDid"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "realm_id": {
           "$ref": "#/$defs/RealmId"
@@ -2638,8 +2637,8 @@
           "description": "Optional Arkret normalized principal view (snake_case) — derived\nprojection only, NOT a re-publishable DID Document. See\nzh/identity/identity-did.md §6.\n"
         },
         "method_evidence": {
-          "type": "object",
-          "description": "Method-specific proof material (e.g. did:webvh history head, witness signatures)."
+          "$ref": "./identity-resolution.schema.json#/$defs/method_history_evidence",
+          "description": "Closed adapter-discriminated proof material (e.g. did:webvh history head and canonical witness receipt). This is the registered supply surface for portable principal resolution evidence."
         },
         "cached_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -2771,7 +2770,7 @@
           "description": "Exact RFC 8785 JCS public JWK for the existing handoff DPoP holder key. Private members are forbidden."
         },
         "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "requested_scope": {
           "type": "array",
@@ -2945,9 +2944,9 @@
         "routed_to": {
           "type": "array",
           "items": {
-            "type": "string",
-            "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
-          }
+            "$ref": "./common-ids.schema.json#/$defs/core_id"
+          },
+          "description": "Stable core_ids selected as moderation routing destinations. Endpoint discovery and any full DID verification are separate resolution steps."
         }
       },
       "additionalProperties": false
@@ -2980,7 +2979,7 @@
           "items": {
             "$ref": "./event-envelope.schema.json#/$defs/proof"
           },
-          "description": "Detached proofs over canonical_json({context:'ak.organization-registration-control-proof-v1', challenge_id, organization_id, local_admin_subject, version_id, log_head_digest, verification_method, created_at}). Binding the challenge, the DID, the beneficiary admin and the exact version together is what stops a proof captured for one deployment, one log version or one beneficiary from being replayed elsewhere. Omitting local_admin_subject would leave the proof silent about who receives the scopes, so a captured proof could be resubmitted naming a different local admin."
+          "description": "Detached proofs over canonical_json({context:'ak.organization-registration-control-proof-v1', challenge_id, organization_id, full_id, local_admin_subject, version_id, log_head_digest, verification_method, created_at}). The verifier independently validates the published full_id and requires project(full_id)=organization_id before checking the full DID URL verification_method. Binding the challenge, stable core, full DID, beneficiary admin and exact version together prevents replay across deployments, resolutions or beneficiaries."
         }
       },
       "allOf": [
@@ -3017,6 +3016,7 @@
       "required": [
         "challenge_id",
         "organization_id",
+        "full_id",
         "purpose",
         "nonce",
         "audience",
@@ -3033,8 +3033,11 @@
           "pattern": "^ak:organization-registration-challenge:[0-9a-f]{64}$"
         },
         "organization_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/full_id",
+          "description": "Current published bare DID for the external organization. The registry MUST independently validate it and require the registered method adapter to project it to organization_id before issuing the challenge."
         },
         "purpose": {
           "const": "ak.organization-registration-control-proof-v1",
@@ -3045,9 +3048,8 @@
           "pattern": "^[A-Za-z0-9_-]{22,128}$"
         },
         "audience": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-          "description": "Service DID of the issuing registry. A proof bound to one registry MUST NOT be accepted by another."
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Stable service core_id of the issuing registry. A proof bound to one registry MUST NOT be accepted by another; the proof verification method remains a full DID URL projected to this value by the registered method adapter."
         },
         "origin": {
           "type": "string",
@@ -3059,8 +3061,7 @@
           "minLength": 1
         },
         "local_admin_subject": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
           "description": "The local principal the requested scopes will be delegated to. It is fixed at challenge time and signed over by the control proof, because a proof that binds only the organization and the version says nothing about who benefits from it: anyone who obtained such a proof could submit ensure naming themselves and receive the organization's administrative scopes. ensure MUST reject a request whose local_admin_subject differs from the one in the referenced challenge."
         },
         "requested_scopes": {
@@ -3086,18 +3087,21 @@
       "description": "Request a single-use control challenge for an external Organization DID. Two phases are mandatory: the registry issues the challenge and remembers it, then the caller proves control against it. Folding this into ensure would let the caller supply its own challenge, at which point neither freshness nor single use can be established by the receiver.",
       "required": [
         "organization_id",
+        "full_id",
         "local_admin_subject",
         "requested_scopes"
       ],
       "properties": {
         "organization_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-          "description": "The external Organization DID to be registered. Resolvability alone confers nothing; this request only opens a proof window."
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Stable core_id of the external Organization to be registered. Resolvability alone confers nothing; this request only opens a proof window."
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/full_id",
+          "description": "Current published bare DID submitted for first registration. The registry MUST independently resolve and validate it and require project(full_id)=organization_id."
         },
         "local_admin_subject": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
           "description": "The local principal the requested scopes will be delegated to. It is fixed at challenge time and signed over by the control proof, because a proof that binds only the organization and the version says nothing about who benefits from it: anyone who obtained such a proof could submit ensure naming themselves and receive the organization's administrative scopes. ensure MUST reject a request whose local_admin_subject differs from the one in the referenced challenge."
         },
         "requested_scopes": {
@@ -3113,9 +3117,10 @@
     "OrganizationRegistrationEnsureRequestBody": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Register an external Organization DID with this deployment. Idempotent on organization_id: replaying the same registration returns the existing binding with created=false. This operation registers a reference and a local administrative binding; it does not host the DID's method history, does not make this deployment its controller, and does not create Realm state.",
+      "description": "Register an external Organization identity with this deployment by submitting both its stable organization_id core and current published full_id. Idempotent on organization_id: replaying the same registration returns the existing binding with created=false. This operation registers a reference and a local administrative binding; it does not host the DID's method history, does not make this deployment its controller, and does not create Realm state.",
       "required": [
         "organization_id",
+        "full_id",
         "challenge_id",
         "version_id",
         "log_head_digest",
@@ -3125,8 +3130,11 @@
       ],
       "properties": {
         "organization_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/full_id",
+          "description": "Current published bare DID whose method history and control proof are pinned by this request. MUST equal the full_id bound into the referenced challenge and project to organization_id."
         },
         "challenge_id": {
           "type": "string",
@@ -3145,8 +3153,7 @@
           "$ref": "#/$defs/OrganizationControlProof"
         },
         "local_admin_subject": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
           "description": "The local principal the requested scopes are delegated to. MUST equal the value bound into the referenced challenge and signed over by control_proof; a mismatch means the proof was made for a different beneficiary and MUST be rejected with organization_registration_challenge_invalid."
         },
         "requested_scopes": {
@@ -3172,17 +3179,15 @@
           ],
           "properties": {
             "subject": {
-              "type": "string",
-              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-              "description": "The DID the handle is claimed for. MUST equal organization_id; binding the subject inside the attestation is what stops an attestation issued for one organization from being presented for another."
+              "$ref": "./common-ids.schema.json#/$defs/core_id",
+              "description": "Stable organization core_id the handle is claimed for. MUST equal organization_id; the attestation proof's full DID URL is independently projected to its issuer core_id."
             },
             "handle": {
               "type": "string",
               "minLength": 1
             },
             "issuer": {
-              "type": "string",
-              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+              "$ref": "./common-ids.schema.json#/$defs/core_id"
             },
             "audience": {
               "type": "string",
@@ -3209,6 +3214,7 @@
       "description": "Result of every organization registration command and of the read surface. organization_id, registration_generation and version_id MUST exactly equal the corresponding fields inside registration_receipt. created is true exactly on a call that opened a new generation, so an idempotent replay is distinguishable from first establishment or replacement without comparing receipts; JSON Schema cannot express these cross-field invariants, so receivers and conformance runners MUST enforce them.",
       "required": [
         "organization_id",
+        "full_id",
         "registration_generation",
         "version_id",
         "registration_receipt",
@@ -3216,13 +3222,16 @@
       ],
       "properties": {
         "organization_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/full_id",
+          "description": "Published bare DID recorded by registration_receipt. MUST project to organization_id."
         },
         "registration_generation": {
           "type": "integer",
           "minimum": 1,
-          "description": "Monotonic generation of the binding for this organization_id, starting at 1. The organization DID stays the stable key, but a binding's terminal states are per generation, which is what lets 'revoked is terminal' and 'ensure is idempotent on organization_id' hold at the same time: revoke ends generation N, and a later ensure opens generation N+1 rather than reviving N or colliding with it. ensure that changes local_admin_subject or the scope set also opens a new generation, because the delegation being granted is not the one the previous receipt attests. Opening N+1 MUST atomically terminate a still-current N as revoked with reason organization_registration_superseded and advance the current-generation pointer; a receipt authorizes only while its generation equals that current pointer and its registry state is active."
+          "description": "Monotonic generation of the binding for this organization_id, starting at 1. The organization core_id stays the stable key while full_id may refresh within that identity; terminal states are per generation. Revoke ends generation N, and a later ensure opens generation N+1 rather than reviving N or colliding with it. ensure that changes local_admin_subject or the scope set also opens a new generation."
         },
         "version_id": {
           "type": "string",
@@ -3244,6 +3253,7 @@
       "required": [
         "registration_receipt_id",
         "organization_id",
+        "full_id",
         "registration_generation",
         "version_id",
         "log_head_digest",
@@ -3264,13 +3274,16 @@
           "description": "ak:organization-registration-receipt: plus lowercase hex SHA-256(canonical_json(receipt with registration_receipt_id and proof both omitted))."
         },
         "organization_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/full_id",
+          "description": "Published bare DID whose pinned version and control proof were accepted for this receipt. Consumers MUST independently validate it and require project(full_id)=organization_id."
         },
         "registration_generation": {
           "type": "integer",
           "minimum": 1,
-          "description": "Monotonic generation of the binding for this organization_id, starting at 1. The organization DID stays the stable key, but a binding's terminal states are per generation, which is what lets 'revoked is terminal' and 'ensure is idempotent on organization_id' hold at the same time: revoke ends generation N, and a later ensure opens generation N+1 rather than reviving N or colliding with it. ensure that changes local_admin_subject or the scope set also opens a new generation, because the delegation being granted is not the one the previous receipt attests. Opening N+1 MUST atomically terminate a still-current N as revoked with reason organization_registration_superseded and advance the current-generation pointer; a receipt authorizes only while its generation equals that current pointer and its registry state is active."
+          "description": "Monotonic generation of the binding for this stable organization core_id, starting at 1. A same-core full_id refresh does not create a different organization identity; terminal registration states remain per generation."
         },
         "version_id": {
           "type": "string",
@@ -3294,8 +3307,7 @@
           "description": "Under resolved_verification_method, the digest of the active control/update public key at version_id. Under governance_quorum, the digest of the canonical governance key set head that satisfied the threshold. It is never a next-key commitment and never private material."
         },
         "local_admin_subject": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "delegated_scopes": {
           "type": "array",
@@ -3322,12 +3334,11 @@
           "description": "After this instant the binding MUST be treated as stale regardless of stored status. A receipt without a bounded life would let a single first-time proof authorise an organization relationship indefinitely."
         },
         "issuer_service_id": {
-          "type": "string",
-          "pattern": "^did:webvh:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.organization-registration-receipt-proof-v1', payload_digest, issuer_service_id, registration_receipt_id, organization_id, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at and verification_method MUST be a signing-time assertionMethod of issuer_service_id. Consumers MUST resolve the issuer DID's verifiable history and verify the signature; transport bearer, mTLS or a successful HTTPS response never substitutes for that verification."
+          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.organization-registration-receipt-proof-v1', payload_digest, issuer_service_id, registration_receipt_id, organization_id, full_id, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers validate the registered organization's full_id and project it to organization_id, then independently obtain the issuer service's verified resolution, require its full_id to project to issuer_service_id, and verify verification_method as a signing-time assertionMethod."
         }
       }
     },
@@ -3337,6 +3348,7 @@
       "description": "Re-prove control at a newer resolved version and re-issue the receipt. Scopes are not re-negotiated here; a scope change is a new ensure. Refresh exists because a binding pinned to one version stops proving current control the moment the organization rotates its controller.",
       "required": [
         "organization_id",
+        "full_id",
         "challenge_id",
         "version_id",
         "log_head_digest",
@@ -3344,8 +3356,11 @@
       ],
       "properties": {
         "organization_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/full_id",
+          "description": "Current published bare DID at the refreshed version. MUST project to organization_id before the refreshed proof is accepted."
         },
         "challenge_id": {
           "type": "string",
@@ -3373,8 +3388,7 @@
       ],
       "properties": {
         "organization_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "reason_code": {
           "type": "string",
@@ -3573,8 +3587,7 @@
               "$ref": "./common-ids.schema.json#/$defs/realm_id"
             },
             "actor_id": {
-              "type": "string",
-              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+              "$ref": "./common-ids.schema.json#/$defs/core_id"
             },
             "action": {
               "type": "string"
@@ -3584,8 +3597,7 @@
               "pattern": "^sha256:[0-9a-f]{64}$"
             },
             "policy_server_id": {
-              "type": "string",
-              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+              "$ref": "./common-ids.schema.json#/$defs/core_id"
             }
           },
           "additionalProperties": false
@@ -3680,8 +3692,7 @@
           "type": "string"
         },
         "actor_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "device_id": {
           "type": "string",
@@ -3696,8 +3707,7 @@
           ],
           "properties": {
             "service_id": {
-              "type": "string",
-              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+              "$ref": "./common-ids.schema.json#/$defs/core_id"
             },
             "service_kind": {
               "type": "string"
@@ -3737,8 +3747,7 @@
           "pattern": "^ak:relation:[A-Za-z0-9_-]{44}$"
         },
         "actor_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         }
       },
       "description": "Read-model edge backing a Strand assigned_to Relation. relation_id is needed by clients to tombstone the assignment; actor_id mirrors the Relation to_ref."
@@ -4032,10 +4041,9 @@
         "assigned_actor_ids": {
           "type": "array",
           "items": {
-            "type": "string",
-            "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+            "$ref": "./common-ids.schema.json#/$defs/core_id"
           },
-          "description": "Derived current assignee Actor DIDs from visible active Relation(relation_kind=assigned_to, from_ref=strand_id). Empty or absent means the Strand is unassigned for this projection caller. This is read-model state, not canonical Strand object metadata."
+          "description": "Derived current assignee actor core_ids from visible active Relation(relation_kind=assigned_to, from_ref=strand_id). Empty or absent means the Strand is unassigned for this projection caller. This is read-model state, not canonical Strand object metadata."
         },
         "assigned_to_relations": {
           "type": "array",
@@ -4087,7 +4095,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "next_actor_seq": {
           "type": "integer",
@@ -4431,9 +4439,8 @@
       }
     },
     "ServiceId": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-      "description": "Bare DID identifying a service endpoint."
+      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "description": "Stable service core_id. Routing requires separately verified resolution material."
     },
     "ServiceRegistrationEnsureRequestBody": {
       "type": "object",
@@ -4441,6 +4448,7 @@
       "required": [
         "service_kind",
         "public_base",
+        "full_id",
         "inception_operation",
         "idempotency_key"
       ],
@@ -4450,6 +4458,10 @@
         },
         "public_base": {
           "$ref": "#/$defs/ServiceRegistrationKey/properties/public_base"
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/full_id",
+          "description": "Complete service DID. It MUST equal inception_operation.state.id and the adapter projection MUST equal the resulting service_id."
         },
         "inception_operation": {
           "$ref": "#/$defs/ServiceWebvhInceptionOperation"
@@ -4499,6 +4511,7 @@
       "additionalProperties": false,
       "required": [
         "service_id",
+        "full_id",
         "did_document",
         "version_id",
         "registration_receipt",
@@ -4506,8 +4519,10 @@
       ],
       "properties": {
         "service_id": {
-          "type": "string",
-          "pattern": "^did:webvh:[^\\s#?]+$"
+          "$ref": "#/$defs/ServiceId"
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/full_id"
         },
         "did_document": {
           "$ref": "#/$defs/ServiceDidDocument"
@@ -4526,12 +4541,13 @@
     },
     "ServiceRegistrationReceipt": {
       "type": "object",
-      "description": "Provider-signed stable service-registration receipt. registration_receipt_id is ak:service_registration_receipt:<lowercase hex SHA-256(canonical_json(receipt claims))>. proof is a detached JWS over the ak.service-registration-receipt-proof-v1 binding object; provider_service_id is did:webvh so consumers can verify signing-time assertionMethod authority against Provider DID history.",
+      "description": "Provider-signed stable service-registration receipt. registration_receipt_id is ak:service_registration_receipt:<lowercase hex SHA-256(canonical_json(receipt claims))>. service_id is the projected core_id and full_id is the verified complete DID. proof is a detached JWS over the ak.service-registration-receipt-proof-v1 binding object; consumers verify the provider through its own full resolution evidence.",
       "additionalProperties": false,
       "required": [
         "registration_receipt_id",
         "registration_key",
         "service_id",
+        "full_id",
         "version_id",
         "log_head_digest",
         "control_key_digest",
@@ -4548,8 +4564,10 @@
           "$ref": "#/$defs/ServiceRegistrationKey"
         },
         "service_id": {
-          "type": "string",
-          "pattern": "^did:webvh:[^\\s#?]+$"
+          "$ref": "#/$defs/ServiceId"
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/full_id"
         },
         "version_id": {
           "type": "string",
@@ -4568,12 +4586,11 @@
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "provider_service_id": {
-          "type": "string",
-          "pattern": "^did:webvh:[^\\s#?]+$"
+          "$ref": "#/$defs/ServiceId"
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.service-registration-receipt-proof-v1', payload_digest, provider_service_id, registration_receipt_id, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at and verification_method MUST be a signing-time assertionMethod of provider_service_id."
+          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.service-registration-receipt-proof-v1', payload_digest, provider_service_id, registration_receipt_id, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at. Consumers resolve the provider full_id, require project(full_id)=provider_service_id, and verify verification_method as a signing-time assertionMethod of that full_id."
         }
       }
     },
@@ -4698,8 +4715,7 @@
               "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
             {
-              "type": "string",
-              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+              "$ref": "./common-ids.schema.json#/$defs/core_id"
             }
           ]
         },
@@ -4711,8 +4727,7 @@
           "pattern": "^sha256:[0-9a-f]{64}$"
         },
         "service_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "capability_grant_refs": {
           "type": "array",
@@ -4809,8 +4824,8 @@
           "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
         "audience": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Stable core_id of the resource service this grant is valid for."
         },
         "scopes": {
           "type": "array",
@@ -4912,9 +4927,8 @@
           "description": "The signed grant JWT to introspect. Mutually exclusive with id."
         },
         "audience": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-          "description": "Audience the caller is validating the grant for; a mismatch yields status audience_mismatch."
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Stable service core_id the caller is validating the grant for; a mismatch yields status audience_mismatch."
         },
         "proof": {
           "type": "object",
@@ -4949,8 +4963,7 @@
       ],
       "properties": {
         "principal_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "device_id": {
           "type": "string",
@@ -4973,9 +4986,8 @@
           "description": "JWK of the holder/session key the grant is bound to (the device holder key). The client needs this to perform RFC 9421 PoP and to derive the DPoP cnf.jkt for /_arkret/self/* requests (api-conventions.md §3.2 / §3.3); returning it at issue time avoids a mandatory introspect round-trip before the first self-path request. Equals the grant's bound session_public_key for both human and agent grants. Mirrors SessionGrantRefreshOutcome.session_public_key."
         },
         "audience": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-          "description": "Audience the grant is bound to (the Principal Server / service the grant is valid for). MUST equal the grant's bound audience. Mirrors SessionGrantRefreshOutcome.audience."
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Stable core_id of the Principal Server or resource service the grant is valid for. MUST equal the grant's bound audience. Mirrors SessionGrantRefreshOutcome.audience."
         },
         "granted_scope": {
           "type": "array",
@@ -5049,8 +5061,8 @@
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "audience": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Stable core_id of the resource service; unchanged from the predecessor grant."
         },
         "scopes": {
           "type": "array",
@@ -5102,9 +5114,8 @@
           "description": "Digest of the soft-logout restore request transcript bound by the proof."
         },
         "audience": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-          "description": "MUST equal the session grant audience."
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Stable resource-service core_id. MUST equal the session grant audience."
         },
         "issued_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -5139,9 +5150,8 @@
           "description": "The near-expiry DPoP-bound session grant to rotate. Presented with a DPoP holder proof for the key bound into the grant's cnf.jkt."
         },
         "audience": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-          "description": "Optional; MUST equal the grant's bound audience if present (audience MUST NOT change across rotation, else audience_mismatch)."
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Optional stable resource-service core_id; MUST equal the grant's bound audience if present (audience MUST NOT change across rotation, else audience_mismatch)."
         },
         "device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id",
@@ -5161,9 +5171,8 @@
       ],
       "properties": {
         "principal_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-          "description": "Existing principal DID the grant is requested for. REQUIRED for every proof_kind, including oidc_code_exchange and pre_registration_handoff. Account Authorities MUST NOT derive or mint a principal DID from an OIDC subject. A first-time OIDC flow may create only a DPoP-bound account_handoff_grant until the client has completed cold-root custody, submitted a client-signed inception through account register, and established the verified principal_id binding."
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Existing principal core_id the grant is requested for. REQUIRED for every proof_kind, including oidc_code_exchange and pre_registration_handoff. Account Authorities MUST NOT derive or mint a principal identity from an OIDC subject. A first-time OIDC flow may create only a DPoP-bound account_handoff_grant until the client has completed cold-root custody, submitted a client-signed inception through account register, and established the verified principal_id binding."
         },
         "device_id": {
           "type": "string",
@@ -5251,8 +5260,8 @@
               "pattern": "^sha256:[0-9a-f]{64}$"
             },
             "audience": {
-              "type": "string",
-              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+              "$ref": "./common-ids.schema.json#/$defs/core_id",
+              "description": "Stable core_id of the resource service issuing the challenge and receiving the session request."
             },
             "expires_at": {
               "$ref": "./time.schema.json#/$defs/timestamp"
@@ -5295,7 +5304,7 @@
             },
             "verification_method": {
               "type": "string",
-              "description": "`ak.profile.agent_auth.v1` overlay. DID URL of the runtime\nsigning key (`<agent_id>#<key-fragment>`). REQUIRED when\n`proof_kind=\"agent_key_proof\"`; the DID component MUST bit-identically equal\n`principal_id` after stripping the fragment / query — otherwise the endpoint\nreturns `verification_method_principal_mismatch`. MUST be omitted for human\nproof kinds.\n",
+              "description": "`ak.profile.agent_auth.v1` overlay. Full DID URL of the runtime signing key. REQUIRED when `proof_kind=\"agent_key_proof\"`; the verifier MUST parse and adapter-validate its canonical bare full_id component, require project(full_id)=principal_id, and then validate the referenced key at the accepted method-history position. A core_id MUST NOT be used as a DID URL prefix or concatenated with a fragment. Projection mismatch returns `verification_method_principal_mismatch`. MUST be omitted for human proof kinds.",
               "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
             },
             "signature": {
@@ -5529,7 +5538,7 @@
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
         },
         "issuer": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "issuance_nonce": {
           "type": "string",
@@ -5537,7 +5546,7 @@
           "description": "Canonical unpadded Base64URL encoding of the issuer-generated 256-bit issuance nonce. Exact replay reuses the same nonce, issuance preimage, grant ID and JWT."
         },
         "subject": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "session_public_key": {
           "type": "string",
@@ -5546,8 +5555,8 @@
           "description": "A supported public JWK serialized as its exact RFC 8785 JCS UTF-8 string. Producers MUST parse and canonicalize input before signing; consumers MUST reject strings whose parsed JWK re-serialization is not byte-identical. Private JWK members are forbidden."
         },
         "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/did",
-          "description": "Canonical bare DID of the resource service. HTTP origins are bound separately by DPoP htu and MUST NOT be used as the SessionGrant audience."
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Stable core_id of the resource service. HTTP origins are bound separately by DPoP htu and MUST NOT be used as the SessionGrant audience."
         },
         "scopes": {
           "type": "array",

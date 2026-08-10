@@ -52,9 +52,9 @@ Schema id: `ak.schema.circle.v1`
 | `mls_group_ref` | conditional | `ref:mls` | 条件 `encryption_profile=mls_rfc9420`：满足时由 `ak.circle.create` reducer 派生、scope 绑定 `(realm_id, circle_id)`，`encryption_profile=none` 时 MUST NOT exist。**reducer 派生，actor MUST NOT 携带**（actor-supplied create payload 出现该字段 reducer MUST `schema_violation`）。字段使用 `_ref` 是因为 `ak:mls:<profile>:<profile_id>` 是 profile-scoped typed reference；MLS 标准 payload 内的原始 group id 继续命名为 `mls_group_id`。 | 独立 MLS group 引用。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 [`common-fields.md` §5](./common-fields.md);tombstoned 不可逆。 | 生命周期。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
-| `created_by` | yes | `did` | — | 创建者。 |
+| `created_by` | yes | `core_id` | — | 创建者。 |
 | `created_at` | yes | `timestamp` | — | 创建时间。 |
-| `updated_by` | no | `did` | — | 最近更新者。 |
+| `updated_by` | no | `core_id` | — | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
 `encryption_profile=none` 的 Circle 是 plaintext scoped event boundary：它承诺事件不进入 Realm-wide shared delivery / query / projection / search / notification / export surface，且非 Circle 成员不得收到 Circle-scoped envelope 或 payload；它**不**承诺服务端、中继、明文存储后端或被列入 plaintext-visible 的处理服务无法读取内容。实现和 UI MUST 把 plaintext Circle 标示为"受限投递 / 查询边界"，不得宣传为 E2EE。

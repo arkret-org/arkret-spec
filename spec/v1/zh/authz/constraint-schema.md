@@ -331,12 +331,12 @@ Applet install 签发的每个 `ak.capability.grant` MUST 携带以下规范约�
   "effect": "allow",
   "evaluation_class": "grant_local",
   "applet_id": "ak:applet:8a0baad5-6000-7000-8000-000000000000",
-  "executed_by": "did:webvh:z9CalAppTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:calendar-applet.example",
+  "executed_by": "ak:did_core:webvh:z9CalAppTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
   "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 }
 ```
 
-`applet_id`、`executed_by`、`registration_epoch` 三个字段 MUST 同时出现；缺少任一字段或把字段放入其他 family / subkind 均为 `schema_violation`。grant 的 `resources[]` MUST 精确覆盖单次 install 的 `effective_scope`，并作为 `(applet_id, effective_scope, registration_epoch)` 中 scope 的唯一 wire 表达；constraint 不重复存储 `effective_scope`。`executed_by` MUST 是 registration 接受的 service DID / `bot_actor_id`，或已按 Applet profile provision 的具体 ghost DID；不得仅凭 namespace wildcard 签发代表 native principal 的 grant。
+`applet_id`、`executed_by`、`registration_epoch` 三个字段 MUST 同时出现；缺少任一字段或把字段放入其他 family / subkind 均为 `schema_violation`。grant 的 `resources[]` MUST 精确覆盖单次 install 的 `effective_scope`，并作为 `(applet_id, effective_scope, registration_epoch)` 中 scope 的唯一 wire 表达；constraint 不重复存储 `effective_scope`。`executed_by` MUST 是 registration 接受的 service / `bot_actor_id` 的 `core_id`，或已按 Applet profile provision 的具体 ghost actor `core_id`；控制证明中的完整 DID URL 必须经 adapter 投影到该值，不得仅凭 namespace wildcard 签发代表 native principal 的 grant。
 
 该约束只表达 grant-local 绑定，所以 canonical `evaluation_class=grant_local`。授权 verifier 仍 MUST 解析 `applet_id` 指向的 accepted registration，展开 `registration_epoch` evidence，并验证 grant resource selector、Event `scope_ref`、Event `executed_by` 与 registration 的当前有效 key/material 一致；这一步不得因 grant-local 分类而跳过或缓存为永远有效。未知的旧式 `constraint_kind=applet_delegation_binding` 不属于 v1 wire，MUST fail closed，不得作为别名接受。
 
@@ -967,7 +967,7 @@ function matches_field_access(operation, constraint):
 ```json
 {
   "grant_id": "ak:grant:...",
-  "subject": "did:webvh:z7JFwDcjH8CMYDmNUkUBhGpNN:agent.example.com",
+  "subject": "ak:did_core:webvh:z7JFwDcjH8CMYDmNUkUBhGpNN",
   "actions": ["ak.object.read", "ak.strand.create", "ak.morph.create"],
   "resources": [
     {
@@ -1085,10 +1085,10 @@ Grant envelope 字段、签名规则与必填性以
   "required_claims": [
     {
       "claim_kind": "arkret_org_membership_credential",
-      "trusted_issuers": ["did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example"],
+      "trusted_issuers": ["ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX"],
       "subject_matches_actor": true,
       "value_constraints": {
-        "org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
+        "org": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
         "member": true
       }
     }
@@ -1104,7 +1104,7 @@ Grant envelope 字段、签名规则与必填性以
   "constraint_subkind": "approval",
   "effect": "require_review",
   "approval_mode": "before_commit",
-  "approval_actor_ids": ["did:webvh:zGd8mMoLD7F4He4Kf8PpXJur1:manager.example"],
+  "approval_actor_ids": ["ak:did_core:webvh:zGd8mMoLD7F4He4Kf8PpXJur1"],
   "approval_threshold": "quorum",
   "timeout": "PT24H",
   "reason_required": true

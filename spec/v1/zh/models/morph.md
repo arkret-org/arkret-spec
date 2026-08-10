@@ -46,9 +46,9 @@ Schema id: `ak.schema.morph.v1`
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | generic Morph 可省略；需要进度轴的 `morph_kind` profile MAY 将其收紧为 create 必填。缺失时首条 `ak.morph.stage.set` 可初始化为任一合法值，此后按 [common-fields.md §5.3](./common-fields.md) 转换。变更只能通过 `ak.morph.stage.set`；`ak.morph.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时由附加在 Morph 上的讨论性对象承担。 | 可选业务进度阶段（与 `state` 正交）。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：每次 `stage` 实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
-| `created_by` | yes | `did` |  | 创建者。 |
+| `created_by` | yes | `core_id` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `did` |  | 最近更新者。 |
+| `updated_by` | no | `core_id` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
 > `stage` 取值的非规范说明：Morph 上 `draft → proposed → done → superseded` 是常见的文档/草案推进路径，仅为示例性参考，枚举的完整取值与转换规则仍以 8 值统一口径（见 [common-fields.md §5.3](./common-fields.md)）为准。
@@ -92,7 +92,7 @@ Schema id: `ak.schema.morph.v1`
     "severity": "high"
   },
   "stage": "in_progress",
-  "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+  "created_by": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
   "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 11,
+  "version": 12,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -1756,19 +1756,6 @@
       "notes": "Seal signatures use the full signature noun."
     },
     {
-      "id": "inception_pubkey_fingerprint",
-      "context": "did_continuity_proof.transfer_proof",
-      "since_revision": "2026-05-29",
-      "rejection_level": "hard_reject",
-      "replacement": "inception_public_key_fingerprint",
-      "allowed_contexts": [
-        "changelog",
-        "legacy_migration",
-        "negative_test"
-      ],
-      "notes": "DID continuity evidence uses public_key rather than pubkey."
-    },
-    {
       "id": "commitment_b64",
       "context": "recovery_policy.share_commitment",
       "since_revision": "2026-05-29",
@@ -1871,19 +1858,6 @@
         "negative_test"
       ],
       "notes": "The membership delivery routing list carries service DIDs; the field names the value category explicitly as via_service_ids. Bare via is removed."
-    },
-    {
-      "id": "by",
-      "context": "did_continuity_proof.signature_chain",
-      "since_revision": "2026-05-29",
-      "rejection_level": "hard_reject",
-      "replacement": "principal_id",
-      "allowed_contexts": [
-        "changelog",
-        "legacy_migration",
-        "negative_test"
-      ],
-      "notes": "Each signature-chain link names the signing principal as principal_id (DID-as-id responsibility subject); the signing key remains verification_method. The two-letter by is removed."
     },
     {
       "id": "duration_compact_mini_dsl",
@@ -3217,18 +3191,6 @@
         "negative_test"
       ],
       "notes": "The object carries one audit-release attestation, so the identifier uses the concrete material noun."
-    },
-    {
-      "id": "transfer_evidence",
-      "context": "did_continuity_proof",
-      "since_revision": "2026-07-26",
-      "rejection_level": "hard_reject",
-      "replacement": "transfer_proof",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "The transfer material is a single independently verifiable cryptographic proof."
     },
     {
       "id": "evidence_ref",

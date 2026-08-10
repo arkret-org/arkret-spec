@@ -23,7 +23,7 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "principal_id": {
-      "$ref": "#/$defs/did"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "actor_kind": {
       "type": "string",
@@ -70,6 +70,10 @@
         "$ref": "#/$defs/did"
       }
     },
+    "resolution": {
+      "$ref": "./identity-resolution.schema.json#/$defs/resolution_projection",
+      "description": "Read-only current principal full_id projection derived from the PCR identity resolution cell. It is not writable through Actor Profile create/update patches and is not an authorization root."
+    },
     "profile_fields": {
       "type": "object",
       "properties": {
@@ -96,8 +100,7 @@
   },
   "$defs": {
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

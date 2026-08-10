@@ -140,9 +140,10 @@ percent-decoding 后出现 `.` / `..` 段、编码的 `/` 或 `\` 一律拒绝�
 **接收方验证算法**。除按共享 proof 定义重算 `payload_digest`、验证 JWS 与 `created_at`
 freshness 外，接收方 MUST：
 
-1. 要求 `proof.verification_method` 的 controller DID 与 `service_id` 逐字节相等，并确认该
-   key 在当前 service DID Document 中被授权用于 service assertion；DID URL 可解析本身不构成
-   接受理由；
+1. 从 `proof.verification_method` DID URL 取得无 path/query/fragment 的 controller `full_id`，
+   用已登记 method adapter 验证并要求 `project(full_id) == service_id`（稳定 service `core_id`），
+   再确认该 key 在对应当前 service DID Document 中被授权用于 service assertion；禁止把完整 DID
+   与 `service_id` 直接作字符串相等比较，DID URL 可解析本身也不构成接受理由；
 2. 随后独立验证 HTTP Message Signature、TLS、DID service endpoint、Realm policy 委托与
    SSRF policy——directory proof 不替代其中任何一项；
 3. 任一 required 能力缺失、能力数组为空、endpoint 行非法或 projection 重算不符时整体拒绝。
@@ -168,11 +169,11 @@ signature 合法但 directory JWS 无效（及反向）等负向量。
       "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "strand_id": "ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"
     },
-    "hub_provider": "did:webvh:z5dPBhAYJdfYhFqD3peyGJcxj:mimi.example.com",
+    "hub_provider": "ak:did_core:webvh:z5dPBhAYJdfYhFqD3peyGJcxj",
     "local_provider_role": "hub",
     "status": "accepted",
     "follower_providers": [
-      "did:webvh:z2B174DcqrzvV5vkzDBdSwVvy:remote.example"
+      "ak:did_core:webvh:z2B174DcqrzvV5vkzDBdSwVvy"
     ],
     "mls_group_id": "base64url...",
     "content_profile": "application/mimi-content",
@@ -185,7 +186,7 @@ signature 合法但 directory JWS 无效（及反向）等负向量。
 规则：
 
 - `binding_scope.realm_id` MUST 指向一个 accepted Realm。`strand_id` MUST 指向该 Realm 内启用 discussion track 的 accepted Strand；MIMI room timeline 只投影该 Strand discussion track 的消息。
-- `hub_provider` MUST 是 Realm policy、Organization DID 或 member DID 明确委托的 service DID。
+- `hub_provider` MUST 是 Realm policy、Organization principal 或 member principal 明确委托的 service `core_id`；委托证据中的 service `full_id` / VM 必须经 adapter 投影到该值。
 - `local_provider_role` 取值为 `hub`、`follower` 或 `observer`（封闭枚举，以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威源）。各值语义:
   - `hub`:本地 facade 即拥有该 MIMI room URI 的 hub provider,负责 room fanout 与 groupInfo,对外承担 room 真相投影责任;
   - `follower`:本地 facade 作为 follower provider 参与远端 hub 拥有的 room,接收 fanout 并向 hub 提交本地 writes;

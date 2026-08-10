@@ -9,19 +9,19 @@
     "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "principal_servers": [
       {
-        "service_id": "did:webvh:z6mkfixture:server-alpha.example",
+        "service_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
         "endpoint": "https://server-alpha.example",
         "role": "origin",
         "plaintext_visible": true
       },
       {
-        "service_id": "did:webvh:z6mkfixture:server-beta.example",
+        "service_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample",
         "endpoint": "https://server-beta.example",
         "role": "participant",
         "plaintext_visible": false
       },
       {
-        "service_id": "did:webvh:z6mkfixture:server-gamma.example",
+        "service_id": "ak:did_core:webvh:z6mkfixtureservergammaexample",
         "endpoint": "https://server-gamma.example",
         "role": "witness",
         "plaintext_visible": false
@@ -103,8 +103,8 @@
     {
       "name": "http_message_signature_digest",
       "input": {
-        "source_service_id": "did:webvh:z6mkfixture:server-alpha.example",
-        "destination_service_id": "did:webvh:z6mkfixture:server-beta.example",
+        "source_service_id": "did:webvh:z6mkfixtureserveralphaexample:server-alpha.example",
+        "destination_service_id": "did:webvh:z6mkfixtureserverbetaexample:server-beta.example",
         "method": "POST",
         "target_uri": "https://server-beta.example/_arkret/peer/events",
         "operation_id": "ak.peer.events.command.submit",
@@ -173,9 +173,9 @@
     {
       "name": "source_destination_service_id_mismatch",
       "input": {
-        "signature_source_service_id": "did:webvh:z6mkfixture:server-alpha.example",
-        "header_source_service_id": "did:webvh:z6mkfixture:server-gamma.example",
-        "header_destination_service_id": "did:webvh:z6mkfixture:server-beta.example"
+        "signature_source_service_id": "did:webvh:z6mkfixtureserveralphaexample:server-alpha.example",
+        "header_source_service_id": "did:webvh:z6mkfixtureservergammaexample:server-gamma.example",
+        "header_destination_service_id": "did:webvh:z6mkfixtureserverbetaexample:server-beta.example"
       },
       "expected": "request_rejected_or_quarantined"
     },
@@ -359,8 +359,8 @@
     {
       "name": "pull_authorization",
       "input": {
-        "requester": "did:webvh:z6mkfixture:server-beta.example",
-        "source": "did:webvh:z6mkfixture:server-alpha.example",
+        "requester": "did:webvh:z6mkfixtureserverbetaexample:server-beta.example",
+        "source": "did:webvh:z6mkfixtureserveralphaexample:server-alpha.example",
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "requested_visibility": "private_plaintext",
         "requester_plaintext_visible": false

@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 181,
+    "total_schemas": 183,
     "by_consumer": {
       "declared_wire": 43,
       "event_kind": 3,
-      "inbound": 42,
-      "outbound": 45,
+      "inbound": 44,
+      "outbound": 47,
       "prose": 106,
       "prose_only": 2,
-      "schema_reference": 109,
-      "startup_compile": 181,
-      "vectors": 113
+      "schema_reference": 110,
+      "startup_compile": 183,
+      "vectors": 116
     },
     "without_wire_consumer": 7,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 5,
-    "without_vector_coverage": 68,
+    "without_vector_coverage": 67,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -107,7 +107,6 @@
     "ak.schema.device_pairing_bootstrap.v1",
     "ak.schema.device_pairing_operations.v1",
     "ak.schema.did_binding_contracts.v1",
-    "ak.schema.did_continuity_proof.v1",
     "ak.schema.direct_conversation_operations.v1",
     "ak.schema.directory_operations.v1",
     "ak.schema.erasure_receipt_operations.v1",
@@ -983,6 +982,7 @@
           "ak.schema.agent_pairing_bootstrap.v1",
           "ak.schema.agent_provision.v1",
           "ak.schema.agent_requested_scope_disclosure.v1",
+          "ak.schema.agent_selector_claim.v1",
           "ak.schema.agent_sidecar.v1",
           "ak.schema.agent_sidecar_event_exchange_binding.v1",
           "ak.schema.agent_sidecar_exchange_control.v1",
@@ -994,8 +994,13 @@
           "ak.schema.agent_signer_evidence_query_outcome.v1",
           "ak.schema.agent_signer_evidence_query_request.v1",
           "ak.schema.agent_signing_key_binding.v1",
+          "ak.schema.applet.v1",
           "ak.schema.applet_edge_operations.v1",
+          "ak.schema.applet_ghost_operations.v1",
+          "ak.schema.applet_install_operations.v1",
           "ak.schema.applet_install_plan.v1",
+          "ak.schema.applet_package.v1",
+          "ak.schema.applet_registration_epoch_transcript.v1",
           "ak.schema.applet_widget_declaration.v1",
           "ak.schema.audit_release_attestation.v1",
           "ak.schema.audit_ryw_receipt.v1",
@@ -1003,15 +1008,23 @@
           "ak.schema.backup_series_erase_confirmation.v1",
           "ak.schema.blob.v1",
           "ak.schema.blob_operations.v1",
+          "ak.schema.calendar_event.v1",
           "ak.schema.call_recording_artifact.v1",
           "ak.schema.capability.v1",
           "ak.schema.circle.v1",
           "ak.schema.circle_operations.v1",
+          "ak.schema.consent_operations.v1",
           "ak.schema.contact_operations.v1",
           "ak.schema.contact_scope_update.v1",
+          "ak.schema.content_block_poll.v1",
           "ak.schema.controller_account_gate_attestation.v1",
+          "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+          "ak.schema.controller_account_gate_attestation_issue_request.v1",
           "ak.schema.delivery_binding_stale.v1",
+          "ak.schema.device_message.v1",
           "ak.schema.did_binding_contracts.v1",
+          "ak.schema.did_webvh_witness_receipt.v1",
+          "ak.schema.direct_conversation_operations.v1",
           "ak.schema.directory_operations.v1",
           "ak.schema.encrypted_envelope.v1",
           "ak.schema.erasure_receipt.v1",
@@ -1024,9 +1037,12 @@
           "ak.schema.extension_manifest.v1",
           "ak.schema.federated_device_signing_key_evidence.v1",
           "ak.schema.grant_constraint.v1",
+          "ak.schema.handle_claim.v1",
           "ak.schema.high_risk_authority_proof.v1",
           "ak.schema.ice_config_response.v1",
           "ak.schema.identity_link.v1",
+          "ak.schema.identity_receipt.v1",
+          "ak.schema.identity_resolution.v1",
           "ak.schema.inclusion_list.v1",
           "ak.schema.invite.v1",
           "ak.schema.invite_delivery_request.v1",
@@ -1035,20 +1051,27 @@
           "ak.schema.key_backup.v1",
           "ak.schema.key_backup_active_series.v1",
           "ak.schema.key_backup_plaintext.v1",
+          "ak.schema.key_backup_unlock_proof.v1",
+          "ak.schema.key_transparency.v1",
           "ak.schema.keypackage_operations.v1",
           "ak.schema.keys_operations.v1",
+          "ak.schema.list_handles_for_subject_response.v1",
+          "ak.schema.media_metadata.v1",
           "ak.schema.media_operations.v1",
+          "ak.schema.member_delivery_binding_candidate.v1",
           "ak.schema.member_identity.v1",
           "ak.schema.message.v1",
           "ak.schema.mimi_interop.v1",
           "ak.schema.mimi_operations.v1",
           "ak.schema.mls_governance_proof_bundle.v1",
           "ak.schema.moderation_appeal.v1",
+          "ak.schema.moderation_queue_item.v1",
           "ak.schema.moderation_report.v1",
           "ak.schema.morph.v1",
           "ak.schema.notification.v1",
           "ak.schema.offline_publication.v1",
           "ak.schema.policy.v1",
+          "ak.schema.principal_locator.v1",
           "ak.schema.principal_operations.v1",
           "ak.schema.principal_service_binding.v1",
           "ak.schema.push_operations.v1",
@@ -1074,8 +1097,10 @@
           "ak.schema.sdk_conformance_claim.v1",
           "ak.schema.seal.v1",
           "ak.schema.seal_transparency.v1",
+          "ak.schema.search_service.v1",
           "ak.schema.security_rotation_local_commit.v1",
           "ak.schema.security_transaction.v1",
+          "ak.schema.service_describe.v1",
           "ak.schema.service_operation_dtos.v1",
           "ak.schema.signal_envelope.v1",
           "ak.schema.signal_presence.v1",
@@ -1208,6 +1233,36 @@
       "fragment": "#/$defs/controller_account_gate_attestation"
     },
     {
+      "schema_id": "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+      "file": "schemas/agent-signer-evidence-operations.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "direct",
+        "evidence": "required_schema"
+      },
+      "fragment": "#/$defs/controller_account_gate_attestation_issue_outcome"
+    },
+    {
+      "schema_id": "ak.schema.controller_account_gate_attestation_issue_request.v1",
+      "file": "schemas/agent-signer-evidence-operations.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "direct",
+        "evidence": "required_schema"
+      },
+      "fragment": "#/$defs/controller_account_gate_attestation_issue_request"
+    },
+    {
       "schema_id": "ak.schema.cursor.v1",
       "file": "schemas/cursor.schema.json",
       "consumers": {
@@ -1326,6 +1381,7 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
+          "ak.schema.identity_resolution.v1",
           "ak.schema.principal_service_binding.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
@@ -1334,26 +1390,6 @@
         "kind": "standalone_schema_alias",
         "selector": "verified DID evidence/policy/freshness contract kind",
         "normative_ref": "zh/identity/did-usage-and-verification.md#5"
-      }
-    },
-    {
-      "schema_id": "ak.schema.did_continuity_proof.v1",
-      "file": "schemas/did-continuity-proof.schema.json",
-      "consumers": {
-        "declared_wire": "dynamic_schema_ref",
-        "prose": "normative_text",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "runtime_dispatch_owned",
-        "owner": "dynamic_schema_ref",
-        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
-      },
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "schema=ak.schema.did_continuity_proof.v1",
-        "normative_ref": "zh/identity/key-management.md"
       }
     },
     {
@@ -1385,6 +1421,8 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
+          "ak.peer.direct_conversation.command.repair_relay",
+          "ak.self.direct_conversation.command.repair_dispatch",
           "ak.self.direct_conversation.read.resolve"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
@@ -1621,6 +1659,7 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
+          "ak.schema.direct_conversation_operations.v1",
           "ak.schema.keypackage_operations.v1",
           "ak.schema.service_operation_dtos.v1"
         ],
@@ -1745,6 +1784,29 @@
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "required_schema"
+      }
+    },
+    {
+      "schema_id": "ak.schema.identity_resolution.v1",
+      "file": "schemas/identity-resolution.schema.json",
+      "consumers": {
+        "declared_wire": "standalone_schema_alias",
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "direct",
+        "evidence": "required_schema"
+      },
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "principal resolution evidence or service resolution record",
+        "normative_ref": "zh/identity/identity-did.md"
       }
     },
     {
@@ -3164,7 +3226,6 @@
           "ak.schema.device_message.v1",
           "ak.schema.device_pairing_bootstrap.v1",
           "ak.schema.device_pairing_operations.v1",
-          "ak.schema.did_continuity_proof.v1",
           "ak.schema.did_webvh_witness_receipt.v1",
           "ak.schema.directory_operations.v1",
           "ak.schema.draft_sync.v1",
@@ -3182,6 +3243,7 @@
           "ak.schema.ice_config_response.v1",
           "ak.schema.identity_link.v1",
           "ak.schema.identity_receipt.v1",
+          "ak.schema.identity_resolution.v1",
           "ak.schema.inclusion_list.v1",
           "ak.schema.invite.v1",
           "ak.schema.invite_delivery_request.v1",

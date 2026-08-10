@@ -40,11 +40,11 @@
         "idempotency-key"
       ],
       "active_install": {
-        "service_id": "did:webvh:z6mkfixture:bridge.example",
-        "destination_service_id": "did:webvh:z6mkfixture:principal.example",
+        "service_id": "ak:did_core:webvh:z6mkfixturebridgeexample",
+        "destination_service_id": "did:webvh:z6mkfixtureprincipalexample:principal.example",
         "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "key_ref": "did:webvh:z6mkfixture:bridge.example#tx-1",
-        "actor_namespace": "did:webvh:z6mkfixture:bridge.example#ghost"
+        "key_ref": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
+        "actor_namespace": "did:webvh:z6mkfixturebridgeexample:bridge.example#ghost"
       },
       "transactions": [
         {
@@ -59,16 +59,16 @@
             "destination-service-id",
             "idempotency-key"
           ],
-          "keyid": "did:webvh:z6mkfixture:bridge.example#tx-1",
-          "source_service_id_header": "did:webvh:z6mkfixture:bridge.example",
-          "source_service_id_body": "did:webvh:z6mkfixture:bridge.example",
-          "destination_service_id_header": "did:webvh:z6mkfixture:principal.example",
+          "keyid": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
+          "source_service_id_header": "did:webvh:z6mkfixturebridgeexample:bridge.example",
+          "source_service_id_body": "did:webvh:z6mkfixturebridgeexample:bridge.example",
+          "destination_service_id_header": "did:webvh:z6mkfixtureprincipalexample:principal.example",
           "content_digest_matches_body": true,
           "idempotency_key": "tx-001",
           "body_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor_namespace": "did:webvh:z6mkfixture:bridge.example#ghost",
-          "authorization_ref_owner": "did:webvh:z6mkfixture:bridge.example",
+          "actor_namespace": "did:webvh:z6mkfixturebridgeexample:bridge.example#ghost",
+          "authorization_ref_owner": "did:webvh:z6mkfixturebridgeexample:bridge.example",
           "expected": {
             "decision": "accept",
             "source_signature_anchor_persisted": true,
@@ -95,10 +95,10 @@
             "destination-service-id",
             "idempotency-key"
           ],
-          "keyid": "did:webvh:z6mkfixture:bridge.example#tx-1",
-          "source_service_id_header": "did:webvh:z6mkfixture:bridge.example",
-          "source_service_id_body": "did:webvh:z6mkfixture:mallory.example",
-          "destination_service_id_header": "did:webvh:z6mkfixture:principal.example",
+          "keyid": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
+          "source_service_id_header": "did:webvh:z6mkfixturebridgeexample:bridge.example",
+          "source_service_id_body": "did:webvh:z6mkfixturemalloryexample:mallory.example",
+          "destination_service_id_header": "did:webvh:z6mkfixtureprincipalexample:principal.example",
           "content_digest_matches_body": true,
           "expected": {
             "decision": "reject",
@@ -130,9 +130,9 @@
         {
           "name": "no_active_install",
           "signature_present": true,
-          "source_service_id_header": "did:webvh:z6mkfixture:unknown-bridge.example",
-          "source_service_id_body": "did:webvh:z6mkfixture:unknown-bridge.example",
-          "destination_service_id_header": "did:webvh:z6mkfixture:principal.example",
+          "source_service_id_header": "did:webvh:z6mkfixtureunknownbridgeexample:unknown-bridge.example",
+          "source_service_id_body": "did:webvh:z6mkfixtureunknownbridgeexample:unknown-bridge.example",
+          "destination_service_id_header": "did:webvh:z6mkfixtureprincipalexample:principal.example",
           "content_digest_matches_body": true,
           "expected": {
             "decision": "reject",
@@ -151,13 +151,13 @@
             "destination-service-id",
             "idempotency-key"
           ],
-          "keyid": "did:webvh:z6mkfixture:bridge.example#tx-1",
-          "source_service_id_header": "did:webvh:z6mkfixture:bridge.example",
-          "source_service_id_body": "did:webvh:z6mkfixture:bridge.example",
-          "destination_service_id_header": "did:webvh:z6mkfixture:principal.example",
+          "keyid": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
+          "source_service_id_header": "did:webvh:z6mkfixturebridgeexample:bridge.example",
+          "source_service_id_body": "did:webvh:z6mkfixturebridgeexample:bridge.example",
+          "destination_service_id_header": "did:webvh:z6mkfixtureprincipalexample:principal.example",
           "content_digest_matches_body": true,
           "actor_namespace": "did:webvh:z6mkfixture:alice.example",
-          "authorization_ref_owner": "did:webvh:z6mkfixture:bridge.example",
+          "authorization_ref_owner": "did:webvh:z6mkfixturebridgeexample:bridge.example",
           "expected": {
             "decision": "reject",
             "reason": "applet_namespace_mismatch"
@@ -203,7 +203,7 @@
       ],
       "duplicate_rsvp_writes": [
         {
-          "actor": "did:webvh:z6mkfixture:bob.example",
+          "actor": "did:webvh:z6mkfixturebobexample:bob.example",
           "occurrence_key": "2026-03-08T09:00:00[America/New_York]",
           "entry": {
             "schedule_basis_refs": [
@@ -215,7 +215,7 @@
           }
         },
         {
-          "actor": "did:webvh:z6mkfixture:bob.example",
+          "actor": "did:webvh:z6mkfixturebobexample:bob.example",
           "occurrence_key": "2026-03-08T09:00:00[America/New_York]",
           "entry": {
             "schedule_basis_refs": [
@@ -419,8 +419,8 @@
           "plaintext_event_refs": [
             "ak:event:Aeis2nCBZkzOQr3eAXbZhCpiA9NCLhE2Hs7ynEhmlDgg"
           ],
-          "recipient_public_key_ref": "did:webvh:z6mkfixture:moderator.example#key-1",
-          "encrypted_to": "did:webvh:z6mkfixture:moderator.example#key-1",
+          "recipient_public_key_ref": "did:webvh:z6mkfixturemoderatorexample:moderator.example#key-1",
+          "encrypted_to": "did:webvh:z6mkfixturemoderatorexample:moderator.example#key-1",
           "reporter_signature_present": true,
           "included_material": [
             "encrypted_envelope",
@@ -443,8 +443,8 @@
           "plaintext_event_refs": [
             "ak:event:Aeis2nCBZkzOQr3eAXbZhCpiA9NCLhE2Hs7ynEhmlDgg"
           ],
-          "recipient_public_key_ref": "did:webvh:z6mkfixture:moderator.example#key-1",
-          "encrypted_to": "did:webvh:z6mkfixture:moderator.example#key-1",
+          "recipient_public_key_ref": "did:webvh:z6mkfixturemoderatorexample:moderator.example#key-1",
+          "encrypted_to": "did:webvh:z6mkfixturemoderatorexample:moderator.example#key-1",
           "reporter_signature_present": true,
           "included_material": [
             "encrypted_envelope",
@@ -467,8 +467,8 @@
             "ak:event:Aeis2nCBZkzOQr3eAXbZhCpiA9NCLhE2Hs7ynEhmlDgg",
             "ak:event:ASYjb8EUT-Hr0Gmd6-oGuc4dzr88njVzza5tVpUrWBxB"
           ],
-          "recipient_public_key_ref": "did:webvh:z6mkfixture:moderator.example#key-1",
-          "encrypted_to": "did:webvh:z6mkfixture:moderator.example#key-1",
+          "recipient_public_key_ref": "did:webvh:z6mkfixturemoderatorexample:moderator.example#key-1",
+          "encrypted_to": "did:webvh:z6mkfixturemoderatorexample:moderator.example#key-1",
           "reporter_signature_present": true,
           "included_material": [
             "encrypted_envelope",
@@ -488,8 +488,8 @@
           "plaintext_event_refs": [
             "ak:event:Aeis2nCBZkzOQr3eAXbZhCpiA9NCLhE2Hs7ynEhmlDgg"
           ],
-          "recipient_public_key_ref": "did:webvh:z6mkfixture:moderator.example#key-1",
-          "encrypted_to": "did:webvh:z6mkfixture:other.example#key-1",
+          "recipient_public_key_ref": "did:webvh:z6mkfixturemoderatorexample:moderator.example#key-1",
+          "encrypted_to": "did:webvh:z6mkfixtureotherexample:other.example#key-1",
           "reporter_signature_present": true,
           "included_material": [
             "encrypted_envelope",

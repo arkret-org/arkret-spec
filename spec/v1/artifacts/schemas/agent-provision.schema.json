@@ -21,10 +21,10 @@
       "const": "ak.schema.agent_provision.v1"
     },
     "agent_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "controller_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did"
+      "$ref": "./common-ids.schema.json#/$defs/core_id"
     },
     "principal_control_realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id",

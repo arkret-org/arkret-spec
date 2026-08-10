@@ -132,7 +132,7 @@ see_also:
 
 | 文档 | 内容 |
 | --- | --- |
-| `identity/identity-did.md` | DID、v1 core 默认 principal / service method `did:webvh`、`did:web` 仅作为显式 no-history service profile / `personal_node` profile 可选、`did:webvh` outage 的 cache-only degraded mode、DID Document、Organization ownership。 |
+| `identity/identity-did.md` | DID、v1 唯一长期 principal method `did:webvh`、`did:key` 仅显式 ephemeral pairwise principal、service 默认 `did:webvh` 且 `did:web` 仅显式 no-history service、`did:webvh` outage 的 cache-only degraded mode、DID Document、Organization ownership。 |
 | `identity/did-usage-and-verification.md` | DID / DID URL 字段总表、非 DID identifier 对照、普通身份锚点使用与少量 DID 权威验证触发条件、verified binding 缓存和失效边界。 |
 | `identity/identity-handles.md` | Handle 解析、connection identifier、双向绑定、claim / attestation、`MemberDeliveryBindingCandidate`（§3.7）。 |
 | `identity/consent-model.md` | 用户同意、披露边界、撤回语义和跨服务 consent proof。 |

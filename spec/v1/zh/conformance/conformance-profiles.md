@@ -54,7 +54,7 @@ ak.profile.<name>.v<major>
 
 Document、File、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
 
-Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh:1.0`（v1 core 默认 principal method 的精确 adapter 版本）、`did:web`（service DID / `personal_node` profile principal）与 `did:key`。所有声明 `ak.profile.principal_server.v1` / `ak.profile.full_client.v1` / `ak.profile.e2ee_client.v1` 的实现 MUST 支持 `did:webvh:1.0` witness / SCID / entry hash chain 验证；method evidence 中的 `parameters.method` MUST 精确等于 `did:webvh:1.0`，缺失或未知版本 MUST `unsupported_did_method`，不得按“当前最新版”解释。组织高保证实现 SHOULD 声明 `ak.profile.org_high_assurance_identity.v1` 并要求 `did:webvh` witness / watcher evidence 强制 threshold ≥ 1。AT Protocol 互通实现 SHOULD 额外声明 `ak.profile.public_network_identity.v1` 并支持 `did:plc` adapter；该 adapter 是 interop 加项，不是 Arkret Core 强制依赖。
+Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh:1.0`（v1 唯一可注册长期 principal method 的精确 adapter 版本）、`did:web`（显式 no-history service）与 `did:key`（仅 `ak.profile.ephemeral_pairwise_principal.v1` 下 exact MLS LeafNode-bound 的 Realm-local actor，不创建账号/PCR/设备目录）。所有声明 `ak.profile.principal_server.v1` / `ak.profile.full_client.v1` / `ak.profile.e2ee_client.v1` 的实现 MUST 支持 `did:webvh:1.0` witness / SCID / entry hash chain 验证；method evidence 中的 `parameters.method` MUST 精确等于 `did:webvh:1.0`，缺失或未知版本 MUST `unsupported_did_method`，不得按“当前最新版”解释。组织高保证实现 SHOULD 声明 `ak.profile.org_high_assurance_identity.v1` 并要求 `did:webvh` witness / watcher evidence 强制 threshold ≥ 1。AT Protocol 互通实现 SHOULD 额外声明 `ak.profile.public_network_identity.v1` 并支持 `did:plc` adapter；该 adapter 只产生外部 interop claim，不扩展 v1 principal 创建 allowlist。
 
 v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 

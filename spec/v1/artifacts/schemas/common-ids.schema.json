@@ -41,9 +41,33 @@
       "type": "string",
       "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
     },
-    "did": {
+    "core_id": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "pattern": "^ak:did_core:[a-z0-9]+:[^\\s/?#]+$",
+      "maxLength": 512,
+      "description": "Canonical stable DID-derived identity core. The lowercase DID method name follows ak:did_core:, and the remaining method-adapter-defined core is opaque to generic consumers. The did:web v1 adapter uses the complete canonical method-specific-id, never a digest or truncated host. Principal, actor and service identity equality is byte-for-byte equality of the complete core_id. A core_id is not a DID and cannot be resolved without a full_id or ServiceResolutionRecord."
+    },
+    "full_id": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s/?#]+$",
+      "maxLength": 2048,
+      "description": "Canonical bare DID used for registration, DID method resolution and owner-published current resolution. It contains no path, query or fragment and MUST project through the registered method adapter to exactly one core_id."
+    },
+    "long_lived_principal_full_id": {
+      "type": "string",
+      "pattern": "^did:webvh:[^\\s:/?#]+:[^\\s/?#]+$",
+      "maxLength": 2048,
+      "description": "Canonical did:webvh bare DID for a v1 long-lived principal. Deployment policy may tighten witness and trust-root requirements but MUST NOT admit another method at this schema boundary."
+    },
+    "ephemeral_pairwise_principal_full_id": {
+      "type": "string",
+      "pattern": "^did:key:z[A-Za-z0-9]+$",
+      "maxLength": 2048,
+      "description": "Canonical did:key bare FullId admitted only with ak.profile.ephemeral_pairwise_principal.v1 for one Realm-local MLS LeafNode-bound actor. It projects to ActorId, cannot create an account, PCR or device-directory entry, cannot be upgraded into a long-lived principal, and MUST NOT be reused across Realms."
+    },
+    "did": {
+      "$ref": "#/$defs/full_id",
+      "description": "Compatibility schema name for the canonical FullId wire type. New normative text distinguishes full_id from core_id; this alias does not permit a core_id where a standard bare DID is required."
     },
     "did_url": {
       "type": "string",
