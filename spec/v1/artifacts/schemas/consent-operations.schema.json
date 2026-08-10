@@ -24,8 +24,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -53,8 +53,8 @@
       "required": [
         "ok",
         "cell_id",
-        "holder_did",
-        "peer_did",
+        "holder_principal_id",
+        "peer_principal_id",
         "consent_scope",
         "state",
         "active_grant_dots",
@@ -71,11 +71,11 @@
           "pattern": "^ak:cell:ak\\.component\\.consent\\.grant\\.v1:ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Consent cell id (ak:cell:ak.component.consent.grant.v1:<consent_id>)."
         },
-        "holder_did": {
-          "$ref": "#/$defs/did"
+        "holder_principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
-        "peer_did": {
-          "$ref": "#/$defs/did"
+        "peer_principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "consent_scope": {
           "$ref": "#/$defs/consent_scope"
@@ -207,16 +207,16 @@
     },
     "consent_request_request_body": {
       "type": "object",
-      "description": "Body for opaque contact/consent request submission. peer_did defaults to the authenticated actor and MUST equal it. Holder existence is deliberately not a precondition visible to the caller.",
+      "description": "Body for opaque contact/consent request submission. peer_principal_id defaults to the authenticated actor and MUST equal it. Holder existence is deliberately not a precondition visible to the caller.",
       "required": [
-        "holder_did"
+        "holder_principal_id"
       ],
       "properties": {
-        "holder_did": {
-          "$ref": "#/$defs/did"
+        "holder_principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
-        "peer_did": {
-          "$ref": "#/$defs/did"
+        "peer_principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "consent_scope": {
           "$ref": "#/$defs/consent_scope",

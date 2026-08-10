@@ -33,8 +33,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "event_id": {
       "type": "string",
@@ -158,19 +158,19 @@
         "members": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true,
           "description": "Active Circle member DIDs (strict subset of parent Realm.members). Empty after tombstone."
         },
         "created_by": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"
         },
         "updated_by": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "updated_at": {
           "$ref": "#/$defs/timestamp"
@@ -281,7 +281,7 @@
           "$ref": "./common-ids.schema.json#/$defs/circle_id"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "membership": {
           "$ref": "./event-payload.schema.json#/$defs/membership_state"

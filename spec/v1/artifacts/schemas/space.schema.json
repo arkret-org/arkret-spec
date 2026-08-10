@@ -123,13 +123,13 @@
       "description": "Timestamp of the most recent state transition. Required when state != 'active'."
     },
     "created_by": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
     },
       "updated_by": {
-        "$ref": "./common-ids.schema.json#/$defs/core_id"
+        "$ref": "./common-ids.schema.json#/$defs/did_core_id"
       },
     "updated_at": {
       "$ref": "#/$defs/timestamp"

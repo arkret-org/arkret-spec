@@ -18,8 +18,8 @@
   ],
   "properties": {
     "subject_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Stable principal core_id of the addressee. Materialised as payload.actor_id / cell subject in ak.member.state{membership=join}."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Stable principal did_core_id of the addressee. Materialised as payload.actor_id / cell subject in ak.member.state{membership=join}."
     },
     "handle": {
       "$ref": "string-profiles.schema.json#/$defs/canonical_handle",
@@ -42,7 +42,7 @@
       ],
       "properties": {
         "recipient_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "service_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
@@ -89,8 +89,8 @@
       "additionalProperties": false
     },
     "issuer_service_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Stable service core_id of the signer (Directory service, Principal Server, or Organization service)."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Stable service did_core_id of the signer (Directory service, Principal Server, or Organization service)."
     },
     "audience": {
       "type": "string",

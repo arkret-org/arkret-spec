@@ -308,7 +308,7 @@ genesis / re-anchor 时候选设备自己 author 整个封闭 unit，§5.1 的�
 
 因此跨 request（`device_pairing_request_id` / `transaction_id` + nonce）、跨 Account Authority（`gate_audience`）、跨过期窗口（`expires_at`）与换 key（`new_device_pubkey_digest`）的重放全部被阻断，强度与 §2.1.2 的 challenge proof 完全相同；一个为别的配对铸出的 attestation 在本次配对里永远验不过。
 
-从该对象移出的 `principal_id` / `authorized_by` / `not_before` / `expires_at` / `scopes` / `recovery_session_id` 改由**批准设备的 Event proof** 承担：`accepted_device` authorize 的 `proof.verification_method` MUST 是批准 principal 已验证 `full_id` 下的 DID URL；verifier MUST 取其 bare `full_id`，经已登记 method adapter 验证并要求 `project(full_id) == principal_id`（稳定 `core_id`），同时要求 fragment 逐字等于 `signing_device_id`，且 `signing_device_id` 必须是 payload.`authorized_by`（§5.3）。实现不得把 `principal_id` core 与 device fragment 直接拼成 DID URL，因为 `core_id` 不是 DID。该 proof 正好由知道这些值的那一方签名，且覆盖完整 canonical Event bytes（含整个 payload）。两个签名合起来覆盖的字段集合不小于 `root_anchored` 单签名覆盖的集合，没有字段落空。目标设备对 `principal_id` 的确认不由该 proof 承担，而由 §5.4.1 的装配前强制校验承担。
+从该对象移出的 `principal_id` / `authorized_by` / `not_before` / `expires_at` / `scopes` / `recovery_session_id` 改由**批准设备的 Event proof** 承担：`accepted_device` authorize 的 `proof.verification_method` MUST 是批准 principal 已验证 `full_id` 下的 DID URL；verifier MUST 取其 bare `full_id`，经已登记 method adapter 验证并要求 `project(full_id) == principal_id`（稳定 `did_core_id`），同时要求 fragment 逐字等于 `signing_device_id`，且 `signing_device_id` 必须是 payload.`authorized_by`（§5.3）。实现不得把 `principal_id` core 与 device fragment 直接拼成 DID URL，因为 `did_core_id` 不是 DID。该 proof 正好由知道这些值的那一方签名，且覆盖完整 canonical Event bytes（含整个 payload）。两个签名合起来覆盖的字段集合不小于 `root_anchored` 单签名覆盖的集合，没有字段落空。目标设备对 `principal_id` 的确认不由该 proof 承担，而由 §5.4.1 的装配前强制校验承担。
 
 **wire 形态与载体（normative）**：该 attestation 的 wire 形态是 [`device-pairing.schema.json`](../../artifacts/schemas/device-pairing.schema.json) 的 `device_pairing_target_attestation`（上述七个成员加 `device_signature`）。它与 `challenge_proof` 一样**只走带外通道**——路径 A 的二维码 fragment、路径 B 的 to-device 消息——并且 **MUST NOT 经免认证 stage / resolve 面回传给 server**：暂存面是匿名的，让它持有该 attestation 既无必要也扩大攻击面（§2.1.1 第 2 条的既有隐私边界）。
 
@@ -318,7 +318,7 @@ genesis / re-anchor 时候选设备自己 author 整个封闭 unit，§5.1 的�
 
 ### 5.3 Event proof key resolution（normative）
 
-所有普通设备 Event 的 `proof.verification_method` MUST 是基于该 principal 已验证、且满足操作 freshness / event-time 要求的 `full_id` 的 DID URL。receiver MUST 取 DID URL 的 bare `full_id`，用已登记 method adapter 验证并要求 `project(full_id) == principal_id`（稳定 `core_id`），再要求 fragment 逐字等于完整 `signing_device_id`（`ak:device:<uuid>`）；不得把 fragment 拼到 `principal_id`，也不得把任何 core-plus-fragment 字符串当成 verification method。设备没有独立 DID，因此不得使用 candidate `did:key` 作为该字段。对 `authorization_binding_kind="accepted_device"` 的 authorize，`signing_device_id` 必须是 payload.`authorized_by`，不能是待授权 target device；因此 payload.`authorized_by` 在该分支下必然是设备 id，不是任何 principal DID。
+所有普通设备 Event 的 `proof.verification_method` MUST 是基于该 principal 已验证、且满足操作 freshness / event-time 要求的 `full_id` 的 DID URL。receiver MUST 取 DID URL 的 bare `full_id`，用已登记 method adapter 验证并要求 `project(full_id) == principal_id`（稳定 `did_core_id`），再要求 fragment 逐字等于完整 `signing_device_id`（`ak:device:<uuid>`）；不得把 fragment 拼到 `principal_id`，也不得把任何 core-plus-fragment 字符串当成 verification method。设备没有独立 DID，因此不得使用 candidate `did:key` 作为该字段。对 `authorization_binding_kind="accepted_device"` 的 authorize，`signing_device_id` 必须是 payload.`authorized_by`，不能是待授权 target device；因此 payload.`authorized_by` 在该分支下必然是设备 id，不是任何 principal DID。
 
 该 Event proof 同时是 `accepted_device` 分支下 `principal_id`、`authorized_by`、`not_before`、`expires_at`、`scopes` 的**唯一签名承载**（§5.2.2）：它覆盖完整 canonical Event bytes，而签名方正是选定这些值的批准设备。验签方 MUST 用它校验这些字段，MUST NOT 期望目标设备的 `device_signature` 覆盖它们。
 
@@ -339,7 +339,7 @@ genesis / re-anchor 时候选设备自己 author 整个封闭 unit，§5.1 的�
 1. Event `payload.device_signature` 与自己产出的 attestation `device_signature` **逐字节相同**；
 2. `payload.device_public_key`、`payload.hpke_key`、`payload.algorithms` 与自己 attestation 中的对应值**逐字一致**（含 `algorithms` 的排序与去重结果）；
 3. `payload.device_id` 等于自己的 `device_id`；
-4. `payload.authorization_binding_kind` 为 `accepted_device`；`proof.verification_method` MUST 是该 principal 已验证 `full_id` 下的 DID URL，取其 bare `full_id` 经已登记 method adapter 验证后 MUST 满足 `project(full_id) == payload.principal_id`（稳定 `core_id`），且 fragment 逐字等于 `payload.authorized_by`；不得从 principal core 与 device fragment 拼接 verification method；
+4. `payload.authorization_binding_kind` 为 `accepted_device`；`proof.verification_method` MUST 是该 principal 已验证 `full_id` 下的 DID URL，取其 bare `full_id` 经已登记 method adapter 验证后 MUST 满足 `project(full_id) == payload.principal_id`（稳定 `did_core_id`），且 fragment 逐字等于 `payload.authorized_by`；不得从 principal core 与 device fragment 拼接 verification method；
 5. `payload.principal_id` 与用户预期的账号一致——该值 MUST 在装配前显式呈现给用户确认，不得默默采纳服务端给出的任何 principal。
 
 任一项不符，目标设备 MUST fail closed：MUST NOT 使用该身份、MUST NOT 安装或请求该 principal 的任何密钥材料、MUST NOT 发布 KeyPackage，并 MUST 向用户告警（提示该配对已被篡改或指向了非预期账号）。这条校验同样阻断“批准方把 attestation 用到另一个 principal 下”的场景：攻击者可以铸出一条对自己 principal 有效的 Event，但目标设备在装配前就会因第 5 项拒绝。
@@ -365,7 +365,7 @@ Arkret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sy
 
 ### 5a.2 注册与撤销
 
-- 设备 MUST 通过 `ak.device.push_route` actor-private state Event 把 `(recipient_service_id, principal_id, device_id, push_route, push_target_id, push_gateway_did, encryption_key, capabilities)` 写入当前投递 Principal Server 可见的 principal control stream 或等价 actor-private state；该 Event 不携带 CBA reducer 字段，不进入 shared Realm Seal coverage。目标 actor-private cell 的 `cell_subject` 由 canonical `contract-registry.json` 的 `event_kind_registry.actor_private_contracts` 声明为 composite `(payload.recipient_service_id, payload.principal_id, payload.device_id, payload.push_route)`，family 使用 `cas_register` 且 `bottom=reject`；schema registry 只负责 payload 形状，不是 merge 真相源。`recipient_service_id` MUST 与 [`governance/member-delivery-binding.md` §2](../governance/member-delivery-binding.md) 接受准则中该 device 所属 member 的 `delivery_binding.recipient_service_id` 一致；推送注册按 `(recipient_service_id, principal, device, push_route)` 维度隔离，同一 DID 在不同 Principal Server 上下文中的 push route 不共享、不可关联。
+- 设备 MUST 通过 `ak.device.push_route` actor-private state Event 把 `(recipient_service_id, principal_id, device_id, push_route, push_target_id, push_gateway_service_id, encryption_key, capabilities)` 写入当前投递 Principal Server 可见的 principal control stream 或等价 actor-private state；该 Event 不携带 CBA reducer 字段，不进入 shared Realm Seal coverage。目标 actor-private cell 的 `cell_subject` 由 canonical `contract-registry.json` 的 `event_kind_registry.actor_private_contracts` 声明为 composite `(payload.recipient_service_id, payload.principal_id, payload.device_id, payload.push_route)`，family 使用 `cas_register` 且 `bottom=reject`；schema registry 只负责 payload 形状，不是 merge 真相源。`recipient_service_id` MUST 与 [`governance/member-delivery-binding.md` §2](../governance/member-delivery-binding.md) 接受准则中该 device 所属 member 的 `delivery_binding.recipient_service_id` 一致；推送注册按 `(recipient_service_id, principal, device, push_route)` 维度隔离，同一 DID 在不同 Principal Server 上下文中的 push route 不共享、不可关联。
 - 撤销：设备 MUST 在同一 actor-private cell 上写后继 `ak.device.push_route` event 设置 `revoked: true` 或重新写入新 `push_target_id`；service / gateway MUST 在 actor-private state 收敛后停止接受旧伪名。
 - 轮换：客户端 SHOULD 在 push token 变化、设备恢复、Out-of-band 重新登录、或自定义 rotation 周期（默认 ≤ 90 天）时轮换 `push_target_id`。
 - 长期不可恢复性：服务方在丢弃旧 `push_target_id` 后 MUST NOT 保留可把旧 / 新伪名链接回同一 `(recipient_service_id, principal, device)` 的索引；只允许在 rotation 时短暂保留以便迁移未投递消息。短暂保留期 MUST ≤ 24h，或与单条未投递消息 TTL 取较短者；超过该窗口 MUST 物理删除旧 `push_target_id` 与对应索引材料，不得保留任何能把新旧映射回同一 device 的信息。
@@ -679,7 +679,7 @@ receiver 必须验证：
 3. accepted Seal 覆盖链的当前 frontier，device 未 revoke/conflict，`authorized_generation_ref == current_device_generation_ref`；
 4. row 的 signing/HPKE key 与 authorize payload 逐字一致。
 
-缺失、stale 或冲突证据时不得返回可用于 E2EE/Signal 验签或 KeyPackage claim 的 active key。普通 Event proof method 继续按 §5.3 解析：它是基于已验证 principal `full_id` 的 DID URL；receiver 取 bare `full_id` 经 adapter 验证并要求其投影等于 actor/principal `core_id`，再要求 fragment 逐字等于 `device_id`，不得从 actor core 拼接 fragment。
+缺失、stale 或冲突证据时不得返回可用于 E2EE/Signal 验签或 KeyPackage claim 的 active key。普通 Event proof method 继续按 §5.3 解析：它是基于已验证 principal `full_id` 的 DID URL；receiver 取 bare `full_id` 经 adapter 验证并要求其投影等于 actor/principal `did_core_id`，再要求 fragment 逐字等于 `device_id`，不得从 actor core 拼接 fragment。
 
 #### 8.3 客户端独立验证（normative）
 

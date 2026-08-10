@@ -20,7 +20,7 @@
       "const": "ak.schema.agent_selector_claim.v1"
     },
     "controller_subject": {
-      "$ref": "#/$defs/did",
+      "$ref": "#/$defs/did_core_id",
       "description": "Controller principal DID that owns the selector namespace."
     },
     "agent_slug": {
@@ -28,15 +28,15 @@
       "description": "Controller-scoped slug used as the right-hand side of @<controller-handle>/<agent_slug>."
     },
     "subject": {
-      "$ref": "#/$defs/did",
+      "$ref": "#/$defs/did_core_id",
       "description": "Native personal agent principal DID selected by (controller_subject, agent_slug)."
     },
     "issuer": {
-      "$ref": "#/$defs/did",
+      "$ref": "#/$defs/did_core_id",
       "description": "DID that signs this selector claim. It is normally controller_subject; a delegated issuer MUST be authorized by controller_subject and bound in source_refs or proof evidence."
     },
     "issuer_service_id": {
-      "$ref": "#/$defs/did",
+      "$ref": "#/$defs/did_core_id",
       "description": "Service DID that served or vouched for this selector claim when distinct from issuer."
     },
     "binding_state": {
@@ -93,8 +93,8 @@
     }
   },
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "agent_slug": {
       "$ref": "string-profiles.schema.json#/$defs/agent_slug"

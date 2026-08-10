@@ -18,11 +18,11 @@
       "const": "ak.schema.accountability_grant.v1"
     },
     "issuer": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Stable principal core_id accepting accountability for subject. Verifiers MUST take the proof verification-method DID URL's bare controller full_id, validate it with the registered method adapter, and require project(full_id) to equal issuer; direct full-DID/core-id string comparison is forbidden."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Stable principal did_core_id accepting accountability for subject. Verifiers MUST take the proof verification-method DID URL's bare controller full_id, validate it with the registered method adapter, and require project(full_id) to equal issuer; direct full-DID/core-id string comparison is forbidden."
     },
     "subject": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Actor principal DID being endorsed."
     },
     "accountability_scope": {

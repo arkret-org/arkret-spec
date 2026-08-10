@@ -20,7 +20,7 @@
       "const": "ak.schema.key_backup_active_series.v1"
     },
     "actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "backup_kind": {
       "$ref": "#/$defs/backup_kind"

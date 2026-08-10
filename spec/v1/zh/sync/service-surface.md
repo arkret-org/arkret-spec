@@ -39,7 +39,7 @@ see_also:
 
 ### 2.1 DID Document 只做发现，不直接承载全部状态
 
-这里的 DID Document 是 `full_id` 的 method-native 解析结果，不是 Arkret 业务主键。Arkret Event、policy、member binding 和服务准入持久引用使用稳定 `core_id`；只有初次注册、解析刷新和方法原生验证才必须出示 `full_id`。注册的 method adapter MUST 验证 `full_id` 及其控制历史，并确认 `project(full_id) = core_id`；服务不得从域名或 URL 反推 `core_id`。
+这里的 DID Document 是 `full_id` 的 method-native 解析结果，不是 Arkret 业务主键。Arkret Event、policy、member binding 和服务准入持久引用使用稳定 `did_core_id`；只有初次注册、解析刷新和方法原生验证才必须出示 `full_id`。注册的 method adapter MUST 验证 `full_id` 及其控制历史，并确认 `project(full_id) = did_core_id`；服务不得从域名或 URL 反推 `did_core_id`。
 
 DID Document SHOULD 只负责：
 
@@ -130,11 +130,11 @@ Deployment profile 的 canonical 机器真源是 [`conformance-profiles.json`](.
 - 高安全或主权部署把 Principal、Identity Resolution、Auth、Directory、Policy/Authz、Events/Blob、Sync/Federation 与 Audit/Compliance 保持在受控 trust domain 内；公共 Directory、Push 或外部 federation ingress 只能作为显式授权的互联入口。
 - Applet、MIMI facade、Agent runtime、Moderation、Archive/Recovery 等角色是 service role / capability 组合，不是 deployment profile id；它们只能在已声明 profile 允许的 namespace、capability、Realm policy 与 service describe 范围内工作。
 
-### 2.6 Service `core_id` 与首跳路由解析（normative）
+### 2.6 Service `did_core_id` 与首跳路由解析（normative）
 
-服务身份与 principal 身份使用同一个二层模型：业务层持久 `service_id: core_id`，首次注册或绑定时必须同时提供可验证 `full_id`，并由 method adapter 验证 `project(full_id) = service_id`。因此服务端在业务表中只保存 `core_id` 不会失去可路由性；发送前通过已验证的 `ServiceResolutionRecord` 将它映射为当前 `full_id` 和真实 `base_url`。
+服务身份与 principal 身份使用同一个二层模型：业务层持久 `service_id: did_core_id`，首次注册或绑定时必须同时提供可验证 `full_id`，并由 method adapter 验证 `project(full_id) = service_id`。因此服务端在业务表中只保存 `did_core_id` 不会失去可路由性；发送前通过已验证的 `ServiceResolutionRecord` 将它映射为当前 `full_id` 和真实 `base_url`。
 
-`ServiceResolutionRecord` 是签名的首跳材料，至少绑定 service `core_id`、`service_kind`、当前 `full_id`、method history head / version、服务控制历史引用、`record_sequence` / `previous_record_digest`、`current_record_url`、`base_url`、`describe_digest` 以及 `issued_at` / `refresh_after` / `expires_at`。`resolution_event_ref` MUST 按 active adapter row 从同一个已验证状态确定性映射：`did:webvh` 为 `did-webvh-entry-sha256:<hex>`，`did:web` 为 `did-web-document-sha256:<hex>`，`did:key` 为 `did-key-full-id-sha256:<hex>`。首条 record 的 sequence 为 `0` 且 predecessor 为 `null`；同一 service `core_id` 的每个后继 MUST 恰好加一，并以前一份完整 record（包含 proof）的 `sha256(RFC8785_JCS(...))` 作为 predecessor，禁止跳号、复用或回滚。时间必须满足 `issued_at <= refresh_after < expires_at`。`base_url` MUST 是 canonical absolute HTTPS base：scheme / host 小写、去掉默认端口、消解 dot-segment、禁止 userinfo / query / fragment，规范化 path 并且恰有一个 trailing slash。
+`ServiceResolutionRecord` 是签名的首跳材料，至少绑定 service `did_core_id`、`service_kind`、当前 `full_id`、method history head / version、服务控制历史引用、`record_sequence` / `previous_record_digest`、`current_record_url`、`base_url`、`describe_digest` 以及 `issued_at` / `refresh_after` / `expires_at`。`resolution_event_ref` MUST 按 active adapter row 从同一个已验证状态确定性映射：`did:webvh` 为 `did-webvh-entry-sha256:<hex>`，`did:web` 为 `did-web-document-sha256:<hex>`，`did:key` 为 `did-key-full-id-sha256:<hex>`。首条 record 的 sequence 为 `0` 且 predecessor 为 `null`；同一 service `did_core_id` 的每个后继 MUST 恰好加一，并以前一份完整 record（包含 proof）的 `sha256(RFC8785_JCS(...))` 作为 predecessor，禁止跳号、复用或回滚。时间必须满足 `issued_at <= refresh_after < expires_at`。`base_url` MUST 是 canonical absolute HTTPS base：scheme / host 小写、去掉默认端口、消解 dot-segment、禁止 userinfo / query / fragment，规范化 path 并且恰有一个 trailing slash。
 
 `describe_digest` 不是对整个动态 `ServiceDescribe` 的摘要，而是
 `sha256(RFC8785_JCS(route_binding_projection))`；`route_binding_projection` 仅含
@@ -152,7 +152,7 @@ operation 是 `ak.open.service.read.resolution`。响应是当前完整签名 `S
 验证成功后，下一次刷新 URL MUST 从新 record 的 canonical `base_url` 加
 `_arkret/open/services/{percent-encoded service_id}/resolution` 重新派生；只有新 record 已验签时才能用该派生值替换 cache 中的旧 `current_record_url`。这是服务换 URL 的过渡路径，不依赖 HTTP redirect。
 
-调用 `GET /_arkret/describe` 已经需要候选 URL，因此 describe 是**二跳确认面**，不是从 `core_id` 得到 URL 的首跳 resolver。调用方 MUST 先验证 record，再以 canonical `base_url` 派生 role-scoped describe URL，并确认 describe 的 `route_binding_projection` 与 `describe_digest` 一致。resolution 和 describe 请求 MUST NOT 自动跟随 redirect；如果收到 redirect，调用方只能在另行取得的新签名 record 已绑定新 URL 后重新发起，不得依赖同域名、TLS 或 redirect 自身建立身份。
+调用 `GET /_arkret/describe` 已经需要候选 URL，因此 describe 是**二跳确认面**，不是从 `did_core_id` 得到 URL 的首跳 resolver。调用方 MUST 先验证 record，再以 canonical `base_url` 派生 role-scoped describe URL，并确认 describe 的 `route_binding_projection` 与 `describe_digest` 一致。resolution 和 describe 请求 MUST NOT 自动跟随 redirect；如果收到 redirect，调用方只能在另行取得的新签名 record 已绑定新 URL 后重新发起，不得依赖同域名、TLS 或 redirect 自身建立身份。
 
 对 `current_record_url` 的自动抓取属于服务端网络输入，MUST 在 DNS 前后执行 SSRF 防护：默认拒绝 loopback、link-local、private / reserved address、userinfo、非 HTTPS 和 DNS rebinding；只有部署 policy 显式列入的 private service 可例外。解析后地址 MUST 钉住到当次请求，禁止 redirect 与 `Content-Encoding`，响应 canonical bytes MUST 不超过 64 KiB，从连接到读完的总 deadline MUST 不超过 5 秒。超限、超时或地址分类改变均 fail closed。
 
@@ -180,7 +180,7 @@ ServiceRouteHandoverNotice {
 
 对每个实际存在业务授权关系的 remote `service_id`，实现 MUST 在独立于 TTL cache 的 durable anti-rollback ledger 中保存至少 `{service_kind,last_seen_record_sequence,last_seen_record_digest}`，并在把新 route 用于业务流量前原子推进该 floor。较低 sequence、相同 sequence 不同 digest、跳号或 predecessor 不连续均 MUST fail closed；两个能通过 target proof 的同 sequence 异 digest 也属于 service-control fork，必须 quarantine，不能按到达时间、URL 可达性或 mirror 多数票选 winner。已接受 active notice 的 `{handover_id,notice_revision,notice_digest,state,expires_at}` 与对外签发/接收的 durable ack 同样必须在依赖它进行安全切换前落盘，并保留到取消、完成或过期。进程重启、cache eviction 或 DNS 变化不得降低 last-seen floor。
 
-高频投递实现 MAY 另存 `ServiceRouteCache[service core_id] -> {service_kind, full_id, method_history_head, record_sequence, record_digest, base_url, describe_digest, current_record_url, verified_at, refresh_after, expires_at, cache_expires_at}` 的本地 TTL cache。这里 `expires_at` 是 target-signed record 的硬到期时间，`cache_expires_at` 是实现选择的本地缓存到期时间且 MUST `<= expires_at`；二者不得合并、互相延长或只保存本地 TTL 而丢弃 signed expiry。该 cache 是可丢失、可重建的性能优化；它的存储引擎、淘汰算法和后台刷新属于实现层，但绝不能代替前段 durable anti-rollback ledger。`refresh_after` 到达时 SHOULD 通过 `current_record_url` 异步刷新；`cache_expires_at` 或 signed `expires_at` 任一到达、binding / Realm policy 变化、method head 不一致、route-binding digest 改变、签名/授权失效或安全敏感操作时 MUST 取得并验证最新 record。同一 `core_id` 下的 resolution / URL 刷新只更新 durable route floor 与本地 cache，不改变 Realm 授权，不需要 member rebind；service `core_id` 改变才必须通过新 delivery binding / rebind 重新授权。同一未失效 binding 的普通请求 MAY 复用 cache，不得每次在线 resolve DID。
+高频投递实现 MAY 另存 `ServiceRouteCache[service did_core_id] -> {service_kind, full_id, method_history_head, record_sequence, record_digest, base_url, describe_digest, current_record_url, verified_at, refresh_after, expires_at, cache_expires_at}` 的本地 TTL cache。这里 `expires_at` 是 target-signed record 的硬到期时间，`cache_expires_at` 是实现选择的本地缓存到期时间且 MUST `<= expires_at`；二者不得合并、互相延长或只保存本地 TTL 而丢弃 signed expiry。该 cache 是可丢失、可重建的性能优化；它的存储引擎、淘汰算法和后台刷新属于实现层，但绝不能代替前段 durable anti-rollback ledger。`refresh_after` 到达时 SHOULD 通过 `current_record_url` 异步刷新；`cache_expires_at` 或 signed `expires_at` 任一到达、binding / Realm policy 变化、method head 不一致、route-binding digest 改变、签名/授权失效或安全敏感操作时 MUST 取得并验证最新 record。同一 `did_core_id` 下的 resolution / URL 刷新只更新 durable route floor 与本地 cache，不改变 Realm 授权，不需要 member rebind；service `did_core_id` 改变才必须通过新 delivery binding / rebind 重新授权。同一未失效 binding 的普通请求 MAY 复用 cache，不得每次在线 resolve DID。
 
 ## 3. 通用服务描述接口
 
@@ -352,7 +352,7 @@ GET /_arkret/describe
       "verification_run_id": "verify-2026-05-02T000000Z",
       "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "artifact_ref": "https://verifier.example/log/verify-2026-05-02T000000Z",
-      "verifier_did": "ak:did_core:webvh:zC72cg8H1bJUTB6ZngzxP68BJ",
+      "verifier_service_id": "ak:did_core:webvh:zC72cg8H1bJUTB6ZngzxP68BJ",
       "signature": "base64url:...",
       "timestamp": "2026-05-02T00:00:00.000Z"
     }
@@ -380,7 +380,7 @@ GET /_arkret/describe
 `directory/describe` / `applet/describe`）响应 MUST 使用同一个 canonical `ServiceDescribe` shape。除 `service_id`、`service_resolution`、`trust_domain`、`service_kind`、`protocol_version`、`supported_profiles`、`supported_operations`、`supported_bindings`、`supported_features`、`auth_metadata`、`limits`、`plaintext_visibility` 和 `rate_limit_policy` / `rate_limit_policy_id` 之外，响应还 MUST 按 **claim level** 区分以下字段；schema 见
 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)（`ak.schema.service_describe.v1`）：
 
-`service_id` MUST 是该逻辑角色的 `core_id`，`service_resolution` MUST 投影当前 `full_id` 与 method history position。这个投影只用于将已选定 endpoint 与首跳 `ServiceResolutionRecord` 交叉确认，不能让 describe 变成 resolver，也不能单独创建 service 授权。
+`service_id` MUST 是该逻辑角色的 `did_core_id`，`service_resolution` MUST 投影当前 `full_id` 与 method history position。这个投影只用于将已选定 endpoint 与首跳 `ServiceResolutionRecord` 交叉确认，不能让 describe 变成 resolver，也不能单独创建 service 授权。
 
 当 `service_kind=directory_service` 时，`ak.find.directory.read.describe` 还 MUST 按 [`discovery-directory.md` §8.9](../discovery/discovery-directory.md#89-akfinddirectoryreaddescribe-扩展) 暴露已登记在 `ServiceDescribe` schema 中的 directory-specific 裸字段（例如 `resource_kinds[]`、`discovery_profiles[]`、`ingest_modes`、`accept_policy_kind`、TTL 与 `rate_limits` 字段）；这些字段不是 vendor-specific `x_*` 扩展。
 
@@ -391,8 +391,8 @@ GET /_arkret/describe
   构建 conformance matrix 的工具 MUST 把它视为严格弱于 `claimed_profiles`。
 - `claimed_profiles: [{profile_id, claim_kind: "self_claimed", ...}]` — 服务自声明加入的 profile。
   `claim_kind` 当前固定为 `self_claimed`；Conformance Verifier 验证结果 MUST 改写到 `verified_profiles`，不得复制到本字段。
-- `verified_profiles: [{profile_id, claim_kind: "conformance_verified", verification_run_id, artifact_digest, artifact_ref, verifier_did, signature, timestamp, expires_at?}]` —
-  附带 verification run 标识、artifact hash、artifact 获取位置或 transparency-log 引用、verifier identity、签名与验证时间戳的已验证 profile。兼容字段名 `verifier_did` 实际承载稳定 verifier `core_id`；artifact proof 的 verification-method DID URL 必须取 bare `full_id`，经已登记 adapter 验证并投影到该值，不得把完整 DID 填入此字段。签发主体是中立角色 **Conformance Verifier**（定义见
+- `verified_profiles: [{profile_id, claim_kind: "conformance_verified", verification_run_id, artifact_digest, artifact_ref, verifier_service_id, signature, timestamp, expires_at?}]` —
+  附带 verification run 标识、artifact hash、artifact 获取位置或 transparency-log 引用、verifier identity、签名与验证时间戳的已验证 profile。兼容字段名 `verifier_service_id` 实际承载稳定 verifier `did_core_id`；artifact proof 的 verification-method DID URL 必须取 bare `full_id`，经已登记 adapter 验证并投影到该值，不得把完整 DID 填入此字段。签发主体是中立角色 **Conformance Verifier**（定义见
   [`conformance-suite.md`](../conformance/conformance-suite.md) §6.2）。**约束**：当 `development_mode=true`
   时，本数组 MUST 为空——dev / placeholder proof 路径不得用来宣告生产 conformance（见本节 §3.0）。
 - `experimental_features: feature_id[]` — 服务暴露但不承诺稳定互操作的 feature；客户端 MUST NOT
@@ -419,7 +419,7 @@ GET /_arkret/describe
 2. dev / placeholder posture 下，自检 `verified_profiles == []` 并在初始化时 fail closed。
 3. conformance 报告工具与 admin 等下游 MUST 按 claim level 渲染不同 badge：`self_claimed`、`conformance_verified`、
    `experimental`、`compat`、`not_claimed`。
-4. 客户端不得只信任服务自报的 `verified_profiles`；使用生产 conformance 结论前 MUST 通过 `artifact_ref` 或等价 transparency log 取得 verification artifact，校验 `artifact_digest`、`verifier_did`、`signature`、时间戳和可选 `expires_at`。
+4. 客户端不得只信任服务自报的 `verified_profiles`；使用生产 conformance 结论前 MUST 通过 `artifact_ref` 或等价 transparency log 取得 verification artifact，校验 `artifact_digest`、`verifier_service_id`、`signature`、时间戳和可选 `expires_at`。
 
 `plaintext_visibility.data_classes` 是机器可判定的明文类别白名单。`event_kinds`、`payload_paths`、`blob_purposes` 和 `projection_outputs` 只是进一步缩小或解释范围，不能替代 `data_classes`；`notes` 只供人读。Realm policy 的 `plaintext_visible_services[].data_classes` MUST 是目标 `ServiceDescribe.plaintext_visibility.data_classes` 的子集，且 `visibility` 不得高于 `max_visibility`。若 describe 缺失 `data_classes` 或只给出自由文本 `purposes`，客户端 / reducer MUST 把它视为不能接收私有明文。
 
@@ -843,7 +843,7 @@ POST /_arkret/find/directory/search-realms
 请求 MAY 包含：
 
 - `query`
-- `organization_did`
+- `organization_principal_id`
 - `source_realm_id`
 - `requester`
 - `proofs`
@@ -938,7 +938,7 @@ Arkret v1 的首次加入流程：
 
 1. 用户输入 handle、DID 或 Realm link
 2. 客户端解析 DID，并完成 handle 双向校验
-3. 从 Realm link / invite / locator / delivery binding / peer evidence 携带的 inline record 或 `current_record_url` 得到 service `core_id` 的首跳 `full_id` / `base_url`，验证 method history、record 签名、freshness 与 Realm policy，再以 role-scoped describe 确认 Principal Server / identity registry / events / account / snapshot / blob / authz 能力
+3. 从 Realm link / invite / locator / delivery binding / peer evidence 携带的 inline record 或 `current_record_url` 得到 service `did_core_id` 的首跳 `full_id` / `base_url`，验证 method history、record 签名、freshness 与 Realm policy，再以 role-scoped describe 确认 Principal Server / identity registry / events / account / snapshot / blob / authz 能力
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Realm metadata 与 snapshot head
 6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。high-assurance profile 下，`authority_binding.witness_attestations[]` 或等价 quorum proof 必须可验证；缺失时不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `QUERY /_arkret/self/events`（`ak.self.events.read.scan`，JSON content 携带 `before`）进行原始 Event 历史回放。
@@ -1004,7 +1004,7 @@ Arkret v1 固定：
 - 定义最小 Principal Server / identity registry / events / account / snapshot / blob / authz 服务面
 - v1 core 互操作 transport 锁定为 HTTP/JSON（见 [`transport-bindings.md` §1](./transport-bindings.md)）；gRPC / WebSocket / SSE / MQ / libp2p 等其他 binding 仅为 extension profile，本节列出的 operation 形态与字段以 HTTP/JSON 为唯一权威。其他 binding 必须语义等价但不构成 v1 core 一致性。
 - 写接口必须幂等
-- principal 与 service 的业务引用都使用 `core_id`；注册 / resolution 出示 `full_id`，service 首跳 URL 由签名 `ServiceResolutionRecord` 给出，describe 只做二跳确认
+- principal 与 service 的业务引用都使用 `did_core_id`；注册 / resolution 出示 `full_id`，service 首跳 URL 由签名 `ServiceResolutionRecord` 给出，describe 只做二跳确认
 - DID 写入采用多 registry / witness receipt，而不是区块链
 - bootstrap 必须覆盖 invite / grant / snapshot / backfill
 - 服务必须公开 reducer / schema / feature profile
@@ -1022,7 +1022,7 @@ Arkret v1 固定：
 
 - Directory search result MUST 使用 `query-schema.md` 的分页、过滤和 `visibility_explanation` 约束；对不可见或不可枚举资源，错误形态 MUST 与不存在一致。
 - Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_expires_at`；`decision` 只能是 `allow`、`soft_deny`、`hard_deny`、`quarantine` 或 `require_review`。
-- Service describe MUST 声明 `service_id: core_id`、`service_resolution`、`trust_domain`、`service_kind`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_id`、`plaintext_visibility` 与 `development_mode`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{kind: "http_json", ...}`);单数字段名 `binding` 不出现在 describe response 顶层。客户端 MUST 拒绝 service `core_id` / `full_id` projection、trust_domain、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
+- Service describe MUST 声明 `service_id: did_core_id`、`service_resolution`、`trust_domain`、`service_kind`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_id`、`plaintext_visibility` 与 `development_mode`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{kind: "http_json", ...}`);单数字段名 `binding` 不出现在 describe response 顶层。客户端 MUST 拒绝 service `did_core_id` / `full_id` projection、trust_domain、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
 - Service describe 响应 MUST 同时按 §3.0 区分 `supported_operations` / `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `compat_surfaces` 六个 claim level 字段，schema 见 `ak.schema.service_describe.v1`。当 `development_mode=true` 时 `verified_profiles` MUST 为空；当 `development_mode=false` 且声明 `verified_profiles` 时，客户端仍 MUST 通过 `artifact_ref` / transparency log 获取并校验对应 verification artifact、verifier 签名和 hash 后才把它作为生产 conformance 依据。
 - Sync cursor recovery MUST 按 `conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
 - Event source consistency MUST 按 `conformance-vectors.md` 执行：重复 Event 幂等，冲突 Event 拒绝，event order、hash、签名和 `actor_seq` 必须可复现验证。

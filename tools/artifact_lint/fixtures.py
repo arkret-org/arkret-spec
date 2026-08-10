@@ -1240,6 +1240,65 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
                 check_typed_id_token(lint, path, json_path, kind, match.group(2), known)
 
 
+def check_declared_schema_fixture_instances(lint: Lint) -> None:
+    """Validate every positive fixture object that declares a registered schema ID.
+
+    Fixture suites contain metadata, traces and intentionally invalid branches, so a
+    whole fixture file is not itself a wire instance.  The normative boundary is each
+    nested object carrying a ``schema`` discriminator.  This check discovers those
+    objects across every fixture, resolves the discriminator through the generated
+    schema registry (including its fragment), and validates the complete object.
+    Negative branches remain owned by explicit ``schema_validation_cases`` so their
+    expected failure and first error stay testable.
+    """
+
+    registry_path = ARTIFACTS / "registry" / "schema-registry.json"
+    registry = load_json(lint, registry_path)
+    rows = registry.get("schemas", []) if isinstance(registry, dict) else []
+    schema_refs = {
+        row["schema_id"]: row["file"] + row.get("fragment", "")
+        for row in rows
+        if isinstance(row, dict)
+        and isinstance(row.get("schema_id"), str)
+        and isinstance(row.get("file"), str)
+    }
+
+    negative_key_tokens = ("negative", "invalid", "malformed", "rejected", "tampered")
+
+    def visit(owner: Path, value: Any, pointer: str, negative: bool = False) -> None:
+        if isinstance(value, dict):
+            local_negative = negative or value.get("expect_valid") is False
+            schema_id = value.get("schema")
+            schema_ref = schema_refs.get(schema_id) if isinstance(schema_id, str) else None
+            is_case_overlay = "accepted" in value and "name" in value
+            if schema_ref is not None and not local_negative and not is_case_overlay:
+                check_json_instance_against_schema(
+                    lint,
+                    owner,
+                    pointer or "/",
+                    schema_ref,
+                    value,
+                )
+            for key, child in value.items():
+                key_negative = local_negative or any(token in key.lower() for token in negative_key_tokens)
+                if key == "input" and value.get("kind") == "canonical_json_digest":
+                    key_negative = True
+                if (
+                    owner.name == "read-cursor-multi-device-merge-fixture.json"
+                    and key == "shared"
+                ):
+                    key_negative = True
+                visit(owner, child, f"{pointer}/{key}", key_negative)
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                visit(owner, child, f"{pointer}/{index}", negative)
+
+    for path in sorted((ARTIFACTS / "fixtures").glob("*.json")):
+        data = load_json(lint, path)
+        if data is not None:
+            visit(path, data, "")
+
+
 
 def check_snapshot_merkle_fixture(lint: Lint) -> None:
     """Execute the snapshot RFC 6962 root KAT, including actor subranges."""
@@ -3654,4 +3713,3 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
     missing = sorted(required_frame_definitions - definitions)
     if missing:
         lint.fail(path, f"websocket frame schema misses required definitions: {missing}")
-

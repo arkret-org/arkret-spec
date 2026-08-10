@@ -90,7 +90,7 @@
         "seal_lineage"
       ],
       "properties": {
-        "authority_service_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "authority_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
         "principal_control_realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
         "frontier_seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
         "frontier_state_root": { "$ref": "#/$defs/hash" },
@@ -149,7 +149,7 @@
       ],
       "properties": {
         "authority_kind": { "const": "agent_authority" },
-        "authority_service_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "authority_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
         "verification_method": { "$ref": "./common-ids.schema.json#/$defs/did_url" },
         "snapshot_digest": { "$ref": "#/$defs/sha256" },
         "issued_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
@@ -176,7 +176,7 @@
       ],
       "properties": {
         "schema": { "const": "ak.schema.controller_account_gate_attestation.v1" },
-        "principal_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "principal_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
         "eligibility": { "type": "string", "enum": ["active", "inactive"] },
         "status": {
           "type": "string",
@@ -192,7 +192,7 @@
           "$ref": "#/$defs/sha256",
           "description": "Digest of the Account Authority-private binding/status projection selected by basis. The portable object never carries a service-local account_id or raw account cell."
         },
-        "authority_service_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "authority_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
         "verification_method": { "$ref": "./common-ids.schema.json#/$defs/did_url" },
         "issued_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
         "expires_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
@@ -247,8 +247,8 @@
       "properties": {
         "operation_id": { "$ref": "./principal-operations.schema.json#/$defs/operation_id" },
         "request_digest": { "$ref": "#/$defs/sha256" },
-        "verifier_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
-        "audience": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "verifier_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
+        "audience": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
         "challenge": { "type": "string", "minLength": 16, "maxLength": 512 },
         "agent_snapshot_digest": { "$ref": "#/$defs/sha256" },
         "agent_key_seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
@@ -287,7 +287,7 @@
         "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
         "event_admitted_seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
         "accepted_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
-        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
         "verification_method": { "$ref": "./common-ids.schema.json#/$defs/did_url" },
         "agent_key_authorize_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
         "admission_evidence_digest": { "$ref": "#/$defs/sha256" },
@@ -295,7 +295,7 @@
         "agent_key_seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
         "agent_status_seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
         "controller_gate_attestation_digest": { "$ref": "#/$defs/sha256" },
-        "receiver_service_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "receiver_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
         "proof": { "$ref": "#/$defs/detached_jws" }
       },
       "additionalProperties": false,
@@ -318,7 +318,7 @@
           "$ref": "#/$defs/sha256",
           "description": "SHA-256 over RFC 8785 JCS of the complete top-level evidence with outer_attestation omitted."
         },
-        "source_service_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "source_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
         "verification_method": { "$ref": "./common-ids.schema.json#/$defs/did_url" },
         "issued_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
         "expires_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
@@ -367,7 +367,7 @@
       ],
       "properties": {
         "component": { "const": "ak.component.agent.key.v1" },
-        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
         "authorization_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
         "seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
         "state_root": { "$ref": "#/$defs/hash" },
@@ -390,7 +390,7 @@
       ],
       "properties": {
         "component": { "const": "ak.component.agent.key.v1" },
-        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
         "authorization_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
         "transition_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
         "transition_key_id": { "type": "string", "minLength": 1, "maxLength": 512 },
@@ -436,8 +436,8 @@
       ],
       "properties": {
         "component": { "const": "ak.component.agent.status.v1" },
-        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
-        "controller_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
+        "controller_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
         "status": { "type": "string", "enum": ["active", "paused", "deactivated"] },
         "provenance": {
           "oneOf": [

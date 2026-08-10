@@ -42,7 +42,7 @@
     "applet_id": {
       "oneOf": [
         {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         {
           "$ref": "#/$defs/applet_id"
@@ -50,17 +50,17 @@
       ]
     },
     "service_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "controller_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "base_url": {
       "type": "string",
       "format": "uri"
     },
     "bot_actor_id": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did_core_id"
     },
     "claimed_profiles": {
       "type": "array",
@@ -130,8 +130,8 @@
     }
   },
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "applet_id": {
       "type": "string",
@@ -269,7 +269,7 @@
       "additionalProperties": false
     },
     "webhook_auth": {
-      "description": "HTTP message signature verification seal for transaction push. key_ref is the Applet service DID URL used as the app/bridge->arkret inbound source signature anchor. Verifiers MUST take its bare controller full_id, validate it with the registered method adapter, and require project(full_id) to equal service_id (core_id); direct full-DID/core-id string comparison is forbidden. The key is bound to the effective registration_epoch. accepted_signature_algorithms pins the acceptable RFC 9421 signature algorithms.",
+      "description": "HTTP message signature verification seal for transaction push. key_ref is the Applet service DID URL used as the app/bridge->arkret inbound source signature anchor. Verifiers MUST take its bare controller full_id, validate it with the registered method adapter, and require project(full_id) to equal service_id (did_core_id); direct full-DID/core-id string comparison is forbidden. The key is bound to the effective registration_epoch. accepted_signature_algorithms pins the acceptable RFC 9421 signature algorithms.",
       "required": [
         "kind",
         "key_ref",
@@ -278,7 +278,7 @@
       "properties": {
         "key_ref": {
           "$ref": "#/$defs/did_url",
-          "description": "DID URL under an Applet service full_id whose registered adapter projection equals service_id. For app/bridge->arkret inbound transaction push, Signature-Input keyid MUST equal this value. Node->Applet pushes verify the Arkret source service full_id/key binding selected by the Source-Service-ID core_id, not this field."
+          "description": "DID URL under an Applet service full_id whose registered adapter projection equals service_id. For app/bridge->arkret inbound transaction push, Signature-Input keyid MUST equal this value. Node->Applet pushes verify the Arkret source service full_id/key binding selected by the Source-Service-ID did_core_id, not this field."
         },
         "accepted_signature_algorithms": {
           "type": "array",

@@ -107,7 +107,7 @@ Signal 业务引用持久化。send outcome MAY 原样返回该 digest 用于诊
 
 `proof.verification_method` MUST 是 DID URL：去掉 fragment 后的 bare full DID 经对应 method
 adapter 投影必须逐字等于 `sender_actor_id`，fragment 必须逐字等于 `sender_device_id`；不得把
-`core_id` 与 fragment 直接拼接成 DID URL。该绑定只是 sender endpoint 与签名方法的完整性条件，
+`did_core_id` 与 fragment 直接拼接成 DID URL。该绑定只是 sender endpoint 与签名方法的完整性条件，
 不能代替授权验证。普通 principal
 的 verifier MUST 用 `(sender_actor_id, sender_device_id)` 从 current accepted
 principal-control / device-directory frontier 解析权威 verify key，并验证完整的 root-anchored PCR authorization chain、当前 active generation 与撤销状态。Native Agent 的

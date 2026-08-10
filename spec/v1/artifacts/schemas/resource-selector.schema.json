@@ -79,8 +79,8 @@
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Concrete principal / service / agent core_id. v1 forbids actor:*; actor selectors MUST NOT use a wildcard subject."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Concrete principal / service / agent did_core_id. v1 forbids actor:*; actor selectors MUST NOT use a wildcard subject."
     },
     "schema_ref": {
       "type": "string"

@@ -42,8 +42,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "device_id": {
       "type": "string",
@@ -119,7 +119,7 @@
           ],
           "properties": {
             "audience": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             "proof_purpose": {
               "type": "string",
@@ -307,13 +307,13 @@
           "$ref": "#/$defs/hash"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
         },
         "agent_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Native-Agent KeyPackage branch only. MUST equal principal_id and the current AgentSignerEvidence agent identity. It is never encoded as an ak:device identifier."
         },
         "agent_verification_method": {
@@ -377,7 +377,7 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
@@ -444,13 +444,13 @@
       ],
       "properties": {
         "target_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "intended_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "requester": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "required_capabilities": {
           "$ref": "#/$defs/string_list"
@@ -544,8 +544,8 @@
         },
         "request_digest": { "$ref": "#/$defs/hash" },
         "claims_digest": { "$ref": "#/$defs/hash" },
-        "source_service_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
-        "destination_service_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "source_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
+        "destination_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
         "request": { "$ref": "#/$defs/key_packages_claim_request_body" },
         "claimed_at": { "$ref": "#/$defs/timestamp" },
         "expires_at": { "$ref": "#/$defs/timestamp" },
@@ -607,7 +607,7 @@
               "$ref": "./common-ids.schema.json#/$defs/did_url"
             },
             "requester_agent_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             "agent_key_authorize_event_id": {
               "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -643,10 +643,10 @@
           "maxLength": 128
         },
         "target_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "requester": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "intended_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -685,7 +685,7 @@
           "description": "Optional exact ordinary KeyPackage selector. It is mandatory for claim_purpose=direct_conversation_repair and forbidden as a best-effort hint: the owner authority atomically claims exactly this current, unconsumed package or returns the same opaque claim_failed result as every other target-side failure."
         },
         "target_agent_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Native-Agent exact-target branch only. MUST equal target_principal_id and the Agent identity in the returned claim record and current AgentSignerEvidence."
         },
         "target_agent_verification_method": {
@@ -820,10 +820,10 @@
       ],
       "properties": {
         "source_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "destination_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "source_trust_domain": {
           "$ref": "./common-ids.schema.json#/$defs/trust_domain"
@@ -872,10 +872,10 @@
           "maxLength": 128
         },
         "target_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "requester": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "intended_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -914,7 +914,7 @@
           "description": "Exact ordinary KeyPackage selector for replacement repair. The destination KeyPackage authority MUST reject last-resort, stale, consumed, revoked, wrong-principal, wrong-device and non-matching refs through the same opaque claim_failed surface."
         },
         "target_agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "target_agent_verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -1126,10 +1126,10 @@
           "$ref": "#/$defs/hash"
         },
         "source_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "destination_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "request": {
           "$ref": "#/$defs/peer_key_packages_claim_unsigned_request",
@@ -1184,10 +1184,10 @@
           "$ref": "#/$defs/keypackage_ref_array"
         },
         "source_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "destination_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "terminal_at": {
           "$ref": "#/$defs/timestamp"
@@ -1527,13 +1527,13 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "recipient_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "recipient_device_id": {
           "$ref": "#/$defs/device_id"
         },
         "recipient_agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "recipient_agent_verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -1545,7 +1545,7 @@
           "$ref": "./agent-signer-evidence.schema.json#/$defs/current_admission_evidence"
         },
         "recipient_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -1629,7 +1629,7 @@
           "minimum": 0
         },
         "source_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "consumed_at": {
           "$ref": "#/$defs/timestamp"
@@ -1691,7 +1691,7 @@
       ],
       "properties": {
         "owner_account_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "key_package_refs": {
           "$ref": "#/$defs/keypackage_ref_array"
@@ -1700,7 +1700,7 @@
           "$ref": "#/$defs/device_id"
         },
         "consumer_agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "consumer_agent_verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -1775,7 +1775,7 @@
       ],
       "properties": {
         "owner_account_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "key_package_refs": {
           "$ref": "#/$defs/keypackage_ref_array"

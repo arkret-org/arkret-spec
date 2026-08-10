@@ -982,7 +982,7 @@ grant subject = alice@google.com
 {
   "kind": "ak.identity.presentation_request",
   "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-  "verifier_did": "did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example",
+  "verifier_service_id": "did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example",
   "represented_org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "domain": "google.example",
   "challenge": "ak.chal_01J...",
@@ -1016,7 +1016,7 @@ grant subject = alice@google.com
 }
 ```
 
-Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wallet MUST 把响应中的 proof 绑定到 `challenge`、`domain`、`verifier_did` 和 `represented_org`。
+Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wallet MUST 把响应中的 proof 绑定到 `challenge`、`domain`、`verifier_service_id` 和 `represented_org`。
 
 #### 16.2.2 Disclosure Policy
 
@@ -1024,10 +1024,10 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
 {
   "kind": "ak.identity.disclosure_policy",
   "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
-  "holder_did": "did:webvh:z64Hmi2jCpmp1cUuWEwCgdNn5:holder.example.com",
+  "holder_principal_id": "did:webvh:z64Hmi2jCpmp1cUuWEwCgdNn5:holder.example.com",
   "audience": {
     "org_did": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
-    "verifier_dids": ["did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example"],
+    "verifier_service_ids": ["did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example"],
     "tsp_vids": ["did:webs:google.example:verifier"]
   },
   "allowed_claims": [
@@ -1078,9 +1078,9 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
 
 ##### 16.2.3.1 Managed Agent requested-scope 私有披露 profile（normative）
 
-当 authorizing verifier 需要判定 managed Agent 的 immutable global ceiling 时，MUST 使用本节 presentation 流程请求 `claim_kind="ak.schema.agent_requested_scope_disclosure.v1"`，并在 `constraints` 中绑定 `agent_id` 与 Agent DID accepted-at `requested_scope_digest`。请求 MUST 携带精确 `verifier_did`、`domain`/operation audience、不可预测 `challenge`、唯一 `request_id` 与不超过 300 秒的接收窗口；controller wallet 的 `presentation` MUST 是 [`agent-requested-scope-disclosure.schema.json`](../../artifacts/schemas/agent-requested-scope-disclosure.schema.json) 的闭合对象。该对象的 controller proof、digest 与 accepted-at DID commitment 验证规则见 [`key-management.md` §4.1](./key-management.md) 和 [`../authz/capabilities.md` §9.1](../authz/capabilities.md)。
+当 authorizing verifier 需要判定 managed Agent 的 immutable global ceiling 时，MUST 使用本节 presentation 流程请求 `claim_kind="ak.schema.agent_requested_scope_disclosure.v1"`，并在 `constraints` 中绑定 `agent_id` 与 Agent DID accepted-at `requested_scope_digest`。请求 MUST 携带精确 `verifier_service_id`、`domain`/operation audience、不可预测 `challenge`、唯一 `request_id` 与不超过 300 秒的接收窗口；controller wallet 的 `presentation` MUST 是 [`agent-requested-scope-disclosure.schema.json`](../../artifacts/schemas/agent-requested-scope-disclosure.schema.json) 的闭合对象。该对象的 controller proof、digest 与 accepted-at DID commitment 验证规则见 [`key-management.md` §4.1](./key-management.md) 和 [`../authz/capabilities.md` §9.1](../authz/capabilities.md)。
 
-这是把完整 scope 定向披露给判定方的私有 profile，不是把 scope 发布为 credential registry 或 Realm fact。Transport MUST 是 TSP、HTTP/JWE、DIDComm-like、to-device、MLS DM 或安全性等价的 authenticated confidential channel；普通明文 HTTP、公开 DID URL、公开 Blob、Realm plaintext Event 与 notification payload 均不得承载该对象。Verifier MUST 原子消费 `(verifier_did, request_id, challenge)`；同一 wire presentation 重放、错 audience/verifier 或过期窗口全部 fail closed。成功接收后的缓存只属于 verifier 私域，不得被另一 verifier 当作其自己的 presentation。
+这是把完整 scope 定向披露给判定方的私有 profile，不是把 scope 发布为 credential registry 或 Realm fact。Transport MUST 是 TSP、HTTP/JWE、DIDComm-like、to-device、MLS DM 或安全性等价的 authenticated confidential channel；普通明文 HTTP、公开 DID URL、公开 Blob、Realm plaintext Event 与 notification payload 均不得承载该对象。Verifier MUST 原子消费 `(verifier_service_id, request_id, challenge)`；同一 wire presentation 重放、错 audience/verifier 或过期窗口全部 fail closed。成功接收后的缓存只属于 verifier 私域，不得被另一 verifier 当作其自己的 presentation。
 
 #### 16.2.4 Disclosure Receipt
 
@@ -1089,8 +1089,8 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
   "kind": "ak.identity.disclosure_receipt",
   "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
   "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-  "holder_did": "did:key:z6Mkgpairwise...",
-  "verifier_did": "did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example",
+  "holder_principal_id": "did:key:z6Mkgpairwise...",
+  "verifier_service_id": "did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example",
   "represented_org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "presentation_digest": "sha256:...",
   "proof_profile": "vc_di_bbs_2023",

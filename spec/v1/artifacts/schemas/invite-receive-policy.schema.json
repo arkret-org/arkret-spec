@@ -16,8 +16,8 @@
       "const": "ak.schema.invite_receive_policy.v1"
     },
     "subject_id": {
-      "$ref": "#/$defs/did",
-      "description": "Stable principal core_id whose private invite receive policy this object configures. A long-lived principal MUST originate from did:webvh; only ak.profile.ephemeral_pairwise_principal.v1 admits a did:key principal. did:web is never a principal method."
+      "$ref": "#/$defs/did_core_id",
+      "description": "Stable principal did_core_id whose private invite receive policy this object configures. A long-lived principal MUST originate from did:webvh; only ak.profile.ephemeral_pairwise_principal.v1 admits a did:key principal. did:web is never a principal method."
     },
     "holder_allowed_introduction_kinds": {
       "type": "array",
@@ -72,7 +72,7 @@
     "trusted_handle_issuers": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/did"
+        "$ref": "#/$defs/did_core_id"
       },
       "uniqueItems": true,
       "description": "Optional subject-private allowlist of handle claim issuers accepted for handle_claim evidence."
@@ -80,7 +80,7 @@
     "trusted_directory_services": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/did"
+        "$ref": "#/$defs/did_core_id"
       },
       "uniqueItems": true,
       "description": "Optional subject-private allowlist of Directory service DIDs accepted as resolved_by for handle_claim evidence."
@@ -95,21 +95,21 @@
     "trusted_principal_services": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/did"
+        "$ref": "#/$defs/did_core_id"
       },
       "uniqueItems": true
     },
     "denied_principal_services": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/did"
+        "$ref": "#/$defs/did_core_id"
       },
       "uniqueItems": true
     },
     "denied_subjects": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/did"
+        "$ref": "#/$defs/did_core_id"
       },
       "uniqueItems": true,
       "description": "Per-subject block list (peer principal DIDs). Invite delivery whose inviter is in this list MUST be dropped, and disclosure MUST be forced to opaque regardless of the disclosure policy, to avoid leaking the block via a side channel."
@@ -121,8 +121,8 @@
   },
   "additionalProperties": false,
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "did_method": {
       "type": "string",
@@ -239,28 +239,28 @@
         "trusted_handle_issuers": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true
         },
         "trusted_directory_services": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true
         },
         "trusted_principal_services": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true
         },
         "denied_principal_services": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true
         },

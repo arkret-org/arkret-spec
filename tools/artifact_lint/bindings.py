@@ -101,7 +101,7 @@ def schema_ref_targets(ref_schema: Any, component_name: str) -> bool:
     return ref in {
         f"#/components/schemas/{component_name}",
         f"#/$defs/{component_name}",
-    }
+    } or (isinstance(ref, str) and ref.endswith(f"#/$defs/{component_name}"))
 
 
 
@@ -690,7 +690,11 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
 
     expect_any_of("ak.self.events.stream.subscribe", [["realms"], ["actors"]])
     expect_array_param("ak.self.events.stream.subscribe", "realms", "#/components/schemas/RealmId")
-    expect_array_param("ak.self.events.stream.subscribe", "actors", "#/components/schemas/ActorDid")
+    expect_array_param(
+        "ak.self.events.stream.subscribe",
+        "actors",
+        "../schemas/common-ids.schema.json#/$defs/did_core_id",
+    )
     expect_param_ref("ak.self.events.stream.subscribe", "after", "#/components/schemas/Cursor")
     expect_param_ref("ak.self.events.resource.get", "event_id", "#/components/schemas/EventId")
     expect_param_ref("ak.self.snapshot.read.manifest_head", "realm_id", "#/components/schemas/RealmId")
@@ -710,7 +714,7 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
             else:
                 for name, ref in (
                     ("realms", "#/components/schemas/RealmId"),
-                    ("actors", "#/components/schemas/ActorDid"),
+                    ("actors", "../schemas/common-ids.schema.json#/$defs/did_core_id"),
                 ):
                     property_schema = properties.get(name)
                     if not isinstance(property_schema, dict):
@@ -1865,4 +1869,3 @@ def check_request_material_supply_closure(lint: Lint) -> None:
                 f"{row['exemption_id']}: stale exemption row matches no failing "
                 "demand; delete the row now that the supply exists",
             )
-

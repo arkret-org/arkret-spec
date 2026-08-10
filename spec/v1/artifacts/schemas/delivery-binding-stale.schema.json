@@ -12,8 +12,8 @@
   ],
   "properties": {
     "new_recipient_service_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Stable target Principal Server service core_id after rebind. MUST be within the current effective allowed_recipient_services / delivery binding policy allow set."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Stable target Principal Server service did_core_id after rebind. MUST be within the current effective allowed_recipient_services / delivery binding policy allow set."
     },
     "new_service_resolution": {
       "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
@@ -38,11 +38,11 @@
           "description": "MUST equal the top-level handover_frontier."
         },
         "recipient_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "MUST equal the top-level new_recipient_service_id."
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Rebind target principal; MUST equal target_principal_id."
         },
         "witness": {

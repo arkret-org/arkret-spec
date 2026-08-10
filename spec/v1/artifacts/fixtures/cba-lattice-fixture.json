@@ -153,7 +153,7 @@
         "plane": "data",
         "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "auth_context": {
-          "did": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "key_id": "device-1",
           "key_epoch": 1
         },
@@ -259,7 +259,7 @@
           "plane": "data",
           "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "auth_context": {
-            "did": "did:webvh:z6mkfixturebobexample:bob.example",
+            "actor_id": "ak:did_core:webvh:z6mkfixturebobexample",
             "key_id": "device-1",
             "key_epoch": 1
           }
@@ -848,7 +848,7 @@
         "plane": "data",
         "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "auth_context": {
-          "did": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "key_id": "device-1",
           "key_epoch": 1
         }

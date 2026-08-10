@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/identity-link.schema.json",
   "title": "Arkret Minimal-Metadata Identity Link",
-  "description": "Encrypted application-message or MLS private-extension payload that binds a Realm-scoped pairwise actor core_id to the real principal core_id for ak.profile.mls.minimal_metadata_realm.v1. The binding is scoped to both realm_id and trust_domain so the same pairwise mapping cannot be replayed across deployments. This object is never written to public Realm history unless a separate disclosure policy explicitly permits it.",
+  "description": "Encrypted application-message or MLS private-extension payload that binds a Realm-scoped pairwise actor did_core_id to the real principal did_core_id for ak.profile.mls.minimal_metadata_realm.v1. The binding is scoped to both realm_id and trust_domain so the same pairwise mapping cannot be replayed across deployments. This object is never written to public Realm history unless a separate disclosure policy explicitly permits it.",
   "type": "object",
   "required": [
     "schema",
@@ -29,11 +29,11 @@
       "default": "active"
     },
     "pairwise_actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Realm-scoped pairwise actor core_id used byte-for-byte in Event.actor_id and the MLS BasicCredential identity. Its Event proof verificationMethod controller is a did:key full_id whose registered adapter projection MUST equal this value."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Realm-scoped pairwise actor did_core_id used byte-for-byte in Event.actor_id and the MLS BasicCredential identity. Its Event proof verificationMethod controller is a did:key full_id whose registered adapter projection MUST equal this value."
     },
     "principal_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Real principal DID that controls or has disclosed the pairwise DID."
     },
     "device_id": {
@@ -130,8 +130,8 @@
   ],
   "additionalProperties": false,
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

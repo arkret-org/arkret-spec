@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.9",
+  "version": "2026-08-11.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T23:51:00Z",
+  "generated_at": "2026-08-11T00:30:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -258,7 +258,7 @@
           "discovery_event",
           "source_refs",
           "as_of",
-          "principal_server_did"
+          "principal_server_service_id"
         ],
         "properties": [
           "resource_kind",
@@ -266,7 +266,7 @@
           "discovery_event",
           "source_refs",
           "as_of",
-          "principal_server_did",
+          "principal_server_service_id",
           "ttl_seconds",
           "supersedes_announce_id"
         ],
@@ -300,7 +300,7 @@
         "required": [
           "takedown_id",
           "resource_id",
-          "appellant_did",
+          "appellant_actor_id",
           "argument_digest",
           "requested_outcome",
           "created_at",
@@ -309,7 +309,7 @@
         "properties": [
           "takedown_id",
           "resource_id",
-          "appellant_did",
+          "appellant_actor_id",
           "argument_digest",
           "requested_outcome",
           "created_at",
@@ -372,12 +372,12 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body",
         "schema_kind": "object",
         "required": [
-          "subscriber_did",
+          "subscriber_principal_id",
           "resource_filter",
           "webhook_endpoint"
         ],
         "properties": [
-          "subscriber_did",
+          "subscriber_principal_id",
           "resource_filter",
           "webhook_endpoint",
           "secret",
@@ -598,7 +598,7 @@
         "properties": [
           "controller_handle",
           "agent_slug",
-          "expected_agent_did",
+          "expected_actor_id",
           "proof_challenge",
           "intent",
           "realm_id",
@@ -640,7 +640,7 @@
         ],
         "properties": [
           "handle",
-          "expected_did",
+          "expected_principal_id",
           "proof_challenge",
           "claim_presentations",
           "intent",
@@ -655,13 +655,13 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome",
         "schema_kind": "object",
         "required": [
-          "did",
+          "principal_id",
           "subject",
           "handle",
           "verified"
         ],
         "properties": [
-          "did",
+          "principal_id",
           "subject",
           "handle",
           "verified",
@@ -681,7 +681,7 @@
         "schema_kind": "object",
         "required": [],
         "properties": [
-          "organization_did",
+          "organization_principal_id",
           "handle",
           "proofs"
         ],
@@ -784,7 +784,7 @@
         "properties": [
           "query",
           "realm_id",
-          "organization_did",
+          "organization_principal_id",
           "cursor",
           "limit"
         ],
@@ -844,7 +844,7 @@
         "required": [],
         "properties": [
           "query",
-          "organization_did",
+          "organization_principal_id",
           "source_realm_id",
           "requester",
           "proof_challenge",
@@ -5882,8 +5882,8 @@
         "required": [
           "ok",
           "cell_id",
-          "holder_did",
-          "peer_did",
+          "holder_principal_id",
+          "peer_principal_id",
           "consent_scope",
           "state",
           "active_grant_dots",
@@ -5894,8 +5894,8 @@
         "properties": [
           "ok",
           "cell_id",
-          "holder_did",
-          "peer_did",
+          "holder_principal_id",
+          "peer_principal_id",
           "consent_scope",
           "state",
           "expires_at",
@@ -5915,11 +5915,11 @@
         "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
         "schema_kind": "object",
         "required": [
-          "holder_did"
+          "holder_principal_id"
         ],
         "properties": [
-          "holder_did",
-          "peer_did",
+          "holder_principal_id",
+          "peer_principal_id",
           "consent_scope"
         ],
         "closed": true
@@ -5958,8 +5958,8 @@
         "required": [
           "ok",
           "cell_id",
-          "holder_did",
-          "peer_did",
+          "holder_principal_id",
+          "peer_principal_id",
           "consent_scope",
           "state",
           "active_grant_dots",
@@ -5970,8 +5970,8 @@
         "properties": [
           "ok",
           "cell_id",
-          "holder_did",
-          "peer_did",
+          "holder_principal_id",
+          "peer_principal_id",
           "consent_scope",
           "state",
           "expires_at",
@@ -6010,8 +6010,8 @@
         "required": [
           "ok",
           "cell_id",
-          "holder_did",
-          "peer_did",
+          "holder_principal_id",
+          "peer_principal_id",
           "consent_scope",
           "state",
           "active_grant_dots",
@@ -6022,8 +6022,8 @@
         "properties": [
           "ok",
           "cell_id",
-          "holder_did",
-          "peer_did",
+          "holder_principal_id",
+          "peer_principal_id",
           "consent_scope",
           "state",
           "expires_at",
@@ -8682,7 +8682,7 @@
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "policy_server_did",
+          "policy_server_service_id",
           "policy_server_url",
           "cache_ttl_seconds",
           "timeout_ms",
@@ -8692,7 +8692,7 @@
         ],
         "properties": [
           "realm_id",
-          "policy_server_did",
+          "policy_server_service_id",
           "policy_server_url",
           "cache_ttl_seconds",
           "timeout_ms",
@@ -8722,7 +8722,7 @@
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "policy_server_did",
+          "policy_server_service_id",
           "policy_server_url",
           "cache_ttl_seconds",
           "timeout_ms",
@@ -8732,7 +8732,7 @@
         ],
         "properties": [
           "realm_id",
-          "policy_server_did",
+          "policy_server_service_id",
           "policy_server_url",
           "cache_ttl_seconds",
           "timeout_ms",

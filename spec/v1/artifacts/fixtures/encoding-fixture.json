@@ -235,7 +235,7 @@
         "refs": [],
         "seal_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "auth_context": {
-          "did": "did:webvh:z6mkfixture:alice.example",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "key_id": "device-1",
           "key_epoch": 1
         },
@@ -248,8 +248,8 @@
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"actor_seq\":1,\"auth_context\":{\"did\":\"did:webvh:z6mkfixture:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00.000Z\",\"event_id\":\"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"strand_id\":\"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"refs\":[],\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\"},\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
-      "expected_digest": "sha256:f4d8a5c64697228753fa18e543d80722ee166a8fb7c9bc705935c87003c1e610",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"actor_seq\":1,\"auth_context\":{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00.000Z\",\"event_id\":\"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"strand_id\":\"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\",\"refs\":[],\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa\"},\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
+      "expected_digest": "sha256:1ceb92cb5f6d727ab485a6d2cd7f772d79024f6f1cbc24f9d15ee20464f106e9",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
         "event_id MUST appear inside the digest input but does not replace the digest",
@@ -500,7 +500,7 @@
         "😀": 1,
         "￿": 2
       },
-      "expected_canonical_bytes_utf8": "{\"￿\":2,\"😀\":1}",
+      "expected_canonical_bytes_utf8": "{\"😀\":1,\"￿\":2}",
       "rules": [
         "UTF-16 code-unit ordering places the supplementary-plane key before U+FFFF because its high surrogate 0xD83D sorts before 0xFFFF."
       ]

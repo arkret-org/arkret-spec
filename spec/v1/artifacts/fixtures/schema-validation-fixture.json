@@ -96,7 +96,7 @@
         "encryption_profile": "mls_rfc9420",
         "notary_profile": "single_did",
         "notary": {
-          "did": "ak:did_core:webvh:z6mkfixtureagentexample",
+          "actor_id": "ak:did_core:webvh:z6mkfixtureagentexample",
           "kind": "single_did"
         },
         "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
@@ -521,7 +521,7 @@
         "encryption_profile": "mls_rfc9420",
         "notary_profile": "single_did",
         "notary": {
-          "did": "ak:did_core:webvh:z6mkfixturenotaryacmeexample",
+          "actor_id": "ak:did_core:webvh:z6mkfixturenotaryacmeexample",
           "recovery_members": [
             "ak:did_core:webvh:z6mkfixturerecoverynotaryexample"
           ],
@@ -556,7 +556,7 @@
         "encryption_profile": "mls_rfc9420",
         "notary_profile": "single_did",
         "notary": {
-          "did": "ak:did_core:webvh:z6mkfixture",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "recovery_members": [
             "ak:did_core:webvh:z6mkfixturealicerecoveryexample"
           ],
@@ -596,7 +596,7 @@
         "encryption_profile": "none",
         "notary_profile": "single_did",
         "notary": {
-          "did": "ak:did_core:webvh:z6mkfixture",
+          "actor_id": "ak:did_core:webvh:z6mkfixture",
           "recovery_members": [
             "ak:did_core:webvh:z6mkfixturealicerecoveryexample"
           ],
@@ -679,7 +679,7 @@
         "encryption_profile": "mls_rfc9420",
         "notary_profile": "single_did",
         "notary": {
-          "did": "ak:did_core:webvh:z6mkfixturenotaryacmeexample",
+          "actor_id": "ak:did_core:webvh:z6mkfixturenotaryacmeexample",
           "kind": "single_did"
         },
         "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
@@ -709,7 +709,7 @@
         "encryption_profile": "mls_rfc9420",
         "notary_profile": "single_did",
         "notary": {
-          "did": "ak:did_core:webvh:z6mkfixtureagentexample",
+          "actor_id": "ak:did_core:webvh:z6mkfixtureagentexample",
           "kind": "single_did"
         },
         "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
@@ -1014,7 +1014,7 @@
             "encryption_profile": "mls_rfc9420",
             "notary_profile": "single_did",
             "notary": {
-              "did": "ak:did_core:webvh:z6mkfixture",
+              "actor_id": "ak:did_core:webvh:z6mkfixture",
               "recovery_members": [
                 "ak:did_core:webvh:z6mkfixturealicerecoveryexample"
               ],
@@ -1088,7 +1088,7 @@
             "encryption_profile": "mls_rfc9420",
             "notary_profile": "single_did",
             "notary": {
-              "did": "ak:did_core:webvh:z6mkfixtureagentexample",
+              "actor_id": "ak:did_core:webvh:z6mkfixtureagentexample",
               "recovery_members": [
                 "ak:did_core:webvh:z6mkfixture"
               ],
@@ -1151,7 +1151,7 @@
             "encryption_profile": "mls_rfc9420",
             "notary_profile": "single_did",
             "notary": {
-              "did": "ak:did_core:webvh:z6mkfixture",
+              "actor_id": "ak:did_core:webvh:z6mkfixture",
               "recovery_members": [
                 "ak:did_core:webvh:z6mkfixturealicerecoveryexample"
               ],
@@ -1223,7 +1223,7 @@
             "encryption_profile": "mls_rfc9420",
             "notary_profile": "single_did",
             "notary": {
-              "did": "ak:did_core:webvh:z6mkfixture",
+              "actor_id": "ak:did_core:webvh:z6mkfixture",
               "recovery_members": [
                 "ak:did_core:webvh:z6mkfixturealicerecoveryexample"
               ],
@@ -1865,7 +1865,7 @@
           "not_before": "2026-05-20T00:00:00.000Z",
           "expires_at": "2026-06-20T00:00:00.000Z"
         },
-        "operator_did": "ak:did_core:webvh:z6mkfixtureoperatorexample",
+        "operator_principal_id": "ak:did_core:webvh:z6mkfixtureoperatorexample",
         "audit_purpose": "internal_policy_audit",
         "audit_policy_version_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "created_at": "2026-05-20T00:00:00.000Z",
@@ -1914,7 +1914,7 @@
           "not_before": "2026-05-20T00:00:00.000Z",
           "expires_at": "2026-06-20T00:00:00.000Z"
         },
-        "operator_did": "ak:did_core:webvh:z6mkfixtureoperatorexample",
+        "operator_principal_id": "ak:did_core:webvh:z6mkfixtureoperatorexample",
         "audit_purpose": "internal_policy_audit",
         "audit_policy_version_digest": "blake3:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "created_at": "2026-05-20T00:00:00.000Z",
@@ -2913,7 +2913,7 @@
             "entry_id": "ak:block:019b5c20-0000-7000-8000-000000000010",
             "target": {
               "kind": "actor",
-              "did": "ak:did_core:webvh:z6mkfixtureblockedexample"
+              "actor_id": "ak:did_core:webvh:z6mkfixtureblockedexample"
             },
             "mode": "block",
             "applies_to": [

@@ -30,8 +30,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "applet_id": {
       "type": "string",
@@ -275,7 +275,7 @@
         "applet_id": {
           "oneOf": [
             {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             {
               "$ref": "#/$defs/applet_id"
@@ -296,7 +296,7 @@
           "$ref": "#/$defs/hash"
         },
         "bot_actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "capability_grant_refs": {
           "type": "array",
@@ -591,7 +591,7 @@
           "const": "ak.member.state"
         },
         "member_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "membership": {
           "type": "string",

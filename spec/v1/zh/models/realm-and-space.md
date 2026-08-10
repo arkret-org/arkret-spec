@@ -114,9 +114,9 @@ Schema id: `ak.schema.realm.v1`
 | `cell_lattices` | no | `array<CellLattice>` | `CellLattice` 结构（cell family / lattice / bottom 等）定义见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)。 | Realm-specific 扩展 cell family。 |
 | `retention_policy_id` | no | `id:policy` | Realm 级 retention 的**唯一**协议承载：指向 `policy_kind="retention"` 的 Policy 对象（经 `ak.policy.set` 写入）。retention TTL 规则使用 `kind="temporal"` 且 `params.retention_ttl_seconds`（非负整数秒）。内联 `retention_policy`（payload 顶层 / `payload.object` / patch）从来不是登记承载，已在 `forbidden-wire-fields.json` hard reject；部署管理面的 retention 配置是本地运维工具，不进 Event 历史。产品级 disappearing TTL 走 `ak.realm.disappearing_policy`，与本字段正交。 | 保留策略。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
-| `created_by` | yes | `core_id` | 必须是 create event 授权主体。 | 创建 Principal。 |
+| `created_by` | yes | `did_core_id` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `core_id` |  | 最近更新者。 |
+| `updated_by` | no | `did_core_id` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
 #### 2.3.A 字段 carrier inventory（normative）
@@ -182,7 +182,7 @@ monolithic `ak.realm.update` 与 `ak.component.realm.metadata.v1` 已删除。�
 | 子字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `recipient_id` | yes | `string` | Realm 内唯一。 | 接收方稳定标识。 |
-| `principal_id` | yes | `core_id` | `org_recovery_key` / `threshold` 模式下 SHOULD 对应 Organization Principal；个人 Realm MAY 为个人 principal。验证时由完整 DID/DID URL 经 adapter 投影并比对该值。 | 持有 RRK 私钥的主体。 |
+| `principal_id` | yes | `did_core_id` | `org_recovery_key` / `threshold` 模式下 SHOULD 对应 Organization Principal；个人 Realm MAY 为个人 principal。验证时由完整 DID/DID URL 经 adapter 投影并比对该值。 | 持有 RRK 私钥的主体。 |
 | `verification_method` | yes | `string` | MUST 指向 `principal_id` DID Document 中被 active `ArkretRealmHistoryRecoveryKey` service entry 指定的活跃 verification method（见 [`../identity/identity-did.md` §8.3](../identity/identity-did.md)）。 | RRK HPKE 公钥引用。 |
 | `controller_organization` | no | `did` | 存在时 receiver MAY 据此核验组织归属。 | 控制该恢复方的组织。 |
 
@@ -211,7 +211,7 @@ monolithic `ak.realm.update` 与 `ak.component.realm.metadata.v1` 已删除。�
   "notary_profile": "single_did",
   "notary": {
     "kind": "single_did",
-    "did": "ak:did_core:webvh:zAKD7rB7Tn8G84VgUBAjn8p2h",
+    "actor_id": "ak:did_core:webvh:zAKD7rB7Tn8G84VgUBAjn8p2h",
     "recovery_members": ["ak:did_core:webvh:z8wtK7VwY3xTRFNPwZixinUFx"],
     "controller_organization": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
     "recovery_controller_organizations": ["ak:did_core:webvh:zGnKWC3QoYaXLNsfmH6VfPke4"]
@@ -576,9 +576,9 @@ Schema id: `ak.schema.space.v1`
 | `avatar_blob_ref` | no | `id:blob` |  | Space 图标。 |
 | `state` | no | `enum(active, archived, tombstoned)` | 默认 `active`。 | Space 生命周期状态。 |
 | `state_changed_at` | no | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
-| `created_by` | yes | `core_id` |  | 创建者。 |
+| `created_by` | yes | `did_core_id` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `core_id` |  | 最近更新者。 |
+| `updated_by` | no | `did_core_id` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
 Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器子类型的对象：`board`、`list`、`folder` 等都在 Space.kind 表达。Realm 不按 kind 分裂安全边界；Strand 的业务分类也不放顶层 kind，必须通过 schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 表达。View.kind 是投影响应族，不表示协作容器类型。

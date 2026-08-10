@@ -23,7 +23,7 @@ updated: 2026-07-03
 
 ### 2.1 Profile 对象
 
-每个 Actor `core_id` MAY 关联一个标准化的 `actor_profile` 对象，作为其公开身份信息。Profile 数据由 Actor 签名 Event 发布，并通过 Identity 解析或授权 Directory 被其他节点发现。对象字段以 [`../../artifacts/schemas/actor-profile.schema.json`](../../artifacts/schemas/actor-profile.schema.json) 为准；权限仍以 `principal_id` 指向的稳定主体及其完整 DID 控制证明 / capability 为准。
+每个 Actor `did_core_id` MAY 关联一个标准化的 `actor_profile` 对象，作为其公开身份信息。Profile 数据由 Actor 签名 Event 发布，并通过 Identity 解析或授权 Directory 被其他节点发现。对象字段以 [`../../artifacts/schemas/actor-profile.schema.json`](../../artifacts/schemas/actor-profile.schema.json) 为准；权限仍以 `principal_id` 指向的稳定主体及其完整 DID 控制证明 / capability 为准。
 
 ```json
 {
@@ -59,7 +59,7 @@ updated: 2026-07-03
 | `id` | id:actor_profile | MUST | Profile 对象 ID。 |
 | `schema` | string | MUST | `ak.schema.actor_profile.v1`。 |
 | `realm_id` | id:realm | 可选 | Profile state 所属的 principal control Realm 或 profile materialization scope。存在时 MUST 与承载该 profile create/update 的 principal control Realm 或授权 materialization scope 一致；不得被当作协作 Realm membership 或读取权限。 |
-| `principal_id` | core_id | MUST | Actor / Principal 的稳定业务身份。 |
+| `principal_id` | did_core_id | MUST | Actor / Principal 的稳定业务身份。 |
 | `actor_kind` | enum | MUST | `user`、`org`、`team`、`agent`、`service` 或 `integration`（不含 `device`：设备非 actor 主体，见 [`../models/actor.md` §2](../models/actor.md)）。 |
 | `display_name` | string | MUST | 人类可读的显示名（最大 128 字符）。 |
 | `handle` | string | 可选 | 本地或目录展示 handle。经 Directory / projection 披露时同受 §5 handle 披露 gate 约束（不得旁路 handle 搜索披露限制）。 |
@@ -69,7 +69,7 @@ updated: 2026-07-03
 | `accountable_principal_ids` | did[] | 可选 | agent / service / 托管账号的责任主体。 |
 | `profile_fields` | object | 可选 | 个人简介的 canonical 落点是 `profile_fields.bio`；此外可承载代词、时区、locale、状态消息与组织自定义展示字段。`bio` 与 `status_message` 各 MUST ≤ 256 字符（Unicode code point 计），并受 §3.3 相同的 NFC / 控制字符约束。`avatar_url` 不是协议字段；头像必须先保存为 Blob，再写入顶层 `avatar_blob_ref`。 |
 | `created_at` | timestamp | MUST | 创建时间。 |
-| `updated_by` | core_id | 可选 | 最近更新者；由 profile update Event actor 派生。 |
+| `updated_by` | did_core_id | 可选 | 最近更新者；由 profile update Event actor 派生。 |
 | `updated_at` | timestamp | 可选 | 最近更新时间。 |
 
 ### 2.3 Profile 创建与更新

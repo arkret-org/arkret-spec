@@ -24,14 +24,14 @@
       "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
     },
     "sender_principal_id": {
-      "$ref": "#/$defs/did",
+      "$ref": "#/$defs/did_core_id",
       "description": "Sender Principal DID. Intentionally NOT named sender_actor_id: device messages are out-of-band per-device transport envelopes that travel principal-to-principal outside any Realm context, so the Realm-scoped Actor identity used by message.schema.json / event-payload.schema.json does not apply here. Pair with sender_device_id and verify it against the accepted PCR device projection."
     },
     "sender_device_id": {
       "$ref": "#/$defs/device_id"
     },
     "recipient_principal_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Recipient Principal DID. Same naming rationale as sender_principal_id — device messages are not Realm-scoped, so Actor identity is not used. Pair with recipient_device_id for targeted device delivery."
     },
     "recipient_device_id": {
@@ -331,8 +331,8 @@
       "type": "string",
       "pattern": "^ak:device_message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "device_id": {
       "type": "string",
@@ -447,7 +447,7 @@
           "$ref": "#/$defs/realm_key_request_scope"
         },
         "recipient_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "recipient_device_id": {
           "$ref": "#/$defs/device_id"
@@ -474,12 +474,12 @@
               "$ref": "#/$defs/device_id"
             },
             {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             }
           ]
         },
         "target_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Principal that owns target_source_ref (the to-device queue is addressed by (principal, device_id)). Carried so the relay routes directly without scanning Realm members to reverse-lookup the device's principal."
         },
         "created_at": {
@@ -624,7 +624,7 @@
           "description": "The pair's immutable Direct Conversation Realm. Repair never creates a successor Realm, Strand or binding."
         },
         "requester_principal_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "MUST equal the principal bound by the selected device or Native-Agent authorization/evidence branch: no actor may ask for repair on another participant's behalf."
         },
         "requester_device_id": {
@@ -632,7 +632,7 @@
           "description": "Human-device branch only. MUST equal the detached repair authorization and portable device evidence device_id, and the exact KeyPackage selected by requester_keypackage_ref MUST belong to this current authorized device."
         },
         "requester_agent_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Native-Agent branch only. MUST equal requester_principal_id and the actor/subject of the accepted rejoin Event."
         },
         "requester_agent_verification_method": {

@@ -33,8 +33,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "applet_id": {
       "type": "string",
@@ -174,7 +174,7 @@
           "$ref": "#/$defs/applet_id"
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "protocol_version": {
           "type": "string",
@@ -191,7 +191,7 @@
       ],
       "properties": {
         "source_service_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Must exactly match the Source-Service-ID header and the signed source-service-id component. It identifies the source service only; each Event still requires independent actor/applet/capability signature verification."
         },
         "events": {
@@ -256,7 +256,7 @@
           "type": "boolean"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
@@ -350,7 +350,7 @@
           "type": "boolean"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "external_ref": {
           "$ref": "#/$defs/external_ref"

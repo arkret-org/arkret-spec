@@ -23,7 +23,7 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "principal_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "actor_kind": {
       "type": "string",
@@ -67,7 +67,7 @@
     "accountable_principal_ids": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/did"
+        "$ref": "#/$defs/did_core_id"
       }
     },
     "resolution": {
@@ -92,15 +92,15 @@
       "$ref": "#/$defs/timestamp"
     },
     "updated_by": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did_core_id"
     },
     "updated_at": {
       "$ref": "#/$defs/timestamp"
     }
   },
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

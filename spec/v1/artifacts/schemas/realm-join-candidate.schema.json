@@ -23,8 +23,8 @@
       "description": "Realm this candidate is bound to. Verifiers MUST reject a candidate used for any other Realm."
     },
     "service_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Stable service core_id that can receive or relay join-side submissions for this Realm."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Stable service did_core_id that can receive or relay join-side submissions for this Realm."
     },
     "service_resolution": {
       "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",

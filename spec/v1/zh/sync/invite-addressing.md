@@ -39,14 +39,14 @@ base v1 invite **MUST NOT** 依赖 `ak.find.directory.read.resolve_handle(intent
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `subject_id` | `core_id` | MUST | 被邀请 principal / holder 的稳定业务身份；不是可直接解析的 DID。 |
-| `recipient_service_id` | `core_id` | MUST | 接收 invite delivery 的 Principal Server 稳定 service identity。 |
+| `subject_id` | `did_core_id` | MUST | 被邀请 principal / holder 的稳定业务身份；不是可直接解析的 DID。 |
+| `recipient_service_id` | `did_core_id` | MUST | 接收 invite delivery 的 Principal Server 稳定 service identity。 |
 | `service_resolution` | `service_resolution_carrier` | MUST | `recipient_service_id` 的首跳路由材料；形态必须是完整 signed record 的 `inline`，或 `current_record_url` 加可选 `pinned_record_digest`。 |
 | `recipient_service_kind` | const | MAY | 若出现，MUST 等于 `principal_server`；默认省略。 |
 
 `recipient_service_id` 在 v1 中只表示 Principal Server。它 **MUST NOT** 指向 notary、shared Sync Service、push gateway、Directory 或任意第三方服务。将来如果需要组织、群组或其它接收服务形态，必须定义独立 locator / delivery schema，不得把 `recipient_service_kind` 扩成宽枚举后复用本 schema。
 
-invite/locator 的权威首跳仍是必填 current `service_resolution`；它不得只携 future notice 或 mirror hint。schema MAY 允许一个可选、transport-only 的 `route_assistance`：其中 `handover_notice` 最多一份，必须是该 `recipient_service_id` 的完整 target-signed active `ServiceRouteHandoverNotice`；`mirror_hints[]` 最多四项，每项只含 mirror service `core_id` 及其独立 `service_resolution_carrier`，不得含 mirror 自签的 target URL。该对象不进入 `ak.invite.create` 的授权语义，不替代 `invite_delivery_target`，接收方 MAY 忽略。
+invite/locator 的权威首跳仍是必填 current `service_resolution`；它不得只携 future notice 或 mirror hint。schema MAY 允许一个可选、transport-only 的 `route_assistance`：其中 `handover_notice` 最多一份，必须是该 `recipient_service_id` 的完整 target-signed active `ServiceRouteHandoverNotice`；`mirror_hints[]` 最多四项，每项只含 mirror service `did_core_id` 及其独立 `service_resolution_carrier`，不得含 mirror 自签的 target URL。该对象不进入 `ak.invite.create` 的授权语义，不替代 `invite_delivery_target`，接收方 MAY 忽略。
 
 使用 `route_assistance` 时仍必须执行 [`service-surface.md` §2.6](./service-surface.md) 与 [`federation.md` §6.4](./federation.md)：notice 只能在 basis/time window 匹配时引导取得正式 successor；mirror hint 只有在 requester/target 的 Realm-scoped 授权独立成立时才能查询。invite/locator token 的到期时间不能延长 record、notice 或 mirror carrier 的有效期，notice 或 mirror 也不能延长 token；任一组成部分到期都按自己的边界 fail closed。为避免披露 Realm topology，producer 只能列出因该 invite/locator 授权链已向接收方可见的 mirror，不得附完整 `sync_endpoints` 或成员列表。
 
@@ -158,12 +158,12 @@ token 要求：
 
 验证规则：
 
-1. `subject_id` 是被邀请主体的 `core_id`；`recipient_service_id` 是接收 invite delivery 的 Principal Server service `core_id`；`service_resolution` 是与后者匹配的首跳 carrier。
+1. `subject_id` 是被邀请主体的 `did_core_id`；`recipient_service_id` 是接收 invite delivery 的 Principal Server service `did_core_id`；`service_resolution` 是与后者匹配的首跳 carrier。
 2. `recipient_service_kind` 若出现 MUST 等于 `principal_server`。
 3. `locator_ref_digest` 绑定私有 locator ref material；raw token 不得写入 Realm durable event。
 4. `proof.payload_digest` MUST 覆盖 `canonical_json(principal_locator_without_proofs)`。
 5. `proofs[]` MUST 至少包含 `recipient_service_acceptance`；高安全 / audited / enterprise 部署 SHOULD 同时要求 `subject_locator_authorization`。
-6. verifier MUST 验证 `service_resolution` 得到当前 signed `ServiceResolutionRecord`，确认 `record.service_id == recipient_service_id`、`project(record.full_id) == recipient_service_id`、freshness 与 endpoint binding；若缺少 `subject_locator_authorization`，还 MUST 通过 account binding 或 service delegation 证明该 service `core_id` 有权代表 `subject_id` 发布 locator。
+6. verifier MUST 验证 `service_resolution` 得到当前 signed `ServiceResolutionRecord`，确认 `record.service_id == recipient_service_id`、`project(record.full_id) == recipient_service_id`、freshness 与 endpoint binding；若缺少 `subject_locator_authorization`，还 MUST 通过 account binding 或 service delegation 证明该 service `did_core_id` 有权代表 `subject_id` 发布 locator。
 
 `principal_locator` 不是 membership grant、不是 invite accept proof、不是 `member_delivery_binding`。它只证明“可以把这次邀请投递给这个 Principal Server 处理”。
 
@@ -313,9 +313,9 @@ operation_id = ak.peer.invites.command.submit
 
 request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Principal Server MUST：
 
-1. 验证 service-to-service authentication，绑定 Source/Destination service `core_id`、trust domain、Content-Digest 与 idempotency key；接收方从已验证的 exact canonical body bytes 内部计算 request digest。
+1. 验证 service-to-service authentication，绑定 Source/Destination service `did_core_id`、trust domain、Content-Digest 与 idempotency key；接收方从已验证的 exact canonical body bytes 内部计算 request digest。
 2. 验证 `Destination-Service-ID == invite_address.recipient_service_id`。
-3. 验证 `invite_address.service_resolution`，要求 signed record 的 `service_id` 等于 `recipient_service_id`、adapter 投影 `project(full_id)` 等于该 `core_id`，并校验 freshness、service kind 与实际 target URL；carrier 不能单独授权投递。
+3. 验证 `invite_address.service_resolution`，要求 signed record 的 `service_id` 等于 `recipient_service_id`、adapter 投影 `project(full_id)` 等于该 `did_core_id`，并校验 freshness、service kind 与实际 target URL；carrier 不能单独授权投递。
 4. 验证 `invite_event.kind == "ak.invite.create"`、Event signature、Realm capability、`invite_id` 与 `realm_id`。
 5. 验证 `invite_event.payload.invitee == invite_address.subject_id`。
 6. 验证 `invite_event.payload.invite_delivery_target.recipient_service_id == invite_address.recipient_service_id`，且两处 `service_resolution` 逐字节相等。

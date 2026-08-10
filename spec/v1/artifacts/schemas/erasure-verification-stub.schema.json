@@ -106,7 +106,7 @@
           "const": "principal"
         },
         "subject_ref": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         }
       },
       "additionalProperties": false
@@ -231,8 +231,8 @@
       },
       "additionalProperties": false
     },
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

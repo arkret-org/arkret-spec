@@ -57,10 +57,10 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "full_id": {
+    "did_full_id": {
       "$ref": "./common-ids.schema.json#/$defs/long_lived_principal_full_id"
     },
     "did_url": {
@@ -86,7 +86,7 @@
           "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         }
       ]
     },
@@ -227,8 +227,8 @@
           "$ref": "#/$defs/sha256_digest"
         },
         "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
-          "description": "Stable target-service authorization identity. A complete service DID used for signature verification is supplied separately and MUST project to this core_id."
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Stable target-service authorization identity. A complete service DID used for signature verification is supplied separately and MUST project to this did_core_id."
         },
         "issued_at": {
           "$ref": "#/$defs/timestamp"
@@ -293,11 +293,11 @@
           "description": "Service account subject this identity is being bound to. Signed so the proof cannot be replayed to bind the same identity to a different account."
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
-          "description": "Stable core_id echoed by the challenge and equal to project(full_id)."
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Stable did_core_id echoed by the challenge and equal to project(full_id)."
         },
         "full_id": {
-          "$ref": "#/$defs/full_id",
+          "$ref": "#/$defs/did_full_id",
           "description": "Complete DID resolved by the Account Authority and signed by the holder; it MUST equal the register request full_id byte-for-byte."
         },
         "did_version_id": {
@@ -316,7 +316,7 @@
           "description": "DPoP holder thumbprint echoed by the durable challenge."
         },
         "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "origin": {
           "$ref": "#/$defs/non_empty_string"
@@ -333,7 +333,7 @@
         },
         "verification_method": {
           "$ref": "#/$defs/did_url",
-          "description": "Current active update-key DID URL under full_id. The verifier parses its bare DID component with the registered adapter and requires the projected core_id to equal principal_id; it never appends a fragment to principal_id."
+          "description": "Current active update-key DID URL under full_id. The verifier parses its bare DID component with the registered adapter and requires the projected did_core_id to equal principal_id; it never appends a fragment to principal_id."
         },
         "witness_evidence": {
           "$ref": "#/$defs/non_empty_string",
@@ -376,7 +376,7 @@
           "description": "sha256:<lowercase-hex> of SHA-256 over RFC 8785 JCS bytes of the complete account_handoff_request_body with proof.request_canonical_digest and proof.signature omitted."
         },
         "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "issuer": {
           "type": "string",
@@ -423,7 +423,7 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "operation_digest": {
           "$ref": "#/$defs/sha256_digest",
@@ -512,7 +512,7 @@
               "const": "bound"
             },
             "principal_id": {
-              "$ref": "./common-ids.schema.json#/$defs/core_id"
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
             }
           },
           "additionalProperties": false
@@ -616,7 +616,7 @@
           "minimum": 1
         },
         "full_id": {
-          "$ref": "#/$defs/full_id",
+          "$ref": "#/$defs/did_full_id",
           "description": "Complete standard DID whose registered method adapter MUST project to the principal_id derived from did_operation."
         },
         "did_operation": {
@@ -684,10 +684,10 @@
           "$ref": "#/$defs/account_subject"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "full_id": {
-          "$ref": "#/$defs/full_id"
+          "$ref": "#/$defs/did_full_id"
         },
         "operation_digest": {
           "$ref": "#/$defs/sha256_digest",
@@ -732,7 +732,7 @@
           "$ref": "#/$defs/dpop_jkt"
         },
         "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "origin": {
           "type": "string",
@@ -813,10 +813,10 @@
           "$ref": "#/$defs/account_subject"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "full_id": {
-          "$ref": "#/$defs/full_id"
+          "$ref": "#/$defs/did_full_id"
         },
         "operation_digest": {
           "$ref": "#/$defs/sha256_digest"
@@ -861,7 +861,7 @@
           "$ref": "#/$defs/dpop_jkt"
         },
         "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "origin": {
           "type": "string",
@@ -908,7 +908,7 @@
           "minimum": 1
         },
         "full_id": {
-          "$ref": "#/$defs/full_id"
+          "$ref": "#/$defs/did_full_id"
         },
         "did_operation": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody"
@@ -955,16 +955,16 @@
           "description": "Discriminates the already-published DID proof branch from account-first identity creation."
         },
         "account_authority_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "account_subject": {
           "$ref": "#/$defs/account_subject"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "full_id": {
-          "$ref": "#/$defs/full_id",
+          "$ref": "#/$defs/did_full_id",
           "description": "Verified complete DID whose registered adapter projects to principal_id."
         },
         "did_version_id": {
@@ -1209,7 +1209,7 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "primary_handle_claim": {
           "$ref": "./handle-claim.schema.json"
@@ -1251,10 +1251,10 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "full_id": {
-          "$ref": "#/$defs/full_id",
+          "$ref": "#/$defs/did_full_id",
           "description": "Required for both externally created and account-first identities. The server verifies the method evidence and project(full_id)=principal_id before persisting the PCR resolution state."
         },
         "display_name": {
@@ -1307,7 +1307,7 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "state": {
           "$ref": "#/$defs/account_state"
@@ -1389,10 +1389,10 @@
       ],
       "properties": {
         "account_authority_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "issuer_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -1403,7 +1403,7 @@
           "maxLength": 255
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "binding_version": {
           "type": "integer",
@@ -1497,13 +1497,13 @@
           "maxLength": 255
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "receiver_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "account_status_frontier_digest": {
           "$ref": "#/$defs/hash"
@@ -1577,13 +1577,13 @@
           "maxLength": 255
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "issuer_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "actor_frontier": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/RealmActorFrontierView"
@@ -1640,7 +1640,7 @@
           "maxLength": 255
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "effective_status_event_id": {
           "$ref": "#/$defs/event_id"
@@ -1693,7 +1693,7 @@
           "$ref": "#/$defs/hash"
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "capability_grant_refs": {
           "type": "array",
@@ -1794,7 +1794,7 @@
     },
     "did_binding_challenge_request_body": {
       "type": "object",
-      "description": "Request a single-use challenge for binding an ALREADY-PUBLISHED full_id to principal_id. Unlike identity_binding_challenge_request_body this carries no unpublished did_operation and no PCR genesis digests: the DID already exists, and the Account Authority resolves full_id at high freshness, requires project(full_id)=principal_id, and never attempts to resolve core_id directly.",
+      "description": "Request a single-use challenge for binding an ALREADY-PUBLISHED full_id to principal_id. Unlike identity_binding_challenge_request_body this carries no unpublished did_operation and no PCR genesis digests: the DID already exists, and the Account Authority resolves full_id at high freshness, requires project(full_id)=principal_id, and never attempts to resolve did_core_id directly.",
       "required": [
         "request_id",
         "principal_id",
@@ -1805,11 +1805,11 @@
           "$ref": "#/$defs/request_id"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
-          "description": "Stable core_id to bind. It is not directly resolvable."
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Stable did_core_id to bind. It is not directly resolvable."
         },
         "full_id": {
-          "$ref": "#/$defs/full_id",
+          "$ref": "#/$defs/did_full_id",
           "description": "Already-published complete DID. The Account Authority MUST resolve it at the high freshness tier, require project(full_id)=principal_id, and MUST NOT accept caller-supplied DID history."
         }
       },
@@ -1855,10 +1855,10 @@
           "description": "Service account subject that will own the binding. Signed so the proof cannot be replayed against another account."
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "full_id": {
-          "$ref": "#/$defs/full_id",
+          "$ref": "#/$defs/did_full_id",
           "description": "Server-resolved full_id echoed into the signed proof transcript; it MUST project to principal_id."
         },
         "did_version_id": {
@@ -1879,7 +1879,7 @@
           "$ref": "#/$defs/dpop_jkt"
         },
         "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "origin": {
           "$ref": "#/$defs/non_empty_string"
@@ -1919,7 +1919,7 @@
           "minimum": 1
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Provisional principal recorded in the holder-authenticated reserved_identity_creation checkpoint. The Account Authority MUST reject any other value and MUST NOT issue a challenge for a principal whose PCR is already accepted."
         },
         "did_version_id": {
@@ -1978,7 +1978,7 @@
           "$ref": "#/$defs/account_subject"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "did_version_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -1998,7 +1998,7 @@
           "$ref": "#/$defs/dpop_jkt"
         },
         "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "origin": {
           "type": "string",
@@ -2049,7 +2049,7 @@
           "minimum": 1
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "did_version_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -2079,7 +2079,7 @@
           "$ref": "#/$defs/account_subject"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "The abandoned provisional principal. Its published entry 0 is now a permanently unusable orphan anchor: it MUST NOT be reused and continuity MUST NOT be claimed over it."
         },
         "did_version_id": {

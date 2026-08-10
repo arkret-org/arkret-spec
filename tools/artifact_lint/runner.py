@@ -33,6 +33,7 @@ from .schemas import (
     check_circle_membership_enum_single_source,
     check_classification_context_paths,
     check_did_and_device_constraints,
+    check_did_full_id_allowlist,
     check_event_reference_inventory,
     check_event_schema_coverage,
     check_fsm_state_reachability,
@@ -78,6 +79,7 @@ from .fixtures import (
     check_crypto_signature_fixture,
     check_cryptographic_suite_kat_bindings,
     check_declared_canonical_json_strings,
+    check_declared_schema_fixture_instances,
     check_direct_conversation_digest_vectors,
     check_encrypted_envelope_digest_vector,
     check_erasure_verification_contract,
@@ -248,6 +250,7 @@ def main(argv: list[str] | None = None) -> int:
             ),
             ("circle_lifecycle", lambda: check_circle_lifecycle_basis_vector(lint)),
             ("did_device", lambda: check_did_and_device_constraints(lint)),
+            ("did_full_id_allowlist", lambda: check_did_full_id_allowlist(lint)),
             (
                 "stable_identity_core_ids",
                 lambda: check_stable_identity_fields_use_core_id(lint),
@@ -302,6 +305,10 @@ def main(argv: list[str] | None = None) -> int:
             ("vector_refs", lambda: check_vector_reference_closure(lint)),
             ("security_fixture", lambda: check_security_closure_fixture(lint)),
             ("fixtures", lambda: check_fixtures(lint, known)),
+            (
+                "declared_schema_fixture_instances",
+                lambda: check_declared_schema_fixture_instances(lint),
+            ),
             ("event_id_fixture", lambda: check_content_bound_event_id_fixture(lint)),
             ("erasure_verification", lambda: check_erasure_verification_contract(lint)),
             ("producer_id_vectors", lambda: check_producer_allocated_identity_vectors(lint)),
@@ -419,4 +426,3 @@ def main(argv: list[str] | None = None) -> int:
         f"{time.perf_counter() - started:.2f}s)."
     )
     return 0
-

@@ -24,7 +24,7 @@
           "const": "ak.account.blocklist"
         },
         "owner": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "version": {
           "type": "integer",
@@ -64,8 +64,8 @@
                       "keyword"
                     ]
                   },
-                  "did": {
-                    "$ref": "#/$defs/did"
+                  "actor_id": {
+                    "$ref": "#/$defs/did_core_id"
                   },
                   "object_ref": {
                     "oneOf": [
@@ -96,7 +96,7 @@
                     },
                     "required": [
                       "kind",
-                      "did"
+                      "actor_id"
                     ],
                     "not": {
                       "anyOf": [
@@ -142,7 +142,7 @@
                     ],
                     "not": {
                       "required": [
-                        "did"
+                        "actor_id"
                       ]
                     }
                   },
@@ -163,7 +163,7 @@
                       "anyOf": [
                         {
                           "required": [
-                            "did"
+                            "actor_id"
                           ]
                         },
                         {
@@ -192,7 +192,7 @@
                       "anyOf": [
                         {
                           "required": [
-                            "did"
+                            "actor_id"
                           ]
                         },
                         {
@@ -284,7 +284,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "owner": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "expected_revision": {
           "type": "integer",
@@ -326,7 +326,7 @@
           "description": "Opaque service-account identifier. It is the ak.component.account.status.v1 cell subject; accounts bound to the same principal_id are evaluated independently."
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "status": {
           "type": "string",
@@ -466,10 +466,10 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "proposed_action": {
           "$ref": "#/$defs/non_empty_string"
@@ -515,10 +515,10 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "reason": {
           "type": "string",
@@ -551,10 +551,10 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "proposed_action": {
           "$ref": "#/$defs/non_empty_string"
@@ -642,10 +642,10 @@
       ],
       "properties": {
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "transition": {
           "const": "deactivate"
@@ -686,10 +686,10 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "proposed_action": {
           "$ref": "#/$defs/non_empty_string"
@@ -746,7 +746,7 @@
           "description": "Optional profile-local, short-lived pairing artifact id. Required by the agent-key pairing acceptance flow and MUST equal the pairing_request_id in the accepted request; it is not a durable protocol object ref."
         },
         "approved_by": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         }
       },
       "allOf": [
@@ -799,7 +799,7 @@
       ],
       "properties": {
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "key_id": {
           "$ref": "#/$defs/agent_key_id"
@@ -816,7 +816,7 @@
           "description": "sha256 over the canonical agent-signing binding core containing schema, agent_id, agent_key_id, verification_method, public_key, public_key_digest, issued_at, optional expires_at, and controller_id, but excluding agent_key_authorize_event_id and controller_proof. The complete accepted Event ID and controller proof are appended only when materializing the public ak.schema.agent_signing_key_binding.v1 object. Including this Event's not-yet-derived identity would create an impossible digest fixed point. A service MUST recompute the core digest before appending the verified accepted Event identity and MUST NOT substitute another disclosure."
         },
         "accountable_principal_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "agent_key_scope": {
           "$ref": "#/$defs/agent_key_scope"
@@ -912,13 +912,13 @@
       ],
       "properties": {
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "key_id": {
           "$ref": "#/$defs/agent_key_id"
         },
         "revoked_by": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "revoked_at": {
           "$ref": "#/$defs/timestamp"
@@ -989,7 +989,7 @@
                 "$ref": "#/$defs/non_empty_string"
               },
               "service_id": {
-                "$ref": "./common-ids.schema.json#/$defs/core_id"
+                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
               }
             },
             "allOf": [
@@ -1167,10 +1167,10 @@
       ],
       "properties": {
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "transition": {
           "const": "pause"
@@ -1200,10 +1200,10 @@
       ],
       "properties": {
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "transition": {
           "const": "resume"
@@ -1258,7 +1258,7 @@
           "$ref": "#/$defs/timestamp"
         },
         "acknowledged_by": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "sidecar_refs": {
           "type": "array",
@@ -1292,7 +1292,7 @@
         "applet_id": {
           "oneOf": [
             {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             {
               "type": "string",
@@ -1376,7 +1376,7 @@
         "applet_id": {
           "oneOf": [
             {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             {
               "type": "string",
@@ -1386,11 +1386,11 @@
           "description": "Stable applet identifier: a DID or the typed-id form ak:applet:<uuidv7>."
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "DID of the service hosting the applet runtime."
         },
         "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "DID of the Applet controller / external system; signs the registration."
         },
         "base_url": {
@@ -1398,7 +1398,7 @@
           "format": "uri"
         },
         "bot_actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "claimed_profiles": {
           "type": "array",
@@ -1483,10 +1483,10 @@
           ]
         },
         "writer_actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "target_actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "target_ref": {
           "$ref": "#/$defs/object_ref"
@@ -1626,7 +1626,7 @@
         "applet_id": {
           "oneOf": [
             {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             {
               "type": "string",
@@ -1635,7 +1635,7 @@
           ]
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "purpose_kinds": {
           "$ref": "#/$defs/string_list"
@@ -1767,7 +1767,7 @@
           "$ref": "#/$defs/object_ref"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "purpose": {
           "type": "string"
@@ -1821,7 +1821,7 @@
         "applet_id": {
           "oneOf": [
             {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             {
               "type": "string",
@@ -1830,7 +1830,7 @@
           ]
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "release_mode": {
           "type": "string",
@@ -1857,14 +1857,14 @@
           "$ref": "#/$defs/hash"
         },
         "recipient_audit_actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "recipient_public_key_ref": {
           "$ref": "#/$defs/verification_method",
           "description": "Release material encryption target. MUST equal the authorize payload's approved_recipient_public_key_ref and resolve to recipient_audit_actor_id's authorized audit-release key."
         },
         "approver_actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "notice_ref": {
           "$ref": "#/$defs/event_ref"
@@ -2094,7 +2094,7 @@
         "applet_id": {
           "oneOf": [
             {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             {
               "type": "string",
@@ -2103,16 +2103,16 @@
           ]
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "requested_by": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "approver_actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "approved_recipient_audit_actor_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Audit subject approved to receive release material. Required on ak.audit.session.authorize; ak.audit.release.recipient_audit_actor_id MUST match it byte-for-byte."
         },
         "approved_recipient_public_key_ref": {
@@ -2120,7 +2120,7 @@
           "description": "Audit release recipient key approved by ak.audit.session.authorize. MUST resolve to approved_recipient_audit_actor_id's authorized audit-release key; ak.audit.release.recipient_public_key_ref MUST match it byte-for-byte."
         },
         "closer_actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "purpose_kind": {
           "$ref": "#/$defs/non_empty_string"
@@ -2269,7 +2269,7 @@
       ],
       "properties": {
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
@@ -2336,7 +2336,7 @@
           "description": "Stable opaque recording / transcript lifecycle handle. Canonical byte-for-byte; receivers MUST NOT normalize (case-fold, NFC/NFKC, trim, re-encode) because it is a cross-implementation key-derivation input."
         },
         "recording_agent": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "capture_kind": {
           "type": "string",
@@ -2730,7 +2730,7 @@
                   "$ref": "#/$defs/or_set_dot"
                 },
                 "actor_id": {
-                  "$ref": "./common-ids.schema.json#/$defs/core_id"
+                  "$ref": "./common-ids.schema.json#/$defs/did_core_id"
                 },
                 "device_id": {
                   "$ref": "#/$defs/device_id"
@@ -2762,7 +2762,7 @@
                   ],
                   "properties": {
                     "actor_id": {
-                      "$ref": "./common-ids.schema.json#/$defs/core_id"
+                      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
                     },
                     "device_id": {
                       "$ref": "#/$defs/device_id"
@@ -2775,7 +2775,7 @@
                       ]
                     },
                     "removed_by": {
-                      "$ref": "./common-ids.schema.json#/$defs/core_id"
+                      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
                     },
                     "removed_at": {
                       "$ref": "#/$defs/timestamp"
@@ -2829,10 +2829,10 @@
                   "$ref": "#/$defs/or_set_dot"
                 },
                 "actor_id": {
-                  "$ref": "./common-ids.schema.json#/$defs/core_id"
+                  "$ref": "./common-ids.schema.json#/$defs/did_core_id"
                 },
                 "restored_by": {
-                  "$ref": "./common-ids.schema.json#/$defs/core_id"
+                  "$ref": "./common-ids.schema.json#/$defs/did_core_id"
                 },
                 "restored_at": {
                   "$ref": "#/$defs/timestamp"
@@ -2860,7 +2860,7 @@
               ]
             },
             "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/core_id"
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
             },
             "device_id": {
               "$ref": "#/$defs/device_id"
@@ -2872,7 +2872,7 @@
               "type": "boolean"
             },
             "changed_by": {
-              "$ref": "./common-ids.schema.json#/$defs/core_id"
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
             },
             "changed_at": {
               "$ref": "#/$defs/timestamp"
@@ -3174,7 +3174,7 @@
           "$ref": "./common-ids.schema.json#/$defs/circle_id"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "membership": {
           "$ref": "#/$defs/membership_state"
@@ -3263,7 +3263,7 @@
           "description": "Stable identifier; used as the cell_subject of the consent cell. ak.consent.revoke MUST reference the same consent_id."
         },
         "peer": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Counterparty DID (or pairwise DID) that this consent applies to."
         },
         "consent_scope": {
@@ -3581,7 +3581,7 @@
               "$ref": "#/$defs/message_id"
             },
             "sender_actor_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             "excerpt": {
               "type": "string"
@@ -3943,7 +3943,7 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
@@ -3972,7 +3972,7 @@
             "root_anchored",
             "accepted_device"
           ],
-          "description": "root_anchored is valid only in the second slot of an accepted PCR genesis or device re-anchor unit. accepted_device requires the Event proof.verification_method bare DID component to project through its registered adapter to principal_id and its fragment to equal authorized_by, where authorized_by is a current active device id at the accepted generation; appending to core_id is forbidden and the target device cannot authorize itself."
+          "description": "root_anchored is valid only in the second slot of an accepted PCR genesis or device re-anchor unit. accepted_device requires the Event proof.verification_method bare DID component to project through its registered adapter to principal_id and its fragment to equal authorized_by, where authorized_by is a current active device id at the accepted generation; appending to did_core_id is forbidden and the target device cannot authorize itself."
         },
         "scopes": {
           "$ref": "#/$defs/string_list"
@@ -4023,7 +4023,7 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "changed": {
           "type": "array",
@@ -4059,7 +4059,7 @@
           "$ref": "#/$defs/device_id"
         },
         {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         }
       ]
     },
@@ -4071,16 +4071,16 @@
         "device_id",
         "push_route",
         "push_target_id",
-        "push_gateway_did",
+        "push_gateway_service_id",
         "encryption_key",
         "capabilities"
       ],
       "properties": {
         "recipient_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
@@ -4092,8 +4092,8 @@
         "push_target_id": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "push_gateway_did": {
-          "$ref": "#/$defs/did"
+        "push_gateway_service_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "encryption_key": {
           "$ref": "#/$defs/non_empty_string"
@@ -4123,7 +4123,7 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "did_version_id": {
           "type": "string",
@@ -4191,7 +4191,7 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
@@ -4212,8 +4212,8 @@
       },
       "additionalProperties": false
     },
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "identity_resolution_update_payload": {
       "$ref": "./identity-resolution.schema.json#/$defs/principal_resolution_update_payload"
@@ -4308,7 +4308,7 @@
         "participants_unordered": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "minItems": 2,
           "maxItems": 2,
@@ -4786,13 +4786,13 @@
     },
     "identity_disclosure_receipt_state_payload": {
       "type": "object",
-      "description": "Identity disclosure-receipt log payload. holder_did is the stable log subject.",
+      "description": "Identity disclosure-receipt log payload. holder_principal_id is the stable log subject.",
       "required": [
-        "holder_did"
+        "holder_principal_id"
       ],
       "properties": {
-        "holder_did": {
-          "$ref": "#/$defs/did"
+        "holder_principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "value": {},
         "state": {
@@ -4848,7 +4848,7 @@
       ],
       "properties": {
         "invitee": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Directed invite subject DID. The Invite id is derived from this Event's event_id and MUST NOT be carried in the genesis payload."
         },
         "invite_delivery_target": {
@@ -4955,7 +4955,7 @@
           "$ref": "#/$defs/invite_id"
         },
         "invitee": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "MUST equal the directed invite's stored invitee so invite.lifecycle and member.state move atomically."
         },
         "target_state": {
@@ -4985,7 +4985,7 @@
           "$ref": "#/$defs/invite_id"
         },
         "invitee": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Required for a directed invite and forbidden by semantic admission for a 3PID placeholder."
         },
         "target_state": {
@@ -5024,7 +5024,7 @@
           "$ref": "#/$defs/invite_id"
         },
         "subject_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Subject DID being bound by a ak.invite.claim payload. For claim payloads this MUST match binding_proof.subject_id and the DID verification method used by subject_proof."
         },
         "token_commitment": {
@@ -5053,7 +5053,7 @@
           ],
           "properties": {
             "verification_service_id": {
-              "$ref": "#/$defs/did",
+              "$ref": "#/$defs/did_core_id",
               "description": "Verification service DID. Realm reducers MUST re-check this DID against the current effective Realm allowlist and any service DID pinned by the original invite."
             },
             "verification_method": {
@@ -5062,7 +5062,7 @@
               "description": "DID URL with required key fragment. Method-name normalized to lowercase per W3C DID 1.0; matches the strict form used by $defs/verification_method elsewhere in this schema."
             },
             "subject_id": {
-              "$ref": "#/$defs/did",
+              "$ref": "#/$defs/did_core_id",
               "description": "DID being bound by the verification service. MUST equal the payload top-level subject_id."
             },
             "realm_id": {
@@ -5177,20 +5177,20 @@
                   "pattern": "^did:[a-z0-9]+$"
                 }
               },
-              "allowed_principal_dids": {
+              "allowed_principal_ids": {
                 "type": "array",
                 "maxItems": 256,
                 "uniqueItems": true,
                 "items": {
-                  "$ref": "#/$defs/did"
+                  "$ref": "#/$defs/did_core_id"
                 }
               },
-              "denied_principal_dids": {
+              "denied_principal_ids": {
                 "type": "array",
                 "maxItems": 256,
                 "uniqueItems": true,
                 "items": {
-                  "$ref": "#/$defs/did"
+                  "$ref": "#/$defs/did_core_id"
                 }
               },
               "questions": {
@@ -5323,7 +5323,7 @@
                 "reviewers": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/$defs/did"
+                    "$ref": "#/$defs/did_core_id"
                   },
                   "minItems": 1,
                   "uniqueItems": true
@@ -5452,8 +5452,8 @@
       ],
       "properties": {
         "recipient_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
-          "description": "Stable core_id of the recipient Principal Server for this member in this Realm."
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Stable did_core_id of the recipient Principal Server for this member in this Realm."
         },
         "recipient_service_kind": {
           "const": "principal_server",
@@ -5627,7 +5627,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "segment": {
           "type": "string",
@@ -5710,7 +5710,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "membership": {
           "$ref": "#/$defs/membership_state"
@@ -5736,7 +5736,7 @@
         "via_service_ids": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           }
         },
         "reason": {
@@ -5819,7 +5819,7 @@
           "const": "mention"
         },
         "subject_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Authoritative mention target principal DID. For native personal agent selectors this is the agent principal DID, not the controller DID."
         },
         "display_name_at_time": {
@@ -5829,7 +5829,7 @@
           "type": "string"
         },
         "controller_subject_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Audit metadata for @<controller-handle>/<agent_slug> inputs. MUST NOT replace subject_id for routing, authorization, or attribution."
         },
         "controller_handle_at_time": {
@@ -5952,7 +5952,7 @@
           ],
           "properties": {
             "agent_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             "operator_or_controller": {
               "type": "string",
@@ -6374,7 +6374,7 @@
           "additionalProperties": false
         },
         "hub_provider": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Service DID explicitly delegated by Realm policy, Organization DID, or participant DID to host the hub role."
         },
         "local_provider_role": {
@@ -6388,7 +6388,7 @@
         "follower_providers": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true
         },
@@ -6582,7 +6582,7 @@
           "const": 0
         },
         "creator_principal_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "creator_device_id": {
           "$ref": "#/$defs/device_id"
@@ -6824,7 +6824,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
@@ -6912,7 +6912,7 @@
           "$ref": "#/$defs/hash"
         },
         "target_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "target_device_id": {
           "$ref": "#/$defs/device_id"
@@ -7016,13 +7016,13 @@
           "minimum": 0
         },
         "recipient_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "recipient_device_id": {
           "$ref": "#/$defs/device_id"
         },
         "recipient_agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "recipient_agent_verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -7105,7 +7105,7 @@
             "keypackage_digest",
             "intended_realm_id",
             "claim_id",
-            "requester_did",
+            "requester_actor_id",
             "nonce",
             "welcome_digest",
             "created_at",
@@ -7178,8 +7178,8 @@
             "claim_id": {
               "$ref": "#/$defs/non_empty_string"
             },
-            "requester_did": {
-              "$ref": "#/$defs/did"
+            "requester_actor_id": {
+              "$ref": "#/$defs/did_core_id"
             },
             "requester_device_id": {
               "$ref": "#/$defs/device_id"
@@ -7188,7 +7188,7 @@
               "$ref": "./common-ids.schema.json#/$defs/event_id"
             },
             "requester_agent_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             "requester_agent_verification_method": {
               "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -7327,7 +7327,7 @@
           "description": "Sealed moderation-state decision verb. dismiss only resolves a report queue item and does not loosen the target content verdict. allow and soft_deny are out-of-band runtime outcomes."
         },
         "issuer": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Actor or service DID issuing the sealed moderation decision. Reducers use it as part of the or_set add tag and appeal separation-of-duties check."
         },
         "request_canonical_digest": {
@@ -7410,7 +7410,7 @@
           "maxLength": 4096
         },
         "reporter": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "provenance": {
           "type": "string",
@@ -7421,7 +7421,7 @@
           "description": "Admission discriminator (contract-registry admission_variants). Absent or \"self\": the reporter's own device authored the Event (self_authored_proof, actor == reporter). \"mimi_facade\": the Event is service-authored by the MIMI provider facade (service_attested); reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 10/11, and source_provider is required."
         },
         "source_provider": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Origin MIMI provider's service DID for a facade-mapped report. Required exactly when provenance is \"mimi_facade\"; forbidden otherwise."
         },
         "evidence_refs": {
@@ -7683,7 +7683,7 @@
       ],
       "properties": {
         "signer_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "receipt": {
           "type": "object",
@@ -7721,7 +7721,7 @@
       ],
       "properties": {
         "signer_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "seal_a": {
           "$ref": "./seal.schema.json"
@@ -7785,13 +7785,13 @@
     },
     "organization_discovery_state_payload": {
       "type": "object",
-      "description": "State payload for an Organization discovery declaration. organization_did is the stable cell subject.",
+      "description": "State payload for an Organization discovery declaration. organization_principal_id is the stable cell subject.",
       "required": [
-        "organization_did"
+        "organization_principal_id"
       ],
       "properties": {
-        "organization_did": {
-          "$ref": "#/$defs/did"
+        "organization_principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "value": {},
         "state": {
@@ -7809,7 +7809,7 @@
       "oneOf": [
         {
           "required": [
-            "organization_did"
+            "organization_principal_id"
           ],
           "not": {
             "required": [
@@ -7823,14 +7823,14 @@
           ],
           "not": {
             "required": [
-              "organization_did"
+              "organization_principal_id"
             ]
           }
         }
       ],
       "properties": {
-        "organization_did": {
-          "$ref": "#/$defs/did"
+        "organization_principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "organization_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -7877,7 +7877,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
@@ -8079,7 +8079,7 @@
             ],
             "properties": {
               "service_id": {
-                "$ref": "./common-ids.schema.json#/$defs/core_id"
+                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
               },
               "service_kind": {
                 "type": "string",
@@ -8692,7 +8692,7 @@
               "type": "array",
               "uniqueItems": true,
               "items": {
-                "$ref": "#/$defs/did"
+                "$ref": "#/$defs/did_core_id"
               },
               "description": "Closed allow-list of recipient_service_id values. Empty array [] = reject any recipient service (fail-closed): the reducer MUST reject routable joins (delivery_binding_policy_mismatch) when the recipient service is neither on this list, nor covered by the [\"*\"] sentinel, nor endorsed via required_endorsers. The empty array MUST NOT be interpreted as 'unrestricted'. Non-empty required_endorsers remains mandatory even when the service is listed here."
             },
@@ -8712,7 +8712,7 @@
           "type": "array",
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "description": "When this array is non-empty, the recipient_service_id's service_acceptance_ref MUST be endorsed by one of these governance DIDs, regardless of allowed_recipient_services or the [\"*\"] sentinel. Empty array = no mandatory endorsement requirement."
         },
@@ -8963,10 +8963,10 @@
           ]
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "recipient_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "recipient_device_id": {
           "$ref": "#/$defs/device_id"
@@ -9069,7 +9069,7 @@
           "description": "Discriminator for the key-share target. member_device seals history_secret material to a concrete authorized recipient device. realm_recovery_key seals the same material to a durability_policy RecoveryRecipient RRK verification method (crypto-media/encryption-and-audit.md §2.10.8)."
         },
         "recipient_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "For member_device shares, the member principal receiving the history key. For realm_recovery_key shares, the durability_policy.recovery_recipients[].principal_id that published the RRK verification method."
         },
         "recipient_device_id": {
@@ -9138,7 +9138,7 @@
           "description": "Discriminator shared with realm_key_share_payload so both kinds derive the same ak.component.realm_key.delivery.v1 cell subject. v1 registers member_device only: durable realm_recovery_key withheld semantics are not defined (crypto-media/encryption-and-audit.md 2.10.8 handles RRK seal failure through fail-closed error paths)."
         },
         "recipient_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "recipient_device_id": {
           "$ref": "#/$defs/device_id"
@@ -9264,7 +9264,7 @@
           "description": "Realm the organization statement is bound to. MUST equal the enclosing Event.realm_id."
         },
         "organization_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Organization principal DID that endorses, governs, sponsors, certifies, or revokes the Realm relationship."
         },
         "relationship": {
@@ -9341,13 +9341,13 @@
           ],
           "properties": {
             "issuer": {
-              "$ref": "#/$defs/did",
+              "$ref": "#/$defs/did_core_id",
               "description": "Organization DID or delegated service DID that issued this statement."
             },
             "issuer_role": {
               "type": "string",
               "enum": [
-                "organization_did",
+                "organization_principal_id",
                 "governance_service",
                 "account_authority",
                 "threshold_quorum"
@@ -9361,7 +9361,7 @@
               "description": "Required when issuer_role is governance_service or account_authority. It MUST resolve to a live organization DID delegation whose purpose covers ak.realm.organization and the requested relationship/control_scopes."
             },
             "executed_by": {
-              "$ref": "#/$defs/did",
+              "$ref": "#/$defs/did_core_id",
               "description": "Optional human administrator or service principal that initiated the organization-side decision. This does not become the organization principal."
             },
             "signed_at": {
@@ -9444,8 +9444,8 @@
           ],
           "properties": {
             "controller_id": {
-              "$ref": "./common-ids.schema.json#/$defs/core_id",
-              "description": "Stable core_id of the successor principal that becomes the root controller. Its control proof verification_method remains a full DID URL and MUST project to this value through the registered method adapter."
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+              "description": "Stable did_core_id of the successor principal that becomes the root controller. Its control proof verification_method remains a full DID URL and MUST project to this value through the registered method adapter."
             },
             "controller_epoch": {
               "type": "integer",
@@ -9612,7 +9612,7 @@
           "maxItems": 256,
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "description": "Complete current allow-set of service DIDs trusted to attest 3PID ownership for ak.invite.third_party / ak.invite.claim. The array is whole-value replacement state in this policy-bundle revision, not an incremental patch. Absence and [] both deny every third-party invite verification service. Removing a DID in a later policy_revision revokes it for every later claim re-check; no separate tombstone exists. Reducers MUST evaluate the current accepted bundle cell on a fresh basis before accepting ak.invite.claim."
         }
@@ -9622,12 +9622,12 @@
     "realm_policy_server_declaration": {
       "type": "object",
       "required": [
-        "policy_server_did",
+        "policy_server_service_id",
         "policy_server_url"
       ],
       "properties": {
-        "policy_server_did": {
-          "$ref": "#/$defs/did"
+        "policy_server_service_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "policy_server_url": {
           "type": "string",
@@ -9751,7 +9751,7 @@
         "allowed_service_ids": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true
         },
@@ -10658,7 +10658,7 @@
           "$ref": "#/$defs/strand_id"
         },
         "watcher_actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "level": {
           "type": [

@@ -47,6 +47,23 @@
             "state": "active",
             "visibility": "private",
             "title": "Quarterly plan",
+            "query": {},
+            "collection": {
+              "item_object_kinds": [
+                "task"
+              ],
+              "item_order_by": [
+                {
+                  "field": "created_at",
+                  "direction": "desc"
+                }
+              ],
+              "grouping": {
+                "mode": "none"
+              }
+            },
+            "created_by": "ak:did_core:webvh:z6mkfixturealice",
+            "created_at": "2026-07-29T00:00:00.000Z",
             "layout": {
               "columns": 3
             }
@@ -84,6 +101,25 @@
           "id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
           "visibility": "private",
           "state": "active",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "kind": "collection",
+          "query": {},
+          "collection": {
+            "item_object_kinds": [
+              "task"
+            ],
+            "item_order_by": [
+              {
+                "field": "created_at",
+                "direction": "desc"
+              }
+            ],
+            "grouping": {
+              "mode": "none"
+            }
+          },
+          "created_by": "ak:did_core:webvh:z6mkfixturealice",
+          "created_at": "2026-07-29T00:00:00.000Z",
           "accepted": true
         },
         {

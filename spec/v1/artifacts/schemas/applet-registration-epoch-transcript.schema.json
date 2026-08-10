@@ -43,11 +43,11 @@
   },
   "additionalProperties": false,
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "full_id": {
-      "$ref": "./common-ids.schema.json#/$defs/full_id"
+    "did_full_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_full_id"
     },
     "did_url": {
       "type": "string",
@@ -95,7 +95,7 @@
         "applet_id": {
           "anyOf": [
             {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             {
               "type": "string",
@@ -104,10 +104,10 @@
           ]
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "base_url": {
           "type": "string",
@@ -115,7 +115,7 @@
           "pattern": "^https://"
         },
         "bot_actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "protocols": {
           "$ref": "#/$defs/string_set"
@@ -150,7 +150,7 @@
       ],
       "properties": {
         "full_id": {
-          "$ref": "#/$defs/full_id",
+          "$ref": "#/$defs/did_full_id",
           "description": "Complete service DID whose adapter projection MUST equal derived_registration.service_id."
         },
         "document_digest": {

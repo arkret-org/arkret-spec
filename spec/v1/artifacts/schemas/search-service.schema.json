@@ -128,7 +128,7 @@
         "allowed_service_ids": {
           "type": "array",
           "items": {
-            "$ref": "./common-ids.schema.json#/$defs/core_id"
+            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
           },
           "uniqueItems": true
         },

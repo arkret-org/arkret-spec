@@ -25,10 +25,10 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "inviter": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did_core_id"
     },
     "invitee": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did_core_id"
     },
     "invite_delivery_target": {
       "$ref": "./invite-delivery-request.schema.json#/$defs/invite_delivery_target",
@@ -73,7 +73,7 @@
       "$ref": "#/$defs/timestamp"
     },
     "updated_by": {
-      "$ref": "#/$defs/did",
+      "$ref": "#/$defs/did_core_id",
       "description": "Reducer-derived actor that produced the most recent invite state update."
     },
     "updated_at": {
@@ -101,8 +101,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -162,7 +162,7 @@
           "description": "Required for offline_token mode. Entropy estimate excluding separators."
         },
         "verification_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "verification_public_key": {
           "type": "string",

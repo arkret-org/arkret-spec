@@ -77,7 +77,7 @@
     "owning_organizations": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/did"
+        "$ref": "#/$defs/did_core_id"
       },
       "description": "Declared or projected organization principals associated with this Realm. Each DID MUST resolve to an Organization principal. This field alone is not a verified ownership/governance endorsement; clients and directories MUST require an active ak.realm.organization statement for verified badges or organization-controlled semantics."
     },
@@ -491,7 +491,7 @@
           "maxItems": 64,
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           }
         },
         "witnessed_min_attestations": {
@@ -524,13 +524,13 @@
         "kind"
       ],
       "properties": {
-        "did": {
-          "$ref": "#/$defs/did"
+        "actor_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "members": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "minItems": 1,
           "uniqueItems": true
@@ -551,19 +551,19 @@
         "recovery_members": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "minItems": 1,
           "uniqueItems": true
         },
         "controller_organization": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "DID of the organization controlling the primary notary, when the resolver or deployment policy can derive it. Required for single_did profile so recovery diversity can be verified."
         },
         "recovery_controller_organizations": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "minItems": 1,
           "uniqueItems": true,
@@ -666,13 +666,13 @@
       "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "created_by": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did_core_id"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
     },
     "updated_by": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did_core_id"
     },
     "updated_at": {
       "$ref": "#/$defs/timestamp"
@@ -723,7 +723,7 @@
           "notary": {
             "required": [
               "kind",
-              "did"
+              "actor_id"
             ],
             "properties": {
               "kind": {
@@ -1003,8 +1003,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "trust_domain": {
       "type": "string",
@@ -1026,7 +1026,7 @@
           "description": "Realm-unique stable id for this recovery recipient."
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Principal holding the RRK private key. SHOULD resolve to an Organization Principal for org_recovery_key/threshold; MAY be a personal principal for personal Realms."
         },
         "verification_method": {
@@ -1034,7 +1034,7 @@
           "description": "Reference to a verification method in principal_id's DID Document designated by an active ArkretRealmHistoryRecoveryKey service entry (identity/identity-did.md §8.3). The RRK HPKE public key; history-recovery domain, separate from the backup-HPKE key derived per key-management.md §3.3."
         },
         "controller_organization": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Organization DID controlling this recovery recipient, when derivable; receiver MAY use it to verify org attribution."
         }
       },
@@ -1052,7 +1052,7 @@
       ],
       "properties": {
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "service_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier"

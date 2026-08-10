@@ -577,7 +577,7 @@ Claim 成功后：
 
 #### 2.6.1 Welcome `claim_envelope` 签名（normative）
 
-KeyPackage 发布时 Realm 尚未确定，因此 per-Welcome `claim_envelope` 必须由 requester 当前 accepted signer 签署并至少绑定：`keypackage_ref`、`keypackage_digest`、`intended_realm_id`、`claim_id`、`requester_did`、`nonce`、`welcome_digest`、`created_at`，以及精确二选一的 `requester_device_id + device_authorize_event_id` 或 `agent_key_authorize_event_id`。
+KeyPackage 发布时 Realm 尚未确定，因此 per-Welcome `claim_envelope` 必须由 requester 当前 accepted signer 签署并至少绑定：`keypackage_ref`、`keypackage_digest`、`intended_realm_id`、`claim_id`、`requester_actor_id`、`nonce`、`welcome_digest`、`created_at`，以及精确二选一的 `requester_device_id + device_authorize_event_id` 或 `agent_key_authorize_event_id`。
 
 普通 device signature 必须按 PCR authorization chain 解析到 current generation 的 accepted `device_public_key`；Native Agent 必须解析其 current active `ak.agent.key.authorize`。接收端还必须验证 intended Realm 与 Welcome group 一致、claim nonce/digests 一致、authorization ref 在消费时仍 current，以及 `welcome_digest` 等于 canonical Welcome bytes。任何失败都拒绝 Welcome，reason=`keypackage_welcome_envelope_mismatch`。Delivery Service key、目标 KeyPackage 自身的 publish signature或裸服务断言都不能替代 requester signature。
 
@@ -630,11 +630,11 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
 
 Profile 规则：
 
-- Event Envelope 的 `actor_id` 仍然必须是 `core_id`。minimal-metadata profile 中，它 SHOULD 使用由 Realm-scoped pairwise `full_id` 经注册 adapter 投影得到的 pairwise `core_id`；实现不得把完整 DID 或任意非 `core_id` 字符串放入 `actor_id`。
-- 声明 minimal-metadata profile 的 Realm 中，MLS LeafNode MUST 使用 RFC 9420 `basic` credential，credential identity 必须是 Event `actor_id` 所用 Realm-scoped pairwise `core_id` 的 UTF-8 字节；LeafNode `signature_key` 是该 pairwise sender 的内容作者性验签锚。不得改用真实 principal `core_id` 作为该 credential identity，也不得要求服务端目录解析真实 principal 才能验签。
+- Event Envelope 的 `actor_id` 仍然必须是 `did_core_id`。minimal-metadata profile 中，它 SHOULD 使用由 Realm-scoped pairwise `full_id` 经注册 adapter 投影得到的 pairwise `did_core_id`；实现不得把完整 DID 或任意非 `did_core_id` 字符串放入 `actor_id`。
+- 声明 minimal-metadata profile 的 Realm 中，MLS LeafNode MUST 使用 RFC 9420 `basic` credential，credential identity 必须是 Event `actor_id` 所用 Realm-scoped pairwise `did_core_id` 的 UTF-8 字节；LeafNode `signature_key` 是该 pairwise sender 的内容作者性验签锚。不得改用真实 principal `did_core_id` 作为该 credential identity，也不得要求服务端目录解析真实 principal 才能验签。
 - 真实 `principal_id`、设备身份、display profile 和可选 handle MUST 放入端到端加密的 `ak.identity_link` application message 或 MLS private extension 中，只对当前 Realm members 可见。v1 的必需 wire shape 是 `ak.schema.identity_link.v1`；MLS private extension 只是等价承载，payload schema 不变。
-- `ak.identity_link` MUST 绑定 pairwise `core_id`、principal `core_id`、device id、realm id、trust domain、可选 strand id / track、MLS leaf index、MLS epoch、effective time 和签名证明；签名输入固定为 `utf8("ak.identity-link-v1\n") || canonical_json(identity-link object with proof.signature omitted)`。证明的 `verification_method` 保持完整 DID URL，其 bare DID 必须经 adapter 投影到 `principal_id`，或由 profile 声明的 disclosure proof 验证。Receiver MUST 在验证签名前检查 `trust_domain` 与当前接收上下文一致；不一致时不得接受 pairwise -> principal 的 `core_id` 映射。
-- Sync / Federation 服务只可按 pairwise `core_id`、realm id、epoch、event id / routing hash 和授权服务绑定路由；不得要求明文 principal `full_id` 才能转发密文。
+- `ak.identity_link` MUST 绑定 pairwise `did_core_id`、principal `did_core_id`、device id、realm id、trust domain、可选 strand id / track、MLS leaf index、MLS epoch、effective time 和签名证明；签名输入固定为 `utf8("ak.identity-link-v1\n") || canonical_json(identity-link object with proof.signature omitted)`。证明的 `verification_method` 保持完整 DID URL，其 bare DID 必须经 adapter 投影到 `principal_id`，或由 profile 声明的 disclosure proof 验证。Receiver MUST 在验证签名前检查 `trust_domain` 与当前接收上下文一致；不一致时不得接受 pairwise -> principal 的 `did_core_id` 映射。
+- Sync / Federation 服务只可按 pairwise `did_core_id`、realm id、epoch、event id / routing hash 和授权服务绑定路由；不得要求明文 principal `full_id` 才能转发密文。
 - Capability、moderation、legal hold 或 enterprise policy 需要真实主体时，Realm policy MUST 在加入前声明 disclosure 条件。客户端不接受该 disclosure policy 时 MUST NOT 加入该 Realm。
 - 任何从 pairwise DID 到 principal DID 的服务端可见映射都 MUST 有明确 purpose、expiry、audience 和 audit record；默认不得写入公开 Realm history。
 
@@ -875,7 +875,7 @@ scheme 选择是 Realm policy 字段 `content_scheme`（经 `ak.realm.policy_bun
 
 该 pairwise actor 属于 `ak.profile.ephemeral_pairwise_principal.v1`，但不进入账号、PCR、Actor Profile 或设备目录，也不得取得 principal/session grant。客户端 MUST 为每个 Realm 生成全新的 pairwise key，按 Realm 隔离持久化，并禁止跨 Realm 复用同一 did:key/ActorId；备份恢复同一 Realm 时可以恢复同一 key，复制到另一 Realm 不可以。`ak.self.events.command.submit` 上的 bearer session 仅承担 transport 访问、滥用防护与限流：在普通 Event 中 `session.actor` 仍必须等于 `Event.actor_id`；只有本节加密内容且下面完整 LeafNode 验证成功时，服务端才可接受二者不等。membership gate 必须查询 `Event.actor_id` 自身的 current member cell，并同时要求该 actor 是 exact epoch 的 active unique Leaf；不得改查 bearer principal，也不得只凭 Leaf 绕过 Realm membership。该例外不得把 bearer actor 记录为 pairwise actor 的 identity link、不得授予 bearer 代 pairwise actor author 其它 Event 的能力，也不得绕过 scope 或 capability gate。
 
-SDK MUST 提供一个不上 wire、非 OpenAPI 的 typed `RealmPairwiseAuthorState` 作为唯一 authoring 输入，至少固定：`realm_id`、`pairwise_actor_id`、`pairwise_full_id`、`verification_method`、opaque local signing-key ref、`mls_group_id`、`epoch`、`accepted_group_state_ref`、`leaf_index` 与 `leaf_signature_key`。它 MAY 仅作为加密本地 checkpoint 序列化，MUST NOT 携带私钥或进入 Event payload。恢复/发送前必须重验：`did:key` FullId 投影为同一 ActorId；verification-method base 与 key 匹配；所指 accepted snapshot 的 Realm/group/epoch/ref 全相等；该 index 是 active basic credential 且 identity/key 与上述值相等；本地 key-scope ledger 只绑定本 Realm。snapshot/store key 至少为 `(realm_id, pairwise_actor_id, mls_group_id, accepted_group_state_ref)`；不得回退到账户 principal + `DeviceId` 的普通设备身份 carrier。
+SDK MUST 提供一个不上 wire、非 OpenAPI 的 typed `RealmPairwiseAuthorState` 作为唯一 authoring 输入，至少固定：`realm_id`、`pairwise_actor_id`、`pairwise_full_id`、`verification_method`、opaque local signing-key ref、`mls_group_id`、`epoch`、`accepted_group_state_ref`、`leaf_index` 与 `leaf_signature_key`。它 MAY 仅作为加密本地 checkpoint 序列化，MUST NOT 携带私钥或进入 Event payload。恢复/发送前必须重验：`did:key` DidFullId 投影为同一 ActorId；verification-method base 与 key 匹配；所指 accepted snapshot 的 Realm/group/epoch/ref 全相等；该 index 是 active basic credential 且 identity/key 与上述值相等；本地 key-scope ledger 只绑定本 Realm。snapshot/store key 至少为 `(realm_id, pairwise_actor_id, mls_group_id, accepted_group_state_ref)`；不得回退到账户 principal + `DeviceId` 的普通设备身份 carrier。
 
 Receiver MUST 按以下顺序验证：
 

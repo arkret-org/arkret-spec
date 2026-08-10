@@ -29,11 +29,11 @@
   },
   "schema_validation_cases": [
     {
-      "name": "active_organization_did_owner_valid",
+      "name": "active_organization_principal_id_owner_valid",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_organization_payload",
       "expect_valid": true,
       "semantic_outcome": "accept",
-      "notes": "issuer_role=organization_did with proof; control_scopes covers one verifiable scope (official_badge). Both authorization layers satisfied.",
+      "notes": "issuer_role=organization_principal_id with proof; control_scopes covers one verifiable scope (official_badge). Both authorization layers satisfied.",
       "instance": {
         "statement_id": "org-stmt-00000001",
         "realm_id": "ak:realm:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
@@ -49,7 +49,7 @@
         "realm_frontier_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "authorization": {
           "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
-          "issuer_role": "organization_did",
+          "issuer_role": "organization_principal_id",
           "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
@@ -186,7 +186,7 @@
         "issued_at": "2026-06-01T00:00:00.000Z",
         "authorization": {
           "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
-          "issuer_role": "organization_did",
+          "issuer_role": "organization_principal_id",
           "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-06-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
@@ -212,7 +212,7 @@
         "revokes_statement_id": "org-stmt-00000001",
         "authorization": {
           "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
-          "issuer_role": "organization_did",
+          "issuer_role": "organization_principal_id",
           "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-06-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
@@ -239,7 +239,7 @@
         "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
           "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
-          "issuer_role": "organization_did",
+          "issuer_role": "organization_principal_id",
           "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-05-01T00:00:00.000Z"
         }
@@ -249,7 +249,7 @@
       "name": "wrong_issuer_role_rejected",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_organization_payload",
       "expect_valid": false,
-      "first_expected_error": "$.authorization.issuer_role: 'realm_admin' is not one of ['organization_did', 'governance_service', 'account_authority', 'threshold_quorum']",
+      "first_expected_error": "$.authorization.issuer_role: 'realm_admin' is not one of ['organization_principal_id', 'governance_service', 'account_authority', 'threshold_quorum']",
       "semantic_outcome": "reject",
       "expected_reason_code": "realm_organization_authorization_invalid",
       "notes": "realm_admin is a Realm-side capability, not an organization-side issuer_role; the organization-consent layer cannot be satisfied by a Realm admin.",
@@ -292,7 +292,7 @@
         "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
           "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
-          "issuer_role": "organization_did",
+          "issuer_role": "organization_principal_id",
           "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
@@ -321,7 +321,7 @@
         "expires_at": "2026-02-01T00:00:00.000Z",
         "authorization": {
           "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
-          "issuer_role": "organization_did",
+          "issuer_role": "organization_principal_id",
           "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-01-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
@@ -350,7 +350,7 @@
         "expires_at": null,
         "authorization": {
           "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
-          "issuer_role": "organization_did",
+          "issuer_role": "organization_principal_id",
           "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-12-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
@@ -406,7 +406,7 @@
         "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
           "issuer": "ak:did_core:webvh:z6mkfixtureacmeexample",
-          "issuer_role": "organization_did",
+          "issuer_role": "organization_principal_id",
           "verification_method": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
           "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"

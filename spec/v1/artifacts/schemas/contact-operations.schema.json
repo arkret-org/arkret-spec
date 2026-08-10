@@ -140,12 +140,12 @@
       ],
       "properties": {
         "subject_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Principal DID whose private Contact projection receives this fact."
         },
         "recipient_service_id": {
-          "$ref": "#/$defs/did",
-          "description": "Stable Principal Server service core_id that hosts subject_id and accepts this delivery."
+          "$ref": "#/$defs/did_core_id",
+          "description": "Stable Principal Server service did_core_id that hosts subject_id and accepts this delivery."
         },
         "service_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
@@ -169,10 +169,10 @@
       ],
       "properties": {
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "display_name": {
           "type": "string",
@@ -207,7 +207,7 @@
             "sorted_pair_members": {
               "type": "array",
               "items": {
-                "$ref": "#/$defs/did"
+                "$ref": "#/$defs/did_core_id"
               },
               "minItems": 2,
               "maxItems": 2,
@@ -236,7 +236,7 @@
             "sorted_pair_members": {
               "type": "array",
               "items": {
-                "$ref": "#/$defs/did"
+                "$ref": "#/$defs/did_core_id"
               },
               "minItems": 2,
               "maxItems": 2,
@@ -400,7 +400,7 @@
           "$ref": "./principal-operations.schema.json#/$defs/hash"
         },
         "issuer": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "head_event_ref": {
           "$ref": "#/$defs/event_id"
@@ -493,7 +493,7 @@
               "$ref": "./handle-claim.schema.json"
             },
             "resolved_by": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             "resolved_at": {
               "$ref": "#/$defs/timestamp"
@@ -664,8 +664,8 @@
           "description": "Optional shorthand. When present, MUST equal bidirectional_scopes."
         },
         "peer_service_id": {
-          "$ref": "#/$defs/did",
-          "description": "Optional stable Principal Server service core_id hosting the peer. Omitted for same-Principal-Server contacts."
+          "$ref": "#/$defs/did_core_id",
+          "description": "Optional stable Principal Server service did_core_id hosting the peer. Omitted for same-Principal-Server contacts."
         },
         "peer_service_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
@@ -1272,7 +1272,7 @@
               "const": "human"
             },
             "principal_id": {
-              "$ref": "./common-ids.schema.json#/$defs/core_id"
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
             }
           },
           "additionalProperties": false
@@ -1289,10 +1289,10 @@
               "const": "agent"
             },
             "agent_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             "controller_id": {
-              "$ref": "./common-ids.schema.json#/$defs/core_id"
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
             }
           },
           "additionalProperties": false
@@ -1762,8 +1762,8 @@
       "type": "string",
       "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
     },
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "direct_conversation_resolve_request_body": {
       "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request"
@@ -1815,10 +1815,10 @@
       ],
       "properties": {
         "issuer": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "peer": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "request_receipt_digests": {
           "type": "array",
@@ -1890,7 +1890,7 @@
           "$ref": "#/$defs/timestamp"
         },
         "issuer": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "signature": {
           "$ref": "./principal-operations.schema.json#/$defs/signature"
@@ -1959,13 +1959,13 @@
           "description": "H('ak.peer-contact.control-result.v1',{request_digest,result_kind,glare_concurrency_attestation?,current_proof?}) over the exact closed successful result."
         },
         "recipient_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "received_at": {
           "$ref": "#/$defs/timestamp"
         },
         "issuer": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "signature": {
           "$ref": "./principal-operations.schema.json#/$defs/signature"
@@ -2219,13 +2219,13 @@
           ]
         },
         "recipient_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "received_at": {
           "$ref": "#/$defs/timestamp"
         },
         "issuer": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "signature": {
           "$ref": "./principal-operations.schema.json#/$defs/signature"
@@ -2850,7 +2850,7 @@
           "$ref": "#/$defs/timestamp"
         },
         "issuer": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "signature": {
           "$ref": "./principal-operations.schema.json#/$defs/signature"
@@ -2921,7 +2921,7 @@
           "$ref": "#/$defs/timestamp"
         },
         "issuer": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         }
       },
       "allOf": [

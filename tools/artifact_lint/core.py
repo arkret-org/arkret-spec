@@ -141,7 +141,7 @@ DID_LEGACY_PREFIX_PATTERN = r"^did:"
 
 DID_LEGACY_GREEDY_PATTERN = r"^did:[a-z0-9]+:[^\s]+$"
 
-DID_BARE_PATTERN = r"^did:[a-z0-9]+:[^\s#?]+$"
+DID_BARE_PATTERN = r"^did:[a-z0-9]+:[^\s/?#]+$"
 
 DID_URL_PROFILE_PATTERN = r"^did:[a-z0-9]+:[^\s#?]+#[A-Za-z0-9._:-]+$"
 
@@ -492,7 +492,7 @@ EVENT_AUTHORING_DURABLE_EFFECT_KINDS = ("event_log", "actor_private_event")
 # persists nothing unless persist_before_projection is set — so it proves nothing on
 # its own. A downgrade additionally MUST show the state change reaches no replicated
 # cell/lattice, i.e. it never enters state_root and no peer has to converge on it.
-# See arkret-work/work/active/2026-08-06-event-log-operations-need-a-signed-request.md.
+# See arkret-work/work/active/2026-08-06-1723-event-log-operations-need-a-signed-request.md.
 EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
     "ak.self.circle.member.resource.delete": (
         "DELETE with no request body today; the shape decision is made (give it a body, as "
@@ -1654,4 +1654,3 @@ def _supply_load_exemptions(lint: Lint) -> list[dict[str, Any]]:
         if row.get("status") == "active":
             valid_rows.append(row)
     return valid_rows
-

@@ -19,8 +19,8 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "mimi_uri": {
       "type": "string",
@@ -46,7 +46,7 @@
           "const": "ak.schema.mimi_interop.v1"
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "service_kind": {
           "const": "mimi_provider_facade"
@@ -165,7 +165,7 @@
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "Detached JWS by a verification method whose bare controller full_id validates under the registered method adapter and projects exactly to service_id (core_id), over the canonical unsigned projection (extensions/mimi-interop.md section 3.1). Direct full-DID/core-id string comparison is forbidden. payload_digest is the projection digest; the proof object itself never enters the projection. A digest or dev placeholder is not a signature."
+          "description": "Detached JWS by a verification method whose bare controller full_id validates under the registered method adapter and projects exactly to service_id (did_core_id), over the canonical unsigned projection (extensions/mimi-interop.md section 3.1). Direct full-DID/core-id string comparison is forbidden. payload_digest is the projection digest; the proof object itself never enters the projection. A digest or dev placeholder is not a signature."
         }
       },
       "additionalProperties": true
@@ -249,12 +249,12 @@
               "additionalProperties": true
             },
             "hub_provider": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             "follower_providers": {
               "type": "array",
               "items": {
-                "$ref": "#/$defs/did"
+                "$ref": "#/$defs/did_core_id"
               },
               "uniqueItems": true
             },

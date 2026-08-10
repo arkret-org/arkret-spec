@@ -54,10 +54,10 @@
       "description": "Required only for action=fail. close/cancel derive empty-response failure codes controller_closed_empty/controller_cancelled."
     },
     "expected_coordinator_agent_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "coordinator_agent_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "New coordinator for action=reassign_coordinator. It MUST be addressed by the request and eligible at authoring time."
     }
   },

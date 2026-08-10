@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.9",
+  "version": "2026-08-11.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T23:51:00Z",
+  "generated_at": "2026-08-11T00:30:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1496,7 +1496,7 @@
           "cell_family": "ak.component.organization.discovery.v1",
           "cell_subject": {
             "kind": "did",
-            "field": "payload.organization_did"
+            "field": "payload.organization_principal_id"
           },
           "lattice": "cas_register",
           "bottom": "reject",
@@ -1621,7 +1621,7 @@
           "cell_subject": {
             "kind": "coalesce",
             "fields": [
-              "payload.organization_did",
+              "payload.organization_principal_id",
               "payload.organization_id"
             ]
           },
@@ -1738,7 +1738,7 @@
           "cell_family": "ak.component.identity.disclosure_receipt.v1",
           "cell_subject": {
             "kind": "did",
-            "field": "payload.holder_did"
+            "field": "payload.holder_principal_id"
           },
           "lattice": "ordered_log",
           "bottom": "expose",
@@ -4767,7 +4767,7 @@
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Push route binding for a (recipient_service_id, principal, device, push_route) tuple. Carries push_target_id, push_gateway_did, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_id context.",
+      "payload": "Push route binding for a (recipient_service_id, principal, device, push_route) tuple. Carries push_target_id, push_gateway_service_id, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_id context.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
       "id_source": "not_an_object_id"
     },

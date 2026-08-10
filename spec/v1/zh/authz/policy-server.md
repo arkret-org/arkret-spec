@@ -22,7 +22,7 @@ Realm 可通过 state event 声明策略服务：
 {
   "kind": "ak.realm.policy_server",
   "payload": {
-    "policy_server_did": "ak:did_core:webvh:z9oyrNdJAoqkAh5Remo6dZUdV",
+    "policy_server_service_id": "ak:did_core:webvh:z9oyrNdJAoqkAh5Remo6dZUdV",
     "policy_server_url": "https://policy.example.com/_arkret/self/policy/check",
     "public_keys": [
       "ak:did_core:webvh:z9oyrNdJAoqkAh5Remo6dZUdV"
@@ -75,7 +75,7 @@ Realm 可通过 state event 声明策略服务：
 [`event-payload.schema.json#/$defs/realm_policy_server_payload`](../../artifacts/schemas/event-payload.schema.json)
 封闭为两种互斥形态：
 
-1. declaration：至少携带 `policy_server_did` 与 `policy_server_url`，可携带本节其余声明字段；
+1. declaration：至少携带 `policy_server_service_id` 与 `policy_server_url`，可携带本节其余声明字段；
 2. value tombstone：精确为 `{"tombstone":true}`，不得同时携带任何 declaration 字段。
 
 两种形态都写同一 `ak.component.realm.policy_server.v1:null` cell。Registry reducer contract
@@ -130,10 +130,10 @@ Content-Type: application/json
 | `realm_id` | body | `id` | required | 相关 Realm；进入 cache key、policy transcript 和 obligation `bound_to.realm_id`。纯账号级检查 MUST 使用 principal control Realm id。 |
 | `request_canonical_digest` | body | `sha256:<hash>` | required | 被检查请求或事件 preview 的 canonical hash。 |
 | `action` | body | `string` | required | 待检查动作，例如 `ak.message.create`。 |
-| `actor_id` | body | `core_id` | required | 发起动作 Actor 的稳定业务身份。 |
+| `actor_id` | body | `did_core_id` | required | 发起动作 Actor 的稳定业务身份。 |
 | `device_id` | body | `id` | optional | 发起设备。 |
 | `source` | body | `object` | required | 调用来源摘要。 |
-| `source.service_id` | body | `core_id` | required | 调用服务的稳定业务身份。 |
+| `source.service_id` | body | `did_core_id` | required | 调用服务的稳定业务身份。 |
 | `source.service_kind` | body | `string` | required | 调用服务类型。 |
 | `source.source_ip_digest` | body | `sha256:<hash>` | optional | 来源 IP 的 keyed 不可链接派生值；派生与轮换规则见 §3.1。MUST NOT 是对 IP 地址的裸 SHA-256。 |
 | `source.signed_transport` | body | `boolean` | required | 请求是否由签名 transport 保护。 |
@@ -192,10 +192,10 @@ Content-Type: application/json
 | `request_id` | `string` | required | 回显请求 ID。 |
 | `bound_to` | `object` | required | Policy Server 回签的请求绑定；MUST 至少包含 `realm_id`、`actor_id`、`action`、`request_canonical_digest`、`policy_server_id`，调用方缓存或复用 decision 前必须逐字段比较。 |
 | `bound_to.realm_id` | `id` | required | 等于 request `realm_id`。 |
-| `bound_to.actor_id` | `core_id` | required | 等于 request `actor_id`。 |
+| `bound_to.actor_id` | `did_core_id` | required | 等于 request `actor_id`。 |
 | `bound_to.action` | `string` | required | 等于 request `action`。 |
 | `bound_to.request_canonical_digest` | `sha256:<hash>` | required | 等于 request `request_canonical_digest`。 |
-| `bound_to.policy_server_id` | `core_id` | required | 签发该 decision 的 Policy Server 稳定身份；declaration 的 service binding 必须指向同一 core，且 `signature.kid` 的 bare full DID 经 adapter 投影后必须与其一致。 |
+| `bound_to.policy_server_id` | `did_core_id` | required | 签发该 decision 的 Policy Server 稳定身份；declaration 的 service binding 必须指向同一 core，且 `signature.kid` 的 bare full DID 经 adapter 投影后必须与其一致。 |
 | `decision` | `enum(allow,soft_deny,hard_deny,quarantine,require_review)` | required | 策略决策。 |
 | `reason_code` | `string` | required | 稳定原因码。 |
 | `expires_at` | `datetime` | required | 决策缓存过期时间。 |
@@ -344,7 +344,7 @@ Policy decision 签名输入 MUST 包含：
 - `request_id`
 - `bound_to.request_canonical_digest`
 - `bound_to.realm_id`（被评估对象所属的 Realm ID;**v1 normative**）
-- `bound_to.actor_id`（被评估 actor 的 `core_id`;**v1 normative**）
+- `bound_to.actor_id`（被评估 actor 的 `did_core_id`;**v1 normative**）
 - `bound_to.action`（被评估的 capability action token）
 - `bound_to.policy_server_id`
 - decision

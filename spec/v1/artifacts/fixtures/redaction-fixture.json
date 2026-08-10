@@ -158,7 +158,7 @@
       "redaction_receipt": {
         "schema": "ak.schema.erasure_receipt.v1",
         "receipt_id": "ak:receipt:01970e58-0004-7000-8000-0000000004b3",
-        "issuer": "did:webvh:z6mkfixturesolandexample:soland.example",
+        "issuer": "ak:did_core:webvh:z6mkfixturesolandexample",
         "subject": {
           "kind": "event",
           "subject_ref": "ak:event:AVXhtV275ld1GsXBcgORhXkFjGv93zkTVrWlW10MSEqR"

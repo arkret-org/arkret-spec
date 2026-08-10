@@ -545,7 +545,7 @@
           ]
         },
         "requested_scope_digest": "sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042",
-        "verifier_did": "did:webvh:z6mkverifier:pair.example",
+        "verifier_service_id": "ak:did_core:webvh:z6mkverifier",
         "audience": "https://pair.example/_arkret/gate/account/agent-key-pair",
         "challenge": "ak.challenge.01964137000070008000000000000000",
         "issued_at": "2026-04-26T00:00:00.000Z",

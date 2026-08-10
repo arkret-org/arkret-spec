@@ -12,7 +12,7 @@ updated: 2026-08-10
 
 ## 1. 目标
 
-Arkret 身份由稳定 principal `core_id` 表示，并由当前 `full_id` 提供 DID resolution；用户访问通常经过一个或多个服务账户、OAuth/OIDC session、device token 和 Principal Server / Events API。本文件定义这些层的锁定、暂停、注销、软登出、数据擦除和服务账号生命周期。
+Arkret 身份由稳定 principal `did_core_id` 表示，并由当前 `full_id` 提供 DID resolution；用户访问通常经过一个或多个服务账户、OAuth/OIDC session、device token 和 Principal Server / Events API。本文件定义这些层的锁定、暂停、注销、软登出、数据擦除和服务账号生命周期。
 
 ## 2. 分层
 
@@ -30,7 +30,7 @@ Arkret 身份由稳定 principal `core_id` 表示，并由当前 `full_id` 提�
 
 服务账号 MAY 使用用户名/密码、passkey、WebAuthn、OAuth/OIDC、企业 SSO 或类似集中认证服务的登录方式。它们只证明调用方通过了某个 account service 的认证，不能直接证明 DID principal 所有权。
 
-登录成功后，account service / auth service MUST 将会话绑定到 principal `core_id` 与设备，例如签发短期 `ak.session.grant`、登记 device binding，或要求客户端提交 identity control proof。资源服务器随后验证 grant、device、capability、Realm policy 和撤销状态。`ak.session.grant` 是 Account Authority issuer-ledger credential，不是 Event：issuer 从 closed immutable `ak.session_grant.issuance.v1` preimage 派生 33-octet / 44-character suite-tagged full-digest token，签 JWT，并要求 JWT `jti` 逐字节等于该 typed ID。其 ID derivation、canonical JWK、nonce 与 verifier 规则见 [`key-management.md` §6](./key-management.md)。这个 ID 不是 Event ID，也不是 `ak:grant:` Capability GrantId；三者的 parser、存储索引与 API strong type MUST 分开。
+登录成功后，account service / auth service MUST 将会话绑定到 principal `did_core_id` 与设备，例如签发短期 `ak.session.grant`、登记 device binding，或要求客户端提交 identity control proof。资源服务器随后验证 grant、device、capability、Realm policy 和撤销状态。`ak.session.grant` 是 Account Authority issuer-ledger credential，不是 Event：issuer 从 closed immutable `ak.session_grant.issuance.v1` preimage 派生 33-octet / 44-character suite-tagged full-digest token，签 JWT，并要求 JWT `jti` 逐字节等于该 typed ID。其 ID derivation、canonical JWK、nonce 与 verifier 规则见 [`key-management.md` §6](./key-management.md)。这个 ID 不是 Event ID，也不是 `ak:grant:` Capability GrantId；三者的 parser、存储索引与 API strong type MUST 分开。
 
 ### 2.1.1 Account-first onboarding
 
@@ -44,7 +44,7 @@ Account Authority 必须使用 holder-bound handoff；普通 OAuth token、OIDC 
 
 1. 客户端提交 OIDC code exchange proof 与 RFC 9449 DPoP；Account Authority 验 issuer/client/redirect/state/nonce/PKCE 并返回最多 1 hour 的 opaque `account_handoff_grant` 与 deployment-local `account_subject`。handoff 本身不是 SessionGrant、没有 refresh 语义，不能直接访问 `/_arkret/self/*`；其闭合权限集是 issue identity-binding challenge、issue identity-abandonment challenge、abandon identity creation、register、issue session grant 与 issue recovery-completion grant。后两个 identity-abandonment 成员在列，是因为 PCR 从未 accepted 时用户没有 principal，不可能有绑定 principal 的 session grant 来承载它们。对已绑定账号，pre-registration handoff 可以换取该账号 principal 的 Standard SessionGrant，因此 OIDC 凭据失陷会暴露服务端可见状态与 grant scope 内操作；但攻击者仍不能缺少 accepted device Event proof 而代表用户写 Event、取得 E2EE 明文或授权设备。
 2. Account Authority 原子取得最多 15 minutes 的 `identity_creation_lease`，持久化 `(service_account,audience,lease_id,holder_jkt,fence,expires_at,reserved_principal_id?,reserved_operation_digest?,state)`；同一账号同一 audience 同时只有一个 live holder。handoff 取得与同 holder 续租都必须按 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §6.1 限速并经过风险检查；busy 响应除 `retry_after_ms` 外必须回显冲突 live lease 的 `expires_at`，供客户端显示确定等待上界，不得披露 holder key 或原始账号 id。
-3. 客户端生成并签署 did:webvh entry 0、`FoundingDeviceDescriptor` 与 ordered genesis unit。该 entry 产生注册用 `full_id`；客户端 MUST 用已登记 adapter 投影出 `principal_id=core_id`，并从自己签好的 create Event 按 `retype(event_id)` 导出 PCR id（[`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)；它既不由 principal identity / subject 派生，也不由服务端自选）。这里以及 Arkret v1 其他 identity 文本中的 **entry 0** 是零基 history 数组的 `history[0]`（即 inception entry），不是 did:webvh 原生序号 0；其原生 log `seq` 是 `1`，`versionId` 必须以 `1-` 开头。实现不得用 `seq == 0` 判定 inception。客户端从该 exact entry 冻结 `did_version_id`、method-native `log_head_digest` 与该 entry 的 current active update key 的 `control_key_digest`，并把 `{full_id,method_history_head,version_id}` 写入 genesis `initial_resolution`。它还构造 `InitialSessionGrantRequest {device_id,session_public_key,audience,requested_scope}`；`session_public_key` 是当前 handoff DPoP public JWK 的 RFC 8785 canonical string，其 RFC 7638 thumbprint必须等于 handoff `cnf.jkt`。
+3. 客户端生成并签署 did:webvh entry 0、`FoundingDeviceDescriptor` 与 ordered genesis unit。该 entry 产生注册用 `full_id`；客户端 MUST 用已登记 adapter 投影出 `principal_id=did_core_id`，并从自己签好的 create Event 按 `retype(event_id)` 导出 PCR id（[`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)；它既不由 principal identity / subject 派生，也不由服务端自选）。这里以及 Arkret v1 其他 identity 文本中的 **entry 0** 是零基 history 数组的 `history[0]`（即 inception entry），不是 did:webvh 原生序号 0；其原生 log `seq` 是 `1`，`versionId` 必须以 `1-` 开头。实现不得用 `seq == 0` 判定 inception。客户端从该 exact entry 冻结 `did_version_id`、method-native `log_head_digest` 与该 entry 的 current active update key 的 `control_key_digest`，并把 `{full_id,method_history_head,version_id}` 写入 genesis `initial_resolution`。它还构造 `InitialSessionGrantRequest {device_id,session_public_key,audience,requested_scope}`；`session_public_key` 是当前 handoff DPoP public JWK 的 RFC 8785 canonical string，其 RFC 7638 thumbprint必须等于 handoff `cnf.jkt`。
 4. challenge 与 `identity_creation_control_proof` 必须承诺 `account_subject`、`principal_id`、`full_id`、PCR id、DID operation digest、`did_version_id`、`log_head_digest`、`control_key_digest`、create payload digest、founding authorize payload digest、`initial_session_request_digest`、closed unit kinds、lease/fence、DPoP JKT、audience/origin/trust-domain 与最多 300 秒窗口。DID operation digest 是完整 typed `DidOperationSubmitRequestBody` 的 canonical digest；它不是仅对 method-native log entry 计算的 event digest，验证方必须从已接受的 inception wrapper 字段重构并复算前者，并独立确认 `project(full_id) == principal_id`。对 did:webvh，proof key MUST 是 `did_version_id` 所钉的那个 entry 的 **current active update key**（`parameters.updateKeys[0]`），且其 canonical multikey 的 SHA-256 MUST 等于承诺的 `control_key_digest`；不能从 DID Document 的 authentication / service fragment 选择，也不得采信请求自带的 key。account-first inception 时该 entry 就是 entry 0，因此本规则与既有行为一致；对已发布且已轮换的 DID，它锚在建号时刻的当前控制权而不是创世代次——后者可能早已 spent 且不可再签。
 
 **身份锚、resolution 与签名者是三件事，MUST NOT 混用**：`principal_id` 回答“这个 PCR 属于哪一个稳定主体”；`initial_resolution.full_id` 与 `did_inception` ref 提供该主体建号时的可解析 DID 和 inception；`did_version_id` / `log_head_digest` / `control_key_digest` 三元组回答“建号时刻谁控制它”。验证方 MUST 分别校验，并通过 adapter 证明前两者投影一致；MUST NOT 因为 ref 指向 inception 就要求 inception key 签名。Event id 与 envelope digest 禁止进入 transcript。客户端在签名前 MUST 把 challenge 回显的 `account_subject`、`principal_id`、`full_id`、`operation_digest`、`pcr_realm_id`、三项 DID log pin、三个 payload digest、`initial_session_request_digest`、`genesis_unit_kinds`、lease/fence、`dpop_jkt`、`audience`、`origin`、`trust_domain`、issued/expiry window 与本地 frozen draft / handoff 逐字节比较；任一不符都必须 fail closed 且不得生成 root 签名。
@@ -60,7 +60,7 @@ reserved -> did_published -> pcr_accepted -> account_bound -> completed
 
 整个 register 以 `(service_account,principal_id,operation_digest)` 与 idempotency key 做 exact replay：相同 bytes 返回同一 saga/receipt/grant outcome；同 key 不同 bytes、账号/principal 冲突或 genesis digest 变化必须零写入失败。一个 Account Authority 下一个 service account 只绑定一个 active principal，一个 principal 也只绑定一个 active account。
 
-`AccountRegisterOutcome.binding_receipt` 必须是 Account Authority 以 `ak.account-binding-receipt-proof-v1` 签发的可验证 receipt，闭合绑定 `account_subject`、`principal_id`、`full_id`、DID log head、lease/fence 与 operation digest；客户端必须验证 proof 与当前 Account Authority DID 历史。注册成功后客户端还 MUST 直接回读 `did.jsonl`，验证完整 did:webvh history，并把 `history[0]` 的 canonical bytes、`versionId`、log head、control key 及 `project(full_id)` 和本地 frozen draft / signed receipt 逐字比较；任何冲突都必须 fail closed、显著披露且不得采用服务端返回的替代 identity。后续 handoff 若返回 `binding.state="bound"` 且 `principal_id` 不等于本地 frozen/derived `core_id`，客户端同样必须以 `account_binding_principal_mismatch` fail closed，不得静默接受、覆盖本地 root 或重新生成身份。
+`AccountRegisterOutcome.binding_receipt` 必须是 Account Authority 以 `ak.account-binding-receipt-proof-v1` 签发的可验证 receipt，闭合绑定 `account_subject`、`principal_id`、`full_id`、DID log head、lease/fence 与 operation digest；客户端必须验证 proof 与当前 Account Authority DID 历史。注册成功后客户端还 MUST 直接回读 `did.jsonl`，验证完整 did:webvh history，并把 `history[0]` 的 canonical bytes、`versionId`、log head、control key 及 `project(full_id)` 和本地 frozen draft / signed receipt 逐字比较；任何冲突都必须 fail closed、显著披露且不得采用服务端返回的替代 identity。后续 handoff 若返回 `binding.state="bound"` 且 `principal_id` 不等于本地 frozen/derived `did_core_id`，客户端同样必须以 `account_binding_principal_mismatch` fail closed，不得静默接受、覆盖本地 root 或重新生成身份。
 
 若设备在 PCR accepted 前物理损毁，新 holder 在旧 lease 过期后可递增 fence、继承 principal/DID reservation，用同一 identity root 对新 challenge 与新 founding device unit重签。**账号维度**的 PCR create-once 使并发 unit 只有一个 winner（event-derived 下两次 genesis 产生两个不同 `realm_id`，实现 MUST NOT 依赖 id 相等发现并发，见 [`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)）；若旧 unit 已先 accepted，新设备必须走 root re-anchor，不能再次 genesis。若 PCR 未 accepted 且 identity root 也丢失，可显式放弃 provisional identity 并新建 root/DID/PCR。放弃 provisional identity MUST 是显式用户动作，MUST NOT 由普通账号登录、session 恢复、lease fence 递增或任何自动流程触发；MUST 在执行前向用户明示后果——旧 entry 0 将永久不可用且**无法注销**，其上不存在可延续的业务状态。重认证强度、风险检查项与冷却期时长属**部署治理**，实现 SHOULD 施加与账号敏感操作同级的重认证与冷却，具体由部署自定，本规范不规定也不强制。放弃后：旧 entry 0 是 orphan anchor，Account Authority / registry 必须保留 tombstone/audit reservation、不得复用或声称连续性；orphan anchor 的后续清理（发现面标注、handle 与 namespace 释放、保留期）属**部署治理**，见 [`key-management.md` §5.0.2](./key-management.md)，本规范不定义。该 reservation 的 `reserved_identity_creation` checkpoint 从来不是公开对象；**显式放弃后它 MUST NOT 继续作为"某账号曾尝试创建身份"的可读痕迹对外提供**（包括后续 handoff 的 `identity_creation_lease.reserved_identity`），只保留 tombstone/audit 所需的最小记录。这是安全性质，不是清理策略。
 
@@ -77,7 +77,7 @@ reserved -> did_published -> pcr_accepted -> account_bound -> completed
 
 ### 2.1.2a 绑定已发布 DID（normative）
 
-`account_register_request_body` 的 `proof` 分支用于把一个**已经发布**的 `full_id` 所投影的 `core_id` 绑定到已认证的服务账号，
+`account_register_request_body` 的 `proof` 分支用于把一个**已经发布**的 `full_id` 所投影的 `did_core_id` 绑定到已认证的服务账号，
 与 `identity_creation` 分支互斥。它不创建 DID、不保留 principal、不执行 PCR genesis。
 
 **要求 DID 控制权证明的适用范围**：控制权证明只在**断言或改变"这个账号就是这个 DID"**的操作上要求，
@@ -107,8 +107,8 @@ reserved -> did_published -> pcr_accepted -> account_bound -> completed
    账号 MUST 进入显式的受限状态并要求用户重新证明控制权或走显式解绑；
    **MUST NOT 自动解绑**——那会把外部 DID 的控制权变更变成本地账号状态的单方控制通道。
 
-PCR 的作用域是「某个 principal `core_id` 在**当前 Principal Server** 上的账号」：同一 `core_id` 在不同 Principal Server 上
-是完全独立、互不相关、不可迁移的账号与 PCR。全网模型是「特定 Principal Server 上的一个 principal `core_id` ↔
+PCR 的作用域是「某个 principal `did_core_id` 在**当前 Principal Server** 上的账号」：同一 `did_core_id` 在不同 Principal Server 上
+是完全独立、互不相关、不可迁移的账号与 PCR。全网模型是「特定 Principal Server 上的一个 principal `did_core_id` ↔
 一个 arkret 账号」，各 Principal Server 自行治理其系统下的账号。
 
 注册后的 resolution 变更 MUST 由该 PCR 中的 `ak.identity.resolution.update` 提交，不能直接覆写 profile 或账号表。Event 以 previous Event ref / previous history head 做 CAS，reducer 更新 `ak.component.identity.resolution.v1`；Profile 只公开其 current projection。需要审计的调用方 MAY 请求带 Seal/cell proof 的选择性历史 evidence。其他 Principal Server 不要求持久保存该用户的 resolution；敏感操作发生时必须重新取得最新 evidence 并独立验证，短 TTL cache 只能优化读取，不能成为授权依据。
@@ -187,7 +187,7 @@ session credential 与绑定缓存，MUST 保留 principal 私钥、Recovery Key
 - **降低严格度**（任一 `to` 严格度低于 `from`，如 `suspended → active`、`locked → soft_logged_out`）的转换 MUST 满足规则 2（引用 `supersedes_status_event_id` 且在当前 Seal view 可见），否则按并发候选处理，不构成有效转换。
   - **例外：`soft_logged_out → active` 自助恢复**（normative）：该转换由 §4 的 fresh identity control proof（设备 / principal 重新证明控制权）授权，**不要求** `supersedes_status_event_id`；该 fresh proof 即构成有效降严格度转换的充分凭据。其余降严格度转换（`suspended → active`、`locked → *` 等）仍按规则 2 要求 `supersedes_status_event_id`。
 - **`erasure_pending` 为 terminal**（规则 3）：其唯一出边为空，任何转出 MUST 拒绝 `erasure_pending_is_terminal`。
-- **`deactivated` 重激活**（normative）：v1 **不**允许同一 `account_id` 的 `deactivated → active` 等任意降严格度转换。§7.1 的 deactivation fanout 对绑定到该 account 的 device、KeyPackage、session、push 与 to-device 资源不可逆；需要恢复访问的用户 MUST 创建新的 service account（新 `account_id`）并走完整 onboarding，可继续绑定同一 principal `core_id`，但不得复活旧 account 或旧资源。`deactivated` 的唯一合法出边是 `erasure_pending`。实现 MUST NOT 接受声称把该 `account_id` 的 `deactivated` 降级回较低严格度状态的 `ak.account.status` event（`account_status_transition_invalid`）。
+- **`deactivated` 重激活**（normative）：v1 **不**允许同一 `account_id` 的 `deactivated → active` 等任意降严格度转换。§7.1 的 deactivation fanout 对绑定到该 account 的 device、KeyPackage、session、push 与 to-device 资源不可逆；需要恢复访问的用户 MUST 创建新的 service account（新 `account_id`）并走完整 onboarding，可继续绑定同一 principal `did_core_id`，但不得复活旧 account 或旧资源。`deactivated` 的唯一合法出边是 `erasure_pending`。实现 MUST NOT 接受声称把该 `account_id` 的 `deactivated` 降级回较低严格度状态的 `ak.account.status` event（`account_status_transition_invalid`）。
 
 状态发布为服务侧 signed account status：
 
@@ -378,7 +378,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 | **Identity link cache** | 客户端与服务端可见缓存 MUST eager invalidate 所有 `(*, pairwise_did → deactivated_principal)` 映射；不得等待 7d TTL 或 MLS epoch 推进。 | `ak.identity_link` cache invalidation |
 | **Capability cache** | 所有 cached `ak.capability.grant` decision 引用该 principal 作为 subject 或 issuer 的 MUST eager invalidate；下次 capability check 走完整判定。 | cache invalidation |
 
-**写屏障（write barrier）**：`deactivated` accepted 进入当前 account status frontier 后，任何通过该 `account_id` 的 session、device 或 account binding 发起，或以该 account 作为 owner 的新 `ak.session.grant`、`ak.device.authorize`、KeyPackage publish / claim、agent / applet delegation、capability grant / delegation、push route、to-device enqueue 和 Realm membership delivery-binding 写入 MUST `failed_precondition`，`reason_code="account_deactivated"`。该屏障按 `account_id` 的 status frontier 生效，不得被较新的 HLC、不同 device、未完成 federation ack 或尚未失效的本地 cache 绕过；绑定同一 principal `core_id` 的不同 active `account_id` 不受旧 account 屏障影响，但必须用自己的新 session/device/KeyPackage 完成 onboarding。已经在屏障前 accepted 的历史 Event 不被改写；尚处 pending / quarantine / soft-fail 的写入 MUST 在恢复前重新检查该屏障。
+**写屏障（write barrier）**：`deactivated` accepted 进入当前 account status frontier 后，任何通过该 `account_id` 的 session、device 或 account binding 发起，或以该 account 作为 owner 的新 `ak.session.grant`、`ak.device.authorize`、KeyPackage publish / claim、agent / applet delegation、capability grant / delegation、push route、to-device enqueue 和 Realm membership delivery-binding 写入 MUST `failed_precondition`，`reason_code="account_deactivated"`。该屏障按 `account_id` 的 status frontier 生效，不得被较新的 HLC、不同 device、未完成 federation ack 或尚未失效的本地 cache 绕过；绑定同一 principal `did_core_id` 的不同 active `account_id` 不受旧 account 屏障影响，但必须用自己的新 session/device/KeyPackage 完成 onboarding。已经在屏障前 accepted 的历史 Event 不被改写；尚处 pending / quarantine / soft-fail 的写入 MUST 在恢复前重新检查该屏障。
 
 约束：
 

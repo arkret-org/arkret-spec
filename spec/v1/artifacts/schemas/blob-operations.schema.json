@@ -12,8 +12,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "did_url": {
       "type": "string",
@@ -85,7 +85,7 @@
           "$ref": "#/$defs/timestamp"
         },
         "issuer_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "signature": {
           "$ref": "#/$defs/signature"

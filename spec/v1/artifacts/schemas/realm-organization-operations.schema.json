@@ -9,8 +9,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "non_empty_string": {
       "type": "string",
@@ -60,7 +60,7 @@
     "issuer_role": {
       "type": "string",
       "enum": [
-        "organization_did",
+        "organization_principal_id",
         "governance_service",
         "account_authority",
         "threshold_quorum"
@@ -91,7 +91,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "organization_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "relationship": {
           "$ref": "#/$defs/relationship"
@@ -162,7 +162,7 @@
         "declared_organization_hints": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true,
           "description": "owning_organizations declared hints (realm-and-space.md §2.3.0) that have NO verified ak.realm.organization statement. These are unverified claims and MUST NOT be rendered as official / governed / endorsed."

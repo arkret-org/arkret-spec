@@ -50,12 +50,12 @@
         },
         "witness_signatures": [
           {
-            "witness_did": "ak:did_core:webvh:z6mkfixturewitnessaexample",
+            "witness_service_id": "ak:did_core:webvh:z6mkfixturewitnessaexample",
             "verification_method": "did:webvh:z6mkfixturewitnessaexample:witness-a.example#key-1",
             "signature": "signature-placeholder-a"
           },
           {
-            "witness_did": "ak:did_core:webvh:z6mkfixturewitnessbexample",
+            "witness_service_id": "ak:did_core:webvh:z6mkfixturewitnessbexample",
             "verification_method": "did:webvh:z6mkfixturewitnessbexample:witness-b.example#key-1",
             "signature": "signature-placeholder-b"
           }
@@ -86,12 +86,12 @@
         },
         "witness_signatures": [
           {
-            "witness_did": "ak:did_core:webvh:z6mkfixturewitnessaexample",
+            "witness_service_id": "ak:did_core:webvh:z6mkfixturewitnessaexample",
             "verification_method": "did:webvh:z6mkfixturewitnessaexample:witness-a.example#key-1",
             "signature": "signature-placeholder-a"
           },
           {
-            "witness_did": "ak:did_core:webvh:z6mkfixturewitnessbexample",
+            "witness_service_id": "ak:did_core:webvh:z6mkfixturewitnessbexample",
             "verification_method": "did:webvh:z6mkfixturewitnessbexample:witness-b.example#key-1",
             "signature": "signature-placeholder-b"
           }

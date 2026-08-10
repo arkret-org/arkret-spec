@@ -6,7 +6,7 @@
   "covers_vectors": [
     "ak.vector.service_resolution.handover_mirror.v1"
   ],
-  "spec_anchor": "spec/v1/zh/sync/service-surface.md#26-service-core_id-与首跳路由解析normative",
+  "spec_anchor": "spec/v1/zh/sync/service-surface.md#26-service-did_core_id-与首跳路由解析normative",
   "source_refs": [
     "spec/v1/artifacts/schemas/identity-resolution.schema.json",
     "spec/v1/zh/sync/service-surface.md",

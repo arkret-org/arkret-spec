@@ -405,7 +405,7 @@ POST /_arkret/edge/push/notify
 | `notification.route_tokens.delivery_binding_frontier_token` | string | optional（routing-stripped） | federation hop 来源 notify 的 stale-route 检测 token；不得携带 raw Realm frontier。 |
 | `notification.event_id` | id:event | visible-only required | profile-gated Event id。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
 | `notification.realm_id` | id:realm | visible-only required | profile-gated Realm id。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
-| `notification.sender_actor_id` | core_id | visible-only required | profile-gated 发送者 actor 的稳定业务身份。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
+| `notification.sender_actor_id` | did_core_id | visible-only required | profile-gated 发送者 actor 的稳定业务身份。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
 | `notification.strand_id` | id:strand | visible-only | profile-gated Strand id。绝不进 blind。 |
 | `notification.message_id` | id:message | visible-only | profile-gated Message id。绝不进 blind。 |
 | `notification.sender_actor_display_name` | string | visible-only | profile-gated 发送者显示名。绝不进 blind（§2.2 已列入 MUST NOT 清单）。 |

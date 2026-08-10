@@ -84,7 +84,10 @@ holder source service **MUST** 以本地 `(holder, peer)` admission slot CAS 串
 source checkpoint、accepted-at 与 issuer；receipt 不得反向承诺尚未存在的 future basis。
 `request_acceptance_receipt_digest` 是 exact closed signed receipt 的 RFC 8785/JCS UTF-8 bytes 的 SHA-256。
 
-永久 `basis_id` 只从以下 stable semantics 计算：
+永久 `basis_id` 只从以下 stable semantics 计算。令 `basis` 为下列 closed object，计算固定为
+`H("ak.contact.basis.v1", basis)`，即
+`"sha256:" + lowerhex(SHA256(UTF8("ak.contact.basis.v1\n") || RFC8785_JCS(basis)))`。
+domain label 不是 `basis` 的 wire 字段，实现不得把它插入 object 后改算 `SHA256(JCS(object))`：
 
 ```text
 normal = {kind:"normal", sorted_pair_members,
@@ -98,6 +101,10 @@ CAS 点证明自己没有 outgoing request，并签 `normal_response_acceptance_
 receipt、derived normal basis 与 CAS/completeness proof。reject 必须同样取得 source-signed
 `reject_acceptance_receipt`，绑定 exact request receipt、slot predecessor、reject Event 与 terminal
 outcome，并具有 durable exact replay/conflict 语义。
+
+normal 与 glare 的逐字节 known-answer vectors 见
+[`contact-basis-kat.json`](../../artifacts/fixtures/contact-basis-kat.json)；实现必须同时核对 canonical basis bytes
+与最终 `basis_id`，仅比较 object 语义或自行选择 domain 承载形态不算通过。
 
 glare admission 不仅需要两张 exact request receipts，还 **MUST** 携 source-signed causal frontier/completeness
 evidence，证明两 request 在任一方消费 request ref 前因果并发。仅收到两张 receipt、到达顺序或 wall clock

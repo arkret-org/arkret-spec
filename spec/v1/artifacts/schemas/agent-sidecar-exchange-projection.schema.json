@@ -28,7 +28,7 @@
       "const": "ak.schema.agent_sidecar_exchange_projection.v1"
     },
     "controller_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "sidecar_id": {
       "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
@@ -55,7 +55,7 @@
     "addressed_agent_ids": {
       "type": "array",
       "items": {
-        "$ref": "./common-ids.schema.json#/$defs/core_id"
+        "$ref": "./common-ids.schema.json#/$defs/did_core_id"
       },
       "uniqueItems": true,
       "minItems": 1
@@ -64,7 +64,7 @@
       "const": "coordinator"
     },
     "coordinator_agent_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "coordinator_assignment_event_id": {
       "$ref": "#/$defs/event_id"
@@ -72,7 +72,7 @@
     "participating_agent_ids": {
       "type": "array",
       "items": {
-        "$ref": "./common-ids.schema.json#/$defs/core_id"
+        "$ref": "./common-ids.schema.json#/$defs/did_core_id"
       },
       "uniqueItems": true
     },

@@ -313,7 +313,7 @@ managed Agent 等产品/profile 分类。后者继续由签名 genesis schema/pr
 
 特殊 ID/ref 形式（与 [`id-kind-registry.json` `special_forms[]`](../../artifacts/registry/id-kind-registry.json) 一一对应）：
 
-- `ak:did_core:<method>:<core>` 是 DID method adapter 产出的稳定 `core_id`，不是 Arkret 私有 DID method，也不是可直接交给 DID resolver 的完整 DID。`<method>` 与 `<core>` 必须按 registry / adapter 校验；编码层不得截断、拆分后重新拼接或从中推导 endpoint。
+- `ak:did_core:<method>:<core>` 是 DID method adapter 产出的稳定 `did_core_id`，不是 Arkret 私有 DID method，也不是可直接交给 DID resolver 的完整 DID。`<method>` 与 `<core>` 必须按 registry / adapter 校验；编码层不得截断、拆分后重新拼接或从中推导 endpoint。
 - `ak:cursor:<base64url>` 是 opaque token，不是 typed UUID object ID。
 - `ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`ak:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者 MUST NOT 混用。
 - `ak:seal:sha256:<digest>` 是内容寻址 Seal hash（active special form；见 `id-kind-registry.json`）。
@@ -332,13 +332,13 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 | --- | --- | --- |
 | 对象自身 ID（primary key） | `id` | canonical object 的主 ID，无下划线前缀。例：`id`。 |
 | 单一具体 protocol object kind | `<role>_<kind>_id` | 例：`realm_id`、`parent_space_id`、`scope_circle_id`、`policy_id`。 |
-| 协议责任主体（`core_id` 作为主体 ID） | `<role>_id` | 例：`actor_id`、`principal_id`、`subject_id`；wire 为 `ak:did_core:<method>:<core>`。 |
+| 协议责任主体（`did_core_id` 作为主体 ID） | `<role>_id` | 例：`actor_id`、`principal_id`、`subject_id`；wire 为 `ak:did_core:<method>:<core>`。 |
 | 因果 / finality / proof / schema-profile reference | `<noun>_ref` / `<noun>_refs` | 例：`prev_refs`、`seal_ref`、`schema_refs`、`policy_event_ref`。 |
 | Blob / content-addressed / polymorphic reference | `<noun>_ref` / `<noun>_refs` | 例：`blob_ref`、`target_ref`、`from_ref`、`to_ref`。 |
-| Service identity（wire value 为 `core_id`） | `service_id` / `<role>_service_id` | 例：`service_id`、`recipient_service_id`、`source_service_id`、`verification_service_id`。 |
-| 其它原始 DID ecosystem material | `<role>_did` | 例：`pairwise_did`、`operator_did`；v1 不再为跨 DID continuity 定义专用字段。 |
+| Service identity（wire value 为 `did_core_id`） | `service_id` / `<role>_service_id` | 例：`service_id`、`recipient_service_id`、`source_service_id`、`verification_service_id`。 |
+| 其它原始 DID ecosystem material | `<role>_did` | 例：`pairwise_did`、`operator_principal_id`；v1 不再为跨 DID continuity 定义专用字段。 |
 
-`full_id` 是标准 bare DID，保留 method resolution material，用于注册、resolution 与 method-native operation；它不是通用 typed `ak:<kind>:` ID。`project(full_id) -> core_id` 与 DID URL canonicalization 都由已登记 method adapter 定义。实现 MUST NOT 把 `full_id` 当成 `core_id` 的字符串后缀，MUST NOT 把 DID URL fragment 拼到 `core_id`，也 MUST NOT 以字符串前缀判断 DID URL controller；比较前必须按 adapter 解析并验证其 base `full_id` 与目标 `core_id` 的投影关系。
+`full_id` 是标准 bare DID，保留 method resolution material，用于注册、resolution 与 method-native operation；它不是通用 typed `ak:<kind>:` ID。`project(full_id) -> did_core_id` 与 DID URL canonicalization 都由已登记 method adapter 定义。实现 MUST NOT 把 `full_id` 当成 `did_core_id` 的字符串后缀，MUST NOT 把 DID URL fragment 拼到 `did_core_id`，也 MUST NOT 以字符串前缀判断 DID URL controller；比较前必须按 adapter 解析并验证其 base `full_id` 与目标 `did_core_id` 的投影关系。
 
 ### 4.2 Canonical 确定性 tie-break（normative，单一真相源）
 
@@ -875,7 +875,7 @@ rank_between(left, right):
 | `ak.component.call.recording.v1` / `ak.call.recording.start`（`capture_kind="recording"`）、`ak.call.state` | `[payload.call_id, payload.recording_id]` / `[payload.call_id, payload.recording_result.recording_id]` |
 | `ak.component.call.transcript.v1` / `ak.call.recording.start`（`capture_kind="transcript"`）、`ak.call.state` | `[payload.call_id, payload.recording_id]` / `[payload.call_id, payload.transcript_result.recording_id]` |
 
-`principal_id` MUST 是 §4 定义的稳定 `core_id`（`ak:did_core:<method>:<core>`），并以该完整、不透明字符串参与 composite subject；实现不得把对应 `full_id`、DID URL 或从 `core_id` 截断出的片段代入 subject。`device_id` MUST 是完整 `id:device` typed ID（`ak:device:<uuidv7>`）。
+`principal_id` MUST 是 §4 定义的稳定 `did_core_id`（`ak:did_core:<method>:<core>`），并以该完整、不透明字符串参与 composite subject；实现不得把对应 `full_id`、DID URL 或从 `did_core_id` 截断出的片段代入 subject。`device_id` MUST 是完整 `id:device` typed ID（`ak:device:<uuidv7>`）。
 
 `ak.component.realm_key.delivery.v1` 的四元组固定 arity 4，两个 Event kind 使用**逐字相同**的 registry descriptor，其中后两个 component 是 §9.5.1 的 `select`：
 

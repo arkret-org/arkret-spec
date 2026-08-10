@@ -27,8 +27,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -125,15 +125,15 @@
     "envelope_recipient": {
       "type": "object",
       "required": [
-        "reviewer_did",
+        "reviewer_actor_id",
         "device_id",
         "recipient_hpke_kid",
         "enc",
         "wrapped_key"
       ],
       "properties": {
-        "reviewer_did": {
-          "$ref": "#/$defs/did"
+        "reviewer_actor_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -212,7 +212,7 @@
       "required": [
         "candidate_kind",
         "realm_id",
-        "applicant_did",
+        "applicant_actor_id",
         "knock_ref",
         "policy_version_digest",
         "application_revision_digest",
@@ -228,8 +228,8 @@
         "realm_id": {
           "$ref": "#/$defs/realm_id"
         },
-        "applicant_did": {
-          "$ref": "#/$defs/did"
+        "applicant_actor_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "knock_ref": {
           "$ref": "#/$defs/event_ref"
@@ -295,7 +295,7 @@
         "realm_id",
         "application_ref",
         "application_revision_digest",
-        "reviewer_did",
+        "reviewer_actor_id",
         "decision",
         "reviewer_capability_proof",
         "reviewed_at",
@@ -315,8 +315,8 @@
         "application_revision_digest": {
           "$ref": "#/$defs/hash"
         },
-        "reviewer_did": {
-          "$ref": "#/$defs/did"
+        "reviewer_actor_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "decision": {
           "enum": [
@@ -422,7 +422,7 @@
           "$ref": "#/$defs/hash"
         },
         "cancelled_by": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "cancelled_at": {
           "$ref": "#/$defs/timestamp"
@@ -492,7 +492,7 @@
       "required": [
         "application_ref",
         "realm_id",
-        "applicant_did",
+        "applicant_actor_id",
         "application_revision_digest",
         "policy_version_digest",
         "submitted_at",
@@ -505,8 +505,8 @@
         "realm_id": {
           "$ref": "#/$defs/realm_id"
         },
-        "applicant_did": {
-          "$ref": "#/$defs/did"
+        "applicant_actor_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "application_revision_digest": {
           "$ref": "#/$defs/hash"
@@ -592,7 +592,7 @@
           ]
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "occurred_at": {
           "$ref": "#/$defs/timestamp"

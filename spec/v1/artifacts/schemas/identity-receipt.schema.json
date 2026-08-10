@@ -29,8 +29,7 @@
       "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+      "$ref": "./common-ids.schema.json#/$defs/did_full_id",
       "description": "Method-native bare full DID whose registry log position is attested by this receipt. This field intentionally remains a full DID because seq and head_event_digest identify that DID method history; it is not a stable Arkret business identity field."
     },
     "seq": {
@@ -42,8 +41,8 @@
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
     "registry_service_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Stable core_id of the registry service issuing the receipt. The detached proof verification_method remains a full DID URL and MUST project to this value through the registered method adapter."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Stable did_core_id of the registry service issuing the receipt. The detached proof verification_method remains a full DID URL and MUST project to this value through the registered method adapter."
     },
     "witness_role": {
       "type": "string",

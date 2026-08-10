@@ -16,19 +16,19 @@ updated: 2026-07-31
 
 本文集中回答两个问题：
 
-1. Arkret wire 中哪些 identifier 字段承载稳定 `core_id`、完整 `full_id` 或 DID URL；
+1. Arkret wire 中哪些 identifier 字段承载稳定 `did_core_id`、完整 `full_id` 或 DID URL；
 2. 哪些业务场景真正需要验证 DID 控制权，哪些场景只使用稳定身份核。
 
-`core_id` 在绝大多数业务路径中是稳定、可比较、可索引的主体标识；它不是 DID，也不可直接
+`did_core_id` 在绝大多数业务路径中是稳定、可比较、可索引的主体标识；它不是 DID，也不可直接
 resolve。字段来源于 DID **不等于**读取或写入该字段时必须解析 DID Document，更不等于必须发起
 在线网络请求。实现 MUST 把下列
 四件事分开：
 
-1. **语法校验**：确认值是 `core_id`、bare `full_id`、DID URL 或其它已声明 identifier 形态；
-2. **标识使用**：以完整 `core_id` 逐字比较、索引、去重、路由或匹配授权主体；
+1. **语法校验**：确认值是 `did_core_id`、bare `full_id`、DID URL 或其它已声明 identifier 形态；
+2. **标识使用**：以完整 `did_core_id` 逐字比较、索引、去重、路由或匹配授权主体；
 3. **签名验证**：使用已经接受并固定到相应 auth-state / key epoch 的公钥验证某个 proof；
 4. **DID 权威验证**：按 DID method adapter、resolver policy、history / controller proof 与 trust
-   evidence 验证 `project(full_id) == expected core_id` 以及该历史位置控制哪些 key / delegation。
+   evidence 验证 `project(full_id) == expected did_core_id` 以及该历史位置控制哪些 key / delegation。
 
 第 1 项在 wire ingress 执行；第 2 项是普通业务路径；第 3 项按签名对象的协议要求执行；只有
 第 4 项属于本文所称的“验证 DID”。前三项不得被实现成“顺便在线解析 DID”。DID 权威验证是
@@ -36,12 +36,12 @@ resolve。字段来源于 DID **不等于**读取或写入该字段时必须解�
 
 ## 2. DID 派生身份字段总表
 
-本节按**字段语义族**列出 v1 中承载 `core_id`、`full_id` 或 DID URL 的 identifier。对象专属 schema
+本节按**字段语义族**列出 v1 中承载 `did_core_id`、`full_id` 或 DID URL 的 identifier。对象专属 schema
 仍是字段必填性与精确 shape 的单一真相源；本表是跨 schema 的 value-category 总表。新增此类字段 MUST 同步
 更新本节，并遵守 [`../models/common-fields.md` §2.1](../models/common-fields.md) 的 `_id` /
 `_ref` / `_did` 命名规则。
 
-### 2.1 必为 `core_id` 的稳定业务字段
+### 2.1 必为 `did_core_id` 的稳定业务字段
 
 下表中的值 MUST 是 `ak:did_core:<method>:<core>`；复数形态中的每个元素遵守同一规则。
 它们不得携带 resolution，不得被当成 DID URL base，也不得由通用代码反向拼出 `full_id`。
@@ -49,43 +49,43 @@ resolve。字段来源于 DID **不等于**读取或写入该字段时必须解�
 #### 2.1.1 `*_id` / `*_ids` 中的 core identity 封闭判据
 
 看到 `_id` 不能默认判断为 DID。只有下表 semantic stem（可带角色前缀）的字段在对应 schema
-声明为 identity core 时属于 `core_id`；未命中者默认按 `id-kind-registry.json` 或对象专属 schema
+声明为 identity core 时属于 `did_core_id`；未命中者默认按 `id-kind-registry.json` 或对象专属 schema
 解释，不得按字符串前缀猜测。
 
-| semantic stem | `core_id` 字段实例 | 反例 / 边界 |
+| semantic stem | `did_core_id` 字段实例 | 反例 / 边界 |
 | --- | --- | --- |
 | `actor_id` / `actor_ids` | `actor_id`、`sender_actor_id`、`target_actor_id`、`watcher_actor_id`、`writer_actor_id`、`source_actor_id`、`approver_actor_id`、`closer_actor_id`、`approval_actor_ids[]`、`assigned_actor_ids[]` | `actor_profile_id` 是 `ak:actor_profile:` typed ID，不是 DID。 |
 | `principal_id` / `principal_ids` | `principal_id`、`creator_principal_id`、`managed_principal_id`、`recipient_principal_id`、`sender_principal_id`、`target_principal_id`、`accountable_principal_id`、`accountable_principal_ids[]` | `account_id` 是 deployment-local account identifier。 |
 | `service_id` / `service_ids` | `service_id` 及带角色前缀的 `source_`、`destination_`、`recipient_`、`requester_`、`issuer_`、`provider_`、`peer_`、`principal_server_`、`policy_server_`、`verification_`、`coordinator_`、`log_`、`media_`、`generated_by_`、`via_`、`allowed_`、`trusted_` service id(s) | endpoint URL、`service_kind`、deployment instance id 不是 DID。 |
 | Agent / Applet actor stem | `agent_id`、`coordinator_agent_id`、`expected_coordinator_agent_id`、`addressed_agent_ids[]`、`participating_agent_ids[]`、`owned_agent_ids[]`、`effective_agent_ids[]`、`bot_actor_id`、`ghost_actor_id` | `applet_id` 是 §2.3 的多态例外；`device_id` 永远不是 DID。 |
-| Organization stem | schema 明确声明的 `organization_id`、`organization_did`、`owning_organizations[]`、`controller_organization`、`controlling_organization`、`realm_operator_organization` | Realm / Circle / Space 的 organization metadata object id 若未来登记 typed kind，必须另用明确字段，不能复用这些 DID stem。 |
+| Organization stem | schema 明确声明的 `organization_id`、`organization_principal_id`、`owning_organizations[]`、`controller_organization`、`controlling_organization`、`realm_operator_organization` | Realm / Circle / Space 的 organization metadata object id 若未来登记 typed kind，必须另用明确字段，不能复用这些 DID stem。 |
 | 其它已登记责任 stem | `controller_id`、`subject_id`、`holder_id`、`publisher_id`、`signer_id`、`requester_id`、`auditor_id`、`audit_actor_id`、`audit_service_actor_id`、`account_authority_id` | `realm_id`、`device_id`、`event_id`、`grant_id`、`policy_id`、`invite_id`、`session_id`、`transaction_id` 等不是 DID。 |
 
-带角色前缀不会改变 value category：例如 `recipient_service_id` 仍是 service `core_id`，
-`recipient_principal_id` 仍是 principal `core_id`。反之，任意 `_id` 不能仅因出现在 actor 附近就
+带角色前缀不会改变 value category：例如 `recipient_service_id` 仍是 service `did_core_id`，
+`recipient_principal_id` 仍是 principal `did_core_id`。反之，任意 `_id` 不能仅因出现在 actor 附近就
 自动提升为 DID-derived identity。
 
-#### 2.1.2 `core_id` 字段名穷举
+#### 2.1.2 `did_core_id` 字段名穷举
 
-下表穷举当前 v1 schema 中“命中时必为 `core_id`”的稳定业务字段名；同名字段的嵌套路径不重复展开，
-复数字段的每个元素均为 `core_id`。`subject`、`audience`、`applet_id`、普通 `id` 与多态 ref
+下表穷举当前 v1 schema 中“命中时必为 `did_core_id`”的稳定业务字段名；同名字段的嵌套路径不重复展开，
+复数字段的每个元素均为 `did_core_id`。`subject`、`audience`、`applet_id`、普通 `id` 与多态 ref
 不在本表，统一见 §2.3。DID method 名称和 `device_signing_key` 也不在本表，见 §2.4。
 
 | 字段族 | 当前字段名（穷举） |
 | --- | --- |
-| Actor / principal / controller | `actor_id`、`actors`、`sender_actor_id`、`source_actor_id`、`target_actor_id`、`watcher_actor_id`、`writer_actor_id`、`principal_id`、`creator_principal_id`、`managed_principal_id`、`recipient_principal_id`、`sender_principal_id`、`target_principal_id`、`accountable_principal_id`、`accountable_principal_ids`、`allowed_principal_dids`、`denied_principal_dids`、`subject_id`、`target`、`controller`、`controller_id`、`controller_subject`、`controller_subject_id`、`holder`、`holder_did`、`holder_id`、`owner`、`local_admin_subject`、`account_authority_id`。 |
-| Agent / Applet actor | `agent_id`、`bot_actor_id`、`coordinator_agent_id`、`expected_agent_did`、`expected_coordinator_agent_id`、`ghost_actor_id`、`recording_agent`、`addressed_agent_ids`、`owned_agent_ids`、`effective_agent_ids`、`participating_agent_ids`、`approved_recipient_audit_actor_id`、`audit_actor_id`、`audit_service_actor_id`、`recipient_audit_actor_id`。 |
+| Actor / principal / controller | `actor_id`、`actors`、`sender_actor_id`、`source_actor_id`、`target_actor_id`、`watcher_actor_id`、`writer_actor_id`、`principal_id`、`creator_principal_id`、`managed_principal_id`、`recipient_principal_id`、`sender_principal_id`、`target_principal_id`、`accountable_principal_id`、`accountable_principal_ids`、`allowed_principal_ids`、`denied_principal_ids`、`subject_id`、`target`、`controller`、`controller_id`、`controller_subject`、`controller_subject_id`、`holder`、`holder_principal_id`、`holder_id`、`owner`、`local_admin_subject`、`account_authority_id`。 |
+| Agent / Applet actor | `agent_id`、`bot_actor_id`、`coordinator_agent_id`、`expected_actor_id`、`expected_coordinator_agent_id`、`ghost_actor_id`、`recording_agent`、`addressed_agent_ids`、`owned_agent_ids`、`effective_agent_ids`、`participating_agent_ids`、`approved_recipient_audit_actor_id`、`audit_actor_id`、`audit_service_actor_id`、`recipient_audit_actor_id`。 |
 | Service / provider / peer | `service_id`、`allowed_service_ids`、`coordinator_service_id`、`destination_service_id`、`generated_by_service_id`、`issuer_service_id`、`log_service_id`、`media_service_id`、`new_recipient_service_id`、`peer_service_id`、`policy_server_id`、`principal_server_id`、`provider_service_id`、`recipient_service_id`、`registry_service_id`、`requester_service_id`、`source_service_id`、`verification_service_id`、`via_service_ids`、`trusted_directory_services`、`trusted_principal_services`、`denied_principal_services`、`follower_providers`、`heroes`、`hub_provider`、`origin_provider`、`relay_provider`、`target_providers`、`peer`。 |
-| Organization / authority / witness | `organization`、`organization_did`、`organization_id`、`owning_organizations`、`declared_organization_hints`、`controller_organization`、`controlling_organization`、`realm_operator_organization`、`recovery_controller_organizations`、`range_completeness_witnesses`、`recovery_members`、`authority_did`、`witness_did`。 |
-| 审批、邀请、审计与责任角色 | `acknowledged_by`、`appellant`、`appellant_did`、`applicant_did`、`approval_actor_ids`、`approved_by`、`approved_key_issuers`、`approver_actor_id`、`approvers`、`assigned_actor_ids`、`assigned_to`、`auditor_id`、`authorized_by`、`cancelled_by`、`changed`、`changed_by`、`closer`、`closer_actor_id`、`contact`、`created_by`、`delivered_to`、`authority_path`、`denied_subjects`、`executed_by`、`inheritance_chain`、`invitee`、`inviter`、`iss`、`issuer`、`left`、`members`、`participants_unordered`、`produced_by`、`publisher_id`、`received_by`、`removed_by`、`reporter`、`requested_by`、`requester`、`requester_did`、`requester_id`、`required_endorsers`、`resolved_by`、`restored_by`、`reviewer`、`reviewer_did`、`reviewers`、`revoked_by`、`routed_to`、`signer_id`、`signers`、`trusted_claim_issuers`、`trusted_handle_issuers`、`trusted_issuers`、`updated_by`。 |
-| 历史命名但语义为稳定身份 | schema 明确引用 `core_id` 的 `did`、`pairwise_did`、`operator_did`、`verifier_did`、`expected_did`、`peer_did`、`policy_server_did`、`principal_server_did`、`push_gateway_did`、`subscriber_did`。字段名不改变 value category；新 schema SHOULD 使用角色化 `*_id`。`old_did` / `new_did` 不得用于跨 core identity continuity。 |
+| Organization / authority / witness | `organization`、`organization_principal_id`、`organization_id`、`owning_organizations`、`declared_organization_hints`、`controller_organization`、`controlling_organization`、`realm_operator_organization`、`recovery_controller_organizations`、`range_completeness_witnesses`、`recovery_members`、`authority_did`、`witness_did`。 |
+| 审批、邀请、审计与责任角色 | `acknowledged_by`、`appellant`、`appellant_actor_id`、`applicant_actor_id`、`approval_actor_ids`、`approved_by`、`approved_key_issuers`、`approver_actor_id`、`approvers`、`assigned_actor_ids`、`assigned_to`、`auditor_id`、`authorized_by`、`cancelled_by`、`changed`、`changed_by`、`closer`、`closer_actor_id`、`contact`、`created_by`、`delivered_to`、`authority_path`、`denied_subjects`、`executed_by`、`inheritance_chain`、`invitee`、`inviter`、`iss`、`issuer`、`left`、`members`、`participants_unordered`、`produced_by`、`publisher_id`、`received_by`、`removed_by`、`reporter`、`requested_by`、`requester`、`requester_actor_id`、`requester_id`、`required_endorsers`、`resolved_by`、`restored_by`、`reviewer`、`reviewer_actor_id`、`reviewers`、`revoked_by`、`routed_to`、`signer_id`、`signers`、`trusted_claim_issuers`、`trusted_handle_issuers`、`trusted_issuers`、`updated_by`。 |
+| 历史命名但语义为稳定身份 | schema 明确引用 `did_core_id` 的 `did`、`pairwise_did`、`operator_principal_id`、`verifier_service_id`、`expected_principal_id`、`peer_principal_id`、`policy_server_service_id`、`principal_server_service_id`、`push_gateway_service_id`、`subscriber_principal_id`。字段名不改变 value category；新 schema SHOULD 使用角色化 `*_id`。`old_did` / `new_did` 不得用于跨 core identity continuity。 |
 
 ### 2.1.3 必为 bare `full_id` 的方法输入
 
 只有注册、DID resolver 输入、owner-published resolution、DID Document 顶层 `id` 及 method-native
 evidence 中明确声明的字段使用 bare `full_id`。其机器定义是
-[`common-ids.schema.json#/$defs/full_id`](../../artifacts/schemas/common-ids.schema.json)：不允许 path、query
-或 fragment。`full_id` MUST 通过注册 adapter 投影为调用点给定的 `core_id`；通用层不得把二者拼接。
+[`common-ids.schema.json#/$defs/did_full_id`](../../artifacts/schemas/common-ids.schema.json)：不允许 path、query
+或 fragment。`full_id` MUST 通过注册 adapter 投影为调用点给定的 `did_core_id`；通用层不得把二者拼接。
 
 例如，`handover_proof.actor_id`、`aad.actor_id` 与顶层 `actor_id` 在本表只占一个字段名；
 它们仍分别受所在 schema 的 transcript / 必填性约束。字段含义不明确时必须回到对象 schema，
@@ -140,14 +140,14 @@ pattern）。机器门禁 `tools/lint_artifacts.py` 强制这条一致性；新�
 
 | 字段 | identity 条件 | 非 identity 形态 |
 | --- | --- | --- |
-| `subject` | schema 分支要求具体 principal / actor 时是 `core_id`。 | Capability condition selector 或其它显式 selector shape。 |
-| `applet_id` | 个别 Applet package / install profile 允许 Applet actor identity 时是 `core_id`。 | canonical Applet object 使用 `ak:applet:<uuidv7>` typed ID。消费者 MUST 由 schema 分支判定，不能按字段名猜测。 |
-| `from_ref` / `to_ref` / `target_ref` / `object_ref` | polymorphic reference 指向 Actor 时可以是 `core_id`。 | 指向普通对象时是 `ak:<kind>:` typed ID；也可按所属 schema 使用 content-addressed / profile-scoped ref。 |
-| `target_source_ref` | service-targeted to-device 分支中可以是 service `core_id`。 | own-device / member-device 分支中是 `ak:device:` typed ID。 |
-| `resource_id` | Directory announce / withdraw / appeal 指向 Actor 时可以是 `core_id`。 | Realm / Applet typed ID 或 directory profile 明确允许的 handle。 |
-| `id` | DID Document 顶层 `id` 是 bare `full_id`；conformance issuer object 若代表稳定主体则是 `core_id`；verification method / service entry 的 `id` 是 DID URL。 | 普通 canonical object 的 `id` 是 `ak:<kind>:` typed ID，其它局部对象由自己的 schema 定义。 |
+| `subject` | schema 分支要求具体 principal / actor 时是 `did_core_id`。 | Capability condition selector 或其它显式 selector shape。 |
+| `applet_id` | 个别 Applet package / install profile 允许 Applet actor identity 时是 `did_core_id`。 | canonical Applet object 使用 `ak:applet:<uuidv7>` typed ID。消费者 MUST 由 schema 分支判定，不能按字段名猜测。 |
+| `from_ref` / `to_ref` / `target_ref` / `object_ref` | polymorphic reference 指向 Actor 时可以是 `did_core_id`。 | 指向普通对象时是 `ak:<kind>:` typed ID；也可按所属 schema 使用 content-addressed / profile-scoped ref。 |
+| `target_source_ref` | service-targeted to-device 分支中可以是 service `did_core_id`。 | own-device / member-device 分支中是 `ak:device:` typed ID。 |
+| `resource_id` | Directory announce / withdraw / appeal 指向 Actor 时可以是 `did_core_id`。 | Realm / Applet typed ID 或 directory profile 明确允许的 handle。 |
+| `id` | DID Document 顶层 `id` 是 bare `full_id`；conformance issuer object 若代表稳定主体则是 `did_core_id`；verification method / service entry 的 `id` 是 DID URL。 | 普通 canonical object 的 `id` 是 `ak:<kind>:` typed ID，其它局部对象由自己的 schema 定义。 |
 | `kid` | 签名 profile 明确要求 controller key 时是带 fragment 的 DID URL；仅表达本地 key label 的 profile 不是 DID。 | JWK / JOSE profile-local key label、device-local `ak:device:` key id 或其它 schema-scoped string。 |
-| `audience` | schema 明确把 audience 限定为一个 service / principal 时使用其 `core_id`。 | Realm ID、trust domain 或 profile 声明的 audience string / array。 |
+| `audience` | schema 明确把 audience 限定为一个 service / principal 时使用其 `did_core_id`。 | Realm ID、trust domain 或 profile 声明的 audience string / array。 |
 
 多态字段必须先由所在 schema / discriminator 确定分支，再校验值；实现 MUST NOT 用
 `starts_with("did:")` / `starts_with("ak:did_core:")` 代替 schema 分派或自动互转两种形态。
@@ -165,17 +165,17 @@ pattern）。机器门禁 `tools/lint_artifacts.py` 强制这条一致性；新�
 
 ## 3. 普通业务路径：只使用身份锚点
 
-已经建立可信绑定后，下列操作只需要把 `core_id` 当作 opaque identity key，不得因此触发 DID
+已经建立可信绑定后，下列操作只需要把 `did_core_id` 当作 opaque identity key，不得因此触发 DID
 Document 解析、history 验证或网络请求：
 
 - profile、成员、消息、通知、已读状态、列表、搜索结果与审计记录的读取和渲染；
-- `core_id` 的 equality、set membership、索引、去重、分组、排序、日志归属与 selector 匹配；
+- `did_core_id` 的 equality、set membership、索引、去重、分组、排序、日志归属与 selector 匹配；
 - 使用已接受 auth-state 中的 `actor_id` / `principal_id` / `service_id` 做 capability、
   membership、policy、blocklist 或 routing binding 求值；
 - 已认证 session 中由同一 accepted device / agent key epoch 签署的普通 Event 提交；
 - replay、backfill、snapshot 重放或历史查询已经携带并命中 pinned auth-state / historical
   verification binding 的材料；
-- 使用已物化的 `member_delivery_binding.service_resolution` 或 fresh route cache 路由到已经验证并被 Realm policy 接受的 service `core_id`；
+- 使用已物化的 `member_delivery_binding.service_resolution` 或 fresh route cache 路由到已经验证并被 Realm policy 接受的 service `did_core_id`；
 - 展示 verification badge 的缓存状态。UI 可以显示 `verified` / `stale` / `unknown`，但显示路径
   不能升级成 authority path。
 
@@ -190,11 +190,11 @@ Document 解析、history 验证或网络请求：
 
 | 触发场景 | 必须验证的内容 | 是否允许复用既有验证结果 |
 | --- | --- | --- |
-| 一个此前未被本 trust domain 接受的 `full_id` 首次跨越信任边界 | method allowlist、`project(full_id)==expected core_id`、DID Document / method history、controller proof、role / purpose、必要 witness evidence | 仅当已有结果绑定相同 full/core、trust domain、purpose、policy digest 与可接受 freshness 时可复用。 |
+| 一个此前未被本 trust domain 接受的 `full_id` 首次跨越信任边界 | method allowlist、`project(full_id)==expected did_core_id`、DID Document / method history、controller proof、role / purpose、必要 witness evidence | 仅当已有结果绑定相同 full/core、trust domain、purpose、policy digest 与可接受 freshness 时可复用。 |
 | 账号注册、认领、恢复或 service account 与 principal identity 首次绑定 | `full_id` 当前控制 proof、core 投影、session / device、audience、nonce、有效期与 account binding | 不得用邮箱、OIDC `sub`、passkey 登录成功或仅有 identity 字符串替代。 |
 | 出现新的 `verification_method`、device generation、agent signer epoch、service signing key 或 controller | 新 key 的 controller / delegation、用途、有效期、前序 history / authorization | 已接受旧 key 不能自动授权新 key。 |
 | 同一 core 下的 resolution/key rotation、recovery、deactivation 或 service route / delegation 变更 | 精确历史版本、previous head / sequence、recovery/successor proof、目标 trust domain 与 policy；若投影 core 改变则必须作为新 identity | 必须按事件接受时点或显式 pinned version 验证，不能只看当前文档。 |
-| 新 service `core_id` 被加入 federation peer、plaintext-visible service、media / push / audit / directory / policy allowlist | `full_id` control、core 投影、service kind、signed route record、trust domain、policy scope | 已验证的同一 service binding/record 在有效期内可复用；普通请求不重复解析。 |
+| 新 service `did_core_id` 被加入 federation peer、plaintext-visible service、media / push / audit / directory / policy allowlist | `full_id` control、core 投影、service kind、signed route record、trust domain、policy scope | 已验证的同一 service binding/record 在有效期内可复用；普通请求不重复解析。 |
 | membership / MLS admission 引入此前未接受的 principal、pairwise DID 映射或新的 delivery service binding | principal / pairwise link、KeyPackage / device or agent key binding、service binding | 既有 active member 的普通消息、presence、read receipt 不触发。 |
 | 高风险写入显式要求的 freshness 已过期，或收到 rotation / deactivation / witness fork / policy-change invalidation | 与该风险级别对应的最新 method evidence 或指定历史版本 | 低风险读路径不得因后台刷新失败而偷偷 live fallback；高风险操作 fail closed 或等待刷新。本表所称「高风险」**就是** [`identity-did.md` §3.4](./identity-did.md) 的 normative 枚举（新写入、grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Realm、accepting invite）；freshness 阈值与 stale 行为由调用点引用的 §5.4 freshness profile 决定，不由实现自由发挥。 |
 | 验证第三方 claim / receipt / attestation 时，本地没有其 issuer key 的已接受绑定 | issuer DID、verification method、claim purpose / audience / status / revocation | 同 issuer、key epoch、purpose 与 policy 下可复用。 |
@@ -221,7 +221,7 @@ KAT 见 [`did-binding-digest-fixture.json`](../../artifacts/fixtures/did-binding
 
 | 字段 | 要求 |
 | --- | --- |
-| `core_id` / `full_id` | expected 稳定身份与被验证的 bare DID；必须满足注册 adapter 的确定性投影。兼容合同中旧名 `did` 只表示这里的 `full_id`。 |
+| `did_core_id` / `full_id` | expected 稳定身份与被验证的 bare DID；必须满足注册 adapter 的确定性投影。兼容合同中旧名 `did` 只表示这里的 `full_id`。 |
 | `trust_domain` / `purpose` | 结果适用的本地信任域与用途（principal、service、issuer、controller 等）。 |
 | `method` / `verification_method` | DID method 与被接受的具体 DID URL；不适用具体 key 时可省略后者。 |
 | `document_digest` / `history_head` / `version_id` | 固定验证依据；计算方式见 §5.1。method 不支持或 resolver 未传出的 pin 可省略，但 MUST 按 §5.5 的 `limited_trust` 记录逐 pin 状态。 |
@@ -385,7 +385,7 @@ witness 级失效触发（witness 被撤销、witness 组织归属被合并判�
 
 ## 6. 实现分层要求
 
-- Wire / model 层 MUST 用强类型区分 `CoreId`、`FullId`、`DidUrl` 与 `ak:<kind>:` typed ID；不得把所有
+- Wire / model 层 MUST 用强类型区分 `DidCoreId`、`DidFullId`、`DidUrl` 与 `ak:<kind>:` typed ID；不得把所有
   identifier 长期保留为无类型 `String` 后靠前缀猜测。
 - Resolver / verifier 层负责 §4–§5；业务 reducer、projection、query、UI 与 routing 代码只消费
   verified binding 或 accepted auth-state，不直接持有通用网络 resolver。
@@ -404,9 +404,9 @@ witness 级失效触发（witness 被撤销、witness 组织归属被合并判�
 
 新增或修改 identifier 字段时逐项确认：
 
-1. 它是主体 `core_id`、方法解析用 `full_id`、具体 verification method、普通 typed ID，还是 polymorphic ref；
+1. 它是主体 `did_core_id`、方法解析用 `full_id`、具体 verification method、普通 typed ID，还是 polymorphic ref；
 2. 字段名与 §2 总表及 `id-kind-registry.json` 一致；
-3. schema 使用 `core_id`、bare `full_id` 与 DID URL 的正确约束；
+3. schema 使用 `did_core_id`、bare `full_id` 与 DID URL 的正确约束；
 4. 业务路径只是使用锚点，还是命中 §4 的显式权威验证触发条件；
 5. 若需要验证，purpose、trust domain、freshness、历史时点、缓存与失效条件是否完整；
 6. 是否错误地给 device、Realm、Message 等非主体对象发明 DID；

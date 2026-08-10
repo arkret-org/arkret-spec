@@ -53,7 +53,7 @@
       "description": "Digest of the closed typed prepared_plan stored by the RecoveryTransaction. It MUST equal transaction.prepared_plan_digest and is signed to prevent substituting different prepared bytes under the same reserved ids."
     },
     "principal_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "recovery_session_id": {
       "type": "string",
@@ -512,8 +512,8 @@
   },
   "additionalProperties": false,
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

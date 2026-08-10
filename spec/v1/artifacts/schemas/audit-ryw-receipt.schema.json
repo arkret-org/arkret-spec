@@ -31,7 +31,7 @@
       "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "issuer": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did_core_id"
     },
     "issuer_role": {
       "type": "string",
@@ -58,11 +58,11 @@
       "description": "Deployment trust domain for the Realm at the receipt frontier. Verifiers MUST require this to match the current receive context and the enclosing audit Event Realm context before using audit_policy_version_digest."
     },
     "realm_operator_organization": {
-      "$ref": "#/$defs/did",
+      "$ref": "#/$defs/did_core_id",
       "description": "DID of the Realm operator's ultimate controlling organization at this receipt frontier. Verifiers MUST derive and verify it from the Realm service/operator DID control chain; it is not a self-attested label. For federation_witness_attested, every witness controlling_organization MUST be distinct from this value and from any organization under the same ultimate controller."
     },
     "audit_actor_id": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did_core_id"
     },
     "frontier": {
       "type": "object",
@@ -132,7 +132,7 @@
             ],
             "properties": {
               "issuer": {
-                "$ref": "#/$defs/did",
+                "$ref": "#/$defs/did_core_id",
                 "description": "Service DID of the witness that produced this receipt."
               },
               "verification_method": {
@@ -140,7 +140,7 @@
                 "description": "DID URL of the key the witness used to sign (e.g. did:web:...#key-1). MUST be distinct from other witnesses' verification_method values for 'federation_witness_attested' to be valid."
               },
               "controlling_organization": {
-                "$ref": "#/$defs/did",
+                "$ref": "#/$defs/did_core_id",
                 "description": "DID of the organization that controls the witness. This value is not self-attested: verifiers MUST resolve issuer DID Document and confirm its controller / service ownership chain matches controlling_organization. For 'federation_witness_attested', all witnesses' controlling_organization values MUST be pairwise distinct and MUST NOT equal the audit actor's controlling organization or realm_operator_organization, including common ultimate controllers."
               },
               "attested_at": {
@@ -248,8 +248,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

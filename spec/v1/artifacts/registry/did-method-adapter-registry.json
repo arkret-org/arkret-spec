@@ -1,48 +1,19 @@
 {
-  "version": "2026-08-10.9",
+  "version": "2026-08-11.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T23:51:00Z",
+  "generated_at": "2026-08-11T00:30:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
-    "Only an active adapter row can validate a full_id or project it to core_id. DID syntax alone never admits a method.",
-    "project is a method-defined semantic transform over a canonical bare full_id, not generic string concatenation or prefix removal. Receivers compare the complete projected core_id byte-for-byte.",
+    "Only an active adapter row can validate a full_id or project it to did_core_id. DID syntax alone never admits a method.",
+    "project is a method-defined semantic transform over a canonical bare full_id, not generic string concatenation or prefix removal. Receivers compare the complete projected did_core_id byte-for-byte.",
     "Every adapter validates method-native control, deactivation, currentness and history evidence according to its trust profile before returning a verified projection. Unknown methods and unknown adapter versions fail closed.",
-    "A new full_id is an update of an existing principal or service only when the same active adapter projects it to the identical core_id. A method or core change creates a new identity and cannot inherit authorization through a continuity assertion.",
-    "DID URLs are constructed and compared from the verified full_id under the adapter's DID URL rules. A core_id is never used as a DID URL base.",
+    "A new full_id is an update of an existing principal or service only when the same active adapter projects it to the identical did_core_id. A method or core change creates a new identity and cannot inherit authorization through a continuity assertion.",
+    "DID URLs are constructed and compared from the verified full_id under the adapter's DID URL rules. A did_core_id is never used as a DID URL base.",
     "A full_id is a canonical bare DID and therefore contains no path, query or fragment. Each active adapter deterministically emits method_history_head, version_id and service_resolution_event_ref according to its registered rules, including synthetic values for methods without native history.",
-    "For a generic Event proof, the verifier extracts the canonical bare full_id base from proof.verification_method, validates the active adapter and key at the cited method history, projects that full_id, and compares the resulting core_id to executed_by when present or actor_id otherwise. The did_root_anchor admission variant is the sole registered exception.",
+    "For a generic Event proof, the verifier extracts the canonical bare full_id base from proof.verification_method, validates the active adapter and key at the cited method history, projects that full_id, and compares the resulting did_core_id to executed_by when present or actor_id otherwise. The did_root_anchor admission variant is the sole registered exception.",
     "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:cell:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current cell and MUST cross-bind payload.previous_resolution_event_ref and payload.previous_method_history_head."
   ],
-  "role_requirements": {
-    "long_lived_principal": {
-      "required_adapter_properties": {
-        "self_certifying_genesis": true,
-        "verifiable_control_history": true,
-        "pre_rotation_commitment": true
-      }
-    },
-    "service": {
-      "required_adapter_properties": {
-        "network_resolved_document": true
-      },
-      "conditional_adapter_properties": [
-        {
-          "when": {
-            "native_history": false
-          },
-          "require": {
-            "history_evidence_kind": "none"
-          }
-        }
-      ]
-    },
-    "realm_local_ephemeral_actor": {
-      "required_adapter_properties": {
-        "has_update_operation": false
-      }
-    }
-  },
   "principal_resolution_contract": {
     "version": "ak.identity.resolution.contract.v1",
     "cell_ref": "ak:cell:ak.component.identity.resolution.v1:null",
@@ -186,5 +157,34 @@
       ],
       "relocation_preserves_core": false
     }
-  ]
+  ],
+  "role_requirements": {
+    "long_lived_principal": {
+      "required_adapter_properties": {
+        "self_certifying_genesis": true,
+        "verifiable_control_history": true,
+        "pre_rotation_commitment": true
+      }
+    },
+    "service": {
+      "required_adapter_properties": {
+        "network_resolved_document": true
+      },
+      "conditional_adapter_properties": [
+        {
+          "when": {
+            "native_history": false
+          },
+          "require": {
+            "history_evidence_kind": "none"
+          }
+        }
+      ]
+    },
+    "realm_local_ephemeral_actor": {
+      "required_adapter_properties": {
+        "has_update_operation": false
+      }
+    }
+  }
 }

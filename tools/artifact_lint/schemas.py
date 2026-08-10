@@ -90,6 +90,106 @@ _STABLE_CORE_ID_FIELDS = {
 }
 
 
+_FULL_ID_REF_TARGETS = {
+    "/$defs/did_full_id",
+    "/$defs/webvh_full_id",
+    "/$defs/long_lived_principal_full_id",
+    "/$defs/ephemeral_pairwise_principal_full_id",
+    "/$defs/did_key_full_id",
+}
+
+_INLINE_DID_KEY_ENCODING_POINTERS = {
+    "device-pairing.schema.json#/$defs/device_pairing_target_attestation/properties/device_public_key/pattern",
+    "federated-device-signing-key-evidence.schema.json#/properties/device_signing_key/pattern",
+    "keys-operations.schema.json#/$defs/did_key/pattern",
+    "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/device_public_key/pattern",
+}
+
+
+def check_did_full_id_allowlist(lint: Lint) -> None:
+    """Keep full DID use at explicit registration, resolution, or method-evidence boundaries."""
+
+    allowlist_path = ROOT / "tools" / "did-full-id-allowlist.json"
+    allowlist = load_json(lint, allowlist_path)
+    if not isinstance(allowlist, dict):
+        return
+    categories = set(allowlist.get("categories", []))
+    rows = allowlist.get("entries", [])
+    if not isinstance(rows, list):
+        lint.fail(allowlist_path, "entries must be an array")
+        return
+    allowed: set[str] = set()
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            lint.fail(allowlist_path, f"entries[{index}] must be an object")
+            continue
+        pointer = row.get("pointer")
+        category = row.get("category")
+        if not isinstance(pointer, str) or not pointer:
+            lint.fail(allowlist_path, f"entries[{index}].pointer must be non-empty")
+            continue
+        if category not in categories:
+            lint.fail(allowlist_path, f"{pointer}: unknown category {category!r}")
+        if pointer in allowed:
+            lint.fail(allowlist_path, f"duplicate full DID pointer: {pointer}")
+        allowed.add(pointer)
+
+    observed: set[str] = set()
+    inline_did_key_encodings: set[str] = set()
+
+    def escape(token: str) -> str:
+        return token.replace("~", "~0").replace("/", "~1")
+
+    def visit(owner: Path, value: Any, pointer: str) -> None:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                child_pointer = f"{pointer}/{escape(key)}"
+                absolute = f"{owner.name}#{child_pointer}"
+                if key == "$ref" and isinstance(child, str) and any(
+                    target in child for target in _FULL_ID_REF_TARGETS
+                ):
+                    forwarding_definition = child_pointer == "/$defs/did_full_id/$ref"
+                    common_subtype_definition = (
+                        owner.name == "common-ids.schema.json"
+                        and child_pointer == "/$defs/long_lived_principal_full_id/$ref"
+                    )
+                    if not forwarding_definition and not common_subtype_definition:
+                        observed.add(absolute)
+                if (
+                    key == "pattern"
+                    and isinstance(child, str)
+                    and child.startswith("^did:")
+                    and "#" not in child
+                    and child not in {r"^did:[a-z0-9]+$", r"^did:[a-z0-9]+:$"}
+                    and owner.name != "common-ids.schema.json"
+                ):
+                    if child.startswith("^did:key:z"):
+                        inline_did_key_encodings.add(absolute)
+                    else:
+                        lint.fail(
+                            owner,
+                            f"{child_pointer}: bare DidFullId pattern bypasses the shared registered type",
+                        )
+                visit(owner, child, child_pointer)
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                visit(owner, child, f"{pointer}/{index}")
+
+    for path in sorted((ARTIFACTS / "schemas").glob("*.json")):
+        document = load_json(lint, path)
+        if isinstance(document, dict):
+            visit(path, document, "")
+
+    for pointer in sorted(observed - allowed):
+        lint.fail(allowlist_path, f"unreviewed DidFullId use: {pointer}")
+    for pointer in sorted(allowed - observed):
+        lint.fail(allowlist_path, f"stale DidFullId allowlist entry: {pointer}")
+    for pointer in sorted(inline_did_key_encodings - _INLINE_DID_KEY_ENCODING_POINTERS):
+        lint.fail(allowlist_path, f"unreviewed inline did:key public-key encoding: {pointer}")
+    for pointer in sorted(_INLINE_DID_KEY_ENCODING_POINTERS - inline_did_key_encodings):
+        lint.fail(allowlist_path, f"stale inline did:key encoding entry: {pointer}")
+
+
 def check_stable_identity_fields_use_core_id(lint: Lint) -> None:
     """Stable business identity fields must never regress to bare/full DID refs."""
     schema_root = ARTIFACTS / "schemas"
@@ -112,14 +212,12 @@ def check_stable_identity_fields_use_core_id(lint: Lint) -> None:
                 forbidden_refs = [
                     ref
                     for ref in refs
-                    if "/$defs/did" in ref
-                    or "/$defs/full_id" in ref
-                    or ref.endswith("/$defs/ActorDid")
+                    if "/$defs/did_full_id" in ref
                 ]
                 if forbidden_refs:
                     lint.fail(
                         path,
-                        f"{json_path}.{field}: stable identity field must reference core_id, got {forbidden_refs}",
+                        f"{json_path}.{field}: stable identity field must reference did_core_id, got {forbidden_refs}",
                     )
 
 
@@ -2279,9 +2377,13 @@ def check_did_and_device_constraints(lint: Lint) -> None:
                     "$defs.did_url must equal the Arkret verification-method DID URL profile "
                     "(common-ids.schema.json#/$defs/did_url)",
                 )
-            local_did = defs.get("did")
+            local_did = defs.get("did_full_id")
             if isinstance(local_did, dict) and "pattern" in local_did and local_did["pattern"] != DID_BARE_PATTERN:
-                lint.fail(path, "$defs.did must equal the canonical bare DID pattern (common-ids.schema.json#/$defs/did)")
+                lint.fail(
+                    path,
+                    "$defs.did_full_id must equal the canonical bare DID pattern "
+                    "(common-ids.schema.json#/$defs/did_full_id)",
+                )
         for json_path, value, key in walk_json(data):
             if key == "pattern" and value == DID_LEGACY_GREEDY_PATTERN:
                 lint.fail(path, f"{json_path} uses legacy greedy DID pattern; use bare DID or DID URL pattern")
@@ -2404,7 +2506,7 @@ def check_did_and_device_constraints(lint: Lint) -> None:
     account_full_id = (
         schema_docs.get("account-operations.schema.json", {})
         .get("$defs", {})
-        .get("full_id", {})
+        .get("did_full_id", {})
     )
     if account_full_id.get("$ref") != "./common-ids.schema.json#/$defs/long_lived_principal_full_id":
         lint.fail(

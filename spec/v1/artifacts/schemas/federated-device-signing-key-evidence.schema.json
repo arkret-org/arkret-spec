@@ -19,7 +19,7 @@
   ],
   "properties": {
     "actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "device_id": {
       "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -27,7 +27,7 @@
     "verification_method": {
       "$ref": "./common-ids.schema.json#/$defs/did_url",
       "maxLength": 1024,
-      "description": "The registered adapter MUST project the bare-DID portion of this DID URL to actor_id, and the fragment MUST equal device_id. It need not use the current full_id: historical proofs retain their original DID URL after a valid resolution update. The stable actor_id is a core_id and MUST NOT be used as a DID URL prefix."
+      "description": "The registered adapter MUST project the bare-DID portion of this DID URL to actor_id, and the fragment MUST equal device_id. It need not use the current full_id: historical proofs retain their original DID URL after a valid resolution update. The stable actor_id is a did_core_id and MUST NOT be used as a DID URL prefix."
     },
     "device_signing_key": {
       "type": "string",
@@ -62,7 +62,7 @@
       "description": "Deterministic projection rederived from authorization_chain at accepted_seal. The outer source assertion is not authority; any mismatch with replayed history fails closed.",
       "required": [ "principal_id", "device_id", "device_record", "generation_state" ],
       "properties": {
-        "principal_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "principal_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
         "device_id": { "$ref": "./common-ids.schema.json#/$defs/device_id" },
         "device_record": { "$ref": "./keys-operations.schema.json#/$defs/query_device_record" },
         "generation_state": { "$ref": "./keys-operations.schema.json#/$defs/device_generation_state" }

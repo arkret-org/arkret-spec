@@ -171,7 +171,7 @@ Sidecar 拥有独立 MLS group，但该 group 直接绑定 `sidecar_id`，不绑
 }
 ```
 
-两个 Agent `core_id` 数组按 UTF-8 字节序排序去重。`control_frontier` 只能包含 Sidecar genesis、ownership、
+两个 Agent `did_core_id` 数组按 UTF-8 字节序排序去重。`control_frontier` 只能包含 Sidecar genesis、ownership、
 Agent lifecycle、authorization、Realm participation 与 key-readiness 的 accepted refs；不得包含 Circle
 membership 或 Sidecar selection Event。
 

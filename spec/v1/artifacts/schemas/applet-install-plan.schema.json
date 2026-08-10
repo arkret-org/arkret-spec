@@ -33,7 +33,7 @@
     "applet_id": {
       "oneOf": [
         {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         {
           "$ref": "#/$defs/applet_id"
@@ -105,8 +105,8 @@
   },
   "additionalProperties": false,
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "applet_id": {
       "type": "string",

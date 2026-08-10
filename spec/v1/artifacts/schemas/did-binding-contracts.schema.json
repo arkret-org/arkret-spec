@@ -21,8 +21,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/did"
+    "did_full_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_full_id"
     },
     "hash": {
       "type": "string",
@@ -94,10 +94,10 @@
             ],
             "properties": {
               "witness_did": {
-                "$ref": "#/$defs/did"
+                "$ref": "#/$defs/did_full_id"
               },
               "controlling_organization": {
-                "$ref": "#/$defs/did"
+                "$ref": "#/$defs/did_full_id"
               }
             },
             "additionalProperties": false
@@ -194,7 +194,7 @@
           "type": "array",
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_full_id"
           },
           "description": "Sorted, deduplicated; empty for proofless methods."
         },
@@ -202,7 +202,7 @@
           "type": "array",
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_full_id"
           },
           "description": "Sorted, deduplicated; empty for proofless methods."
         },

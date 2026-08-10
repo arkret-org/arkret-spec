@@ -15,8 +15,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -32,7 +32,7 @@
       "type": "object",
       "required": [
         "realm_id",
-        "policy_server_did",
+        "policy_server_service_id",
         "policy_server_url",
         "cache_ttl_seconds",
         "timeout_ms",
@@ -44,8 +44,8 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "policy_server_did": {
-          "$ref": "#/$defs/did"
+        "policy_server_service_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "policy_server_url": {
           "type": "string",

@@ -27,7 +27,7 @@
       "description": "Payload schema id (versioned). The owning Event kind in event-kind-registry.json is ak.attestation.range_completeness (NO .v1 suffix on the event kind)."
     },
     "issuer": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did_core_id"
     },
     "issuer_role": {
       "type": "string",
@@ -97,7 +97,7 @@
             ],
             "properties": {
               "actor_id": {
-                "$ref": "./common-ids.schema.json#/$defs/core_id"
+                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
               },
               "from_seq_exclusive": {
                 "type": "integer",
@@ -158,14 +158,14 @@
             ],
             "properties": {
               "issuer": {
-                "$ref": "#/$defs/did"
+                "$ref": "#/$defs/did_core_id"
               },
               "verification_method": {
                 "$ref": "./common-ids.schema.json#/$defs/did_url",
                 "description": "DID URL of the key the witness used to sign. MUST be distinct from other witnesses' verification_method values for 'federation_witness_attested' to be valid."
               },
               "controlling_organization": {
-                "$ref": "#/$defs/did"
+                "$ref": "#/$defs/did_core_id"
               },
               "attested_at": {
                 "$ref": "#/$defs/timestamp"
@@ -186,8 +186,8 @@
     }
   },
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

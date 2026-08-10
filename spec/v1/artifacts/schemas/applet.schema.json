@@ -13,10 +13,10 @@
       "const": "ak.schema.applet.v1"
     },
     "applet_id": {
-      "description": "Stable applet identifier. MUST be either a core_id or the registered typed-id form ak:applet:<uuidv7>. Arbitrary opaque strings are not valid wire identifiers; bridge-specific aliases belong in namespace / external_ref fields.",
+      "description": "Stable applet identifier. MUST be either a did_core_id or the registered typed-id form ak:applet:<uuidv7>. Arbitrary opaque strings are not valid wire identifiers; bridge-specific aliases belong in namespace / external_ref fields.",
       "oneOf": [
         {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         {
           "type": "string",
@@ -25,8 +25,8 @@
       ]
     },
     "service_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Stable core_id of the service that hosts the applet runtime; current resolution is supplied by its authenticated service definition."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Stable did_core_id of the service that hosts the applet runtime; current resolution is supplied by its authenticated service definition."
     },
     "error": {
       "type": "object",

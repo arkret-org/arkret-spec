@@ -66,21 +66,21 @@
       "$ref": "#/$defs/timestamp"
     },
     "created_by": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did_core_id"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
     },
     "updated_by": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did_core_id"
     },
     "updated_at": {
       "$ref": "#/$defs/timestamp"
     }
   },
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -304,7 +304,7 @@
           ]
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "domain": {
           "$ref": "#/$defs/domain_name"

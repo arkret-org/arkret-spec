@@ -95,9 +95,9 @@ Schema id: `ak.schema.policy.v1`
 | `priority` | no | `integer` | 数值大者优先；缺省视为 `0`。同 `priority` 冲突的确定性裁决见下方说明。 | 策略优先级。 |
 | `not_before` | no | `timestamp` |  | 生效时间。 |
 | `expires_at` | no | `timestamp` |  | 过期时间。 |
-| `created_by` | yes | `core_id` | 必须有 policy/admin capability。 | 创建者。 |
+| `created_by` | yes | `did_core_id` | 必须有 policy/admin capability。 | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `core_id` | 必须有 policy/admin capability。 | 最近更新者。 |
+| `updated_by` | no | `did_core_id` | 必须有 policy/admin capability。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
 `PolicyRule` 的完整 closed schema（`rule_id` / `kind` / `effect` 必填，`kind` enum、各 kind 的条件字段、`kind=extension` 的 `schema_ref` / `profile_ref` / `params`）由 [`policy.schema.json`](../../artifacts/schemas/policy.schema.json) 的 `policy_rule` `$def` 权威定义；本节字段表不重复展开 rule 内部结构。
@@ -142,7 +142,7 @@ Schema id: `ak.schema.capability.v1`
 | `issued_at` | yes | `timestamp` | 承载 Grant 的"创建时间"语义，取代通用 `created_at`（见 [`common-fields.md` §3.2](./common-fields.md)）；retention / audit / 排序查询 MUST 用 `issued_at` / `expires_at` / `revoked_at`，不回退到通用 `created_at`。 | 签发时间。 |
 | `not_before` | no | `timestamp` |  | 生效时间。 |
 | `expires_at` | no | `timestamp` |  | 过期时间。 |
-| `updated_by` | no | `core_id` | grant lifecycle update 的 actor；普通 grant body 仍不可变。 | 最近更新者。 |
+| `updated_by` | no | `did_core_id` | grant lifecycle update 的 actor；普通 grant body 仍不可变。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | grant lifecycle update 的时间；普通 grant body 仍不可变。 | 最近更新时间。 |
 | `revoked_by` | no | `did` | 撤销后设置。 | 撤销者。 |
 | `revoked_at` | no | `timestamp` |  | 撤销时间。 |
@@ -177,7 +177,7 @@ Schema id: `ak.schema.invite.v1`
 | `expires_at` | yes | `timestamp` | 默认不超过 7 天；高安全 Realm SHOULD be no greater than 24 小时。 | 过期时间。 |
 | `state` | yes | `enum(pending, accepted, rejected, revoked, expired, claimed, send_failed, revoked_by_capability_loss, revoked_by_inviter_left, invalidated_by_rate_limit)` | Invite 的流程对象状态；命名例外：Invite 的 `state` 承载流程状态轴，与通用对象的物理 lifecycle 轴不同，不表示通用对象物理 lifecycle。 | 邀请状态。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `core_id` | 最近一次 invite state update 的 actor。 | 最近更新者。 |
+| `updated_by` | no | `did_core_id` | 最近一次 invite state update 的 actor。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
 > `inviter` / `invitee` 是既定 governance 角色名词；角色名词总索引见 [`common-fields.md` §4.3](./common-fields.md#43-角色名词登记索引)。member 引用形态另用 `inviter_member_ref` / `invitee_member_ref`（见 [`invite-delivery-request.schema.json`](../../artifacts/schemas/invite-delivery-request.schema.json)）。

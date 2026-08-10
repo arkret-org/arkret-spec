@@ -48,8 +48,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "device_id": {
       "type": "string",
@@ -151,7 +151,7 @@
     "principal_device_key_records": {
       "type": "object",
       "propertyNames": {
-        "$ref": "#/$defs/did"
+        "$ref": "#/$defs/did_core_id"
       },
       "additionalProperties": {
         "$ref": "#/$defs/device_key_records"
@@ -160,7 +160,7 @@
     "did_key": {
       "type": "string",
       "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
-      "description": "Authoritative device signing key as an Ed25519 did:key (multibase base58btc, multicodec ed25519-pub). Mirrors ak.device.authorize.payload.device_public_key (device-lifecycle.md §5.2 / §5.4). To check SignalEnvelope and durable Event proofs, receivers resolve a verification_method DID URL under the verified principal full_id, validate its bare full_id through the registered adapter, require project(full_id) to equal the actor/principal core_id, and require its fragment to equal the full ak:device:<uuidv7> id. Constructing a verification method by appending a fragment to core_id is forbidden."
+      "description": "Authoritative device signing key as an Ed25519 did:key (multibase base58btc, multicodec ed25519-pub). Mirrors ak.device.authorize.payload.device_public_key (device-lifecycle.md §5.2 / §5.4). To check SignalEnvelope and durable Event proofs, receivers resolve a verification_method DID URL under the verified principal full_id, validate its bare full_id through the registered adapter, require project(full_id) to equal the actor/principal did_core_id, and require its fragment to equal the full ak:device:<uuidv7> id. Constructing a verification method by appending a fragment to did_core_id is forbidden."
     },
     "device_status": {
       "type": "string",
@@ -198,7 +198,7 @@
     "principal_device_generation_states": {
       "type": "object",
       "propertyNames": {
-        "$ref": "#/$defs/did"
+        "$ref": "#/$defs/did_core_id"
       },
       "additionalProperties": {
         "$ref": "#/$defs/device_generation_state"
@@ -277,7 +277,7 @@
     "query_principal_device_keys": {
       "type": "object",
       "propertyNames": {
-        "$ref": "#/$defs/did"
+        "$ref": "#/$defs/did_core_id"
       },
       "additionalProperties": {
         "$ref": "#/$defs/query_device_keys"
@@ -295,7 +295,7 @@
     "principal_device_algorithm_map": {
       "type": "object",
       "propertyNames": {
-        "$ref": "#/$defs/did"
+        "$ref": "#/$defs/did_core_id"
       },
       "additionalProperties": {
         "$ref": "#/$defs/device_algorithm_map"
@@ -304,7 +304,7 @@
     "query_device_map": {
       "type": "object",
       "propertyNames": {
-        "$ref": "#/$defs/did"
+        "$ref": "#/$defs/did_core_id"
       },
       "additionalProperties": {
         "type": "array",
@@ -357,7 +357,7 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
@@ -401,7 +401,7 @@
           "$ref": "#/$defs/backup_id"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
@@ -699,7 +699,7 @@
           "const": "ak.self.keys.backups.resource.delete"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "backup_id": {
           "$ref": "#/$defs/backup_id"
@@ -709,7 +709,7 @@
           "description": "The service base origin this challenge is valid against; MUST match the origin the DELETE request is sent to."
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "request_id": {
           "$ref": "#/$defs/request_id",

@@ -50,7 +50,7 @@ Arkret 是去中心化协议，不同用户或组织各自运行受控 Principal
 
 ### 3.1 基于 core/full DID 的服务器身份与路由
 
-每个 Principal Server / Events API 节点 MUST 拥有一对由注册 method adapter 绑定的身份：业务合同和 `Source-Service-ID` / `Destination-Service-ID` 使用稳定 `core_id`；首次注册、control key 与 method history 验证使用完整 bare `full_id`。默认 method 为 `did:webvh`；仅低风险或外部互通服务 MAY 显式降级为 no-history `did:web`，并 MUST 声明无历史信任强度，见 [`../identity/identity-did.md` §3](../identity/identity-did.md)。首次注册 MUST 提交 `full_id`，注册方独立解析并验证其 DID Document，再确认 `project(full_id) == service_id`。
+每个 Principal Server / Events API 节点 MUST 拥有一对由注册 method adapter 绑定的身份：业务合同和 `Source-Service-ID` / `Destination-Service-ID` 使用稳定 `did_core_id`；首次注册、control key 与 method history 验证使用完整 bare `full_id`。默认 method 为 `did:webvh`；仅低风险或外部互通服务 MAY 显式降级为 no-history `did:web`，并 MUST 声明无历史信任强度，见 [`../identity/identity-did.md` §3](../identity/identity-did.md)。首次注册 MUST 提交 `full_id`，注册方独立解析并验证其 DID Document，再确认 `project(full_id) == service_id`。
 
 DID Document 仍负责 control key / delegation 证明，但不再充当从 `service_id` 到 HTTP URL 的通用首跳。高频路由使用由 service control identity 签名、可独立验证的 current `ServiceResolutionRecord`：
 
@@ -84,7 +84,7 @@ DID Document 仍负责 control key / delegation 证明，但不再充当从 `ser
 
 ### 3.2 请求签名
 
-节点间的 HTTP 请求 MUST 使用 [HTTP Message Signatures (RFC 9421)](https://datatracker.ietf.org/doc/html/rfc9421) 进行签名。接收方使用已接受的发送方 current service resolution / key binding 验证请求。路由和 key state MAY 采用有界 TTL cache，但 cache 只是实现优化：record 过期、proof/key 变化、binding rebind、HTTP signature key miss 或高风险 freshness trigger 时必须取得 current record 并重新独立验证；不得从 `core_id` 猜测 URL，也不得逐请求无条件解析 method history。
+节点间的 HTTP 请求 MUST 使用 [HTTP Message Signatures (RFC 9421)](https://datatracker.ietf.org/doc/html/rfc9421) 进行签名。接收方使用已接受的发送方 current service resolution / key binding 验证请求。路由和 key state MAY 采用有界 TTL cache，但 cache 只是实现优化：record 过期、proof/key 变化、binding rebind、HTTP signature key miss 或高风险 freshness trigger 时必须取得 current record 并重新独立验证；不得从 `did_core_id` 猜测 URL，也不得逐请求无条件解析 method history。
 
 > **PQ-hybrid TLS 联邦姿态**：service-to-service 联邦链路承载的 transaction 元数据多数只靠 TLS 保护，是 Harvest-Now-Decrypt-Later 的暴露面。生产 v1 联邦 TLS 1.3 连接 SHOULD 支持并优先协商混合后量子 group `X25519MLKEM768`（`draft-ietf-tls-ecdhe-mlkem-05`）。在 `ak.profile.high_security_organization.v1`、`ak.profile.sovereign_deployment.v1` 及继承它们的 profile 下，该联邦连接 MUST 协商 `X25519MLKEM768`，对端不提供时 MUST fail closed，MUST NOT 静默降级到纯经典 key exchange。default profile 可按 [`transport-bindings.md` §5](./transport-bindings.md) 的 posture 记录规则回落，但不得宣称该连接具备 HNDL-resistant transport。规范义务的 canonical 表述见 [`transport-bindings.md` §5](./transport-bindings.md)；完整威胁论据见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)。
 
@@ -105,9 +105,9 @@ DID Document 仍负责 control key / delegation 证明，但不再充当从 `ser
 
 签名验证规则：
 
-- body 中的 `origin` / `destination` MUST 与签名 transcript 中的来源 / 目标 service `core_id` 一致。
+- body 中的 `origin` / `destination` MUST 与签名 transcript 中的来源 / 目标 service `did_core_id` 一致。
 - `Source-Trust-Domain` / `Destination-Trust-Domain` MUST 进入签名 transcript；若 body 或 `service_binding_ref` 中携带来源 / 目标 trust domain，必须与 header 完全一致。
-- `destination` MUST 是接收方 service `core_id`；反向代理、多租户 host 或 shared ingress 不能只凭 `Host` 判断目的地。
+- `destination` MUST 是接收方 service `did_core_id`；反向代理、多租户 host 或 shared ingress 不能只凭 `Host` 判断目的地。
 - `Destination-Trust-Domain` MUST 等于接收方当前 deployment 的 `ServiceDescribe.trust_domain`，并与被接收 Realm 的 `trust_domain` 一致；不一致 MUST 归入本节统一最小披露失败族，对外使用同一鉴权失败 envelope，内部 audit-only reason 记为 `federation_trust_domain_mismatch`。
 - 接收方 MUST 校验 `Destination-Service-ID` 对应 current `ServiceResolutionRecord.base_url`，并验证 HTTP Message Signature 中的 `@authority` / `@target-uri` host 与该 URL 或 Realm policy 明确授权的 shared ingress 一致；不一致 MUST 归入本节统一最小披露失败族，对外使用同一鉴权失败 envelope，内部 audit-only reason 可记为 `federation_authority_mismatch`。若只绑定 `Destination-Service-ID` 而不校验 `@authority`，同一签名可能被错误投递到另一个虚拟 host。
 - shared ingress / 多租户反向代理场景下，TLS Server Name (SNI) 与 current `ServiceResolutionRecord.base_url` origin MUST 直接匹配，或该 exact origin MUST 出现在 Realm policy / service delegation 明确登记的 shared ingress allowlist 中。Wildcard host 不能隐式覆盖 service identity 列表；若 deployment 用同一 host 承载多个 service，发送方 MUST 携带 `Destination-Service-Endpoint-Digest` header（endpoint canonical URL 的 `sha256:` digest），该 header MUST 进入 HTTP Message Signature transcript，接收方 MUST 与 current record / allowlist 中的 endpoint digest 比对。
@@ -132,7 +132,7 @@ Arkret 不要求全局信任列表。每个节点维护自己的**联邦许可�
 
 服务的联邦准入由三层共同决定，且每层都只能收紧，不能放宽上一层拒绝：
 
-1. **部署本地 peer policy**：operator 配置的 `allow` / `deny` 规则，按 exact service `core_id`、trust domain 或 DNS domain 匹配。该策略是本地部署控制面，不进入 Realm Event history。
+1. **部署本地 peer policy**：operator 配置的 `allow` / `deny` 规则，按 exact service `did_core_id`、trust domain 或 DNS domain 匹配。该策略是本地部署控制面，不进入 Realm Event history。
 2. **Realm 授权状态**：`sync_endpoints`、member delivery binding、service delegation、`ak.realm.moderation_policy` 中的 server target，以及对应 capability / policy cell。
 3. **请求级认证与完整性**：HTTP Message Signature、`Source-Service-ID` / `Destination-Service-ID`、trust domain、endpoint digest、body digest、event signature、capability 与 CBA basis。
 
@@ -140,7 +140,7 @@ Arkret 不要求全局信任列表。每个节点维护自己的**联邦许可�
 
 - `deny` MUST 先于 `allow` 评估；被 deny 命中的 peer 即使同时命中 allow 也必须拒绝。
 - `domain` 规则只匹配规范化 DNS A-label 的完整 label 边界；`*.example.com` 可以匹配 `a.example.com`，不得匹配 `example.com` 或 `badexample.com`。实现 MUST NOT 只做字符串后缀匹配。
-- service `core_id` 规则优先于 domain 规则；当 current `ServiceResolutionRecord.base_url` host 与 `full_id` method domain 不一致时，接收方 MUST 同时校验 record proof、endpoint digest 和 domain/trust-domain policy。
+- service `did_core_id` 规则优先于 domain 规则；当 current `ServiceResolutionRecord.base_url` host 与 `full_id` method domain 不一致时，接收方 MUST 同时校验 record proof、endpoint digest 和 domain/trust-domain policy。
 - 入站被本地 peer policy 拒绝的 service-to-service 请求 MUST 先验证 HTTP Message Signature 能解析到 `Source-Service-ID`、`verification_method` 与 `trust_domain`，再 fail closed；验证失败按认证失败处理，验证成功但命中 peer policy 拒绝时 SHOULD 返回 `policy_denied` 或 `capability_denied`，并避免泄露 Realm 是否存在。
 - 出站被本地 peer policy 拒绝的 peer MUST 从 fanout、frontier probe、backfill、push、to-device、key-package 和 media/snapshot fetch 目标集中移除。该状态是 policy-suppressed，不是临时网络失败；发送方不得无限重试，直到 policy version 改变或 operator 解除规则。
 - 若 operator 执行整机级 defederation，入站和出站规则 MUST 同时生效：既拒收该 peer 的联邦写入 / backfill / probe，也不得向该 peer 投递新事件、推送或补发历史。
@@ -282,8 +282,8 @@ Signature: sig1=:base64...:
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `Source-Service-ID` | header | `core_id` | required | 来源 service 稳定身份；与签名 transcript 绑定。 |
-| `Destination-Service-ID` | header | `core_id` | required | 目标 service 稳定身份；MUST 与 current `ServiceResolutionRecord.base_url`、目标 URL 和 Realm policy 委托一致。 |
+| `Source-Service-ID` | header | `did_core_id` | required | 来源 service 稳定身份；与签名 transcript 绑定。 |
+| `Destination-Service-ID` | header | `did_core_id` | required | 目标 service 稳定身份；MUST 与 current `ServiceResolutionRecord.base_url`、目标 URL 和 Realm policy 委托一致。 |
 | `Destination-Service-Endpoint-Digest` | header | `sha256:<hash>` | conditional | shared ingress / 多租户 / allowlist endpoint 场景 required；endpoint canonical URL 的 digest，MUST 进入签名 transcript，并与独立验证后的 current `ServiceResolutionRecord.base_url` 或 Realm policy allowlist 匹配。 |
 | `Source-Trust-Domain` | header | `id:trust_domain` | required | 来源 deployment trust domain；与签名 transcript 绑定，用于 receiver trust policy、审计与跨域 replay 隔离。 |
 | `Destination-Trust-Domain` | header | `id:trust_domain` | required | 目标 deployment trust domain；MUST 等于接收方 `ServiceDescribe.trust_domain` 与目标 Realm `trust_domain`。 |
@@ -342,7 +342,7 @@ Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 p
         "refs": [],
         "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_context": {
-          "did": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
+          "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
           "key_id": "device-1",
           "key_epoch": 1
         },
@@ -530,7 +530,7 @@ v1 联邦投递有**两条互不重叠的路径**，sender MUST 明确区分：
 | 路径 | 投递对象 | 解析来源 | 谁是 destination |
 | --- | --- | --- | --- |
 | **Member-level delivery** | 面向某个 Realm 成员的 events / account aggregate / to_device / push / key_packages | 该成员的 effective `ak.member.state{membership="join"}.delivery_binding` 中的 `recipient_service_id + service_resolution` | 该 binding 指定的 Principal Server |
-| **Realm-level fanout** | Realm 共享的 shared notary / Sync Service / 受托 search-projection 等服务面 | Realm metadata 的 `sync_endpoints`（受 [`governance/member-delivery-binding.md` §7](../governance/member-delivery-binding.md) 与 [`models/realm-and-space.md`](../models/realm-and-space.md) 约束） | sync_endpoints 中列出的 service `core_id` 及其 resolution carrier |
+| **Realm-level fanout** | Realm 共享的 shared notary / Sync Service / 受托 search-projection 等服务面 | Realm metadata 的 `sync_endpoints`（受 [`governance/member-delivery-binding.md` §7](../governance/member-delivery-binding.md) 与 [`models/realm-and-space.md`](../models/realm-and-space.md) 约束） | sync_endpoints 中列出的 service `did_core_id` 及其 resolution carrier |
 
 两条路径**不得互相代替**：member-level 投递不走 sync_endpoints，Realm-level fanout 不走 member binding。
 
@@ -572,12 +572,12 @@ Rebind handover：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `new_recipient_service_id` | `core_id` | required | rebind 后目标 Principal Server service 的稳定业务身份；MUST ∈ 当前 effective `allowed_recipient_services` / delivery binding policy 允许集合。 |
+| `new_recipient_service_id` | `did_core_id` | required | rebind 后目标 Principal Server service 的稳定业务身份；MUST ∈ 当前 effective `allowed_recipient_services` / delivery binding policy 允许集合。 |
 | `handover_frontier` | `id[]` | required | 触发该 rebind 的 handover frontier `F`；MUST 与 `handover_proof.frontier` 相等。 |
 | `handover_proof` | `object` | required | 绑定产生新 binding 的 sealed `ak.member.state{membership="join"}` Control Move 的可验证证明（见下）。 |
 | `handover_proof.frontier` | `id[]` | required | MUST `== handover_frontier`。 |
-| `handover_proof.recipient_service_id` | `core_id` | required | MUST `== new_recipient_service_id`。 |
-| `handover_proof.actor_id` | `core_id` | required | rebind 目标主体；MUST `== target_principal_id`。 |
+| `handover_proof.recipient_service_id` | `did_core_id` | required | MUST `== new_recipient_service_id`。 |
+| `handover_proof.actor_id` | `did_core_id` | required | rebind 目标主体；MUST `== target_principal_id`。 |
 | `handover_proof.witness` | `object` | required | 该 rebind Control Move 的 event digest / state witness / inclusion proof；sender MUST 验证其在 Realm Event graph 与 policy 下可达，且对应 Control Move 已被 accepted Seal 覆盖。 |
 
 > `delivery_binding_stale` 响应体与内嵌 `handover_proof` 结构已登记为 canonical artifact [`delivery-binding-stale.schema.json`](../../artifacts/schemas/delivery-binding-stale.schema.json)（schema id `ak.schema.delivery_binding_stale.v1`），互操作实现可机器校验该响应体；相关 reason code（`delivery_binding_stale` / `delivery_binding_handover_proof_invalid` / `delivery_binding_handover_rate_limited` / `delivery_binding_handed_over`）登记于 `error-code-registry.json`。
@@ -749,7 +749,7 @@ Probe 响应 payload：
 
 - `heads[]` 是当前 accepted frontier 的稳定 event hash；接收方比较两端 heads 集合发现差异。
 - `max_hlc` 是 issuer 在 frontier 处观察到的最大 HLC；用于检测时钟严重偏移。
-- `frontier_root` 是 canonical Merkle root over `(heads[] ∪ sorted(actor_seq_upper_bounds))`，使用 [`event-auth-state-resolution.md` §6.2.2](../authz/event-auth-state-resolution.md) 的 Seal Merkle 族（`leaf = H(0x00 || leaf_data)`，`node = H(0x01 || left || right)`，空集合 root 同 §6.2.2），不得使用 snapshot Merkle 族。leaf 集合由两类 typed leaf 组成并按 `leaf_sort_key` 的 canonical UTF-8 byte order 升序排列：`heads` leaf 的 `leaf_data = canonical_json({"type":"head","event_digest":<digest>})`，`leaf_sort_key = "head:" + <digest>`；`actor_seq_upper_bounds` leaf 的 `leaf_data = canonical_json({"type":"actor_seq_upper_bound","actor_id":<core_id>,"actor_seq_upper_bound":<integer>})`，`leaf_sort_key = "actor:" + <actor_id>`。签名仅覆盖该 root 与 `(realm_id, issuer, observed_at)`，便于轻量比对而无需重传全部字段。
+- `frontier_root` 是 canonical Merkle root over `(heads[] ∪ sorted(actor_seq_upper_bounds))`，使用 [`event-auth-state-resolution.md` §6.2.2](../authz/event-auth-state-resolution.md) 的 Seal Merkle 族（`leaf = H(0x00 || leaf_data)`，`node = H(0x01 || left || right)`，空集合 root 同 §6.2.2），不得使用 snapshot Merkle 族。leaf 集合由两类 typed leaf 组成并按 `leaf_sort_key` 的 canonical UTF-8 byte order 升序排列：`heads` leaf 的 `leaf_data = canonical_json({"type":"head","event_digest":<digest>})`，`leaf_sort_key = "head:" + <digest>`；`actor_seq_upper_bounds` leaf 的 `leaf_data = canonical_json({"type":"actor_seq_upper_bound","actor_id":<did_core_id>,"actor_seq_upper_bound":<integer>})`，`leaf_sort_key = "actor:" + <actor_id>`。签名仅覆盖该 root 与 `(realm_id, issuer, observed_at)`，便于轻量比对而无需重传全部字段。
 - `actor_seq_upper_bounds` 是 issuer 视角每个 federation-visible actor 的 `actor_seq` 上界，用于检测 *per-actor* 缺口（silent fork 常表现为某 actor 的某段 seq 在对端不可见而全局 frontier 仍单调推进）。Issuer MUST 按 probing peer 的投递 / 服务范围裁剪该 map：只返回该 peer 依据 Realm policy、member delivery binding 或 federation role 有 need-to-know 的 actor 子集；不得把与该 peer 无投递或审计职责的其它组织 / 其它服务范围 actor DID 和 seq 上界暴露给该 peer。高隐私 Realm MAY 先只返回聚合 `frontier_root`，在发现差异后再用 per-actor challenge / backfill 展开最小必要子集。
 - **聚合承诺的跨 peer 可比性边界（normative）**：`frontier_root` 的 leaf 集合含**按 probing peer 裁剪**的 `actor_seq_upper_bounds`，同一 Realm 的两个诚实 issuer 若对同一 receiver 的 need-to-know 裁剪不同（member delivery binding 认知不同 → actor 子集不同），会对同一 range 产出**不同的** `frontier_root`。更根本地，v1 **允许合法 partial replication**（见本节下方"`actor_seq_upper_bounds` 差异本身不是冲突证据（合法 partial replication 也会出现差异）"条），因此 `frontier_root`、`heads[]`、`range-completeness root` 等**任何聚合承诺**在两个 peer 的复制 / 披露 / attestation scope 不同时都会**诚实地**不同——`heads[]` 随各 peer 实际复制的事件子集变化，`range-completeness root` 绑定 attestation 的 `event_range` / `actor_seq_ranges`（见 [`range-completeness-attestation.schema.json`](../../artifacts/schemas/range-completeness-attestation.schema.json)），二者都**不是** scope 不变量。普通 peer probe 的聚合承诺只是**乐观快路径比较器**：scope 完全相同时取值相等即可快速确认一致；取值不同时 **MUST NOT** 直接判 fork，而 MUST 先对双方已复制 / 披露 actor 的交集做 per-actor challenge / backfill。
 
@@ -809,7 +809,7 @@ Probe 响应 payload：
 
 当 Realm S 的管理员邀请外部用户 Bob（Principal Server 在 `server-beta.com`）时：
 
-1. 管理员提交 `ak.invite.create` Event，`subject_id` 指向 Bob 的 principal `core_id`；邀请的私有 metadata MAY 携带裁剪后的 `join_candidates[]`，但不得把该列表当作授权本身。
+1. 管理员提交 `ak.invite.create` Event，`subject_id` 指向 Bob 的 principal `did_core_id`；邀请的私有 metadata MAY 携带裁剪后的 `join_candidates[]`，但不得把该列表当作授权本身。
 2. 该 Event 通过联邦推送到达 Bob 的 Principal Server；Bob 的客户端也 MAY 用 invite token / signed link 调用 `ak.find.directory.read.resolve_realm` 刷新 candidate 列表。
 3. Bob 的客户端发现 Invite，决定接受，并选择一个未过期 join candidate。
 4. Bob 的客户端提交 `ak.invite.accept` Event 到所选 candidate 的 Events API；该 candidate 可以是邀请者 Principal Server、Realm shared notary / Sync Service、或其他被 Realm policy 授权的参与方服务。
@@ -877,7 +877,7 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ak.realm.join
 
 ### 6.2 Actor Event Source 与 member route 发现
 
-Profile 的 current principal resolution projection 只公开 `core_id -> full_id/method head`，它不是 server URL。非 Realm actor event source 若存在，MUST 由其公开 Profile 或选择性 resolution evidence 携带的、独立授权的 service binding 给出；Realm-scoped 投递则只认 member delivery binding。两者用途严格分开：
+Profile 的 current principal resolution projection 只公开 `did_core_id -> full_id/method head`，它不是 server URL。非 Realm actor event source 若存在，MUST 由其公开 Profile 或选择性 resolution evidence 携带的、独立授权的 service binding 给出；Realm-scoped 投递则只认 member delivery binding。两者用途严格分开：
 
 | 用途 | 解析路径 |
 | --- | --- |
@@ -886,7 +886,7 @@ Profile 的 current principal resolution projection 只公开 `core_id -> full_i
 | join 时物化进 `delivery_binding` 的来源 | `join candidate / invite evidence -> signed service resolution carrier`；join 之后仍走 member binding |
 | 已加入 Realm 的成员的 events / account aggregate / to_device / push / key_packages 投递 | **MUST** 走 [`governance/member-delivery-binding.md` §5](../governance/member-delivery-binding.md) 的 member binding 路径；**MUST NOT** 从 actor `full_id` 猜测或回退 URL |
 
-任何把 DID Document service entry 或 `full_id` method domain 当作 "Realm 投递 fallback" 的实现都违反 §4.1。一旦 binding 被 join Control Move sealed 并写入 control cell，后续投递只使用该 binding 中的 service `core_id` 与 resolution carrier；同-core record refresh 不需要 rebind，core 变更则必须显式 rebind。
+任何把 DID Document service entry 或 `full_id` method domain 当作 "Realm 投递 fallback" 的实现都违反 §4.1。一旦 binding 被 join Control Move sealed 并写入 control cell，后续投递只使用该 binding 中的 service `did_core_id` 与 resolution carrier；同-core record refresh 不需要 rebind，core 变更则必须显式 rebind。
 
 ### 6.3 域名级 bootstrap 与 current record 缓存
 
@@ -919,7 +919,7 @@ ak.peer.service_resolution.command.publish
 ak.peer.service_resolution.read.resolve
 ```
 
-两项 operation 都使用 §3.2 的完整 RFC 9421 service signature、双 service `core_id`、双 trust domain、endpoint digest 与 canonical `Content-Digest`。授权必须同时满足：requester 通过本地 federation peer policy；requester 对 `realm_id` 是当前 accepted federation peer；target service `core_id` 已出现在 requester 对该 Realm 可见的 effective member delivery binding、`sync_endpoints` 或明确 service delegation。仅知道 `realm_id`、target core、URL、DID Document 或 target 与某 Realm 的历史关系均不足以查询或发布。
+两项 operation 都使用 §3.2 的完整 RFC 9421 service signature、双 service `did_core_id`、双 trust domain、endpoint digest 与 canonical `Content-Digest`。授权必须同时满足：requester 通过本地 federation peer policy；requester 对 `realm_id` 是当前 accepted federation peer；target service `did_core_id` 已出现在 requester 对该 Realm 可见的 effective member delivery binding、`sync_endpoints` 或明确 service delegation。仅知道 `realm_id`、target core、URL、DID Document 或 target 与某 Realm 的历史关系均不足以查询或发布。
 
 `ak.peer.service_resolution.command.publish` 的 request 必须携 `request_id` 与 exact-one 未改写的 target-signed `ServiceResolutionRecord` 或 `ServiceRouteHandoverNotice` 及其 canonical artifact digest；HTTP `Idempotency-Key` MUST 与 body `request_id` 逐字节相等并进入 §3.2 签名 transcript。source 可以是 target owner service，或是在同一 Realm 授权路径中实际见过并验证该 artifact 的 peer；转发者不得删除、补写、重签 target material，也不得用自己的签名把裸 URL 升级成 route。
 
@@ -1028,7 +1028,7 @@ Signature: sig1=:<base64>:
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `actor_id` | body | `core_id` | required | 待验证 Actor 的稳定身份。 |
+| `actor_id` | body | `did_core_id` | required | 待验证 Actor 的稳定身份。 |
 | `purpose` | body | `enum(event_source,federation_join,device_binding)` | required | 验证目的；服务端 MUST 将目的纳入授权与限流策略。 |
 | `realm_id` | body | `id` | optional；Realm 相关目的为 required | 相关 Realm ID；用于绑定 Realm policy、membership 和 plaintext visibility。 |
 | `challenge` | body | `base64url string` | optional；challenge 验证为 required | 请求方生成的短期随机挑战；服务端 MUST 拒绝过期或重复 challenge。 |
@@ -1038,7 +1038,7 @@ Signature: sig1=:<base64>:
 | `signature.alg` | body | `string` | optional | 签名算法；出现时 MUST 与 DID Document/key log 中的 key 类型一致。 |
 | `signature.sig` | body | `base64url string` | required | 对 canonical verification payload 的 detached signature。 |
 
-`signature.sig` 覆盖的 canonical verification payload MUST 至少绑定 `actor_id`、`purpose`、`realm_id`（若存在）、`challenge`（若存在）、`signed_payload_digest`（若存在）、请求方与目标 service `core_id` 和请求时间窗口，防止跨目的、跨 Realm 或跨服务重放。
+`signature.sig` 覆盖的 canonical verification payload MUST 至少绑定 `actor_id`、`purpose`、`realm_id`（若存在）、`challenge`（若存在）、`signed_payload_digest`（若存在）、请求方与目标 service `did_core_id` 和请求时间窗口，防止跨目的、跨 Realm 或跨服务重放。
 
 请求示例（非完整 schema）：
 
@@ -1062,7 +1062,7 @@ Signature: sig1=:<base64>:
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `valid` | `boolean` | required | 是否完成签名、DID/key-log 和目的约束校验；不得表示最终授权。 |
-| `actor_id` | `core_id` | required | 回显被验证 Actor 稳定身份，MUST 与请求一致。 |
+| `actor_id` | `did_core_id` | required | 回显被验证 Actor 稳定身份，MUST 与请求一致。 |
 | `verified_key_id` | `did-url` | `valid=true` 时 required | 实际通过校验的 key id。 |
 | `key_log_head` | `id` | optional | 服务端用于校验的 key-log head；接收方可据此刷新本地缓存。 |
 | `did_document_ref` | `sha256:<hash>` | optional | DID Document canonical hash 或等价引用。 |

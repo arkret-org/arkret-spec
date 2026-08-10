@@ -124,7 +124,7 @@
             ],
             "properties": {
               "actor_id": {
-                "$ref": "./common-ids.schema.json#/$defs/core_id"
+                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
               },
               "from_seq": {
                 "type": "integer",
@@ -212,8 +212,8 @@
       "minItems": 1
     },
       "created_by": {
-        "$ref": "./common-ids.schema.json#/$defs/core_id",
-        "description": "Stable core_id of the snapshot issuer (server / Realm notary / federation witness). The signature transcript binds this business identity; its full DID URL verification_method is independently validated and projected to this value by the registered method adapter."
+        "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+        "description": "Stable did_core_id of the snapshot issuer (server / Realm notary / federation witness). The signature transcript binds this business identity; its full DID URL verification_method is independently validated and projected to this value by the registered method adapter."
       },
     "created_at": {
       "$ref": "./time.schema.json#/$defs/timestamp",
@@ -231,8 +231,8 @@
       ],
       "properties": {
           "issuer": {
-            "$ref": "./common-ids.schema.json#/$defs/core_id",
-            "description": "MUST equal top-level created_by as the same stable core_id. The proof verification_method remains a full DID URL whose bare full_id is validated and projected to this value by the registered method adapter."
+            "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+            "description": "MUST equal top-level created_by as the same stable did_core_id. The proof verification_method remains a full DID URL whose bare full_id is validated and projected to this value by the registered method adapter."
           },
         "authority_kind": {
           "type": "string",

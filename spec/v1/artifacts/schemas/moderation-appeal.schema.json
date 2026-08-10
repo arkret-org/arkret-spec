@@ -29,7 +29,7 @@
       "description": "Reference to the ak.moderation.decision event being appealed."
     },
       "actor_ref": {
-        "$ref": "./common-ids.schema.json#/$defs/core_id"
+        "$ref": "./common-ids.schema.json#/$defs/did_core_id"
       },
     "target_ref": {
       "$ref": "./event-payload.schema.json#/$defs/object_ref",

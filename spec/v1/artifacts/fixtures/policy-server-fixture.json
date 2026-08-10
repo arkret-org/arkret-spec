@@ -85,14 +85,14 @@
       "realm_id": "ak:realm:AVSHhSS_nHM-k8vB4erfnnvnUFbfkHBYoo9gahFWqZQE",
       "governed_by_realm_id": "ak:realm:AQGYtXwDUDY6pCrdmDbp9HPHZk9qb41QQThmW5tNcovT",
       "direct_value": {
-        "policy_server_did": "did:webvh:z6mkfixturerealmpolicyexample:realm-policy.example",
+        "policy_server_service_id": "did:webvh:z6mkfixturerealmpolicyexample:realm-policy.example",
         "policy_server_url": "https://realm-policy.example/_arkret/self/policy/check",
         "cache_ttl_seconds": 300,
         "timeout_ms": 2000,
         "on_timeout": "fail_closed"
       },
       "inherited_value": {
-        "policy_server_did": "did:webvh:z6mkfixtureorgpolicyexample:org-policy.example",
+        "policy_server_service_id": "did:webvh:z6mkfixtureorgpolicyexample:org-policy.example",
         "policy_server_url": "https://org-policy.example/_arkret/self/policy/check",
         "cache_ttl_seconds": 300,
         "timeout_ms": 2000,
@@ -115,7 +115,7 @@
               "tombstone": true
             },
             "from": {
-              "policy_server_did": "did:webvh:z6mkfixturerealmpolicyexample:realm-policy.example",
+              "policy_server_service_id": "did:webvh:z6mkfixturerealmpolicyexample:realm-policy.example",
               "policy_server_url": "https://realm-policy.example/_arkret/self/policy/check",
               "cache_ttl_seconds": 300,
               "timeout_ms": 2000,
@@ -133,7 +133,7 @@
         {},
         {
           "tombstone": true,
-          "policy_server_did": "did:webvh:z6mkfixturerealmpolicyexample:realm-policy.example"
+          "policy_server_service_id": "did:webvh:z6mkfixturerealmpolicyexample:realm-policy.example"
         }
       ],
       "expected": {
@@ -141,7 +141,7 @@
         "direct_cell_value": {
           "tombstone": true
         },
-        "effective_policy_server_did": "did:webvh:z6mkfixtureorgpolicyexample:org-policy.example",
+        "effective_policy_server_service_id": "did:webvh:z6mkfixtureorgpolicyexample:org-policy.example",
         "from_org_fallback": true,
         "repeat_delete": "idempotent_empty_success",
         "repeat_changes_state_root": false,
@@ -154,7 +154,7 @@
       "name": "concurrent_replace_delete_conflict",
       "vector_id": "ak.vector.policy_server.replace_delete_conflict.v1",
       "frozen_value": {
-        "policy_server_did": "did:webvh:z6mkfixtureoldpolicyexample:old-policy.example",
+        "policy_server_service_id": "did:webvh:z6mkfixtureoldpolicyexample:old-policy.example",
         "policy_server_url": "https://old-policy.example/_arkret/self/policy/check"
       },
       "siblings": [
@@ -165,13 +165,13 @@
             "predicate": {
               "op": "head_eq",
               "value": {
-                "policy_server_did": "did:webvh:z6mkfixtureoldpolicyexample:old-policy.example",
+                "policy_server_service_id": "did:webvh:z6mkfixtureoldpolicyexample:old-policy.example",
                 "policy_server_url": "https://old-policy.example/_arkret/self/policy/check"
               }
             }
           },
           "set_value": {
-            "policy_server_did": "did:webvh:z6mkfixturenewpolicyexample:new-policy.example",
+            "policy_server_service_id": "did:webvh:z6mkfixturenewpolicyexample:new-policy.example",
             "policy_server_url": "https://new-policy.example/_arkret/self/policy/check"
           }
         },
@@ -182,7 +182,7 @@
             "predicate": {
               "op": "head_eq",
               "value": {
-                "policy_server_did": "did:webvh:z6mkfixtureoldpolicyexample:old-policy.example",
+                "policy_server_service_id": "did:webvh:z6mkfixtureoldpolicyexample:old-policy.example",
                 "policy_server_url": "https://old-policy.example/_arkret/self/policy/check"
               }
             }

@@ -42,9 +42,9 @@ Schema id: `ak.schema.relation.v1`
 | `fields` | no | `object` | 可放 role、edge metadata；MUST NOT 包含 `rank`（已提升到顶层）。 | 关系属性。 |
 | `state` | no | `enum(active, tombstoned)` | `tombstoned` 同时覆盖删除与 redaction；若操作提供原因，原因保存在对应 `ak.relation.tombstone` / `ak.redaction` event 上，物化对象只保留当前状态。 | 关系状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
-| `created_by` | yes | `core_id` |  | 创建者。 |
+| `created_by` | yes | `did_core_id` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `core_id` |  | 最近更新者。 |
+| `updated_by` | no | `did_core_id` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
 **生命周期（normative）**：Relation 的 `state` 只取 `active` / `tombstoned` 两值，**没有 `archived` 态**——这是有意取舍，区别于含 `archived` 的 Circle / Morph 等对象（[`common-fields.md` §5.2](./common-fields.md) 模板）：Relation 是一等边，要么有效（`active`）要么作废（`tombstoned`，不可逆，由 `ak.relation.tombstone` / `ak.redaction` 写入），不存在"暂时收起、可恢复"的中间态。需要"软隐藏"某条关系时，由查询 / projection 层过滤，不引入额外 canonical 生命周期态。生命周期仅 `active → tombstoned` 单向迁移。

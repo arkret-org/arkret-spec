@@ -12,8 +12,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "applet_id": {
       "type": "string",
@@ -62,10 +62,10 @@
           "$ref": "#/$defs/applet_id"
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "ghost_actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "protocol": {
           "type": "string",
@@ -108,7 +108,7 @@
       ],
       "properties": {
         "ghost_actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "profile_event_ref": {
           "$ref": "#/$defs/event_ref"

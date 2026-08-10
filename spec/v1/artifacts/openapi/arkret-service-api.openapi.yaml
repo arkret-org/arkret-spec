@@ -319,11 +319,6 @@ components:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_view
     ActorAggregateFrontierView:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ActorAggregateFrontierView
-    ActorDid:
-      type: string
-      pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
-      maxLength: 512
-      description: Stable Arkret actor/principal core_id. Full DID URLs belong in verification_method and MUST project through the registered adapter to actor_id/principal_id.
     ActorProfile:
       $ref: ../schemas/actor-profile.schema.json
     AgentDeactivateRequestBody:
@@ -2386,7 +2381,7 @@ components:
         service_id:
           type: string
           pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
-          description: Stable service core_id. It is not itself a routable URL.
+          description: Stable service did_core_id. It is not itself a routable URL.
         service_resolution:
           $ref: ../schemas/identity-resolution.schema.json#/$defs/resolution_commitment
           description: >-
@@ -2755,7 +2750,7 @@ components:
             passing verification artifact (see
             `zh/conformance/conformance-suite.md` §6.2). Each entry MUST carry
             `verification_run_id`, `artifact_digest`, `artifact_ref`,
-            `verifier_did`, `signature` and `timestamp`.
+            `verifier_service_id`, `signature` and `timestamp`.
             When `development_mode=true` this array MUST be
             empty (see `zh/sync/service-surface.md` §3.0 and
             `ak.schema.service_describe.v1`).
@@ -2767,7 +2762,7 @@ components:
             - verification_run_id
             - artifact_digest
             - artifact_ref
-            - verifier_did
+            - verifier_service_id
             - signature
             - timestamp
             properties:
@@ -2786,11 +2781,11 @@ components:
                 type: string
                 minLength: 1
                 description: URI or transparency-log reference from which the verification artifact can be fetched.
-              verifier_did:
+              verifier_service_id:
                 type: string
                 pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
                 maxLength: 512
-                description: Stable core_id of the Conformance Verifier that signed the artifact statement. Its full DID URL signing key is verified separately and MUST project through the registered adapter to this value.
+                description: Stable did_core_id of the Conformance Verifier that signed the artifact statement. Its full DID URL signing key is verified separately and MUST project through the registered adapter to this value.
               signature:
                 type: string
                 minLength: 1
@@ -2844,11 +2839,6 @@ components:
           description: |
             Mirror of the service's development_mode flag. When true,
             `verified_profiles` MUST be empty.
-    ServiceId:
-      type: string
-      pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
-      maxLength: 512
-      description: Stable service core_id. Routing requires separately verified current service resolution material.
     ServiceRegistrationEnsureRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationEnsureRequestBody
     ServiceRegistrationOutcome:
@@ -4050,7 +4040,7 @@ paths:
         schema:
           type: array
           items:
-            $ref: '#/components/schemas/ActorDid'
+            $ref: '../schemas/common-ids.schema.json#/$defs/did_core_id'
           minItems: 1
         style: form
         explode: true
@@ -6917,7 +6907,7 @@ paths:
       summary: Read the current signed ServiceResolutionRecord.
       description: |
         Stable refresh surface named by ServiceResolutionRecord.current_record_url.
-        The server returns the current record for the exact stable service core_id.
+        The server returns the current record for the exact stable service did_core_id.
         TLS transports bytes but does not establish service identity; callers verify
         the record proof, method history, core projection, time ordering, successor
         sequence and describe binding. Cross-origin redirects are not followed unless
@@ -7758,7 +7748,7 @@ paths:
             request_body_field: false
             directions:
               node_to_applet: Source-Service-ID current service DID verification method; Destination-Service-ID MUST equal the Applet registration service_id.
-              applet_to_arkret_inbound: Applet registration webhook_auth.key_ref; its canonical bare full_id MUST be validated by the registered method adapter and project to both Source-Service-ID and the active effective install service_id. Direct full-DID/core-id comparison and core_id fragment concatenation are forbidden.
+              applet_to_arkret_inbound: Applet registration webhook_auth.key_ref; its canonical bare full_id MUST be validated by the registered method adapter and project to both Source-Service-ID and the active effective install service_id. Direct full-DID/core-id comparison and did_core_id fragment concatenation are forbidden.
           covered_components:
           - '@method'
           - '@target-uri'
@@ -8703,7 +8693,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsentCellList'
-  /_arkret/self/consent/cells/{holder_did}:
+  /_arkret/self/consent/cells/{holder_principal_id}:
     get:
       operationId: ak.self.consent.resource.get
       security:
@@ -8711,7 +8701,7 @@ paths:
       summary: Read one holder-private consent cell.
       parameters:
       - in: path
-        name: holder_did
+        name: holder_principal_id
         required: true
         schema:
           type: string
@@ -8739,7 +8729,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsentCellView'
-  /_arkret/self/consent/cells/{holder_did}/grant:
+  /_arkret/self/consent/cells/{holder_principal_id}/grant:
     post:
       operationId: ak.self.consent.command.grant
       security:
@@ -8747,7 +8737,7 @@ paths:
       summary: Grant scoped consent to a peer DID.
       parameters:
       - in: path
-        name: holder_did
+        name: holder_principal_id
         required: true
         schema:
           type: string
@@ -8764,7 +8754,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsentCellView'
-  /_arkret/self/consent/cells/{holder_did}/revoke:
+  /_arkret/self/consent/cells/{holder_principal_id}/revoke:
     post:
       operationId: ak.self.consent.command.revoke
       security:
@@ -8772,7 +8762,7 @@ paths:
       summary: Revoke scoped consent from a peer DID.
       parameters:
       - in: path
-        name: holder_did
+        name: holder_principal_id
         required: true
         schema:
           type: string
@@ -9574,7 +9564,7 @@ paths:
         missing current binding, wrong source service and unauthorized callers
         are indistinguishable. No account_id or raw account cell is returned.
         The HTTP signature covers method, target URI/path, Content-Digest,
-        Source/Destination-Service-ID, operation id and request id. CoreId,
+        Source/Destination-Service-ID, operation id and request id. DidCoreId,
         URL, bearer and caller-supplied keys are not verification-key sources.
       responses:
         '200':

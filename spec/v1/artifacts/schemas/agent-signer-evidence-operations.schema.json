@@ -18,16 +18,16 @@
           "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Controller principal whose Account Authority lifecycle gate is being attested."
         },
         "agent_authority_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Native Agent PCR authority service assembling signer evidence. It MUST equal both the authenticated S2S caller and service_id in the controller principal's current AcceptedAtServiceBinding."
         },
         "agent_authority_service_resolution": {
           "$ref": "#/$defs/authenticated_service_resolution",
-          "description": "Current signed route and method-native control evidence for the Agent PCR authority. The Account Authority verifies this carrier before using its RFC 9421 keyid; a core_id, URL, bearer token or self-asserted public key is never a key source."
+          "description": "Current signed route and method-native control evidence for the Agent PCR authority. The Account Authority verifies this carrier before using its RFC 9421 keyid; a did_core_id, URL, bearer token or self-asserted public key is never a key source."
         }
       },
       "additionalProperties": false,
@@ -115,7 +115,7 @@
       "properties": {
         "verification_mode": { "const": "current_admission" },
         "agent_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "verification_method": {
           "type": "string",
@@ -124,8 +124,8 @@
         },
         "operation_id": { "$ref": "./principal-operations.schema.json#/$defs/operation_id" },
         "request_digest": { "$ref": "./agent-signer-evidence.schema.json#/$defs/sha256" },
-        "verifier_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
-        "audience": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "verifier_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
+        "audience": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
         "challenge": { "type": "string", "minLength": 16, "maxLength": 512 }
       },
       "additionalProperties": false
@@ -135,11 +135,11 @@
       "required": ["verification_mode", "agent_id", "verification_method", "event_id", "event_digest", "receiver_service_id"],
       "properties": {
         "verification_mode": { "const": "historical_event" },
-        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" },
+        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
         "verification_method": { "type": "string", "format": "uri", "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$" },
         "event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
         "event_digest": { "$ref": "./agent-signer-evidence.schema.json#/$defs/hash" },
-        "receiver_service_id": { "$ref": "./common-ids.schema.json#/$defs/core_id" }
+        "receiver_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" }
       },
       "additionalProperties": false
     },

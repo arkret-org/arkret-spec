@@ -70,9 +70,9 @@ Schema id: `ak.schema.strand.v1`
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | `ak.strand.create` 时 MAY 省略；若携带，必须是 [common-fields.md §5.3](./common-fields.md) 的 8 值之一。普通业务 Strand SHOULD 填写；DM 主 Strand MAY 省略或选填合法值。变更只能通过 `ak.strand.stage.set`（详见 §3.2）；`ak.strand.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`metadata.fields.stage` / `metadata.fields.status` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时在 discussion track 发 Message 并 `references` 本次 `ak.strand.stage.set` event。 | 可选业务进度阶段（与 `state` 正交）。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：仅当 `stage` 存在且实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；MUST NOT 在缺少 `stage` 时单独出现；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
-| `created_by` | yes | `core_id` |  | 创建者。 |
+| `created_by` | yes | `did_core_id` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `core_id` |  | 最近更新者。 |
+| `updated_by` | no | `did_core_id` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
 ### 3.1 最小示例
@@ -602,9 +602,9 @@ Schema id: `ak.schema.message.v1`
 | `edited_at` | no | `timestamp` | 取 §9.5.1 选出的「最新可见 revision」对应 revise event 的 `created_at`；首次 create 后未编辑时缺省。MUST be no earlier than `created_at`。**仅为展示派生时间戳，MUST NOT 参与「最新可见 revision」的 winner 选择**（并发 revision 的 winner 由 §9.5.1 的 `event_digest` 全序确定，不由 `edited_at`/`created_at` 选边）。 | 最近一次编辑时间。 |
 | `redaction_ref` | conditional | `id:event` | `state=redacted` 时必填，指向触发 redaction 的 `ak.message.redact` event；其他 state MUST 缺省。 | redaction event 引用。 |
 | `attachments` | no | `array` | 最多 32 项；item 形态按 profile 声明，通常通过 Relation `attached_to` 表达。 | 附件 hint。 |
-| `created_by` | yes | `core_id` |  | 发送者。 |
+| `created_by` | yes | `did_core_id` |  | 发送者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `core_id` | 由最近一次 revise / redact 等 materialized update 的 Event actor 派生。 | 最近更新者。 |
+| `updated_by` | no | `did_core_id` | 由最近一次 revise / redact 等 materialized update 的 Event actor 派生。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 | `effective_scope` | materialized | `EffectiveScope` | 只读投影，MUST 等于签名 `Event.scope_ref`；actor 的 content payload 不重复携带，accepted 后 immutable。 | Message 的实际可见与授权边界。 |
 
@@ -745,7 +745,7 @@ Native personal agent selector 解析后的 mention 节点示例：
 
 字段语义：
 
-- `subject_id`（必填）：被 mention 主体的 principal `core_id`。授权、通知路由、audit attribution、阅读侧渲染查找一律以此为准。
+- `subject_id`（必填）：被 mention 主体的 principal `did_core_id`。授权、通知路由、audit attribution、阅读侧渲染查找一律以此为准。
 - `display_name_at_time`（可选）：发送时刻 subject 的 display name 快照；persistent snapshot 语义，写入后不再随 subject 改名而变化（反冒充护栏）。
 - `handle_at_time`（可选）：发送时刻的 canonical handle string；**仅** audit / debug / 全文搜索用途，**MUST NOT** 作为阅读侧主显示路径的当前 handle 来源。
 - `controller_subject_id`（可选）：当 mention 由 `@<controller-handle>/<agent_slug>` 解析而来时，记录 controller principal DID；仅 audit / debug / fallback metadata，MUST NOT 替代 `subject_id`。

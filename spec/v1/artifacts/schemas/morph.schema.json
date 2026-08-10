@@ -134,13 +134,13 @@
       "description": "Reducer-derived timestamp of the most recent stage transition. MUST be ignored when present on wire; reducer overwrites with the triggering ak.morph.stage.set event's created_at. Same-value self-transitions MUST NOT update this field."
     },
     "created_by": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did_core_id"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
     },
     "updated_by": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did_core_id"
     },
     "updated_at": {
       "$ref": "#/$defs/timestamp"
@@ -668,8 +668,8 @@
         }
       ]
     },
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

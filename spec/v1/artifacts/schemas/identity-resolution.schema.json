@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/identity-resolution.schema.json",
   "title": "Arkret Identity Resolution",
-  "description": "Canonical core_id/full_id resolution state, owner-published evidence and service-route bootstrap contracts. A full_id is a standard bare DID and a core_id is the stable Arkret business identity projected by a registered DID method adapter.",
+  "description": "Canonical did_core_id/full_id resolution state, owner-published evidence and service-route bootstrap contracts. A full_id is a standard bare DID and a did_core_id is the stable Arkret business identity projected by a registered DID method adapter.",
   "oneOf": [
     {
       "$ref": "#/$defs/principal_resolution_evidence"
@@ -155,7 +155,7 @@
       ],
       "properties": {
         "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/full_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
         },
         "method_history_head": {
           "type": "string",
@@ -181,7 +181,7 @@
       ],
       "properties": {
         "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/full_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
         },
         "method_history_head": {
           "type": "string",
@@ -374,7 +374,7 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
@@ -408,7 +408,7 @@
     },
     "service_resolution_record_core": {
       "type": "object",
-      "description": "Signed first-hop service route material. It lets a consumer map a stable service core_id to a candidate full_id; it is not an endpoint authorization by itself.",
+      "description": "Signed first-hop service route material. It lets a consumer map a stable service did_core_id to a candidate full_id; it is not an endpoint authorization by itself.",
       "required": [
         "service_id",
         "service_kind",
@@ -427,7 +427,7 @@
       ],
       "properties": {
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "service_kind": {
           "type": "string",
@@ -435,7 +435,7 @@
           "description": "Registered ServiceDescribe role selected at this route. The describe request MUST use this value when the base URL hosts multiple roles."
         },
         "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/full_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
         },
         "method_history_head": {
           "type": "string",
@@ -456,7 +456,7 @@
         "record_sequence": {
           "type": "integer",
           "minimum": 0,
-          "description": "Exact signed-record sequence within one service core_id. The first record is 0; every accepted same-core successor is exactly the immediately previous record_sequence plus one. Gaps, reuse and rollback fail closed."
+          "description": "Exact signed-record sequence within one service did_core_id. The first record is 0; every accepted same-core successor is exactly the immediately previous record_sequence plus one. Gaps, reuse and rollback fail closed."
         },
         "previous_record_digest": {
           "oneOf": [
@@ -536,7 +536,7 @@
       ],
       "properties": {
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "service_kind": {
           "type": "string",
@@ -722,7 +722,7 @@
           "$ref": "#/$defs/sha256_digest"
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "service_kind": {
           "type": "string",
@@ -915,7 +915,7 @@
               "const": "service_resolution_record"
             },
             "service_id": {
-              "$ref": "./common-ids.schema.json#/$defs/core_id"
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
             },
             "record_sequence": {
               "type": "integer",
@@ -938,7 +938,7 @@
               "const": "service_route_handover_notice"
             },
             "service_id": {
-              "$ref": "./common-ids.schema.json#/$defs/core_id"
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
             },
             "handover_id": {
               "type": "string",
@@ -1013,10 +1013,10 @@
           "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "source_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "receiver_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -1065,10 +1065,10 @@
           "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "source_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "receiver_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -1137,7 +1137,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "target_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "target_service_kind": {
           "type": "string",
@@ -1227,7 +1227,7 @@
       ],
       "properties": {
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "service_kind": {
           "type": "string",
@@ -1264,7 +1264,7 @@
       ],
       "properties": {
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "service_kind": {
           "type": "string",
@@ -1326,14 +1326,14 @@
       ],
       "properties": {
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "service_kind": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$"
         },
         "full_id": {
-          "$ref": "./common-ids.schema.json#/$defs/full_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
         },
         "method_history_head": {
           "type": "string",
@@ -1386,15 +1386,15 @@
     },
     "route_mirror_hint": {
       "type": "object",
-      "description": "Transport-only hint for one route-mirror service. mirror_service_id is only a stable lookup identity and MUST be paired with independently verifiable service_resolution first-hop material; neither the core_id nor the carrier authorizes target-service routing or Realm access.",
+      "description": "Transport-only hint for one route-mirror service. mirror_service_id is only a stable lookup identity and MUST be paired with independently verifiable service_resolution first-hop material; neither the did_core_id nor the carrier authorizes target-service routing or Realm access.",
       "required": [
         "mirror_service_id",
         "service_resolution"
       ],
       "properties": {
         "mirror_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
-          "description": "Stable core_id of the candidate route-mirror service. A bare core_id is never a route or authority."
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Stable did_core_id of the candidate route-mirror service. A bare did_core_id is never a route or authority."
         },
         "service_resolution": {
           "$ref": "#/$defs/service_resolution_carrier",
@@ -1419,7 +1419,7 @@
           "minItems": 1,
           "maxItems": 4,
           "uniqueItems": true,
-          "description": "At most four independently routable mirror hints. Each item carries the mirror core_id together with a service_resolution_carrier; bare URLs and bare core ids are not valid items."
+          "description": "At most four independently routable mirror hints. Each item carries the mirror did_core_id together with a service_resolution_carrier; bare URLs and bare core ids are not valid items."
         }
       },
       "anyOf": [

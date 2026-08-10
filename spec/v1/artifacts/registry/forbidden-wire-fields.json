@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 13,
+  "version": 14,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -1305,13 +1305,13 @@
       "context": "service_describe_verified_profiles",
       "since_revision": "2026-06-10",
       "rejection_level": "hard_reject",
-      "replacement": "verifier_did",
+      "replacement": "verifier_service_id",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "ServiceDescribe.verified_profiles uses verifier_did and claim_kind=conformance_verified because the signing authority is the neutral Conformance Verifier role (conformance-suite.md §6.2). Tool-specific issuer fields or claim values are forbidden."
+      "notes": "ServiceDescribe.verified_profiles uses verifier_service_id and claim_kind=conformance_verified because the signing authority is the neutral Conformance Verifier role (conformance-suite.md §6.2). Tool-specific issuer fields or claim values are forbidden."
     },
     {
       "id": "name",

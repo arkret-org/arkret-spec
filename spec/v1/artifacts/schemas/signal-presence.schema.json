@@ -22,8 +22,8 @@
       "description": "Strictly increasing but non-contiguous u64 within (sender_device_id, canonical scope_ref). Multi-device presence accepts arbitrary forward gaps and only considers signals that advance the device/scope high-water."
     },
     "actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Stable core_id of the actor whose presence this is. MUST equal the enclosing envelope sender_actor_id."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Stable did_core_id of the actor whose presence this is. MUST equal the enclosing envelope sender_actor_id."
     },
     "state": {
       "type": "string",

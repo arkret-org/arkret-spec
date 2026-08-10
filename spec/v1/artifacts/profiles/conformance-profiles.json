@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-10.10",
-  "generated_at": "2026-08-10T23:51:00Z",
+  "version": "2026-08-11.1",
+  "generated_at": "2026-08-11T00:30:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -4030,7 +4030,7 @@
         "requirement": "recommended_self_hosted",
         "role_profile": "ak.profile.auth_server.v1",
         "escape_hatch": "external_delegated_declared",
-        "note": "personal_node SHOULD co-deploy a self-hosted Account Authority (Auth Server): account registration, recovery, device enrollment, session-grant issuance, and DID resolution hosting for domainless users. The Account Authority MAY be co-located in the same process/node as the principal server (see architecture.md §2.8) but keeps a distinct service core_id and boundary. A deployment MAY delegate to a shared/external auth server, but MUST declare the delegation in service-describe auth_metadata so the inherited trust dependency (control over account recovery, device enrollment, and resolution publication) is explicit and auditable. Service identity is obtained at startup via full_id self-bootstrap, projected to core_id, with config as a fail-closed pin; see identity/identity-did.md §3.7. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5, identity/identity-did.md §3.7."
+        "note": "personal_node SHOULD co-deploy a self-hosted Account Authority (Auth Server): account registration, recovery, device enrollment, session-grant issuance, and DID resolution hosting for domainless users. The Account Authority MAY be co-located in the same process/node as the principal server (see architecture.md §2.8) but keeps a distinct service did_core_id and boundary. A deployment MAY delegate to a shared/external auth server, but MUST declare the delegation in service-describe auth_metadata so the inherited trust dependency (control over account recovery, device enrollment, and resolution publication) is explicit and auditable. Service identity is obtained at startup via full_id self-bootstrap, projected to did_core_id, with config as a fail-closed pin; see identity/identity-did.md §3.7. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5, identity/identity-did.md §3.7."
       }
     },
     "ak.profile.small_team.v1": {
@@ -4089,7 +4089,7 @@
         "requirement": "recommended_self_hosted",
         "role_profile": "ak.profile.auth_server.v1",
         "escape_hatch": "external_delegated_declared",
-        "note": "small_team SHOULD co-deploy a self-hosted Account Authority (Auth Server): account registration, recovery, device enrollment, session-grant issuance, and DID resolution hosting for domainless users. The Account Authority MAY be co-located in the same process/node as the principal server (see architecture.md §2.8) but keeps a distinct service core_id and boundary. A deployment MAY delegate to a shared/external auth server, but MUST declare the delegation in service-describe auth_metadata so the inherited trust dependency (control over account recovery, device enrollment, and resolution publication) is explicit and auditable. Service identity is obtained at startup via full_id self-bootstrap, projected to core_id, with config as a fail-closed pin; see identity/identity-did.md §3.7. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5, identity/identity-did.md §3.7."
+        "note": "small_team SHOULD co-deploy a self-hosted Account Authority (Auth Server): account registration, recovery, device enrollment, session-grant issuance, and DID resolution hosting for domainless users. The Account Authority MAY be co-located in the same process/node as the principal server (see architecture.md §2.8) but keeps a distinct service did_core_id and boundary. A deployment MAY delegate to a shared/external auth server, but MUST declare the delegation in service-describe auth_metadata so the inherited trust dependency (control over account recovery, device enrollment, and resolution publication) is explicit and auditable. Service identity is obtained at startup via full_id self-bootstrap, projected to did_core_id, with config as a fail-closed pin; see identity/identity-did.md §3.7. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5, identity/identity-did.md §3.7."
       }
     },
     "ak.profile.organization.v1": {

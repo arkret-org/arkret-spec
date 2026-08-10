@@ -595,8 +595,8 @@
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "authorization_core": {
             "kind": "human",
-            "current_contact_basis_id": "01J8Z5Q6R7S8T9V0W1X2Y3Z4A5",
-            "founder_basis_id": "01J8Z5Q6R7S8T9V0W1X2Y3Z4A5",
+            "current_contact_basis_id": "sha256:c81d66dd288ed62349579d189e5fc7a0d5dfb120f19137c1f92da2f30863eb0b",
+            "founder_basis_id": "sha256:c81d66dd288ed62349579d189e5fc7a0d5dfb120f19137c1f92da2f30863eb0b",
             "accepted_contact_evidence_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           },
           "slot_committed": true,
@@ -634,8 +634,8 @@
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "authorization_core": {
             "kind": "human",
-            "current_contact_basis_id": "01J8Z5Q6R7S8T9V0W1X2Y3Z4A5",
-            "founder_basis_id": "01J8Z5Q6R7S8T9V0W1X2Y3Z4A5",
+            "current_contact_basis_id": "sha256:c81d66dd288ed62349579d189e5fc7a0d5dfb120f19137c1f92da2f30863eb0b",
+            "founder_basis_id": "sha256:c81d66dd288ed62349579d189e5fc7a0d5dfb120f19137c1f92da2f30863eb0b",
             "accepted_contact_evidence_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           },
           "slot_committed": true,

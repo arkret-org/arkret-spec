@@ -24,7 +24,7 @@
       "$ref": "#/$defs/hash"
     },
     "holder_id": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did_core_id"
     },
     "retention_expires_at": {
       "$ref": "#/$defs/timestamp"
@@ -42,8 +42,8 @@
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "proof": {
       "type": "object",

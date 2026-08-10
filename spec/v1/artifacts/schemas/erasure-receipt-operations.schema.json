@@ -18,8 +18,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "hash": {
       "type": "string",
@@ -93,10 +93,10 @@
           "$ref": "#/$defs/hash"
         },
         "issuer_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "receiver_service_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "accepted_at": {
           "$ref": "#/$defs/timestamp"

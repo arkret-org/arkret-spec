@@ -96,8 +96,8 @@
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixturemimiexamplecom:mimi.example.com#mimi-provider",
           "payload_digest": "sha256:89abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567",
-          "created_at": "2026-07-31T00:00:00Z",
-          "jws": "c2ln"
+          "created_at": "2026-07-31T00:00:00.000Z",
+          "jws": "a..b"
         }
       },
       "expected": "accepted_only_when_profile_and_pinned_drafts_match"

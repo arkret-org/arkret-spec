@@ -33,8 +33,7 @@
       "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "did": {
-      "type": "string",
-      "pattern": "^did:webvh:[^\\s#?]+$",
+      "$ref": "./common-ids.schema.json#/$defs/webvh_full_id",
       "description": "Subject DID. Restricted to did:webvh because the object binds method-native did:webvh state; other methods need their own receipt family rather than a widened pattern here."
     },
     "version_id": {
@@ -48,8 +47,7 @@
       "description": "Optional digest of the log head the issuer held when observing. Present it when the issuer can commit to the whole log state; it lets a consumer detect a split view that a per-version binding alone would not reveal."
     },
     "witness_did": {
-      "type": "string",
-      "pattern": "^did:key:[A-Za-z0-9]+$",
+      "$ref": "./common-ids.schema.json#/$defs/did_key_full_id",
       "description": "The attesting witness, which MUST be one of the parameters.witness.witnesses[].id values in force at version_id. did:webvh 1.0 constrains witness identifiers to did:key, so a receipt naming any other form is describing something that is not a method witness."
     },
     "witness_verification_method": {
@@ -58,8 +56,7 @@
       "description": "The specific verification method inside witness_did whose signature appears in did-witness.json for version_id."
     },
     "controlling_organization": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+      "$ref": "./common-ids.schema.json#/$defs/did_full_id",
       "description": "The organization that controls this witness, as resolved by the issuer. Arkret deployment policy counts distinct controlling organizations, not distinct witness keys; without this field an operator running several witness keys would satisfy a two-distinct-organization requirement by itself. A verifier that cannot independently verify this binding MUST fail closed on high-risk paths rather than count the witness."
     },
     "observed_at": {
@@ -72,8 +69,8 @@
       "description": "Optional origin the proof was read from (the DID's own did-witness.json or a declared mirror). Recorded so a consumer can tell a first-party read from a mirrored one when adjudicating conflicting receipts."
     },
     "issuer_service_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Stable core_id of the Arkret service issuing this receipt. This is the trust root for the receipt itself, and is unrelated to the DID's own controller."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Stable did_core_id of the Arkret service issuing this receipt. This is the trust root for the receipt itself, and is unrelated to the DID's own controller."
     },
     "trust_domain": {
       "type": "string",

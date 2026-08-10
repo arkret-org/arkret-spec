@@ -12,11 +12,11 @@
     }
   ],
   "$defs": {
-    "core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "full_id": {
-      "$ref": "./common-ids.schema.json#/$defs/full_id"
+    "did_full_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_full_id"
     },
     "did_url": {
       "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -41,7 +41,7 @@
           "$ref": "#/$defs/did_url"
         },
         "controller": {
-          "$ref": "#/$defs/full_id"
+          "$ref": "#/$defs/did_full_id"
         },
         "type": {
           "const": "Multikey"
@@ -73,10 +73,10 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "#/$defs/core_id"
+          "$ref": "#/$defs/did_core_id"
         },
         "service_id": {
-          "$ref": "#/$defs/core_id"
+          "$ref": "#/$defs/did_core_id"
         },
         "trust_domain": {
           "type": "string",
@@ -184,17 +184,17 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "#/$defs/core_id"
+          "$ref": "#/$defs/did_core_id"
         },
         "trust_domain": {
           "type": "string",
           "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
         },
         "previous_service_id": {
-          "$ref": "#/$defs/core_id"
+          "$ref": "#/$defs/did_core_id"
         },
         "new_service_id": {
-          "$ref": "#/$defs/core_id"
+          "$ref": "#/$defs/did_core_id"
         },
         "previous_binding_digest": {
           "$ref": "#/$defs/hash"

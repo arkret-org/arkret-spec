@@ -31,10 +31,10 @@
       ]
     },
     "principal_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "coordinator_service_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "expires_at": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -805,7 +805,7 @@
       ],
       "properties": {
         "registry_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "registry_endpoint": {
           "type": "string",
@@ -842,10 +842,10 @@
       ],
       "properties": {
         "destination_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "request": {
           "type": "object",
@@ -876,7 +876,7 @@
     },
     "prepared_event_unit": {
       "type": "object",
-      "description": "Exact typed Event submit request and its persisted canonical bytes. The request MUST be a batch whose Event ids and kinds equal the enclosing closed plan. For a root-anchored re-anchor unit, the replacement authorize proof.verification_method bare DID component MUST project through its registered adapter to principal_id and its fragment MUST equal the replacement device_id. It is verified through a unit-local candidate overlay to that authorize payload's device_public_key before any directory mutation; core_id string concatenation, did:key and pre-existing-directory fallback are forbidden.",
+      "description": "Exact typed Event submit request and its persisted canonical bytes. The request MUST be a batch whose Event ids and kinds equal the enclosing closed plan. For a root-anchored re-anchor unit, the replacement authorize proof.verification_method bare DID component MUST project through its registered adapter to principal_id and its fragment MUST equal the replacement device_id. It is verified through a unit-local candidate overlay to that authorize payload's device_public_key before any directory mutation; did_core_id string concatenation, did:key and pre-existing-directory fallback are forbidden.",
       "required": [
         "operation_id",
         "destination_service_id",
@@ -892,10 +892,10 @@
           "const": "ak.self.events.command.submit"
         },
         "destination_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "request_schema": {
           "type": "string",
@@ -941,7 +941,7 @@
           "const": "recovery"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -1226,7 +1226,7 @@
           "const": "security_rotation"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

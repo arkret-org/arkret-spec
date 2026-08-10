@@ -75,7 +75,7 @@
           "$ref": "./principal-operations.schema.json#/$defs/hash"
         },
         "founder_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/did"
+          "$ref": "./principal-operations.schema.json#/$defs/did_core_id"
         },
         "realm_id": {
           "$ref": "./principal-operations.schema.json#/$defs/realm_id"
@@ -101,10 +101,10 @@
                   "const": "human"
                 },
                 "current_contact_basis_id": {
-                  "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+                  "$ref": "./principal-operations.schema.json#/$defs/hash"
                 },
                 "founder_basis_id": {
-                  "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
+                  "$ref": "./principal-operations.schema.json#/$defs/hash"
                 },
                 "accepted_contact_evidence_digest": {
                   "$ref": "./principal-operations.schema.json#/$defs/hash"
@@ -142,7 +142,7 @@
           "const": true
         },
         "issuer_service_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/did"
+          "$ref": "./principal-operations.schema.json#/$defs/did_core_id"
         },
         "issuer_service_binding_digest": {
           "$ref": "./principal-operations.schema.json#/$defs/hash"
@@ -413,7 +413,7 @@
               "const": "native_agent"
             },
             "requester_agent_id": {
-              "$ref": "./principal-operations.schema.json#/$defs/did"
+              "$ref": "./principal-operations.schema.json#/$defs/did_core_id"
             },
             "verification_method": {
               "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -541,7 +541,7 @@
           "description": "SHA-256 of the exact canonical direct_conversation_repair_relay_request body."
         },
         "destination_service_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/did"
+          "$ref": "./principal-operations.schema.json#/$defs/did_core_id"
         },
         "status": {
           "const": "enqueued"

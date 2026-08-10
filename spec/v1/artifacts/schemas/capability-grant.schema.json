@@ -30,12 +30,12 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "issuer": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "subject": {
       "oneOf": [
         {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         {
           "type": "object",
@@ -97,7 +97,7 @@
       "description": "Top-level grant validity end. Authorization evaluates this together with temporal constraints: effective_expires_at = min(expires_at, every temporal.expires_at present). A grant MUST NOT outlast the effective_expires_at of the refs that cover a given action."
     },
     "updated_by": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Reducer-derived actor that produced the most recent grant lifecycle update. Ordinary grant body fields remain immutable; revocation still uses revoked_by/revoked_at."
     },
     "updated_at": {
@@ -105,7 +105,7 @@
       "description": "Reducer-derived timestamp for the most recent grant lifecycle update. Ordinary grant body fields remain immutable; revocation still uses revoked_by/revoked_at."
     },
     "revoked_by": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "revoked_at": {
       "$ref": "#/$defs/timestamp"

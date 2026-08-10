@@ -33,11 +33,11 @@
       "description": "Required producer-signed security scope. It enters proof.event_digest and E2EE AAD. Reducers independently derive the Realm/Circle scope from the schema-validated payload and accepted references; missing dependencies, an underivable scope, realm_id mismatch, or any unequal field is fail closed. Exact product targets remain inside recipient-visible ciphertext."
     },
     "actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Principal whose Realm/cell state the Event mutates and to whom the durable fact is attributed. When executed_by is absent, the proof signer maps to actor_id. When executed_by is present, actor_id remains the principal of record while the actual executor and proof signer map to executed_by."
     },
     "executed_by": {
-      "$ref": "#/$defs/did",
+      "$ref": "#/$defs/did_core_id",
       "description": "Optional actual executor DID for a delegated write. This covers both an agent/applet/service acting for a controller actor and a controller acting under explicit managed-principal delegation to write an Agent principal's control state. actor_id is always the principal of record; executed_by is the principal that issued and signed the wire write. When present, MUST appear together with authorization_ref. Applet delegated writes also MUST carry applet_id. Enters canonical event bytes, event digest, and E2EE AAD. Receivers MUST verify the proof's verification_method maps to executed_by (not actor_id) and MUST NOT synthesize an actor_id signature."
     },
     "authorization_ref": {
@@ -144,13 +144,13 @@
       "type": "object",
       "description": "DataEvent only. Pins the signing DID and key epoch used to verify authorization at seal_ref. Effective capabilities are derived from the accepted governance basis, never selected by the producer.",
       "required": [
-        "did",
+        "actor_id",
         "key_id",
         "key_epoch"
       ],
       "properties": {
-        "did": {
-          "$ref": "#/$defs/did"
+        "actor_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "key_id": {
           "type": "string",
@@ -4478,8 +4478,8 @@
       "type": "string",
       "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "external_ref": {
       "type": "object",
@@ -4882,7 +4882,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "DID URL of the Event-signing key. Generic verification extracts the canonical bare full_id base under the active method adapter, validates that method history/key, projects the base full_id to core_id, and compares the result byte-for-byte with executed_by when present or actor_id otherwise; a core_id is never concatenated into a DID URL. For principal device proofs the fragment MUST be the full device_id (`ak:device:<uuidv7>`), so receivers can resolve `(actor_id, device_id)` through the device directory. The sole exception is an Event whose selected admission variant is did_root_anchor: its closed verifier MUST instead require verification_method to equal an active controller-proof verification method from the one critical did_inception/did_recovery_anchor entry and verify the controller proof/update authority against that referenced did:webvh history; a root did:key controller is not rewritten to the principal actor_id. This exception cannot apply to any other Event."
+          "description": "DID URL of the Event-signing key. Generic verification extracts the canonical bare full_id base under the active method adapter, validates that method history/key, projects the base full_id to did_core_id, and compares the result byte-for-byte with executed_by when present or actor_id otherwise; a did_core_id is never concatenated into a DID URL. For principal device proofs the fragment MUST be the full device_id (`ak:device:<uuidv7>`), so receivers can resolve `(actor_id, device_id)` through the device directory. The sole exception is an Event whose selected admission variant is did_root_anchor: its closed verifier MUST instead require verification_method to equal an active controller-proof verification method from the one critical did_inception/did_recovery_anchor entry and verify the controller proof/update authority against that referenced did:webvh history; a root did:key controller is not rewritten to the principal actor_id. This exception cannot apply to any other Event."
         },
         "event_digest": {
           "$ref": "#/$defs/hash"

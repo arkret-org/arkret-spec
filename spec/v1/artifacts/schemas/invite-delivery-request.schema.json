@@ -33,8 +33,8 @@
   },
   "additionalProperties": false,
   "$defs": {
-    "core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -59,12 +59,12 @@
       ],
       "properties": {
         "subject_id": {
-          "$ref": "#/$defs/core_id",
-          "description": "Stable principal core_id of the invite recipient."
+          "$ref": "#/$defs/did_core_id",
+          "description": "Stable principal did_core_id of the invite recipient."
         },
         "recipient_service_id": {
-          "$ref": "#/$defs/core_id",
-          "description": "Stable Principal Server service core_id that accepts invite delivery for subject_id."
+          "$ref": "#/$defs/did_core_id",
+          "description": "Stable Principal Server service did_core_id that accepts invite delivery for subject_id."
         },
         "service_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
@@ -89,7 +89,7 @@
       ],
       "properties": {
         "recipient_service_id": {
-          "$ref": "#/$defs/core_id"
+          "$ref": "#/$defs/did_core_id"
         },
         "service_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier"
@@ -210,8 +210,8 @@
           "description": "Optional builder evidence returned by a Directory or trusted issuer for intent=invite. When present, verifiers MUST check subject_id, handle, recipient_service_id, audience, issuer_service_id, expiry and proofs against this delivery."
         },
         "resolved_by": {
-          "$ref": "#/$defs/core_id",
-          "description": "Optional stable Directory or issuer service core_id that supplied the handle resolution."
+          "$ref": "#/$defs/did_core_id",
+          "description": "Optional stable Directory or issuer service did_core_id that supplied the handle resolution."
         },
         "resolved_at": {
           "$ref": "#/$defs/timestamp"

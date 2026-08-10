@@ -34,16 +34,16 @@
       "description": "Interop aliases such as RFC 7565 acct:. Aliases are never canonical; verifiers MUST normalize to handle before cache lookup, proof comparison, or delivery_binding construction."
     },
     "subject": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Stable holder/principal core_id for a user/principal handle; it is not a server-local account_id, administrative identifier, service identity, or generic resource id."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Stable holder/principal did_core_id for a user/principal handle; it is not a server-local account_id, administrative identifier, service identity, or generic resource id."
     },
     "issuer": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Stable core_id of the handle authority. Bare hostnames are discovery inputs, never proof issuers; proof verification resolves a full DID URL separately and requires its registered adapter projection to equal this issuer."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Stable did_core_id of the handle authority. Bare hostnames are discovery inputs, never proof issuers; proof verification resolves a full DID URL separately and requires its registered adapter projection to equal this issuer."
     },
     "issuer_service_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Stable service core_id that signed, served, or vouched for this handle claim when distinct from issuer."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Stable service did_core_id that signed, served, or vouched for this handle claim when distinct from issuer."
     },
     "binding_state": {
       "type": "string",
@@ -93,7 +93,7 @@
       ],
       "properties": {
         "recipient_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "service_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",

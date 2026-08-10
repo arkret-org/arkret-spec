@@ -1015,7 +1015,7 @@
         "cursor": "ak:cursor:fixture",
         "device_lists": {
           "changed": [
-            "did:webvh:z6mkfixture:alice.example"
+          "ak:did_core:webvh:z6mkfixture"
           ],
           "left": []
         }
@@ -1046,7 +1046,7 @@
           "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb": {
             "state_at_window_start": {
               "actor_profiles": {
-                "did:webvh:z6mkfixture:alice.example": {
+            "ak:did_core:webvh:z6mkfixture": {
                   "display_name": "Alice"
                 }
               },

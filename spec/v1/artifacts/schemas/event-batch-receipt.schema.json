@@ -22,7 +22,7 @@
       "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "issuer": {
-      "$ref": "./event-envelope.schema.json#/$defs/did"
+      "$ref": "./event-envelope.schema.json#/$defs/did_core_id"
     },
     "scope": {
       "oneOf": [
@@ -200,7 +200,7 @@
       "type": "object",
       "properties": {
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -228,7 +228,7 @@
           "const": "device_reanchor_unit"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -275,7 +275,7 @@
           "const": "pcr_genesis_unit"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -314,7 +314,7 @@
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         }
       },
       "additionalProperties": false

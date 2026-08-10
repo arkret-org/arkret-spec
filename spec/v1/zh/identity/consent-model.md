@@ -221,10 +221,10 @@ consent revoke 被 accepted Seal 覆盖后，下列下游缓存 MUST eager inval
 
 | 缓存 | 失效粒度 | 触发动作 |
 | --- | --- | --- |
-| Private contact discovery PSI 结果 / invite handoff cache | 按 `(holder_did, peer_did)` 失效，下次查询走完整 consent 重判 | 不返回 stale PSI match 或 invite handoff，防止 peer 看到已撤销的"可联系"指示。 |
-| MIMI consent check cache（interop 模块） | 按 `(holder_did, peer_did, scope)` 失效；`any` revoke 失效全部 scope | interop bridge 下次跨协议解析 MUST 重新校验。 |
-| Push / contact discovery 缓存（含 PSI 结果） | 按 `(holder_did, peer_did)` 失效；PSI 索引 MUST 在下次轮转时排除 revoked peer | 即使 cache TTL 未到，revoke 后下一次 contact sync MUST 反映新状态。 |
-| Invite admission gate cache（§6.1 invite 前置 gate） | 按 `(holder_did, peer_did, scope)` 失效 | 即便已缓存"该 peer 有 active consent"，revoke 后下一次 invite MUST 在提交目标 Realm Control Move 前重判；旧 cache MUST NOT 让 facade / invite service 放行。 |
+| Private contact discovery PSI 结果 / invite handoff cache | 按 `(holder_principal_id, peer_principal_id)` 失效，下次查询走完整 consent 重判 | 不返回 stale PSI match 或 invite handoff，防止 peer 看到已撤销的"可联系"指示。 |
+| MIMI consent check cache（interop 模块） | 按 `(holder_principal_id, peer_principal_id, scope)` 失效；`any` revoke 失效全部 scope | interop bridge 下次跨协议解析 MUST 重新校验。 |
+| Push / contact discovery 缓存（含 PSI 结果） | 按 `(holder_principal_id, peer_principal_id)` 失效；PSI 索引 MUST 在下次轮转时排除 revoked peer | 即使 cache TTL 未到，revoke 后下一次 contact sync MUST 反映新状态。 |
+| Invite admission gate cache（§6.1 invite 前置 gate） | 按 `(holder_principal_id, peer_principal_id, scope)` 失效 | 即便已缓存"该 peer 有 active consent"，revoke 后下一次 invite MUST 在提交目标 Realm Control Move 前重判；旧 cache MUST NOT 让 facade / invite service 放行。 |
 | In-flight invite 与 DM Realm | **不**追溯 — 已发出的 invite / 已创建的 DM Realm 不自动撤销（与 §3.3 撤销 Seal 覆盖前不追溯的规则一致）；如需撤销，单独发 `ak.invite.revoke` / member remove。 | 不自动级联撤销已生效邀请或 DM Realm。 |
 
 `consent_scope="any"` 被撤销后 cascade 失效规则：上面 5 类缓存中所有 consent_scope 的 entry 必须一起失效，包括 `invite`、`direct_message`、`voice_call`、`video_call`、`presence`。不允许实现把 `any` revoke 只清单一 scope。
@@ -283,7 +283,7 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
 
 #### 6.1.2 `ak.self.consent.command.request`（normative）
 
-该 self-surface operation 只把陌生 peer 的请求提交给上述 quarantine/anti-abuse pipeline；它**不**创建 consent grant dot、pending consent state 或 contact fact。`peer_did` 省略时取 authenticated actor，出现时 MUST 与 actor 相等；否则拒绝 `unauthorized`。
+该 self-surface operation 只把陌生 peer 的请求提交给上述 quarantine/anti-abuse pipeline；它**不**创建 consent grant dot、pending consent state 或 contact fact。`peer_principal_id` 省略时取 authenticated actor，出现时 MUST 与 actor 相等；否则拒绝 `unauthorized`。
 
 服务端对 holder 不存在、holder policy deny、per-holder 限速、静默丢弃与成功进入 quarantine MUST 返回完全相同的 `consent_request_outcome {ok:true, accepted_for_processing:true}`，并 SHOULD 做统一时序填充。响应 MUST NOT 包含 cell id、state、dots、expiry、request timestamp、account-existence flag 或可关联 queue id。写入 quarantine 时必须执行 §6.1.1 的总量/速率上限；`require_explicit_consent` profile 下请求被静默丢弃，仍返回相同 opaque outcome。
 

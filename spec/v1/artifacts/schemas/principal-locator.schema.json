@@ -19,12 +19,12 @@
       "const": "ak.schema.principal_locator.v1"
     },
     "subject_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Stable principal core_id of the invite recipient."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Stable principal did_core_id of the invite recipient."
     },
     "recipient_service_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Stable Principal Server service core_id that accepts invite delivery for subject_id."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Stable Principal Server service did_core_id that accepts invite delivery for subject_id."
     },
     "service_resolution": {
       "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",

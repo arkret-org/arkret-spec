@@ -73,7 +73,7 @@
           "uniqueItems": true
         },
         "issuer": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "signature": {
           "$ref": "#/$defs/signature"
@@ -87,8 +87,8 @@
     "device_id": {
       "$ref": "./common-ids.schema.json#/$defs/device_id"
     },
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "event_id": {
       "type": "string",
@@ -242,7 +242,7 @@
           ],
           "properties": {
             "owner_account_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             "keypackage_ref": {
               "$ref": "#/$defs/opaque_id"
@@ -271,7 +271,7 @@
           ],
           "properties": {
             "owner_account_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             "keypackage_ref": {
               "$ref": "#/$defs/opaque_id"
@@ -301,7 +301,7 @@
           ],
           "properties": {
             "owner_account_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             "keypackage_ref": {
               "$ref": "#/$defs/opaque_id"
@@ -448,7 +448,7 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "pcr_realm_id": {
           "$ref": "#/$defs/realm_id"
@@ -483,10 +483,10 @@
       ],
       "properties": {
         "account_authority_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "full_id": {
           "$ref": "./common-ids.schema.json#/$defs/long_lived_principal_full_id",
@@ -527,7 +527,7 @@
     },
     "pcr_genesis_unit": {
       "type": "object",
-      "description": "Exact ordered, atomic PCR genesis unit. The first Event is identity-root signed ak.realm.create; the second is founding-device signed ak.device.authorize. For the second Event proof.verification_method, the verifier parses the DID URL, requires the registered adapter to project its bare full DID component to principal_id, and requires its fragment to equal device_id (the complete ak:device UUID string); constructing a DID URL by appending to core_id is forbidden, and did:key is not accepted for this slot. Before the accepted device directory exists, the verifier resolves that one canonical method through a unit-local candidate overlay to the descriptor/payload device_public_key; it MUST NOT consult or mutate the durable directory until every check succeeds. No partial acceptance is permitted.",
+      "description": "Exact ordered, atomic PCR genesis unit. The first Event is identity-root signed ak.realm.create; the second is founding-device signed ak.device.authorize. For the second Event proof.verification_method, the verifier parses the DID URL, requires the registered adapter to project its bare full DID component to principal_id, and requires its fragment to equal device_id (the complete ak:device UUID string); constructing a DID URL by appending to did_core_id is forbidden, and did:key is not accepted for this slot. Before the accepted device directory exists, the verifier resolves that one canonical method through a unit-local candidate overlay to the descriptor/payload device_public_key; it MUST NOT consult or mutate the durable directory until every check succeeds. No partial acceptance is permitted.",
       "required": [
         "events"
       ],
@@ -657,7 +657,7 @@
               "const": "world_readable_requester"
             },
             "requester_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             }
           },
           "additionalProperties": false
@@ -997,7 +997,7 @@
               "$ref": "#/$defs/realm_id"
             },
             "controller_id": {
-              "$ref": "./common-ids.schema.json#/$defs/core_id"
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
             },
             "context_ref": {
               "$ref": "#/$defs/sidecar_context_ref"
@@ -1171,7 +1171,7 @@
               "const": "agent_runtime"
             },
             "agent_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             "device_id": {
               "$ref": "#/$defs/device_id"

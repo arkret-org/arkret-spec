@@ -21,11 +21,11 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id",
-      "description": "Effective member actor core_id in this Realm. MAY represent a Realm-scoped pairwise identity."
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Effective member actor did_core_id in this Realm. MAY represent a Realm-scoped pairwise identity."
     },
     "subject_id": {
-      "$ref": "#/$defs/did",
+      "$ref": "#/$defs/did_core_id",
       "description": "Principal DID or disclosed holder DID represented by actor_id for display purposes. Authorization and audit continue to use the Event actor and member state."
     },
     "display_profile": {
@@ -83,8 +83,8 @@
     }
   },
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

@@ -148,10 +148,10 @@
           "$ref": "#/$defs/hash"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "coordinator_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id"

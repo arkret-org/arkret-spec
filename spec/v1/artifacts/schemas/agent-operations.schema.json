@@ -84,11 +84,11 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "full_id": {
-      "$ref": "./common-ids.schema.json#/$defs/full_id"
+    "did_full_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_full_id"
     },
     "blob_ref": {
       "type": "string",
@@ -200,8 +200,8 @@
           "$ref": "#/$defs/opaque_local_id"
         },
         "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id",
-          "description": "Stable target-service authorization identity; any verification_method remains a DID URL whose bare full DID MUST project to this core_id."
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Stable target-service authorization identity; any verification_method remains a DID URL whose bare full DID MUST project to this did_core_id."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -397,7 +397,7 @@
       ],
       "properties": {
         "agent_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
@@ -466,10 +466,10 @@
       ],
       "properties": {
         "agent_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "controller_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -721,7 +721,7 @@
         },
         "authorize_event": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
-          "description": "Fully signed ak.device.authorize initial submission authored by a current accepted device. The service MUST admit this exact Event through the ordinary Event validation/reducer path; it MUST NOT mint an Event id, rewrite the Event, or directly insert a device projection. The payload MUST name the target new_device_pubkey.kid, hpke_key and device_signature from this request, set authorization_binding_kind=accepted_device, and name the approving current device id in authorized_by. The proof.verification_method bare DID component MUST project through its registered adapter to principal_id and its fragment MUST equal authorized_by; appending a fragment to core_id is forbidden. That Event proof, not the target device_signature, binds principal_id, authorized_by, not_before, expires_at and scopes, because only the approving device knows those values."
+          "description": "Fully signed ak.device.authorize initial submission authored by a current accepted device. The service MUST admit this exact Event through the ordinary Event validation/reducer path; it MUST NOT mint an Event id, rewrite the Event, or directly insert a device projection. The payload MUST name the target new_device_pubkey.kid, hpke_key and device_signature from this request, set authorization_binding_kind=accepted_device, and name the approving current device id in authorized_by. The proof.verification_method bare DID component MUST project through its registered adapter to principal_id and its fragment MUST equal authorized_by; appending a fragment to did_core_id is forbidden. That Event proof, not the target device_signature, binds principal_id, authorized_by, not_before, expires_at and scopes, because only the approving device knows those values."
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
@@ -803,7 +803,7 @@
           "description": "Single-use pairing artifact id returned by agent_provision_outcome. Profile-local, short-lived and not a durable protocol object ref."
         },
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "verification_method": {
           "$ref": "#/$defs/did_url"
@@ -882,7 +882,7 @@
           "description": "Single-use pairing artifact id returned by agent_provision_outcome. Profile-local, short-lived and not a durable protocol object ref."
         },
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "verification_method": {
           "$ref": "#/$defs/did_url"
@@ -914,7 +914,7 @@
           "$ref": "#/$defs/opaque_local_id"
         },
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "verification_method": {
           "$ref": "#/$defs/did_url"
@@ -986,7 +986,7 @@
           "$ref": "#/$defs/pairing_secret"
         },
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         }
       },
       "additionalProperties": false
@@ -1039,7 +1039,7 @@
     },
     "agent_provision_request_body": {
       "type": "object",
-      "description": "Two-phase controller-authored Agent provisioning. prepare validates prerequisites and allocates a complete Agent full_id, projects its stable agent_id core_id, and returns both with an opaque allocation handle without publishing durable Agent state or choosing an Agent PCR id. After receiving them, the controller freezes the managed-Agent PCR genesis with matching initial_resolution, derives principal_control_realm_id as retype(create.event_id), authors one ak.agent.provision Event that declares that exact value, and returns the same allocation in commit. The service admits that Event before publishing the DID binding and pairing handle. Provisioning never creates an Agent profile, key authorization or Realm capability grant.",
+      "description": "Two-phase controller-authored Agent provisioning. prepare validates prerequisites and allocates a complete Agent full_id, projects its stable agent_id did_core_id, and returns both with an opaque allocation handle without publishing durable Agent state or choosing an Agent PCR id. After receiving them, the controller freezes the managed-Agent PCR genesis with matching initial_resolution, derives principal_control_realm_id as retype(create.event_id), authors one ak.agent.provision Event that declares that exact value, and returns the same allocation in commit. The service admits that Event before publishing the DID binding and pairing handle. Provisioning never creates an Agent profile, key authorization or Realm capability grant.",
       "required": [
         "phase",
         "operation_id",
@@ -1061,10 +1061,10 @@
           "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
         },
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "full_id": {
-          "$ref": "#/$defs/full_id"
+          "$ref": "#/$defs/did_full_id"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
@@ -1162,10 +1162,10 @@
           ]
         },
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "full_id": {
-          "$ref": "#/$defs/full_id",
+          "$ref": "#/$defs/did_full_id",
           "description": "Complete Agent DID whose registered adapter projection is agent_id; managed-Agent PCR genesis initial_resolution MUST commit this value and its verified method head."
         },
         "principal_control_realm_id": {
@@ -1336,7 +1336,7 @@
           "$ref": "./principal-operations.schema.json#/$defs/operation_id"
         },
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
@@ -1397,7 +1397,7 @@
           "$ref": "./account-operations.schema.json#/$defs/account_subject"
         },
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "agent_slug": {
           "$ref": "#/$defs/agent_slug"
@@ -1415,7 +1415,7 @@
           "$ref": "./account-operations.schema.json#/$defs/dpop_jkt"
         },
         "audience": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "origin": {
           "type": "string",
@@ -1458,7 +1458,7 @@
           "minLength": 22
         },
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -1487,7 +1487,7 @@
           "const": "abandoned"
         },
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
@@ -1526,7 +1526,7 @@
       ],
       "properties": {
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -1577,10 +1577,10 @@
           "format": "uri"
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "pairing_request_id": {
           "$ref": "#/$defs/opaque_local_id"
@@ -1894,7 +1894,7 @@
       ],
       "properties": {
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "provisioning_phase": {
           "type": "string",
@@ -1995,7 +1995,7 @@
           "type": "array",
           "description": "Complete read-only set of Agent principals currently owned by the Sidecar controller. It is derived from the ownership truth source and cannot be edited through Sidecar operations.",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true
         },
@@ -2003,7 +2003,7 @@
           "type": "array",
           "description": "Owned Agent principals that are also active, authorized, Realm-participating and MLS/key ready. Reducer/service MUST enforce this set is a subset of owned_agent_ids. The controller is represented by sidecar.controller_id and is not duplicated in either Agent array.",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true
         },

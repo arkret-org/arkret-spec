@@ -5,8 +5,8 @@
   "description": "Wire contract for the device recovery session state machine. The root object is the recovery session state shape; request body/result helper shapes and kind-specific recovery proof transcripts live in $defs. See zh/crypto-media/device-lifecycle.md §15.",
   "$ref": "#/$defs/recovery_session_state",
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "did_url": {
       "type": "string",
@@ -175,7 +175,7 @@
           "$ref": "#/$defs/recovery_session_id"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id",
@@ -304,7 +304,7 @@
       ],
       "properties": {
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id"
@@ -472,7 +472,7 @@
           "$ref": "#/$defs/challenge"
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "audience": {
           "type": "string",
@@ -538,7 +538,7 @@
                 "pattern": "^[A-Za-z0-9_-]{1,64}$"
               },
               "holder": {
-                "$ref": "#/$defs/did"
+                "$ref": "#/$defs/did_core_id"
               },
               "transcript_digest": {
                 "$ref": "#/$defs/hash",
@@ -643,7 +643,7 @@
           "const": "principal_signing"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id"
@@ -712,7 +712,7 @@
           "$ref": "#/$defs/proof_kind"
         },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id"

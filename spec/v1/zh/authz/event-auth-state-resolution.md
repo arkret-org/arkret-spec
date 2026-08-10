@@ -100,7 +100,7 @@ auth_context {
 
 Verifier MUST 证明：
 
-1. `proofs[].verification_method` 对应 `auth_context.did#key_id` 或等价 DID verification method。
+1. `proofs[].verification_method` 对应 `auth_context.actor_id#key_id` 或等价 DID verification method。
 2. `key_epoch` / `credential_epoch` 在 `seal_ref` 对应 seal 的控制面状态下有效。
 3. verifier 从 `seal_ref` 的治理 `state_root` 解析 actor 对该 kind、`scope_ref` 和派生目标所需的全部 capability；producer 不选择候选 grant。
 
@@ -290,7 +290,7 @@ Seal {
 }
 ```
 
-`completeness_root` 是控制面 **listed-set + actor-seq envelope** 承诺，MUST 使用 §6.2.2 的统一 Seal Merkle 组合规则。leaf 集合为当前 `covered_set(S)` 中每个 control-plane actor 的 actor_seq 包络区间；每个 leaf 的 `leaf_data = canonical_json({ "actor_id": <core_id>, "from_seq": <integer>, "to_seq": <integer>, "event_digests": [<digest>...] })` 的 UTF-8 字节，其中 `event_digests[]` 是该 actor 在 `[from_seq,to_seq]` 内按 `actor_seq ASC, event_digest ASC` 排列的**已列出控制面 Event** digest。leaf 按 `(actor_id, from_seq, to_seq)` canonical code point / integer 顺序排列。对同一 actor，任一 Seal 相对其**每个 predecessor** 的 interval set MUST 单调：已承诺包络不得收缩，`to_seq` 只能非降，已列 digest 不得删除；DAG 上互不可达的并发 leaf 之间不要求可比。compaction Seal MAY 合并相邻包络，但已列 digest 集合必须逐字节等价。空控制面覆盖集的 `completeness_root` 为 §6.2.2 空树 root。由于 actor_seq 链可混合 data/control event，区间内未列 seq **不声明其 plane，也不证明不存在被扣发的 Control Move**；验证者不得把该 root 单独宣传为 range completeness proof。控制面扣发检测依赖 §7.2 Control Proposal Ack obligation / inclusion list 与独立 range-bound attestation。Auditor 的 `completeness_monotonic` 只沿每条 Seal predecessor edge 验证包络与 listed-set 非缩，不得把未列 seq 当作可机械验证的 gap，也不得按 transparency `log_index` 相邻项误作线性比较。
+`completeness_root` 是控制面 **listed-set + actor-seq envelope** 承诺，MUST 使用 §6.2.2 的统一 Seal Merkle 组合规则。leaf 集合为当前 `covered_set(S)` 中每个 control-plane actor 的 actor_seq 包络区间；每个 leaf 的 `leaf_data = canonical_json({ "actor_id": <did_core_id>, "from_seq": <integer>, "to_seq": <integer>, "event_digests": [<digest>...] })` 的 UTF-8 字节，其中 `event_digests[]` 是该 actor 在 `[from_seq,to_seq]` 内按 `actor_seq ASC, event_digest ASC` 排列的**已列出控制面 Event** digest。leaf 按 `(actor_id, from_seq, to_seq)` canonical code point / integer 顺序排列。对同一 actor，任一 Seal 相对其**每个 predecessor** 的 interval set MUST 单调：已承诺包络不得收缩，`to_seq` 只能非降，已列 digest 不得删除；DAG 上互不可达的并发 leaf 之间不要求可比。compaction Seal MAY 合并相邻包络，但已列 digest 集合必须逐字节等价。空控制面覆盖集的 `completeness_root` 为 §6.2.2 空树 root。由于 actor_seq 链可混合 data/control event，区间内未列 seq **不声明其 plane，也不证明不存在被扣发的 Control Move**；验证者不得把该 root 单独宣传为 range completeness proof。控制面扣发检测依赖 §7.2 Control Proposal Ack obligation / inclusion list 与独立 range-bound attestation。Auditor 的 `completeness_monotonic` 只沿每条 Seal predecessor edge 验证包络与 listed-set 非缩，不得把未列 seq 当作可机械验证的 gap，也不得按 transparency `log_index` 相邻项误作线性比较。
 
 ### 6.1 Seal id 与签名 transcript
 
@@ -361,7 +361,7 @@ inclusion proof 使用 Merkle audit path，non-membership 使用 sorted-neighbor
 apply_seal(A):
   1. 校验 predecessor_refs 均已知、同 Realm、且不是 fork_quarantine。
   2. 校验 notary_seq 单调性和 notary_signature；`sealed_at` MUST 不早于全部 predecessor 的 `sealed_at`。若 `sealed_at` 晚于 verifier 当前时钟加 `hard_future_skew_ms`，进入非终态 `seal_deferred_future_skew`，等待本地时钟推进后从 step 1 重判，不得终态拒绝该 Seal 或其后继。
-  2b. 在 predecessor joined governance state 的 `ak.component.notary.v1` cell 上校验 signer authority：`single_did` 必须由 `notary.did` 控制的方法签名；`threshold` 必须由 `members[]` 中至少 `threshold` 个互异成员形成有效门限签名；`open_set` 必须由 `members[]` 中合法 slot signer 签名；`mixed` 普通 Seal 必须由 primary `did` 签名，只有 §7.2 / §9.5 定义的 recovery 条件成立时才可由 `recovery_members[]` 签 recovery Seal。genesis Seal 的 `predecessor_refs=[]` 例外从本 Seal `delta[]` 中唯一且完整的 Realm anchor unit 的 `ak.realm.create.payload.object.notary` 求值。不满足时 MUST `rejected_seal`，服务层 reason=`seal_signer_unauthorized`。
+  2b. 在 predecessor joined governance state 的 `ak.component.notary.v1` cell 上校验 signer authority：`single_did` 必须由 `notary.actor_id` 控制的方法签名；`threshold` 必须由 `members[]` 中至少 `threshold` 个互异成员形成有效门限签名；`open_set` 必须由 `members[]` 中合法 slot signer 签名；`mixed` 普通 Seal 必须由 primary `did` 签名，只有 §7.2 / §9.5 定义的 recovery 条件成立时才可由 `recovery_members[]` 签 recovery Seal。genesis Seal 的 `predecessor_refs=[]` 例外从本 Seal `delta[]` 中唯一且完整的 Realm anchor unit 的 `ak.realm.create.payload.object.notary` 求值。不满足时 MUST `rejected_seal`，服务层 reason=`seal_signer_unauthorized`。
   3. 校验 delta[] canonical 升序去重。
   4. 校验 delta[] 与所有 predecessor covered_set 不相交。
   5. 校验 delta[] 每项都是已知、签名有效、且未被本 Seal predecessor closure 覆盖的 Control Move digest；若 effective `availability_policy.applies_to` 含 `seal_include`，还 MUST 验证每项有满足 holder 数、role 与 retention 下限的 AvailabilityReceipt

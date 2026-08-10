@@ -190,13 +190,13 @@
       "description": "Required when state=redacted; references the ak.message.redact event that produced this state. MUST be absent for other states."
     },
     "created_by": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did_core_id"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
     },
     "updated_by": {
-      "$ref": "#/$defs/did",
+      "$ref": "#/$defs/did_core_id",
       "description": "Reducer-derived actor that produced the most recent materialized message update, such as ak.message.revise or ak.message.redact."
     },
     "updated_at": {
@@ -263,7 +263,7 @@
           "const": "mention"
         },
         "subject_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Authoritative mention target principal DID. For native personal agent selectors this is the agent principal DID, not the controller DID."
         },
         "display_name_at_time": {
@@ -273,7 +273,7 @@
           "type": "string"
         },
         "controller_subject_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Audit metadata for @<controller-handle>/<agent_slug> inputs. MUST NOT replace subject_id for routing, authorization, or attribution."
         },
         "controller_handle_at_time": {
@@ -344,7 +344,7 @@
               "pattern": "^ak:(message|event):[A-Za-z0-9_-]{44}$"
             },
             "sender_actor_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             "excerpt": {
               "type": "string"
@@ -848,8 +848,8 @@
       },
       "additionalProperties": true
     },
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

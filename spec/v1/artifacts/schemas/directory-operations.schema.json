@@ -75,8 +75,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "strand_id": {
       "type": "string",
@@ -136,10 +136,10 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "subject": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "issuer": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "claim_kind": {
           "$ref": "#/$defs/non_empty_string"
@@ -186,14 +186,14 @@
           "const": "ak.directory.restricted_claim_presentation.v1"
         },
         "iss": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url",
           "description": "DID URL of the issuer key that signed this presentation; its controller MUST equal iss."
         },
         "audience": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "nonce": {
           "$ref": "#/$defs/non_empty_string"
@@ -298,8 +298,8 @@
         "avatar_blob_ref": {
           "$ref": "./blob.schema.json#/properties/blob_ref"
         },
-        "organization_did": {
-          "$ref": "#/$defs/did"
+        "organization_principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "join_rule": {
           "$ref": "#/$defs/non_empty_string"
@@ -330,7 +330,7 @@
         "owning_organizations": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true
         },
@@ -370,13 +370,13 @@
     "organization_preview": {
       "type": "object",
       "required": [
-        "organization_did",
+        "organization_principal_id",
         "as_of",
         "policy_revision"
       ],
       "properties": {
-        "organization_did": {
-          "$ref": "#/$defs/did"
+        "organization_principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "handle": {
           "$ref": "#/$defs/non_empty_string"
@@ -436,7 +436,7 @@
       ],
       "properties": {
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "handle": {
           "$ref": "#/$defs/handle"
@@ -444,8 +444,8 @@
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
-        "organization_did": {
-          "$ref": "#/$defs/did"
+        "organization_principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "avatar_blob_ref": {
           "$ref": "./blob.schema.json#/properties/blob_ref"
@@ -529,14 +529,14 @@
         "query": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "organization_did": {
-          "$ref": "#/$defs/did"
+        "organization_principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "source_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "requester": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "proof_challenge": {
           "$ref": "#/$defs/non_empty_string"
@@ -593,7 +593,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "requester": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "proof_challenge": {
           "$ref": "#/$defs/non_empty_string"
@@ -663,7 +663,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "requester": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "proof_challenge": {
           "$ref": "#/$defs/non_empty_string"
@@ -768,8 +768,8 @@
     "directory_resolve_organization_request_body": {
       "type": "object",
       "properties": {
-        "organization_did": {
-          "$ref": "#/$defs/did"
+        "organization_principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "handle": {
           "$ref": "#/$defs/non_empty_string"
@@ -781,7 +781,7 @@
       "anyOf": [
         {
           "required": [
-            "organization_did"
+            "organization_principal_id"
           ]
         },
         {
@@ -822,8 +822,8 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "organization_did": {
-          "$ref": "#/$defs/did"
+        "organization_principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "cursor": {
           "$ref": "#/$defs/cursor"
@@ -891,8 +891,8 @@
         "handle": {
           "$ref": "#/$defs/handle"
         },
-        "did": {
-          "$ref": "#/$defs/did"
+        "principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
@@ -951,8 +951,8 @@
         "handle": {
           "$ref": "#/$defs/handle"
         },
-        "expected_did": {
-          "$ref": "#/$defs/did"
+        "expected_principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "proof_challenge": {
           "$ref": "#/$defs/non_empty_string"
@@ -964,7 +964,7 @@
           "$ref": "#/$defs/intent"
         },
         "requester": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "audience": {
           "$ref": "#/$defs/non_empty_string"
@@ -981,17 +981,17 @@
     "directory_handle_resolution_outcome": {
       "type": "object",
       "required": [
-        "did",
+        "principal_id",
         "subject",
         "handle",
         "verified"
       ],
       "properties": {
-        "did": {
-          "$ref": "#/$defs/did"
+        "principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "subject": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "handle": {
           "$ref": "#/$defs/handle"
@@ -1033,8 +1033,8 @@
         "agent_slug": {
           "$ref": "#/$defs/agent_slug"
         },
-        "expected_agent_did": {
-          "$ref": "#/$defs/did"
+        "expected_actor_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "proof_challenge": {
           "$ref": "#/$defs/non_empty_string"
@@ -1046,7 +1046,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "requester": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "proofs": {
           "$ref": "#/$defs/proofs"
@@ -1065,11 +1065,11 @@
       ],
       "properties": {
         "controller_subject": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Controller principal DID resolved from controller_handle and verified against the selector claim."
         },
         "subject": {
-          "$ref": "#/$defs/did",
+          "$ref": "#/$defs/did_core_id",
           "description": "Native personal agent principal DID selected by (controller_subject, agent_slug)."
         },
         "agent_slug": {
@@ -1099,7 +1099,7 @@
       ],
       "properties": {
         "subject": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -1108,7 +1108,7 @@
           "$ref": "#/$defs/intent"
         },
         "requester": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "proof_challenge": {
           "$ref": "#/$defs/non_empty_string"
@@ -1429,13 +1429,13 @@
     "directory_push_register_request_body": {
       "type": "object",
       "required": [
-        "subscriber_did",
+        "subscriber_principal_id",
         "resource_filter",
         "webhook_endpoint"
       ],
       "properties": {
-        "subscriber_did": {
-          "$ref": "#/$defs/did"
+        "subscriber_principal_id": {
+          "$ref": "#/$defs/did_core_id"
         },
         "resource_filter": {
           "type": "object",

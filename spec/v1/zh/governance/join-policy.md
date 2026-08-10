@@ -117,7 +117,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | --- | --- | --- | --- |
 | `claim_required` | `required_claims[]`（见 [`../authz/constraint-schema.md` §10](../authz/constraint-schema.md)） | applicant MUST 提交满足声明集合的 VC / claim presentation。 | `true` |
 | `parent_membership` | `membership_source_realm_ids: id:realm[]`、`require_min_membership: enum(invite, join)` | applicant MUST 已是任一 source Realm 的指定成员；该字段只是 membership gate 的验证来源，不表达 Realm 树形父子关系。reducer 在 join Control Move 校验时必须能够独立验证（snapshot 或 backfill）。等价于 Matrix MSC3083 `m.room_membership` 条件。 | `true` |
-| `principal_admission` | 至少一个 selector 字段：`allowed_did_methods[]`、`allowed_principal_dids[]`、`denied_principal_dids[]` | applicant 的 principal DID 自身 MUST 满足 Realm 声明的硬准入条件。典型用途是只允许特定 DID method 或显式 allowlist 中的 principal 加入。 | `true` |
+| `principal_admission` | 至少一个 selector 字段：`allowed_did_methods[]`、`allowed_principal_ids[]`、`denied_principal_ids[]` | applicant 的 principal DID 自身 MUST 满足 Realm 声明的硬准入条件。典型用途是只允许特定 DID method 或显式 allowlist 中的 principal 加入。 | `true` |
 | `challenge_response` | `provider_did: did`、`challenge_kinds: enum(captcha, pow, attested_human, idp_oidc)[]`、`max_proof_age: duration` | applicant MUST 完成 provider 颁发的挑战并提交 signed proof。详见 §12。 | `true` |
 | `application_form` | `questions[]`（见 §3.3） | applicant MUST 在 `member.application` 中提交对应 answer；reviewer 人工评估。 | `false` |
 | `manual_review` | （无额外字段） | reviewer 必须显式签署 accept；不要求结构化问卷。 | `false` |
@@ -132,8 +132,8 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 字段：
 
 - `allowed_did_methods[]`：允许的 DID method 列表，元素使用完整 `did:<method>` 标签（例如 `did:webvh`、`did:web`、`did:key`）。空或缺省表示不按 method 限制。
-- `allowed_principal_dids[]`：可选精确 allowlist。非空时 applicant DID MUST 等于其中一个值。
-- `denied_principal_dids[]`：可选精确 denylist。denylist 优先级最高；命中时 MUST 拒绝，即使也命中 allowlist。
+- `allowed_principal_ids[]`：可选精确 allowlist。非空时 applicant DID MUST 等于其中一个值。
+- `denied_principal_ids[]`：可选精确 denylist。denylist 优先级最高；命中时 MUST 拒绝，即使也命中 allowlist。
 
 `principal_admission` 至少 MUST 声明一个 selector 字段（上述三个数组之一非空，或实现 profile 明确声明的等价 selector），否则 reducer MUST 以 `schema_violation` 拒绝 policy 写入。多个 selector 字段按 AND 组合，denylist 先于 allowlist 评估。
 
@@ -155,7 +155,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
       "kind": "principal_admission",
       "auto_resolve": true,
       "allowed_did_methods": ["did:webvh"],
-      "allowed_principal_dids": [
+      "allowed_principal_ids": [
         "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.acme.example:bob"
       ]
     }
@@ -231,7 +231,7 @@ C 轴与 `default_join_rule` 的交叉：
 | `knock_restricted` | 全部（OR 合成） | `combinator` SHOULD 为 `any`；典型组合：`[claim_required(auto), application_form(manual)]`，凭证持有者直接进，否则走问卷申请。 |
 | `closed` | 空 | 只关闭 **applicant-initiated 入口**，见下方"`closed` 的封闭豁免列表"。 |
 
-**invite 路径的 A / B 轴义务（normative）**：`ak.invite.create` 与 `ak.invite.accept` 在写 `ak.component.member.state.v1` 之前 MUST 评估 A 轴 `principal_admission` 与 B 轴 `cooldown`；命中 `denied_principal_dids`、不满足 `allowed_did_methods` / `allowed_principal_dids`，或处于 cooldown 期时 MUST fail closed，对外统一 `gate_check_failed`（§5 的不可枚举要求）。否则把 `default_join_rule` 从 `knock` 改成看似**更紧**的 `invite`，反而会关闭 DID method allowlist 与 principal denylist——那是准入面的净放宽，不是收紧。
+**invite 路径的 A / B 轴义务（normative）**：`ak.invite.create` 与 `ak.invite.accept` 在写 `ak.component.member.state.v1` 之前 MUST 评估 A 轴 `principal_admission` 与 B 轴 `cooldown`；命中 `denied_principal_ids`、不满足 `allowed_did_methods` / `allowed_principal_ids`，或处于 cooldown 期时 MUST fail closed，对外统一 `gate_check_failed`（§5 的不可枚举要求）。否则把 `default_join_rule` 从 `knock` 改成看似**更紧**的 `invite`，反而会关闭 DID method allowlist 与 principal denylist——那是准入面的净放宽，不是收紧。
 
 **`closed` 的封闭豁免列表（normative）**：`closed` MUST 拒绝 applicant 自助提交的 `ak.member.state{join}` / `{knock}` 与 candidate application。它 MUST NOT 拒绝下列 authorized-writer 路径（本列表封闭，不得由实现自行扩展或收窄）：
 
@@ -359,9 +359,9 @@ stage 1 是公开 Control Move，stage 2 是 profile-private receipt，二者不
 **receipt digest 与签名 transcript（normative）**：
 
 1. application / review / cancel receipt 分别计算 `sha256:JCS(receipt without {application_receipt_digest|review_receipt_digest|cancel_receipt_digest, proof})`；wire 中必须回填该小写十六进制 digest。receiver MUST 重算并 constant-time 比较。
-2. `proof` 必须是 `kind="detached_jws"`，`verification_method` 必须解析为对应 `applicant_did` / `reviewer_did` / `cancelled_by` 在提交 basis 上的 active device/actor key；仅有 bearer session 而 receipt proof 无效 MUST 拒绝。
-3. application proof 签名 JCS `{context:"ak.join-application-receipt-proof-v1",receipt_digest,realm_id,actor_id,verification_method,created_at}`；其中 `actor_id=applicant_did`、`created_at=submitted_at`。
-4. review proof 签名 JCS `{context:"ak.join-application-review-receipt-proof-v1",receipt_digest,realm_id,application_ref,application_revision_digest,actor_id,verification_method,created_at}`；其中 `actor_id=reviewer_did`、`created_at=reviewed_at`。
+2. `proof` 必须是 `kind="detached_jws"`，`verification_method` 必须解析为对应 `applicant_actor_id` / `reviewer_actor_id` / `cancelled_by` 在提交 basis 上的 active device/actor key；仅有 bearer session 而 receipt proof 无效 MUST 拒绝。
+3. application proof 签名 JCS `{context:"ak.join-application-receipt-proof-v1",receipt_digest,realm_id,actor_id,verification_method,created_at}`；其中 `actor_id=applicant_actor_id`、`created_at=submitted_at`。
+4. review proof 签名 JCS `{context:"ak.join-application-review-receipt-proof-v1",receipt_digest,realm_id,application_ref,application_revision_digest,actor_id,verification_method,created_at}`；其中 `actor_id=reviewer_actor_id`、`created_at=reviewed_at`。
 5. cancel proof 签名 JCS `{context:"ak.join-application-cancel-receipt-proof-v1",receipt_digest,realm_id,application_ref,actor_id,verification_method,created_at}`；其中 `actor_id=cancelled_by`、`created_at=cancelled_at`。
 6. request 中的 private body 不进入共享 receipt；receipt 的 `private_body_digest` MUST 等于该 body 的 `sha256:JCS(private_body)`。`application_revision_digest` 仍按 §7.3 的固定 `{answers,gate_proofs,policy_version_digest}` 前像计算：`server_protected` 模式由 server 重算；`reviewer_envelope` 模式由 client 在加密前计算并由 reviewer 解密后复核，server 只验证 receipt / ciphertext body digest 与 recipient capability binding。
 
@@ -374,7 +374,7 @@ receipt 与 private body MUST 在同一 durable transaction 中写入；任一 s
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `realm_id` | yes | `id:realm` | 申请目标 Realm。 |
-| `applicant_did` | yes | `did` | 等于 envelope `actor_id`。 |
+| `applicant_actor_id` | yes | `did` | 等于 envelope `actor_id`。 |
 | `knock_ref` | yes | `event_ref` | 引用 stage 1 的 `ak.member.state{knock}` event id。 |
 | `policy_version_digest` | yes | `hash` | 提交时 `realm.join_policy` cell value 的 canonical digest；reducer 校验 reviewer 决策时是否仍是同一 policy。 |
 | `private_body_digest` | yes | `hash` | 对本次 profile-private body 的 `sha256:JCS`；receipt 只绑定 digest，不复制正文。 |
@@ -455,7 +455,7 @@ Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
 
    - **接收公钥（normative）**：envelope 接收键 MUST 是目标 device 当前 device record 中的 `hpke_key`。**MUST NOT 以 MLS KeyPackage init key（`ak.mls.keypackage`）作为 envelope 接收键**——KeyPackage init key 是一次性 MLS join 材料，挪作通用 HPKE 接收键会破坏其一次性使用语义并构成跨协议密钥复用。
    - **scheme（normative）**：`scheme` MUST 为 [`../../artifacts/registry/hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 中的 active suite id（v1 default-MUST `ak.hpke_x25519_aead_chacha20poly1305.v1`，用法与 [`../crypto-media/device-lifecycle.md` §10.7](../crypto-media/device-lifecycle.md) 的 `ak.secret.send` 一致）；未登记 / 非 active suite MUST fail closed（`unsupported_hpke_suite`）。
-   - **HPKE `info` 域分隔与 AAD 绑定（normative）**：每个 recipient 的 HPKE 封装 MUST 使用 `info = "ak.realm.member_application.envelope.v1" || 0x00 || <realm_id> || 0x00 || <application_ref>`（三段以单字节 `0x00` 连接；`application_ref` 取 §7.2 的 `application_receipt_digest`，封装时刻 receipt 尚未生成的实现 MUST 改用 stage 1 `knock_ref` event id，并在 profile 中固定所选形态）。HPKE AAD MUST 是对 `{realm_id, applicant_did, application_ref, device_id}`（`device_id` 为该 recipient 的目标 device）的 canonical JSON（RFC 8785 JCS）。`info` 域分隔与 AAD 共同把密文绑定到目标 Realm、本次申请与接收设备，防止 envelope 被搬运到其它 Realm / application / device 重放或解封。
+   - **HPKE `info` 域分隔与 AAD 绑定（normative）**：每个 recipient 的 HPKE 封装 MUST 使用 `info = "ak.realm.member_application.envelope.v1" || 0x00 || <realm_id> || 0x00 || <application_ref>`（三段以单字节 `0x00` 连接；`application_ref` 取 §7.2 的 `application_receipt_digest`，封装时刻 receipt 尚未生成的实现 MUST 改用 stage 1 `knock_ref` event id，并在 profile 中固定所选形态）。HPKE AAD MUST 是对 `{realm_id, applicant_actor_id, application_ref, device_id}`（`device_id` 为该 recipient 的目标 device）的 canonical JSON（RFC 8785 JCS）。`info` 域分隔与 AAD 共同把密文绑定到目标 Realm、本次申请与接收设备，防止 envelope 被搬运到其它 Realm / application / device 重放或解封。
    - **recipients 上限**：`encryption_envelope.recipients[]` ≤ 64（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)）；超过时 MUST `schema_violation`。
 
 ```json
@@ -465,8 +465,8 @@ Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
     "info": "ak.realm.member_application.envelope.v1 || 0x00 || ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5 || 0x00 || sha256:...",
     "ciphertext": "base64url:...",
     "recipients": [
-      {"reviewer_did": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ak_device_01HV_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."},
-      {"reviewer_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:carol", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ak_device_01HW_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."}
+      {"reviewer_actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ak_device_01HV_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."},
+      {"reviewer_actor_id": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:carol", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ak_device_01HW_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."}
     ]
   }
 }

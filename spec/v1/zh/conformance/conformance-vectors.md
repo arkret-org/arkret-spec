@@ -742,7 +742,7 @@ Expected：前 13 类 `reason_code = invalid_cursor`（顶层错误码 `invalid_
 
 固化 Ed25519 公钥的 base58btc multibase 编码（含 `0xed01` multicodec 前缀）与 `did:key` 标识符的金向量，为联邦验签与设备密钥目录的公共编码面提供跨实现锚点。cases 覆盖 all-0x2A、all-0x00 边界与固定顺序字节三组公钥。
 
-Expected：`expected_multibase` / `expected_did_key` MUST byte-for-byte 复现；decode MUST round-trip 回原始 32 字节公钥，前缀非 `0xed01` 或长度非 34 字节 MUST 拒绝。
+Expected：`expected_multibase` / `expected_principal_id_key` MUST byte-for-byte 复现；decode MUST round-trip 回原始 32 字节公钥，前缀非 `0xed01` 或长度非 34 字节 MUST 拒绝。
 
 ### 1.12.2 Vector: Event 引用与 Circle 基数上限（normative）
 
@@ -2888,7 +2888,7 @@ Input — `ak.member.state{membership="join"}` Control Move payload：
 }
 ```
 
-预设：Realm policy `ak.realm.delivery_binding_policy` 声明 `allowed_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `ak:did_core:webvh:z6mkfixturePrincipal`、`required_endorsers` 含 `ak:did_core:webvh:z6mkfixtureAcme`，`service_acceptance_ref` 引用的 Event 由该 recipient service `core_id` 签发且 scope 覆盖该 Realm，并由 `required_endorsers` 中的组织 `core_id` 背书。
+预设：Realm policy `ak.realm.delivery_binding_policy` 声明 `allowed_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `ak:did_core:webvh:z6mkfixturePrincipal`、`required_endorsers` 含 `ak:did_core:webvh:z6mkfixtureAcme`，`service_acceptance_ref` 引用的 Event 由该 recipient service `did_core_id` 签发且 scope 覆盖该 Realm，并由 `required_endorsers` 中的组织 `did_core_id` 背书。
 
 期望：
 - reducer 接受 join Control Move；写入成员 cell。
@@ -2960,10 +2960,10 @@ Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `unroutable_mem
 
 1. **Initial join**（`F0`）：Alice join with personal service `recipient_service_id=ak:did_core:webvh:z6mkfixturePersonal` 及匹配的 `service_resolution`，accepted。
 2. **Events 流量**：Realm 内事件 `E1, E2` 进入因果图，sender 按该 verified route 投递。
-3. **Rebind**（`F1`）：Alice 提交同状态 `ak.member.state{membership="join"}` self-transition，新 binding 指向组织 Principal Server 的 service `core_id` 与新 `service_resolution`，签名按 `rebind_authorization` 规则。Control Move accepted。
+3. **Rebind**（`F1`）：Alice 提交同状态 `ak.member.state{membership="join"}` self-transition，新 binding 指向组织 Principal Server 的 service `did_core_id` 与新 `service_resolution`，签名按 `rebind_authorization` 规则。Control Move accepted。
 4. **Post-rebind events**：sender 投递 `E3, E4` 时观察 `service_binding_ref.delivery_binding_frontier`：
-   - sender frontier ≥ `F1` → 按新 binding 的 service `core_id` 与 verified route 投递；
-   - sender frontier 仍 `< F1` 且投到旧 route → 旧服务在 `handover_grace_seconds` 内接受并返回 `delivery_binding_stale + new_recipient_service_id=<new core_id> + handover_frontier=F1`；sender MUST 取得并验证新 binding carrier 后切换重试，**不得**回退到 DID Document。
+   - sender frontier ≥ `F1` → 按新 binding 的 service `did_core_id` 与 verified route 投递；
+   - sender frontier 仍 `< F1` 且投到旧 route → 旧服务在 `handover_grace_seconds` 内接受并返回 `delivery_binding_stale + new_recipient_service_id=<new did_core_id> + handover_frontier=F1`；sender MUST 取得并验证新 binding carrier 后切换重试，**不得**回退到 DID Document。
    - sender frontier ≥ `F1` 但仍投到旧 → 旧服务 reject `delivery_binding_handed_over`。
 5. **Grace 结束**：旧服务停止接受新 Realm S event；本地 to-device 队列、push registration、MLS group share state 进入 destruction。
 6. **撤销**：Alice 离职，Org-A 治理 key 提交 `ak.member.state{membership="leave"}` 或 `ak.capability.revoke`。`F2` 之后 sender MUST NOT 继续向新 binding route 投递该 Realm 的内容；MUST NOT 转而退回旧 personal route（DID Document fallback）；该 actor 在 Realm S 中变成 **non-member**。
@@ -3025,7 +3025,7 @@ Directory 返回 verified handle claim：
 
 ```json
 {
-  "did": "ak:did_core:webvh:z2dmjA1ice",
+  "principal_id": "ak:did_core:webvh:z2dmjA1ice",
   "subject": "ak:did_core:webvh:z2dmjA1ice",
   "handle": "alice:acme.example",
   "handle_aliases": [
@@ -3355,7 +3355,7 @@ Preconditions：
 
 - Realm 声明 `ak.profile.mls.minimal_metadata_realm.v1`；内容 Event `actor_id` 为 Realm-scoped pairwise `ActorId` core，且该 actor 的 current member cell 为 active。
 - Encrypted envelope 固定 `(group_id, epoch, key_ref.group_state_ref)`，该 accepted group state 有一条 active RFC 9420 basic credential identity 等于 `utf8(actor_id)` 的 LeafNode。
-- Event proof verification-method 的 bare base 是 canonical `did:key` FullId，adapter 投影逐字等于 `actor_id`；transport bearer session actor 可以不同，但只承担访问与限流。
+- Event proof verification-method 的 bare base 是 canonical `did:key` DidFullId，adapter 投影逐字等于 `actor_id`；transport bearer session actor 可以不同，但只承担访问与限流。
 
 Cases：
 
@@ -3656,7 +3656,7 @@ Expected：
 
 Steps：
 
-1. 构造 root-signed create + founding-device-signed authorize；第二条 Event 的 proof method 使用 founding principal 已验证 `full_id` 下的 DID URL，并让其 bare `full_id` 经 adapter 投影为 `principal_id`（`core_id`）、fragment 逐字等于 `device_id`，同时让 descriptor、payload digest、device/HPKE material 与 initial session request 全部一致；不得从 principal core 与 device fragment 拼接 verification method。
+1. 构造 root-signed create + founding-device-signed authorize；第二条 Event 的 proof method 使用 founding principal 已验证 `full_id` 下的 DID URL，并让其 bare `full_id` 经 adapter 投影为 `principal_id`（`did_core_id`）、fragment 逐字等于 `device_id`，同时让 descriptor、payload digest、device/HPKE material 与 initial session request 全部一致；不得从 principal core 与 device fragment 拼接 verification method。
 2. 分别 mutation root/device signature、lease fence、DPoP JKT、scope、Event order/prev_refs、descriptor fields与 payload digest。
 3. 尝试把 authorize Event id/envelope digest加入 root transcript，或把 second proof method改为 `did:key`。
 4. 并发提交两个不同 genesis unit；随后对 winner执行 root re-anchor。
@@ -3883,13 +3883,13 @@ Expected:
 Steps:
 
 1. 解析 Agent accepted inception DID Document，验证唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 的闭合四元组；扫描完整 DID version history 与公开 registry/notification/Event fixture。
-2. Verifier 生成签名 `ak.identity.presentation_request`，包含唯一 `request_id`、不可预测 `challenge`、`verifier_did`、`audience/domain` 与五分钟内 expiry；controller 经 TSP、HTTP/JWE、DIDComm-like、to-device 或 MLS DM 私有通道返回 `ak.schema.agent_requested_scope_disclosure.v1`。
-3. Verifier 验证 controller current proof、`payload_digest`、`agent_id/controller_id`、`verifier_did/audience`、`expires_at-issued_at <= 300s`，消费 `(verifier_did, request_id, challenge)`，并以披露 scope 重算 DID commitment。
+2. Verifier 生成签名 `ak.identity.presentation_request`，包含唯一 `request_id`、不可预测 `challenge`、`verifier_service_id`、`audience/domain` 与五分钟内 expiry；controller 经 TSP、HTTP/JWE、DIDComm-like、to-device 或 MLS DM 私有通道返回 `ak.schema.agent_requested_scope_disclosure.v1`。
+3. Verifier 验证 controller current proof、`payload_digest`、`agent_id/controller_id`、`verifier_service_id/audience`、`expires_at-issued_at <= 300s`，消费 `(verifier_service_id, request_id, challenge)`，并以披露 scope 重算 DID commitment。
 4. 负向变体依次为：公开 endpoint 加入完整 `requested_scope`；disclosure 改一个 resource/constraint 但保留旧 digest；错 verifier 或 audience；过期/超 300 秒窗口；重放已消费 challenge；把 disclosure 复制进 grant、authorize Event、notification 或 Realm plaintext。
 
 Expected:
 
-- 正向 disclosure 只作为加密 verifier-private evidence 接受；其缓存键至少为 `(agent_id, requested_scope_digest, verifier_did, audience)`，accepted-at DID/controller lifecycle 变化时重新验证或 fail closed。
+- 正向 disclosure 只作为加密 verifier-private evidence 接受；其缓存键至少为 `(agent_id, requested_scope_digest, verifier_service_id, audience)`，accepted-at DID/controller lifecycle 变化时重新验证或 fail closed。
 - 六类负向变体全部 fail closed。公开 DID history 与其它公共 fixture 中不得出现完整 scope；实现不得因 disclosure 本身“不授予能力”而放宽隐私检查。
 
 ### 11.1.1 Vector: Controller-scoped Agent Mention Selector
@@ -5450,7 +5450,7 @@ Expected：
 
 `vector_id`: `ak.vector.applet.transaction_source_signature_anchor.v1`
 
-本向量固化 applet transaction push 的逐次来源签名与幂等 replay MUST：`ak.edge.applet.command.transaction` 在 node→Applet 与 app/bridge→arkret inbound 两个方向都 MUST 携带 RFC 9421 HTTP Message Signature，covered components 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，签名参数含 `created` / `expires` 并满足 300s replay window；接收方 MUST 形成并持久化 `source_signature_anchor`，幂等 identity 绑定 `operation_id`、方向、source/destination service `core_id` 与 `Idempotency-Key`，缓存记录绑定 canonical body digest 与 source anchor。来源 service 签名不替代每条 Event 的 actor / applet / capability 校验。
+本向量固化 applet transaction push 的逐次来源签名与幂等 replay MUST：`ak.edge.applet.command.transaction` 在 node→Applet 与 app/bridge→arkret inbound 两个方向都 MUST 携带 RFC 9421 HTTP Message Signature，covered components 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，签名参数含 `created` / `expires` 并满足 300s replay window；接收方 MUST 形成并持久化 `source_signature_anchor`，幂等 identity 绑定 `operation_id`、方向、source/destination service `did_core_id` 与 `Idempotency-Key`，缓存记录绑定 canonical body digest 与 source anchor。来源 service 签名不替代每条 Event 的 actor / applet / capability 校验。
 
 Steps：
 
@@ -5464,7 +5464,7 @@ Expected：
 
 - **Case A**：MUST 接受或按事件级规则返回 partial outcome，并持久化 `source_signature_anchor`（绑定 operation、方向、source/destination、verification method、registration_epoch、`Idempotency-Key`、body digest、covered components、`created` / `expires`）与幂等 outcome。
 - **Case B**：MUST fail closed，HTTP 401，reason=`http_signature_required`；纯 bearer 不满足 transaction push 的 service-to-service 来源认证。
-- **Case C**：MUST 在处理任何 Event / 副作用前 fail closed，reason=`http_signature_invalid`；`Content-Digest` MUST 在 JSON 业务解析与验签前对 exact bytes 重算，header placement 与 wire canonical equality MUST 独立校验，source/destination service `core_id` mismatch 或 verification-method controller 投影不一致不得进入业务逻辑。parse-then-canonicalize、`sha256=:` alias、trailer-only digest 或 content coding 均不得通过。
+- **Case C**：MUST 在处理任何 Event / 副作用前 fail closed，reason=`http_signature_invalid`；`Content-Digest` MUST 在 JSON 业务解析与验签前对 exact bytes 重算，header placement 与 wire canonical equality MUST 独立校验，source/destination service `did_core_id` mismatch 或 verification-method controller 投影不一致不得进入业务逻辑。parse-then-canonicalize、`sha256=:` alias、trailer-only digest 或 content coding 均不得通过。
 - **Case D**：完全相同的 replay MUST 返回原 outcome 或等价成功且不得重复副作用；同一幂等 identity 但 body digest 或 `source_signature_anchor` 不一致时 MUST fail closed，认证已通过时 reason=`duplicate_conflict`，认证未通过时使用相应认证失败 reason。
 - **Case E**：无 active install MUST fail closed，reason=`applet_registration_unauthorized`；actor / namespace / grant 混淆 MUST fail closed（`applet_namespace_mismatch`、`capability_denied` 或 `applet_registration_unauthorized`），不得把来源 service 签名当成 native actor 授权。
 

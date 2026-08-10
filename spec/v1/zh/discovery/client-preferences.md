@@ -142,7 +142,7 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
       "entry_id": "ak:block:019640b3-cc00-7000-8000-000000000000",
       "target": {
         "kind": "actor",
-        "did": "ak:did_core:webvh:zGMfBAbnRTYqW4943CVr9Dcii"
+        "actor_id": "ak:did_core:webvh:zGMfBAbnRTYqW4943CVr9Dcii"
       },
       "mode": "block",
       "applies_to": [

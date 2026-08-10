@@ -63,8 +63,8 @@
     }
   ],
   "$defs": {
-    "did": {
-      "$ref": "./common-ids.schema.json#/$defs/core_id"
+    "did_core_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "strand_id": {
       "type": "string",
@@ -257,7 +257,7 @@
       ],
       "properties": {
         "requester": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "strand_id": {
           "$ref": "#/$defs/strand_id"
@@ -359,7 +359,7 @@
           "$ref": "#/$defs/hash"
         },
         "sender_actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         }
       },
       "additionalProperties": false
@@ -410,7 +410,7 @@
           "additionalProperties": false
         },
         "origin_provider": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "routing": {
           "type": "object",
@@ -421,7 +421,7 @@
             "target_providers": {
               "type": "array",
               "items": {
-                "$ref": "#/$defs/did"
+                "$ref": "#/$defs/did_core_id"
               },
               "uniqueItems": true
             }
@@ -476,7 +476,7 @@
       ],
       "properties": {
         "sender_actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
@@ -523,7 +523,7 @@
             "delivered_to": {
               "type": "array",
               "items": {
-                "$ref": "#/$defs/did"
+                "$ref": "#/$defs/did_core_id"
               },
               "uniqueItems": true
             }
@@ -588,7 +588,7 @@
       ],
       "properties": {
         "requester_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "target": {
           "$ref": "#/$defs/consent_target"
@@ -658,7 +658,7 @@
           ]
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/core_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "consent_event": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
@@ -804,7 +804,7 @@
           "maxItems": 1000
         },
         "requester": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "privacy_profile": {
           "$ref": "#/$defs/non_empty_string"
@@ -841,7 +841,7 @@
                 "$ref": "#/$defs/mimi_uri"
               },
               "subject": {
-                "$ref": "#/$defs/did"
+                "$ref": "#/$defs/did_core_id"
               }
             },
             "additionalProperties": false
@@ -878,7 +878,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "reporter": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "abuse_reason_code": {
           "$ref": "#/$defs/non_empty_string"
@@ -912,7 +912,7 @@
         "routed_to": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/did"
+            "$ref": "#/$defs/did_core_id"
           },
           "uniqueItems": true
         }
@@ -937,7 +937,7 @@
           ]
         },
         "requester": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did_core_id"
         },
         "strand_id": {
           "$ref": "#/$defs/strand_id"
@@ -956,7 +956,7 @@
               "$ref": "#/$defs/hash"
             },
             "relay_provider": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did_core_id"
             },
             "encapsulated_request": {
               "$ref": "#/$defs/base64url"

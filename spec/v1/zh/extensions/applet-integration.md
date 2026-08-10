@@ -194,8 +194,8 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 ### 4.1 Registration 规则
 
 - `applet_id` MUST 稳定。
-- `service_id` MUST 是稳定 service `core_id`；注册时提供的 `full_id` 必须经 adapter 投影到它，当前 endpoint 通过 verified ServiceResolutionRecord 取得。
-- `controller_id` MUST 是 controller `core_id`；registration proof VM 的 bare `full_id` 必须经 adapter 投影到它并通过签名验证。
+- `service_id` MUST 是稳定 service `did_core_id`；注册时提供的 `full_id` 必须经 adapter 投影到它，当前 endpoint 通过 verified ServiceResolutionRecord 取得。
+- `controller_id` MUST 是 controller `did_core_id`；registration proof VM 的 bare `full_id` 必须经 adapter 投影到它并通过签名验证。
 - `claimed_profiles` MUST 从已验证 package 原样复制到 durable registration，至少包含
   `ak.profile.applet_service.v1`；profile-bound authority 只读取 accepted Event，不得读取
   preview/package cache。
@@ -405,10 +405,10 @@ Base URL 来自 registration 的 `base_url`。
 
 | operation_id | surface / 调用方向 | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- | --- |
-| `ak.edge.applet.read.ping` | edge（节点→Applet） | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_id: core_id`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
-| `ak.edge.applet.read.describe` | edge（节点→Applet） | 无 | 无 | `applet_id: id`; `service_id: core_id`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |
-| `ak.edge.applet.command.transaction` | edge（节点→Applet） | `header.Idempotency-Key: string`; `source_service_id: core_id`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service `core_id`、对应 full/VM 投影、HTTP signature、event signature、namespace 和 capability。 |
-| `ak.edge.applet.actor.read.resolve` | edge（节点→Applet） | `path.actor_id: core_id` | 无 | `exists: boolean`; `actor_id: core_id?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
+| `ak.edge.applet.read.ping` | edge（节点→Applet） | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_id: did_core_id`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
+| `ak.edge.applet.read.describe` | edge（节点→Applet） | 无 | 无 | `applet_id: id`; `service_id: did_core_id`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |
+| `ak.edge.applet.command.transaction` | edge（节点→Applet） | `header.Idempotency-Key: string`; `source_service_id: did_core_id`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service `did_core_id`、对应 full/VM 投影、HTTP signature、event signature、namespace 和 capability。 |
+| `ak.edge.applet.actor.read.resolve` | edge（节点→Applet） | `path.actor_id: did_core_id` | 无 | `exists: boolean`; `actor_id: did_core_id?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
 | `ak.edge.applet.realm.read.resolve` | edge（节点→Applet） | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
 | `ak.edge.applet.read.protocol_metadata` | edge（节点→Applet） | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_definitions: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
 | `ak.edge.applet.third_party_users.read.list` | edge（节点→Applet） | `query.protocol: string`; 外部 ID query 字段 | 无 | `actor_id: did?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 registration namespace 内。 |
@@ -527,14 +527,14 @@ Arkret Sync Service / Events API 向 Applet 推送事件批次。
 transaction push 是 service↔service 调用，**两个方向**都 MUST 携带**逐次投递**的 RFC 9421 HTTP Message Signature（per-delivery source signature），接收方 MUST 在处理任何 event / 副作用前先验签；纯 `Authorization: Bearer`（无 `Signature`）的 transaction push MUST 被拒绝。两方向不可只靠 bearer，也不可只在首次握手时验签一次：
 
 - **node → Applet**（§7.3 上文，Arkret 节点向 Applet 推送）：Applet 端 MUST 按 `Source-Service-ID` 的 accepted service key binding 取得当前有效 verification method，并逐次验证 HTTP Message Signature；逐次验签不等于逐次在线解析 DID。新 service / key、binding invalidation 或显式 freshness 失效时才进入 DID authority resolution。`Destination-Service-ID` MUST 等于接收 Applet registration 的 `service_id`。Applet registration 的 `webhook_auth` 在该方向声明 transaction endpoint 要求 `http_message_signature` 与可接受算法；`webhook_auth.key_ref` MUST NOT 被解释成任意 Arkret 节点的来源 key。
-- **app/bridge → arkret edge inbound**（`POST /_arkret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 arkret edge 推送外部网络 transaction）：arkret edge 接收方 MUST 先用 `Source-Service-ID`（service `core_id`）找到 active effective install（§4b.1）与当前 effective Applet registration，再要求签名 `keyid` / verification method 等于该 registration 的 `webhook_auth.key_ref`；接收方从该 DID URL 取得 bare controller `full_id`，用已登记 adapter 验证并要求 `project(full_id) == registration.service_id == Source-Service-ID`，不得把 full DID 与 core header 直接比较，并逐次验签。缺签名、签名无效、投影不一致、`webhook_auth.key_ref` 未被该 Applet service 当前状态授权或无 active install 时 MUST fail closed。
+- **app/bridge → arkret edge inbound**（`POST /_arkret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 arkret edge 推送外部网络 transaction）：arkret edge 接收方 MUST 先用 `Source-Service-ID`（service `did_core_id`）找到 active effective install（§4b.1）与当前 effective Applet registration，再要求签名 `keyid` / verification method 等于该 registration 的 `webhook_auth.key_ref`；接收方从该 DID URL 取得 bare controller `full_id`，用已登记 adapter 验证并要求 `project(full_id) == registration.service_id == Source-Service-ID`，不得把 full DID 与 core header 直接比较，并逐次验签。缺签名、签名无效、投影不一致、`webhook_auth.key_ref` 未被该 Applet service 当前状态授权或无 active install 时 MUST fail closed。
 
 **覆盖 header 集（MUST，与 [`../sync/federation.md` §3.2](../sync/federation.md) service-to-service 签名对称）**：签名 transcript MUST 覆盖以下 RFC 9421 derived components 与 header：
 
 - `@method`、`@target-uri`、`@authority`
 - `content-digest`（按 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 覆盖 exact canonical HTTP content bytes；transaction push 总是带 body，故 MUST 携带唯一 `sha-256` member 的 `Content-Digest`）
 - `source-service-id`（header `Source-Service-ID`，等于 body `source_service_id`）
-- `destination-service-id`（header `Destination-Service-ID`，等于接收方 service `core_id`）
+- `destination-service-id`（header `Destination-Service-ID`，等于接收方 service `did_core_id`）
 - `idempotency-key`（header `Idempotency-Key`；参与幂等 / replay key，MUST 进入 transcript）
 - 签名 parameters MUST 含 `created` 与 `expires`；时效窗口判据沿用 [`../sync/federation.md` §3.2](../sync/federation.md)（`expires - created` ≤ 300s、`created` ±30s skew、`expires` 未过期），落在窗口外的逐字节重放即便 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝。
 
