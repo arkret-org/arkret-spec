@@ -99,9 +99,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/forbidden-wire-fields.json",
-      "version": 12,
+      "version": 13,
       "generated_at": null,
-      "content_digest": "sha256:1a6e971b9fe5dcb712dc3df380db3d5c2b052650807f728ba6ad3241875e4dae"
+      "content_digest": "sha256:72f83ed669de8c3fa93ac13a51441fa5a7c07cc84d24a5e547e4d5a93ae2f5ab"
     },
     {
       "path": "spec/v1/artifacts/registry/hpke-suite-registry.json",

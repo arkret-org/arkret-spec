@@ -335,7 +335,7 @@ consent 的去重 / 撤销键含 `intent.peer`（counterparty DID 或 pairwise D
 
 为收敛该局限，对反骚扰能力作如下要求：
 
-- **聚合 revoke（SHOULD）**：当 holder 客户端能够在本地把多个 pairwise DID link 到同一真实主体（例如经 [`identity-did.md` §4.2`](./identity-did.md) continuity proof、holder 本地维护的 contact↔pairwise 映射、或 holder 显式标注"这些都是同一人"）时，反骚扰 / block UI **SHOULD** 提供"聚合 revoke"：一次操作对该主体名下 holder 已知的全部 pairwise `(consent_id, peer)` 入口分别构造 `ak.consent.revoke`，并对后续来自这些已知 pairwise DID 的 quarantine 暂存项默认丢弃，而非逐个 peer 手动撤销。该 link 判定是 holder-side 本地能力，不进入 consent cell 的 wire 语义，也不要求 holder 向任何 peer 或服务端披露 pairwise 关联。
+- **聚合 revoke（SHOULD）**：当 holder 客户端能够在本地把多个 pairwise DID link 到同一真实主体（例如 holder 本地维护的 contact↔pairwise 映射，或 holder 显式标注"这些都是同一人"）时，反骚扰 / block UI **SHOULD** 提供"聚合 revoke"：一次操作对该主体名下 holder 已知的全部 pairwise `(consent_id, peer)` 入口分别构造 `ak.consent.revoke`，并对后续来自这些已知 pairwise DID 的 quarantine 暂存项默认丢弃，而非逐个 peer 手动撤销。该 link 只是 holder-side 本地组织能力，不构成跨 `core_id` 身份等价，不进入 consent cell 的 wire 语义，也不要求 holder 向任何 peer 或服务端披露 pairwise 关联。
 - **协议局限披露（SHOULD）**：UI **SHOULD** 向 holder 明示：单条 consent revoke 只对一个 pairwise DID 生效；对方更换 pairwise DID 后可能重新进入 quarantine inbox，聚合 revoke 仅覆盖 holder 客户端**当前已能 link** 的 pairwise DID，无法阻止 holder 尚未识别为同一主体的全新 pairwise DID。
 - **profile 边界**：`require_explicit_consent` profile 下该反骚扰面更小——无 active grant 的 invite（无论换不换 pairwise DID）一律 §6.1 step 2 `failed_precondition` 直接拒绝、不进入 quarantine inbox，骚扰者换 pairwise DID 也得不到 holder 侧的待 review 入口或任何可联系信号（§6.1.1 不向 requester 暴露可联系信号）。该 profile 因此把 pairwise 切换骚扰面收敛为"必须先获得 holder 显式 grant 才能产生任何 holder-visible 入口"。
 
