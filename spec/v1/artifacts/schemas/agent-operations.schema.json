@@ -200,7 +200,8 @@
           "$ref": "#/$defs/opaque_local_id"
         },
         "audience": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Stable target-service authorization identity; any verification_method remains a DID URL whose bare full DID MUST project to this core_id."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -396,7 +397,7 @@
       ],
       "properties": {
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
@@ -465,7 +466,7 @@
       ],
       "properties": {
         "agent_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "controller_id": {
           "$ref": "./common-ids.schema.json#/$defs/core_id"
@@ -1414,7 +1415,7 @@
           "$ref": "./account-operations.schema.json#/$defs/dpop_jkt"
         },
         "audience": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "origin": {
           "type": "string",

@@ -227,7 +227,8 @@
           "$ref": "#/$defs/sha256_digest"
         },
         "audience": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "./common-ids.schema.json#/$defs/core_id",
+          "description": "Stable target-service authorization identity. A complete service DID used for signature verification is supplied separately and MUST project to this core_id."
         },
         "issued_at": {
           "$ref": "#/$defs/timestamp"
@@ -315,7 +316,7 @@
           "description": "DPoP holder thumbprint echoed by the durable challenge."
         },
         "audience": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "origin": {
           "$ref": "#/$defs/non_empty_string"
@@ -375,7 +376,7 @@
           "description": "sha256:<lowercase-hex> of SHA-256 over RFC 8785 JCS bytes of the complete account_handoff_request_body with proof.request_canonical_digest and proof.signature omitted."
         },
         "audience": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "issuer": {
           "type": "string",
@@ -731,7 +732,7 @@
           "$ref": "#/$defs/dpop_jkt"
         },
         "audience": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "origin": {
           "type": "string",
@@ -860,7 +861,7 @@
           "$ref": "#/$defs/dpop_jkt"
         },
         "audience": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "origin": {
           "type": "string",
@@ -1878,7 +1879,7 @@
           "$ref": "#/$defs/dpop_jkt"
         },
         "audience": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "origin": {
           "$ref": "#/$defs/non_empty_string"
@@ -1997,7 +1998,7 @@
           "$ref": "#/$defs/dpop_jkt"
         },
         "audience": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/core_id"
         },
         "origin": {
           "type": "string",
