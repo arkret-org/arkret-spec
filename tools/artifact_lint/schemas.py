@@ -2308,20 +2308,96 @@ def check_did_and_device_constraints(lint: Lint) -> None:
     common_ids_path = ARTIFACTS / "schemas" / "common-ids.schema.json"
     common_defs = schema_docs.get("common-ids.schema.json", {}).get("$defs", {})
     long_lived = common_defs.get("long_lived_principal_full_id", {})
-    ephemeral = common_defs.get("ephemeral_pairwise_principal_full_id", {})
-    if not isinstance(long_lived, dict) or not str(long_lived.get("pattern", "")).startswith(
-        "^did:webvh:"
-    ):
+
+    adapter_registry_path = ARTIFACTS / "registry" / "did-method-adapter-registry.json"
+    adapter_registry = load_json(lint, adapter_registry_path)
+    role_requirements = adapter_registry.get("role_requirements", {}) if isinstance(adapter_registry, dict) else {}
+    adapters = adapter_registry.get("adapters", []) if isinstance(adapter_registry, dict) else []
+    if not isinstance(role_requirements, dict):
+        lint.fail(adapter_registry_path, "role_requirements must be an object")
+        role_requirements = {}
+    if not isinstance(adapters, list):
+        lint.fail(adapter_registry_path, "adapters must be an array")
+        adapters = []
+
+    def methods_eligible_for(role: str) -> list[str]:
+        requirement = role_requirements.get(role)
+        if not isinstance(requirement, dict):
+            lint.fail(adapter_registry_path, f"role_requirements.{role} must be an object")
+            return []
+        required = requirement.get("required_adapter_properties")
+        if not isinstance(required, dict) or not required:
+            lint.fail(
+                adapter_registry_path,
+                f"role_requirements.{role}.required_adapter_properties must be a non-empty object",
+            )
+            return []
+        conditional = requirement.get("conditional_adapter_properties", [])
+        if not isinstance(conditional, list):
+            lint.fail(
+                adapter_registry_path,
+                f"role_requirements.{role}.conditional_adapter_properties must be an array",
+            )
+            return []
+
+        eligible: list[str] = []
+        for index, adapter in enumerate(adapters):
+            if not isinstance(adapter, dict) or adapter.get("status") != "active":
+                continue
+            method = adapter.get("method")
+            if not isinstance(method, str) or not method:
+                lint.fail(adapter_registry_path, f"adapters[{index}].method must be a non-empty string")
+                continue
+            if any(field not in adapter for field in required):
+                missing = sorted(field for field in required if field not in adapter)
+                lint.fail(
+                    adapter_registry_path,
+                    f"adapters[{index}] is missing role property/properties: {', '.join(missing)}",
+                )
+                continue
+            if any(adapter.get(field) != expected for field, expected in required.items()):
+                continue
+            conditional_match = True
+            for condition_index, condition in enumerate(conditional):
+                if not isinstance(condition, dict):
+                    lint.fail(
+                        adapter_registry_path,
+                        f"role_requirements.{role}.conditional_adapter_properties[{condition_index}] must be an object",
+                    )
+                    conditional_match = False
+                    continue
+                when = condition.get("when")
+                required_when_matched = condition.get("require")
+                if not isinstance(when, dict) or not when or not isinstance(required_when_matched, dict) or not required_when_matched:
+                    lint.fail(
+                        adapter_registry_path,
+                        f"role_requirements.{role}.conditional_adapter_properties[{condition_index}] must contain non-empty when and require objects",
+                    )
+                    conditional_match = False
+                    continue
+                if all(adapter.get(field) == expected for field, expected in when.items()) and any(
+                    adapter.get(field) != expected for field, expected in required_when_matched.items()
+                ):
+                    conditional_match = False
+            if conditional_match:
+                eligible.append(method)
+        return eligible
+
+    principal_methods = methods_eligible_for("long_lived_principal")
+    service_methods = methods_eligible_for("service")
+    actor_methods = methods_eligible_for("realm_local_ephemeral_actor")
+
+    long_lived_pattern = str(long_lived.get("pattern", "")) if isinstance(long_lived, dict) else ""
+    principal_schema_matches_registry = bool(principal_methods) and (
+        long_lived_pattern.startswith(f"^{principal_methods[0]}:")
+        if len(principal_methods) == 1
+        else all(f"{method}:" in long_lived_pattern for method in principal_methods)
+    )
+    if not principal_schema_matches_registry:
         lint.fail(
             common_ids_path,
-            "$defs.long_lived_principal_full_id must be a closed did:webvh schema",
-        )
-    if not isinstance(ephemeral, dict) or not str(ephemeral.get("pattern", "")).startswith(
-        "^did:key:"
-    ):
-        lint.fail(
-            common_ids_path,
-            "$defs.ephemeral_pairwise_principal_full_id must be a closed did:key schema",
+            "$defs.long_lived_principal_full_id must admit the registry-derived long-lived principal methods "
+            f"{principal_methods!r}",
         )
 
     account_schema_path = ARTIFACTS / "schemas" / "account-operations.schema.json"
@@ -2333,7 +2409,7 @@ def check_did_and_device_constraints(lint: Lint) -> None:
     if account_full_id.get("$ref") != "./common-ids.schema.json#/$defs/long_lived_principal_full_id":
         lint.fail(
             account_schema_path,
-            "account registration full_id must use the closed long-lived did:webvh principal schema",
+            "account registration full_id must use the closed registry-derived long-lived principal schema",
         )
 
     principal_schema_path = ARTIFACTS / "schemas" / "principal-operations.schema.json"
@@ -2347,7 +2423,7 @@ def check_did_and_device_constraints(lint: Lint) -> None:
     if pcr_full_id.get("$ref") != "./common-ids.schema.json#/$defs/long_lived_principal_full_id":
         lint.fail(
             principal_schema_path,
-            "account-authority PCR genesis full_id must use the closed long-lived did:webvh schema",
+            "account-authority PCR genesis full_id must use the closed registry-derived long-lived principal schema",
         )
 
     realm_genesis_path = ARTIFACTS / "schemas" / "realm-genesis.schema.json"
@@ -2357,51 +2433,83 @@ def check_did_and_device_constraints(lint: Lint) -> None:
         if required_token not in realm_genesis_text:
             lint.fail(
                 realm_genesis_path,
-                f"identity-control genesis must use the closed did:webvh principal branch: missing {required_token}",
+                f"identity-control genesis must use the closed registry-derived long-lived principal branch: missing {required_token}",
             )
-    for forbidden_token in ("#/$defs/ephemeral_pairwise_principal_full_id",):
-        if forbidden_token in realm_genesis_text:
-            lint.fail(
-                realm_genesis_path,
-                f"ephemeral pairwise actors are MLS LeafNode-bound and must not enter PCR genesis: found {forbidden_token}",
-            )
-    ephemeral_profile_forbidden = any(
-        isinstance(branch, dict)
-        and branch.get("then", {})
-        .get("properties", {})
-        .get("schema_refs", {})
-        .get("not", {})
-        .get("contains", {})
-        .get("const")
-        == "ak.profile.ephemeral_pairwise_principal.v1"
-        for branch in realm_genesis_doc.get("allOf", [])
-    ) if isinstance(realm_genesis_doc, dict) else False
-    if not ephemeral_profile_forbidden:
-        lint.fail(
-            realm_genesis_path,
-            "identity-control genesis must explicitly forbid the ephemeral pairwise profile in schema_refs",
-        )
-
     profiles_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
     profiles_doc = load_json(lint, profiles_path)
     profiles = profiles_doc.get("profile_requirements", {}) if isinstance(profiles_doc, dict) else {}
     if not isinstance(profiles, dict):
         lint.fail(profiles_path, "profiles must be an object")
         profiles = {}
-    ephemeral_profile = profiles.get("ak.profile.ephemeral_pairwise_principal.v1")
-    if not isinstance(ephemeral_profile, dict):
-        lint.fail(profiles_path, "missing ak.profile.ephemeral_pairwise_principal.v1")
-    else:
-        identity = ephemeral_profile.get("identity", {})
-        if identity.get("allowed_principal_methods") != ["did:key"]:
+    actor_profile_ids = sorted(
+        profile_id
+        for profile_id, profile in profiles.items()
+        if isinstance(profile, dict)
+        and isinstance(profile.get("identity"), dict)
+        and "allowed_actor_methods" in profile["identity"]
+    )
+    if not actor_profile_ids:
+        lint.fail(profiles_path, "at least one profile must declare allowed_actor_methods")
+    for actor_profile_id in actor_profile_ids:
+        actor_profile_forbidden = any(
+            isinstance(branch, dict)
+            and branch.get("then", {})
+            .get("properties", {})
+            .get("schema_refs", {})
+            .get("not", {})
+            .get("contains", {})
+            .get("const")
+            == actor_profile_id
+            for branch in realm_genesis_doc.get("allOf", [])
+        ) if isinstance(realm_genesis_doc, dict) else False
+        if not actor_profile_forbidden:
+            lint.fail(
+                realm_genesis_path,
+                f"identity-control genesis must explicitly forbid actor-method profile {actor_profile_id} in schema_refs",
+            )
+    for profile_id, profile in profiles.items():
+        if not isinstance(profile, dict):
+            continue
+        identity = profile.get("identity")
+        if not isinstance(identity, dict):
+            continue
+        if "allowed_principal_methods" in identity and identity.get("allowed_principal_methods") != principal_methods:
             lint.fail(
                 profiles_path,
-                "ephemeral pairwise profile must admit exactly did:key",
+                f"{profile_id}.identity.allowed_principal_methods must equal the registry-derived long-lived principal allowlist {principal_methods!r}",
+            )
+        if "principal_method_default" in identity and identity.get("principal_method_default") not in principal_methods:
+            lint.fail(
+                profiles_path,
+                f"{profile_id}.identity.principal_method_default must be in the registry-derived long-lived principal allowlist {principal_methods!r}",
+            )
+        if "service_method_default" in identity:
+            if identity.get("allowed_service_methods") != service_methods:
+                lint.fail(
+                    profiles_path,
+                    f"{profile_id}.identity.allowed_service_methods must equal the registry-derived service allowlist {service_methods!r}",
+                )
+            if identity.get("service_method_default") not in service_methods:
+                lint.fail(
+                    profiles_path,
+                    f"{profile_id}.identity.service_method_default must be in the registry-derived service allowlist {service_methods!r}",
+                )
+        if "allowed_actor_methods" not in identity:
+            continue
+        if identity.get("allowed_actor_methods") != actor_methods:
+            lint.fail(
+                profiles_path,
+                f"{profile_id}.identity.allowed_actor_methods must equal the registry-derived Realm-local ephemeral actor allowlist {actor_methods!r}",
+            )
+        if identity.get("actor_method_default") not in actor_methods:
+            lint.fail(
+                profiles_path,
+                f"{profile_id}.identity.actor_method_default must be in the registry-derived Realm-local ephemeral actor allowlist {actor_methods!r}",
             )
         if identity.get("long_lived_principal") is not False:
             lint.fail(
                 profiles_path,
-                "ephemeral pairwise profile must set long_lived_principal=false",
+                f"{profile_id}.identity.long_lived_principal must be false for an actor-method profile",
             )
         expected_closed_flags = {
             "account_registration_allowed": False,
@@ -2414,23 +2522,12 @@ def check_did_and_device_constraints(lint: Lint) -> None:
             if identity.get(field) != expected:
                 lint.fail(
                     profiles_path,
-                    f"ephemeral pairwise profile identity.{field} must equal {expected!r}",
+                    f"{profile_id}.identity.{field} must equal {expected!r} for an actor-method profile",
                 )
-        if ephemeral_profile.get("required_event_kinds") != []:
+        if profile.get("required_event_kinds") != []:
             lint.fail(
                 profiles_path,
-                "ephemeral pairwise profile must not require PCR/device lifecycle Event kinds",
-            )
-    for profile_id, profile in profiles.items():
-        if profile_id == "ak.profile.ephemeral_pairwise_principal.v1" or not isinstance(profile, dict):
-            continue
-        identity = profile.get("identity")
-        if not isinstance(identity, dict) or "allowed_principal_methods" not in identity:
-            continue
-        if identity.get("allowed_principal_methods") != ["did:webvh"]:
-            lint.fail(
-                profiles_path,
-                f"{profile_id}.identity.allowed_principal_methods must equal the closed long-lived principal allowlist ['did:webvh']",
+                f"{profile_id} must not require PCR/device lifecycle Event kinds when it declares allowed_actor_methods",
             )
 
     openapi = load_yaml(lint, openapi_path)
@@ -2742,4 +2839,3 @@ def check_fsm_state_reachability(lint: Lint) -> None:
                 "failing state or transition; delete the row now that the "
                 "machine contract carries the write",
             )
-

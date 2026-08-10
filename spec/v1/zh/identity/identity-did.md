@@ -27,12 +27,14 @@ DID / DID URL 字段总表，以及“何时只把 DID 当作身份锚点、何�
 边界见 [`did-usage-and-verification.md`](./did-usage-and-verification.md)。本文只定义真正进入
 DID authority path 后的方法、证据与解析规则，不要求普通业务路径重复解析 DID。
 
-Arkret v1 不定义、注册或推荐任何自有 DID method。v1 主体创建面使用封闭 method 集：可注册、可拥有
-账号/PCR 的长期 principal MUST 使用 `did:webvh`；显式声明 `ak.profile.ephemeral_pairwise_principal.v1`
-的 Realm-local 临时 pairwise actor MAY 使用 `did:key`，但它只由 exact MLS LeafNode 约束且不进入
-账号/PCR/设备目录；service 默认使用 `did:webvh`，并 MAY 在显式 no-history service profile
-下使用 `did:web`。未被该封闭集合和对应 profile 登记的 method MUST `unsupported_did_method`，本地
-trust policy 不得自行扩大可互操作的 principal 创建面。
+Arkret v1 不定义、注册或推荐任何自有 DID method。v1 主体创建面使用由
+[`did-method-adapter-registry.json`](../../artifacts/registry/did-method-adapter-registry.json)
+`role_requirements` 从 active adapter 客观属性推导的封闭 method 集。当前可注册、可拥有账号/PCR 的
+长期 principal method 只有 `did:webvh`；显式声明 `ak.profile.ephemeral_pairwise_principal.v1` 的
+Realm-local 临时 pairwise actor method 只有 `did:key`，且它只由 exact MLS LeafNode 约束、不进入
+账号/PCR/设备目录；service method 集为 `did:webvh` 与 `did:web`，默认使用前者，后者只用于显式
+no-history service profile。未满足对应角色要求或未登记为 active adapter 的 method MUST
+`unsupported_did_method`，本地 trust policy 不得自行扩大可互操作的角色准入面。
 
 ## 2. 核心原则
 
@@ -61,7 +63,7 @@ ak:did_core:<method>:<core>
 
 这些标识是 user-facing identifier、service account id、handle、3PID 或 bridge alias；它们不是协议主键。实现首次建立账号、session、device、membership、federation peer 或 service delegation 信任绑定时，MUST 要求提交 `full_id`，用已登记 method adapter 独立验证并投影为 principal `core_id`，再绑定到 device。后续持久 Event 仍须逐条验签与授权，但命中既有 accepted auth-state / key epoch 时 MUST 复用该绑定，不得把每次 Event 接收都解释为重新解析 DID。
 
-如果用户尚无显式 DID，Auth Server MAY 编排 account-first onboarding，但 principal identity root 与 entry 0 必须由客户端生成、保管并签名；Auth Server/identity registry 只能在自有域名下托管客户端已签名的 `did.jsonl` 并提供 witness 接入，不得代用户生成或持有 root。Arkret v1 长期 principal method 是 `did:webvh`；service 默认同样使用 `did:webvh`，仅显式 no-history service profile 可使用 `did:web`。hosting outage 只允许 §3.4 cache-only degraded mode，不得 live fallback。hosted log 的 method history、witness 与 service-account binding 必须可审计；设备目录、recovery policy、当前 resolution 发布和业务授权存在于 PCR，hosting 所有权不等于 DID 控制权。
+如果用户尚无显式 DID，Auth Server MAY 编排 account-first onboarding，但 principal identity root 与 entry 0 必须由客户端生成、保管并签名；Auth Server/identity registry 只能在自有域名下托管客户端已签名的 `did.jsonl` 并提供 witness 接入，不得代用户生成或持有 root。Arkret v1 当前唯一满足长期 principal 角色要求的 active adapter 是 `did:webvh`；service 默认同样使用 `did:webvh`，仅显式 no-history service profile 可使用 `did:web`。hosting outage 只允许 §3.4 cache-only degraded mode，不得 live fallback。hosted log 的 method history、witness 与 service-account binding 必须可审计；设备目录、recovery policy、当前 resolution 发布和业务授权存在于 PCR，hosting 所有权不等于 DID 控制权。
 
 #### 2.1.2 `core_id` / `full_id` 模型（normative）
 
@@ -74,6 +76,14 @@ full_id ≅ core_id + method-specific resolution
 
 上式是语义关系，不是通用字符串拼接算法。实现 MUST NOT 用截断、分隔符切割、模板拼接或把任意 resolution suffix 附到 `core_id` 的方式构造 `full_id`；只有 [`did-method-adapter-registry.json`](../../artifacts/registry/did-method-adapter-registry.json) 登记的 method adapter 可以执行 `parse`、`project`、`resolve`、canonicalization 与 DID URL 构造。adapter MUST 拒绝无法产生唯一 `core_id` 的输入。
 
+同一 registry 的 `role_requirements` 是 method 角色资格的机读真相源。adapter 行只声明
+`self_certifying_genesis`、`verifiable_control_history`、`pre_rotation_commitment`、
+`has_update_operation`、`network_resolved_document`、`native_history` 与
+`history_evidence_kind` 等客观属性；角色只声明所需属性。实现 MUST 从 active adapter 行推导
+长期 principal、service 与 Realm-local ephemeral actor 的允许集合，不得维护独立手工 allowlist。
+`native_history=false` 的 service adapter 只有在 `history_evidence_kind="none"` 时才满足 service
+角色要求，不能把合成 current-document 摘要宣称为 method-native history。
+
 以下边界固定：
 
 - Event `actor_id`、principal / service reference、membership、capability subject 与业务数据库稳定关联使用 `core_id`。
@@ -85,8 +95,9 @@ full_id ≅ core_id + method-specific resolution
 
 普通密钥轮换 SHOULD NOT 改变 DID。
 
-长期 principal DID MUST 使用支持 key rotation、recovery、deactivation 与可验证历史的 v1
-`did:webvh` adapter。`did:key` 只允许用于显式 `ak.profile.ephemeral_pairwise_principal.v1` 的
+长期 principal DID MUST 使用满足 registry `role_requirements.long_lived_principal` 的 active
+adapter；当前唯一满足者是 v1 `did:webvh` adapter。`did:key` 只允许用于显式
+`ak.profile.ephemeral_pairwise_principal.v1` 的
 Realm-local 临时 pairwise actor；它不创建账号、PCR 或设备授权链。邀请、bootstrap 或测试若没有
 声明该 profile，也不得借用 `did:key` 创建普通 principal。`did:pkh`、`did:plc` 与其它 method 不属于 v1 principal 创建面，Realm / organization
 本地 policy 不得把它们加入该封闭 allowlist。（设备不在此列——设备不是独立 DID 主体，其密钥是所属
@@ -108,7 +119,8 @@ Managed Agent 的完整 `requested_scope`（包括 resource selector 与 mandato
 
 ## 3. 默认 DID 方法
 
-Arkret v1 core 部署的 **唯一长期 principal DID method 与 default service DID method 都是 `did:webvh`**：
+Arkret v1 core 部署当前唯一满足长期 principal 角色要求的 active adapter 与 default service DID
+method 都是 `did:webvh`：
 
 ```text
 did:webvh:<scid>:<host-and-path>
@@ -125,10 +137,11 @@ did:webvh:<scid>:<host-and-path>
 
 为什么 `did:web` 不能进入 v1 principal allowlist：`did:web` 没有可验证 DID 文档历史，攻击者控制 hosting domain 后可以把 DID Document 替换成自己的 `verificationMethod` 而 verifier 无从检测。把它用于长期 principal 会让协议安全模型整体退化到 DNS+TLS 强度。
 
-`did:webvh` 在长期 principal 创建面不是可被用户或部署覆盖的默认值，而是封闭 allowlist 的唯一值。
+`did:webvh` 在长期 principal 创建面不是可被用户或部署覆盖的默认值，而是当前角色属性推导结果的唯一值。
 扩展实现可以解析其它 method 的外部材料，但不得把“能够解析”解释为“能够创建 v1 principal”；未来
-新增长期 principal method 必须先在规范登记 adapter、创建 profile、完整历史/恢复安全要求与 conformance
-vector，不能由实现本地开启。
+新增长期 principal method 必须先在规范登记 adapter 客观属性、完整历史/恢复安全要求与 conformance
+vector，并满足 `role_requirements.long_lived_principal`；不能由实现本地开启。v1 core 实现 MUST 支持
+`did:webvh:1.0` adapter，以保证 mandatory-to-implement 的联邦互验基线。
 
 > **残留暴露面与 Key Transparency profile（informative）**：本条已在 [`../security/server-threat-model.md` §2.1a](../security/server-threat-model.md) 登记为**知情接受的 residual risk**，两处必须同步维护。`did:webvh` 的 `did.jsonl` hash chain + 可选 witness 提供的是**单个 DID 自身**控制权变更的可验证性。它**不**提供跨命名空间、可被任意第三方持续 monitor 的全局 Key Transparency 账本（CONIKS / Apple Contact Key Verification 类）。因此 v1 目录层的 equivocation 检测依赖各 DID 自身的 witness 覆盖与 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) 的资源自签名；显式 no-history `did:web` service 的针对性 split-view 是已知残留暴露面，但不再扩散到 principal。实现 MAY 声明可选 identity extension profile `ak.profile.key_transparency.v1` 来收敛该暴露面：该 profile 为 `handle / principal core_id / PCR authorization frontier digest / KeyPackage publication digest` 提供 label→value append-only log，entry 必须携带 inclusion proof 与 consistency proof；log fork 以双签或等价 split-view evidence 暴露，monitor/auditor 验证结果可进入目录解析响应或 identity receipt。该 profile 不改变 v1 core Event bytes；未声明该 profile 的实现按普通 DID witness 与 directory 自签名规则互通。
 
@@ -136,7 +149,7 @@ vector，不能由实现本地开启。
 
 | 场景 | 默认 / 推荐 DID method | 说明 |
 | --- | --- | --- |
-| 任意长期 principal（包括 `personal_node`、`small_team`、`organization` 与更高 profile） | `did:webvh` | v1 core 唯一长期 principal method。无域名用户由 Auth Server 在组织子域代为托管客户端签名的 `did.jsonl`。 |
+| 任意长期 principal（包括 `personal_node`、`small_team`、`organization` 与更高 profile） | `did:webvh` | 当前唯一满足长期 principal 角色要求的 active adapter；也是 v1 core MUST-support。无域名用户由 Auth Server 在组织子域代为托管客户端签名的 `did.jsonl`。 |
 | 组织 DID | `did:webvh` | v1 core MUST-support；治理 / 合规部署强制可验证 history chain。 |
 | Service DID | `did:webvh` SHOULD / default；`did:web` MAY 显式声明 no-history profile | 服务发现虽依赖域名和 HTTPS endpoint，但 service DID 同样签发协议交易、describe、HTTP Message Signature 与 delegation；默认需要可审计历史。低风险或外部互通服务 MAY 使用 `did:web`，但 MUST 在 ServiceDescribe / resolver evidence 中声明无历史信任强度。 |
 | 显式 ephemeral pairwise actor principal | `did:key` | 必须声明 `ak.profile.ephemeral_pairwise_principal.v1`；只在已声明 minimal-metadata profile 的 Realm 内由 exact accepted MLS LeafNode 约束，不创建账号/PCR/设备目录，不可升级为长期 principal。 |
@@ -153,7 +166,7 @@ flowchart TB
 
     Q1 -- "service endpoint<br/>(Principal Server / Policy / Media)" --> SVC["did:webvh<br/>(v1 core 默认 service method)<br/>did:web 仅显式 no-history profile"]
 
-    Q1 -- "长期 principal<br/>(用户 / 组织)" --> PRINCIPAL["did:webvh<br/>(唯一长期 principal method)<br/>所有 deployment profile 相同"]
+    Q1 -- "长期 principal<br/>(用户 / 组织)" --> PRINCIPAL["did:webvh<br/>(当前唯一满足角色要求)<br/>v1 core MUST-support"]
 
     Q1 -- "Realm-local ephemeral pairwise actor" --> KEY["did:key<br/>必须声明 ephemeral pairwise profile<br/>exact MLS LeafNode 是唯一 authority<br/>无账号 / PCR / 设备目录"]
 
@@ -197,7 +210,7 @@ DID 托管域名、Principal Server 服务域名和 handle 域名是**三个独�
 Arkret v1 core conformance 要求如下：
 
 - Core resolver / verifier MUST 支持 DID Core 解析 / 验证抽象、`did:webvh`、`did:web` 和 `did:key`，但 method 能被解析不代表可用于任意角色。
-  - `did:webvh:1.0` 是 v1 唯一长期 principal method，也是 default service method。method evidence 的 `parameters.method` MUST 等于 `did:webvh:1.0`；缺失或未知版本 MUST `unsupported_did_method`。
+  - `did:webvh:1.0` 是 v1 core MTI adapter、当前唯一满足长期 principal 角色要求的 adapter，也是 default service method。method evidence 的 `parameters.method` MUST 等于 `did:webvh:1.0`；缺失或未知版本 MUST `unsupported_did_method`。
   - `did:web` 只用于显式 no-history service profile，不是 principal method，也不是 `did:webvh` outage fallback。
   - `did:key` 只用于显式 ephemeral pairwise principal profile 下的 Realm-local MLS LeafNode 作者，以及非-principal 的本地可验证材料。它不进入账号/PCR/设备目录；设备本身不是独立 DID 主体。
 - AT Protocol interop（`did:plc`）、wallet binding（`did:pkh`）、KERI 等 method 可以由 extension 解析为外部 claim，但不得由 implementation-local policy 加入 v1 principal 创建 allowlist。
@@ -439,9 +452,11 @@ resolver / verifier，供 [`did-usage-and-verification.md` §4](./did-usage-and-
 Resolver policy MUST 至少定义：
 
 - allowed methods：当前部署接受哪些 DID method。
-- principal method：可注册的长期 principal 固定为 `did:webvh`；Realm-local ephemeral pairwise actor 固定为
-  `did:key` 且必须声明 `ak.profile.ephemeral_pairwise_principal.v1`，并以 exact accepted MLS LeafNode 为唯一 authority。deployment policy 只能收紧，
-  不得加入 `did:web` 或其它长期 principal method。
+- role method：可注册长期 principal、service 与 Realm-local ephemeral pairwise actor 的 method 集 MUST
+  分别从 registry `role_requirements.long_lived_principal`、`service` 与
+  `realm_local_ephemeral_actor` 推导。当前结果分别为 `did:webvh`、`did:webvh` + `did:web`、`did:key`。
+  ephemeral actor 必须声明 `ak.profile.ephemeral_pairwise_principal.v1` 并以 exact accepted MLS
+  LeafNode 为唯一 authority。deployment policy 只能收紧，不能增加任何角色的 method。
 - trust roots：webvh witness / watcher、DNS / HTTPS trust、PLC directory / mirror（仅 AT 互通）、KERI watcher、chain namespace allowlist 等。
 - method capability：该 method 是否支持 rotation、recovery、deactivation、service endpoint、historical resolution、witness evidence。
 - privacy handling：是否允许公开解析、是否需要 holder-approved proof、pairwise DID 是否禁止 directory 查询。
@@ -1055,10 +1070,12 @@ MUST 校验：
 
 Arkret v1 对 DID 实现要求如下：
 
-- v1 长期 principal DID 创建 MUST 使用 `did:webvh`；只有显式
+- v1 长期 principal DID 创建 MUST 使用满足 registry 长期 principal 角色要求的 active adapter；当前
+  唯一满足者与 v1 core MTI adapter 均为 `did:webvh`。只有显式
   `ak.profile.ephemeral_pairwise_principal.v1` 可用 `did:key` 表示由 exact accepted MLS LeafNode 约束的 Realm-local 临时 pairwise actor，且不得创建账号/PCR/设备目录。default service
-  DID method 是 `did:webvh`，显式 no-history service profile MAY 使用 `did:web`。deployment policy 只能
-  收紧这些集合，不能增加 principal method；`did:webvh` outage 只允许 cache-only degraded mode。
+  DID method 是 `did:webvh`，显式 no-history service profile MAY 使用 registry-derived service
+  allowlist 中的 `did:web`。deployment policy 只能收紧这些集合，不能增加任何角色的 method；
+  `did:webvh` outage 只允许 cache-only degraded mode。
 - Method adapter conformance tests MUST 覆盖 `did:webvh`、`did:web`、`did:key`；声明 AT Protocol interop profile 的实现 MUST 额外覆盖 `did:plc` adapter；声明 wallet interop profile 的实现 MUST 额外覆盖 `did:pkh`。
 - `core_id` / `full_id` projection、resolution Event、Profile current projection 与选择性 Seal/cell evidence MUST 有正负向 conformance coverage；旧式跨 DID continuity proof 不得恢复为身份等价机制。
 - Normalized principal view MUST 保留 raw document hash、method-specific proof、current control keys、service bindings、arkret bindings 和 evidence；不得丢弃外部 DID 的原始语义。

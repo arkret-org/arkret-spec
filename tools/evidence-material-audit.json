@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 148,
+  "audited_occurrence_count": 156,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -610,6 +610,13 @@
     },
     {
       "file": "contract-registry.json",
+      "key": "history_evidence_kind",
+      "occurrences": 4,
+      "disposition": "registry_contract",
+      "reason": "Objective adapter property distinguishing native method history from an explicit no-history role declaration; it is registry metadata, not wire evidence."
+    },
+    {
+      "file": "contract-registry.json",
       "key": "method_evidence_kind",
       "occurrences": 3,
       "disposition": "registry_contract",
@@ -628,6 +635,13 @@
       "occurrences": 3,
       "disposition": "registry_contract",
       "reason": "Declares the required adapter evidence categories rather than carrying wire material."
+    },
+    {
+      "file": "did-method-adapter-registry.json",
+      "key": "history_evidence_kind",
+      "occurrences": 4,
+      "disposition": "registry_contract",
+      "reason": "Generated objective adapter history-property metadata mirrored from the contract registry."
     },
     {
       "file": "did-method-adapter-registry.json",

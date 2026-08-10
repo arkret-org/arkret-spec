@@ -1,4 +1,4 @@
-"""Regression tests for the closed v1 principal DID-method allowlist."""
+"""Regression tests for registry-derived DID-method role eligibility."""
 
 from __future__ import annotations
 
@@ -15,6 +15,9 @@ from tools.artifact_lint import schemas as lint_artifacts
 PROFILES_PATH = (
     ROOT / "spec" / "v1" / "artifacts" / "profiles" / "conformance-profiles.json"
 ).resolve()
+ADAPTERS_PATH = (
+    ROOT / "spec" / "v1" / "artifacts" / "registry" / "did-method-adapter-registry.json"
+).resolve()
 
 
 class PrincipalMethodAllowlistLintTest(unittest.TestCase):
@@ -23,11 +26,16 @@ class PrincipalMethodAllowlistLintTest(unittest.TestCase):
         profiles = copy.deepcopy(
             original_load_json(lint_artifacts.Lint(), PROFILES_PATH)
         )
-        mutate(profiles)
+        adapters = copy.deepcopy(
+            original_load_json(lint_artifacts.Lint(), ADAPTERS_PATH)
+        )
+        mutate(profiles, adapters)
 
         def load_json_with_mutation(lint, path):
             if path.resolve() == PROFILES_PATH:
                 return profiles
+            if path.resolve() == ADAPTERS_PATH:
+                return adapters
             return original_load_json(lint, path)
 
         lint_artifacts.load_json = load_json_with_mutation
@@ -39,7 +47,7 @@ class PrincipalMethodAllowlistLintTest(unittest.TestCase):
             lint_artifacts.load_json = original_load_json
 
     def test_personal_node_cannot_reintroduce_did_web_principal(self) -> None:
-        def mutate(profiles):
+        def mutate(profiles, _adapters):
             profiles["profile_requirements"]["ak.profile.personal_node.v1"][
                 "identity"
             ]["allowed_principal_methods"] = ["did:webvh", "did:web"]
@@ -48,26 +56,60 @@ class PrincipalMethodAllowlistLintTest(unittest.TestCase):
         self.assertTrue(
             any(
                 "ak.profile.personal_node.v1" in error
-                and "['did:webvh']" in error
+                and "registry-derived long-lived principal allowlist ['did:webvh']" in error
                 for error in errors
             ),
             errors,
         )
 
-    def test_ephemeral_profile_cannot_admit_an_open_method_set(self) -> None:
-        def mutate(profiles):
+    def test_ephemeral_profile_cannot_admit_an_open_actor_method_set(self) -> None:
+        def mutate(profiles, _adapters):
             profiles["profile_requirements"][
                 "ak.profile.ephemeral_pairwise_principal.v1"
-            ]["identity"]["allowed_principal_methods"] = ["did:key", "did:web"]
+            ]["identity"]["allowed_actor_methods"] = ["did:key", "did:web"]
 
         errors = self._run(mutate)
         self.assertTrue(
-            any("ephemeral pairwise profile must admit exactly did:key" in error for error in errors),
+            any("registry-derived Realm-local ephemeral actor allowlist ['did:key']" in error for error in errors),
+            errors,
+        )
+
+    def test_service_profile_cannot_admit_did_key(self) -> None:
+        def mutate(profiles, _adapters):
+            profiles["profile_requirements"]["ak.profile.personal_node.v1"][
+                "identity"
+            ]["allowed_service_methods"] = ["did:webvh", "did:web", "did:key"]
+
+        errors = self._run(mutate)
+        self.assertTrue(
+            any(
+                "ak.profile.personal_node.v1" in error
+                and "registry-derived service allowlist ['did:webvh', 'did:web']" in error
+                for error in errors
+            ),
+            errors,
+        )
+
+    def test_principal_allowlist_is_derived_from_adapter_properties(self) -> None:
+        def mutate(_profiles, adapters):
+            did_web = next(
+                adapter for adapter in adapters["adapters"] if adapter["method"] == "did:web"
+            )
+            did_web["self_certifying_genesis"] = True
+            did_web["verifiable_control_history"] = True
+            did_web["pre_rotation_commitment"] = True
+
+        errors = self._run(mutate)
+        self.assertTrue(
+            any(
+                "registry-derived long-lived principal allowlist ['did:webvh', 'did:web']" in error
+                for error in errors
+            ),
             errors,
         )
 
     def test_ephemeral_profile_cannot_enable_pcr_or_device_directory(self) -> None:
-        def mutate(profiles):
+        def mutate(profiles, _adapters):
             identity = profiles["profile_requirements"][
                 "ak.profile.ephemeral_pairwise_principal.v1"
             ]["identity"]

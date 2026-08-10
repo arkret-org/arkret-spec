@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.8",
+  "version": "2026-08-10.9",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T23:50:00Z",
+  "generated_at": "2026-08-10T23:51:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -17331,6 +17331,35 @@
       "For a generic Event proof, the verifier extracts the canonical bare full_id base from proof.verification_method, validates the active adapter and key at the cited method history, projects that full_id, and compares the resulting core_id to executed_by when present or actor_id otherwise. The did_root_anchor admission variant is the sole registered exception.",
       "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:cell:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current cell and MUST cross-bind payload.previous_resolution_event_ref and payload.previous_method_history_head."
     ],
+    "role_requirements": {
+      "long_lived_principal": {
+        "required_adapter_properties": {
+          "self_certifying_genesis": true,
+          "verifiable_control_history": true,
+          "pre_rotation_commitment": true
+        }
+      },
+      "service": {
+        "required_adapter_properties": {
+          "network_resolved_document": true
+        },
+        "conditional_adapter_properties": [
+          {
+            "when": {
+              "native_history": false
+            },
+            "require": {
+              "history_evidence_kind": "none"
+            }
+          }
+        ]
+      },
+      "realm_local_ephemeral_actor": {
+        "required_adapter_properties": {
+          "has_update_operation": false
+        }
+      }
+    },
     "principal_resolution_contract": {
       "version": "ak.identity.resolution.contract.v1",
       "cell_ref": "ak:cell:ak.component.identity.resolution.v1:null",
@@ -17404,7 +17433,13 @@
         "resolution_components": [
           "host-and-path"
         ],
+        "self_certifying_genesis": true,
         "native_history": true,
+        "verifiable_control_history": true,
+        "pre_rotation_commitment": true,
+        "has_update_operation": true,
+        "network_resolved_document": true,
+        "history_evidence_kind": "native",
         "method_evidence_kind": "webvh_log",
         "method_history_head_rule": "sha256:<lowercase-hex SHA-256 of RFC 8785 JCS of the verified current did:webvh log entry>",
         "version_id_rule": "The exact method-native versionId of that same verified current did:webvh log entry, serialized as a non-empty string.",
@@ -17425,7 +17460,13 @@
         "full_id_shape": "did:web:<canonical-method-specific-id>",
         "core_projection": "ak:did_core:web:<canonical-method-specific-id>",
         "resolution_components": [],
+        "self_certifying_genesis": false,
         "native_history": false,
+        "verifiable_control_history": false,
+        "pre_rotation_commitment": false,
+        "has_update_operation": true,
+        "network_resolved_document": true,
+        "history_evidence_kind": "none",
         "method_evidence_kind": "did_web_document",
         "method_history_head_rule": "sha256:<lowercase-hex SHA-256 of RFC 8785 JCS of the verified current DID Document>",
         "version_id_rule": "synthetic-jcs-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",
@@ -17444,7 +17485,13 @@
         "full_id_shape": "did:key:<canonical-multibase-method-specific-id>",
         "core_projection": "ak:did_core:key:<canonical-multibase-method-specific-id>",
         "resolution_components": [],
+        "self_certifying_genesis": true,
         "native_history": false,
+        "verifiable_control_history": false,
+        "pre_rotation_commitment": false,
+        "has_update_operation": false,
+        "network_resolved_document": false,
+        "history_evidence_kind": "none",
         "method_evidence_kind": "did_key_expansion",
         "method_history_head_rule": "sha256:<lowercase-hex SHA-256 of the UTF-8 bytes of canonical full_id>",
         "version_id_rule": "synthetic-full-id-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",

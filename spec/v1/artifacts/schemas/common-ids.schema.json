@@ -59,12 +59,6 @@
       "maxLength": 2048,
       "description": "Canonical did:webvh bare DID for a v1 long-lived principal. Deployment policy may tighten witness and trust-root requirements but MUST NOT admit another method at this schema boundary."
     },
-    "ephemeral_pairwise_principal_full_id": {
-      "type": "string",
-      "pattern": "^did:key:z[A-Za-z0-9]+$",
-      "maxLength": 2048,
-      "description": "Canonical did:key bare FullId admitted only with ak.profile.ephemeral_pairwise_principal.v1 for one Realm-local MLS LeafNode-bound actor. It projects to ActorId, cannot create an account, PCR or device-directory entry, cannot be upgraded into a long-lived principal, and MUST NOT be reused across Realms."
-    },
     "did": {
       "$ref": "#/$defs/full_id",
       "description": "Compatibility schema name for the canonical FullId wire type. New normative text distinguishes full_id from core_id; this alias does not permit a core_id where a standard bare DID is required."
