@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9563,
+    "total_properties": 9564,
     "total_schema_documents": 158,
     "by_presence_class": {
       "optional": 2838,
       "optional_defaulted": 69,
-      "required": 6287,
+      "required": 6288,
       "required_nullable": 116,
       "tristate": 253
     },
@@ -5401,12 +5401,13 @@
         "ak.schema.event_batch_receipt.v1"
       ],
       "properties": {
-        "/$defs/device_reanchor_scope/properties/did_version_id": "required",
+        "/$defs/device_reanchor_scope/properties/authority_instance": "required",
         "/$defs/device_reanchor_scope/properties/kind": "required",
+        "/$defs/device_reanchor_scope/properties/new_device_generation": "required",
+        "/$defs/device_reanchor_scope/properties/previous_device_generation": "required",
         "/$defs/device_reanchor_scope/properties/principal_id": "required",
         "/$defs/device_reanchor_scope/properties/realm_id": "required",
         "/$defs/device_reanchor_scope/properties/reanchor_digest": "required",
-        "/$defs/device_reanchor_scope/properties/registry_head": "required",
         "/$defs/device_reanchor_scope/properties/replacement_authorize_digest": "required",
         "/$defs/event_receipt_item/properties/event_digest": "required",
         "/$defs/event_receipt_item/properties/event_id": "required",

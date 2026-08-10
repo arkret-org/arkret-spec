@@ -477,7 +477,7 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 
 跨桶累计超过 64 时，上述“整桶”扩展为同一 `(realm_id, actor_id, actor_seq)` 的全部 sibling。对已经被 accepted Seal 覆盖的 Control Move，追溯规则存在唯一例外：其 digest 与确定性 reducer 输出 MUST 保留在该 Seal 的 `covered_set` / `state_root` 输入中，不得改写已接受 Seal；该 actor 后续控制面 Move 在显式 fork-resolution compaction Seal 归一前 fail closed。数据面 sibling 与尚未被任何 accepted Seal 覆盖的 pending Control Move仍按上段移除。
 
-`ak.device.reanchor` 另使用独立冲突槽 `(principal_id,did_version_number)`，version number 必须从已验证 DID versionId 解析。did_version_id、re-anchor digest 与 replacement-authorize digest 全相同才是幂等重试；同槽任一不同即把全部候选 unit 及后继 generation Seal quarantine，禁止 first-seen winner。reducer 保留最后未冲突的 current generation ref、将状态置 `conflicted` 并关闭普通 Event/Seal admission；只有更高 version、由下一预承诺 authority 签发且在 registry/witness policy 下成为 canonical head 的 re-anchor 可以解除。该规则优先于普通 actor sibling 容量/限流规则，不能用唯一约束丢弃第二份证据。
+`ak.device.reanchor` 另使用独立冲突槽 `(authority_instance_digest,new_device_generation)`。槽键取自 payload 的 exact `authority_instance` 与 PCR-local monotonic generation，MUST NOT 从 DID versionId 解析或派生；同一 `principal_id` 下不同 `authority_instance_digest` 是不同 PCR，MUST NOT 落入同一槽。`authority_instance` 五字段逐字节相等、re-anchor digest 与 replacement-authorize digest 全相同才是幂等重试；同槽任一不同即把全部候选 unit 及后继 generation Seal quarantine，禁止 first-seen winner。reducer 保留最后未冲突的 current generation ref、将状态置 `conflicted` 并关闭普通 Event/Seal admission；只有同一 authority instance 上更高 `new_device_generation`、由当前 accepted recovery policy 授权的 re-anchor 可以解除，policy 显式启用 `did_root` factor 时还须同时满足该 method 的 registry/witness canonical-head 要求。该规则优先于普通 actor sibling 容量/限流规则，不能用唯一约束丢弃第二份证据。
 
 上述独立冲突槽、到达顺序无关性与解除路径由 `ak.vector.identity.device_reanchor.v1` 执行验证。
 

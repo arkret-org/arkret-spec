@@ -32,6 +32,7 @@ from .schemas import (
     check_circle_lifecycle_basis_vector,
     check_circle_membership_enum_single_source,
     check_classification_context_paths,
+    check_device_reanchor_payload_receipt_binding,
     check_did_and_device_constraints,
     check_did_full_id_allowlist,
     check_event_reference_inventory,
@@ -242,6 +243,10 @@ def main(argv: list[str] | None = None) -> int:
             ("read_scope", lambda: check_read_scope_schema_closure(lint)),
             ("signed_objects", lambda: check_signed_object_closure(lint)),
             ("reducer_payloads", lambda: check_reducer_payload_closure(lint)),
+            (
+                "device_reanchor_binding",
+                lambda: check_device_reanchor_payload_receipt_binding(lint),
+            ),
             ("circle_membership", lambda: check_circle_membership_enum_single_source(lint)),
             ("null_cell_subject", lambda: check_null_cell_subject_wire_form(lint)),
             (

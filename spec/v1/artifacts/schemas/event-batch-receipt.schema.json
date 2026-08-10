@@ -214,12 +214,14 @@
     },
     "device_reanchor_scope": {
       "type": "object",
+      "description": "Durable acceptance evidence for the PCR-policy re-anchor unit. Authority is selected by the exact authority instance plus the PCR-local monotonic device generation CAS; the base branch carries no DID version, registry head or publication material, and a receiver MUST NOT synthesize either from the generation refs. Every authority field MUST equal the corresponding field of the covered ak.device.reanchor payload.",
       "required": [
         "kind",
         "principal_id",
         "realm_id",
-        "did_version_id",
-        "registry_head",
+        "authority_instance",
+        "previous_device_generation",
+        "new_device_generation",
         "reanchor_digest",
         "replacement_authorize_digest"
       ],
@@ -233,13 +235,19 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "did_version_id": {
-          "type": "string",
-          "pattern": "^[1-9][0-9]*-[^\\s]+$"
+        "authority_instance": {
+          "$ref": "./principal-authority-instance.schema.json",
+          "description": "Exact authority instance re-anchored by this unit. It MUST reverse-bind principal_id and realm_id and MUST equal the covered ak.device.reanchor payload authority_instance field-for-field including authority_instance_digest. A same-core instance carrying a different principal_server_id, pcr_realm_id or principal_genesis_receipt_digest is a different PCR and MUST be rejected."
         },
-        "registry_head": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash",
-          "description": "Digest of the accepted-at identity registry head snapshot."
+        "previous_device_generation": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "MUST equal the covered ak.device.reanchor payload previous_device_generation."
+        },
+        "new_device_generation": {
+          "type": "integer",
+          "minimum": 2,
+          "description": "Accepted monotonic successor generation. It MUST equal the covered ak.device.reanchor payload new_device_generation and MUST be the immediate successor of previous_device_generation. It is a PCR-local ref and MUST NOT be derived from or rendered as a DID versionId."
         },
         "reanchor_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/hash",

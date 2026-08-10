@@ -1496,9 +1496,14 @@ recovery policy 授权，并提交两条 Event：
 2. replacement device 自签 `ak.device.authorize`，`authorization_binding_kind="pcr_recovery"`，
    `prev_refs` 只指向 re-anchor Event。
 
-两条 Event 必须原子接受，receipt `scope.kind="device_reanchor_unit"`。接受后 generation fence 使旧
-generation 全部失效。`current_device_generation_ref` 是 PCR-local monotonic ref，MUST NOT 使用或等于
-DID `versionId`；resolution cell 不随基础恢复推进。
+两条 Event 必须原子接受，receipt `scope.kind="device_reanchor_unit"`。该 scope 的封闭字段集恰为
+`{kind, principal_id, realm_id, authority_instance, previous_device_generation, new_device_generation,
+reanchor_digest, replacement_authorize_digest}`：它与 `ak.device.reanchor` payload 选择同一个 authority，
+每个同名字段 MUST 与被覆盖 payload 逐字节相等（`authority_instance` 含 `authority_instance_digest` 五字段
+全等），任一不等以 `device_reanchor_authority_mismatch` fail closed。scope MUST NOT 携带 `did_version_id`、
+`registry_head` 或任何 DID publication 字段，接收方也 MUST NOT 由 generation ref 反向合成它们。接受后
+generation fence 使旧 generation 全部失效。`current_device_generation_ref` 是 PCR-local monotonic ref，
+MUST NOT 使用或等于 DID `versionId`；resolution cell 不随基础恢复推进。
 
 DID-root 只是在 recovery policy 中显式启用、可撤销的一种 proof kind。当前 DID root 本身不能
 re-anchor；method 不支持 history/pre-rotation 或 policy 未启用时必须拒绝。只有该分支或用户同时执行

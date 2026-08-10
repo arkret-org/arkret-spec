@@ -2073,6 +2073,90 @@ def check_reducer_payload_closure(lint: Lint) -> None:
 
 
 
+REANCHOR_RETIRED_AUTHORITY_FIELDS = (
+    "did_version_id",
+    "did_version_number",
+    "registry_head",
+    "log_head_digest",
+)
+
+REANCHOR_SCOPE_LOCAL_FIELDS = (
+    "kind",
+    "realm_id",
+    "reanchor_digest",
+    "replacement_authorize_digest",
+)
+
+
+def check_device_reanchor_payload_receipt_binding(lint: Lint) -> None:
+    """The re-anchor receipt scope and its payload must select the same authority."""
+    payload_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
+    receipt_path = ARTIFACTS / "schemas" / "event-batch-receipt.schema.json"
+    payload_schema = load_json(lint, payload_path)
+    receipt_schema = load_json(lint, receipt_path)
+    if not isinstance(payload_schema, dict) or not isinstance(receipt_schema, dict):
+        return
+
+    payload = payload_schema.get("$defs", {}).get("device_reanchor_payload")
+    scope = receipt_schema.get("$defs", {}).get("device_reanchor_scope")
+    if not isinstance(payload, dict):
+        lint.fail(payload_path, "$defs.device_reanchor_payload is missing")
+        return
+    if not isinstance(scope, dict):
+        lint.fail(receipt_path, "$defs.device_reanchor_scope is missing")
+        return
+
+    payload_props = payload.get("properties", {})
+    scope_props = scope.get("properties", {})
+    payload_required = set(payload.get("required", []))
+    scope_required = set(scope.get("required", []))
+
+    for name in REANCHOR_RETIRED_AUTHORITY_FIELDS:
+        if name in payload_props:
+            lint.fail(
+                payload_path,
+                f"$defs.device_reanchor_payload.{name} restores a retired DID-version authority field; "
+                "the base re-anchor branch selects authority only through authority_instance and the "
+                "PCR-local device generation CAS",
+            )
+        if name in scope_props:
+            lint.fail(
+                receipt_path,
+                f"$defs.device_reanchor_scope.{name} restores a retired DID-version authority field; "
+                "the receipt scope MUST mirror the payload authority selection",
+            )
+
+    shared = [name for name in scope_props if name not in REANCHOR_SCOPE_LOCAL_FIELDS]
+    for name in sorted(shared):
+        if name not in payload_props:
+            lint.fail(
+                receipt_path,
+                f"$defs.device_reanchor_scope.{name} has no counterpart in device_reanchor_payload; "
+                "a receipt MUST NOT commit an authority field the covered Event does not carry",
+            )
+            continue
+        if name not in scope_required or name not in payload_required:
+            lint.fail(
+                receipt_path,
+                f"$defs.device_reanchor_scope.{name} must be required on both the payload and the "
+                "receipt scope so the two can only be compared exactly",
+            )
+        if scope_props[name].get("$ref") != payload_props[name].get("$ref"):
+            lint.fail(
+                receipt_path,
+                f"$defs.device_reanchor_scope.{name} does not reuse the payload $ref; a second shape "
+                "for the same authority field allows silent substitution",
+            )
+
+    for name in ("authority_instance", "previous_device_generation", "new_device_generation"):
+        if name not in scope_required:
+            lint.fail(
+                receipt_path,
+                f"$defs.device_reanchor_scope must require {name} to bind the exact re-anchored authority",
+            )
+
+
+
 def check_circle_membership_enum_single_source(lint: Lint) -> None:
     """Circle operation DTOs must reference the canonical membership enum directly."""
     path = ARTIFACTS / "schemas" / "circle-operations.schema.json"

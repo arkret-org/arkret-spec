@@ -119,6 +119,33 @@
       }
     },
     {
+      "name": "reject_receipt_scope_authority_instance_substitution",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "receipt_scope_principal_id_matches": true,
+        "receipt_scope_authority_instance_matches_payload": false,
+        "substituted_field": "principal_genesis_receipt_digest"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_reanchor_authority_mismatch",
+        "durable_effects": 0
+      }
+    },
+    {
+      "name": "reject_receipt_scope_generation_substitution",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "receipt_scope_authority_instance_matches_payload": true,
+        "receipt_scope_new_device_generation_matches_payload": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_reanchor_authority_mismatch",
+        "durable_effects": 0
+      }
+    },
+    {
       "name": "reject_previous_generation_mismatch",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {

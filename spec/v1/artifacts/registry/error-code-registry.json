@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-11.2",
+  "version": "2026-08-11.3",
   "codes": [
     {
       "code": "bad_json",
@@ -458,6 +458,12 @@
       "http_status": 409,
       "scope": "both",
       "description": "A recovery session or proof does not satisfy the principal's declared recovery policy. Dual-registered as a service code and a reason_code (see reason_codes[]). See zh/identity/key-management.md §9.5."
+    },
+    {
+      "code": "device_reanchor_authority_mismatch",
+      "http_status": 409,
+      "scope": "both",
+      "description": "A device re-anchor receipt scope, recovery session or transaction snapshot selects an authority instance or device generation that does not exactly match the covered ak.device.reanchor payload. Dual-registered as a service code and a reason_code (see reason_codes[])."
     },
     {
       "code": "device_reanchor_entry_not_head",
@@ -2714,6 +2720,15 @@
       "description": "A normal Event or Seal was signed by a device whose authorized_generation_ref does not equal the active current_device_generation_ref, or the principal generation state is conflicted. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
+      "code": "device_reanchor_authority_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "A re-anchor receipt scope, recovery session snapshot or recovery transaction binding carries an authority_instance, authority_instance_digest, previous_device_generation or new_device_generation that is not byte-identical to the covered ak.device.reanchor payload, or reconstructs a retired did_version_id/registry_head authority field. Dual-registered as a reason_code and a top-level service code (see codes[])."
+    },
+    {
       "code": "device_reanchor_authorize_mismatch",
       "applies_to": [
         "event_envelope",
@@ -2729,7 +2744,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "More than one non-identical re-anchor unit occupies the same (principal_id, did_version_number) slot. Every candidate and successor generation is quarantined; first-seen selection is forbidden. Dual-registered as a reason_code and a top-level service code (see codes[])."
+      "description": "More than one non-identical re-anchor unit occupies the same (authority_instance_digest, new_device_generation) slot. Every candidate and successor generation is quarantined; first-seen selection is forbidden. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "device_reanchor_entry_not_head",

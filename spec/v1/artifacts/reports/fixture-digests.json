@@ -170,7 +170,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json",
-      "sha256": "a407ba647516ffeee71200831ca8b215883a9971281be796ba12c8d677c2193e"
+      "sha256": "11a96eccaca0f9c04a8d28cd1f4cbd9ff5efb744b315f957e0cab6c3af2c892c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",

@@ -1179,6 +1179,7 @@ components:
               - selector_too_complex
               - device_generation_fenced
               - recovery_policy_mismatch
+              - device_reanchor_authority_mismatch
               - device_reanchor_entry_not_head
               - device_reanchor_frontier_mismatch
               - device_reanchor_authorize_mismatch
