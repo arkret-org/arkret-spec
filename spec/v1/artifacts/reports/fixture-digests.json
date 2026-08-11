@@ -106,7 +106,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-pcr-authority-boundary-fixture.json",
-      "sha256": "a1509f00510447b7c8adc608fc919a39c1141574bd4b73aa6a9d75aaccd16300"
+      "sha256": "a376c7c806e1f24fbe1b6fe8d9c860a62bfe10c9ef9e5ac2424d81548c2f4b51"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json",

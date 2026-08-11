@@ -362,10 +362,12 @@
     },
     "principal_resolution_evidence": {
       "type": "object",
-      "description": "Portable resolution-only evidence bound to one identity-control Realm genesis and its current singleton resolution cell. It intentionally excludes unrelated PCR device, recovery and session history. The verifier derives the PCR Realm, validates purpose/actor/kind and every supplied contiguous resolution-history segment, validates accepted Seal coverage and cell inclusion, then independently resolves method evidence for the current full_id. Omitted older history never becomes an absence claim.",
+      "description": "Portable resolution-only evidence bound to one exact PrincipalAuthorityInstance, its complete signed PCR genesis receipt and its current singleton resolution cell. It intentionally excludes unrelated PCR device, recovery and session history. The verifier recomputes the authority instance digest, verifies the receipt and its reverse bindings, derives the PCR Realm, validates purpose/actor/kind and every supplied contiguous resolution-history segment, validates accepted Seal coverage and cell inclusion, then independently resolves method evidence for the current full_id. Omitted older history never becomes an absence claim.",
       "required": [
         "principal_id",
+        "authority_instance",
         "principal_control_realm_id",
+        "principal_genesis_receipt",
         "principal_genesis_event",
         "current_resolution_event",
         "predecessor_resolution_events",
@@ -376,9 +378,17 @@
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
+        "authority_instance": {
+          "$ref": "./principal-authority-instance.schema.json",
+          "description": "Exact PCR authority selected by the required authority_instance_digest query. Its principal_id and pcr_realm_id MUST equal the response fields; principal_server_id MUST equal principal_genesis_receipt.issuer; and principal_genesis_receipt_digest MUST equal the canonical SHA-256 digest of the complete principal_genesis_receipt."
+        },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
           "description": "Realm id derived from principal_genesis_event under the registered PCR derivation rule; it is not a producer-selected alternate scope."
+        },
+        "principal_genesis_receipt": {
+          "$ref": "./event-batch-receipt.schema.json",
+          "description": "Complete signed pcr_genesis_unit receipt. Its issuer and scope MUST reverse-bind authority_instance, principal_id, principal_control_realm_id and principal_genesis_event; consumers MUST verify its proof rather than trusting the producer's index."
         },
         "principal_genesis_event": {
           "$ref": "#/$defs/principal_genesis_event"

@@ -1930,7 +1930,9 @@
         "schema_kind": "object",
         "required": [
           "principal_id",
+          "authority_instance",
           "principal_control_realm_id",
+          "principal_genesis_receipt",
           "principal_genesis_event",
           "current_resolution_event",
           "predecessor_resolution_events",
@@ -1939,7 +1941,9 @@
         ],
         "properties": [
           "principal_id",
+          "authority_instance",
           "principal_control_realm_id",
+          "principal_genesis_receipt",
           "principal_genesis_event",
           "current_resolution_event",
           "predecessor_resolution_events",

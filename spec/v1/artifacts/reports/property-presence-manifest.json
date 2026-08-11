@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9564,
+    "total_properties": 9566,
     "total_schema_documents": 158,
     "by_presence_class": {
       "optional": 2838,
       "optional_defaulted": 69,
-      "required": 6288,
+      "required": 6290,
       "required_nullable": 116,
       "tristate": 253
     },
@@ -7924,11 +7924,13 @@
         "/$defs/principal_genesis_event/allOf/1/properties/scope_ref": "required",
         "/$defs/principal_genesis_event/allOf/1/properties/scope_ref/properties/kind": "required",
         "/$defs/principal_resolution_evidence/properties/accepted_seal": "required",
+        "/$defs/principal_resolution_evidence/properties/authority_instance": "required",
         "/$defs/principal_resolution_evidence/properties/current_resolution_event": "required",
         "/$defs/principal_resolution_evidence/properties/method_history_evidence": "optional",
         "/$defs/principal_resolution_evidence/properties/predecessor_resolution_events": "required",
         "/$defs/principal_resolution_evidence/properties/principal_control_realm_id": "required",
         "/$defs/principal_resolution_evidence/properties/principal_genesis_event": "required",
+        "/$defs/principal_resolution_evidence/properties/principal_genesis_receipt": "required",
         "/$defs/principal_resolution_evidence/properties/principal_id": "required",
         "/$defs/principal_resolution_evidence/properties/resolution_cell_proof": "required",
         "/$defs/principal_resolution_update_payload/properties/next": "required",

@@ -6856,7 +6856,8 @@ paths:
         Seal proof, current resolution Event and an optionally bounded predecessor
         chain. The response is discovery evidence, never an authorization result.
         A caller performing a sensitive operation MUST obtain a fresh response,
-        verify the PCR evidence, resolve the returned full_id with the registered
+        verify the exact authority instance and signed genesis receipt reverse
+        bindings, verify the PCR evidence, resolve the returned full_id with the registered
         method adapter, and confirm project(full_id) equals principal_id. Callers
         are not required to persist another principal's resolution binding.
       parameters:
@@ -6866,6 +6867,16 @@ paths:
         schema:
           type: string
           pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+      - name: authority_instance_digest
+        in: query
+        required: true
+        description: >-
+          Canonical digest selecting one exact PrincipalAuthorityInstance for
+          this principal. Same-core PCRs on other Principal Servers are distinct
+          instances and MUST NOT be substituted.
+        schema:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
       - name: history_depth
         in: query
         required: false
