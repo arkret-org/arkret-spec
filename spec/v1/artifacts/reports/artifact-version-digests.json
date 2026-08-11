@@ -21,26 +21,26 @@
     },
     {
       "path": "spec/v1/artifacts/registry/authority-source-registry.json",
-      "version": "2026-08-11.6",
-      "generated_at": "2026-08-11T13:11:00Z",
+      "version": "2026-08-11.7",
+      "generated_at": "2026-08-11T13:24:47Z",
       "content_digest": "sha256:ff47b6802c2062c7ce8061c1e40bd8ae49331df16d9abfa449e71ecbd69d6a20"
     },
     {
       "path": "spec/v1/artifacts/registry/binding-kind-registry.json",
-      "version": "2026-08-11.6",
-      "generated_at": "2026-08-11T13:11:00Z",
+      "version": "2026-08-11.7",
+      "generated_at": "2026-08-11T13:24:47Z",
       "content_digest": "sha256:dfb055a9e4c061b8b6eba878f56b4c32b7ed27e6c3560f2342f3dc32844eeddf"
     },
     {
       "path": "spec/v1/artifacts/registry/calendar-timezone-registry.json",
-      "version": "2026-08-11.6",
-      "generated_at": "2026-08-11T13:11:00Z",
+      "version": "2026-08-11.7",
+      "generated_at": "2026-08-11T13:24:47Z",
       "content_digest": "sha256:f540c35cee7467fdb38a280b5d4baae5cf078d7c565228f860fa1d47b008e392"
     },
     {
       "path": "spec/v1/artifacts/registry/capability-action-registry.json",
-      "version": "2026-08-11.6",
-      "generated_at": "2026-08-11T13:11:00Z",
+      "version": "2026-08-11.7",
+      "generated_at": "2026-08-11T13:24:47Z",
       "content_digest": "sha256:9e2167ba563ba1d730585e6609e76ca5a385329420ffd07ce965c68d4aaf6bee"
     },
     {
@@ -51,9 +51,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-08-11.6",
-      "generated_at": "2026-08-11T13:11:00Z",
-      "content_digest": "sha256:4396d47f1a56bf9a37a058a9f552f204971063b3c609d76aa76bbaface228310"
+      "version": "2026-08-11.7",
+      "generated_at": "2026-08-11T13:24:47Z",
+      "content_digest": "sha256:6a886e422128bd704a477880d47c773dd8d19e82ea3a93ab3fe6c3a8dee3e0f7"
     },
     {
       "path": "spec/v1/artifacts/registry/did-freshness-profile-registry.json",
@@ -63,8 +63,8 @@
     },
     {
       "path": "spec/v1/artifacts/registry/did-method-adapter-registry.json",
-      "version": "2026-08-11.6",
-      "generated_at": "2026-08-11T13:11:00Z",
+      "version": "2026-08-11.7",
+      "generated_at": "2026-08-11T13:24:47Z",
       "content_digest": "sha256:0b8be64d9b19a73b2c2a708debc01a731af33e391ee9c2221d9bf0089f3e7b42"
     },
     {
@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-08-11.6",
-      "generated_at": "2026-08-11T13:11:00Z",
-      "content_digest": "sha256:7b67db75462746c0b1610048f1e9a44efaec4efa7134a4a74169c76e43c92b19"
+      "version": "2026-08-11.7",
+      "generated_at": "2026-08-11T13:24:47Z",
+      "content_digest": "sha256:1302f2b1ec0a35582ca1401fb7e4a9cf898950db790d9813c8bc7bffc7e909fc"
     },
     {
       "path": "spec/v1/artifacts/registry/exporter-label-registry.json",
@@ -153,15 +153,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-08-11.4",
-      "generated_at": "2026-08-11T13:11:00Z",
-      "content_digest": "sha256:0cec2468195a0363f647dab0e3e6380b26c0eab53fc6d8c5b1988e4cdb864bd8"
+      "version": "2026-08-11.5",
+      "generated_at": "2026-08-11T13:24:47Z",
+      "content_digest": "sha256:96f2ae3e81c03999f0fd30596c24543ee0d8c4de5d9d4cb836240953c321ac4e"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-08-10.8",
-      "generated_at": "2026-08-10T23:59:00Z",
-      "content_digest": "sha256:7f08c29f132fd8c24ed0174c29db3165959037c2be36b2876995ae379836243f"
+      "version": "2026-08-11.1",
+      "generated_at": "2026-08-11T13:24:47Z",
+      "content_digest": "sha256:9cb92fd6a025062b9670b87268b6854b31f78bfe01711e687c109ed2a40b1b93"
     },
     {
       "path": "spec/v1/artifacts/registry/preimage-identity-exemption-registry.json",
@@ -243,8 +243,8 @@
     },
     {
       "path": "spec/v1/artifacts/registry/track-name-registry.json",
-      "version": "2026-08-11.6",
-      "generated_at": "2026-08-11T13:11:00Z",
+      "version": "2026-08-11.7",
+      "generated_at": "2026-08-11T13:24:47Z",
       "content_digest": "sha256:931cd839a81f5f04e6286b9f2980de2202b267cf1084dc28a9a449ffa52f14b9"
     },
     {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.6",
+  "version": "2026-08-11.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-11T13:11:00Z",
+  "generated_at": "2026-08-11T13:24:47Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -953,7 +953,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm moderation policy (blocklists, allowlists, content filters)",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/state_payload",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_moderation_policy_state_payload",
       "id_source": "not_an_object_id",
       "plane": "control",
       "sealed": true,

@@ -496,7 +496,6 @@ EVENT_AUTHORING_DURABLE_EFFECT_KINDS = ("event_log", "actor_private_event")
 # cell/lattice, i.e. it never enters state_root and no peer has to converge on it.
 # See arkret-work/work/active/2026-08-06-1723-event-log-operations-need-a-signed-request.md.
 EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
-    "ak.self.realm.moderation_policy.resource.replace": "payload-only request",
     "ak.self.account.command.update_profile": "needs the caller-signed profile Event",
     "ak.self.moderation.command.report": "needs the caller-signed report Event",
 }
@@ -553,7 +552,6 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.realm.discovery", "state_payload"),
     ("ak.realm.join_rule", "state_payload"),
     ("ak.realm.media_service", "state_payload"),
-    ("ak.realm.moderation_policy", "state_payload"),
     ("ak.realm.policy", "state_payload"),
     ("ak.realm.schema", "state_payload"),
     ("ak.realm.profile", "realm_profile_payload"),

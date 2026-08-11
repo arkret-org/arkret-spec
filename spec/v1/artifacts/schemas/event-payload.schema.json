@@ -10453,6 +10453,19 @@
       },
       "additionalProperties": false
     },
+    "realm_moderation_policy_state_payload": {
+      "type": "object",
+      "description": "Closed payload for ak.realm.moderation_policy. The complete moderation-policy document is carried only in value; state and reason are not policy carriers.",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
     "state_payload": {
       "type": "object",
       "minProperties": 1,

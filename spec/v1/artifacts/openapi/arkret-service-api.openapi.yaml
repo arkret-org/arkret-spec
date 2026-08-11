@@ -8496,10 +8496,14 @@ paths:
       - bearerAuth: []
       summary: Set a Realm moderation-policy override.
       description: |
-        Writes ak.realm.moderation_policy. Only the Realm owner may write; an
-        override that loosens an action an organization policy denies requires
-        explicit organization approval, otherwise failed_precondition with reason_code=requires_organization_approval
-        is returned.
+        Carries exactly one caller-signed ak.realm.moderation_policy EventInitialSubmission
+        in moderation_policy_event. The Event realm_id equals the path Realm, actor_id equals
+        the authenticated session actor, payload contains only the object-valued value field,
+        and exactly one signed head_eq compares the complete moderation-policy cell value or
+        null when absent. Ordinary Event admission requires ak.realm.moderation_policy or
+        ak.policy.manage according to the capability registry; Realm ownership alone grants
+        no write authority. The service forwards the exact bytes without authoring, rebuilding,
+        co-signing, or appending CAS. Exact accepted replay returns the byte-identical outcome.
       parameters:
       - in: path
         name: realm_id

@@ -1948,7 +1948,6 @@
               "ak.realm.join_rule",
               "ak.realm.discovery",
               "ak.realm.asset_privacy_policy",
-              "ak.realm.moderation_policy",
               "ak.realm.media_service",
               "ak.realm.schema"
             ]
@@ -1962,6 +1961,25 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/state_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.moderation_policy"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_moderation_policy_state_payload"
           }
         }
       }

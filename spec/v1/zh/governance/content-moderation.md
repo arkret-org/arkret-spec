@@ -350,41 +350,43 @@ Realm MAY 使用 `ak.realm.moderation_policy` state event 声明黑名单、允�
 {
   "kind": "ak.realm.moderation_policy",
   "payload": {
-    "version": 1,
-    "targets": [
-      {
-        "target": {
-          "kind": "actor",
-          "did": "did:webvh:zGMfBAbnRTYqW4943CVr9Dcii:spammer.example.com"
+    "value": {
+      "version": 1,
+      "targets": [
+        {
+          "target": {
+            "kind": "actor",
+            "did": "did:webvh:zGMfBAbnRTYqW4943CVr9Dcii:spammer.example.com"
+          },
+          "action": "deny_join",
+          "reason_code": "spam",
+          "created_by": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
+          "created_at": "2026-04-26T00:00:00Z",
+          "expires_at": null
         },
-        "action": "deny_join",
-        "reason_code": "spam",
-        "created_by": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
-        "created_at": "2026-04-26T00:00:00Z",
-        "expires_at": null
-      },
-      {
-        "target": {
-          "kind": "domain",
-          "domain": "malicious.example"
-        },
-        "action": "quarantine_message",
-        "reason_code": "abuse_cluster"
+        {
+          "target": {
+            "kind": "domain",
+            "domain": "malicious.example"
+          },
+          "action": "quarantine_message",
+          "reason_code": "abuse_cluster"
+        }
+      ],
+      "content_filters": [
+        {
+          "filter_id": "ak:filter:3655021a-cf20-7000-8000-000000000000",
+          "match": {
+            "kind": "url_domain",
+            "pattern_digest": "sha256:..."
+          },
+          "action": "require_review"
+        }
+      ],
+      "appeal": {
+        "enabled": true,
+        "endpoint": "ak:strand:AVJXk6oAyn0y1KTd0hdGIZQYhpTQR2lTDsGRVSzvQJg7"
       }
-    ],
-    "content_filters": [
-      {
-        "filter_id": "ak:filter:3655021a-cf20-7000-8000-000000000000",
-        "match": {
-          "kind": "url_domain",
-          "pattern_digest": "sha256:..."
-        },
-        "action": "require_review"
-      }
-    ],
-    "appeal": {
-      "enabled": true,
-      "endpoint": "ak:strand:AVJXk6oAyn0y1KTd0hdGIZQYhpTQR2lTDsGRVSzvQJg7"
     }
   }
 }
@@ -423,6 +425,9 @@ Domain target 的匹配必须基于已验证 service `did_core_id` / current `Se
 规则：
 
 - 修改 `ak.realm.moderation_policy` MUST 持有 `ak.realm.moderation_policy` 或 `ak.policy.manage` capability。
+- `ak.self.realm.moderation_policy.resource.replace` MUST 只接受 closed `{moderation_policy_event: EventInitialSubmission}`。该 Event 的 `kind` 必须逐字为 `ak.realm.moderation_policy`，`realm_id` 必须逐字等于 path Realm，`actor_id` 必须逐字等于认证 session actor；payload 必须且只能为 `{value: object}`，不得把 policy 放入 `state`、`reason` 或 unsigned request 字段。服务端 MUST 将 exact caller-signed bytes 送入 ordinary Event admission，MUST NOT 重建、代签、共同签名或在签名后补 CAS。
+- 每次 moderation-policy replace MUST 在 Event 签名内恰好携带一条目标为 `ak:cell:ak.component.realm.moderation_policy.v1:null` 的 `head_eq`，其 value 是调用方观察到的完整 settled cell value；cell 缺失时使用 `null`。stale、Bottom、缺失或多条适用 CAS 均 MUST fail closed。相同 Event identity 与 exact bytes 的已接受重放 MUST 返回 byte-identical outcome；相同 identity 异 bytes 必须零新增写入拒绝。
+- capability 判定只按 registry：`ak.realm.moderation_policy` 或 `ak.policy.manage`。Realm owner 不具有 owner-only 特例；没有上述 capability 时同样 `capability_denied`。
 - Realm blocklist MUST 在 signature / DID 基础校验之后、事件进入用户可见 reducer 状态之前进行评估。
 - `deny_join` / `deny_write` SHOULD 产出已签名的 moderation decision 或 audit record。
 - `quarantine_message` MUST 在审核通过前阻止事件进入普通用户可见视图。

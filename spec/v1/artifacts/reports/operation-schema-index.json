@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.6",
+  "version": "2026-08-11.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-11T13:11:00Z",
+  "generated_at": "2026-08-11T13:24:47Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -8494,9 +8494,13 @@
       "request": {
         "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body",
         "schema_kind": "object",
-        "required": [],
-        "properties": [],
-        "closed": false
+        "required": [
+          "moderation_policy_event"
+        ],
+        "properties": [
+          "moderation_policy_event"
+        ],
+        "closed": true
       },
       "response": {
         "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document",

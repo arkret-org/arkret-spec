@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-10.8",
+  "version": "2026-08-11.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T23:59:00Z",
+  "generated_at": "2026-08-11T13:24:47Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -1863,9 +1863,12 @@
       "operation_id": "ak.self.realm.moderation_policy.resource.replace",
       "http_alias": "PUT /_arkret/self/realms/{realm_id}/moderation-policy",
       "operation_specific": [
-        "requires_organization_approval"
+        "requires_organization_approval",
+        "failed_precondition",
+        "failed_bottom",
+        "duplicate_conflict"
       ],
-      "description": "A policy override that relaxes an action forbidden by inherited organization policy returns top-level failed_precondition with reason_code=requires_organization_approval unless the document embeds a valid organization approval."
+      "description": "A policy override that relaxes an action forbidden by inherited organization policy returns top-level failed_precondition with reason_code=requires_organization_approval unless the document embeds a valid organization approval. A false signed head_eq returns failed_precondition, a Bottom moderation-policy cell returns failed_bottom, and replaying the same Event identity with different bytes returns duplicate_conflict."
     },
     {
       "operation_id": "ak.self.realm.read.export",
