@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 4,
+  "version": 5,
   "kind": "forbidden_model_terms",
   "source_of_truth": true,
   "description": "Current-model lint registry for terms that are not valid v1 core concept names. It is a prose/code hygiene aid, not a wire contract; conformance scanners may grep downstream prose and source for occurrences outside allowed_contexts.",
@@ -169,7 +169,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Branch terminology was removed across Strand. Use track (display-only segment identifier). Variable / field names containing 'strand_branch' MUST be renamed."
+      "notes": "Strand uses track as its display-only segment identifier. Variable and field names MUST NOT contain 'strand_branch'."
     },
     {
       "id": "subdelegation",
@@ -222,7 +222,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Removed by the v1 PCR genesis clean cut; current wire and normative prose MUST use the root-anchored PCR device model."
+      "notes": "Current wire and normative prose MUST use the root-anchored PCR device model."
     },
     {
       "id": "device_bootstrap",
@@ -236,7 +236,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Removed by the v1 PCR genesis clean cut; current wire and normative prose MUST use the root-anchored PCR device model."
+      "notes": "Current wire and normative prose MUST use the root-anchored PCR device model."
     },
     {
       "id": "cross_signing_binding",
@@ -250,7 +250,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Removed by the v1 PCR genesis clean cut; current wire and normative prose MUST use the root-anchored PCR device model."
+      "notes": "Current wire and normative prose MUST use the root-anchored PCR device model."
     },
     {
       "id": "ssk_generation",
@@ -264,7 +264,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Removed by the v1 PCR genesis clean cut; current wire and normative prose MUST use the root-anchored PCR device model."
+      "notes": "Current wire and normative prose MUST use the root-anchored PCR device model."
     },
     {
       "id": "enrollment_authority_binding",
@@ -278,7 +278,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Removed by the v1 PCR genesis clean cut; current wire and normative prose MUST use the root-anchored PCR device model."
+      "notes": "Current wire and normative prose MUST use the root-anchored PCR device model."
     },
     {
       "id": "ArkretDeviceEnrollmentAuthority",
@@ -292,7 +292,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Removed by the v1 PCR genesis clean cut; current wire and normative prose MUST use the root-anchored PCR device model."
+      "notes": "Current wire and normative prose MUST use the root-anchored PCR device model."
     },
     {
       "id": "authorize_recovery_device",
@@ -306,7 +306,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Removed by the v1 PCR genesis clean cut; current wire and normative prose MUST use the root-anchored PCR device model."
+      "notes": "Current wire and normative prose MUST use the root-anchored PCR device model."
     }
   ]
 }

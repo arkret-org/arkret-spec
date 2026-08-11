@@ -130,7 +130,7 @@ public key 相同或不同都不改变实例 equality，也不能形成“同一
 
 注册后的 resolution 变更 MUST 由该 PCR 中的 `ak.identity.resolution.update` 提交，不能直接覆写 profile 或账号表。Event 以 previous Event ref / previous history head 做 CAS，reducer 更新 `ak.component.identity.resolution.v1`；Profile 只公开其 current projection。需要审计的调用方 MAY 请求带 Seal/cell proof 的选择性历史 evidence。其他 Principal Server 不要求持久保存该用户的 resolution；敏感操作发生时必须重新取得最新 evidence 并独立验证，短 TTL cache 只能优化读取，不能成为授权依据。
 
-### 2.1.3 SessionGrant 不确定结果与开发期 clean break
+### 2.1.3 SessionGrant 不确定结果与身份边界
 
 SessionGrant issue / refresh 的 exact replay 规则以 [`key-management.md` §6.2](./key-management.md) 为准。
 replay 命中 expired outcome 时返回 `session_grant_replay_expired`；命中 revoked / superseded outcome 时返回
@@ -143,12 +143,12 @@ account-first onboarding 在上述终态恢复时 MUST 复用 §2.1.2 的 identi
 到期并 fence 后继续同一身份创建，不得重做已经 accepted 的 DID operation，也不得重新生成 Recovery
 Key。普通登录则回到认证入口。
 
-本次 issuer-ledger 切换是开发期 clean break。部署 MUST 清理或重建旧版本误用 capability 前缀与 UUIDv7
-组合的 SessionGrant ID、旧版本从 accepted Event token 重类型得到的 `ak:session_grant:*`，以及相关
-refresh chain / local auth session/cache，并要求所有客户端重新登录；不得修改既有 JWT 的 `jti`、把旧
-Event/cell 重解释为 issuer record，或复制旧 row 到新 ID。客户端只删除旧
-session credential 与绑定缓存，MUST 保留 principal 私钥、Recovery Key、DID/PCR/MLS 与 secret-storage
-数据；这是 auth session fence，不是 principal identity migration。
+SessionGrant ID、refresh chain、local auth session 与 cache 的唯一真相源是 issuer ledger。任何不符合
+[`key-management.md` §6.1](./key-management.md) ID 构造和 ledger 绑定的 session credential MUST 失效并
+要求客户端重新登录；部署不得修改 JWT `jti`、把 Event/cell 重解释为 issuer record，或把无匹配
+issuer record 的 row 注入 ledger。失效处理只能删除 session credential 与绑定缓存，MUST 保留
+principal 私钥、Recovery Key、DID/PCR/MLS 与 secret-storage 数据；这是 auth session fence，不是
+principal identity migration。
 
 当 service account 已绑定到某个 `PrincipalAuthorityInstance` 时，账号访问可由 account auth、passkey、
 已授权 device 或 accepted PCR recovery policy 分别恢复。只有账号 recovery policy 显式登记 DID-root

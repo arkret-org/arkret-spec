@@ -459,9 +459,8 @@ proof bundle 的所有 chunk 都 MUST NOT 携带 MLS leaves、leaf index、Group
 GroupInfo/ratchet tree 的获取只走 §5.1.1 的 group-state-material 合同；current/pending leaf set 仍由 verifier 的
 RFC 9420 state 持有。两条材料路径不得合并为服务端选择 leaf set 的私有 proof DTO。
 
-当前向量 `ak.vector.mls.security_frontier_key_access_only.v1`
-断言是“普通 Seal/`seal_ref` 不进入 security frontier，active leaf revoke 必须进入”，不再测试已删除
-的 covered-seals accumulator。
+向量 `ak.vector.mls.security_frontier_key_access_only.v1` 只断言“普通 Seal/`seal_ref` 不进入
+security frontier，active leaf revoke 必须进入”；v1 没有 covered-seals accumulator。
 
 验证顺序是：确认 request anchor 已在本地 trust store（§2.5.4）→ 校验 bundle 自报 anchor 与请求逐字相等并校验 Seal path → 重算 covered control set 和 joined state → 按 registry closed frontier 过滤 key-access cells → 重算 security_frontier_digest → 比较 GroupContext extension 与 Event payload → 应用 Commit bytes。任一步缺失、歧义或不一致都 fail closed。响应出现与请求不同的 anchor MUST 拒绝，MUST NOT 验证通过后「顺便信任」。相同 bundle identity 与 chunks_root 才可复用 cache。
 

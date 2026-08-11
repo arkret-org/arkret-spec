@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.4",
+  "version": "2026-08-11.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-11T13:05:00Z",
+  "generated_at": "2026-08-11T13:10:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5791,6 +5791,17 @@
     {
       "operation_id": "ak.self.circle.member.resource.delete",
       "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_delete_request_body",
+        "schema_kind": "object",
+        "required": [
+          "member_event"
+        ],
+        "properties": [
+          "member_event"
+        ],
+        "closed": true
+      },
       "response": {
         "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
         "schema_kind": "object",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 14,
+  "version": 15,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -106,7 +106,7 @@
         "interop_module",
         "negative_test"
       ],
-      "notes": "Room core model was removed; Realm is the v1 boundary. 'room_kind' MUST NOT appear on the wire outside an explicit MIMI / Matrix interop module."
+      "notes": "Realm is the v1 boundary. 'room_kind' MUST NOT appear on the wire outside an explicit MIMI / Matrix interop module."
     },
     {
       "id": "kind=room",
@@ -1882,7 +1882,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "risk_class",
@@ -1894,7 +1894,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "rejected_input_classes",
@@ -1906,7 +1906,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "same_timing_class",
@@ -1918,7 +1918,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "range_request_same_error_class",
@@ -1930,7 +1930,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "expected_classes",
@@ -1942,7 +1942,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "share_class",
@@ -1954,7 +1954,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "backup_class",
@@ -1966,7 +1966,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "purpose_class",
@@ -1978,7 +1978,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "purpose_classes",
@@ -1990,7 +1990,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "requested_source_class",
@@ -2002,7 +2002,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "allowed_target_classes",
@@ -2014,7 +2014,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "allowed_data_classes",
@@ -2026,7 +2026,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "capability_tiers",
@@ -2038,7 +2038,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "profile_tiers",
@@ -2050,7 +2050,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "by_tier_and_class",
@@ -2062,7 +2062,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "verified_principal_type",
@@ -2074,7 +2074,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "notary_type",
@@ -2086,7 +2086,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "account_data_type",
@@ -2098,7 +2098,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "account_data_types",
@@ -2110,7 +2110,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "data_type",
@@ -2122,7 +2122,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "constraint_type",
@@ -2134,7 +2134,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "required_constraint_types",
@@ -2146,7 +2146,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "required_constraint_subtypes",
@@ -2158,7 +2158,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "type_restriction",
@@ -2170,7 +2170,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "op_target_type",
@@ -2182,7 +2182,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "subtype",
@@ -2194,7 +2194,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "allowed_object_types",
@@ -2206,7 +2206,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "denied_object_types",
@@ -2218,7 +2218,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "object_type",
@@ -2230,7 +2230,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "object_types",
@@ -2242,7 +2242,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "item_object_types",
@@ -2254,7 +2254,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "allowed_morph_types",
@@ -2266,7 +2266,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "denied_morph_types",
@@ -2278,7 +2278,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "morph_type",
@@ -2290,7 +2290,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "morph_types",
@@ -2302,7 +2302,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "proposal_morph_type",
@@ -2314,7 +2314,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "service_type",
@@ -2326,7 +2326,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "service_types",
@@ -2338,7 +2338,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "recipient_service_type",
@@ -2350,7 +2350,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "destination_service_type",
@@ -2362,7 +2362,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "serviceType",
@@ -2374,7 +2374,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "did_service_type",
@@ -2386,7 +2386,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "claim_type",
@@ -2398,7 +2398,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "device_key_type",
@@ -2410,7 +2410,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "field_type",
@@ -2422,7 +2422,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "field_types",
@@ -2434,7 +2434,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "signal_type",
@@ -2446,7 +2446,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "notification_type",
@@ -2458,7 +2458,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "receipt_type",
@@ -2470,7 +2470,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "policy_type",
@@ -2482,7 +2482,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "item_type",
@@ -2494,7 +2494,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "item_types",
@@ -2506,7 +2506,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "lattice_types",
@@ -2518,7 +2518,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "to_type",
@@ -2530,7 +2530,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "from_type",
@@ -2542,7 +2542,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "resource_type",
@@ -2554,7 +2554,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "resource_types",
@@ -2566,7 +2566,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "link_type",
@@ -2578,7 +2578,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "surface group tier",
@@ -2590,7 +2590,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "notary.type",
@@ -2602,7 +2602,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "webhook_auth.type",
@@ -2614,7 +2614,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "recovery transcript type",
@@ -2626,7 +2626,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "artifact DSL type",
@@ -2638,7 +2638,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field."
     },
     {
       "id": "root_hash",
@@ -2650,7 +2650,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "mention_sidecar_hash",
@@ -2662,7 +2662,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "segment_size",
@@ -2674,7 +2674,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "tree_size",
@@ -2686,7 +2686,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "from_tree_size",
@@ -2698,7 +2698,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "to_tree_size",
@@ -2710,7 +2710,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "quorum_size",
@@ -2722,7 +2722,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "batch_size",
@@ -2734,7 +2734,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "failure_code",
@@ -2746,7 +2746,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "rejection_code",
@@ -2758,7 +2758,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_mls_join",
@@ -2770,7 +2770,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "requires_mls_join",
@@ -2782,7 +2782,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_ghost_actors",
@@ -2794,7 +2794,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_delegated_native_actors",
@@ -2806,7 +2806,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_e2ee_join",
@@ -2818,7 +2818,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_widget",
@@ -2830,7 +2830,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "requires_consent",
@@ -2842,7 +2842,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "requires_human_review",
@@ -2854,7 +2854,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "requires_franking_proof_verification",
@@ -2866,7 +2866,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_plaintext_realms",
@@ -2878,7 +2878,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_plaintext_fallback",
@@ -2890,7 +2890,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_redact_after_window",
@@ -2902,7 +2902,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_scope_expansion",
@@ -2914,7 +2914,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "require_parent_reference",
@@ -2926,7 +2926,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The optional switch was removed: every capability grant carries non-empty typed issuer_authority_refs."
+      "notes": "Every capability grant MUST carry non-empty typed issuer_authority_refs; 'require_parent_reference' is forbidden."
     },
     {
       "id": "require_audit_trail",
@@ -2938,7 +2938,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "require_key_backup",
@@ -2950,7 +2950,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "force_turn",
@@ -2962,7 +2962,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_udp",
@@ -2974,7 +2974,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_tcp",
@@ -2986,7 +2986,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_ipv6",
@@ -2998,7 +2998,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_binding_sources",
@@ -3010,7 +3010,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_did_document_default",
@@ -3022,7 +3022,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_unroutable_membership",
@@ -3034,7 +3034,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_if_visibility_allows",
@@ -3046,7 +3046,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_t0_visible_with_current_policy",
@@ -3058,7 +3058,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allow_last_resort",
@@ -3070,7 +3070,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "requires_claims",
@@ -3082,7 +3082,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "override_requires_organization_approval",
@@ -3094,7 +3094,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "deny_redacted_history",
@@ -3106,7 +3106,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "allowed_introduction_kinds",
@@ -3118,7 +3118,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "permitted_introduction_kinds",
@@ -3130,7 +3130,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "forbidden_introduction_kinds",
@@ -3142,7 +3142,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling."
     },
     {
       "id": "blocked_handle_domains",
@@ -3274,7 +3274,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Realm-level retention has exactly one wire carrier: Realm.retention_policy_id referencing an ak:policy: Policy object with policy_kind=retention (written via ak.policy.set). An inline retention_policy object at payload top level, on payload.object, or in a Realm patch was never a registered carrier and MUST be rejected; deployment admin-plane retention configuration is local operations tooling, not a protocol object, and never enters Event history. See zh/models/realm-and-space.md §2.3."
+      "notes": "Realm-level retention has exactly one wire carrier: Realm.retention_policy_id referencing an ak:policy: Policy object with policy_kind=retention (written via ak.policy.set). An inline retention_policy object at payload top level, on payload.object, or in a Realm patch is not a registered carrier and MUST be rejected; deployment admin-plane retention configuration is local operations tooling, not a protocol object, and never enters Event history. See zh/models/realm-and-space.md §2.3."
     },
     {
       "id": "cowrite_policy",
@@ -3286,7 +3286,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed dead field (previously also spelled co_write_policy). Which cell families an Event kind writes — and which writes form an atomic unit — is fixed by the contract-registry cell_writes contracts and registered atomic units; a Realm-configurable co-write whitelist never had admission, join, or reason-code semantics and no implementation ever evaluated or produced it. If a per-Realm co-write constraint is ever genuinely needed it must return together with complete notary admission and reducer rules, not as a bare optional field."
+      "notes": "Both cowrite_policy and co_write_policy are forbidden. Which cell families an Event kind writes — and which writes form an atomic unit — is fixed by the contract-registry cell_writes contracts and registered atomic units. v1 defines no Realm-configurable co-write whitelist. Any future per-Realm co-write constraint requires complete notary admission and reducer rules and cannot appear as a bare optional field."
     },
     {
       "id": "cross_signing_binding",

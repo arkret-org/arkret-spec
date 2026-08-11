@@ -139,7 +139,8 @@ Schema id: `ak.schema.realm.v1`
 | lifecycle、其它已有专用 facet | 对应 registered event/cell。 |
 | `id`、`created_by`、`created_at`、`updated_by`、`updated_at` 与其它 query-only 字段 | 分别由 Realm identity、signed envelope 与 reducer history 派生，不由 producer 在 Realm object 中重复写入。 |
 
-monolithic `ak.realm.update` 与 `ak.component.realm.metadata.v1` 已删除。实现不得保留双写、双读或把完整旧 Realm create object 缓存为第二真相源。
+v1 不定义 monolithic `ak.realm.update` 或 `ak.component.realm.metadata.v1`。实现 MUST 拒绝这些形态，
+不得建立双写/双读路径，也不得把完整 Realm create object 缓存为第二真相源。
 
 `owning_organizations`、`fields`、`relation_profiles`、`policy_id`、`preview_policy_id`、`default_strand_id` 与 `retention_policy_id` 不构成遗漏的自由写入面：它们分别由已接受的 `ak.realm.organization` 关系、registered extension/relation projection、`ak.policy.set`、`ak.realm.preview_policy`、`ak.realm.set_default_strand` 与 retention Policy 投影。producer MUST NOT 在 profile 或 policy bundle 中重复声明这些 query 字段。
 
@@ -366,7 +367,7 @@ Authz 含义：
 Server 端实现合规要点：
 
 - server 必须先在隔离 staged state 上按 wire order 验证完整 unit，再以一个 storage transaction 提交 canonical Events、全部 registered cells、receipt/ack 与 federation outbox；任何失败后上述可观察状态均为零。
-- effective Realm query 必须组合 genesis/profile/discovery/join/history/policy/alias/lifecycle cells；不得从 create payload 原样复制旧完整 Realm，也不得读取已删除 metadata cell。
+- effective Realm query 必须组合 genesis/profile/discovery/join/history/policy/alias/lifecycle cells；不得把 create payload 原样复制为完整 Realm，也不得读取 `ak.component.realm.metadata.v1` cell。
 - 不允许通过 spec 之外的 REST 端点（如 `POST /spaces` 之类的私造 lifecycle 命令面）来兜底 bootstrap。此类端点违反 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md#21-rest-api-命名空间组织) 的"实现不得用未声明路径绕过 canonical operation"规则，且会让事件流上的 read-only consumer 看不到完整的 source-of-truth 事件。
 
 **Backfill / federation peer 一致性（normative）**：peer 可先取得 create bytes，但在完整 bootstrap closure 与 genesis state commitment 验证前必须保持 unresolved，不得接受后续 Realm Event、Seal 或发布 effective projection。creator membership 来自 unit 最后独立 `ak.member.state{join}` slot；缺失不得本地补造。

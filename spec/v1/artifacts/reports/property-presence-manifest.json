@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9580,
+    "total_properties": 9586,
     "total_schema_documents": 158,
     "by_presence_class": {
       "optional": 2838,
       "optional_defaulted": 69,
-      "required": 6304,
-      "required_nullable": 116,
+      "required": 6308,
+      "required_nullable": 118,
       "tristate": 253
     },
     "tristate_occurrences": 253,
@@ -4024,6 +4024,12 @@
         "/$defs/circle_lifecycle_event_submission/allOf/1/properties/event": "required_nullable",
         "/$defs/circle_list/properties/circles": "required",
         "/$defs/circle_list/properties/realm_id": "required",
+        "/$defs/circle_member_delete_request_body/properties/member_event": "required",
+        "/$defs/circle_member_delete_request_body/properties/member_event/allOf/1/properties/event": "required_nullable",
+        "/$defs/circle_member_delete_request_body/properties/member_event/allOf/1/properties/event/properties/kind": "required",
+        "/$defs/circle_member_delete_request_body/properties/member_event/allOf/1/properties/event/properties/payload": "required_nullable",
+        "/$defs/circle_member_delete_request_body/properties/member_event/allOf/1/properties/event/properties/payload/properties/expected_membership": "required",
+        "/$defs/circle_member_delete_request_body/properties/member_event/allOf/1/properties/event/properties/payload/properties/membership": "required",
         "/$defs/circle_member_request_body/properties/member_event": "required",
         "/$defs/circle_member_request_body/properties/member_event/allOf/1/properties/event": "required_nullable",
         "/$defs/circle_member_request_body/properties/member_event/allOf/1/properties/event/properties/kind": "required",

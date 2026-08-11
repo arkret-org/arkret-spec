@@ -17,6 +17,9 @@
       "$ref": "#/$defs/circle_member_request_body"
     },
     {
+      "$ref": "#/$defs/circle_member_delete_request_body"
+    },
+    {
       "$ref": "#/$defs/circle_membership_outcome"
     },
     {
@@ -265,6 +268,59 @@
             }
           ],
           "description": "Closed ak.circle.member.state Event authored and signed by the authenticated caller. The service MUST submit these exact bytes through ordinary Event admission and MUST NOT co-sign, rebuild or synthesize the Event. Admission MUST verify that event.actor_id is the authenticated caller and that payload.circle_id names the path Circle. Moving another actor to join requires ak.circle.member.manage narrowed by allowed_circle_ids, and the target MUST already be a joined parent-Realm member; knock requires join_rule=knock. A self-service join is gated on the Circle join_rule instead."
+        }
+      },
+      "additionalProperties": false
+    },
+    "circle_member_delete_request_body": {
+      "type": "object",
+      "description": "Carries the caller-signed ak.circle.member.state leave Event and nothing else. The path circle_id and actor_id MUST respectively equal member_event.event.payload.circle_id and payload.actor_id; member_event.event.realm_id MUST equal the path Circle's parent Realm. The service submits the exact signed Event through ordinary Event admission and MUST NOT rebuild it or synthesize a leave Event.",
+      "required": [
+        "member_event"
+      ],
+      "properties": {
+        "member_event": {
+          "allOf": [
+            {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.circle.member.state"
+                    },
+                    "payload": {
+                      "properties": {
+                        "membership": {
+                          "const": "leave"
+                        },
+                        "expected_membership": {
+                          "$ref": "./event-payload.schema.json#/$defs/membership_state"
+                        }
+                      },
+                      "required": [
+                        "circle_id",
+                        "actor_id",
+                        "membership",
+                        "expected_membership"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "realm_id",
+                    "payload"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ]
+            }
+          ],
+          "description": "Closed ak.circle.member.state Event authored and signed by the authenticated caller, with membership fixed to leave and expected_membership carrying the concrete current membership as the signed head_eq guard. Admission MUST bind the Event proof to the exact authority instance selected by the authenticated session; matching only the caller DID is insufficient. Removing another actor requires ak.circle.member.manage narrowed to the path Circle; self-service leave uses ak.circle.member.add."
         }
       },
       "additionalProperties": false

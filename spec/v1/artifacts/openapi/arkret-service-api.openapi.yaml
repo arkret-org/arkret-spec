@@ -502,6 +502,8 @@ components:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_create_request_body
     CircleList:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_list
+    CircleMemberDeleteRequestBody:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_member_delete_request_body
     CircleMemberRequestBody:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_member_request_body
     CircleMembershipOutcome:
@@ -5479,6 +5481,12 @@ paths:
         required: true
         schema:
           type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CircleMemberDeleteRequestBody'
       responses:
         '200':
           description: Circle member removed.

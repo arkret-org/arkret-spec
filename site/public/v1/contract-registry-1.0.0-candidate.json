@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.4",
+  "version": "2026-08-11.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-11T13:05:00Z",
+  "generated_at": "2026-08-11T13:10:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -13548,11 +13548,12 @@
         "http": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
         "grpc": "SelfCircle/MemberRemove",
         "mq": "self.circle.member.resource.delete",
-        "notes": "Builds ak.circle.member.state with membership=leave for the path actor_id.",
+        "notes": "Submits the caller-signed ak.circle.member.state Event carried in member_event through ordinary Event admission. The Event membership MUST be leave and payload.expected_membership MUST carry the concrete current membership as its signed head_eq guard; payload.circle_id and payload.actor_id MUST equal the two path identifiers, and event.realm_id MUST equal the path Circle's parent Realm. Removing another actor requires ak.circle.member.manage narrowed to this Circle. The service MUST NOT co-sign, rebuild or synthesize the Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
+        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_delete_request_body",
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
         "durable_effect": {
           "kind": "event_log",
@@ -14890,8 +14891,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-11.2",
-    "generated_at": "2026-08-11T13:00:00Z"
+    "version": "2026-08-11.3",
+    "generated_at": "2026-08-11T13:10:00Z"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

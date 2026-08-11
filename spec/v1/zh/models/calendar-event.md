@@ -55,7 +55,7 @@ Calendar event 是一个带 Calendar schedule 子树的 Strand，而不是新的
 Calendar schedule **不携带绝对 instant**。timed 事件的 `start` / `end` 是 RFC 8984 `LocalDateTime`（[`time.schema.json#/$defs/local_date_time`](../../artifacts/schemas/time.schema.json)，整秒、无 offset、无 `Z`、无括号 Zone、无小数秒），按 `timezone` + `tzdb_version` 解释。这保证"固定本地会议时间"在 TZDB 规则变化时不会被 UTC instant 反推出另一个 local anchor。
 
 1. **半开区间**：无论哪个分支，事件区间都是 `[start, end)`。
-2. **all-day 分支**（`all_day=true`）：`start` / `end` 都是 Gregorian `date`。`end` MUST 严格晚于 `start`，单日事件写成次日日期。v1 不再接受 `end == start` 的包含式特例。
+2. **all-day 分支**（`all_day=true`）：`start` / `end` 都是 Gregorian `date`。`end` MUST 严格晚于 `start`，单日事件写成次日日期；`end == start` MUST 拒绝。
 3. **timed 分支**（`all_day=false`）：`start` / `end` 都是整秒 `LocalDateTime`。producer / reducer 按 §5 的 discontinuity 规则把 base start/end 转成 instant，并 MUST 要求 `base_end_instant > base_start_instant`。
 4. **recurring duration**：v1 不引入 ISO duration wire 字段。recurring timed event 的 duration 固定为 `base_end_instant - base_start_instant`；每个 occurrence 的 local start 转成 instant 后加同一 elapsed duration 得到该 occurrence 的 end。recurring all-day event 的每个 occurrence 保留 `end_date - start_date` 个 local calendar day。实现 MUST NOT 自行在 elapsed duration、local wall-clock delta 与包含式日期之间选择。
 5. JSON Schema 无法表达跨字段时序比较，故 `end` 与 `start` 的比较由 reducer / profile 承载：producer 写入前 MUST 校验，reducer 在不满足时 MUST 以 `schema_violation` 拒绝（与 §7 attendee 唯一性同一模式）。

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.4",
+  "version": "2026-08-11.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-11T13:05:00Z",
+  "generated_at": "2026-08-11T13:10:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -2065,13 +2065,14 @@
       "surface_class": "extension",
       "http": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
+      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_delete_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
       "openapi_component_refs": {
+        "request": "#/components/schemas/CircleMemberDeleteRequestBody",
         "response": "#/components/schemas/CircleMembershipOutcome"
       },
       "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.circle.read.list",

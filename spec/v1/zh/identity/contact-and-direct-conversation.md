@@ -224,7 +224,7 @@ Message Signature只能额外叠加，不能替代其中任一项。实现 **MUS
 | `ak.self.contact.command.respond` | 只执行 normal accept；要求 responder slot 无 outgoing，不接受 reject action |
 | `ak.self.contact.command.reject` | 独立 proposal terminal reject与 rejection receipt；不得复用 respond body |
 | `ak.self.contact.command.scope_update` | issuer-local full-set replacement |
-| `ak.self.contact.command.tombstone` | accepted basis terminal，旧 refs永久消费 |
+| `ak.self.contact.command.tombstone` | accepted basis terminal，已接受的 predecessor refs 永久消费 |
 | `ak.self.contact.read.list` | 从 verified basis与双方 directional current heads投影；accepted row 另携 §3 的 `next_prepare_input` 游标，`pending_incoming` row 另携 §3 的 `request_receipt` |
 | `ak.peer.contacts.command.submit` | closed XOR peer carrier；原 bytes + exact receipt/current proof |
 | `ak.self.direct_conversation.read.resolve` | §9.1 的唯一 DM 查询入口；closed outcome，不携 create phase 分支 |
@@ -287,7 +287,7 @@ founder **MUST** 从该 pair 的**根 founder basis** 派生，而非从 current
 | `direct_conversation_basis` | `direct_conversation_genesis` | human↔human、Agent↔第三方 |
 | `direct_conversation_agent_provision` | `direct_conversation_agent_genesis` | controller↔自己的 owned Agent |
 
-两个 role **MUST** exact XOR。managed-Agent PCR genesis 不再使用任何 ref role 判别：它按 `payload.object.purpose="managed_agent_control"` 选择 `delegated_pcr_genesis`，并以准入反查 accepted `ak.agent.provision` 的前向声明取代旧 ref（见 [`./key-management.md` §3.6.3](./key-management.md)），因此这里的两个 DM role **MUST NOT** 与之混用。DM variants、PCR variants 与 ordinary Realm 的 `when` 条件 **MUST** 结构互斥；零命中或多命中 **MUST** `schema_violation`，**MUST NOT** 按 registry 顺序取第一条。
+两个 role **MUST** exact XOR。managed-Agent PCR genesis 只按 `payload.object.purpose="managed_agent_control"` 选择 `delegated_pcr_genesis`，并在准入时反查 accepted `ak.agent.provision` 的前向声明（见 [`./key-management.md` §3.6.3](./key-management.md)）；它没有 ref role 判别，因此这里的两个 DM role **MUST NOT** 与之混用。DM variants、PCR variants 与 ordinary Realm 的 `when` 条件 **MUST** 结构互斥；零命中或多命中 **MUST** `schema_violation`，**MUST NOT** 按 registry 顺序取第一条。
 
 `direct_conversation_genesis` **MUST** 逐项验证，任一不符整组零写入：
 

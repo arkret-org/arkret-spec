@@ -129,7 +129,7 @@ flowchart TB
 - `ak:sidecar:` 是独立个人 AI 工作区和原生安全 scope，不是 Circle profile，不复用或隐藏 Circle 对象、membership 与 lifecycle。
 - `ak:relation:` 是一等对象，跨对象语义 MUST 通过 Relation 表达，不藏在字段里。
 - `ak:view:` 拥有投影定义的真相，但不持有被投影对象的协作事实。
-- Discussion 想要独立 membership / history visibility / 投递裁剪或 E2EE 时，整个 Strand 通过 `scope_circle_id` 落在一个 [Circle](./circle.md)；不再有 per-track 安全边界。
+- Discussion 想要独立 membership / history visibility / 投递裁剪或 E2EE 时，整个 Strand 通过 `scope_circle_id` 落在一个 [Circle](./circle.md)；v1 不定义 per-track 安全边界。
 
 ## 3. 设计原则
 
