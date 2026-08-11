@@ -264,6 +264,12 @@ Realm 在接收方 accepted 后，该 pair 的后续 Event 立即回落普通 fe
 2. `server-alpha.com` 从 Realm policy / membership / service delegation 中解析应接收该 Event 的对端 Principal Server，并生成接收方服务绑定快照
 3. `server-alpha.com` 向 `server-beta.com` 发送推送请求：
 
+**实时 fanout 的责任与目标集合（normative）**：首次接受本地 Actor 所签 Event 的 Principal Server 是该 Event 实时 push 的唯一编排方；通过 `/_arkret/peer/events` 收到该 Event 的 remote Principal Server MUST 验证、持久化并服务其本地成员，但 MUST NOT 因该次 peer ingress 再创建第二轮实时 fanout。缺失副本通过 frontier probe、pull、backfill 或 snapshot 修复，不能靠接收方无界转广播。
+
+对 Realm 共享 Event，发送方 MUST 从同一 accepted Realm view 计算目标集合：所有有权持有该 Event、`delivery_status="routable"` 且未撤销的 remote member `delivery_binding.recipient_service_id`，与该 Realm 明确声明的 `sync_endpoints[].service_id` 的并集；随后排除本机 service，并按 service `did_core_id` 去重。多个成员由同一 remote service 托管时只创建一份 Event transaction。仅被部署配置为“已知 peer”、allowlist peer、route mirror、DID resolver 或通讯录服务的节点不自动成为 Event 接收者，禁止全网广播。
+
+面向单个成员的 to-device、push、KeyPackage、邀请或其它 direct rail 只使用该成员的 effective delivery binding，MUST NOT 扩张为 Realm fanout。发送方对目标集合中的每个 distinct service MUST 创建独立、持久的 outbox intent；本地 Event 的 accepted 状态与完整目标集合的 outbox intents MUST 在同一 durable transaction 中提交。任一必要目标缺少可验证 route 时，实现必须 fail closed：可以拒绝本地提交并返回标准 `service_unavailable` envelope（实现可另记本地 fanout-unavailable audit reason），或原子保存带精确目标 service id 的隔离/待路由 intent，但 MUST NOT 一边报告 Event 已完整接受、一边静默删掉该目标。
+
 ```
 POST /_arkret/peer/events
 Host: server-beta.com
@@ -931,6 +937,10 @@ publish 必须分开维护两个 durable key：
 receiver 必须验证 target proof、core/kind、record 或 notice chain、时间窗、Realm 可见性和大小上限后，才可原子保存 artifact integrity row 与当前 transport outcome。receiver-signed ack 必须同时绑定 transport key 的 `source_service_id/realm_id/request_id`、完整 `artifact_key`、`artifact_digest`、receiver service id 与 accepted time，并使用独立 context `ak.service-resolution-publish-ack-proof-v1`；不能只绑定其中一层。ack 只证明 mirror 已 durable 保存 exact bytes，不证明 target route 有效，也不授予任何业务访问。
 
 notice 的 basis 必须在 notice request 到达前已经等于 receiver durable floor。若 receiver 落后，publisher 必须按 sequence 用多个独立 publish request 逐份发送缺失 record，并逐份取得 durable ack；最后才用另一个 request publish notice。notice request 不得夹带 record chain，receiver 也不得把“records + notice”当作同请求原子补链。迁移编排器只有在必要的 record acks、notice ack 与部署 policy 要求的 peer/mirror ack 集合全部取得后，才能声明 preannouncement complete；1:1 双方要同时关闭旧入口时必须先交叉完成 ack。
+
+这里的必要通知集合不是“所有知道过该 service 的服务器”，也不是全网广播。对每个将被迁移 service 作为 effective member delivery target、`sync_endpoint` 或显式 service delegation 的 accepted Realm，owner MUST 按 remote service `did_core_id` 去重，通知该 Realm 中当前有权向它投递或从它拉取材料的 remote services；另外通知部署 policy 明确列出的 route mirrors。已撤销/过期关系、仅存在于本地通讯录或 generic federation allowlist 的 peer、以及只因 DNS/DID namespace 可枚举而发现的节点 MUST 排除。非 Realm 的 invite/contact bootstrap 可以携带同一份 target-signed notice，但不得借此调用本 Realm-scoped publish operation。
+
+每个目标的 durable ack 独立计算；某个目标未 ack 时，owner MUST 继续保留旧入口至该关系完成补发或被显式撤销，或者把该目标记录为 continuity gap 并阻止“安全关闭旧入口”的声明。一次 publish 的接收方不得替 owner 向其它 peer 转广播；mirror 只在另一方逐请求授权 resolve 时返回其已持有的 exact target-signed bytes。
 
 `ak.peer.service_resolution.read.resolve` 的 request 必须携带 `realm_id`、`target_service_id`、`target_service_kind`、`known_record_sequence`、`known_record_digest`，并 MAY 携 `known_notice_digest`、`max_records` 与 `max_response_bytes`。协议上限固定为每次最多 32 个 successor records、canonical response 最多 256 KiB；caller 提供的上限只能收紧。成功响应只可含从 known record 开始逐项连续的 target-signed `successor_records[]`、可选 active target-signed `handover_notice` 与 `has_more`；不得返回 mirror 自签 URL、成员列表、其它 service、缺口后的 record 或不连续摘要。若响应被上限截断，caller 只能用最后一份已验证 record 的 sequence/digest 继续查询；mirror 不得跳过中间链项。每份材料仍由 requester 独立验证，notice 只能引导读取 candidate 的正式 current record，最终 endpoint 仍必须通过 target-signed successor 与 describe reverse binding 才能用于业务。
 
