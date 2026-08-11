@@ -295,6 +295,7 @@
       "kind": "self_claim_authorization_and_linearization",
       "authority_service_id": "ak:did_core:webvh:z6mkfixturepsexample",
       "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+      "requester_verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
       "device_authorization_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
       "model_generation_ref": "1-QmCotestPrincipalGeneration",
       "proof_free_request": {
@@ -418,7 +419,9 @@
       "claim_id": "mls-keypackage-claim-normal-1",
       "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "requester_actor_id": "ak:did_core:webvh:z6mkfixture",
+      "requester_did": "did:webvh:z6mkfixture:alice.example",
       "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+      "requester_verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
       "device_authorization_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
       "model_generation_ref": "1-QmCotestPrincipalGeneration",
       "claim_nonce": "claim-nonce-01",

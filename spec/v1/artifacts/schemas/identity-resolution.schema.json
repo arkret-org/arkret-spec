@@ -1323,6 +1323,7 @@
         "service_kind",
         "full_id",
         "method_history_head",
+        "version_id",
         "record_sequence",
         "record_digest",
         "base_url",
@@ -1349,6 +1350,12 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 512
+        },
+        "version_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "description": "Native DID-method version coordinate copied from the exact verified signed ServiceResolutionRecord; cache replacement cannot infer or refresh it independently."
         },
         "record_sequence": {
           "type": "integer",

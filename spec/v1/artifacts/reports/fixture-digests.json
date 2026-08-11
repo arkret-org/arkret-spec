@@ -186,7 +186,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "f492094cf74dcba36433db6e77719878199ae376489be8160975748b0502a757"
+      "sha256": "c9ea0ff526d9f3ab858f268aa4747d0047a5bc190568f677e6a94531fe608cd8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
@@ -322,7 +322,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-route-handover-mirror-fixture.json",
-      "sha256": "1c93a7f1f3efad5666c1a4c1c6284a44d9646754c9d93eb1084cf888b329a814"
+      "sha256": "82e77c6184d831013f32ef10833ead36a4b146d07150a6dbd1e21bdf63184246"
     },
     {
       "path": "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json",

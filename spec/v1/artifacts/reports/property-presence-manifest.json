@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9566,
+    "total_properties": 9567,
     "total_schema_documents": 158,
     "by_presence_class": {
       "optional": 2838,
       "optional_defaulted": 69,
-      "required": 6290,
+      "required": 6291,
       "required_nullable": 116,
       "tristate": 253
     },
@@ -8045,6 +8045,7 @@
         "/$defs/service_route_cache_entry/properties/service_id": "required",
         "/$defs/service_route_cache_entry/properties/service_kind": "required",
         "/$defs/service_route_cache_entry/properties/verified_at": "required",
+        "/$defs/service_route_cache_entry/properties/version_id": "required",
         "/$defs/service_route_handover_notice/properties/notice": "required",
         "/$defs/service_route_handover_notice/properties/proof": "required",
         "/$defs/service_route_handover_notice_core/allOf/0/else/properties/previous_notice_digest": "optional",

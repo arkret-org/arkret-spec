@@ -210,6 +210,7 @@
         "service_kind": "principal_server",
         "full_id": "did:webvh:z6mkTarget:target-new.example",
         "method_history_head": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "version_id": "8",
         "record_sequence": 8,
         "record_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "base_url": "https://target-new.example/",
