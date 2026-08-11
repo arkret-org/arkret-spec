@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.11",
+  "version": "2026-08-12.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-11T14:46:42Z",
+  "generated_at": "2026-08-11T17:08:46Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -7357,8 +7357,8 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "crypto_verifiable",
-        "payload": "Receiving-service proof that one encrypted target Event was received. The payload is exactly moderation-report.schema.json#/$defs/franking_proof; payload.event_id identifies the proven Event and is the ak.component.moderation.franking_proof.v1 cell subject. A proof is created independently of any later report, so report_id and target_ref are not payload fields.",
-        "payload_schema_ref": "schemas/moderation-report.schema.json#/$defs/franking_proof",
+        "payload": "Receiving-service proof that one encrypted target Event was received. The payload is exactly moderation-evidence.schema.json#/$defs/franking_proof; payload.event_id identifies the proven Event and is the ak.component.moderation.franking_proof.v1 cell subject. verification_method selects the exact service key, whose controller must project to received_by and be authorized at received_at. A proof is created independently of any later report, so report_id and target_ref are not payload fields.",
+        "payload_schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_proof",
         "id_source": "reference"
       },
       {
@@ -9389,6 +9389,10 @@
         "file": "schemas/moderation-report.schema.json"
       },
       {
+        "schema_id": "ak.schema.moderation_evidence.v1",
+        "file": "schemas/moderation-evidence.schema.json"
+      },
+      {
         "schema_id": "ak.schema.moderation_queue_item.v1",
         "file": "schemas/moderation-queue-item.schema.json",
         "consumer_binding": {
@@ -9873,8 +9877,8 @@
         }
       }
     ],
-    "version": "2026-08-11.1",
-    "generated_at": "2026-08-11T13:00:00Z"
+    "version": "2026-08-12.1",
+    "generated_at": "2026-08-11T17:08:46Z"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -14336,14 +14340,13 @@
         "http": "POST /_arkret/self/moderation/report",
         "grpc": "SelfModeration/Report",
         "mq": "self.moderation.command.report",
+        "notes": "Carries exactly one direct-holder signed report_event EventInitialSubmission and no unsigned report fields. The Event kind is ak.self.moderation.report; this self endpoint accepts only absent/self provenance and forbids source_provider, delegated executor, Applet and MIMI-facade provenance. event.actor_id and payload.reporter must equal the authenticated session principal. There is no path Realm: event.realm_id, payload.realm_id, signed scope_ref and the accepted target's derived governance scope must match exactly. Realm-default reports may omit payload.effective_scope; Circle reports must sign the exact Circle scope. The target must be accepted and visible to the reporter; absent, invisible and scope-mismatched targets use the same not_found response. This DataEvent carries seal_ref plus auth_context and cannot carry seal_basis or preconditions. The service forwards exact signed bytes through ordinary Event admission and never authors, rebuilds, co-signs, maps an operation ref to another target or adds a concurrency guard. report_id is derived by retyping the accepted Event id and the stored submit outcome has status=submitted. Exact replay returns that byte-identical outcome without a second log or queue append; the same Event identity with different bytes returns duplicate_conflict. routed_to is omitted for an ordinary reporter and may be returned only when the caller independently holds moderation/governance capability for the exact scope.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "none",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "manual_confirmation"
-        },
-        "request_schema_ref": "schemas/moderation-report.schema.json",
+        "idempotency_mechanism": "object_id",
+        "idempotency_object_path": "/report_event/event/event_id",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/moderation-report.schema.json#/$defs/moderation_report_request_body",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome",
         "durable_effect": {
           "kind": "event_log",
@@ -14891,8 +14894,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-11.9",
-    "generated_at": "2026-08-11T14:46:42Z"
+    "version": "2026-08-12.1",
+    "generated_at": "2026-08-11T17:08:46Z"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

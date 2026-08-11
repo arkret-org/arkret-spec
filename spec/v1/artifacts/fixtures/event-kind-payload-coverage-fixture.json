@@ -12,7 +12,7 @@
       "schemas/agent-provision.schema.json",
       "schemas/agent-selector-claim.schema.json",
       "schemas/moderation-appeal.schema.json",
-      "schemas/moderation-report.schema.json",
+      "schemas/moderation-evidence.schema.json",
       "schemas/read-cursor.schema.json"
     ]
   },
@@ -38,7 +38,7 @@
     },
     {
       "name": "moderation_franking_proof_accepts_canonical_proof",
-      "schema_ref": "schemas/moderation-report.schema.json#/$defs/franking_proof",
+      "schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_proof",
       "expect_valid": true,
       "instance": {
         "kind": "ak.moderation.franking_proof",
@@ -54,6 +54,7 @@
           "mls_group_id_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
         },
         "received_by": "ak:did_core:webvh:z6mkfixturesyncexample",
+        "verification_method": "did:webvh:z6mkfixturesyncexample:sync.example#franking-key-1",
         "received_at": "2026-08-01T00:00:00.000Z",
         "replay_nonce": "fixture-nonce-0001",
         "signature": "c2lnbmF0dXJl"
@@ -61,7 +62,7 @@
     },
     {
       "name": "moderation_franking_proof_rejects_report_subject_aliases",
-      "schema_ref": "schemas/moderation-report.schema.json#/$defs/franking_proof",
+      "schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_proof",
       "expect_valid": false,
       "first_expected_error": "contains:kind",
       "instance": {

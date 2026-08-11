@@ -413,7 +413,7 @@ paths:
 | `ak.self.policy.read.check` | `POST /_arkret/self/policy/check` | policy 本地调用 |
 | `ak.self.media.read.ice_config` | `POST /_arkret/self/rtc/ice-config` | Realtime Media Server / TURN credential adapter |
 | `ak.self.call.media.exchange.issue_token` | `POST /_arkret/self/rtc/token` | Realtime Media Server token 兑换 / gRPC `Call/MediaTokenExchange` |
-| `ak.self.moderation.command.report` | `POST /_arkret/self/moderation/report` | Moderation queue / local compliance workflow |
+| `ak.self.moderation.command.report` | `POST /_arkret/self/moderation/report` | Closed `{report_event}`；direct-holder signed DataEvent，Event-derived report ID，exact-replay moderation queue workflow |
 | `ak.self.applet.install.command.preview` / `ak.self.applet.command.install` / `ak.self.applet.revoke.command.preview` / `ak.self.applet.command.revoke` | `POST /_arkret/self/applets/install/preview`, `POST /_arkret/self/applets/install`, `POST /_arkret/self/applets/{applet_id}/revoke/preview`, `POST /_arkret/self/applets/{applet_id}/revoke` | Applet self/admin aggregate operation；install fan-out registration/grant facts；revoke 以 caller-signed Event saga 撤销 grant/membership，并持久化 external/local step ledger |
 | `ak.edge.applet.command.transaction` / `ak.edge.applet.actor.read.resolve` / `ak.edge.applet.realm.read.resolve` | `POST /_arkret/edge/applet/transactions`, `GET /_arkret/edge/applet/actors/{actor_id}`, `GET /_arkret/edge/applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |
 

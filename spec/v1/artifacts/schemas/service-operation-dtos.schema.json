@@ -2934,18 +2934,15 @@
           "pattern": "^ak:report:[A-Za-z0-9_-]{44}$"
         },
         "status": {
-          "type": "string",
-          "enum": [
-            "submitted",
-            "resolved"
-          ]
+          "const": "submitted",
+          "description": "Stored submit outcome. Later queue resolution does not rewrite this response; exact replay returns the byte-identical submitted outcome."
         },
         "routed_to": {
           "type": "array",
           "items": {
             "$ref": "./common-ids.schema.json#/$defs/did_core_id"
           },
-          "description": "Stable core_ids selected as moderation routing destinations. Endpoint discovery and any full DID verification are separate resolution steps."
+          "description": "Stable core_ids selected as moderation routing destinations. MUST be omitted for an ordinary reporter and MAY be serialized only when the caller independently holds moderation/governance capability for the report's exact scope. Endpoint discovery and full-DID verification remain separate resolution steps."
         }
       },
       "additionalProperties": false

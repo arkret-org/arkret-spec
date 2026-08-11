@@ -113,42 +113,66 @@ dot，会连带撤销其它 issuer 的 decision；[`../models/event-and-patch.md
 POST /_arkret/self/moderation/report
 ```
 
-请求字段：
+请求 body 是 closed `{report_event: EventInitialSubmission}`，不得同时携带 unsigned `realm_id`、
+`target_ref`、`reporter` 或 evidence 投影。`report_event.event.kind` MUST 为
+`ak.self.moderation.report`；payload 字段如下：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 |------|------|------|------|
-| `realm_id` | id | required | 被举报对象所在 Realm。 |
-| `effective_scope` | object | optional | 举报目标的实际治理边界；缺省为 `{kind:"realm", realm_id}`。Circle 内容 MUST 填 `{kind:"circle", realm_id, circle_id}` 或由服务端从 target 解析得到。 |
-| `target_ref` | id | required | 被举报 Object / Event 引用；若提交 Operation 引用，服务必须先映射到对应 `event_id`。 |
+| `realm_id` | id | required | 被举报对象所在 Realm；MUST 等于 Event realm、signed scope 与 target-derived Realm。 |
+| `effective_scope` | object | optional | Realm target 缺省为 `{kind:"realm", realm_id}`；Circle target MUST 显式签入 `{kind:"circle", realm_id, circle_id}`。 |
+| `target_ref` | id | required | 被举报 accepted Object / Event 的 canonical ref；服务端不得把 Operation ref 映射成另一个 ref 后代签或改写 Event。 |
 | `report_reason_code` | enum | required | 举报原因码，取值见 §3.2。 |
 | `description` | string | optional；`report_reason_code=other` 时 required | 举报说明；服务端 MAY 限制长度。 |
-| `reporter` | did | required | 举报人 DID，MUST 与认证 session / device proof 一致。 |
-| `evidence_refs` | id[] | optional | 可见证据引用。 |
-| `evidence_package` | object | optional | E2EE 或私有证据包；见 §3.4。 |
-| `franking_proof` | object | optional | 密文投递证明；见 §3.4。 |
+| `reporter` | did_core_id | required | MUST 等于 Event `actor_id` 与认证 session principal。 |
+| `provenance` | enum | optional | self endpoint 只允许省略或 `self`；`mimi_facade` 只属于独立 MIMI facade ingress。 |
+| `evidence_refs` | id[] | optional | reporter 可见证据的 canonical refs，集合内不得重复。 |
+| `evidence_package` | object | optional | [`moderation-evidence.schema.json#/$defs/evidence_package`](../../artifacts/schemas/moderation-evidence.schema.json) 的 closed 加密证据包。 |
+| `franking_proof` | object | optional | [`moderation-evidence.schema.json#/$defs/franking_proof`](../../artifacts/schemas/moderation-evidence.schema.json) 的完整密文投递证明。 |
+
+该 self operation 只接受 reporter 本人设备直接签名：`event.actor_id == payload.reporter ==
+session principal`，并禁止 `executed_by`、`authorization_ref`、`applet_id`、`source_provider` 与
+MIMI facade provenance。它是 DataEvent，MUST 携带 `seal_ref + auth_context`，MUST NOT 携带
+`seal_basis` 或 `preconditions`。服务端只把 exact signed bytes 送入 ordinary Event admission，
+不得构造、重建、共同签名或注入任何 guard。
 
 响应字段：
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `report_id` | id | required | 举报记录 ID。 |
-| `status` | enum | required | 举报处理状态；`moderation-queue-item` 的**权威生命周期枚举** `{ submitted, resolved }`（语义、转换与终态见 §3.3）。提交后为 `submitted`；实现 MUST NOT 返回该枚举之外的值。 |
-| `routed_to` | did[] | optional | 该举报被路由 / 分诊到的 scoped moderator / 管理员 DID（若服务执行了路由则填充）。**治理拓扑保护（normative）**：实现 MUST NOT 向不持有 moderation / governance capability 的普通 reporter 暴露具体 moderator / 管理员 DID——否则反复对不同 scope 举报即可枚举 Circle / Realm 的完整 moderator/admin DID 集合。对普通 reporter，响应 MUST 省略 `routed_to` 或仅返回布尔"已路由"指示（如 `routed: true`），不得回退到 `SHOULD`——前句的 MUST NOT 暴露与本句的披露收口口径一致；完整 `routed_to` DID 列表 MUST 仅对本身持有 moderation / governance capability 的 caller 返回。 |
+| `report_id` | id | required | 从 accepted `report_event.event.event_id` retype 派生；服务端不得另分配 ID。 |
+| `status` | const(`submitted`) | required | 首次 accepted 时存储的 submit outcome；后续 queue-item resolved 不得改写重放响应。 |
+| `routed_to` | did_core_id[] | optional | 普通 reporter 的响应 MUST 省略；只有 caller 独立持有 exact scope 的 moderation/governance capability 时才可返回，避免枚举治理拓扑。 |
 
 请求示例（非完整 schema）：
 
 ```json
 {
-  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "effective_scope": {
-    "kind": "circle",
-    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-    "circle_id": "ak:circle:AaalePlTK6W4ZKrbKyKzlmmcdhXVx-InxeWY4ul69tiN"
-  },
-  "target_ref": "ak:message:AfslM_DNod70pfu-VkH6C2UTYa4N7qqqTljZ_MYLBciF",
-  "report_reason_code": "harassment",
-  "description": "This message contains targeted personal attacks.",
-  "reporter": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com"
+  "report_event": {
+    "event": {
+      "kind": "ak.self.moderation.report",
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "scope_ref": {
+        "kind": "circle",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AaalePlTK6W4ZKrbKyKzlmmcdhXVx-InxeWY4ul69tiN"
+      },
+      "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+      "payload": {
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "effective_scope": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AaalePlTK6W4ZKrbKyKzlmmcdhXVx-InxeWY4ul69tiN"
+        },
+        "target_ref": "ak:message:AfslM_DNod70pfu-VkH6C2UTYa4N7qqqTljZ_MYLBciF",
+        "report_reason_code": "harassment",
+        "description": "This message contains targeted personal attacks.",
+        "reporter": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+        "provenance": "self"
+      }
+    }
+  }
 }
 ```
 
@@ -156,10 +180,11 @@ POST /_arkret/self/moderation/report
 
 举报入口本身是可被滥用的写路径（举报洪水、超大 evidence_package 充塞、franking_proof 重放）。实现 MUST：
 
-- 对 `/_arkret/self/moderation/report` 按 [`../security/server-threat-model.md` §4.1](../security/server-threat-model.md) 的入口与服务面规则施加**分层限速**（至少按 `reporter` DID、source service、`realm_id`、source IP hash、endpoint 维度），超阈值 MUST 返回 `rate_limited`；单 reporter 在单位时间窗口内对同一 `target_ref` 的重复举报 MUST 去重或抑制。
+- 对 `/_arkret/self/moderation/report` 按 [`../security/server-threat-model.md` §4.1](../security/server-threat-model.md) 的入口与服务面规则施加**分层限速**（至少按 signed payload reporter、source service、Realm、source IP hash、endpoint 维度），超阈值 MUST 返回 `rate_limited`；同一 Event 的 exact replay 不得被重写成新举报，同 reporter 对同一 target 的不同 Event 仍 MAY 被限速或抑制。
 - 对 `evidence_package` 施加大小上界：其总字节数 MUST 受一个 `max_total_blob_bytes` 等价上界约束（命名遵循 [`../models/common-fields.md` §3.0.1](../models/common-fields.md)），超限 MUST 拒绝而非静默截断。
 - 对 `franking_proof.replay_nonce` 的去重存储 MUST 有界：去重窗口 MUST 有限（时间或计数），过期 nonce MAY 被驱逐；实现 MUST NOT 假定无限去重存储，超出窗口的 nonce 复用按不可验证投递证明处理（见 §3.4）。
-- **target scope 绑定（normative）**：服务端 MUST 从 `target_ref` 解析其真实治理边界 `(realm_id, effective_scope)`，并校验它等于请求声明的 `realm_id` / `effective_scope`；不一致时 MUST 拒绝。reporter 对 `target_ref` 在该 scope 内不可见时同样 MUST 拒绝(对齐 §3.3 "举报自己可见的对象")。为避免对象存在性 / Circle 隔离边界枚举，上述拒绝与"目标不存在"MUST 使用统一不透明失败形态(对齐 §2.5)。本校验与 §5.5.2 appeal 链的同 Realm 绑定校验同口径，防止以有权 Realm 的 `realm_id` 举报无权 Realm / Circle 内对象。
+- **target scope 绑定（normative）**：服务端 MUST 从 signed `payload.target_ref` 解析 accepted target 的真实治理边界，并校验它逐字等于 Event/payload Realm、signed `scope_ref` 与显式/默认 `effective_scope`。Circle target 不得省略 signed Circle scope。reporter 对 target 不可见时同样拒绝；目标不存在、不可见与任一 scope mismatch 全部返回同一 `not_found`，响应形态与时序不得形成对象/Circle 枚举 oracle。
+- accepted Event 恰好 append 一条 report log 并物化一个不同 typed-id 的 queue item；两者都从 Event ID retype。exact canonical replay MUST 返回首次存储的 byte-identical `status=submitted` outcome 且不得再次 append；同 Event ID 异 canonical bytes MUST `duplicate_conflict` 并零新增写入。
 
 ### 3.2 举报原因枚举
 
@@ -175,13 +200,13 @@ POST /_arkret/self/moderation/report
 
 ### 3.3 举报的处理
 
-- 举报 service operation（`ak.self.moderation.command.report`）会物化 `ak.self.moderation.report` 事件，写入 Realm Event history；Circle 举报的 plaintext metadata 和 evidence audience MUST 按 `effective_scope.kind="circle"` 加密 / 限制。
+- 举报 service operation（`ak.self.moderation.command.report`）接受 reporter 已签名的 `ak.self.moderation.report` Event，并原样写入 Realm Event history；服务端不得物化或代签该 Event。Circle 举报的 plaintext metadata 和 evidence audience MUST 按 `effective_scope.kind="circle"` 加密 / 限制。
 - 该事件仅对目标 scope 的管理员 / moderator 可见；Realm-default 内容是 Realm moderator，Circle 内容是 Circle moderator 或显式覆盖该 Circle 的 Realm grant 持有者。
 - 被举报人不会收到通知。
 - 管理员可以基于举报决定后续行动（警告、删除内容、封禁用户等）。
 - 举报不会授予 moderator 历史 key、epoch key、审计 applet release 权限或外部 verifier 权限。
 
-**queue-item 生命周期(normative,`moderation-queue-item.schema.json` 与响应 `status` 的权威源)**:v1 刻意最小化为两态——
+**queue-item 生命周期（normative，`moderation-queue-item.schema.json` 是权威源）**：v1 刻意最小化为两态。submit operation 的 stored response 始终是 `status=submitted`；queue-item 后续状态不能改写 exact replay outcome。
 
 | 状态 | 语义 | 合法后继 | 终态? |
 | --- | --- | --- | --- |
@@ -227,20 +252,21 @@ Canonical franking proof 结构（示例中的 digest / signature 字节以 `...
     "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
     "mls_group_id_digest": "sha256:..."
   },
-  "received_by": "did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example",
+  "received_by": "ak:did_core:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ",
+  "verification_method": "did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example#franking-key-1",
   "received_at": "2026-04-30T00:00:00Z",
   "replay_nonce": "base64url...",
   "signature": "base64url..."
 }
 ```
 
-**Durable Event 与 report 内嵌对象的单一合同（normative）**：[`moderation-report.schema.json#/$defs/franking_proof`](../../artifacts/schemas/moderation-report.schema.json) 同时是 `ak.moderation.franking_proof` durable Event 的完整 payload 合同，以及 `ModerationReport.franking_proof` 的内嵌对象合同；两处不得维护不同字段集。`payload.event_id` 是**被证明已接收的 encrypted Event ID**，也是 `ak.component.moderation.franking_proof.v1` ordered-log cell 的 subject；它不是承载该 proof 的外层 Event 自身 `event_id`。Proof 在接收密文时由 receiving service 生成，先于且独立于任何后续 report，因此 payload MUST NOT 携带 `report_id` 或 `target_ref`，report 与 proof 的关联由 report 内嵌该完整 proof 对象建立。
+**Durable Event 与 report 内嵌对象的单一合同（normative）**：[`moderation-evidence.schema.json#/$defs/franking_proof`](../../artifacts/schemas/moderation-evidence.schema.json) 同时是 `ak.moderation.franking_proof` durable Event 的完整 payload 合同，以及 report payload 内嵌 `franking_proof` 的合同；两处不得维护不同字段集。`payload.event_id` 是**被证明已接收的 encrypted Event ID**，也是 `ak.component.moderation.franking_proof.v1` ordered-log cell 的 subject；它不是承载该 proof 的外层 Event 自身 `event_id`。Proof 在接收密文时由 receiving service 生成，先于且独立于任何后续 report，因此 payload MUST NOT 携带 `report_id` 或 `target_ref`，report 与 proof 的关联由 report 内嵌该完整 proof 对象建立。
 
-当 receiving service 把 proof 发布为 `ak.moderation.franking_proof` Event 时，reducer MUST 在写 cell 前验证：envelope `realm_id == payload.realm_id`、envelope `actor_id == payload.received_by`、`payload.event_id` 指向同 Realm 内已接受的 encrypted Event、三类 digest 与该目标 Event 一致、`replay_nonce` 未在有效去重窗口内使用，且 payload `signature` 可由 `received_by` 在 `received_at` 有效并获该 Realm 授权的 service key 验证。任一绑定不成立 MUST 按 `crypto_verifiable` admission fail closed；不得仅因 JSON Schema 通过就 append。
+当 receiving service 把 proof 发布为 `ak.moderation.franking_proof` Event 时，reducer MUST 在写 cell 前验证：envelope `realm_id == payload.realm_id`、envelope `actor_id == payload.received_by`、`payload.event_id` 指向同 Realm 内已接受的 encrypted Event、三类 digest 与该目标 Event 一致、`replay_nonce` 未在有效去重窗口内使用，且 payload `signature` 可由 `verification_method` 在 `received_at` 验证；该 method 的 controller 投影 MUST 等于 `received_by` 并在该 Realm 获授权。任一绑定不成立 MUST 按 `crypto_verifiable` admission fail closed；不得仅因 JSON Schema 通过就 append。
 
 规则：
 
-- `franking_proof` MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、接收时间与 `replay_nonce` 之上生成。其中 canonical event routing metadata 的覆盖在 wire 上由必填字段 `routing_metadata_digest` 承载（见 [`moderation-report.schema.json`](../../artifacts/schemas/moderation-report.schema.json) `franking_proof.required`），验证方 MUST 据此核验该覆盖。
+- `franking_proof` MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、verification method、接收时间与 `replay_nonce` 之上生成。其中 canonical event routing metadata 的覆盖在 wire 上由必填字段 `routing_metadata_digest` 承载（见 [`moderation-evidence.schema.json`](../../artifacts/schemas/moderation-evidence.schema.json) `franking_proof.required`），验证方 MUST 据此核验该覆盖。
 - 对 `encrypted-envelope.schema.json` 承载的 v1 消息，`franking_proof.ciphertext_digest` 的取值 MUST 等于被举报 `encrypted_content.payload_digest`：即 `sha256(canonical_json(payload_metadata) || base64url_decode(ciphertext))`（见 [`encryption-and-audit.md` §2.3.3](../crypto-media/encryption-and-audit.md#233-payload_digest-计算)）。实现 MUST NOT 接受或生成旧式嵌套 `digests.ciphertext` / `ciphertext_digest` envelope 字段。
 - `franking_proof` MUST NOT 包含 plaintext body、attachment filename、reply excerpt、mention 列表、private handle 或解密后内容 hash。
 - **群拓扑 / 时序元数据最小披露（normative）**：`sender_claim` MUST NOT 携带 raw `mls_group_id` 或明文 `epoch`。前者是群组身份、后者是 epoch 进度，均为元数据侧信道，向可能非该 E2EE 群成员的 moderator 披露会泄露群存在性与活跃 epoch 进度。需要把 sender claim 绑定到具体群上下文时，`mls_group_id` MUST 以不可逆 digest 形式（`mls_group_id_digest`，与 `routing_metadata_digest` 一致的 keyed/salted 或 plain digest 约定）出现；`epoch` MUST NOT 以明文整数出现于 `franking_proof`。
@@ -258,7 +284,7 @@ Realm / Circle 治理举报没有独立审查方，也没有“为了举报给 m
 Franking 信任链：
 
 1. 从 `franking_proof` 的 `received_by` 取得 receiving service DID。
-2. 解析该 DID Document，并验证 `franking_proof.signature` 使用的 verification method 在 `received_at` 时有效且未撤销。
+2. 解析该 DID Document，要求 signed `verification_method` 的 controller 投影等于 `received_by`，并验证该 method 在 `received_at` 时有效且未撤销。
 3. 验证该 service DID 在目标 Realm 的 policy / service binding 中被授权为 Sync、Federation、MIMI facade 或 moderation ingestion 服务。
 4. 验证 DID service endpoint、HTTP Message Signature / federation binding 与实际接收服务一致，防止把其他服务签名重放到本 Realm。
 5. 验证 `franking_proof` payload hash 覆盖 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、received time 和 replay nonce。
@@ -576,7 +602,7 @@ Principal Server 可以配置本地服务器级 ACL，控制哪些 peer 的联�
 }
 ```
 
-> `targets[]` 条目的 `target` / `action` / `reason_code` 为核心字段，`created_by` / `created_at` / `expires_at` 为可选 audit 字段（取值与 §5.3 一致）；本节示例为聚焦 server ACL 而省略可选 audit 字段，并非表示其不可携带。完整字段集合与必填性以 [`moderation-report.schema.json`](../../artifacts/schemas/moderation-report.schema.json) 对应定义为准。
+> `targets[]` 条目的 `target` / `action` / `reason_code` 为核心字段，`created_by` / `created_at` / `expires_at` 为可选 audit 字段（取值与 §5.3 一致）；本节示例为聚焦 server ACL 而省略可选 audit 字段，并非表示其不可携带。该 policy 文档只存在于 signed `ak.realm.moderation_policy.payload.value`；moderation report operation schema 不承载或定义 policy target。
 
 `ak.realm.moderation_policy` server target 的生效规则：
 

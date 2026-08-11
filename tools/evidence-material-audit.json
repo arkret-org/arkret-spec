@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 213,
+  "audited_occurrence_count": 212,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -503,7 +503,7 @@
       "reason": "Selects handling policy for heterogeneous moderation evidence."
     },
     {
-      "file": "moderation-report.schema.json",
+      "file": "moderation-evidence.schema.json",
       "key": "evidence_package",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -512,19 +512,7 @@
         "attestation",
         "receipt"
       ],
-      "reason": "The encrypted package may contain content proofs, witness attestations, and handling receipts."
-    },
-    {
-      "file": "moderation-report.schema.json",
-      "key": "evidence_refs",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "receipt"
-      ],
-      "reason": "Report references may identify content proofs, witness attestations, or handling receipts."
+      "reason": "The closed encrypted package may contain content proofs, witness attestations, and handling receipts while binding the exact target, moderator key, ciphertext digest and reporter signature."
     },
     {
       "file": "normative-clause-registry.json",

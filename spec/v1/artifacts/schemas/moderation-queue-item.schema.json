@@ -21,7 +21,8 @@
       "pattern": "^ak:moderation_queue_item:[A-Za-z0-9_-]{44}$"
     },
     "report": {
-      "$ref": "./moderation-report.schema.json"
+      "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload",
+      "description": "Immutable payload projection from the accepted ak.self.moderation.report Event; never the service-operation request wrapper."
     },
     "status": {
       "type": "string",

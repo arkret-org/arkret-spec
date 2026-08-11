@@ -495,9 +495,7 @@ EVENT_AUTHORING_DURABLE_EFFECT_KINDS = ("event_log", "actor_private_event")
 # its own. A downgrade additionally MUST show the state change reaches no replicated
 # cell/lattice, i.e. it never enters state_root and no peer has to converge on it.
 # See arkret-work/work/active/2026-08-06-1723-event-log-operations-need-a-signed-request.md.
-EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
-    "ak.self.moderation.command.report": "needs the caller-signed report Event",
-}
+EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {}
 
 
 

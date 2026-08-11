@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9613,
-    "total_schema_documents": 158,
+    "total_properties": 9605,
+    "total_schema_documents": 159,
     "by_presence_class": {
-      "optional": 2841,
+      "optional": 2830,
       "optional_defaulted": 69,
-      "required": 6319,
+      "required": 6322,
       "required_nullable": 126,
       "tristate": 258
     },
@@ -6967,6 +6967,7 @@
         "/$defs/moderation_decision_payload/properties/request_canonical_digest": "required",
         "/$defs/moderation_decision_payload/properties/target_ref": "required",
         "/$defs/moderation_report_payload/allOf/0/if/properties/provenance": "required",
+        "/$defs/moderation_report_payload/allOf/1/if/properties/report_reason_code": "required",
         "/$defs/moderation_report_payload/properties/description": "optional",
         "/$defs/moderation_report_payload/properties/effective_scope": "optional",
         "/$defs/moderation_report_payload/properties/evidence_package": "optional",
@@ -7475,6 +7476,7 @@
         "/$defs/mls_welcome_payload/properties/recipient_device_id",
         "/$defs/mls_welcome_payload/properties/self_claim_receipt",
         "/$defs/mls_welcome_payload/properties/welcome_ref",
+        "/$defs/moderation_report_payload/properties/description",
         "/$defs/moderation_report_payload/properties/source_provider",
         "/$defs/organization_moderation_policy_state_payload/properties/organization_id",
         "/$defs/organization_moderation_policy_state_payload/properties/organization_principal_id",
@@ -9612,6 +9614,37 @@
         "/$defs/decision_payload/properties/modify_decision_ref"
       ]
     },
+    "moderation-evidence.schema.json": {
+      "schema_ids": [
+        "ak.schema.moderation_evidence.v1"
+      ],
+      "properties": {
+        "/$defs/evidence_package/properties/ciphertext": "required",
+        "/$defs/evidence_package/properties/ciphertext_digest": "required",
+        "/$defs/evidence_package/properties/encrypted_to": "required",
+        "/$defs/evidence_package/properties/encryption": "required",
+        "/$defs/evidence_package/properties/plaintext_digest": "optional",
+        "/$defs/evidence_package/properties/recipient_public_key_ref": "required",
+        "/$defs/evidence_package/properties/reporter_signature": "required",
+        "/$defs/evidence_package/properties/target_refs": "required",
+        "/$defs/franking_proof/properties/aad_digest": "required",
+        "/$defs/franking_proof/properties/ciphertext_digest": "required",
+        "/$defs/franking_proof/properties/event_id": "required",
+        "/$defs/franking_proof/properties/franking_proof_id": "required",
+        "/$defs/franking_proof/properties/kind": "required",
+        "/$defs/franking_proof/properties/realm_id": "required",
+        "/$defs/franking_proof/properties/received_at": "required",
+        "/$defs/franking_proof/properties/received_by": "required",
+        "/$defs/franking_proof/properties/replay_nonce": "required",
+        "/$defs/franking_proof/properties/routing_metadata_digest": "required",
+        "/$defs/franking_proof/properties/sender_claim": "required",
+        "/$defs/franking_proof/properties/sender_claim/properties/actor_id": "required",
+        "/$defs/franking_proof/properties/sender_claim/properties/device_id": "required",
+        "/$defs/franking_proof/properties/sender_claim/properties/mls_group_id_digest": "required",
+        "/$defs/franking_proof/properties/signature": "required",
+        "/$defs/franking_proof/properties/verification_method": "required"
+      }
+    },
     "moderation-queue-item.schema.json": {
       "schema_ids": [
         "ak.schema.moderation_queue_item.v1"
@@ -9638,48 +9671,12 @@
         "ak.schema.moderation_report.v1"
       ],
       "properties": {
-        "/$defs/effective_scope/oneOf/0/properties/kind": "required",
-        "/$defs/effective_scope/oneOf/0/properties/realm_id": "required",
-        "/$defs/effective_scope/oneOf/1/properties/circle_id": "required",
-        "/$defs/effective_scope/oneOf/1/properties/kind": "required",
-        "/$defs/effective_scope/oneOf/1/properties/realm_id": "required",
-        "/$defs/franking_proof/properties/aad_digest": "required",
-        "/$defs/franking_proof/properties/ciphertext_digest": "required",
-        "/$defs/franking_proof/properties/event_id": "required",
-        "/$defs/franking_proof/properties/franking_proof_id": "required",
-        "/$defs/franking_proof/properties/kind": "required",
-        "/$defs/franking_proof/properties/realm_id": "required",
-        "/$defs/franking_proof/properties/received_at": "required",
-        "/$defs/franking_proof/properties/received_by": "required",
-        "/$defs/franking_proof/properties/replay_nonce": "required",
-        "/$defs/franking_proof/properties/routing_metadata_digest": "required",
-        "/$defs/franking_proof/properties/sender_claim": "required",
-        "/$defs/franking_proof/properties/sender_claim/properties/actor_id": "required",
-        "/$defs/franking_proof/properties/sender_claim/properties/device_id": "required",
-        "/$defs/franking_proof/properties/sender_claim/properties/mls_group_id_digest": "required",
-        "/$defs/franking_proof/properties/signature": "required",
-        "/allOf/0/if/properties/report_reason_code": "required",
-        "/properties/created_at": "optional",
-        "/properties/description": "optional",
-        "/properties/effective_scope": "optional",
-        "/properties/evidence_package": "optional",
-        "/properties/evidence_package/properties/ciphertext_digest": "optional",
-        "/properties/evidence_package/properties/encryption": "optional",
-        "/properties/evidence_package/properties/plaintext_digest": "optional",
-        "/properties/evidence_package/properties/recipients": "optional",
-        "/properties/evidence_refs": "optional",
-        "/properties/franking_proof": "optional",
-        "/properties/realm_id": "required",
-        "/properties/report_id": "optional",
-        "/properties/report_reason_code": "required",
-        "/properties/reporter": "required",
-        "/properties/routed_to": "optional",
-        "/properties/status": "optional",
-        "/properties/target_ref": "required"
-      },
-      "conditionally_required": [
-        "/properties/description"
-      ]
+        "/$defs/moderation_report_event_submission/allOf/1/properties/event": "required",
+        "/$defs/moderation_report_event_submission/allOf/1/properties/event/properties/kind": "required",
+        "/$defs/moderation_report_event_submission/allOf/1/properties/event/properties/payload": "required",
+        "/$defs/moderation_report_event_submission/allOf/1/properties/event/properties/payload/properties/provenance": "optional",
+        "/$defs/moderation_report_request_body/properties/report_event": "required"
+      }
     },
     "morph-customer-risk-ext.schema.json": {
       "schema_ids": [

@@ -5021,7 +5021,7 @@ Expected:
 Steps：
 
 - **Case A — roundtrip 正路径**：
-  1. E2EE Realm 中 sender 发送密文消息；receiving service 按 §3.4 生成 `ak.moderation.franking_proof`（含 `routing_metadata_digest`、`ciphertext_digest`、`aad_digest`、`sender_claim`（仅 `mls_group_id_digest`，无 raw `mls_group_id` / 明文 `epoch`）、`received_by`、`received_at`、`replay_nonce`、`signature`，并通过 [`moderation-report.schema.json`](../../artifacts/schemas/moderation-report.schema.json) `franking_proof` 分支）。
+  1. E2EE Realm 中 sender 发送密文消息；receiving service 按 §3.4 生成 `ak.moderation.franking_proof`（含 `routing_metadata_digest`、`ciphertext_digest`、`aad_digest`、`sender_claim`（仅 `mls_group_id_digest`，无 raw `mls_group_id` / 明文 `epoch`）、`received_by`、`verification_method`、`received_at`、`replay_nonce`、`signature`，并通过 [`moderation-evidence.schema.json`](../../artifacts/schemas/moderation-evidence.schema.json) `franking_proof` 分支）。
   2. reporter 提交 `ak.self.moderation.command.report`，附加密 evidence package（加密给 `effective_scope` 对应 moderator audience）与该 `franking_proof`。
   3. moderator 按 §3.4.1 “Franking 信任链” 步骤 1–6 验证（receiving service DID 解析、verification method 在 `received_at` 有效且未撤销、service 在目标 Realm 被授权、payload hash 覆盖完整、`received_at` 时序新鲜度）。
 - **Case B — 篡改 / 最小披露违反**：(a) `franking_proof.ciphertext_digest` 与目标 encrypted envelope digest 不一致；(b) `sender_claim` 携带 raw `mls_group_id` 或明文整数 `epoch`，或 proof 包含 plaintext body。
@@ -6260,7 +6260,7 @@ Runner MUST 加载 [`event-kind-payload-coverage-fixture.json`](../../artifacts/
 本组对 `ak.relation.tombstone` 与 `ak.moderation.franking_proof` 的最低覆盖是：
 
 - `ak.relation.tombstone` 正例只携带 `relation_id` 与可选 `reason`，并解析到 `relation_tombstone_payload`；携带 `target_ref` / `patch` 的 update 形态 MUST schema-invalid。Registry cell subject 必须由 `payload.relation_id` 解析为 `id:relation`。
-- `ak.moderation.franking_proof` 正例必须通过 `moderation-report.schema.json#/$defs/franking_proof`，registry 与 Event Envelope 必须引用同一个 def；只带 `report_id` / `target_ref` 的 report-keyed 形态 MUST schema-invalid。Registry cell subject 必须由目标 `payload.event_id` 解析为 `id:event`，不得使用外层 proof Event 自身的 `event_id`，也不得退回不存在的 report 字段。
+- `ak.moderation.franking_proof` 正例必须通过 `moderation-evidence.schema.json#/$defs/franking_proof`，registry 与 Event Envelope 必须引用同一个 def；只带 `report_id` / `target_ref` 的 report-keyed 形态 MUST schema-invalid。Registry cell subject 必须由目标 `payload.event_id` 解析为 `id:event`，不得使用外层 proof Event 自身的 `event_id`，也不得退回不存在的 report 字段。`verification_method` 必须存在、controller 投影等于 `received_by`，且在 `received_at` 有效。
 - 任一显式 schema ref 不存在、ref fragment 不可解析、Event Envelope 错接到共享 `audit_payload` / `relation_update_payload`、或 cell subject 在所选 payload class 上无可解析标量端点，均 MUST 使本组失败；`event-payload.schema.json` 的定义包根 schema 不能替代上述两条 kind-specific 合同。
 ## 35. Service route handover / Realm mirror closure vector
 

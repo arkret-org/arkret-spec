@@ -1,258 +1,94 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/moderation-report.schema.json",
-  "title": "Arkret Moderation Report",
-  "type": "object",
-  "required": [
-    "realm_id",
-    "target_ref",
-    "report_reason_code",
-    "reporter"
-  ],
-  "properties": {
-    "report_id": {
-      "type": "string",
-      "pattern": "^ak:report:[A-Za-z0-9_-]{44}$"
-    },
-    "realm_id": {
-      "$ref": "./common-ids.schema.json#/$defs/realm_id"
-    },
-    "effective_scope": {
-      "$ref": "#/$defs/effective_scope",
-      "description": "Governance boundary for this report. When absent, the report is Realm-default. Circle-scoped targets MUST resolve to the target Circle and route only to scoped moderators/admins."
-    },
-    "target_ref": {
-      "$ref": "./event-payload.schema.json#/$defs/object_ref"
-    },
-    "report_reason_code": {
-      "type": "string",
-      "enum": [
-        "spam",
-        "harassment",
-        "hate_speech",
-        "nsfw",
-        "illegal",
-        "misinformation",
-        "other"
-      ]
-    },
-    "description": {
-      "$ref": "string-profiles.schema.json#/$defs/short_text",
-      "maxLength": 4096
-    },
-      "reporter": {
-        "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-      },
-    "evidence_refs": {
-      "type": "array",
-      "items": {
-        "$ref": "./event-payload.schema.json#/$defs/object_ref"
-      },
-      "uniqueItems": true
-    },
-    "evidence_package": {
-      "type": "object",
-      "properties": {
-        "encryption": {
-          "type": "string"
-        },
-        "recipients": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "ciphertext_digest": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-        },
-        "plaintext_digest": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-        }
-      },
-      "additionalProperties": true
-    },
-    "franking_proof": {
-      "$ref": "#/$defs/franking_proof",
-      "description": "Optional franking proof metadata block. Mirrors the franking_proof object spec'd in zh/governance/content-moderation.md §3.4. It proves service receipt of ciphertext metadata; it does not prove plaintext authorship and does not grant moderators any MLS epoch/exporter secret."
-    },
-    "created_at": {
-      "$ref": "#/$defs/timestamp"
-    },
-    "status": {
-      "type": "string",
-      "enum": [
-        "submitted",
-        "resolved"
-      ],
-      "description": "Non-authoritative status mirror for client / UI convenience. The authoritative moderation lifecycle (submitted → resolved) lives on the moderation-queue-item produced by the reducer (see schemas/moderation-queue-item.schema.json + governance/content-moderation.md §3.3). Reducers MUST NOT read this field for routing or state-machine decisions; if present on submit it MUST be either absent or 'submitted'."
-    },
-    "routed_to": {
-      "type": "array",
-        "items": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        }
-    }
-  },
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "report_reason_code": {
-            "const": "other"
-          }
-        },
-        "required": [
-          "report_reason_code"
-        ]
-      },
-      "then": {
-        "required": [
-          "description"
-        ]
-      }
-    }
-  ],
+  "title": "Arkret Moderation Report Operation",
+  "description": "Closed signed-request DTO for ak.self.moderation.command.report. Canonical evidence and franking-proof objects live in moderation-evidence.schema.json so Event payload validation does not depend back on an operation request schema.",
+  "$ref": "#/$defs/moderation_report_request_body",
   "$defs": {
-    "hash": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-    },
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-    },
-    "timestamp": {
-      "$ref": "./time.schema.json#/$defs/timestamp"
-    },
-    "event_ref": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-    },
-    "effective_scope": {
-      "oneOf": [
+    "moderation_report_event_submission": {
+      "allOf": [
         {
-          "type": "object",
-          "required": [
-            "kind",
-            "realm_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "realm"
-            },
-            "realm_id": {
-              "$ref": "./common-ids.schema.json#/$defs/realm_id"
-            }
-          },
-          "additionalProperties": false
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
         },
         {
-          "type": "object",
-          "required": [
-            "kind",
-            "realm_id",
-            "circle_id"
-          ],
           "properties": {
-            "kind": {
-              "const": "circle"
-            },
-            "realm_id": {
-              "$ref": "./common-ids.schema.json#/$defs/realm_id"
-            },
-            "circle_id": {
-              "$ref": "./common-ids.schema.json#/$defs/circle_id"
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.self.moderation.report"
+                },
+                "payload": {
+                  "properties": {
+                    "provenance": {
+                      "const": "self"
+                    }
+                  },
+                  "not": {
+                    "required": [
+                      "source_provider"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "realm_id",
+                "scope_ref",
+                "actor_id",
+                "payload",
+                "seal_ref",
+                "auth_context"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "executed_by"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "authorization_ref"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "applet_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "seal_basis"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "preconditions"
+                    ]
+                  }
+                ]
+              }
             }
           },
-          "additionalProperties": false
+          "required": [
+            "event"
+          ]
         }
-      ]
+      ],
+      "description": "Direct-holder signed ak.self.moderation.report DataEvent. The self endpoint accepts only absent/self provenance and forbids delegated executor, Applet and MIMI-facade provenance. event.actor_id and payload.reporter MUST equal the authenticated session principal. event.realm_id, payload.realm_id, the signed scope_ref and the accepted target's derived governance scope MUST match exactly. A Realm-default report may omit payload.effective_scope; a Circle report MUST sign the exact Circle scope. The target MUST be accepted and visible to the reporter; absent, invisible and scope-mismatched targets all return the same not_found response. This DataEvent carries seal_ref and auth_context and MUST NOT carry seal_basis or preconditions. The service forwards exact signed bytes through ordinary Event admission and never authors, rebuilds, co-signs or adds guards."
     },
-    "franking_proof": {
+    "moderation_report_request_body": {
       "type": "object",
-      "description": "Canonical franking proof object used both as the complete payload of an ak.moderation.franking_proof durable Event and, when submitted with a report, as ModerationReport.franking_proof. The proof is created independently of a report; event_id names the encrypted Event whose receipt is proven, while the enclosing proof Event has its own distinct Event.event_id.",
       "required": [
-        "kind",
-        "franking_proof_id",
-        "realm_id",
-        "event_id",
-        "routing_metadata_digest",
-        "ciphertext_digest",
-        "aad_digest",
-        "sender_claim",
-        "received_by",
-        "received_at",
-        "replay_nonce",
-        "signature"
+        "report_event"
       ],
       "properties": {
-        "kind": {
-          "const": "ak.moderation.franking_proof"
-        },
-        "franking_proof_id": {
-          "type": "string",
-          "pattern": "^ak:franking_proof:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "event_id": {
-          "$ref": "#/$defs/event_ref",
-          "description": "Event ID of the encrypted Event whose receipt is proven. This is the moderation franking-proof cell subject, not the enclosing ak.moderation.franking_proof Event's own event_id."
-        },
-        "routing_metadata_digest": {
-          "$ref": "#/$defs/hash",
-          "description": "Digest of canonical event routing metadata covered by the receiving service."
-        },
-        "ciphertext_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "aad_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "sender_claim": {
-          "type": "object",
-          "required": [
-            "actor_id",
-            "device_id",
-            "mls_group_id_digest"
-          ],
-          "properties": {
-            "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-            },
-            "device_id": {
-              "type": "string",
-              "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-            },
-            "mls_group_id_digest": {
-              "type": "string",
-              "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-              "description": "Digest of the MLS group id; raw group ids MUST NOT appear in franking proofs."
-            }
-          },
-          "additionalProperties": false
-        },
-        "received_by": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "received_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "replay_nonce": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{16,256}$",
-          "description": "Opaque anti-replay nonce generated by the receiving service and covered by the franking proof signature."
-        },
-        "signature": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Receiving service signature over the canonical franking proof transcript."
+        "report_event": {
+          "$ref": "#/$defs/moderation_report_event_submission"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Carries exactly one direct-holder signed moderation report Event and no unsigned report projection."
     }
-  },
-  "additionalProperties": false
+  }
 }

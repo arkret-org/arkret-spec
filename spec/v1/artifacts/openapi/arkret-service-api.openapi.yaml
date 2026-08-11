@@ -6854,6 +6854,16 @@ paths:
   /_arkret/self/moderation/report:
     post:
       operationId: ak.self.moderation.command.report
+      description: >-
+        Accepts exactly one direct-holder signed ak.self.moderation.report DataEvent in
+        report_event. The authenticated session principal must equal both event.actor_id
+        and payload.reporter. The signed Event realm/scope must equal the accepted target's
+        derived governance scope; absent, invisible and scope-mismatched targets all return
+        not_found. The service forwards exact bytes through ordinary Event admission and
+        never authors, rebuilds, co-signs or adds preconditions. Exact replay returns the
+        stored submitted outcome; the same Event id with different bytes returns
+        duplicate_conflict. routed_to is omitted unless the caller independently holds
+        moderation/governance capability for the exact scope.
       security:
       - bearerAuth: []
       requestBody:
@@ -6861,10 +6871,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/moderation-report.schema.json
+              $ref: ../schemas/moderation-report.schema.json#/$defs/moderation_report_request_body
       responses:
         '200':
-          description: Moderation report created
+          description: Signed moderation report accepted; report_id is retyped from the Event id and status is submitted
           content:
             application/json:
               schema:

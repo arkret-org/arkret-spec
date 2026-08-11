@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/moderation-evidence.schema.json",
+  "title": "Arkret Moderation Evidence Objects",
+  "description": "Defs-only canonical objects shared by signed moderation reports, MIMI report mapping and durable franking-proof Events. This schema depends only on primitive/common schemas and does not reference an Event or operation request schema.",
+  "$defs": {
+    "evidence_package": {
+      "type": "object",
+      "description": "Canonical encrypted moderation evidence-package descriptor. target_refs names exactly the report target at admission; recipient_public_key_ref and encrypted_to MUST be byte-identical and resolve to an authorized moderator key for the report's exact effective scope. reporter_signature covers the descriptor and referenced ciphertext. The encrypted material MUST contain only reporter-visible evidence for target_refs and MUST NOT contain Realm/Circle history keys, MLS epoch/exporter secrets or unrelated plaintext.",
+      "required": [
+        "target_refs",
+        "encryption",
+        "recipient_public_key_ref",
+        "encrypted_to",
+        "ciphertext",
+        "ciphertext_digest",
+        "reporter_signature"
+      ],
+      "properties": {
+        "target_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/object_ref"
+          }
+        },
+        "encryption": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recipient_public_key_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "encrypted_to": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "ciphertext": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "Base64url without padding."
+        },
+        "ciphertext_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "plaintext_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "reporter_signature": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "franking_proof": {
+      "type": "object",
+      "description": "Canonical franking proof used both inside a moderation report and as the complete payload of an ak.moderation.franking_proof durable Event. event_id names the encrypted Event whose receipt is proven; the enclosing proof Event has its own distinct Event.event_id.",
+      "required": [
+        "kind",
+        "franking_proof_id",
+        "realm_id",
+        "event_id",
+        "routing_metadata_digest",
+        "ciphertext_digest",
+        "aad_digest",
+        "sender_claim",
+        "received_by",
+        "verification_method",
+        "received_at",
+        "replay_nonce",
+        "signature"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.moderation.franking_proof"
+        },
+        "franking_proof_id": {
+          "type": "string",
+          "pattern": "^ak:franking_proof:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "Event ID of the encrypted Event whose receipt is proven; not the enclosing franking-proof Event ID."
+        },
+        "routing_metadata_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Digest of canonical Event routing metadata covered by the receiving service."
+        },
+        "ciphertext_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "aad_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "sender_claim": {
+          "type": "object",
+          "required": [
+            "actor_id",
+            "device_id",
+            "mls_group_id_digest"
+          ],
+          "properties": {
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            "device_id": {
+              "$ref": "./common-ids.schema.json#/$defs/device_id"
+            },
+            "mls_group_id_digest": {
+              "$ref": "#/$defs/hash",
+              "description": "Digest of the MLS group id; raw group ids and plaintext epoch values are forbidden."
+            }
+          },
+          "additionalProperties": false
+        },
+        "received_by": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url",
+          "description": "Exact receiving-service verification method used for signature. Its controller MUST project to received_by and the method MUST be authorized at received_at."
+        },
+        "received_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "replay_nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{16,256}$",
+          "description": "Opaque anti-replay nonce generated by the receiving service and covered by the proof signature."
+        },
+        "signature": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Receiving service signature over the canonical franking-proof transcript."
+        }
+      },
+      "additionalProperties": false
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "object_ref": {
+      "type": "string",
+      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob|snapshot|franking_proof):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
+    }
+  }
+}

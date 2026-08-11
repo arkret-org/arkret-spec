@@ -7460,15 +7460,16 @@
         },
         "evidence_refs": {
           "type": "array",
+          "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/object_ref"
           }
         },
         "evidence_package": {
-          "type": "object"
+          "$ref": "./moderation-evidence.schema.json#/$defs/evidence_package"
         },
         "franking_proof": {
-          "type": "object"
+          "$ref": "./moderation-evidence.schema.json#/$defs/franking_proof"
         }
       },
       "additionalProperties": false,
@@ -7495,6 +7496,23 @@
                 "source_provider"
               ]
             }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "report_reason_code": {
+                "const": "other"
+              }
+            },
+            "required": [
+              "report_reason_code"
+            ]
+          },
+          "then": {
+            "required": [
+              "description"
+            ]
           }
         }
       ]

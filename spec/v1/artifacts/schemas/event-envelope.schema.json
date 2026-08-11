@@ -4173,7 +4173,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./moderation-report.schema.json#/$defs/franking_proof"
+            "$ref": "./moderation-evidence.schema.json#/$defs/franking_proof"
           }
         }
       }

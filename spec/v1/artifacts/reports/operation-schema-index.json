@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.11",
+  "version": "2026-08-12.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-11T14:46:42Z",
+  "generated_at": "2026-08-11T17:08:46Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7968,28 +7968,13 @@
       "operation_id": "ak.self.moderation.command.report",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/moderation-report.schema.json",
+        "schema_ref": "schemas/moderation-report.schema.json#/$defs/moderation_report_request_body",
         "schema_kind": "object",
         "required": [
-          "realm_id",
-          "target_ref",
-          "report_reason_code",
-          "reporter"
+          "report_event"
         ],
         "properties": [
-          "report_id",
-          "realm_id",
-          "effective_scope",
-          "target_ref",
-          "report_reason_code",
-          "description",
-          "reporter",
-          "evidence_refs",
-          "evidence_package",
-          "franking_proof",
-          "created_at",
-          "status",
-          "routed_to"
+          "report_event"
         ],
         "closed": true
       },

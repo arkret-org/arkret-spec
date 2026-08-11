@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.11",
+  "version": "2026-08-12.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-11T14:46:42Z",
+  "generated_at": "2026-08-11T17:08:46Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -2711,10 +2711,10 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/moderation/report",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/moderation-report.schema.json",
+      "request_schema_ref": "schemas/moderation-report.schema.json#/$defs/moderation_report_request_body",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome",
       "openapi_component_refs": {
-        "request": "../schemas/moderation-report.schema.json",
+        "request": "../schemas/moderation-report.schema.json#/$defs/moderation_report_request_body",
         "response": "#/components/schemas/ModerationReportOutcome"
       },
       "completeness_class": "typed_schema",

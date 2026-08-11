@@ -11,8 +11,8 @@
     "total_fields": 70,
     "by_classification": {
       "bounded_free_text": 7,
-      "closed_enum": 31,
-      "closed_literal": 12,
+      "closed_enum": 30,
+      "closed_literal": 13,
       "validated_open_reason_code": 17,
       "validated_open_token": 3
     },
@@ -529,8 +529,8 @@
       "shape": "ModerationReportOutcome",
       "field": "status",
       "pointer": "#/$defs/ModerationReportOutcome/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
