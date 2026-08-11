@@ -6764,7 +6764,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Controller-authored native personal Agent provisioning fact. One Event proof binds the allocated Agent DID, the forward-declared managed Agent PCR realm id, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability, selector and realm-id-claim cells; no nested payload proof or partial two-Event state is valid. The declared managed Agent PCR genesis arrives in a later separate submission whose admission reverse-looks-up this declaration.",
+        "payload": "Controller-authored native personal Agent provisioning fact. One Event proof binds the controller-supplied accepted Agent DID entry-0 commitment, the forward-declared managed Agent PCR realm id, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability, selector and realm-id-claim cells; no nested payload proof or partial two-Event state is valid. The declared managed Agent PCR genesis arrives in a later separate submission whose admission reverse-looks-up this declaration; its acceptance still awaits the controller-signed create-locked DID entry 1.",
         "payload_schema_ref": "schemas/agent-provision.schema.json",
         "id_source": "reference"
       },

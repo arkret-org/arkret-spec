@@ -9787,13 +9787,13 @@ paths:
                 $ref: '#/components/schemas/AgentList'
     post:
       operationId: ak.self.agent.command.provision
-      description: Two-phase native personal Agent provisioning. phase=prepare validates prerequisites and returns an Agent DID allocation, controller PCR, delegation ref, and requested_scope_digest without publishing durable Agent state. The controller freezes the managed Agent PCR ak.realm.create envelope locally, derives principal_control_realm_id as retype of its event_id, and uses the Arkret SDK canonical authoring API to create one controller-signed ak.agent.provision Event with no nested proof that forward-declares that realm id. phase=commit carries the same allocation, private requested_scope, and that Event; ordinary admission atomically projects provision, accountability, selector and realm-id-claim cells and returns status=awaiting_pcr_genesis. The genesis create MUST be submitted separately afterwards, never in the same unit or batch; only its acceptance publishes the Agent DID binding and pairing handle and moves this outcome to complete. requested_scope is the immutable global Agent ceiling, not a grant. Provisioning creates no Agent profile, key authorization, Realm capability grant, or Agent PCR MLS private state.
+      description: Managed personal Agent provisioning. The controller first publishes a signed PCR-independent did:webvh entry 0. phase=prepare requires an exact controller_authority_instance, validates its canonical digest against this Principal Server's durable resolution record and current session, then verifies caller-supplied full_id and returns its exact accepted initial_resolution, controller PCR, delegation ref, scope digest and allocation without generating a DID/private key or choosing a PCR id. The controller freezes the PCR create with that commitment, derives principal_control_realm_id from its event_id and commits one controller-signed ak.agent.provision Event. Ordinary admission atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance returns awaiting_did_binding; only the controller-signed continuous DID entry 1 carrying the exact create-locked binding exposes Agent/pairing/list/get and returns complete. requested_scope is an immutable ceiling, not a grant; the service creates no Agent DID/PCR/MLS private state.
       security:
       - bearerAuth: []
         dpopProof: []
       responses:
         '200':
-          description: Prepare returns status=awaiting_controller_event and an allocation; commit returns status=awaiting_pcr_genesis; replaying commit after the managed Agent PCR genesis is accepted returns status=complete with pending PCR recovery and the runtime pairing handle.
+          description: Prepare returns awaiting_controller_event; commit returns awaiting_pcr_genesis; PCR acceptance returns awaiting_did_binding; accepting the exact controller-signed DID binding entry 1 makes replay return complete with pending PCR recovery and the runtime pairing handle.
           content:
             application/json:
               schema:

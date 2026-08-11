@@ -1475,6 +1475,14 @@
       "expect_valid": true,
       "instance": {
         "phase": "prepare",
+        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "controller_authority_instance": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "principal_server_id": "ak:did_core:web:ps.example",
+          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000101",
         "idempotency_key": "agent-provision-prepare-001",
         "slug": "summary",
@@ -1499,6 +1507,14 @@
       "first_expected_error": "$: 'requested_scope' is a required property",
       "instance": {
         "phase": "prepare",
+        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "controller_authority_instance": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "principal_server_id": "ak:did_core:web:ps.example",
+          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000102",
         "idempotency_key": "agent-provision-prepare-002",
         "slug": "summary"
@@ -1510,6 +1526,14 @@
       "expect_valid": true,
       "instance": {
         "phase": "prepare",
+        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "controller_authority_instance": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "principal_server_id": "ak:did_core:web:ps.example",
+          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000103",
         "idempotency_key": "agent-provision-prepare-003",
         "slug": "circle-summary",
@@ -1534,6 +1558,14 @@
       "first_expected_error": "contains:should not be valid under",
       "instance": {
         "phase": "prepare",
+        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "controller_authority_instance": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "principal_server_id": "ak:did_core:web:ps.example",
+          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000104",
         "idempotency_key": "agent-provision-prepare-004",
         "slug": "ambiguous-service-scope",
@@ -1561,6 +1593,7 @@
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000105",
         "idempotency_key": "agent-provision-commit-001",
         "agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
+        "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
         "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
         "allocation_handle": "agent-allocation-001",
         "slug": "summary",
@@ -1580,9 +1613,14 @@
         "status": "awaiting_controller_event",
         "agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
         "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "initial_resolution": {
+          "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+          "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version_id": "1-Qmfixture"
+        },
         "controller_realm_id": "ak:realm:AYBGpqDYene9KtftYqWtL5_FQo0mOXnIfmxo68YdgJ_A",
         "allocation_handle": "agent-provision-allocation.fixture.signature",
-        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#controller-delegation",
+        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#managed-controller",
         "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       }
     },
@@ -1594,8 +1632,13 @@
         "status": "complete",
         "agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
         "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "initial_resolution": {
+          "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+          "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version_id": "1-Qmfixture"
+        },
         "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
-        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#controller-delegation",
+        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#managed-controller",
         "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "pcr_recovery": {
           "status": "pending"
@@ -1613,9 +1656,14 @@
         "status": "complete",
         "agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
         "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "initial_resolution": {
+          "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+          "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version_id": "1-Qmfixture"
+        },
         "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
         "controller_realm_id": "ak:realm:AYBGpqDYene9KtftYqWtL5_FQo0mOXnIfmxo68YdgJ_A",
-        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#controller-delegation",
+        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#managed-controller",
         "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "pcr_recovery": {
           "status": "pending"
@@ -1632,9 +1680,14 @@
         "status": "awaiting_pcr_genesis",
         "agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
         "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "initial_resolution": {
+          "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+          "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version_id": "1-Qmfixture"
+        },
         "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
         "allocation_handle": "agent-provision-allocation.fixture.signature",
-        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#controller-delegation",
+        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#managed-controller",
         "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       }
     },
@@ -1647,9 +1700,14 @@
         "status": "awaiting_pcr_genesis",
         "agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
         "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "initial_resolution": {
+          "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+          "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version_id": "1-Qmfixture"
+        },
         "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
         "allocation_handle": "agent-provision-allocation.fixture.signature",
-        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#controller-delegation",
+        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#managed-controller",
         "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "pairing_request_id": "pairing-request-001",
         "expires_at": "2026-05-20T00:05:00.000Z"
@@ -1664,10 +1722,15 @@
         "status": "awaiting_pcr_genesis",
         "agent_id": "ak:did_core:webvh:z6mkfixtureagentexample",
         "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+        "initial_resolution": {
+          "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
+          "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version_id": "1-Qmfixture"
+        },
         "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
         "controller_realm_id": "ak:realm:AYBGpqDYene9KtftYqWtL5_FQo0mOXnIfmxo68YdgJ_A",
         "allocation_handle": "agent-provision-allocation.fixture.signature",
-        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#controller-delegation",
+        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#managed-controller",
         "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       }
     },

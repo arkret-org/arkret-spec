@@ -17,8 +17,6 @@
     {"pointer": "account-operations.schema.json#/$defs/account_register_request_body/properties/full_id/$ref", "category": "registration_or_binding"},
     {"pointer": "account-operations.schema.json#/$defs/did_binding_challenge_request_body/properties/full_id/$ref", "category": "registration_or_binding"},
     {"pointer": "account-operations.schema.json#/$defs/did_binding_challenge_outcome/properties/full_id/$ref", "category": "registration_or_binding"},
-    {"pointer": "agent-operations.schema.json#/$defs/agent_provision_request_body/properties/full_id/$ref", "category": "registration_or_binding"},
-    {"pointer": "agent-operations.schema.json#/$defs/agent_provision_outcome/properties/full_id/$ref", "category": "registration_or_binding"},
     {"pointer": "applet-registration-epoch-transcript.schema.json#/$defs/service_did_document/properties/full_id/$ref", "category": "resolution_or_did_document"},
     {"pointer": "did-binding-contracts.schema.json#/$defs/webvh_log_evidence/properties/witnesses/items/properties/witness_did/$ref", "category": "did_method_log_or_evidence"},
     {"pointer": "did-binding-contracts.schema.json#/$defs/webvh_log_evidence/properties/witnesses/items/properties/controlling_organization/$ref", "category": "did_method_log_or_evidence"},

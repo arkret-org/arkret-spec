@@ -303,7 +303,7 @@
       "vector_id": "ak.vector.agent.pcr_genesis_declaration.v1",
       "status": "active",
       "domain": "agent",
-      "description": "Managed Agent PCR genesis is constructed in one order only: the controller freezes the genesis create locally, derives realm_id = retype(event_id), declares it forward in ak.agent.provision, and submits the genesis in a separate submission whose admission reverse-looks-up that accepted declaration. Covers the byte-for-byte match, the awaiting_pcr_genesis intermediate state that exposes nothing, the uninitialized -> active transition on acceptance, and rejection of same-batch submission, an undeclared genesis, a duplicate realm-id claim, a service-chosen realm id and a cross-server split.",
+      "description": "Managed Agent bootstrap is constructed in one acyclic order: controller-signed PCR-independent DID entry 0 -> exact initial_resolution -> frozen genesis create -> realm_id=retype(event_id) -> accepted provision -> accepted PCR -> controller-signed create-locked DID entry 1. Covers awaiting_pcr_genesis and awaiting_did_binding invisibility, exact durable commitment comparison, activation only after entry 1, and rejection of same-batch submission, undeclared genesis, duplicate claim, service-chosen realm id, cross-server split or wrong DID update key/tuple.",
       "applies_to_fixtures": [
         "agent-vectors-fixture.json"
       ],

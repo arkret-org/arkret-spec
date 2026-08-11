@@ -1042,11 +1042,12 @@
     },
     "agent_provision_request_body": {
       "type": "object",
-      "description": "Two-phase controller-authored Agent provisioning. prepare validates prerequisites and allocates a complete Agent full_id, projects its stable agent_id did_core_id, and returns both with an opaque allocation handle without publishing durable Agent state or choosing an Agent PCR id. After receiving them, the controller freezes the managed-Agent PCR genesis with matching initial_resolution, derives principal_control_realm_id as retype(create.event_id), authors one ak.agent.provision Event that declares that exact value, and returns the same allocation in commit. The service admits that Event before publishing the DID binding and pairing handle. Provisioning never creates an Agent profile, key authorization or Realm capability grant.",
+      "description": "Controller-authored managed-Agent bootstrap. Before prepare, the controller publishes a signed, PCR-independent did:webvh inception whose document contains the managed-controller delegation but no ArkretPrincipalControlRealm service. prepare receives that full_id, verifies the accepted inception and returns its exact initial_resolution plus an opaque allocation. The controller freezes the managed-Agent PCR genesis with that commitment, derives principal_control_realm_id, and commits one ak.agent.provision Event. After PCR acceptance, the controller publishes the pre-rotation-authorized DID update containing the create-locked Realm binding. The service exposes the Agent and pairing handle only after that update is accepted.",
       "required": [
         "phase",
         "operation_id",
         "idempotency_key",
+        "full_id",
         "slug",
         "requested_scope"
       ],
@@ -1067,7 +1068,12 @@
           "$ref": "#/$defs/did_core_id"
         },
         "full_id": {
-          "$ref": "#/$defs/did_full_id"
+          "$ref": "./common-ids.schema.json#/$defs/managed_agent_full_id",
+          "description": "Controller-authored Agent did:webvh whose accepted inception is independent of the future PCR Realm id."
+        },
+        "controller_authority_instance": {
+          "$ref": "./principal-authority-instance.schema.json",
+          "description": "Exact authenticated controller PCR instance in which provision_event will be authored. The service MUST validate the canonical digest and match this object byte-for-byte to its durable principal-resolution record; selecting a PCR from principal_id alone is forbidden."
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
@@ -1094,6 +1100,9 @@
       },
       "oneOf": [
         {
+          "required": [
+            "controller_authority_instance"
+          ],
           "properties": {
             "phase": {
               "const": "prepare"
@@ -1104,11 +1113,6 @@
               {
                 "required": [
                   "agent_id"
-                ]
-              },
-              {
-                "required": [
-                  "full_id"
                 ]
               },
               {
@@ -1141,6 +1145,11 @@
             "phase": {
               "const": "commit"
             }
+          },
+          "not": {
+            "required": [
+              "controller_authority_instance"
+            ]
           }
         }
       ],
@@ -1148,11 +1157,12 @@
     },
     "agent_provision_outcome": {
       "type": "object",
-      "description": "Three-stage outcome. prepare returns awaiting_controller_event with the allocation the controller signs against. An accepted ak.agent.provision moves it to awaiting_pcr_genesis, where the Agent still does not exist outside this outcome: no DID service entry, no pairing handle and no list/get visibility. Only an accepted managed Agent PCR genesis produces complete. A controller who will never submit that genesis releases the slug and realm-id claim through ak.self.agent.command.abandon_provisioning; nothing releases it implicitly.",
+      "description": "Four-stage outcome. prepare returns awaiting_controller_event with an accepted inception commitment. An accepted ak.agent.provision moves it to awaiting_pcr_genesis. PCR acceptance moves it to awaiting_did_binding until the controller-authored continuous WebVH update publishes the exact Realm service entry. The Agent, pairing handle and list/get projection become visible only at complete.",
       "required": [
         "status",
         "agent_id",
         "full_id",
+        "initial_resolution",
         "controller_authorization_ref",
         "requested_scope_digest"
       ],
@@ -1161,6 +1171,7 @@
           "enum": [
             "awaiting_controller_event",
             "awaiting_pcr_genesis",
+            "awaiting_did_binding",
             "complete"
           ]
         },
@@ -1168,8 +1179,12 @@
           "$ref": "#/$defs/did_core_id"
         },
         "full_id": {
-          "$ref": "#/$defs/did_full_id",
+          "$ref": "./common-ids.schema.json#/$defs/managed_agent_full_id",
           "description": "Complete Agent DID whose registered adapter projection is agent_id; managed-Agent PCR genesis initial_resolution MUST commit this value and its verified method head."
+        },
+        "initial_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment",
+          "description": "Exact verified accepted inception position. It is immutable across all provisioning outcomes and is copied byte-for-byte into managed-Agent PCR genesis."
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
@@ -1188,7 +1203,7 @@
         },
         "requested_scope_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Digest of the complete immutable requested_scope commitment in the Agent DID accepted inception history; only this digest, not the complete scope, is public. The client MUST recompute it from its submitted scope, returned agent_id and authenticated controller DID."
+          "description": "Digest of the complete immutable requested_scope commitment in the Agent DID accepted create-locked bootstrap history (entry 1); only this digest, not the complete scope, is public. The client MUST recompute it from its submitted scope, returned agent_id and authenticated controller DID."
         },
         "pcr_recovery": {
           "allOf": [
@@ -1292,6 +1307,26 @@
                   "expires_at"
                 ]
               }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "status": {
+              "const": "awaiting_did_binding"
+            }
+          },
+          "required": [
+            "principal_control_realm_id",
+            "allocation_handle"
+          ],
+          "not": {
+            "anyOf": [
+              { "required": ["controller_realm_id"] },
+              { "required": ["pcr_recovery"] },
+              { "required": ["pairing_request_id"] },
+              { "required": ["pairing_code"] },
+              { "required": ["expires_at"] }
             ]
           }
         },

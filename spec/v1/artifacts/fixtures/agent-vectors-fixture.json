@@ -139,9 +139,14 @@
         "status": "awaiting_controller_event",
         "agent_id": "ak:did_core:webvh:z6mkagent",
         "full_id": "did:webvh:z6mkagent:agent.example",
+        "initial_resolution": {
+          "full_id": "did:webvh:z6mkagent:agent.example",
+          "method_history_head": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+          "version_id": "1-Qmfixtureagentinception"
+        },
         "controller_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
         "allocation_handle": "allocation_handle_01",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
         "requested_scope_digest": "sha256:774ff4cc2f724fc735e6dba7f5b6031f180fac5fd77299df736e087ece69c133"
       }
     },
@@ -154,10 +159,15 @@
         "status": "awaiting_controller_event",
         "agent_id": "ak:did_core:webvh:z6mkagent",
         "full_id": "did:webvh:z6mkagent:agent.example",
+        "initial_resolution": {
+          "full_id": "did:webvh:z6mkagent:agent.example",
+          "method_history_head": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+          "version_id": "1-Qmfixtureagentinception"
+        },
         "principal_control_realm_id": "ak:realm:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-",
         "controller_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
         "allocation_handle": "allocation_handle_01",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
         "requested_scope_digest": "sha256:774ff4cc2f724fc735e6dba7f5b6031f180fac5fd77299df736e087ece69c133"
       }
     },
@@ -169,9 +179,33 @@
         "status": "awaiting_pcr_genesis",
         "agent_id": "ak:did_core:webvh:z6mkagent",
         "full_id": "did:webvh:z6mkagent:agent.example",
+        "initial_resolution": {
+          "full_id": "did:webvh:z6mkagent:agent.example",
+          "method_history_head": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+          "version_id": "1-Qmfixtureagentinception"
+        },
         "principal_control_realm_id": "ak:realm:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-",
         "allocation_handle": "allocation_handle_01",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
+        "requested_scope_digest": "sha256:774ff4cc2f724fc735e6dba7f5b6031f180fac5fd77299df736e087ece69c133"
+      }
+    },
+    {
+      "name": "agent_provision_pcr_acceptance_waits_for_did_binding",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "expect_valid": true,
+      "instance": {
+        "status": "awaiting_did_binding",
+        "agent_id": "ak:did_core:webvh:z6mkagent",
+        "full_id": "did:webvh:z6mkagent:agent.example",
+        "initial_resolution": {
+          "full_id": "did:webvh:z6mkagent:agent.example",
+          "method_history_head": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+          "version_id": "1-Qmfixtureagentinception"
+        },
+        "principal_control_realm_id": "ak:realm:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-",
+        "allocation_handle": "allocation_handle_01",
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
         "requested_scope_digest": "sha256:774ff4cc2f724fc735e6dba7f5b6031f180fac5fd77299df736e087ece69c133"
       }
     },
@@ -184,7 +218,7 @@
         "agent_id": "ak:did_core:webvh:z6mkagent",
         "controller_id": "ak:did_core:webvh:z6mkcontroller",
         "principal_control_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
         "agent_slug": "summary",
         "accountability_scope": "agent_operator",
         "requested_scope_digest": "sha256:774ff4cc2f724fc735e6dba7f5b6031f180fac5fd77299df736e087ece69c133",
@@ -202,7 +236,7 @@
         "agent_id": "ak:did_core:webvh:z6mkagent",
         "controller_id": "ak:did_core:webvh:z6mkcontroller",
         "principal_control_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
         "agent_slug": "summary",
         "accountability_scope": "agent_operator",
         "requested_scope_digest": "sha256:774ff4cc2f724fc735e6dba7f5b6031f180fac5fd77299df736e087ece69c133",
@@ -264,7 +298,7 @@
         "agent_id": "ak:did_core:webvh:z6mkagent",
         "controller_id": "ak:did_core:webvh:z6mkcontroller",
         "principal_control_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
         "status": "active",
         "runtime_state": "pending_runtime_key",
         "pcr_recovery": {
@@ -332,14 +366,14 @@
       "public_did_service_endpoint": {
         "realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
         "controller_did": "did:webvh:z6mkcontroller:controller.example",
-        "authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
+        "authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
         "requested_scope_digest": "sha256:774ff4cc2f724fc735e6dba7f5b6031f180fac5fd77299df736e087ece69c133"
       },
       "assertions": [
         "agent provision operation id remains ak.self.agent.command.provision",
         "agent provision capability action matches the operation id",
         "provision fails without a controller recovery policy before creating any Agent DID, PCR, or grant side effect",
-        "prepare allocates agent_id and the allocation handle without durable Agent, PCR, accountability, selector, pairing or grant side effects, and MUST NOT allocate principal_control_realm_id",
+        "controller publishes PCR-independent DID entry 0; prepare validates an exact accepted controller_authority_instance, verifies full_id and returns exact initial_resolution plus allocation without generating DID/private keys or durable Agent/PCR/accountability/selector/pairing/grant side effects, and MUST NOT allocate principal_control_realm_id",
         "the controller recomputes requested_scope_digest and uses the Arkret SDK canonical authoring API for one ak.agent.provision Event",
         "the provision payload carries no nested proof; the Event envelope proof is the only signature",
         "the provision Event passes the ordinary Event proof verifier and admission pipeline; a service-authored or dev-proof substitute is rejected in every mode",
@@ -381,7 +415,7 @@
         "genesis admission reverse-looks-up an accepted ak.agent.provision whose payload.principal_control_realm_id equals retype of this create event_id",
         "retype of the accepted genesis event_id equals the declared principal_control_realm_id byte for byte",
         "the whole sequence derives without event_id_digest_mismatch, which is the constructibility proof for the named encoding.md 6.0.1 class C exemption",
-        "accepting the genesis moves ak.component.agent.status.v1 from uninitialized to active and only then publishes the DID service entry, the pairing handle and status=complete",
+        "accepting the genesis returns awaiting_did_binding and keeps the Agent invisible; only accepting controller-signed continuous DID entry 1 moves ak.component.agent.status.v1 from uninitialized to active, publishes the pairing handle and returns status=complete",
         "an ak.realm.create whose purpose is not managed_agent_control triggers neither the agent-status write nor the reverse look-up"
       ]
     },

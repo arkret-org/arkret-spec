@@ -132,37 +132,51 @@
     },
     {
       "if": {
-        "properties": {
-          "purpose": {
-            "enum": [
-              "principal_control",
-              "managed_agent_control"
-            ]
-          }
-        },
-        "required": [
-          "purpose"
-        ]
+        "properties": { "purpose": { "const": "principal_control" } },
+        "required": ["purpose"]
       },
       "then": {
         "properties": {
           "initial_resolution": {
             "properties": {
-              "full_id": {
-                "$ref": "./common-ids.schema.json#/$defs/human_principal_full_id"
-              }
-            }
-          },
-          "schema_refs": {
-            "not": {
-              "contains": {
-                "const": "ak.profile.ephemeral_pairwise_principal.v1"
-              }
+              "full_id": { "$ref": "./common-ids.schema.json#/$defs/human_principal_full_id" }
             }
           }
         }
       },
-      "description": "Identity-control genesis admits only the closed long-lived did:webvh principal method. Ephemeral pairwise did:key actors are MLS LeafNode-bound Realm-local authors and never create a PCR. Deployment-local policy cannot add another method."
+      "description": "Human Principal Control Realm genesis uses the independently closed human-principal DID method set."
+    },
+    {
+      "if": {
+        "properties": { "purpose": { "const": "managed_agent_control" } },
+        "required": ["purpose"]
+      },
+      "then": {
+        "properties": {
+          "initial_resolution": {
+            "properties": {
+              "full_id": { "$ref": "./common-ids.schema.json#/$defs/managed_agent_full_id" }
+            }
+          }
+        }
+      },
+      "description": "Managed Agent PCR genesis commits the already accepted did:webvh inception head. The later PCR service binding update is continuous from this head and does not participate in the create Event preimage."
+    },
+    {
+      "if": {
+        "properties": {
+          "purpose": { "enum": ["principal_control", "managed_agent_control"] }
+        },
+        "required": ["purpose"]
+      },
+      "then": {
+        "properties": {
+          "schema_refs": {
+            "not": { "contains": { "const": "ak.profile.ephemeral_pairwise_principal.v1" } }
+          }
+        }
+      },
+      "description": "Ephemeral pairwise did:key actors are MLS LeafNode-bound Realm-local authors and never create a PCR."
     }
   ],
   "additionalProperties": false,
