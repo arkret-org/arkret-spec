@@ -3051,8 +3051,7 @@
           "pattern": "^https?://[^?#]+/$"
         },
         "trust_domain": {
-          "type": "string",
-          "minLength": 1
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
         },
         "local_admin_subject": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",

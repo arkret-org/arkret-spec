@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.3",
+  "version": "2026-08-11.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-11T13:00:00Z",
+  "generated_at": "2026-08-11T13:05:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -10093,7 +10093,7 @@
         "kind": "trust_domain",
         "wire_form": "ak:trust_domain:<scope>",
         "status": "active",
-        "storage_recommendation": "Store the scope string as an opaque deployment-level identifier; it appears in server describe, Realm policy, and high-risk proof transcripts.",
+        "storage_recommendation": "Store the complete canonical ak:trust_domain:<scope> value by default. A compressed schema may store the raw scope only in an explicitly named trust_domain_scope column and MUST restore the typed prefix at the persistence boundary.",
         "description": "Deployment-scope trust domain identifier. Scope is a lowercase opaque label (alphanumerics, dot, dash, underscore, colon; max 128 chars). Used to prevent cross-deployment / cross-sovereign replay of high-risk root, recovery and authorization proofs. NOT a typed-UUIDv7 object id. See identity-did.md §3.6."
       }
     ],
@@ -10715,8 +10715,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-08-10.3",
-    "generated_at": "2026-08-10T23:50:00Z"
+    "version": "2026-08-11.1",
+    "generated_at": "2026-08-11T13:05:00Z"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",

@@ -145,6 +145,8 @@ DID_BARE_PATTERN = r"^did:[a-z0-9]+:[^\s/?#]+$"
 
 DID_URL_PROFILE_PATTERN = r"^did:[a-z0-9]+:[^\s#?]+#[A-Za-z0-9._:-]+$"
 
+TRUST_DOMAIN_PATTERN = r"^ak:trust_domain:[a-z0-9][a-z0-9._\-:]{0,127}$"
+
 GENERIC_OPERATION_REQUEST_REF = "#/components/schemas/OperationRequest"
 
 GENERIC_OPERATION_RESULT_REF = "#/components/schemas/OperationResult"

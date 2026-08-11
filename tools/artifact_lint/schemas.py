@@ -35,6 +35,7 @@ from .core import (
     SCHEMA_ID_TOKEN_RE,
     SPEC_ROOT,
     SUPPLY_EXEMPTION_REGISTRY_PATH,
+    TRUST_DOMAIN_PATTERN,
     VECTOR_GROUP_ID_RE,
     YAML_REF_RE,
     _FSM_ABSENT,
@@ -58,6 +59,60 @@ from .core import (
     split_ref,
     walk_json,
 )
+
+
+def check_trust_domain_constraints(lint: Lint) -> None:
+    """Require every protocol trust-domain field to resolve to one canonical schema."""
+    schema_paths = sorted((ARTIFACTS / "schemas").glob("*.schema.json"))
+    schema_docs: dict[str, Any] = {}
+    for path in schema_paths:
+        data = load_json(lint, path)
+        if isinstance(data, dict):
+            schema_docs[path.name] = data
+
+    def resolve_terminal(owner_name: str, node: Any) -> Any:
+        seen: set[tuple[str, str]] = set()
+        while isinstance(node, dict) and isinstance(node.get("$ref"), str):
+            ref = node["$ref"]
+            file_part, _, fragment = ref.partition("#")
+            target_name = owner_name if file_part in ("", ".") else file_part.removeprefix("./")
+            if "/" in target_name:
+                return None
+            key = (target_name, fragment)
+            if key in seen:
+                return None
+            seen.add(key)
+            target_doc = schema_docs.get(target_name)
+            if target_doc is None:
+                return None
+            try:
+                node = resolve_json_pointer(target_doc, f"#{fragment}" if fragment else "#")
+            except KeyError:
+                return None
+            owner_name = target_name
+        return node
+
+    for path in schema_paths:
+        data = schema_docs.get(path.name)
+        if not isinstance(data, dict):
+            continue
+        for json_path, value, key in walk_json(data):
+            if key != "properties" or not isinstance(value, dict):
+                continue
+            for field, field_schema in value.items():
+                if not (
+                    field == "trust_domain"
+                    or field == "trust_domain_id"
+                    or field.endswith("_trust_domain")
+                ):
+                    continue
+                terminal = resolve_terminal(path.name, field_schema)
+                if not isinstance(terminal, dict) or terminal.get("pattern") != TRUST_DOMAIN_PATTERN:
+                    lint.fail(
+                        path,
+                        f"{json_path}.{field} must resolve to "
+                        "common-ids.schema.json#/$defs/trust_domain; bare scope aliases are forbidden",
+                    )
 
 
 

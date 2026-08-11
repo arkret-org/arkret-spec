@@ -230,7 +230,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/organization-registration-fixture.json",
-      "sha256": "2affe0ac10cfb3466ba4b4e3ef871fd14c96f8c24f7baa3bf3943e7ce41b54d0"
+      "sha256": "0a532f9f9c0d7fa07208c0df9a34219bafaa3fc12c4c40bd0e8bd57573901f77"
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",

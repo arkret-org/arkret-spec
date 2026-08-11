@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.3",
+  "version": "2026-08-11.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-10T23:50:00Z",
+  "generated_at": "2026-08-11T13:05:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -220,7 +220,7 @@
       "kind": "trust_domain",
       "wire_form": "ak:trust_domain:<scope>",
       "status": "active",
-      "storage_recommendation": "Store the scope string as an opaque deployment-level identifier; it appears in server describe, Realm policy, and high-risk proof transcripts.",
+      "storage_recommendation": "Store the complete canonical ak:trust_domain:<scope> value by default. A compressed schema may store the raw scope only in an explicitly named trust_domain_scope column and MUST restore the typed prefix at the persistence boundary.",
       "description": "Deployment-scope trust domain identifier. Scope is a lowercase opaque label (alphanumerics, dot, dash, underscore, colon; max 128 chars). Used to prevent cross-deployment / cross-sovereign replay of high-risk root, recovery and authorization proofs. NOT a typed-UUIDv7 object id. See identity-did.md §3.6."
     }
   ],

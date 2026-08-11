@@ -73,7 +73,7 @@
       "description": "Stable did_core_id of the Arkret service issuing this receipt. This is the trust root for the receipt itself, and is unrelated to the DID's own controller."
     },
     "trust_domain": {
-      "type": "string",
+      "$ref": "./common-ids.schema.json#/$defs/trust_domain",
       "description": "Optional trust domain the receipt is scoped to."
     },
     "audience": {

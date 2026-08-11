@@ -48,6 +48,7 @@ from .schemas import (
     check_sdk_conformance_contract,
     check_signed_object_closure,
     check_stable_identity_fields_use_core_id,
+    check_trust_domain_constraints,
     check_vector_group_requirements,
     check_wire_schema_no_bare_scope,
 )
@@ -255,6 +256,7 @@ def main(argv: list[str] | None = None) -> int:
             ),
             ("circle_lifecycle", lambda: check_circle_lifecycle_basis_vector(lint)),
             ("did_device", lambda: check_did_and_device_constraints(lint)),
+            ("trust_domain_constraints", lambda: check_trust_domain_constraints(lint)),
             ("did_full_id_allowlist", lambda: check_did_full_id_allowlist(lint)),
             (
                 "stable_identity_core_ids",
