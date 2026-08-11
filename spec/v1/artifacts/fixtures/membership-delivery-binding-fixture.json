@@ -5,7 +5,7 @@
   },
   "suite": "membership_delivery_binding_vectors",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-05-23",
+  "version": "2026-08-11",
   "description": "Machine-readable fixtures for ak.member.state{membership=join} delivery_binding closure. The effective member cell is the only authority for Realm-scoped delivery routing; DID Document service entries are materialized only at join/rebind time and are never a runtime fallback.",
   "vectors": [
     {
@@ -18,7 +18,7 @@
             "explicit"
           ],
           "allowed_recipient_services": [
-            "did:webvh:z6mkfixtureprincipalacmeexample:principal.acme.example"
+            "ak:did_core:webvh:z6mkfixtureprincipalacmeexample"
           ],
           "required_endorsers": [
             "did:webvh:z6mkfixtureacmeexample:acme.example"
@@ -30,7 +30,7 @@
             "verification_method": "did:webvh:z6mkfixtureprincipalacmeexample:principal.acme.example#key-1",
             "scope_realm_id": "ak:realm:AetVOSm6aZhwAmuyJOLfU97VXd6it32eeFtRHiqrRyfJ",
             "endorsed_by": [
-              "did:webvh:z6mkfixtureacmeexample:acme.example"
+              "ak:did_core:webvh:z6mkfixtureacmeexample"
             ]
           }
         ]
@@ -55,6 +55,9 @@
               "push",
               "key_packages"
             ],
+            "service_resolution": {
+              "current_record_url": "https://principal.acme.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixtureprincipalacmeexample/resolution"
+            },
             "resolved_at": "2026-05-19T10:00:00.000Z",
             "service_acceptance_ref": "ak:event:AX8dnXKxevlgfFVveXrrOv2EsH17lfDMuGWDWryItfd6"
           },
@@ -106,6 +109,9 @@
               "push",
               "key_packages"
             ],
+            "service_resolution": {
+              "current_record_url": "https://personal.alice.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturepersonalaliceexample/resolution"
+            },
             "resolved_at": "2026-05-19T10:00:00.000Z",
             "did_document_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
           }
@@ -164,7 +170,7 @@
           "sent_to": "did:webvh:z6mkfixturepersonalaliceexample:personal.alice.example",
           "expected_response": {
             "reason_code": "delivery_binding_stale",
-            "new_recipient_service_id": "did:webvh:z6mkfixtureprincipalacmeexample:principal.acme.example",
+            "new_recipient_service_id": "ak:did_core:webvh:z6mkfixtureprincipalacmeexample",
             "handover_frontier": "F1"
           }
         },
@@ -195,7 +201,7 @@
             "organization_policy"
           ],
           "allowed_recipient_services": [
-            "did:webvh:z6mkfixtureprincipalacmeexample:principal.acme.example"
+            "ak:did_core:webvh:z6mkfixtureprincipalacmeexample"
           ]
         }
       },
@@ -216,6 +222,9 @@
               "events",
               "sync"
             ],
+            "service_resolution": {
+              "current_record_url": "https://untrusted.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixtureuntrustedexample/resolution"
+            },
             "resolved_at": "2026-05-19T10:00:00.000Z",
             "service_acceptance_ref": "ak:event:AdAT6c4IBRaBd30AHJ3ACRi8KF3So_ZPdOTBnnzmQI04"
           }
@@ -236,10 +245,10 @@
                 "explicit"
               ],
               "allowed_recipient_services": [
-                "did:webvh:z6mkfixtureprincipalacmeexample:principal.acme.example"
+                "ak:did_core:webvh:z6mkfixtureprincipalacmeexample"
               ],
               "required_endorsers": [
-                "did:webvh:z6mkfixtureacmeexample:acme.example"
+                "ak:did_core:webvh:z6mkfixtureacmeexample"
               ]
             },
             "service_acceptance_events": [
@@ -267,6 +276,9 @@
                   "events",
                   "sync"
                 ],
+                "service_resolution": {
+                  "current_record_url": "https://principal.acme.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixtureprincipalacmeexample/resolution"
+                },
                 "resolved_at": "2026-05-19T10:00:00.000Z",
                 "service_acceptance_ref": "ak:event:ARIc1zjXaw04zZgMuhMCrwmouCUhvYeExPe11AygUAj6"
               }
