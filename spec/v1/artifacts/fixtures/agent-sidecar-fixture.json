@@ -35,12 +35,12 @@
         "domain": "ak.sidecar.participant_authority.v1",
         "sidecar_id": "ak:sidecar:Aa9QYb77BXMoa1ySi5zspQe1V0D983aoWG7js7Co0k7_",
         "realm_id": "ak:realm:AUu6GayQb7-Knno7Ar5EA6ndAgK47WhZI_ViA21yHqDE",
-        "controller_id": "did:webvh:z6mkfixture:alice.example",
+        "controller_id": "ak:did_core:webvh:z6mkfixture",
         "owned_agent_ids": [
-          "did:webvh:z6mkfixtureassistantagentsexample:assistant.agents.example"
+          "ak:did_core:webvh:z6mkfixtureassistantagentsexample"
         ],
         "effective_agent_ids": [
-          "did:webvh:z6mkfixtureassistantagentsexample:assistant.agents.example"
+          "ak:did_core:webvh:z6mkfixtureassistantagentsexample"
         ]
       },
       "assertions": [
@@ -182,7 +182,7 @@
       },
       "locator": {
         "realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
-        "controller_id": "did:webvh:z6mkfixture:alice.example",
+        "controller_id": "ak:did_core:webvh:z6mkfixture",
         "sidecar_id": "ak:sidecar:Aa9QYb77BXMoa1ySi5zspQe1V0D983aoWG7js7Co0k7_",
         "source_context_ref": "ak:strand:AdyEmwcTgbpYjiHCd9ca5d0RcfP1aU9h88qvGZBiJKGB"
       },

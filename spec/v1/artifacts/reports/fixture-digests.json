@@ -10,11 +10,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
-      "sha256": "ee02153748a0bfb06c380d3c0e84cc7fe24c697737a98288aa523c89cd189096"
+      "sha256": "04d4ba6eb28eb33987c210e07fef0dab2f16483e56b5e7c5f2259288458939a1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json",
-      "sha256": "1b9322bd99f0e858e7745795e8f61618336f8edb85fa97ae1b79cabc7396adc5"
+      "sha256": "9750d4e9e27beef154d78cdb7ddf90f44ff7990ea79bd0fe60b1a0387ae680f1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
@@ -22,7 +22,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "9b6cc225192f42eacee38527f12580d80337919952aa14369c99872b112d697d"
+      "sha256": "d7c7b10859c46e8daf9534b818a4e01bb1f00115175dcb0f1b47e7a5a7ca8d43"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
@@ -42,7 +42,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
-      "sha256": "32c1e86aeeebce0087f8216fc37b2593d9fff097f8bf933c30d9670f803f5165"
+      "sha256": "ab43fe970753b3763d9c44a311c0dfc13face56f621cc072edd366c9dbb24f4a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/authorization-lease-issuance-fixture.json",
@@ -186,7 +186,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "c33487757febc6d00853a7046341ba4c361510f273d15d21480de7dfbd4117b4"
+      "sha256": "f492094cf74dcba36433db6e77719878199ae376489be8160975748b0502a757"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
@@ -242,7 +242,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "6a9b3d29f2671a425c04f4acda13e8cd9710223760230a60b71d9d44302efa2d"
+      "sha256": "a4a2e7549a2d323ee15bb9433f0d68a036f282198a16704f8b773dc0d1127e5c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",

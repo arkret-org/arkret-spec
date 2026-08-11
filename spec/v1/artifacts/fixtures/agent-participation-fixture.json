@@ -21,21 +21,21 @@
       "kind": "agent_selector_resolution",
       "mention_text_original": "@alice:acme.example/summary",
       "controller_handle": "alice:acme.example",
-      "controller_subject": "did:webvh:z6mkfixtureacmeexampleusersalice:acme.example:users:alice",
+      "controller_subject": "ak:did_core:webvh:z6mkfixtureacmeexampleusersalice",
       "agent_slug_at_time": "summary",
-      "agent_subject": "did:webvh:z6mkfixtureagentsacmeexamplealicesummary:agents.acme.example:alice-summary",
+      "agent_subject": "ak:did_core:webvh:z6mkfixtureagentsacmeexamplealicesummary",
       "changed_agent_slug": "digest",
-      "changed_agent_subject": "did:webvh:z6mkfixtureagentsacmeexamplealicedigest:agents.acme.example:alice-digest",
+      "changed_agent_subject": "ak:did_core:webvh:z6mkfixtureagentsacmeexamplealicedigest",
       "persisted_mention": {
         "subject_id": "ak:did_core:webvh:z6mkfixtureagentsacmeexamplealicesummary",
-        "controller_subject": "did:webvh:z6mkfixtureacmeexampleusersalice:acme.example:users:alice",
+        "controller_subject": "ak:did_core:webvh:z6mkfixtureacmeexampleusersalice",
         "agent_slug_at_time": "summary",
         "mention_text_original": "@alice:acme.example/summary"
       },
       "expected": {
         "ambiguous_selector": "fail_closed",
         "unavailable_selector": "fail_closed",
-        "historical_target_after_slug_change": "did:webvh:z6mkfixtureagentsacmeexamplealicesummary:agents.acme.example:alice-summary"
+        "historical_target_after_slug_change": "ak:did_core:webvh:z6mkfixtureagentsacmeexamplealicesummary"
       },
       "assertions": [
         "selector resolution binds the persisted mention subject_id to the agent DID",
@@ -215,9 +215,9 @@
       "name": "third_party_mention_gate",
       "vector_id": "ak.vector.agent.participation.third_party_mention_gate.v1",
       "kind": "mention_dispatch_gate",
-      "controller_subject": "did:webvh:z6mkfixtureacmeexampleusersalice:acme.example:users:alice",
-      "third_party_subject": "did:webvh:z6mkfixtureacmeexampleusersbob:acme.example:users:bob",
-      "agent_subject": "did:webvh:z6mkfixtureagentsacmeexamplealicesummary:agents.acme.example:alice-summary",
+      "controller_subject": "ak:did_core:webvh:z6mkfixtureacmeexampleusersalice",
+      "third_party_subject": "ak:did_core:webvh:z6mkfixtureacmeexampleusersbob",
+      "agent_subject": "ak:did_core:webvh:z6mkfixtureagentsacmeexamplealicesummary",
       "effective_before": {
         "reply_message": true,
         "reaction_add": true,

@@ -53,21 +53,21 @@
           "label": "missing",
           "body": {
             "realm_id": "ak:realm:AUluXL7CRrekD0AIypsGAQgY9zjTsBHlvN2r6jtPI8Lz",
-            "requester": "did:webvh:z6mkfixturemalloryexample:mallory.example"
+            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
           }
         },
         {
           "label": "hidden",
           "body": {
             "realm_id": "ak:realm:AYYgLvwSNGGLJgZP4-vIp98a14ou-Q6vcd5Aa3dk7UdV",
-            "requester": "did:webvh:z6mkfixturemalloryexample:mallory.example"
+            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
           }
         },
         {
           "label": "invite_only_without_proof",
           "body": {
             "realm_id": "ak:realm:AUb7xUm8TEEX2FHiygiVYAzc82hEvM7dO9I2PpEMhDxU",
-            "requester": "did:webvh:z6mkfixturemalloryexample:mallory.example"
+            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
           }
         }
       ],
@@ -99,21 +99,21 @@
           "label": "missing_handle",
           "body": {
             "handle": "missing:example.test",
-            "requester": "did:webvh:z6mkfixturemalloryexample:mallory.example"
+            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
           }
         },
         {
           "label": "hidden_handle",
           "body": {
             "handle": "hidden:example.test",
-            "requester": "did:webvh:z6mkfixturemalloryexample:mallory.example"
+            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
           }
         },
         {
           "label": "unauthorized_handle",
           "body": {
             "handle": "restricted:example.test",
-            "requester": "did:webvh:z6mkfixturemalloryexample:mallory.example"
+            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
           }
         }
       ],
@@ -144,25 +144,25 @@
         {
           "label": "missing_selector",
           "body": {
-            "controller_subject": "did:webvh:z6mkfixture:alice.example",
+            "controller_subject": "ak:did_core:webvh:z6mkfixture",
             "agent_slug": "missing",
-            "requester": "did:webvh:z6mkfixturemalloryexample:mallory.example"
+            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
           }
         },
         {
           "label": "hidden_selector",
           "body": {
-            "controller_subject": "did:webvh:z6mkfixture:alice.example",
+            "controller_subject": "ak:did_core:webvh:z6mkfixture",
             "agent_slug": "private-summary",
-            "requester": "did:webvh:z6mkfixturemalloryexample:mallory.example"
+            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
           }
         },
         {
           "label": "unauthorized_selector",
           "body": {
-            "controller_subject": "did:webvh:z6mkfixture:alice.example",
+            "controller_subject": "ak:did_core:webvh:z6mkfixture",
             "agent_slug": "restricted-summary",
-            "requester": "did:webvh:z6mkfixturemalloryexample:mallory.example"
+            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
           }
         }
       ],
@@ -527,7 +527,7 @@
       "name": "search_result_not_authorization_proof",
       "profile": "ak.profile.search.blind_index.v1",
       "input": {
-        "requester": "did:webvh:z6mkfixture:alice.example",
+        "requester": "ak:did_core:webvh:z6mkfixture",
         "candidate_hit": {
           "object_ref_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "score_basis_points": 9100
@@ -716,7 +716,7 @@
           "name": "create_missing_grant_rejects_whole_event",
           "event_kind": "ak.profile.create",
           "accountable_principal_ids": [
-            "did:webvh:z6mkfixtureorganizationexample:organization.example"
+            "ak:did_core:webvh:z6mkfixtureorganizationexample"
           ],
           "matching_active_grants": [],
           "expected": {
@@ -729,11 +729,11 @@
           "name": "update_missing_one_of_multiple_grants_rejects_whole_event",
           "event_kind": "ak.profile.update",
           "accountable_principal_ids": [
-            "did:webvh:z6mkfixtureorganizationexample:organization.example",
-            "did:webvh:z6mkfixturecontrollerexample:controller.example"
+            "ak:did_core:webvh:z6mkfixtureorganizationexample",
+            "ak:did_core:webvh:z6mkfixturecontrollerexample"
           ],
           "matching_active_grants": [
-            "did:webvh:z6mkfixturecontrollerexample:controller.example"
+            "ak:did_core:webvh:z6mkfixturecontrollerexample"
           ],
           "expected": {
             "decision": "failed_precondition",
@@ -746,10 +746,10 @@
           "name": "all_grants_active_accepts_exact_signed_value",
           "event_kind": "ak.profile.update",
           "accountable_principal_ids": [
-            "did:webvh:z6mkfixtureorganizationexample:organization.example"
+            "ak:did_core:webvh:z6mkfixtureorganizationexample"
           ],
           "matching_active_grants": [
-            "did:webvh:z6mkfixtureorganizationexample:organization.example"
+            "ak:did_core:webvh:z6mkfixtureorganizationexample"
           ],
           "expected": {
             "decision": "accept",
