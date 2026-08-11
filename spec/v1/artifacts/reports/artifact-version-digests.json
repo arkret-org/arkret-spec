@@ -177,9 +177,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/proof-context-registry.json",
-      "version": "2026-08-11.1",
+      "version": "2026-08-11.2",
       "generated_at": null,
-      "content_digest": "sha256:e01356ceb3937bc22901517f7ec714330d080926431bcabd6c01bdb5ee2aeaaa"
+      "content_digest": "sha256:67625d54816662a062b1c982edbfa3742599b76753fd9e9b0b1287a5cba1dbcb"
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",
@@ -207,9 +207,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/request-material-supply-exemption-registry.json",
-      "version": "2026-08-10.7",
-      "generated_at": "2026-08-10T23:00:00Z",
-      "content_digest": "sha256:1686713d747fe47e15d5c9f84c051d0e88cb6d2c161cadfbdb5db4b5cce02985"
+      "version": "2026-08-11.8",
+      "generated_at": "2026-08-11T01:00:00Z",
+      "content_digest": "sha256:5dc4fc981a46cfe94c96b241eeff7c5ddef9fe9d369dda816cd2af80931e21f9"
     },
     {
       "path": "spec/v1/artifacts/registry/runner-kind-registry.json",

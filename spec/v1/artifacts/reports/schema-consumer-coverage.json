@@ -1660,8 +1660,10 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
+          "ak.schema.account_operations.v1",
           "ak.schema.direct_conversation_operations.v1",
           "ak.schema.keypackage_operations.v1",
+          "ak.schema.principal_operations.v1",
           "ak.schema.principal_service_binding.v1",
           "ak.schema.service_operation_dtos.v1"
         ],

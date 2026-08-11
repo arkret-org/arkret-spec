@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-11.1",
+  "version": "2026-08-11.2",
   "source_of_truth": true,
   "description": "Canonical domain-separation contexts for Arkret detached proofs. Context is part of the canonical signing binding object and is not a wire field in the generic proof shape.",
   "registry_rules": [
@@ -362,6 +362,23 @@
       ],
       "defined_in": "zh/identity/identity-did.md",
       "schema_ref": "schemas/identity-receipt.schema.json"
+    },
+    {
+      "context": "ak.registration-did-evidence-control-proof-v1",
+      "object_family": "registration_did_evidence_control",
+      "binding_fields": [
+        "principal_id",
+        "full_id",
+        "adapter_version",
+        "method_history_head",
+        "version_id",
+        "control_key_digest",
+        "method_evidence_digest",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/identity/account-lifecycle.md",
+      "schema_ref": "schemas/federated-device-signing-key-evidence.schema.json#/$defs/registration_did_evidence_draft"
     },
     {
       "context": "ak.ingress-receipt-proof-v1",

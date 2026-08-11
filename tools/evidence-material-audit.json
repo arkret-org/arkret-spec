@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 208,
+  "audited_occurrence_count": 213,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -65,6 +65,14 @@
         "attestation"
       ],
       "reason": "Carries the registered heterogeneous registration policy material."
+    },
+    {
+      "file": "account-operations.schema.json",
+      "key": "registration_did_evidence_draft",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "commitment"],
+      "reason": "Carries the spec-defined client-authored registration evidence draft before Account Authority acceptance."
     },
     {
       "file": "account-operations.schema.json",
@@ -231,6 +239,13 @@
       "reason": "A critical extension may bind extension-specific proof, attestation, or receipt Events."
     },
     {
+      "file": "event-batch-receipt.schema.json",
+      "key": "registration_evidence_digest",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Reverse-binding commitment to the complete frozen registration DID evidence accepted for PCR genesis."
+    },
+    {
       "file": "event-payload.schema.json",
       "key": "agent_key_approval_evidence",
       "occurrences": 1,
@@ -309,10 +324,18 @@
     {
       "file": "federated-device-signing-key-evidence.schema.json",
       "key": "method_evidence",
-      "occurrences": 1,
+      "occurrences": 2,
       "disposition": "polymorphic_container",
       "material_families": ["proof", "attestation", "commitment"],
       "reason": "Registration-time adapter-native material may combine method proofs, witness attestations and immutable history commitments."
+    },
+    {
+      "file": "federated-device-signing-key-evidence.schema.json",
+      "key": "registration_did_evidence_draft",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "commitment"],
+      "reason": "Closed pre-acceptance evidence shape with a dedicated control proof and method-history commitments."
     },
     {
       "file": "federated-device-signing-key-evidence.schema.json",
@@ -573,6 +596,14 @@
         "attestation"
       ],
       "reason": "References either an executable proof artifact or an externally issued test attestation."
+    },
+    {
+      "file": "principal-operations.schema.json",
+      "key": "registration_did_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "commitment"],
+      "reason": "Relays the complete frozen registration evidence to the Principal Server for independent historical verification."
     },
     {
       "file": "service-operation-dtos.schema.json",

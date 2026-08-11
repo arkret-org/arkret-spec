@@ -467,7 +467,7 @@
     },
     "pcr_genesis_submit_request": {
       "type": "object",
-      "description": "Account-Authority-to-Principal-Server relay. The outer service signature authenticates transport only; content authorization is exclusively the identity-root control proof and the two Event proofs.",
+      "description": "Account-Authority-to-Principal-Server relay. The outer service signature authenticates transport only; content authorization is exclusively the frozen registration evidence, the identity-root control proof and the two Event proofs. The Principal Server verifies registration_did_operation and registration_did_evidence without consulting current DID resolution.",
       "required": [
         "account_authority_id",
         "principal_id",
@@ -478,6 +478,8 @@
         "control_key_digest",
         "idempotency_key",
         "registration_request_digest",
+        "registration_did_operation",
+        "registration_did_evidence",
         "identity_creation_control_proof",
         "genesis_unit"
       ],
@@ -515,6 +517,14 @@
         },
         "registration_request_digest": {
           "$ref": "#/$defs/hash"
+        },
+        "registration_did_operation": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
+          "description": "Exact method-native operation accepted during registration. Its canonical digest MUST equal identity_creation_control_proof.operation_digest; it is historical verifier input and MUST NOT be replaced with current resolver output."
+        },
+        "registration_did_evidence": {
+          "$ref": "./federated-device-signing-key-evidence.schema.json#/$defs/registration_did_evidence",
+          "description": "Complete Account-Authority-accepted historical evidence. Its canonical digest is reverse-bound by the pcr_genesis_unit receipt."
         },
         "identity_creation_control_proof": {
           "$ref": "./account-operations.schema.json#/$defs/identity_creation_control_proof"

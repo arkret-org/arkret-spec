@@ -26,6 +26,7 @@
     {"pointer": "did-webvh-witness-receipt.schema.json#/properties/witness_did/$ref", "category": "did_method_log_or_evidence"},
     {"pointer": "did-webvh-witness-receipt.schema.json#/properties/controlling_organization/$ref", "category": "did_method_log_or_evidence"},
     {"pointer": "federated-device-signing-key-evidence.schema.json#/$defs/registration_did_evidence/properties/full_id/$ref", "category": "registration_or_binding"},
+    {"pointer": "federated-device-signing-key-evidence.schema.json#/$defs/registration_did_evidence_draft/properties/full_id/$ref", "category": "registration_or_binding"},
     {"pointer": "identity-receipt.schema.json#/properties/did/$ref", "category": "did_method_log_or_evidence"},
     {"pointer": "identity-resolution.schema.json#/$defs/resolution_commitment/properties/full_id/$ref", "category": "resolution_or_did_document"},
     {"pointer": "identity-resolution.schema.json#/$defs/resolution_projection/properties/full_id/$ref", "category": "resolution_or_did_document"},

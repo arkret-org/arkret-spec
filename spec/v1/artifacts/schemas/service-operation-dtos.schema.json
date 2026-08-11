@@ -1121,7 +1121,8 @@
       "additionalProperties": false,
       "required": [
         "status",
-        "did"
+        "did",
+        "accepted_at"
       ],
       "properties": {
         "status": {
@@ -1134,6 +1135,10 @@
         },
         "did": {
           "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Stable registry decision time for this exact accepted or duplicate operation. A duplicate returns the original acceptance time."
         },
         "seq": {
           "type": "integer",

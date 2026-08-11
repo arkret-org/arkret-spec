@@ -895,6 +895,7 @@
         "lease_fence",
         "full_id",
         "did_operation",
+        "registration_did_evidence_draft",
         "control_proof",
         "pcr_genesis_unit",
         "initial_session"
@@ -912,6 +913,10 @@
         },
         "did_operation": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody"
+        },
+        "registration_did_evidence_draft": {
+          "$ref": "./federated-device-signing-key-evidence.schema.json#/$defs/registration_did_evidence_draft",
+          "description": "Dedicated registration-time control proof and frozen method evidence. It is distinct from identity_creation_control_proof and MUST bind the exact did_operation pins."
         },
         "control_proof": {
           "$ref": "#/$defs/identity_creation_control_proof"

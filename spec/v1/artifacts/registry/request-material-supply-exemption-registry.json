@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-10.7",
+  "version": "2026-08-11.8",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T23:00:00Z",
+  "generated_at": "2026-08-11T01:00:00Z",
   "description": "Closed named-exemption registry for zh/sync/service-http-binding.md 2.2.2. That section requires every gate-scoped required request input (evidence-shaped or CAS/echo-shaped leaves, and untyped required objects) to have a registered supply source, and every declared FSM state and allowed transition to have a registered write. Rows carry individually adjudicated exceptions in two kinds: request_input rows per operation and json-path prefix, fsm_transition rows per cell family with the waived states and transitions. Structural rules live in the machine gate, not here: this registry only carries individually adjudicated exceptions so that a blanket category can never be smuggled in as a row.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.request_material_supply\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -73,6 +73,16 @@
       "json_path_prefix": "identity_creation.did_operation.operation",
       "disposition": "external_form",
       "rationale": "Same method-native did:webvh operation carrier as ak.root.identity.command.submit_did_operation, embedded in registration-time identity creation.",
+      "review_anchor": null
+    },
+    {
+      "exemption_id": "ak.exemption.request_material_supply.peer_principal_genesis_registration_did_operation.v1",
+      "status": "active",
+      "kind": "request_input",
+      "operation_id": "ak.peer.principal_genesis.command.submit",
+      "json_path_prefix": "registration_did_operation.operation",
+      "disposition": "external_form",
+      "rationale": "Same method-native did:webvh operation carrier as ak.root.identity.command.submit_did_operation, relayed verbatim so the Principal Server can verify frozen registration evidence without consulting current DID resolution.",
       "review_anchor": null
     },
     {

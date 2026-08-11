@@ -3320,6 +3320,8 @@
           "control_key_digest",
           "idempotency_key",
           "registration_request_digest",
+          "registration_did_operation",
+          "registration_did_evidence",
           "identity_creation_control_proof",
           "genesis_unit"
         ],
@@ -3333,6 +3335,8 @@
           "control_key_digest",
           "idempotency_key",
           "registration_request_digest",
+          "registration_did_operation",
+          "registration_did_evidence",
           "identity_creation_control_proof",
           "genesis_unit"
         ],
@@ -3533,11 +3537,13 @@
         "schema_kind": "object",
         "required": [
           "status",
-          "did"
+          "did",
+          "accepted_at"
         ],
         "properties": [
           "status",
           "did",
+          "accepted_at",
           "seq",
           "head_event_digest",
           "operation_ref",

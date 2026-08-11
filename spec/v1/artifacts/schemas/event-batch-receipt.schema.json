@@ -270,6 +270,7 @@
         "did_version_id",
         "log_head_digest",
         "control_key_digest",
+        "registration_evidence_digest",
         "create_digest",
         "founding_authorize_digest",
         "accepted_device_id",
@@ -300,6 +301,10 @@
         "control_key_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/hash",
           "description": "Digest of the inception identity-root update key pinned by the control proof."
+        },
+        "registration_evidence_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/hash",
+          "description": "SHA-256 digest of RFC 8785 JCS of the complete accepted registration_did_evidence relayed to the Principal Server."
         },
         "create_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/hash",
