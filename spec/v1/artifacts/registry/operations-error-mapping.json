@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-11.1",
+  "version": "2026-08-11.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-11T13:24:47Z",
+  "generated_at": "2026-08-11T14:27:16Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -900,9 +900,11 @@
       "operation_specific": [
         "invalid_avatar_blob_ref",
         "unsupported_profile_patch_path",
-        "failed_precondition"
+        "failed_precondition",
+        "frontier_unavailable",
+        "duplicate_conflict"
       ],
-      "description": "Profile self-service update. The protocol request body is AccountUpdateProfileRequestBody {patch}; accepted paths are display_name, avatar_blob_ref, and profile_fields.<key>. Existing bio fields migrate to profile_fields.bio; avatar_url is rejected on the Arkret protocol path."
+      "description": "Profile self-service accepts exactly one holder-signed ak.profile.create or ak.profile.update EventInitialSubmission. failed_precondition covers create against an existing Profile, update without an accepted Profile, target/PCR/session authority mismatch, expected_state_digest mismatch, and deterministic profile reducer guards. frontier_unavailable is retry-safe while the valid Control Move lacks accepted Seal coverage. Replaying the same Event identity with different bytes returns duplicate_conflict; exact replay after coverage returns the stored outcome without another aggregate delta. Update patch paths remain limited to display_name, avatar_blob_ref, and profile_fields.<key>; avatar_url is rejected."
     },
     {
       "operation_id": "ak.self.account.read.describe",

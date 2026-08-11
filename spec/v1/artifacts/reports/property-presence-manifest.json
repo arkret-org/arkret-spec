@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9603,
+    "total_properties": 9613,
     "total_schema_documents": 158,
     "by_presence_class": {
-      "optional": 2839,
+      "optional": 2841,
       "optional_defaulted": 69,
-      "required": 6317,
-      "required_nullable": 125,
-      "tristate": 253
+      "required": 6319,
+      "required_nullable": 126,
+      "tristate": 258
     },
-    "tristate_occurrences": 253,
-    "tristate_audit_targets": 160,
+    "tristate_occurrences": 258,
+    "tristate_audit_targets": 163,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 151,
+      "absent_null_equivalent": 154,
       "condition_guarded": 8,
       "distinct": 1
     }
@@ -38,6 +38,11 @@
     "absent_null_equivalent": "v1 default normalization; SDK uses an optional value and canonical output omits None."
   },
   "tristate_properties": [
+    "account-operations.schema.json/$defs/account_profile_event_submission/allOf/1/properties/event/properties/preconditions",
+    "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/0/properties/event",
+    "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/0/properties/event/properties/payload",
+    "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event",
+    "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event/properties/payload",
     "account-operations.schema.json/$defs/account_status_authoring_basis_outcome/properties/seal_frontier/allOf/1/properties/governance_health",
     "account-subscribe-frame.schema.json/$defs/device_message_container/allOf/0/if/properties/messages",
     "agent-operations.schema.json/$defs/agent_readiness/allOf/0/then/properties/blockers",
@@ -293,6 +298,38 @@
     "view.schema.json/$defs/query/properties/relation"
   ],
   "tristate_audit_targets": [
+    {
+      "schema_file": "account-operations.schema.json",
+      "shape": "/$defs/account_profile_event_submission",
+      "instance_path": "/event",
+      "occurrences": [
+        "/$defs/account_profile_event_submission/allOf/2/oneOf/0/properties/event",
+        "/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "account-operations.schema.json",
+      "shape": "/$defs/account_profile_event_submission",
+      "instance_path": "/event/payload",
+      "occurrences": [
+        "/$defs/account_profile_event_submission/allOf/2/oneOf/0/properties/event/properties/payload",
+        "/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event/properties/payload"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "account-operations.schema.json",
+      "shape": "/$defs/account_profile_event_submission",
+      "instance_path": "/event/preconditions",
+      "occurrences": [
+        "/$defs/account_profile_event_submission/allOf/1/properties/event/properties/preconditions"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
     {
       "schema_file": "account-operations.schema.json",
       "shape": "/$defs/account_status_authoring_basis_outcome",
@@ -2092,6 +2129,16 @@
         "/$defs/account_lifecycle_proof/properties/request_canonical_digest": "required",
         "/$defs/account_lifecycle_proof/properties/signature": "required",
         "/$defs/account_lifecycle_proof/properties/verification_method": "optional",
+        "/$defs/account_profile_event_submission/allOf/1/properties/event": "required",
+        "/$defs/account_profile_event_submission/allOf/1/properties/event/properties/preconditions": "tristate",
+        "/$defs/account_profile_event_submission/allOf/2/oneOf/0/properties/event": "tristate",
+        "/$defs/account_profile_event_submission/allOf/2/oneOf/0/properties/event/properties/kind": "optional",
+        "/$defs/account_profile_event_submission/allOf/2/oneOf/0/properties/event/properties/payload": "tristate",
+        "/$defs/account_profile_event_submission/allOf/2/oneOf/0/properties/event/properties/payload/properties/object": "required_nullable",
+        "/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event": "tristate",
+        "/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event/properties/kind": "optional",
+        "/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event/properties/payload": "tristate",
+        "/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event/properties/payload/properties/patch": "required",
         "/$defs/account_register_outcome/properties/binding_receipt": "required",
         "/$defs/account_register_outcome/properties/devices": "required",
         "/$defs/account_register_outcome/properties/handle_claim_digests": "optional",
@@ -2198,7 +2245,7 @@
         "/$defs/account_status_receipt/properties/receipt_id": "required",
         "/$defs/account_status_receipt/properties/receiver_service_id": "required",
         "/$defs/account_update_profile_outcome/properties/profile": "required",
-        "/$defs/account_update_profile_request_body/properties/patch": "required",
+        "/$defs/account_update_profile_request_body/properties/profile_event": "required",
         "/$defs/account_view/properties/devices": "required",
         "/$defs/account_view/properties/handle_claim_digests": "optional",
         "/$defs/account_view/properties/is_server_admin": "optional",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.5",
+  "version": "2026-08-11.9",
   "source_of_truth": false,
-  "generated_at": "2026-08-11T13:24:47Z",
+  "generated_at": "2026-08-11T14:46:42Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -2124,20 +2124,18 @@
       "http": "POST /_arkret/self/account/profile",
       "grpc": "SelfAccount/UpdateProfile",
       "mq": "self.account.command.update_profile",
-      "notes": "Holder-bound service wrapper around ak.profile.update / Actor Profile projection. Request body is a closed patch over display_name, avatar_blob_ref, and profile_fields.<key>; profile_fields.bio is the canonical personal bio field and avatar_url is not accepted on the Arkret protocol path.",
+      "notes": "Carries exactly one holder-signed profile_event EventInitialSubmission and no unsigned patch. event.realm_id is the exact PrincipalAuthorityInstance PCR selector; accepted-profile presence is evaluated only in that PCR lineage. If it has no accepted Actor Profile, the Event must be ak.profile.create; its actor_profile ID is derived by retyping the create Event ID and payload.object must omit id. If it has an accepted Profile, the Event must be ak.profile.update, payload.target_ref must equal that create-derived ID, and the signed patch remains limited to display_name, avatar_blob_ref and profile_fields.<key>. Both branches bind realm scope to the same PCR and event.actor_id to the session principal. On create payload.object.principal_id must equal that principal; on update the accepted target profile's materialized principal_id must equal it. Direct holder proof is required without executor or Applet provenance. Event preconditions are empty; update concurrency uses only optional signed payload.expected_state_digest. The service forwards the exact bytes through ordinary Event admission without authoring, rebuilding, co-signing, choosing an ID or adding a concurrency guard. Until the Control Move has accepted Seal coverage the operation returns frontier_unavailable; exact retry after coverage returns the byte-identical stored outcome. The single accepted effect advances the holder account-aggregate projection once; it creates no Directory announcement or account-data Event.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "none",
-      "retry_safe": false,
-      "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.self.account.read.viewer"
-      },
+      "idempotency_mechanism": "object_id",
+      "idempotency_object_path": "/profile_event/event/event_id",
+      "retry_safe": true,
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_outcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
+          "ak.profile.create",
           "ak.profile.update"
         ]
       }
@@ -2155,7 +2153,7 @@
       "http": "GET /_arkret/self/account/viewer",
       "grpc": "SelfAccount/Viewer",
       "mq": "self.account.query.viewer",
-      "notes": "Holder-bound one-shot read of the current principal account projection. Returns principal_id, account lifecycle state, device summaries, optional ActorProfile, and signed handle-claim evidence or refs. It MUST NOT return an unsigned bare handle as authoritative identity. Naming: the trailing segment 'viewer' is intentionally outside the api-conventions.md §2.4 read-verb taxonomy; it follows the GraphQL 'viewer' convention (the authenticated subject's own projection). The target is located by the holder-bound session rather than an external id, so 'get' does not apply, and 'viewer' (subject identity projection) stays distinct from 'describe' (service capability metadata).",
+      "notes": "Holder-bound one-shot read of the current principal account projection. Returns principal_id, account lifecycle state, device summaries, optional ActorProfile, and signed handle-claim evidence or refs. Because the operation has no authority-instance selector, profile is present only when exactly one accepted profile is unambiguous across the principal's PCR lineages; multiple accepted lineages fail closed by omitting profile, never by choosing an implicit current PCR. It MUST NOT return an unsigned bare handle as authoritative identity. Naming: the trailing segment 'viewer' is intentionally outside the api-conventions.md §2.4 read-verb taxonomy; it follows the GraphQL 'viewer' convention (the authenticated subject's own projection). The target is located by the holder-bound session rather than an external id, so 'get' does not apply, and 'viewer' (subject identity projection) stays distinct from 'describe' (service capability metadata).",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_view"

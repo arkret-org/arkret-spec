@@ -74,7 +74,7 @@ updated: 2026-07-03
 
 ### 2.3 Profile 创建与更新
 
-Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到 actor 的 principal control Realm。Move 写入以 `payload.object.id` 为 subject 的 profile cell。`payload.object.principal_id` MUST 等于提交者 `actor_id`，或等于由 capability / controller policy 明确授权的目标 principal：
+Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到 actor 的 principal control Realm。物化 Profile ID 是把该 create Event 的 `event_id` 原 token 换成 `ak:actor_profile:` 前缀后的值；`payload.object.id` MUST 省略。Move 以该 Event-derived ID 为 profile cell subject。`payload.object.principal_id` MUST 等于提交者 `actor_id`，或等于由 capability / controller policy 明确授权的目标 principal：
 
 ```json
 {
@@ -89,13 +89,11 @@ Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到
   "refs": [],
   "payload": {
     "object": {
-      "id": "ak:actor_profile:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
       "schema": "ak.schema.actor_profile.v1",
       "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
       "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
       "actor_kind": "user",
       "display_name": "Alice Chen",
-      "handle": "alice",
       "avatar_blob_ref": "ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "status": "active",
       "profile_fields": {
@@ -117,7 +115,7 @@ Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到
 }
 ```
 
-Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。该 payload 使用 `object_patch_payload`；Move 使用 `payload.target_ref` 与 `ak.profile.create` 共用同一 profile cell。变更字段放在 `payload.patch`，不得使用顶层 `actor` / `body` 形态：
+Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。该 payload 使用 `actor_profile_update_payload`；Move 使用 `payload.target_ref` 与 `ak.profile.create` 共用同一 profile cell。变更字段放在 `payload.patch`，不得使用顶层 `actor` / `body` 形态：
 
 ```json
 {
@@ -139,7 +137,7 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
     }
   ],
   "payload": {
-    "target_ref": "ak:actor_profile:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+    "target_ref": "ak:actor_profile:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
     "patch": {
       "display_name": "Alice C.",
       "profile_fields.status_message": "Back at work!"
@@ -161,7 +159,7 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
 - 其他参与者的客户端通过 Sync Service 的 Sync Stream 或 Actor Events API 同步获取最新 Profile
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示
 
-`ak.profile.create` 与 `ak.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）。两 kind 共写入同一 cell `ak:cell:ak.component.profile.create.v1:<target_actor_profile_id>`（mv_register, bottom=expose），`cell_subject` 由 schema registry 派生（create 用 `payload.object.id`，update 用 `payload.target_ref`，必须等值）。
+`ak.profile.create` 与 `ak.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）。两 kind 共写入同一 cell `ak:cell:ak.component.profile.create.v1:<target_actor_profile_id>`（mv_register, bottom=expose），`cell_subject` 由 schema registry 派生：create 把 `envelope.event_id` retype 为 `ak:actor_profile:*`，update 使用必须逐字等于该派生 ID 的 `payload.target_ref`。
 
 ### 2.4 Per-Realm Profile 覆写
 

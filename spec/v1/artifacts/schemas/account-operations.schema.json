@@ -1205,6 +1205,20 @@
         "description": "ak.self.account.command.update_profile only accepts display_name, avatar_blob_ref, and profile_fields.<key>. The bio is carried as profile_fields.bio."
       }
     },
+    "account_materialized_profile": {
+      "allOf": [
+        {
+          "$ref": "./actor-profile.schema.json"
+        },
+        {
+          "required": [
+            "id",
+            "realm_id"
+          ]
+        }
+      ],
+      "description": "Materialized Actor Profile returned on the account surface. id is the actor_profile ID derived by retyping the accepted ak.profile.create Event ID; realm_id is the exact Principal Control Realm that carries the profile Event lineage."
+    },
     "account_view": {
       "type": "object",
       "required": [
@@ -1232,7 +1246,8 @@
           "$ref": "#/$defs/device_summaries"
         },
         "profile": {
-          "$ref": "./actor-profile.schema.json"
+          "$ref": "#/$defs/account_materialized_profile",
+          "description": "Present only when the authenticated principal has exactly one unambiguous accepted Actor Profile across its authority-instance PCR lineages. Because this request has no authority selector, multiple accepted lineages MUST fail closed by omitting profile; the service MUST NOT choose an implicit current PCR."
         },
         "is_server_admin": {
           "type": "boolean",
@@ -1330,7 +1345,7 @@
           "$ref": "#/$defs/handle_claim_digests"
         },
         "profile": {
-          "$ref": "./actor-profile.schema.json"
+          "$ref": "#/$defs/account_materialized_profile"
         },
         "registration_audit": {
           "$ref": "#/$defs/account_registration_audit"
@@ -1353,26 +1368,131 @@
       },
       "additionalProperties": false
     },
+    "account_profile_event_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "preconditions": {
+                  "maxItems": 0,
+                  "description": "This account self-service surface forbids Event preconditions. ak.profile.update concurrency is expressed only by the optional signed payload.expected_state_digest."
+                }
+              },
+              "required": [
+                "kind",
+                "realm_id",
+                "scope_ref",
+                "actor_id",
+                "payload"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "executed_by"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "authorization_ref"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "applet_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "external_ref"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "required": [
+            "event"
+          ]
+        },
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.profile.create"
+                    },
+                    "payload": {
+                      "properties": {
+                        "object": {
+                          "propertyNames": {
+                            "pattern": "^(schema|realm_id|principal_id|actor_kind|display_name|avatar_blob_ref|profile_fields|created_at)$"
+                          }
+                        }
+                      },
+                      "required": [
+                        "object"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.profile.update"
+                    },
+                    "payload": {
+                      "properties": {
+                        "patch": {
+                          "$ref": "#/$defs/profile_patch"
+                        }
+                      },
+                      "required": [
+                        "target_ref",
+                        "patch"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Holder-signed Actor Profile Control Move. event.realm_id is the exact PrincipalAuthorityInstance PCR selector, and accepted-profile presence is evaluated only within that selected PCR lineage. With no accepted profile there the exact Event MUST be ak.profile.create and its materialized actor_profile ID is derived by retyping event.event_id; the create payload MUST NOT carry id. With an accepted profile there the exact Event MUST be ak.profile.update and payload.target_ref MUST equal that accepted create-derived ID. In both branches realm scope identifies the same PCR, and event.actor_id identifies the session principal. On create payload.object.principal_id MUST equal that principal; on update the accepted target profile's materialized principal_id MUST equal it. Holder direct proof is required without executed_by, authorization_ref or Applet provenance. Event preconditions MUST be empty; update concurrency uses only the optional signed payload.expected_state_digest. The service submits the exact bytes through ordinary Event admission and MUST NOT author, rebuild, co-sign, choose an ID or add a concurrency guard. A valid Control Move not yet covered by an accepted Seal returns frontier_unavailable; after coverage, exact retry returns the stored outcome."
+    },
     "account_update_profile_request_body": {
       "type": "object",
+      "description": "Carries exactly one holder-signed profile create-or-update Event and no unsigned profile patch.",
       "required": [
-        "patch"
+        "profile_event"
       ],
       "properties": {
-        "patch": {
-          "$ref": "#/$defs/profile_patch"
+        "profile_event": {
+          "$ref": "#/$defs/account_profile_event_submission"
         }
       },
       "additionalProperties": false
     },
     "account_update_profile_outcome": {
       "type": "object",
+      "description": "Stored outcome after the profile Control Move is accepted and its effect is materialized. profile.id is the create-derived ActorProfile ID, profile.realm_id is event.realm_id, and an update projects updated_by/updated_at from event.actor_id/event.created_at. Exact Event replay returns the byte-identical stored outcome and emits no second account-aggregate delta.",
       "required": [
         "profile"
       ],
       "properties": {
         "profile": {
-          "$ref": "./actor-profile.schema.json"
+          "$ref": "#/$defs/account_materialized_profile"
         }
       },
       "additionalProperties": false

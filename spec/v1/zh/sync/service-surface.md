@@ -620,14 +620,14 @@ Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视�
 
 本节定义 account 与 snapshot 两类操作（事件流读取请到 Events Surface）：
 
-- `GET /_arkret/self/account/viewer`：当前 holder 的账号主体自读（`ak.self.account.read.viewer`）。响应使用 signed handle claim / ref / digest，不把未签名裸 `handle` 作为账号权威字段。
-- `POST /_arkret/self/account/profile`：当前账号 profile 更新（`ak.self.account.command.update_profile`）。patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；字段语义以 [`profiles-presence.md` §2.2](../discovery/profiles-presence.md) 为准。
+- `GET /_arkret/self/account/viewer`：当前 holder 的账号主体自读（`ak.self.account.read.viewer`）。响应使用 signed handle claim / ref / digest，不把未签名裸 `handle` 作为账号权威字段；请求无 authority selector，跨 PCR lineage 只有唯一 accepted Profile 时才返回 `profile`，歧义时省略而不隐式选择 current PCR。
+- `POST /_arkret/self/account/profile`：当前账号 holder-signed Profile Event 提交（`ak.self.account.command.update_profile`）。closed body 只携 `profile_event: EventInitialSubmission`；Event `realm_id` 是 exact PCR selector，只在该 lineage 内判定无 accepted Profile 时接受 ID 从 Event 派生的 `ak.profile.create`、已有 Profile 时接受 target_ref 命中的 `ak.profile.update`。Event Realm/scope/actor 必须绑定 session exact authority instance，update patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；Event `preconditions` 为空，并发只使用 update payload 可选 `expected_state_digest`。字段语义以 [`profiles-presence.md` §2.2](../discovery/profiles-presence.md) 为准。
 - `GET /_arkret/self/account/subscribe`：客户端账号视角聚合同步（`ak.self.account.stream.subscribe`），见 `client-sync.md`。
 - `GET /_arkret/self/account/describe`：account aggregate service describe（`ak.self.account.read.describe`）。
 - `POST /_arkret/self/account/cursor/revoke`：撤销账号聚合订阅 cursor（`ak.self.account.command.revoke_cursor`）。
 - `GET /_arkret/self/snapshot/head`：snapshot manifest 入口。
 
-`ak.self.account.command.update_profile` 不隐式替代 directory 或 cross-device account-data fan-out。实现若仍需维持可发现性或跨设备头像/简介同步，必须显式调用 `ak.find.directory.command.announce`、`ak.account_data.set` 或等价已声明 operation。
+`ak.self.account.command.update_profile` 的 accepted Profile effect 恰好一次推进 holder account-aggregate projection/cursor，使同一 authority instance 的其它绑定设备在 PCR Realm delta 中观察 canonical Event / Profile；exact replay 不产生第二条 delta，account-scoped wakeup 也不是真相源。该推进不隐式替代 Directory announce 或独立 account-data Event；实现若需维持可发现性或 account-data 副本，必须显式调用 `ak.find.directory.command.announce`、`ak.account_data.set` 或等价已声明 operation。Event authoring 必须读取 PCR-specific Events frontier，不得从 account aggregate 推断单一 head。
 
 事件流读取统一在：
 

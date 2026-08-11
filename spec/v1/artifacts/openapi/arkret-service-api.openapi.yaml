@@ -5052,6 +5052,11 @@ paths:
         handle-claim evidence or refs. This endpoint is distinct from
         ak.self.account.read.describe, which describes service capabilities.
 
+        This request has no authority-instance selector. profile is present only
+        when exactly one accepted Actor Profile is unambiguous across the principal's
+        PCR lineages; if multiple accepted lineages exist, the service omits profile
+        and MUST NOT choose an implicit current PCR.
+
         The response MUST NOT use an unsigned bare handle as authoritative
         identity. When present, primary_handle_claim is a complete
         ak.schema.handle_claim.v1 object; otherwise clients use
@@ -5145,15 +5150,26 @@ paths:
       - bearerAuth: []
       summary: Update the authenticated principal's Actor Profile projection.
       description: |
-        Holder-bound service wrapper around ak.profile.update / Actor Profile
-        projection. The request body is AccountUpdateProfileRequestBody {patch}; patch
-        paths are limited to display_name, avatar_blob_ref, and
-        profile_fields.<key>. Personal bio text is represented by
-        profile_fields.bio.
+        Carries exactly one holder-signed profile_event EventInitialSubmission.
+        event.realm_id is the exact PrincipalAuthorityInstance PCR selector, and
+        accepted-profile presence is evaluated only in that PCR lineage. With no
+        accepted Actor Profile there the Event is ak.profile.create and its
+        materialized actor_profile ID is derived from the Event ID; payload.object
+        omits id. With an accepted Profile there the Event is ak.profile.update,
+        payload.target_ref equals that create-derived ID, and patch paths are limited
+        to display_name, avatar_blob_ref, and profile_fields.<key>.
 
-        The Arkret protocol path rejects avatar_url and any handle, lifecycle,
-        principal, actor_kind, accountability, authorization, or handle-claim
-        path. Avatar images use avatar_blob_ref.
+        Both branches use the authenticated session's exact PrincipalAuthorityInstance
+        PCR as event.realm_id and realm scope, bind event.actor_id to the session
+        principal, and use direct holder proof. On create payload.object.principal_id
+        equals that principal; on update the accepted target Profile's materialized
+        principal_id equals it. Event preconditions are empty; update concurrency
+        uses only optional signed payload.expected_state_digest. The service submits the exact Event
+        through ordinary admission without authoring, rebuilding, co-signing, choosing
+        an ID, or adding a concurrency guard. Until accepted Seal coverage is available
+        it returns frontier_unavailable; exact retry then returns the stored outcome
+        without a second account-aggregate delta. No Directory or account-data Event is
+        synthesized.
       responses:
         '200':
           description: Profile update accepted and projected.
