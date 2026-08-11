@@ -297,6 +297,8 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome
     AccountOidcCallbackRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody
+    AccountOnboardingSnapshot:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_onboarding_snapshot
     AccountRegisterOutcome:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_register_outcome
     AccountRegisterRequestBody:
@@ -9037,6 +9039,35 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AccountHandoffRequestBody'
+  /_arkret/gate/account/onboarding:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    get:
+      operationId: ak.gate.account.read.onboarding
+      security:
+      - accountHandoffAuth: []
+        dpopProof: []
+      x-arkret-auth:
+        public_metadata: false
+        holder_bound_authorization: true
+        notes: Authorization is `DPoP <account_handoff_grant>` and the DPoP header key MUST match the live handoff holder. The operation is read-only and grants no command authority.
+      summary: Read the Account Authority's current onboarding projection.
+      description: |
+        Reloads the durable identity-creation lease or established binding for
+        the authenticated account handoff. Clients MUST reconcile local
+        onboarding artifacts against this projection after reload, callback,
+        process restart, or an uncertain command result. The client supplies no
+        phase, goal, checkpoint, or recovery material to this operation.
+      responses:
+        '200':
+          description: Fresh server-authored onboarding projection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountOnboardingSnapshot'
   /_arkret/gate/account/identity-binding-challenges:
     servers:
     - url: https://{host}

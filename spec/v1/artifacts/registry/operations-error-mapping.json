@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-12.1",
+  "version": "2026-08-12.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-11T17:08:46Z",
+  "generated_at": "2026-08-11T20:39:13Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -411,6 +411,12 @@
         "duplicate_conflict"
       ],
       "description": "OIDC code exchange for a DPoP-bound account_handoff_grant. proof_invalid covers issuer/discovery/state/nonce/redirect_uri/PKCE/body-holder/DPoP binding failures; duplicate_conflict covers reuse of request_id with different canonical request bytes. A live lease owned by another holder is a typed identity_creation_busy outcome, not an error reply."
+    },
+    {
+      "operation_id": "ak.gate.account.read.onboarding",
+      "http_alias": "GET /_arkret/gate/account/onboarding",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface. The live DPoP-bound handoff selects the account and holder; the response is a read-only projection of durable lease or binding state."
     },
     {
       "operation_id": "ak.open.agent_pairing.command.submit_runtime_key_request",

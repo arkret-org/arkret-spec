@@ -211,6 +211,7 @@
           "ak.gate.account.command.register",
           "ak.gate.account.command.revoke_session",
           "ak.gate.account.exchange.create_handoff",
+          "ak.gate.account.read.onboarding",
           "ak.peer.account_status.command.submit",
           "ak.peer.account_status.read.authoring_basis",
           "ak.self.account.command.update_profile",

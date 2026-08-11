@@ -14,6 +14,9 @@
       "$ref": "#/$defs/account_handoff_outcome"
     },
     {
+      "$ref": "#/$defs/account_onboarding_snapshot"
+    },
+    {
       "$ref": "#/$defs/identity_binding_challenge_request_body"
     },
     {
@@ -418,12 +421,16 @@
       "description": "Server-persisted identity-creation checkpoint, readable only by the authenticated current holder of the owning service account's identity-creation lease. It is NOT public: an unfinished reservation would otherwise leak that a specific account is mid-registration, and abandoning it would leave a permanent public trace. Once registration completes the public artifact is the published DID log entry itself, so this checkpoint never needs to become public. It contains the exact unpublished or already-published DID operation, never recovery words, seed material, private keys, or an encrypted root export.",
       "required": [
         "principal_id",
+        "full_id",
         "operation_digest",
         "did_operation"
       ],
       "properties": {
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
         },
         "operation_digest": {
           "$ref": "#/$defs/sha256_digest",
@@ -440,6 +447,7 @@
       "required": [
         "identity_creation_lease_id",
         "fence",
+        "state",
         "expires_at"
       ],
       "properties": {
@@ -449,6 +457,18 @@
         "fence": {
           "type": "integer",
           "minimum": 1
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "active",
+            "reserved",
+            "did_published",
+            "pcr_accepted",
+            "account_bound",
+            "completed"
+          ],
+          "description": "Account-Authority-authored durable identity-creation saga state. Clients MUST derive their onboarding phase from this value and MUST NOT infer a phase from local checkpoint presence. reserved_identity MUST be absent only in active and present in every later state."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
@@ -505,7 +525,8 @@
           "type": "object",
           "required": [
             "state",
-            "principal_id"
+            "principal_id",
+            "full_id"
           ],
           "properties": {
             "state": {
@@ -513,6 +534,9 @@
             },
             "principal_id": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            "full_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_full_id"
             }
           },
           "additionalProperties": false
@@ -577,6 +601,7 @@
         "allowed_operations": {
           "const": [
             "ak.gate.account.command.issue_identity_binding_challenge",
+            "ak.gate.account.command.issue_did_binding_challenge",
             "ak.gate.account.command.issue_identity_abandonment_challenge",
             "ak.gate.account.command.abandon_identity_creation",
             "ak.gate.account.command.register",
@@ -587,6 +612,71 @@
         },
         "binding": {
           "$ref": "#/$defs/account_handoff_binding"
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_onboarding_goal": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "goal"
+          ],
+          "properties": {
+            "goal": {
+              "const": "complete_identity"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "goal",
+            "challenge",
+            "requires_fresh_authentication"
+          ],
+          "properties": {
+            "goal": {
+              "const": "abandon_provisional_identity"
+            },
+            "challenge": {
+              "$ref": "#/$defs/identity_abandonment_challenge_outcome"
+            },
+            "requires_fresh_authentication": {
+              "type": "boolean",
+              "description": "Authoritative Account Authority decision. true means the current handoff is the challenge-issuing handoff and confirmation requires a new authentication; clients MUST NOT infer this by comparing locally persisted credentials."
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "account_onboarding_snapshot": {
+      "type": "object",
+      "required": [
+        "handoff_request_id",
+        "account_subject",
+        "observed_at",
+        "binding",
+        "goal"
+      ],
+      "properties": {
+        "handoff_request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "account_subject": {
+          "$ref": "#/$defs/account_subject"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "binding": {
+          "$ref": "#/$defs/account_handoff_binding"
+        },
+        "goal": {
+          "$ref": "#/$defs/account_onboarding_goal"
         }
       },
       "additionalProperties": false

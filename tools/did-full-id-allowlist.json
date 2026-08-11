@@ -7,10 +7,12 @@
   ],
   "entries": [
     {"pointer": "account-operations.schema.json#/$defs/account_registration_control_proof/properties/full_id/$ref", "category": "registration_or_binding"},
+    {"pointer": "account-operations.schema.json#/$defs/account_handoff_binding/oneOf/2/properties/full_id/$ref", "category": "registration_or_binding"},
     {"pointer": "account-operations.schema.json#/$defs/identity_binding_challenge_request_body/properties/full_id/$ref", "category": "registration_or_binding"},
     {"pointer": "account-operations.schema.json#/$defs/identity_binding_challenge_outcome/properties/full_id/$ref", "category": "registration_or_binding"},
     {"pointer": "account-operations.schema.json#/$defs/identity_creation_control_proof/properties/full_id/$ref", "category": "registration_or_binding"},
     {"pointer": "account-operations.schema.json#/$defs/identity_creation_registration/properties/full_id/$ref", "category": "registration_or_binding"},
+    {"pointer": "account-operations.schema.json#/$defs/reserved_identity_creation/properties/full_id/$ref", "category": "registration_or_binding"},
     {"pointer": "account-operations.schema.json#/$defs/account_binding_receipt/properties/full_id/$ref", "category": "registration_or_binding"},
     {"pointer": "account-operations.schema.json#/$defs/account_register_request_body/properties/full_id/$ref", "category": "registration_or_binding"},
     {"pointer": "account-operations.schema.json#/$defs/did_binding_challenge_request_body/properties/full_id/$ref", "category": "registration_or_binding"},

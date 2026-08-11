@@ -21,26 +21,26 @@
     },
     {
       "path": "spec/v1/artifacts/registry/authority-source-registry.json",
-      "version": "2026-08-12.1",
-      "generated_at": "2026-08-11T17:08:46Z",
+      "version": "2026-08-12.2",
+      "generated_at": "2026-08-11T20:39:13Z",
       "content_digest": "sha256:ff47b6802c2062c7ce8061c1e40bd8ae49331df16d9abfa449e71ecbd69d6a20"
     },
     {
       "path": "spec/v1/artifacts/registry/binding-kind-registry.json",
-      "version": "2026-08-12.1",
-      "generated_at": "2026-08-11T17:08:46Z",
+      "version": "2026-08-12.2",
+      "generated_at": "2026-08-11T20:39:13Z",
       "content_digest": "sha256:dfb055a9e4c061b8b6eba878f56b4c32b7ed27e6c3560f2342f3dc32844eeddf"
     },
     {
       "path": "spec/v1/artifacts/registry/calendar-timezone-registry.json",
-      "version": "2026-08-12.1",
-      "generated_at": "2026-08-11T17:08:46Z",
+      "version": "2026-08-12.2",
+      "generated_at": "2026-08-11T20:39:13Z",
       "content_digest": "sha256:f540c35cee7467fdb38a280b5d4baae5cf078d7c565228f860fa1d47b008e392"
     },
     {
       "path": "spec/v1/artifacts/registry/capability-action-registry.json",
-      "version": "2026-08-12.1",
-      "generated_at": "2026-08-11T17:08:46Z",
+      "version": "2026-08-12.2",
+      "generated_at": "2026-08-11T20:39:13Z",
       "content_digest": "sha256:9e2167ba563ba1d730585e6609e76ca5a385329420ffd07ce965c68d4aaf6bee"
     },
     {
@@ -51,9 +51,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-08-12.1",
-      "generated_at": "2026-08-11T17:08:46Z",
-      "content_digest": "sha256:cbe3b0cff360bc083ce0d51d2cc00b81cea03b95641db691f69000423c8b17bb"
+      "version": "2026-08-12.2",
+      "generated_at": "2026-08-11T20:39:13Z",
+      "content_digest": "sha256:0b009f9695346dbbb27e73281dfb05e2f8ecbb6fa2ebe3a82be894c917ed2c4d"
     },
     {
       "path": "spec/v1/artifacts/registry/did-freshness-profile-registry.json",
@@ -63,8 +63,8 @@
     },
     {
       "path": "spec/v1/artifacts/registry/did-method-adapter-registry.json",
-      "version": "2026-08-12.1",
-      "generated_at": "2026-08-11T17:08:46Z",
+      "version": "2026-08-12.2",
+      "generated_at": "2026-08-11T20:39:13Z",
       "content_digest": "sha256:0b8be64d9b19a73b2c2a708debc01a731af33e391ee9c2221d9bf0089f3e7b42"
     },
     {
@@ -81,8 +81,8 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-08-12.1",
-      "generated_at": "2026-08-11T17:08:46Z",
+      "version": "2026-08-12.2",
+      "generated_at": "2026-08-11T20:39:13Z",
       "content_digest": "sha256:f194f82a8a83fae415019e6b1949bb3a8640ae27753e228ec03d88a4ff866ece"
     },
     {
@@ -153,15 +153,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-08-12.1",
-      "generated_at": "2026-08-11T17:08:46Z",
-      "content_digest": "sha256:a3446b26bb0acc0459e7d49f5bfedfc196c3b3f4313d5990d0c012810072bdbc"
+      "version": "2026-08-12.2",
+      "generated_at": "2026-08-11T20:39:13Z",
+      "content_digest": "sha256:74fe24cccbaea2f21ebb2b1c8766834dcb0ada97cc10c2d4514a9dcc9cb74078"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-08-12.1",
-      "generated_at": "2026-08-11T17:08:46Z",
-      "content_digest": "sha256:df2867c1e807352683e5be8efb69bcea2afba1d61134365ffe985140b6585a7f"
+      "version": "2026-08-12.2",
+      "generated_at": "2026-08-11T20:39:13Z",
+      "content_digest": "sha256:7ebe2fdf1b48557534a10af57e5860be3b3461aa7f2366ae037b2fb5b88e3c21"
     },
     {
       "path": "spec/v1/artifacts/registry/preimage-identity-exemption-registry.json",
@@ -243,8 +243,8 @@
     },
     {
       "path": "spec/v1/artifacts/registry/track-name-registry.json",
-      "version": "2026-08-12.1",
-      "generated_at": "2026-08-11T17:08:46Z",
+      "version": "2026-08-12.2",
+      "generated_at": "2026-08-11T20:39:13Z",
       "content_digest": "sha256:931cd839a81f5f04e6286b9f2980de2202b267cf1084dc28a9a449ffa52f14b9"
     },
     {

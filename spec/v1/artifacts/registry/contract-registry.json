@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-12.1",
+  "version": "2026-08-12.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-11T17:08:46Z",
+  "generated_at": "2026-08-11T20:39:13Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -11170,6 +11170,7 @@
         "surface": "account_auth",
         "operations": [
           "ak.gate.account.exchange.create_handoff",
+          "ak.gate.account.read.onboarding",
           "ak.gate.account.command.issue_controller_gate_attestation",
           "ak.gate.account.command.issue_identity_binding_challenge",
           "ak.gate.account.command.issue_did_binding_challenge",
@@ -11922,7 +11923,7 @@
         "operation_id": "ak.gate.account.exchange.create_handoff",
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/authentication-handoffs",
-        "notes": "Account Authority exchanges an OIDC authorization code for an opaque, short-lived account_handoff_grant bound to the request DPoP key and returns the deployment-local stable account_subject. The handoff is not ak.session.grant, has no refresh-token semantics, and its closed operation allowlist is issue_identity_binding_challenge, issue_identity_abandonment_challenge, abandon_identity_creation, register, issue_session_grant, and issue_recovery_completion_grant. The two abandonment operations are on that list because a never-accepted PCR leaves the holder without a principal, so no principal-bound ak.session.grant can exist to carry them. It returns bound, identity_creation_active, or identity_creation_busy state and atomically acquires, renews, or fences a rate-limited identity-creation lease for the authenticated service account. Busy includes the conflicting live lease expires_at without holder identity. Repeating the same request_id returns the same live outcome. A different holder cannot take an unexpired lease; after expiry, a newly authenticated holder may fence it and must preserve all frozen checkpoints.",
+        "notes": "Account Authority exchanges an OIDC authorization code for an opaque, short-lived account_handoff_grant bound to the request DPoP key and returns the deployment-local stable account_subject. The handoff is not ak.session.grant, has no refresh-token semantics, and its closed operation allowlist is issue_identity_binding_challenge, issue_did_binding_challenge, issue_identity_abandonment_challenge, abandon_identity_creation, register, issue_session_grant, and issue_recovery_completion_grant. The two abandonment operations are on that list because a never-accepted PCR leaves the holder without a principal, so no principal-bound ak.session.grant can exist to carry them. It returns bound, identity_creation_active, or identity_creation_busy state and atomically acquires, renews, or fences a rate-limited identity-creation lease for the authenticated service account. Busy includes the conflicting live lease expires_at without holder identity. Repeating the same request_id returns the same live outcome. A different holder cannot take an unexpired lease; after expiry, a newly authenticated holder may fence it and must preserve all frozen checkpoints.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "request_id",
@@ -11932,6 +11933,19 @@
         "durable_effect": {
           "kind": "none",
           "rationale": "persists_only_service_local_dpop_handoff_lease_fence_and_account_binding_state_no_event_is_authored"
+        }
+      },
+      {
+        "operation_id": "ak.gate.account.read.onboarding",
+        "http_only_variant": true,
+        "http": "GET /_arkret/gate/account/onboarding",
+        "notes": "Read-only DPoP-bound projection of the current Account Authority identity-creation lease or established binding. The response is rebuilt from durable server state on every call and accepts no client-authored phase, goal, checkpoint, or recovery material. Clients use it to reconcile local onboarding artifacts after reload, callback, process restart, or an uncertain command result.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_onboarding_snapshot",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "reads_only_the_current_service_local_account_onboarding_projection"
         }
       },
       {
@@ -14894,8 +14908,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-12.1",
-    "generated_at": "2026-08-11T17:08:46Z"
+    "version": "2026-08-12.2",
+    "generated_at": "2026-08-11T20:39:13Z"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
