@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.5",
+  "version": "2026-08-11.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-11T13:10:00Z",
+  "generated_at": "2026-08-11T13:11:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -1674,13 +1674,14 @@
       "surface_class": "extension",
       "http": "DELETE /_arkret/self/agents/{agent_id}/grants/{grant_id}",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome",
       "openapi_component_refs": {
+        "request": "#/components/schemas/AgentGrantDetachRequestBody",
         "response": "#/components/schemas/AgentGrantDetachOutcome"
       },
       "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.agent.participation.resource.get",

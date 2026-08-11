@@ -499,10 +499,6 @@ EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {
     "ak.self.realm.moderation_policy.resource.replace": "payload-only request",
     "ak.self.account.command.update_profile": "needs the caller-signed profile Event",
     "ak.self.moderation.command.report": "needs the caller-signed report Event",
-    "ak.self.agent.grant.resource.delete": (
-        "DELETE with no request body today; soland already hard-refuses it outside development "
-        "mode with agent_grant_fanout_unavailable, so the missing Event is admitted there too"
-    ),
 }
 
 

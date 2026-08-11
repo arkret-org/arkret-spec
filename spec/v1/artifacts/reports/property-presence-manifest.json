@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9586,
+    "total_properties": 9593,
     "total_schema_documents": 158,
     "by_presence_class": {
       "optional": 2838,
       "optional_defaulted": 69,
-      "required": 6308,
-      "required_nullable": 118,
+      "required": 6311,
+      "required_nullable": 122,
       "tristate": 253
     },
     "tristate_occurrences": 253,
@@ -2547,6 +2547,13 @@
         "/$defs/agent_grant_attach_request_body/properties/requested_scope_disclosure": "required",
         "/$defs/agent_grant_detach_outcome/properties/ok": "required",
         "/$defs/agent_grant_detach_outcome/properties/revoked_at": "required",
+        "/$defs/agent_grant_detach_request_body/properties/revoke_event": "required",
+        "/$defs/agent_grant_detach_request_body/properties/revoke_event/allOf/1/properties/event": "required_nullable",
+        "/$defs/agent_grant_detach_request_body/properties/revoke_event/allOf/1/properties/event/properties/kind": "required",
+        "/$defs/agent_grant_detach_request_body/properties/revoke_event/allOf/1/properties/event/properties/payload": "required_nullable",
+        "/$defs/agent_grant_detach_request_body/properties/revoke_event/allOf/1/properties/event/properties/preconditions": "required_nullable",
+        "/$defs/agent_grant_detach_request_body/properties/revoke_event/allOf/1/properties/event/properties/preconditions/items/properties/predicate": "required_nullable",
+        "/$defs/agent_grant_detach_request_body/properties/revoke_event/allOf/1/properties/event/properties/preconditions/items/properties/predicate/properties/op": "required",
         "/$defs/agent_human_approval_error_details/properties/approval_request_id": "required",
         "/$defs/agent_human_approval_error_details/properties/reason_code": "required",
         "/$defs/agent_key_authorization_state/properties/authorized_event_ref": "required",

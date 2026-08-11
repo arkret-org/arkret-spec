@@ -68,6 +68,9 @@
       "$ref": "#/$defs/agent_grant_attach_outcome"
     },
     {
+      "$ref": "#/$defs/agent_grant_detach_request_body"
+    },
+    {
       "$ref": "#/$defs/agent_grant_detach_outcome"
     },
     {
@@ -1820,6 +1823,72 @@
         },
         "grant_id": {
           "$ref": "#/$defs/grant_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_grant_detach_request_body": {
+      "type": "object",
+      "description": "Carries the caller-signed ak.capability.revoke Control Move and nothing else. The path grant_id MUST equal payload.grant_id and optional payload.grant_ref; the target grant subject MUST equal the path Agent; event.realm_id MUST equal the target grant Realm. The service submits the exact signed Event through ordinary Event admission and MUST NOT rebuild it, synthesize a revoke Event, or attach a precondition after signing.",
+      "required": [
+        "revoke_event"
+      ],
+      "properties": {
+        "revoke_event": {
+          "allOf": [
+            {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.capability.revoke"
+                    },
+                    "payload": {
+                      "required": [
+                        "grant_id"
+                      ]
+                    },
+                    "preconditions": {
+                      "minItems": 1,
+                      "maxItems": 1,
+                      "items": {
+                        "properties": {
+                          "predicate": {
+                            "properties": {
+                              "op": {
+                                "const": "head_eq"
+                              }
+                            },
+                            "required": [
+                              "op",
+                              "value"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "cell",
+                          "predicate"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "realm_id",
+                    "payload",
+                    "preconditions"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ]
+            }
+          ],
+          "description": "Complete controller-authored ak.capability.revoke initial submission. The Event MUST carry exactly one signed head_eq precondition on ak:cell:ak.component.capability.grant.v1:<payload.grant_id>, naming the complete observed grant-cell head. event.actor_id is the authenticated controller and admission binds its proof to the session-selected exact authority instance. Ordinary capability target guards remain authoritative: only the target issuer or current root controller of the target grant Realm may revoke it. Exact replay is idempotent; stale CAS, unsigned requests, and same-Event-ID different-body attempts fail closed."
         }
       },
       "additionalProperties": false

@@ -329,6 +329,8 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body
     AgentGrantDetachOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome
+    AgentGrantDetachRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_detach_request_body
     AgentHumanApprovalProblem:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_human_approval_error_details
     AgentKeyPairOutcome:
@@ -9982,6 +9984,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentGrantDetachOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentGrantDetachRequestBody'
   /_arkret/self/agent-sidecars:ensure:
     post:
       operationId: ak.self.agent.sidecar.command.ensure

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.5",
+  "version": "2026-08-11.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-11T13:10:00Z",
+  "generated_at": "2026-08-11T13:11:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -4655,6 +4655,17 @@
     {
       "operation_id": "ak.self.agent.grant.resource.delete",
       "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_request_body",
+        "schema_kind": "object",
+        "required": [
+          "revoke_event"
+        ],
+        "properties": [
+          "revoke_event"
+        ],
+        "closed": true
+      },
       "response": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome",
         "schema_kind": "object",
