@@ -726,16 +726,18 @@ MUST 支持:
 - `ak.self.agent.participation.resource.replace` 与 `ak.self.agent.participation.resource.get`。selection 是 controller
   的私有偏好，唯一 authority 是 controller 所属 Account Authority；它不是 Realm 事实，也不经 peer relay。
   两个 operation 都只允许 controller 访问，并必须使用 bearer+DPoP。Agent runtime 不直接读写该私有状态；
-  Account Authority 在签发 Agent session 时按需附带当前 selection/version
+  Account Authority 在签发 Agent session 时按需附带当前 selection/version 与同值的下一次 replace echo
 - replace 的 closed body 固定为 `{target_scope,selection,expected_version}`。`target_scope` 是
   `realm{realm_id}|circle{realm_id,circle_id}|strand{realm_id,strand_id}` closed XOR；selection 是 required 五位
   `{reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf}`。首次写
   `expected_version=0`，每次成功严格加一；版本不匹配返回 `cas_conflict` 且零写入。GET 与 replace outcome 的每项
-  固定为 `{target_scope,selection,version}`
+  固定为 `{target_scope,selection,version,next_replace_input:{expected_version}}`，其中
+  `next_replace_input.expected_version=version`
 - selection 本身不授予 capability，也不物化 `ak.capability.grant/revoke`。实际动作必须同时通过普通 Agent
   capability、Agent/controller lifecycle 与 `current_selection ∩ current_deployment_ceiling ∩ current Realm/Circle/
   Strand ceiling`。任一输入 unknown/stale 时 fail closed。Account Authority 可在 session grant 中签发当前
-  selection/version；target service 必须自行读取当前治理 ceiling，不得信任 session 中复制的 ceiling/effective
+  selection/version 与同值的 `next_replace_input.expected_version`；target service 必须自行读取当前治理 ceiling，
+  不得信任 session 中复制的 ceiling/effective
 - 产品全局默认只可作为 SDK/UI authoring preference，不进入 admission、session 或服务 receipt。Agent
   pause/deactivate 继续是全局紧急停机；deployment ceiling 是 target 本地运行时安全门，只能进一步拒绝动作，
   不进入 controller selection wire、Realm reducer 或跨服务共识

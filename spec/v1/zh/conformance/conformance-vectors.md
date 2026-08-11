@@ -4512,7 +4512,7 @@ Steps:
 
 Expected:
 
-- 第 1、2 步成功后 version 分别为 1、2；GET 返回 `{target_scope,selection,version}`。
+- 第 1、2 步成功后 version 分别为 1、2；GET 返回 `{target_scope,selection,version,next_replace_input:{expected_version}}`，且每项 `next_replace_input.expected_version=version`。
 - 第 3 步只能有一个竞争写成功；其余返回 `cas_conflict` 且零写入。客户端 GET 最新 version、合并用户意图后重试。
 - target policy 不参与 replace admission；被 policy 封顶的 selection 位可以存储，但不会产生权限。
 - 变体 A、B fail closed。replace/get 都只允许 controller；Agent runtime 通过 session grant 获得所需快照。
@@ -4531,7 +4531,7 @@ Steps:
 
 Expected:
 
-- 第 2 步 `scope_details.participation[]` 每个条目 MUST 与 `agent-operations.schema.json#/$defs/agent_participation_entry` 的 `{target_scope,selection,version}` 同构，不携带 ceiling/effective。
+- 第 2 步 `scope_details.participation[]` 每个条目 MUST 与 `agent-operations.schema.json#/$defs/agent_participation_entry` 的 `{target_scope,selection,version,next_replace_input:{expected_version}}` 同构，`next_replace_input.expected_version=version`，不携带 ceiling/effective。
 - runtime 用该数组避免无效请求，但它不是安全边界：第 3 步仍由 target 读取 current policy 与 selection，并独立校验普通 capability；第三方 mention 在 dispatcher gate 拦截，`act_on_behalf` 还必须通过 receiver 的 `executed_by`/`authorization_ref` 校验。
 
 ### 11.16 Vector: Participation Third-Party Mention Gate (Non-Retroactive)
