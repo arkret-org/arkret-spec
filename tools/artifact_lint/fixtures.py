@@ -1343,18 +1343,25 @@ def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
         return
 
     def decode_base64url(label: str, value: Any) -> bytes | None:
-        if not isinstance(value, str):
+        if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9_-]+", value):
             lint.fail(fixture_path, f"{label} must be an unpadded base64url string")
             return None
         try:
-            return base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
+            decoded = base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
         except (ValueError, binascii.Error):
             lint.fail(fixture_path, f"{label} is not valid base64url")
             return None
+        if base64.urlsafe_b64encode(decoded).rstrip(b"=").decode("ascii") != value:
+            lint.fail(fixture_path, f"{label} is not canonical unpadded base64url")
+            return None
+        return decoded
 
     public_key_bytes = decode_base64url("test_key.public_key", public_key_text)
     private_key_seed = decode_base64url("test_key.private_key_seed", private_key_seed_text)
     if public_key_bytes is None or private_key_seed is None:
+        return
+    if len(public_key_bytes) != 32 or len(private_key_seed) != 32:
+        lint.fail(fixture_path, "test_key Ed25519 public key and private seed must each be 32 bytes")
         return
     if (
         Ed25519PrivateKey is None
@@ -1392,7 +1399,7 @@ def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
     actual_names = {
         case.get("name") for case in cases if isinstance(case, dict) and isinstance(case.get("name"), str)
     }
-    if actual_names != set(expected_operations):
+    if len(cases) != len(expected_operations) or actual_names != set(expected_operations):
         lint.fail(fixture_path, f"KeyPackage write transcript cases drifted: {sorted(actual_names)}")
 
     for index, case in enumerate(cases):
@@ -1426,6 +1433,9 @@ def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
 
         signature_bytes = decode_base64url(f"{name}.signature", case.get("signature"))
         if signature_bytes is not None:
+            if len(signature_bytes) != 64:
+                lint.fail(fixture_path, f"{name}.signature must encode exactly 64 Ed25519 bytes")
+                continue
             try:
                 verifying_key.verify(signature_bytes, expected_signing_input)
             except InvalidSignature:

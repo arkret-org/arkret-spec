@@ -116,7 +116,9 @@ class KeyPackageWriteTranscriptLintTest(unittest.TestCase):
 
     def test_invalid_signature_fails(self) -> None:
         def mutate(fixture):
-            self._case(fixture, "revoke_with_reason")["signature"] = "AA"
+            self._case(fixture, "revoke_with_reason")["signature"] = base64.urlsafe_b64encode(
+                b"\x00" * 64
+            ).rstrip(b"=").decode("ascii")
 
         errors = self._lint_mutation(mutate)
         self.assertTrue(any("signature does not verify" in error for error in errors), errors)
