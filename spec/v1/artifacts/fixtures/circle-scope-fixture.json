@@ -217,12 +217,8 @@
       "distance_ms": 30000,
       "revocation_freshness_window_ms": 60000,
       "expected": {
-        "eligibility": "stale_eligible",
-        "allowed_results": [
-          "accept_stale",
-          "reject"
-        ],
-        "accepted_query_grade": "stale",
+        "result": "accept",
+        "included_in_data_cell_join": true,
         "must_not_reason": "circle_not_active"
       }
     },

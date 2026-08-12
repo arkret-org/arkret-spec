@@ -170,7 +170,7 @@ flowchart TB
         C1["sync events / receipts / seals"]
         C2["data Lattice / CRDT projection"]
         C3["control state_root verification"]
-        C4["query grade: local / seen / observed / sealed"]
+        C4["local evidence state: data-local / observed / control-sealed"]
         C1 --> C2 --> C4
         C1 --> C3 --> C4
     end
@@ -428,7 +428,7 @@ Arkret v1 固定：
 
 ## 16. 规范性引用
 
-- CBA 双平面、Seal、query grade 与 failure state 见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
+- CBA 双平面、Seal、观测证据与 failure state 见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 - Event Envelope、canonical bytes、Patch 与 proof 见 [`event-and-patch.md`](../models/event-and-patch.md)。
 - HTTP operation binding 见 [`service-http-binding.md`](./service-http-binding.md)。
 - Federation transport 见 [`federation.md`](./federation.md)。

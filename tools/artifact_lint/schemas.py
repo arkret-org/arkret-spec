@@ -2396,16 +2396,14 @@ def check_circle_lifecycle_basis_vector(lint: Lint) -> None:
 
     within = cases["linear_archive_within_freshness_window"]
     within_expected = within.get("expected", {})
-    if not isinstance(within_expected, dict) or within_expected.get("eligibility") != "stale_eligible":
-        lint.fail(path, "linear archive within the freshness window must be stale_eligible")
+    if not isinstance(within_expected, dict) or within_expected.get("result") != "accept":
+        lint.fail(path, "linear archive within the freshness window must be accepted")
     within_distance = within.get("distance_ms")
     within_window = within.get("revocation_freshness_window_ms")
     if not isinstance(within_distance, int) or not isinstance(within_window, int) or within_distance > within_window:
         lint.fail(path, "within-window Circle archive case exceeds its freshness window")
-    if within_expected.get("accepted_query_grade") != "stale":
-        lint.fail(path, "accepted within-window Circle archive must use stale query grade")
-    if set(within_expected.get("allowed_results", [])) != {"accept_stale", "reject"}:
-        lint.fail(path, "within-window Circle archive must allow only accept_stale or reject")
+    if within_expected.get("included_in_data_cell_join") is not True:
+        lint.fail(path, "accepted within-window Circle archive must remain in data-cell join input")
     if within_expected.get("must_not_reason") != "circle_not_active":
         lint.fail(path, "post-basis archive must not be reclassified as basis-time circle_not_active")
 

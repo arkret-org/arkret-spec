@@ -173,14 +173,13 @@
       "expected": {
         "event_state": "data_local",
         "fanout_allowed": true,
-        "seal_required_for_accept": false,
-        "query_grade_before_observation": "local"
+        "seal_required_for_accept": false
       },
       "vector_id": "ak.vector.cba_lattice.data_event_accepts_without_seal_finality.v1"
     },
     {
       "name": "data_event_observation_does_not_seal",
-      "description": "A Seal may observe DataEvents through data_event_set_root, but the query grade is observed, not sealed.",
+      "description": "A Seal may observe DataEvents through data_event_set_root, but that observation is evidence, not control-plane finality.",
       "data_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
       "seal": {
         "id": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -194,7 +193,6 @@
       },
       "expected": {
         "data_event_state": "data_observed",
-        "query_grade": "observed",
         "must_not_report_sealed": true
       },
       "vector_id": "ak.vector.cba_lattice.data_event_observation_does_not_seal.v1"
@@ -234,12 +232,10 @@
         ]
       },
       "expected_before_seal": {
-        "event_state": "control_pending",
-        "query_grade": "seen"
+        "event_state": "control_pending"
       },
       "expected_after_valid_seal": {
-        "event_state": "control_sealed",
-        "query_grade": "sealed"
+        "event_state": "control_sealed"
       },
       "vector_id": "ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1"
     },
@@ -505,8 +501,20 @@
           "seal_ref": "ak:seal:sha256:2121212121212121212121212121212121212121212121212121212121212121",
           "seal_ref_distance_ms": 3600000,
           "expected": {
-            "result": "accept_temporarily",
-            "query_grade": "stale"
+            "result": "accept",
+            "included_in_data_cell_join": true
+          }
+        },
+        {
+          "name": "revoked_key_at_freshness_window_boundary",
+          "key_id": "device-1",
+          "key_epoch": 4,
+          "revoked_at_seal": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "seal_ref": "ak:seal:sha256:2121212121212121212121212121212121212121212121212121212121212121",
+          "seal_ref_distance_ms": 86400000,
+          "expected": {
+            "result": "accept",
+            "included_in_data_cell_join": true
           }
         },
         {
@@ -519,8 +527,8 @@
           "implementation_result": "reject",
           "expected": {
             "conformance": "fail",
-            "required_result": "accept_temporarily",
-            "required_query_grade": "stale"
+            "required_result": "accept",
+            "required_included_in_data_cell_join": true
           }
         },
         {
@@ -697,7 +705,7 @@
         "requires_submitter_capability": false,
         "fault_cell": "ak.component.notary_fault.v1",
         "later_seal_from_signer": "reject",
-        "affected_branch_query_grade": "forked",
+        "affected_branch_disposition": "fork_quarantine",
         "remaining_signer_policy": "continue_if_quorum_else_notary_paused"
       },
       "invalid_parallel_leaf_case": {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-12.1",
+  "version": "2026-08-12.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-12T15:15:00Z",
+  "generated_at": "2026-08-12T16:30:00Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -245,7 +245,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:aec5303f1266b2e0335e7b1d616028f30f4289e5dfdab9d1b2e46fb85c7d9729",
+      "section_digest": "sha256:fc2117edcb750f635f7499b33e8af361192234bac2e42db0ce83df03ca0f7589",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -419,8 +419,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#43-seal_ref-验证与撤销",
-      "section_digest": "sha256:0ed4fadfab81e5f4a3f4edb4110e00b856b0aa046361f72dc41c13286b12c704",
-      "requirement": "A revoked authorization observed inside the configured freshness window remains deterministically accepted-but-stale for reducer input; a deployment may hide it locally but MUST NOT reject it from the canonical join.",
+      "section_digest": "sha256:9726af87ed07fea428701668eca00d15c8c05c8fd40bc9e62c30c85aa639a92d",
+      "requirement": "A revoked authorization observed inside the configured freshness window remains deterministically accepted in reducer input; a receiver may retain separate local evidence state but MUST NOT reject it from the canonical join or invent an unregistered query-grade carrier.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1"

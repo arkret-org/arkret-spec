@@ -157,14 +157,21 @@ Receiver MUST：
 
 ```text
 if distance(seal_ref, R) <= revocation_freshness_window:
-  MUST accept and mark query grade stale
+  MUST accept and retain the DataEvent in data-cell join input
 else:
   MUST exclude the DataEvent from data-cell join input
 ```
 
 超窗后的 receiver MAY 在本地保留 Event 供审计并对普通查询隐藏，也 MAY 在准入面直接拒绝；
 两种形态对 reducer 输入必须完全等价：该 Event 及其依赖闭包不得参与任何 data-cell join、
-`state_root` leaf 或授权判断。窗口内接受与 stale 标记是同一确定性结果，不是实现可选项。
+`state_root` leaf 或授权判断。窗口内接受并保留在 data-cell join 输入是同一确定性结果，不是实现可选项。
+
+**读取面的边界（normative）**：上述判定是 receiver 在其已验证控制面视图上的 Event admission / reducer-input
+判定，不定义名为 `query_grade` 的 wire 字段，也不要求把“曾用旧但仍在窗口内的 basis”复制进 Event、查询行或
+projection。`local` / `seen` / `observed` 是实现可保留的本地证据状态，`control_pending` / `control_sealed` 是
+Control Move 生命周期，`fork_quarantine` 是分支处置；这些概念不得合并成一个跨 operation 的 grade enum。
+具体读取操作若需要携带可验证的 freshness、observation 或 quarantine evidence，MUST 在该 operation 的
+`response_schema_ref` 中登记独立、具名且可验证的字段；未登记的响应包装或私有 `query_grade` 字段不属于 v1 wire。
 
 **`distance` 度量与窗口单位（normative）**：`revocation_freshness_window` 的权威字段是 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `revocation_freshness_window_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`）。`distance(seal_ref, R)` MUST 按**控制面 Seal DAG 上 notary 签署的提交时间差**度量：取撤销 Seal `R` 与 `seal_ref` 各自签名 transcript 内 notary 提交时间（沿 Seal DAG，`R` 是 `seal_ref` 后继，见 §6.3），求二者毫秒差。该度量只用进入 Seal 签名 transcript 的 notary 提交时间，**不**用 DataEvent 自报的 `created_at` 或本地接收时间——时间来自被签名的 Seal 拓扑，可验证、跨 receiver 确定复现。`distance > revocation_freshness_window_ms` 即超窗。
 
@@ -190,7 +197,7 @@ Relay / notary / witness 收到 DataEvent 时 SHOULD 返回一个 Event Batch Re
 
 单元素 receipt 与批量 receipt 使用同一语义：它是 best-effort、set-bound integrity hint，不带协议级过期或序列语义。issuer 侧漏发/扣发检测由 [`../sync/operations-sync.md` §6.4](../sync/operations-sync.md) range-completeness attestation 与 frontier probe 承担，equivocation 检测归 Seal 的 `notary_seq`（§7.1）；receipt 的本地保留期由部署 retention policy 决定。
 
-Event Batch Receipt 只证明"issuer 看见并承诺所列事件集合的 integrity"，不证明事件有效、不提议排序、不进入控制面 state、不提供范围 completeness。部署 MAY 不签发数据面 receipt；关闭后同账号 RYW（`grade=seen`）与数据面审查诊断能力降低。
+Event Batch Receipt 只证明"issuer 看见并承诺所列事件集合的 integrity"，不证明事件有效、不提议排序、不进入控制面 state、不提供范围 completeness。部署 MAY 不签发数据面 receipt；关闭后同账号 RYW 的可验证观察证据与数据面审查诊断能力降低。
 
 ## 5. Control Move
 
@@ -385,7 +392,7 @@ Seal 被拒绝时，其 `delta[]` 内 Control Move 不因此有效。节点 MAY 
 
 #### 6.3.1 Deterministic joined control view（multi-leaf join，normative）
 
-`single_did` / `threshold` notary profile 下 Seal 单链唯一，任一时刻只有一个 control head，"当前治理状态"无歧义。`open_set` profile 允许多个并发 Seal leaf（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `notary_profile`），[`../sync/federation.md` §2.4](../sync/federation.md) 与 realm.schema 据此引用的 **"deterministic joined control views"** 即指本节定义的 join；它是 §4.3 并发分支撤销重判、§6.4 query grade 与跨 receiver 收敛的共同基准:
+`single_did` / `threshold` notary profile 下 Seal 单链唯一，任一时刻只有一个 control head，"当前治理状态"无歧义。`open_set` profile 允许多个并发 Seal leaf（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `notary_profile`），[`../sync/federation.md` §2.4](../sync/federation.md) 与 realm.schema 据此引用的 **"deterministic joined control views"** 即指本节定义的 join；它是 §4.3 并发分支撤销重判、§6.4 观测承诺与跨 receiver 收敛的共同基准:
 
 给定 receiver 已观察、已 `apply_seal` 接受、且**非** `fork_quarantine` 的全部 Seal leaf 集合 `L = {S_1, …, S_n}`，joined control view `J(L)` 按以下确定性步骤计算，对任意观察到相同 `L` 的 receiver 结果唯一:
 
@@ -442,7 +449,7 @@ KeyView {
 这些字段是 observational：
 
 - 未进入 `data_view_root` / `data_event_set_root` 的 DataEvent 不因此无效。
-- `observed` query grade 只表示某个 seal 见过并承诺过该局部结果；未来未观测的有效并发 DataEvent MAY 改变该 data cell 的 join。
+- `data_event_set_root` / `data_view_root` 的 observation evidence 只表示某个 seal 见过并承诺过该局部结果；未来未观测的有效并发 DataEvent MAY 改变该 data cell 的 join。
 - Receiver MUST NOT 用 observational roots 拒绝有效 DataEvent。
 
 ### 6.5 Notary control cell（normative）

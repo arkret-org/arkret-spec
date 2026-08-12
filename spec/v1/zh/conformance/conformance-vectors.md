@@ -1225,13 +1225,13 @@ ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1
 期望：
 
 - Case A：receiver MUST 拒绝或隐藏（`stale_seal_ref` / `failed_precondition`）。
-- Case B：receiver MUST 暂时接受，query grade MUST 标记 `stale`；选择拒绝该窗口内 Event 的实现
-  不符合本向量。
+- Case B：receiver MUST 接受并把 Event 保留在 data-cell join 输入；选择拒绝或从 reducer 输入排除该
+  窗口内 Event 的实现不符合本向量。
 - Case C：receiver MUST `failed_precondition`，不得回退到"当前 DID 文档"判定。
 
-失败条件：用当前 DID 文档替代 `seal_ref` 时点判定；Case A 被静默接受；Case B 被拒绝，或接受后
-不降级 grade。Case A 的 reject 与 hide 只允许改变本地保留/诊断可见性，对 data-cell join 输入
-必须同为排除。
+失败条件：用当前 DID 文档替代 `seal_ref` 时点判定；Case A 被静默接受；Case B 被拒绝或未进入
+data-cell join 输入。Case A 的 reject 与 hide 只允许改变本地保留/诊断可见性，对 data-cell join 输入
+必须同为排除。Runner 不得要求未登记的 `query_grade` 响应字段。
 
 ### 2.15 Vector: compaction Seal 节律义务
 
@@ -1304,7 +1304,7 @@ ak.vector.cba_lattice.notary_fault_equivocation_quarantine.v1
 期望：
 
 - 验签 + slot 规则通过即接受该 Control Move（验签即授权，reducer MUST NOT 要求 grant）；fault 记录进入 `ak.component.notary_fault.v1` cell（or_set）。
-- fault 记录生效后：N 的后续 Seal MUST 被拒绝；`S_a`、`S_b` 及其后继进入 `fork_quarantine`，普通 joined governance view MUST NOT 纳入；查询依赖该分支时 grade=`forked`。
+- fault 记录生效后：N 的后续 Seal MUST 被拒绝；`S_a`、`S_b` 及其后继进入 `fork_quarantine`，普通 joined governance view MUST NOT 纳入；依赖该分支且无法从非隔离分支求值的查询 MUST fail closed，不得以未登记的 `grade=forked` 字段替代隔离。
 - 仍有其余合法 signer 时 Realm MUST NOT 整体 pause；无剩余合法 signer 时进入 `notary_paused`，仅 recovery 路径可恢复。
 - 两个 Seal 不满足 slot 规则（不同 signer 或不同 seq）时，该 Move MUST `failed_precondition`——合法并发 leaf 不构成 fault。
 
@@ -1412,7 +1412,7 @@ ak.vector.circle.lifecycle_basis_and_archive_freshness.v1
 期望：
 
 - Case A：MUST `failed_precondition`，reason=`circle_not_active`；不得用 receiver 较新的 projection 改写结果。
-- Case B：窗口内只进入 `stale_eligible`，若接受 query grade MUST 为 `stale`；超窗 MUST 拒绝或隐藏，reason=`stale_seal_ref`。后继 archive 不得被误报为基线内 `circle_not_active`。
+- Case B：窗口内 MUST 接受并进入 data-cell join 输入；超窗 MUST 拒绝或隐藏，reason=`stale_seal_ref`。后继 archive 不得被误报为基线内 `circle_not_active`。
 - Case C / D：MUST 立即拒绝或隐藏，reason=`stale_seal_ref`，`freshness_window_applies=false`；轻客户端无法验证 joined view 时只能 pending 或 fail closed。
 - Case E：restore MUST NOT 追溯恢复旧 `seal_ref`；producer 必须换用包含 restore 的新 active 基线。
 - Case F：admission 与 Seal 重验都只读取登记的 CBA 基线，不读取本地当前 projection。

@@ -124,7 +124,7 @@ Relation.effective_scope      : reducer-derived read projection，必须等于�
 
 当 DataEvent 的 `seal_ref` 基线内 Circle 仍为 `active`、但 receiver 已观察到其后的 lifecycle Seal 时，按 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3 的撤销新鲜度框架处理：
 
-- 若 `ak.circle.archive` 所在 Seal `S_archive` 是 `seal_ref` 的后继，`distance(seal_ref, S_archive)` MUST 使用被签名的 Seal 提交时间计算。距离不超过 `revocation_freshness_window_ms` 时，receiver MAY 暂定接受，但 query grade MUST 为 `stale`；超过窗口 MUST 拒绝或隐藏，reason=`stale_seal_ref`。不得把 receiver 当前看到的 `archived` 直接当成事件基线内的 `circle_not_active`。
+- 若 `ak.circle.archive` 所在 Seal `S_archive` 是 `seal_ref` 的后继，`distance(seal_ref, S_archive)` MUST 使用被签名的 Seal 提交时间计算。距离不超过 `revocation_freshness_window_ms` 时，receiver MUST 接受并把该 Event 保留在 data-cell join 输入；超过窗口 MUST 拒绝或隐藏，reason=`stale_seal_ref`。不得把 receiver 当前看到的 `archived` 直接当成事件基线内的 `circle_not_active`，也不得为此自造未登记的响应字段。
 - `ak.circle.tombstone` 是不可逆终止。一旦 receiver 观察到其 Seal，任何更早 `seal_ref` 的 Circle-scoped DataEvent MUST 立即拒绝或隐藏，reason=`stale_seal_ref`，不享受新鲜度窗口。
 - `open_set` 下 archive / tombstone Seal 与 `seal_ref` 并发时，receiver MUST 按已验证 leaf 集的 joined control view 重判；joined lifecycle 不是 `active` 时立即 `stale_seal_ref`，不得计算 `distance` 或给予窗口。无法验证 multi-leaf joined view 的轻客户端 MUST hold pending 或 fail closed，不得 fanout。
 - 后续 `ak.circle.restore` 只使**以包含 restore 的 active control view 为新基线**的写入恢复合法；它 MUST NOT 追溯恢复任何跨过 archive barrier 的旧 `seal_ref`。producer 在 restore 后继续写入 MUST 换用包含 restore 的新 Seal 基线。
