@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-08-10",
+  "version": "2026-08-13",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.edge_cases.v1"
@@ -21,6 +21,7 @@
     "ak.vector.sdk.retry_after.v1",
     "ak.vector.sdk.pagination_has_more.v1",
     "ak.vector.encoding.confusable_check.v1",
+    "ak.vector.account_data.contact_petname_anchor.v1",
     "ak.vector.invite.membership_transition_atomicity.v1",
     "ak.vector.join_policy.gate_axis_orthogonality.v1",
     "ak.vector.invite.quarantine_disclosure_indistinguishable.v1",
@@ -367,9 +368,75 @@
         "invisible_code_point",
         "compatibility_confusable"
       ],
+      "pairwise_cases": [
+        {
+          "a": "alice",
+          "b": "alice",
+          "expected": true,
+          "reason": "exact"
+        },
+        {
+          "a": "Alice",
+          "b": "Ａlice",
+          "expected": true,
+          "reason": "compatibility_width"
+        },
+        {
+          "a": "paypal",
+          "b": "раураl",
+          "expected": true,
+          "reason": "uts39_cross_script_skeleton"
+        },
+        {
+          "a": "admin",
+          "b": "admin‍",
+          "expected": true,
+          "reason": "registered_default_ignorable"
+        },
+        {
+          "a": "Alice",
+          "b": "alice",
+          "expected": false,
+          "reason": "case_sensitive"
+        },
+        {
+          "a": "Alice",
+          "b": "Alicia",
+          "expected": false,
+          "reason": "distinct_latin_names"
+        },
+        {
+          "a": "王伟",
+          "b": "王薇",
+          "expected": false,
+          "reason": "distinct_cjk_names"
+        }
+      ],
       "assertions": [
         "the SDK exposes this exact check as a callable utility",
-        "the utility does not silently normalize before reporting"
+        "the single-input utility does not silently normalize before reporting",
+        "arkret_display_confusable_v1 validates both inputs before comparison",
+        "pairwise comparison uses the Unicode and UTS #39 versions pinned by string-profile-registry.json"
+      ]
+    },
+    {
+      "name": "contact_petname_anchor",
+      "vector_id": "ak.vector.account_data.contact_petname_anchor.v1",
+      "account_data_namespace_key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "peer_principal_id": "ak:did_core:web:alice.example",
+      "canonical_input_utf8": "[\"ak.contacts.actor\",\"ak:did_core:web:alice.example\"]",
+      "expected_principal_key": "pD0U2utjPMaXROrStCFHbCtquoTSVsA7mo9nVniePkY",
+      "expected_storage_key": "ak.contacts.actor.pD0U2utjPMaXROrStCFHbCtquoTSVsA7mo9nVniePkY",
+      "negative_cases": [
+        "raw_principal_id_in_storage_key",
+        "realm_id_added_to_derivation_input",
+        "peer_service_id_used_as_identity_key",
+        "decrypted_subject_principal_id_does_not_recompute_to_storage_key"
+      ],
+      "assertions": [
+        "the canonical input is RFC 8785 JCS for the two-element array",
+        "the server-visible suffix is exactly 43 unpadded base64url characters",
+        "the decrypted value carries peer.principal_id and is rejected on slot mismatch"
       ]
     },
     {

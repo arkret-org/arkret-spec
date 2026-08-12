@@ -203,24 +203,36 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 
 ### 3.6 联系人备注 (Contact Remarks)
 
-用户可以为已知联系人（其他 Actor / Organization / 设备）保存只对自己可见的本地备注名、笔记和私有标签。该数据是 actor-private 的渲染覆盖层，**不**修改对方公开 profile，**不**写入 Realm history、mention、sender attribution 或任何协议主体字段。
+用户可以为 `ak.self.contact.read.list` 中 `peer.kind="human"` 且状态为 `accepted` 的联系人保存只对自己可见的全局备注名（wire 字段 `petname`）、笔记和私有标签。逻辑记录由 `(holder principal_id, peer.principal_id)` 唯一确定；同一 holder 对同一联系人至多存在一条 live value，并在所有 Realm 共用。用户不得设置 per-Realm 联系人备注名，也不得创建 `ak.contacts.realm_actor.*`、`ak.contacts.actor.<principal_key>.<realm_id>` 或等价分叉载体。
+
+该数据是 principal-private 的渲染覆盖层，**不**修改对方公开 profile，**不**写入 Realm history、mention、sender attribution 或任何协议主体字段。`peer.principal_id` 是 human Contact 的用户 `did_core_id`；`peer_service_id` 只是托管对端的 Principal Server service DID，不是联系人身份键。Realm `actor_id`、Realm-scoped pairwise DID、MemberIdentity row、`realm_id`、handle、display name 与 `ak.profile.realm_override` 均不得成为联系人备注的逻辑键。
 
 `ak.contacts.*` account-data key 只表达 holder-private 备注、标签、置顶、别名和本地排序。它不通知对方，不证明对方接受，也不打开 `direct_message` / `invite` / `call` / `presence` gate。联系人关系状态与 Contact-based action gate MUST 只从 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 定义的 `ak.contact.*` directional fact log 投影；Consent不得参与。客户端 MAY 把本地备注与 `ak.self.contact.read.list` 结果合并展示，但不得把 account-data note 当作 accepted contact。
 
-**Key:** `ak.contacts.actor.<did>`
+**Key:** `ak.contacts.actor.<principal_key>`，其中：
+
+```text
+principal_key = derive_account_data_key(
+    RFC8785_JCS(["ak.contacts.actor", peer.principal_id])
+)
+storage_key = "ak.contacts.actor." || principal_key
+```
+
+`derive_account_data_key` 与 holder 的 `account_data_namespace_key` 定义见 [`../models/account-data.md` §2](../models/account-data.md)。`principal_key` 必须是 32-byte HMAC 输出的无 padding base64url（43 个 ASCII 字符）；服务端只能看到不透明尾段。
 
 ```json
 {
   "version": 1,
   "subject": {
-    "kind": "actor",
-    "did": "did:webvh:z5Z2tUHXdembzXVX7EE5SJp5g:wang.example.com"
+    "kind": "human",
+    "principal_id": "ak:did_core:webvh:z5Z2tUHXdembzXVX7EE5SJp5g"
   },
-  "local_name": "老王（前同事）",
+  "petname": "老王（前同事）",
   "note": "2024 年 ArkretCon 认识",
   "tags": ["work", "favorite"],
   "pinned": true,
   "verified_handle_at_save": "wang.example.com",
+  "global_display_name_at_save": "Wang Wei",
   "saved_at": "2026-05-08T10:00:00Z",
   "updated_at": "2026-05-08T10:00:00Z"
 }
@@ -231,26 +243,34 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 | 字段 | 类型 | 必需 | 说明 |
 | --- | --- | --- | --- |
 | `version` | `int` | yes | schema 版本，当前为 `1`。 |
-| `subject.kind` | `enum(actor, organization, device, service)` | yes | 备注对象类型，命名空间与 §3.5 blocklist `target.kind` 子集一致。 |
-| `subject.did` | `did` | yes | 备注对象 DID；MUST 与 key 中 `<did>` 完全一致。 |
-| `local_name` | `string` | no | 本地备注名，最大 128 字符；规范化与 confusable 处理与 display name 一致（见 [`conformance/encoding.md`](../conformance/encoding.md) §2）。 |
+| `subject.kind` | `const("human")` | yes | 与 Contact human branch 对齐；Organization、设备、service 或 Realm actor 不得复用该记录。 |
+| `subject.principal_id` | `did_core_id` | yes | `ak.self.contact.read.list` human row 的 `peer.principal_id`；解密后 MUST 用它重算 `<principal_key>` 并精确匹配当前 storage key。 |
+| `petname` | `string` | no | holder 为该稳定联系人主体保存的全局备注名，最大 128 个 Unicode code point；UI 中文称“备注名”。按 `arkret_single_line_display_text` 验证，跨所有 Realm 生效。 |
 | `note` | `string` | no | 自由文本笔记，最大 4096 字符。 |
 | `tags` | `string[]` | no | 私有分组标签，命名规则同 §3.1 Realm tags（`ak.*` 保留给本规范，`<vendor>.*` 用于客户端扩展）。 |
 | `pinned` | `bool` | no | 是否置顶。 |
 | `verified_handle_at_save` | `string` | no | 保存或最近一次更新时该 DID 的 verified handle 快照，用于反冒充比对。 |
+| `global_display_name_at_save` | `string` | no | 保存或 holder 最近一次显式确认时，从对方 PCR `actor_profile.display_name` 观察到的全局公开值；不得写入 Realm override、MemberIdentity display、OIDC `name` 或其它 fallback。 |
 | `saved_at` | `timestamp` | yes | 首次保存时间。 |
 | `updated_at` | `timestamp` | no | 最近修改时间。 |
 
 规则：
 
-- 该 key 是 actor-private，MUST 与 §3.5 blocklist 一样以加密 account data 形式同步，Sync Service 不得读取明文。
-- `local_name` 与 `note` MUST NOT 通过 mention、quote、forward、profile、Realm state 或 directory 泄露给备注对象本人或其他成员。客户端构造引用、转发或导出时 MUST 使用对方公开的 display name / handle，不得替换为本地备注。
+- 只有 accepted human Contact 可以新建或编辑 `petname`。Contact tombstone / suspended 后记录 MAY 保留，但非 accepted 期间不得将它作为实时身份面的主标签；同一 `peer.principal_id` 后续重新成为 accepted Contact 时继续使用原记录，不得重键或自动覆盖。
+- 该 key 是 principal-private，MUST 与 §3.5 blocklist 一样以加密 account data 形式同步，Sync Service 不得读取明文。客户端解密后 MUST 验证 `subject.kind="human"`，并用完整 `subject.principal_id` 和 holder 的 namespace key 重算 storage key；不匹配时 MUST fail closed，且不得覆盖本地已验证记录。
+- `petname` 与 `note` MUST NOT 通过 mention、quote、forward、profile、Realm state、directory 或 Realm export 泄露给备注对象本人或其他成员。客户端构造引用、转发或导出时 MUST 使用对方公开的 display name / handle，不得替换为备注名。
 - 本地备注 MUST NOT 参与 ACL、grant subject、policy condition、audit attribution、sender verification 或 MLS credential 判定，约束与 [`identity/identity-handles.md`](../identity/identity-handles.md) §2.3 中 display name 一致。
-- UI 显示本地备注时 SHOULD 同时呈现对方 verified handle 或 DID 短摘要，使用户可识别"备注名相同但 DID 不同"的冒充尝试；安全敏感 UI（DM 邀请、approval、转账类操作）MUST 能直接显示对方 DID。
+- roster、消息 sender、联系人 / DM 列表、mention autocomplete、邀请 / 请求确认等实时 holder-facing 身份面，只有在 verified evidence 能把可见主体唯一归约到 accepted Contact 的 `peer.principal_id` 时才可 join 备注；映射缺失、不唯一或仅有 display name / handle 时 MUST 按“无备注”处理，不得按字符串猜测关联。非空 `petname` MUST 作为主标签并带可识别的“备注”角标；Realm override、全局 display name 与 verified handle只能作为次要上下文。
+- 历史 replay、audit 与 export 中，当前 `petname` MAY 作为明确标注的 holder-private name 并列，但 MUST NOT 取代事件的 `subject_id`、as-of handle、`display_name_at_time` 或 audit attribution。安全敏感 UI MUST 能直接显示完整 `peer.principal_id`；若显示 `peer_service_id`，必须标记为托管服务而不是联系人身份。
 - 当对方当前 verified handle 与 `verified_handle_at_save` 不一致时，客户端 SHOULD 在该联系人的渲染处显示 handle changed / transferred 标记，并提示用户复核备注，与 [`identity/identity-handles.md`](../identity/identity-handles.md) §6.1 的缓存失效语义一致。
-- 当对方公开 display name 与本地 `local_name` 字符串相同或高度 confusable（按 [`conformance/encoding.md`](../conformance/encoding.md) §2.1 规则）时，UI MUST 优先显示本地备注并加可识别的"备注"角标，避免对方通过改名伪装成用户给他取的备注。
-- 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `local_name` 与 `note`。
-- 删除联系人备注 MUST 通过 `ak.account_data.set` 写入空对象或显式 `tombstone`，不依赖客户端本地清理。
+- 当前可验证的 PCR `actor_profile.display_name` 与 `global_display_name_at_save` 不一致时，普通实时身份面 SHOULD、安全敏感面 MUST 显示“全局显示名已变更”并提供原快照。profile 不可达、候选不唯一或只有 Realm override 时状态是 unknown，不得伪报 changed；只有 holder 显式确认才可刷新快照。
+- 客户端 MUST 在本地构造 accepted human Contact anchor set：每个非空 `petname` 及已保存的 `global_display_name_at_save`。渲染主体 S 的当前 surface public display 时，MUST 以 [`conformance/encoding.md` §2.2](../conformance/encoding.md) 的 `arkret_display_confusable_v1` 与其它 Contact 的 anchor 比较，并排除 S 自己的 anchor。碰撞主体不是 Contact 时必须显示“非联系人”及 verified handle / DID；是另一 Contact 时使用其自己的 `petname`（若有）并加 handle / DID 消歧，且不得继承被碰撞联系人的头像信任环、verified-contact badge 或颜色。roster、请求、mention autocomplete、邀请确认与不可逆操作面必须使用同一判据。
+- Contact accept 生效后，客户端 SHOULD 仅在该 key 从未存在时，以当时可验证的全局 `actor_profile.display_name` 同时初始化 `petname` 与 `global_display_name_at_save`，并保存 verified handle（若有）。不得以 Realm override、handle、DID、MemberIdentity display 或 OIDC `name` 代替全局 profile。已有记录的 `petname`、note、tags、pin、`saved_at` 与快照必须保留；并发初始化必须按 account-data whole-value CAS 做 read/decrypt → domain merge → encrypt/write，且保持幂等。
+- 备注初始化或同步失败 MUST NOT 回滚、拒绝或伪装成 Contact accept 失败；客户端 SHOULD 持久重试并可显示“备注尚未跨设备同步”。手工输入备注和备注写入成功都不得成为 request / respond / glare accepted 的协议前置，也不得成为 typing / presence 等可被对端观察的差异信号。
+- 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `petname` 与 `note`。服务端仍可能观察不透明 key 的数量、大小与更新时间；实现不得声称消除了这些流量 metadata。
+- 删除联系人备注 MUST 使用 `ak.self.account_data.resource.delete` 写入 §5.3 定义的有版本 physical-delete tombstone，不依赖客户端本地清理，也不得用无法通过本节字段验证的空对象冒充删除。
+
+不透明 key transcript、raw principal / Realm / service DID 负例与解密后 slot-binding 校验由 `ak.vector.account_data.contact_petname_anchor.v1` 闭合；成对名称碰撞由 `ak.vector.encoding.confusable_check.v1` 闭合。
 
 ### 3.7 Realm 备注 (Realm Remarks)
 
@@ -283,9 +303,9 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 | 字段 | 类型 | 必需 | 说明 |
 | --- | --- | --- | --- |
 | `version` | `int` | yes | schema 版本，当前为 `1`。 |
-| `subject.kind` | `enum(realm)` | yes | 固定 `realm`，与 §3.6 联系人备注（actor/organization/device/service）正交。 |
+| `subject.kind` | `enum(realm)` | yes | 固定 `realm`，与 §3.6 仅以 human Contact `peer.principal_id` 为主体的全局联系人备注正交。 |
 | `subject.id` | `id:realm` | yes | 备注对象 Realm ID；MUST 与 key 中 `<realm_id>` 完全一致。 |
-| `local_name` | `string` | no | 本地备注名，最大 128 字符；规范化与 confusable 处理与 §3.6 `local_name` 一致（见 [`conformance/encoding.md`](../conformance/encoding.md) §2）。 |
+| `local_name` | `string` | no | Realm 本地备注名，最大 128 字符；字符串验证与 §3.6 `petname` 一致，成对 confusable 比较见 [`conformance/encoding.md`](../conformance/encoding.md) §2.2。 |
 | `note` | `string` | no | 自由文本笔记，最大 4096 字符。 |
 | `tags` | `string[]` | no | 私有分组标签，命名空间与 §3.1 `ak.tags.realm.<realm_id>.tags` 互通（同名 tag 视为同一分组）；`ak.*` 保留给本规范，`<vendor>.*` 用于客户端扩展。 |
 | `pinned` | `bool` | no | 是否置顶。 |
@@ -301,7 +321,7 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 - 本地备注 MUST NOT 参与 ACL、capability subject、policy condition、audit attribution、MLS credential 或 federation routing 判定，约束与 §3.6 中本地联系人备注一致。
 - UI 显示本地备注时 SHOULD 同时呈现 Realm 公开 `title` 或 `ak:realm:` token 短摘要（44-character suffix 的前 8 字符），使用户可识别"备注相同但 Realm 不同"的误判；安全敏感 UI（删除 / archive / tombstone Realm、跨 Realm 邀请确认、转账类 applet 调用）MUST 能直接显示完整 `realm_id` 与 `owning_organizations`。
 - 当 Realm 公开 `title` 与 `verified_title_at_save` 不一致，或 `owning_organizations` 与 `verified_owning_organizations_at_save` 不一致时，客户端 SHOULD 在该 Realm 渲染处显示 title changed / org changed 标记，并提示用户复核备注；该机制与 §3.6 `verified_handle_at_save` 对称。
-- 当用户已加入的多个 Realm 的公开 `title` 字符串相同或高度 confusable（按 [`conformance/encoding.md`](../conformance/encoding.md) §2.1 规则）时，UI MUST 优先按 `local_name` 区分；缺少 `local_name` 时 MUST 退化到 `owning_organizations` / source Realm / `ak:realm:` 短摘要等附加上下文，不得在仅显示 `title` 的情况下让用户做破坏性或不可逆操作。
+- 当用户已加入的多个 Realm 的公开 `title` 字符串经 `arkret_display_confusable_v1` 判为碰撞时，UI MUST 优先按 `local_name` 区分；缺少 `local_name` 时 MUST 退化到 `owning_organizations` / source Realm / `ak:realm:` 短摘要等附加上下文，不得在仅显示 `title` 的情况下让用户做破坏性或不可逆操作。
 - 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `local_name` 与 `note`。
 - 删除 Realm 备注 MUST 通过 `ak.account_data.set` 写入空对象或显式 `tombstone`，不依赖客户端本地清理；用户离开或被踢出 Realm MAY 触发自动 tombstone（客户端策略，规范不强制）。
 - `ak.contacts.realm.<realm_id>` 与 §3.1 `ak.tags.realm.<realm_id>` 并存：前者负责命名与笔记，后者负责分组与 `order` 排序；客户端 SHOULD 在本地 projection 中按 `realm_id` join 二者，规范上互不替代。

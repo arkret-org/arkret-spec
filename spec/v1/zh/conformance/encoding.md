@@ -100,6 +100,20 @@ v1 的 machine-readable profile 与版本钉定见 [`string-profile-registry.jso
 
 UTS #39 skeleton 只是 registration authority 在**同一 namespace**内使用的派生 collision index，不是 canonical value、wire 字段、proof transcript 或协议 equality。authority MAY 要求 `Highly Restrictive` restriction level；skeleton 数据版本升级时 MUST 重建派生索引但 MUST NOT 改写既有 canonical identifier。不同 authority 或 handle / realm-alias 两个不相交 namespace 的 skeleton 相同，不建立协议等价。
 
+联系人反冒充 UI 使用独立的成对谓词 `arkret_display_confusable_v1(a, b)`；它只产生 holder-local warning / 消歧信号，不定义 canonical equality，也不得参与授权、主体归约、注册拒绝或签名验证。输入 `a`、`b` MUST 各自通过 `arkret_single_line_display_text`，为 NFC，且不超过 512 个 Unicode code point；否则调用必须返回 validation error，不能返回“不混淆”。谓词按以下固定步骤计算：
+
+```text
+strip_ignorables(s) = 删除 s 中的 U+00AD、U+034F、U+061C、U+180E、
+    U+200B..U+200F、U+202A..U+202E、U+2060..U+206F、U+FE00..U+FE0F、
+    U+FEFF、U+FFF0..U+FFF8、U+1BCA0..U+1BCA3、U+1D173..U+1D17A、
+    U+E0000..U+E0FFF
+prepare(s) = NFKC(strip_ignorables(s))
+skeleton(s) = UTS #39 skeleton(prepare(s)) 后再做 NFD
+arkret_display_confusable_v1(a, b) = (a == b) OR (skeleton(a) == skeleton(b))
+```
+
+NFKC / NFD 与 code-point properties 使用 `string-profile-registry.json` 钉定的 Unicode 17.0.0；UTS #39 confusables 数据固定为 Unicode 16.0.0。比较区分大小写，输出只由两串 code point 决定。实现 MUST 缓存 Contact anchor 的 skeleton 并施加有界索引；不得在每次渲染执行无界 `visible_subjects × contacts` 全扫描。成对正负例由 `ak.vector.encoding.confusable_check.v1` 唯一闭合。
+
 `string-profiles.schema.json` 为上述 profile 声明 8 个自定义 JSON string format。这些 format 的
 normative 语义由 PRECIS、UTS #46 与 NFC 决定，JSON Schema 的 `pattern` / `minLength` / `maxLength`
 只做粗粒度 shape 检查，因此实现 MUST 在 schema 校验之外执行 profile validator。唯一的正负向 vector

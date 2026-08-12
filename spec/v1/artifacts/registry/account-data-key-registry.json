@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-10",
+  "version": "2026-08-13",
   "source_of_truth": true,
   "description": "Canonical registry of standard Account Data key patterns. Account Data is actor/private state written through ak.account_data.set unless a row explicitly lists another actor-private event kind. Every row MUST declare its cross-device merge primitive (merge_strategy) and delete semantics (deletion_mode); see spec/v1/zh/models/account-data.md section 5.",
   "registry_rules": [
@@ -134,7 +134,7 @@
       ]
     },
     {
-      "key_pattern": "ak.contacts.actor.<did>",
+      "key_pattern": "ak.contacts.actor.<principal_key>",
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
@@ -143,7 +143,7 @@
       ],
       "merge_strategy": "cas_register",
       "deletion_mode": "physical_delete",
-      "description": "Private local remark, note, tag, and pin metadata for an actor, organization, device, or service DID.",
+      "description": "Principal-private global petname, global display-name snapshot, note, tag, and pin metadata for one accepted human Contact peer.principal_id. principal_key is base64url(HMAC-SHA256(account_data_namespace_key, RFC8785_JCS([\"ak.contacts.actor\", peer.principal_id]))).",
       "source_refs": [
         "spec/v1/zh/discovery/client-preferences.md"
       ]

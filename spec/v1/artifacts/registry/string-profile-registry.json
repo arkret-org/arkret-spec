@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-21",
+  "version": "2026-08-13",
   "source_of_truth": true,
   "canonical_schema": "schemas/string-profiles.schema.json",
   "data_versions": {
@@ -14,6 +14,17 @@
     "idna_adapter": "1.2.2",
     "unicode_security": "0.1.2"
   },
+  "pairwise_predicates": [
+    {
+      "name": "arkret_display_confusable_v1",
+      "input_profile": "arkret_single_line_display_text",
+      "max_code_points_per_input": 512,
+      "normalization": "strip explicitly registered Default_Ignorable ranges, then NFKC, then UTS #39 skeleton, then NFD",
+      "comparison": "exact input equality or exact prepared-skeleton equality; case-sensitive",
+      "authorization": "forbidden",
+      "vector_id": "ak.vector.encoding.confusable_check.v1"
+    }
+  ],
   "upgrade_rule": "Changing Unicode, PRECIS, UTS #39, or UTS #46 data is a reviewed v1 artifact update. Existing canonical identifiers and signed bytes are never rewritten. UTS #39 upgrades rebuild authority-local derived collision indexes; newly assigned code points are rejected by receivers whose pinned profile does not yet recognize them.",
   "profiles": [
     {

@@ -82,6 +82,7 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 - Agent Selector 只提供 native personal agent 的 controller-scoped compose-time 寻址；它不得作为 `actor_id`、grant subject、membership key、delivery key、公开 Directory 搜索 / 列表索引键或 audit attribution。解析结果必须先归约为 agent DID，并受 selector claim 的 visibility / audience / requester policy 约束。
 - Administrative Identifier 是组织本地概念。协议层只规定它不得作为协议主体、不得作为 grant subject、不得作为 Event actor、不得在跨组织 federation 输出中泄露；其内部分配、回收和绑定规则由组织 governance 决定，超出本规范范围。
 - Display name 是可变 metadata，不得被用于 ACL、grant、audit attribution 或 sender verification。
+- OIDC `name` 是部署本地 Display Name 兼容属性，不是 Administrative Identifier，也不是 PCR `actor_profile.display_name` 的协议真相源。Auth / Principal Server MUST NOT 把它无 holder 签名地投影进 profile，也不得用它创建或更新 Contact `petname` / `global_display_name_at_save`。注册引导 MAY 把它作为客户端首次 author `ak.profile.create` 的输入建议，但最终 Event 必须由 holder-authorized signer 签名并通过普通 PCR admission。
 
 ## 3. Handle 格式
 
@@ -522,6 +523,10 @@ renderer **不得**在主显示路径使用 `handle_at_time`。`handle_at_time` 
 - 全文搜索 snippet（让搜索"alice:acme.example"能命中包含该旧 handle 的历史消息）
 
 renderer 检测到 `handle_at_time` 与当前 primary handle 不一致时，MAY 在 UI 上加 "handle changed since" 类提示——这是显示层增强，不是 normative 协议要求。是否提示、提示的具体形式由产品决定。
+
+holder 的实时身份面还 MUST 应用 [`discovery/client-preferences.md` §3.6](../discovery/client-preferences.md) 的全局 Contact `petname` 覆盖层：只有 `subject_id` 能经 verified evidence 唯一归约到 accepted human Contact 的 `peer.principal_id` 时，非空 `petname` 才取代上述 live handle / display fallback 成为主标签，并带“备注”角标；handle、Realm override 与全局 display name转为次要上下文。该覆盖层不改变本节解析结果。
+
+历史 replay / audit / export 仍按 `resolution_as_of` 和事件快照执行本节流程；当前 `petname` 最多作为明确标注的 holder-private name 并列，MUST NOT 覆盖 as-of handle、`display_name_at_time`、`subject_id` 或 audit attribution，也不得写入共享 Event、forward、quote、share 或 Realm export。
 
 #### 3.8.3 与 actor 归因的关系
 

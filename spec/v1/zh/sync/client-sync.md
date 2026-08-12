@@ -573,7 +573,7 @@ Handle claim 获取与刷新规则：
 - `ak.collections.stickers`
 - `ak.client.ui_state`
 - `ak.account.blocklist`
-- `ak.contacts.actor.<did>`
+- `ak.contacts.actor.<principal_key>`
 - `ak.contacts.realm.<realm_id>`
 - `ak.presence.visibility`
 - `ak.presence.preference`

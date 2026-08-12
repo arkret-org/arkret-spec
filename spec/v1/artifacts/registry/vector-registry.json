@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-12.1",
+  "version": "2026-08-13.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-12T15:15:00Z",
+  "generated_at": "2026-08-13T00:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -54,6 +54,19 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/models/account-data.md",
         "spec/v1/artifacts/fixtures/account-data-cas-convergence-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.account_data.contact_petname_anchor.v1",
+      "status": "active",
+      "domain": "account_data",
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
+      "description": "A human Contact petname is globally keyed by peer.principal_id through an opaque holder-private HMAC/JCS suffix; raw principal IDs, Realm IDs, pairwise actor IDs, and peer service IDs are forbidden key material, and decrypted slot swapping fails closed.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
+        "spec/v1/zh/discovery/client-preferences.md"
       ]
     },
     {
