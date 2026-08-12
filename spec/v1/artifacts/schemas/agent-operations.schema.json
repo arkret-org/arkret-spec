@@ -673,9 +673,6 @@
     "agent_key_scope": {
       "$ref": "./event-payload.schema.json#/$defs/agent_key_scope"
     },
-    "sidecar_exposure_ack": {
-      "$ref": "./event-payload.schema.json#/$defs/agent_sidecar_exposure_ack"
-    },
     "operation_status_outcome": {
       "type": "object",
       "required": [
@@ -1735,9 +1732,6 @@
         "lifecycle_event"
       ],
       "properties": {
-        "sidecar_exposure_ack": {
-          "$ref": "#/$defs/sidecar_exposure_ack"
-        },
         "lifecycle_event": {
           "allOf": [
             {
@@ -1761,7 +1755,7 @@
               ]
             }
           ],
-          "description": "Closed ak.self.agent.resume Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. Its sidecar_exposure_ack, when present, must equal the request sidecar exactly."
+          "description": "Closed ak.self.agent.resume Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. Sidecar desired membership is re-derived from accepted lifecycle and exact Realm membership after admission; the request carries no writable Sidecar roster or acknowledgement."
         }
       },
       "additionalProperties": false
@@ -2003,7 +1997,6 @@
         "provisioning_phase": {
           "type": "string",
           "enum": [
-            "ownership_authority",
             "mls_welcome",
             "mls_remove",
             "epoch_rotation",
@@ -2020,7 +2013,6 @@
       "type": "string",
       "enum": [
         "opening",
-        "access_reconciliation_pending",
         "key_material_pending",
         "epoch_update_required",
         "ready",
@@ -2048,7 +2040,7 @@
           },
           "minItems": 1,
           "uniqueItems": true,
-          "description": "UTF-8 byte-lexicographically sorted accepted refs for Sidecar genesis, ownership, lifecycle, authorization, Realm participation and key readiness."
+          "description": "UTF-8 byte-lexicographically sorted accepted refs for Sidecar genesis, ownership, Agent lifecycle/runtime-key authorization, and exact Realm membership. It excludes action grants, participation selections, and MLS/key-readiness results."
         },
         "mls_group_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -2085,7 +2077,7 @@
       "type": "object",
       "required": [
         "sidecar",
-        "owned_agent_ids",
+        "desired_agent_ids",
         "effective_agent_ids",
         "mls_context",
         "access_readiness",
@@ -2095,9 +2087,9 @@
         "sidecar": {
           "$ref": "./agent-sidecar.schema.json"
         },
-        "owned_agent_ids": {
+        "desired_agent_ids": {
           "type": "array",
-          "description": "Complete read-only set of Agent principals currently owned by the Sidecar controller. It is derived from the ownership truth source and cannot be edited through Sidecar operations.",
+          "description": "Read-only projection derived at the accepted frontier: active, runtime-key-authorized Agent principals owned by the Sidecar controller and also active members of sidecar.realm_id. It is not caller-authored or reducer-stored and cannot be edited through Sidecar operations.",
           "items": {
             "$ref": "#/$defs/did_core_id"
           },
@@ -2105,7 +2097,7 @@
         },
         "effective_agent_ids": {
           "type": "array",
-          "description": "Owned Agent principals that are also active, authorized, Realm-participating and MLS/key ready. Reducer/service MUST enforce this set is a subset of owned_agent_ids. The controller is represented by sidecar.controller_id and is not duplicated in either Agent array.",
+          "description": "Desired Agent principals that are members of the current accepted Sidecar MLS epoch and have completed target-device Welcome/KeyPackage consumption and key readiness. Reducer/service MUST enforce this set is a subset of desired_agent_ids. The controller is represented by sidecar.controller_id and is not duplicated in either Agent array.",
           "items": {
             "$ref": "#/$defs/did_core_id"
           },

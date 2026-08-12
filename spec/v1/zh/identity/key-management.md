@@ -312,7 +312,12 @@ Authority proof或receipt proof。直接 evidence query 与 federation transport
 `ak.vector.agent.signer_evidence_binding.v1` 固化。
 
 任何缺少 `signing_key_binding_digest` 证据的 authorization 都是 unresolved，服务端不得从 session row 合成证书，也不得提升为 Verified。客户端 MUST 显示 `verification_pending`；controller MUST 通过 same-key re-authorization 产生 replacement authorize Event 与完整 v1 binding，runtime key MAY 保持不变。
-- **Sidecar exposure 披露**：pairing approval UI 上，若该 controller 在新 agent 将要 active 的任一 Realm 中已存在独立 Agent Sidecar 对象，实现 MUST 显式披露“该 agent 激活并完成 access/MLS reconciliation 后，将获得这些 Realm 中现有私人 AI 工作区未来内容的访问权”（见 [`../models/sidecar.md` §4](../models/sidecar.md)）。
+- **Sidecar exposure 披露**：pairing approval UI 必须说明，建立 Agent ownership 本身不会把 Agent 加入任何
+  Sidecar。只有该 Agent 后来成为某个 exact Realm 的 active member 时，才会自动进入该 Realm 对应 Sidecar
+  的派生 `desired_agent_ids`，并在该 Sidecar 自己的 MLS reconciliation 完成后进入 `effective_agent_ids`
+  和取得 future epoch 内容；这不会影响 controller 在其它 Realm 的 Sidecar。该变化来自 accepted ownership、
+  lifecycle 与 Realm membership frontier，不依赖 UI 确认，也不存在需要调用方维护的 Sidecar roster 字段（见
+  [`../models/sidecar.md` §5](../models/sidecar.md#5-参与者与有效访问)）。
 - **Lifecycle**: ak.self.agent.command.pause / resume / deactivate 写入唯一 lifecycle 轴。pause/resume/deactivate 都是写入 ak.component.agent.status.v1 的 Control Move，authoring basis 只由 envelope seal_basis 表达。Pause 保留 durable state 但拒绝新 session；Auth Server MUST 在 ≤60 秒的独立 freshness window 内对已签 session fail closed。Deactivate 是 terminal，只提交一个 controller-authorized lifecycle Event；accepted 后 lifecycle=active 成为所有 runtime key、session、open pairing handle、capability grant、KeyPackage、presence 与未来 Event submission 的不可绕过 AND gate。历史 child Event 保留审计，显式 ak.agent.key.revoke / ak.capability.revoke 仅用于 parent 非 terminal 时的定点撤销。服务可异步 cleanup，但不得以 cleanup 成败阻塞 deactivated。所有 open pairing handle 永久不可解析；replacement pairing 与 terminal status 并发时，以 accepted status frontier 为写屏障，terminal 后 pair/renew 均拒绝。portable signer evidence 可用 lifecycle state witness 证明“因 parent terminal 而 ineffective”，无需伪造逐 key transition Event。
 
 Agent projection MUST 分离三轴：`lifecycle=active|paused|deactivated` 是durable controller intent；generic
@@ -320,8 +325,6 @@ Agent projection MUST 分离三轴：`lifecycle=active|paused|deactivated` 是du
 不得含session、KeyPackage、target grant/membership/reply或MLS blocker；`presence=online|offline|unknown`只表示
 短期可达性。target-specific blockers只能出现在对应operation/SDK local plan。presence响应必须携
 `expires_at`与`refresh_after`并由客户端jitter刷新；offline不等于deactivated、unpaired或conversation不存在。
-- **Resume 时 Sidecar exposure 重新披露（normative）**：`ak.self.agent.command.resume` 提交前，实现 MUST 重新执行上一条流程，列出 agent 在 pause 期间因 controller 新建/ensure 或新加入 Realm 而新增的 Sidecar desired-access exposure；若集合非空，resume MUST 在 controller 显式再次同意之前拒绝执行（不得 silent resume），并把确认作为 audit 事件留底。仅当 pause 期间无新增 Sidecar exposure 时可不重复披露。恢复 active 只改变 desired access；实际读取仍须等待 backing scope/MLS reconciliation 完成。
-
 #### 3.6.2 Runtime request binding、审批竞态与账号通知（normative）
 
 Conformance vector：`ak.vector.agent.runtime_key_binding.v1`。

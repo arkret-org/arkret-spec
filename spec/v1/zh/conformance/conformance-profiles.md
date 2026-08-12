@@ -703,9 +703,13 @@ MUST 支持：
 - singleton key `(realm_id,controller_id)` 原子保留；不同 genesis Event 争用同一 key 必须 fail closed。
 - native `{kind:"sidecar",realm_id,sidecar_id}` scope 进入 Event digest、AAD、query/delivery 与 Seal 验证。
 - `ak.sidecar.context.attach` 只登记一个已存在的 source Strand/Relation context，不创建 Strand 或 Relation。
-- read surface 返回 `owned_agent_ids` 与 `effective_agent_ids`；前者只从 ownership graph 派生，后者再与
-  lifecycle、authorization、Realm participation、policy 与 MLS/key readiness 求交。
-- Sidecar MLS 直接绑定 `sidecar_id` 和 participant authority frontier，不依赖 Circle membership。
+- read surface 返回只读 `desired_agent_ids` 与 `effective_agent_ids`；前者从 ownership、Agent lifecycle/
+  runtime-key authorization 与 exact Realm active membership frontier 派生，不可由 operation 写入；后者是其中已完成当前 Sidecar
+  MLS/KeyPackage reconciliation 的子集。action grant、participation selection 与 policy 独立约束写入、
+  reply、mention、publish 等行为，不形成第二套 MLS roster。
+- Sidecar MLS 直接绑定 `sidecar_id` 和 participant authority frontier，不依赖 Circle membership。不同
+  `sidecar_id` 的 MLS group 与有效访问独立求值；一个 Realm/Sidecar 的 membership 或 MLS reconciliation
+  MUST NOT 改变另一个 Realm/Sidecar 的 desired/effective 集合、投递或 future epoch key。
 - Sidecar-private view 可寄宿普通 Strand shell，但不得改变 shared history、计数、未读、搜索、通知或权限。
 - 显式 publish 由 controller 确认并创建一条新的普通 Event，不复制 private envelope 或 identifier。
 - exchange projection 仅从 accepted native-Sidecar-scoped private history 确定性 fold。

@@ -36,15 +36,12 @@
         "sidecar_id": "ak:sidecar:Aa9QYb77BXMoa1ySi5zspQe1V0D983aoWG7js7Co0k7_",
         "realm_id": "ak:realm:AUu6GayQb7-Knno7Ar5EA6ndAgK47WhZI_ViA21yHqDE",
         "controller_id": "ak:did_core:webvh:z6mkfixture",
-        "owned_agent_ids": [
-          "ak:did_core:webvh:z6mkfixtureassistantagentsexample"
-        ],
-        "effective_agent_ids": [
+        "desired_agent_ids": [
           "ak:did_core:webvh:z6mkfixtureassistantagentsexample"
         ]
       },
       "assertions": [
-        "participant authority transcript contains sorted unique owned and effective Agent sets",
+        "participant authority transcript contains the sorted unique Realm-scoped desired Agent set",
         "Sidecar genesis is Event-derived and MLS binds the native Sidecar scope",
         "server-generated MLS private state and synthetic GroupInfo digests are forbidden",
         "a concurrent losing provisional snapshot is destroyed"
@@ -55,10 +52,10 @@
       "vector_id": "ak.vector.sidecar.mls_effective_access.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_mls_effective_access_vector",
       "assertions": [
-        "ownership alone without accepted Add Commit Welcome and target-device consume remains pending",
+        "desired membership alone without accepted Add Commit Welcome and target-device consume remains pending",
         "one active authorized Agent device with matching evidence makes the Agent principal effective",
         "current controller device readiness is evaluated separately from effective_agent_ids",
-        "ownership or authorization removal stops delivery before the Remove Commit lands",
+        "desired membership removal stops delivery before the Remove Commit lands",
         "the Principal Server creates a removal obligation but never fabricates an MLS Commit",
         "the dedicated Sidecar view exposes a sorted non-empty authority frontier without creating Circle membership",
         "the controller persists signed Remove events and advances its post-commit snapshot only after accepted submission"
@@ -82,9 +79,9 @@
       "vector_id": "ak.vector.sidecar.eligibility_states.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_eligibility_states_vector",
       "assertions": [
-        "paused agents remain owned but are excluded from effective sidecar access",
+        "paused agents are removed from the derived desired set and effective sidecar access",
         "deactivated agents are excluded from effective access and trigger native Sidecar MLS removal",
-        "owned and effective Agent sets remain distinct until reconciliation completes",
+        "desired and effective Agent sets remain distinct until reconciliation completes",
         "default home policy remains context_realm_preferred"
       ]
     },

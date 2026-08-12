@@ -1036,11 +1036,10 @@
       "operation_specific": [
         "agent_deactivated",
         "failed_precondition",
-        "sidecar_exposure_ack_required",
         "accountability_grant_missing",
         "controller_signed_event_required"
       ],
-      "description": "Resume revalidates controller, agent key, capability, Realm policy, and accountability grant freshness; any stale precondition fails closed. Sidecar exposure re-disclosure failure surfaces as failed_precondition with reason=`sidecar_exposure_ack_required`. A lifecycle Event without its required controller proof returns controller_signed_event_required."
+      "description": "Resume revalidates controller, agent key, capability, Realm policy, and accountability grant freshness; any stale precondition fails closed. Sidecar desired membership is re-derived after admission and is not a request precondition. A lifecycle Event without its required controller proof returns controller_signed_event_required."
     },
     {
       "operation_id": "ak.self.agent.grant.command.attach",

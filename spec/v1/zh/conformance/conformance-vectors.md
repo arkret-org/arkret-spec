@@ -4267,7 +4267,8 @@ Expected:
 
 Steps:
 
-1. Alice ensure Sidecar；ownership authority 当前给出 owned Agents `{A}`，读取服务端派生的
+1. Alice ensure Sidecar；accepted ownership/lifecycle 与该 Realm membership frontier 派生出
+   `desired_agent_ids={A}`，读取服务端派生的
    `mls_context.{participant_authority_digest, control_frontier}`。
 2. Alice 当前设备用真实 OpenMLS state 创建 native Sidecar-scoped `ak.mls.genesis`，提交前持久化
    `(sidecar_id, genesis_event_id, mls_group_id, provisional_snapshot)`，并携带精确 `sidecar_binding`。
@@ -4277,7 +4278,7 @@ Steps:
 
 Expected:
 
-- participant set MUST 精确等于 controller + 当前 owned Agents，排序去重后的 authority transcript digest
+- participant set MUST 精确等于 controller + 当前 Realm-scoped `desired_agent_ids`，排序去重后的 authority transcript digest
   必须与 `participant_authority_digest` 一致。
 - 只有一个 genesis 通过标准 Event admission/CAS 成为 canonical winner；服务端不得生成 MLS private state、伪造 GroupInfo/ratchet-tree digest 或提供绕过 Event proof 的 bootstrap endpoint。
 - 所有 binding 变异 MUST fail closed；native Sidecar scope 缺失 matching `sidecar_binding`、普通 Realm/Circle
@@ -4310,7 +4311,7 @@ Expected:
 
 Steps:
 
-1. Alice ownership authority 中有 Agents `{S, R}`。S 已 paired/MLS-ready；R 尚未发布 KeyPackage。
+1. Alice 的 active owned Agents `{S, R}` 都是当前 Realm active member。S 已 paired/MLS-ready；R 尚未发布 KeyPackage。
 2. Alice 调用 ensure。
 3. R 发布 KeyPackage，服务端 async reconcile。
 4. Alice 调用 `ak.self.agent.command.deactivate` 对 R。
@@ -4318,9 +4319,9 @@ Steps:
 Expected:
 
 - 第 2 步 ensure SHOULD succeed，返回 `access_readiness=key_material_pending` 与 R 的 key-material pending 状态。
-  R 属于 owned Agent 集但尚不属于 effective access，不能收取或解密消息。Sidecar 不存在 plaintext 分支。
+  R 属于 `desired_agent_ids` 但尚不属于 effective access，不能收取或解密消息。Sidecar 不存在 plaintext 分支。
 - 第 3 步 R 经 native Sidecar MLS Welcome 加入，只获得 join 后 future epoch keys；完整 readiness 证据成立后才进入 effective access。
-- 第 4 步 ownership authority 移除 R 后，服务端立即停止寻址/投递并产生 durable MLS removal obligation；
+- 第 4 步 R deactivated 或离开当前 Realm 后，派生 desired 集合自动移除 R；服务端立即停止寻址/投递并产生 durable MLS removal obligation；
   eligible controller/key-service committer 随后提交真实 remove/rotation。后续 R 的 proof、Sidecar write 与 query MUST fail closed。
 
 ### 11.10.1 Vector: Sidecar MLS Effective Access Evidence
@@ -4329,15 +4330,15 @@ Expected:
 
 Steps:
 
-1. A 是 owned Agent，但尚无 Add Commit/Welcome/consume；随后分别只补齐其中一部分证据。
+1. A 是当前 Realm-scoped desired Agent，但尚无 Add Commit/Welcome/consume；随后分别只补齐其中一部分证据。
 2. 对 A 的 active device D 提交 accepted Add Commit、引用该 Commit 且 binding 匹配的 accepted Welcome，并由 D 的 authenticated session consume 同一 claim/KeyPackage。
-3. 对 controller 的第二设备重复 join；随后从 ownership authority 移除 A，使 pending removal obligation accepted，
+3. 对 controller 的第二设备重复 join；随后使 A deactivated 或离开当前 Realm，使 pending removal obligation accepted，
    但暂不提交 Remove Commit。
 4. eligible committer drain obligation 并提交真实 Remove proposal/Commit；再用旧 Welcome/consume 记录尝试恢复 A effective 状态。
 
 Expected:
 
-- 第 1 步任何不完整组合均保持 pending；ownership、delivered Welcome 或 claimed KeyPackage 单独都不是 effective 证据。
+- 第 1 步任何不完整组合均保持 pending；desired membership、delivered Welcome 或 claimed KeyPackage 单独都不是 effective 证据。
 - 第 2 步 D 成为有效设备，A 进入 `effective_agent_ids`；同 principal 的其它设备不会自动拿到密钥。controller 当前 session device readiness 独立计算。
 - 第 3 步服务端立即停止 A 的寻址/投递并移除 effective access，且只产生 durable removal obligation；
   不持有 MLS private state 的 Principal Server 不得伪造 Commit。新发送保持 fail closed。
@@ -4437,7 +4438,7 @@ Expected:
 
 Steps:
 
-1. Sidecar participants/effective access 为 Alice + owned Agents `{S, R}`，且 S/R 都在 native Sidecar scope 中产生协作内容。
+1. Sidecar desired/effective participants 为 Alice + 当前 Realm active Agents `{S, R}`，且 S/R 都在 native Sidecar scope 中产生协作内容。
 2. S 调用 publish capability action，生成目标 Strand `ak.message.create`,attribution 设 `executed_by=S` + `authorization_ref=G_S`。
 3. R 同时尝试 publish 含 S 部分内容的另一条消息。
 

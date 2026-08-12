@@ -4909,15 +4909,6 @@
       "description": "Agent Sidecar ensure was denied without revealing whether the controller's native Sidecar or requested source-context mapping already exists. Returned as a generic failed_precondition sub-reason to avoid existence side channels. See zh/models/sidecar.md §3 and §7."
     },
     {
-      "code": "sidecar_exposure_ack_required",
-      "applies_to": [
-        "auth_decision",
-        "state_resolution",
-        "service_call"
-      ],
-      "description": "ak.self.agent.command.resume was rejected because the Agent became an ownership-derived participant of one or more Agent Sidecar objects while paused, and the controller has not supplied the matching sidecar_exposure_ack re-disclosure. The controller MUST re-read the disclosure and resubmit; effective access still waits for native Sidecar MLS reconciliation. See zh/identity/key-management.md §3.6.1."
-    },
-    {
       "code": "signal_plaintext_forbidden",
       "applies_to": [
         "service_call",

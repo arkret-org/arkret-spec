@@ -41,7 +41,7 @@ see_also:
 | 谁在做事？ | Principal / Actor | Principal 是 DID 身份根；Actor 是该 Principal 在 Realm 内产生 Event 的参与身份。 |
 | 这批协作事实归谁管？ | Realm | 权限、成员、历史可见性、E2EE、同步和联邦都以 Realm 为根。 |
 | Realm 内要给一部分人单独的成员、历史和加密边界？ | Circle | Circle 是 Realm 内的子事件边界；复用父 Realm 的 federation / policy / capability，只裁剪成员、history、投递与查询，必要时启独立 MLS group。 |
-| 用户要与自己的 AI Agents 在 Realm context 中私密协作？ | Agent Sidecar | Sidecar 是每个 `(realm_id, controller_id)` 唯一的个人 AI 工作区；访问集合由 controller 与 eligible owned Agents 派生，不是 Circle profile，也不提供成员管理。 |
+| 用户要与自己的 AI Agents 在 Realm context 中私密协作？ | Agent Sidecar | Sidecar 是每个 `(realm_id, controller_id)` 唯一的个人 AI 工作区；MLS 目标集合由 controller 与“active owned Agent ∩ 当前 Realm active member”派生，不是 Circle profile，也不提供成员管理。 |
 | 用户界面怎么组织项目、看板和列表？ | Space | Space 是导航 / 容器，不拥有成员、policy 或加密组。 |
 | 一件事、一个任务、一个话题或一个决策放哪里？ | Strand | Strand 是统一协作主对象；正式内容在 synthesis，讨论在 discussion。 |
 | 聊天消息是什么？ | Message | Message 只属于某个 Strand 的 discussion track。 |

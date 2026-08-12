@@ -29,11 +29,11 @@ Sidecar 与 Circle 功能正交：
 
 | 维度 | Circle | Sidecar |
 | --- | --- | --- |
-| 目的 | Realm 内显式沟通圈与安全边界 | controller 与其 owned Agents 的个人协作上下文 |
-| 参与者 | 显式可治理成员子集 | 固定由 ownership graph 派生，不可编辑 |
+| 目的 | Realm 内显式沟通圈与安全边界 | controller 与其当前 Realm 内 active owned Agents 的个人协作上下文 |
+| 参与者 | 显式可治理成员子集 | 由 ownership/lifecycle 与 exact Realm membership frontier 派生，不可编辑 |
 | scope | `scope_ref.kind="circle"` | `scope_ref.kind="sidecar"` |
 | 跨边界映射 | 不允许自动映射到圈外 Strand | 可在普通 Strand shell 中显示 private view；durable publish 必须创建新 Event |
-| MLS | Circle membership 驱动 | ownership、lifecycle、authorization、Realm participation 与 key readiness 驱动 |
+| MLS | Circle membership 驱动 | ownership、lifecycle、runtime-key authorization 与 exact Realm membership 派生目标 roster；MLS/key readiness 只决定 effective 收敛状态 |
 
 协议中不存在 Sidecar backing Circle。实现 MUST NOT 为 Sidecar 创建、隐藏、保留或模拟 Circle 对象、
 Circle membership、Circle role/admin、Circle join rule、Circle invite 或 `SC-` 保留名称。
@@ -132,31 +132,56 @@ context attach 只控制 private view 放置位置。它不得：
 
 ## 5. 参与者与有效访问
 
-Sidecar 没有 membership 管理面。规范参与者集合恒为：
+Sidecar 没有独立的 membership 管理面。其 MLS 目标参与者是 accepted frontier 上的纯派生集合：
 
 ```text
-sidecar_participants(S) = {S.controller_id} ∪ owned_agents(S.controller_id)
+desired_agent_ids(S, F) =
+  active_authorized_owned_agents(S.controller_id, F)
+  ∩ active_realm_member_ids(S.realm_id, F)
 ```
 
-`owned_agents` 来自 canonical Agent ownership/provisioning truth source。caller、controller、Realm admin、
-Agent 或 service 均不得在 Sidecar 内设置、替换、追加、邀请、移除或转让 participant。
+其中 `F` 是读取或 admission 使用的 accepted control frontier。`active_authorized_owned_agents` 来自 canonical
+Agent ownership/provisioning、lifecycle 与 Agent runtime-key authorization truth；它不包含 target action grant、
+participation selection 或 MLS readiness。`active_realm_member_ids` 来自 `S.realm_id` 自己的 Realm membership
+truth。完整 MLS 目标 roster 是 `S.controller_id` 加上这个 Agent 集合；无需再维护第二个 participant 字段或
+派生函数。controller 自身也必须是该 Realm 的 active member，否则 Sidecar 进入 suspended/readiness blocked，
+不得继续分发新 epoch 内容。caller、controller、Realm admin、Agent 或 service 均不得在 Sidecar 内设置、
+替换、追加、邀请、移除或转让 participant。
 
 `ak.sidecar.access.replace` 已移除；receiver MUST 将它视为 unknown Event kind。不得用 profile extension
 恢复同义成员列表。
 
 专用读取面公开两个只读集合：
 
-- `owned_agent_ids`：当前 ownership graph 的完整 owned Agent 集；
-- `effective_agent_ids`：`owned_agent_ids` 与 active lifecycle、authorization/grant、Realm participation、
-  Sidecar policy gate、device/MLS readiness 的安全交集。
+- `desired_agent_ids`：同名派生函数 `desired_agent_ids(S, F)` 的只读 wire 投影；它不是 caller-authored、
+  reducer-stored 或需要随 membership 变更同步改写的字段；
+- `effective_agent_ids`：`desired_agent_ids` 中已经成为当前 accepted Sidecar MLS epoch 成员、并完成目标设备
+  Welcome/KeyPackage consume 与 key readiness 的 Agent。
 
-Agent pause/deactivate、grant revoke、Realm participation loss 或 key not-ready 只会收窄
-`effective_agent_ids`，不改写 `owned_agent_ids` 和参与者身份。只有 canonical ownership 建立或终止才改变
-`owned_agent_ids`。
+建立 canonical Agent ownership 本身 **MUST NOT** 使 Agent 出现在任何 Sidecar 的 `desired_agent_ids`，也不得
+触发 MLS Add、寻址、投递、capability 签发、Realm membership 或 participation selection。只有该 Agent 同时是
+exact `S.realm_id` 的 active member 时，它才进入该 Sidecar 的 desired 集合并产生该 Sidecar 自己的 MLS
+reconciliation obligation；不会影响 controller 在其它 Realm 的 Sidecar。
+
+每个 Sidecar `S` 的 desired/effective 集合必须以 exact `(S.realm_id, S.controller_id, S.id)` 独立求值。
+来自其它 Realm 或其它 Sidecar 的 membership、Welcome、KeyPackage consume 或 MLS readiness **MUST NOT**
+满足本 Sidecar 的任何条件。因而，对 `S1=(R1,C)` 完成 Agent membership 与 MLS reconciliation 不得改变
+`S2=(R2,C)` 的 `desired_agent_ids`、`effective_agent_ids` 或 MLS membership，其中 `R1 != R2`。
+
+Agent pause/deactivate、ownership 终止或 current Realm membership loss 会自动收窄派生的
+`desired_agent_ids`，并产生该 Sidecar 的 MLS Remove/rotate obligation；它们不需要也不得触发第二次
+Sidecar roster write。KeyPackage、Welcome、consume 或设备 key 尚未就绪只会使 desired Agent 暂未进入
+`effective_agent_ids`。`effective_agent_ids` **MUST** 是 `desired_agent_ids` 的子集；Sidecar 仅在 controller
+device、accepted MLS group 均就绪且两个集合相等时为 `ready`。
+
+resource-scoped capability、Agent participation selection 与 action policy 继续独立约束 Agent 可以读取之外执行
+的 write、reply、mention、publish 等操作；它们不是第二套 MLS membership，也不得改变上述派生 roster。
 
 ## 6. 原生 MLS 绑定
 
 Sidecar 拥有独立 MLS group，但该 group 直接绑定 `sidecar_id`，不绑定 Circle ID 或 membership cell。
+不存在 controller-global Sidecar MLS group：不同 `sidecar_id` 的 Add/Remove/Update、Welcome、epoch、future
+epoch key 与 reconciliation 状态彼此隔离，任何一项都不得跨 Sidecar 复用或传播。
 
 `participant_authority_digest` 必须覆盖：
 
@@ -166,18 +191,18 @@ Sidecar 拥有独立 MLS group，但该 group 直接绑定 `sidecar_id`，不绑
   "sidecar_id": "ak:sidecar:...",
   "realm_id": "ak:realm:...",
   "controller_id": "ak:did_core:webvh:zExampleControllerScid",
-  "owned_agent_ids": ["ak:did_core:webvh:zExampleOwnedAgentScid"],
-  "effective_agent_ids": ["ak:did_core:webvh:zExampleEffectiveAgentScid"]
+  "desired_agent_ids": ["ak:did_core:webvh:zExampleDesiredAgentScid"]
 }
 ```
 
-两个 Agent `did_core_id` 数组按 UTF-8 字节序排序去重。`control_frontier` 只能包含 Sidecar genesis、ownership、
-Agent lifecycle、authorization、Realm participation 与 key-readiness 的 accepted refs；不得包含 Circle
-membership 或 Sidecar selection Event。
+`desired_agent_ids` 按 UTF-8 字节序排序去重。authority transcript 不包含 `effective_agent_ids`：effective 是
+当前 MLS reconciliation 的结果，不是参与者 authority 的输入。`control_frontier` 只能包含 Sidecar genesis、
+ownership、Agent lifecycle/runtime-key authorization 与 exact Realm membership 的 accepted refs；不得包含 Circle membership、
+Sidecar selection Event、action participation selection 或 MLS/key-readiness 结果。
 
-新 owned Agent 在 authorization、participation、Welcome、KeyPackage consume 与设备 readiness 全部完成前
-不得接收 Sidecar payload。Agent 失去有效资格后，服务端必须立即停止新寻址/投递，并保留 MLS remove/rotate
-obligation；旧 epoch key、旧 session 或本地缓存不能继续授权新写。
+新 desired Agent 在 Welcome、KeyPackage consume 与设备 readiness 全部完成前不得接收 Sidecar payload。
+Agent 失去 desired 资格后，服务端必须立即停止新寻址/投递，并保留 MLS remove/rotate obligation；旧 epoch
+key、旧 session 或本地缓存不能继续授权新写。
 
 ## 7. 生命周期
 
@@ -216,7 +241,8 @@ commit 只接受在 exact drafts 上追加的 controller proofs，并原子提�
 Sidecar ID由已固定 create Event ID确定。
 
 读取只通过 `ak.self.agent.sidecar.resource.get` 与 `ak.self.agent.sidecar.query.list`。返回 Sidecar、
-`owned_agent_ids`、`effective_agent_ids`、MLS readiness、pending reconciliation 和 source context mappings。
+`desired_agent_ids` 只读派生投影、`effective_agent_ids`、MLS readiness、pending reconciliation 和 source
+context mappings。
 普通 Circle/Strand/Relation list 不得泄漏 Sidecar 存在、private Event、计数、未读、搜索或通知差异。
 
 ## 10. 验收不变量
@@ -224,7 +250,7 @@ Sidecar ID由已固定 create Event ID确定。
 1. `retype(ak.sidecar.create.event_id) == sidecar.id`。
 2. schema 与 registry 中不存在 `backing_circle_id` 或 `ak.sidecar.access.replace`。
 3. Sidecar create 不产生 Circle/member/Strand/Relation write。
-4. `owned_agent_ids` 不可由 Sidecar operation 写入。
+4. `desired_agent_ids` 只能从 accepted frontier 派生；任何 operation 均不可写入或覆盖它。
 5. native `scope_ref.kind="sidecar"` 进入 digest、AAD、delivery/query 与 Seal 验证。AAD 侧的
    承载是 `aad.scope_digest`——对 exact `scope_ref` 的域分隔承诺（常量 `ak.aad-scope-v1`，构造与
    接收方重算见 [`../crypto-media/encryption-and-audit.md` §2.3.2.1](../crypto-media/encryption-and-audit.md)）。
@@ -234,6 +260,9 @@ Sidecar ID由已固定 create Event ID确定。
    `ak.vector.encoding.encrypted_envelope_digest.v1`。
 6. Sidecar view 映射不改变 source Strand history；publish 创建新普通 Event。
 7. 同 ID + 不同 canonical genesis bytes 必须 conflicting-reuse fail closed。
+8. 同一 controller 在两个 Realm 中的 Sidecar 必须独立求值：只为其中一个 Realm 建立的 membership 与该
+   Sidecar 的 MLS readiness 不得使 Agent 进入另一个 Sidecar 的 `desired_agent_ids` / `effective_agent_ids`，
+   也不得触发另一个 Sidecar 的 MLS Add、payload delivery 或 future epoch key 交付。
 
 ### 10.1 必跑 conformance vectors
 

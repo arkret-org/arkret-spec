@@ -1190,7 +1190,7 @@
     },
     "agent_resume_payload": {
       "type": "object",
-      "description": "Payload for ak.self.agent.resume. Authorization is evaluated against the Control Move envelope seal_basis, and reducers re-check controller, agent, key, capability, Realm policy, accountability grant, and any sidecar exposure acknowledgement against the accepted current control frontier before returning the agent to active.",
+      "description": "Payload for ak.self.agent.resume. Authorization is evaluated against the Control Move envelope seal_basis, and reducers re-check controller, agent, key, capability, Realm policy, and accountability grant against the accepted current control frontier before returning the agent to active. Sidecar desired membership is derived afterward and is not carried in this payload.",
       "required": [
         "agent_id",
         "controller_id",
@@ -1213,9 +1213,6 @@
         },
         "status_changed_at": {
           "$ref": "#/$defs/timestamp"
-        },
-        "sidecar_exposure_ack": {
-          "$ref": "#/$defs/agent_sidecar_exposure_ack"
         },
         "reason": {
           "type": "string",
@@ -1241,33 +1238,6 @@
         },
         "encrypted_payload": {
           "$ref": "#/$defs/encrypted_envelope"
-        }
-      },
-      "additionalProperties": false
-    },
-    "agent_sidecar_exposure_ack": {
-      "type": "object",
-      "description": "Controller acknowledgement of Agent Sidecar objects that entered the Agent's ownership-derived exposure set while the Agent was paused. It may satisfy one authorization/readiness gate but cannot add or remove Sidecar participants; effective access still requires all current lifecycle, Realm participation and MLS checks.",
-      "required": [
-        "acknowledged_at",
-        "acknowledged_by",
-        "sidecar_refs"
-      ],
-      "properties": {
-        "acknowledged_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "acknowledged_by": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "sidecar_refs": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
-          },
-          "uniqueItems": true,
-          "maxItems": 128
         }
       },
       "additionalProperties": false
@@ -10271,7 +10241,7 @@
         },
         "participant_authority_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Digest of controller plus the current owned-Agent authority set and the lifecycle/authorization facts that narrow effective access."
+          "description": "Digest of the exact Sidecar identity, controller, and the Realm-scoped desired Agent roster derived from accepted ownership, lifecycle, and Realm membership facts."
         },
         "control_frontier": {
           "type": "array",

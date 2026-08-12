@@ -429,7 +429,7 @@ ak.mls.genesis、ak.mls.commit、需要绑定当前 epoch 的 ak.mls.welcome 与
 | previous_epoch / next_epoch | genesis 为 0/0；Commit 必须 next=previous+1 |
 | security_frontier_digest | 按 §2.5 的闭合集合重算 |
 | binding_profile / reducer_profile | 显式解释 profile；缺失或不支持 fail closed |
-| sidecar_binding? | 只在 `effective_scope.kind="sidecar"` 中出现，绑定 ownership-derived participant authority |
+| sidecar_binding? | 只在 `effective_scope.kind="sidecar"` 中出现，绑定 exact Realm-scoped desired participant authority |
 
 membership_frontier、covered_seal_refs、policy_root、capability_root 与 discussion_metadata_digest 不再是 wire 字段。它们把同一 accepted state 重复拆成多个 producer-supplied commitments，并导致无关治理变化阻断消息；receiver 改为从 Seal state 直接重算唯一 security_frontier_digest。
 

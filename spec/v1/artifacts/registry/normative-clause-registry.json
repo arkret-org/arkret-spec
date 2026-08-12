@@ -176,7 +176,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:af040b1577025457f76b72f8eedd22aa7b6c5eee7a34070a8e6e03a849ddf61a",
+      "section_digest": "sha256:b675a5843c8dc68a538cea30b8d18253c13b0c615945996267ade8393ae29016",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, every peer claim returns branch-matched portable target signer evidence that the requester independently verifies without DID-document device-key or service-projection fallback, encryption floors MUST NOT be downgraded, an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling, every encrypted envelope MUST commit its exact scope_ref through the unconditional domain-separated aad.scope_digest and receivers MUST recompute it on decrypt, every MLS epoch MUST bind the independently re-derived security frontier for its accepted key-access state, and epoch-0 leaf indices MUST be recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
       "testability_grade": "vector",
       "evidence_refs": [

@@ -39,7 +39,7 @@ DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用
 | --- | --- | --- | --- |
 | `ak:realm:` | Realm | security / sync / auth / E2EE 边界 | [realm-and-space.md](./realm-and-space.md) |
 | `ak:circle:` | Circle | Realm 内子事件 / 子消息边界（子集成员 / 独立 history / 投递裁剪；可选独立 MLS group），对象通过 `scope_circle_id` 引用 | [circle.md](./circle.md) |
-| `ak:sidecar:` | Agent Sidecar | controller 的个人 AI 私有工作区；Event-derived ID，native scope，参与者由 controller + owned Agents 派生 | [sidecar.md](./sidecar.md) |
+| `ak:sidecar:` | Agent Sidecar | controller 的个人 AI 私有工作区；Event-derived ID，native scope，参与者由 controller + 当前 Realm 内的 active owned Agents 派生 | [sidecar.md](./sidecar.md) |
 | `ak:space:` | Space | 产品结构容器与导航节点（project / folder / board / list / section ...），通过 `realm_id` / `default_realm_id` 解析安全边界 | [realm-and-space.md](./realm-and-space.md) |
 | `ak:strand:` | Strand | 统一协作主对象（task / decision / incident / channel ...） | [strand-and-message.md](./strand-and-message.md) |
 | `ak:message:` | Message | Strand `discussion` track 时间线消息 | [strand-and-message.md](./strand-and-message.md) |
