@@ -264,8 +264,10 @@ Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失�
   service-private row均不得替代 signed binding。持 active authorized Agent key但尚无 session的 runtime可凭 PoP
   取得 standard Agent session，不能伪装 human device。
 - **audience**:grant 的 audience MUST 等于本 Principal Server 的 service DID。
-- **scope**:grant scope MUST 含 Principal Server 的 session.bind scope 与 device scope。
-- **principal / device 绑定**:grant 绑定的 principal / device MUST 与请求一致。
+- **scope**：grant scope MUST 含当前 endpoint 对应的 operation scope；scope 只表达服务操作授权，MUST NOT
+  使用旧 `session.bind` 哨兵或 device scope 代替 typed holder binding。
+- **principal / device 绑定**：grant 的 subject 与 typed `holder_binding` MUST 与请求 principal / device 一致；
+  introspection 若同时返回顶层 device metadata，它也 MUST 与 signed holder binding 逐字一致。
 - **未过期**:grant 与 DPoP proof 均 MUST 未过期。
 - **DPoP 重放防护**:Principal Server MUST 按 DPoP `jti` + `iat` 新鲜度窗口拒绝重放(窗口量级与 §3.2 / `federation.md` §3.2 PoP 时效窗口同口径)。
 

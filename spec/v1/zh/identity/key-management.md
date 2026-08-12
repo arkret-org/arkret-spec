@@ -760,8 +760,10 @@ UTF-8 字符串；JWT claim 自身必须携带该 canonical 字符串。接收�
 相同字符串，MUST 拒绝。`audience` 的 canonical 形态是目标 resource service 的无 fragment bare DID，
 与 `SessionGrantRequestProof.audience`、issue/refresh outcome 的 typed `Did` 相同；HTTP origin / endpoint URL
 由 DPoP `htu` 单独绑定，MUST NOT 写入 SessionGrant audience。该选择与 SDK 的 `Did` wire type及 Account
-Authority 对 non-DID audience 的 fail-closed 校验一致。preimage 不含独立 `device_id`：设备绑定由 scope 中登记的 device token 与可选
-`device_binding` 表达。
+Authority 对 non-DID audience 的 fail-closed 校验一致。preimage 不含独立顶层 `device_id`：human device
+绑定由 required `holder_binding={kind="human_device",device_binding}` 表达；Agent runtime 绑定由对应的
+`holder_binding` 分支表达。operation `scopes[]` 只承载授权求交后的服务操作，不得再编码设备身份或旧
+`session.bind` 哨兵 scope。
 
 除固定 `schema`、固定 credential `kind` 与派生结果 `jti` 外，preimage 的每个字段都 MUST 是 JWT 的
 signed claim。verifier MUST 验证 JWT signature、issuer key 的 accepted-at 历史，并从 signed claims
