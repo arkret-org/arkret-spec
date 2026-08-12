@@ -44,6 +44,16 @@ from .core import (
     walk_json,
 )
 
+try:
+    from cryptography.exceptions import InvalidSignature
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+except ImportError:  # pragma: no cover - CI installs the dependency.
+    InvalidSignature = None
+    Ed25519PrivateKey = None
+    Ed25519PublicKey = None
+    serialization = None
+
 
 
 def sha256_text(value: str) -> str:
@@ -1297,6 +1307,152 @@ def check_declared_schema_fixture_instances(lint: Lint) -> None:
         data = load_json(lint, path)
         if data is not None:
             visit(path, data, "")
+
+
+def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
+    """Bind every KeyPackage write transcript to its wire schema and bytes.
+
+    The fixture stores the request before its top-level signature is attached,
+    so the generic declared-schema walker cannot validate these cases.  Rebuild
+    the signed wire object here, resolve its schema through the operation
+    registry, then verify the canonical transcript and Ed25519 signature.
+    """
+
+    fixture_path = ARTIFACTS / "fixtures" / "keypackage-write-transcript-fixture.json"
+    fixture = load_json(lint, fixture_path)
+    registry_path = ARTIFACTS / "registry" / "operation-registry.json"
+    registry = load_json(lint, registry_path)
+    if not isinstance(fixture, dict) or not isinstance(registry, dict):
+        return
+
+    test_key = fixture.get("test_key")
+    cases = fixture.get("cases")
+    if not isinstance(test_key, dict) or not isinstance(cases, list):
+        lint.fail(fixture_path, "KeyPackage write transcript fixture needs test_key and cases[]")
+        return
+    kid = test_key.get("kid")
+    public_key_text = test_key.get("public_key")
+    private_key_seed_text = test_key.get("private_key_seed")
+    if (
+        test_key.get("algorithm") != "Ed25519"
+        or not isinstance(kid, str)
+        or not isinstance(public_key_text, str)
+        or not isinstance(private_key_seed_text, str)
+    ):
+        lint.fail(fixture_path, "test_key must declare an Ed25519 kid, private_key_seed and public_key")
+        return
+
+    def decode_base64url(label: str, value: Any) -> bytes | None:
+        if not isinstance(value, str):
+            lint.fail(fixture_path, f"{label} must be an unpadded base64url string")
+            return None
+        try:
+            return base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
+        except (ValueError, binascii.Error):
+            lint.fail(fixture_path, f"{label} is not valid base64url")
+            return None
+
+    public_key_bytes = decode_base64url("test_key.public_key", public_key_text)
+    private_key_seed = decode_base64url("test_key.private_key_seed", private_key_seed_text)
+    if public_key_bytes is None or private_key_seed is None:
+        return
+    if (
+        Ed25519PrivateKey is None
+        or Ed25519PublicKey is None
+        or InvalidSignature is None
+        or serialization is None
+    ):
+        lint.fail(fixture_path, "cryptography is required to verify KeyPackage transcript signatures")
+        return
+    try:
+        verifying_key = Ed25519PublicKey.from_public_bytes(public_key_bytes)
+        derived_public_key = Ed25519PrivateKey.from_private_bytes(private_key_seed).public_key().public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw,
+        )
+    except ValueError as exc:
+        lint.fail(fixture_path, f"test_key does not contain valid Ed25519 key material: {exc}")
+        return
+    if derived_public_key != public_key_bytes:
+        lint.fail(fixture_path, "test_key.public_key does not derive from test_key.private_key_seed")
+
+    operation_schema_refs = {
+        row.get("operation_id"): row.get("request_schema_ref")
+        for row in registry.get("operations", [])
+        if isinstance(row, dict)
+        and isinstance(row.get("operation_id"), str)
+        and isinstance(row.get("request_schema_ref"), str)
+    }
+    expected_operations = {
+        "upload_batch_required_fields": "ak.self.keys.keypackages.upload.create",
+        "upload_entry_signature": "ak.self.keys.keypackages.upload.create",
+        "consume_all_optional_fields": "ak.self.keys.keypackages.command.consume",
+        "revoke_with_reason": "ak.self.keys.keypackages.command.revoke",
+    }
+    actual_names = {
+        case.get("name") for case in cases if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+    if actual_names != set(expected_operations):
+        lint.fail(fixture_path, f"KeyPackage write transcript cases drifted: {sorted(actual_names)}")
+
+    for index, case in enumerate(cases):
+        if not isinstance(case, dict):
+            lint.fail(fixture_path, f"cases[{index}] must be an object")
+            continue
+        name = case.get("name")
+        operation_id = case.get("operation_id")
+        unsigned = case.get("unsigned_request")
+        domain = case.get("domain")
+        stated_canonical = case.get("canonical_jcs")
+        if not isinstance(name, str) or not isinstance(operation_id, str) or not isinstance(unsigned, dict):
+            lint.fail(fixture_path, f"cases[{index}] needs name, operation_id and unsigned_request")
+            continue
+        if operation_id != expected_operations.get(name):
+            lint.fail(fixture_path, f"{name}.operation_id is not the registered transcript operation")
+            continue
+        if domain != operation_id + "\n":
+            lint.fail(fixture_path, f"{name}.domain must equal operation_id plus newline")
+            continue
+
+        canonical = canonical_json(unsigned)
+        if stated_canonical != canonical:
+            lint.fail(fixture_path, f"{name}.canonical_jcs does not equal JCS(unsigned_request)")
+        expected_signing_input = domain.encode("utf-8") + canonical.encode("utf-8")
+        stated_signing_input = decode_base64url(
+            f"{name}.signing_input_base64url", case.get("signing_input_base64url")
+        )
+        if stated_signing_input is not None and stated_signing_input != expected_signing_input:
+            lint.fail(fixture_path, f"{name}.signing_input_base64url does not encode domain || JCS(unsigned_request)")
+
+        signature_bytes = decode_base64url(f"{name}.signature", case.get("signature"))
+        if signature_bytes is not None:
+            try:
+                verifying_key.verify(signature_bytes, expected_signing_input)
+            except InvalidSignature:
+                lint.fail(fixture_path, f"{name}.signature does not verify over domain || JCS(unsigned_request)")
+
+        signature_object = {
+            "kid": kid,
+            "signature_algorithm": "Ed25519",
+            "sig": case.get("signature"),
+        }
+        if name == "upload_entry_signature":
+            entry = unsigned.get("key_package")
+            if not isinstance(entry, dict):
+                lint.fail(fixture_path, f"{name}.unsigned_request.key_package must be an object")
+                continue
+            instance = copy.deepcopy(entry)
+            instance["device_signature"] = signature_object
+            schema_ref = "schemas/keypackage-operations.schema.json#/$defs/keypackage_upload_entry"
+        else:
+            schema_ref = operation_schema_refs.get(operation_id)
+            if not isinstance(schema_ref, str):
+                lint.fail(fixture_path, f"{name} operation has no request_schema_ref: {operation_id}")
+                continue
+            instance = copy.deepcopy(unsigned)
+            signature_field = "device_signature" if name == "upload_batch_required_fields" else "signature"
+            instance[signature_field] = signature_object
+        check_json_instance_against_schema(lint, fixture_path, name, schema_ref, instance)
 
 
 

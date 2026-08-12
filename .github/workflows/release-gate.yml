@@ -24,6 +24,6 @@ jobs:
         with:
           node-version: "20"
       - name: Install lint dependencies
-        run: python -m pip install jsonschema pyyaml
+        run: python -m pip install cryptography jsonschema pyyaml
       - name: Run unified release gate
         run: python tools/release_gate.py

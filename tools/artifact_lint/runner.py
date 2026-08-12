@@ -88,6 +88,7 @@ from .fixtures import (
     check_event_batch_receipt_normalization_vector,
     check_fixture_runner_contract,
     check_fixtures,
+    check_keypackage_write_transcript_fixture,
     check_mls_governance_proof_fixture,
     check_normative_clause_registry,
     check_one_of_branch_discriminability,
@@ -312,6 +313,10 @@ def main(argv: list[str] | None = None) -> int:
             ("vector_refs", lambda: check_vector_reference_closure(lint)),
             ("security_fixture", lambda: check_security_closure_fixture(lint)),
             ("fixtures", lambda: check_fixtures(lint, known)),
+            (
+                "keypackage_write_transcripts",
+                lambda: check_keypackage_write_transcript_fixture(lint),
+            ),
             (
                 "declared_schema_fixture_instances",
                 lambda: check_declared_schema_fixture_instances(lint),

@@ -155,12 +155,23 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
         self.assertTrue(any("review_anchor" in error for error in errors), errors)
 
     def test_open_finding_anchor_must_resolve_to_a_live_review_entry(self) -> None:
+        open_review_dir = ROOT.parent / "arkret-work" / "review" / "spec-open"
+        live_reviews = [
+            path
+            for path in sorted(open_review_dir.glob("*.md"))
+            if path.name != "README-status.md"
+        ]
+        if not live_reviews:
+            self.skipTest("workspace has no live spec-open finding to probe")
+        live_review = live_reviews[0]
+        live_review_ref = live_review.relative_to(ROOT.parent).as_posix()
+
         def mutate(registry):
             for row in registry["exemptions"]:
                 if row["exemption_id"] == DID_OPERATION_ROW:
                     row["disposition"] = "open_finding"
                     row["review_anchor"] = {
-                        "file": "arkret-work/review/spec-open/2026-08-09-principal-did-migration-support.md",
+                        "file": live_review_ref,
                         "heading": "A HEADING THAT WAS NEVER WRITTEN",
                     }
 
