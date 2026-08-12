@@ -46,7 +46,7 @@ Markdown catalog 页面可以继续存在于 `/catalog/schemas/`；它是人类�
 
 - `arkret_core::schema::SpecArtifactBundle` 负责读取 artifact bundle 并提供 drift report。
 - `arkret_core::schema::event_payload_validator_catalog()` 负责从 event kind registry 和 schema registry 构建 payload validator。
-- `arkret_core::generated::profiles` 和 `arkret_core::generated::profile_requirements` 负责发布 generated profile/profile requirement 常量。
+- `arkret_wire::ProfileId`（含 `ProfileId::role`）和 `arkret_wire::ReducerProfileId` 负责发布 generated conformance / reducer profile 标识与角色划分；`arkret_schema::generated::profile_requirements` 负责发布 profile requirement 表。
 - 新增协议字段时，先更新 artifact，再重新生成 SDK generated module，最后让服务端/客户端消费 SDK API。
 
 服务端或客户端不应复制 generated profile requirement 表；需要本地别名时，应能追溯到 SDK/generated artifact。
