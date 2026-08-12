@@ -14,7 +14,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json",
-      "sha256": "9750d4e9e27beef154d78cdb7ddf90f44ff7990ea79bd0fe60b1a0387ae680f1"
+      "sha256": "b908ddc99bd965f98c148dd330bb5e750c83a09941bc3f923672081285aababc"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
@@ -294,7 +294,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "d76bfeb7ef822a6d677f883e6a7fe5396c32faa0e354020dbebd8395fcb023c7"
+      "sha256": "7ac6acd10c35e479f20ac3805a4d15c504479747c4f785b7ccb00bbefa5feb30"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
