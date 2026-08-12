@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-11.2",
-  "generated_at": "2026-08-11T12:00:00Z",
+  "version": "2026-08-12.1",
+  "generated_at": "2026-08-12T14:55:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2874,7 +2874,7 @@
     },
     "ak.profile.push_gateway.blind_wakeup.v1": {
       "role": "gateway",
-      "description": "Default push gateway privacy baseline. Every implementation claiming ak.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Realm id / name / avatar, Strand id / name, Message id, event id, device verification-method DID URL, reaction value, or any cross-Realm stable correlation key). Payloads MUST be restricted to per-(recipient_service_id, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5a.",
+      "description": "Default push gateway privacy baseline. Every implementation claiming ak.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Realm id / name / avatar, Strand id / name, Message id, event id, device verification-method DID URL, reaction value, or any cross-Realm stable correlation key). Payloads MUST be restricted to per-(recipient_service_id, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5.6.",
       "required_endpoints": [
         "ak.edge.push.command.notify"
       ],

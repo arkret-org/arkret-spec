@@ -489,7 +489,7 @@ Candidate payload:
 
 ## 9. 推送集成
 
-`ak.call.signal` 中 `signal_kind=invite` SHOULD 触发 VoIP push。push 必须遵循 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](./device-lifecycle.md) 的 pairwise pseudonym 规则；不得在投递给 APNs / FCM / Push Gateway 的 payload 中携带 principal DID、device verification-method DID URL、Realm id、call id 或 sender DID。
+`ak.call.signal` 中 `signal_kind=invite` SHOULD 触发 VoIP push。push 必须遵循 [`crypto-media/device-lifecycle.md` §5.6 Privacy-Preserving Push](./device-lifecycle.md) 的 pairwise pseudonym 规则；不得在投递给 APNs / FCM / Push Gateway 的 payload 中携带 principal DID、device verification-method DID URL、Realm id、call id 或 sender DID。
 
 脱敏 push payload（推送上游可见部分）:
 

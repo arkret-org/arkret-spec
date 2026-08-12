@@ -292,7 +292,7 @@
       "items": {
         "$ref": "#/$defs/recovery_key_entry"
       },
-      "description": "Recovery signing keys this principal authorizes for 'recovery_unlock' proofs and for the single publication signature produced after 'threshold_recovery' secret reconstruction. Each entry binds a verification method (24-word Recovery Key derived signing key, or hardware-released equivalent) to the principal. A recovery_unlock proof's recovery_secret_ref, and a threshold_recovery publication rule's issuer set, MUST resolve to active entries in this array; the proof signature MUST verify under the selected entry's public key. Required when allowed_proof_kinds contains either 'recovery_unlock' or 'threshold_recovery'. See identity/key-management.md §7.5.2 and crypto-media/device-lifecycle.md §14.4 / §15."
+      "description": "Recovery signing keys this principal authorizes for 'recovery_unlock' proofs and for the single publication signature produced after 'threshold_recovery' secret reconstruction. Each entry binds a verification method (24-word Recovery Key derived signing key, or hardware-released equivalent) to the principal. A recovery_unlock proof's recovery_secret_ref, and a threshold_recovery publication rule's issuer set, MUST resolve to active entries in this array; the proof signature MUST verify under the selected entry's public key. Required when allowed_proof_kinds contains either 'recovery_unlock' or 'threshold_recovery'. See identity/key-management.md §7.5.2 and §8, identity/security-transactions.md §2, and crypto-media/device-lifecycle.md §14."
     },
     "recovery_key_agreements": {
       "type": "array",

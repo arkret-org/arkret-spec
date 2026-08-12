@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.2",
+  "version": "2026-08-12.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-11T12:00:00Z",
+  "generated_at": "2026-08-12T15:15:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {

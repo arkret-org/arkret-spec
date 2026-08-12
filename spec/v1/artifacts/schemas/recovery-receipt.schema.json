@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-receipt.schema.json",
   "title": "Arkret Recovery Receipt",
-  "description": "Signed completion receipt for a principal recovery strand. Bound to the recovery_session_id, identity model, model generation, accepted device authorization path, every proof, backup unlock, and MLS Welcome replay action. Formal recovery receipts are signed only after the recovering device has been accepted via ak.device.authorize; pre-authorization failures use server outcome/audit evidence instead. See crypto-media/device-lifecycle.md §15.",
+  "description": "Signed completion receipt for a principal recovery strand. Bound to the recovery_session_id, identity model, model generation, accepted device authorization path, every proof, backup unlock, and MLS Welcome replay action. Formal recovery receipts are signed only after the recovering device has been accepted via ak.device.authorize; pre-authorization failures use server outcome/audit evidence instead. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14.",
   "type": "object",
   "required": [
     "schema",
@@ -255,7 +255,7 @@
             "Ed25519",
             "ML-DSA-65"
           ],
-          "description": "v1 fixes the recovery-strand replacement device possession proof to Ed25519 (zh/crypto-media/device-lifecycle.md sections 5.2 and 15). The three-algorithm set in zh/identity/key-management.md section 7.9 belongs to recovery_policy.recovery_keys[].alg and MUST NOT be reused as a reason to widen this one."
+          "description": "v1 fixes the recovery-strand replacement device possession proof to Ed25519 (zh/crypto-media/device-lifecycle.md sections 5.2 and 14; transaction binding in zh/identity/security-transactions.md section 2). The three-algorithm set in zh/identity/key-management.md section 7.9 belongs to recovery_policy.recovery_keys[].alg and MUST NOT be reused as a reason to widen this one."
         },
         "signature": {
           "type": "string",

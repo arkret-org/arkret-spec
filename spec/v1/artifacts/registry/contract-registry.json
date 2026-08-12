@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-12.2",
+  "version": "2026-08-12.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-11T20:39:13Z",
+  "generated_at": "2026-08-12T14:55:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -6764,7 +6764,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Controller-authored native personal Agent provisioning fact. One Event proof binds the controller-supplied accepted Agent DID entry-0 commitment, the forward-declared managed Agent PCR realm id, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability, selector and realm-id-claim cells; no nested payload proof or partial two-Event state is valid. The declared managed Agent PCR genesis arrives in a later separate submission whose admission reverse-looks-up this declaration; its acceptance still awaits the controller-signed create-locked DID entry 1.",
+        "payload": "Controller-authored native personal Agent provisioning fact. One Event proof binds the allocated Agent DID, the forward-declared managed Agent PCR realm id, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability, selector and realm-id-claim cells; no nested payload proof or partial two-Event state is valid. The declared managed Agent PCR genesis arrives in a later separate submission whose admission reverse-looks-up this declaration.",
         "payload_schema_ref": "schemas/agent-provision.schema.json",
         "id_source": "reference"
       },
@@ -9262,13 +9262,13 @@
         "schema_id": "ak.schema.recovery_session.v1",
         "file": "schemas/recovery-session.schema.json",
         "status": "active",
-        "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit request and response helpers, the closed publication-authority snapshot, and principal_signing recovery proof transcript. Session completion is owned exclusively by the bound RecoveryTransaction terminal commit. See crypto-media/device-lifecycle.md §15."
+        "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit request and response helpers, the closed publication-authority snapshot, and principal_signing recovery proof transcript. Session completion is owned exclusively by the bound RecoveryTransaction terminal commit. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
       },
       {
         "schema_id": "ak.schema.recovery_receipt.v1",
         "file": "schemas/recovery-receipt.schema.json",
         "status": "active",
-        "description": "Signed completion receipt for a principal recovery strand. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See crypto-media/device-lifecycle.md §15 step 7."
+        "description": "Signed completion receipt for a principal recovery strand. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
       },
       {
         "schema_id": "ak.schema.notification.v1",
@@ -9877,8 +9877,8 @@
         }
       }
     ],
-    "version": "2026-08-12.1",
-    "generated_at": "2026-08-11T17:08:46Z"
+    "version": "2026-08-12.3",
+    "generated_at": "2026-08-12T14:55:00Z"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -10557,7 +10557,7 @@
         "category": "identity",
         "status": "active",
         "wire_form": "ak:recovery_session:<uuidv7>",
-        "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery strand. Referenced by ak.schema.recovery_receipt.v1 and by §15 recovery proofs. See crypto-media/device-lifecycle.md §15.",
+        "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery strand. Referenced by ak.schema.recovery_receipt.v1 and by RecoveryTransaction proofs. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
       },
@@ -10719,8 +10719,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-08-11.1",
-    "generated_at": "2026-08-11T13:05:00Z"
+    "version": "2026-08-12.3",
+    "generated_at": "2026-08-12T14:55:00Z"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",

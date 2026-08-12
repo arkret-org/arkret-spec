@@ -118,7 +118,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "aac360133b0e8d586ea1a53d5e9e9b6e0f300d84d599d67dd079d5e44d9fc3ee"
+      "sha256": "c2fa66a41fc5eeea3eab168a691ec71ed71bdf9244673deb4df0e19eb9413ad7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
@@ -174,7 +174,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "cb5b8f96f1d2a90eec64dc36e4559f10bfed9b7f0df467403deaf9d036ba4607"
+      "sha256": "a76443dfd43a4341441e0aa979532031c9e0d5c3ea07b96fa06b213676e87f3c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",

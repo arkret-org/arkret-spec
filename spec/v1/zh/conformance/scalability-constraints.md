@@ -386,12 +386,12 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | soft-logout fresh DID proof replay window | `expires_at - issued_at` 最大 300,000 ms；clock skew 最大 300,000 ms | 见 [account-lifecycle.md](../identity/account-lifecycle.md) §4。任一边界超限 MUST 拒绝，reason_code=`did_proof_replay_window_exceeded`。 |
 | `call_empty_timeout_ms` | 默认且最大 120,000 ms | 见 [call-state.md](../crypto-media/call-state.md) §4.2。active media roster 持续为空达到该窗口时，focus / token issuer 或 P2P 承载 Principal Server MUST 推进 `active -> ended`；profile MAY 收紧，不得放宽。 |
 | key backup 每 principal 每 24h 下载上限 | 64（memory-hard profile 可声明 16–256） | 见 [key-management.md](../identity/key-management.md) §7.8。实现 MUST 在 `server/describe.limits` 或 profile 参数中公布实际上限；超限 MUST rate-limit / fail closed，并不得在日志或 telemetry 中泄露 plaintext keybag。 |
-| `push_target_id` rotation 周期 | 默认 ≤ 90 days | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5a.1。客户端 SHOULD 在 push token 变化、设备恢复、out-of-band 重新登录或自定义 rotation 周期到达时轮换；高安全部署 SHOULD 声明更短周期。 |
+| `push_target_id` rotation 周期 | 默认 ≤ 90 days | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5.6.1。客户端 SHOULD 在 push token 变化、设备恢复、out-of-band 重新登录或自定义 rotation 周期到达时轮换；高安全部署 SHOULD 声明更短周期。 |
 | 旧 / 新 `push_target_id` 可逆映射保留 | ≤ 24h，或单条未投递消息 TTL，取较短者 | 服务方只可在 rotation 时短暂保留映射以迁移未投递消息；超过窗口 MUST 物理删除旧 pseudonym 与索引材料，不得保留能把新旧映射回同一 device 的信息。 |
 | DM Realm active member count | 等于 2 | 见 [contact-and-direct-conversation.md](../identity/contact-and-direct-conversation.md) §8。向 active DM Realm 加第三人 MUST reject；升级多人聊天必须创建新的普通 Realm / Strand。 |
 | 加好友附言 `message` 长度 | 1..2000（NFC） | 见 [contact-and-direct-conversation.md](../identity/contact-and-direct-conversation.md) §4。`ak.self.contact.command.request` 的可选 `message` 超长或非 NFC MUST reject（`schema_violation`）。 |
-| 单 `(recipient_service_id, principal_id, device_id)` active `push_route` 条数 | 16 | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5a.2。超过上限的 `ak.device.push_route` 注册 MUST reject，reason_code=`push_route_limit_exceeded`。 |
-| push-route 注册 / 轮换写入速率 | 60s 内 ≤ 8 次（同一上述维度） | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5a.2。超额 MUST rate-limit，内部审计 reason `push_route_registration_rate_limited`。 |
+| 单 `(recipient_service_id, principal_id, device_id)` active `push_route` 条数 | 16 | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5.6.2。超过上限的 `ak.device.push_route` 注册 MUST reject，reason_code=`push_route_limit_exceeded`。 |
+| push-route 注册 / 轮换写入速率 | 60s 内 ≤ 8 次（同一上述维度） | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5.6.2。超额 MUST rate-limit，内部审计 reason `push_route_registration_rate_limited`。 |
 
 ## 7. Retention、Snapshot Pruning 与 Tombstone 上限
 

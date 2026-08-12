@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-12.1",
+  "version": "2026-08-12.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-11T17:08:46Z",
+  "generated_at": "2026-08-12T14:55:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -676,13 +676,13 @@
       "schema_id": "ak.schema.recovery_session.v1",
       "file": "schemas/recovery-session.schema.json",
       "status": "active",
-      "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit request and response helpers, the closed publication-authority snapshot, and principal_signing recovery proof transcript. Session completion is owned exclusively by the bound RecoveryTransaction terminal commit. See crypto-media/device-lifecycle.md §15."
+      "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit request and response helpers, the closed publication-authority snapshot, and principal_signing recovery proof transcript. Session completion is owned exclusively by the bound RecoveryTransaction terminal commit. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
     },
     {
       "schema_id": "ak.schema.recovery_receipt.v1",
       "file": "schemas/recovery-receipt.schema.json",
       "status": "active",
-      "description": "Signed completion receipt for a principal recovery strand. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See crypto-media/device-lifecycle.md §15 step 7."
+      "description": "Signed completion receipt for a principal recovery strand. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
     },
     {
       "schema_id": "ak.schema.notification.v1",

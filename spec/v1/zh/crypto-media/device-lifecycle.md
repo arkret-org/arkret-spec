@@ -353,18 +353,18 @@ genesis / recovery 时候选设备自己 author 整个封闭 unit，因此签名
 
 远端 receiver 必须取得 `principal_genesis_receipt + authorization_chain + accepted_seal + current_device_projection + range_completeness_evidence`。`authorization_chain` 在此不是只挑成功授权 hop，而是从 genesis 到 current Seal、足以重放目标 projection 的完整相关 PCR control history，包含 authorize/revoke/reanchor/list moves；range-completeness attestation 必须证明该区间没有被 source 隐藏 reducer input。Receiver 自行重放并要求 target status=`active`、`authorized_generation_ref == current_device_generation_ref`、generation status=`active`，再与 current projection逐字段比较。外层 source 对“未撤销”的断言不构成 authority。只有 Event payload、proof 与 evidence 的 principal/device/key/generation/frontier 全部一致时才是 `verified`；缺失、gap、witness disagreement 或 stale evidence保持 `unresolved`，不得 TOFU。
 
-## 5a. Privacy-Preserving Push
+### 5.6 Privacy-Preserving Push
 
 Arkret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sync Service、网络中间人或第三方 SaaS 控制面泄露身份与可链接信息的前提下，把"有事可投递"的最小信号送达终端。这是 [`discovery/push-notifications.md`](../discovery/push-notifications.md) 与 [`crypto-media/webrtc-signaling.md`](./webrtc-signaling.md) 中"pairwise pseudonym `push_target_id`"语义的协议层定义。
 
-### 5a.1 `push_target_id` 派生与作用域
+#### 5.6.1 `push_target_id` 派生与作用域
 
 - 作用域：`per (recipient_service_id, principal_id, device_id, push_route)`。`recipient_service_id` 是当前 Realm membership delivery binding 指向的 Principal Server service DID；同一 DID 在个人 Principal Server 与组织 Principal Server 上注册同一物理设备时，MUST 使用互相不可链接的 `push_target_id`。`push_route` 标识同一设备上不同 push 通道（如 `apns_main`, `fcm_voip`, `webpush_default`），允许同一设备针对不同通道发布相互不可链接的伪名。
 - 长度：`push_target_id` MUST 至少 128 bit 熵，编码为 base64url（最少 22 字符）；推荐 256 bit。`high_security_organization`、`sovereign_deployment` / `isolated_sovereign_network` 等高安全 deployment profile MUST 使用 ≥ 256 bit 熵（不可链接性是这些场景的硬隐私属性，128 bit 仅为通用下限）。
 - 不可推导性：`push_target_id` MUST NOT 由公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码可推导。生成方式 SHOULD 是 device-local 随机；设备 MAY 用本地 secret 与 `push_route` 派生，前提是源 secret 不可被服务端取回。
 - 标识形态：典型 wire 形态为 typed ID `ak:pseudonym:push:<base64url>`，由 `id-kind-registry.json` 中 `pseudonym` 项授权使用；也可作为 raw base64url 字符串出现在 `ak.device.push_route` 等 actor-private state event payload 中。
 
-### 5a.2 注册与撤销
+#### 5.6.2 注册与撤销
 
 - 设备 MUST 通过 `ak.device.push_route` actor-private state Event 把 `(recipient_service_id, principal_id, device_id, push_route, push_target_id, push_gateway_service_id, encryption_key, capabilities)` 写入当前投递 Principal Server 可见的 principal control stream 或等价 actor-private state；该 Event 不携带 CBA reducer 字段，不进入 shared Realm Seal coverage。目标 actor-private cell 的 `cell_subject` 由 canonical `contract-registry.json` 的 `event_kind_registry.actor_private_contracts` 声明为 composite `(payload.recipient_service_id, payload.principal_id, payload.device_id, payload.push_route)`，family 使用 `cas_register` 且 `bottom=reject`；schema registry 只负责 payload 形状，不是 merge 真相源。`recipient_service_id` MUST 与 [`governance/member-delivery-binding.md` §2](../governance/member-delivery-binding.md) 接受准则中该 device 所属 member 的 `delivery_binding.recipient_service_id` 一致；推送注册按 `(recipient_service_id, principal, device, push_route)` 维度隔离，同一 DID 在不同 Principal Server 上下文中的 push route 不共享、不可关联。
 - 撤销：设备 MUST 在同一 actor-private cell 上写后继 `ak.device.push_route` event 设置 `revoked: true` 或重新写入新 `push_target_id`；service / gateway MUST 在 actor-private state 收敛后停止接受旧伪名。
@@ -372,21 +372,21 @@ Arkret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sy
 - 长期不可恢复性：服务方在丢弃旧 `push_target_id` 后 MUST NOT 保留可把旧 / 新伪名链接回同一 `(recipient_service_id, principal, device)` 的索引；只允许在 rotation 时短暂保留以便迁移未投递消息。短暂保留期 MUST ≤ 24h，或与单条未投递消息 TTL 取较短者；超过该窗口 MUST 物理删除旧 `push_target_id` 与对应索引材料，不得保留任何能把新旧映射回同一 device 的信息。
 - **条数与注册速率上限（normative）**：单一 `(recipient_service_id, principal_id, device_id)` 维度下并存的 active `push_route` 条数 MUST ≤ 16（v1 wire 上限；登记于 [`../conformance/scalability-constraints.md` §6.1](../conformance/scalability-constraints.md)），超过时服务端 MUST 拒绝新 `ak.device.push_route` 注册（`push_route_limit_exceeded`）。同一维度的 push-route 注册 / 轮换 MUST 限速，默认窗口 60s 内 ≤ 8 次写入；超额时返回限速响应并记内部审计 `push_route_registration_rate_limited`。该上限防止单设备通过无界 push_route 放大注册状态或制造可链接性面。
 
-### 5a.3 不可链接性要求
+#### 5.6.3 不可链接性要求
 
 - 同一 `principal_id` 在不同 `recipient_service_id`、不同设备或不同 push route 上的 `push_target_id` MUST NOT be linkable by push gateway / 第三方 transport（除非两侧自愿持有相同源 secret）。受托 Sync Service MAY 在自己的授权上下文内持有从成员 delivery binding 到本服务本地 push queue 的短期索引，但不得把该索引导出给 Push Gateway / vendor。
 - 同一设备的两条 `push_route` 的伪名 MUST 互相独立；其中一条被泄露不得让攻击者推导另一条。
 - 跨 Realm 投递 MUST 使用同一 `push_target_id`（按 device 而非按 Realm），但 push payload 内不得携带 plaintext `realm_id`/`strand_id`/`message_id`；目标拆分由 device 端解 envelope 后完成。
 
-### 5a.4 Push Payload 形态
+#### 5.6.4 Push Payload 形态
 
 - 协议层 push payload MUST 视作 `encrypted-envelope.schema.json` 形态或等价 ephemeral encrypted blob。AAD MUST NOT 包含可链接 wire 字段，仅可携带 routing-only `wakeup_kind`（参见 `discovery/push-notifications.md`）。
 - gateway / vendor MUST NOT 解密 payload。任何"丰富推送"扩展（如显示发件人）都属于 vendor-side 行为，需要 Realm 与 device 双方明确 opt-in，并对应单独的 plaintext-visible service profile，不在 v1 默认互操作范围。
 
-### 5a.5 与其它子系统的边界
+#### 5.6.5 与其它子系统的边界
 
 - Sync Service：以 `push_target_id` 作为 push fanout 索引。被 member delivery binding 授权的 Principal Server MAY 在运行时持有 `recipient_service_id + principal_id + device_id + push_route -> push_target_id` 映射以完成投递；该映射不得暴露给 Push Gateway / vendor，日志、导出、法定披露和跨服务复制 MUST 脱敏或失效化。未被该 Realm membership / service binding 授权的服务不得保留可逆映射。
-- WebRTC 通话邀请（`webrtc-signaling.md` §9 incoming-call wakeup）通过同一 `push_target_id` 触发；payload 仍走 §5a.4 加密通道。
+- WebRTC 通话邀请（`webrtc-signaling.md` §9 incoming-call wakeup）通过同一 `push_target_id` 触发；payload 仍走 §5.6.4 加密通道。
 - 推送规则（`push-notifications.md` §4 keyword / member_count 等）以 `push_target_id` 为目标但 MUST 在不解密 payload 的前提下完成评估，或在 E2EE Realm 中由设备本地评估，详见对应文档。
 
 ## 6. Device List Sync
@@ -1519,7 +1519,7 @@ resolution successor 时 transaction 才包含 DID publication；DID host outage
 
 客户端必须在任何网络副作用前 durable 保存 identity root/recovery、device identity、HPKE、DPoP keys 与完整 onboarding/recovery draft。UI 应区分：可 exact retry、genesis 已由另一 unit 赢得、必须 re-anchor、以及无 proof 无法恢复；不得让用户通过再次注册静默替换既有 PCR。
 
-## 16. Applet Device Delegation
+## 15. Applet Device Delegation
 
 Applet 如需代表 Ghost Actor 或桥接用户参与 E2EE，MUST 使用受限 delegated device：
 

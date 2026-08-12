@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-session.schema.json",
   "title": "Arkret Recovery Session",
-  "description": "Wire contract for the device recovery session state machine. The root object is the recovery session state shape; request body/result helper shapes and kind-specific recovery proof transcripts live in $defs. See zh/crypto-media/device-lifecycle.md §15.",
+  "description": "Wire contract for the device recovery session state machine. The root object is the recovery session state shape; request body/result helper shapes and kind-specific recovery proof transcripts live in $defs. Completion is owned by the bound RecoveryTransaction; see zh/identity/security-transactions.md §2 and zh/crypto-media/device-lifecycle.md §14.",
   "$ref": "#/$defs/recovery_session_state",
   "$defs": {
     "did_core_id": {

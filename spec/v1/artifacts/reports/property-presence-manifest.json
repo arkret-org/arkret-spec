@@ -15,16 +15,16 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9612,
+    "total_properties": 9619,
     "total_schema_documents": 159,
     "by_presence_class": {
       "optional": 2830,
       "optional_defaulted": 69,
-      "required": 6331,
+      "required": 6335,
       "required_nullable": 126,
-      "tristate": 258
+      "tristate": 259
     },
-    "tristate_occurrences": 258,
+    "tristate_occurrences": 259,
     "tristate_audit_targets": 163,
     "tristate_sdk_dispositions": {
       "absent_null_equivalent": 154,
@@ -189,6 +189,7 @@
     "read-receipt.schema.json/properties/read_scope/allOf/4/then/properties/object_ref",
     "read-receipt.schema.json/properties/read_scope/allOf/5/then/properties/object_ref",
     "realm-genesis.schema.json/allOf/2/then/properties/initial_resolution",
+    "realm-genesis.schema.json/allOf/3/then/properties/initial_resolution",
     "realm-organization-operations.schema.json/$defs/realm_organization_relationship_row/properties/expires_at",
     "realm-read-operations.schema.json/$defs/realm_effective_moderation_policy/properties/realm_policy",
     "realm.schema.json/$defs/cell_lattice/properties/initial_value",
@@ -1308,7 +1309,8 @@
       "shape": "#",
       "instance_path": "/initial_resolution",
       "occurrences": [
-        "/allOf/2/then/properties/initial_resolution"
+        "/allOf/2/then/properties/initial_resolution",
+        "/allOf/3/then/properties/initial_resolution"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -2676,12 +2678,14 @@
         "/$defs/agent_provision_outcome/oneOf/0/properties/status": "optional",
         "/$defs/agent_provision_outcome/oneOf/1/properties/status": "optional",
         "/$defs/agent_provision_outcome/oneOf/2/properties/status": "optional",
+        "/$defs/agent_provision_outcome/oneOf/3/properties/status": "optional",
         "/$defs/agent_provision_outcome/properties/agent_id": "required",
         "/$defs/agent_provision_outcome/properties/allocation_handle": "optional",
         "/$defs/agent_provision_outcome/properties/controller_authorization_ref": "required",
         "/$defs/agent_provision_outcome/properties/controller_realm_id": "optional",
         "/$defs/agent_provision_outcome/properties/expires_at": "optional",
         "/$defs/agent_provision_outcome/properties/full_id": "required",
+        "/$defs/agent_provision_outcome/properties/initial_resolution": "required",
         "/$defs/agent_provision_outcome/properties/pairing_code": "optional",
         "/$defs/agent_provision_outcome/properties/pairing_request_id": "optional",
         "/$defs/agent_provision_outcome/properties/pcr_recovery": "optional",
@@ -2693,7 +2697,8 @@
         "/$defs/agent_provision_request_body/oneOf/1/properties/phase": "optional",
         "/$defs/agent_provision_request_body/properties/agent_id": "optional",
         "/$defs/agent_provision_request_body/properties/allocation_handle": "optional",
-        "/$defs/agent_provision_request_body/properties/full_id": "optional",
+        "/$defs/agent_provision_request_body/properties/controller_authority_instance": "optional",
+        "/$defs/agent_provision_request_body/properties/full_id": "required",
         "/$defs/agent_provision_request_body/properties/idempotency_key": "required",
         "/$defs/agent_provision_request_body/properties/operation_id": "required",
         "/$defs/agent_provision_request_body/properties/pairing_ttl_ms": "optional",
@@ -2861,7 +2866,7 @@
         "/$defs/agent_provision_outcome/properties/principal_control_realm_id",
         "/$defs/agent_provision_request_body/properties/agent_id",
         "/$defs/agent_provision_request_body/properties/allocation_handle",
-        "/$defs/agent_provision_request_body/properties/full_id",
+        "/$defs/agent_provision_request_body/properties/controller_authority_instance",
         "/$defs/agent_provision_request_body/properties/principal_control_realm_id",
         "/$defs/agent_provision_request_body/properties/provision_event",
         "/$defs/agent_sidecar_context_ref/properties/relation_id",
@@ -10527,7 +10532,11 @@
         "/allOf/2/if/properties/purpose": "required",
         "/allOf/2/then/properties/initial_resolution": "tristate",
         "/allOf/2/then/properties/initial_resolution/properties/full_id": "optional",
-        "/allOf/2/then/properties/schema_refs": "optional",
+        "/allOf/3/if/properties/purpose": "required",
+        "/allOf/3/then/properties/initial_resolution": "tristate",
+        "/allOf/3/then/properties/initial_resolution/properties/full_id": "optional",
+        "/allOf/4/if/properties/purpose": "required",
+        "/allOf/4/then/properties/schema_refs": "optional",
         "/properties/capability_action_registry_digest": "required",
         "/properties/digest_algorithm": "required",
         "/properties/encryption_profile": "required",

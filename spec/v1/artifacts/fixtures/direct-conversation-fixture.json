@@ -1161,6 +1161,31 @@
       ]
     },
     {
+      "name": "glare_first_successor_uses_version_two",
+      "vector_id": "ak.vector.contact.next_prepare_input.v1",
+      "precondition": "a glare-derived accepted basis whose issuer-local lineage has only that issuer's request head and no versioned accepted successor",
+      "action": "read ak.self.contact.read.list and prepare the first scope_update or tombstone successor with next_prepare_input copied verbatim",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "next_prepare_input.version is exactly 2",
+        "next_prepare_input.predecessor_event_ref is byte-identical to that issuer's own request Event ID",
+        "the request payload is not required to contain a lineage version and no synthetic version-1 ak.contact.accepted Event is created",
+        "every later successor uses current head version plus one and the exact current head Event ID"
+      ]
+    },
+    {
+      "name": "glare_first_successor_rejects_wrong_bootstrap_edge",
+      "vector_id": "ak.vector.contact.next_prepare_input.v1",
+      "precondition": "the same glare-derived founding edge with no versioned accepted successor",
+      "action": "prepare the first successor with a version other than 2 or with a predecessor other than the issuer's own request Event ID",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "contact_lineage_conflict",
+      "assertions": [
+        "the server writes nothing",
+        "the verifier does not infer a missing request version and does not synthesize an accepted Event"
+      ]
+    },
+    {
       "name": "stale_next_prepare_input_is_refused_and_reread",
       "precondition": "the holder holds a next_prepare_input read before a concurrent accepted successor advanced the lineage head",
       "action": "prepare ak.self.contact.command.scope_update or ak.self.contact.command.tombstone with the stale triple",

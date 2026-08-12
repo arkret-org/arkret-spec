@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-11.3",
+  "version": "2026-08-12.1",
   "codes": [
     {
       "code": "bad_json",
@@ -3896,7 +3896,7 @@
       "applies_to": [
         "device_recovery"
       ],
-      "description": "Recovery-session `rejection_reason_code` value: an operator / admin surface explicitly rejected the session. Closed value set defined in artifacts/schemas/recovery-session.schema.json and zh/crypto-media/device-lifecycle.md §15."
+      "description": "Recovery-session `rejection_reason_code` value: an operator / admin surface explicitly rejected the session. Closed value set defined in artifacts/schemas/recovery-session.schema.json; completion ownership is defined in zh/identity/security-transactions.md §2."
     },
     {
       "code": "other",
@@ -4143,7 +4143,7 @@
       "applies_to": [
         "device_recovery"
       ],
-      "description": "Recovery-session `rejection_reason_code` value: proof verification failures reached the server-side policy limit, so the session transitioned to `rejected`. Closed value set defined in artifacts/schemas/recovery-session.schema.json and zh/crypto-media/device-lifecycle.md §15."
+      "description": "Recovery-session `rejection_reason_code` value: proof verification failures reached the server-side policy limit, so the session transitioned to `rejected`. Closed value set defined in artifacts/schemas/recovery-session.schema.json; completion ownership is defined in zh/identity/security-transactions.md §2."
     },
     {
       "code": "proof_invalid",
@@ -4173,14 +4173,14 @@
         "event_envelope",
         "service_call"
       ],
-      "description": "A `ak.device.push_route` registration would exceed the v1 wire limit of 16 active push_route entries per `(recipient_service_id, principal_id, device_id)`. The server MUST reject the new registration. See zh/crypto-media/device-lifecycle.md §5a.2 and zh/conformance/scalability-constraints.md §6.1."
+      "description": "A `ak.device.push_route` registration would exceed the v1 wire limit of 16 active push_route entries per `(recipient_service_id, principal_id, device_id)`. The server MUST reject the new registration. See zh/crypto-media/device-lifecycle.md §5.6.2 and zh/conformance/scalability-constraints.md §6.1."
     },
     {
       "code": "push_route_registration_rate_limited",
       "applies_to": [
         "service_call"
       ],
-      "description": "Internal audit reason recorded when push-route registration / rotation writes for a `(recipient_service_id, principal_id, device_id)` exceed the default rate (8 writes per 60s). The outward response uses a generic rate-limited envelope; this reason is for server-side abuse detection only. See zh/crypto-media/device-lifecycle.md §5a.2 and zh/conformance/scalability-constraints.md §6.1."
+      "description": "Internal audit reason recorded when push-route registration / rotation writes for a `(recipient_service_id, principal_id, device_id)` exceed the default rate (8 writes per 60s). The outward response uses a generic rate-limited envelope; this reason is for server-side abuse detection only. See zh/crypto-media/device-lifecycle.md §5.6.2 and zh/conformance/scalability-constraints.md §6.1."
     },
     {
       "code": "push_target_unknown",
@@ -4474,7 +4474,7 @@
         "device_recovery",
         "state_resolution"
       ],
-      "description": "A key-backup envelope or recovery proof references a `recovery_policy.policy_id` / `policy_version` that is not the currently accepted policy for the principal. Recovery strands MUST surface this to the user as 'update recovery policy' rather than silently continuing. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/identity/key-management.md §7.5.4 / §7.7 and zh/crypto-media/device-lifecycle.md §15."
+      "description": "A key-backup envelope or recovery proof references a `recovery_policy.policy_id` / `policy_version` that is not the currently accepted policy for the principal. Recovery strands MUST surface this to the user as 'update recovery policy' rather than silently continuing. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/identity/key-management.md §7.5.4 / §7.7 / §8 and zh/identity/security-transactions.md §2."
     },
     {
       "code": "recovery_policy_supersedes_invalid",
@@ -4514,7 +4514,7 @@
         "device_recovery",
         "schema_validation"
       ],
-      "description": "A recovery proof echoes a challenge value that does not exactly match the server-issued challenge for the referenced recovery_session_id. Servers MUST reject the proof before completing device recovery. See zh/crypto-media/device-lifecycle.md §15 and artifacts/schemas/recovery-session.schema.json."
+      "description": "A recovery proof echoes a challenge value that does not exactly match the server-issued challenge for the referenced recovery_session_id. Servers MUST reject the proof before completing device recovery. See artifacts/schemas/recovery-session.schema.json and zh/identity/security-transactions.md §2."
     },
     {
       "code": "recovery_session_terminal",
@@ -4522,7 +4522,7 @@
         "device_recovery",
         "service_call"
       ],
-      "description": "A recovery-session submit_proof or a new RecoveryTransaction binding targeted a recovery session that is already in a terminal state (`completed` / `rejected` / `expired`). Terminal recovery sessions are immutable; servers MUST reject with top-level `failed_precondition` carrying this reason_code. Recovery sessions have no public complete operation. See zh/crypto-media/device-lifecycle.md §15 and artifacts/schemas/recovery-session.schema.json."
+      "description": "A recovery-session submit_proof or a new RecoveryTransaction binding targeted a recovery session that is already in a terminal state (`completed` / `rejected` / `expired`). Terminal recovery sessions are immutable; servers MUST reject with top-level `failed_precondition` carrying this reason_code. Recovery sessions have no public complete operation. See artifacts/schemas/recovery-session.schema.json and zh/identity/security-transactions.md §2."
     },
     {
       "code": "recovery_stale",
@@ -4679,7 +4679,7 @@
       "applies_to": [
         "device_recovery"
       ],
-      "description": "Recovery-session `rejection_reason_code` value: a server-side risk policy rejected the session. Closed value set defined in artifacts/schemas/recovery-session.schema.json and zh/crypto-media/device-lifecycle.md §15."
+      "description": "Recovery-session `rejection_reason_code` value: a server-side risk policy rejected the session. Closed value set defined in artifacts/schemas/recovery-session.schema.json; completion ownership is defined in zh/identity/security-transactions.md §2."
     },
     {
       "code": "rsvp_basis_not_causal",
@@ -5049,7 +5049,7 @@
       "applies_to": [
         "device_recovery"
       ],
-      "description": "Recovery-session `rejection_reason_code` value: the session was superseded by a newer recovery session for the same principal / device. Closed value set defined in artifacts/schemas/recovery-session.schema.json and zh/crypto-media/device-lifecycle.md §15."
+      "description": "Recovery-session `rejection_reason_code` value: the session was superseded by a newer recovery session for the same principal / device. Closed value set defined in artifacts/schemas/recovery-session.schema.json; completion ownership is defined in zh/identity/security-transactions.md §2."
     },
     {
       "code": "superseded_by_repairing",

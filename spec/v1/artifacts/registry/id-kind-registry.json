@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-11.1",
+  "version": "2026-08-12.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-11T13:05:00Z",
+  "generated_at": "2026-08-12T14:55:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -680,7 +680,7 @@
       "category": "identity",
       "status": "active",
       "wire_form": "ak:recovery_session:<uuidv7>",
-      "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery strand. Referenced by ak.schema.recovery_receipt.v1 and by §15 recovery proofs. See crypto-media/device-lifecycle.md §15.",
+      "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery strand. Referenced by ak.schema.recovery_receipt.v1 and by RecoveryTransaction proofs. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },

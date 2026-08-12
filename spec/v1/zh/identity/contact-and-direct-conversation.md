@@ -183,7 +183,12 @@ current proof仅阻止 Contact-based create/send：existing binding resolver仍�
 `contact_state`。按 `contact_state` 逐值判定：`accepted` **MUST** 携带；`pending_outgoing`、`pending_incoming`、
 `rejected`、`expired`、`tombstoned` **MUST NOT** 携带——前两者尚未建立 basis 与 lineage，后三者是 terminal 且 basis 与
 lineage 永不复活。glare 机械派生的 basis 直接投影为 accepted 时同样 **MUST** 携带，此时 `predecessor_event_ref` 是该
-issuer 自己的 request head。scope 全集替换为空只把非 terminal basis 投影为 `suspended`，其 `contact_state` 仍是
+issuer 自己的 request head。若该 issuer-local lineage 尚无任何带版本号的 accepted successor，则这个 request head 是
+bootstrap predecessor，`next_prepare_input.version` **MUST** 为 2；验证方 **MUST** 把“逐字等于该 issuer 自己的 request
+Event ID 的 predecessor + version 2”作为 glare founding edge 的唯一合法首个 successor，**MUST NOT** 因 request payload
+没有 lineage `version` 字段而拒绝，也 **MUST NOT** 合成一条 version 1 的 `ak.contact.accepted` Event。首个 successor 之后
+恢复普通规则：`version = current head version + 1` 且 predecessor 逐字等于 current head Event ID。
+scope 全集替换为空只把非 terminal basis 投影为 `suspended`，其 `contact_state` 仍是
 `accepted`，因此仍 **MUST** 携带该子对象，否则后续显式 widen 无从 author。
 
 游标可能陈旧。服务端 prepare 侧已有 `contact_lineage_conflict`（409）与 `contact_scope_stale`（409），持陈旧游标的
