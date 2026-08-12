@@ -249,9 +249,9 @@
       "message_id": "ak:message:AdkSyT9HhYzsEtFf-5YsJK-z6R8Ime5KR0amOKMJGVbJ",
       "trigger": "on_last_read",
       "eligible_principals": [
-        "did:webvh:z6mkfixturebobexample:bob.example",
-        "did:webvh:z6mkfixturecarolexample:carol.example",
-        "did:webvh:z6mkfixturedavidexample:david.example"
+        "ak:did_core:webvh:z6mkfixturebobexample",
+        "ak:did_core:webvh:z6mkfixturecarolexample",
+        "ak:did_core:webvh:z6mkfixturedavidexample"
       ],
       "contributions": [
         {
@@ -264,7 +264,7 @@
         }
       ],
       "unreachable_principals": [
-        "did:webvh:z6mkfixturedavidexample:david.example"
+        "ak:did_core:webvh:z6mkfixturedavidexample"
       ],
       "read_trigger_window_elapsed": true,
       "offline_devices": [

@@ -11,8 +11,8 @@
       "grants": [
         {
           "id": "ak:grant:Ae03WQeR-L5LzeW5AmsilSKx5U51QwuIRByzW21YdRz_",
-          "issuer": "did:webvh:z6mkfixtureownerexample:owner.example",
-          "subject": "did:webvh:z6mkfixture:alice.example",
+          "issuer": "ak:did_core:webvh:z6mkfixtureownerexample",
+          "subject": "ak:did_core:webvh:z6mkfixture",
           "actions": [
             "ak.strand.read",
             "ak.strand.update"
@@ -425,7 +425,7 @@
       "base": {
         "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
         "root_event_id": "ak:event:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN",
-        "subject": "did:webvh:z6mkfixturerootadminexamplecom:root-admin.example.com",
+        "subject": "ak:did_core:webvh:z6mkfixturerootadminexamplecom",
         "actions": [
           "ak.realm.admin"
         ]
@@ -469,7 +469,7 @@
                 "grant_id": "ak:grant:AaBLvepTRPVgeSYSmCyOygRyyQqDQyB2GtLDiHd49FZN"
               }
             ],
-            "subject": "did:webvh:z6mkfixtureopsexamplecom:ops.example.com",
+            "subject": "ak:did_core:webvh:z6mkfixtureopsexamplecom",
             "resources": [
               {
                 "kind": "realm",
@@ -525,7 +525,7 @@
                 "grant_id": "ak:grant:ASJ_Qsip8sg5hH5GQ31HnTnuIAUcscQt19nAG23ahzpZ"
               }
             ],
-            "subject": "did:webvh:z6mkfixtureinternexamplecom:intern.example.com",
+            "subject": "ak:did_core:webvh:z6mkfixtureinternexamplecom",
             "resources": [
               {
                 "kind": "realm",

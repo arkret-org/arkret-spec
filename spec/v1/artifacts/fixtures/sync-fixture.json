@@ -90,7 +90,7 @@
         "actor_id": "ak:did_core:web:alice.example",
         "next_actor_seq": 0,
         "frontier_event_ids": [],
-        "frontier_digest": "sha256:4bf4476c4eee171fcd96e1943e7af863ff1cf0e0f81b365a3bb0638f0ef233be"
+        "frontier_digest": "sha256:5e859d398cbda1eb78f6a4836e0ff5c2feb345b325d9d710183589264d01bec5"
       }
     },
     {
@@ -106,7 +106,7 @@
           "ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
           "ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe"
         ],
-        "frontier_digest": "sha256:5ecef8bd5d25d016da5444d21cde286e222d56119aa59f9b1de7b0fe2013b53d"
+        "frontier_digest": "sha256:74ed4adca3a3448eef744d447cbaeacb7c371c98ff2409e90ce357edc83dd84b"
       }
     },
     {
@@ -1092,7 +1092,7 @@
     "transcript_label_utf8_nul": "ak-realm-actor-frontier-v1\u0000",
     "digest_algorithm": "sha256",
     "canonical_json": "{\"actor_id\":\"ak:did_core:web:alice.example\",\"frontier_event_ids\":[\"ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\",\"ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe\"],\"kind\":\"realm_actor\",\"next_actor_seq\":43,\"realm_id\":\"ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G\"}",
-    "expected_digest": "sha256:5ecef8bd5d25d016da5444d21cde286e222d56119aa59f9b1de7b0fe2013b53d"
+    "expected_digest": "sha256:74ed4adca3a3448eef744d447cbaeacb7c371c98ff2409e90ce357edc83dd84b"
   },
   "e2ee_decryption_pending": {
     "event_id": "ak:event:AY4rjZ5eX4tirzUMKIQZ0K26SIcvduWsg-p90KQ2PMVZ",

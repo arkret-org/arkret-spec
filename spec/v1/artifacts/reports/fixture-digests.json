@@ -22,7 +22,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "d7c7b10859c46e8daf9534b818a4e01bb1f00115175dcb0f1b47e7a5a7ca8d43"
+      "sha256": "f76084536d741b14c3223d12ac6438cbc01e5c8df77a362fb96442554d08ba7f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
@@ -70,7 +70,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "504c61c71b7cc58045d49429c2f86b8f146bedaf7081d72d6caeedb7a773a7d7"
+      "sha256": "e10ee7f36bd35855c8847623b5c8bb66bed8ce980d4b3fc96d386eee39aa82bc"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
@@ -126,7 +126,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "a9c9cd1a1e2fc556803c7e352524fcf1cff368353517372a885f28793e441d92"
+      "sha256": "f7508ae4e7fb68cc715a516a789756b2e6b10e44e669bba69925ac419a166546"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",
@@ -150,7 +150,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "1cf6044a9784cf961589a21defa5600fe80fcc9eb0eef973de58b87cadee9bbb"
+      "sha256": "4b9424323fed7812405656f0b87111c1512c3d3be7e413fbfac2a457c52e0c71"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hash-transition-fixture.json",
@@ -158,7 +158,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
-      "sha256": "009d097381fee501c445751dfcf3734fe56d042583a81c1264fca0c33b21b2b1"
+      "sha256": "85cfe1bf6952392092d3c0ffe29221fb209af11d68ecc55de07fbd4b2ca3f174"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -350,7 +350,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "fa97e06b3b5da1cb0475ae5afca8b01e175f18cb912862e576c81b9178e4d22e"
+      "sha256": "ea4a71c1c3712e6a7e1aea03c8b901047e72d50788dacd439cb48030356fe77c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",

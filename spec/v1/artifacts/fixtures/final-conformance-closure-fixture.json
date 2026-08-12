@@ -60,15 +60,15 @@
             "idempotency-key"
           ],
           "keyid": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
-          "source_service_id_header": "did:webvh:z6mkfixturebridgeexample:bridge.example",
-          "source_service_id_body": "did:webvh:z6mkfixturebridgeexample:bridge.example",
+          "source_service_id_header": "ak:did_core:webvh:z6mkfixturebridgeexample",
+          "source_service_id_body": "ak:did_core:webvh:z6mkfixturebridgeexample",
           "destination_service_id_header": "did:webvh:z6mkfixtureprincipalexample:principal.example",
           "content_digest_matches_body": true,
           "idempotency_key": "tx-001",
           "body_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "actor_namespace": "did:webvh:z6mkfixturebridgeexample:bridge.example#ghost",
-          "authorization_ref_owner": "did:webvh:z6mkfixturebridgeexample:bridge.example",
+          "authorization_ref_owner": "ak:did_core:webvh:z6mkfixturebridgeexample",
           "expected": {
             "decision": "accept",
             "source_signature_anchor_persisted": true,
@@ -96,8 +96,8 @@
             "idempotency-key"
           ],
           "keyid": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
-          "source_service_id_header": "did:webvh:z6mkfixturebridgeexample:bridge.example",
-          "source_service_id_body": "did:webvh:z6mkfixturemalloryexample:mallory.example",
+          "source_service_id_header": "ak:did_core:webvh:z6mkfixturebridgeexample",
+          "source_service_id_body": "ak:did_core:webvh:z6mkfixturemalloryexample",
           "destination_service_id_header": "did:webvh:z6mkfixtureprincipalexample:principal.example",
           "content_digest_matches_body": true,
           "expected": {
@@ -130,8 +130,8 @@
         {
           "name": "no_active_install",
           "signature_present": true,
-          "source_service_id_header": "did:webvh:z6mkfixtureunknownbridgeexample:unknown-bridge.example",
-          "source_service_id_body": "did:webvh:z6mkfixtureunknownbridgeexample:unknown-bridge.example",
+          "source_service_id_header": "ak:did_core:webvh:z6mkfixtureunknownbridgeexample",
+          "source_service_id_body": "ak:did_core:webvh:z6mkfixtureunknownbridgeexample",
           "destination_service_id_header": "did:webvh:z6mkfixtureprincipalexample:principal.example",
           "content_digest_matches_body": true,
           "expected": {
@@ -152,12 +152,12 @@
             "idempotency-key"
           ],
           "keyid": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
-          "source_service_id_header": "did:webvh:z6mkfixturebridgeexample:bridge.example",
-          "source_service_id_body": "did:webvh:z6mkfixturebridgeexample:bridge.example",
+          "source_service_id_header": "ak:did_core:webvh:z6mkfixturebridgeexample",
+          "source_service_id_body": "ak:did_core:webvh:z6mkfixturebridgeexample",
           "destination_service_id_header": "did:webvh:z6mkfixtureprincipalexample:principal.example",
           "content_digest_matches_body": true,
           "actor_namespace": "did:webvh:z6mkfixture:alice.example",
-          "authorization_ref_owner": "did:webvh:z6mkfixturebridgeexample:bridge.example",
+          "authorization_ref_owner": "ak:did_core:webvh:z6mkfixturebridgeexample",
           "expected": {
             "decision": "reject",
             "reason": "applet_namespace_mismatch"

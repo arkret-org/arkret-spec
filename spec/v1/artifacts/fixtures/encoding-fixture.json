@@ -857,8 +857,8 @@
           }
         ]
       },
-      "issuer": "did:web:issuer.example",
-      "subject": "did:web:subject.example",
+      "issuer": "ak:did_core:web:issuer.example",
+      "subject": "ak:did_core:web:subject.example",
       "positive_cases": [
         {
           "name": "singleton_string",
@@ -868,7 +868,7 @@
           ],
           "scope_preimage_utf8": "ak.accountability-scope-set-v1\n[\"employment\"]",
           "scope_set_component": "igkaAexYhN9e_4LvIFv7fkT5zisbmP8cTz82ES2TlIQ",
-          "cell_subject": "0oP6kgegqj97KeJlIQS1HqrKqOlrC05vv5FbjOt26UI"
+          "cell_subject": "BA7lzcDzqW82cz-jK6ARt7IIenlTM0A2rm3AeUa06k8"
         },
         {
           "name": "singleton_array",
@@ -877,7 +877,7 @@
           ],
           "equivalent_to": "singleton_string",
           "scope_set_component": "igkaAexYhN9e_4LvIFv7fkT5zisbmP8cTz82ES2TlIQ",
-          "cell_subject": "0oP6kgegqj97KeJlIQS1HqrKqOlrC05vv5FbjOt26UI"
+          "cell_subject": "BA7lzcDzqW82cz-jK6ARt7IIenlTM0A2rm3AeUa06k8"
         },
         {
           "name": "two_element_reordered",
@@ -890,7 +890,7 @@
             "employment"
           ],
           "scope_set_component": "GuBGA6Mm1pfBN0XAk4CD0zuPPBxC5HzVNM-AIdFZRnc",
-          "cell_subject": "mpsZQ7e16PpEpIx5EzhcWbP75zwSFLxWVUhUci1Q_JQ"
+          "cell_subject": "01V40-VMq20_58s-0Hl2gI6Qw3sKdjWvOkraWXYGgM0"
         },
         {
           "name": "all_scopes",
@@ -905,7 +905,7 @@
             "employment"
           ],
           "scope_set_component": "Adhn2J3Ht1drmR7yf03sMl6AQIUxyDM4wzqSvlGOLDo",
-          "cell_subject": "_45SQjX2ZreUoyarM5jKLRPu718MCunon-ruoXbTRBw"
+          "cell_subject": "DkDGjGbMEFNget038_RYuQ-oB4yl2mVGfP2wWKAT2r8"
         }
       ],
       "negative_cases": [
