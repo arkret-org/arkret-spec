@@ -858,6 +858,7 @@
         ]
       },
       "issuer": "ak:did_core:web:issuer.example",
+      "principal_server_id": "ak:did_core:web:principal.example",
       "subject": "ak:did_core:web:subject.example",
       "positive_cases": [
         {

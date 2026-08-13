@@ -244,16 +244,16 @@ def materializer_case(
 def build_fixture() -> dict[str, Any]:
     actor_key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex("11" * 32))
     notary_key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex("22" * 32))
-    actor_did = "did:webvh:zfixture:admin.example"
+    actor_did = "did:webvh:z6mkfixtureadminexample:admin.example"
     actor_vm = actor_did + "#key-1"
-    notary_did = "did:webvh:zfixture:notary.example"
+    notary_did = "did:webvh:z6mkfixturenotaryexample:notary.example"
     notary_vm = notary_did + "#key-1"
     realm_id = fixture_derived_id("realm", "governance-realm")
     effective_scope = {"kind": "realm", "realm_id": realm_id}
 
     event_specs = [
-        (0, "did:webvh:zfixture:bob.example"),
-        (1, "did:webvh:zfixture:carol.example"),
+        (0, "did:webvh:z6mkfixturebobexample:bob.example"),
+        (1, "did:webvh:z6mkfixturecarolexample:carol.example"),
     ]
     event_rows = []
     previous_event_id = None

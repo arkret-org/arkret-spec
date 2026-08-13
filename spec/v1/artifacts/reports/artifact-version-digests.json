@@ -159,9 +159,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-08-14.2",
-      "generated_at": "2026-08-14T00:40:00Z",
-      "content_digest": "sha256:6537e7ceeaaa8c9a97106d5a4f16fa4c7619b6f13f8a4066bf6f66aced0467b3"
+      "version": "2026-08-14.3",
+      "generated_at": "2026-08-14T00:50:00Z",
+      "content_digest": "sha256:9517a9921ff23247b01a1c13001efc079b9aa9f89548af37323079cf053ce96e"
     },
     {
       "path": "spec/v1/artifacts/registry/preimage-identity-exemption-registry.json",
