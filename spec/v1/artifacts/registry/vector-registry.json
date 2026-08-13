@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.2",
+  "version": "2026-08-14.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-14T00:40:00Z",
+  "generated_at": "2026-08-14T07:20:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -471,7 +471,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.applet.transaction_delivery_authentication_record.v1",
+      "vector_id": "ak.vector.applet.transaction_delivery_authentication_record_digest.v1",
       "status": "active",
       "domain": "applet",
       "applies_to_fixtures": [

@@ -249,9 +249,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-08-14.2",
-      "generated_at": "2026-08-14T00:40:00Z",
-      "content_digest": "sha256:4ce17be48161e8948d6962ab5e9c5f661d788e4c7efa20ab57953e52311e853a"
+      "version": "2026-08-14.3",
+      "generated_at": "2026-08-14T07:20:00Z",
+      "content_digest": "sha256:5c5470ae7db7a6f687dae8012a318ee1d7bd50a1b39645ad6171282faeeffe7f"
     }
   ]
 }

@@ -146,7 +146,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "a7b22dd86bd8e6919471fe6e3099cc3311f82014b351fba824d4a8f209a0f03b"
+      "sha256": "9aea92f700ecde09e68f94a733348bb27b75d8f537099b4ba19a559bc95710b5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hash-transition-fixture.json",
@@ -210,7 +210,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
-      "sha256": "e7d599d187c20c47cb98ef232134dca8b27492bf3b4e0dc03fb69dc9f5fe6de4"
+      "sha256": "6b2ae17f1c9e559f892a2c6c38a4ec042b4258f12ac69fe6cb05ccb4be596f98"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",

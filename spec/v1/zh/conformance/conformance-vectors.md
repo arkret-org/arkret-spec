@@ -5390,7 +5390,7 @@ Expected：
 
 ### 19.1 Vector: Transaction Delivery Authentication Record
 
-`vector_id`: `ak.vector.applet.transaction_delivery_authentication_record.v1`
+`vector_id`: `ak.vector.applet.transaction_delivery_authentication_record_digest.v1`
 
 本向量固化 applet transaction push 的逐次来源签名与幂等 replay MUST：`ak.edge.applet.command.transaction` 在 node→Applet 与 app/bridge→arkret inbound 两个方向都 MUST 携带 RFC 9421 HTTP Message Signature，covered components 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，签名参数含 `created` / `expires` 并满足 300s replay window；接收方 MUST 形成并持久化 closed `delivery_authentication_record` 及其 domain-separated digest，幂等 identity 绑定 `operation_id`、方向、source/destination service `did_core_id` 与 `Idempotency-Key`，缓存记录绑定 canonical body digest 与 receiver 重算的 authentication-record digest。来源 service 签名不替代每条 Event 的 actor / applet / capability 校验。
 

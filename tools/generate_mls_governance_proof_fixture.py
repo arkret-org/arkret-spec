@@ -131,21 +131,23 @@ def fixture_derived_id(kind: str, label: str) -> str:
 def build_event(
     *,
     actor_seq: int,
-    member_did: str,
+    member_principal_id: str,
     previous_event_id: str | None,
     realm_id: str,
     scope_ref: dict[str, str],
-    actor_did: str,
+    actor_id: str,
+    principal_server_id: str,
     verification_method: str,
     signing_key: Ed25519PrivateKey,
 ) -> tuple[dict[str, Any], str, dict[str, Any]]:
-    cell_subject = member_did.replace(":", "%3A")
+    cell_subject = member_principal_id.replace(":", "%3A")
     state_cell = f"ak:cell:ak.component.member.state.v1:{cell_subject}"
     producer_event: dict[str, Any] = {
         "kind": "ak.member.state",
         "realm_id": realm_id,
         "scope_ref": deepcopy(scope_ref),
-        "actor_id": actor_did,
+        "actor_id": actor_id,
+        "principal_server_id": principal_server_id,
         "actor_seq": actor_seq,
         "created_at": f"2026-07-15T00:00:0{actor_seq}Z",
         "hlc": f"019809f4a80{actor_seq}-0000-a1b2c3d4",
@@ -153,7 +155,7 @@ def build_event(
         "refs": [],
         "payload": {
             "realm_id": realm_id,
-            "actor_id": member_did,
+            "actor_id": member_principal_id,
             "membership": "join",
             "delivery_status": "unroutable",
         },
@@ -168,7 +170,7 @@ def build_event(
     binding = {
         "context": "ak.event-proof-v1",
         "event_digest": event_digest,
-        "actor_id": actor_did,
+        "actor_id": actor_id,
         "verification_method": verification_method,
         "created_at": proof_created_at,
     }
@@ -244,27 +246,40 @@ def materializer_case(
 def build_fixture() -> dict[str, Any]:
     actor_key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex("11" * 32))
     notary_key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex("22" * 32))
-    actor_did = "did:webvh:z6mkfixtureadminexample:admin.example"
-    actor_vm = actor_did + "#key-1"
-    notary_did = "did:webvh:z6mkfixturenotaryexample:notary.example"
-    notary_vm = notary_did + "#key-1"
+    actor_scid = "zQmU9jFzUbPSnLUwq2kgz7oyn83WkGUWjWCAEhnr8tXMeic"
+    actor_full_id = f"did:webvh:{actor_scid}:admin.example"
+    actor_id = f"ak:did_core:webvh:{actor_scid}"
+    actor_vm = actor_full_id + "#key-1"
+    notary_scid = "zQmWPuSdTJBMwfNDNoP5PRRBTWEHX8J5Yp5Ku7EzTJ2sqda"
+    notary_full_id = f"did:webvh:{notary_scid}:notary.example"
+    notary_id = f"ak:did_core:webvh:{notary_scid}"
+    notary_vm = notary_full_id + "#key-1"
     realm_id = fixture_derived_id("realm", "governance-realm")
     effective_scope = {"kind": "realm", "realm_id": realm_id}
 
     event_specs = [
-        (0, "did:webvh:z6mkfixturebobexample:bob.example"),
-        (1, "did:webvh:z6mkfixturecarolexample:carol.example"),
+        (
+            0,
+            "ak:did_core:webvh:zQmWAMSgW29ASLr6gnErgLeEhbPUkaatBkaAfCGhN65AK8P",
+            "did:webvh:zQmWAMSgW29ASLr6gnErgLeEhbPUkaatBkaAfCGhN65AK8P:bob.example",
+        ),
+        (
+            1,
+            "ak:did_core:webvh:zQmbB5BaM4PjFK9Lqpza9cbHRwBRh675VG9zzJBqSuqjRwV",
+            "did:webvh:zQmbB5BaM4PjFK9Lqpza9cbHRwBRh675VG9zzJBqSuqjRwV:carol.example",
+        ),
     ]
     event_rows = []
     previous_event_id = None
-    for actor_seq, member_did in event_specs:
+    for actor_seq, member_principal_id, _member_full_id in event_specs:
         event_row = build_event(
             actor_seq=actor_seq,
-            member_did=member_did,
+            member_principal_id=member_principal_id,
             previous_event_id=previous_event_id,
             realm_id=realm_id,
             scope_ref=effective_scope,
-            actor_did=actor_did,
+            actor_id=actor_id,
+            principal_server_id=notary_id,
             verification_method=actor_vm,
             signing_key=actor_key,
         )
@@ -286,7 +301,7 @@ def build_fixture() -> dict[str, Any]:
     )
     state_root = merkle_root_from_leaf_data([canonical_bytes(value) for value in control_state])
     completeness_leaf = {
-        "actor_id": actor_did,
+        "actor_id": actor_id,
         "from_seq": 0,
         "to_seq": 1,
         "event_digests": [event_rows[0][1], event_rows[1][1]],
@@ -296,10 +311,10 @@ def build_fixture() -> dict[str, Any]:
         [
             {
                 "leaf_index": index,
-                "principal_id": member_did,
-                "credential_ref": f"{member_did}#device-1",
+                "principal_id": member_principal_id,
+                "credential_ref": f"{member_full_id}#device-1",
             }
-            for index, (_, member_did) in enumerate(event_specs)
+            for index, (_, member_principal_id, member_full_id) in enumerate(event_specs)
         ],
         key=canonical_bytes,
     )
@@ -308,10 +323,10 @@ def build_fixture() -> dict[str, Any]:
         [
             {
                 "cell_family": "ak.component.member.state.v1",
-                "cell_subject": member_did,
+                "cell_subject": member_principal_id,
                 "projected_value_digest": wire_digest(canonical_bytes("join")),
             }
-            for _, member_did in event_specs
+            for _, member_principal_id, _member_full_id in event_specs
         ],
         key=lambda row: (
             row["cell_family"].encode("utf-8"),
