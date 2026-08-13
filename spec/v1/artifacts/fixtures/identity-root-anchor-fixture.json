@@ -119,12 +119,12 @@
       }
     },
     {
-      "name": "reject_receipt_scope_authority_instance_substitution",
+      "name": "reject_receipt_scope_account_authority_pair_substitution",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
         "receipt_scope_principal_id_matches": true,
-        "receipt_scope_authority_instance_matches_payload": false,
-        "substituted_field": "principal_genesis_receipt_digest"
+        "receipt_scope_account_authority_pair_matches_payload": false,
+        "substituted_field": "principal_server_id"
       },
       "expected": {
         "decision": "reject",
@@ -136,7 +136,7 @@
       "name": "reject_receipt_scope_generation_substitution",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
-        "receipt_scope_authority_instance_matches_payload": true,
+        "receipt_scope_account_authority_pair_matches_payload": true,
         "receipt_scope_new_device_generation_matches_payload": false
       },
       "expected": {

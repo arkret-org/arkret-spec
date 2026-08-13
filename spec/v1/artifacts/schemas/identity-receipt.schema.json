@@ -57,7 +57,9 @@
       "type": "string",
       "description": "Optional audience binding (verifier DID, service DID, or domain). When present, verifiers MUST reject the receipt outside that audience context to prevent cross-protocol reuse."
     },
-    "created_at": { "$ref": "#/$defs/timestamp" },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
     "signature": {
       "$ref": "./event-envelope.schema.json#/$defs/proof",
       "properties": {

@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-13",
+  "version": "2026-08-13.2",
   "source_of_truth": true,
   "description": "Canonical registry of standard Account Data key patterns. Account Data is actor/private state written through ak.account_data.set unless a row explicitly lists another actor-private event kind. Every row MUST declare its cross-device merge primitive (merge_strategy) and delete semantics (deletion_mode); see spec/v1/zh/models/account-data.md section 5.",
   "registry_rules": [
@@ -173,7 +173,7 @@
       ],
       "merge_strategy": "cas_register",
       "deletion_mode": "physical_delete",
-      "description": "Principal-private sender-side presence visibility policy. Sync services MUST NOT project or read presence_visibility; encrypted Signal fanout is selected by the sender according to profiles-presence.md section 3.4.",
+      "description": "Principal-private sender-side presence visibility policy. Principal Server sync surfaces MUST NOT project or read presence_visibility; encrypted Signal fanout is selected by the sender according to profiles-presence.md section 3.4.",
       "source_refs": [
         "spec/v1/zh/discovery/profiles-presence.md",
         "spec/v1/zh/sync/client-sync.md"

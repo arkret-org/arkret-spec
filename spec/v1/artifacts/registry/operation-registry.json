@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-13.3",
+  "version": "2026-08-14.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-13T10:08:00Z",
+  "generated_at": "2026-08-14T00:30:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -185,14 +185,6 @@
         "ak.self.invite_locator.command.revoke",
         "ak.self.direct_conversation.read.resolve",
         "ak.self.direct_conversation.command.repair_dispatch"
-      ],
-      "surface_class": "extension"
-    },
-    {
-      "surface": "principal_service_binding",
-      "operations": [
-        "ak.self.principal_service_binding.command.prepare",
-        "ak.self.principal_service_binding.command.commit"
       ],
       "surface_class": "extension"
     },
@@ -1734,7 +1726,7 @@
       "http": "POST /_arkret/peer/keys/keypackages/claim",
       "grpc": "PeerKeys/KeyPackagesClaim",
       "mq": "peer.keys.keypackages.command.claim",
-      "notes": "Atomic cross-Principal-Server KeyPackage claim. The destination KeyPackage authority is the sole CAS authority and MUST validate both requester portable authorization evidence, the requester participant authorization and the outer source-service HTTP Message Signature. Every successful human-device claim record carries complete target_device_signing_key_evidence without a semantic history-entry cap; every Native Agent record instead carries request-bound current target_agent_signer_evidence. The requester independently verifies the returned root/Seal/current authority before installing the KeyPackage; the destination service receipt is transport integrity, not signer authority. Idempotency is scoped by (Source-Service-ID, claim_request_id) and binds the canonical request digest; duplicate transport delivery returns the original byte-identical outcome, but callers MUST use the query operation rather than replaying the command after an uncertain outcome. Success omits inventory counts and per-device failures.",
+      "notes": "Atomic cross-Principal-Server KeyPackage claim. The destination Principal Server is the sole CAS authority. The authenticated source Principal Server first admits the participant request against its local account pair and current endpoint state; request and response carry no PCR/control-history or signer-evidence sidecar. Every claim binds the matching accepted authorization Event id, whose in-envelope Principal Server admission proof, the signed destination claim receipt, exact selectors and KeyPackage signature MUST all validate. Idempotency is scoped by (Source-Service-ID, claim_request_id) and the canonical request digest.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -1815,7 +1807,7 @@
       "http": "QUERY /_arkret/peer/service-resolution/resolve",
       "grpc": "PeerServiceResolution/Resolve",
       "mq": "peer.service_resolution.query.resolve",
-      "notes": "Read-only Realm-scoped recovery of at most 32 continuous target-signed successor records and one active target-signed handover notice within a caller-selected response budget capped at 256 KiB. The authenticated requester must be a current allowed federation peer and must already be authorized to know the target service core through an effective member delivery binding, sync_endpoints or explicit service delegation. Unknown, unauthorized, invisible, not-held and unavailable are outwardly indistinguishable and query/source/target rate limits prevent enumeration. The responder never returns a mirror-signed bare URL. The requester independently verifies every target proof, exact chain, freshness, method history and describe reverse binding; same sequence with different valid target-signed digests enters route-fork quarantine rather than majority, arrival-order or reachability selection.",
+      "notes": "Read-only Realm-scoped recovery of at most 32 continuous target-signed successor records and one active target-signed handover notice within a caller-selected response budget capped at 256 KiB. The authenticated requester must be a current allowed federation peer and must already be authorized to know the target service core through an effective joined-member delivery binding or explicit service delegation. Unknown, unauthorized, invisible, not-held and unavailable are outwardly indistinguishable and query/source/target rate limits prevent enumeration. The responder never returns a mirror-signed bare URL. The requester independently verifies every target proof, exact chain, freshness, method history and describe reverse binding; same sequence with different valid target-signed digests enters route-fork quarantine rather than majority, arrival-order or reachability selection.",
       "body_class": "non_streaming_json",
       "max_canonical_body_bytes": 16384,
       "success_shape_kind": "typed_response",
@@ -2159,7 +2151,7 @@
       "http": "POST /_arkret/self/account/profile",
       "grpc": "SelfAccount/UpdateProfile",
       "mq": "self.account.command.update_profile",
-      "notes": "Carries exactly one holder-signed profile_event EventInitialSubmission and no unsigned patch. event.realm_id is the exact PrincipalAuthorityInstance PCR selector; accepted-profile presence is evaluated only in that PCR lineage. If it has no accepted Actor Profile, the Event must be ak.profile.create; its actor_profile ID is derived by retyping the create Event ID and payload.object must omit id. If it has an accepted Profile, the Event must be ak.profile.update, payload.target_ref must equal that create-derived ID, and the signed patch remains limited to display_name, avatar_blob_ref and profile_fields.<key>. Both branches bind realm scope to the same PCR and event.actor_id to the session principal. On create payload.object.principal_id must equal that principal; on update the accepted target profile's materialized principal_id must equal it. Direct holder proof is required without executor or Applet provenance. Event preconditions are empty; update concurrency uses only optional signed payload.expected_state_digest. The service forwards the exact bytes through ordinary Event admission without authoring, rebuilding, co-signing, choosing an ID or adding a concurrency guard. Until the Control Move has accepted Seal coverage the operation returns frontier_unavailable; exact retry after coverage returns the byte-identical stored outcome. The single accepted effect advances the holder account-aggregate projection once; it creates no Directory announcement or account-data Event.",
+      "notes": "Carries exactly one holder-signed profile_event EventInitialSubmission and no unsigned patch. event.realm_id is the exact account-local PCR Realm selector; accepted-profile presence is evaluated only in that PCR lineage. If it has no accepted Actor Profile, the Event must be ak.profile.create; its actor_profile ID is derived by retyping the create Event ID and payload.object must omit id. If it has an accepted Profile, the Event must be ak.profile.update, payload.target_ref must equal that create-derived ID, and the signed patch remains limited to display_name, avatar_blob_ref and profile_fields.<key>. Both branches bind realm scope to the same PCR and event.actor_id to the session principal. On create payload.object.principal_id must equal that principal; on update the accepted target profile's materialized principal_id must equal it. Direct holder proof is required without executor or Applet provenance. Event preconditions are empty; update concurrency uses only optional signed payload.expected_state_digest. The service forwards the exact bytes through ordinary Event admission without authoring, rebuilding, co-signing, choosing an ID or adding a concurrency guard. Until the Control Move has accepted Seal coverage the operation returns frontier_unavailable; exact retry after coverage returns the byte-identical stored outcome. The single accepted effect advances the holder account-aggregate projection once; it creates no Directory announcement or account-data Event.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
@@ -2188,7 +2180,7 @@
       "http": "GET /_arkret/self/account/viewer",
       "grpc": "SelfAccount/Viewer",
       "mq": "self.account.query.viewer",
-      "notes": "Holder-bound one-shot read of the current principal account projection. Returns principal_id, account lifecycle state, device summaries, optional ActorProfile, and signed handle-claim evidence or refs. Because the operation has no authority-instance selector, profile is present only when exactly one accepted profile is unambiguous across the principal's PCR lineages; multiple accepted lineages fail closed by omitting profile, never by choosing an implicit current PCR. It MUST NOT return an unsigned bare handle as authoritative identity. Naming: the trailing segment 'viewer' is intentionally outside the api-conventions.md §2.4 read-verb taxonomy; it follows the GraphQL 'viewer' convention (the authenticated subject's own projection). The target is located by the holder-bound session rather than an external id, so 'get' does not apply, and 'viewer' (subject identity projection) stays distinct from 'describe' (service capability metadata).",
+      "notes": "Holder-bound one-shot read of the current principal account projection. Returns principal_id, account lifecycle state, device summaries, optional ActorProfile, and signed handle-claim evidence or refs. Because the operation has no account-local-lineage selector, profile is present only when exactly one accepted profile is unambiguous across the principal's PCR lineages; multiple accepted lineages fail closed by omitting profile, never by choosing an implicit current PCR. It MUST NOT return an unsigned bare handle as authoritative identity. Naming: the trailing segment 'viewer' is intentionally outside the api-conventions.md §2.4 read-verb taxonomy; it follows the GraphQL 'viewer' convention (the authenticated subject's own projection). The target is located by the holder-bound session rather than an external id, so 'get' does not apply, and 'viewer' (subject identity projection) stays distinct from 'describe' (service capability metadata).",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_view"
@@ -2425,7 +2417,7 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
       "retry_safe": true,
-      "notes": "Controller-only caller-signed ak.capability.revoke Control Move. Path grant_id, payload grant_id/grant_ref, path Agent subject, target Realm, authenticated actor, the exact authority instance selected by the session, and the sole signed head_eq guard on the complete grant-cell head are all admission invariants. The service never authors the Event or appends CAS after signing; exact replay returns event.created_at as revoked_at.",
+      "notes": "Controller-only caller-signed ak.capability.revoke Control Move. Path grant_id, payload grant_id/grant_ref, path Agent subject, target Realm, authenticated actor, the exact account-local lineage selected by the session, and the sole signed head_eq guard on the complete grant-cell head are all admission invariants. The service never authors the Event or appends CAS after signing; exact replay returns event.created_at as revoked_at.",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome",
       "durable_effect": {
@@ -3215,38 +3207,6 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "persists_a_byte_identical_service_local_peer_relay_outbox_without_authoring_an_event"
-      }
-    },
-    {
-      "operation_id": "ak.self.principal_service_binding.command.prepare",
-      "http_only_variant": true,
-      "http": "POST /_arkret/self/principal-service-bindings/prepare",
-      "notes": "Authenticated principal session requests one durable frozen AcceptedAtServiceBinding core after DID publication and PCR acceptance. The service derives current DID authority evidence, its own service metadata/key/origins and timestamps; the caller supplies none of them. Omitting expected_current_binding_digest is create-if-absent, supplying it is same-service renewal CAS. The service-generated challenge is copied into binding_draft.authorization_challenge and therefore binding_digest. Same request_id and intent replays the same unconsumed draft; different intent conflicts.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "request_id",
-      "retry_safe": true,
-      "request_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_request_body",
-      "response_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_outcome",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "persists_only_a_service_local_single_use_frozen_binding_challenge_no_event_is_authored"
-      }
-    },
-    {
-      "operation_id": "ak.self.principal_service_binding.command.commit",
-      "http_only_variant": true,
-      "http": "POST /_arkret/self/principal-service-bindings/commit",
-      "notes": "Commit the exact durable binding draft with a principal proof whose method is valid at accepted_at. The service recomputes both transcripts and atomically CAS-installs the immutable accepted binding, signs the service-acceptance proof, consumes the challenge and stores the byte-identical outcome. Exact request replay returns that outcome; challenge reuse, expiry, digest/proof mismatch or a moved current pointer writes nothing.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "request_id",
-      "retry_safe": true,
-      "request_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_request_body",
-      "response_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_outcome",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "service_local_current_binding_cas_and_portable_signed_snapshot_no_event_is_authored"
       }
     },
     {

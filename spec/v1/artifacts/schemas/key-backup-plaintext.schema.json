@@ -53,7 +53,7 @@
     "backup_kind": {
       "type": "string",
       "enum": [
-                "secret_storage",
+        "secret_storage",
         "mls_history"
       ]
     },

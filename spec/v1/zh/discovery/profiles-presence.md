@@ -156,7 +156,7 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
 ```
 
 - `ak.profile.create` 初始化完整对象；`ak.profile.update` 仅携带发生变化的字段（delta 更新）
-- 其他参与者的客户端通过 Sync Service 的 Sync Stream 或 Actor Events API 同步获取最新 Profile
+- 其他参与者的客户端通过 Principal Server sync surface 的 Sync Stream 或 Actor Events API 同步获取最新 Profile
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示
 
 `ak.profile.create` 与 `ak.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）。两 kind 共写入同一 cell `ak:cell:ak.component.profile.create.v1:<target_actor_profile_id>`（mv_register, bottom=expose），`cell_subject` 由 schema registry 派生：create 把 `envelope.event_id` retype 为 `ak:actor_profile:*`，update 使用必须逐字等于该派生 ID 的 `payload.target_ref`。
@@ -255,7 +255,7 @@ timestamp 或对齐 Unix epoch UTC、duration 不小于 PT60S 的 ISO 8601 inter
 3. `status_message` 取 `sent_at` 最新的非空值；
 4. `last_active_at` 取通过校验后的最新值。
 
-Sync Service 不得解密、聚合或投影 presence 内容。
+Principal Server sync surface 不得解密、聚合或投影 presence 内容。
 
 **持续在线刷新（normative）。** 声明自己当前可达并选择广播 presence 的发送端（包括前台客户端、后台常驻客户端与 native Agent runtime）MUST 在上一条 `ak.presence` 的 effective expiry 之前发送同一 scope 的后继信号；每个后继信号 MUST 使用严格递增的 `(sender_device_id, scope_ref)` `payload_sequence`、新的 Signal nonce，并重新绑定发送时的 accepted `seal_ref` / MLS epoch。对 v1 `session` class 的 30 秒上限，实现 SHOULD 使用 20–25 秒的刷新周期，并 MUST 为调度、网络抖动与 session refresh 预留至少 5 秒余量；不得把进程健康检查、WebSocket / account stream keepalive 或最后一次 durable Message 当作 presence 刷新。运行时一旦不能取得当前授权、accepted Seal、可持久化的 MLS Signal nonce state，或不能在 expiry 前完成加密提交，MUST 停止宣称 online；接收端继续按上面的 TTL 规则自然聚合为 `offline`，不得延长旧信号。
 
@@ -279,7 +279,7 @@ Sync Service 不得解密、聚合或投影 presence 内容。
 | `contacts_only` | 仅对明确的联系人可见 |
 | `nobody` | 完全隐藏在线状态（对所有人显示为 offline） |
 
-`ak.presence.visibility` 是发送侧的 principal-private policy，不得成为 Sync Service 的明文
+`ak.presence.visibility` 是发送侧的 principal-private policy，不得成为 Principal Server sync surface 的明文
 projection。Signal 使用 scope group key，因此发送方只能向整个 signed scope 加密：
 
 - `public` 表示目标 scope 的全部 active members；
@@ -300,7 +300,7 @@ plaintext MUST 通过闭合 schema `ak.schema.signal_typing.v1`
 （[`signal-typing.schema.json`](../../artifacts/schemas/signal-typing.schema.json)，
 `additionalProperties: false`）：required 字段为 `kind="ak.typing"`、`payload_sequence`、
 `strand_id` 与 `typing`，可选字段只有 `track_name` 和 `ttl_ms`。全部字段位于 ciphertext
-plaintext 内；不得把目标 Strand 或精确 kind 暴露给 Sync Service。
+plaintext 内；不得把目标 Strand 或精确 kind 暴露给 Principal Server sync surface。
 
 - `track_name` present 时 MUST 为 `discussion`，省略时接收方解析为 `discussion`；
 - plaintext TTL 不得放宽外层 Signal TTL，客户端到期后自动清除指示；

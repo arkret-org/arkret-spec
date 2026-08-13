@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-policy.schema.json",
   "title": "Arkret Recovery Policy",
-  "description": "Normative grammar for a principal's PCR recovery policy. Bound to one Principal Authority Instance through signed control events; receivers reject recovery and pcr_recovery device authorization whose proof family, threshold or optional DID-root factor is not allowed by the currently accepted policy.",
+  "description": "Normative grammar for a principal's PCR recovery policy. Bound through signed control events to the account selected by the exact (principal_id, principal_server_id) authority pair and its local unique PCR lineage; receivers reject recovery and pcr_recovery device authorization whose proof family, threshold or optional DID-root factor is not allowed by the currently accepted policy.",
   "type": "object",
   "required": [
     "schema",
@@ -62,7 +62,7 @@
           "threshold_recovery"
         ]
       },
-      "description": "Which proof families authorize PCR device re-entry. did_root is optional and revocable; omitting it guarantees current DID control alone cannot recover this authority instance."
+      "description": "Which proof families authorize PCR device re-entry. did_root is optional and revocable; omitting it guarantees current DID control alone cannot recover this account-local lineage."
     },
     "publication_authorization_rules": {
       "type": "array",

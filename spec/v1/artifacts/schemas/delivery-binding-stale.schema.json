@@ -64,7 +64,7 @@
   "$defs": {
     "event_id": {
       "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "event_id_list": {
       "type": "array",

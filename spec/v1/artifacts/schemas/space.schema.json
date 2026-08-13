@@ -128,9 +128,9 @@
     "created_at": {
       "$ref": "#/$defs/timestamp"
     },
-      "updated_by": {
-        "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-      },
+    "updated_by": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+    },
     "updated_at": {
       "$ref": "#/$defs/timestamp"
     }

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-join-candidate.schema.json",
   "title": "Arkret Realm Join Candidate",
-  "description": "Time-bounded routing hint for submitting Realm join, invite-accept, knock, or restricted-join material through a qualified Realm service. This object is not membership authorization and is distinct from member_delivery_binding.",
+  "description": "Time-bounded routing hint used by the invitee's Principal Server to forward Realm join, invite-accept, knock, or restricted-join material to an existing joined member's Principal Server. Clients submit only to their own Principal Server. This object is not membership authorization and is distinct from the invitee's post-join member_delivery_binding.",
   "type": "object",
   "required": [
     "realm_id",
@@ -33,24 +33,16 @@
     "service_kind": {
       "type": "string",
       "enum": [
-        "principal_server",
-        "sync_node",
-        "notary"
+        "principal_server"
       ],
-      "description": "Service class. principal_server is the normal candidate; sync_node and notary are allowed only when Realm policy authorizes them to receive join-side submissions."
+      "description": "Join-side submission target. v1 permits only the invitee's or an existing joined member's Principal Server."
     },
     "role": {
       "type": "string",
       "enum": [
-        "primary",
-        "mirror",
-        "notary",
-        "sync",
-        "federation_peer",
-        "invite_origin",
-        "reviewer_ingress"
+        "joined_member_principal_server"
       ],
-      "description": "Routing role within the Realm candidate set. This is a hint for ordering and diagnostics, not an authorization grant."
+      "description": "The only v1 forwarding role: a Principal Server selected from a current joined-member delivery binding. This is a bounded route hint, not an authorization grant."
     },
     "endpoint": {
       "type": "string",
@@ -64,11 +56,11 @@
         "pattern": "^ak\\.[a-z0-9][a-z0-9_.-]*$"
       },
       "contains": {
-        "const": "ak.self.events.command.submit"
+        "const": "ak.peer.events.command.submit"
       },
       "uniqueItems": true,
       "minItems": 1,
-      "description": "Endpoint-callable operation ids available at this candidate. Join-side routing requires ak.events.submit."
+      "description": "Endpoint-callable operation ids available at this candidate. Join-side forwarding from the invitee Principal Server requires ak.peer.events.command.submit; clients never call the candidate directly."
     },
     "join_methods": {
       "type": "array",
@@ -95,14 +87,10 @@
     "source": {
       "type": "string",
       "enum": [
-        "realm_sync_endpoint",
-        "directory_ingest",
         "invite_hint",
-        "signed_link_hint",
-        "federation_redirect",
-        "local_cache"
+        "member_delivery_binding"
       ],
-      "description": "Where this routing hint came from. Receivers still validate current Realm policy and the signed ServiceResolutionRecord; route authority comes from the validated record, while GET /_arkret/describe is only second-hop capability and metadata confirmation."
+      "description": "Bounded route provenance. Only a signed invite or a current joined-member delivery binding may produce a candidate; neither source grants admission authority."
     },
     "source_refs": {
       "type": "array",
@@ -110,7 +98,7 @@
         "$ref": "#/$defs/event_id"
       },
       "uniqueItems": true,
-      "description": "Realm or directory source events that justify this candidate, such as discovery, service-binding, or sync endpoint state."
+      "description": "Signed invite or current joined-member delivery-binding Events that justify this candidate."
     },
     "frontier_ref": {
       "type": "string",
@@ -135,7 +123,7 @@
         "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
       "minItems": 1,
-      "description": "Optional proof set binding realm_id, service_id, role, operations, join_methods, as_of, and expires_at. Required when the candidate is carried outside a freshly resolved Directory response."
+      "description": "Optional proof set binding realm_id, service_id, role, operations, join_methods, as_of, and expires_at. Required when the candidate is carried outside the signed invite or current joined-member delivery-binding evidence from which it was derived."
     }
   },
   "additionalProperties": false,
@@ -144,12 +132,7 @@
       "if": {
         "properties": {
           "source": {
-            "enum": [
-              "invite_hint",
-              "signed_link_hint",
-              "federation_redirect",
-              "local_cache"
-            ]
+            "const": "invite_hint"
           }
         },
         "required": [
@@ -166,7 +149,7 @@
   "$defs": {
     "event_id": {
       "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

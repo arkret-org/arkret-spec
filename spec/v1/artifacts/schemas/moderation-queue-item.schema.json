@@ -52,9 +52,9 @@
     },
     "assigned_to": {
       "type": "array",
-        "items": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        }
+      "items": {
+        "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+      }
     },
     "evidence_policy": {
       "type": "object",

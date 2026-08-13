@@ -4,8 +4,12 @@
   "title": "Arkret Agent Signer Evidence",
   "description": "Closed portable evidence for one Native Agent signer. Current admission and historical Event verification are structurally disjoint. Historical validity is fixed by a destination-signed admission receipt; it is never reconstructed from a later current snapshot.",
   "oneOf": [
-    { "$ref": "#/$defs/current_admission_evidence" },
-    { "$ref": "#/$defs/historical_event_evidence" }
+    {
+      "$ref": "#/$defs/current_admission_evidence"
+    },
+    {
+      "$ref": "#/$defs/historical_event_evidence"
+    }
   ],
   "$defs": {
     "current_admission_evidence": {
@@ -18,12 +22,24 @@
         "outer_attestation"
       ],
       "properties": {
-        "schema": { "const": "ak.schema.agent_signer_evidence.v1" },
-        "verification_mode": { "const": "current_admission" },
-        "admission_evidence": { "$ref": "#/$defs/admission_evidence" },
-        "current_observation": { "$ref": "#/$defs/current_observation" },
-        "outer_attestation": { "$ref": "#/$defs/outer_attestation" },
-        "transparency": { "$ref": "#/$defs/transparency" }
+        "schema": {
+          "const": "ak.schema.agent_signer_evidence.v1"
+        },
+        "verification_mode": {
+          "const": "current_admission"
+        },
+        "admission_evidence": {
+          "$ref": "#/$defs/admission_evidence"
+        },
+        "current_observation": {
+          "$ref": "#/$defs/current_observation"
+        },
+        "outer_attestation": {
+          "$ref": "#/$defs/outer_attestation"
+        },
+        "transparency": {
+          "$ref": "#/$defs/transparency"
+        }
       },
       "additionalProperties": false
     },
@@ -37,12 +53,24 @@
         "outer_attestation"
       ],
       "properties": {
-        "schema": { "const": "ak.schema.agent_signer_evidence.v1" },
-        "verification_mode": { "const": "historical_event" },
-        "admission_evidence": { "$ref": "#/$defs/admission_evidence" },
-        "event_admission_receipt": { "$ref": "#/$defs/event_admission_receipt" },
-        "outer_attestation": { "$ref": "#/$defs/outer_attestation" },
-        "transparency": { "$ref": "#/$defs/transparency" }
+        "schema": {
+          "const": "ak.schema.agent_signer_evidence.v1"
+        },
+        "verification_mode": {
+          "const": "historical_event"
+        },
+        "admission_evidence": {
+          "$ref": "#/$defs/admission_evidence"
+        },
+        "event_admission_receipt": {
+          "$ref": "#/$defs/event_admission_receipt"
+        },
+        "outer_attestation": {
+          "$ref": "#/$defs/outer_attestation"
+        },
+        "transparency": {
+          "$ref": "#/$defs/transparency"
+        }
       },
       "additionalProperties": false
     },
@@ -54,8 +82,12 @@
         "admission_evidence_digest"
       ],
       "properties": {
-        "agent_authority_snapshot": { "$ref": "#/$defs/agent_authority_snapshot" },
-        "controller_account_gate_attestation": { "$ref": "#/$defs/controller_account_gate_attestation" },
+        "agent_authority_snapshot": {
+          "$ref": "#/$defs/agent_authority_snapshot"
+        },
+        "controller_account_gate_attestation": {
+          "$ref": "#/$defs/controller_account_gate_attestation"
+        },
         "admission_evidence_digest": {
           "$ref": "#/$defs/sha256",
           "description": "SHA-256 over RFC 8785 JCS of exactly {agent_authority_snapshot, controller_account_gate_attestation}. It never includes itself, a receipt or an outer attestation."
@@ -65,14 +97,22 @@
     },
     "agent_authority_snapshot": {
       "type": "object",
-      "required": ["core", "snapshot_digest", "lease"],
+      "required": [
+        "core",
+        "snapshot_digest",
+        "lease"
+      ],
       "properties": {
-        "core": { "$ref": "#/$defs/agent_authority_snapshot_core" },
+        "core": {
+          "$ref": "#/$defs/agent_authority_snapshot_core"
+        },
         "snapshot_digest": {
           "$ref": "#/$defs/sha256",
           "description": "SHA-256 over RFC 8785 JCS of core only."
         },
-        "lease": { "$ref": "#/$defs/agent_snapshot_lease" }
+        "lease": {
+          "$ref": "#/$defs/agent_snapshot_lease"
+        }
       },
       "additionalProperties": false
     },
@@ -90,21 +130,41 @@
         "seal_lineage"
       ],
       "properties": {
-        "authority_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "principal_control_realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
-        "frontier_seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
-        "frontier_state_root": { "$ref": "#/$defs/hash" },
-        "signing_key_binding": { "$ref": "./agent-signing-key-binding.schema.json" },
-        "authorization": { "$ref": "#/$defs/authorization" },
-        "key_state_witness": { "$ref": "#/$defs/key_state_witness" },
-        "key_transition_witness": { "$ref": "#/$defs/key_transition_witness" },
-        "agent_lifecycle_witness": { "$ref": "#/$defs/agent_lifecycle_witness" },
+        "authority_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "frontier_seal_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        },
+        "frontier_state_root": {
+          "$ref": "#/$defs/hash"
+        },
+        "signing_key_binding": {
+          "$ref": "./agent-signing-key-binding.schema.json"
+        },
+        "authorization": {
+          "$ref": "#/$defs/authorization"
+        },
+        "key_state_witness": {
+          "$ref": "#/$defs/key_state_witness"
+        },
+        "key_transition_witness": {
+          "$ref": "#/$defs/key_transition_witness"
+        },
+        "agent_lifecycle_witness": {
+          "$ref": "#/$defs/agent_lifecycle_witness"
+        },
         "seal_lineage": {
           "type": "array",
           "minItems": 1,
           "maxItems": 4096,
           "uniqueItems": true,
-          "items": { "$ref": "./seal.schema.json" },
+          "items": {
+            "$ref": "./seal.schema.json"
+          },
           "description": "Complete duplicate-free predecessor closure needed to connect the key and Agent-status witness Seals to frontier_seal_id. Every Seal is in principal_control_realm_id."
         }
       },
@@ -113,25 +173,58 @@
           "if": {
             "properties": {
               "authorization": {
-                "properties": { "status": { "enum": ["revoked", "superseded"] } },
-                "required": ["status"]
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "revoked",
+                      "superseded"
+                    ]
+                  }
+                },
+                "required": [
+                  "status"
+                ]
               }
             },
-            "required": ["authorization"]
+            "required": [
+              "authorization"
+            ]
           },
-          "then": { "required": ["key_transition_witness"] }
+          "then": {
+            "required": [
+              "key_transition_witness"
+            ]
+          }
         },
         {
           "if": {
             "properties": {
               "authorization": {
-                "properties": { "status": { "enum": ["active", "expired", "conflicted"] } },
-                "required": ["status"]
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "active",
+                      "expired",
+                      "conflicted"
+                    ]
+                  }
+                },
+                "required": [
+                  "status"
+                ]
               }
             },
-            "required": ["authorization"]
+            "required": [
+              "authorization"
+            ]
           },
-          "then": { "not": { "required": ["key_transition_witness"] } }
+          "then": {
+            "not": {
+              "required": [
+                "key_transition_witness"
+              ]
+            }
+          }
         }
       ],
       "additionalProperties": false
@@ -148,13 +241,27 @@
         "proof"
       ],
       "properties": {
-        "authority_kind": { "const": "agent_authority" },
-        "authority_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "verification_method": { "$ref": "./common-ids.schema.json#/$defs/did_url" },
-        "snapshot_digest": { "$ref": "#/$defs/sha256" },
-        "issued_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
-        "expires_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
-        "proof": { "$ref": "#/$defs/detached_jws" }
+        "authority_kind": {
+          "const": "agent_authority"
+        },
+        "authority_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "snapshot_digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "#/$defs/detached_jws"
+        }
       },
       "additionalProperties": false,
       "description": "Authority signature over domain ak.agent-authority-snapshot-v1 and every sibling field except proof.jws. Current admission checks the lease at verifier-now; historical verification checks it at the receipt accepted_at."
@@ -175,34 +282,86 @@
         "proof"
       ],
       "properties": {
-        "schema": { "const": "ak.schema.controller_account_gate_attestation.v1" },
-        "principal_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "eligibility": { "type": "string", "enum": ["active", "inactive"] },
+        "schema": {
+          "const": "ak.schema.controller_account_gate_attestation.v1"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "eligibility": {
+          "type": "string",
+          "enum": [
+            "active",
+            "inactive"
+          ]
+        },
         "status": {
           "type": "string",
-          "enum": ["active", "soft_logged_out", "locked", "suspended", "deactivated", "erasure_pending"]
+          "enum": [
+            "active",
+            "soft_logged_out",
+            "locked",
+            "suspended",
+            "deactivated",
+            "erasure_pending"
+          ]
         },
         "basis": {
           "oneOf": [
-            { "$ref": "#/$defs/account_binding_default_basis" },
-            { "$ref": "#/$defs/account_status_event_basis" }
+            {
+              "$ref": "#/$defs/account_binding_default_basis"
+            },
+            {
+              "$ref": "#/$defs/account_status_event_basis"
+            }
           ]
         },
         "basis_digest": {
           "$ref": "#/$defs/sha256",
           "description": "Digest of the Account Authority-private binding/status projection selected by basis. The portable object never carries a service-local account_id or raw account cell."
         },
-        "authority_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "verification_method": { "$ref": "./common-ids.schema.json#/$defs/did_url" },
-        "issued_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
-        "expires_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
-        "proof": { "$ref": "#/$defs/detached_jws" }
+        "authority_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "#/$defs/detached_jws"
+        }
       },
       "allOf": [
         {
-          "if": { "properties": { "status": { "const": "active" } }, "required": ["status"] },
-          "then": { "properties": { "eligibility": { "const": "active" } } },
-          "else": { "properties": { "eligibility": { "const": "inactive" } } }
+          "if": {
+            "properties": {
+              "status": {
+                "const": "active"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "eligibility": {
+                "const": "active"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "eligibility": {
+                "const": "inactive"
+              }
+            }
+          }
         }
       ],
       "additionalProperties": false,
@@ -210,22 +369,46 @@
     },
     "account_binding_default_basis": {
       "type": "object",
-      "required": ["kind", "binding_version", "binding_frontier_digest"],
+      "required": [
+        "kind",
+        "binding_version",
+        "binding_frontier_digest"
+      ],
       "properties": {
-        "kind": { "const": "account_binding_default" },
-        "binding_version": { "type": "integer", "minimum": 1 },
-        "binding_frontier_digest": { "$ref": "#/$defs/hash" }
+        "kind": {
+          "const": "account_binding_default"
+        },
+        "binding_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "binding_frontier_digest": {
+          "$ref": "#/$defs/hash"
+        }
       },
       "additionalProperties": false
     },
     "account_status_event_basis": {
       "type": "object",
-      "required": ["kind", "status_event_id", "status_event_digest", "status_frontier_digest"],
+      "required": [
+        "kind",
+        "status_event_id",
+        "status_event_digest",
+        "status_frontier_digest"
+      ],
       "properties": {
-        "kind": { "const": "account_status_event" },
-        "status_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
-        "status_event_digest": { "$ref": "#/$defs/hash" },
-        "status_frontier_digest": { "$ref": "#/$defs/hash" }
+        "kind": {
+          "const": "account_status_event"
+        },
+        "status_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "status_event_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "status_frontier_digest": {
+          "$ref": "#/$defs/hash"
+        }
       },
       "additionalProperties": false
     },
@@ -245,17 +428,41 @@
         "expires_at"
       ],
       "properties": {
-        "operation_id": { "$ref": "./principal-operations.schema.json#/$defs/operation_id" },
-        "request_digest": { "$ref": "#/$defs/sha256" },
-        "verifier_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "audience": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "challenge": { "type": "string", "minLength": 16, "maxLength": 512 },
-        "agent_snapshot_digest": { "$ref": "#/$defs/sha256" },
-        "agent_key_seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
-        "agent_status_seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
-        "controller_gate_attestation_digest": { "$ref": "#/$defs/sha256" },
-        "evaluated_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
-        "expires_at": { "$ref": "./time.schema.json#/$defs/timestamp" }
+        "operation_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+        },
+        "request_digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "verifier_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "audience": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "challenge": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 512
+        },
+        "agent_snapshot_digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "agent_key_seal_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        },
+        "agent_status_seal_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        },
+        "controller_gate_attestation_digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "evaluated_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
       },
       "additionalProperties": false,
       "description": "Fresh request binding for new admission. All basis digests and Seal ids must match admission_evidence exactly; this object never appears in historical evidence."
@@ -281,22 +488,54 @@
         "proof"
       ],
       "properties": {
-        "schema": { "const": "ak.schema.agent_signer_admission_receipt.v1" },
-        "event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
-        "event_digest": { "$ref": "#/$defs/hash" },
-        "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
-        "event_admitted_seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
-        "accepted_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
-        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "verification_method": { "$ref": "./common-ids.schema.json#/$defs/did_url" },
-        "agent_key_authorize_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
-        "admission_evidence_digest": { "$ref": "#/$defs/sha256" },
-        "agent_snapshot_digest": { "$ref": "#/$defs/sha256" },
-        "agent_key_seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
-        "agent_status_seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
-        "controller_gate_attestation_digest": { "$ref": "#/$defs/sha256" },
-        "receiver_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "proof": { "$ref": "#/$defs/detached_jws" }
+        "schema": {
+          "const": "ak.schema.agent_signer_admission_receipt.v1"
+        },
+        "event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "event_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "event_admitted_seal_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "agent_key_authorize_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "admission_evidence_digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "agent_snapshot_digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "agent_key_seal_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        },
+        "agent_status_seal_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        },
+        "controller_gate_attestation_digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "receiver_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "proof": {
+          "$ref": "#/$defs/detached_jws"
+        }
       },
       "additionalProperties": false,
       "description": "Destination-signed immutable record of the exact three-gate evidence used when this Event was accepted. The proof domain is ak.agent-signer-admission-receipt-v1 and covers every field except proof.jws."
@@ -313,16 +552,28 @@
         "proof"
       ],
       "properties": {
-        "domain": { "const": "ak.agent-signer-evidence.v1" },
+        "domain": {
+          "const": "ak.agent-signer-evidence.v1"
+        },
         "core_digest": {
           "$ref": "#/$defs/sha256",
           "description": "SHA-256 over RFC 8785 JCS of the complete top-level evidence with outer_attestation omitted."
         },
-        "source_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "verification_method": { "$ref": "./common-ids.schema.json#/$defs/did_url" },
-        "issued_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
-        "expires_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
-        "proof": { "$ref": "#/$defs/detached_jws" }
+        "source_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "#/$defs/detached_jws"
+        }
       },
       "additionalProperties": false,
       "description": "Anti-malleability assembly signature. It binds the tagged mode, request or receipt, admission evidence and optional transparency without replacing underlying authority proofs."
@@ -337,23 +588,76 @@
         "not_before"
       ],
       "properties": {
-        "status": { "type": "string", "enum": ["active", "revoked", "superseded", "expired", "conflicted"] },
-        "authorized_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
-        "accepted_seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
-        "accepted_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
-        "not_before": { "$ref": "./time.schema.json#/$defs/timestamp" },
-        "expires_at": { "$ref": "./time.schema.json#/$defs/timestamp" },
-        "transition_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
-        "transition_seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" }
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "revoked",
+            "superseded",
+            "expired",
+            "conflicted"
+          ]
+        },
+        "authorized_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "accepted_seal_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "not_before": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "transition_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "transition_seal_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        }
       },
       "allOf": [
         {
-          "if": { "properties": { "status": { "enum": ["revoked", "superseded"] } }, "required": ["status"] },
-          "then": { "required": ["transition_event_id", "transition_seal_id"] }
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "revoked",
+                  "superseded"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "transition_event_id",
+              "transition_seal_id"
+            ]
+          }
         },
         {
-          "if": { "properties": { "status": { "const": "expired" } }, "required": ["status"] },
-          "then": { "required": ["expires_at"] }
+          "if": {
+            "properties": {
+              "status": {
+                "const": "expired"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "expires_at"
+            ]
+          }
         }
       ],
       "additionalProperties": false,
@@ -362,47 +666,136 @@
     "key_state_witness": {
       "type": "object",
       "required": [
-        "component", "agent_id", "authorization_event_id", "seal_id", "state_root", "seal",
-        "cell_ref", "cell_value", "leaf_digest", "leaf_index", "leaf_count", "inclusion_proof"
+        "component",
+        "agent_id",
+        "authorization_event_id",
+        "seal_id",
+        "state_root",
+        "seal",
+        "cell_ref",
+        "cell_value",
+        "leaf_digest",
+        "leaf_index",
+        "leaf_count",
+        "inclusion_proof"
       ],
       "properties": {
-        "component": { "const": "ak.component.agent.key.v1" },
-        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "authorization_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
-        "seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
-        "state_root": { "$ref": "#/$defs/hash" },
-        "seal": { "$ref": "./seal.schema.json" },
-        "cell_ref": { "type": "string", "pattern": "^ak:cell:ak\\.component\\.agent\\.key\\.v1:" },
-        "cell_value": { "$ref": "#/$defs/key_cell_value" },
-        "leaf_digest": { "$ref": "#/$defs/hash" },
-        "leaf_index": { "type": "integer", "minimum": 0 },
-        "leaf_count": { "type": "integer", "minimum": 1 },
-        "inclusion_proof": { "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/hash" } }
+        "component": {
+          "const": "ak.component.agent.key.v1"
+        },
+        "agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "authorization_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "seal_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        },
+        "state_root": {
+          "$ref": "#/$defs/hash"
+        },
+        "seal": {
+          "$ref": "./seal.schema.json"
+        },
+        "cell_ref": {
+          "type": "string",
+          "pattern": "^ak:cell:ak\\.component\\.agent\\.key\\.v1:"
+        },
+        "cell_value": {
+          "$ref": "#/$defs/key_cell_value"
+        },
+        "leaf_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "leaf_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "leaf_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "inclusion_proof": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/hash"
+          }
+        }
       },
       "additionalProperties": false
     },
     "key_transition_witness": {
       "type": "object",
       "required": [
-        "component", "agent_id", "authorization_event_id", "transition_event_id", "transition_key_id",
-        "seal_id", "state_root", "seal", "cell_ref", "cell_value", "leaf_digest", "leaf_index",
-        "leaf_count", "inclusion_proof"
+        "component",
+        "agent_id",
+        "authorization_event_id",
+        "transition_event_id",
+        "transition_key_id",
+        "seal_id",
+        "state_root",
+        "seal",
+        "cell_ref",
+        "cell_value",
+        "leaf_digest",
+        "leaf_index",
+        "leaf_count",
+        "inclusion_proof"
       ],
       "properties": {
-        "component": { "const": "ak.component.agent.key.v1" },
-        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "authorization_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
-        "transition_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
-        "transition_key_id": { "type": "string", "minLength": 1, "maxLength": 512 },
-        "seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
-        "state_root": { "$ref": "#/$defs/hash" },
-        "seal": { "$ref": "./seal.schema.json" },
-        "cell_ref": { "type": "string", "pattern": "^ak:cell:ak\\.component\\.agent\\.key\\.v1:" },
-        "cell_value": { "$ref": "#/$defs/key_cell_value" },
-        "leaf_digest": { "$ref": "#/$defs/hash" },
-        "leaf_index": { "type": "integer", "minimum": 0 },
-        "leaf_count": { "type": "integer", "minimum": 1 },
-        "inclusion_proof": { "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/hash" } }
+        "component": {
+          "const": "ak.component.agent.key.v1"
+        },
+        "agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "authorization_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "transition_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "transition_key_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "seal_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        },
+        "state_root": {
+          "$ref": "#/$defs/hash"
+        },
+        "seal": {
+          "$ref": "./seal.schema.json"
+        },
+        "cell_ref": {
+          "type": "string",
+          "pattern": "^ak:cell:ak\\.component\\.agent\\.key\\.v1:"
+        },
+        "cell_value": {
+          "$ref": "#/$defs/key_cell_value"
+        },
+        "leaf_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "leaf_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "leaf_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "inclusion_proof": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/hash"
+          }
+        }
       },
       "additionalProperties": false
     },
@@ -413,13 +806,23 @@
       "uniqueItems": true,
       "items": {
         "type": "object",
-        "required": ["tag", "value"],
+        "required": [
+          "tag",
+          "value"
+        ],
         "properties": {
-          "tag": { "type": "string", "pattern": "^ak:event:[0-9a-f-]+:[0-9]+$" },
+          "tag": {
+            "type": "string",
+            "pattern": "^ak:event:[0-9a-f-]+:[0-9]+$"
+          },
           "value": {
             "oneOf": [
-              { "$ref": "./event-payload.schema.json#/$defs/agent_key_authorize_payload" },
-              { "$ref": "./event-payload.schema.json#/$defs/agent_key_revoke_payload" }
+              {
+                "$ref": "./event-payload.schema.json#/$defs/agent_key_authorize_payload"
+              },
+              {
+                "$ref": "./event-payload.schema.json#/$defs/agent_key_revoke_payload"
+              }
             ]
           }
         },
@@ -430,118 +833,365 @@
     "agent_lifecycle_witness": {
       "type": "object",
       "required": [
-        "component", "agent_id", "controller_id", "status", "provenance", "accepted_status_event",
-        "seal_id", "state_root", "seal", "cell_ref", "cell_value", "leaf_digest", "leaf_index",
-        "leaf_count", "inclusion_proof"
+        "component",
+        "agent_id",
+        "controller_id",
+        "status",
+        "provenance",
+        "accepted_status_event",
+        "seal_id",
+        "state_root",
+        "seal",
+        "cell_ref",
+        "cell_value",
+        "leaf_digest",
+        "leaf_index",
+        "leaf_count",
+        "inclusion_proof"
       ],
       "properties": {
-        "component": { "const": "ak.component.agent.status.v1" },
-        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "controller_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "status": { "type": "string", "enum": ["active", "paused", "deactivated"] },
-        "provenance": {
-          "oneOf": [
-            { "$ref": "#/$defs/agent_genesis_provenance" },
-            { "$ref": "#/$defs/agent_pause_provenance" },
-            { "$ref": "#/$defs/agent_resume_provenance" },
-            { "$ref": "#/$defs/agent_deactivate_provenance" }
+        "component": {
+          "const": "ak.component.agent.status.v1"
+        },
+        "agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "controller_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "paused",
+            "deactivated"
           ]
         },
-        "accepted_status_event": { "$ref": "./event-envelope.schema.json" },
-        "seal_id": { "$ref": "./event-envelope.schema.json#/$defs/seal_ref" },
-        "state_root": { "$ref": "#/$defs/hash" },
-        "seal": { "$ref": "./seal.schema.json" },
-        "cell_ref": { "type": "string", "pattern": "^ak:cell:ak\\.component\\.agent\\.status\\.v1:" },
-        "cell_value": { "type": "string", "enum": ["active", "paused", "deactivated"] },
-        "leaf_digest": { "$ref": "#/$defs/hash" },
-        "leaf_index": { "type": "integer", "minimum": 0 },
-        "leaf_count": { "type": "integer", "minimum": 1 },
-        "inclusion_proof": { "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/hash" } }
+        "provenance": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/agent_genesis_provenance"
+            },
+            {
+              "$ref": "#/$defs/agent_pause_provenance"
+            },
+            {
+              "$ref": "#/$defs/agent_resume_provenance"
+            },
+            {
+              "$ref": "#/$defs/agent_deactivate_provenance"
+            }
+          ]
+        },
+        "accepted_status_event": {
+          "$ref": "./event-envelope.schema.json"
+        },
+        "seal_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        },
+        "state_root": {
+          "$ref": "#/$defs/hash"
+        },
+        "seal": {
+          "$ref": "./seal.schema.json"
+        },
+        "cell_ref": {
+          "type": "string",
+          "pattern": "^ak:cell:ak\\.component\\.agent\\.status\\.v1:"
+        },
+        "cell_value": {
+          "type": "string",
+          "enum": [
+            "active",
+            "paused",
+            "deactivated"
+          ]
+        },
+        "leaf_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "leaf_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "leaf_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "inclusion_proof": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/hash"
+          }
+        }
       },
       "allOf": [
         {
-          "if": { "properties": { "provenance": { "properties": { "kind": { "const": "delegated_pcr_genesis" } }, "required": ["kind"] } } },
-          "then": { "properties": { "status": { "const": "active" }, "cell_value": { "const": "active" } } }
+          "if": {
+            "properties": {
+              "provenance": {
+                "properties": {
+                  "kind": {
+                    "const": "delegated_pcr_genesis"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": "active"
+              },
+              "cell_value": {
+                "const": "active"
+              }
+            }
+          }
         },
         {
-          "if": { "properties": { "provenance": { "properties": { "kind": { "const": "pause_accepted" } }, "required": ["kind"] } } },
-          "then": { "properties": { "status": { "const": "paused" }, "cell_value": { "const": "paused" } } }
+          "if": {
+            "properties": {
+              "provenance": {
+                "properties": {
+                  "kind": {
+                    "const": "pause_accepted"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": "paused"
+              },
+              "cell_value": {
+                "const": "paused"
+              }
+            }
+          }
         },
         {
-          "if": { "properties": { "provenance": { "properties": { "kind": { "const": "resume_accepted" } }, "required": ["kind"] } } },
-          "then": { "properties": { "status": { "const": "active" }, "cell_value": { "const": "active" } } }
+          "if": {
+            "properties": {
+              "provenance": {
+                "properties": {
+                  "kind": {
+                    "const": "resume_accepted"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": "active"
+              },
+              "cell_value": {
+                "const": "active"
+              }
+            }
+          }
         },
         {
-          "if": { "properties": { "provenance": { "properties": { "kind": { "const": "deactivate_accepted" } }, "required": ["kind"] } } },
-          "then": { "properties": { "status": { "const": "deactivated" }, "cell_value": { "const": "deactivated" } } }
+          "if": {
+            "properties": {
+              "provenance": {
+                "properties": {
+                  "kind": {
+                    "const": "deactivate_accepted"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": "deactivated"
+              },
+              "cell_value": {
+                "const": "deactivated"
+              }
+            }
+          }
         }
       ],
       "additionalProperties": false
     },
     "agent_genesis_provenance": {
       "type": "object",
-      "required": ["kind", "realm_create_event_id", "agent_provision_event_id"],
+      "required": [
+        "kind",
+        "realm_create_event_id",
+        "agent_provision_event_id"
+      ],
       "properties": {
-        "kind": { "const": "delegated_pcr_genesis" },
-        "realm_create_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref", "description": "Accepted managed Agent PCR genesis ak.realm.create that materialized the first active status. This evidence object is assembled after both Events are accepted and never enters either digest preimage." },
-        "agent_provision_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref", "description": "Accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(realm_create_event_id). The genesis create carries no reference to it, so a verifier resolves it by that reverse look-up." }
+        "kind": {
+          "const": "delegated_pcr_genesis"
+        },
+        "realm_create_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref",
+          "description": "Accepted managed Agent PCR genesis ak.realm.create that materialized the first active status. This evidence object is assembled after both Events are accepted and never enters either digest preimage."
+        },
+        "agent_provision_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref",
+          "description": "Accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(realm_create_event_id). The genesis create carries no reference to it, so a verifier resolves it by that reverse look-up."
+        }
       },
       "additionalProperties": false
     },
     "agent_pause_provenance": {
       "type": "object",
-      "required": ["kind", "pause_event_id", "predecessor_active_event_id"],
+      "required": [
+        "kind",
+        "pause_event_id",
+        "predecessor_active_event_id"
+      ],
       "properties": {
-        "kind": { "const": "pause_accepted" },
-        "pause_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
-        "predecessor_active_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" }
+        "kind": {
+          "const": "pause_accepted"
+        },
+        "pause_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "predecessor_active_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        }
       },
       "additionalProperties": false
     },
     "agent_resume_provenance": {
       "type": "object",
-      "required": ["kind", "resume_event_id", "predecessor_pause_event_id"],
+      "required": [
+        "kind",
+        "resume_event_id",
+        "predecessor_pause_event_id"
+      ],
       "properties": {
-        "kind": { "const": "resume_accepted" },
-        "resume_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
-        "predecessor_pause_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" }
+        "kind": {
+          "const": "resume_accepted"
+        },
+        "resume_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "predecessor_pause_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        }
       },
       "additionalProperties": false
     },
     "agent_deactivate_provenance": {
       "type": "object",
-      "required": ["kind", "deactivate_event_id", "predecessor_status_event_id"],
+      "required": [
+        "kind",
+        "deactivate_event_id",
+        "predecessor_status_event_id"
+      ],
       "properties": {
-        "kind": { "const": "deactivate_accepted" },
-        "deactivate_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
-        "predecessor_status_event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" }
+        "kind": {
+          "const": "deactivate_accepted"
+        },
+        "deactivate_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "predecessor_status_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        }
       },
       "additionalProperties": false
     },
     "detached_jws": {
       "type": "object",
-      "required": ["kind", "jws"],
+      "required": [
+        "kind",
+        "jws"
+      ],
       "properties": {
-        "kind": { "const": "detached_jws" },
-        "jws": { "type": "string", "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$" }
+        "kind": {
+          "const": "detached_jws"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
+        }
       },
       "additionalProperties": false
     },
     "transparency": {
       "type": "object",
-      "required": ["profile", "log_id", "leaf_count", "tree_root", "inclusion_proof", "consistency_proof", "witness_signatures"],
+      "required": [
+        "profile",
+        "log_id",
+        "leaf_count",
+        "tree_root",
+        "inclusion_proof",
+        "consistency_proof",
+        "witness_signatures"
+      ],
       "properties": {
-        "profile": { "const": "ak.profile.key_transparency.v1" },
-        "log_id": { "type": "string", "minLength": 1 },
-        "leaf_count": { "type": "integer", "minimum": 1 },
-        "tree_root": { "$ref": "#/$defs/hash" },
-        "inclusion_proof": { "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/hash" } },
-        "consistency_proof": { "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/hash" } },
-        "witness_signatures": { "type": "array", "minItems": 1, "maxItems": 16, "items": { "type": "string", "minLength": 1 } }
+        "profile": {
+          "const": "ak.profile.key_transparency.v1"
+        },
+        "log_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "leaf_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "tree_root": {
+          "$ref": "#/$defs/hash"
+        },
+        "inclusion_proof": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/hash"
+          }
+        },
+        "consistency_proof": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/hash"
+          }
+        },
+        "witness_signatures": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
       },
       "additionalProperties": false
     },
-    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
-    "hash": { "type": "string", "pattern": "^[a-z0-9_.-]+:[0-9a-f]{64}$" }
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[a-z0-9_.-]+:[0-9a-f]{64}$"
+    }
   }
 }

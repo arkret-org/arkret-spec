@@ -88,7 +88,7 @@
         },
         "event_id": {
           "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
         },
         "event_ref_digest": {
           "type": "string",
@@ -98,7 +98,7 @@
           "type": "array",
           "items": {
             "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
           }
         },
         "causal_ref_digests": {
@@ -144,7 +144,7 @@
           "oneOf": [
             {
               "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
+              "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
               "description": "Reference to accepted ak.mls.genesis / winning ak.mls.commit event."
             },
             {

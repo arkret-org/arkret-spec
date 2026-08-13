@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-13.4",
+  "version": "2026-08-14.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-13T10:40:00Z",
+  "generated_at": "2026-08-14T00:30:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,12 +18,12 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 237,
+    "total_operations": 235,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "service_describe": 5,
       "streaming_frame_schema": 3,
-      "typed_schema": 227
+      "typed_schema": 225
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -38,7 +38,7 @@
         "binary_or_redirect": 2,
         "service_describe": 1,
         "streaming_frame_schema": 1,
-        "typed_schema": 157
+        "typed_schema": 155
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -2769,34 +2769,6 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/PolicyCheckRequestBody",
         "response": "#/components/schemas/PolicyCheckOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.principal_service_binding.command.commit",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/principal-service-bindings/commit",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_request_body",
-      "response_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/PrincipalServiceBindingCommitRequestBody",
-        "response": "#/components/schemas/PrincipalServiceBindingCommitOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.principal_service_binding.command.prepare",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/principal-service-bindings/prepare",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_request_body",
-      "response_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/PrincipalServiceBindingPrepareRequestBody",
-        "response": "#/components/schemas/PrincipalServiceBindingPrepareOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

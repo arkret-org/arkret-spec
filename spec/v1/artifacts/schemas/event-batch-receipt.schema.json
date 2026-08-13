@@ -110,8 +110,16 @@
               {
                 "contains": {
                   "allOf": [
-                    { "$ref": "#/$defs/event_receipt_item" },
-                    { "properties": { "kind": { "const": "ak.realm.create" } } }
+                    {
+                      "$ref": "#/$defs/event_receipt_item"
+                    },
+                    {
+                      "properties": {
+                        "kind": {
+                          "const": "ak.realm.create"
+                        }
+                      }
+                    }
                   ]
                 },
                 "minContains": 1,
@@ -120,8 +128,16 @@
               {
                 "contains": {
                   "allOf": [
-                    { "$ref": "#/$defs/event_receipt_item" },
-                    { "properties": { "kind": { "const": "ak.device.authorize" } } }
+                    {
+                      "$ref": "#/$defs/event_receipt_item"
+                    },
+                    {
+                      "properties": {
+                        "kind": {
+                          "const": "ak.device.authorize"
+                        }
+                      }
+                    }
                   ]
                 },
                 "minContains": 1,
@@ -214,12 +230,12 @@
     },
     "device_reanchor_scope": {
       "type": "object",
-      "description": "Durable acceptance evidence for the PCR-policy re-anchor unit. Authority is selected by the exact authority instance plus the PCR-local monotonic device generation CAS; the base branch carries no DID version, registry head or publication material, and a receiver MUST NOT synthesize either from the generation refs. Every authority field MUST equal the corresponding field of the covered ak.device.reanchor payload.",
+      "description": "Durable acceptance evidence for an account-local PCR-policy re-anchor unit. The authority pair plus monotonic device generation selects the create-once lineage maintained by the Principal Server.",
       "required": [
         "kind",
         "principal_id",
+        "principal_server_id",
         "realm_id",
-        "authority_instance",
         "previous_device_generation",
         "new_device_generation",
         "reanchor_digest",
@@ -232,12 +248,12 @@
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
+        "principal_server_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Account authority Principal Server; together with principal_id it must equal the covered re-anchor Event authority pair."
+        },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "authority_instance": {
-          "$ref": "./principal-authority-instance.schema.json",
-          "description": "Exact authority instance re-anchored by this unit. It MUST reverse-bind principal_id and realm_id and MUST equal the covered ak.device.reanchor payload authority_instance field-for-field including authority_instance_digest. A same-core instance carrying a different principal_server_id, pcr_realm_id or principal_genesis_receipt_digest is a different PCR and MUST be rejected."
         },
         "previous_device_generation": {
           "type": "integer",

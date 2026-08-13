@@ -362,10 +362,10 @@
     },
     "principal_resolution_evidence": {
       "type": "object",
-      "description": "Portable resolution-only evidence bound to one exact PrincipalAuthorityInstance, its complete signed PCR genesis receipt and its current singleton resolution cell. It intentionally excludes unrelated PCR device, recovery and session history. The verifier recomputes the authority instance digest, verifies the receipt and its reverse bindings, derives the PCR Realm, validates purpose/actor/kind and every supplied contiguous resolution-history segment, validates accepted Seal coverage and cell inclusion, then independently resolves method evidence for the current full_id. Omitted older history never becomes an absence claim.",
+      "description": "Resolution evidence for one account selected by (principal_id, principal_server_id). PCR genesis, realm and Seal material may support account-local audit and recovery but MUST NOT be compared as external identity or required to validate an ordinary federated Event carrying a Principal Server admission proof.",
       "required": [
         "principal_id",
-        "authority_instance",
+        "principal_server_id",
         "principal_control_realm_id",
         "principal_genesis_receipt",
         "principal_genesis_event",
@@ -378,9 +378,9 @@
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "authority_instance": {
-          "$ref": "./principal-authority-instance.schema.json",
-          "description": "Exact PCR authority selected by the required authority_instance_digest query. Its principal_id and pcr_realm_id MUST equal the response fields; principal_server_id MUST equal principal_genesis_receipt.issuer; and principal_genesis_receipt_digest MUST equal the canonical SHA-256 digest of the complete principal_genesis_receipt."
+        "principal_server_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Principal Server for this account authority. Together with principal_id it is the complete public selector; the remaining PCR material is recovery/audit evidence and does not change principal equality."
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
@@ -388,7 +388,7 @@
         },
         "principal_genesis_receipt": {
           "$ref": "./event-batch-receipt.schema.json",
-          "description": "Complete signed pcr_genesis_unit receipt. Its issuer and scope MUST reverse-bind authority_instance, principal_id, principal_control_realm_id and principal_genesis_event; consumers MUST verify its proof rather than trusting the producer's index."
+          "description": "Account-local signed pcr_genesis_unit receipt. It supports audit/recovery and is not an external account-local-lineage identifier."
         },
         "principal_genesis_event": {
           "$ref": "#/$defs/principal_genesis_event"
@@ -1134,7 +1134,7 @@
     },
     "service_resolution_resolve_request": {
       "type": "object",
-      "description": "Realm-scoped anti-enumeration query for target-signed successor material. requester authority comes from the authenticated peer service and current Realm relationship. target_service_id must already be visible to requester through an effective member delivery binding, sync_endpoints or explicit service delegation. Unknown, unauthorized, invisible and not-held outcomes are externally indistinguishable.",
+      "description": "Realm-scoped anti-enumeration query for target-signed successor material. requester authority comes from the authenticated peer service and current Realm relationship. target_service_id must already be visible to requester through an effective joined-member delivery binding or explicit service delegation. Unknown, unauthorized, invisible and not-held outcomes are externally indistinguishable.",
       "required": [
         "realm_id",
         "target_service_id",

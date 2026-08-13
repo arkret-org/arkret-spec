@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-13.4",
+  "version": "2026-08-14.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-13T10:40:00Z",
+  "generated_at": "2026-08-14T00:30:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -359,7 +359,7 @@
       "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. A purpose=managed_agent_control Native Agent branch MUST carry exactly one critical refs[] role=agent_provision pointing to the accepted controller-authored ak.agent.provision Event; the verifier cross-binds actor_id, realm_id, controller, PCR delegation and provision payload before the reducer materializes the Agent active status cell. An explicitly organization-governed purpose=principal_control branch MUST carry zero agent_provision refs and MUST prove its separate accepted organization authority. The two branches are disjoint; a self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
       "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
       "registration_anchor": "Admitted only for self-principal PCR genesis using durable registration-time DID control evidence and one critical did_inception ref. The verifier validates the accepted-at adapter/method evidence and project(full_id)=actor_id; current DID state after registration is irrelevant.",
-      "pcr_recovery": "Admitted only for ak.device.reanchor under the authority instance's accepted PCR recovery policy/session and monotonic generation CAS. did_root is merely one optional policy-enabled factor. A current DID proof without the matching authority instance and policy cannot enter this class.",
+      "pcr_recovery": "Admitted only for ak.device.reanchor under the account-local lineage's accepted PCR recovery policy/session and monotonic generation CAS. did_root is merely one optional policy-enabled factor. A current DID proof without the matching account-local lineage and policy cannot enter this class.",
       "direct_conversation_agent_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_agent_provision pointing to an accepted ak.agent.provision Event. Used solely for the controller-to-own-Agent Direct Conversation branch, which has no Contact round. The verifier cross-binds participants to exactly that controller and Agent, requires the Direct Conversation profile rather than a PCR profile, checks the controller binding is current, and fixes founder = controller so the Agent runtime key never needs Direct Conversation founding scope. This role is structurally exclusive with direct_conversation_contact_round and with the managed-Agent PCR agent_provision role.",
       "direct_conversation_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_contact_round pointing to the portable Contact round evidence bundle and its continuity chain to the pair's root Contact round. The verifier derives founder from the root Contact round (normal branch: the sorted_pair_members entry that is not the request_event_ref issuer, i.e. the responder; glare branch: the requests[0] issuer), then requires created_by == actor_id == founder, recomputes pair_key from sorted_pair_members and the trust domain, and pins the Direct Conversation profile, exact-two participants and the create-locked encryption and history baseline. Accepted-at Contact round validity and current directional Contact gates are evaluated separately so Event validity never depends on delivery order.",
       "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
@@ -1439,6 +1439,10 @@
               }
             },
             "derived_members": [
+              {
+                "name": "issuer_principal_server_id",
+                "derivation": "capability_issuer_principal_server_id"
+              },
               {
                 "name": "authority_depth",
                 "derivation": "capability_authority_depth"
@@ -3918,25 +3922,6 @@
         ],
         "concurrency_class": "security_barrier"
       },
-      "ak.realm.disappearing_policy": {
-        "plane": "control",
-        "sealed": true,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.realm.disappearing_policy.v1",
-            "cell_subject": null,
-            "lattice": "cas_register",
-            "bottom": "reject",
-            "effect_projection": {
-              "kind": "set",
-              "value": {
-                "field": "payload"
-              }
-            }
-          }
-        ],
-        "concurrency_class": "security_barrier"
-      },
       "ak.realm.discovery": {
         "plane": "control",
         "sealed": true,
@@ -5795,16 +5780,6 @@
         "id_source": "not_an_object_id"
       },
       {
-        "event_kind": "ak.realm.disappearing_policy",
-        "category": "realm",
-        "status": "active",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Realm disappearing-message expiry policy",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_disappearing_policy_payload",
-        "id_source": "not_an_object_id"
-      },
-      {
         "event_kind": "ak.realm.search_policy",
         "category": "realm",
         "status": "active",
@@ -6152,7 +6127,10 @@
       },
       {
         "event_kind": "ak.identity.resolution.update",
-        "did_authority": {"evidence_class": "method_successor", "freshness_profile_id": "ak.did_freshness.method_successor.v1"},
+        "did_authority": {
+          "evidence_class": "method_successor",
+          "freshness_profile_id": "ak.did_freshness.method_successor.v1"
+        },
         "category": "identity",
         "status": "active",
         "wire_scope": "durable_event",
@@ -7062,7 +7040,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "pcr_recovery",
-        "payload": "PCR-policy recovery re-anchor. Accepted only as the first event of an atomic re-anchor plus replacement-authorize unit for the exact authority instance. It fences the old PCR generation against the complete accepted Seal frontier. DID-root possession is accepted only as an explicitly enabled optional policy factor.",
+        "payload": "PCR-policy recovery re-anchor. Accepted only as the first event of an atomic re-anchor plus replacement-authorize unit for the exact account-local lineage. It fences the old PCR generation against the complete accepted Seal frontier. DID-root possession is accepted only as an explicitly enabled optional policy factor.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
         "id_source": "not_an_object_id"
       },
@@ -8821,12 +8799,6 @@
         "description": "Payload schema for ak.rsvp.set."
       },
       {
-        "schema_id": "ak.schema.disappearing_messages.v1",
-        "file": "schemas/disappearing-messages.schema.json",
-        "status": "active",
-        "description": "Message expiry and Realm disappearing-message policy shape."
-      },
-      {
         "schema_id": "ak.schema.pin.v1",
         "file": "schemas/pin.schema.json",
         "status": "active",
@@ -9256,7 +9228,7 @@
         "schema_id": "ak.schema.device_reanchor.v1",
         "file": "schemas/device-reanchor.schema.json",
         "status": "active",
-        "description": "Closed PCR-policy recovery payload binding one authority instance, accepted policy/session, monotonic PCR generation CAS, complete pre-fence Seal frontier and replacement authorization digest."
+        "description": "Closed PCR-policy recovery payload binding one account-local lineage, accepted policy/session, monotonic PCR generation CAS, complete pre-fence Seal frontier and replacement authorization digest."
       },
       {
         "schema_id": "ak.schema.recovery_session.v1",
@@ -9502,12 +9474,6 @@
           "selector": "erasure receipt retained_stub_digest target",
           "normative_ref": "zh/models/common-fields.md"
         }
-      },
-      {
-        "schema_id": "ak.schema.principal_service_binding.v1",
-        "file": "schemas/principal-service-binding.schema.json",
-        "status": "active",
-        "description": "Accepted-at Principal Server binding snapshot and signed service-cutover continuity chain"
       },
       {
         "schema_id": "ak.schema.high_risk_authority_proof.v1",
@@ -9787,12 +9753,6 @@
         "description": "Defs-only shared typed-ID patterns (e.g. circle_id) referenced cross-file by morph and relation schemas so a single id-form change propagates without inline drift. Not an object/event schema. See zh/models/common-fields.md §6."
       },
       {
-        "schema_id": "ak.schema.federated_device_signing_key_evidence.v1",
-        "file": "schemas/federated-device-signing-key-evidence.schema.json",
-        "status": "active",
-        "description": "Portable PCR-lineage device evidence reused by peer Event, Contact and KeyPackage transports. Frozen registration/accepted-at DID evidence proves historical keys; accepted PCR Events and Seal evidence establish current device authority."
-      },
-      {
         "schema_id": "ak.schema.delivery_binding_stale.v1",
         "file": "schemas/delivery-binding-stale.schema.json",
         "status": "active",
@@ -9875,10 +9835,16 @@
           "selector": "ak.contact.scope.update Event payload",
           "normative_ref": "zh/identity/contact-and-direct-conversation.md"
         }
+      },
+      {
+        "schema_id": "ak.schema.registration_did_evidence.v1",
+        "file": "schemas/registration-did-evidence.schema.json",
+        "status": "active",
+        "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
       }
     ],
-    "version": "2026-08-13.2",
-    "generated_at": "2026-08-13T10:40:00Z"
+    "version": "2026-08-14.1",
+    "generated_at": "2026-08-14T00:30:00Z"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -10908,14 +10874,6 @@
         "surface_class": "extension"
       },
       {
-        "surface": "principal_service_binding",
-        "operations": [
-          "ak.self.principal_service_binding.command.prepare",
-          "ak.self.principal_service_binding.command.commit"
-        ],
-        "surface_class": "extension"
-      },
-      {
         "surface": "circle_management",
         "operations": [
           "ak.self.circle.command.create",
@@ -11628,7 +11586,10 @@
       },
       {
         "operation_id": "ak.gate.account.command.issue_controller_gate_attestation",
-        "did_authority": {"evidence_class": "ongoing_governance", "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"},
+        "did_authority": {
+          "evidence_class": "ongoing_governance",
+          "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
+        },
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/controller-gate-attestations",
         "notes": "Account Authority S2S producer operation for Native Agent signer evidence. The request carries agent_authority_service_resolution: the current signed ServiceResolutionRecord, adapter-discriminated method evidence and authenticated normalized DID Document. The receiver independently validates method evidence, document digest, record proof/currentness, project(full_id), and active assertion key before verifying an RFC 9421 signature that covers method, target URI/path, Content-Digest, Source/Destination-Service-ID, operation id and request id. A did_core_id, URL, bearer or caller-supplied public key is never the verification key source; bearer may only be an additional deployment gate. The authenticated source service MUST equal request.agent_authority_service_id and MUST byte-match service_id in request.principal_id's current AcceptedAtServiceBinding; that Principal Server is the Agent PCR authority under the managed-Agent same-server invariant. Ordinary clients and a caller-supplied account identity are forbidden. The Account Authority reads its own authoritative account binding/status projection, selects account_binding_default or account_status_event basis, and signs the closed controller_account_gate_attestation under domain ak.controller-account-gate-v1. issued_at <= expires_at and expires_at-issued_at MUST be <=300s. Unknown principal, missing current service binding, wrong source service and unauthorized caller are indistinguishable not_found outcomes and disclose no account status. Exact request_id plus canonical intent replay returns the byte-identical outcome while retained; same request_id with different principal or service is duplicate_conflict with zero issuance. The attestation is intentionally a reusable short-TTL controller-lifecycle snapshot and omits operation, request_digest, audience and challenge: per-request current_observation and outer_attestation bind its digest to those exact values, so a bare gate replay cannot validate another request. account_id and raw account cells never enter the request, outcome, logs visible to the caller or portable evidence.",
@@ -11645,7 +11606,10 @@
       },
       {
         "operation_id": "ak.gate.account.command.issue_identity_binding_challenge",
-        "did_authority": {"evidence_class": "registration_control", "freshness_profile_id": "ak.did_freshness.registration_current.v1"},
+        "did_authority": {
+          "evidence_class": "registration_control",
+          "freshness_profile_id": "ak.did_freshness.registration_current.v1"
+        },
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/identity-binding-challenges",
         "notes": "Authenticated by Authorization: DPoP <account_handoff_grant> plus a matching DPoP header. The Account Authority verifies the current lease holder and fence, validates the complete unpublished DID operation, derives principal_id, its canonical operation digest, did_version_id, log_head_digest, and control_key_digest, persists the holder-authenticated operation checkpoint, rate-limits same-holder renewal, and issues a <=300s single-use challenge bound to account_subject, holder cnf.jkt, lease/fence, all derived DID pins, audience, origin, trust domain, purpose, and expiry. Repeating the same request_id returns the same unconsumed challenge. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states.",
@@ -11662,7 +11626,10 @@
       },
       {
         "operation_id": "ak.gate.account.command.issue_did_binding_challenge",
-        "did_authority": {"evidence_class": "registration_control", "freshness_profile_id": "ak.did_freshness.registration_current.v1"},
+        "did_authority": {
+          "evidence_class": "registration_control",
+          "freshness_profile_id": "ak.did_freshness.registration_current.v1"
+        },
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/did-binding-challenges",
         "notes": "Issue a single-use challenge for binding an ALREADY-PUBLISHED full_id to the authenticated service account under stable principal_id. Authenticated by Authorization: DPoP <account_handoff_grant> plus a matching DPoP header. Unlike issue_identity_binding_challenge the caller supplies principal_id plus full_id rather than an unpublished DID operation: the Account Authority MUST resolve full_id itself at the high freshness tier (synchronous refresh or fail closed), MUST require the registered adapter to project(full_id)=principal_id, MUST NOT attempt to resolve did_core_id, MUST NOT accept caller-supplied history, and derives did_version_id, log_head_digest and control_key_digest from the resolved current entry. Deployments that do not host the DID MUST additionally require method-native witness / freshness evidence, because accepting registry and Principal Server co-location does not extend trust to third-party DIDs. The <=300s single-use challenge and returned control proof bind account_subject, principal_id, full_id, holder cnf.jkt, the resolved DID pins, audience, origin, trust domain, purpose and expiry. Repeating the same request_id returns the same unconsumed challenge. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states. This operation performs no PCR genesis and reserves no principal: it only proves current control of an existing DID.",
@@ -12444,7 +12411,7 @@
         "http": "POST /_arkret/peer/keys/keypackages/claim",
         "grpc": "PeerKeys/KeyPackagesClaim",
         "mq": "peer.keys.keypackages.command.claim",
-        "notes": "Atomic cross-Principal-Server KeyPackage claim. The destination KeyPackage authority is the sole CAS authority and MUST validate both requester portable authorization evidence, the requester participant authorization and the outer source-service HTTP Message Signature. Every successful human-device claim record carries complete target_device_signing_key_evidence without a semantic history-entry cap; every Native Agent record instead carries request-bound current target_agent_signer_evidence. The requester independently verifies the returned root/Seal/current authority before installing the KeyPackage; the destination service receipt is transport integrity, not signer authority. Idempotency is scoped by (Source-Service-ID, claim_request_id) and binds the canonical request digest; duplicate transport delivery returns the original byte-identical outcome, but callers MUST use the query operation rather than replaying the command after an uncertain outcome. Success omits inventory counts and per-device failures.",
+        "notes": "Atomic cross-Principal-Server KeyPackage claim. The destination Principal Server is the sole CAS authority. The authenticated source Principal Server first admits the participant request against its local account pair and current endpoint state; request and response carry no PCR/control-history or signer-evidence sidecar. Every claim binds the matching accepted authorization Event id, whose in-envelope Principal Server admission proof, the signed destination claim receipt, exact selectors and KeyPackage signature MUST all validate. Idempotency is scoped by (Source-Service-ID, claim_request_id) and the canonical request digest.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -12525,7 +12492,7 @@
         "http": "QUERY /_arkret/peer/service-resolution/resolve",
         "grpc": "PeerServiceResolution/Resolve",
         "mq": "peer.service_resolution.query.resolve",
-        "notes": "Read-only Realm-scoped recovery of at most 32 continuous target-signed successor records and one active target-signed handover notice within a caller-selected response budget capped at 256 KiB. The authenticated requester must be a current allowed federation peer and must already be authorized to know the target service core through an effective member delivery binding, sync_endpoints or explicit service delegation. Unknown, unauthorized, invisible, not-held and unavailable are outwardly indistinguishable and query/source/target rate limits prevent enumeration. The responder never returns a mirror-signed bare URL. The requester independently verifies every target proof, exact chain, freshness, method history and describe reverse binding; same sequence with different valid target-signed digests enters route-fork quarantine rather than majority, arrival-order or reachability selection.",
+        "notes": "Read-only Realm-scoped recovery of at most 32 continuous target-signed successor records and one active target-signed handover notice within a caller-selected response budget capped at 256 KiB. The authenticated requester must be a current allowed federation peer and must already be authorized to know the target service core through an effective joined-member delivery binding or explicit service delegation. Unknown, unauthorized, invisible, not-held and unavailable are outwardly indistinguishable and query/source/target rate limits prevent enumeration. The responder never returns a mirror-signed bare URL. The requester independently verifies every target proof, exact chain, freshness, method history and describe reverse binding; same sequence with different valid target-signed digests enters route-fork quarantine rather than majority, arrival-order or reachability selection.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 16384,
         "success_shape_kind": "typed_response",
@@ -12566,7 +12533,10 @@
       },
       {
         "operation_id": "ak.root.identity.command.submit_did_operation",
-        "did_authority": {"evidence_class": "method_successor", "freshness_profile_id": "ak.did_freshness.method_successor.v1"},
+        "did_authority": {
+          "evidence_class": "method_successor",
+          "freshness_profile_id": "ak.did_freshness.method_successor.v1"
+        },
         "http": "POST /_arkret/root/identity/submit-did-operation",
         "grpc": "RootIdentity/SubmitDidOperation",
         "mq": "root.identity.command.submit_did_operation",
@@ -12602,7 +12572,10 @@
       },
       {
         "operation_id": "ak.root.identity.organization_registration.command.ensure",
-        "did_authority": {"evidence_class": "ongoing_governance", "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"},
+        "did_authority": {
+          "evidence_class": "ongoing_governance",
+          "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
+        },
         "http": "POST /_arkret/root/identity/organization-registrations:ensure",
         "grpc": "RootIdentity/EnsureOrganizationRegistration",
         "mq": "root.identity.organization_registration.command.ensure",
@@ -12620,7 +12593,10 @@
       },
       {
         "operation_id": "ak.root.identity.organization_registration.command.prepare",
-        "did_authority": {"evidence_class": "ongoing_governance", "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"},
+        "did_authority": {
+          "evidence_class": "ongoing_governance",
+          "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
+        },
         "http": "POST /_arkret/root/identity/organization-registrations:prepare",
         "grpc": "RootIdentity/PrepareOrganizationRegistration",
         "mq": "root.identity.organization_registration.command.prepare",
@@ -12643,7 +12619,10 @@
       },
       {
         "operation_id": "ak.root.identity.organization_registration.command.refresh",
-        "did_authority": {"evidence_class": "ongoing_governance", "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"},
+        "did_authority": {
+          "evidence_class": "ongoing_governance",
+          "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
+        },
         "http": "POST /_arkret/root/identity/organization-registrations:refresh",
         "grpc": "RootIdentity/RefreshOrganizationRegistration",
         "mq": "root.identity.organization_registration.command.refresh",
@@ -12661,7 +12640,10 @@
       },
       {
         "operation_id": "ak.root.identity.organization_registration.command.revoke",
-        "did_authority": {"evidence_class": "ongoing_governance", "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"},
+        "did_authority": {
+          "evidence_class": "ongoing_governance",
+          "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
+        },
         "http": "POST /_arkret/root/identity/organization-registrations:revoke",
         "grpc": "RootIdentity/RevokeOrganizationRegistration",
         "mq": "root.identity.organization_registration.command.revoke",
@@ -12689,7 +12671,10 @@
       },
       {
         "operation_id": "ak.root.identity.read.resolve",
-        "did_authority": {"evidence_class": "current_external_claim", "freshness_profile_id": "ak.did_freshness.current_external_claim.v1"},
+        "did_authority": {
+          "evidence_class": "current_external_claim",
+          "freshness_profile_id": "ak.did_freshness.current_external_claim.v1"
+        },
         "http": "POST /_arkret/root/identity/resolve",
         "grpc": "RootIdentity/Resolve",
         "mq": "root.identity.query.resolve",
@@ -12758,7 +12743,11 @@
       },
       {
         "operation_id": "ak.root.identity.recovery_session.command.submit_proof",
-        "did_authority": {"evidence_class": "optional_did_root_recovery", "freshness_profile_id": "ak.did_freshness.optional_did_root_recovery.v1", "when": "proof_kind == did_root and the accepted PCR recovery policy explicitly enables the factor"},
+        "did_authority": {
+          "evidence_class": "optional_did_root_recovery",
+          "freshness_profile_id": "ak.did_freshness.optional_did_root_recovery.v1",
+          "when": "proof_kind == did_root and the accepted PCR recovery policy explicitly enables the factor"
+        },
         "http": "POST /_arkret/root/identity/recovery-sessions/{recovery_session_id}/proofs",
         "grpc": "RootIdentity/RecoverySessionSubmitProof",
         "mq": "root.identity.recovery_session.command.submit_proof",
@@ -12796,7 +12785,10 @@
       },
       {
         "operation_id": "ak.root.identity.service_registration.command.ensure",
-        "did_authority": {"evidence_class": "ongoing_governance", "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"},
+        "did_authority": {
+          "evidence_class": "ongoing_governance",
+          "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
+        },
         "http": "POST /_arkret/root/identity/service-registrations:ensure",
         "grpc": "RootIdentity/EnsureServiceRegistration",
         "mq": "root.identity.service_registration.command.ensure",
@@ -12844,7 +12836,7 @@
         "http": "POST /_arkret/self/account/profile",
         "grpc": "SelfAccount/UpdateProfile",
         "mq": "self.account.command.update_profile",
-        "notes": "Carries exactly one holder-signed profile_event EventInitialSubmission and no unsigned patch. event.realm_id is the exact PrincipalAuthorityInstance PCR selector; accepted-profile presence is evaluated only in that PCR lineage. If it has no accepted Actor Profile, the Event must be ak.profile.create; its actor_profile ID is derived by retyping the create Event ID and payload.object must omit id. If it has an accepted Profile, the Event must be ak.profile.update, payload.target_ref must equal that create-derived ID, and the signed patch remains limited to display_name, avatar_blob_ref and profile_fields.<key>. Both branches bind realm scope to the same PCR and event.actor_id to the session principal. On create payload.object.principal_id must equal that principal; on update the accepted target profile's materialized principal_id must equal it. Direct holder proof is required without executor or Applet provenance. Event preconditions are empty; update concurrency uses only optional signed payload.expected_state_digest. The service forwards the exact bytes through ordinary Event admission without authoring, rebuilding, co-signing, choosing an ID or adding a concurrency guard. Until the Control Move has accepted Seal coverage the operation returns frontier_unavailable; exact retry after coverage returns the byte-identical stored outcome. The single accepted effect advances the holder account-aggregate projection once; it creates no Directory announcement or account-data Event.",
+        "notes": "Carries exactly one holder-signed profile_event EventInitialSubmission and no unsigned patch. event.realm_id is the exact account-local PCR Realm selector; accepted-profile presence is evaluated only in that PCR lineage. If it has no accepted Actor Profile, the Event must be ak.profile.create; its actor_profile ID is derived by retyping the create Event ID and payload.object must omit id. If it has an accepted Profile, the Event must be ak.profile.update, payload.target_ref must equal that create-derived ID, and the signed patch remains limited to display_name, avatar_blob_ref and profile_fields.<key>. Both branches bind realm scope to the same PCR and event.actor_id to the session principal. On create payload.object.principal_id must equal that principal; on update the accepted target profile's materialized principal_id must equal it. Direct holder proof is required without executor or Applet provenance. Event preconditions are empty; update concurrency uses only optional signed payload.expected_state_digest. The service forwards the exact bytes through ordinary Event admission without authoring, rebuilding, co-signing, choosing an ID or adding a concurrency guard. Until the Control Move has accepted Seal coverage the operation returns frontier_unavailable; exact retry after coverage returns the byte-identical stored outcome. The single accepted effect advances the holder account-aggregate projection once; it creates no Directory announcement or account-data Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -12873,7 +12865,7 @@
         "http": "GET /_arkret/self/account/viewer",
         "grpc": "SelfAccount/Viewer",
         "mq": "self.account.query.viewer",
-        "notes": "Holder-bound one-shot read of the current principal account projection. Returns principal_id, account lifecycle state, device summaries, optional ActorProfile, and signed handle-claim evidence or refs. Because the operation has no authority-instance selector, profile is present only when exactly one accepted profile is unambiguous across the principal's PCR lineages; multiple accepted lineages fail closed by omitting profile, never by choosing an implicit current PCR. It MUST NOT return an unsigned bare handle as authoritative identity. Naming: the trailing segment 'viewer' is intentionally outside the api-conventions.md §2.4 read-verb taxonomy; it follows the GraphQL 'viewer' convention (the authenticated subject's own projection). The target is located by the holder-bound session rather than an external id, so 'get' does not apply, and 'viewer' (subject identity projection) stays distinct from 'describe' (service capability metadata).",
+        "notes": "Holder-bound one-shot read of the current principal account projection. Returns principal_id, account lifecycle state, device summaries, optional ActorProfile, and signed handle-claim evidence or refs. Because the operation has no account-local-lineage selector, profile is present only when exactly one accepted profile is unambiguous across the principal's PCR lineages; multiple accepted lineages fail closed by omitting profile, never by choosing an implicit current PCR. It MUST NOT return an unsigned bare handle as authoritative identity. Naming: the trailing segment 'viewer' is intentionally outside the api-conventions.md §2.4 read-verb taxonomy; it follows the GraphQL 'viewer' convention (the authenticated subject's own projection). The target is located by the holder-bound session rather than an external id, so 'get' does not apply, and 'viewer' (subject identity projection) stays distinct from 'describe' (service capability metadata).",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_view"
@@ -13110,7 +13102,7 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
-        "notes": "Controller-only caller-signed ak.capability.revoke Control Move. Path grant_id, payload grant_id/grant_ref, path Agent subject, target Realm, authenticated actor, the exact authority instance selected by the session, and the sole signed head_eq guard on the complete grant-cell head are all admission invariants. The service never authors the Event or appends CAS after signing; exact replay returns event.created_at as revoked_at.",
+        "notes": "Controller-only caller-signed ak.capability.revoke Control Move. Path grant_id, payload grant_id/grant_ref, path Agent subject, target Realm, authenticated actor, the exact account-local lineage selected by the session, and the sole signed head_eq guard on the complete grant-cell head are all admission invariants. The service never authors the Event or appends CAS after signing; exact replay returns event.created_at as revoked_at.",
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome",
         "durable_effect": {
@@ -13900,38 +13892,6 @@
         "durable_effect": {
           "kind": "none",
           "rationale": "persists_a_byte_identical_service_local_peer_relay_outbox_without_authoring_an_event"
-        }
-      },
-      {
-        "operation_id": "ak.self.principal_service_binding.command.prepare",
-        "http_only_variant": true,
-        "http": "POST /_arkret/self/principal-service-bindings/prepare",
-        "notes": "Authenticated principal session requests one durable frozen AcceptedAtServiceBinding core after DID publication and PCR acceptance. The service derives current DID authority evidence, its own service metadata/key/origins and timestamps; the caller supplies none of them. Omitting expected_current_binding_digest is create-if-absent, supplying it is same-service renewal CAS. The service-generated challenge is copied into binding_draft.authorization_challenge and therefore binding_digest. Same request_id and intent replays the same unconsumed draft; different intent conflicts.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "request_id",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_request_body",
-        "response_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_outcome",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "persists_only_a_service_local_single_use_frozen_binding_challenge_no_event_is_authored"
-        }
-      },
-      {
-        "operation_id": "ak.self.principal_service_binding.command.commit",
-        "http_only_variant": true,
-        "http": "POST /_arkret/self/principal-service-bindings/commit",
-        "notes": "Commit the exact durable binding draft with a principal proof whose method is valid at accepted_at. The service recomputes both transcripts and atomically CAS-installs the immutable accepted binding, signs the service-acceptance proof, consumes the challenge and stores the byte-identical outcome. Exact request replay returns that outcome; challenge reuse, expiry, digest/proof mismatch or a moved current pointer writes nothing.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "request_id",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_request_body",
-        "response_schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_outcome",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "service_local_current_binding_cas_and_portable_signed_snapshot_no_event_is_authored"
         }
       },
       {
@@ -14929,8 +14889,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-13.3",
-    "generated_at": "2026-08-13T10:08:00Z"
+    "version": "2026-08-14.1",
+    "generated_at": "2026-08-14T00:30:00Z"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -16021,7 +15981,6 @@
           "ak.realm.history_sharing_policy",
           "ak.realm.preview_policy",
           "ak.realm.moderation_policy",
-          "ak.realm.disappearing_policy",
           "ak.realm.search_policy",
           "ak.organization.moderation_policy",
           "ak.mimi.room_binding"
@@ -16119,7 +16078,6 @@
           "ak.realm.media_service",
           "ak.realm.schema",
           "ak.realm.inheritance_policy",
-          "ak.realm.disappearing_policy",
           "ak.realm.search_policy",
           "ak.realm.set_default_strand",
           "ak.applet.registration",
@@ -16200,17 +16158,6 @@
         "profile": null,
         "root_control_only": true,
         "notes": "Terminal Realm lifecycle. Authored only by the current controller of the Realm authority-root cell with an independent destructive confirmation; it MUST NOT be granted to anyone, so it is excluded from every derived owner authority set.",
-        "event_mapping_kind": "same_name"
-      },
-      {
-        "action": "ak.realm.disappearing_policy",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.realm.disappearing_policy"
-        ],
-        "profile": "ak.profile.disappearing.v1",
         "event_mapping_kind": "same_name"
       },
       {
@@ -16354,7 +16301,6 @@
           "ak.realm.asset_privacy_policy",
           "ak.realm.delivery_binding_policy",
           "ak.realm.digest_suite_transition",
-          "ak.realm.disappearing_policy",
           "ak.realm.discovery",
           "ak.realm.freeze",
           "ak.realm.history_sharing_policy",
@@ -17412,7 +17358,10 @@
       },
       "update_successor": {
         "event_kind": "ak.identity.resolution.update",
-        "did_authority": {"evidence_class": "method_successor", "freshness_profile_id": "ak.did_freshness.method_successor.v1"},
+        "did_authority": {
+          "evidence_class": "method_successor",
+          "freshness_profile_id": "ak.did_freshness.method_successor.v1"
+        },
         "required_realm_rule": "event.realm_id == derive_identity_control_realm(event.actor_id)",
         "required_precondition": {
           "cell": "ak:cell:ak.component.identity.resolution.v1:null",

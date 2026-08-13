@@ -522,9 +522,23 @@ def check_field_order(lint: Lint) -> None:
                     )
 
     def check_node(path: Path, json_path: str, node: dict) -> None:
+        required = node.get("required")
+        if isinstance(required, list):
+            seen_required: set[str] = set()
+            duplicate_required: list[str] = []
+            for member in required:
+                if not isinstance(member, str):
+                    continue
+                if member in seen_required and member not in duplicate_required:
+                    duplicate_required.append(member)
+                seen_required.add(member)
+            if duplicate_required:
+                lint.fail(
+                    path,
+                    f"{json_path}.required: duplicate member(s): {duplicate_required}",
+                )
         props = node.get("properties")
         if isinstance(props, dict):
-            required = node.get("required")
             present_leaders = [member for member in leading_group if member in props]
             enforce_leading_group = (
                 isinstance(required, list)
@@ -1285,4 +1299,3 @@ def check_device_messages_cursor_binding(lint: Lint) -> None:
             for pattern in legacy_patterns:
                 if pattern.search(text):
                     lint.fail(path, f"device_messages uses forbidden cursor alias: {pattern.pattern}")
-

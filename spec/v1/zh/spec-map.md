@@ -96,7 +96,7 @@ see_also:
 
 - signed Event Envelope 是唯一 canonical fact。
 - Principal Server 通过 `/_arkret/self/events/*` API 提交、读取、回填和验证 Event frontier。
-- Principal Server 是主体控制或委托的服务边界；Sync Service 是其 Realm 同步能力。
+- Principal Server 是主体控制或委托的服务边界；Principal Server sync surface 是其 Realm 同步能力。
 - 搜索、inbox、notification 和 View projection 默认由客户端本地派生；可选受托服务也不充当真相源（规范约束见 [`conformance/query-schema.md`](./conformance/query-schema.md) §8–§9）。
 
 ### 3.4 Discoverability / Join Rule / History Visibility
@@ -226,7 +226,6 @@ see_also:
 | --- | --- |
 | `crypto-media/device-lifecycle.md` | 设备身份、登录与授权边界、SSO/OIDC gateway、多设备配对、to-device 消息、PCR 设备授权、secret storage、key backup。 |
 | `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS Security Frontier Binding（`governance_binding.security_frontier_digest` + active generation projection）、KeyPackage lifecycle、minimal-metadata Realm 与 master-agent control 边界（核心机制）。 |
-| `crypto-media/disappearing-messages.md` | Message expiry、`ak.realm.disappearing_policy`、expiry stub、crypto-shredding 与 redaction 区分。 |
 | `crypto-media/audited-e2ee.md` | 可选 hardening profile：Audit Applet Binding、阶段性 release session、sealed historical release、RYW receipt、`ak.profile.attested_audit.e2ee.v1` / `ak.profile.disclosed_audit.e2ee.v1` 保证类别与 forbidden marketing terms。 |
 | `crypto-media/media-and-blob.md` | Blob metadata、thumbnail、authenticated media、asset privacy policy。 |
 | `crypto-media/webrtc-signaling.md` | 音视频通话 ephemeral 信令、ICE/TURN/STUN、一对一通话、多设备冲突、屏幕共享、推送集成。 |

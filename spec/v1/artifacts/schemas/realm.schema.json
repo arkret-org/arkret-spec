@@ -409,14 +409,6 @@
         "quarantine"
       ]
     },
-    "sync_endpoints": {
-      "type": "array",
-      "description": "Realm-level service binding list for shared notary / sync / mirror / federation peer surfaces. Directory resolve responses expose a requester-filtered join_candidates projection for join-side ingress; raw sync_endpoints are not a public candidate list. Member-level delivery_binding remains on ak.member.state and MUST NOT be inferred from this list.",
-      "items": {
-        "$ref": "#/$defs/sync_endpoint"
-      },
-      "uniqueItems": true
-    },
     "notary_profile": {
       "enum": [
         "single_did",
@@ -429,7 +421,7 @@
     },
     "availability_policy": {
       "type": "object",
-      "description": "Realm policy component governing independently signed byte-availability receipts before Seal inclusion and before snapshot/backfill availability claims. Absent means {min_holders:1, holder_roles:['notary'], applies_to:['seal_include']}. Holder roles are resolved from the accepted notary/service-binding state at the Seal basis; a self-asserted role is insufficient.",
+      "description": "Realm policy component governing independently signed byte-availability receipts before Seal inclusion and before snapshot/backfill availability claims. Every holder MUST be an effective joined member Principal Server or an explicit joined service actor; this policy never creates an out-of-membership replication target. Absent means {min_holders:1, holder_roles:['joined_member_principal_server'], applies_to:['seal_include']}. A self-asserted role is insufficient.",
       "required": [
         "min_holders",
         "holder_roles",
@@ -448,10 +440,8 @@
           "items": {
             "type": "string",
             "enum": [
-              "notary",
-              "independent_witness",
-              "sync_mirror",
-              "archive_node"
+              "joined_member_principal_server",
+              "joined_service_actor"
             ]
           }
         },
@@ -1036,67 +1026,6 @@
         "controller_organization": {
           "$ref": "#/$defs/did_core_id",
           "description": "Organization DID controlling this recovery recipient, when derivable; receiver MAY use it to verify org attribution."
-        }
-      },
-      "additionalProperties": false
-    },
-    "sync_endpoint": {
-      "type": "object",
-      "description": "Realm-authorized shared service binding. service_id is the stable business identity; service_resolution supplies independently verifiable current route material. A bare endpoint URL is never an authority root.",
-      "required": [
-        "service_id",
-        "service_resolution",
-        "role",
-        "service_kind",
-        "plaintext_visible"
-      ],
-      "properties": {
-        "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "service_resolution": {
-          "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier"
-        },
-        "role": {
-          "type": "string",
-          "enum": [
-            "primary",
-            "mirror",
-            "notary",
-            "sync",
-            "search_projection",
-            "federation_peer"
-          ]
-        },
-        "service_kind": {
-          "type": "string",
-          "enum": [
-            "principal_server",
-            "sync_node",
-            "notary",
-            "search_service",
-            "archive_node",
-            "key_recovery_service",
-            "recovery_service"
-          ]
-        },
-        "plaintext_visible": {
-          "type": "boolean"
-        },
-        "visibility_scope": {
-          "type": "string",
-          "enum": [
-            "metadata_only",
-            "encrypted_events",
-            "plaintext_events"
-          ]
-        },
-        "policy_id": {
-          "type": "string",
-          "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false

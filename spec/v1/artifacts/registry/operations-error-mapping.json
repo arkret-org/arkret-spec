@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-13.2",
+  "version": "2026-08-14.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-13T09:30:00Z",
+  "generated_at": "2026-08-14T00:40:00Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -30,7 +30,7 @@
         "applet_registration_unauthorized",
         "applet_namespace_mismatch"
       ],
-      "description": "Transaction push is a service-to-service operation in both directions. Receivers MUST fail closed when the per-delivery RFC 9421 source signature is missing/invalid/outside the replay window, when the idempotency identity is replayed with a different body or delivery_authentication_record, when the source Applet service has no active effective install, or when an Event actor falls outside the registered Applet namespace. See zh/extensions/applet-integration.md §7.3.1."
+      "description": "Transaction push is a service-to-service operation in both directions. Receivers MUST fail closed when the per-delivery RFC 9421 source signature is missing/invalid/outside the replay window, when the idempotency identity is replayed with a different body or receiver-derived delivery_authentication_record_digest, when the source Applet service has no active effective install, or when an Event actor falls outside the registered Applet namespace. See zh/extensions/applet-integration.md §7.3.1."
     },
     {
       "operation_id": "ak.edge.applet.read.describe",
@@ -556,7 +556,7 @@
     },
     {
       "operation_id": "ak.peer.account_status.read.authoring_frontiers",
-      "http_alias": "POST /_arkret/peer/account-status/authoring-frontiers",
+      "http_alias": "POST /_arkret/peer/account-status/authoring-basis",
       "operation_specific": [
         "failed_precondition",
         "frontier_unavailable",
@@ -1469,28 +1469,6 @@
         "direct_conversation_unavailable"
       ],
       "description": "Service-authenticated atomic recipient enqueue. Reuse of (Source-Service-ID, request_id) with a changed request digest is duplicate_conflict and writes nothing. Invalid/stale portable requester authority or repair gates are failed_precondition; hidden pair/recipient state is direct_conversation_unavailable. Partial human-device fanout and Agent endpoint fallback are forbidden."
-    },
-    {
-      "operation_id": "ak.self.principal_service_binding.command.prepare",
-      "http_alias": "POST /_arkret/self/principal-service-bindings/prepare",
-      "operation_specific": [
-        "duplicate_conflict",
-        "cas_conflict",
-        "failed_precondition"
-      ],
-      "description": "A request_id intent conflict, create-if-absent or renewal CAS mismatch, or an unaccepted/stale principal authority writes no binding draft beyond an exact replay of the original durable challenge."
-    },
-    {
-      "operation_id": "ak.self.principal_service_binding.command.commit",
-      "http_alias": "POST /_arkret/self/principal-service-bindings/commit",
-      "operation_specific": [
-        "duplicate_conflict",
-        "challenge_expired",
-        "cas_conflict",
-        "invalid_signature",
-        "failed_precondition"
-      ],
-      "description": "Challenge reuse with different material, expiry, current-binding CAS loss, proof failure or stale authority consumes and installs nothing. Exact replay of a committed request returns the stored byte-identical binding outcome."
     },
     {
       "operation_id": "ak.self.events.command.submit",

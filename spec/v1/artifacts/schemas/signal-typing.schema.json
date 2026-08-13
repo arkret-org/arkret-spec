@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/signal-typing.schema.json",
   "title": "Arkret Typing Signal Plaintext",
-  "description": "Closed decrypted Signal plaintext payload profile for ak.typing, carried only inside ak.schema.signal_envelope.v1 with signal_class=session. The target Strand and the exact kind MUST stay inside the ciphertext and MUST NOT be exposed to the Sync Service. Realm scope and sender identity come from the enclosing signed envelope and are not duplicated here. See zh/discovery/profiles-presence.md section 3.5 and zh/sync/signal.md section 1.1.",
+  "description": "Closed decrypted Signal plaintext payload profile for ak.typing, carried only inside ak.schema.signal_envelope.v1 with signal_class=session. The target Strand and the exact kind MUST stay inside the ciphertext and MUST NOT be exposed to Principal Server transport or sync surfaces. Realm scope and sender identity come from the enclosing signed envelope and are not duplicated here. See zh/discovery/profiles-presence.md section 3.5 and zh/sync/signal.md section 1.1.",
   "type": "object",
   "required": [
     "kind",

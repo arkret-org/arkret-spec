@@ -373,7 +373,7 @@
         "agent provision operation id remains ak.self.agent.command.provision",
         "agent provision capability action matches the operation id",
         "provision fails without a controller recovery policy before creating any Agent DID, PCR, or grant side effect",
-        "controller publishes PCR-independent DID entry 0; prepare validates an exact accepted controller_authority_instance, verifies full_id and returns exact initial_resolution plus allocation without generating DID/private keys or durable Agent/PCR/accountability/selector/pairing/grant side effects, and MUST NOT allocate principal_control_realm_id",
+        "controller publishes PCR-independent DID entry 0; prepare validates an exact accepted controller_principal_server_id, verifies full_id and returns exact initial_resolution plus allocation without generating DID/private keys or durable Agent/PCR/accountability/selector/pairing/grant side effects, and MUST NOT allocate principal_control_realm_id",
         "the controller recomputes requested_scope_digest and uses the Arkret SDK canonical authoring API for one ak.agent.provision Event",
         "the provision payload carries no nested proof; the Event envelope proof is the only signature",
         "the provision Event passes the ordinary Event proof verifier and admission pipeline; a service-authored or dev-proof substitute is rejected in every mode",

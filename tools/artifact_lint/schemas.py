@@ -155,9 +155,9 @@ _FULL_ID_REF_TARGETS = {
 
 _INLINE_DID_KEY_ENCODING_POINTERS = {
     "device-pairing.schema.json#/$defs/device_pairing_target_attestation/properties/device_public_key/pattern",
-    "federated-device-signing-key-evidence.schema.json#/properties/device_signing_key/pattern",
     "keys-operations.schema.json#/$defs/did_key/pattern",
     "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/device_public_key/pattern",
+    "event-envelope.schema.json#/$defs/principal_server_admission_proof/properties/producer_signing_key/pattern",
 }
 
 
@@ -2171,7 +2171,7 @@ def check_device_reanchor_payload_receipt_binding(lint: Lint) -> None:
             lint.fail(
                 payload_path,
                 f"$defs.device_reanchor_payload.{name} restores a retired DID-version authority field; "
-                "the base re-anchor branch selects authority only through authority_instance and the "
+                "the base re-anchor branch selects authority only through principal_id plus principal_server_id and the "
                 "PCR-local device generation CAS",
             )
         if name in scope_props:
@@ -2203,7 +2203,7 @@ def check_device_reanchor_payload_receipt_binding(lint: Lint) -> None:
                 "for the same authority field allows silent substitution",
             )
 
-    for name in ("authority_instance", "previous_device_generation", "new_device_generation"):
+    for name in ("principal_id", "principal_server_id", "previous_device_generation", "new_device_generation"):
         if name not in scope_required:
             lint.fail(
                 receipt_path,

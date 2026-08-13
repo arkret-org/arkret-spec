@@ -257,7 +257,7 @@ Content-Type: application/json
 - `quarantine`
 - `require_review`
 
-`hard_deny` MAY 使事件被 reject；`quarantine` MUST 使事件进入 quarantine；`soft_deny` SHOULD 阻止默认客户端提交，但 Sync Service MAY 接收并保留为策略软拒绝记录；`require_review` 生成 proposal/review strand。
+`hard_deny` MAY 使事件被 reject；`quarantine` MUST 使事件进入 quarantine；`soft_deny` SHOULD 阻止默认客户端提交，但 Principal Server sync surface MAY 接收并保留为策略软拒绝记录；`require_review` 生成 proposal/review strand。
 
 `reason_code` SHOULD 至少覆盖：
 

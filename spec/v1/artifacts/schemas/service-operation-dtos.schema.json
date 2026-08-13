@@ -1294,8 +1294,7 @@
         "unit_kind",
         "events",
         "source_acceptance_receipt",
-        "founding_authority_evidence",
-        "source_service_binding"
+        "founding_authority_evidence"
       ],
       "properties": {
         "unit_kind": {
@@ -1316,10 +1315,6 @@
         "founding_authority_evidence": {
           "$ref": "#/$defs/DirectConversationFoundingAuthorityEvidence"
         },
-        "source_service_binding": {
-          "$ref": "./principal-service-binding.schema.json#/$defs/accepted_at_service_binding",
-          "description": "Portable accepted-at binding for source_acceptance_receipt. binding_digest MUST equal receipt.issuer_service_binding_digest, service_id MUST equal receipt.issuer_service_id and authenticated Source-Service-ID, principal_id MUST equal receipt.founder_id, and authority_instance MUST equal the instance frozen by the Contact round. Another same-core PCR is rejected."
-        },
         "cba_proof_bundles": {
           "type": "array",
           "maxItems": 64,
@@ -1327,14 +1322,6 @@
           "items": {
             "$ref": "./cba-proof-bundle.schema.json"
           }
-        },
-        "signer_key_evidence": {
-          "type": "array",
-          "maxItems": 64,
-          "items": {
-            "$ref": "./federated-device-signing-key-evidence.schema.json"
-          },
-          "description": "Source-Principal-Server attestation of the founder device keys needed to verify the three original Event proofs. Transport-only evidence covered by the outer HTTP Message Signature."
         }
       },
       "additionalProperties": false
@@ -1346,8 +1333,7 @@
         "unit_kind",
         "idempotency_key",
         "events",
-        "founding_authority_evidence",
-        "source_service_binding"
+        "founding_authority_evidence"
       ],
       "properties": {
         "unit_kind": {
@@ -1369,10 +1355,6 @@
         },
         "founding_authority_evidence": {
           "$ref": "#/$defs/DirectConversationFoundingAuthorityEvidence"
-        },
-        "source_service_binding": {
-          "$ref": "./principal-service-binding.schema.json#/$defs/accepted_at_service_binding",
-          "description": "Founder-authorized accepted-at binding for the current Principal Server. principal_id MUST equal events[0].event.actor_id, service_id MUST equal the receiving service, and accepted_at MUST be live and no later than the slot transaction. The service verifies both proofs and uses this binding_digest verbatim in its acceptance receipt; it MUST NOT synthesize the principal proof."
         },
         "cba_proof_bundles": {
           "type": "array",
@@ -2283,7 +2265,7 @@
     },
     "EventsSubmitFederationBatchRequestBody": {
       "type": "object",
-      "description": "Ordinary Realm-scoped federation service-to-service ak.peer.events.command.submit request body.",
+      "description": "Ordinary Realm-scoped federation service-to-service ak.peer.events.command.submit request body. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar. Each Event must contain its original principal_server_admission proof; the receiver validates it in-envelope and accepts no signer-key evidence sidecar.",
       "required": [
         "service_binding_ref",
         "events"
@@ -2309,18 +2291,6 @@
             "$ref": "./cba-proof-bundle.schema.json"
           },
           "description": "Receiver-relative CBA dependency bundles rooted at nested Events' seal_ref or seal_basis leaves. Each bundle MAY be a bounded verifiable superset; the receiver independently validates all objects and reports exact missing dependencies."
-        },
-        "signer_key_evidence": {
-          "type": "array",
-          "maxItems": 64,
-          "items": {
-            "$ref": "./federated-device-signing-key-evidence.schema.json"
-          },
-          "description": "Source-Principal-Server attestation of active participant device keys needed to verify original Event proofs. This transport-only evidence is covered by the outer HTTP Message Signature and never changes the Event envelope."
-        },
-        "agent_signer_evidence_bundle": {
-          "$ref": "./agent-signer-evidence-operations.schema.json#/$defs/sync_bundle",
-          "description": "Portable Native Agent signer evidence for transported Events. The bundle uses the same typed DTO as client sync and is covered by the outer HTTP Message Signature without changing Event canonical bytes."
         }
       },
       "additionalProperties": false

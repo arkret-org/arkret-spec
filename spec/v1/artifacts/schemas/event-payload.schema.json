@@ -2975,7 +2975,7 @@
       "required": [
         "grant"
       ],
-      "description": "Canonical ak.capability.grant genesis payload. Both top-level grant_id and grant.id are forbidden because the durable GrantId is derived by retyping this Event's event_id. The reducer inserts the derived id into the projected CapabilityGrant. The Event envelope proof is the sole durable issuer signature.",
+      "description": "Canonical ak.capability.grant genesis payload. Both top-level grant_id and grant.id are forbidden because the durable GrantId is derived by retyping this Event's event_id. issuer_principal_server_id, authority_depth and authority_root_refs are also forbidden in this closed authoring shape: after verifying grant.issuer equals the Event author, the reducer copies Event.principal_server_id into issuer_principal_server_id and derives the remaining audit members before writing the complete CapabilityGrant cell value. The Event envelope proof is the sole durable issuer signature.",
       "properties": {
         "grant": {
           "type": "object",
@@ -3000,6 +3000,9 @@
             },
             "subject": {
               "$ref": "./capability-grant.schema.json#/properties/subject"
+            },
+            "subject_principal_server_id": {
+              "$ref": "./capability-grant.schema.json#/properties/subject_principal_server_id"
             },
             "actions": {
               "$ref": "./capability-grant.schema.json#/properties/actions"
@@ -3026,7 +3029,26 @@
               "$ref": "./capability-grant.schema.json#/properties/issuer_authority_refs"
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "subject": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "subject"
+                ]
+              },
+              "then": {
+                "required": [
+                  "subject_principal_server_id"
+                ]
+              }
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -3037,7 +3059,7 @@
         "grant_id",
         "grant"
       ],
-      "description": "Reducer-authored cross-Realm capability derivation. Unlike capability genesis this references an existing Grant and therefore carries the already-derived grant_id and complete projected grant body.",
+      "description": "Reducer-authored cross-Realm capability derivation. Unlike capability genesis this references an existing Grant and therefore carries the already-derived grant_id and complete projected grant body, including the source grant's issuer_principal_server_id. A derived projection preserves that authority pair and MUST NOT replace it with a local reducer or receiving service identity.",
       "properties": {
         "grant": {
           "$ref": "./capability-grant.schema.json"
@@ -3934,7 +3956,7 @@
         },
         "authorized_by": {
           "$ref": "#/$defs/device_or_principal_ref",
-          "description": "Under registration_anchor this is the principal whose durable registration control evidence was accepted. Under pcr_recovery it is the same principal selected by the recovery session and authority instance. Under accepted_device it is the approving device id at the accepted generation."
+          "description": "Under registration_anchor this is the principal whose durable registration control evidence was accepted. Under pcr_recovery it is the same principal selected by the recovery session and account-local lineage. Under accepted_device it is the approving device id at the accepted generation."
         },
         "authorization_binding_kind": {
           "type": "string",
@@ -4083,10 +4105,10 @@
     },
     "device_reanchor_payload": {
       "type": "object",
-      "description": "Closed PCR recovery payload. It selects one immutable authority instance, one pre-accepted recovery policy/session and a monotonic PCR generation CAS. DID publication is absent from the base branch; did_root is an optional explicitly enabled factor and contributes only did_root_evidence_digest.",
+      "description": "Closed account-local PCR recovery payload. The account authority is selected by principal_id plus principal_server_id and one monotonic local device-generation CAS. PCR realm/frontier identifiers remain local recovery state and are not an external principal identity selector.",
       "required": [
         "principal_id",
-        "authority_instance",
+        "principal_server_id",
         "recovery_authority_kind",
         "recovery_policy_id",
         "recovery_policy_version",
@@ -4100,12 +4122,15 @@
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "authority_instance": {
-          "$ref": "./principal-authority-instance.schema.json"
+        "principal_server_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "recovery_authority_kind": {
           "type": "string",
-          "enum": ["pcr_policy", "did_root"]
+          "enum": [
+            "pcr_policy",
+            "did_root"
+          ]
         },
         "recovery_policy_id": {
           "type": "string",
@@ -4173,9 +4198,28 @@
       "additionalProperties": false,
       "allOf": [
         {
-          "if": {"properties": {"recovery_authority_kind": {"const": "did_root"}}, "required": ["recovery_authority_kind"]},
-          "then": {"required": ["did_root_evidence_digest"]},
-          "else": {"not": {"required": ["did_root_evidence_digest"]}}
+          "if": {
+            "properties": {
+              "recovery_authority_kind": {
+                "const": "did_root"
+              }
+            },
+            "required": [
+              "recovery_authority_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "did_root_evidence_digest"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "did_root_evidence_digest"
+              ]
+            }
+          }
         }
       ]
     },
@@ -5457,7 +5501,7 @@
         },
         "recipient_service_kind": {
           "const": "principal_server",
-          "description": "v1 only allows principal_server. Notary / shared Sync Service are addressed by Realm-level sync_endpoints, not by member-level delivery_binding."
+          "description": "v1 only allows principal_server. Realm Event fanout is derived solely from effective joined-member delivery bindings and deduplicated by recipient_service_id."
         },
         "binding_scope": {
           "const": "realm",
@@ -5711,10 +5755,6 @@
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "principal_authority_instance": {
-          "$ref": "./principal-authority-instance.schema.json",
-          "description": "Required by admission whenever actor_id is a human principal. The first accepted join freezes this immutable PCR lineage; later same-core evidence MUST match it byte-for-byte. Organization/service/ephemeral role branches use their own explicit authority contract and omit this field."
         },
         "membership": {
           "$ref": "#/$defs/membership_state"
@@ -5972,10 +6012,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "expiry": {
-          "$ref": "#/$defs/message_expiry",
-          "description": "Optional disappearing-message expiry contract for ak.profile.disappearing.v1. Expiry is projection / retention semantics and MUST NOT be treated as redaction."
         }
       },
       "additionalProperties": false
@@ -6009,34 +6045,6 @@
         }
       ],
       "description": "MLS-protected Message metadata bound to its one canonical decrypted schema."
-    },
-    "message_expiry": {
-      "type": "object",
-      "required": [
-        "ttl_ms",
-        "trigger"
-      ],
-      "properties": {
-        "ttl_ms": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "trigger": {
-          "type": "string",
-          "enum": [
-            "on_send",
-            "on_first_read",
-            "on_last_read"
-          ],
-          "description": "Expiry trigger. on_first_read / on_last_read are driven by private read cursor or policy-allowed receipt inputs through anonymous aggregate trigger contributions; expiry metadata MUST NOT expose reader identity."
-        },
-        "grace_ms": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Additional local projection / key-drop grace. Does not extend the Realm policy maximum lifetime."
-        }
-      },
-      "additionalProperties": false
     },
     "message_id": {
       "type": "string",
@@ -6984,12 +6992,24 @@
         {
           "oneOf": [
             {
-              "required": ["self_claim_receipt"],
-              "not": { "required": ["peer_claim_receipt"] }
+              "required": [
+                "self_claim_receipt"
+              ],
+              "not": {
+                "required": [
+                  "peer_claim_receipt"
+                ]
+              }
             },
             {
-              "required": ["peer_claim_receipt"],
-              "not": { "required": ["self_claim_receipt"] }
+              "required": [
+                "peer_claim_receipt"
+              ],
+              "not": {
+                "required": [
+                  "self_claim_receipt"
+                ]
+              }
             }
           ]
         }
@@ -7103,7 +7123,7 @@
         },
         "claim_envelope": {
           "type": "object",
-          "description": "Closed requester device-or-Native-Agent signature binding the claimed KeyPackage to this Welcome, Realm, claim nonce, and Welcome digest before decrypting the Welcome. The Native Agent branch additionally carries current AgentSignerEvidence and never invents a requester_device_id.",
+          "description": "Closed requester device-or-Native-Agent signature binding the claimed KeyPackage to this Welcome, Realm, claim nonce and Welcome digest before decrypting the Welcome. Signer authority is established by the accepted authorization Events and their in-envelope Principal Server admission proofs; no signer-evidence sidecar is carried.",
           "required": [
             "keypackage_ref",
             "keypackage_digest",
@@ -7137,11 +7157,6 @@
                     "required": [
                       "requester_agent_key_authorize_event_id"
                     ]
-                  },
-                  {
-                    "required": [
-                      "requester_agent_signer_evidence"
-                    ]
                   }
                 ]
               }
@@ -7150,8 +7165,7 @@
               "required": [
                 "requester_agent_id",
                 "requester_agent_verification_method",
-                "requester_agent_key_authorize_event_id",
-                "requester_agent_signer_evidence"
+                "requester_agent_key_authorize_event_id"
               ],
               "not": {
                 "anyOf": [
@@ -7200,9 +7214,6 @@
             "requester_agent_key_authorize_event_id": {
               "$ref": "./common-ids.schema.json#/$defs/event_id"
             },
-            "requester_agent_signer_evidence": {
-              "$ref": "./agent-signer-evidence.schema.json#/$defs/current_admission_evidence"
-            },
             "nonce": {
               "$ref": "#/$defs/non_empty_string"
             },
@@ -7244,7 +7255,7 @@
         },
         "self_claim_receipt": {
           "$ref": "./keypackage-operations.schema.json#/$defs/self_keypackage_claim_receipt",
-          "description": "Required when the KeyPackage was claimed through the same-service claim operation. It binds the complete exact request and supplies the operation/request/service/challenge transcript for current Native Agent signer evidence."
+          "description": "Required when the KeyPackage was claimed through the same-service claim operation. It binds the complete exact request and the operation/request/service/challenge transcript."
         },
         "welcome_ref": {
           "$ref": "#/$defs/object_ref"
@@ -8817,49 +8828,6 @@
       },
       "additionalProperties": false
     },
-    "realm_disappearing_policy_payload": {
-      "type": "object",
-      "required": [
-        "enabled",
-        "max_ttl_ms",
-        "allowed_triggers"
-      ],
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "max_ttl_ms": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "allowed_triggers": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": [
-              "on_send",
-              "on_first_read",
-              "on_last_read"
-            ]
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "read_trigger_window_ms": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Maximum wait window for on_last_read aggregate contributions. If omitted, implementations MUST use max_ttl_ms. This window is metadata-only and MUST NOT expose reader identity or unread reader count."
-        },
-        "default_grace_ms": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "plaintext_realms_allowed": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false
-    },
     "realm_freeze_payload": {
       "type": "object",
       "required": [
@@ -9511,10 +9479,6 @@
         "federation_policy": {
           "$ref": "./realm.schema.json#/properties/federation_policy",
           "description": "The sole producer carrier of the effective Realm federation policy. High-assurance Realm reducers require closed, restricted, or quarantine and reject open."
-        },
-        "sync_endpoints": {
-          "$ref": "./realm.schema.json#/properties/sync_endpoints",
-          "description": "The sole producer carrier of Realm-level shared notary, sync mirror and federation service bindings. Member delivery bindings remain in ak.realm.delivery_binding_policy and ak.member.state."
         },
         "aad_visibility": {
           "type": "object",

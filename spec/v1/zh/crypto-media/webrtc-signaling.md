@@ -32,7 +32,7 @@ Arkret 支持音频通话、视频通话、屏幕共享和多人会议。实时�
 
 ### 2.1 信令是 Ephemeral
 
-Offer、Answer、ICE candidate、renegotiation、speaking update 等高频信令 SHOULD 通过 Sync Service 的 Signal Extension 或等价 streaming transport 发送。
+Offer、Answer、ICE candidate、renegotiation、speaking update 等高频信令 SHOULD 通过 Principal Server sync surface 的 Signal Extension 或等价 streaming transport 发送。
 
 通话摘要、会议实体、录制 artifact、会议权限变化 MAY 作为 Durable Event 写入 Realm Event history。
 

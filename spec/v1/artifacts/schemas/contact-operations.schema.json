@@ -135,7 +135,6 @@
       "type": "object",
       "required": [
         "subject_id",
-        "principal_authority_instance",
         "recipient_service_id",
         "service_resolution"
       ],
@@ -144,13 +143,9 @@
           "$ref": "#/$defs/did_core_id",
           "description": "Principal DID whose private Contact projection receives this fact."
         },
-        "principal_authority_instance": {
-          "$ref": "./principal-authority-instance.schema.json",
-          "description": "Immutable PCR lineage selected for this Contact participant. principal_id and principal_server_id MUST equal subject_id and recipient_service_id."
-        },
         "recipient_service_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Stable Principal Server service did_core_id that hosts subject_id and accepts this delivery."
+          "description": "Stable Principal Server service did_core_id that hosts subject_id and accepts this delivery. Together with subject_id this is the complete Contact participant authority key."
         },
         "service_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",

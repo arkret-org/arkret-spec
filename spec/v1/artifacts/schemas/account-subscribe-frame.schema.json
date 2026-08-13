@@ -472,7 +472,7 @@
             "properties": {
               "event_id": {
                 "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+                "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
               },
               "event_state": {
                 "type": "string",
@@ -675,7 +675,7 @@
           "description": "Effective ak.member.identity.update event ids for this actor after replacement refs are applied.",
           "items": {
             "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
           },
           "uniqueItems": true
         },

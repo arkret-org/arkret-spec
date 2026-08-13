@@ -262,11 +262,7 @@ MUST 独立重做 method evidence、document digest、record proof/currentness�
 然后才可用同一 keyid 验 RFC 9421。签名 MUST 覆盖 method、target URI/path、Content-Digest、
 Source/Destination-Service-ID、operation id 与 request id。DidCoreId、URL、bearer 或 caller 自报 public key 均不是验签钥匙来源；
 bearer 只能作为附加部署门。`agent_authority_service_id` MUST 与请求的 verified source
-service identity 逐字相等。Account Authority 还 MUST 要求它等于 controller current
-`AcceptedAtServiceBinding.service_id`；按 managed Agent 与 controller 同 Principal Server 的既有约束，该
-service 就是本次 Agent PCR authority。随后 Account Authority 只从自己的 authoritative account binding/status
-projection 选择 basis 并签名 attestation。未知 principal、缺 service binding、source/service 字段不一致与无权 caller
-统一返回不可枚举的 `not_found`，不得泄露 account status。attestation 时窗 MUST 不超过 300 秒；producer 不得用
+service identity 逐字相等。Account Authority 还 MUST 要求 `agent_authority_service_id` 等于 controller account authority pair 的 `principal_server_id`。随后只从本地 authoritative account/device state 选择 basis；未知 principal、source/service 不一致与无权 caller 统一返回不可枚举的 `not_found`，不得泄露 account status。attestation 时窗 MUST 不超过 300 秒；producer 不得用
 service-local cache row、session introspection、controller 自报状态或过期 attestation替代。该 attestation 只是短 TTL
 controller-lifecycle snapshot，可在其时窗内被同一 producer复用，故不携 operation/request digest/audience/challenge；
 每个 `current_observation` 与 outer attestation 必须把它的 digest 重新绑定到 exact request context，裸 gate 单独跨请求
@@ -384,11 +380,7 @@ PCR id；PCR service binding 必须是 create accepted 后的连续 DID update�
    `ArkretPrincipalServer` 与唯一 `ArkretManagedPrincipalController` delegation，MUST NOT 含
    `ArkretPrincipalControlRealm`。controller 签名并提交 exact entry 0；Principal Server 不生成、不持有、
    不代签 Agent DID 私钥。只有 entry 0 已 accepted 才进入下一步。
-2. **prepare 钉死 accepted inception 与 controller PCR 实例**。controller 以该 `full_id` 和当前 accepted
-   `controller_authority_instance` 调用 `phase=prepare`；后者是
-   `(principal_id,principal_server_id,pcr_realm_id,principal_genesis_receipt_digest,authority_instance_digest)`
-   的闭合选择器。服务端 MUST 重算其 canonical digest，逐字匹配本地持久化 principal-resolution 记录，并确认
-   principal、Principal Server 与当前 session 完全一致；不得只凭 controller core DID 猜选某个 PCR。随后服务端
+2. **prepare 钉死 accepted inception 与 controller account pair**。controller 以该 `full_id` 和当前 `controller_principal_server_id` 调用 `phase=prepare`；服务端将它与 session principal 组成的 pair 逐字匹配 authenticated session 的 `(principal_id, principal_server_id)`，并只从该 pair 的本地唯一 PCR lineage 取得后续材料。随后服务端
    独立解析并验证 entry 0、`project(full_id)=agent_id`、controller delegation 与“尚无 PCR binding”，返回 exact
    `initial_resolution`、allocation、authorization ref 与 `requested_scope_digest`。controller MUST 把返回的
    history head/version 与自己提交的 entry 0 逐字比较。
@@ -665,7 +657,7 @@ gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入
 }
 ```
 
-`authorization_binding_kind="accepted_device"` 下 `authorized_by` 是**批准设备自己的 `device_id`**，不是它所属 principal 的 `did_core_id`；`registration_anchor` 与 `pcr_recovery` 才使用目标 authority instance 的 principal `did_core_id`。批准方 accepted device 以 authorize Event proof 对完整 payload 签名；`verification_method` 必须由该 Event accepted-at 的 `full_id` 与 method evidence 验证，解析后的 base 必须投影为 `principal_id`，不得要求 current DID resolution。该 proof 也是 `principal_id` / `authorized_by` / `not_before` / `expires_at` / `scopes` 的唯一签名承载；新设备的 `device_signature` 只在 `accepted_device` possession transcript 上证明持有 candidate key 与自己的 `hpke_key` / `algorithms`。candidate overlay 只用于 registration genesis 与 PCR recovery unit，普通 pairing 不允许目标设备自我授权。
+`authorization_binding_kind="accepted_device"` 下 `authorized_by` 是**批准设备自己的 `device_id`**，不是它所属 principal 的 `did_core_id`；`registration_anchor` 与 `pcr_recovery` 才使用目标 account authority pair 的 principal `did_core_id`。批准方 accepted device 以 authorize Event proof 对完整 payload 签名；`verification_method` 必须由该 Event accepted-at 的 `full_id` 与 method evidence 验证，解析后的 base 必须投影为 `principal_id`，不得要求 current DID resolution。该 proof 也是 `principal_id` / `authorized_by` / `not_before` / `expires_at` / `scopes` 的唯一签名承载；新设备的 `device_signature` 只在 `accepted_device` possession transcript 上证明持有 candidate key 与自己的 `hpke_key` / `algorithms`。candidate overlay 只用于 registration genesis 与 PCR recovery unit，普通 pairing 不允许目标设备自我授权。
 
 ### 5.2 设备吊销
 
@@ -909,8 +901,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 `auth_data.verification_method` 必须是 DID URL：其 bare `full_id` 经 method adapter 投影必须等于
 `actor_id`，fragment 必须等于 `device_id`；不得把 core `actor_id` 直接拼接 fragment。
 `device_authorize_event_id` 必须解析为该 device 在 envelope frontier 的 accepted authorization。Verifier
-重放 registration-anchor PCR genesis、PCR-policy re-anchor 与后续 device chain，检查 authority instance、generation、revocation、Seal coverage，
-再用 authorize payload 的 device key 验 envelope signature。账号 session 或服务端裸 key assertion都不能替代这条链。
+KeyPackage 对外 claim 不携带 PCR/device history sidecar。origin Principal Server 在本地检查 registration、generation 与 revocation后签发承载该 KeyPackage 的 admission/claim；普通 Event federation receiver 只验证 Event 内嵌 admission proof。
 
 ### 7.5 Recipient Method Profiles
 
@@ -1128,7 +1119,7 @@ Recovery policy 的所有发布、轮换和撤销均进入 PCR control stream。
 - **revoke share**：当某个 share holder 被怀疑泄露时，policy holder 可发布只更新 `threshold.shares[i].revoked_at` 与 `revocation_reason_code` 的 rotate envelope。recovery coordinator MUST 拒绝任何 `revoked_at != null` 的 share，即便 commitment 仍能通过。`reshare_policy.max_share_age_seconds` 到期后未 reshare 的 share 在 coordinator 侧 MUST 被视为 stale，UI MUST 提醒用户。
 - **revoke policy**：用 `expires_at = now`、`allowed_proof_kinds = []`、或专门的 `policy_id` revoke 进入 principal control stream；revoke 之后只有写入新 policy 才能恢复账号——这是高代价动作，必须配 §7.7 UI 警告。
 
-任何允许的恢复方式（did_root / device_quorum / trusted_recovery_service / threshold_recovery / recovery_unlock）的 proof transcript MUST 绑定 `(authority_instance_digest, policy_id, version, recovery_session_id)`；不绑定的 proof MUST `recovery_evidence_unbound`。Device recovery 场景还 MUST 使用 `crypto-media/device-lifecycle.md` §14 定义的 canonical transcript，其字段集同时绑定 `principal_id`、`requesting_device_id`、`trust_domain`、`identity_model="pcr_policy"`、`model_generation_ref`、session `challenge`、session `created_at` 与 `expires_at`；`model_generation_ref` 必须等于 PCR current device generation，且不得由 DID `versionId` 推导。`did_root` 仅在冻结 policy 显式启用时成立。
+任何允许的恢复方式（did_root / device_quorum / trusted_recovery_service / threshold_recovery / recovery_unlock）的 create request、session state 与 proof transcript MUST 绑定 exact closed `principal_authority: PrincipalAuthorityKey {principal_id, principal_server_id}`，以及 `(policy_id, version, recovery_session_id)`；create wire 不接受旧顶层 `principal_id`。接收方 MUST 要求 `principal_authority.principal_server_id` 等于自身 authenticated service DID，并以完整 pair 选择唯一 lifetime PCR lineage，unknown/wrong-service/mismatch fail closed。不绑定的 proof MUST `recovery_evidence_unbound`。Device recovery 场景还 MUST 使用 `crypto-media/device-lifecycle.md` §14 定义的 canonical transcript，其字段集同时绑定 `requesting_device_id`、`trust_domain`、`identity_model="pcr_policy"`、`model_generation_ref`、session `challenge`、session `created_at` 与 `expires_at`；`model_generation_ref` 必须等于 PCR current device generation，且不得由 DID `versionId` 推导。`did_root` 仅在冻结 policy 显式启用时成立。
 
 ### 8.2 Holder 取回与防滥用
 

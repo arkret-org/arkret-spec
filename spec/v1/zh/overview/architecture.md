@@ -119,7 +119,7 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event，**�
 明文规则：
 
 - 非 E2EE / 非内容加密的私有内容 MUST NOT 提交给未被发送方、接收方或 Realm policy 明确委托的第三方服务。
-- 如果 Realm 声明了 shared notary / Sync Service，该服务必须是 Realm policy 中显式列出的受信 Principal Server 或组织服务 DID。
+- 如果 Realm 声明了 shared notary / Principal Server sync surface，该服务必须是 Realm policy 中显式列出的受信 Principal Server 或组织服务 DID。
 - 客户端在发送非加密内容前 MUST 校验目标服务器是否属于本 principal 控制、对方 principal 控制，或 Realm policy 明确委托。
 - Realm 内成员投递目标与 DID Document fallback 的规范规则只由 [`governance/member-delivery-binding.md`](../governance/member-delivery-binding.md) 定义；本架构导览不重复字段级接受条件。
 - 私有正文、附件预览、全文索引、通知摘要、embedding 与可逆派生摘要的受托服务可见边界，由 [`crypto-media/encryption-and-audit.md` §2.3.0](../crypto-media/encryption-and-audit.md) 的 `plaintext_visible_services` 权威规则定义；本节只记录该边界属于 Realm policy，而不重复条目 schema 与授权事件。
@@ -240,7 +240,7 @@ flowchart TB
 规范要点（_informative_）：
 
 - Presentation 永远消费 Projection 的输出，不持有真相副本；Projection 永远是派生层，可重算。
-- Confidentiality 是包裹层，决定 Distribution / Write / Projection 各自能看到什么；Sync Service 不解密正文也能继续转发。
+- Confidentiality 是包裹层，决定 Distribution / Write / Projection 各自能看到什么；Principal Server sync surface 不解密正文也能继续转发。
 - Portability 在 export / import 时把多个平面的状态打包并重放，是协议平面而不是部署细节。
 
 ### 3.1 Identity Plane
@@ -298,7 +298,7 @@ Presentation Plane 消费 Projection Plane 的输出，产生人类或 agent 可
 - 可见性与密文负载区分
 - 内容加密 envelope
 - key distribution / rotation
-- 让 Sync Service 在不解密正文时也能继续转发
+- 让 Principal Server sync surface 在不解密正文时也能继续转发
 - 决定 Distribution / Write / Projection 各平面分别能看到什么（与图 3-1 的"包裹"关系一致）：Projection 只能投影本端已授权解密的内容，Confidentiality 同样约束 Projection 层的可见边界，而不仅是 Distribution 转发层
 
 ### 3.7 Portability Plane
@@ -338,7 +338,7 @@ flowchart LR
         ER["Events API / Event Store"]
     end
 
-    subgraph "Principal Server / Sync Services"
+    subgraph "Principal Server / Principal Server sync surfaces"
         PS1["Principal Server A"]
         PS2["Principal Server B"]
     end
@@ -390,7 +390,7 @@ flowchart LR
 
 - identity registry
 - events
-- Sync Service
+- Principal Server sync surface
 - blob
 
 适合：
@@ -539,7 +539,7 @@ Arkret v1 固定以下方向：
 
 - signed Event Envelope 和 per-actor event chain 是 actor 发布基线
 - identity registry / witness 是 DID 文档的解析与写入层
-- Principal Server / Sync Service 是受控同步与联邦层
+- Principal Server / Principal Server sync surface 是受控同步与联邦层
 - search / View projection 默认是客户端本地派生体验；受托搜索服务只能作为可选扩展
 - blob 是独立内容层
 - capability 是独立决策层

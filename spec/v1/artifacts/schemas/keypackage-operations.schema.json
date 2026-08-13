@@ -240,19 +240,13 @@
         {
           "required": [
             "device_id",
-            "device_authorize_event_id",
-            "target_device_signing_key_evidence"
+            "device_authorize_event_id"
           ],
           "not": {
             "anyOf": [
               {
                 "required": [
                   "agent_key_authorize_event_id"
-                ]
-              },
-              {
-                "required": [
-                  "target_agent_signer_evidence"
                 ]
               },
               {
@@ -272,19 +266,13 @@
           "required": [
             "agent_id",
             "agent_verification_method",
-            "agent_key_authorize_event_id",
-            "target_agent_signer_evidence"
+            "agent_key_authorize_event_id"
           ],
           "not": {
             "anyOf": [
               {
                 "required": [
                   "device_authorize_event_id"
-                ]
-              },
-              {
-                "required": [
-                  "target_device_signing_key_evidence"
                 ]
               },
               {
@@ -318,7 +306,7 @@
         },
         "agent_verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url",
-          "description": "Native-Agent runtime method that signed the exact KeyPackage; MUST match target_agent_signer_evidence and agent_key_authorize_event_id byte for byte."
+          "description": "Native-Agent runtime method that signed the exact KeyPackage; MUST match agent_key_authorize_event_id and the KeyPackage signature byte for byte."
         },
         "key_package": {
           "$ref": "#/$defs/base64url"
@@ -335,14 +323,6 @@
         "agent_key_authorize_event_id": {
           "$ref": "#/$defs/non_empty_string",
           "description": "Accepted active ak.agent.key.authorize Event that binds a Native Agent runtime verification method to this KeyPackage. Mutually exclusive with device_authorize_event_id."
-        },
-        "target_device_signing_key_evidence": {
-          "$ref": "./federated-device-signing-key-evidence.schema.json",
-          "description": "Transport-only portable evidence for the target human device that signed this KeyPackage. The requester independently verifies the identity-root-signed PCR genesis, complete control history, accepted Seal and current projection, then requires principal_id, device_id, device_authorize_event_id and device_signature verification method/key to match this claim byte for byte. It is covered by claims_digest and the target service claim receipt, but neither outer service signature is authority for the device key."
-        },
-        "target_agent_signer_evidence": {
-          "$ref": "./agent-signer-evidence.schema.json#/$defs/current_admission_evidence",
-          "description": "Transport-only current-admission evidence for the Native Agent runtime key that signed this KeyPackage. current_observation is bound to ak.peer.keys.keypackages.command.claim, the exact request_digest, requester verifier/audience and claim_request_id challenge. The requester verifies it independently and requires the Agent id, verification method and agent_key_authorize_event_id to match this claim."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -365,7 +345,8 @@
           "description": "When true, this claim record returns a reusable last-resort KeyPackage (RFC 9420 Section 10) because the single-use pool was empty. The package may be reused within the same intended_realm_id and is not transitioned to consumed; the holder MUST rotate it and trigger group updates on next online. Optional capability gated by ak.feature.mls_last_resort_keypackage.v1. See encryption-and-audit.md section 2.6.2."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Closed KeyPackage claim record. Human-device and Native-Agent branches bind their accepted authorization Event ids; the destination Principal Server claim receipt authenticates the record. No portable PCR, device, or Agent signer-evidence sidecar is accepted."
     },
     "key_packages_upload_request_body": {
       "type": "object",
@@ -536,20 +517,38 @@
         "signature"
       ],
       "properties": {
-        "operation_id": { "const": "ak.self.keys.keypackages.command.claim" },
+        "operation_id": {
+          "const": "ak.self.keys.keypackages.command.claim"
+        },
         "claim_request_id": {
           "$ref": "#/$defs/base64url",
           "minLength": 22,
           "maxLength": 128
         },
-        "request_digest": { "$ref": "#/$defs/hash" },
-        "claims_digest": { "$ref": "#/$defs/hash" },
-        "source_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "destination_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "request": { "$ref": "#/$defs/key_packages_claim_request_body" },
-        "claimed_at": { "$ref": "#/$defs/timestamp" },
-        "expires_at": { "$ref": "#/$defs/timestamp" },
-        "signature": { "$ref": "#/$defs/signature" }
+        "request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "claims_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "source_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "destination_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "request": {
+          "$ref": "#/$defs/key_packages_claim_request_body"
+        },
+        "claimed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "signature": {
+          "$ref": "#/$defs/signature"
+        }
       },
       "additionalProperties": false,
       "description": "Authority-signed durable receipt for a same-service KeyPackage claim. claim_request_id equals request.claim_nonce; source_service_id equals destination_service_id; request_digest covers the complete exact request including holder_acceptance_proof; claims_digest covers the exact claims array. It supplies the request-bound current AgentSignerEvidence observation transcript used by a subsequent Welcome."
@@ -941,14 +940,6 @@
         },
         "requester_authorization": {
           "$ref": "#/$defs/requester_authorization"
-        },
-        "requester_signing_key_evidence": {
-          "$ref": "./federated-device-signing-key-evidence.schema.json",
-          "description": "Transport-only portable authorization evidence appended by the authenticated source Principal Server for the closed device requester branch. It is excluded from the participant authorization transcript. The peer command receiver independently validates it and binds requester_device_id, device_authorize_event_id, verification_method and current accepted generation byte for byte."
-        },
-        "requester_agent_signer_evidence": {
-          "$ref": "./agent-signer-evidence.schema.json#/$defs/current_admission_evidence",
-          "description": "Transport-only current Native-Agent signer evidence appended by the authenticated source Principal Server. For repair it is mandatory and MUST match requester_authorization, the accepted repair/rejoin actor and the current KeyPackage claimant signer byte for byte."
         }
       },
       "allOf": [
@@ -1040,61 +1031,7 @@
               "last_resort_allowed": {
                 "const": false
               }
-            },
-            "allOf": [
-              {
-                "if": {
-                  "properties": {
-                    "requester_authorization": {
-                      "properties": {
-                        "kind": {
-                          "const": "device"
-                        }
-                      },
-                      "required": [
-                        "kind"
-                      ]
-                    }
-                  }
-                },
-                "then": {
-                  "required": [
-                    "requester_signing_key_evidence"
-                  ],
-                  "not": {
-                    "required": [
-                      "requester_agent_signer_evidence"
-                    ]
-                  }
-                }
-              },
-              {
-                "if": {
-                  "properties": {
-                    "requester_authorization": {
-                      "properties": {
-                        "kind": {
-                          "const": "native_agent"
-                        }
-                      },
-                      "required": [
-                        "kind"
-                      ]
-                    }
-                  }
-                },
-                "then": {
-                  "required": [
-                    "requester_agent_signer_evidence"
-                  ],
-                  "not": {
-                    "required": [
-                      "requester_signing_key_evidence"
-                    ]
-                  }
-                }
-              }
-            ]
+            }
           }
         }
       ],
@@ -1482,11 +1419,6 @@
                 "required": [
                   "agent_key_authorize_event_id"
                 ]
-              },
-              {
-                "required": [
-                  "recipient_agent_signer_evidence"
-                ]
               }
             ]
           }
@@ -1495,8 +1427,7 @@
           "required": [
             "recipient_agent_id",
             "recipient_agent_verification_method",
-            "agent_key_authorize_event_id",
-            "recipient_agent_signer_evidence"
+            "agent_key_authorize_event_id"
           ],
           "not": {
             "anyOf": [
@@ -1541,9 +1472,6 @@
         "agent_key_authorize_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
-        "recipient_agent_signer_evidence": {
-          "$ref": "./agent-signer-evidence.schema.json#/$defs/current_admission_evidence"
-        },
         "recipient_service_id": {
           "$ref": "#/$defs/did_core_id"
         },
@@ -1574,7 +1502,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "The exact recipient signer signs every field except signature only after durably storing and opening the Welcome and matching it to the claimed KeyPackage, Realm, group and epoch. Closed XOR: a human device binds recipient_device_id/device_verification_method; a Native Agent binds recipient_agent_id/recipient_agent_verification_method/agent_key_authorize_event_id plus current AgentSignerEvidence and never uses an ak:device identity. The claim record, Welcome recipient, KeyPackage signer and this receipt branch MUST match byte for byte."
+      "description": "The exact recipient signer signs every field except signature only after durably storing and opening the Welcome and matching it to the claimed KeyPackage, Realm, group and epoch. Closed XOR: a human device binds recipient_device_id/device_verification_method; a Native Agent binds recipient_agent_id, recipient_agent_verification_method and agent_key_authorize_event_id. The claim record, Welcome recipient, KeyPackage signer and this receipt branch MUST match byte for byte; no signer-evidence sidecar is carried."
     },
     "keypackage_consume_receipt": {
       "type": "object",

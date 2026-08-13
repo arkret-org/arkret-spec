@@ -18,17 +18,26 @@
         "$comment": "Direct value form: equivalent to {\"$op\":\"set\",\"value\":<value>}. Any JSON value EXCEPT a JSON object containing a $op discriminator may use this form.",
         "not": {
           "type": "object",
-          "required": ["$op"]
+          "required": [
+            "$op"
+          ]
         }
       },
       {
         "$comment": "Explicit op object form. $op is required; value is required for set/add/remove; value MUST be absent for unset.",
         "type": "object",
-        "required": ["$op"],
+        "required": [
+          "$op"
+        ],
         "properties": {
           "$op": {
             "type": "string",
-            "enum": ["set", "unset", "add", "remove"]
+            "enum": [
+              "set",
+              "unset",
+              "add",
+              "remove"
+            ]
           },
           "value": {}
         },
@@ -36,20 +45,42 @@
         "allOf": [
           {
             "if": {
-              "properties": { "$op": { "const": "unset" } },
-              "required": ["$op"]
+              "properties": {
+                "$op": {
+                  "const": "unset"
+                }
+              },
+              "required": [
+                "$op"
+              ]
             },
             "then": {
-              "not": { "required": ["value"] }
+              "not": {
+                "required": [
+                  "value"
+                ]
+              }
             }
           },
           {
             "if": {
-              "properties": { "$op": { "enum": ["set", "add", "remove"] } },
-              "required": ["$op"]
+              "properties": {
+                "$op": {
+                  "enum": [
+                    "set",
+                    "add",
+                    "remove"
+                  ]
+                }
+              },
+              "required": [
+                "$op"
+              ]
             },
             "then": {
-              "required": ["value"]
+              "required": [
+                "value"
+              ]
             }
           }
         ]

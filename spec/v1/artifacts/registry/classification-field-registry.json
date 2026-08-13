@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-08.1",
+  "version": "2026-08-13.2",
   "source_of_truth": true,
   "description": "Machine authority for the kind/type/class/tier naming axes. Entries are exact-context permissions, never basename allowlists.",
   "axis_rules": {
@@ -186,15 +186,6 @@
       "external_standard": "HTTP Semantics",
       "external_field_path": "Content-Type field value",
       "round_trip_requirement": "Preserve the interop content type unchanged.",
-      "dispatch_authority": "external_standard",
-      "arkret_extensions_allowed": false
-    },
-    {
-      "schema_ref": "schemas/principal-service-binding.schema.json",
-      "json_pointer": "/$defs/service_verification_method/properties/type",
-      "external_standard": "W3C DID Core",
-      "external_field_path": "Verification Method type",
-      "round_trip_requirement": "Preserve the Multikey verification-method type exactly as published in the accepted DID document snapshot.",
       "dispatch_authority": "external_standard",
       "arkret_extensions_allowed": false
     },

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-13.4",
+  "version": "2026-08-14.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-13T10:40:00Z",
+  "generated_at": "2026-08-14T00:30:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1953,7 +1953,7 @@
         "schema_kind": "object",
         "required": [
           "principal_id",
-          "authority_instance",
+          "principal_server_id",
           "principal_control_realm_id",
           "principal_genesis_receipt",
           "principal_genesis_event",
@@ -1964,7 +1964,7 @@
         ],
         "properties": [
           "principal_id",
-          "authority_instance",
+          "principal_server_id",
           "principal_control_realm_id",
           "principal_genesis_receipt",
           "principal_genesis_event",
@@ -2933,12 +2933,9 @@
           "service_binding_ref",
           "events",
           "cba_proof_bundles",
-          "signer_key_evidence",
-          "agent_signer_evidence_bundle",
           "unit_kind",
           "source_acceptance_receipt",
-          "founding_authority_evidence",
-          "source_service_binding"
+          "founding_authority_evidence"
         ],
         "closed": true,
         "variants": [
@@ -2952,9 +2949,7 @@
             "properties": [
               "service_binding_ref",
               "events",
-              "cba_proof_bundles",
-              "signer_key_evidence",
-              "agent_signer_evidence_bundle"
+              "cba_proof_bundles"
             ],
             "closed": true
           },
@@ -2965,17 +2960,14 @@
               "unit_kind",
               "events",
               "source_acceptance_receipt",
-              "founding_authority_evidence",
-              "source_service_binding"
+              "founding_authority_evidence"
             ],
             "properties": [
               "unit_kind",
               "events",
               "source_acceptance_receipt",
               "founding_authority_evidence",
-              "source_service_binding",
-              "cba_proof_bundles",
-              "signer_key_evidence"
+              "cba_proof_bundles"
             ],
             "closed": true
           }
@@ -3207,9 +3199,7 @@
           "strand_id",
           "pair_key",
           "last_resort_allowed",
-          "requester_authorization",
-          "requester_signing_key_evidence",
-          "requester_agent_signer_evidence"
+          "requester_authorization"
         ],
         "closed": true
       },
@@ -3931,12 +3921,12 @@
         "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
         "schema_kind": "object",
         "required": [
-          "principal_id",
+          "principal_authority",
           "requesting_device_id",
           "trust_domain"
         ],
         "properties": [
-          "principal_id",
+          "principal_authority",
           "requesting_device_id",
           "trust_domain",
           "expected_recovery_policy_ref"
@@ -3949,7 +3939,7 @@
         "required": [
           "schema",
           "recovery_session_id",
-          "principal_id",
+          "principal_authority",
           "requesting_device_id",
           "trust_domain",
           "policy_id",
@@ -3969,7 +3959,7 @@
         "properties": [
           "schema",
           "recovery_session_id",
-          "principal_id",
+          "principal_authority",
           "requesting_device_id",
           "trust_domain",
           "policy_id",
@@ -4033,7 +4023,7 @@
         "required": [
           "schema",
           "recovery_session_id",
-          "principal_id",
+          "principal_authority",
           "requesting_device_id",
           "trust_domain",
           "policy_id",
@@ -4053,7 +4043,7 @@
         "properties": [
           "schema",
           "recovery_session_id",
-          "principal_id",
+          "principal_authority",
           "requesting_device_id",
           "trust_domain",
           "policy_id",
@@ -4505,7 +4495,7 @@
             "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
             "schema_kind": null,
             "required": [
-              "controller_authority_instance"
+              "controller_principal_server_id"
             ],
             "properties": [
               "phase"
@@ -6787,75 +6777,6 @@
       }
     },
     {
-      "operation_id": "ak.self.principal_service_binding.command.prepare",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_request_body",
-        "schema_kind": "object",
-        "required": [
-          "request_id"
-        ],
-        "properties": [
-          "request_id",
-          "expected_current_binding_digest"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "challenge_id",
-          "binding_draft",
-          "issued_at",
-          "expires_at"
-        ],
-        "properties": [
-          "request_id",
-          "challenge_id",
-          "binding_draft",
-          "issued_at",
-          "expires_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.principal_service_binding.command.commit",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_request_body",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "challenge_id",
-          "binding_digest",
-          "principal_authorization_proof",
-          "principal_authorization_evidence"
-        ],
-        "properties": [
-          "request_id",
-          "challenge_id",
-          "binding_digest",
-          "principal_authorization_proof",
-          "principal_authorization_evidence"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_outcome",
-        "schema_kind": "object",
-        "required": [
-          "binding"
-        ],
-        "properties": [
-          "binding"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.events.command.submit",
       "success_shape_kind": "typed_response",
       "request": {
@@ -6870,8 +6791,7 @@
           "events",
           "unit_kind",
           "idempotency_key",
-          "founding_authority_evidence",
-          "source_service_binding"
+          "founding_authority_evidence"
         ],
         "closed": true,
         "variants": [
@@ -6907,15 +6827,13 @@
               "unit_kind",
               "idempotency_key",
               "events",
-              "founding_authority_evidence",
-              "source_service_binding"
+              "founding_authority_evidence"
             ],
             "properties": [
               "unit_kind",
               "idempotency_key",
               "events",
               "founding_authority_evidence",
-              "source_service_binding",
               "cba_proof_bundles"
             ],
             "closed": true

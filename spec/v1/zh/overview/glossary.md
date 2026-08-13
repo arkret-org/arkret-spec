@@ -109,8 +109,8 @@ see_also:
 | Invite | 邀请 | 邀请主体加入 Realm 或授予特定能力的标准对象/事件 payload。 |
 | Principal Server | 主体服务 | 主体控制或委托入口服务，承载 events / account aggregate / snapshot / discovery 等核心 API。Realm 内实际投递目标由成员 `delivery_binding.recipient_service_id` 决定；DID Document 默认 Principal Server 只可作为 join / rebind 时被 policy 允许的 binding 来源，不是 Realm delivery fallback。 |
 | Account Aggregate | 账号聚合 | Principal Server 对某 principal 的 actor-private 数据面聚合视图，聚合该账号跨 Realm 的 frontier 摘要、`to_device`、`account_data`、`device_lists` 与 notification / unread counts；通过 `ak.self.account.stream.subscribe`（`GET /_arkret/self/account/subscribe`）以 delta frame 推送。presence 是有界 TTL 的 encrypted Signal，走 Signal live rail，不进入账号聚合。它与「裸 Realm Event 查询面」（`ak.self.events.read.scan` / `ak.self.events.stream.subscribe`，逐 Realm 事件流）是不同的 selector / auth / freshness 边界，实现 MUST NOT 把二者合并为语义不明的单一 stream。中文统一译「账号聚合」。详见 [`sync/client-sync.md`](../sync/client-sync.md)。 |
-| Sync Service | 同步服务 | 公开/订阅事件与 frontier 的受控同步能力，通常由 Principal Server 提供。 |
-| Event Store Service | 事件存储服务 | 与 Sync Service 关联的持久化与检索服务角色。 |
+| Principal Server sync surface | Principal Server 同步面 | 公开/订阅事件与 frontier 的受控能力；它是 Principal Server surface，不是独立服务角色。 |
+| Event Store Service | 事件存储服务 | 与 Principal Server sync surface 关联的持久化与检索服务角色。 |
 | Blob Store | 二进制对象存储 | 附件、媒体、文件对象的存储与引用服务。 |
 | Directory Server | 目录服务 | 提供可发现的 Realm、组织、actor、Applet 信息。 |
 | Identity Resolution Infrastructure | 身份解析基础设施 | DID 文档、method resolver、密钥材料与验证链路。 |
@@ -237,7 +237,7 @@ see_also:
   | canonical 专名 | service-surface 表 / 别名形态 |
   | --- | --- |
   | `Principal Server` | — |
-  | `Sync Service` | — |
+  | `Principal Server sync surface` | — |
   | `Event Store Service` | — |
   | `Blob Store` | — |
   | `Directory Server` | — |

@@ -33,10 +33,10 @@ Account Data 的存储、namespace key、`derive_account_data_key`、value encry
 
 ### 2.1 服务端 policy projection 能力协商（normative）
 
-account data 默认是 holder-private 加密数据，Sync Service 只存不透明密文（[`../models/account-data.md` §1](../models/account-data.md)）。presence / typing 的精确 kind、target 与 visibility policy 不交给服务端读取；发送端按 [`profiles-presence.md` §3.4](./profiles-presence.md) 选择可安全加密的 scope。服务端仅可读取其它明确声明、确有服务端执行需要的最小 policy projection（例如单独授权的 blocklist data class）。"account data 加密"与"服务端执行 policy"之间的边界必须显式协商：
+account data 默认是 holder-private 加密数据，Principal Server sync surface 只存不透明密文（[`../models/account-data.md` §1](../models/account-data.md)）。presence / typing 的精确 kind、target 与 visibility policy 不交给服务端读取；发送端按 [`profiles-presence.md` §3.4](./profiles-presence.md) 选择可安全加密的 scope。服务端仅可读取其它明确声明、确有服务端执行需要的最小 policy projection（例如单独授权的 blocklist data class）。"account data 加密"与"服务端执行 policy"之间的边界必须显式协商：
 
 - 服务端 MUST 在 `ak.server.read.describe`（`ServiceDescribe`）中声明它能否读取每个最小 policy projection（例如通过 `plaintext_visible_services.data_classes` 或等价 `policy_projection_readable[]` 声明）。`presence_visibility` 不得声明为服务端可读；未声明的其它 data class 视为不能读取。
-- Presence / typing 的 policy gate **固定在发送客户端**：客户端只向符合本端 membership、contact 与 visibility 判断的整个加密 scope 发送；无法安全选择 scope 时 MUST 抑制发送。Sync Service 只按外层已签名 `scope_ref` 做成员级 fanout，不读取或推断 `ak.presence.visibility`，也不得因无法读取该 key 而把整个 opaque Signal rail 判为不可转发。
+- Presence / typing 的 policy gate **固定在发送客户端**：客户端只向符合本端 membership、contact 与 visibility 判断的整个加密 scope 发送；无法安全选择 scope 时 MUST 抑制发送。Principal Server sync surface 只按外层已签名 `scope_ref` 做成员级 fanout，不读取或推断 `ak.presence.visibility`，也不得因无法读取该 key 而把整个 opaque Signal rail 判为不可转发。
 - 单独声明且 holder 明确授权的其它最小 projection（例如 blocklist data class）可由服务端执行；其过滤结果 MUST NOT 让发送方、被查询方或 federation peer 区分"被屏蔽"与"无权限 / 不存在 / 离线"（§3.5）。
 
 ## 3. 标准账户数据类型
@@ -257,7 +257,7 @@ storage_key = "ak.contacts.actor." || principal_key
 规则：
 
 - 只有 accepted human Contact 可以新建或编辑 `petname`。Contact tombstone / suspended 后记录 MAY 保留，但非 accepted 期间不得将它作为实时身份面的主标签；同一 `peer.principal_id` 后续重新成为 accepted Contact 时继续使用原记录，不得重键或自动覆盖。
-- 该 key 是 principal-private，MUST 与 §3.5 blocklist 一样以加密 account data 形式同步，Sync Service 不得读取明文。客户端解密后 MUST 验证 `subject.kind="human"`，并用完整 `subject.principal_id` 和 holder 的 namespace key 重算 storage key；不匹配时 MUST fail closed，且不得覆盖本地已验证记录。
+- 该 key 是 principal-private，MUST 与 §3.5 blocklist 一样以加密 account data 形式同步，Principal Server sync surface 不得读取明文。客户端解密后 MUST 验证 `subject.kind="human"`，并用完整 `subject.principal_id` 和 holder 的 namespace key 重算 storage key；不匹配时 MUST fail closed，且不得覆盖本地已验证记录。
 - `petname` 与 `note` MUST NOT 通过 mention、quote、forward、profile、Realm state、directory 或 Realm export 泄露给备注对象本人或其他成员。客户端构造引用、转发或导出时 MUST 使用对方公开的 display name / handle，不得替换为备注名。
 - 本地备注 MUST NOT 参与 ACL、grant subject、policy condition、audit attribution、sender verification 或 MLS credential 判定，约束与 [`identity/identity-handles.md`](../identity/identity-handles.md) §2.3 中 display name 一致。
 - roster、消息 sender、联系人 / DM 列表、mention autocomplete、邀请 / 请求确认等实时 holder-facing 身份面，只有在 verified evidence 能把可见主体唯一归约到 accepted Contact 的 `peer.principal_id` 时才可 join 备注；映射缺失、不唯一或仅有 display name / handle 时 MUST 按“无备注”处理，不得按字符串猜测关联。非空 `petname` MUST 作为主标签并带可识别的“备注”角标；Realm override、全局 display name 与 verified handle只能作为次要上下文。
@@ -316,7 +316,7 @@ storage_key = "ak.contacts.actor." || principal_key
 
 规则：
 
-- 该 key 是 actor-private，MUST 与 §3.5、§3.6 一样以加密 account data 形式同步，Sync Service 不得读取明文。
+- 该 key 是 actor-private，MUST 与 §3.5、§3.6 一样以加密 account data 形式同步，Principal Server sync surface 不得读取明文。
 - `local_name` 与 `note` MUST NOT 通过 invite 文案、mention、quote、forward、directory 投影、shared link preview 或任何 Realm state 字段泄露给其他 Realm 成员；客户端构造邀请、跨端 share sheet、跨 Realm 引用或导出时 MUST 使用 Realm 公开 `title`，不得替换为本地备注。
 - 本地备注 MUST NOT 参与 ACL、capability subject、policy condition、audit attribution、MLS credential 或 federation routing 判定，约束与 §3.6 中本地联系人备注一致。
 - UI 显示本地备注时 SHOULD 同时呈现 Realm 公开 `title` 或 `ak:realm:` token 短摘要（44-character suffix 的前 8 字符），使用户可识别"备注相同但 Realm 不同"的误判；安全敏感 UI（删除 / archive / tombstone Realm、跨 Realm 邀请确认、转账类 applet 调用）MUST 能直接显示完整 `realm_id` 与 `owning_organizations`。
@@ -364,9 +364,9 @@ storage_key = "ak.contacts.actor." || principal_key
 
 规则：
 
-- 该 key 是 actor-private，加密存储于 account data；其他成员或 Sync Service 不得读取明文。
+- 该 key 是 actor-private，加密存储于 account data；其他成员或 Principal Server sync surface 不得读取明文。
 - 客户端在生成 `ak.receipt.read` 前 MUST 按 (strand, realm, default) 顺序解析有效 `send`，最先命中的非空值生效。
-- 客户端在渲染他人的 `ak.receipt.read` 前 SHOULD 按相同顺序解析有效 `display`；`display=false` 只隐藏本地 UI，不得要求 Sync Service 停止投递，也不得改变 read cursor、unread count 或 push suppression 的协议状态。
+- 客户端在渲染他人的 `ak.receipt.read` 前 SHOULD 按相同顺序解析有效 `display`；`display=false` 只隐藏本地 UI，不得要求 Principal Server sync surface 停止投递，也不得改变 read cursor、unread count 或 push suppression 的协议状态。
 - 该偏好 MUST NOT 影响 §3 中 actor-private 的 Read Cursor（`ak.read_cursor.advance`）发送或多端同步。
 - 当目标 Realm / Strand 声明 `ak.realm.read_receipt_policy.disclosure="required"`（详见 [`discovery/read-receipts.md`](./read-receipts.md) §2.5）时，合规客户端 MUST NOT 允许该 scope 设置为 `send=false`，并 SHOULD 在 UI 标注该开关被 Realm / Strand 策略锁定；声明为 `disabled` 时同样无视用户的 `send=true` 不发送。
 - 客户端 MAY 在 UI 上将常用过滤维度（按 Realm 标签、按 Organization）做成批量编辑入口，但实际 canonical state 仍以本 key 中的逐 ID 覆盖为准。

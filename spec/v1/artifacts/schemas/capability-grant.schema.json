@@ -12,6 +12,7 @@
     "id",
     "schema",
     "issuer",
+    "issuer_principal_server_id",
     "subject",
     "actions",
     "resources",
@@ -31,6 +32,10 @@
     },
     "issuer": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+    },
+    "issuer_principal_server_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Required reducer-derived issuer authority selector. For ak.capability.grant it is copied byte-for-byte from the accepted carrier Event.principal_server_id after verifying grant.issuer equals the Event author; producers MUST NOT author this field in event.payload.grant. Together with issuer it is the complete issuer authority key used by delegated-grant replay and liveness checks."
     },
     "subject": {
       "oneOf": [
@@ -55,9 +60,9 @@
         }
       ]
     },
-    "subject_authority_instance": {
-      "$ref": "./principal-authority-instance.schema.json",
-      "description": "MUST be present when subject is a human principal did_core_id. It freezes the PCR lineage this grant accepts; a same-core proof from any other instance cannot exercise or inherit the grant. Omitted for condition selectors and roles governed by a different explicit authority contract."
+    "subject_principal_server_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Required when subject is a principal did_core_id. Together with subject it is the complete external account-authority key; PCR ids, receipt digests and frontier state are not grant identity selectors."
     },
     "actions": {
       "type": "array",
@@ -258,6 +263,23 @@
             }
           }
         }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "subject": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject"
+        ]
+      },
+      "then": {
+        "required": [
+          "subject_principal_server_id"
+        ]
       }
     }
   ],

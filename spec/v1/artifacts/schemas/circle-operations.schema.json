@@ -320,7 +320,7 @@
               ]
             }
           ],
-          "description": "Closed ak.circle.member.state Event authored and signed by the authenticated caller, with membership fixed to leave and expected_membership carrying the concrete current membership as the signed head_eq guard. Admission MUST bind the Event proof to the exact authority instance selected by the authenticated session; matching only the caller DID is insufficient. Removing another actor requires ak.circle.member.manage narrowed to the path Circle; self-service leave uses ak.circle.member.add."
+          "description": "Closed ak.circle.member.state Event authored and signed by the authenticated caller, with membership fixed to leave and expected_membership carrying the concrete current membership as the signed head_eq guard. Admission MUST bind the Event proof to the exact account-local lineage selected by the authenticated session; matching only the caller DID is insufficient. Removing another actor requires ak.circle.member.manage narrowed to the path Circle; self-service leave uses ak.circle.member.add."
         }
       },
       "additionalProperties": false

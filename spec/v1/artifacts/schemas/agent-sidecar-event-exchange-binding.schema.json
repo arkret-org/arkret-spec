@@ -29,7 +29,7 @@
     },
     "request_event_id": {
       "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
       "description": "Accepted Event id of the private request event of the same exchange. Event id is the only canonical reference form; Message ids MUST NOT be used here."
     },
     "completes_exchange": {
@@ -38,7 +38,7 @@
     },
     "coordinator_assignment_event_id": {
       "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
       "description": "Request Event id for the initial coordinator assignment, or the accepted reassign_coordinator control Event id. Required only when completes_exchange=true."
     },
     "request_context": {
@@ -234,10 +234,9 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "Initial coordinator. It MUST be one of addressed_agent_ids. It MAY be omitted only when addressed_agent_ids contains exactly one item, in which case that sole item is implied."
         },
-        "source_event_id": {
+        "source_frontier_anchor": {
           "type": "string",
-          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
-          "description": "Optional accepted Event id in source_track_ref that supplied the source context for this exchange. This identifies one Event, not a frontier or trust anchor."
+          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
         }
       },
       "allOf": [

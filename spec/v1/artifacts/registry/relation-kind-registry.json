@@ -43,19 +43,96 @@
         }
       ]
     },
-    { "canonical_id": "belongs_to", "default_cardinality": "many_to_one", "truth_source_class": "canonical", "weak_semantic": false },
-    { "canonical_id": "replies_to", "default_cardinality": "many_to_one", "truth_source_class": "canonical", "weak_semantic": true },
-    { "canonical_id": "depends_on", "default_cardinality": "many_to_many", "truth_source_class": "canonical", "weak_semantic": true },
-    { "canonical_id": "blocks", "default_cardinality": "many_to_many", "truth_source_class": "canonical", "weak_semantic": true },
-    { "canonical_id": "mentions", "default_cardinality": "many_to_many", "truth_source_class": "canonical", "weak_semantic": true },
-    { "canonical_id": "assigned_to", "default_cardinality": "many_to_many", "truth_source_class": "canonical", "weak_semantic": true, "notes": "Canonical direction Strand -> DID; full-tuple dedupe, not per-actor single value. Single-owner semantics require a RelationProfile tightening (max_to_per_from=1)." },
-    { "canonical_id": "references", "default_cardinality": "many_to_many", "truth_source_class": "canonical", "weak_semantic": true },
-    { "canonical_id": "derived_from", "default_cardinality": "many_to_many", "truth_source_class": "canonical", "weak_semantic": true },
-    { "canonical_id": "attached_to", "default_cardinality": "many_to_many", "truth_source_class": "canonical", "weak_semantic": true },
-    { "canonical_id": "has_default_view", "default_cardinality": "many_to_one", "truth_source_class": "canonical", "weak_semantic": true, "notes": "Setting a new default View MUST close the previous active edge." },
-    { "canonical_id": "summarized_from", "default_cardinality": "many_to_many", "truth_source_class": "canonical", "weak_semantic": true, "notes": "from/to types MUST be declared by Realm schema / RelationProfile; without a profile it is a generic weak reference edge." },
-    { "canonical_id": "promoted_from_discussion", "default_cardinality": "many_to_many", "truth_source_class": "canonical", "weak_semantic": true, "notes": "Same profile-declared typing rule as summarized_from." },
-    { "canonical_id": "watches", "default_cardinality": "one_active_edge_per_pair", "truth_source_class": "derived_projection", "weak_semantic": false, "write_path": "ak.strand.watch.set", "notes": "Derived from cell ak.component.strand.watch.v1; direct Relation writes MUST schema_violation. from_ref MUST be a DID, to_ref a Strand (or profiled watchable)." },
-    { "canonical_id": "confidential_discussion_of", "default_cardinality": "many_to_one", "truth_source_class": "canonical", "weak_semantic": true, "notes": "Circle-scoped on the private Strand side; target-side reverse relation MUST NOT be written." }
+    {
+      "canonical_id": "belongs_to",
+      "default_cardinality": "many_to_one",
+      "truth_source_class": "canonical",
+      "weak_semantic": false
+    },
+    {
+      "canonical_id": "replies_to",
+      "default_cardinality": "many_to_one",
+      "truth_source_class": "canonical",
+      "weak_semantic": true
+    },
+    {
+      "canonical_id": "depends_on",
+      "default_cardinality": "many_to_many",
+      "truth_source_class": "canonical",
+      "weak_semantic": true
+    },
+    {
+      "canonical_id": "blocks",
+      "default_cardinality": "many_to_many",
+      "truth_source_class": "canonical",
+      "weak_semantic": true
+    },
+    {
+      "canonical_id": "mentions",
+      "default_cardinality": "many_to_many",
+      "truth_source_class": "canonical",
+      "weak_semantic": true
+    },
+    {
+      "canonical_id": "assigned_to",
+      "default_cardinality": "many_to_many",
+      "truth_source_class": "canonical",
+      "weak_semantic": true,
+      "notes": "Canonical direction Strand -> DID; full-tuple dedupe, not per-actor single value. Single-owner semantics require a RelationProfile tightening (max_to_per_from=1)."
+    },
+    {
+      "canonical_id": "references",
+      "default_cardinality": "many_to_many",
+      "truth_source_class": "canonical",
+      "weak_semantic": true
+    },
+    {
+      "canonical_id": "derived_from",
+      "default_cardinality": "many_to_many",
+      "truth_source_class": "canonical",
+      "weak_semantic": true
+    },
+    {
+      "canonical_id": "attached_to",
+      "default_cardinality": "many_to_many",
+      "truth_source_class": "canonical",
+      "weak_semantic": true
+    },
+    {
+      "canonical_id": "has_default_view",
+      "default_cardinality": "many_to_one",
+      "truth_source_class": "canonical",
+      "weak_semantic": true,
+      "notes": "Setting a new default View MUST close the previous active edge."
+    },
+    {
+      "canonical_id": "summarized_from",
+      "default_cardinality": "many_to_many",
+      "truth_source_class": "canonical",
+      "weak_semantic": true,
+      "notes": "from/to types MUST be declared by Realm schema / RelationProfile; without a profile it is a generic weak reference edge."
+    },
+    {
+      "canonical_id": "promoted_from_discussion",
+      "default_cardinality": "many_to_many",
+      "truth_source_class": "canonical",
+      "weak_semantic": true,
+      "notes": "Same profile-declared typing rule as summarized_from."
+    },
+    {
+      "canonical_id": "watches",
+      "default_cardinality": "one_active_edge_per_pair",
+      "truth_source_class": "derived_projection",
+      "weak_semantic": false,
+      "write_path": "ak.strand.watch.set",
+      "notes": "Derived from cell ak.component.strand.watch.v1; direct Relation writes MUST schema_violation. from_ref MUST be a DID, to_ref a Strand (or profiled watchable)."
+    },
+    {
+      "canonical_id": "confidential_discussion_of",
+      "default_cardinality": "many_to_one",
+      "truth_source_class": "canonical",
+      "weak_semantic": true,
+      "notes": "Circle-scoped on the private Strand side; target-side reverse relation MUST NOT be written."
+    }
   ]
 }

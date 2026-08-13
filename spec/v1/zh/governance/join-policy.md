@@ -21,7 +21,7 @@ updated: 2026-07-13
 | **Join Policy** | 章节 / 策略域总称 | 本文定义的 gate 组合、解析顺序、加密语义与反滥用约束的统称；不是单一 wire `Event.kind`。 |
 | `ak.realm.join_rule` | wire event / cell（active） | `default_join_rule` 入口模式策略事件，写入 `ak.component.realm.join_rule.v1` cell。 |
 | `ak.realm.delivery_binding_policy` | wire event / cell（active） | 成员投递绑定策略事件，写入 `ak.component.realm.delivery_binding_policy.v1` cell（见 [`member-delivery-binding.md`](member-delivery-binding.md) §4）；约束成员 `delivery_binding.binding_source`，与 join gate 正交。 |
-| `RealmJoinCandidate`（`realm-join-candidate.schema.json`） | 候选请求 / 评估对象 | 描述本次 join / invite-accept / knock material 可提交到哪些 Realm ingress service；方向与 `delivery_binding` 相反（见 [`member-delivery-binding.md`](member-delivery-binding.md) §2 末尾注意段）。 |
+| `RealmJoinCandidate`（`realm-join-candidate.schema.json`） | Principal Server 转发提示 | invitee 客户端只提交给自己的 Principal Server；该对象描述后者可按 signed invite / 当前 joined-member delivery binding 转交到哪个成员 Principal Server，不产生 ingress authority（见 [`member-delivery-binding.md`](member-delivery-binding.md) §2）。 |
 
 当前 v1 的 active 与 candidate surface 分层如下，base v1 实现只需要实现 active surface；application / review workflow 只在实现声明 `ak.profile.candidate.join_policy.v1` 时成为该实现的自愿承诺。
 
@@ -48,7 +48,7 @@ updated: 2026-07-13
 ## 2. 设计原则
 
 1. **Gate 是组合的，不是命名的。** Realm 通过 `gates[]` + `combinator` 表达任意 AND/OR 组合；`knock_restricted` 等组合 enum 的语义由 `combinator` 直接表达，避免每加一类 gate 就要再造 enum。
-2. **申请材料对外不可见。** Matrix `m.room.member{knock}` 的 free-text `reason` 因默认可见已成为 spam 通道。实现声明 `ak.profile.candidate.join_policy.v1` 并启用 application / review workflow 时，申请正文 MUST 仅对 `ak.realm.join.review` capability 持有方可见：E2EE Realm 中通过 reviewer-only encryption envelope；非 E2EE Realm 中由 Sync Service 强制访问控制并审计读取（`ak.audit.accessed`）。
+2. **申请材料对外不可见。** Matrix `m.room.member{knock}` 的 free-text `reason` 因默认可见已成为 spam 通道。实现声明 `ak.profile.candidate.join_policy.v1` 并启用 application / review workflow 时，申请正文 MUST 仅对 `ak.realm.join.review` capability 持有方可见：E2EE Realm 中通过 reviewer-only encryption envelope；非 E2EE Realm 中由 Principal Server sync surface 强制访问控制并审计读取（`ak.audit.accessed`）。
 3. **审核决策必须有稳定审计材料。** 实现声明 `ak.profile.candidate.join_policy.v1` 时，所有审核接受 / 拒绝 MUST 是签名且被 accepted Seal 覆盖的 Control Move、profile-private Event 或 signed receipt，记录 reviewer DID、review reason、引用证据 hash。事后审计与申诉（参见 [`./content-moderation.md` §5.5](./content-moderation.md) 申诉流程与 [`./content-moderation.md` §10](./content-moderation.md) 审计要求）依赖该 trail。
 4. **审核必须密码学绑定到 join。** 借鉴 Matrix `join_authorised_via_users_server` 的担保模式：candidate profile 下随后的 `ak.invite.create` MUST 通过 `refs[role="join_authorised_by"]` 引用对应 signed review accept receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id。reducer 校验该 ref 在写入时仍指向有效 capability 持有者。
 5. **自动解析路径不强制走人工。** 当所有 gate 都可自动解析（claim presentation 验证、challenge proof 验证），applicant 可直接提交 `ak.member.state{membership=join}` Control Move，由 reducer 内联校验，无需 application / review Control Move。这条路径替代既有 `restricted` 入口模式的实质语义。
@@ -431,7 +431,7 @@ application 进入 `accepted` 状态后：
 
 ### 8.1 非 E2EE Realm
 
-`member.application` 的共享 durable wire payload 即使在非 E2EE Realm 中也只能包含最小化 metadata（application id、applicant DID、policy digest、receipt digest、状态与时间戳）。申请正文、answers、自由文本、3PID、附件和 reviewer-only 诊断 MUST 放入 reviewer encryption envelope 或实现 profile 声明的受保护 private record；不得仅依赖 projection 隐藏来保护隐私。Sync Service / Principal Server MUST：
+`member.application` 的共享 durable wire payload 即使在非 E2EE Realm 中也只能包含最小化 metadata（application id、applicant DID、policy digest、receipt digest、状态与时间戳）。申请正文、answers、自由文本、3PID、附件和 reviewer-only 诊断 MUST 放入 reviewer encryption envelope 或实现 profile 声明的受保护 private record；不得仅依赖 projection 隐藏来保护隐私。Principal Server sync surface / Principal Server MUST：
 
 - 仅向 reviewer set（`review_capability` 持有方）与 applicant 自身投影 application 正文；
 - 对其它 Realm 成员投影占位（`{application_pending: true}`）；
@@ -566,7 +566,7 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
 | `cooldown_after_reject` | PT72H | reject 后 reducer MUST 拒绝同 actor 在窗口内的新 `member.application`。`request_changes` 不触发 cooldown。 |
 | `max_open_applications_per_actor` | 1 | reducer 校验 actor 当前 pending 数；超出 `failed_precondition`。 |
 | Quota constraint | 由 Realm `ak.realm.policy_bundle` 声明 | 推荐对 `ak.member.state{knock}` 配置 `quota.constraint_subkind=rate`（如 `max_operations=5/day` + `constraint_scope`），通过既有 [`../authz/constraint-schema.md` §7](../authz/constraint-schema.md) 表达。 |
-| Policy Server `challenge` | 高风险 Realm 推荐 | Sync Service 面对突发 knock 流量时 SHOULD 通过 Policy Server 注入 challenge obligation。 |
+| Policy Server `challenge` | 高风险 Realm 推荐 | Principal Server sync surface 面对突发 knock 流量时 SHOULD 通过 Policy Server 注入 challenge obligation。 |
 
 ## 13. 与 MIMI 的映射
 

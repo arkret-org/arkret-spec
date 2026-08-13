@@ -129,11 +129,11 @@
         },
         "service_acceptance_ref": {
           "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
         },
         "policy_event_ref": {
           "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
         }
       },
       "additionalProperties": false
@@ -157,7 +157,7 @@
       "type": "array",
       "items": {
         "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+        "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
       },
       "uniqueItems": true
     },

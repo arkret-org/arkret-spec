@@ -1068,10 +1068,6 @@
           "$ref": "./common-ids.schema.json#/$defs/managed_agent_full_id",
           "description": "Controller-authored Agent did:webvh whose accepted inception is independent of the future PCR Realm id."
         },
-        "controller_authority_instance": {
-          "$ref": "./principal-authority-instance.schema.json",
-          "description": "Exact authenticated controller PCR instance in which provision_event will be authored. The service MUST validate the canonical digest and match this object byte-for-byte to its durable principal-resolution record; selecting a PCR from principal_id alone is forbidden."
-        },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
           "description": "Agent PCR realm id the controller derived as retype(event_id) of the managed Agent PCR ak.realm.create envelope it froze locally, and signed into provision_event. A service MUST NOT choose it; commit MUST reject any value that differs from the provision payload byte for byte. It is distinct from the controller PCR that carries provision_event. This transport field is not inside any digest preimage; the ordering the controller MUST follow is key-management.md 3.6.3 and the named encoding.md 6.0.1 exemption on the payload field."
@@ -1093,12 +1089,16 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 43200000
+        },
+        "controller_principal_server_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Authenticated controller account Principal Server. Together with the session principal_id this selects the controller authority; PCR identifiers are not exposed."
         }
       },
       "oneOf": [
         {
           "required": [
-            "controller_authority_instance"
+            "controller_principal_server_id"
           ],
           "properties": {
             "phase": {
@@ -1145,7 +1145,7 @@
           },
           "not": {
             "required": [
-              "controller_authority_instance"
+              "controller_principal_server_id"
             ]
           }
         }
@@ -1319,11 +1319,31 @@
           ],
           "not": {
             "anyOf": [
-              { "required": ["controller_realm_id"] },
-              { "required": ["pcr_recovery"] },
-              { "required": ["pairing_request_id"] },
-              { "required": ["pairing_code"] },
-              { "required": ["expires_at"] }
+              {
+                "required": [
+                  "controller_realm_id"
+                ]
+              },
+              {
+                "required": [
+                  "pcr_recovery"
+                ]
+              },
+              {
+                "required": [
+                  "pairing_request_id"
+                ]
+              },
+              {
+                "required": [
+                  "pairing_code"
+                ]
+              },
+              {
+                "required": [
+                  "expires_at"
+                ]
+              }
             ]
           }
         },
@@ -1917,7 +1937,7 @@
               ]
             }
           ],
-          "description": "Complete controller-authored ak.capability.revoke initial submission. The Event MUST carry exactly one signed head_eq precondition on ak:cell:ak.component.capability.grant.v1:<payload.grant_id>, naming the complete observed grant-cell head. event.actor_id is the authenticated controller and admission binds its proof to the session-selected exact authority instance. Ordinary capability target guards remain authoritative: only the target issuer or current root controller of the target grant Realm may revoke it. Exact replay is idempotent; stale CAS, unsigned requests, and same-Event-ID different-body attempts fail closed."
+          "description": "Complete controller-authored ak.capability.revoke initial submission. The Event MUST carry exactly one signed head_eq precondition on ak:cell:ak.component.capability.grant.v1:<payload.grant_id>, naming the complete observed grant-cell head. event.actor_id is the authenticated controller and admission binds its proof to the session-selected exact account-local lineage. Ordinary capability target guards remain authoritative: only the target issuer or current root controller of the target grant Realm may revoke it. Exact replay is idempotent; stale CAS, unsigned requests, and same-Event-ID different-body attempts fail closed."
         }
       },
       "additionalProperties": false

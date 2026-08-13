@@ -50,9 +50,9 @@
           "type": "string",
           "pattern": "^ak:(message|event):[A-Za-z0-9_-]{44}$"
         },
-          "sender_actor_id": {
-            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-          },
+        "sender_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
         "excerpt": {
           "type": "string"
         }

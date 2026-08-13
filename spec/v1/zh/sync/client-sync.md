@@ -329,7 +329,7 @@ Client Sync 的事件顺序是展示顺序和增量恢复顺序，不是授权�
 1. 同一响应内的事件按 deterministic timeline projection order 排列。
 2. 若事件 B 通过 `prev_refs`、`refs[role="after"]`、`causal_refs` 或 payload 物化的 reply/reference edge（如 `replies_to`）直接依赖事件 A，且 A 在同一响应窗口中可见，则 A MUST 出现在 B 之前。
 3. 如果依赖事件因过滤、权限、分页或缺失而不在响应中，B MUST 保留原始 Event Envelope 中客户端可见的完整 `prev_refs[]` 与 `refs[]` 条目；客户端把本地 store 未命中的 `prev_refs[]` 当作 Event backfill 目标，把未命中的 `refs[role=authorized_by]` 当作 grant-record / 对应 sealed control-history backfill 目标，并在补齐前 soft fail 或延迟渲染。`authorized_by` 的 `ak:grant:` id 不得被改写成承载 Event id alias。若某个依赖引用本身因权限不可见，服务端不得伪造占位引用；该事件按 `timeline.limited=true` / `preview_only=true` 或对应 `unauthorized` 诊断处理。
-4. 服务器 MUST NOT 使用本地数据库自增 ID、接收顺序或 Sync Service 到达顺序作为跨实现排序依据。
+4. 服务器 MUST NOT 使用本地数据库自增 ID、接收顺序或 Principal Server sync surface 到达顺序作为跨实现排序依据。
 
 Canonical default timeline projection order（不输入 canonical state、授权判断或 winner 选择；请求未显式声明并协商其它 profile 排序时，服务器 MUST 使用本顺序）：
 
@@ -343,7 +343,7 @@ actor_seq ASC,
 event_id ASC
 ```
 
-各键的精确定义与缺边时行为均以 `encoding.md` §7.3 为准；同步服务不得在本节另行扩展 `causal_depth` 边集或定义本地 tie-break。
+各键的精确定义与缺边时行为均以 `encoding.md` §7.3 为准；Principal Server 同步面不得在本节另行扩展 `causal_depth` 边集或定义本地 tie-break。
 - `event_id` 是最终 tie-breaker。
 
 对于协议状态，客户端 MUST 使用 `event-auth-state-resolution.md` 的 CBA query basis 与 Lattice cell value 解释当前态，不得只取 timeline 中最后出现的同 kind Event。
@@ -804,7 +804,7 @@ E2EE Realm 的同步必须把“事件顺序”和“密钥可用性”分开处
 5. 如果仍无法解密，将事件标记为 `decryption_pending`，但保留排序位置和引用关系。
 6. 当 MLS epoch 补齐后，异步重试解密并更新 materialized view。
 
-服务器和 Sync Service 不需要解密正文，也不得因为无法解密而改变事件顺序或过滤事件。
+服务器和 Principal Server sync surface 不需要解密正文，也不得因为无法解密而改变事件顺序或过滤事件。
 
 为降低大规模 E2EE 同步成本：
 

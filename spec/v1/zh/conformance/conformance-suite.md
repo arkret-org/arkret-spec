@@ -20,7 +20,7 @@ sidebar:
 - reducer 一致性（特别是 auth/state 重算）
 - redaction 与隐私字段保留规则
 - capability 与授权派生规则
-- Principal Server Events API / Sync Service / E2EE / applet / Policy Server 关键接口
+- Principal Server Events API / Principal Server sync surface / E2EE / applet / Policy Server 关键接口
 
 Schema 依赖由 Event Envelope 的 `requirements.schema[]` 声明；Realm reducer 版本由 reducer-profile singleton control cell 决定，并且只通过 `ak.realm.create` / `ak.realm.upgrade` 写入。v1 不使用顶层 `space_version` wire 字段。
 
@@ -90,7 +90,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 
 - canonical JSON 字段顺序与空值处理一致。
 - Event Envelope 校验必须按 kind 选择 payload schema；active 标准 kind 未命中 payload class 或 payload class 校验失败，必须在 reducer 前以 `schema_violation` 失败。
-- 同一请求在不同服务节点（Principal Server Events API / Sync Service）可重放得到一致事件 hash 或查询结果边界。
+- 同一请求在不同服务节点（Principal Server Events API / Principal Server sync surface）可重放得到一致事件 hash 或查询结果边界。
 
 ## 4. Conformance 向量分层
 

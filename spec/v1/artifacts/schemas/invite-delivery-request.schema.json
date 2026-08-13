@@ -48,7 +48,7 @@
     },
     "event_ref": {
       "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "invite_address": {
       "type": "object",

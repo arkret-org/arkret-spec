@@ -80,7 +80,10 @@
     },
     "recovery_authority_kind": {
       "type": "string",
-      "enum": ["pcr_policy", "did_root"],
+      "enum": [
+        "pcr_policy",
+        "did_root"
+      ],
       "description": "did_root is valid only when the accepted PCR policy explicitly enabled that optional factor."
     },
     "previous_model_generation_ref": {

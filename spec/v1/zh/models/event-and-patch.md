@@ -3,7 +3,7 @@ title: Event, Proof, Patch & Receipt
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-08-13
 ---
 
 ## 0. 规范语言
@@ -51,6 +51,7 @@ Schema id: `ak.schema.event.v1`
 | `realm_id` | yes | `id:realm` | Realm create 可在 payload 中建立。 | 所属 Realm。 |
 | `scope_ref` | yes | `object` | `{kind:realm, realm_id}` 或 `{kind:circle, realm_id, circle_id}`。由 producer 声明并进入 event digest、proof 与 E2EE AAD；reducer 从 payload 和 accepted references 独立派生后逐字段比对。 | 签名安全作用域。 |
 | `actor_id` | yes | `did_core_id` | 必须匹配 proof 控制链投影出的 `did_core_id`（`executed_by` 缺失时）；`executed_by` 存在时 proof 控制链投影对齐 `executed_by`。 | 事件归属的 principal of record。 |
+| `principal_server_id` | yes | `did_core_id` | producer 自行选择并进入 canonical Event bytes 与 `event_digest`。它必须对应 `author_id = executed_by ?? actor_id` 的账号 authority；service principal 直接 author 时等于其自身 service DID。任何接收服务、replica、notary 或 transport relay 都不得补写或改写。 | 实际 author 的唯一 origin Principal Server。 |
 | `executed_by` | conditional | `did_core_id` | agent / applet / delegated service 代 `actor_id` 写入时出现。出现时 MUST 与 `authorization_ref` 同时出现；Applet delegated 写入还 MUST 同时出现 `applet_id`。进入 canonical bytes、event digest、E2EE AAD。Receiver MUST 解析 proof 的完整 DID URL `verification_method`，并校验其控制主体投影为 `executed_by`。 | act-on-behalf 时实际签发该 wire write 的主体。 |
 | `authorization_ref` | conditional | `id:grant`、`id:event`、DID delegation URL、root cell constant 或 registered authority source token | `executed_by` 存在时必填；Applet-originated 写入携带 `applet_id` 时也必填。普通委派优先引用已物化的 `ak:grant:*`；Event ref 只能指向产生 grant/delegation 的 accepted Event。Realm root 只能用封闭 `ak:cell:ak.component.realm.authority_root.v1:null`。DM 直接 participant 写入使用唯一注册常量 `ak.authority.direct_conversation_participant.v1` 并在 `refs[]` 携带 critical binding Event ref；任意其它 Event/cell 不得充当该 source。`executed_by` 的 DM 写入仍以本字段绑定 executor delegation，并独立叠加 participant source。 | act-on-behalf / root / profile authority 选择与引用。 |
 | `applet_id` | conditional | `id:applet` | Applet、Ghost Actor、bridge 或 delegated applet 路径引入 Event 时必填。进入 canonical bytes 与 event digest；出现时 MUST 同时出现 `authorization_ref`。 | signed Applet provenance。 |
@@ -70,7 +71,7 @@ Schema id: `ak.schema.event.v1`
 | `payload` | yes | `object` | 由 event kind schema 定义。 | 事件负载。 |
 | `redacts` | no | `id:event` | 仅 redaction event 使用。 | 被撤回事件。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。**producer / self submit 与 peer submit 的 Event MUST NOT 携带该字段**；它只能由接收服务在 read view 上添加，任何实现都 MUST NOT 把它用于身份、授权、reducer 或签名判断。service-added `unsigned` 单对象 canonical JSON MUST NOT 超过 16 KiB，见 [`../conformance/scalability-constraints.md` §2.1.1](../conformance/scalability-constraints.md)。 | 仅 read view 的本地/传输附加信息。 |
-| `proofs` | yes | `array<Proof>` | 至少一个有效 proof（`minItems: 1`）。 | 签名证明。 |
+| `proofs` | yes | `array<Proof>` | 至少一个 producer proof；origin Principal Server 完成本地准入后最多追加一个 `principal_server_admission`。 | producer 签名与 origin admission 证明。 |
 
 #### 2.2.1 Wire Event 与 producer 的已验证提交态（normative）
 
@@ -150,6 +151,7 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
     "realm_id": "ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV"
   },
   "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
+  "principal_server_id": "ak:did_core:webvh:z6mkprincipalserverexample",
   "actor_seq": 4,
   "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
@@ -477,7 +479,7 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 
 跨桶累计超过 64 时，上述“整桶”扩展为同一 `(realm_id, actor_id, actor_seq)` 的全部 sibling。对已经被 accepted Seal 覆盖的 Control Move，追溯规则存在唯一例外：其 digest 与确定性 reducer 输出 MUST 保留在该 Seal 的 `covered_set` / `state_root` 输入中，不得改写已接受 Seal；该 actor 后续控制面 Move 在显式 fork-resolution compaction Seal 归一前 fail closed。数据面 sibling 与尚未被任何 accepted Seal 覆盖的 pending Control Move仍按上段移除。
 
-`ak.device.reanchor` 另使用独立冲突槽 `(authority_instance_digest,new_device_generation)`。槽键取自 payload 的 exact `authority_instance` 与 PCR-local monotonic generation，MUST NOT 从 DID versionId 解析或派生；同一 `principal_id` 下不同 `authority_instance_digest` 是不同 PCR，MUST NOT 落入同一槽。`authority_instance` 五字段逐字节相等、re-anchor digest 与 replacement-authorize digest 全相同才是幂等重试；同槽任一不同即把全部候选 unit 及后继 generation Seal quarantine，禁止 first-seen winner。reducer 保留最后未冲突的 current generation ref、将状态置 `conflicted` 并关闭普通 Event/Seal admission；只有同一 authority instance 上更高 `new_device_generation`、由当前 accepted recovery policy 授权的 re-anchor 可以解除，policy 显式启用 `did_root` factor 时还须同时满足该 method 的 registry/witness canonical-head 要求。该规则优先于普通 actor sibling 容量/限流规则，不能用唯一约束丢弃第二份证据。
+`ak.device.reanchor` 使用 account-local 冲突槽 `(principal_id, principal_server_id, new_device_generation)`。Principal Server 的 create-once 合同保证该 pair 只有一条 PCR lineage；同槽 re-anchor 与 replacement-authorize digest 全同才是幂等重试，任一不同则 quarantine 全部候选及后继 generation Seal。该槽不暴露 PCR digest 为第二套身份，也不能用 first-seen 或数据库唯一约束丢弃冲突证据。
 
 上述独立冲突槽、到达顺序无关性与解除路径由 `ak.vector.identity.device_reanchor.v1` 执行验证。
 
@@ -518,12 +520,41 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 
 ## 3. Proof
 
+### 3.1 Principal Server authority 与准入证明（normative）
+
+账号型 principal 的完整外部 authority key 只有 `(principal_id, principal_server_id)`。前者回答“是谁”，后者回答“哪个 Principal Server 对该账号、设备和恢复状态负责”。同一 `principal_id` 在不同 Principal Server 上形成不同账号；单个 Principal Server 上同一 pair **MUST** 终身 create-once，只能对应一条 PCR lineage。注销、hard erasure 或停用后 **MUST** 保留最小 uniqueness tombstone，恢复只能沿原 lineage；换服务必须形成新的 pair。PCR Realm、genesis receipt、entry digest 与 frontier 可以作为账号内部审计和恢复状态，但 **MUST NOT** 参与外部 principal equality、membership、Contact、grant、普通 Event 或 cache/query identity。
+
+普通 Event 先定义 `author_id = executed_by ?? actor_id`。`event.principal_server_id` **MUST** 是 `author_id` 的账号 Principal Server；`actor_id` 仍是业务事实归属者，delegated execution 的授权由 `authorization_ref` 另行证明。human、organization 与 managed/native Agent 直接 author 时使用各自账号 authority；service principal 直接 author 时使用自身 service DID；Ghost/Applet 与 Realm-local ephemeral actor 按其实际 author/controller proof branch 选择唯一负责首次准入的 Principal Server。该字段是 producer canonical bytes 的一部分，因而被 producer proof 的 `event_digest` 覆盖，绝不能放在 `unsigned` 或由服务端补写。
+
+普通 caller-signed Event 的首次准入 **MUST** 只发生在 `event.principal_server_id`。caller submit 只能携带 producer proof；origin Principal Server 完成 schema、producer proof、session pair、设备 generation/PCR 或相应 author branch 状态检查后，在同一 `proofs[]` 追加且只追加一个：
+
+```json
+{
+  "kind": "principal_server_admission",
+  "verification_method": "did:webvh:example.com:principal#event-admission",
+  "event_digest": "sha256:<canonical Event digest>",
+  "producer_proof_digest": "sha256:<complete producer proof object digest>",
+  "producer_verification_method": "did:webvh:example.com:alice#ak:device:0198a2f0-7e52-7a31-9fa2-5cb02b26da1f",
+  "producer_signing_key": "did:key:z<multibase public key>",
+  "accepted_at": "2026-08-13T13:38:00.000Z",
+  "jws": "<detached JWS>"
+}
+```
+
+admission proof 使用独立 `context="ak.principal-server-admission-proof-v1"`。其 `verification_method` controller **MUST** 投影为 `event.principal_server_id`；`event_digest` 必须同时等于 producer proof 与重算 Event digest；其余三个 producer 字段必须逐字/逐对象绑定 origin 实际验证的 exact producer proof 与公钥。`accepted_at` 只进入 admission transcript，不进入 Event digest、Event ID 或 reducer。
+
+exact retry **MUST** 返回 byte-identical accepted Event。federation/backfill 只转发完整 Event，receiver 重算 Event、producer proof 与 admission proof 即可验证，**MUST NOT** 接收 signer-key evidence sidecar、回放 PCR genesis/完整 control history/Seal/range-completeness，也不得删除、替换或由 replica 重签 origin proof。设备进入 `revocation_pending` 后 origin **MUST NOT** 接受新 Event或追加 admission proof；此前合法产生的 proof 不因后来 revoke 而追溯失效。
+
+这把 Principal Server 明确纳入账号设备 authority 的信任边界：服务 DID 签名提供可验证归责，但不能密码学阻止恶意服务虚假准入。若未来要抵抗恶意 Principal Server，应另行设计 principal-root/device certificate transparency，且不得把 account-local PCR 状态重新暴露为跨服务身份选择器。
+
+### 3.2 Producer proof
+
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `kind` | yes | `enum(detached_jws)` | 初版必须支持。 | 证明类型。 |
 | `alg` | yes | `string` | 初版默认 `Ed25519`。 | 签名算法。 |
 | `verification_method` | yes | `string` | DID URL。 | 公钥/设备方法。 |
-| `event_digest` | yes | `hash` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`。签名输入包含 `scope_ref`、`payload`、basis 与其它 producer 字段，只排除 `proofs`、`unsigned`、`actor_kind`。 | producer-signed canonical Event digest。 |
+| `event_digest` | yes | `hash` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`。签名输入包含 `principal_server_id`、`scope_ref`、`payload`、basis 与其它 producer 字段，只排除 `proofs`、`unsigned`、`actor_kind`。 | producer-signed canonical Event digest。 |
 | `created_at` | yes | `timestamp` | MUST 使用 canonical RFC 3339 UTC 毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`（整秒也写 `.000Z`）；微秒/纳秒输入必须在生成 proof binding 与签名之前截断到毫秒，不得使用 `+00:00`。 | 签名时间。 |
 | `domain` | no | `string` | 同一 trust domain 内 SHOULD 设置；跨服务、跨 trust domain 或 federation profile 下 MUST 设置。 | 域绑定。 |
 | `audience` | no | `string` 或 `array<string>` | 同一 service audience 内 SHOULD 设置；跨域/服务调用、多受众调用或 federation profile 下 MUST 设置。 | 受众绑定。 |
@@ -545,7 +576,7 @@ DID proof JSON Schema MUST 与 [`../identity/identity-did.md`](../identity/ident
 }
 ```
 
-Verifier MUST 先移除 `proofs`、`unsigned`、`actor_kind` 与 `event_id`，保留 `scope_ref`，计算 producer-signed canonical Event hash并与 `proof.event_digest` 比对；随后按 [`../conformance/encoding.md` §4.0](../conformance/encoding.md) 重算 `event_id` 并与携带值比对（不一致 `event_id_digest_mismatch`），比对通过前 MUST NOT 将 `event_id` 用于去重、索引、路由或授权判断；随后写入固定 signing-context `context="ak.event-proof-v1"` 验证 detached JWS。JWS transcript 同时绑定 context、actor、verification method、时间、domain/audience，避免跨对象族、跨服务或跨 actor/scope 重放。
+Verifier MUST 先移除 `proofs`、`unsigned`、`actor_kind` 与 `event_id`，保留 `principal_server_id` 与 `scope_ref`，计算 producer-signed canonical Event hash并与 `proof.event_digest` 比对；随后按 [`../conformance/encoding.md` §4.0](../conformance/encoding.md) 重算 `event_id` 并与携带值比对（不一致 `event_id_digest_mismatch`），比对通过前 MUST NOT 将 `event_id` 用于去重、索引、路由或授权判断；随后写入固定 signing-context `context="ak.event-proof-v1"` 验证 detached JWS。JWS transcript 同时绑定 context、actor、verification method、时间、domain/audience，避免跨对象族、跨服务或跨 actor/scope 重放。
 
 在 cross-service、cross-trust-domain、federation 或任何 profile 声明的多受众调用中，缺少 `domain` 或缺少所需 `audience` 的 proof MUST fail closed（`proof_binding_missing` 或 profile 声明的更具体 reason）。同一服务内单受众本地写入 MAY 省略其中一项，但 verifier 仍 MUST 把处理上下文中的 Realm / service audience 与 envelope `realm_id`、proof controller 和 capability 绑定分开校验；不得因为 proof 验签通过就跨服务接受同一 Event。
 
@@ -644,6 +675,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
     "realm_id": "ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV"
   },
   "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
+  "principal_server_id": "ak:did_core:webvh:z6mkprincipalserverexample",
   "actor_seq": 5,
   "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",

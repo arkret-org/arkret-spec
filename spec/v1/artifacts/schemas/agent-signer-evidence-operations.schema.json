@@ -96,8 +96,12 @@
     },
     "query_selector": {
       "oneOf": [
-        { "$ref": "#/$defs/current_query_selector" },
-        { "$ref": "#/$defs/historical_query_selector" }
+        {
+          "$ref": "#/$defs/current_query_selector"
+        },
+        {
+          "$ref": "#/$defs/historical_query_selector"
+        }
       ]
     },
     "current_query_selector": {
@@ -113,7 +117,9 @@
         "challenge"
       ],
       "properties": {
-        "verification_mode": { "const": "current_admission" },
+        "verification_mode": {
+          "const": "current_admission"
+        },
         "agent_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
@@ -122,24 +128,57 @@
           "format": "uri",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
-        "operation_id": { "$ref": "./principal-operations.schema.json#/$defs/operation_id" },
-        "request_digest": { "$ref": "./agent-signer-evidence.schema.json#/$defs/sha256" },
-        "verifier_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "audience": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "challenge": { "type": "string", "minLength": 16, "maxLength": 512 }
+        "operation_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/operation_id"
+        },
+        "request_digest": {
+          "$ref": "./agent-signer-evidence.schema.json#/$defs/sha256"
+        },
+        "verifier_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "audience": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "challenge": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 512
+        }
       },
       "additionalProperties": false
     },
     "historical_query_selector": {
       "type": "object",
-      "required": ["verification_mode", "agent_id", "verification_method", "event_id", "event_digest", "receiver_service_id"],
+      "required": [
+        "verification_mode",
+        "agent_id",
+        "verification_method",
+        "event_id",
+        "event_digest",
+        "receiver_service_id"
+      ],
       "properties": {
-        "verification_mode": { "const": "historical_event" },
-        "agent_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "verification_method": { "type": "string", "format": "uri", "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$" },
-        "event_id": { "$ref": "./event-envelope.schema.json#/$defs/event_ref" },
-        "event_digest": { "$ref": "./agent-signer-evidence.schema.json#/$defs/hash" },
-        "receiver_service_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" }
+        "verification_mode": {
+          "const": "historical_event"
+        },
+        "agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "verification_method": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "event_digest": {
+          "$ref": "./agent-signer-evidence.schema.json#/$defs/hash"
+        },
+        "receiver_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        }
       },
       "additionalProperties": false
     },

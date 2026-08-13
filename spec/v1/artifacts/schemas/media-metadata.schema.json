@@ -10,7 +10,9 @@
     "access"
   ],
   "not": {
-    "required": ["size"],
+    "required": [
+      "size"
+    ],
     "$comment": "byte counts use size_bytes"
   },
   "properties": {

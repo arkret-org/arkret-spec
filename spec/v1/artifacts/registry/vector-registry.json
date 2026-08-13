@@ -1,17 +1,19 @@
 {
-  "version": "2026-08-13.4",
+  "version": "2026-08-14.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-13T10:08:00Z",
+  "generated_at": "2026-08-14T00:40:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
-      "vector_id": "ak.vector.identity.did_pcr_authority_boundary.v1",
+      "vector_id": "ak.vector.identity.principal_server_admission.v1",
       "status": "active",
       "domain": "identity",
-      "applies_to_fixtures": ["did-pcr-authority-boundary-fixture.json"],
-      "description": "Security sequences for registration-only human DID authority, PCR-instance anti-substitution, optional DID-root recovery, outage isolation and exact freshness call-site registration.",
+      "applies_to_fixtures": [
+        "principal-server-admission-fixture.json"
+      ],
+      "description": "Authority-pair uniqueness, signed Event principal_server_id, exact producer-proof binding, origin-only admission and replica preservation.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/did-pcr-authority-boundary-fixture.json",
+        "spec/v1/artifacts/fixtures/principal-server-admission-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -475,7 +477,7 @@
       "applies_to_fixtures": [
         "final-conformance-closure-fixture.json"
       ],
-      "description": "Applet transaction push delivery authentication record: per-delivery RFC 9421 HTTP Message Signature covering method/target/authority/content-digest/source-service-id/destination-service-id/idempotency-key, delivery_authentication_record persisted into the idempotency/replay record, duplicate body or authentication-record conflicts fail closed, and source service authentication does not replace Event actor/applet/capability checks.",
+      "description": "Applet transaction push delivery authentication record: per-delivery RFC 9421 HTTP Message Signature covering method/target/authority/content-digest/source-service-id/destination-service-id/idempotency-key, receiver-derived delivery_authentication_record and its domain-separated digest are persisted into the idempotency/replay record, duplicate body/record conflicts fail closed, and source service authentication does not replace Event actor/applet/capability checks.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1102,7 +1104,7 @@
       "applies_to_fixtures": [
         "capability-fixture.json"
       ],
-      "description": "Multi-parent authority audit materialization derives maximum depth plus canonical sorted and deduplicated root identities; missing parents remain dependency-pending and independent reducers produce the same state-root input.",
+      "description": "Capability materialization copies issuer_principal_server_id exactly from the accepted carrier Event, derives maximum depth plus canonical sorted and deduplicated root identities, and requires each parent subject authority pair to equal the child issuer pair. Producer-supplied derived members and same-DID cross-Principal-Server replay are rejected; missing parents remain dependency-pending and independent reducers produce the same state-root input.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
@@ -1670,7 +1672,7 @@
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "The ak.self.contact.read.list projection carries the closed next_prepare_input successor cursor: an accepted row MUST carry it and the five non-authorable contact_state values MUST NOT, its contact_round_id, version and predecessor_event_ref are copied verbatim into the scope_update and tombstone prepare phases, version is the next Event's version and predecessor_event_ref is the current lineage head rather than that head's predecessor, and a stale cursor is refused with contact_lineage_conflict or contact_scope_stale and MUST be re-read rather than guessed or retried unchanged.",
+      "description": "The ak.self.contact.read.list projection carries the closed next_prepare_input successor cursor: an accepted row MUST carry it and the five non-authorable contact_state values MUST NOT, its basis_id, version and predecessor_event_ref are copied verbatim into the scope_update and tombstone prepare phases, version is the next Event's version and predecessor_event_ref is the current lineage head rather than that head's predecessor, and a stale cursor is refused with contact_lineage_conflict or contact_scope_stale and MUST be re-read rather than guessed or retried unchanged.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
@@ -1894,7 +1896,7 @@
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-        "description": "Cross-author replacement repair dispatch: registered self dispatch freezes a byte-identical peer relay outbox; the destination atomically freezes either all current authorized human devices or one current Native-Agent runtime endpoint and enqueues all-or-zero; requester authority is closed device|native_agent and byte-bound to accepted rejoin and KeyPackage signer evidence; repair claims consume only the exact target_keypackage_ref through a closed human-device|native-agent selector; durable Commit/Welcome plus activation remain the only business response.",
+      "description": "Cross-author replacement repair dispatch: registered self dispatch freezes a byte-identical peer relay outbox; the destination atomically freezes either all current authorized human devices or one current Native-Agent runtime endpoint and enqueues all-or-zero; requester authority is closed device|native_agent and byte-bound to accepted rejoin and KeyPackage signer evidence; repair claims consume only the exact target_keypackage_ref through a closed human-device|native-agent selector; durable Commit/Welcome plus activation remain the only business response.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
@@ -2263,62 +2265,6 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.disappearing.on_last_read_offline_window.v1",
-      "status": "active",
-      "domain": "disappearing",
-      "applies_to_profiles": [
-        "ak.profile.disappearing.v1"
-      ],
-      "description": "on_last_read converges by principal-level aggregate contributions and read_trigger_window_ms; offline devices receive expiry stubs and shred keys when they reconnect.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/crypto-media/disappearing-messages.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.disappearing.read_trigger_anonymous_aggregate.v1",
-      "status": "active",
-      "domain": "disappearing",
-      "applies_to_profiles": [
-        "ak.profile.disappearing.v1"
-      ],
-      "description": "Read-trigger expiry starts are derived from anonymous aggregate contributions and MUST NOT reveal reader identity or reader counts to other clients or services outside the aggregate boundary.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/crypto-media/disappearing-messages.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.disappearing.read_trigger_idempotent_replay.v1",
-      "status": "active",
-      "domain": "disappearing",
-      "applies_to_profiles": [
-        "ak.profile.disappearing.v1"
-      ],
-      "description": "Duplicate, stale, out-of-order, or cross-bound read-trigger contributions MUST NOT refresh expiry starts, double-count readers, or expire the wrong message.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/crypto-media/disappearing-messages.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.disappearing.read_trigger_multi_aggregator_convergence.v1",
-      "status": "active",
-      "domain": "disappearing",
-      "applies_to_profiles": [
-        "ak.profile.disappearing.v1"
-      ],
-      "description": "Opposite delivery orders at two aggregate services converge through per-token and aggregate min joins; a late earlier valid contribution can only move expiry earlier and can never restore shredded content.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/crypto-media/disappearing-messages.md"
       ]
     },
     {

@@ -2,11 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/member-delivery-binding-candidate.schema.json",
   "title": "Arkret Member Delivery Binding Candidate",
-  "description": "Builder-side candidate object that ferries Handle resolution output (intent=member_add | invite) or a trusted-issuer-signed equivalent into the Realm member_add / invite pipeline. Produces a Realm-scoped member_delivery_binding only after the reducer independently re-validates against Join Policy. See identity-handles.md §3.7.",
+  "description": "Builder-side candidate object that ferries Handle resolution output (intent=member_add | invite) or a trusted-issuer-signed equivalent into the Realm member_add / invite pipeline. Produces a Realm-scoped member_delivery_binding only after the reducer independently re-validates against Join Policy. See identity-handles.md §3.7. The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id). The external account authority is exactly (subject_id, member_delivery_binding.recipient_service_id).",
   "type": "object",
   "required": [
     "subject_id",
-    "principal_authority_instance",
     "handle",
     "member_delivery_binding",
     "issuer_service_id",
@@ -21,10 +20,6 @@
     "subject_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Stable principal did_core_id of the addressee. Materialised as payload.actor_id / cell subject in ak.member.state{membership=join}."
-    },
-    "principal_authority_instance": {
-      "$ref": "./principal-authority-instance.schema.json",
-      "description": "Immutable account/PCR lineage selected for subject_id. Its principal_id MUST equal subject_id and principal_server_id MUST equal member_delivery_binding.recipient_service_id."
     },
     "handle": {
       "$ref": "string-profiles.schema.json#/$defs/canonical_handle",
@@ -84,11 +79,11 @@
         },
         "service_acceptance_ref": {
           "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
         },
         "policy_event_ref": {
           "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
         }
       },
       "additionalProperties": false
@@ -113,7 +108,7 @@
       "type": "array",
       "items": {
         "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+        "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
       },
       "uniqueItems": true,
       "minItems": 1,

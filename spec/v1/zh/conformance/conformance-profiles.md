@@ -230,7 +230,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 
 MUST NOT：
 
-- 把明文消息发送给未授权 Sync Service 或受托 search / projection 服务
+- 把明文消息发送给未授权 Principal Server sync surface 或受托 search / projection 服务
 - 把解密密钥上传给不受信服务
 - 在未验证 KeyPackage 所属 DID 的情况下加密给对方
 - 在 `governance_binding` 的 policy / membership root 不匹配时继续解密正文（违反 MLS Governance Binding）
@@ -567,7 +567,7 @@ Deployment profile 用于发布与验收，不替代实现 profile。完整 depl
 
 `ak.profile.personal_node.v1` MUST cover：
 
-- Principal Server、Events API、Sync Service、Blob Store 可以同机合并
+- Principal Server、Events API、Principal Server sync surface、Blob Store 可以同机合并
 - 默认最小管理员面
 - 本地备份与恢复
 
@@ -815,7 +815,7 @@ Applet bridge SHOULD 支持：
 
 ## 19a. Franking (E2EE Abuse Reporting)
 
-`ak.profile.franking.v1` 适用于在 E2EE Realm 中提供可验证投递证明的服务（典型为 Sync Service / MIMI provider facade / Principal Server）。
+`ak.profile.franking.v1` 适用于在 E2EE Realm 中提供可验证投递证明的服务（典型为 Principal Server sync surface / MIMI provider facade / Principal Server）。
 
 参考：`governance/content-moderation.md` §3.4 与 [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) franking 段落。
 

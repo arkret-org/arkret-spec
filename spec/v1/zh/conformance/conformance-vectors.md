@@ -8,7 +8,7 @@ updated: 2026-08-11
 
 本文是 v1 conformance 测试向量的人类阅读入口，按域分组呈现核心 normative steps。完整 active vector 集合的机器真相源是 `artifacts/registry/vector-registry.json`；测试 runner MUST 从 registry 的 `source_refs` 加载本文件、领域文档与 fixture，不得假定本文件正文穷尽列出所有 vector id。
 
-`ak.vector.identity.did_pcr_authority_boundary.v1` 覆盖 human DID 注册锚与注册后 PCR authority 的边界：同 core 双 PCR、controller 转手、历史 accepted-at evidence、DID outage、method successor 双重授权、可选 DID-root recovery、account lifecycle 以及 operation/event-kind freshness 映射。测试器 MUST 运行 `did-pcr-authority-boundary-fixture.json` 的全部 semantic cases；仅比较 `core_id`、按 risk tier 隐式触发 current DID，或以相同 public key 自动 link/merge 的实现均不合格。
+`ak.vector.identity.principal_server_admission.v1` 覆盖 account authority pair 终身唯一性、Event 顶层 `principal_server_id`、producer proof 精确绑定、origin-only admission、pending/revoked 拒绝与 replica 原样保留。测试器 MUST 运行 `principal-server-admission-fixture.json` 的全部 semantic cases；任何以 PCR identifier 比较外部 principal equality、接收服务重签或独立 signer-evidence sidecar 都不合格。
 
 1. Encoding & Crypto（canonical JSON、digest、signature binding、HLC、cursor、encrypted envelope）
 2. CBA · Lattice（DataEvent acceptance、Control Move Seal finality、cas_register、Seal DAG）
@@ -346,8 +346,8 @@ sha256:f4d8a5c64697228753fa18e543d80722ee166a8fb7c9bc705935c87003c1e610
 判定规则：
 
 - event digest / proof `event_digest` MUST 从 redaction 前、去除 `proofs` 与 `unsigned` 后的 canonical event bytes 派生；`event_id` 是稳定 `ak:event:*` typed ID，必须进入 digest，但不替代 digest。
-- 实现 MUST NOT 把 transport envelope、HTTP header、Sync Service metadata、local receive time 放入 event digest。
-- 同一事件在不同 Events API 或 Sync Service 上 MUST 得到相同 digest。
+- 实现 MUST NOT 把 transport envelope、HTTP header、Principal Server sync surface metadata、local receive time 放入 event digest。
+- 同一事件在不同 Events API 或 Principal Server sync surface 上 MUST 得到相同 digest。
 
 ### 1.7 Vector: Event Batch Receipt Digest
 
@@ -627,7 +627,7 @@ sha256:4bb1b546bf078c0f90699aa661c799fb69956caed147f17e09ecc79be8bb67bb
 
 - digest 输入 MUST 为 `canonical_json(payload_metadata) || base64url_decode(ciphertext)`。
 - 实现 MUST NOT hash 明文 payload。
-- 实现 MUST NOT 省略路由和解密所需的 `payload_metadata` 字段，否则 Sync Service 无法安全去重和审计密文 envelope。
+- 实现 MUST NOT 省略路由和解密所需的 `payload_metadata` 字段，否则 Principal Server sync surface 无法安全去重和审计密文 envelope。
 
 ### 1.12.1 Vector: 畸形二进制 Payload 拒绝（结构深度 / CBOR bounds）
 
@@ -2223,68 +2223,6 @@ ak.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 - `ak.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1`（本节主向量）——断言两客户端对 `E1` late recovery 结果只取决于 sealed `T0` effective view，与本地到达顺序 / wall clock 无关；正路径（`T0` 可见且 share policy 允许）发放、`T0` 不可见拒绝。
 - `ak.vector.late_key_recovery.removed_actor.v1`（无 `e2ee.` 段，独立 registry id）——removed_actor negative path 专项：`receiver` 在 `T0` 不可见 / key source unauthorized 时 MUST 拒绝，且拒绝理由 MUST NOT 仅为“`T0` 后被 ban”。
 
-### 5.2.2 Vector: Disappearing Read-trigger Anonymous Aggregate
-
-向量名称：
-
-```text
-ak.vector.disappearing.read_trigger_anonymous_aggregate.v1
-```
-
-输入：
-
-- Realm 启用 `ak.profile.disappearing.v1`，`ak.realm.disappearing_policy.allowed_triggers` 包含 `on_first_read` 与 `on_last_read`。
-- Alice 发送带 `expiry.trigger="on_first_read"` 的 E2EE message `M1`；Bob 与 Carol 均在 send seal 的 eligible reader set 中。
-- Bob 的一个授权设备通过 private `ak.read_cursor.advance` 覆盖 `M1`；Carol 没有公开 read receipt。
-- Sync / account aggregate service 向其他客户端返回 projection 或 metadata-only expiry hint。
-
-期望：
-
-- `M1` 的 first-read expiry start 被设置一次，projection 在 `expiry_start_hlc + ttl_ms + grace_ms` 后降级为 expiry stub。
-- Alice、Carol、其它成员、push provider、search service 与默认客户端 projection 均不得看到 Bob 的 `actor_id`、`device_id`、handle、reader count、unread count、IP、在线状态或可跨 message 关联的 reader pseudonym。
-- 允许的 trigger metadata 仅限 `source_event_id`、`trigger`、`expiry_start_hlc`、`expires_at` 与不可反查的 aggregate status；不得包含 read receipt UI payload。
-
-### 5.2.3 Vector: Disappearing Read-trigger Idempotent Replay
-
-除单服务 replay 外，实现还 MUST 运行 `ak.vector.disappearing.read_trigger_multi_aggregator_convergence.v1`：两个聚合服务以相反顺序接收同一 contribution 集合，per-token `min` 与 aggregate `min` join 必须产生逐字节相同的 `on_first_read` expiry start；晚到更早值只能把 expiry 提前，不能恢复已 shred 内容。
-
-向量名称：
-
-```text
-ak.vector.disappearing.read_trigger_idempotent_replay.v1
-```
-
-输入：
-
-- 同一 principal 的两台设备对同一 message `M1` 乱序提交 read cursor / receipt，HLC 分别为 `H1` 与 `H2`。
-- 攻击者重放 `M1` 的旧 read-trigger contribution，并尝试把同一 opaque token 绑定到另一条 message `M2`。
-- `on_first_read` expiry start 已经由第一次有效 contribution 接受。
-
-期望：
-
-- 同一 `(message, principal)` 的重复 contribution 只计一次；重复投递返回 success / already_observed 等幂等结果，不刷新 `expiry_start_hlc`。
-- 两台设备的 read cursor 按 [`../discovery/read-receipts.md` §6.5](../discovery/read-receipts.md) 的因果优先规则收敛：被因果支配的 position 被忽略（与其 HLC 大小无关）；仅当两个 position 因果不可比时才忽略较旧 HLC，HLC 相等时按 read cursor device tie-break。无论走哪条分支，都只产生一个 principal-level contribution。
-- 跨 message、跨 scope、跨 trigger 或 policy frontier 不匹配的 replay MUST fail closed，不得让 `M2` 提前过期。
-
-### 5.2.4 Vector: Disappearing On-last-read Offline Window
-
-向量名称：
-
-```text
-ak.vector.disappearing.on_last_read_offline_window.v1
-```
-
-输入：
-
-- Alice 发送带 `expiry.trigger="on_last_read"` 的 E2EE message `M1`。
-- send seal 冻结的 eligible reader set 为 Bob、Carol、David；Bob 有两台设备。
-- Bob 的手机读到 `M1`，Bob 的桌面离线；Carol 读到 `M1`；David 的 delivery binding 不可达，直到 `read_trigger_window_ms` 结束仍未贡献。
-
-期望：
-
-- Bob 只按 principal 计一次，离线桌面不得阻塞 `on_last_read`。
-- `on_last_read` expiry start 在 Carol contribution 与 `read_trigger_window_ms` 结束二者均满足后收敛；David 不得无限期阻塞。
-- Bob 的离线桌面稍后上线时 MUST 接收 expiry stub / metadata-only 状态，MUST shred 本地 plaintext、message content key、preview cache 和 search / notification derived plaintext，且不得通过 late recovery 恢复正文。
 
 ### 5.3 Vector: Board Collection Projection
 
@@ -2536,7 +2474,7 @@ Expected：
 
 - 两种投递顺序对同一对 cursor 产生相同 winner；合并是幂等且可交换的。
 - 合并结果 MUST NOT 回退到任何被 winner 因果支配的更早 position，因此 unread count 不得反弹（[`../discovery/read-receipts.md` §6.6](../discovery/read-receipts.md) 流程第 5 条）。
-- 派生的 unread count、badge、push suppression 与 `on_first_read` / `on_last_read` disappearing-message contribution 都以合并 winner 为输入；case 2 选出 B 的实现 MUST 判为 conformance failure。
+- 派生的 unread count、badge 与 push suppression 都以合并 winner 为输入；case 2 选出 B 的实现 MUST 判为 conformance failure。
 - 任何实现 MUST NOT 把 case 6 的 provisional 结果作为最终 read position 上报或持久化。
 
 ### 5.10 Vector: Account Data CAS 收敛
@@ -3232,7 +3170,7 @@ Expected：
 
 `vector_id`: `ak.vector.invite.claim_reducer_state_machine.v1`
 
-本向量固化 [`third-party-invites.md`](../sync/third-party-invites.md) §4.3 的 Realm reducer 权威要求。机器可执行样本位于 [`../../artifacts/fixtures/security-closure-fixture.json`](../../artifacts/fixtures/security-closure-fixture.json)；runner MUST 同时消费 prose 与 fixture，不得只依赖验证服务或 Sync Service 入站预检。
+本向量固化 [`third-party-invites.md`](../sync/third-party-invites.md) §4.3 的 Realm reducer 权威要求。机器可执行样本位于 [`../../artifacts/fixtures/security-closure-fixture.json`](../../artifacts/fixtures/security-closure-fixture.json)；runner MUST 同时消费 prose 与 fixture，不得只依赖验证服务或 Principal Server sync surface 入站预检。
 
 Steps：
 
@@ -4911,7 +4849,7 @@ Setup:
 
 Expected:
 
-- Events / Sync Service MUST NOT 返回 `E_before` 的正文 payload 给 Bob；可以返回 redacted / locked stub 或 `history_not_visible`。
+- Events / Principal Server sync surface MUST NOT 返回 `E_before` 的正文 payload 给 Bob；可以返回 redacted / locked stub 或 `history_not_visible`。
 - E2EE Realm 中，任何 `ak.realm_key.share` 覆盖 `E_before` epoch 且 recipient=Bob MUST 被拒绝或对应 `ak.realm_key.withheld{withheld_reason_code="history_not_visible"}`。
 - 如果 Realm 后续把 current visibility 改成 `shared`，该变化不 retroactively 重解释 `E_before` 的 `T0` 可见性；除非新 policy 明确声明受审计的 historical reclassification profile，否则 Bob 仍不能把 `E_before` 作为 verified timeline 明文展示。
 

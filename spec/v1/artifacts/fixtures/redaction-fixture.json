@@ -59,7 +59,8 @@
             "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "signature": "signature-base64url-placeholder"
           }
-        ]
+        ],
+        "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
       },
       "redaction_receipt": {
         "target_event_id": "ak:event:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
@@ -153,7 +154,8 @@
             "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
             "signature": "signature-base64url-placeholder"
           }
-        ]
+        ],
+        "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
       },
       "redaction_receipt": {
         "schema": "ak.schema.erasure_receipt.v1",

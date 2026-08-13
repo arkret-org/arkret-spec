@@ -601,7 +601,6 @@
           },
           "slot_committed": true,
           "issuer_service_id": "ak:did_core:web:ps.example",
-          "issuer_service_binding_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
           "accepted_at": "2026-08-08T00:00:00.000Z",
           "proof": {
             "verification_method": "did:web:ps.example#key-1",
@@ -640,7 +639,6 @@
           },
           "slot_committed": true,
           "issuer_service_id": "ak:did_core:web:ps.example",
-          "issuer_service_binding_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
           "accepted_at": "2026-08-08T00:00:00.000Z",
           "proof": {
             "verification_method": "did:web:ps.example#key-1",
@@ -687,41 +685,6 @@
       "instance": {
         "unit_kind": "direct_conversation_founding",
         "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4A6",
-        "source_service_binding": {
-          "principal_id": "ak:did_core:webvh:z6mkfixturefounderexample",
-          "service_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
-          "trust_domain": "ak:trust_domain:fixture",
-          "service_kind": "principal_server",
-          "service_verification_method": {
-            "id": "did:webvh:z6mkfixtureprincipalexample:principal.example#key-1",
-            "controller": "did:webvh:z6mkfixtureprincipalexample:principal.example",
-            "type": "Multikey",
-            "public_key_multibase": "z6MkhFixtureKey"
-          },
-          "endpoint_origins": [
-            "https://principal.example"
-          ],
-          "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "authority_evidence": {
-            "kind": "ak.did.binding_evidence.v1",
-            "method": "webvh",
-            "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "method_proofs": []
-          },
-          "not_before": "2026-08-01T00:00:00.000Z",
-          "accepted_at": "2026-08-01T00:00:00.000Z",
-          "binding_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "service_acceptance_proof": {
-            "verification_method": "did:webvh:z6mkfixtureprincipalexample:principal.example#key-1",
-            "created_at": "2026-08-01T00:00:00.000Z",
-            "jws": "a"
-          },
-          "principal_authorization_proof": {
-            "verification_method": "did:webvh:z6mkfixturefounderexample:founder.example#key-1",
-            "created_at": "2026-08-01T00:00:00.000Z",
-            "jws": "a"
-          }
-        },
         "events": [
           {},
           {}
@@ -744,41 +707,6 @@
       "instance": {
         "unit_kind": "direct_conversation_founding",
         "idempotency_key": "01J8Z5Q6R7S8T9V0W1X2Y3Z4A6",
-        "source_service_binding": {
-          "principal_id": "ak:did_core:webvh:z6mkfixturefounderexample",
-          "service_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
-          "trust_domain": "ak:trust_domain:fixture",
-          "service_kind": "principal_server",
-          "service_verification_method": {
-            "id": "did:webvh:z6mkfixtureprincipalexample:principal.example#key-1",
-            "controller": "did:webvh:z6mkfixtureprincipalexample:principal.example",
-            "type": "Multikey",
-            "public_key_multibase": "z6MkhFixtureKey"
-          },
-          "endpoint_origins": [
-            "https://principal.example"
-          ],
-          "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "authority_evidence": {
-            "kind": "ak.did.binding_evidence.v1",
-            "method": "webvh",
-            "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "method_proofs": []
-          },
-          "not_before": "2026-08-01T00:00:00.000Z",
-          "accepted_at": "2026-08-01T00:00:00.000Z",
-          "binding_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "service_acceptance_proof": {
-            "verification_method": "did:webvh:z6mkfixtureprincipalexample:principal.example#key-1",
-            "created_at": "2026-08-01T00:00:00.000Z",
-            "jws": "a"
-          },
-          "principal_authorization_proof": {
-            "verification_method": "did:webvh:z6mkfixturefounderexample:founder.example#key-1",
-            "created_at": "2026-08-01T00:00:00.000Z",
-            "jws": "a"
-          }
-        },
         "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
         "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
         "events": [
@@ -803,41 +731,6 @@
       "expected_reason_code": "schema_violation",
       "instance": {
         "unit_kind": "direct_conversation_founding",
-        "source_service_binding": {
-            "principal_id": "ak:did_core:webvh:z6mkfixturefounderexample",
-            "service_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
-            "trust_domain": "ak:trust_domain:fixture",
-            "service_kind": "principal_server",
-            "service_verification_method": {
-              "id": "did:webvh:z6mkfixtureprincipalexample:principal.example#key-1",
-              "controller": "did:webvh:z6mkfixtureprincipalexample:principal.example",
-              "type": "Multikey",
-              "public_key_multibase": "z6MkhFixtureKey"
-            },
-            "endpoint_origins": [
-              "https://principal.example"
-            ],
-            "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "authority_evidence": {
-              "kind": "ak.did.binding_evidence.v1",
-              "method": "webvh",
-              "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-              "method_proofs": []
-            },
-            "not_before": "2026-08-01T00:00:00.000Z",
-            "accepted_at": "2026-08-01T00:00:00.000Z",
-            "binding_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            "service_acceptance_proof": {
-              "verification_method": "did:webvh:z6mkfixtureprincipalexample:principal.example#key-1",
-              "created_at": "2026-08-01T00:00:00.000Z",
-              "jws": "a"
-            },
-            "principal_authorization_proof": {
-              "verification_method": "did:webvh:z6mkfixturefounderexample:founder.example#key-1",
-              "created_at": "2026-08-01T00:00:00.000Z",
-              "jws": "a"
-            }
-        },
         "service_binding_ref": {
           "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "realm_policy_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
@@ -966,7 +859,7 @@
       "semantic_outcome": "accept",
       "assertions": [
         "state is creation_required and next_founding_input is present",
-        "next_founding_input member names equal the DirectConversationFoundingUnitSubmission members byte for byte, so the caller copies founding_authority_evidence and source_service_binding across with no renaming map",
+        "next_founding_input member names equal the DirectConversationFoundingUnitSubmission members byte for byte, so the caller copies founding_authority_evidence and origin Principal Server identity from the signed Events across with no renaming map",
         "exactly one founding_authority_evidence branch is returned for this pair, human for a peer Contact founding and controller_agent for an own-Agent founding",
         "the container carries no Event bytes, no coordinates, no idempotency_key and no receipt: the founder still authors and signs all three Events",
         "a service that cannot assemble or verify the material returns temporarily_unavailable instead of a creation_required outcome without the container",

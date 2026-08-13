@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 212,
+  "audited_occurrence_count": 195,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -71,7 +71,11 @@
       "key": "registration_did_evidence_draft",
       "occurrences": 1,
       "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
       "reason": "Carries the spec-defined client-authored registration evidence draft before Account Authority acceptance."
     },
     {
@@ -104,6 +108,18 @@
         "commitment"
       ],
       "reason": "Returns the registered composite Agent signer evidence object."
+    },
+    {
+      "file": "agent-signer-evidence-operations.schema.json",
+      "key": "method_history_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Carries adapter-routed method-history proofs, witness attestations and history commitments for authenticated service resolution."
     },
     {
       "file": "agent-signer-evidence.schema.json",
@@ -183,6 +199,41 @@
       "reason": "Carries the exact private first-contact evidence whose digest is committed by the signed request Event."
     },
     {
+      "file": "contract-registry.json",
+      "key": "evidence_class",
+      "occurrences": 13,
+      "disposition": "registry_contract",
+      "reason": "Closed DID-authority evidence classification on exact operation and Event call sites; it carries no evidence instance."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "history_evidence_kind",
+      "occurrences": 4,
+      "disposition": "registry_contract",
+      "reason": "Objective adapter property distinguishing native method history from an explicit no-history role declaration; it is registry metadata, not wire evidence."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "method_evidence_kind",
+      "occurrences": 3,
+      "disposition": "registry_contract",
+      "reason": "Closed adapter discriminator naming the method-native evidence carrier; it is registry metadata, not wire evidence."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "public_evidence_evaluator",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Names the public evaluator contract for adapter evidence; it does not carry an evidence instance."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "required_evidence",
+      "occurrences": 3,
+      "disposition": "registry_contract",
+      "reason": "Declares the required adapter evidence categories rather than carrying wire material."
+    },
+    {
       "file": "did-binding-contracts.schema.json",
       "key": "evidence_dependencies",
       "occurrences": 1,
@@ -212,6 +263,55 @@
       "reason": "did:webvh method proof row inside the evidence receipt: witness attestations (witness set sorted by witness_did plus the canonical witness proof set digest) and the verified log head commitment."
     },
     {
+      "file": "did-freshness-profile-registry.json",
+      "key": "evidence_class",
+      "occurrences": 19,
+      "disposition": "registry_contract",
+      "reason": "Bidirectional call-site metadata distinguishing registration, historical, current, successor, recovery and governance checks."
+    },
+    {
+      "file": "did-freshness-profile-registry.json",
+      "key": "evidence_classes",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Closed registry metadata separating current DID, accepted-at history, PCR freshness and method-successor validation classes."
+    },
+    {
+      "file": "did-method-adapter-registry.json",
+      "key": "evidence_class",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Generated adapter metadata naming its method-evidence classification."
+    },
+    {
+      "file": "did-method-adapter-registry.json",
+      "key": "history_evidence_kind",
+      "occurrences": 4,
+      "disposition": "registry_contract",
+      "reason": "Generated objective adapter history-property metadata mirrored from the contract registry."
+    },
+    {
+      "file": "did-method-adapter-registry.json",
+      "key": "method_evidence_kind",
+      "occurrences": 3,
+      "disposition": "registry_contract",
+      "reason": "Generated adapter discriminator metadata mirrored from the contract registry."
+    },
+    {
+      "file": "did-method-adapter-registry.json",
+      "key": "public_evidence_evaluator",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Generated evaluator-contract metadata mirrored from the contract registry."
+    },
+    {
+      "file": "did-method-adapter-registry.json",
+      "key": "required_evidence",
+      "occurrences": 3,
+      "disposition": "registry_contract",
+      "reason": "Generated required-evidence category metadata mirrored from the contract registry."
+    },
+    {
       "file": "direct-conversation-operations.schema.json",
       "key": "accepted_contact_evidence_digest",
       "occurrences": 1,
@@ -220,11 +320,46 @@
     },
     {
       "file": "direct-conversation-operations.schema.json",
+      "key": "direct_conversation_repair_requester_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Closed device-or-Agent authority evidence union for a repair requester."
+    },
+    {
+      "file": "direct-conversation-operations.schema.json",
       "key": "founding_authority_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
       "reason": "Verbatim echo of the DirectConversationFoundingUnitSubmission member, returned by the creation_required resolver outcome so the founder can construct the unit at all; same closed XOR branches and same material families as the service-operation-dtos.schema.json registration."
+    },
+    {
+      "file": "direct-conversation-operations.schema.json",
+      "key": "requester_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Operation field carrying the registered closed repair requester evidence union."
+    },
+    {
+      "file": "event-batch-receipt.schema.json",
+      "key": "registration_evidence_digest",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Reverse-binding commitment to the complete frozen registration DID evidence accepted for PCR genesis."
     },
     {
       "file": "event-envelope.schema.json",
@@ -239,11 +374,11 @@
       "reason": "A critical extension may bind extension-specific proof, attestation, or receipt Events."
     },
     {
-      "file": "event-batch-receipt.schema.json",
-      "key": "registration_evidence_digest",
+      "file": "event-kind-registry.json",
+      "key": "evidence_class",
       "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Reverse-binding commitment to the complete frozen registration DID evidence accepted for PCR genesis."
+      "disposition": "registry_contract",
+      "reason": "Generated exact DID-authority call-site classification for the resolution successor Event."
     },
     {
       "file": "event-payload.schema.json",
@@ -266,6 +401,13 @@
         "receipt"
       ],
       "reason": "Carries the registered heterogeneous Agent-key approval material."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "key": "did_root_evidence_digest",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Digest commitment to optional DID-root proof material; the proof remains a separately verified policy-enabled factor."
     },
     {
       "file": "event-payload.schema.json",
@@ -322,39 +464,88 @@
       "reason": "May carry governance proposal proofs or seal and witness attestations."
     },
     {
-      "file": "federated-device-signing-key-evidence.schema.json",
-      "key": "method_evidence",
-      "occurrences": 2,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Registration-time adapter-native material may combine method proofs, witness attestations and immutable history commitments."
-    },
-    {
-      "file": "federated-device-signing-key-evidence.schema.json",
-      "key": "registration_did_evidence_draft",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Closed pre-acceptance evidence shape with a dedicated control proof and method-history commitments."
-    },
-    {
-      "file": "federated-device-signing-key-evidence.schema.json",
-      "key": "registration_did_evidence",
-      "occurrences": 2,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Closed accepted-at registration evidence that preserves DID control, adapter and method-history material without requiring current resolution."
-    },
-    {
-      "file": "federated-device-signing-key-evidence.schema.json",
-      "key": "range_completeness_evidence",
+      "file": "identity-resolution.schema.json",
+      "key": "did_key_method_history_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
       "material_families": [
-        "attestation",
-        "proof"
+        "proof",
+        "commitment"
       ],
-      "reason": "Carries signed range-completeness attestations needed to prove that revoke/re-anchor/device-list reducer inputs were not withheld from the portable current-device projection."
+      "reason": "Carries deterministic did:key expansion proof and canonical-state commitments."
+    },
+    {
+      "file": "identity-resolution.schema.json",
+      "key": "did_web_method_history_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "commitment"
+      ],
+      "reason": "Carries verified did:web document retrieval proof and canonical-state commitments."
+    },
+    {
+      "file": "identity-resolution.schema.json",
+      "key": "evidence",
+      "occurrences": 3,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Adapter-native bounded material may combine proofs, witness attestations and history commitments."
+    },
+    {
+      "file": "identity-resolution.schema.json",
+      "key": "evidence_kind",
+      "occurrences": 3,
+      "disposition": "qualifier",
+      "reason": "Closed discriminator routing evidence to the registered DID method adapter."
+    },
+    {
+      "file": "identity-resolution.schema.json",
+      "key": "method_evidence_boundary",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Declares the inclusive method-history interval covered by evidence; it is boundary metadata."
+    },
+    {
+      "file": "identity-resolution.schema.json",
+      "key": "method_history_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Closed adapter-routed union of method history proofs, witnesses and commitments."
+    },
+    {
+      "file": "identity-resolution.schema.json",
+      "key": "principal_resolution_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Portable principal resolution bundle combining Event proofs, Seal/cell commitments and method evidence."
+    },
+    {
+      "file": "identity-resolution.schema.json",
+      "key": "webvh_method_history_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Carries did:webvh log proofs, witness attestations and history commitments."
     },
     {
       "file": "invite-delivery-request.schema.json",
@@ -429,42 +620,6 @@
       "reason": "A review receipt may cite proofs, third-party attestations, and prior receipts."
     },
     {
-      "file": "keypackage-operations.schema.json",
-      "key": "requester_signing_key_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Combines the original device authorization Event proof with the source Principal Server's active-key attestation."
-    },
-    {
-      "file": "keypackage-operations.schema.json",
-      "key": "target_agent_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Carries the closed current-admission Native Agent signer evidence returned with one peer KeyPackage claim for independent requester verification."
-    },
-    {
-      "file": "keypackage-operations.schema.json",
-      "key": "target_device_signing_key_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "receipt",
-        "commitment"
-      ],
-      "reason": "Carries the identity-root PCR receipt, complete control history, accepted Seal and current device projection returned with one peer KeyPackage claim for independent requester replay."
-    },
-    {
       "file": "mimi-operations.schema.json",
       "key": "evidence_package",
       "occurrences": 1,
@@ -496,13 +651,6 @@
       "reason": "Classifies the audience of a heterogeneous evidence container."
     },
     {
-      "file": "moderation-queue-item.schema.json",
-      "key": "evidence_policy",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Selects handling policy for heterogeneous moderation evidence."
-    },
-    {
       "file": "moderation-evidence.schema.json",
       "key": "evidence_package",
       "occurrences": 1,
@@ -515,9 +663,16 @@
       "reason": "The closed encrypted package may contain content proofs, witness attestations, and handling receipts while binding the exact target, moderator key, ciphertext digest and reporter signature."
     },
     {
+      "file": "moderation-queue-item.schema.json",
+      "key": "evidence_policy",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Selects handling policy for heterogeneous moderation evidence."
+    },
+    {
       "file": "normative-clause-registry.json",
       "key": "evidence_refs",
-      "occurrences": 31,
+      "occurrences": 30,
       "disposition": "registry_contract",
       "reason": "Names the conformance vectors that prove a normative clause; it is a coverage pointer, not a wire material instance."
     },
@@ -536,24 +691,15 @@
       "reason": "Declares conformance evidence kinds rather than a wire material instance."
     },
     {
-      "file": "principal-service-binding.schema.json",
-      "key": "principal_authorization_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "receipt", "commitment"],
-      "reason": "Portable PCR-lineage device evidence that authorizes an accepted-at Principal Server binding without current human DID control."
+      "file": "operation-registry.json",
+      "key": "evidence_class",
+      "occurrences": 11,
+      "disposition": "registry_contract",
+      "reason": "Generated exact DID-authority call-site classification for registered operations."
     },
     {
-      "file": "principal-service-binding-operations.schema.json",
-      "key": "principal_authorization_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "receipt", "commitment"],
-      "reason": "Operation input carrying the registered PCR-lineage evidence for the principal authorization proof."
-    },
-    {
-      "file": "principal-service-binding.schema.json",
-      "key": "authority_evidence",
+      "file": "principal-operations.schema.json",
+      "key": "registration_did_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
       "material_families": [
@@ -561,7 +707,43 @@
         "attestation",
         "commitment"
       ],
-      "reason": "Carries the method-specific DID resolution evidence receipt that binds the accepted service verification method to the recorded document digest."
+      "reason": "Relays the complete frozen registration evidence to the Principal Server for independent historical verification."
+    },
+    {
+      "file": "registration-did-evidence.schema.json",
+      "key": "method_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Registration-time adapter-native material may combine method proofs, witness attestations and immutable history commitments."
+    },
+    {
+      "file": "registration-did-evidence.schema.json",
+      "key": "registration_did_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Closed accepted-at account-local registration evidence retained for onboarding and recovery."
+    },
+    {
+      "file": "registration-did-evidence.schema.json",
+      "key": "registration_did_evidence_draft",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Closed pre-acceptance account-local registration evidence with a dedicated control proof."
     },
     {
       "file": "sdk-conformance-claim.schema.json",
@@ -584,26 +766,6 @@
         "attestation"
       ],
       "reason": "References either an executable proof artifact or an externally issued test attestation."
-    },
-    {
-      "file": "principal-operations.schema.json",
-      "key": "registration_did_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Relays the complete frozen registration evidence to the Principal Server for independent historical verification."
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
-      "key": "agent_signer_evidence_bundle",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Bundles signer proofs, authorization attestations, and seal-lineage commitments."
     },
     {
       "file": "service-operation-dtos.schema.json",
@@ -647,248 +809,6 @@
       "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Selects material families from a heterogeneous evidence response."
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
-      "key": "signer_key_evidence",
-      "occurrences": 2,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Combines original device authorization Event proofs with source-service active-key attestations. Registered on both the ordinary federation batch body and the Direct Conversation founding federation branch."
-    },
-    {
-      "file": "contract-registry.json",
-      "key": "history_evidence_kind",
-      "occurrences": 4,
-      "disposition": "registry_contract",
-      "reason": "Objective adapter property distinguishing native method history from an explicit no-history role declaration; it is registry metadata, not wire evidence."
-    },
-    {
-      "file": "contract-registry.json",
-      "key": "method_evidence_kind",
-      "occurrences": 3,
-      "disposition": "registry_contract",
-      "reason": "Closed adapter discriminator naming the method-native evidence carrier; it is registry metadata, not wire evidence."
-    },
-    {
-      "file": "contract-registry.json",
-      "key": "public_evidence_evaluator",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Names the public evaluator contract for adapter evidence; it does not carry an evidence instance."
-    },
-    {
-      "file": "contract-registry.json",
-      "key": "required_evidence",
-      "occurrences": 3,
-      "disposition": "registry_contract",
-      "reason": "Declares the required adapter evidence categories rather than carrying wire material."
-    },
-    {
-      "file": "did-method-adapter-registry.json",
-      "key": "history_evidence_kind",
-      "occurrences": 4,
-      "disposition": "registry_contract",
-      "reason": "Generated objective adapter history-property metadata mirrored from the contract registry."
-    },
-    {
-      "file": "did-method-adapter-registry.json",
-      "key": "method_evidence_kind",
-      "occurrences": 3,
-      "disposition": "registry_contract",
-      "reason": "Generated adapter discriminator metadata mirrored from the contract registry."
-    },
-    {
-      "file": "did-method-adapter-registry.json",
-      "key": "public_evidence_evaluator",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Generated evaluator-contract metadata mirrored from the contract registry."
-    },
-    {
-      "file": "did-method-adapter-registry.json",
-      "key": "required_evidence",
-      "occurrences": 3,
-      "disposition": "registry_contract",
-      "reason": "Generated required-evidence category metadata mirrored from the contract registry."
-    },
-    {
-      "file": "direct-conversation-operations.schema.json",
-      "key": "agent_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Carries the Native Agent signer proof, authority attestations and accepted-state commitments for repair."
-    },
-    {
-      "file": "direct-conversation-operations.schema.json",
-      "key": "device_authorization_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Carries current device authorization proof plus accepted Event and Seal commitments."
-    },
-    {
-      "file": "direct-conversation-operations.schema.json",
-      "key": "direct_conversation_repair_requester_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Closed device-or-Agent authority evidence union for a repair requester."
-    },
-    {
-      "file": "direct-conversation-operations.schema.json",
-      "key": "requester_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Operation field carrying the registered closed repair requester evidence union."
-    },
-    {
-      "file": "identity-resolution.schema.json",
-      "key": "did_key_method_history_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "commitment"],
-      "reason": "Carries deterministic did:key expansion proof and canonical-state commitments."
-    },
-    {
-      "file": "identity-resolution.schema.json",
-      "key": "did_web_method_history_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "commitment"],
-      "reason": "Carries verified did:web document retrieval proof and canonical-state commitments."
-    },
-    {
-      "file": "identity-resolution.schema.json",
-      "key": "evidence",
-      "occurrences": 3,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Adapter-native bounded material may combine proofs, witness attestations and history commitments."
-    },
-    {
-      "file": "identity-resolution.schema.json",
-      "key": "evidence_kind",
-      "occurrences": 3,
-      "disposition": "qualifier",
-      "reason": "Closed discriminator routing evidence to the registered DID method adapter."
-    },
-    {
-      "file": "identity-resolution.schema.json",
-      "key": "method_evidence_boundary",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Declares the inclusive method-history interval covered by evidence; it is boundary metadata."
-    },
-    {
-      "file": "identity-resolution.schema.json",
-      "key": "method_history_evidence",
-      "occurrences": 2,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Closed adapter-routed union of method history proofs, witnesses and commitments."
-    },
-    {
-      "file": "identity-resolution.schema.json",
-      "key": "principal_resolution_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Portable principal resolution bundle combining Event proofs, Seal/cell commitments and method evidence."
-    },
-    {
-      "file": "identity-resolution.schema.json",
-      "key": "webvh_method_history_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Carries did:webvh log proofs, witness attestations and history commitments."
-    },
-    {
-      "file": "keypackage-operations.schema.json",
-      "key": "requester_agent_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Carries the requesting Native Agent signer proof, authority attestations and accepted-state commitments."
-    },
-    {
-      "file": "agent-signer-evidence-operations.schema.json",
-      "key": "method_history_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Carries adapter-routed method-history proofs, witness attestations and history commitments for authenticated service resolution."
-    },
-    {
-      "file": "event-payload.schema.json",
-      "key": "requester_agent_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Carries the requesting Native Agent signer proof, authority attestations and accepted-state commitments in the durable Event payload."
-    },
-    {
-      "file": "keypackage-operations.schema.json",
-      "key": "recipient_agent_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": ["proof", "attestation", "commitment"],
-      "reason": "Carries the recipient Native Agent signer proof, authority attestations and accepted-state commitments for KeyPackage delivery."
-    },
-    {
-      "file": "contract-registry.json",
-      "key": "evidence_class",
-      "occurrences": 13,
-      "disposition": "registry_contract",
-      "reason": "Closed DID-authority evidence classification on exact operation and Event call sites; it carries no evidence instance."
-    },
-    {
-      "file": "did-freshness-profile-registry.json",
-      "key": "evidence_classes",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Closed registry metadata separating current DID, accepted-at history, PCR freshness and method-successor validation classes."
-    },
-    {
-      "file": "did-freshness-profile-registry.json",
-      "key": "evidence_class",
-      "occurrences": 19,
-      "disposition": "registry_contract",
-      "reason": "Bidirectional call-site metadata distinguishing registration, historical, current, successor, recovery and governance checks."
-    },
-    {
-      "file": "did-method-adapter-registry.json",
-      "key": "evidence_class",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Generated adapter metadata naming its method-evidence classification."
-    },
-    {
-      "file": "event-kind-registry.json",
-      "key": "evidence_class",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Generated exact DID-authority call-site classification for the resolution successor Event."
-    },
-    {
-      "file": "operation-registry.json",
-      "key": "evidence_class",
-      "occurrences": 11,
-      "disposition": "registry_contract",
-      "reason": "Generated exact DID-authority call-site classification for registered operations."
-    },
-    {
-      "file": "event-payload.schema.json",
-      "key": "did_root_evidence_digest",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Digest commitment to optional DID-root proof material; the proof remains a separately verified policy-enabled factor."
     }
   ]
 }

@@ -42,7 +42,7 @@ MUST 同时携带 `delivery_binding`；reducer 在同一 Control Move 内验证�
 
 声明可加入 unroutable member Realm 的客户端 profile SHOULD 在 join / accept UI 中披露："该 Realm 仅向本地可见，不接收服务端推送、同步、to-device、push 或 KeyPackage 投递"。该披露是客户端 profile 义务，不参与 reducer 接受条件；reducer 的可验证判据仅为上述 policy 和 payload 条件。
 
-注意：`payload.delivery_binding` / `member_delivery_binding.recipient_service_id` 描述的是成员加入后接收 events、sync、to-device、push、KeyPackage 的目标 Principal Server；`join_candidates[]` 描述的是本次 join / invite-accept / knock material 可提交到哪些 Realm ingress service。两者方向不同、生命周期不同、授权来源不同。Join builder 和 reducer MUST NOT 从 `join_candidates[].service_id` 推导成员 `delivery_binding`，也 MUST NOT 从成员 `delivery_binding.recipient_service_id` 推导 Realm ingress candidate。`service_resolution` 只解决该 `did_core_id` 如何到达当前 URL，它不替代 `binding_source`、service acceptance 或 Realm policy 的授权判断。
+注意：`payload.delivery_binding` / `member_delivery_binding.recipient_service_id` 描述成员加入后接收 events、sync、to-device、push、KeyPackage 的目标 Principal Server。`join_candidates[]` 则是 invitee Principal Server 从 signed invite / 当前 joined-member delivery binding 裁剪出的 federation forwarding 提示；客户端不得直投 candidate。Join builder 和 reducer MUST NOT 把 candidate 复制为 invitee 加入后的 `delivery_binding`，该 binding 必须由 invitee 自签。`service_resolution` 只解决该 service DID 如何到达当前 URL，不产生 admission authority。
 
 ## 3. `binding_source` 与责任方
 
@@ -200,7 +200,7 @@ TTL route cache 与 durable anti-rollback floor 必须分离。sender MUST 为�
 同一 `(realm_id, actor_id)` 在任一时刻**有且仅有**一个 active `membership="join"` cell；该 cell 持有唯一 effective `delivery_binding`。**不允许**同一 DID 通过两个不同 `recipient_service_id` 同时持有两条 join membership——这种诉求应通过下列正确机制表达：
 
 - **同一 binding 下多设备**：member 的多台设备各自向 `recipient_service_id` 上传 KeyPackage、注册 push、维护 to-device 队列。同一 binding 下的设备共享 sync state。
-- **Realm-level mirror / shared sync**：Realm 自身需要多服务承载（HA / 灾备 / 跨区域）时，使用 Realm metadata 的 [`sync_endpoints`](../sync/federation.md) 表达 Realm-level service binding，与 member-level `delivery_binding` 正交。
+- **需要持有 Realm Event 的 bot/service/notary**：必须成为显式 joined Realm member/service actor，并使用该成员的 `delivery_binding.recipient_service_id`；部署级 HA、镜像或“已知 peer”本身不取得 Realm 内容。
 - **同一物理用户的多个上下文** (e.g. Alice 既参与 personal Realm P 也参与 work Realm S)：每个 Realm 各自有独立 membership 与独立 binding；同一 DID 在 P 中 `recipient_service_id = personal PS`，在 S 中 `recipient_service_id = org PS`。这就是本文整套机制要解决的核心场景。
 
 ## 8. 关联性与隐私边界

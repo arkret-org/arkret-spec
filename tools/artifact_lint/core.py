@@ -399,6 +399,7 @@ VALUE_PROJECTION_DIGEST_INPUTS = {
 # The set is closed: a derivation is a normative reducer rule, not an
 # implementation's private cache. See zh/authz/capabilities.md section 10.
 CELL_WRITE_DERIVATIONS = {
+    "capability_issuer_principal_server_id",
     "capability_authority_depth",
     "capability_authority_root_refs",
 }

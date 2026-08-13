@@ -322,4 +322,4 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 }
 ```
 
-Sync Service MAY 依据 `aad` 路由元数据投递，但 MUST NOT 要求 plaintext content。
+Principal Server sync surface MAY 依据 `aad` 路由元数据投递，但 MUST NOT 要求 plaintext content。

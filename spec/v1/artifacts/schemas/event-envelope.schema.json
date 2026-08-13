@@ -2,13 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/event-envelope.schema.json",
   "title": "Arkret Event Envelope",
-  "description": "Single canonical wire object for durable and actor-private Events. kind + schema-validated payload is the only producer-authored business fact; reducer cell targets and lattice operations are derived from the registered reducer contract and never supplied on wire. DataEvents carry seal_ref/auth_context; Control Moves carry seal_basis and optional preconditions. proof.event_digest hashes canonical producer bytes after removing proofs, unsigned, and the sole reducer-stamped top-level field actor_kind. Signed scope_ref is included in the digest and is independently checked against payload-derived security scope. Signal uses signal-envelope.schema.json; point-to-point device verification and secret distribution use device-message.schema.json.",
+  "description": "Single canonical wire object for durable and actor-private Events. kind + schema-validated payload is the only producer-authored business fact; reducer cell targets and lattice operations are derived from the registered reducer contract and never supplied on wire. DataEvents carry seal_ref/auth_context; Control Moves carry seal_basis and optional preconditions. proof.event_digest hashes canonical producer bytes, including principal_server_id, after removing proofs, unsigned, and the sole reducer-stamped top-level field actor_kind. Signed scope_ref is included in the digest and is independently checked against payload-derived security scope. Signal uses signal-envelope.schema.json; point-to-point device verification and secret distribution use device-message.schema.json.",
   "type": "object",
   "required": [
     "event_id",
     "kind",
     "scope_ref",
     "actor_id",
+    "principal_server_id",
     "actor_seq",
     "created_at",
     "prev_refs",
@@ -35,6 +36,10 @@
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
       "description": "Principal whose Realm/cell state the Event mutates and to whom the durable fact is attributed. When executed_by is absent, the proof signer maps to actor_id. When executed_by is present, actor_id remains the principal of record while the actual executor and proof signer map to executed_by."
+    },
+    "principal_server_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Principal Server responsible for the actual author (executed_by when present, otherwise actor_id). This producer-authored field is part of canonical Event bytes and proof.event_digest. For a directly authoring service principal it equals that service principal's own DID. Relays, replicas, notaries and receiving services MUST NOT add, remove or rewrite it."
     },
     "executed_by": {
       "$ref": "#/$defs/did_core_id",
@@ -198,11 +203,26 @@
     },
     "proofs": {
       "type": "array",
-      "description": "Detached signatures over the canonical proof binding object. proof.event_digest is computed from canonical producer event bytes excluding proofs, unsigned, and reducer-stamped actor_kind; signed scope_ref and advisory hlc are included. Seal signatures live on the Seal object.",
+      "description": "Producer proofs sign canonical Event bytes, including principal_server_id. After local admission, the named origin Principal Server appends at most one principal_server_admission proof that binds the exact producer proof it verified. proofs and unsigned remain excluded from event_digest; federation and backfill preserve the accepted Event byte-for-byte.",
       "items": {
         "$ref": "#/$defs/event_proof"
       },
-      "minItems": 1
+      "minItems": 1,
+      "allOf": [
+        {
+          "contains": {
+            "$ref": "#/$defs/producer_event_proof"
+          },
+          "minContains": 1
+        },
+        {
+          "contains": {
+            "$ref": "#/$defs/principal_server_admission_proof"
+          },
+          "minContains": 0,
+          "maxContains": 1
+        }
+      ]
     },
     "requirements": {
       "type": "object",
@@ -701,7 +721,6 @@
               "ak.realm.delivery_binding_policy",
               "ak.realm.destroy",
               "ak.realm.digest_suite_transition",
-              "ak.realm.disappearing_policy",
               "ak.realm.discovery",
               "ak.realm.freeze",
               "ak.realm.history_sharing_policy",
@@ -1305,25 +1324,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/preview_policy_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.realm.disappearing_policy"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/realm_disappearing_policy_payload"
           }
         }
       }
@@ -4880,65 +4880,6 @@
       },
       "additionalProperties": false
     },
-    "event_proof": {
-      "type": "object",
-      "required": [
-        "kind",
-        "verification_method",
-        "event_digest",
-        "created_at",
-        "jws"
-      ],
-      "properties": {
-        "kind": {
-          "type": "string",
-          "enum": [
-            "detached_jws"
-          ],
-          "description": "detached_jws = actor / device / service signature over canonical proof binding object: canonical_json({context:'ak.event-proof-v1', event_digest, actor_id, verification_method, created_at, domain?, audience?}). event_digest excludes proofs, unsigned, and reducer-stamped actor_kind; signed scope_ref and advisory hlc are covered. Ordering authority signatures are carried by Seal."
-        },
-        "verification_method": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "DID URL of the Event-signing key. Generic verification extracts the canonical bare full_id base under the active method adapter, validates that method history/key, projects the base full_id to did_core_id, and compares the result byte-for-byte with executed_by when present or actor_id otherwise; a did_core_id is never concatenated into a DID URL. For principal device proofs the fragment MUST be the full device_id (`ak:device:<uuidv7>`), so receivers can resolve `(actor_id, device_id)` through the device directory. The sole exception is an Event whose selected admission variant is did_root_anchor: its closed verifier MUST instead require verification_method to equal an active controller-proof verification method from the one critical did_inception/did_recovery_anchor entry and verify the controller proof/update authority against that referenced did:webvh history; a root did:key controller is not rewritten to the principal actor_id. This exception cannot apply to any other Event."
-        },
-        "event_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "created_at": {
-          "$ref": "#/$defs/canonical_event_timestamp"
-        },
-        "domain": {
-          "type": "string"
-        },
-        "audience": {
-          "oneOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          ]
-        },
-        "proof_purpose": {
-          "type": "string",
-          "enum": [
-            "issuer_attestation",
-            "holder_acceptance"
-          ],
-          "description": "Optional role discriminator for handle-claim proofs. Generic proof consumers ignore it unless their object-family contract makes it required."
-        },
-        "jws": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
-        }
-      },
-      "additionalProperties": false
-    },
     "proof": {
       "type": "object",
       "description": "Generic detached-JWS proof shape reused by non-Event schemas (snapshot signature, snapshot witness attestations, identity receipts, handle claims, etc.). MUST NOT be used as the shape of Event Envelope `proofs[]` — Event proofs reference $defs/event_proof and bind canonical Event bytes via `event_digest`. Non-Event signed objects MUST define an object-family signing-context constant and include it in the canonical proof binding object with payload_digest; the context constant is not a wire field in this generic shape. drift detection: `payload_digest#event_proof` in forbidden-wire-fields.json is the hard-reject mirror of this rule. New non-Event signed objects MAY $ref this shape; new signed Event-shaped objects MUST instead $ref event_proof.",
@@ -5000,6 +4941,132 @@
         }
       },
       "additionalProperties": false
+    },
+    "principal_server_admission_proof": {
+      "type": "object",
+      "description": "Origin Principal Server admission proof over canonical_json({context:'ak.principal-server-admission-proof-v1',event_digest,producer_proof_digest,producer_verification_method,producer_signing_key,accepted_at,verification_method}). It attests that the service completed local author/session/device-generation admission at accepted_at; it is not a content signature and later device revocation does not invalidate a proof lawfully created before revocation_pending.",
+      "required": [
+        "kind",
+        "verification_method",
+        "event_digest",
+        "producer_proof_digest",
+        "producer_verification_method",
+        "producer_signing_key",
+        "accepted_at",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "const": "principal_server_admission"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url",
+          "description": "Principal Server verification method whose controller projects to Event.principal_server_id."
+        },
+        "event_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "producer_proof_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "SHA-256 digest of the complete producer_event_proof object actually verified by the origin service."
+        },
+        "producer_verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url",
+          "description": "Must equal the bound producer proof verification_method byte-for-byte."
+        },
+        "producer_signing_key": {
+          "type": "string",
+          "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
+          "description": "Public signing key that verifies the exact producer proof at admission time."
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/canonical_event_timestamp"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "producer_event_proof": {
+      "type": "object",
+      "required": [
+        "kind",
+        "verification_method",
+        "event_digest",
+        "created_at",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "detached_jws"
+          ],
+          "description": "Actor, device or service signature over canonical_json({context:'ak.event-proof-v1', event_digest, actor_id, verification_method, created_at, domain?, audience?})."
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+          "description": "DID URL of the Event-signing key. Generic verification extracts the canonical bare full_id base under the active method adapter, validates that method history/key, projects the base full_id to did_core_id, and compares the result byte-for-byte with executed_by when present or actor_id otherwise; a did_core_id is never concatenated into a DID URL. For principal device proofs the fragment MUST be the full device_id (`ak:device:<uuidv7>`), so receivers can resolve `(actor_id, device_id)` through the device directory. The sole exception is an Event whose selected admission variant is did_root_anchor: its closed verifier MUST instead require verification_method to equal an active controller-proof verification method from the one critical did_inception/did_recovery_anchor entry and verify the controller proof/update authority against that referenced did:webvh history; a root did:key controller is not rewritten to the principal actor_id. This exception cannot apply to any other Event."
+        },
+        "event_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "created_at": {
+          "$ref": "#/$defs/canonical_event_timestamp"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "audience": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "proof_purpose": {
+          "type": "string",
+          "enum": [
+            "issuer_attestation",
+            "holder_acceptance"
+          ],
+          "description": "Optional role discriminator for handle-claim proofs. Generic proof consumers ignore it unless their object-family contract makes it required."
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Producer Event proof. The signer maps to executed_by when present or actor_id otherwise. Its event_digest covers canonical producer Event bytes including principal_server_id and excluding proofs, unsigned and reducer-stamped actor_kind."
+    },
+    "event_proof": {
+      "description": "Closed Event proof union. Callers submit producer_event_proof only; the origin Principal Server may append one principal_server_admission proof after successful local admission.",
+      "properties": {
+        "event_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/producer_event_proof"
+        },
+        {
+          "$ref": "#/$defs/principal_server_admission_proof"
+        }
+      ],
+      "required": [
+        "event_digest"
+      ]
     }
   },
   "additionalProperties": false

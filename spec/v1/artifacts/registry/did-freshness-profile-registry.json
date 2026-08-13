@@ -11,19 +11,51 @@
     "call_sites is the exhaustive bidirectional map. Every row MUST byte-match did_authority on the corresponding operation or event-kind source row; risk_tier never creates an implicit call site"
   ],
   "evidence_classes": [
-    {"evidence_class":"registration_control","requires_current_did":true,"failure_code":"current_did_authority_unavailable"},
-    {"evidence_class":"accepted_at_history","requires_current_did":false,"freshness_profile_id":null,"failure_code":"historical_did_evidence_invalid"},
-    {"evidence_class":"pcr_authority","requires_current_did":false,"freshness_profile_id":null,"failure_code":"pcr_authority_stale"},
-    {"evidence_class":"current_external_claim","requires_current_did":true,"failure_code":"current_did_authority_unavailable"},
-    {"evidence_class":"method_successor","requires_current_did":true,"failure_code":"did_method_successor_invalid"},
-    {"evidence_class":"optional_did_root_recovery","requires_current_did":true,"failure_code":"current_did_authority_unavailable"},
-    {"evidence_class":"ongoing_governance","requires_current_did":true,"failure_code":"current_did_authority_unavailable"}
+    {
+      "evidence_class": "registration_control",
+      "requires_current_did": true,
+      "failure_code": "current_did_authority_unavailable"
+    },
+    {
+      "evidence_class": "accepted_at_history",
+      "requires_current_did": false,
+      "freshness_profile_id": null,
+      "failure_code": "historical_did_evidence_invalid"
+    },
+    {
+      "evidence_class": "pcr_authority",
+      "requires_current_did": false,
+      "freshness_profile_id": null,
+      "failure_code": "pcr_authority_stale"
+    },
+    {
+      "evidence_class": "current_external_claim",
+      "requires_current_did": true,
+      "failure_code": "current_did_authority_unavailable"
+    },
+    {
+      "evidence_class": "method_successor",
+      "requires_current_did": true,
+      "failure_code": "did_method_successor_invalid"
+    },
+    {
+      "evidence_class": "optional_did_root_recovery",
+      "requires_current_did": true,
+      "failure_code": "current_did_authority_unavailable"
+    },
+    {
+      "evidence_class": "ongoing_governance",
+      "requires_current_did": true,
+      "failure_code": "current_did_authority_unavailable"
+    }
   ],
   "profiles": [
     {
       "freshness_profile_id": "ak.did_freshness.unregistered_fail_closed.v1",
       "risk_tier": "high",
-      "did_method_selector": ["*"],
+      "did_method_selector": [
+        "*"
+      ],
       "stale_behavior": "synchronous_refresh_or_fail_closed",
       "description": "The fallback an unknown id, an unregistered action or a non-matching method selector resolves to. Registered so the fail-closed default is itself a declared row rather than an implementation constant.",
       "defined_in": "zh/identity/did-usage-and-verification.md",
@@ -32,7 +64,9 @@
     {
       "freshness_profile_id": "ak.did_freshness.registration_current.v1",
       "risk_tier": "high",
-      "did_method_selector": ["*"],
+      "did_method_selector": [
+        "*"
+      ],
       "stale_behavior": "synchronous_refresh_or_fail_closed",
       "description": "Current DID control used only while establishing the durable human registration anchor and PCR genesis binding.",
       "defined_in": "zh/identity/did-usage-and-verification.md",
@@ -41,7 +75,9 @@
     {
       "freshness_profile_id": "ak.did_freshness.current_external_claim.v1",
       "risk_tier": "high",
-      "did_method_selector": ["*"],
+      "did_method_selector": [
+        "*"
+      ],
       "stale_behavior": "synchronous_refresh_or_fail_closed",
       "description": "Current method state for an explicit external-identity claim or a resolver response that advertises current control.",
       "defined_in": "zh/identity/did-usage-and-verification.md",
@@ -50,7 +86,9 @@
     {
       "freshness_profile_id": "ak.did_freshness.method_successor.v1",
       "risk_tier": "high",
-      "did_method_selector": ["*"],
+      "did_method_selector": [
+        "*"
+      ],
       "stale_behavior": "synchronous_refresh_or_fail_closed",
       "description": "Method-native same-core successor validation. It does not replace the separate PCR author and resolution-cell CAS checks.",
       "defined_in": "zh/identity/did-usage-and-verification.md",
@@ -59,7 +97,9 @@
     {
       "freshness_profile_id": "ak.did_freshness.optional_did_root_recovery.v1",
       "risk_tier": "high",
-      "did_method_selector": ["*"],
+      "did_method_selector": [
+        "*"
+      ],
       "stale_behavior": "synchronous_refresh_or_fail_closed",
       "description": "Current DID-root possession accepted only when the PCR recovery policy explicitly enabled this revocable optional factor.",
       "defined_in": "zh/identity/did-usage-and-verification.md",
@@ -68,7 +108,9 @@
     {
       "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1",
       "risk_tier": "high",
-      "did_method_selector": ["*"],
+      "did_method_selector": [
+        "*"
+      ],
       "stale_behavior": "synchronous_refresh_or_fail_closed",
       "description": "Ongoing DID delegation/controller authority for organization, managed Agent and service roles; never inferred for a human PCR action.",
       "defined_in": "zh/identity/did-usage-and-verification.md",
@@ -76,17 +118,78 @@
     }
   ],
   "call_sites": [
-    {"site_kind":"operation","site_id":"ak.gate.account.command.issue_controller_gate_attestation","evidence_class":"ongoing_governance","freshness_profile_id":"ak.did_freshness.ongoing_governance.v1"},
-    {"site_kind":"operation","site_id":"ak.gate.account.command.issue_identity_binding_challenge","evidence_class":"registration_control","freshness_profile_id":"ak.did_freshness.registration_current.v1"},
-    {"site_kind":"operation","site_id":"ak.gate.account.command.issue_did_binding_challenge","evidence_class":"registration_control","freshness_profile_id":"ak.did_freshness.registration_current.v1"},
-    {"site_kind":"operation","site_id":"ak.root.identity.command.submit_did_operation","evidence_class":"method_successor","freshness_profile_id":"ak.did_freshness.method_successor.v1"},
-    {"site_kind":"operation","site_id":"ak.root.identity.organization_registration.command.ensure","evidence_class":"ongoing_governance","freshness_profile_id":"ak.did_freshness.ongoing_governance.v1"},
-    {"site_kind":"operation","site_id":"ak.root.identity.organization_registration.command.prepare","evidence_class":"ongoing_governance","freshness_profile_id":"ak.did_freshness.ongoing_governance.v1"},
-    {"site_kind":"operation","site_id":"ak.root.identity.organization_registration.command.refresh","evidence_class":"ongoing_governance","freshness_profile_id":"ak.did_freshness.ongoing_governance.v1"},
-    {"site_kind":"operation","site_id":"ak.root.identity.organization_registration.command.revoke","evidence_class":"ongoing_governance","freshness_profile_id":"ak.did_freshness.ongoing_governance.v1"},
-    {"site_kind":"operation","site_id":"ak.root.identity.read.resolve","evidence_class":"current_external_claim","freshness_profile_id":"ak.did_freshness.current_external_claim.v1"},
-    {"site_kind":"operation","site_id":"ak.root.identity.recovery_session.command.submit_proof","evidence_class":"optional_did_root_recovery","freshness_profile_id":"ak.did_freshness.optional_did_root_recovery.v1","when":"proof_kind == did_root and the accepted PCR recovery policy explicitly enables the factor"},
-    {"site_kind":"operation","site_id":"ak.root.identity.service_registration.command.ensure","evidence_class":"ongoing_governance","freshness_profile_id":"ak.did_freshness.ongoing_governance.v1"},
-    {"site_kind":"event_kind","site_id":"ak.identity.resolution.update","evidence_class":"method_successor","freshness_profile_id":"ak.did_freshness.method_successor.v1"}
+    {
+      "site_kind": "operation",
+      "site_id": "ak.gate.account.command.issue_controller_gate_attestation",
+      "evidence_class": "ongoing_governance",
+      "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
+    },
+    {
+      "site_kind": "operation",
+      "site_id": "ak.gate.account.command.issue_identity_binding_challenge",
+      "evidence_class": "registration_control",
+      "freshness_profile_id": "ak.did_freshness.registration_current.v1"
+    },
+    {
+      "site_kind": "operation",
+      "site_id": "ak.gate.account.command.issue_did_binding_challenge",
+      "evidence_class": "registration_control",
+      "freshness_profile_id": "ak.did_freshness.registration_current.v1"
+    },
+    {
+      "site_kind": "operation",
+      "site_id": "ak.root.identity.command.submit_did_operation",
+      "evidence_class": "method_successor",
+      "freshness_profile_id": "ak.did_freshness.method_successor.v1"
+    },
+    {
+      "site_kind": "operation",
+      "site_id": "ak.root.identity.organization_registration.command.ensure",
+      "evidence_class": "ongoing_governance",
+      "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
+    },
+    {
+      "site_kind": "operation",
+      "site_id": "ak.root.identity.organization_registration.command.prepare",
+      "evidence_class": "ongoing_governance",
+      "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
+    },
+    {
+      "site_kind": "operation",
+      "site_id": "ak.root.identity.organization_registration.command.refresh",
+      "evidence_class": "ongoing_governance",
+      "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
+    },
+    {
+      "site_kind": "operation",
+      "site_id": "ak.root.identity.organization_registration.command.revoke",
+      "evidence_class": "ongoing_governance",
+      "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
+    },
+    {
+      "site_kind": "operation",
+      "site_id": "ak.root.identity.read.resolve",
+      "evidence_class": "current_external_claim",
+      "freshness_profile_id": "ak.did_freshness.current_external_claim.v1"
+    },
+    {
+      "site_kind": "operation",
+      "site_id": "ak.root.identity.recovery_session.command.submit_proof",
+      "evidence_class": "optional_did_root_recovery",
+      "freshness_profile_id": "ak.did_freshness.optional_did_root_recovery.v1",
+      "when": "proof_kind == did_root and the accepted PCR recovery policy explicitly enables the factor"
+    },
+    {
+      "site_kind": "operation",
+      "site_id": "ak.root.identity.service_registration.command.ensure",
+      "evidence_class": "ongoing_governance",
+      "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1"
+    },
+    {
+      "site_kind": "event_kind",
+      "site_id": "ak.identity.resolution.update",
+      "evidence_class": "method_successor",
+      "freshness_profile_id": "ak.did_freshness.method_successor.v1"
+    }
   ]
 }

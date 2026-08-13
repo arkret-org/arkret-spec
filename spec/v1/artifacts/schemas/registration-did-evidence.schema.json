@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/registration-did-evidence.schema.json",
+  "title": "Arkret Registration DID Evidence",
+  "description": "Account-onboarding historical DID evidence retained inside the Principal Server account/PCR boundary. It is not federated signer-key evidence and does not identify an external principal account-local lineage.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/registration_did_evidence_draft"
+    },
+    {
+      "$ref": "#/$defs/registration_did_evidence"
+    }
+  ],
+  "$defs": {
+    "registration_did_evidence_draft": {
+      "type": "object",
+      "description": "Client-authored historical DID evidence before Account Authority acceptance. control_proof signs canonical_json({context:'ak.registration-did-evidence-control-proof-v1',principal_id,full_id,adapter_version,method_history_head,version_id,control_key_digest,method_evidence_digest,verification_method,created_at}); method_evidence_digest is sha256 over RFC 8785 JCS of method_evidence. accepted_at is deliberately absent: the Account Authority adds it only after the exact did_operation has been accepted by the registry.",
+      "required": [
+        "principal_id",
+        "full_id",
+        "adapter_version",
+        "method_history_head",
+        "version_id",
+        "control_key_digest",
+        "method_evidence",
+        "control_proof"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+        },
+        "adapter_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "method_history_head": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "control_key_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "method_evidence": {
+          "$ref": "./did-binding-contracts.schema.json#/$defs/evidence_receipt"
+        },
+        "control_proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "registration_did_evidence": {
+      "type": "object",
+      "description": "Account-Authority-accepted form of registration_did_evidence_draft. accepted_at is assigned after the registry accepts the exact did_operation, MUST be no earlier than control_proof.created_at, and is not retroactively inserted into the client signature. The pcr_genesis_unit receipt commits the canonical digest of this complete object.",
+      "required": [
+        "principal_id",
+        "full_id",
+        "adapter_version",
+        "accepted_at",
+        "method_history_head",
+        "version_id",
+        "control_key_digest",
+        "method_evidence",
+        "control_proof"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "full_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_full_id"
+        },
+        "adapter_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "method_history_head": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "control_key_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "method_evidence": {
+          "$ref": "./did-binding-contracts.schema.json#/$defs/evidence_receipt"
+        },
+        "control_proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature",
+          "description": "Registration control signature whose transcript digest is committed by the pcr_genesis_unit receipt."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

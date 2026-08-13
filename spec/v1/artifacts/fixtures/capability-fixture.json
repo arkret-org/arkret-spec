@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.authz.capability.v1"
   },
   "profile": "ak.vector_group.capability.v1",
-  "version": "2026-08-11",
+  "version": "2026-08-13",
   "fixtures": [
     {
       "name": "direct_card_update_grant_allows_update",
@@ -1293,9 +1293,19 @@
     {
       "name": "authority_audit_materialization",
       "vector_id": "ak.vector.capability.authority_audit.v1",
+      "carrier_event": {
+        "actor_id": "ak:did_core:webvh:z6mkfixturedelegator",
+        "principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver"
+      },
+      "producer_grant_body": {
+        "issuer": "ak:did_core:webvh:z6mkfixturedelegator",
+        "derived_members_present": []
+      },
       "parents": [
         {
           "grant_id": "ak:grant:AYEtFD1m0Ap8KjsNdVF9wdwXaMIrNNrCRU0yd0qInS2Y",
+          "subject": "ak:did_core:webvh:z6mkfixturedelegator",
+          "subject_principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver",
           "authority_depth": 1,
           "authority_root_refs": [
             {
@@ -1314,6 +1324,8 @@
         },
         {
           "grant_id": "ak:grant:AS4qbz-uJg1uUEqcOlw2otaXPiG-2l-SwxAh9-fRnzYo",
+          "subject": "ak:did_core:webvh:z6mkfixturedelegator",
+          "subject_principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver",
           "authority_depth": 3,
           "authority_root_refs": [
             {
@@ -1336,6 +1348,7 @@
         }
       ],
       "expected": {
+        "issuer_principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver",
         "authority_depth": 4,
         "authority_root_refs": [
           {
@@ -1351,9 +1364,33 @@
             "authority_generation": 7
           }
         ],
+        "producer_cannot_supply_issuer_principal_server_id": true,
         "independent_state_roots_equal": true,
         "missing_parent_outcome": "dependency_pending"
-      }
+      },
+      "authority_pair_cases": [
+        {
+          "name": "exact_parent_subject_pair_matches_child_issuer_pair",
+          "parent_subject": "ak:did_core:webvh:z6mkfixturedelegator",
+          "parent_subject_principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver",
+          "child_issuer": "ak:did_core:webvh:z6mkfixturedelegator",
+          "child_event_principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver",
+          "expected": {
+            "accepted": true
+          }
+        },
+        {
+          "name": "same_did_different_principal_server_cannot_replay_parent_authority",
+          "parent_subject": "ak:did_core:webvh:z6mkfixturedelegator",
+          "parent_subject_principal_server_id": "ak:did_core:webvh:z6mkfixturedelegatorserver",
+          "child_issuer": "ak:did_core:webvh:z6mkfixturedelegator",
+          "child_event_principal_server_id": "ak:did_core:webvh:z6mkfixtureotherserver",
+          "expected": {
+            "accepted": false,
+            "reason": "grant_exceeds_issuer_authority"
+          }
+        }
+      ]
     },
     {
       "name": "derived_uses_issuer_authority_rules",

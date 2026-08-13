@@ -431,7 +431,7 @@
         ],
         "visibility_sources": [
           "effective_member_delivery_binding",
-          "sync_endpoints",
+          "joined member delivery bindings",
           "explicit_service_delegation"
         ],
         "gate_blinded_states": [

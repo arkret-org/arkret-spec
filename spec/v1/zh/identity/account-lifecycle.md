@@ -19,7 +19,7 @@ Arkret 身份由稳定 principal `did_core_id` 表示，并由当前 `full_id` �
 | 层 | 示例 | 生命周期控制者 |
 | --- | --- | --- |
 | Principal identity anchor | `did_core_id`（稳定）+ registration-time `full_id` evidence | 注册时 DID control proof；注册后不产生业务 authority |
-| Account/PCR authority instance | `(principal_server_id,pcr_realm_id,principal_genesis_receipt_digest)`，反向绑定 `principal_id` | accepted PCR device / recovery policy |
+| Account authority | `(principal_id, principal_server_id)`；同一服务内 create-once | Principal Server + accepted PCR device / recovery policy |
 | Service account | `alice@example.com` 登录入口 | account service |
 | Device session | session grant / grant-binding key | auth service |
 | Event / private state | signed Event history / private account data | Events API + principal policy |
@@ -130,17 +130,7 @@ PCR 的作用域是「某个 principal `did_core_id` 在**当前 Principal Serve
 是完全独立、互不相关、不可迁移的账号与 PCR。全网模型是「特定 Principal Server 上的一个 principal `did_core_id` ↔
 一个 arkret 账号」，各 Principal Server 自行治理其系统下的账号。
 
-每条账号控制实例 MUST 由 `PrincipalAuthorityInstance` 唯一选择：`principal_id`、
-`principal_server_id`、event-derived `pcr_realm_id`、`principal_genesis_receipt_digest` 与由该闭合对象
-派生的 `authority_instance_digest`。同一 `principal_id` 在 A/B 两台服务上的实例可以同时合法存在；
-device、recovery、session、resolution、KeyPackage、secret storage、account status 与 service binding
-全部按实例分区。任何查询或缓存都不得实现 `core_id -> current Principal Server/PCR` 全局单值映射。
-
-membership、grant、Contact、Event ingress 与 federated device evidence 首次接受 human principal 时
-MUST 固定该 tuple；后续 proof 必须从同一 genesis receipt/PCR lineage 导出。同 core 的 PCR-B 即使
-注册和 device chain 自身有效，也不能满足钉住 PCR-A 的关系。v1 不定义 cross-PCR link/merge proof；
-public key 相同或不同都不改变实例 equality，也不能形成“同一/不同自然人”的协议结论。业务关系如需
-切换，必须由该关系自己的显式 rebind Move 同时 fence 旧 lineage；不得覆盖另一服务上的独立 PCR。
+账号的唯一外部 authority key 是 `(principal_id, principal_server_id)`。同一 `principal_id` 可在不同 Principal Server 上形成独立账号；同一 Principal Server 对同一 pair MUST 终身 create-once，并在注销或 hard erasure 后保留 uniqueness tombstone，禁止第二条 PCR lineage。device、recovery、session、resolution、KeyPackage、secret storage 与 account status 可按本地 PCR lineage 分区，但 PCR id、genesis receipt 与 frontier 不得进入 membership、grant、Contact、Event 或 cache/query 的外部 identity。业务换服务形成新 pair，不存在 cross-PCR link/merge。
 
 注册后的 resolution 变更 MUST 由该 PCR 中的 `ak.identity.resolution.update` 提交，不能直接覆写 profile 或账号表。Event 以 previous Event ref / previous history head 做 CAS，reducer 更新 `ak.component.identity.resolution.v1`；Profile 只公开其 current projection。需要审计的调用方 MAY 请求带 Seal/cell proof 的选择性历史 evidence。其他 Principal Server 不要求持久保存该用户的 resolution；敏感操作发生时必须重新取得最新 evidence 并独立验证，短 TTL cache 只能优化读取，不能成为授权依据。
 
@@ -164,10 +154,9 @@ issuer record 的 row 注入 ledger。失效处理只能删除 session credentia
 principal 私钥、Recovery Key、DID/PCR/MLS 与 secret-storage 数据；这是 auth session fence，不是
 principal identity migration。
 
-当 service account 已绑定到某个 `PrincipalAuthorityInstance` 时，账号访问可由 account auth、passkey、
+当 service account 已绑定到某个 `account authority pair` 时，账号访问可由 account auth、passkey、
 已授权 device 或 accepted PCR recovery policy 分别恢复。只有账号 recovery policy 显式登记 DID-root
-factor 时，current DID control proof 才可作为附加分支；该分支必须指向同一 authority instance，不能
-因 `principal_id` 相同选择另一 PCR。
+factor 时，current DID control proof 才可作为附加分支；该分支必须指向同一 account authority pair，不能因 `principal_id` 相同选择另一服务账号。
 
 密码找回或邮箱验证码重置只允许恢复 service account 访问。除非同时满足 DID recovery policy，服务端 MUST NOT 因密码重置而：
 
@@ -328,7 +317,7 @@ Current account status projection 是 ordered_log 上的确定性派生值，而
 服务端返回 `401 soft_logged_out` 时 MUST NOT 要求客户端删除本地 E2EE 密钥。
 
 `soft_logged_out -> active` 的恢复 MUST 绑定所选 authority branch：授权 device、account auth key、
-passkey 或 accepted PCR recovery policy 对一次性 challenge 签名，并覆盖 authority instance、`device_id?`、
+passkey 或 accepted PCR recovery policy 对一次性 challenge 签名，并覆盖 `principal_id`、`principal_server_id`、`device_id?`、
 audience、request digest、challenge 与时窗。device 分支必须使用该 PCR current frontier；account/passkey
 分支只能恢复服务账号/session，不能授权 PCR device 或 E2EE secret。未显式启用 DID-root factor时，
 服务端 MUST NOT 取得 latest resolution 或返回 `did_proof_required`。

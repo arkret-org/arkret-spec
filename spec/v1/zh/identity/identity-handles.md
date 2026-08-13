@@ -1163,7 +1163,7 @@ Wallet SHOULD 根据隐私需求选择 proof profile：
 | disclosure receipt | holder private account data | 向 holder 设备 E2EE |
 | status / 撤销缓存 | wallet 缓存或 holder private account data | 向 holder 设备 E2EE |
 
-Sync Service 与服务运营方 MUST NOT 获得原始 credential 内容、base proof、完整 disclosure policy 或未披露 handle。
+Principal Server sync surface 与服务运营方 MUST NOT 获得原始 credential 内容、base proof、完整 disclosure policy 或未披露 handle。
 
 ### 16.6 传输方式选择
 

@@ -1,6 +1,5 @@
 {
-  "version": "2026-08-13.1",
-  "generated_at": "2026-08-13T06:50:00Z",
+  "version": "2026-08-13.2",
   "codes": [
     {
       "code": "bad_json",
@@ -36,19 +35,13 @@
       "code": "pcr_authority_stale",
       "http_status": 409,
       "scope": "both",
-      "description": "The accepted PCR authority frontier, device generation, recovery-policy version or authority-instance binding is stale. DID freshness cannot repair this failure."
+      "description": "The accepted PCR authority frontier, device generation, recovery-policy version or account-local-lineage binding is stale. DID freshness cannot repair this failure."
     },
     {
       "code": "did_method_successor_invalid",
       "http_status": 409,
       "scope": "both",
       "description": "The proposed current resolution is not a valid method-native same-core successor. A valid PCR author proof alone cannot advance it."
-    },
-    {
-      "code": "principal_authority_instance_mismatch",
-      "http_status": 403,
-      "scope": "both",
-      "description": "Evidence belongs to a different Principal Server, PCR Realm or genesis-receipt lineage, even if principal_id and public keys match."
     },
     {
       "code": "agent_signer_evidence_missing",
@@ -464,7 +457,7 @@
       "code": "device_reanchor_authority_mismatch",
       "http_status": 409,
       "scope": "both",
-      "description": "A device re-anchor receipt scope, recovery session or transaction snapshot selects an authority instance or device generation that does not exactly match the covered ak.device.reanchor payload. Dual-registered as a service code and a reason_code (see reason_codes[])."
+      "description": "A device re-anchor receipt scope, recovery session or transaction snapshot selects an account-local lineage or device generation that does not exactly match the covered ak.device.reanchor payload."
     },
     {
       "code": "device_reanchor_entry_not_head",
@@ -488,7 +481,7 @@
       "code": "device_reanchor_conflict",
       "http_status": 409,
       "scope": "both",
-      "description": "Concurrent device re-anchor completions conflict on the same principal generation state. Dual-registered as a service code and a reason_code (see reason_codes[])."
+      "description": "Concurrent device re-anchor completions conflict on the same principal generation state."
     },
     {
       "code": "epoch_mismatch",
@@ -2721,15 +2714,6 @@
       "description": "A normal Event or Seal was signed by a device whose authorized_generation_ref does not equal the active current_device_generation_ref, or the principal generation state is conflicted. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
-      "code": "device_reanchor_authority_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision",
-        "service_call"
-      ],
-      "description": "A re-anchor receipt scope, recovery session snapshot or recovery transaction binding carries an authority_instance, authority_instance_digest, previous_device_generation or new_device_generation that is not byte-identical to the covered ak.device.reanchor payload, or reconstructs a retired did_version_id/registry_head authority field. Dual-registered as a reason_code and a top-level service code (see codes[])."
-    },
-    {
       "code": "device_reanchor_authorize_mismatch",
       "applies_to": [
         "event_envelope",
@@ -2737,15 +2721,6 @@
         "service_call"
       ],
       "description": "The atomic replacement ak.device.authorize payload digest, prev_refs, principal, device, session, or enrollment-authority proof does not exactly match the binding in ak.device.reanchor. Dual-registered as a reason_code and a top-level service code (see codes[])."
-    },
-    {
-      "code": "device_reanchor_conflict",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision",
-        "service_call"
-      ],
-      "description": "More than one non-identical re-anchor unit occupies the same (authority_instance_digest, new_device_generation) slot. Every candidate and successor generation is quarantined; first-seen selection is forbidden. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "device_reanchor_entry_not_head",
@@ -2763,7 +2738,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "The re-anchor pre_fence_seal_frontier is null despite an accepted Seal, omits or adds frontier leaves, has unreconstructable roots, or lost the admission-time frontier compare-and-swap race. Dual-registered as a reason_code and a top-level service code (see codes[])."
+      "description": "The re-anchor pre_fence_basis is null despite an accepted Seal, omits or adds frontier leaves, has unreconstructable roots, or lost the admission-time frontier compare-and-swap race. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "did_proof_replay_window_exceeded",
@@ -3507,13 +3482,6 @@
         "crypto"
       ],
       "description": "A holder that joined groups via a last-resort KeyPackage came online but has not rotated the package and closed the forward-secrecy weakening window as required. See zh/crypto-media/encryption-and-audit.md §2.6.2."
-    },
-    {
-      "code": "late_recovery_rejected_expired",
-      "applies_to": [
-        "audit_decision"
-      ],
-      "description": "A late-arriving key tried to recover plaintext for an event whose disappearing expiry plus grace has elapsed, or whose retention policy requires content-key destruction. Client MUST keep the expiry stub / metadata-only state. See zh/crypto-media/encryption-and-audit.md §2.3.5 and zh/crypto-media/disappearing-messages.md §4."
     },
     {
       "code": "late_recovery_rejected_membership",

@@ -1,0 +1,86 @@
+{
+  "suite": "principal_server_admission",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.identity.principal_server_admission.v1"
+  },
+  "version": "2026-08-13",
+  "covers_vectors": [
+    "ak.vector.identity.principal_server_admission.v1"
+  ],
+  "spec_anchor": "spec/v1/zh/models/event-and-patch.md#31-principal-server-authority-与准入证明normative",
+  "semantic_cases": [
+    {
+      "name": "authority_pair_is_complete_external_identity",
+      "given": "the same principal_id exists on two Principal Servers",
+      "action": "compare accounts, memberships, Contacts or grants",
+      "expected": "equal_only_when_principal_id_and_principal_server_id_both_match",
+      "invariants": [
+        "PCR ids and receipt digests are not equality inputs",
+        "each Principal Server enforces create-once lineage uniqueness for its pair"
+      ]
+    },
+    {
+      "name": "principal_server_id_is_producer_signed",
+      "given": "a producer proof validates the canonical Event",
+      "action": "rewrite principal_server_id after signing",
+      "expected": "reject",
+      "reason_code": "invalid_signature"
+    },
+    {
+      "name": "delegated_author_uses_executor_account",
+      "given": "executed_by is present",
+      "action": "select the Event principal_server_id",
+      "expected": "match_executed_by_account_authority",
+      "invariants": [
+        "actor_id remains the business principal of record",
+        "authorization_ref proves executor authority"
+      ]
+    },
+    {
+      "name": "wrong_origin_service_cannot_admit",
+      "given": "a valid producer Event names Principal Server A",
+      "action": "Principal Server B appends an admission proof",
+      "expected": "reject",
+      "invariants": [
+        "admission verification_method controller must project to Event principal_server_id"
+      ]
+    },
+    {
+      "name": "admission_binds_exact_producer_proof",
+      "given": "the Event digest is unchanged but the producer proof object is replaced",
+      "action": "verify producer_proof_digest, producer_verification_method and producer_signing_key",
+      "expected": "reject"
+    },
+    {
+      "name": "pending_or_revoked_device_cannot_gain_new_admission",
+      "given": "the local device is revocation_pending, revoked or in the wrong generation",
+      "action": "submit a new Event",
+      "expected": "reject",
+      "invariants": [
+        "no principal_server_admission proof is appended"
+      ]
+    },
+    {
+      "name": "historical_admission_survives_later_revocation",
+      "given": "an admission proof was lawfully created before revocation_pending",
+      "action": "verify the historical accepted Event offline",
+      "expected": "accept",
+      "invariants": [
+        "accepted_at is evaluated at admission time",
+        "no current device-state query is required"
+      ]
+    },
+    {
+      "name": "replica_preserves_origin_proof",
+      "given": "a federation or backfill replica receives an accepted Event",
+      "action": "store and forward the Event",
+      "expected": "byte_identical",
+      "invariants": [
+        "replica does not remove or replace the origin proof",
+        "replica does not append its own admission proof"
+      ]
+    }
+  ]
+}

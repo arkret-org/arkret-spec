@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.encoding.core.v1"
   },
   "profile": "ak.vector_group.encoding.v1",
-  "version": "2026-08-07",
+  "version": "2026-08-13.2",
   "description": "Machine-readable encoding & crypto vectors mirrored from zh/conformance/conformance-vectors.md §1.3-§1.13. Conformance runners MUST execute every vector and compare canonical_bytes / digest / order outputs. The crypto.ed25519_detached_jws vector lives separately in crypto-signature-fixture.json; the rank_order vector covers hex-Base32 rank string ordering (LIST item placement).",
   "generator_semantics": "Vectors of kind *_reject_generated carry a `generator` object instead of literal input bytes: the runner MUST construct the input at execution time from the generator parameters (e.g. nesting_depth, array_item_count) following the generator.rule text, so the fixture never stores megabyte-scale literals. Rejection is asserted exactly as for literal-input vectors.",
   "vectors": [
@@ -254,7 +254,7 @@
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
         "event_id MUST appear inside the digest input but does not replace the digest",
         "transport envelope, HTTP headers, sync metadata, and local receive time MUST NOT be hashed",
-        "the same event MUST yield the same digest on every Events API and Sync Service"
+        "the same event MUST yield the same digest on every Events API and Principal Server sync surface"
       ]
     },
     {
@@ -490,7 +490,7 @@
       "expected_digest": "sha256:7c07ec6e609fe75aa2d74d4bc848195a4e97c1d6c0b50bb44784e3b154e1733a",
       "rules": [
         "implementations MUST NOT hash plaintext payload",
-        "implementations MUST NOT omit payload metadata required for routing/decryption; otherwise sync service cannot safely dedupe or audit envelopes"
+        "implementations MUST NOT omit payload metadata required for routing/decryption; otherwise the Principal Server sync surface cannot safely dedupe or audit envelopes"
       ]
     },
     {

@@ -73,13 +73,19 @@
       "jose_algorithm": null,
       "raw_signature_algorithm": null,
       "http_message_signature_algorithm": null,
-      "components": ["Ed25519", "ML-DSA-65"],
+      "components": [
+        "Ed25519",
+        "ML-DSA-65"
+      ],
       "composition": "two_independent_proof_entries_all_required",
       "status": "reserved",
       "role": "reserved_hybrid_signature_policy",
       "profile_gate": "ak.profile.signature.pqc.v1",
       "kat_absence_reason": "Reserved hybrid policy has no canonical proof-set ordering or anti-stripping KAT until all activation_requirements are complete.",
-      "proof_kinds": ["detached_jws", "raw_detached_signature"],
+      "proof_kinds": [
+        "detached_jws",
+        "raw_detached_signature"
+      ],
       "activation_requirements": [
         "Publish canonical proof-set ordering and duplicate-component rejection rules",
         "Publish anti-stripping vectors proving that both components bind identical canonical payload bytes and proof purpose and that either missing/invalid component fails hybrid verification",

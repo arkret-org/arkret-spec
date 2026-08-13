@@ -144,12 +144,30 @@
       },
       "additionalProperties": false
     },
+    "principal_authority_key": {
+      "title": "PrincipalAuthorityKey",
+      "description": "The complete external account-authority selector. The pair is atomic; neither member alone identifies an account authority.",
+      "type": "object",
+      "required": [
+        "principal_id",
+        "principal_server_id"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "principal_server_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        }
+      },
+      "additionalProperties": false
+    },
     "recovery_session_state": {
       "type": "object",
       "required": [
         "schema",
         "recovery_session_id",
-        "principal_id",
+        "principal_authority",
         "requesting_device_id",
         "trust_domain",
         "policy_id",
@@ -173,8 +191,9 @@
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id"
         },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "principal_authority": {
+          "$ref": "#/$defs/principal_authority_key",
+          "description": "Exact account authority pair frozen for the session lifetime. principal_server_id MUST equal the authenticated server serving this recovery session."
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id",
@@ -297,13 +316,14 @@
     "recovery_session_create_request_body": {
       "type": "object",
       "required": [
-        "principal_id",
+        "principal_authority",
         "requesting_device_id",
         "trust_domain"
       ],
       "properties": {
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "principal_authority": {
+          "$ref": "#/$defs/principal_authority_key",
+          "description": "Required exact authority selector. The receiving server MUST require principal_server_id to equal its own service DID and select the single lifetime PCR lineage by the complete pair; an unknown or mismatched pair fails closed."
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id"
@@ -621,7 +641,7 @@
       "required": [
         "schema",
         "kind",
-        "principal_id",
+        "principal_authority",
         "requesting_device_id",
         "trust_domain",
         "policy_id",
@@ -641,8 +661,8 @@
         "kind": {
           "const": "did_root"
         },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "principal_authority": {
+          "$ref": "#/$defs/principal_authority_key"
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id"
@@ -689,7 +709,7 @@
       "required": [
         "schema",
         "kind",
-        "principal_id",
+        "principal_authority",
         "requesting_device_id",
         "trust_domain",
         "policy_id",
@@ -710,8 +730,8 @@
         "kind": {
           "$ref": "#/$defs/proof_kind"
         },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "principal_authority": {
+          "$ref": "#/$defs/principal_authority_key"
         },
         "requesting_device_id": {
           "$ref": "#/$defs/device_id"

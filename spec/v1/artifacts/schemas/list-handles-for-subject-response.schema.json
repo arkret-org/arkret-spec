@@ -11,10 +11,10 @@
     "has_more"
   ],
   "properties": {
-      "subject": {
-        "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-        "description": "Holder/principal did_core_id used as the reverse lookup key. This is not a Realm actor_id. Proof verification methods remain full DID URLs and are projected to this value by the registered method adapter."
-      },
+    "subject": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Holder/principal did_core_id used as the reverse lookup key. This is not a Realm actor_id. Proof verification methods remain full DID URLs and are projected to this value by the registered method adapter."
+    },
     "claims": {
       "type": "array",
       "items": {

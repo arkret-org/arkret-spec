@@ -523,7 +523,7 @@
           "description": "Exact method-native operation accepted during registration. Its canonical digest MUST equal identity_creation_control_proof.operation_digest; it is historical verifier input and MUST NOT be replaced with current resolver output."
         },
         "registration_did_evidence": {
-          "$ref": "./federated-device-signing-key-evidence.schema.json#/$defs/registration_did_evidence",
+          "$ref": "./registration-did-evidence.schema.json#/$defs/registration_did_evidence",
           "description": "Complete Account-Authority-accepted historical evidence. Its canonical digest is reverse-bound by the pcr_genesis_unit receipt."
         },
         "identity_creation_control_proof": {

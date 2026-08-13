@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-13.2",
+  "version": "2026-08-14.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-13T10:40:00Z",
+  "generated_at": "2026-08-14T00:30:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -233,12 +233,6 @@
       "file": "schemas/rsvp.schema.json",
       "status": "active",
       "description": "Payload schema for ak.rsvp.set."
-    },
-    {
-      "schema_id": "ak.schema.disappearing_messages.v1",
-      "file": "schemas/disappearing-messages.schema.json",
-      "status": "active",
-      "description": "Message expiry and Realm disappearing-message policy shape."
     },
     {
       "schema_id": "ak.schema.pin.v1",
@@ -670,7 +664,7 @@
       "schema_id": "ak.schema.device_reanchor.v1",
       "file": "schemas/device-reanchor.schema.json",
       "status": "active",
-      "description": "Closed PCR-policy recovery payload binding one authority instance, accepted policy/session, monotonic PCR generation CAS, complete pre-fence Seal frontier and replacement authorization digest."
+      "description": "Closed PCR-policy recovery payload binding one account-local lineage, accepted policy/session, monotonic PCR generation CAS, complete pre-fence Seal frontier and replacement authorization digest."
     },
     {
       "schema_id": "ak.schema.recovery_session.v1",
@@ -916,12 +910,6 @@
         "selector": "erasure receipt retained_stub_digest target",
         "normative_ref": "zh/models/common-fields.md"
       }
-    },
-    {
-      "schema_id": "ak.schema.principal_service_binding.v1",
-      "file": "schemas/principal-service-binding.schema.json",
-      "status": "active",
-      "description": "Accepted-at Principal Server binding snapshot and signed service-cutover continuity chain"
     },
     {
       "schema_id": "ak.schema.high_risk_authority_proof.v1",
@@ -1201,12 +1189,6 @@
       "description": "Defs-only shared typed-ID patterns (e.g. circle_id) referenced cross-file by morph and relation schemas so a single id-form change propagates without inline drift. Not an object/event schema. See zh/models/common-fields.md §6."
     },
     {
-      "schema_id": "ak.schema.federated_device_signing_key_evidence.v1",
-      "file": "schemas/federated-device-signing-key-evidence.schema.json",
-      "status": "active",
-      "description": "Portable PCR-lineage device evidence reused by peer Event, Contact and KeyPackage transports. Frozen registration/accepted-at DID evidence proves historical keys; accepted PCR Events and Seal evidence establish current device authority."
-    },
-    {
       "schema_id": "ak.schema.delivery_binding_stale.v1",
       "file": "schemas/delivery-binding-stale.schema.json",
       "status": "active",
@@ -1289,6 +1271,12 @@
         "selector": "ak.contact.scope.update Event payload",
         "normative_ref": "zh/identity/contact-and-direct-conversation.md"
       }
+    },
+    {
+      "schema_id": "ak.schema.registration_did_evidence.v1",
+      "file": "schemas/registration-did-evidence.schema.json",
+      "status": "active",
+      "description": "Account-local registration DID evidence retained for onboarding and recovery audit."
     }
   ]
 }

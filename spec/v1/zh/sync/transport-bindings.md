@@ -96,7 +96,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.self.agent.participation.resource.replace` | controller 通过 bearer+DPoP 在自己的 Account Authority 原子替换一个 versioned per-scope selection；不产生 Realm Event、不走 peer relay。 |
 | `ak.peer.snapshot.read.manifest_head` | federation peer 获取 snapshot-assisted bootstrap 的 manifest head。 |
 | `ak.self.account.read.viewer` | 当前 holder 的账号主体自读；响应使用 signed handle claim / ref / digest。 |
-| `ak.self.account.command.update_profile` | closed `{profile_event}` 提交 holder-signed `ak.profile.create` 或 `ak.profile.update`；Event 与 exact session authority-instance PCR/principal 对账，服务端只走 ordinary admission。create ID 由 Event 派生；Event preconditions 为空，update 并发只使用可选 signed `payload.expected_state_digest`，patch 仍只允许 display/avatar/profile_fields；exact replay 不重复 account-aggregate delta。 |
+| `ak.self.account.command.update_profile` | closed `{profile_event}` 提交 holder-signed `ak.profile.create` 或 `ak.profile.update`；Event 的 `(actor_id, principal_server_id)` 必须逐字等于 authenticated session 的 exact account authority pair，`realm_id` 必须等于该 pair 的本地唯一 PCR lineage，服务端只走 ordinary admission。create ID 由 Event 派生；Event preconditions 为空，update 并发只使用可选 signed `payload.expected_state_digest`，patch 仍只允许 display/avatar/profile_fields；exact replay 不重复 account-aggregate delta。 |
 | `ak.self.account.stream.subscribe` | 客户端账号视角聚合同步入口；HTTP binding 使用 `AccountSubscribeFrame` NDJSON account-aggregate frame stream。 |
 | `ak.gate.account.exchange.create_handoff` | OIDC code 换 DPoP-bound account handoff，并返回 binding / identity-creation lease 状态；不是 session grant。 |
 | `ak.gate.account.command.issue_identity_binding_challenge` | 为当前 handoff lease 保留完整 DID operation，并签发服务端持久化的一次性 root-control challenge。 |

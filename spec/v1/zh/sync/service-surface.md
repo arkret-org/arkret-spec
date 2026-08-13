@@ -43,7 +43,7 @@ see_also:
 
 DID Document SHOULD 只负责：
 
-- 声明 Principal Server、identity registry、events、Sync Service、blob、capability 服务入口
+- 声明 Principal Server、identity registry、events、Principal Server sync surface、blob、capability 服务入口
 - 声明服务 DID 或服务 endpoint
 
 它不应直接塞入：
@@ -55,7 +55,7 @@ DID Document SHOULD 只负责：
 ### 2.2 没有任何单一服务是唯一真相源
 
 - signed Event 是 actor 发布和协作事实真相源
-- Sync Service 是 Principal Server 上的受控同步入口
+- Principal Server sync surface 是 Principal Server 上的受控同步入口
 - search、inbox、notification 和 View projection 是派生体验，可以由客户端本地计算，也可以由显式受托服务计算
 - blob 是内容层
 
@@ -374,7 +374,7 @@ GET /_arkret/describe
 服务类型命名规则：
 
 - DID Document `service.type` 使用协议注册名，例如 `ArkretPrincipalServer`、`ArkretDirectory`。
-- describe 响应的 `service_kind` 使用 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json) 中 `status=active` 且 `valid_in` 包含 `service_describe` 的小写注册值；正文不复制该闭集。其它 context 的值不得进入 Describe：例如 `mimi_provider_facade` 只用于 `mimi_provider_directory` descriptor，不是 `ServiceDescribe.service_kind`。`sync_node` 同时被 registry 允许用于 Realm sync endpoint / join candidate，但只有当 Realm policy 授权对应 submission / delivery binding 时才能用于这些 Realm 字段（见 [`realm-join-candidate.schema.json`](../../artifacts/schemas/realm-join-candidate.schema.json)）。
+- describe 响应的 `service_kind` 使用 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json) 中 `status=active` 且 `valid_in` 包含 `service_describe` 的小写注册值；正文不复制该闭集。其它 context 的值不得进入 Describe：例如 `mimi_provider_facade` 只用于 `mimi_provider_directory` descriptor，不是 `ServiceDescribe.service_kind`。Realm join candidate 的 `service_kind` 仅允许 `principal_server`，其路由来源只允许 signed invite 或当前 joined-member delivery binding（见 [`realm-join-candidate.schema.json`](../../artifacts/schemas/realm-join-candidate.schema.json)）。
 - conformance profile 使用 `ak.profile.*` 标识，例如 `ak.profile.principal_server.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_kind 与 conformance profile 混用。
 
@@ -616,18 +616,18 @@ Content-Type: application/json
 
 ## 5. Account Aggregate / Snapshot Surface
 
-Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`ak.self.events.read.scan` / `ak.self.events.stream.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 unread / notification counts 的视图；presence 是有界 TTL 的 encrypted Signal，走 Signal live rail，不进入该聚合。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared notary / Sync Service。
+Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`ak.self.events.read.scan` / `ak.self.events.stream.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 unread / notification counts 的视图；presence 是有界 TTL 的 encrypted Signal，走 Signal live rail，不进入该聚合。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared notary / Principal Server sync surface。
 
 本节定义 account 与 snapshot 两类操作（事件流读取请到 Events Surface）：
 
 - `GET /_arkret/self/account/viewer`：当前 holder 的账号主体自读（`ak.self.account.read.viewer`）。响应使用 signed handle claim / ref / digest，不把未签名裸 `handle` 作为账号权威字段；请求无 authority selector，跨 PCR lineage 只有唯一 accepted Profile 时才返回 `profile`，歧义时省略而不隐式选择 current PCR。
-- `POST /_arkret/self/account/profile`：当前账号 holder-signed Profile Event 提交（`ak.self.account.command.update_profile`）。closed body 只携 `profile_event: EventInitialSubmission`；Event `realm_id` 是 exact PCR selector，只在该 lineage 内判定无 accepted Profile 时接受 ID 从 Event 派生的 `ak.profile.create`、已有 Profile 时接受 target_ref 命中的 `ak.profile.update`。Event Realm/scope/actor 必须绑定 session exact authority instance，update patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；Event `preconditions` 为空，并发只使用 update payload 可选 `expected_state_digest`。字段语义以 [`profiles-presence.md` §2.2](../discovery/profiles-presence.md) 为准。
+- `POST /_arkret/self/account/profile`：当前账号 holder-signed Profile Event 提交（`ak.self.account.command.update_profile`）。closed body 只携 `profile_event: EventInitialSubmission`；Event `realm_id` 选择 pair 内本地 PCR lineage，`actor_id` 与 `principal_server_id` 必须匹配 session account pair。无 accepted Profile 时接受 ID 从 Event 派生的 `ak.profile.create`，已有 Profile 时接受 target_ref 命中的 `ak.profile.update`。update patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；Event `preconditions` 为空，并发只使用 update payload 可选 `expected_state_digest`。
 - `GET /_arkret/self/account/subscribe`：客户端账号视角聚合同步（`ak.self.account.stream.subscribe`），见 `client-sync.md`。
 - `GET /_arkret/self/account/describe`：account aggregate service describe（`ak.self.account.read.describe`）。
 - `POST /_arkret/self/account/cursor/revoke`：撤销账号聚合订阅 cursor（`ak.self.account.command.revoke_cursor`）。
 - `GET /_arkret/self/snapshot/head`：snapshot manifest 入口。
 
-`ak.self.account.command.update_profile` 的 accepted Profile effect 恰好一次推进 holder account-aggregate projection/cursor，使同一 authority instance 的其它绑定设备在 PCR Realm delta 中观察 canonical Event / Profile；exact replay 不产生第二条 delta，account-scoped wakeup 也不是真相源。该推进不隐式替代 Directory announce 或独立 account-data Event；实现若需维持可发现性或 account-data 副本，必须显式调用 `ak.find.directory.command.announce`、`ak.account_data.set` 或等价已声明 operation。Event authoring 必须读取 PCR-specific Events frontier，不得从 account aggregate 推断单一 head。
+`ak.self.account.command.update_profile` 的 accepted Profile effect 恰好一次推进该 account pair 的 account-aggregate projection/cursor，使同一 pair 的其它绑定设备在 PCR Realm delta 中观察 canonical Event / Profile；exact replay 不产生第二条 delta，account-scoped wakeup 也不是真相源。
 
 事件流读取统一在：
 
@@ -696,7 +696,7 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 - 客户端 MUST NOT 将 message body、comment body、附件明文或可逆派生摘要提交给未授权第三方服务。
 - `events`、`sync`、`sync/subscribe`、`sync/backfill` 的服务端必须是 principal DID、Organization DID 或 Realm policy 明确委托的 Principal Server。
 - Directory、Push Gateway、Blob preview、Policy preview，以及任何协议外 search / projection 服务，若会接收正文、正文摘要、附件预览、全文索引或可逆派生内容，MUST 在 Realm policy 中声明为 `plaintext_visible_services`。
-- shared notary / Sync Service 若可见明文，必须在 Realm policy 中作为明文可见方列出。
+- shared notary / Principal Server sync surface 若可见明文，必须在 Realm policy 中作为明文可见方列出。
 - `encryption_profile="none"` 只说明 content 未使用 E2EE；它不自动授权任意服务保存、索引、导出或生成可逆派生内容。只有 Realm 同时把内容声明为 public content（例如 `history_visibility=world_readable` 且 preview / export policy 允许 public processing）时，服务才 MAY 按公开内容处理；否则仍按私有明文执行 `plaintext_visible_services` 检查。
 - 接收方 Principal Server 可以看到投递给该接收方的非加密内容；客户端和 Realm policy MUST 把这视为内容可见边界，而不是透明中继。
 - 非受信服务只能接收公开内容、密文 envelope 或不可解析 payload。
@@ -918,7 +918,7 @@ POST /_arkret/self/authz/check
 `check` 接口适合：
 
 - Events API 接收写入前预检查
-- Sync Service 分发前快速过滤
+- Principal Server sync surface 分发前快速过滤
 - client 发送前本地 UX 提示
 
 ## 10.1 Personal Agent Surface
@@ -945,7 +945,7 @@ Arkret v1 的首次加入流程：
 3. 从 Realm link / invite / locator / delivery binding / peer evidence 携带的 inline record 或 `current_record_url` 得到 service `did_core_id` 的首跳 `full_id` / `base_url`，验证 method history、record 签名、freshness 与 Realm policy，再以 role-scoped describe 确认 Principal Server / identity registry / events / account / snapshot / blob / authz 能力
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Realm metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。high-assurance profile 下，`authority_binding.witness_attestations[]` 或等价 quorum proof 必须可验证；缺失时不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `QUERY /_arkret/self/events`（`ak.self.events.read.scan`，JSON content 携带 `before`）进行原始 Event 历史回放。
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Principal Server sync surface 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。high-assurance profile 下，`authority_binding.witness_attestations[]` 或等价 quorum proof 必须可验证；缺失时不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `QUERY /_arkret/self/events`（`ak.self.events.read.scan`，JSON content 携带 `before`）进行原始 Event 历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read cursor、notification cursor 等个人状态
@@ -986,7 +986,7 @@ Arkret v1 的首次加入流程：
 
 如果 payload 已按 `policy.encryption_profile` 加密，则：
 
-- Events / Sync Service MAY 不解密正文
+- Events / Principal Server sync surface MAY 不解密正文
 - 但仍 SHOULD 保留 hash、cursor、causal 与目标引用
 
 ## 14. 防滥用与配额机制 (Anti-Spam & Quota)
@@ -998,7 +998,7 @@ Arkret v1 的首次加入流程：
 - **拒绝写入**：当 Blob 服务或 Principal Server 评估该 Realm 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的协议错误语义（例如 `quota_exceeded`、`payload_too_large` 或 profile 注册的付费/资源门槛错误），并拒收新写入的 Event 或大文件 Blob。HTTP status 映射属于 binding 层，见 [`api-conventions.md` §5.1](./api-conventions.md) 与 [`service-http-binding.md`](./service-http-binding.md)。
 
 ### 14.2 写频率控制 (Rate Limiting)
-- Events API 和 Sync Service 节点 SHOULD 基于 `actor_id` 与 `realm_id` 实施严格的并发和频率限制。
+- Events API 和 Principal Server sync surface 节点 SHOULD 基于 `actor_id` 与 `realm_id` 实施严格的并发和频率限制。
 - 对于来自未验证或低信誉 DID 的恶意刷写（例如短时间内进行海量无效的 `message.create` 或反复触发高并发图重组），节点有权暂时熔断该 DID 的请求。
 
 ## 15. 设计决定

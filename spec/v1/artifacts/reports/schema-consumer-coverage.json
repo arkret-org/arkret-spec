@@ -41,29 +41,28 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 184,
+    "total_schemas": 182,
     "by_consumer": {
       "declared_wire": 43,
       "event_kind": 3,
       "inbound": 44,
       "outbound": 47,
-      "prose": 106,
+      "prose": 105,
       "prose_only": 2,
-      "schema_reference": 110,
-      "startup_compile": 184,
-      "vectors": 116
+      "schema_reference": 108,
+      "startup_compile": 182,
+      "vectors": 115
     },
-    "without_wire_consumer": 7,
+    "without_wire_consumer": 6,
     "explicit_prose_only": 2,
-    "unresolved_consumer_coverage": 5,
-    "without_vector_coverage": 68,
+    "unresolved_consumer_coverage": 4,
+    "without_vector_coverage": 67,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
     "ak.schema.agent_sidecar_exchange_projection.v1",
     "ak.schema.applet.v1",
     "ak.schema.device_reanchor.v1",
-    "ak.schema.disappearing_messages.v1",
     "ak.schema.pin.v1",
     "ak.schema.rsvp.v1",
     "ak.schema.search_service.v1"
@@ -74,7 +73,6 @@
   ],
   "unresolved_consumer_coverage": [
     "ak.schema.device_reanchor.v1",
-    "ak.schema.disappearing_messages.v1",
     "ak.schema.pin.v1",
     "ak.schema.rsvp.v1",
     "ak.schema.search_service.v1"
@@ -111,7 +109,6 @@
     "ak.schema.directory_operations.v1",
     "ak.schema.erasure_receipt_operations.v1",
     "ak.schema.extension_manifest.v1",
-    "ak.schema.federated_device_signing_key_evidence.v1",
     "ak.schema.high_risk_authority_proof.v1",
     "ak.schema.ice_config_response.v1",
     "ak.schema.inclusion_list.v1",
@@ -130,7 +127,6 @@
     "ak.schema.offline_publication.v1",
     "ak.schema.patch.v1",
     "ak.schema.principal_locator.v1",
-    "ak.schema.principal_service_binding.v1",
     "ak.schema.public_key.v1",
     "ak.schema.push_operations.v1",
     "ak.schema.query.v1",
@@ -142,6 +138,7 @@
     "ak.schema.realm_policy_server_operations.v1",
     "ak.schema.realm_read_operations.v1",
     "ak.schema.recovery_completion_attestation.v1",
+    "ak.schema.registration_did_evidence.v1",
     "ak.schema.sdk_conformance_claim.v1",
     "ak.schema.seal_transparency.v1",
     "ak.schema.security_rotation_local_commit.v1",
@@ -1037,7 +1034,6 @@
           "ak.schema.event_payload.v1",
           "ak.schema.events_subscribe_frame.v1",
           "ak.schema.extension_manifest.v1",
-          "ak.schema.federated_device_signing_key_evidence.v1",
           "ak.schema.grant_constraint.v1",
           "ak.schema.handle_claim.v1",
           "ak.schema.high_risk_authority_proof.v1",
@@ -1075,7 +1071,6 @@
           "ak.schema.policy.v1",
           "ak.schema.principal_locator.v1",
           "ak.schema.principal_operations.v1",
-          "ak.schema.principal_service_binding.v1",
           "ak.schema.push_operations.v1",
           "ak.schema.query.v1",
           "ak.schema.range_completeness_attestation.v1",
@@ -1094,6 +1089,7 @@
           "ak.schema.recovery_policy.v1",
           "ak.schema.recovery_receipt.v1",
           "ak.schema.recovery_session.v1",
+          "ak.schema.registration_did_evidence.v1",
           "ak.schema.relation.v1",
           "ak.schema.resource_selector.v1",
           "ak.schema.sdk_conformance_claim.v1",
@@ -1290,7 +1286,6 @@
       "file": "schemas/delivery-binding-stale.schema.json",
       "consumers": {
         "declared_wire": "standalone_schema_alias",
-        "prose": "normative_text",
         "startup_compile": "exact"
       },
       "wire_covered": true,
@@ -1383,9 +1378,8 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
-          "ak.schema.federated_device_signing_key_evidence.v1",
           "ak.schema.identity_resolution.v1",
-          "ak.schema.principal_service_binding.v1"
+          "ak.schema.registration_did_evidence.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       },
@@ -1462,19 +1456,6 @@
           "ak.find.directory.read.search_users"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
-      }
-    },
-    {
-      "schema_id": "ak.schema.disappearing_messages.v1",
-      "file": "schemas/disappearing-messages.schema.json",
-      "consumers": {
-        "startup_compile": "exact",
-        "vectors": "required_schema"
-      },
-      "wire_covered": false,
-      "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
       }
     },
     {
@@ -1649,27 +1630,6 @@
         "kind": "standalone_schema_alias",
         "selector": "extension loader manifest_id",
         "normative_ref": "zh/conformance/schema-registry.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.federated_device_signing_key_evidence.v1",
-      "file": "schemas/federated-device-signing-key-evidence.schema.json",
-      "consumers": {
-        "schema_reference": "exact",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.account_operations.v1",
-          "ak.schema.direct_conversation_operations.v1",
-          "ak.schema.keypackage_operations.v1",
-          "ak.schema.principal_operations.v1",
-          "ak.schema.principal_service_binding.v1",
-          "ak.schema.service_operation_dtos.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
     },
     {
@@ -2021,7 +1981,6 @@
       "consumers": {
         "inbound": "fragment",
         "outbound": "fragment",
-        "schema_reference": "fragment",
         "startup_compile": "exact"
       },
       "wire_covered": true,
@@ -2503,23 +2462,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.principal_service_binding.v1",
-      "file": "schemas/principal-service-binding.schema.json",
-      "consumers": {
-        "schema_reference": "fragment",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.direct_conversation_operations.v1",
-          "ak.schema.service_operation_dtos.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
-      }
-    },
-    {
       "schema_id": "ak.schema.public_key.v1",
       "file": "schemas/public-key.schema.json",
       "consumers": {
@@ -2857,6 +2799,23 @@
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "required_schema"
+      }
+    },
+    {
+      "schema_id": "ak.schema.registration_did_evidence.v1",
+      "file": "schemas/registration-did-evidence.schema.json",
+      "consumers": {
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.account_operations.v1",
+          "ak.schema.principal_operations.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
     },
     {
@@ -3258,7 +3217,6 @@
           "ak.schema.event_batch_receipt.v1",
           "ak.schema.event_payload.v1",
           "ak.schema.extension_manifest.v1",
-          "ak.schema.federated_device_signing_key_evidence.v1",
           "ak.schema.file_transfer.v1",
           "ak.schema.grant_constraint.v1",
           "ak.schema.handle_claim.v1",
@@ -3291,7 +3249,6 @@
           "ak.schema.policy.v1",
           "ak.schema.principal_locator.v1",
           "ak.schema.principal_operations.v1",
-          "ak.schema.principal_service_binding.v1",
           "ak.schema.push_operations.v1",
           "ak.schema.range_completeness_attestation.v1",
           "ak.schema.read_cursor.v1",
@@ -3305,6 +3262,7 @@
           "ak.schema.recovery_policy.v1",
           "ak.schema.recovery_receipt.v1",
           "ak.schema.recovery_session.v1",
+          "ak.schema.registration_did_evidence.v1",
           "ak.schema.relation.v1",
           "ak.schema.sdk_conformance_claim.v1",
           "ak.schema.seal.v1",

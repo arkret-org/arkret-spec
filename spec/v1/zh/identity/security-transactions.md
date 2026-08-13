@@ -98,7 +98,7 @@ transaction binding、prepared plan 和 accepted-step ledger 的第二个公开�
 
 ## 2. RecoveryTransaction
 
-RecoveryTransaction 的基础 `identity_model="pcr_policy"`。binding 固定 authority instance、recovery
+RecoveryTransaction 的基础 `identity_model="pcr_policy"`。binding 固定 account authority pair 与本地 PCR lineage、recovery
 session/policy、replacement device、previous/result PCR generation、re-anchor/authorize Event ids 与 terminal
 receipt；prepared plan 固定 ordered re-anchor unit，不含 DID publication。
 

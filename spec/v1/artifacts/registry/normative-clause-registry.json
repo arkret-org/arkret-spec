@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-13.3",
+  "version": "2026-08-14.1",
   "source_of_truth": true,
-  "generated_at": "2026-08-13T09:30:00Z",
+  "generated_at": "2026-08-14T00:30:00Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -176,8 +176,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:b675a5843c8dc68a538cea30b8d18253c13b0c615945996267ade8393ae29016",
-      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, every peer claim returns branch-matched portable target signer evidence that the requester independently verifies without DID-document device-key or service-projection fallback, encryption floors MUST NOT be downgraded, an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling, every encrypted envelope MUST commit its exact scope_ref through the unconditional domain-separated aad.scope_digest and receivers MUST recompute it on decrypt, every MLS epoch MUST bind the independently re-derived security frontier for its accepted key-access state, and epoch-0 leaf indices MUST be recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
+      "section_digest": "sha256:d2ef1867af1cd374ba40cc79ae0e08096e96bacd21dc148d005538f6f4eadff6",
+      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, every peer claim binds the accepted authorization Event id plus its in-envelope Principal Server admission proof and a destination-signed claim receipt without separate PCR/device/Agent signer-evidence sidecars, encryption floors MUST NOT be downgraded, an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling, every encrypted envelope MUST commit its exact scope_ref through the unconditional domain-separated aad.scope_digest and receivers MUST recompute it on decrypt, every MLS epoch MUST bind the independently re-derived security frontier for its accepted key-access state, and epoch-0 leaf indices MUST be recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.encoding.encrypted_envelope_digest.v1",
@@ -190,21 +190,6 @@
         "ak.vector.e2ee.content_floor_downgrade_rejected.v1",
         "ak.vector.e2ee.metadata_floor_downgrade_rejected.v1",
         "ak.vector.aad_visibility.policy_ceiling.v1"
-      ]
-    },
-    {
-      "clause_id": "AK-NC-012",
-      "status": "active",
-      "category": "privacy",
-      "source_anchor": "spec/v1/zh/crypto-media/disappearing-messages.md#4-crypto-shredding",
-      "section_digest": "sha256:d78957383662cb2310b0e875d9815e5483f3a252e23ec5d00900ba564d1fd8f0",
-      "requirement": "Read-trigger expiry starts derive from anonymous aggregate contributions, converge under replay and reordering, and MUST NOT reveal reader identity or reader counts.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.disappearing.read_trigger_anonymous_aggregate.v1",
-        "ak.vector.disappearing.read_trigger_idempotent_replay.v1",
-        "ak.vector.disappearing.read_trigger_multi_aggregator_convergence.v1",
-        "ak.vector.disappearing.on_last_read_offline_window.v1"
       ]
     },
     {
@@ -262,14 +247,15 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:17e731130bd4c5655e8a3e1e94626d204de3c0127b4d9c6aadffd02cedc44ad9",
-      "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window; cycles over grant refs and inactive refs MUST fail closed rather than widen the effective permission set.",
+      "section_digest": "sha256:e22b6869562cd414a59d2ecab7ab3dcf578aa7e131ecac0fcf652fc22b6303f3",
+      "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. The reducer derives issuer_principal_server_id from the accepted carrier Event, and a grant ref supplies issuer authority only when its complete subject authority pair equals the child issuer pair; cycles, inactive refs and same-DID cross-Principal-Server replay MUST fail closed rather than widen the effective permission set.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.capability.authority_chain.v1",
         "ak.vector.capability.authority_cycle.v1",
         "ak.vector.capability.authority_expiry_seal.v1",
-        "ak.vector.capability.issuer_authority_bound.v1"
+        "ak.vector.capability.issuer_authority_bound.v1",
+        "ak.vector.capability.authority_audit.v1"
       ]
     },
     {
@@ -309,7 +295,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
-      "section_digest": "sha256:f7f096c71699c08e7b9095ed3b689a2967d4987ca6fa15799aa0a4680d42c4a7",
+      "section_digest": "sha256:9c2006507d886e03ecfbb24b99d6976cef8d6e54628776a5f09f0e9a68829f57",
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected.",
       "testability_grade": "vector",
       "evidence_refs": [

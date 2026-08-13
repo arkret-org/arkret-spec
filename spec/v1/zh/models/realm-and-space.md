@@ -67,7 +67,8 @@ Realm 与 MLS group 不是同义词：
 
 Realm policy component `availability_policy` 声明 Control Move、snapshot 与 backfill bytes 的签名持有者门槛；`audit_policy` 声明 range-completeness / transparency witness 白名单、最小 attestation 份数与独立性。二者均经 `ak.realm.policy_bundle` 写入并进入 `policy_root`，结构以登记的 `realm_policy_bundle_payload` 为机器真源；实现不得用未登记的 profile-local 隐式集合替代。
 
-**bundle 组件集合边界（normative）**：`ak.realm.policy_bundle` 是**闭合对象**（[`event-payload.schema.json#/$defs/realm_policy_bundle_payload`](../../artifacts/schemas/event-payload.schema.json)，`additionalProperties: false`），承载且仅承载**没有独立 facet event kind** 的 Realm policy 组件：`policy_revision`、`content_scheme`、`content_encryption_floor`、`metadata_encryption_floor`、`federation_policy`、`aad_visibility`、`durability_policy`、`mls_send_pause`、`relaxed_window_max_ms`、`media_service_decrypts`、`join_policy`、`agent_participation`、`account_deactivation`、`availability_policy`、`audit_policy`、`preauth`、`allowed_third_party_invite_verification_service_ids`。已经拥有自己 event kind 与 cell 的组件（`ak.realm.join_rule` / `ak.realm.history_visibility` / `ak.realm.discovery` / `ak.realm.read_receipt_policy` / `ak.realm.asset_privacy_policy` / `ak.realm.delivery_binding_policy` / `ak.realm.moderation_policy` / `ak.realm.media_service` / `ak.realm.plaintext_visible_services` / `ak.realm.disappearing_policy` / ...）MUST 走各自的 facet event，MUST NOT 在 bundle payload 内回显或再声明一次 "active set"。全部 policy cell 继续进入普通 policy state/frontier；MLS `security_frontier_digest` 只按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md) 的机器 registry 投影真正改变 key access 的字段，不能用 `ak.component.realm.*policy*` 通配过滤。未登记字段在 wire 解析阶段即 `schema_violation`。
+**bundle 组件集合边界（normative）**：`ak.realm.policy_bundle` 是 closed object，只承载没有独立 facet event kind 的 Realm policy 组件：`policy_revision`、`content_scheme`、`content_encryption_floor`、`metadata_encryption_floor`、`federation_policy`、`aad_visibility`、`durability_policy`、`mls_send_pause`、`relaxed_window_max_ms`、`media_service_decrypts`、`join_policy`、`agent_participation`、`account_deactivation`、`availability_policy`、`audit_policy`、`preauth` 与 `allowed_third_party_invite_verification_service_ids`。获得 Realm Event 副本的服务必须通过 effective joined membership 的 `delivery_binding.recipient_service_id` 出现；policy bundle 不定义第二套 Realm-level 分发列表。
+
 
 `federation_policy` 与 `allowed_third_party_invite_verification_service_ids` 都由 policy bundle 唯一承载。前者是 whole-value federation posture；`security_class=high_assurance` 时每个 bundle revision MUST 显式携带 `closed` / `restricted` / `quarantine` 之一，`open` 或省略都必须拒绝。后者是第三方邀请验证服务信任根的全量替换集合：每个 bundle revision 都声明当前完整集合，而不是增量 add/remove；省略与空数组都表示拒绝所有第三方验证服务。删除某个 DID 只需在更高 `policy_revision` 的集合中省略它，不存在独立 tombstone。组件随整个 bundle 写入 `ak.component.realm.policy_bundle.v1`，因此已机械进入 `policy_root`，不得另造第二个 leaf 或 active-set 摘要。授权 action 仍是 `ak.realm.policy_bundle`；`ak.invite.claim` 必须从其 CBA basis 上当前 accepted bundle cell 读取该集合，并按 Realm `revocation_freshness_window_ms` fail closed 地复校验。
 
@@ -100,7 +101,6 @@ Schema id: `ak.schema.realm.v1`
 | `metadata_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH），与 `content_encryption_floor` 对称。比较序 `allow_plaintext < e2ee_required`；effective 值取父 Realm / Circle / 对象 profile 的最大值，低于 effective 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_violation`），MUST NOT 被 Circle 或对象 profile 放宽。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_downgrade`）。缺省：`mls_rfc9420` 或 `content_encryption_floor=e2ee_required` 的 Realm 为 `e2ee_required`，否则 `allow_plaintext`。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 metadata 加密下限。 |
 | `durability_policy` | no | `object` | reducer 派生（Realm policy 字段，经 `ak.realm.policy_bundle` 写入，非直接 PATCH）。仅当 `content_scheme=mls_exporter_aead_v1` 时 `mode != none` 才有效（见 §2.3.1）。 | Realm 恢复密钥（RRK）持久化策略。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
-| `sync_endpoints` | no | `array<ServiceBinding>` | Realm-level shared notary / Sync Service / mirror / federation 服务绑定；不是成员级 delivery binding。详见 [`../sync/federation.md`](../sync/federation.md)。 | Realm 委托同步与联邦入口。 |
 | `notary_profile` | yes | `enum(single_did, threshold, open_set, mixed)` | create-locked。 | Seal finality profile。 |
 | `digest_algorithm` | no | `enum(digest-suite-registry active ids；v1: sha256, blake3)` | create 时锁定，唯一例外是 `ak.realm.digest_suite_transition`（默认 `sha256`）。 | Digest suite（canonicalization × hash 注册元组，见 [`encoding.md` §3.1–§3.3](../conformance/encoding.md)）：裸 id = canonical JSON 归一化，点分 id（如 reserved 的 `cbor.sha256`）= 备用归一化编码 suite。Realm 内单一 suite 排他；切换走控制面 suite transition Seal（[`event-auth-state-resolution.md` §9.3.2](../authz/event-auth-state-resolution.md)）。 |
 | `notary` | yes | `object` | Genesis notary control cell 初值；其 `kind` MUST 与 `notary_profile` 同源并满足对应 profile 的条件必填子字段。discriminator `kind` 的取值与 `notary_profile` 枚举同源：`single_did` / `threshold` / `open_set` / `mixed`；create wire schema 以 `realm-genesis.schema.json` 为准。 | 当前 Seal 签发规则。 |
@@ -112,7 +112,6 @@ Schema id: `ak.schema.realm.v1`
 | `max_authority_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无限期 parent grant 首次转授时冻结 `authority_expiry_seal`。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
 | `bottom_escalation_after_ms` | no | `integer` | cell `⊥` 持续超过该窗口后，reducer / Projection SHOULD 标记 `escalated_at` 并触发带外告警；详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。 | bottom 诊断升级窗口。 |
 | `cell_lattices` | no | `array<CellLattice>` | `CellLattice` 结构（cell family / lattice / bottom 等）定义见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)。 | Realm-specific 扩展 cell family。 |
-| `retention_policy_id` | no | `id:policy` | Realm 级 retention 的**唯一**协议承载：指向 `policy_kind="retention"` 的 Policy 对象（经 `ak.policy.set` 写入）。retention TTL 规则使用 `kind="temporal"` 且 `params.retention_ttl_seconds`（非负整数秒）。内联 `retention_policy`（payload 顶层 / `payload.object` / patch）从来不是登记承载，已在 `forbidden-wire-fields.json` hard reject；部署管理面的 retention 配置是本地运维工具，不进 Event 历史。产品级 disappearing TTL 走 `ak.realm.disappearing_policy`，与本字段正交。 | 保留策略。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_by` | yes | `did_core_id` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -131,7 +130,7 @@ Schema id: `ak.schema.realm.v1`
 | `default_join_rule` | `ak.realm.join_rule`。 |
 | `history_visibility` | `ak.realm.history_visibility`。 |
 | history key sharing | `ak.realm.history_sharing_policy`。 |
-| bundle 组件集合（本节 §2.2，含 `federation_policy`、`sync_endpoints`、freshness / proposal / compaction / authority-lifetime / bottom-escalation 时窗与 `cell_lattices`） | `ak.realm.policy_bundle`。整个 bundle 每次按 `policy_revision` 完整重述；这些字段不得回落到 create 或 generic patch。 |
+| bundle 组件集合（本节 §2.2，含 `federation_policy`、freshness / proposal / compaction / authority-lifetime / bottom-escalation 时窗与 `cell_lattices`） | `ak.realm.policy_bundle`。整个 bundle 每次按 `policy_revision` 完整重述；这些字段不得回落到 create 或 generic patch。 |
 | alias | `ak.realm.alias`。 |
 | plaintext-visible services | `ak.realm.plaintext_visible_services`。 |
 | delivery binding policy | `ak.realm.delivery_binding_policy`。 |
@@ -257,9 +256,7 @@ Realm 之外的 create-once 对象没有这个问题：它们的 ID 只出现在
 
 理由：PCR 的作用域是「某个 DID 在**当前 Principal Server** 上的账号」，同一 DID 在不同 Principal
 Server 上是完全独立、不可迁移的 PCR。因此 `realm_id` MUST NOT 只由 principal DID 决定：那样会让这些互不
-相关的 PCR 算出**同一个 `realm_id`**，使该 id 无法标识"哪一个 PCR"——而 PCR 的 realm id、genesis receipt 与 Seal
-都会作为设备授权权威证据进入联邦（见 [`../sync/federation.md`](../sync/federation.md) 与
-`federated-device-signing-key-evidence.schema.json`），碰撞会让远端 verifier 无法区分两个 PS 上的设备目录。
+相关的 PCR 算出**同一个 `realm_id`**，使该 id 无法标识“哪一个 PCR”。这些值只在同一账号 authority 内用于设备、恢复与审计状态重建，不进入普通联邦 Event 的外部 identity；event-derived 仍能避免本地状态与恢复记录碰撞。
 event-derived 天然按创建事件区分，同时使 `realm_id` 承诺 create Event 的完整内容。
 
 **「一个账号至多一个 PCR」不再由 id 碰撞保证**：event-derived 下两次 genesis 产生两个不同 `realm_id`，

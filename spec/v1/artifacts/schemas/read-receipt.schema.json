@@ -27,13 +27,13 @@
     },
     "event_id": {
       "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
       "description": "ID of the most recent Event the actor has read. Causality implies all causal predecessors are also read."
     },
     "hlc": {
       "type": "string",
       "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$",
-      "description": "Optional. HLC of the read position; required when Sync Service must compare receipts under merge / debounce rules across devices for the same actor."
+      "description": "Optional. HLC of the read position; required when the Principal Server sync surface compares receipts under merge / debounce rules across devices for the same actor."
     },
     "read_scope": {
       "type": "object",

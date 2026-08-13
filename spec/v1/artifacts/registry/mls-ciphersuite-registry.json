@@ -35,7 +35,13 @@
       "profile_gate": "ak.profile.mls_ciphersuite.chacha20poly1305.v1",
       "kat_absence_reason": "The upstream corpus is identified, but byte-level digests and an active 0x0003 conformance vector are not yet published.",
       "kat_source": "https://github.com/mlswg/mls-implementations/tree/cfd450286d1bfd9cd2519b95c80f9771f94a5b1a/test-vectors",
-      "kat_files": ["crypto-basics.json", "key-schedule.json", "messages.json", "welcome.json", "treekem.json"],
+      "kat_files": [
+        "crypto-basics.json",
+        "key-schedule.json",
+        "messages.json",
+        "welcome.json",
+        "treekem.json"
+      ],
       "activation_requirements": [
         "Publish and pin byte-level KAT digests for every ciphersuite 0x0003 case in the listed MLS WG corpus",
         "Publish an active conformance vector covering KeyPackage negotiation, Welcome/Commit processing and mixed-member unsupported-suite fail-closed behavior",

@@ -876,7 +876,7 @@
     },
     "prepared_event_unit": {
       "type": "object",
-      "description": "Exact typed Event submit request and persisted canonical bytes. A PCR recovery unit contains reanchor plus replacement authorize for the same authority instance/session/generation CAS; candidate possession is verified through the unit-local overlay before mutation and never by resolving current human DID.",
+      "description": "Exact typed Event submit request and persisted canonical bytes. A PCR recovery unit contains reanchor plus replacement authorize for the same account-local lineage/session/generation CAS; candidate possession is verified through the unit-local overlay before mutation and never by resolving current human DID.",
       "required": [
         "operation_id",
         "destination_service_id",

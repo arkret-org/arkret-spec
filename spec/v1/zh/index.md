@@ -133,7 +133,7 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 ### 4.4 同步与真相模型
 
 - signed Event Envelope 是发布最小单位，actor event chain 是重放和可验证基础。
-- Principal Server / Sync Service 是同步基础设施，不是唯一真相源。
+- Principal Server / Principal Server sync surface 是同步基础设施，不是唯一真相源。
 - 搜索、inbox、notification、projection 默认由客户端或 SDK 派生。
 - 未加密私有正文不得发送到未授权第三方服务。
 - Event 写入具备幂等性；撤回通过 redaction 收敛，不等于全局物理删除。

@@ -1140,7 +1140,6 @@ components:
               - current_did_authority_unavailable
               - pcr_authority_stale
               - did_method_successor_invalid
-              - principal_authority_instance_mismatch
               - agent_signer_evidence_missing
               - agent_signer_evidence_stale
               - agent_authorization_inactive
@@ -1466,8 +1465,6 @@ components:
       - notifiable
       - documentable
       - renderable
-    FederatedDeviceSigningKeyEvidence:
-      $ref: ../schemas/federated-device-signing-key-evidence.schema.json
     FederationServiceBindingRef:
       type: object
       description: |
@@ -1844,14 +1841,6 @@ components:
       $ref: ../schemas/principal-locator.schema.json
     PrincipalLocatorResolveRequestBody:
       $ref: ../schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body
-    PrincipalServiceBindingCommitOutcome:
-      $ref: ../schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_outcome
-    PrincipalServiceBindingCommitRequestBody:
-      $ref: ../schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_commit_request_body
-    PrincipalServiceBindingPrepareOutcome:
-      $ref: ../schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_outcome
-    PrincipalServiceBindingPrepareRequestBody:
-      $ref: ../schemas/principal-service-binding-operations.schema.json#/$defs/principal_service_binding_prepare_request_body
     Problem:
       type: object
       description: |
@@ -2388,7 +2377,6 @@ components:
           - recovery_service
           - search_service
           - sfu_service
-          - sync_node
           - turn_service
         service_id:
           type: string
@@ -5054,10 +5042,10 @@ paths:
         handle-claim evidence or refs. This endpoint is distinct from
         ak.self.account.read.describe, which describes service capabilities.
 
-        This request has no authority-instance selector. profile is present only
-        when exactly one accepted Actor Profile is unambiguous across the principal's
-        PCR lineages; if multiple accepted lineages exist, the service omits profile
-        and MUST NOT choose an implicit current PCR.
+        The authenticated session selects one exact (principal_id, principal_server_id)
+        account authority pair. profile, when present, is the current accepted Actor
+        Profile from that pair's single lifetime-local PCR lineage; the service MUST
+        NOT merge or select state from another Principal Server carrying the same core DID.
 
         The response MUST NOT use an unsigned bare handle as authoritative
         identity. When present, primary_handle_claim is a complete
@@ -5153,7 +5141,7 @@ paths:
       summary: Update the authenticated principal's Actor Profile projection.
       description: |
         Carries exactly one holder-signed profile_event EventInitialSubmission.
-        event.realm_id is the exact PrincipalAuthorityInstance PCR selector, and
+        event.realm_id is the account-local PCR Realm selector, and
         accepted-profile presence is evaluated only in that PCR lineage. With no
         accepted Actor Profile there the Event is ak.profile.create and its
         materialized actor_profile ID is derived from the Event ID; payload.object
@@ -5161,7 +5149,7 @@ paths:
         payload.target_ref equals that create-derived ID, and patch paths are limited
         to display_name, avatar_blob_ref, and profile_fields.<key>.
 
-        Both branches use the authenticated session's exact PrincipalAuthorityInstance
+        Both branches use the authenticated session's account authority pair and local
         PCR as event.realm_id and realm scope, bind event.actor_id to the session
         principal, and use direct holder proof. On create payload.object.principal_id
         equals that principal; on update the accepted target Profile's materialized
@@ -5786,56 +5774,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DirectConversationRepairEnqueueOutcome'
-  /_arkret/self/principal-service-bindings/prepare:
-    post:
-      operationId: ak.self.principal_service_binding.command.prepare
-      security:
-      - bearerAuth: []
-        dpopProof: []
-      summary: Prepare a challenge-bound accepted-at Principal Server binding.
-      description: |
-        Available only after the principal DID and PCR are accepted. The service
-        derives the frozen binding core from current verified DID authority and
-        its own service metadata. Omitting expected_current_binding_digest is a
-        create-if-absent CAS; providing it is same-service renewal.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PrincipalServiceBindingPrepareRequestBody'
-      responses:
-        '200':
-          description: Durable frozen binding draft and single-use challenge.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PrincipalServiceBindingPrepareOutcome'
-  /_arkret/self/principal-service-bindings/commit:
-    post:
-      operationId: ak.self.principal_service_binding.command.commit
-      security:
-      - bearerAuth: []
-        dpopProof: []
-      summary: Commit the exact principal-authorized service binding draft.
-      description: |
-        The service loads the durable draft, verifies the principal proof at the
-        frozen accepted_at authority, then atomically performs current-binding
-        CAS, service acceptance signing, challenge consumption and exact replay
-        outcome persistence.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PrincipalServiceBindingCommitRequestBody'
-      responses:
-        '200':
-          description: Installed immutable accepted-at service binding.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PrincipalServiceBindingCommitOutcome'
   /_arkret/self/snapshot/head:
     get:
       operationId: ak.self.snapshot.read.manifest_head
@@ -6894,8 +6832,8 @@ paths:
         Seal proof, current resolution Event and an optionally bounded predecessor
         chain. The response is discovery evidence, never an authorization result.
         A caller performing a sensitive operation MUST obtain a fresh response,
-        verify the exact authority instance and signed genesis receipt reverse
-        bindings, verify the PCR evidence, resolve the returned full_id with the registered
+        verify the exact (principal_id, principal_server_id) account authority,
+        verify any returned account-local audit evidence, resolve the returned full_id with the registered
         method adapter, and confirm project(full_id) equals principal_id. Callers
         are not required to persist another principal's resolution binding.
       parameters:
@@ -6905,16 +6843,15 @@ paths:
         schema:
           type: string
           pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
-      - name: authority_instance_digest
+      - name: principal_server_id
         in: query
         required: true
         description: >-
-          Canonical digest selecting one exact PrincipalAuthorityInstance for
-          this principal. Same-core PCRs on other Principal Servers are distinct
-          instances and MUST NOT be substituted.
+          Principal Server that owns the account authority for this principal.
+          Together with principal_id this is the complete public selector.
         schema:
           type: string
-          pattern: ^sha256:[0-9a-f]{64}$
+          pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
       - name: history_depth
         in: query
         required: false
@@ -7470,7 +7407,7 @@ paths:
       security: []
       responses:
         '200':
-          description: Account-aggregate sync service metadata and limits
+          description: Account-aggregate Principal Server sync-surface metadata and limits
           content:
             application/json:
               schema:
@@ -9787,7 +9724,7 @@ paths:
                 $ref: '#/components/schemas/AgentList'
     post:
       operationId: ak.self.agent.command.provision
-      description: Managed personal Agent provisioning. The controller first publishes a signed PCR-independent did:webvh entry 0. phase=prepare requires an exact controller_authority_instance, validates its canonical digest against this Principal Server's durable resolution record and current session, then verifies caller-supplied full_id and returns its exact accepted initial_resolution, controller PCR, delegation ref, scope digest and allocation without generating a DID/private key or choosing a PCR id. The controller freezes the PCR create with that commitment, derives principal_control_realm_id from its event_id and commits one controller-signed ak.agent.provision Event. Ordinary admission atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance returns awaiting_did_binding; only the controller-signed continuous DID entry 1 carrying the exact create-locked binding exposes Agent/pairing/list/get and returns complete. requested_scope is an immutable ceiling, not a grant; the service creates no Agent DID/PCR/MLS private state.
+      description: Managed personal Agent provisioning. The controller first publishes a signed PCR-independent did:webvh entry 0. phase=prepare requires the authenticated controller account's controller_principal_server_id, validates the pair against the current session, then verifies caller-supplied full_id and returns its exact accepted initial_resolution, controller PCR, delegation ref, scope digest and allocation without generating a DID/private key or choosing a PCR id. The controller freezes the PCR create with that commitment, derives principal_control_realm_id from its event_id and commits one controller-signed ak.agent.provision Event. Ordinary admission atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance returns awaiting_did_binding; only the controller-signed continuous DID entry 1 carrying the exact create-locked binding exposes Agent/pairing/list/get and returns complete. requested_scope is an immutable ceiling, not a grant; the service creates no Agent DID/PCR/MLS private state.
       security:
       - bearerAuth: []
         dpopProof: []

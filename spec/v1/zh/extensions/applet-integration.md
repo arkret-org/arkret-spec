@@ -386,7 +386,7 @@ scope 限制 MUST 只使用 [`authz/constraint-schema.md`](../authz/constraint-s
 ## 7. Applet API
 
 Applet API 是 Arkret 节点调用 Applet 的接口。  
-Applet 调用 Arkret 节点时使用常规 Events API / Sync Service / authz API。
+Applet 调用 Arkret 节点时使用常规 Events API / Principal Server sync surface / authz API。
 
 Base URL 来自 registration 的 `base_url`。
 
@@ -451,7 +451,7 @@ POST /_arkret/edge/applet/transactions
 Idempotency-Key: <opaque-string>
 ```
 
-Arkret Sync Service / Events API 向 Applet 推送事件批次。
+Arkret Principal Server sync surface / Events API 向 Applet 推送事件批次。
 
 请求示例（非完整 schema）：
 

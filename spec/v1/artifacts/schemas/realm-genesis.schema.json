@@ -132,14 +132,22 @@
     },
     {
       "if": {
-        "properties": { "purpose": { "const": "principal_control" } },
-        "required": ["purpose"]
+        "properties": {
+          "purpose": {
+            "const": "principal_control"
+          }
+        },
+        "required": [
+          "purpose"
+        ]
       },
       "then": {
         "properties": {
           "initial_resolution": {
             "properties": {
-              "full_id": { "$ref": "./common-ids.schema.json#/$defs/human_principal_full_id" }
+              "full_id": {
+                "$ref": "./common-ids.schema.json#/$defs/human_principal_full_id"
+              }
             }
           }
         }
@@ -148,14 +156,22 @@
     },
     {
       "if": {
-        "properties": { "purpose": { "const": "managed_agent_control" } },
-        "required": ["purpose"]
+        "properties": {
+          "purpose": {
+            "const": "managed_agent_control"
+          }
+        },
+        "required": [
+          "purpose"
+        ]
       },
       "then": {
         "properties": {
           "initial_resolution": {
             "properties": {
-              "full_id": { "$ref": "./common-ids.schema.json#/$defs/managed_agent_full_id" }
+              "full_id": {
+                "$ref": "./common-ids.schema.json#/$defs/managed_agent_full_id"
+              }
             }
           }
         }
@@ -165,14 +181,25 @@
     {
       "if": {
         "properties": {
-          "purpose": { "enum": ["principal_control", "managed_agent_control"] }
+          "purpose": {
+            "enum": [
+              "principal_control",
+              "managed_agent_control"
+            ]
+          }
         },
-        "required": ["purpose"]
+        "required": [
+          "purpose"
+        ]
       },
       "then": {
         "properties": {
           "schema_refs": {
-            "not": { "contains": { "const": "ak.profile.ephemeral_pairwise_principal.v1" } }
+            "not": {
+              "contains": {
+                "const": "ak.profile.ephemeral_pairwise_principal.v1"
+              }
+            }
           }
         }
       },

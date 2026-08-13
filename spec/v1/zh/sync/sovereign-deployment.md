@@ -32,7 +32,7 @@ Sovereign deployment 是由单一组织或联盟控制的 Arkret 服务域。它
 
 - Organization DID / governance registry / witness
 - Identity Registry
-- Principal Server / Sync Service
+- Principal Server / Principal Server sync surface
 - Directory
 - Blob Store
 - Policy Server
@@ -84,13 +84,13 @@ flowchart TB
         EXTORG["External Organization<br/>DID"]
         EXTCLIENT["External Managed<br/>Client"]
         EXTAPI["External Principal Server /<br/>Events API"]
-        EXTSYNC["External Principal Server /<br/>Sync Service"]
+        EXTSYNC["External Principal Server /<br/>Principal Server sync surface"]
     end
 
     subgraph "Controlled Collaboration Enclave"
         ESPACE["External Collaboration<br/>Realm"]
         EPOL["Enclave Policy<br/>Server"]
-        ESYNC["Enclave Principal Server /<br/>Sync Service"]
+        ESYNC["Enclave Principal Server /<br/>Principal Server sync surface"]
     end
 
     EXTCLIENT -->|"invite + restricted join"| ESPACE
@@ -106,7 +106,7 @@ flowchart TB
 - 主网络保持 closed federation，不向外部主体暴露内部 Directory 或服务拓扑。
 - Controlled Collaboration Enclave 是独立协作边界，只承载被批准的 Realm。
 - 外部主体通过 DID / VC / authority chain / invite / restricted join 进入 enclave Realm。
-- 外部组织可以保留自己的 Principal Server / Events API，但写入必须经过 enclave Principal Server / Sync Service、Policy Server 和本地授权验证。
+- 外部组织可以保留自己的 Principal Server / Events API，但写入必须经过 enclave Principal Server / Principal Server sync surface、Policy Server 和本地授权验证。
 - 主网络与 enclave 之间没有默认桥接；资料进出必须经过 export / import review。
 
 ## 2.2 Sovereign Client
@@ -118,7 +118,7 @@ Sovereign client MUST:
 - pin organization trust seals：Organization DID、governance DID、registry DID、witness DID、service DID allowlist。
 - 使用组织配置的 DID resolver policy，MUST NOT 默认查询公共 registry / public directory。
 - 验证服务 DID 委派、证书、HTTP message signature 和 feature profile。
-- MUST NOT 允许用户手动添加未批准 Sync Service / Directory / Blob / Applet endpoint。
+- MUST NOT 允许用户手动添加未批准 Principal Server sync surface / Directory / Blob / Applet endpoint。
 - 默认关闭公共 federation、公共搜索、外部 Applet 和外部 Agent handoff。
 - 对每个 Realm 显示 classification、E2EE、auditable E2EE、export、external member policy。
 - 支持远程撤销 session、device、grant、Applet delegation 和 cached secret。
@@ -139,7 +139,7 @@ Sovereign client(在 `ak.profile.sovereign_deployment.v1` 语境下)逐条强制
 - 禁止公共 federation(MUST)。
 - 禁止公共 directory listing(MUST)。
 - frontier 交换只通过 `/_arkret/peer/events/frontier` 对 allowlist peer 开放（见 [`federation.md` §4.5.1](federation.md)）；sovereign profile 不定义匿名 frontier 探测面，避免 `frontier_root` 摘要被多次轮询推断 Realm 活跃度时间序列。
-- Sync Service / Directory 只接受 allowlist service DID(MUST)。
+- Principal Server sync surface / Directory 只接受 allowlist service DID(MUST)。
 - Blob、snapshot、backup、audit log 存储在组织控制基础设施内(MUST)。
 - E2EE 默认开启(MUST);需要合规审查时使用 auditable E2EE，且必须向成员显示。
 - 外部 Applet、Agent handoff、TSP/A2A/ACP transport 默认关闭，按 Realm 明确开启(MUST)。
@@ -184,7 +184,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 - 仅当 policy 允许且权限链已验证时，MAY 为外部协作方接受公共 DID 方法。
 - 当 `public_resolver_allowed:false` 时，`did:plc` 等本质依赖公共 directory 的方法 MUST NOT 直接查询公共 PLC directory；其 DID Document 与操作历史 MUST 经受批准的 PLC mirror、审计日志 source 或离线 bundle 解析（与上条内部主体同一约束）。无可用受批准来源时 MUST fail closed，不得回退到公共 resolver。
 - 涉及关联风险的外部协作 SHOULD 使用 pairwise DID。
-- 指向公共 Sync Service / Directory 的 `ServiceResolutionRecord.base_url` 或 bootstrap hint 在未 allowlist 时 MUST 被忽略；DID Document service endpoint 也不得绕过该规则。
+- 指向公共 Principal Server sync surface / Directory 的 `ServiceResolutionRecord.base_url` 或 bootstrap hint 在未 allowlist 时 MUST 被忽略；DID Document service endpoint 也不得绕过该规则。
 
 **`did:key` 的 `ephemeral_only` enforcement 语义（normative）**：`method_policy` 把某 method（默认 `did:key`）设为 `ephemeral_only` 时，该取值是可测试约束而非口号。落入 `ephemeral_only` 的 DID **MUST NOT** 被用作：
 

@@ -63,7 +63,7 @@ ak:did_core:<method>:<core>
 
 这些标识是 user-facing identifier、service account id、handle、3PID 或 bridge alias；它们不是协议主键。实现首次建立账号、session、device、membership、federation peer 或 service delegation 信任绑定时，MUST 要求提交 `full_id`，用已登记 method adapter 独立验证并投影为 principal `did_core_id`，再绑定到 device。后续持久 Event 仍须逐条验签与授权，但命中既有 accepted auth-state / key epoch 时 MUST 复用该绑定，不得把每次 Event 接收都解释为重新解析 DID。
 
-如果用户尚无显式 DID，Auth Server MAY 编排 account-first onboarding；客户端按所选 active adapter 生成并控制注册材料，服务端不得代持控制私钥。选择 `did:webvh` 时可由 registry 托管客户端签名的 `did.jsonl` 并提供 witness；选择 `did:web` 时必须冻结注册时 DNS/WebPKI 与 DID Document evidence；选择 `did:key` 时必须冻结 deterministic expansion evidence。无论 method，设备目录、recovery policy、resolution 与业务授权都按具体 PCR authority instance 分区，hosting 或当前 DID control 不等于注册后 PCR 控制权。
+如果用户尚无显式 DID，Auth Server MAY 编排 account-first onboarding；客户端按所选 active adapter 生成并控制注册材料，服务端不得代持控制私钥。选择 `did:webvh` 时可由 registry 托管客户端签名的 `did.jsonl` 并提供 witness；选择 `did:web` 时必须冻结注册时 DNS/WebPKI 与 DID Document evidence；选择 `did:key` 时必须冻结 deterministic expansion evidence。无论 method，设备目录、recovery policy、resolution 与业务授权都按具体 `(principal_id, principal_server_id)` 账号分区，hosting 或当前 DID control 不等于注册后 PCR 控制权。
 
 #### 2.1.2 `did_core_id` / `full_id` 模型（normative）
 
@@ -134,12 +134,12 @@ self-certifying anchor。二者都不是 `did:webvh` outage fallback。
 - 它与 Arkret 的 service DID 发现模型兼容，部署门槛仅比 `did:web` 多一份 `did.jsonl` 文件；service DID 若显式降级到 `did:web`，必须把 `history_evidence_kind="none"` / no-history trust profile 暴露给 verifier，不得伪装成默认强度。
 
 `did:web` 的当前状态只有 DNS/WebPKI 强度，因此注册 verifier MUST 持久化 accepted-at bootstrap evidence，
-并依赖 immutable PCR authority instance 防止后续域名转手替换既有关系；它不能用于 relocation 或
+并依赖 create-once account authority pair 防止后续域名转手替换既有关系；它不能用于 relocation 或
 DID-root recovery。未来 human anchor method 必须登记 adapter 客观属性、注册 evidence 与 conformance
 vector，并满足 `role_requirements.human_principal_anchor`。v1 core 实现 MUST 支持
 `did:webvh:1.0` adapter，以保证 mandatory-to-implement 的联邦互验基线。
 
-> **残留暴露面与 Key Transparency profile（informative）**：`did:webvh` history 与 witness 只证明单个 DID 的 method continuity，不决定某个 Arkret 业务关系选择哪条 PCR。`did:web` 的 DNS/WebPKI split-view 与 controller transfer 风险同时适用于 service 和 human registration bootstrap；human 侧通过 durable registration evidence 与 immutable PCR authority-instance binding 阻止它改写既有关系。可选 `ak.profile.key_transparency.v1` 的 PCR label 必须包含完整 authority instance，不能只用 `did_core_id`，否则同 core 多 PCR 会被错误合并。
+> **残留暴露面与 Key Transparency profile（informative）**：`did:webvh` history 与 witness 只证明单个 DID 的 method continuity，不决定某个 Arkret 业务关系选择哪条 PCR。`did:web` 的 DNS/WebPKI split-view 与 controller transfer 风险同时适用于 service 和 human registration bootstrap；human 侧通过 durable registration evidence 与 create-once account authority pair 阻止它改写既有关系。可选 `ak.profile.key_transparency.v1` 的 PCR label 必须包含完整 account authority pair，不能只用 `did_core_id`，否则同 core 多 PCR 会被错误合并。
 
 ### 3.1 Method Selection
 
@@ -210,7 +210,7 @@ Arkret v1 core conformance 要求如下：
 - Core resolver / verifier MUST 支持 DID Core 解析 / 验证抽象、`did:webvh`、`did:web` 和 `did:key`，但 method 能被解析不代表可用于任意角色或能力。
   - `did:webvh:1.0` 是 v1 core MTI adapter 与 default human/service method。method evidence 的 `parameters.method` MUST 等于 `did:webvh:1.0`；缺失或未知版本 MUST `unsupported_did_method`。
   - `did:key` MAY 作为不可变 human identity anchor；其账号、PCR、device 与 recovery 生命周期完全由 PCR 承担。method update、relocation 与 DID-root recovery MUST `unsupported_feature`。它也可用于显式 ephemeral pairwise profile，但两种角色合同不得混用。
-  - `did:web` MAY 作为不可迁移 human identity anchor，前提是注册时 DNS/WebPKI bootstrap trust evidence 被 durable 固定，并且所有业务关系绑定 immutable PCR authority instance；它不提供 method-native history、relocation 或 DID-root recovery，也不是 `did:webvh` outage fallback。
+  - `did:web` MAY 作为不可迁移 human identity anchor，前提是注册时 DNS/WebPKI bootstrap trust evidence 被 durable 固定，并且所有业务关系绑定 create-once account authority pair；它不提供 method-native history、relocation 或 DID-root recovery，也不是 `did:webvh` outage fallback。
 - `did:webvh` 的 history/pre-rotation 只开启 relocation 与可选 DID-root recovery 能力；它们不是 human anchor 的统一准入门槛。organization、managed Agent 与 service 是否要求持续 DID governance 由各自角色合同决定。
 - AT Protocol interop（`did:plc`）、wallet binding（`did:pkh`）、KERI 等 method 可以由 extension 解析为外部 claim；要进入 human anchor 或其它角色集合，必须先在 adapter registry 登记对应能力与 bootstrap trust，而不能由 implementation-local policy 增加。
 - 实现 MUST NOT 将任何外部 DID Document 重写为 Arkret 私有 DID method。
@@ -255,7 +255,7 @@ Arkret v1 core conformance 要求如下：
 
 > **高保障 profile 加固（normative，profile-gated）**：`high_security_organization` 与 `sovereign_deployment` 对登记为 `method_successor` 或 `ongoing_governance` 的 `did:webvh` 调用，MUST 使用带 inclusion/consistency proof 的 append-only witness log。该要求不适用于仅由 human PCR 授权的 recovery、membership、device 或 capability 动作。
 
-> **`ak.profile.key_transparency.v1` 覆盖范围（normative，profile-gated）**：上述 log-backed witness 覆盖 `did:webvh` cache entry / witness evidence；该 profile 进一步覆盖 PCR 内的 device key、authorization frontier 与 KeyPackage 发布。其 label MUST 包含完整 `(principal_server_id,pcr_realm_id,principal_genesis_receipt_digest,principal_id)` authority instance，不能只用 `principal_id`。缺失或验证失败 MUST `key_transparency_proof_missing`；验证器不得改查 current human DID，也不得把同 core 的另一 PCR 当作相同 label。
+> **`ak.profile.key_transparency.v1` 覆盖范围（normative，profile-gated）**：log-backed witness 可覆盖账号内部 device key、authorization frontier 与 KeyPackage 发布，但其外部 account label MUST 只使用 `(principal_id, principal_server_id)`；PCR realm、genesis receipt 与 frontier 只能作为该 pair 内部审计材料，不能形成第二套 principal equality。
 >
 > **为什么 fallback 是 cache-only**（rationale）：把既有 `did:webvh` identity 临时改按同域 `did:web` 解析，会把 SCID/history 信任根降级成 DNS+TLS 当前状态。独立注册的 `did:web` anchor 合法，但绝不是另一条 `did:webvh` identity 的 fallback。
 
@@ -525,7 +525,7 @@ PCR reducer MUST 以 create-locked cell family `ak.component.identity.resolution
 
 上述两个 history position 字段不得由实现自由命名或省略。`did:webvh:1.0` 的 `method_history_head` 是当前已验证 log entry 的 RFC 8785 JCS SHA-256，`version_id` 是同一 entry 的 method-native `versionId`；`did:web:1` 使用当前已验证 DID Document 的 RFC 8785 JCS SHA-256，并以同一摘要构造 `synthetic-jcs-sha256:<hex>`；`did:key:1` 使用 canonical `full_id` UTF-8 字节的 SHA-256，并以同一摘要构造 `synthetic-full-id-sha256:<hex>`。算法与字符串格式以 `contract-registry.json` 的 active adapter row 为唯一权威。
 
-Profile 是该 cell 的公开 **current projection**，可以发布当前 `full_id`、history head、version、resolution Event ref 与更新时间；Profile 不是授权根。公开 operation `ak.open.identity.read.resolution` MUST 以必填 `authority_instance_digest` 选择一个精确 PCR authority instance，返回 current projection，并可按请求附带选择性的 `principal_resolution_evidence` 历史；同一 `principal_id` 在其它 Principal Server 上的 PCR 不得替代该实例。evidence MUST 自包含完整 `authority_instance` 与其签名 `principal_genesis_receipt`，并包含所披露的 resolution Event、对应 Seal/cell proof 与从目标 Event 到当前 accepted head 所需的连续性材料。consumer MUST 重算 `authority_instance_digest` 与 receipt canonical digest，并验证 `authority_instance.principal_id == principal_id`、`authority_instance.pcr_realm_id == principal_control_realm_id`、`authority_instance.principal_server_id == principal_genesis_receipt.issuer`，以及 receipt 的 `pcr_genesis_unit` scope、covered create Event digest、event-derived Realm 与响应 genesis Event 全部反向闭合；任一不等 MUST fail closed。`predecessor_resolution_events` 只允许 resolution Event、按近到远排列且每个响应最多 256 项；更深历史必须拆成分别带 Seal/cell proof 的有界响应。`method_history_evidence` MUST 以已登记的 `adapter_version` + `evidence_kind` 判别并携带明确的 from/to history head 与 version 边界，unknown/mismatch fail closed，单份 canonical evidence 不得超过 1 MiB。实现 MAY 隐去无关 Event，但不得省略上述 authority/genesis receipt 材料，也不得把未证明的数组或服务端自报“已验证”布尔值当成审计历史。
+Profile 是该 cell 的公开 **current projection**，可以发布当前 `full_id`、history head、version、resolution Event ref 与更新时间；Profile 不是授权根。公开 operation `ak.open.identity.read.resolution` MUST 以 `(principal_id, principal_server_id)` 选择账号并返回 current projection。响应 MAY 附带账号内部 PCR genesis/Seal/history 作为审计或恢复材料，但这些字段不改变 external identity，也不得成为普通 federated Event 验证的前置条件；普通 Event 只验证 in-envelope producer proof 与 Principal Server admission proof。`method_history_evidence` 仍按登记的 adapter/version 有界验证。
 
 外部接收方**不要求**为任意其他 principal 持久保存 current resolution binding。普通 profile 浏览可以消费公开 projection；human 历史 device/Event evidence使用 genesis receipt 钉住的 registration evidence 与 PCR authorization chain，不重新取得 latest projection。只有 §4 的 current external claim、method successor、optional DID-root recovery 与持续 DID governance 调用点才刷新 current evidence；无法刷新时仅这些动作 fail closed。
 

@@ -66,7 +66,6 @@
         "authorization_core",
         "slot_committed",
         "issuer_service_id",
-        "issuer_service_binding_digest",
         "accepted_at",
         "proof"
       ],
@@ -144,9 +143,6 @@
         "issuer_service_id": {
           "$ref": "./principal-operations.schema.json#/$defs/did_core_id"
         },
-        "issuer_service_binding_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
-        },
         "accepted_at": {
           "$ref": "./principal-operations.schema.json#/$defs/timestamp"
         },
@@ -160,17 +156,12 @@
       "type": "object",
       "description": "Verbatim authoring material for the founding unit the caller is now entitled to author, carried only by the creation_required outcome. Member names equal the DirectConversationFoundingUnitSubmission members byte for byte, so the caller copies them across without any renaming map (service-http-binding.md 2.2.2 echo-container discipline). The caller still authors and signs all three Events itself; this container never carries Event bytes, coordinates or a receipt. Material that the service cannot assemble or verify yields temporarily_unavailable instead of a creation_required outcome without it.",
       "required": [
-        "founding_authority_evidence",
-        "source_service_binding"
+        "founding_authority_evidence"
       ],
       "properties": {
         "founding_authority_evidence": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/DirectConversationFoundingAuthorityEvidence",
           "description": "The human branch for a peer Contact founding and the controller_agent branch for an own-Agent founding; the service selects the branch that matches this pair and never returns both."
-        },
-        "source_service_binding": {
-          "$ref": "./principal-service-binding.schema.json#/$defs/accepted_at_service_binding",
-          "description": "The founder's current accepted-at binding for this receiving service, as held by the service itself."
         }
       },
       "additionalProperties": false
@@ -433,20 +424,16 @@
       ]
     },
     "direct_conversation_repair_requester_evidence": {
-      "description": "Portable current requester authority appended by the source Principal Server. The destination independently verifies it and matches every branch field against content, detached authorization, accepted rejoin Event and exact KeyPackage signer evidence; the outer service signature is transport integrity only.",
+      "description": "Closed requester-kind discriminator. Human-device and Native-Agent authority is verified from the accepted rejoin/KeyPackage Events and their in-envelope Principal Server admission proofs; no signer-evidence sidecar is accepted.",
       "oneOf": [
         {
           "type": "object",
           "required": [
-            "kind",
-            "device_authorization_evidence"
+            "kind"
           ],
           "properties": {
             "kind": {
               "const": "device"
-            },
-            "device_authorization_evidence": {
-              "$ref": "./federated-device-signing-key-evidence.schema.json"
             }
           },
           "additionalProperties": false
@@ -454,15 +441,11 @@
         {
           "type": "object",
           "required": [
-            "kind",
-            "agent_signer_evidence"
+            "kind"
           ],
           "properties": {
             "kind": {
               "const": "native_agent"
-            },
-            "agent_signer_evidence": {
-              "$ref": "./agent-signer-evidence.schema.json#/$defs/current_admission_evidence"
             }
           },
           "additionalProperties": false

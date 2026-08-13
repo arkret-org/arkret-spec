@@ -66,7 +66,9 @@ ID 语义：
   "schema": "ak.schema.capability.v1",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "issuer": "ak:did_core:webvh:z6qRDFWgaBgTY3UGDLivJztno",
+  "issuer_principal_server_id": "ak:did_core:webvh:z6mkfixtureissuerprincipalserver",
   "subject": "ak:did_core:webvh:z8NNMm8UHw7JcDSuuZd34UisF",
+  "subject_principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver",
   "issuer_authority_refs": [
     {
       "kind": "realm_root",
@@ -115,7 +117,7 @@ ID 语义：
 
 ### 3.0.1 单一 durable signature（normative）
 
-`ak.capability.grant` 的 `grant` 是无 `id`、无内层 proof 的 closed create body。唯一 durable issuer signature 是承载该 payload 的 Event envelope proof；它同时覆盖 actor、scope、typed authority refs、完整 create body 与时间。Event accepted 后 reducer MUST 以 `retype(event_id,"grant")` 同时作为 cell subject 和投影 `grant.id`。该 Event 的 actor MUST 等于 `grant.issuer`，且本 kind MUST NOT 使用 `executed_by`，从而不存在 executor 与 issuer 不同却遗漏第二签名的问题。需要独立携带、不同 signer、quorum/threshold 或独立密码学 transcript 的证明必须使用另行注册的 typed payload，不得把通用 `proofs[]` 加回 grant body。服务端不得代签或补造 Event proof。
+`ak.capability.grant` 的 `event.payload.grant` 是无 `id`、无 `issuer_principal_server_id`、无 `authority_depth`、无 `authority_root_refs`、无内层 proof 的 closed authoring body；这些 reducer-derived 字段若由 producer 自填，schema MUST 拒绝。唯一 durable issuer signature 是承载该 payload 的 Event envelope proof；它同时覆盖 actor、scope、typed authority refs、完整 create body 与时间。Event accepted 后 reducer MUST 以 `retype(event_id,"grant")` 同时作为 cell subject 和投影 `grant.id`，并把承载 Event 的 `principal_server_id` **逐字复制**为投影 `grant.issuer_principal_server_id`；不得通过 issuer DID 查找、当前路由、默认服务或接收方本地身份补值。该 Event 的 actor MUST 等于 `grant.issuer`，且本 kind MUST NOT 使用 `executed_by`，因此完整 issuer authority key 恒为 `(grant.issuer, grant.issuer_principal_server_id) == (Event.actor_id, Event.principal_server_id)`。需要独立携带、不同 signer、quorum/threshold 或独立密码学 transcript 的证明必须使用另行注册的 typed payload，不得把通用 `proofs[]` 加回 grant body。服务端不得代签或补造 Event proof。
 
 ### 3.1 条件化 Grant
 
@@ -724,7 +726,7 @@ v1 只有**一种** grant 形态。每条 grant 用 `issuer_authority_refs[]` �
 | | root controller 直发 | 普通 principal 再授予 |
 | --- | --- | --- |
 | ref | `{kind:"realm_root", realm_id, cell_ref, controller_epoch_at_issuance, authority_generation}` | 一个或多个 `{kind:"grant", grant_id}` |
-| issuer 证明 | 签发 Seal basis 下 root cell 的 `controller_id == issuer` | 每条 ref 的 `subject == issuer` |
+| issuer 证明 | 签发 Seal basis 下 root cell 的 `controller_id == issuer`，且物化 issuer pair 来自承载 Event | 每条 ref 的 `(subject, subject_principal_server_id) == (issuer, issuer_principal_server_id)` |
 | 持续有效性 | root 存在、Realm 未终止且 `authority_generation` 与 ref 相同；controller transfer 不影响 | 该 ref grant 当前 active |
 | 上界 | root owner ceiling ∩ Realm policy | union(ref grants) ∩ Realm policy |
 
@@ -734,14 +736,15 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 
 若某条 ref 的 `authority_control` constraint 声明 `authority_regrant_allowed=false`，则以它为 ref 的 grant MUST 把 `max_authority_depth` 置 0，且 MUST NOT 再被任何 grant 引用为 ref；违反时 reducer MUST 以 `failed_precondition` reason=`authority_regrant_denied` 拒绝。
 
-**求值时机（normative）**：child grant 的有效性在**每次授权判定时**按当前 refs 状态重算，不做级联写。`kind="grant"` ref 失活按 action 传播；`kind="realm_root"` ref 只检查 cell 存在、Realm 未终止且当前 `authority_generation` 与 ref 相同，**不比较** current controller / epoch。因此 `ak.realm.owner.transfer` 不影响任何既有 child，只有 `ak.realm.authority.reset` 才整代失效。
+**求值时机（normative）**：child grant 的有效性在**每次授权判定时**按当前 refs 状态重算，不做级联写。`kind="grant"` ref 必须保持 active，且其完整 subject authority pair 必须逐字等于 child 的完整 issuer authority pair；只有 DID 相等而 `subject_principal_server_id != issuer_principal_server_id` 时 MUST 视为未提供 issuer authority，并以 `failed_precondition`、reason=`grant_exceeds_issuer_authority` fail closed。该比较只读取已物化字段，不得按 DID 二次查询或把当前路由服务替换成签发时 selector；因此离线 replay、迁移和联邦重放不会把同一 DID 的另一 Principal Server 实例串成授权链。`kind="grant"` ref 失活按 action 传播；`kind="realm_root"` ref 只检查 cell 存在、Realm 未终止且当前 `authority_generation` 与 ref 相同，**不比较** current controller / epoch。因此 `ak.realm.owner.transfer` 不影响任何既有 child，只有 `ak.realm.authority.reset` 才整代失效。
 
-**审计（normative）**：reducer MUST 从 refs 结构派生并物化两个字段，二者都不是作者声明，因此不可谎报：
+**接受后物化字段（normative）**：reducer MUST 物化下列三个字段；它们都不属于 producer 的 closed authoring body，因此不可由作者谎报：
 
+- `issuer_principal_server_id`：对 `ak.capability.grant` 逐字复制 accepted carrier Event 的 `principal_server_id`；与 payload 的 `issuer` 组成完整签发者 authority key。`ak.capability.derived` 必须保留 source grant 已物化的该字段，不能替换成 reducer 或接收服务身份。
 - `authority_depth`：`realm_root` ref 深度为 0，grant 自身为 `max(refs.authority_depth) + 1`。root controller 直发为 1，成员再授予为 2。取签发时静态值，撤销不重算——撤销只改有效性、不改历史结构；实际链深可能小于记录值，对 `max_authority_depth` 判定是偏严方向。
 - `authority_root_refs[]`：direct `realm_root` refs 并上 `union(grant_refs.authority_root_refs)`。它**不是单值**——多亲与 `ak.capability.derived` 的跨 Realm 继承都可能追溯到不同 root / generation。去重键为 `(realm_id, cell_ref, authority_generation)`，MUST 按 unsigned-byte lexicographic 排序；`controller_epoch_at_issuance` 属每条 grant 的 issuance audit，不进入 root identity 去重键。
 
-两者 MUST 登记进 `ak.capability.grant` 的 `cell_writes[].derived_members[]`（见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `cell_contracts`），派生名分别为 `capability_authority_depth` 与 `capability_authority_root_refs`；该 `derivation` 取值集合是封闭的，新增派生等同新增 normative reducer 规则。未登记的 reducer 顺带写入 MUST NOT 进入 `state_root`（[`realm-and-space.md`](../models/realm-and-space.md)）。refs 指向的 grant 尚未投影时 depth / roots 算不出，MUST 走 dependency pending 或 `temporarily_unavailable`，**MUST NOT** 猜一个深度。
+三者 MUST 登记进 `ak.capability.grant` 的 `cell_writes[].derived_members[]`（见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `cell_contracts`），派生名分别为 `capability_issuer_principal_server_id`、`capability_authority_depth` 与 `capability_authority_root_refs`；该 `derivation` 取值集合是封闭的，新增派生等同新增 normative reducer 规则。未登记的 reducer 顺带写入 MUST NOT 进入 `state_root`（[`realm-and-space.md`](../models/realm-and-space.md)）。refs 指向的 grant 尚未投影时 depth / roots 算不出，MUST 走 dependency pending 或 `temporarily_unavailable`，**MUST NOT** 猜一个深度。
 
 审计因此退化为单字段过滤（"权限扩散了几跳、根在哪里"），不需要递归 join，也不会因为各实现自行递归重建而在联邦对端得到不一致的视图。
 
@@ -913,7 +916,7 @@ profile-gated 动作沿用同一原则：出现在 schedule、roster 或成员�
 权限检查 MUST 至少在以下协议边界执行：
 
 - Events API 接收写入时
-- Sync Service 分发前
+- Principal Server sync surface 分发前
 - 受托 search / projection 服务返回结果前
 - blob store 下发内容前
 

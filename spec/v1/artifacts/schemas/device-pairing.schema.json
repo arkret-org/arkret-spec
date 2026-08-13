@@ -185,7 +185,7 @@
     },
     "event_id": {
       "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "public_key": {
       "$ref": "./public-key.schema.json#/$defs/public_key",

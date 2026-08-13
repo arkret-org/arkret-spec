@@ -35,7 +35,8 @@
               "body": "hello"
             }
           },
-          "proofs": []
+          "proofs": [],
+          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
         }
       },
       "expected": {
@@ -85,7 +86,8 @@
                 "fail_closed": true
               }
             ]
-          }
+          },
+          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
         },
         "supported_features": [
           "ak.feature.detached_jws.v1"
@@ -138,7 +140,8 @@
               "domain": "arkret-event-v1",
               "jws": "eyJhbGciOiJFZDI1NTE5In0..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
-          ]
+          ],
+          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
         }
       },
       "expected": {
@@ -184,7 +187,8 @@
               "body": "rollback"
             }
           },
-          "proofs": []
+          "proofs": [],
+          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
         }
       },
       "expected": {
@@ -353,7 +357,8 @@
               "body": "too many prev refs"
             }
           },
-          "proofs": []
+          "proofs": [],
+          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
         }
       },
       "expected": {
@@ -389,7 +394,8 @@
               "body": "missing auth refs"
             }
           },
-          "proofs": []
+          "proofs": [],
+          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
         }
       },
       "expected": {
@@ -430,7 +436,8 @@
               "body": "self ref"
             }
           },
-          "proofs": []
+          "proofs": [],
+          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
         }
       },
       "expected": {
@@ -486,7 +493,8 @@
           "payload": {
             "event_id": "ak:event:AfJRB2whShXS-ghpXQhgN5u_MsXwor5nNWDxQ6YCfvce"
           },
-          "proofs": []
+          "proofs": [],
+          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
         }
       },
       "expected": {
@@ -525,7 +533,8 @@
             "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
             "typing": true
           },
-          "proofs": []
+          "proofs": [],
+          "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
         }
       },
       "expected": {
@@ -572,7 +581,8 @@
                 "body": ""
               }
             },
-            "proofs": []
+            "proofs": [],
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
           }
         }
       },
@@ -622,7 +632,8 @@
                 "body": "oversized key host"
               }
             },
-            "proofs": []
+            "proofs": [],
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
           }
         }
       },
@@ -672,7 +683,8 @@
                 "body": ""
               }
             },
-            "proofs": []
+            "proofs": [],
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
           }
         }
       },

@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-08",
+  "version": "2026-08-13.2",
   "source_of_truth": true,
   "description": "Canonical registry of all normative MLS-Exporter and MLS ExpandWithLabel domain-separation labels in Arkret v1. Each label is a wire-breaking security parameter: implementations MUST use the exact label string, primitive, and Context field shape, and MUST NOT migrate or reuse keys across distinct labels without a new profile. MLS-Exporter entries MUST NOT derive with an empty Context; an ExpandWithLabel entry follows its registered context_encoding, including an explicitly registered empty context. Domain separation is defined by exact label inequality; forbid_reuse_with is a non-exhaustive human/tooling hint and MUST NOT be interpreted as an allow-list or require symmetric closure. Per-entry defined_in points to the normative source. See zh/crypto-media/media-service-binding.md §8 and conformance/conformance-vectors.md §12.7.",
   "labels": [
@@ -174,7 +174,7 @@
     {
       "label": "arkret-mention-routing-v1",
       "primitive": "MLS-Exporter",
-      "purpose": "Keyed-HMAC key for the opt-in mention routing sidecar tag in E2EE Realms (mention_routing_hmac_v1 = HMAC-SHA256(key, utf8(mentioned_did)); the exporter output is the HMAC key; Sync Service MUST NOT derive, receive or persist the exporter secret)",
+      "purpose": "Keyed-HMAC key for the opt-in mention routing sidecar tag in E2EE Realms (mention_routing_hmac_v1 = HMAC-SHA256(key, utf8(mentioned_did)); the exporter output is the HMAC key; Principal Server transport and sync surfaces MUST NOT derive, receive or persist the exporter secret)",
       "defined_in": "zh/discovery/push-notifications.md (mention sidecar hint, mention_routing_hmac_v1)",
       "context_fields": [
         "realm_id"

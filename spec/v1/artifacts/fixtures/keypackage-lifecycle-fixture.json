@@ -378,11 +378,8 @@
         "target_directional_contact_scope_missing",
         "required_capability_not_in_keypackage",
         "last_resort_allowed_true",
-        "missing_target_device_signing_key_evidence",
         "truncated_target_device_authorization_chain",
         "target_device_projection_mismatch",
-        "device_claim_with_target_agent_signer_evidence",
-        "agent_claim_with_target_device_signing_key_evidence",
         "target_agent_observation_request_digest_mismatch"
       ],
       "expected": {
@@ -402,8 +399,6 @@
         "the destination independently enforces both directional Contact heads/scopes, capability and authority gates without consulting Consent",
         "Direct Conversation peer claim never falls back to a last-resort KeyPackage",
         "business failures do not expose target inventory or per-device reasons",
-        "a successful human-device claim carries complete target_device_signing_key_evidence with no fixed semantic history-entry cap and the requester independently replays it before installing the KeyPackage",
-        "a successful Native Agent claim instead carries current target_agent_signer_evidence bound to this operation, exact request digest, requester verifier and claim request challenge",
         "claims_digest and the destination receipt cover returned evidence bytes but never replace the underlying identity-root, Seal and current-authority verification",
         "device and Agent evidence branches are exact XOR and cannot fall back to one another"
       ]

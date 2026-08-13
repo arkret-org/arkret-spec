@@ -13,7 +13,11 @@
     "The registry is intentionally minimal: new KEM families (post-quantum / hybrid), new KDFs and new AEADs enter additively as new rows with their own profile gates and conformance vectors; the ak.hpke_*_aead_*.v* wire form needs no rewrite. Nonce handling is RFC 9180 key-schedule-derived, uniformly across every HPKE-sealed surface (`recovery_public_key` envelopes, the to-device `ak.secret.send` seal, member-application and file-transfer key envelopes): the AEAD nonce is base_nonce XOR seq (single-shot seq=0) and MUST NOT be carried on the wire; each seal mints a fresh ephemeral key, so base_nonce is unique per envelope. See zh/identity/key-management.md §7.5 for the symmetric (non-HPKE) key-backup nonce-uniqueness rules."
   ],
   "kem_strength_order": {
-    "order": ["dhkem_p256_hkdf_sha256", "dhkem_x25519_hkdf_sha256", "xwing_x25519_mlkem768"],
+    "order": [
+      "dhkem_p256_hkdf_sha256",
+      "dhkem_x25519_hkdf_sha256",
+      "xwing_x25519_mlkem768"
+    ],
     "note": "Classical KEMs are treated as equal classical strength; the hybrid xwing row is strictly stronger (adds ML-KEM-768 post-quantum confidentiality). Consumed by any future no-downgrade rule on suite transition."
   },
   "suites": [

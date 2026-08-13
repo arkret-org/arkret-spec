@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-05-21",
+  "version": "2026-08-13.3",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/lint_artifacts.py validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -911,7 +911,8 @@
             "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
-        ]
+        ],
+        "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
       }
     },
     {
@@ -968,7 +969,8 @@
             "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
-        ]
+        ],
+        "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
       }
     },
     {
@@ -1046,7 +1048,8 @@
             "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
-        ]
+        ],
+        "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
       }
     },
     {
@@ -1105,7 +1108,8 @@
             "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
-        ]
+        ],
+        "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
       }
     },
     {
@@ -1183,7 +1187,8 @@
             "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
-        ]
+        ],
+        "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
       }
     },
     {
@@ -1240,7 +1245,8 @@
             "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
-        ]
+        ],
+        "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
       }
     },
     {
@@ -1295,7 +1301,8 @@
             "created_at": "2026-06-04T00:00:00.000Z",
             "jws": "a..b"
           }
-        ]
+        ],
+        "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
       }
     },
     {
@@ -1325,7 +1332,9 @@
         "id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
         "schema": "ak.schema.capability.v1",
         "issuer": "ak:did_core:webvh:z6mkfixtureownerexample",
+        "issuer_principal_server_id": "ak:did_core:webvh:z6mkfixtureownerserver",
         "subject": "ak:did_core:webvh:z6mkfixture",
+        "subject_principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver",
         "actions": [
           "ak.strand.*"
         ],
@@ -1345,6 +1354,104 @@
             "authority_generation": 0
           }
         ]
+      }
+    },
+    {
+      "name": "capability_grant_materialized_issuer_authority_pair_valid",
+      "schema_ref": "schemas/capability-grant.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "id": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ",
+        "schema": "ak.schema.capability.v1",
+        "issuer": "ak:did_core:webvh:z6mkfixtureownerexample",
+        "issuer_principal_server_id": "ak:did_core:webvh:z6mkfixtureownerserver",
+        "subject": "ak:did_core:webvh:z6mkfixture",
+        "subject_principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver",
+        "actions": [
+          "ak.strand.read"
+        ],
+        "resources": [
+          {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          }
+        ],
+        "issued_at": "2026-08-13T00:00:00.000Z",
+        "issuer_authority_refs": [
+          {
+            "kind": "realm_root",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+            "controller_epoch_at_issuance": 0,
+            "authority_generation": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "capability_grant_materialized_missing_issuer_principal_server_id_rejected",
+      "schema_ref": "schemas/capability-grant.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$: 'issuer_principal_server_id' is a required property",
+      "instance": {
+        "id": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ",
+        "schema": "ak.schema.capability.v1",
+        "issuer": "ak:did_core:webvh:z6mkfixtureownerexample",
+        "subject": "ak:did_core:webvh:z6mkfixture",
+        "subject_principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver",
+        "actions": [
+          "ak.strand.read"
+        ],
+        "resources": [
+          {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          }
+        ],
+        "issued_at": "2026-08-13T00:00:00.000Z",
+        "issuer_authority_refs": [
+          {
+            "kind": "realm_root",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+            "controller_epoch_at_issuance": 0,
+            "authority_generation": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "capability_grant_producer_issuer_principal_server_id_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/capability_grant_payload",
+      "expect_valid": false,
+      "first_expected_error": "$.grant: Additional properties are not allowed ('issuer_principal_server_id' was unexpected)",
+      "instance": {
+        "grant": {
+          "schema": "ak.schema.capability.v1",
+          "issuer": "ak:did_core:webvh:z6mkfixtureownerexample",
+          "issuer_principal_server_id": "ak:did_core:webvh:z6mkfixtureownerserver",
+          "subject": "ak:did_core:webvh:z6mkfixture",
+          "subject_principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserver",
+          "actions": [
+            "ak.strand.read"
+          ],
+          "resources": [
+            {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            }
+          ],
+          "issued_at": "2026-08-13T00:00:00.000Z",
+          "issuer_authority_refs": [
+            {
+              "kind": "realm_root",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+              "controller_epoch_at_issuance": 0,
+              "authority_generation": 0
+            }
+          ]
+        }
       }
     },
     {
@@ -1476,13 +1583,7 @@
       "instance": {
         "phase": "prepare",
         "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
-        "controller_authority_instance": {
-          "principal_id": "ak:did_core:webvh:z6mkfixture",
-          "principal_server_id": "ak:did_core:web:ps.example",
-          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-        },
+        "controller_principal_server_id": "ak:did_core:web:ps.example",
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000101",
         "idempotency_key": "agent-provision-prepare-001",
         "slug": "summary",
@@ -1508,13 +1609,7 @@
       "instance": {
         "phase": "prepare",
         "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
-        "controller_authority_instance": {
-          "principal_id": "ak:did_core:webvh:z6mkfixture",
-          "principal_server_id": "ak:did_core:web:ps.example",
-          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-        },
+        "controller_principal_server_id": "ak:did_core:web:ps.example",
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000102",
         "idempotency_key": "agent-provision-prepare-002",
         "slug": "summary"
@@ -1527,13 +1622,7 @@
       "instance": {
         "phase": "prepare",
         "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
-        "controller_authority_instance": {
-          "principal_id": "ak:did_core:webvh:z6mkfixture",
-          "principal_server_id": "ak:did_core:web:ps.example",
-          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-        },
+        "controller_principal_server_id": "ak:did_core:web:ps.example",
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000103",
         "idempotency_key": "agent-provision-prepare-003",
         "slug": "circle-summary",
@@ -1559,13 +1648,7 @@
       "instance": {
         "phase": "prepare",
         "full_id": "did:webvh:z6mkfixtureagentexample:agent.example",
-        "controller_authority_instance": {
-          "principal_id": "ak:did_core:webvh:z6mkfixture",
-          "principal_server_id": "ak:did_core:web:ps.example",
-          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-        },
+        "controller_principal_server_id": "ak:did_core:web:ps.example",
         "operation_id": "ak:operation:019a7360-0000-7000-8000-000000000104",
         "idempotency_key": "agent-provision-prepare-004",
         "slug": "ambiguous-service-scope",
@@ -2121,7 +2204,10 @@
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
       "expect_valid": true,
       "instance": {
-        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "principal_authority": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "principal_server_id": "ak:did_core:web:ps.example"
+        },
         "requesting_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
         "trust_domain": "ak:trust_domain:example.local"
       }
@@ -2131,12 +2217,26 @@
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
       "expect_valid": false,
       "instance": {
-        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "principal_authority": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "principal_server_id": "ak:did_core:web:ps.example"
+        },
         "requesting_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
         "trust_domain": "ak:trust_domain:example.local",
         "unexpected": "x"
       },
       "first_expected_error": "$: Additional properties are not allowed ('unexpected' was unexpected)"
+    },
+    {
+      "name": "recovery_session_create_request_legacy_flat_principal_id_rejected",
+      "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
+      "expect_valid": false,
+      "instance": {
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "requesting_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ak:trust_domain:example.local"
+      },
+      "first_expected_error": "$: 'principal_authority' is a required property"
     },
     {
       "name": "recovery_session_did_root_proof_valid",
@@ -2877,7 +2977,7 @@
         "availability_policy": {
           "min_holders": 1,
           "holder_roles": [
-            "notary"
+            "joined_member_principal_server"
           ],
           "applies_to": [
             "seal_include"
@@ -3214,13 +3314,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "authority_instance": {
-          "principal_id": "ak:did_core:webvh:z6mkfixture",
-          "principal_server_id": "ak:did_core:web:ps.example",
-          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-        },
+        "principal_server_id": "ak:did_core:web:ps.example",
         "recovery_authority_kind": "pcr_policy",
         "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
         "recovery_policy_version": 1,
@@ -3244,13 +3338,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "authority_instance": {
-          "principal_id": "ak:did_core:webvh:z6mkfixture",
-          "principal_server_id": "ak:did_core:web:ps.example",
-          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-        },
+        "principal_server_id": "ak:did_core:web:ps.example",
         "recovery_authority_kind": "pcr_policy",
         "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
         "recovery_policy_version": 1,
@@ -3272,13 +3360,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "authority_instance": {
-          "principal_id": "ak:did_core:webvh:z6mkfixture",
-          "principal_server_id": "ak:did_core:web:ps.example",
-          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-        },
+        "principal_server_id": "ak:did_core:web:ps.example",
         "recovery_authority_kind": "pcr_policy",
         "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
         "recovery_policy_version": 1,
@@ -3302,13 +3384,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "authority_instance": {
-          "principal_id": "ak:did_core:webvh:z6mkfixture",
-          "principal_server_id": "ak:did_core:web:ps.example",
-          "pcr_realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-          "principal_genesis_receipt_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "authority_instance_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-        },
+        "principal_server_id": "ak:did_core:web:ps.example",
         "recovery_authority_kind": "pcr_policy",
         "recovery_policy_id": "ak:policy:019a6aa0-0000-7000-8000-000000000099",
         "recovery_policy_version": 1,

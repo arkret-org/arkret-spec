@@ -201,7 +201,7 @@ def refresh_negative_cases(
 
 def sync_websocket_fixture(event_with_proof: dict[str, object]) -> None:
     data = json.loads(WEBSOCKET_FIXTURE.read_text(encoding="utf-8"))
-    for case in data.get("cases", []):
+    for case in data.get("frame_schema_cases", []):
         wire = case.get("wire_utf8")
         if not isinstance(wire, str):
             continue
@@ -217,6 +217,11 @@ def sync_websocket_fixture(event_with_proof: dict[str, object]) -> None:
 
 def main() -> None:
     data = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    for vector in data["vectors"]:
+        for field in ("event_without_proofs", "event_with_proof"):
+            event = vector.get(field)
+            if isinstance(event, dict) and "actor_id" in event:
+                event["principal_server_id"] = "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
     vectors = {vector["name"]: vector for vector in data["vectors"]}
     ed = vectors["ak.vector.encoding.crypto.ed25519_detached_jws.v1"]
     es = vectors["ak.vector.encoding.crypto.es256_detached_jws.v1"]

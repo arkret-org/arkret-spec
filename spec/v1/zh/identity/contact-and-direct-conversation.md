@@ -331,9 +331,8 @@ founding_unit_digest = H("ak.direct-conversation.founding-unit.v1",
 
 founder 的 current Principal Server **MUST** 以本地唯一约束保证同一 `(founder_id, trust_domain_id, pair_key)` 至多一组 founding unit 被 accepted。self admission **MUST** 在同一事务内完成：确认该 pair 尚无 accepted DM Realm、CAS 占用 slot、按 §5.4 与 §6 完整验证三条 Event、round 与派生坐标、零项或三项原子接受、签发 `DirectConversationFoundingAcceptanceReceipt`、写入 peer-delivery outbox。acceptance **只固定 caller 已派生的坐标**，**MUST NOT** 分配、替换或重新协商任一 ID；receipt 是该事务的输出，**MUST NOT** 循环要求 caller 预先携带。
 
-receipt **MUST** 绑定 `pair_key`、`founder_id`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 authorization core（human 为 current/根 round 与 evidence digest；controller↔Agent 为 provision ref/digest 与 controller binding digest）、`slot_committed`、issuer service ID 与其 accepted-at service binding digest、`accepted_at` 与 proof。它 **MUST NOT** 创建 Realm、授权 Message 或充当全局 slot；它只让 peer verifier 确认 founder 当时的 current service 已原子接受该 unit 并关闭本地唯一 slot。
+receipt **MUST** 绑定 `pair_key`、`founder_id`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 authorization core（human 为 current/root Contact round 与 evidence digest；controller↔Agent 为 provision ref/digest 与 controller binding digest）、`slot_committed`、issuer service ID、`accepted_at` 与 proof。三条 accepted Event 自身的 `principal_server_id` 与 admission proofs 是 founder 账号 authority 的唯一 carrier。它 **MUST NOT** 创建 Realm、授权 Message 或充当全局 slot；它只让 peer verifier 确认 founder 当时的 current service 已原子接受该 unit 并关闭本地唯一 slot。
 
-`issuer_service_binding_digest` 的唯一输入是 [`principal-service-binding.schema.json`](../../artifacts/schemas/principal-service-binding.schema.json) 中 `accepted_at_service_binding` 去掉 `binding_digest`、`service_acceptance_proof` 与 `principal_authorization_proof` 后的完整 closed object，按 `H("ak.principal-service-binding.v1", object)` 计算。该 snapshot 必须把 `principal_id=founder_id`、`service_id=issuer_service_id`、`accepted_at` 不晚于且在 `receipt.accepted_at` 仍有效、service DID verification method、endpoint origins、DID document digest 与 current authority evidence固定；两张 proof 分别证明 service 接受承载关系和 principal 授权该 service，任何只查询“现在是谁的服务器”的结果都不能替代 accepted-at snapshot。
 
 `proof` 的签名 transcript 是唯一封闭前像，按 §2 的 `H` 固定为：
 
@@ -348,7 +347,7 @@ founding_receipt_transcript = H("ak.direct-conversation.founding-receipt.v1",
 transcript 与同一签名输入。
 
 carrier 是 `ak.self.events.command.submit` request union 中显式登记的 discriminated branch
-`DirectConversationFoundingUnitSubmission`（discriminator `unit_kind="direct_conversation_founding"`）：它精确要求恰好三条按 §6.1 顺序排列的 `EventInitialSubmission`、分支化 `founding_authority_evidence`、founder 已签名的 `source_service_binding` 与 `idempotency_key`，并在 response union `EventsSubmitResponseBody` 中返回 `DirectConversationFoundingAcceptanceOutcome`。binding 的 `principal_id` 必须等于 founder、`service_id` 必须等于接收服务，服务端在 slot transaction 固定并验证 `accepted_at` 后只把其已验证 `binding_digest` 写入 receipt，**MUST NOT** 代替 founder 产生 `principal_authorization_proof`。实现 **MUST NOT** 新增私有 endpoint、复用普通 batch 分支，也 **MUST NOT** 用本地 DTO 猜测该合同；`ak.self.direct_conversation.read.resolve` 继续 query-only，**MUST NOT** 承载 create。
+`DirectConversationFoundingUnitSubmission`（discriminator `unit_kind="direct_conversation_founding"`）：它精确要求恰好三条按 §6.1 顺序排列的 `EventInitialSubmission`、分支化 `founding_authority_evidence` 与 `idempotency_key`，并在 response union `EventsSubmitResponseBody` 中返回 `DirectConversationFoundingAcceptanceOutcome`。每条 Event 的 `principal_server_id` 必须等于接收服务，服务端只在完整本地准入后追加 admission proof。实现 **MUST NOT** 新增私有 endpoint、复用普通 batch 分支或让服务端代签 producer Event；`ak.self.direct_conversation.read.resolve` 继续 query-only，**MUST NOT** 承载 create。
 
 幂等与 crash/restart 语义 **MUST** 如下封闭：
 
@@ -361,22 +360,12 @@ carrier 是 `ak.self.events.command.submit` request union 中显式登记的 dis
 
 ### 5.6 联邦例外
 
-Realm 尚不存在时无法取得普通 `federation_peer` authority，因此 [`../sync/federation.md`](../sync/federation.md) **MUST** 登记一条封闭的 DM founding exception：允许 founder 的**已由 Contact round 钉住的 Principal Server/PCR authority instance**向另一 participant 已钉住的实例投递该 pair 的 founding atomic unit、source acceptance receipt 与 bounded dependencies。
-
-接收方每次 **MUST** 验证：transport source 等于 Contact/receipt 冻结的 `principal_server_id`，portable
-device evidence 的 PCR realm/genesis receipt 与冻结 authority instance 逐字一致，destination 同样命中本地
-participant binding，body 只含该 unit/receipt/dependencies，且 create 通过 §5.4 全部校验。Contact round
-镜像尚未到达时 MUST 返回 `dependency_missing`；同 core 的另一 PCR/服务出现时 MUST
-`principal_authority_instance_mismatch`，不得尝试 cutover。
-
-v1 不存在 `principal_service_binding_continuity` 或 `principal_service_cutover` cross-PCR proof。服务变更
-只意味着另一条独立 PCR；既有 Contact/DM 继续钉住旧实例。业务关系若支持 rebind，必须由该关系
-自己的 Event/Move 同时承诺旧 instance、new instance 与 old-lineage fence，不能成为全局 identity link/merge。
+Realm 尚不存在时无法取得普通 member federation authority，因此 Direct Conversation founding exception 只允许 Contact round 中 founder 的 `(principal_id, principal_server_id)` 向 invitee 自己的 Principal Server 投递该 atomic unit、source acceptance receipt 与 bounded founding-authority dependencies。接收方必须验证 transport source、三条 Event 的 `principal_server_id`、producer proof 与 origin admission proof 一致，并要求目标 pair 命中本地 Contact round；不得要求或比较 PCR id/genesis receipt。
 
 该例外的 carrier **MUST** 是 `ak.peer.events.command.submit` request union 中显式登记的 discriminated
 branch `DirectConversationFoundingFederationSubmission`（discriminator
 `unit_kind="direct_conversation_founding"`），承载恰好三条按 §6.1 顺序排列的 `EventFederationSubmission`、
-  source `DirectConversationFoundingAcceptanceReceipt`、`source_service_binding` 与 bounded dependencies；实现 **MUST NOT** 新增私有 peer
+source `DirectConversationFoundingAcceptanceReceipt` 与 bounded dependencies；实现 **MUST NOT** 新增私有 peer
 endpoint，也 **MUST NOT** 用普通 Realm batch 分支夹带该 unit。该 branch 是 registered atomic unit：dependency
 不足时 **MUST** 用 top-level HTTP 409 `dependency_missing` 与 `EventsDependencyMissingProblem` 并零写入，
 **MUST NOT** 退化为 per-item partial，也 **MUST NOT** 只接受其中一或两条。
@@ -668,15 +657,13 @@ existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库�
 
 #### 9.1.1 `creation_required` 的 authoring material（normative）
 
-`DirectConversationFoundingUnitSubmission` 必填 `founding_authority_evidence` 与
-`source_service_binding`，二者都是**服务端自己持有**的对象（前者由 Contact 证据投影得到，
-后者就是本服务签发并接受的 binding）。若 resolver 只回一个无 material 的
+`DirectConversationFoundingUnitSubmission` 必填 `founding_authority_evidence`；它由服务端从 Contact round 证据投影并由 caller 原样回传。Event origin authority 已由三条 Event 顶层 `principal_server_id` 与服务端追加的 admission proofs 表达。若 resolver 只回一个无 material 的
 `creation_required`，则 founder 在协议层不可能构造该 unit——这正是
 [`service-http-binding.md` §2.2.2](../sync/service-http-binding.md) 供给闭合律禁止的形态。
 因此：
 
 - `creation_required` **MUST** 携带 `next_founding_input`，其成员名与 submission 的对应成员
-  **逐字节一致**（`founding_authority_evidence`、`source_service_binding`），caller 原样搬运，
+  **逐字节一致**（`founding_authority_evidence`），caller 原样搬运，
   **MUST NOT** 引入任何改名映射；服务端 **MUST NOT** 在该容器里附带 Event bytes、坐标、
   `idempotency_key` 或 receipt——三条 Event 仍由 founder 自签，服务端**永不**代签。
 - 服务端 **MUST** 按本 pair 选择唯一分支：peer Contact founding 用 `human` 分支（含完整
@@ -702,39 +689,10 @@ existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库�
 它断言容器存在性、成员名逐字一致、单一分支、无 Event bytes / 坐标 / receipt、无料时降为
 `temporarily_unavailable`，以及提交侧对回传 material 的重新验证。
 
-#### 9.1.2 accepted-at service binding 的建立与同服务续期（normative）
+#### 9.1.2 Origin authority 供给（normative）
 
-`AcceptedAtServiceBinding` 只能在 registration evidence 已冻结、PCR 已 accepted 且 principal session 已建立后，
-通过 `ak.self.principal_service_binding.command.prepare` →
-`ak.self.principal_service_binding.command.commit` 两步建立；它 **MUST NOT** 被塞进首次 registration，
-因为它必须引用已签发的 PCR genesis receipt/authority instance，提前生成会形成未来值依赖。
+Direct Conversation founding 不建立独立 principal↔service binding object。resolver 只返回可验证的 `founding_authority_evidence`；caller author 的每条 Event 已签入 `principal_server_id`，接收服务完成本地 pair/device admission 后追加 proof。任何缺少该 pair、proof 不匹配或服务非 Event origin 的情况返回 `temporarily_unavailable` 或 fail closed，不得现场代 principal 签名。
 
-- prepare 只接受 `request_id` 与可选 `expected_current_binding_digest`。省略表示 create-if-absent；
-  携带表示 same-service renewal，且必须逐字节命中 current binding。服务端从 authenticated principal、
-  当前 PCR authority instance、自己的 service key / trust domain / HTTPS origins 与自己的时钟组装
-  frozen core，caller **MUST NOT** 提交这些字段；
-- 服务端生成 single-use `challenge_id`，把它逐字节写入 core 的
-  `authorization_challenge`，令它进入 `binding_digest`；`accepted_at = not_before = issued_at`，
-  所有时间固定为 UTC millisecond。prepare outcome 与 challenge state 必须 durable；同 request/body
-  exact replay 返回同一未消费 outcome，同 request 不同 intent 为 `duplicate_conflict`；
-- principal 对精确 transcript
-  `H('ak.principal-service-binding-proof.v1', {binding_digest, accepted_at,
-  proof_purpose:'principal_authorization', verification_method, audience:service_id})` 签名；
-  `proof.created_at` 必须等于 `accepted_at`。commit 只携 request/challenge/digest/proof，服务端从
-  durable prepare record 取 draft，重算 digest，并以同一 PCR 的 accepted device/recovery evidence 验证 proof；
-- commit 在一个事务中执行 current-binding CAS、写 immutable accepted binding、消费 challenge、
-  生成同结构但 `proof_purpose='service_acceptance'` 的 service proof，并保存 byte-identical outcome。
-  exact request replay返回原 outcome；同 challenge 配不同 request/digest/proof、过期、已被另一请求消费、
-  current pointer 已变化全部零写入 fail closed；
-- binding 是历史 accepted-at 证物，不做原地修改或删除。same-service renewal 以
-  `predecessor_binding_digest` 前向连接；principal/account/PCR lifecycle 不满足时 current use 被 gate
-  抑制，但历史 proof 仍可验证。跨服务不得续接或 cutover；另一 Principal Server 上的 PCR 是独立
-  instance，不能替换本 binding。
-
-resolver 只有在 current pointer 指向一份按上述流程完整验证的 binding 时，才可把它放入
-`next_founding_input.source_service_binding`；缺失、过期、CAS 冲突或 authority freshness 不足均返回
-`temporarily_unavailable`，不得现场代 principal 签名或从 service metadata 拼装一个 binding。DID
-current-state freshness 不参与该判定；只有 service 自身 signing-key resolution 按 service 角色合同刷新。
 
 **send blocker 的权威边界（normative）。** wire 上的封闭枚举 `direct_conversation_send_blocker`（[`direct-conversation-operations.schema.json`](../../artifacts/schemas/direct-conversation-operations.schema.json)）**MUST** 只承载 server-verifiable blocker：服务端 **MUST** 能从它有权读取的 accepted authoritative state 证明该值，**MUST NOT** 猜测、解密或把客户端自报当作 authority。因此 `personal_blocked` 与 `history_key_unavailable` **MUST NOT** 出现在该枚举中——`ak.account.blocklist` 是 holder-private account data，经不可信服务同步时只以对 holder 设备加密的形式存在；某条历史 MLS secret 是否已安装是端侧私有密钥状态。任何让服务端权威判定这两者的做法都要么拆掉那条加密不变量，要么把未认证声明当成事实。服务端返回这两个值 **MUST** 直接构成 `schema_violation`，客户端 **MUST** 拒绝，**MUST NOT** 以"容忍未知 blocker 字符串"的方式接受。
 

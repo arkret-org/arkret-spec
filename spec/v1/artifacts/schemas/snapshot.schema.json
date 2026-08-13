@@ -70,7 +70,7 @@
           "type": "array",
           "items": {
             "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
           }
         },
         "timeline_hlc": {
@@ -108,7 +108,7 @@
           "type": "array",
           "items": {
             "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
           },
           "description": "When present, MUST denote the same event id set as the top-level frontier.event_ids (set equality): both bind the same snapshot frontier. Consumers MUST reject the snapshot on any mismatch (cross-field consistency enforced by snapshot-schema.md section 5, not by JSON Schema). Members are boundary event ids, not Seal ids; the field is unrelated to the MLS security_frontier_digest."
         },
@@ -211,10 +211,10 @@
       },
       "minItems": 1
     },
-      "created_by": {
-        "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-        "description": "Stable did_core_id of the snapshot issuer (server / Realm notary / federation witness). The signature transcript binds this business identity; its full DID URL verification_method is independently validated and projected to this value by the registered method adapter."
-      },
+    "created_by": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Stable did_core_id of the snapshot issuer (server / Realm notary / federation witness). The signature transcript binds this business identity; its full DID URL verification_method is independently validated and projected to this value by the registered method adapter."
+    },
     "created_at": {
       "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Issuer-local timestamp when the snapshot manifest was sealed. RFC 3339 UTC, MUST end with 'Z'. Required because the snapshot signature transcript binds this field via x-canonical-bytes-include."
@@ -230,10 +230,10 @@
         "checked_at"
       ],
       "properties": {
-          "issuer": {
-            "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-            "description": "MUST equal top-level created_by as the same stable did_core_id. The proof verification_method remains a full DID URL whose bare full_id is validated and projected to this value by the registered method adapter."
-          },
+        "issuer": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "MUST equal top-level created_by as the same stable did_core_id. The proof verification_method remains a full DID URL whose bare full_id is validated and projected to this value by the registered method adapter."
+        },
         "authority_kind": {
           "type": "string",
           "enum": [
@@ -251,7 +251,7 @@
           "type": "array",
           "items": {
             "type": "string",
-"pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
           },
           "minItems": 1,
           "uniqueItems": true,

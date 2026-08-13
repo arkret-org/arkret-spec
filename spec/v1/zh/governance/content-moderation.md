@@ -277,7 +277,7 @@ Canonical franking proof 结构（示例中的 digest / signature 字节以 `...
 
 #### 3.4.1 不存在治理密钥释放
 
-Realm / Circle 治理举报没有独立审查方，也没有“为了举报给 moderator 获取 MLS key / exporter secret”的流程。实现 MUST NOT 把 `ak.self.moderation.command.report` 自动升级为 `ak.audit.session.request`，MUST NOT 因举报向 moderator、Policy Server、Sync Service 或外部 verifier release 历史 key / epoch key。
+Realm / Circle 治理举报没有独立审查方，也没有“为了举报给 moderator 获取 MLS key / exporter secret”的流程。实现 MUST NOT 把 `ak.self.moderation.command.report` 自动升级为 `ak.audit.session.request`，MUST NOT 因举报向 moderator、Policy Server、Principal Server sync surface 或外部 verifier release 历史 key / epoch key。
 
 需要政府 / 企业合规审计时，必须走 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 定义的 Audit Applet Binding + sealed release session；这与用户举报是不同协议流程。
 
@@ -347,7 +347,7 @@ Franking 信任链：
 
 ### 4.4 隐私要求
 
-个人 blocklist 是 holder-private account data。实现 MUST NOT 默认上传明文 blocklist 到公共 Sync Service、Realm、Directory 或被屏蔽方可见的位置。
+个人 blocklist 是 holder-private account data。实现 MUST NOT 默认上传明文 blocklist 到公共 Principal Server sync surface、Realm、Directory 或被屏蔽方可见的位置。
 
 跨设备同步 SHOULD 使用加密 account data。服务端只应看到不透明密文。
 
@@ -365,7 +365,7 @@ Franking 信任链：
 管理员通过 `ak.member.state{membership="ban"}` Event 封禁用户（成员状态机详见 [`../models/realm-and-space.md` §2.7](../models/realm-and-space.md)，policy 对象详见 [`../models/governance-objects.md` §3](../models/governance-objects.md)）。封禁后：
 
 - 被封禁用户无法重新加入该 Realm
-- 其未来的 Operation 提交将被 Sync Service 拒绝
+- 其未来的 Operation 提交将被 Principal Server sync surface 拒绝
 - 是否对其隐藏**已可见**历史内容由 Realm Policy 决定；但 ban 后的 **key share 与 server-mediated backfill MUST fail closed**，其 fail-closed 真相源为 [`history-visibility.md` §6](./history-visibility.md) 与 [`../crypto-media/device-lifecycle.md` §13.1](../crypto-media/device-lifecycle.md)（把"接收 principal / device 已处于 ban / leave / removed"列为主体级拒绝终态）。Realm policy 只能在此基础上**更严**，MUST NOT 放宽该 fail-closed 边界向被封禁主体继续交付 key / 历史。
 
 ### 5.3 Realm Blocklist / Filter Policy
@@ -436,7 +436,7 @@ Realm MAY 使用 `ak.realm.moderation_policy` state event 声明黑名单、允�
 | --- | --- | --- |
 | `actor` | `did` | 单个 Actor / Principal。 |
 | `device` | `device_id` 或 `did` | 单个设备身份。 |
-| `service_id` | `did_core_id` | 单个 Principal Server、Sync Service、Federation peer 或其他 service 的稳定业务身份。 |
+| `service_id` | `did_core_id` | 单个 Principal Server、Principal Server sync surface、Federation peer 或其他 service 的稳定业务身份。 |
 | `domain` | `domain`，可选 `match_subdomains` | 规范化 DNS A-label domain；只按 label 边界匹配。 |
 | `trust_domain` | `trust_domain` | 部署级 trust domain。 |
 | `organization` | `did` | Organization DID 或其签发的治理链。 |
@@ -707,10 +707,10 @@ Policy Server MAY 返回 `hard_deny`、`quarantine`、`require_review` 或 `soft
 在“去中心化服务治理”场景中，服务端常见风险的抗滥用经验如下：
 
 - **入口源身份强制**：任何外部服务联邦请求都先验 `service DID`。未签名或未被 allowlist 的源服务不得参与写路径（至少转入 `soft_deny` / `quarantine`）。
-- **多级限速**：Sync Service / Policy Server 和受托 search / projection 服务应至少按以下维度限速：`source DID`、`source IP`（或其哈希）、`service token`、`realm id`、`endpoint`。超阈值 MUST 返回 `rate_limited`。
+- **多级限速**：Principal Server sync surface / Policy Server 和受托 search / projection 服务应至少按以下维度限速：`source DID`、`source IP`（或其哈希）、`service token`、`realm id`、`endpoint`。超阈值 MUST 返回 `rate_limited`。
 - **批量事件反滥用**：对短周期内的 `invite`、`join`、`message`、`media.upload` 进行突发抑制；出现异常突发可触发 `quarantine`。
 - **最小可观察性差异**：对未通过鉴权的目录/加入枚举请求，返回统一错误，不泄露对象可见性差异。
-- **可疑媒体隔离**：媒体 hash、MIME、扫描标签先入审计与审核，不应默认解密给 Sync Service 或受托 projection；必要时按 `snapshot`/`preview` 再二次放行。
+- **可疑媒体隔离**：媒体 hash、MIME、扫描标签先入审计与审核，不应默认解密给 Principal Server sync surface 或受托 projection；必要时按 `snapshot`/`preview` 再二次放行。
 - **可追溯审计**：每次风控拦截、隔离、降级决策都要记录结构化审计事件，且不得仅依赖联邦来源的本地口头说明。
 
 上述抗滥用规则的威胁映射见 [`../security/server-threat-model.md`](../security/server-threat-model.md)；其在授权与联邦层的 normative enforcement 分别见 [`../authz/policy-server.md`](../authz/policy-server.md) 与 [`../sync/federation.md`](../sync/federation.md)。本节为借鉴性概览，约束力以上述文件的 normative 条款为准。

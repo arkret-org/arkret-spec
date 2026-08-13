@@ -487,7 +487,7 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
 
 Watch 级别暴露程度按下表派发。projection executor MUST 在响应包含 watch 的 view（例如"Strand watchers 列表"、"我的订阅 Strand"）时严格执行：
 
-| Cell value | 自己（`requester == cell.watcher_actor_id`） | Realm 其他成员 | `ak.realm.notification.audit` 持有方 | Sync Service / 通知 dispatcher |
+| Cell value | 自己（`requester == cell.watcher_actor_id`） | Realm 其他成员 | `ak.realm.notification.audit` 持有方 | Principal Server sync surface / 通知 dispatcher |
 | --- | --- | --- | --- | --- |
 | 无记录 / `level=mentions_only` | "未订阅" | **不出现**在 watcher 列表 | 完整可见 | 走 `mentions_only` 路径 |
 | `level=participating` | 完整 `{actor, level}` | 默认**不出现**；`level_public=true` 时见下方 opt-in 规则 | 完整可见 | 完整 level |
@@ -519,7 +519,7 @@ Watch 级别暴露程度按下表派发。projection executor MUST 在响应包�
 - `strand --assigned_to--> self`（active edge）
 - 我在该 Strand `discussion` track 中发过至少一条 active Message
 
-Sync Service 在计算"是否应该通知 X"时 MUST 取以下集合的并集：
+Principal Server sync surface 在计算"是否应该通知 X"时 MUST 取以下集合的并集：
 1. X 的 active watch cell `level ∈ {participating, all}`
 2. X 的隐含订阅来源（assigned_to / 自己发过消息）
 
@@ -538,7 +538,7 @@ Audience mention 可以把 watch state 用作 receiver-side fanout 条件，但�
 
 ### 8.8 与 push-notification rule 引擎的关系
 
-Watch 级别参与 [`../discovery/push-notifications.md`](../discovery/push-notifications.md) §4 push rule 引擎评估，但 `level=muted` 必须收敛到 `dont_notify`。Sync Service MUST 通过以下三种等价实现之一保证该收敛：
+Watch 级别参与 [`../discovery/push-notifications.md`](../discovery/push-notifications.md) §4 push rule 引擎评估，但 `level=muted` 必须收敛到 `dont_notify`。Principal Server sync surface MUST 通过以下三种等价实现之一保证该收敛：
 
 - (a) 在引擎评估**之前**短路：直接 `dont_notify`，跳过 rule chain；
 - (b) 在引擎最高优先级位置注入**系统内置 deny rule**（与用户规则同形但 actor 不可写）；
@@ -548,7 +548,7 @@ Watch 级别参与 [`../discovery/push-notifications.md`](../discovery/push-noti
 
 更一般地：
 
-- **Watch level = "通知是否发生"**：Sync Service 在派发前 MUST 解析 receiver 的 effective level（含 §8.7 隐含订阅、`muted` 覆盖）；effective level 为 `mentions_only` 且当前 Event 非定向事件时，直接 `dont_notify`。
+- **Watch level = "通知是否发生"**：Principal Server sync surface 在派发前 MUST 解析 receiver 的 effective level（含 §8.7 隐含订阅、`muted` 覆盖）；effective level 为 `mentions_only` 且当前 Event 非定向事件时，直接 `dont_notify`。
 - **Push rule = "通知如何投递"**：在 watch level 允许通知发生的前提下，push rule 决定提示音、是否高亮、DND 例外等。
 - Push rule 引擎 MAY 通过 `watch_state` condition 显式引用本节级别（详见 [push-notifications.md §4.3](../discovery/push-notifications.md)），常见用途是用户显式声明"watching=all 也只想要静默通知"等更细粒度策略。
 
@@ -557,7 +557,7 @@ Watch 级别参与 [`../discovery/push-notifications.md`](../discovery/push-noti
 当 Strand 的 `scope_circle_id` 指向某个 [Circle](./circle.md) 时，watch 与通知行为按 Circle scope 收敛：
 
 - Watch cell 落在 Circle scope namespace（单源），actor 写自己的 watch 需先是该 Circle 成员；非成员对该 Strand 的 watch 写入 MUST `failed_precondition`。
-- Strand synthesis 与 discussion 通知均按同一 effective scope 派发：Sync Service 用 [`circle.md` §9.3](./circle.md) 投递不变量过滤——actor 不属于 `Circle.members(at causal frontier)` 即不投递事件 envelope 或 payload，亦不产生通知，无论 watch level。
+- Strand synthesis 与 discussion 通知均按同一 effective scope 派发：Principal Server sync surface 用 [`circle.md` §9.3](./circle.md) 投递不变量过滤——actor 不属于 `Circle.members(at causal frontier)` 即不投递事件 envelope 或 payload，亦不产生通知，无论 watch level。
 - Realm-only 成员（不在 Circle 中）不会看到该 Strand 的存在、活动节奏或 watcher 列表（参见 §8.5 投影脱敏与 [`circle.md` §9.3](./circle.md) directory_visibility 裁剪）。
 
 换言之：访问权先于订阅意愿。`scope_circle_id` 决定访问权；watch 只在访问权前提下叠加通知偏好。无访问权 = 没有通知，无论 watch 设了什么。
@@ -613,7 +613,7 @@ Schema id: `ak.schema.message.v1`
 **长文本正文的物化与生命周期（normative）**：`content`（或 `encrypted_content` 的 plaintext）为 `ak.content.long_text` 时，Message 物化的仍然是**一个** Message 对象，正文分成已认证的 inline `body` fallback 与一个 Blob-backed 完整正文（见 [`content-types.md` §4.1.1](./content-types.md)）。
 
 - 客户端 MUST 在提交 `ak.message.create` / `ak.message.revise` 之前完成 Blob 上传并取得稳定 hash ref；reducer 不为 Blob 可达性背书，接收端按现有 Blob / Content 校验错误（`digest_mismatch` 等）处理。
-- Message 转为 `state=redacted`、超出 disappearing / retention 窗口或所属 Realm/Strand 不再可见时，实现 MUST 同步使 inline fallback、搜索索引、本地缓存与该 Blob 的访问一并失效；Blob GC 沿用现有引用追踪。仅清空 `content` 而让完整正文仍可从索引或缓存恢复不满足 redaction 语义。
+- Message 转为 `state=redacted`、超出适用的 retention 窗口或所属 Realm/Strand 不再可见时，实现 MUST 同步使 inline fallback、搜索索引、本地缓存与该 Blob 的访问一并失效；Blob GC 沿用现有引用追踪。仅清空 `content` 而让完整正文仍可从索引或缓存恢复不满足 redaction 语义。
 - long text 与 revision chain、`replies_to`、reaction、mention 通知的关系与普通 `ak.content.text` 完全相同：引用方引用 Message ID，MUST NOT 复制完整长正文；canonical mentions MUST 仍在 Message metadata / `encrypted_metadata` 中，MUST NOT 要求服务端扫描 Blob。
 
 ### 9.3 最小示例

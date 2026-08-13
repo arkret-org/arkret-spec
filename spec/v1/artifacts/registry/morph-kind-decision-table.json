@@ -8,16 +8,27 @@
       "order": 1,
       "source": "morph.schema_refs[]",
       "role": "structural_truth",
-      "writable_by": ["ak.morph.create", "ak.morph.update"],
-      "consumed_by": ["reducer.field_validation", "schema.lint"],
+      "writable_by": [
+        "ak.morph.create",
+        "ak.morph.update"
+      ],
+      "consumed_by": [
+        "reducer.field_validation",
+        "schema.lint"
+      ],
       "notes": "Declares the field set, types, requiredness, transition rules. Always read for field validation."
     },
     {
       "order": 2,
       "source": "realm.schema.morph_kind_profiles[<morph_kind>]",
       "role": "realm_scoped_tightening",
-      "writable_by": ["ak.realm.schema"],
-      "consumed_by": ["reducer.field_validation", "capability.required_action_check"],
+      "writable_by": [
+        "ak.realm.schema"
+      ],
+      "consumed_by": [
+        "reducer.field_validation",
+        "capability.required_action_check"
+      ],
       "tightening_only": true,
       "notes": "Tightens the order-1 declaration inside a single Realm (allowed facets subset, writable fields subset, required schema_refs, required capability actions). MUST NOT widen order-1; widening attempts produce `schema_violation` at Realm accept time."
     },
@@ -25,37 +36,79 @@
       "order": 3,
       "source": "morph.morph_kind (string)",
       "role": "business_label_and_discoverability_key",
-      "writable_by": ["ak.morph.create"],
+      "writable_by": [
+        "ak.morph.create"
+      ],
       "create_locked": true,
-      "consumed_by": ["capability.allowed_morph_kinds_match", "resource_selector.match", "query.filter"],
+      "consumed_by": [
+        "capability.allowed_morph_kinds_match",
+        "resource_selector.match",
+        "query.filter"
+      ],
       "notes": "Wire-stable string key. Create-locked so capability grant selectors do not silently break."
     },
     {
       "order": 4,
       "source": "morph.facets (map)",
       "role": "ui_and_projection_hint",
-      "writable_by": ["ak.morph.create", "ak.morph.update"],
-      "consumed_by": ["view.default_renderer_pick", "query.item_facets_filter", "graph.node_facets_filter", "ui.fallback_render"],
-      "MUST_NOT_consume_by": ["authz.decide", "reducer.state_machine", "reducer.field_validation", "wire.interop"],
+      "writable_by": [
+        "ak.morph.create",
+        "ak.morph.update"
+      ],
+      "consumed_by": [
+        "view.default_renderer_pick",
+        "query.item_facets_filter",
+        "graph.node_facets_filter",
+        "ui.fallback_render"
+      ],
+      "MUST_NOT_consume_by": [
+        "authz.decide",
+        "reducer.state_machine",
+        "reducer.field_validation",
+        "wire.interop"
+      ],
       "notes": "Pure hint. Reading facets to make a security / state-machine / interop decision is a conformance bug."
     }
   ],
   "merge_rules": [
     {
       "rule": "field_validation_inputs",
-      "reads": ["order=1", "order=2"],
-      "ignores": ["order=3", "order=4"]
+      "reads": [
+        "order=1",
+        "order=2"
+      ],
+      "ignores": [
+        "order=3",
+        "order=4"
+      ]
     },
     {
       "rule": "capability_type_match",
-      "reads": ["order=3"],
-      "ignores": ["order=1", "order=2", "order=4"]
+      "reads": [
+        "order=3"
+      ],
+      "ignores": [
+        "order=1",
+        "order=2",
+        "order=4"
+      ]
     },
     {
       "rule": "facet_effects",
-      "reads": ["order=4"],
-      "scope": ["default_renderer", "view_pick", "query_facet_filter", "ui_fallback"],
-      "ignores": ["authz", "reducer", "wire_interop"]
+      "reads": [
+        "order=4"
+      ],
+      "scope": [
+        "default_renderer",
+        "view_pick",
+        "query_facet_filter",
+        "ui_fallback"
+      ],
+      "ignores": [
+        "authz",
+        "reducer",
+        "wire_interop"
+      ]
     }
   ],
   "conflict_resolution": [

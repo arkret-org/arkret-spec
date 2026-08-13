@@ -478,12 +478,12 @@
       "maximum": 4,
       "description": "Maximum remaining authority hops. Bounded by the canonical authority-chain depth ceiling (4) defined in zh/conformance/scalability-constraints.md §3 and zh/authz/capabilities.md §10.2; reducers MUST reject grants declaring a larger value at accept time rather than only truncating during DFS."
     },
-      "authority_path": {
-        "type": "array",
-        "items": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        }
-      },
+    "authority_path": {
+      "type": "array",
+      "items": {
+        "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+      }
+    },
     "authority_regrant_allowed": {
       "type": "boolean"
     },
@@ -503,10 +503,10 @@
       "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "authority_control(constraint_subkind=applet_authority) binding to the accepted Applet registration."
     },
-      "executed_by": {
-        "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-        "description": "authority_control(constraint_subkind=applet_authority) binding to the concrete Applet service, bot, or provisioned ghost actor did_core_id that may execute the grant. Its proof verification_method remains a full DID URL and MUST project to this value through the registered method adapter."
-      },
+    "executed_by": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "authority_control(constraint_subkind=applet_authority) binding to the concrete Applet service, bot, or provisioned ghost actor did_core_id that may execute the grant. Its proof verification_method remains a full DID URL and MUST project to this value through the registered method adapter."
+    },
     "registration_epoch": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$",
@@ -574,12 +574,12 @@
         "after_commit_review"
       ]
     },
-      "approval_actor_ids": {
-        "type": "array",
-        "items": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        }
-      },
+    "approval_actor_ids": {
+      "type": "array",
+      "items": {
+        "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+      }
+    },
     "approval_relation": {
       "type": "string",
       "enum": [
@@ -609,12 +609,12 @@
         "custom"
       ]
     },
-      "approvers": {
-        "type": "array",
-        "items": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        }
-      },
+    "approvers": {
+      "type": "array",
+      "items": {
+        "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+      }
+    },
     "accountability_required": {
       "type": "boolean"
     },
@@ -688,12 +688,12 @@
         "additionalProperties": true
       }
     },
-      "trusted_claim_issuers": {
-        "type": "array",
-        "items": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        }
-      },
+    "trusted_claim_issuers": {
+      "type": "array",
+      "items": {
+        "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+      }
+    },
     "claim_refresh_required": {
       "type": "boolean"
     },
@@ -749,12 +749,12 @@
     "key_backup_required": {
       "type": "boolean"
     },
-      "approved_key_issuers": {
-        "type": "array",
-        "items": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        }
-      },
+    "approved_key_issuers": {
+      "type": "array",
+      "items": {
+        "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+      }
+    },
     "depends_on_moderation_state": {
       "type": "boolean",
       "description": "Cache-invalidation hint: when true, this grant's authorization decisions depend on the ak.component.moderation_state.v1 cell (see policy-server.md §7.1 and capabilities.md §18.1) and the grant's cache entry MUST be invalidated when that cell changes. Default false: ordinary grants (ak.strand.update / ak.message.create / org membership grants) do NOT take a cache hit on every moderation decision. v1 capabilities.md §18.1 lists three conditions where MUST be explicitly true (moderator-role grants, condition-selector subjects referencing moderation state, constraints referencing moderation queue / cell). Schema-side enforcement of condition (2) is in capability-grant.schema.json via if/then on actions[]; conditions (1) and (3) are reducer-side lint. Cache invalidation hint outside the eight constraint families; it does not participate in allow/deny evaluation and is documented in capabilities.md §6 / constraint-schema.md."

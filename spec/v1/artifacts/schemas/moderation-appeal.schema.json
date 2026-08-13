@@ -28,9 +28,9 @@
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
       "description": "Reference to the ak.moderation.decision event being appealed."
     },
-      "actor_ref": {
-        "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-      },
+    "actor_ref": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+    },
     "target_ref": {
       "$ref": "./event-payload.schema.json#/$defs/object_ref",
       "description": "The original moderation target (message, strand, member, blob, etc.) — same typed-id form as the appealed decision's target."

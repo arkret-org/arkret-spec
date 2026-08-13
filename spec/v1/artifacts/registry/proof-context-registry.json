@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-11.2",
+  "version": "2026-08-13.2",
   "source_of_truth": true,
   "description": "Canonical domain-separation contexts for Arkret detached proofs. Context is part of the canonical signing binding object and is not a wire field in the generic proof shape.",
   "registry_rules": [
@@ -8,6 +8,20 @@
     "A verifier MUST reject a valid signature made under a context registered to a different object family"
   ],
   "contexts": [
+    {
+      "context": "ak.account-binding-receipt-proof-v1",
+      "object_family": "account_binding_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "account_authority_id",
+        "account_subject",
+        "principal_id",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/identity/account-lifecycle.md",
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_binding_receipt"
+    },
     {
       "context": "ak.account-handoff-authentication-proof-v1",
       "object_family": "account_handoff_authentication",
@@ -262,6 +276,21 @@
       "schema_ref": "schemas/did-webvh-witness-receipt.schema.json"
     },
     {
+      "context": "ak.directory-governance-request-proof-v1",
+      "object_family": "directory_governance_request",
+      "binding_fields": [
+        "payload_digest",
+        "operation_id",
+        "resource_id",
+        "verification_method",
+        "created_at",
+        "proof_purpose",
+        "audience"
+      ],
+      "defined_in": "zh/discovery/discovery-directory.md#871-governance-proof-wire-形态与绑定normative",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof"
+    },
+    {
       "context": "ak.directory-operation-proof-v1",
       "object_family": "directory_operation",
       "binding_fields": [
@@ -364,23 +393,6 @@
       "schema_ref": "schemas/identity-receipt.schema.json"
     },
     {
-      "context": "ak.registration-did-evidence-control-proof-v1",
-      "object_family": "registration_did_evidence_control",
-      "binding_fields": [
-        "principal_id",
-        "full_id",
-        "adapter_version",
-        "method_history_head",
-        "version_id",
-        "control_key_digest",
-        "method_evidence_digest",
-        "verification_method",
-        "created_at"
-      ],
-      "defined_in": "zh/identity/account-lifecycle.md",
-      "schema_ref": "schemas/federated-device-signing-key-evidence.schema.json#/$defs/registration_did_evidence_draft"
-    },
-    {
       "context": "ak.ingress-receipt-proof-v1",
       "object_family": "ingress_receipt",
       "binding_fields": [
@@ -452,21 +464,6 @@
       ],
       "defined_in": "zh/crypto-media/device-lifecycle.md#901-self-claim-requester-proof-与重放闭包normative",
       "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackage_claim_proof"
-    },
-    {
-      "context": "ak.directory-governance-request-proof-v1",
-      "object_family": "directory_governance_request",
-      "binding_fields": [
-        "payload_digest",
-        "operation_id",
-        "resource_id",
-        "verification_method",
-        "created_at",
-        "proof_purpose",
-        "audience"
-      ],
-      "defined_in": "zh/discovery/discovery-directory.md#871-governance-proof-wire-形态与绑定normative",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof"
     },
     {
       "context": "ak.member-delivery-binding-candidate-proof-v1",
@@ -545,6 +542,20 @@
       "schema_ref": "schemas/principal-locator.schema.json"
     },
     {
+      "context": "ak.principal-server-admission-proof-v1",
+      "object_family": "principal_server_event_admission",
+      "binding_fields": [
+        "event_digest",
+        "producer_proof_digest",
+        "producer_verification_method",
+        "producer_signing_key",
+        "accepted_at",
+        "verification_method"
+      ],
+      "defined_in": "zh/models/event-and-patch.md#31-principal-authority-与-origin-admission",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/principal_server_admission_proof"
+    },
+    {
       "context": "ak.range-completeness-attestation-proof-v1",
       "object_family": "range_completeness_attestation",
       "binding_fields": [
@@ -610,18 +621,21 @@
       "schema_ref": "schemas/event-batch-receipt.schema.json"
     },
     {
-      "context": "ak.account-binding-receipt-proof-v1",
-      "object_family": "account_binding_receipt",
+      "context": "ak.registration-did-evidence-control-proof-v1",
+      "object_family": "registration_did_evidence_control",
       "binding_fields": [
-        "payload_digest",
-        "account_authority_id",
-        "account_subject",
         "principal_id",
+        "full_id",
+        "adapter_version",
+        "method_history_head",
+        "version_id",
+        "control_key_digest",
+        "method_evidence_digest",
         "verification_method",
         "created_at"
       ],
       "defined_in": "zh/identity/account-lifecycle.md",
-      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_binding_receipt"
+      "schema_ref": "schemas/registration-did-evidence.schema.json#/$defs/registration_did_evidence_draft"
     },
     {
       "context": "ak.service-registration-receipt-proof-v1",
@@ -637,6 +651,25 @@
       ],
       "defined_in": "zh/identity/identity-did.md",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationReceipt"
+    },
+    {
+      "context": "ak.service-resolution-publish-ack-proof-v1",
+      "object_family": "service_resolution_publish_ack",
+      "binding_fields": [
+        "payload_digest",
+        "request_id",
+        "source_service_id",
+        "receiver_service_id",
+        "realm_id",
+        "request_digest",
+        "artifact_key",
+        "artifact_digest",
+        "accepted_at",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/sync/federation.md",
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_ack"
     },
     {
       "context": "ak.service-resolution-record-proof-v1",
@@ -664,25 +697,6 @@
       ],
       "defined_in": "zh/sync/service-surface.md",
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_record"
-    },
-    {
-      "context": "ak.service-resolution-publish-ack-proof-v1",
-      "object_family": "service_resolution_publish_ack",
-      "binding_fields": [
-        "payload_digest",
-        "request_id",
-        "source_service_id",
-        "receiver_service_id",
-        "realm_id",
-        "request_digest",
-        "artifact_key",
-        "artifact_digest",
-        "accepted_at",
-        "verification_method",
-        "created_at"
-      ],
-      "defined_in": "zh/sync/federation.md",
-      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/service_resolution_publish_ack"
     },
     {
       "context": "ak.service-route-handover-notice-proof-v1",

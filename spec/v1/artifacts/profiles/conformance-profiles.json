@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-13.3",
-  "generated_at": "2026-08-13T10:08:00Z",
+  "version": "2026-08-14.1",
+  "generated_at": "2026-08-14T00:30:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -428,7 +428,6 @@
     "ak.profile.personal_productivity.v1",
     "ak.profile.draft_sync.v1",
     "ak.profile.file_transfer.v1",
-    "ak.profile.disappearing.v1",
     "ak.profile.calendar_event.v1",
     "ak.profile.calendar_notification_dispatch.v1",
     "ak.profile.pinned_items.v1",
@@ -481,7 +480,6 @@
       "ak.profile.personal_productivity.v1",
       "ak.profile.draft_sync.v1",
       "ak.profile.file_transfer.v1",
-      "ak.profile.disappearing.v1",
       "ak.profile.calendar_event.v1",
       "ak.profile.calendar_notification_dispatch.v1",
       "ak.profile.signal_peer_relay.v1",
@@ -495,7 +493,7 @@
     "profile_set_rules": {
       "v1_profile_catalog": "Profiles that belong to the v1 stable catalog. This is not a bundle requirement; implementations MUST claim only the profiles, event kinds, schemas, and operations they actually support.",
       "v1_minimal_interop_floor": "Minimum profile for claiming v1 Event Store interop. Higher-level client, service, federation, blob, push, identity, and sovereign profiles remain independently claimable.",
-      "extension_profile_implementation": "Optional. Tracks implementation profiles outside the v1 minimal interop floor, including evolving external standards (MIMI Internet-Drafts; A2A/ACP/MCP unstandardized agent protocols; Applet registry/audit SLA) and opt-in product/privacy features such as productivity, disappearing messages, calendar events, pins, and search. Implementations claiming v1 core MAY omit these entirely; implementations MUST claim only entries they actually support. When an underlying external standard matures, a replacement profile with stable version pinning can supersede that entry."
+      "extension_profile_implementation": "Optional. Tracks implementation profiles outside the v1 minimal interop floor, including evolving external standards (MIMI Internet-Drafts; A2A/ACP/MCP unstandardized agent protocols; Applet registry/audit SLA) and opt-in product features such as productivity, calendar events, pins, and search. Implementations claiming v1 core MAY omit these entirely; implementations MUST claim only entries they actually support. When an underlying external standard matures, a replacement profile with stable version pinning can supersede that entry."
     }
   },
   "identity_extension_profiles": [
@@ -651,7 +649,6 @@
     "ak.profile.personal_productivity.v1": "client",
     "ak.profile.draft_sync.v1": "client",
     "ak.profile.file_transfer.v1": "client",
-    "ak.profile.disappearing.v1": "client",
     "ak.profile.calendar_event.v1": "client",
     "ak.profile.calendar_notification_dispatch.v1": "server",
     "ak.profile.pinned_items.v1": "client",
@@ -2321,7 +2318,7 @@
         "unsupported_optional": "omit optional operation or return unsupported_feature"
       },
       "additional_requirements": {
-        "invite_claim_reducer_authority_must": "ak.invite.claim MUST be decided by the destination Realm reducer, not by Auth Server, verification service, Sync Service ingress, or client projection caches.",
+        "invite_claim_reducer_authority_must": "ak.invite.claim MUST be decided by the destination Realm reducer, not by Auth Server, verification service, Principal Server transport ingress, or client projection caches.",
         "invite_claim_token_commitment_must": "Reducer MUST match payload.token_commitment to the pending ak.invite.third_party invite and reject mismatch or already-claimed commitments with no membership proposal.",
         "invite_claim_allowlist_recheck_must": "Reducer MUST re-check binding_proof.verification_service_id against the current effective Realm allowlist and any invite-pinned service DID before accepting subject_proof.",
         "invite_claim_nonce_dedup_must": "Reducer MUST treat (invite_id, claim_nonce) and token_commitment as one-time constraints and reject replay with duplicate_conflict.",
@@ -2459,7 +2456,7 @@
       },
       "additional_requirements": {
         "target_signature_must": "A mirror returns only byte-exact target-service-signed ServiceResolutionRecord and ServiceRouteHandoverNotice values; its own transport signature can never authorize a bare URL.",
-        "visibility_must": "Requester and target must both be currently visible in the named Realm through effective binding, sync endpoint or explicit delegation; unknown, unauthorized, invisible and not-held responses are indistinguishable.",
+        "visibility_must": "Requester and target must both be currently visible in the named Realm through effective joined-member binding or explicit delegation; unknown, unauthorized, invisible and not-held responses are indistinguishable. No Realm-level transport endpoint grants visibility.",
         "durability_must": "Remote record sequence/digest floors, notice revision/digest state and publish acknowledgements survive restart; replaceable TTL route cache is not this safety state.",
         "bounds_must": "Resolve returns at most 32 continuous records and at most 256 KiB canonical response bytes."
       }
@@ -4925,7 +4922,7 @@
         "circle_content_encryption_floor_must": "Circle.content_encryption_floor (allow_plaintext | e2ee_required) is optional and symmetric with Circle.metadata_encryption_floor: when omitted it inherits the parent Realm content_encryption_floor, and the effective floor = max(parent Realm content_encryption_floor, Circle content_encryption_floor). Reducer MUST reject a Circle floor below the effective floor and MUST reject content_encryption_floor=e2ee_required on an encryption_profile=none Circle (reason=circle_encryption_below_realm_floor). See zh/models/circle.md §7.",
         "encryption_floor_ratchet_must": "The effective content_encryption_floor and effective metadata encryption floor of any scope (Realm-default or Circle) are one-way ratchets: monotonically non-decreasing over time. A ak.realm.policy_bundle or ak.circle.update that lowers the effective content floor from e2ee_required to allow_plaintext MUST be rejected (reason=content_encryption_floor_downgrade); one that lowers the effective metadata floor MUST be rejected (reason=metadata_encryption_floor_downgrade). Tightening is always allowed. Vectors: ak.vector.e2ee.content_floor_downgrade_rejected.v1, ak.vector.e2ee.metadata_floor_downgrade_rejected.v1, ak.vector.circle.content_floor_below_realm_rejected.v1, ak.vector.e2ee.in_place_enable.v1.",
         "circle_membership_subset_must": "Circle.members MUST be a strict subset of parent Realm.members; reducer MUST reject ak.circle.member.state -> join when the target actor is not a `join` member of the parent Realm (reason=circle_member_must_be_realm_member).",
-        "scope_invariant_must": "Sync Service MUST NOT deliver Events with scope_ref.kind=circle to actors not in that Circle's member frontier at the Event's causal frontier (see zh/models/circle.md §9.3 scope-delivery invariant)."
+        "scope_invariant_must": "The Principal Server sync surface MUST NOT deliver Events with scope_ref.kind=circle to actors not in that Circle's member frontier at the Event's causal frontier (see zh/models/circle.md §9.3 scope-delivery invariant)."
       }
     },
     "ak.profile.personal_productivity.v1": {
@@ -5017,40 +5014,6 @@
         "unsupported_optional": "omit file-transfer UI rather than writing private file-transfer records into shared Realm history or exposing plaintext Blob metadata"
       }
     },
-    "ak.profile.disappearing.v1": {
-      "description": "Message expiry profile with Realm policy, projection stubs, and fail-closed handling for derived plaintext.",
-      "required_endpoints": [
-        "ak.self.events.command.submit",
-        "ak.self.events.read.scan"
-      ],
-      "required_event_kinds": [
-        "ak.message.create",
-        "ak.realm.disappearing_policy"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.disappearing_messages.v1",
-        "ak.schema.event_payload.v1",
-        "ak.schema.message.v1"
-      ],
-      "required_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "optional_extensions": [
-        "ak.profile.e2ee_client.v1"
-      ],
-      "feature_discovery": {
-        "required": [
-          "message_expiry_payload",
-          "expiry_stub_projection",
-          "disappearing_policy",
-          "read_trigger_anonymous_aggregate",
-          "read_trigger_idempotency",
-          "read_trigger_offline_window"
-        ],
-        "unsupported_optional": "receivers that cannot enforce expiry MUST NOT treat expiring messages as permanent messages"
-      }
-    },
     "ak.profile.calendar_event.v1": {
       "description": "Client profile for authoring calendar-event Strands, expanding recurrence, and converging RSVP. Schedule-change notification dispatch is a separate server profile.",
       "required_endpoints": [
@@ -5133,9 +5096,7 @@
       "required_fixtures": [
         "cba-lattice-fixture.json"
       ],
-      "optional_extensions": [
-        "ak.profile.disappearing.v1"
-      ],
+      "optional_extensions": [],
       "feature_discovery": {
         "required": [
           "shared_pin_events",

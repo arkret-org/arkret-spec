@@ -52,7 +52,7 @@ TSP 的 VID 可映射到 Arkret：
 | TSP Endpoint | actor 设备、service 节点、Applet、Policy Server、agent runtime |
 | TSP Relationship | 两个 principal / service 之间的 pairwise 可信通道 |
 | TSP Support System | identity registry、DID method adapter、witness、governance registry |
-| TSP Intermediary | Sync Service、privacy router、store-and-forward 服务 |
+| TSP Intermediary | Principal Server sync surface、privacy router、store-and-forward 服务 |
 | TSP Message | 承载 Arkret operation 或控制 payload 的已签名 / 加密 transport envelope |
 
 Arkret DID method adapter SHOULD 暴露某个 principal 或服务是否支持 TSP。
