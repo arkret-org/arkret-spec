@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/direct-conversation-operations.schema.json",
   "title": "Arkret Direct Conversation Operations",
-  "description": "Closed carriers for the Direct Conversation resolver and single-sided founding. Creation is never carried here: a Direct Conversation Realm is created only by the founder derived from the pair's root Contact basis through the direct_conversation_genesis admission variant of ak.realm.create.",
+  "description": "Closed carriers for the Direct Conversation resolver and single-sided founding. Creation is never carried here: a Direct Conversation Realm is created only by the founder derived from the pair's root Contact round through the direct_conversation_genesis admission variant of ak.realm.create.",
   "oneOf": [
     {
       "$ref": "#/$defs/direct_conversation_coordinates"
@@ -92,18 +92,18 @@
               "type": "object",
               "required": [
                 "kind",
-                "current_contact_basis_id",
-                "founder_basis_id",
+                "current_contact_round_id",
+                "root_contact_round_id",
                 "accepted_contact_evidence_digest"
               ],
               "properties": {
                 "kind": {
                   "const": "human"
                 },
-                "current_contact_basis_id": {
+                "current_contact_round_id": {
                   "$ref": "./principal-operations.schema.json#/$defs/hash"
                 },
-                "founder_basis_id": {
+                "root_contact_round_id": {
                   "$ref": "./principal-operations.schema.json#/$defs/hash"
                 },
                 "accepted_contact_evidence_digest": {
@@ -160,12 +160,12 @@
       "type": "object",
       "description": "Verbatim authoring material for the founding unit the caller is now entitled to author, carried only by the creation_required outcome. Member names equal the DirectConversationFoundingUnitSubmission members byte for byte, so the caller copies them across without any renaming map (service-http-binding.md 2.2.2 echo-container discipline). The caller still authors and signs all three Events itself; this container never carries Event bytes, coordinates or a receipt. Material that the service cannot assemble or verify yields temporarily_unavailable instead of a creation_required outcome without it.",
       "required": [
-        "founder_basis_evidence",
+        "founding_authority_evidence",
         "source_service_binding"
       ],
       "properties": {
-        "founder_basis_evidence": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/DirectConversationFounderBasisEvidence",
+        "founding_authority_evidence": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/DirectConversationFoundingAuthorityEvidence",
           "description": "The human branch for a peer Contact founding and the controller_agent branch for an own-Agent founding; the service selects the branch that matches this pair and never returns both."
         },
         "source_service_binding": {

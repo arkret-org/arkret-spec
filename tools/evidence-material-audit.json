@@ -150,7 +150,7 @@
     },
     {
       "file": "contact-operations.schema.json",
-      "key": "contact_basis_evidence_bundle",
+      "key": "contact_round_evidence_bundle",
       "occurrences": 1,
       "disposition": "polymorphic_container",
       "material_families": [
@@ -158,7 +158,7 @@
         "receipt",
         "commitment"
       ],
-      "reason": "Bundles the stable Contact basis, signed acceptance receipts and refreshable current proofs."
+      "reason": "Bundles the stable Contact round, signed acceptance receipts and refreshable current proofs."
     },
     {
       "file": "contact-operations.schema.json",
@@ -216,11 +216,11 @@
       "key": "accepted_contact_evidence_digest",
       "occurrences": 1,
       "disposition": "derived_summary",
-      "reason": "Commits the exact portable Contact basis evidence bundle that the founder's source Principal Server verified when it atomically accepted the Direct Conversation founding unit and closed its local unique slot."
+      "reason": "Commits the exact portable Contact round evidence bundle that the founder's source Principal Server verified when it atomically accepted the Direct Conversation founding unit and closed its local unique slot."
     },
     {
       "file": "direct-conversation-operations.schema.json",
-      "key": "founder_basis_evidence",
+      "key": "founding_authority_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
       "material_families": ["proof", "attestation", "commitment"],
@@ -607,7 +607,7 @@
     },
     {
       "file": "service-operation-dtos.schema.json",
-      "key": "basis_evidence_bundle",
+      "key": "contact_round_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
       "material_families": [
@@ -615,11 +615,11 @@
         "attestation",
         "commitment"
       ],
-      "reason": "Portable Contact basis evidence bundle reused verbatim from contact-operations.schema.json; it bundles acceptance receipts, glare concurrency attestations and derived basis commitments."
+      "reason": "Portable Contact round evidence bundle reused verbatim from contact-operations.schema.json; it bundles acceptance receipts, glare concurrency attestations and derived Contact round commitments."
     },
     {
       "file": "service-operation-dtos.schema.json",
-      "key": "founder_basis_evidence",
+      "key": "founding_authority_evidence",
       "occurrences": 2,
       "disposition": "polymorphic_container",
       "material_families": [

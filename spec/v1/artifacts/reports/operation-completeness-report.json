@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-12.3",
+  "version": "2026-08-13.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-12T14:55:00Z",
+  "generated_at": "2026-08-13T10:40:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -959,15 +959,15 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.peer.account_status.read.authoring_basis",
+      "operation_id": "ak.peer.account_status.read.authoring_frontiers",
       "surface_class": "extension",
-      "http": "POST /_arkret/peer/account-status/authoring-basis",
+      "http": "POST /_arkret/peer/account-status/authoring-frontiers",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_outcome",
+      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_request_body",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_outcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/AccountStatusAuthoringBasisRequestBody",
-        "response": "#/components/schemas/AccountStatusAuthoringBasisOutcome"
+        "request": "#/components/schemas/AccountStatusAuthoringFrontiersRequestBody",
+        "response": "#/components/schemas/AccountStatusAuthoringFrontiersOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

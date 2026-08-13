@@ -231,7 +231,7 @@ branch `DirectConversationFoundingFederationSubmission`（discriminator
 - 一张 source `DirectConversationFoundingAcceptanceReceipt`；
 - 一条 `source_service_continuity`，其 accepted binding 必须与 receipt 的 founder、issuer 与 binding digest 精确一致，且零到十六段三方签名 cutover 最终落到认证的 `Source-Service-ID`；
 - 验证该 unit 所需的 bounded dependencies（`cba_proof_bundles`、`signer_key_evidence`、
-  Contact basis evidence bundle 及其至根 founder basis 的 continuity chain）。
+  Contact round evidence bundle 及其至 root Contact round 的 continuity chain）。
 
 该 branch MUST NOT 携带 `service_binding_ref`：Realm 在接收方尚不存在，普通 Realm-scoped service binding
 快照无从计算；destination 绑定改由 §3 的 service DID / trust-domain header 与下述 receipt 校验承担。
@@ -247,7 +247,7 @@ branch `DirectConversationFoundingFederationSubmission`（discriminator
    `main_strand_id` 并与 receipt 逐字比对；
 6. 该 create 通过 `contact-and-direct-conversation.md` §5.4 的全部 admission 校验与 §6.2 的固定 baseline 投影。
 
-该 branch 是 registered atomic unit：Contact basis 镜像或其它 bounded dependency 尚未到达时 MUST 返回
+该 branch 是 registered atomic unit：Contact round 镜像或其它 bounded dependency 尚未到达时 MUST 返回
 top-level HTTP 409 `dependency_missing` 与 `EventsDependencyMissingProblem` 并零写入，随后可重试；
 MUST NOT 放行、MUST NOT 永久拒绝、MUST NOT 退化为 per-item partial，也 MUST NOT 只接受其中一或两条 Event。
 Realm 在接收方 accepted 后，该 pair 的后续 Event 立即回落普通 federation 规则与普通 batch 分支。
@@ -305,7 +305,7 @@ Signature: sig1=:base64...:
 | `service_binding_ref.realm_policy_digest` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Realm policy hash。 |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
 | `service_binding_ref.delivery_binding_frontier` | body | `id[]` | required | 发送方解析投递目标时所依据的 member delivery binding 因果前沿。接收方 MUST 校验该前沿在自己的 Realm 视图中可达，且对应到当前 effective `delivery_binding.recipient_service_id = Destination-Service-ID`。前沿落后于当前接收方 binding（接收方已收到 rebind handover frontier `F` 而 sender 仍按旧 binding 投递）时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_id` 与 `handover_frontier`，sender 切到新目标后重试。 |
-| `service_binding_ref.delivery_binding_diagnostics` | body | `object` | optional | 纯诊断字段。可携带 `basis: ["member_delivery_binding"\|"realm_sync_endpoint"]` 等本次投递的来源标签，便于排查；不得替代接收方独立校验。 |
+| `service_binding_ref.delivery_binding_diagnostics` | body | `object` | optional | 纯诊断字段。可携带 `route_sources: ["member_delivery_binding"\|"realm_sync_endpoint"]` 等本次投递的来源标签，便于排查；不得替代接收方独立校验。 |
 | `service_binding_ref.destination_service_kind` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
 
 Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 profile。接收方对每个 Event 独立读取其 CBA governance basis 中的 `ak.component.realm.reducer_profile.v1` cell：DataEvent 使用 `seal_ref` 认证的 joined control state，Control Move 使用 `seal_basis` 的 frozen predecessor `J(L)`。缺少求值依赖返回 `dependency_missing`；cell 为 Bottom 返回 `failed_bottom`；settled profile 本地未实现时返回 `profile_unsupported`。
@@ -327,7 +327,7 @@ Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 p
       "ak:event:AROgLJa60o1xdlWoFA55k7xfhbQYkZbGNzZiQNh359uw"
     ],
     "delivery_binding_diagnostics": {
-      "basis": ["member_delivery_binding"]
+      "route_sources": ["member_delivery_binding"]
     },
     "destination_service_kind": "principal_server"
   },
@@ -963,7 +963,7 @@ v1 联邦与单域 client 请求不共享 HTTP attack surface：federation serve
 | 跨域按 id / digest 补洞 | `QUERY /_arkret/peer/events/resolve`（`ak.peer.events.read.resolve`） | 同上；服务端按 Realm policy、history visibility 与 reference disclosure 裁剪响应。 |
 | 发布 target-signed service route 材料 | `POST /_arkret/peer/service-resolution/publish`（`ak.peer.service_resolution.command.publish`） | 完整 service signature + Content-Digest + Idempotency-Key；header key MUST 逐字等于 body `request_id`。transport key 与 artifact integrity key 按 §6.4 分离，ack 同时绑定两者；requester 与 target 必须满足同 Realm 可见性。 |
 | 恢复 target service route | `QUERY /_arkret/peer/service-resolution/resolve`（`ak.peer.service_resolution.read.resolve`） | 完整 service signature + Content-Digest；按 §6.4 反枚举并只返回有界连续的 target-signed successor/active notice。外部失败只使用 blinded `capability_denied` / `not_found`（另有通用 rate/size error），不得暴露内部 gap/fork/notice 状态。 |
-| Account Authority 获取 PCR authoring basis | `POST /_arkret/peer/account-status/authoring-basis`（`ak.peer.account_status.read.authoring_basis`） | 完整 service signature + Content-Digest；Source-Service-ID 必须等于 authority evidence issuer，receiver 在披露 actor/Seal frontier 前验证当前 account/principal/PCR/delegation binding。 |
+| Account Authority 获取 PCR authoring frontiers | `POST /_arkret/peer/account-status/authoring-frontiers`（`ak.peer.account_status.read.authoring_frontiers`） | 完整 service signature + Content-Digest；Source-Service-ID 必须等于 authority evidence issuer，receiver 在披露 actor/Seal frontier 前验证当前 account/principal/PCR/delegation binding。 |
 | 获取 MLS epoch-0 public group state | `POST /_arkret/peer/mls/group-state-material`（`ak.peer.mls.read.group_state_material`） | 完整 service signature + Content-Digest；调用方须获目标 Realm 授权，provider 必须按 accepted genesis 验证 selector、content-addressed refs、raw-byte digests 与 RFC 9420 GroupInfo/tree 一致性。 |
 | 跨域 Realm 成员视图 | `QUERY /_arkret/peer/events`（`ak.peer.events.read.scan`）+ `ak.member.state` 过滤 | 同上；服务端按 Realm policy 决定哪些成员对该 service DID 可见。 |
 | 跨域 snapshot-assisted bootstrap | `GET /_arkret/peer/snapshot/head`（`ak.peer.snapshot.read.manifest_head`） | 同上；manifest 必须签名并绑定 authority_binding。 |

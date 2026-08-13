@@ -87,8 +87,8 @@
     {
       "vector_id": "ak.vector.disappearing.read_trigger_anonymous_aggregate.v1",
       "assertions": [
-        "first_read_anchor_uses_min_join",
-        "arrival_order_does_not_change_anchor",
+        "first_read_expiry_start_uses_min_join",
+        "arrival_order_does_not_change_expiry_start",
         "projection_contains_only_aggregate_expiry_metadata",
         "reader_identity_and_counts_not_leaked"
       ],
@@ -106,13 +106,13 @@
         {
           "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
           "device_id": "ak:device:0196419b-0000-7000-8000-000000006101",
-          "anchor_hlc": "01970e589d21-0001-a13f9c2e"
+          "expiry_start_hlc": "01970e589d21-0001-a13f9c2e"
         }
       ],
       "allowed_projection_fields": [
         "source_event_id",
         "trigger",
-        "anchor_hlc",
+        "expiry_start_hlc",
         "expires_at",
         "aggregate_status"
       ],
@@ -128,8 +128,8 @@
         "read_receipt_payload"
       ],
       "expected": {
-        "anchor_join": "minimum_valid_position_hlc",
-        "anchor_never_moves_later": true,
+        "expiry_start_join": "minimum_valid_position_hlc",
+        "expiry_start_never_moves_later": true,
         "projection_after_expiry": "expiry_stub",
         "forbidden_fields_present": false
       }
@@ -138,12 +138,12 @@
       "vector_id": "ak.vector.disappearing.read_trigger_idempotent_replay.v1",
       "assertions": [
         "principal_level_contribution_dedupes_devices",
-        "duplicate_replay_does_not_refresh_anchor",
+        "duplicate_replay_does_not_refresh_expiry_start",
         "cross_message_replay_fails_closed"
       ],
       "message_id": "ak:message:ASLABl2ntA2a7jNCeqq9HcQELB9bs4s0vuWyGzrcEj6X",
       "send_seal_hlc": "01970e589d21-0001-a13f9c2e",
-      "accepted_anchor_hlc": "01970e589d21-0001-a13f9c2e",
+      "accepted_expiry_start_hlc": "01970e589d21-0001-a13f9c2e",
       "contributions": [
         {
           "label": "bob_phone",
@@ -180,7 +180,7 @@
       ],
       "expected": {
         "principal_contribution_count": 1,
-        "anchor_hlc": "01970e589d21-0001-a13f9c2e",
+        "expiry_start_hlc": "01970e589d21-0001-a13f9c2e",
         "duplicate_result": "already_observed",
         "invalid_before_send_decision": "reject",
         "cross_message_replay_decision": "reject",
@@ -192,7 +192,7 @@
       "assertions": [
         "opposite_arrival_orders_converge",
         "per_token_state_uses_minimum_valid_position_hlc",
-        "aggregate_anchor_uses_minimum_candidate",
+        "aggregate_expiry_start_uses_minimum_candidate",
         "late_earlier_candidate_only_moves_expiry_earlier",
         "shredded_key_never_recovers"
       ],
@@ -232,9 +232,9 @@
           "read-token-bob-multi": "01970e589d22-0001-a13f9c2e",
           "read-token-carol-multi": "01970e589d23-0001-a13f9c2e"
         },
-        "on_first_read_anchor_hlc": "01970e589d22-0001-a13f9c2e",
-        "aggregator_a_anchor_equals_aggregator_b": true,
-        "anchor_never_moves_later": true,
+        "on_first_read_expiry_start_hlc": "01970e589d22-0001-a13f9c2e",
+        "aggregator_a_expiry_start_equals_aggregator_b": true,
+        "expiry_start_never_moves_later": true,
         "shredded_key_restored": false
       }
     },
@@ -271,7 +271,7 @@
         "bob-desktop"
       ],
       "expected": {
-        "anchor_set": true,
+        "expiry_start_set": true,
         "bob_contribution_count": 1,
         "blocked_by_unreachable_david": false,
         "offline_device_projection": "expiry_stub",

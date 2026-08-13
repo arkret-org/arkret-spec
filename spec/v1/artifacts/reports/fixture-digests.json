@@ -14,7 +14,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json",
-      "sha256": "b908ddc99bd965f98c148dd330bb5e750c83a09941bc3f923672081285aababc"
+      "sha256": "f2dd16315cb44cf2ff01c2548fe43fdaa027f77e3e1e55add5320c633b5f65bd"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
@@ -74,15 +74,15 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "8a736be70eec5b24f34f4d27cf8926773771d7ea688edee056b4c1aa5f477d54"
+      "sha256": "0a8295a84b455311790e122e80fc18085c0e18f35e80313a922cd2745c0a1a14"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
       "sha256": "a60f8c9b6ea05019f00e19083eebf53b02397c76eb04ab406d13ad7c6ce63506"
     },
     {
-      "path": "spec/v1/artifacts/fixtures/contact-basis-kat.json",
-      "sha256": "6ea29e19fd5365b21557e5b6f929295b6633ffbfe2f4a0b39286e3eb83e6280b"
+      "path": "spec/v1/artifacts/fixtures/contact-round-kat.json",
+      "sha256": "16c8c70290c40106cf67aca9c7dbab3be2bda7b08192a95e5ec5346403c5ef3c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
@@ -118,7 +118,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "c2fa66a41fc5eeea3eab168a691ec71ed71bdf9244673deb4df0e19eb9413ad7"
+      "sha256": "65a7b828a6a446004dcac076b5bf675586236a71806ced2faba3c684d0dfd522"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
@@ -150,7 +150,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "4b9424323fed7812405656f0b87111c1512c3d3be7e413fbfac2a457c52e0c71"
+      "sha256": "a7b22dd86bd8e6919471fe6e3099cc3311f82014b351fba824d4a8f209a0f03b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hash-transition-fixture.json",
@@ -158,7 +158,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
-      "sha256": "85cfe1bf6952392092d3c0ffe29221fb209af11d68ecc55de07fbd4b2ca3f174"
+      "sha256": "58c805a388f8b7c1d46f3022ed2108a710c1b64feed25eca0aff887b45a8cefe"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -170,7 +170,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json",
-      "sha256": "11a96eccaca0f9c04a8d28cd1f4cbd9ff5efb744b315f957e0cab6c3af2c892c"
+      "sha256": "af4ab0c0e0339e6f400ddd76f81afd7f04febba359e1b45296b0917f57b22ac4"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
@@ -258,7 +258,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "8b5a593cc8fcb8cf0dc773aecba32a0f75e548dcb04b615a3ec301ac5217e2a5"
+      "sha256": "9c1d7cdafdaa621feae407921e06d2b16a7c57361bca59a63cdb245779e4e113"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",
@@ -294,7 +294,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "7ac6acd10c35e479f20ac3805a4d15c504479747c4f785b7ccb00bbefa5feb30"
+      "sha256": "6350ab03de1e68c17559ff4031d7510efe722c5925cc73dfb2dbf45afecfc52e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -310,7 +310,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-fixture.json",
-      "sha256": "598621f42a52efd5ddec0896c3943d537b67ad985cef2eb2595bbb6affb36b5c"
+      "sha256": "98c65fe61612c965bb80980d9fc762873e8f99b4cd8c0543e67a9548d370f47a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",

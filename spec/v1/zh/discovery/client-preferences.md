@@ -264,13 +264,13 @@ storage_key = "ak.contacts.actor." || principal_key
 - 历史 replay、audit 与 export 中，当前 `petname` MAY 作为明确标注的 holder-private name 并列，但 MUST NOT 取代事件的 `subject_id`、as-of handle、`display_name_at_time` 或 audit attribution。安全敏感 UI MUST 能直接显示完整 `peer.principal_id`；若显示 `peer_service_id`，必须标记为托管服务而不是联系人身份。
 - 当对方当前 verified handle 与 `verified_handle_at_save` 不一致时，客户端 SHOULD 在该联系人的渲染处显示 handle changed / transferred 标记，并提示用户复核备注，与 [`identity/identity-handles.md`](../identity/identity-handles.md) §6.1 的缓存失效语义一致。
 - 当前可验证的 PCR `actor_profile.display_name` 与 `global_display_name_at_save` 不一致时，普通实时身份面 SHOULD、安全敏感面 MUST 显示“全局显示名已变更”并提供原快照。profile 不可达、候选不唯一或只有 Realm override 时状态是 unknown，不得伪报 changed；只有 holder 显式确认才可刷新快照。
-- 客户端 MUST 在本地构造 accepted human Contact anchor set：每个非空 `petname` 及已保存的 `global_display_name_at_save`。渲染主体 S 的当前 surface public display 时，MUST 以 [`conformance/encoding.md` §2.2](../conformance/encoding.md) 的 `arkret_display_confusable_v1` 与其它 Contact 的 anchor 比较，并排除 S 自己的 anchor。碰撞主体不是 Contact 时必须显示“非联系人”及 verified handle / DID；是另一 Contact 时使用其自己的 `petname`（若有）并加 handle / DID 消歧，且不得继承被碰撞联系人的头像信任环、verified-contact badge 或颜色。roster、请求、mention autocomplete、邀请确认与不可逆操作面必须使用同一判据。
+- 客户端 MUST 在本地构造 accepted human Contact 的 confusable comparison set（confusable 比较基准集）：每个非空 `petname` 及已保存的 `global_display_name_at_save`。渲染主体 S 的当前 surface public display 时，MUST 以 [`conformance/encoding.md` §2.2](../conformance/encoding.md) 的 `arkret_display_confusable_v1` 与其它 Contact 的比较基准值比较，并排除 S 自己的基准值。碰撞主体不是 Contact 时必须显示“非联系人”及 verified handle / DID；是另一 Contact 时使用其自己的 `petname`（若有）并加 handle / DID 消歧，且不得继承被碰撞联系人的头像信任环、verified-contact badge 或颜色。roster、请求、mention autocomplete、邀请确认与不可逆操作面必须使用同一判据。
 - Contact accept 生效后，客户端 SHOULD 仅在该 key 从未存在时，以当时可验证的全局 `actor_profile.display_name` 同时初始化 `petname` 与 `global_display_name_at_save`，并保存 verified handle（若有）。不得以 Realm override、handle、DID、MemberIdentity display 或 OIDC `name` 代替全局 profile。已有记录的 `petname`、note、tags、pin、`saved_at` 与快照必须保留；并发初始化必须按 account-data whole-value CAS 做 read/decrypt → domain merge → encrypt/write，且保持幂等。
 - 备注初始化或同步失败 MUST NOT 回滚、拒绝或伪装成 Contact accept 失败；客户端 SHOULD 持久重试并可显示“备注尚未跨设备同步”。手工输入备注和备注写入成功都不得成为 request / respond / glare accepted 的协议前置，也不得成为 typing / presence 等可被对端观察的差异信号。
 - 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `petname` 与 `note`。服务端仍可能观察不透明 key 的数量、大小与更新时间；实现不得声称消除了这些流量 metadata。
 - 删除联系人备注 MUST 使用 `ak.self.account_data.resource.delete` 写入 §5.3 定义的有版本 physical-delete tombstone，不依赖客户端本地清理，也不得用无法通过本节字段验证的空对象冒充删除。
 
-不透明 key transcript、raw principal / Realm / service DID 负例与解密后 slot-binding 校验由 `ak.vector.account_data.contact_petname_anchor.v1` 闭合；成对名称碰撞由 `ak.vector.encoding.confusable_check.v1` 闭合。
+不透明 key transcript、raw principal / Realm / service DID 负例与解密后 slot-binding 校验由 `ak.vector.account_data.contact_petname_binding.v1` 闭合；成对名称碰撞由 `ak.vector.encoding.confusable_check.v1` 闭合。
 
 ### 3.7 Realm 备注 (Realm Remarks)
 

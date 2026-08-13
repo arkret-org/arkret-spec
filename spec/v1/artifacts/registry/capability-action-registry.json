@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-12.3",
+  "version": "2026-08-13.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-12T14:55:00Z",
+  "generated_at": "2026-08-13T10:40:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1967,7 +1967,7 @@
       "required_constraints": [],
       "required_evaluator_checks": [
         "contact_holder_exact",
-        "contact_basis_current",
+        "contact_round_current",
         "contact_lineage_version_cas"
       ],
       "target_event_kinds": [

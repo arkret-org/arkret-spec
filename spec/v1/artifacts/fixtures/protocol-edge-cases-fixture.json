@@ -21,7 +21,7 @@
     "ak.vector.sdk.retry_after.v1",
     "ak.vector.sdk.pagination_has_more.v1",
     "ak.vector.encoding.confusable_check.v1",
-    "ak.vector.account_data.contact_petname_anchor.v1",
+    "ak.vector.account_data.contact_petname_binding.v1",
     "ak.vector.invite.membership_transition_atomicity.v1",
     "ak.vector.join_policy.gate_axis_orthogonality.v1",
     "ak.vector.invite.quarantine_disclosure_indistinguishable.v1",
@@ -420,8 +420,8 @@
       ]
     },
     {
-      "name": "contact_petname_anchor",
-      "vector_id": "ak.vector.account_data.contact_petname_anchor.v1",
+      "name": "contact_petname_binding",
+      "vector_id": "ak.vector.account_data.contact_petname_binding.v1",
       "account_data_namespace_key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
       "peer_principal_id": "ak:did_core:web:alice.example",
       "canonical_input_utf8": "[\"ak.contacts.actor\",\"ak:did_core:web:alice.example\"]",

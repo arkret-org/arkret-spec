@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-12.3",
+  "version": "2026-08-13.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-12T14:55:00Z",
+  "generated_at": "2026-08-13T10:40:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -17,8 +17,8 @@
     "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
     "registration_anchor": "Admitted only for self-principal PCR genesis using durable registration-time DID control evidence and one critical did_inception ref. The verifier validates the accepted-at adapter/method evidence and project(full_id)=actor_id; current DID state after registration is irrelevant.",
     "pcr_recovery": "Admitted only for ak.device.reanchor under the authority instance's accepted PCR recovery policy/session and monotonic generation CAS. did_root is merely one optional policy-enabled factor. A current DID proof without the matching authority instance and policy cannot enter this class.",
-    "direct_conversation_agent_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_agent_provision pointing to an accepted ak.agent.provision Event. Used solely for the controller-to-own-Agent Direct Conversation branch, which has no Contact basis. The verifier cross-binds participants to exactly that controller and Agent, requires the Direct Conversation profile rather than a PCR profile, checks the controller binding is current, and fixes founder = controller so the Agent runtime key never needs Direct Conversation founding scope. This role is structurally exclusive with direct_conversation_basis and with the managed-Agent PCR agent_provision role.",
-    "direct_conversation_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_basis pointing to the portable Contact basis evidence bundle and its continuity chain to the pair's root founder basis. The verifier derives founder from the root basis core (normal branch: the sorted_pair_members entry that is not the request_event_ref issuer, i.e. the responder; glare branch: the requests[0] issuer), then requires created_by == actor_id == founder, recomputes pair_key from sorted_pair_members and the trust domain, and pins the Direct Conversation profile, exact-two participants and the create-locked encryption and history baseline. Accepted-at basis validity and current directional Contact gates are evaluated separately so Event validity never depends on delivery order.",
+    "direct_conversation_agent_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_agent_provision pointing to an accepted ak.agent.provision Event. Used solely for the controller-to-own-Agent Direct Conversation branch, which has no Contact round. The verifier cross-binds participants to exactly that controller and Agent, requires the Direct Conversation profile rather than a PCR profile, checks the controller binding is current, and fixes founder = controller so the Agent runtime key never needs Direct Conversation founding scope. This role is structurally exclusive with direct_conversation_contact_round and with the managed-Agent PCR agent_provision role.",
+    "direct_conversation_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_contact_round pointing to the portable Contact round evidence bundle and its continuity chain to the pair's root Contact round. The verifier derives founder from the root Contact round (normal branch: the sorted_pair_members entry that is not the request_event_ref issuer, i.e. the responder; glare branch: the requests[0] issuer), then requires created_by == actor_id == founder, recomputes pair_key from sorted_pair_members and the trust domain, and pins the Direct Conversation profile, exact-two participants and the create-locked encryption and history baseline. Accepted-at Contact round validity and current directional Contact gates are evaluated separately so Event validity never depends on delivery order.",
     "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
     "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed."
   },
@@ -158,7 +158,7 @@
           "when": {
             "payload_path": "object.purpose",
             "const": "direct_conversation",
-            "ref_role": "direct_conversation_basis",
+            "ref_role": "direct_conversation_contact_round",
             "ref_critical": true,
             "ref_exact_count": 1
           },
@@ -4379,7 +4379,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Participant endorsement of the settled Direct Conversation coordinates and of the first exact-pair MLS generation. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact basis may author the founding unit. Written once and never retired; the active MLS generation is projected separately and read as the current value, never pinned by this payload.",
+      "payload": "Participant endorsement of the settled Direct Conversation coordinates and of the first exact-pair MLS generation. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact round may author the founding unit. Written once and never retired; the active MLS generation is projected separately and read as the current value, never pinned by this payload.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
       "id_source": "not_an_object_id",
       "plane": "control",

@@ -303,10 +303,10 @@ components:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_register_outcome
     AccountRegisterRequestBody:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_register_request_body
-    AccountStatusAuthoringBasisOutcome:
-      $ref: ../schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_outcome
-    AccountStatusAuthoringBasisRequestBody:
-      $ref: ../schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_request_body
+    AccountStatusAuthoringFrontiersOutcome:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_outcome
+    AccountStatusAuthoringFrontiersRequestBody:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_request_body
     AccountStatusPublicationOutcome:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_status_publication_outcome
     AccountStatusPublicationRequestBody:
@@ -3988,7 +3988,7 @@ paths:
         `direct_conversation_founding` branch, which is the only carrier for a
         Direct Conversation founding unit (zh/identity/contact-and-direct-conversation.md
         §5.5). That branch carries exactly three founder-authored Events in fixed
-        wire order, closed XOR founder basis evidence and an `idempotency_key`,
+        wire order, closed XOR founding authority evidence and an `idempotency_key`,
         and returns `DirectConversationFoundingAcceptanceOutcome` with the
         source-signed receipt. The service allocates no identifier: `realm_id`
         and `main_strand_id` are retyped from the first and third Event IDs.
@@ -4248,9 +4248,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
-  /_arkret/peer/account-status/authoring-basis:
+  /_arkret/peer/account-status/authoring-frontiers:
     post:
-      operationId: ak.peer.account_status.read.authoring_basis
+      operationId: ak.peer.account_status.read.authoring_frontiers
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -4272,14 +4272,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AccountStatusAuthoringBasisRequestBody'
+              $ref: '#/components/schemas/AccountStatusAuthoringFrontiersRequestBody'
       responses:
         '200':
           description: Exact actor-chain and Realm Seal authoring frontiers.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountStatusAuthoringBasisOutcome'
+                $ref: '#/components/schemas/AccountStatusAuthoringFrontiersOutcome'
         '409':
           description: The PCR has no current fully verifiable accepted authoring frontier.
           content:
@@ -5292,7 +5292,7 @@ paths:
       summary: List the holder's contact projection.
       description: |
         An accepted row also carries the closed next_prepare_input cursor. Its
-        basis_id, version and predecessor_event_ref are copied verbatim into the
+        contact_round_id, version and predecessor_event_ref are copied verbatim into the
         prepare phase of /_arkret/self/contacts/scope-update or
         /_arkret/self/contacts/tombstone; version is the version the next Event
         carries and predecessor_event_ref is the current lineage head. Every
@@ -5305,7 +5305,7 @@ paths:
         server, so the client verifies it itself instead of trusting this
         server's retelling. Every other contact_state omits it: pending_outgoing
         has no incoming request to answer, and accepted, rejected, expired and
-        tombstoned have a consumed slot or a terminal basis. A glare pair is
+        tombstoned have a consumed slot or a terminal round. A glare pair is
         never pending_incoming, which is why the glare ban on respond and reject
         needs no extra error code.
       parameters:
@@ -5737,7 +5737,7 @@ paths:
       summary: Resolve the pair's single stable 1:1 DM coordinates.
       description: |
         Query-only. This endpoint never creates: a Direct Conversation Realm is
-        created solely by the founder derived from the pair's root Contact basis
+        created solely by the founder derived from the pair's root Contact round
         (normal branch takes the responder, glare branch takes the requests[0]
         issuer) through the direct_conversation_genesis admission variant of
         ak.realm.create. Outcomes are evaluated in a fixed order and expose
@@ -7798,8 +7798,8 @@ paths:
           signature_standard: RFC 9421
           per_delivery: true
           bearer_only_allowed: false
-          source_signature_anchor:
-            audit_field: source_signature_anchor
+          delivery_authentication_record:
+            audit_field: delivery_authentication_record
             request_body_field: false
             directions:
               node_to_applet: Source-Service-ID current service DID verification method; Destination-Service-ID MUST equal the Applet registration service_id.
@@ -7825,7 +7825,7 @@ paths:
             cached_fields:
             - Content-Digest
             - canonical_body_digest
-            - source_signature_anchor
+            - delivery_authentication_record
             - accepted_outcome
           fail_closed_reasons:
           - http_signature_required
@@ -7838,7 +7838,7 @@ paths:
       - in: header
         name: Idempotency-Key
         required: true
-        description: Per-delivery transaction idempotency / nonce key. It MUST be covered by Signature-Input and is scoped by operation_id, direction, Source-Service-ID and Destination-Service-ID; the cached record also binds Content-Digest and source_signature_anchor.
+        description: Per-delivery transaction idempotency / nonce key. It MUST be covered by Signature-Input and is scoped by operation_id, direction, Source-Service-ID and Destination-Service-ID; the cached record also binds Content-Digest and delivery_authentication_record.
         schema:
           type: string
       responses:

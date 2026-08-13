@@ -160,7 +160,7 @@
       "name": "reject_incomplete_or_older_frontier",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
-        "pre_fence_basis_matches_full_accepted_frontier": false
+        "pre_fence_seal_frontier_matches_full_accepted_frontier": false
       },
       "expected": {
         "decision": "reject",
@@ -171,7 +171,7 @@
       "name": "reject_frontier_changed_after_snapshot",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
-        "pre_fence_basis_matches_full_accepted_frontier": true,
+        "pre_fence_seal_frontier_matches_full_accepted_frontier": true,
         "frontier_compare_and_swap_matches": false
       },
       "expected": {
@@ -593,13 +593,13 @@
       }
     },
     {
-      "name": "reject_null_pre_fence_basis_when_seal_exists",
+      "name": "reject_null_pre_fence_seal_frontier_when_seal_exists",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
         "accepted_seal_frontier": [
           "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         ],
-        "pre_fence_basis": null
+        "pre_fence_seal_frontier": null
       },
       "expected": {
         "decision": "reject",

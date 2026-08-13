@@ -126,7 +126,7 @@ Control Move 被有效 Seal 覆盖后，接收方重放控制面覆盖集，计�
 
 #### 3.2.1 Anchor Unit 验证
 
-无 `seal_basis` 的 reducer-input Event MUST 先进入封闭 anchor-unit 分支，不能按普通 Control Move 拒绝。receiver MUST 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md) 验证：kind / batch 组合白名单、同批原子性、`ak.realm.create` 的 critical `refs[role=did_inception]` 与 bootstrap follow-up 完整覆盖，或 `ak.device.reanchor` 的 `refs[role=did_recovery_anchor]`、`pre_fence_basis` 全 frontier CAS 与 replacement authorize 原子 unit。任一 unit 缺项、跨 Realm、重复或携带 `seal_basis` 均 MUST fail closed。
+无 `seal_basis` 的 reducer-input Event MUST 先进入封闭 anchor-unit 分支，不能按普通 Control Move 拒绝。receiver MUST 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md) 验证：kind / batch 组合白名单、同批原子性、`ak.realm.create` 的 critical `refs[role=did_inception]` 与 bootstrap follow-up 完整覆盖，或 `ak.device.reanchor` 的 `refs[role=did_recovery_anchor]`、`pre_fence_seal_frontier` 全 frontier CAS 与 replacement authorize 原子 unit。任一 unit 缺项、跨 Realm、重复或携带 `seal_basis` 均 MUST fail closed。
 
 ### 3.3 Seal 验证
 

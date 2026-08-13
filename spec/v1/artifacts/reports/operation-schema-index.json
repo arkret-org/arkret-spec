@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-12.3",
+  "version": "2026-08-13.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-12T14:55:00Z",
+  "generated_at": "2026-08-13T10:40:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2427,10 +2427,10 @@
       }
     },
     {
-      "operation_id": "ak.peer.account_status.read.authoring_basis",
+      "operation_id": "ak.peer.account_status.read.authoring_frontiers",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_request_body",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_request_body",
         "schema_kind": "object",
         "required": [
           "authority_evidence",
@@ -2443,7 +2443,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_outcome",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_outcome",
         "schema_kind": "object",
         "required": [
           "account_id",
@@ -2487,8 +2487,8 @@
           "reject_receipt",
           "lineage",
           "prior_mirror_receipt",
-          "basis_id",
-          "basis",
+          "contact_round_id",
+          "contact_round",
           "request_receipts",
           "remote_mirror_receipt",
           "glare_concurrency_attestation"
@@ -2623,8 +2623,8 @@
             "required": [
               "kind",
               "idempotency_key",
-              "basis_id",
-              "basis",
+              "contact_round_id",
+              "contact_round",
               "request_receipts",
               "remote_mirror_receipt",
               "glare_concurrency_attestation",
@@ -2633,8 +2633,8 @@
             "properties": [
               "kind",
               "idempotency_key",
-              "basis_id",
-              "basis",
+              "contact_round_id",
+              "contact_round",
               "request_receipts",
               "remote_mirror_receipt",
               "glare_concurrency_attestation",
@@ -2937,7 +2937,7 @@
           "agent_signer_evidence_bundle",
           "unit_kind",
           "source_acceptance_receipt",
-          "founder_basis_evidence",
+          "founding_authority_evidence",
           "source_service_binding"
         ],
         "closed": true,
@@ -2965,14 +2965,14 @@
               "unit_kind",
               "events",
               "source_acceptance_receipt",
-              "founder_basis_evidence",
+              "founding_authority_evidence",
               "source_service_binding"
             ],
             "properties": [
               "unit_kind",
               "events",
               "source_acceptance_receipt",
-              "founder_basis_evidence",
+              "founding_authority_evidence",
               "source_service_binding",
               "cba_proof_bundles",
               "signer_key_evidence"
@@ -6192,7 +6192,7 @@
           "peer",
           "granted_to_peer_scopes",
           "introduction_evidence",
-          "previous_terminal_basis_id",
+          "previous_terminal_contact_round_id",
           "message",
           "reservation_handle",
           "signed_event",
@@ -6218,7 +6218,7 @@
               "peer",
               "granted_to_peer_scopes",
               "introduction_evidence",
-              "previous_terminal_basis_id",
+              "previous_terminal_contact_round_id",
               "message"
             ],
             "closed": true
@@ -6344,7 +6344,7 @@
           "operation_id",
           "idempotency_key",
           "peer",
-          "basis_id",
+          "contact_round_id",
           "version",
           "predecessor_event_ref",
           "granted_to_peer_scopes",
@@ -6362,7 +6362,7 @@
               "operation_id",
               "idempotency_key",
               "peer",
-              "basis_id",
+              "contact_round_id",
               "version",
               "predecessor_event_ref",
               "granted_to_peer_scopes"
@@ -6372,7 +6372,7 @@
               "operation_id",
               "idempotency_key",
               "peer",
-              "basis_id",
+              "contact_round_id",
               "version",
               "predecessor_event_ref",
               "granted_to_peer_scopes"
@@ -6425,7 +6425,7 @@
           "operation_id",
           "idempotency_key",
           "peer",
-          "basis_id",
+          "contact_round_id",
           "version",
           "predecessor_event_ref",
           "reservation_handle",
@@ -6442,7 +6442,7 @@
               "operation_id",
               "idempotency_key",
               "peer",
-              "basis_id",
+              "contact_round_id",
               "version",
               "predecessor_event_ref"
             ],
@@ -6451,7 +6451,7 @@
               "operation_id",
               "idempotency_key",
               "peer",
-              "basis_id",
+              "contact_round_id",
               "version",
               "predecessor_event_ref"
             ],
@@ -6870,7 +6870,7 @@
           "events",
           "unit_kind",
           "idempotency_key",
-          "founder_basis_evidence",
+          "founding_authority_evidence",
           "source_service_binding"
         ],
         "closed": true,
@@ -6907,14 +6907,14 @@
               "unit_kind",
               "idempotency_key",
               "events",
-              "founder_basis_evidence",
+              "founding_authority_evidence",
               "source_service_binding"
             ],
             "properties": [
               "unit_kind",
               "idempotency_key",
               "events",
-              "founder_basis_evidence",
+              "founding_authority_evidence",
               "source_service_binding",
               "cba_proof_bundles"
             ],

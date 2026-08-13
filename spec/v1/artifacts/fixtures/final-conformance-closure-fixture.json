@@ -7,7 +7,7 @@
     "entrypoint": "ak.suite.conformance.final_closure.v1"
   },
   "covers_vectors": [
-    "ak.vector.applet.transaction_source_signature_anchor.v1",
+    "ak.vector.applet.transaction_delivery_authentication_record.v1",
     "ak.vector.calendar.rsvp_occurrence_key.v1",
     "ak.vector.federation.timing_bucket.v1",
     "ak.vector.mls.security_frontier_key_access_only.v1",
@@ -21,9 +21,11 @@
   ],
   "cases": [
     {
-      "vector_id": "ak.vector.applet.transaction_source_signature_anchor.v1",
+      "vector_id": "ak.vector.applet.transaction_delivery_authentication_record.v1",
       "assertions": [
-        "valid_transaction_requires_http_signature_anchor",
+        "valid_transaction_requires_delivery_authentication_record",
+        "delivery_authentication_record_is_closed_and_receiver_derived",
+        "delivery_authentication_record_digest_is_domain_separated",
         "bearer_only_rejected",
         "source_destination_and_content_digest_bound",
         "idempotent_replay_returns_cached_outcome",
@@ -41,7 +43,7 @@
       ],
       "active_install": {
         "service_id": "ak:did_core:webvh:z6mkfixturebridgeexample",
-        "destination_service_id": "did:webvh:z6mkfixtureprincipalexample:principal.example",
+        "destination_service_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
         "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "key_ref": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
         "actor_namespace": "did:webvh:z6mkfixturebridgeexample:bridge.example#ghost"
@@ -60,18 +62,25 @@
             "idempotency-key"
           ],
           "keyid": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
+          "signature_label": "sig1",
+          "signature_algorithm": "ed25519",
+          "verification_key_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "source_service_id_header": "ak:did_core:webvh:z6mkfixturebridgeexample",
           "source_service_id_body": "ak:did_core:webvh:z6mkfixturebridgeexample",
-          "destination_service_id_header": "did:webvh:z6mkfixtureprincipalexample:principal.example",
+          "destination_service_id_header": "ak:did_core:webvh:z6mkfixtureprincipalexample",
           "content_digest_matches_body": true,
+          "content_digest": "sha-256=:u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7s=:",
           "idempotency_key": "tx-001",
           "body_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "created": 1786550400,
+          "expires": 1786550700,
           "actor_namespace": "did:webvh:z6mkfixturebridgeexample:bridge.example#ghost",
           "authorization_ref_owner": "ak:did_core:webvh:z6mkfixturebridgeexample",
           "expected": {
             "decision": "accept",
-            "source_signature_anchor_persisted": true,
+            "delivery_authentication_record_persisted": true,
+            "delivery_authentication_record_digest": "sha256:0d2d8acbe611f612165ad14b313ecb05a9f1ca72b31c05649dfca35a4696d9c6",
             "side_effects_applied": true
           }
         },
@@ -98,7 +107,7 @@
           "keyid": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
           "source_service_id_header": "ak:did_core:webvh:z6mkfixturebridgeexample",
           "source_service_id_body": "ak:did_core:webvh:z6mkfixturemalloryexample",
-          "destination_service_id_header": "did:webvh:z6mkfixtureprincipalexample:principal.example",
+          "destination_service_id_header": "ak:did_core:webvh:z6mkfixtureprincipalexample",
           "content_digest_matches_body": true,
           "expected": {
             "decision": "reject",
@@ -110,7 +119,7 @@
           "replay_of": "valid_inbound",
           "idempotency_key": "tx-001",
           "body_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "source_signature_anchor_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "delivery_authentication_record_digest": "sha256:0d2d8acbe611f612165ad14b313ecb05a9f1ca72b31c05649dfca35a4696d9c6",
           "expected": {
             "decision": "accept_cached",
             "side_effects_applied": false
@@ -121,7 +130,8 @@
           "replay_of": "valid_inbound",
           "idempotency_key": "tx-001",
           "body_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-          "source_signature_anchor_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "content_digest": "sha-256=:3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d0=:",
+          "delivery_authentication_record_digest": "sha256:80988c1a014d4e10c172cf02370dd6c6c08fda8fc8977884b88ffed6d1015586",
           "expected": {
             "decision": "reject",
             "reason": "duplicate_conflict"
@@ -132,7 +142,7 @@
           "signature_present": true,
           "source_service_id_header": "ak:did_core:webvh:z6mkfixtureunknownbridgeexample",
           "source_service_id_body": "ak:did_core:webvh:z6mkfixtureunknownbridgeexample",
-          "destination_service_id_header": "did:webvh:z6mkfixtureprincipalexample:principal.example",
+          "destination_service_id_header": "ak:did_core:webvh:z6mkfixtureprincipalexample",
           "content_digest_matches_body": true,
           "expected": {
             "decision": "reject",

@@ -24,7 +24,7 @@ see_also:
 
 Contact 与 holder-private 备注、Realm 内 `ak.relation.*`、非 Contact Consent、Direct Conversation binding
 互不替代。Contact-based create/send **MUST** 只读取双方各自签发的 directional Contact lineage；
-`ak.consent.*` 只服务非 Contact basis，**MUST NOT** 为 Contact 或 Personal DM 补授权。
+`ak.consent.*` 只服务不以 Contact 为授权依据的路径，**MUST NOT** 为 Contact 或 Personal DM 补授权。
 
 Contact wire 中的 `peer` **MUST** 是 closed discriminated XOR：human、Native Personal Agent 与其它已登记
 principal kind 分支分别携带该分支的完整 stable subject/binding 字段；裸 `peer_id`、未知 kind、分支字段混用
@@ -32,15 +32,15 @@ principal kind 分支分别携带该分支的完整 stable subject/binding 字�
 long-term signer，且只能是 active human device、active Agent runtime，或 controller 依据 accepted narrow
 delegation 代表其 owned Agent 签名。session DPoP key、Principal Server key 与 relay key 不得签 Contact Event。
 
-每个 issuer 独立维护 `(basis_id, issuer_id, peer)` lineage。不存在跨双方共享 pair CAS、两阶段互签
-assignment 或服务端代签。request 发生在 receipt/basis 之前，只签完整 peer XOR、directional full-set scope与
-private introduction evidence digest；reject只终止其 exact admission slot，不建立 basis或lineage。只有 post-basis
-lineage facts携basis/version：normal accepted genesis固定`version=1`且无predecessor；scope update/tombstone固定
+每个 issuer 独立维护 `(contact_round_id, issuer_id, peer)` lineage。不存在跨双方共享 pair CAS、两阶段互签
+assignment 或服务端代签。request 发生在 receipt/round 之前，只签完整 peer XOR、directional full-set scope与
+private introduction evidence digest；reject只终止其 exact admission slot，不建立 round 或 lineage。只有 post-round
+lineage facts携 `contact_round_id` / version：normal accepted genesis固定`version=1`且无predecessor；scope update/tombstone固定
 `version=current+1`且`predecessor_event_ref`逐字等于current head。glare的request heads只能由后续source-signed
 lineage/current proof绑定，不得回写旧Event。fork、跳版、同version不同bytes、未知predecessor或signer不匹配
 全部quarantine/fail closed。
 
-## 2. Contact 写链、回执与 basis
+## 2. Contact 写链、回执与 Contact round
 
 request、respond、reject、scope replacement 与 tombstone 共享唯一写链：
 
@@ -54,8 +54,8 @@ prepare private durable reservation
 ```
 
 prepare **MUST** 保存 operation/idempotency/canonical request digest、预分配 Event ID、完整 peer XOR、方向化
-full-set scope、expiry 与该分支已有的 basis/version/predecessor，并返回branch-typed
-`{event_id,kind,unsigned_event_bytes,event_digest}` canonical draft；request/reject不得伪造未来basis字段。draft
+full-set scope、expiry 与该分支已有的 round/version/predecessor，并返回branch-typed
+`{event_id,kind,unsigned_event_bytes,event_digest}` canonical draft；request/reject不得伪造未来 round 字段。draft
 不含holder proof，客户端只可追加该proof。commit移除proof后必须与reserved unsigned bytes、ID、kind与digest
 逐字一致，任何其它变化返回conflict；不存在接受caller自造Event shape的分支。五类 Contact Event 均为
 Control Move；commit body 可携带`control_proposal_ack`，其结构和验证规则与
@@ -81,13 +81,13 @@ carrier；因此 target 当前离线或不可解析 **MUST NOT** 把本地 prepa
 holder source service **MUST** 以本地 `(holder, peer)` admission slot CAS 串行 request/respond/reject，并保证
 任一 request ref 最多被 normal、glare 或 reject 之一消费。每条 accepted request 独立取得 source-signed
 `request_acceptance_receipt`，至少绑定 holder、完整 peer、slot version/predecessor、request Event ref/digest、
-source checkpoint、accepted-at 与 issuer；receipt 不得反向承诺尚未存在的 future basis。
+source checkpoint、accepted-at 与 issuer；receipt 不得反向承诺尚未存在的 future round。
 `request_acceptance_receipt_digest` 是 exact closed signed receipt 的 RFC 8785/JCS UTF-8 bytes 的 SHA-256。
 
-永久 `basis_id` 只从以下 stable semantics 计算。令 `basis` 为下列 closed object，计算固定为
-`H("ak.contact.basis.v1", basis)`，即
-`"sha256:" + lowerhex(SHA256(UTF8("ak.contact.basis.v1\n") || RFC8785_JCS(basis)))`。
-domain label 不是 `basis` 的 wire 字段，实现不得把它插入 object 后改算 `SHA256(JCS(object))`：
+永久 `contact_round_id` 只从以下 stable semantics 计算。`contact_round` 是该轮次的短名，也是下列 immutable closed 建轮核心；后续 directional scope replacement / tombstone 只推进该 ID 下的 lineages，不改写此对象。计算固定为
+`H("ak.contact.round.v1", contact_round)`，即
+`"sha256:" + lowerhex(SHA256(UTF8("ak.contact.round.v1\n") || RFC8785_JCS(contact_round)))`。
+domain label 不是 `contact_round` 的 wire 字段，实现不得把它插入 object 后改算 `SHA256(JCS(object))`：
 
 ```text
 normal = {kind:"normal", sorted_pair_members,
@@ -98,25 +98,25 @@ glare  = {kind:"glare", sorted_pair_members,
 
 pair members 与 glare requests 都按已登记的 UTF-8 unsigned-byte ordering 排序。normal responder 必须在本地
 CAS 点证明自己没有 outgoing request，并签 `normal_response_acceptance_receipt`；该 receipt 绑定 exact request
-receipt、derived normal basis 与 CAS/completeness proof。reject 必须同样取得 source-signed
+receipt、derived normal round 与 CAS/completeness proof。reject 必须同样取得 source-signed
 `reject_acceptance_receipt`，绑定 exact request receipt、slot predecessor、reject Event 与 terminal
 outcome，并具有 durable exact replay/conflict 语义。
 
 normal 与 glare 的逐字节 known-answer vectors 见
-[`contact-basis-kat.json`](../../artifacts/fixtures/contact-basis-kat.json)；实现必须同时核对 canonical basis bytes
-与最终 `basis_id`，仅比较 object 语义或自行选择 domain 承载形态不算通过。
+[`contact-round-kat.json`](../../artifacts/fixtures/contact-round-kat.json)；实现必须同时核对 canonical round bytes
+与最终 `contact_round_id`，仅比较 object 语义或自行选择 domain 承载形态不算通过。
 
 glare admission 不仅需要两张 exact request receipts，还 **MUST** 携 source-signed causal frontier/completeness
 evidence，证明两 request 在任一方消费 request ref 前因果并发。仅收到两张 receipt、到达顺序或 wall clock
-不足以建立 glare。证据足够时双方机械派生同一 basis，禁止 respond/reject且不合成 `ak.contact.accepted`
+不足以建立 glare。证据足够时双方机械派生同一 round，禁止 respond/reject且不合成 `ak.contact.accepted`
 Event；若双方 current directional full-set scope允许，则直接投影 effective/UI accepted。normal accepted 后晚到的
 reverse request 必须由 slot CAS 拒绝，不得改判 glare。
 
-`ContactBasisEvidenceBundle` 是唯一无签名 deterministic bundle，只容纳 derived basis ID、exact request
+`ContactRoundEvidenceBundle` 是唯一无签名 deterministic bundle，只容纳 derived `contact_round_id`、exact request
 acceptance receipts、normal response receipt（normal 分支）、双方 glare concurrency attestations（glare 分支）
 以及可刷新的 current checkpoint/completeness/frontier proofs。normal 分支必须有 response receipt且禁止 glare
 attestation；glare 分支必须有双方各一张 attestation且禁止 response receipt。两种final bundle都必须有pair双方各一张
-current proof；少于两张只能形成非授权的partial/tentative query view，不能冒充portable basis evidence。刷新 current proof 不改变 `basis_id`。unknown/stale/incomplete evidence 只能产生 tentative；tentative
+current proof；少于两张只能形成非授权的partial/tentative query view，不能冒充portable round evidence。刷新 current proof 不改变 `contact_round_id`。unknown/stale/incomplete evidence 只能产生 tentative；tentative
 不能授权 successor、Contact create/send 或 DM authority。
 
 `ak.peer.contacts.command.submit` 是唯一 peer carrier，其 closed XOR 分支分别机器限定原始 signed Event kind为
@@ -141,14 +141,14 @@ event ref与current proof head都必须与同一内层Event及分支逐字交叉
 control receipt的 `result_digest`；它不得复用 self contact
 prepare/commit 的 `ContactOperationOutcome`，也不得把 holder-private receive state编码进状态值。
 其中 request/response 分支允许携该分支 current proof；缺 proof 时只能保持 tentative，不能授权 projection；
-scope/tombstone 分支必须携 current proof；reject 分支没有 basis current proof。`glare_finalize` 分支携 exact 两张
-request receipts、发送方从对端收到的一张 remote mirror receipt、derived glare basis和发送方 attestation；接收方用
+scope/tombstone 分支必须携 current proof；reject 分支没有 round current proof。`glare_finalize` 分支携 exact 两张
+request receipts、发送方从对端收到的一张 remote mirror receipt、derived glare Contact round 和发送方 attestation；接收方用
 自己本地持有的counterpart mirror receipt补齐交叉验证，只在全部匹配且本地
 slot仍未消费时返回自己的 attestation，并在双方 attestation齐备后才可同时返回 current proof。用于该分支的
 remote mirror receipt只能是`accepted|duplicate`，`deferred`从不构成authority。无签名 bundle本身永远
 不是 authority。`proof_refresh` 必须使用 fresh idempotency key，携目标先前签发的 mirror receipt锁定同一 immutable
 inner fact；该prior mirror receipt也只能是`accepted|duplicate`。receiver只可用更鲜且逐字段匹配的
-source-signed proof替换旧 proof，不能修改 fact/receipt/basis；成功响应必须返回匹配的current proof。
+source-signed proof替换旧 proof，不能修改 fact/receipt/round；成功响应必须返回匹配的current proof。
 任何不匹配当前 closed XOR 的请求
 都必须 schema reject；实现不得协商第二种 carrier，也不得以缺少必需 branch receipt 或 proof 的自定义结构进入
 projection。
@@ -157,22 +157,22 @@ projection。
 
 Contact scope 只表达 issuer holder 授予 peer 的方向，唯一字段为 `granted_to_peer_scopes[]`。scope update 的
 唯一 fact 是 `ak.contact.scope.update`，唯一 self operation 是
-`ak.self.contact.command.scope_update{phase=prepare|commit}`。payload closed 绑定完整 peer XOR、basis、version、
+`ak.self.contact.command.scope_update{phase=prepare|commit}`。payload closed 绑定完整 peer XOR、round、version、
 predecessor 与完整 scope 集合；扩大和收窄都必须由 holder 显式签名。tombstone 只终止 Contact，不承担 scope
 update。
 
-scope full-set replacement 为空仅把非 terminal basis 投影为 `suspended`；同一 lineage 后续显式 widen 可恢复。
-proposal 阶段 reject 与 accepted basis 上 tombstone 是 terminal；terminal 后 constituent request refs、basis 与
-lineage 永不复活，recontact 必须创建全新 request receipt(s)与新 basis。
+scope full-set replacement 为空仅把非 terminal round 投影为 `suspended`；同一 lineage 后续显式 widen 可恢复。
+proposal 阶段 reject 与 accepted round 上 tombstone 是 terminal；terminal 后 constituent request refs、round 与
+lineage 永不复活，recontact 必须创建全新 request receipt(s)与新 round。
 
 source service 必须对每个 issuer lineage 签 monotonic head checkpoint/current lease，逐字绑定 current head、
 accepted frontier、`complete_through` 与 `fresh_until`。peer mirror 保留 source signed fact、lease/checkpoint 与
 transport receipt；收到更高 incoming signed head时 target service 立即撤销旧 mirror，不等待轮询。stale/unknown
 current proof仅阻止 Contact-based create/send：existing binding resolver仍返回原坐标，并在 `found.send_blockers[]`
-报告 `contact_scope_stale`。proof stale 绝不把 accepted basis回滚为 pending，也不得隐藏 participant 坐标。
+报告 `contact_scope_stale`。proof stale 绝不把 accepted round 回滚为 pending，也不得隐藏 participant 坐标。
 
 `ak.self.contact.read.list` 的 `contact_list_row` **MUST** 用封闭子对象 `next_prepare_input` 承载下一次写入的输入。其
-`basis_id`、`version`、`predecessor_event_ref` 三个字段与 `ak.self.contact.command.scope_update` /
+`contact_round_id`、`version`、`predecessor_event_ref` 三个字段与 `ak.self.contact.command.scope_update` /
 `ak.self.contact.command.tombstone` 的 prepare 分支逐字同名，客户端 **MUST** 原样抄入，**MUST NOT** 改名映射、重算或
 另行推导。容器名承担时态消歧：其中的 `version` 是**下一条 Event 要携带的**版本号，即 current head version + 1，故最小值
 为 2；`predecessor_event_ref` 是**当前 lineage head 的 Event ID**，即下一条 Event 的前驱，而不是当前 head 自己的前驱。
@@ -181,14 +181,14 @@ current proof仅阻止 Contact-based create/send：existing binding resolver仍�
 
 该子对象只在能 author 后继时出现，省略本身就是“现在不可 author”的表达，**MUST NOT** 为此另造 error code 或扩充
 `contact_state`。按 `contact_state` 逐值判定：`accepted` **MUST** 携带；`pending_outgoing`、`pending_incoming`、
-`rejected`、`expired`、`tombstoned` **MUST NOT** 携带——前两者尚未建立 basis 与 lineage，后三者是 terminal 且 basis 与
-lineage 永不复活。glare 机械派生的 basis 直接投影为 accepted 时同样 **MUST** 携带，此时 `predecessor_event_ref` 是该
+`rejected`、`expired`、`tombstoned` **MUST NOT** 携带——前两者尚未建立 round 与 lineage，后三者是 terminal 且 round 与
+lineage 永不复活。glare 机械派生的 round 直接投影为 accepted 时同样 **MUST** 携带，此时 `predecessor_event_ref` 是该
 issuer 自己的 request head。若该 issuer-local lineage 尚无任何带版本号的 accepted successor，则这个 request head 是
 bootstrap predecessor，`next_prepare_input.version` **MUST** 为 2；验证方 **MUST** 把“逐字等于该 issuer 自己的 request
 Event ID 的 predecessor + version 2”作为 glare founding edge 的唯一合法首个 successor，**MUST NOT** 因 request payload
 没有 lineage `version` 字段而拒绝，也 **MUST NOT** 合成一条 version 1 的 `ak.contact.accepted` Event。首个 successor 之后
 恢复普通规则：`version = current head version + 1` 且 predecessor 逐字等于 current head Event ID。
-scope 全集替换为空只把非 terminal basis 投影为 `suspended`，其 `contact_state` 仍是
+scope 全集替换为空只把非 terminal round 投影为 `suspended`，其 `contact_state` 仍是
 `accepted`，因此仍 **MUST** 携带该子对象，否则后续显式 widen 无从 author。
 
 游标可能陈旧。服务端 prepare 侧已有 `contact_lineage_conflict`（409）与 `contact_scope_stale`（409），持陈旧游标的
@@ -205,9 +205,9 @@ receipt 对 exact request Event ref/digest 的绑定，而不是无条件相信�
 
 按 `contact_state` 逐值判定：只有 `pending_incoming` **MUST** 携带；`pending_outgoing`、`accepted`、`rejected`、
 `expired`、`tombstoned` **MUST NOT** 携带——`pending_outgoing` 是 holder 自己发起、尚未有结果的提案，没有待回应的
-incoming request，其余四者的 admission slot 已被消费或 basis 已终态。glare 因此**结构上不会**出现携带 receipt 的 row：
+incoming request，其余四者的 admission slot 已被消费或 round 已终态。glare 因此**结构上不会**出现携带 receipt 的 row：
 holder 自己那条尚未被消费的 outgoing request 使该 row 在 glare 证据齐备前保持 `pending_outgoing`，证据齐备后机械派生的
-basis 直接投影为 `accepted`，两段都不是 `pending_incoming`——这与 §2 “glare 禁止 respond/reject” 完全一致。实现
+round 直接投影为 `accepted`，两段都不是 `pending_incoming`——这与 §2 “glare 禁止 respond/reject” 完全一致。实现
 **MUST NOT** 因为收到对端并发 request 就把 `pending_outgoing` 改判为 `pending_incoming`，那会诱导客户端去 author 一条
 必被拒的 respond。
 
@@ -229,8 +229,8 @@ Message Signature只能额外叠加，不能替代其中任一项。实现 **MUS
 | `ak.self.contact.command.respond` | 只执行 normal accept；要求 responder slot 无 outgoing，不接受 reject action |
 | `ak.self.contact.command.reject` | 独立 proposal terminal reject与 rejection receipt；不得复用 respond body |
 | `ak.self.contact.command.scope_update` | issuer-local full-set replacement |
-| `ak.self.contact.command.tombstone` | accepted basis terminal，已接受的 predecessor refs 永久消费 |
-| `ak.self.contact.read.list` | 从 verified basis与双方 directional current heads投影；accepted row 另携 §3 的 `next_prepare_input` 游标，`pending_incoming` row 另携 §3 的 `request_receipt` |
+| `ak.self.contact.command.tombstone` | accepted round terminal，已接受的 predecessor refs 永久消费 |
+| `ak.self.contact.read.list` | 从 verified Contact round evidence 与双方 directional current heads 投影；accepted row 另携 §3 的 `next_prepare_input` 游标，`pending_incoming` row 另携 §3 的 `request_receipt` |
 | `ak.peer.contacts.command.submit` | closed XOR peer carrier；原 bytes + exact receipt/current proof |
 | `ak.self.direct_conversation.read.resolve` | §9.1 的唯一 DM 查询入口；closed outcome，不携 create phase 分支 |
 | `ak.self.events.command.submit` | 其 `direct_conversation_founding` branch 是 §5.5 的唯一 DM founding 提交入口 |
@@ -259,29 +259,29 @@ handle、display name、设备 ID、Principal Server endpoint、Realm ID、Stran
 
 ### 5.2 founder 派生（normative）
 
-同一 pair 的 Direct Conversation Realm **MUST** 由且仅由从该 pair 的 **founder basis** 确定性派生出的 `founder` 创建。派生只读 §2 已定义的 basis core，不引入新字段：
+同一 pair 的 Direct Conversation Realm **MUST** 由且仅由从该 pair 的 **root Contact round** 确定性派生出的 `founder` 创建。派生只读 §2 已定义的 `contact_round` core，不引入新字段：
 
 ```text
-founder(basis) =
+founder(contact_round) =
     normal 分支 -> sorted_pair_members 中不等于 request_event_ref 之 issuer 的那一方（即 responder）
     glare  分支 -> requests[0].request_event_ref 之 issuer
 ```
 
-**normal 分支取 responder 而非 requester 是 normative 选择**：basis 由 responder 的 `normal_response_acceptance_receipt` 点亮，该 receipt 证明 responder 在 basis 成立时在线且刚完成签名；requester 可能在数日前发出请求后即长期离线。base v1 不定义 fallback（§5.7），因此把 founder 定为可能不在场的一方会使该 pair 永久无法创建。
+**normal 分支取 responder 而非 requester 是 normative 选择**：Contact round 由 responder 的 `normal_response_acceptance_receipt` 点亮，该 receipt 证明 responder 在该 round 成立时在线且刚完成签名；requester 可能在数日前发出请求后即长期离线。base v1 不定义 fallback（§5.7），因此把 founder 定为可能不在场的一方会使该 pair 永久无法创建。
 
 glare 分支不存在 responder，`requests[0]` 依 §2 已登记的 canonical ordering 取得，**MUST NOT** 另立排序规则。
 
 `sorted_pair_members` 不恰为二、request issuer 不属于该 pair、glare requests 未按登记顺序或两个 issuer 不构成该 pair 时，founder 派生 **MUST** 失败并整组拒绝，**MUST NOT** 以补集或本地偏好猜测。
 
-### 5.3 founder basis 与 recontact continuity
+### 5.3 root Contact round 与 recontact continuity
 
-founder **MUST** 从该 pair 的**根 founder basis** 派生，而非从 current basis。tombstone 后 recontact 产生的新 basis **MUST** 在其 request/receipt 中承诺 `previous_terminal_basis_id`；receiver **MUST** 沿该链求出唯一根 basis，并从根 basis 派生 founder。
+founder **MUST** 从该 pair 的 **root Contact round** 派生，而非从 current round。tombstone 后 recontact 产生的新 round **MUST** 在其 request/receipt 中承诺 `previous_terminal_contact_round_id`；receiver **MUST** 沿该链求出唯一 root round，并从该 root round 派生 founder。
 
-该指针的 wire 规则是封闭的：根 request Event 与根 acceptance receipt 都 **MUST** 省略 `previous_terminal_basis_id`；recontact 的 request Event、source request acceptance receipt、以及 normal response acceptance receipt **MUST** 都携带同一个“紧邻上一轮 terminal basis”的 `basis_id`。glare 分支的两个 request Event 与两张 source acceptance receipt 也 **MUST** 携带相同指针。`slot_predecessor` 只表示签发服务内部 request-slot 的 CAS 前驱，**不是**跨轮 continuity 指针，二者不得互相替代。
+该指针的 wire 规则是封闭的：根 request Event 与根 acceptance receipt 都 **MUST** 省略 `previous_terminal_contact_round_id`；recontact 的 request Event、source request acceptance receipt、以及 normal response acceptance receipt **MUST** 都携带同一个“紧邻上一轮 terminal round”的 `contact_round_id`。glare 分支的两个 request Event 与两张 source acceptance receipt 也 **MUST** 携带相同指针。`slot_predecessor` 只表示签发服务内部 request-slot 的 CAS 前驱，**不是**跨轮 continuity 指针，二者不得互相替代。
 
-`basis_continuity_chain` 按 current → immediate predecessor → root 排列，最多 64 段，不得重复或成环。每一段 predecessor bundle 的两张 `contact_current_proof` 都 **MUST** 令 `terminal=true`，共同证明该 basis 已 tombstone；当前 active basis 的 proof 则 **MUST** 为 `terminal=false`。每条边必须逐字节满足“后继 core/receipt 的 `previous_terminal_basis_id` 等于下一段 bundle 的 `basis_id`”；最后一段必须且只能是省略该指针的 root。proof 对完整 closed object 签名，因此 `terminal` 也在签名 transcript 内。断链、多根、跳段、非 terminal predecessor、两个方向 proof 不一致或超过上限均整体拒绝。
+`contact_round_continuity_chain` 按 current → immediate predecessor → root 排列，最多 64 段，不得重复或成环。每一段 predecessor bundle 的两张 `contact_current_proof` 都 **MUST** 令 `terminal=true`，共同证明该 round 已 tombstone；当前 active round 的 proof 则 **MUST** 为 `terminal=false`。每条边必须逐字节满足“后继 core/receipt 的 `previous_terminal_contact_round_id` 等于下一段 bundle 的 `contact_round_id`”；最后一段必须且只能是省略该指针的 root。proof 对完整 closed object 签名，因此 `terminal` 也在签名 transcript 内。断链、多根、跳段、非 terminal predecessor、两个方向 proof 不一致或超过上限均整体拒绝。
 
-断链、多根、成环、跳过非 terminal basis、或两个 directional proof 导出不同根，**MUST** 拒绝创建与回放。current recontact 的 responder 即使与根 basis 的 responder 不同，也 **MUST NOT** 取得创建权。Realm 一经 accepted，founder 身份只保留为 founding 审计与 §7.2 bootstrap authority 的 actor 约束；日常 authority、repair 与 recontact **MUST NOT** 再读取它。
+断链、多根、成环、跳过非 terminal round、或两个 directional proof 导出不同根，**MUST** 拒绝创建与回放。current recontact 的 responder 即使与根 round 的 responder 不同，也 **MUST NOT** 取得创建权。Realm 一经 accepted，founder 身份只保留为 founding 审计与 §7.2 bootstrap authority 的 actor 约束；日常 authority、repair 与 recontact **MUST NOT** 再读取它。
 
 ### 5.4 create 判别与授权
 
@@ -289,24 +289,24 @@ founder **MUST** 从该 pair 的**根 founder basis** 派生，而非从 current
 
 | ref role | admission variant | 适用分支 |
 | --- | --- | --- |
-| `direct_conversation_basis` | `direct_conversation_genesis` | human↔human、Agent↔第三方 |
+| `direct_conversation_contact_round` | `direct_conversation_genesis` | human↔human、Agent↔第三方 |
 | `direct_conversation_agent_provision` | `direct_conversation_agent_genesis` | controller↔自己的 owned Agent |
 
 两个 role **MUST** exact XOR。managed-Agent PCR genesis 只按 `payload.object.purpose="managed_agent_control"` 选择 `delegated_pcr_genesis`，并在准入时反查 accepted `ak.agent.provision` 的前向声明（见 [`./key-management.md` §3.6.3](./key-management.md)）；它没有 ref role 判别，因此这里的两个 DM role **MUST NOT** 与之混用。DM variants、PCR variants 与 ordinary Realm 的 `when` 条件 **MUST** 结构互斥；零命中或多命中 **MUST** `schema_violation`，**MUST NOT** 按 registry 顺序取第一条。
 
 `direct_conversation_genesis` **MUST** 逐项验证，任一不符整组零写入：
 
-1. 该 ref 指向完整 portable Contact basis evidence bundle 及至根 founder basis 的 continuity chain，`basis_id`、normal/glare core、request/response receipts 或 glare attestations、terminal links 与双方 proofs 均可验证；
+1. 该 ref 指向完整 portable Contact round evidence bundle 及至 root Contact round 的 continuity chain，`contact_round_id`、normal/glare core、request/response receipts 或 glare attestations、terminal links 与双方 proofs 均可验证；
 2. 按 §5.2/§5.3 求出 `founder`；
 3. `created_by == actor_id == founder`（追加约束，**不**放松既有 `created_by == actor_id`）；
-4. payload 的 `pair_key` 等于从 basis 的 `sorted_pair_members` 与 trust domain 重算之值；
+4. payload 的 `pair_key` 等于从 round 的 `sorted_pair_members` 与 trust domain 重算之值；
 5. Realm profile 为 `ak.profile.direct_conversation_realm.v1`，`collaboration_role="direct_conversation"`，effective participants 恰为该 pair；
 6. §6.2 的固定 baseline 投影全部命中；
 7. 该 `realm_id` 无对象身份冲突。
 
-**accepted-at 与 current gate MUST 分开求值**：source self admission 在 slot commit 线性化点要求两条 directional current heads 共同引用该 current basis、授予 `direct_message` 且 fresh；peer replay 只验证这些 proof 在 source receipt 的 `accepted_at` 时有效并被 receipt digest 绑定。因此即使 Event 到达时 Contact 已撤回，peer 仍 **MUST** 接受该历史 Realm identity，并以 current gate 投影 `suspended`；否则 Event 有效性会依赖投递顺序。
+**accepted-at 与 current gate MUST 分开求值**：source self admission 在 slot commit 线性化点要求两条 directional current heads 共同引用该 current round、授予 `direct_message` 且 fresh；peer replay 只验证这些 proof 在 source receipt 的 `accepted_at` 时有效并被 receipt digest 绑定。因此即使 Event 到达时 Contact 已撤回，peer 仍 **MUST** 接受该历史 Realm identity，并以 current gate 投影 `suspended`；否则 Event 有效性会依赖投递顺序。
 
-`direct_conversation_agent_genesis` 改验 participants 恰为该 controller/Agent、profile 为 DM 而非 PCR、`ak.agent.provision` 已 accepted 且 controller binding current，并令 `founder = controller`。Agent 与第三方之间的 DM 仍 **MUST** 使用该 pair 的 current Contact basis，**MUST NOT** 以 provision 绕过第三方 consent。
+`direct_conversation_agent_genesis` 改验 participants 恰为该 controller/Agent、profile 为 DM 而非 PCR、`ak.agent.provision` 已 accepted 且 controller binding current，并令 `founder = controller`。Agent 与第三方之间的 DM 仍 **MUST** 使用该 pair 的 current Contact round，**MUST NOT** 以 provision 绕过第三方 consent。
 
 ### 5.5 caller-authored founding unit、source 唯一 slot 与 acceptance receipt
 
@@ -329,9 +329,9 @@ founding_unit_digest = H("ak.direct-conversation.founding-unit.v1",
 
 三个 Event ID **MUST** 按 §6.1 的 wire 顺序列出，**MUST NOT** 排序、去重或替换为 digest。该值不进入任一 unit Event 的 preimage，因此不存在自指；receipt 与 `ak.direct_conversation.bound` 只引用它。实现 **MUST** 执行 [`ak.vector.direct_conversation.founding_unit.v1`](../../artifacts/registry/vector-registry.json) 的逐字节 KAT。
 
-founder 的 current Principal Server **MUST** 以本地唯一约束保证同一 `(founder_id, trust_domain_id, pair_key)` 至多一组 founding unit 被 accepted。self admission **MUST** 在同一事务内完成：确认该 pair 尚无 accepted DM Realm、CAS 占用 slot、按 §5.4 与 §6 完整验证三条 Event、basis 与派生坐标、零项或三项原子接受、签发 `DirectConversationFoundingAcceptanceReceipt`、写入 peer-delivery outbox。acceptance **只固定 caller 已派生的坐标**，**MUST NOT** 分配、替换或重新协商任一 ID；receipt 是该事务的输出，**MUST NOT** 循环要求 caller 预先携带。
+founder 的 current Principal Server **MUST** 以本地唯一约束保证同一 `(founder_id, trust_domain_id, pair_key)` 至多一组 founding unit 被 accepted。self admission **MUST** 在同一事务内完成：确认该 pair 尚无 accepted DM Realm、CAS 占用 slot、按 §5.4 与 §6 完整验证三条 Event、round 与派生坐标、零项或三项原子接受、签发 `DirectConversationFoundingAcceptanceReceipt`、写入 peer-delivery outbox。acceptance **只固定 caller 已派生的坐标**，**MUST NOT** 分配、替换或重新协商任一 ID；receipt 是该事务的输出，**MUST NOT** 循环要求 caller 预先携带。
 
-receipt **MUST** 绑定 `pair_key`、`founder_id`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 authorization core（human 为 current/根 basis 与 evidence digest；controller↔Agent 为 provision ref/digest 与 controller binding digest）、`slot_committed`、issuer service ID 与其 accepted-at service binding digest、`accepted_at` 与 proof。它 **MUST NOT** 创建 Realm、授权 Message 或充当全局 slot；它只让 peer verifier 确认 founder 当时的 current service 已原子接受该 unit 并关闭本地唯一 slot。
+receipt **MUST** 绑定 `pair_key`、`founder_id`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 authorization core（human 为 current/根 round 与 evidence digest；controller↔Agent 为 provision ref/digest 与 controller binding digest）、`slot_committed`、issuer service ID 与其 accepted-at service binding digest、`accepted_at` 与 proof。它 **MUST NOT** 创建 Realm、授权 Message 或充当全局 slot；它只让 peer verifier 确认 founder 当时的 current service 已原子接受该 unit 并关闭本地唯一 slot。
 
 `issuer_service_binding_digest` 的唯一输入是 [`principal-service-binding.schema.json`](../../artifacts/schemas/principal-service-binding.schema.json) 中 `accepted_at_service_binding` 去掉 `binding_digest`、`service_acceptance_proof` 与 `principal_authorization_proof` 后的完整 closed object，按 `H("ak.principal-service-binding.v1", object)` 计算。该 snapshot 必须把 `principal_id=founder_id`、`service_id=issuer_service_id`、`accepted_at` 不晚于且在 `receipt.accepted_at` 仍有效、service DID verification method、endpoint origins、DID document digest 与 current authority evidence固定；两张 proof 分别证明 service 接受承载关系和 principal 授权该 service，任何只查询“现在是谁的服务器”的结果都不能替代 accepted-at snapshot。
 
@@ -348,7 +348,7 @@ founding_receipt_transcript = H("ak.direct-conversation.founding-receipt.v1",
 transcript 与同一签名输入。
 
 carrier 是 `ak.self.events.command.submit` request union 中显式登记的 discriminated branch
-`DirectConversationFoundingUnitSubmission`（discriminator `unit_kind="direct_conversation_founding"`）：它精确要求恰好三条按 §6.1 顺序排列的 `EventInitialSubmission`、分支化 founder basis evidence、founder 已签名的 `source_service_binding` 与 `idempotency_key`，并在 response union `EventsSubmitResponseBody` 中返回 `DirectConversationFoundingAcceptanceOutcome`。binding 的 `principal_id` 必须等于 founder、`service_id` 必须等于接收服务，服务端在 slot transaction 固定并验证 `accepted_at` 后只把其已验证 `binding_digest` 写入 receipt，**MUST NOT** 代替 founder 产生 `principal_authorization_proof`。实现 **MUST NOT** 新增私有 endpoint、复用普通 batch 分支，也 **MUST NOT** 用本地 DTO 猜测该合同；`ak.self.direct_conversation.read.resolve` 继续 query-only，**MUST NOT** 承载 create。
+`DirectConversationFoundingUnitSubmission`（discriminator `unit_kind="direct_conversation_founding"`）：它精确要求恰好三条按 §6.1 顺序排列的 `EventInitialSubmission`、分支化 `founding_authority_evidence`、founder 已签名的 `source_service_binding` 与 `idempotency_key`，并在 response union `EventsSubmitResponseBody` 中返回 `DirectConversationFoundingAcceptanceOutcome`。binding 的 `principal_id` 必须等于 founder、`service_id` 必须等于接收服务，服务端在 slot transaction 固定并验证 `accepted_at` 后只把其已验证 `binding_digest` 写入 receipt，**MUST NOT** 代替 founder 产生 `principal_authorization_proof`。实现 **MUST NOT** 新增私有 endpoint、复用普通 batch 分支，也 **MUST NOT** 用本地 DTO 猜测该合同；`ak.self.direct_conversation.read.resolve` 继续 query-only，**MUST NOT** 承载 create。
 
 幂等与 crash/restart 语义 **MUST** 如下封闭：
 
@@ -361,11 +361,11 @@ carrier 是 `ak.self.events.command.submit` request union 中显式登记的 dis
 
 ### 5.6 联邦例外
 
-Realm 尚不存在时无法取得普通 `federation_peer` authority，因此 [`../sync/federation.md`](../sync/federation.md) **MUST** 登记一条封闭的 DM founding exception：允许 founder 的**已由 Contact basis 钉住的 Principal Server/PCR authority instance**向另一 participant 已钉住的实例投递该 pair 的 founding atomic unit、source acceptance receipt 与 bounded dependencies。
+Realm 尚不存在时无法取得普通 `federation_peer` authority，因此 [`../sync/federation.md`](../sync/federation.md) **MUST** 登记一条封闭的 DM founding exception：允许 founder 的**已由 Contact round 钉住的 Principal Server/PCR authority instance**向另一 participant 已钉住的实例投递该 pair 的 founding atomic unit、source acceptance receipt 与 bounded dependencies。
 
 接收方每次 **MUST** 验证：transport source 等于 Contact/receipt 冻结的 `principal_server_id`，portable
 device evidence 的 PCR realm/genesis receipt 与冻结 authority instance 逐字一致，destination 同样命中本地
-participant binding，body 只含该 unit/receipt/dependencies，且 create 通过 §5.4 全部校验。Contact basis
+participant binding，body 只含该 unit/receipt/dependencies，且 create 通过 §5.4 全部校验。Contact round
 镜像尚未到达时 MUST 返回 `dependency_missing`；同 core 的另一 PCR/服务出现时 MUST
 `principal_authority_instance_mismatch`，不得尝试 cutover。
 
@@ -389,7 +389,7 @@ base v1 **MUST NOT** 定义 timeout fallback、takeover lease 或 `founder_fallb
 
 若仍观察到同 pair 第二个 **accepted** Realm：
 
-1. 先判定是否只是非 founder、旧 basis 或旧 service 产生的无效 bytes；无效对象 **MUST NOT** 进入 discovery、binding 或 Message authority，也 **MUST NOT** 被称为 candidate；
+1. 先判定是否只是非 founder、旧 round 或旧 service 产生的无效 bytes；无效对象 **MUST NOT** 进入 discovery、binding 或 Message authority，也 **MUST NOT** 被称为 candidate；
 2. 若两条都携看似合法的 founder admission 与 source receipt，则受信 service 的 slot、cutover fence 或签名发生 equivocation。pair **MUST** 进入 `direct_conversation_pair_materialization_conflict`，冻结两边新的 Message/membership/policy/MLS/binding；
 3. **MUST** 保留两组 founding unit、receipts、service-binding/cutover proofs 与本地 slot 证据；**MUST NOT** 自动取 min、tombstone 任一 Realm、搬移历史或让 UI 选择一边继续；
 4. 只有另行登记、能证明唯一 canonical founding unit 且不复活已终结历史的 recovery 协议可以解除。本规范不提供该协议。
@@ -406,7 +406,7 @@ founder **MUST** 一次提交恰好三条 Event：
 3. ak.strand.create       main Strand，scope_circle_id=null，primary discussion track
 ```
 
-三条注册为 `ak.profile.direct_conversation_realm.v1` 的 closed atomic founding unit：按 wire 顺序验证，同一事务零项或三项接受。create-alone、缺 peer join、缺 Strand、乱序、不同 actor/pair/profile/Realm 或出现第四条 Event **MUST** 拒绝整组。三条 **MUST** 由 founder author，并使用同一分支 context（`direct_conversation_basis` 或 `direct_conversation_agent_provision`，exact XOR），叠加同批 staged authority-root proof。
+三条注册为 `ak.profile.direct_conversation_realm.v1` 的 closed atomic founding unit：按 wire 顺序验证，同一事务零项或三项接受。create-alone、缺 peer join、缺 Strand、乱序、不同 actor/pair/profile/Realm 或出现第四条 Event **MUST** 拒绝整组。三条 **MUST** 由 founder author，并使用同一分支 context（`direct_conversation_contact_round` 或 `direct_conversation_agent_provision`，exact XOR），叠加同批 staged authority-root proof。
 
 该顺序同时是 §5.5 的派生顺序，不是可选排版：第 2、3 条的 `envelope.realm_id` **MUST** 逐字等于
 `retype(第 1 条 event_id, "realm")`，`main_strand_id` **MUST** 逐字等于 `retype(第 3 条 event_id, "strand")`，
@@ -426,7 +426,7 @@ Genesis Seal **MUST** 覆盖三条 Event、普通 Realm create 的全部 require
 
 ### 6.2 固定 baseline 投影
 
-本 profile **MUST NOT** 让 producer 选择"是否追加 policy Event"。`direct_conversation_genesis` contract **MUST** 从 create 与 basis 机械投影下列 create-locked baseline：
+本 profile **MUST NOT** 让 producer 选择"是否追加 policy Event"。`direct_conversation_genesis` contract **MUST** 从 create 与 round 机械投影下列 create-locked baseline：
 
 - `join_rule=closed`，不可公开发现或枚举；
 - `content_scheme=mls_exporter_aead_v1`；
@@ -449,7 +449,7 @@ notary value 与 CBA profile **MUST** 从 trust domain 已 accepted 的 DM deplo
 2. **对方尚未入组**：founder **MAY** 建立只含自身 leaf 的 provisional exporter epoch 并产生密文 Message；对方入组后经 `ak.realm_key.share` 取得旧 epoch `history_secret` 解开 `decryption_pending` 历史。
 3. **连 exporter epoch 也无法建立**（Realm 尚不存在）：内容 **MUST** 只进入本地 pending tier，**MUST NOT** 成为任何 Realm 的 shared accepted Message，且 **MUST NOT** 以明文上传、日志或备份形式离开设备保护边界。
 
-任何网络、KeyPackage 或 basis 失败 **MUST NOT** 触发自动明文降级。
+任何网络、KeyPackage 或 round 失败 **MUST NOT** 触发自动明文降级。
 
 ### 7.2 bootstrap participant authority
 
@@ -656,7 +656,7 @@ binding **MUST NOT** 携带 `binding_state`、`supersedes_binding_ref`、永久 
 | `suspended` | 已有 Realm 但 materialization/object conflict、terminal fault 或 membership/Contact/Agent/account/MLS/notary/lifecycle gate 阻止继续；blocker **MUST** 可机读 |
 | `temporarily_unavailable` | 必需依赖不可验证，无法安全归类 |
 
-求值优先级固定：依赖不足以验证 current basis 或 founder 时 `temporarily_unavailable`；无 Realm 时区分 `creation_blocked | creation_required | awaiting_founder`；有 Realm 后 identity/materialization/terminal/notary 冲突优先 `suspended`；否则无 binding 为 `provisional`；最后才在 binding、generation 与 daily gates 齐备时 `found`。`retry_after` 只是调度提示，**MUST NOT** 产生 fallback authority。
+求值优先级固定：依赖不足以验证 current round 或 founder 时 `temporarily_unavailable`；无 Realm 时区分 `creation_blocked | creation_required | awaiting_founder`；有 Realm 后 identity/materialization/terminal/notary 冲突优先 `suspended`；否则无 binding 为 `provisional`；最后才在 binding、generation 与 daily gates 齐备时 `found`。`retry_after` 只是调度提示，**MUST NOT** 产生 fallback authority。
 
 resolver 对已存在的 active-generation singleton cell **MUST** 同时返回
 `active_mls_generation_ref` 与 `active_mls_generation_value_digest`，或同时省略二者；后者是
@@ -668,7 +668,7 @@ existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库�
 
 #### 9.1.1 `creation_required` 的 authoring material（normative）
 
-`DirectConversationFoundingUnitSubmission` 必填 `founder_basis_evidence` 与
+`DirectConversationFoundingUnitSubmission` 必填 `founding_authority_evidence` 与
 `source_service_binding`，二者都是**服务端自己持有**的对象（前者由 Contact 证据投影得到，
 后者就是本服务签发并接受的 binding）。若 resolver 只回一个无 material 的
 `creation_required`，则 founder 在协议层不可能构造该 unit——这正是
@@ -676,7 +676,7 @@ existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库�
 因此：
 
 - `creation_required` **MUST** 携带 `next_founding_input`，其成员名与 submission 的对应成员
-  **逐字节一致**（`founder_basis_evidence`、`source_service_binding`），caller 原样搬运，
+  **逐字节一致**（`founding_authority_evidence`、`source_service_binding`），caller 原样搬运，
   **MUST NOT** 引入任何改名映射；服务端 **MUST NOT** 在该容器里附带 Event bytes、坐标、
   `idempotency_key` 或 receipt——三条 Event 仍由 founder 自签，服务端**永不**代签。
 - 服务端 **MUST** 按本 pair 选择唯一分支：peer Contact founding 用 `human` 分支（含完整
@@ -687,7 +687,7 @@ existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库�
   为此新增错误码或状态值——求值优先级表里 `temporarily_unavailable` 本就覆盖"依赖不可验证"。
 - **新鲜度**：该 material 是响应时刻的快照，**不是** authority。caller **MUST NOT** 跨
   Contact 状态变化复用它；material 在提交时已陈旧的，submission 侧按 §5.4/§6 既有校验拒绝
-  （basis 不匹配、continuity 断链、binding 非 current），**MUST NOT** 因为它来自 resolver
+  （round 不匹配、continuity 断链、binding 非 current），**MUST NOT** 因为它来自 resolver
   就放宽任何一条校验，服务端也 **MUST NOT** 把 caller 回传的 material 当作可信输入——
   它 **MUST** 以自己 current 的那份重新验证。
 - **并发 founder 设备**：同一 founder 的多台设备 **MAY** 同时取得 `creation_required` 与
@@ -780,8 +780,8 @@ Conformance **MUST** 覆盖：
 - 幂等与崩溃恢复：同 `idempotency_key` 同 unit 的 exact retry 返回 byte-identical receipt 且 `accepted_at` 不变，同 key 不同 unit 返回 `duplicate_conflict`；unit 提交、receipt 落库、outbox 入队与响应丢失各崩溃点重放同一 signed bytes 均恢复同一结果，且不产生第二组 Event；
 - §5.6 branch 的 dependency 不足 **MUST** 是 top-level 409 `dependency_missing` 加零写入，**MUST NOT** 出现只接受一或两条 Event 的 partial；
 - basis 形态：unit 内 `ak.member.state{join}` 与 `ak.strand.create` 的 no-basis shape 被接受；同一 no-basis `ak.strand.create` 出现在 founding unit 之外（普通 Realm、同 Realm 的后续 Strand 或单条提交）**MUST** 被 admission 拒绝，而 unit 内改携 `seal_ref`/`auth_context`/`seal_basis` 也 **MUST** 被拒绝；
-- recontact continuity：多轮 tombstone/recontact 后仍重算出同一根 founder basis 与同一 founder；缺 `previous_terminal_basis_id`、成环、分叉或两 proof 导出不同根均拒绝；
-- accepted-at 与 current gate 分离：source 在旧 current basis 有效时 accepted 的 unit 延迟到撤回后才到 peer，peer 仍接受历史 identity 并按 current gate 投影 `suspended`；
+- recontact continuity：多轮 tombstone/recontact 后仍重算出同一 root Contact round 与同一 founder；缺 `previous_terminal_contact_round_id`、成环、分叉或两 proof 导出不同根均拒绝；
+- accepted-at 与 current gate 分离：source 在旧 current round 有效时 accepted 的 unit 延迟到撤回后才到 peer，peer 仍接受历史 identity 并按 current gate 投影 `suspended`；
 - 对方设备离线时 MLS 建立与发送成功；对方服务器不可达时 founder 仍可建 Realm、激活 generation 0 并发出真密文；
 - generation-1 activation 由 founder author **MUST** 以 `direct_conversation_activation_author_invalid` 拒绝，由 joiner author 且前提齐备则接受；
 - 跳代、回退、未 active group 作 predecessor、第 17 个候选 group 的既定错误；

@@ -1774,7 +1774,7 @@
       "vector_id": "ak.vector.account_status.authority_publication.v1",
       "steps": [
         {
-          "name": "service_authoring_basis_is_pcr_and_issuer_bound",
+          "name": "service_authoring_frontiers_is_pcr_and_issuer_bound",
           "input": {
             "authority_evidence_valid": true,
             "source_service_matches_issuer": true,
@@ -1800,7 +1800,7 @@
             },
             "operation": "security_closure.evaluate",
             "transcript": {
-              "step": "service_authoring_basis_is_pcr_and_issuer_bound",
+              "step": "service_authoring_frontiers_is_pcr_and_issuer_bound",
               "canonicalization": "fixture_json_v1",
               "input": {
                 "source_service_matches_issuer": true,

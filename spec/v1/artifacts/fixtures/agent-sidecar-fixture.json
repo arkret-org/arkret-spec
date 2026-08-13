@@ -102,7 +102,7 @@
         "track_name and message_id are rejected in ensure context_ref",
         "one native Sidecar context mapping is reused across all source Strand Tracks",
         "display mode is encrypted per-context view state and defaults to context_merged",
-        "each source-routed exchange has an independent device-local Event-fold cache and stable anchor order",
+        "each source-routed exchange has an independent device-local Event-fold cache and stable source-event order",
         "sidecar-native events create no source echo",
         "merged projection deduplicates the private request Event by Event id"
       ]

@@ -3118,8 +3118,8 @@
       }
     },
     {
-      "name": "account_status_authoring_basis_outcome_valid",
-      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_outcome",
+      "name": "account_status_authoring_frontiers_outcome_valid",
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_outcome",
       "expect_valid": true,
       "instance": {
         "account_id": "acct_123",
@@ -3210,7 +3210,7 @@
       }
     },
     {
-      "name": "device_reanchor_payload_non_null_pre_fence_basis_valid",
+      "name": "device_reanchor_payload_non_null_pre_fence_seal_frontier_valid",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
@@ -3227,7 +3227,7 @@
         "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-000000000099",
         "previous_device_generation": 1,
         "new_device_generation": 2,
-        "pre_fence_basis": {
+        "pre_fence_seal_frontier": {
           "leaves": [
             "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -3240,7 +3240,7 @@
       "expect_valid": true
     },
     {
-      "name": "device_reanchor_payload_pre_fence_basis_leaves_only_rejected",
+      "name": "device_reanchor_payload_pre_fence_seal_frontier_leaves_only_rejected",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
@@ -3257,7 +3257,7 @@
         "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-000000000099",
         "previous_device_generation": 1,
         "new_device_generation": 2,
-        "pre_fence_basis": {
+        "pre_fence_seal_frontier": {
           "leaves": [
             "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           ]
@@ -3268,7 +3268,7 @@
       "expect_valid": false
     },
     {
-      "name": "device_reanchor_payload_pre_fence_basis_missing_control_event_set_root_rejected",
+      "name": "device_reanchor_payload_pre_fence_seal_frontier_missing_control_event_set_root_rejected",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
@@ -3285,7 +3285,7 @@
         "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-000000000099",
         "previous_device_generation": 1,
         "new_device_generation": 2,
-        "pre_fence_basis": {
+        "pre_fence_seal_frontier": {
           "leaves": [
             "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -3298,7 +3298,7 @@
       "expect_valid": false
     },
     {
-      "name": "device_reanchor_payload_pre_fence_basis_missing_state_root_rejected",
+      "name": "device_reanchor_payload_pre_fence_seal_frontier_missing_state_root_rejected",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "instance": {
         "principal_id": "ak:did_core:webvh:z6mkfixture",
@@ -3315,7 +3315,7 @@
         "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-000000000099",
         "previous_device_generation": 1,
         "new_device_generation": 2,
-        "pre_fence_basis": {
+        "pre_fence_seal_frontier": {
           "leaves": [
             "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"

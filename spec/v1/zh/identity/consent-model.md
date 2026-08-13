@@ -22,7 +22,7 @@ Arkret 的访问授权由 **capability + invite** 两条路径承担。但二者
 - 任何 capability grant（能力授权）
 - 任何 invite token（邀请凭证）
 
-它是invite及其它**非Contact basis**动作路径的holder-private前置gate。Contact request/response、Contact-based create/send与Personal DM明确不读取本模型；它们只读取双方holder-signed directional Contact heads（见[`contact-and-direct-conversation.md`](./contact-and-direct-conversation.md)）。
+它是invite及其它**不以 Contact 为授权依据**的动作路径的holder-private前置gate。Contact request/response、Contact-based create/send与Personal DM明确不读取本模型；它们只读取双方holder-signed directional Contact heads（见[`contact-and-direct-conversation.md`](./contact-and-direct-conversation.md)）。
 
 本规范定义 Arkret 的 consent state，与 capability / invite 正交。模型借鉴自 [`draft-ietf-mimi-protocol-06`](https://datatracker.ietf.org/doc/html/draft-ietf-mimi-protocol-06) 的 consent 概念，并完整落在 Arkret 的 CBA / Lattice 模型之上：consent 是 holder 控制的 Realm 内某个 consent cell（or_set lattice）的当前 join 值，由签名 Control Move 维护并在被 accepted Seal 覆盖后生效。
 
@@ -40,7 +40,7 @@ Consent grant / revoke 表达的是 **holder 自己的决定**。它写入 holde
 
 ### 2.2 Consent 不授予 Realm 权限，也不是联系人关系真源
 
-Consent 表达"我允许某个 peer 发起某类非 Contact basis 动作"，但加入 Realm、写入 Realm、解密 E2EE 内容仍需独立的 capability + membership。Consent 可作为 invite、非 Contact call/presence 等流程的上游 action gate；Contact-based create/send 与 Personal DM 完全不读取它。
+Consent 表达"我允许某个 peer 发起某类不以 Contact 为授权依据的动作"，但加入 Realm、写入 Realm、解密 E2EE 内容仍需独立的 capability + membership。Consent 可作为 invite、非 Contact call/presence 等流程的上游 action gate；Contact-based create/send 与 Personal DM 完全不读取它。
 
 联系人关系的 pending / accepted / rejected / tombstoned 状态不属于 consent cell。它们的真源是 [`contact-and-direct-conversation.md`](./contact-and-direct-conversation.md) 定义的 principal-scoped contact fact log。Consent 的有效状态只有 `active` / `no-consent`；`revoke` 是撤销操作，不是联系人关系状态。
 
@@ -51,7 +51,7 @@ Consent 表达"我允许某个 peer 发起某类非 Contact basis 动作"，但�
 | 关系 | holder ↔ peer pair | actor ↔ resource action |
 | 持有方 | holder（被联系方） | actor（执行动作方） |
 | 写入位置 | holder principal control Realm | 目标 Realm |
-| 用途 | invite / 非Contact basis动作前置 gate | 执行动作 (read/write/admin/...) 时的权限判断 |
+| 用途 | invite / 不以 Contact 为授权依据的动作前置 gate | 执行动作 (read/write/admin/...) 时的权限判断 |
 | 撤销 | `ak.consent.revoke` | `ak.capability.revoke` |
 
 二者可独立存在：peer 持有"对 Alice 的 invite capability"，但 Alice 没 consent → invite 路径仍被 gate；Alice consent 给了 Bob，但 Bob 没 capability → invite 不能执行。
@@ -293,7 +293,7 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
 
 ### 6.2 非 Contact action gate 与 Contact 排除边界
 
-对不以Contact basis发起的WebRTC call、presence subscription或未来显式注册的一次性动作，发起方可preflight目标Consent，但接收侧仍须在fanout/响铃/presence/media token前重验holder-private current consent。缺active consent时fail closed/quarantine。该规则不授权创建或发送Contact-based DM。
+对不以 Contact 为授权依据发起的WebRTC call、presence subscription或未来显式注册的一次性动作，发起方可preflight目标Consent，但接收侧仍须在fanout/响铃/presence/media token前重验holder-private current consent。缺active consent时fail closed/quarantine。该规则不授权创建或发送Contact-based DM。
 
 WebRTC `ak.call.signal{signal_kind=invite}` 在服务端投递与目标客户端展示前都 MUST 校验 `voice_call` / `video_call` consent；无 consent 的 invite MUST 被丢弃或进入 profile 声明的 quarantine，且不得产生 VoIP push / ringing UI。Presence subscription / fanout 由 Sync Service 在每次订阅建立和每次 fanout 前校验 holder 对 observer 的 `presence` consent；无 consent 时不得泄露在线、离线、last active bucket 或订阅是否存在。
 

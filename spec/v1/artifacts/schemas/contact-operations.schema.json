@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/contact-operations.schema.json",
   "title": "Arkret Contact and Direct Conversation Operation DTOs",
-  "description": "Closed request/response DTO bundle for the Contact lifecycle: request, respond, reject, scope replacement, tombstone, the portable basis evidence bundle, acceptance receipts and the peer Contact carrier, plus the contact-list projection.",
+  "description": "Closed request/response DTO bundle for the Contact lifecycle: request, respond, reject, scope replacement, tombstone, the portable Contact round evidence bundle, acceptance receipts and the peer Contact carrier, plus the contact-list projection.",
   "anyOf": [
     {
       "$ref": "#/$defs/contact_request_request_body"
@@ -195,7 +195,7 @@
       },
       "additionalProperties": false
     },
-    "contact_basis": {
+    "contact_round": {
       "oneOf": [
         {
           "type": "object",
@@ -274,24 +274,24 @@
         }
       ]
     },
-    "contact_basis_evidence_bundle": {
+    "contact_round_evidence_bundle": {
       "type": "object",
       "required": [
-        "basis_id",
-        "basis",
+        "contact_round_id",
+        "contact_round",
         "request_receipts",
         "current_proofs"
       ],
       "properties": {
-        "basis_id": {
+        "contact_round_id": {
           "$ref": "./principal-operations.schema.json#/$defs/hash"
         },
-        "previous_terminal_basis_id": {
+        "previous_terminal_contact_round_id": {
           "$ref": "./principal-operations.schema.json#/$defs/hash",
-          "description": "Absent only for a root Contact basis. On recontact it is copied from every signed request fact and request acceptance receipt in this bundle and points to the immediately preceding terminal basis. The bundle field is derived convenience, never independent authority."
+          "description": "Absent only for a root Contact round. On recontact it is copied from every signed request fact and request acceptance receipt in this bundle and points to the immediately preceding terminal round. The bundle field is derived convenience, never independent authority."
         },
-        "basis": {
-          "$ref": "#/$defs/contact_basis"
+        "contact_round": {
+          "$ref": "#/$defs/contact_round"
         },
         "request_receipts": {
           "type": "array",
@@ -328,7 +328,7 @@
         {
           "if": {
             "properties": {
-              "basis": {
+              "contact_round": {
                 "properties": {
                   "kind": {
                     "const": "glare"
@@ -340,7 +340,7 @@
               }
             },
             "required": [
-              "basis"
+              "contact_round"
             ]
           },
           "then": {
@@ -390,7 +390,7 @@
     "contact_current_proof": {
       "type": "object",
       "required": [
-        "basis_id",
+        "contact_round_id",
         "issuer",
         "head_event_ref",
         "head_digest",
@@ -401,7 +401,7 @@
         "signature"
       ],
       "properties": {
-        "basis_id": {
+        "contact_round_id": {
           "$ref": "./principal-operations.schema.json#/$defs/hash"
         },
         "issuer": {
@@ -535,7 +535,7 @@
     "contact_lineage": {
       "type": "object",
       "required": [
-        "basis_id",
+        "contact_round_id",
         "issuer",
         "peer",
         "version",
@@ -544,7 +544,7 @@
         "signature"
       ],
       "properties": {
-        "basis_id": {
+        "contact_round_id": {
           "$ref": "./principal-operations.schema.json#/$defs/hash"
         },
         "issuer": {
@@ -644,7 +644,7 @@
         },
         "request_receipt": {
           "$ref": "#/$defs/request_acceptance_receipt",
-          "description": "Closed prepare input for answering one incoming Contact proposal, carried only by the ak.self.contact.read.list projection. It is the complete signed request_acceptance_receipt object, not narrowed to a reference, and the field name is byte-identical to the request_receipt field of the prepare branch of ak.self.contact.command.respond and ak.self.contact.command.reject, so a client copies it verbatim; the prepare contract is unchanged and a client MUST NOT rename, rebuild or re-derive the receipt, and MUST NOT assemble one from request_event_ref, which is a projection summary. Unlike next_prepare_input this receipt is issued and signed by the PEER's source service rather than by the holder's own server, which is exactly why handing the object itself to the holder client has real cross-server verification value: the client verifies the issuer signature, the issuer service key at accepted_at and the receipt's binding to the exact request Event ref and digest on its own, instead of unconditionally believing its own server's retelling. Presence is fixed by contact_state: a pending_incoming row MUST carry it, and a pending_outgoing, accepted, rejected, expired or tombstoned row MUST NOT, because pending_outgoing is the holder's own outstanding proposal with no incoming request to answer and the other four have a consumed admission slot or a terminal basis. A glare pair is therefore never receipt-bearing: the holder's own unconsumed outgoing request keeps the row pending_outgoing while glare evidence is incomplete, and the mechanically derived glare basis projects accepted, which matches the rule that the glare branch forbids respond and reject. Absence is the sole encoding of 'respond and reject are not authorable now'; no extra error code and no extra contact_state value expresses it. When the slot has moved on, prepare refuses with zero writes; the client MUST re-read this operation rather than cache, guess or replay a consumed receipt."
+          "description": "Closed prepare input for answering one incoming Contact proposal, carried only by the ak.self.contact.read.list projection. It is the complete signed request_acceptance_receipt object, not narrowed to a reference, and the field name is byte-identical to the request_receipt field of the prepare branch of ak.self.contact.command.respond and ak.self.contact.command.reject, so a client copies it verbatim; the prepare contract is unchanged and a client MUST NOT rename, rebuild or re-derive the receipt, and MUST NOT assemble one from request_event_ref, which is a projection summary. Unlike next_prepare_input this receipt is issued and signed by the PEER's source service rather than by the holder's own server, which is exactly why handing the object itself to the holder client has real cross-server verification value: the client verifies the issuer signature, the issuer service key at accepted_at and the receipt's binding to the exact request Event ref and digest on its own, instead of unconditionally believing its own server's retelling. Presence is fixed by contact_state: a pending_incoming row MUST carry it, and a pending_outgoing, accepted, rejected, expired or tombstoned row MUST NOT, because pending_outgoing is the holder's own outstanding proposal with no incoming request to answer and the other four have a consumed admission slot or a terminal round. A glare pair is therefore never receipt-bearing: the holder's own unconsumed outgoing request keeps the row pending_outgoing while glare evidence is incomplete, and the mechanically derived glare Contact round projects accepted, which matches the rule that the glare branch forbids respond and reject. Absence is the sole encoding of 'respond and reject are not authorable now'; no extra error code and no extra contact_state value expresses it. When the slot has moved on, prepare refuses with zero writes; the client MUST re-read this operation rather than cache, guess or replay a consumed receipt."
         },
         "response_event_ref": {
           "$ref": "#/$defs/event_id"
@@ -749,12 +749,12 @@
     "contact_next_prepare_input": {
       "type": "object",
       "required": [
-        "basis_id",
+        "contact_round_id",
         "version",
         "predecessor_event_ref"
       ],
       "properties": {
-        "basis_id": {
+        "contact_round_id": {
           "$ref": "./principal-operations.schema.json#/$defs/hash"
         },
         "version": {
@@ -1164,7 +1164,7 @@
               "type": "string",
               "enum": [
                 "contact_idempotency_conflict",
-                "contact_basis_conflict",
+                "contact_round_conflict",
                 "contact_lineage_conflict",
                 "contact_terminal",
                 "contact_scope_stale"
@@ -1206,9 +1206,9 @@
             "introduction_evidence": {
               "$ref": "#/$defs/contact_introduction_evidence"
             },
-            "previous_terminal_basis_id": {
+            "previous_terminal_contact_round_id": {
               "$ref": "./principal-operations.schema.json#/$defs/hash",
-              "description": "Immediate previously accepted terminal Contact basis for a recontact request. The Principal Server MUST require an exact local terminal-basis match when present and MUST require it when a terminal predecessor exists."
+              "description": "Immediate previously accepted terminal Contact round for a recontact request. The Principal Server MUST require an exact local terminal-round match when present and MUST require it when a terminal predecessor exists."
             },
             "message": {
               "type": "string"
@@ -1512,7 +1512,7 @@
       "required": [
         "schema",
         "peer",
-        "basis_id",
+        "contact_round_id",
         "version",
         "predecessor_event_ref",
         "granted_to_peer_scopes"
@@ -1524,7 +1524,7 @@
         "peer": {
           "$ref": "#/$defs/contact_peer"
         },
-        "basis_id": {
+        "contact_round_id": {
           "$ref": "./principal-operations.schema.json#/$defs/hash"
         },
         "version": {
@@ -1549,7 +1549,7 @@
             "operation_id",
             "idempotency_key",
             "peer",
-            "basis_id",
+            "contact_round_id",
             "version",
             "predecessor_event_ref",
             "granted_to_peer_scopes"
@@ -1567,7 +1567,7 @@
             "peer": {
               "$ref": "#/$defs/contact_peer"
             },
-            "basis_id": {
+            "contact_round_id": {
               "$ref": "./principal-operations.schema.json#/$defs/hash"
             },
             "version": {
@@ -1682,7 +1682,7 @@
             "operation_id",
             "idempotency_key",
             "peer",
-            "basis_id",
+            "contact_round_id",
             "version",
             "predecessor_event_ref"
           ],
@@ -1699,7 +1699,7 @@
             "peer": {
               "$ref": "#/$defs/contact_peer"
             },
-            "basis_id": {
+            "contact_round_id": {
               "$ref": "./principal-operations.schema.json#/$defs/hash"
             },
             "version": {
@@ -1866,7 +1866,7 @@
     "normal_response_acceptance_receipt": {
       "type": "object",
       "required": [
-        "basis_id",
+        "contact_round_id",
         "request_receipt",
         "response_event_ref",
         "response_digest",
@@ -1876,7 +1876,7 @@
         "signature"
       ],
       "properties": {
-        "basis_id": {
+        "contact_round_id": {
           "$ref": "./principal-operations.schema.json#/$defs/hash"
         },
         "request_receipt": {
@@ -2774,8 +2774,8 @@
           "required": [
             "kind",
             "idempotency_key",
-            "basis_id",
-            "basis",
+            "contact_round_id",
+            "contact_round",
             "request_receipts",
             "remote_mirror_receipt",
             "glare_concurrency_attestation",
@@ -2788,13 +2788,13 @@
             "idempotency_key": {
               "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
             },
-            "basis_id": {
+            "contact_round_id": {
               "$ref": "./principal-operations.schema.json#/$defs/hash"
             },
-            "basis": {
+            "contact_round": {
               "allOf": [
                 {
-                  "$ref": "#/$defs/contact_basis"
+                  "$ref": "#/$defs/contact_round"
                 },
                 {
                   "properties": {
@@ -2909,9 +2909,9 @@
         "slot_predecessor": {
           "$ref": "./principal-operations.schema.json#/$defs/hash"
         },
-        "previous_terminal_basis_id": {
+        "previous_terminal_contact_round_id": {
           "$ref": "./principal-operations.schema.json#/$defs/hash",
-          "description": "Present exactly when this accepted request starts a recontact after a prior accepted basis became terminal. It MUST equal the requester-signed ak.contact.requested payload field and is covered by receipt_digest/signature. It is distinct from slot_predecessor, which is the issuer-local request-slot CAS predecessor and can also follow a rejected proposal."
+          "description": "Present exactly when this accepted request starts a recontact after a prior accepted Contact round became terminal. It MUST equal the requester-signed ak.contact.requested payload field and is covered by receipt_digest/signature. It is distinct from slot_predecessor, which is the issuer-local request-slot CAS predecessor and can also follow a rejected proposal."
         },
         "request_event_ref": {
           "$ref": "#/$defs/event_id"

@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-12.3",
+  "version": "2026-08-13.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-12T15:15:00Z",
+  "generated_at": "2026-08-13T09:30:00Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -30,7 +30,7 @@
         "applet_registration_unauthorized",
         "applet_namespace_mismatch"
       ],
-      "description": "Transaction push is a service-to-service operation in both directions. Receivers MUST fail closed when the per-delivery RFC 9421 source signature is missing/invalid/outside the replay window, when the idempotency identity is replayed with a different body or source_signature_anchor, when the source Applet service has no active effective install, or when an Event actor falls outside the registered Applet namespace. See zh/extensions/applet-integration.md §7.3.1."
+      "description": "Transaction push is a service-to-service operation in both directions. Receivers MUST fail closed when the per-delivery RFC 9421 source signature is missing/invalid/outside the replay window, when the idempotency identity is replayed with a different body or delivery_authentication_record, when the source Applet service has no active effective install, or when an Event actor falls outside the registered Applet namespace. See zh/extensions/applet-integration.md §7.3.1."
     },
     {
       "operation_id": "ak.edge.applet.read.describe",
@@ -555,8 +555,8 @@
       "description": "Account Authority / delegated Principal Server account-status publication. invalid_signature and unauthorized remain universal authentication failures; failed_precondition covers authority-evidence/Event/PCR field mismatch or stale binding evidence, while the two account-status codes cover illegal lifecycle transitions. Same Idempotency-Key with another canonical body is duplicate_conflict."
     },
     {
-      "operation_id": "ak.peer.account_status.read.authoring_basis",
-      "http_alias": "POST /_arkret/peer/account-status/authoring-basis",
+      "operation_id": "ak.peer.account_status.read.authoring_frontiers",
+      "http_alias": "POST /_arkret/peer/account-status/authoring-frontiers",
       "operation_specific": [
         "failed_precondition",
         "frontier_unavailable",

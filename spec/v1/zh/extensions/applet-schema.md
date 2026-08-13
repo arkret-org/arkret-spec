@@ -128,7 +128,7 @@ updated: 2026-07-02
 | `namespaces` | yes | `actors` / `realms` / `handles` 对象形态 namespace。 |
 | `requested_scopes` | yes | capability action 请求列表；只用于审批 UI。 |
 | `endpoint_policy` | yes | 实际支持的 Applet API endpoint 与 auth requirement。 |
-| `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms；`key_ref` MUST 是某个 Applet service `full_id` 下的 DID URL，该 `full_id` 经已登记 adapter 投影后 MUST 等于 `service_id`（`did_core_id`），并作为 app/bridge→arkret inbound transaction push 的来源签名锚点。 |
+| `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms；`key_ref` MUST 是某个 Applet service `full_id` 下的 DID URL，该 `full_id` 经已登记 adapter 投影后 MUST 等于 `service_id`（`did_core_id`），并作为 app/bridge→arkret inbound transaction push 的投递验签 key。 |
 | `receive_events` | yes | 派生 registration 的接收事件声明。 |
 | `receive_signals` | yes | 派生 registration 的 encrypted Signal Extension 接收声明。 |
 | `rate_limited` | yes | 派生 registration 的服务端限流声明。 |
@@ -276,7 +276,7 @@ Idempotency-Key: <opaque-string>
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `Idempotency-Key` | header | `string` | required | 发送方生成的幂等 / nonce 键，长度 1..128；接收方 MUST 以 `(operation_id, direction, Source-Service-ID, Destination-Service-ID, Idempotency-Key)` 定位幂等记录，并绑定 canonical body digest 与 `source_signature_anchor`；重复键但 body digest 或签名锚点不同 MUST fail closed。 |
+| `Idempotency-Key` | header | `string` | required | 发送方生成的幂等 / nonce 键，长度 1..128；接收方 MUST 以 `(operation_id, direction, Source-Service-ID, Destination-Service-ID, Idempotency-Key)` 定位幂等记录，并绑定 canonical body digest 与 `delivery_authentication_record`；重复键但 body digest 或投递认证记录不同 MUST fail closed。 |
 | `Source-Service-ID` | header | `did_core_id` | required | 推送来源 service `did_core_id`；MUST 等于 body `source_service_id`，并进入 HTTP Message Signature transcript。来源 VM 的 bare `full_id` 必须经 adapter 投影到该值。 |
 | `Destination-Service-ID` | header | `did_core_id` | required | 接收方 service `did_core_id`；MUST 等于实际接收服务 identity，并进入 HTTP Message Signature transcript。 |
 | `Content-Digest` | header | `sha-256=:...:` | required | 按 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 覆盖 exact canonical HTTP content bytes；接收方 MUST 在 JSON 业务解析与验签前对 exact bytes 重算，拒绝 `sha256=:` alias、非 canonical JSON wire 与 parse-then-canonicalize verification。 |
@@ -286,7 +286,7 @@ Idempotency-Key: <opaque-string>
 | `events` | body | `EventEnvelope[]` | conditional | 推送给 Applet 的非空 signed Event 数组；每项必须满足 `event-envelope.schema.json`。与 `signals[]` 至少出现一个。 |
 | `signals` | body | `SignalEnvelope[]` | conditional | 非持久、encrypted-only 的非空 Signal Extension envelope 数组；与 `events[]` 至少出现一个。 |
 
-> **HTTP signature、source signature anchor 与 `received_at`(normative)**:[`applet-integration.md` §7.3.1](./applet-integration.md) / §16 把逐次 RFC 9421 HTTP message signature、`source_signature_anchor` audit value 与 `received_at` audit metadata 列为 transaction push 的 MUST。它们由 transport / audit 层承载（HTTP `Signature` / `Signature-Input` header 与 receiving service 记录的 audit metadata），**不进入** transaction body；receiver MUST 校验 HTTP message signature，形成并持久化 `source_signature_anchor`，记录 `received_at`，缺失任一者 MUST 拒绝。
+> **HTTP signature、delivery authentication record 与 `received_at`(normative)**:[`applet-integration.md` §7.3.1](./applet-integration.md) / §16 把逐次 RFC 9421 HTTP message signature、closed `delivery_authentication_record`、其 domain-separated digest 与 `received_at` audit metadata 列为 transaction push 的 MUST。它们由 transport / audit 层承载（HTTP `Signature` / `Signature-Input` header 与 receiving service 记录的 audit metadata），**不进入** transaction body；receiver MUST 校验 HTTP message signature，从已验证输入派生并持久化记录及 digest，记录 `received_at`，缺失任一者 MUST 拒绝。
 
 请求示例（非完整 schema）：
 

@@ -768,7 +768,7 @@ Applet v1 家族适用于运行 Applet 集成服务。`ak.profile.applet_service
 - ping / describe endpoint
 - transaction push endpoint
 - transaction idempotency
-- transaction push per-delivery source signature anchor（`source_signature_anchor`）
+- transaction push per-delivery authentication record（`delivery_authentication_record`）
 - idempotency / replay binding across `Source-Service-ID`、`Destination-Service-ID`、`Idempotency-Key`、canonical body digest and source verification method
 - capability enforcement
 - HTTP message signature verification（RFC 9421，覆盖 `@method` / `@target-uri` / `@authority` / `content-digest` / `source-service-id` / `destination-service-id` / `idempotency-key`）

@@ -2240,13 +2240,13 @@ ak.vector.disappearing.read_trigger_anonymous_aggregate.v1
 
 期望：
 
-- `M1` 的 first-read anchor 被设置一次，projection 在 `anchor + ttl_ms + grace_ms` 后降级为 expiry stub。
+- `M1` 的 first-read expiry start 被设置一次，projection 在 `expiry_start_hlc + ttl_ms + grace_ms` 后降级为 expiry stub。
 - Alice、Carol、其它成员、push provider、search service 与默认客户端 projection 均不得看到 Bob 的 `actor_id`、`device_id`、handle、reader count、unread count、IP、在线状态或可跨 message 关联的 reader pseudonym。
-- 允许的 trigger metadata 仅限 `source_event_id`、`trigger`、`anchor_hlc`、`expires_at` 与不可反查的 aggregate status；不得包含 read receipt UI payload。
+- 允许的 trigger metadata 仅限 `source_event_id`、`trigger`、`expiry_start_hlc`、`expires_at` 与不可反查的 aggregate status；不得包含 read receipt UI payload。
 
 ### 5.2.3 Vector: Disappearing Read-trigger Idempotent Replay
 
-除单服务 replay 外，实现还 MUST 运行 `ak.vector.disappearing.read_trigger_multi_aggregator_convergence.v1`：两个聚合服务以相反顺序接收同一 contribution 集合，per-token `min` 与 aggregate `min` join 必须产生逐字节相同的 `on_first_read` anchor；晚到更早值只能把 expiry 提前，不能恢复已 shred 内容。
+除单服务 replay 外，实现还 MUST 运行 `ak.vector.disappearing.read_trigger_multi_aggregator_convergence.v1`：两个聚合服务以相反顺序接收同一 contribution 集合，per-token `min` 与 aggregate `min` join 必须产生逐字节相同的 `on_first_read` expiry start；晚到更早值只能把 expiry 提前，不能恢复已 shred 内容。
 
 向量名称：
 
@@ -2258,11 +2258,11 @@ ak.vector.disappearing.read_trigger_idempotent_replay.v1
 
 - 同一 principal 的两台设备对同一 message `M1` 乱序提交 read cursor / receipt，HLC 分别为 `H1` 与 `H2`。
 - 攻击者重放 `M1` 的旧 read-trigger contribution，并尝试把同一 opaque token 绑定到另一条 message `M2`。
-- `on_first_read` anchor 已经由第一次有效 contribution 接受。
+- `on_first_read` expiry start 已经由第一次有效 contribution 接受。
 
 期望：
 
-- 同一 `(message, principal)` 的重复 contribution 只计一次；重复投递返回 success / already_observed 等幂等结果，不刷新 anchor。
+- 同一 `(message, principal)` 的重复 contribution 只计一次；重复投递返回 success / already_observed 等幂等结果，不刷新 `expiry_start_hlc`。
 - 两台设备的 read cursor 按 [`../discovery/read-receipts.md` §6.5](../discovery/read-receipts.md) 的因果优先规则收敛：被因果支配的 position 被忽略（与其 HLC 大小无关）；仅当两个 position 因果不可比时才忽略较旧 HLC，HLC 相等时按 read cursor device tie-break。无论走哪条分支，都只产生一个 principal-level contribution。
 - 跨 message、跨 scope、跨 trigger 或 policy frontier 不匹配的 replay MUST fail closed，不得让 `M2` 提前过期。
 
@@ -2283,7 +2283,7 @@ ak.vector.disappearing.on_last_read_offline_window.v1
 期望：
 
 - Bob 只按 principal 计一次，离线桌面不得阻塞 `on_last_read`。
-- `on_last_read` anchor 在 Carol contribution 与 `read_trigger_window_ms` 结束二者均满足后收敛；David 不得无限期阻塞。
+- `on_last_read` expiry start 在 Carol contribution 与 `read_trigger_window_ms` 结束二者均满足后收敛；David 不得无限期阻塞。
 - Bob 的离线桌面稍后上线时 MUST 接收 expiry stub / metadata-only 状态，MUST shred 本地 plaintext、message content key、preview cache 和 search / notification derived plaintext，且不得通过 late recovery 恢复正文。
 
 ### 5.3 Vector: Board Collection Projection
@@ -4362,7 +4362,7 @@ Steps:
 Expected:
 
 - 第 2 步 attach 只建立来源上下文映射；额外 `track_name`/`message_id` closed-schema reject，且不创建 Strand/Relation。
-- 第 3 步 cache 删除/重建不重复 request 或 Agent execution；echo 位于 `E0` 后，同 anchor 按 `(source_hlc, exchange_id)` 排序。
+- 第 3 步 cache 删除/重建不重复 request 或 Agent execution；echo 位于 `E0` 后，同一 `source_event_id` 下按 `(source_hlc, exchange_id)` 排序。
 - 第 4 步主 Strand title/breadcrumb/Track tabs 保持可见；两种 mode 只控制 UI 投影和后续写入目的 scope。
   缺失 Sidecar `synthesis` 视图显示 private empty state，不回退 shared write/read。
 - merged `discussion` 按 Sidecar Event id 去重；shared/Sidecar provenance 与 controller-only 可见性标识持续可见。
@@ -5448,28 +5448,28 @@ Expected：
 
 ## 19. Applet Transaction Push Vectors
 
-本节收拢 Applet inbound transaction push 的来源签名锚点与 replay 绑定向量，固化 [`applet-integration.md`](../extensions/applet-integration.md) §7.3.1、[`applet-schema.md`](../extensions/applet-schema.md) §3、[`service-http-binding.md`](../sync/service-http-binding.md) §2.2 的 service-to-service HTTP Message Signature 要求。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)。
+本节收拢 Applet inbound transaction push 的投递认证记录与 replay 绑定向量，固化 [`applet-integration.md`](../extensions/applet-integration.md) §7.3.1、[`applet-schema.md`](../extensions/applet-schema.md) §3、[`service-http-binding.md`](../sync/service-http-binding.md) §2.2 的 service-to-service HTTP Message Signature 要求。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)。
 
-### 19.1 Vector: Transaction Source Signature Anchor
+### 19.1 Vector: Transaction Delivery Authentication Record
 
-`vector_id`: `ak.vector.applet.transaction_source_signature_anchor.v1`
+`vector_id`: `ak.vector.applet.transaction_delivery_authentication_record.v1`
 
-本向量固化 applet transaction push 的逐次来源签名与幂等 replay MUST：`ak.edge.applet.command.transaction` 在 node→Applet 与 app/bridge→arkret inbound 两个方向都 MUST 携带 RFC 9421 HTTP Message Signature，covered components 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，签名参数含 `created` / `expires` 并满足 300s replay window；接收方 MUST 形成并持久化 `source_signature_anchor`，幂等 identity 绑定 `operation_id`、方向、source/destination service `did_core_id` 与 `Idempotency-Key`，缓存记录绑定 canonical body digest 与 source anchor。来源 service 签名不替代每条 Event 的 actor / applet / capability 校验。
+本向量固化 applet transaction push 的逐次来源签名与幂等 replay MUST：`ak.edge.applet.command.transaction` 在 node→Applet 与 app/bridge→arkret inbound 两个方向都 MUST 携带 RFC 9421 HTTP Message Signature，covered components 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，签名参数含 `created` / `expires` 并满足 300s replay window；接收方 MUST 形成并持久化 closed `delivery_authentication_record` 及其 domain-separated digest，幂等 identity 绑定 `operation_id`、方向、source/destination service `did_core_id` 与 `Idempotency-Key`，缓存记录绑定 canonical body digest 与 receiver 重算的 authentication-record digest。来源 service 签名不替代每条 Event 的 actor / applet / capability 校验。
 
 Steps：
 
 - **Case A — 合法 app/bridge→arkret inbound**：已安装 Applet registration `service_id=ak:did_core:webvh:z6mkfixtureBridge`，其已验证 `full_id=did:webvh:z6mkfixtureBridge:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:webvh:z6mkfixtureBridge:bridge.example#tx-1`，install active。Applet 提交 `POST /_arkret/edge/applet/transactions`，body exact bytes 是 Arkret canonical JSON、`Content-Encoding` absent，header `Source-Service-ID=ak:did_core:webvh:z6mkfixtureBridge`、`Destination-Service-ID=ak:did_core:webvh:z6mkfixturePrincipal`、`Idempotency-Key=tx-001`、`Content-Digest=sha-256=:...:` 且覆盖 exact body bytes；`Signature-Input` 覆盖 required components，`keyid=did:webvh:z6mkfixtureBridge:bridge.example#tx-1`，`created` / `expires` 在窗口内；接收方验证 `project(bare(keyid)) == Source-Service-ID == registration.service_id`，body `source_service_id` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
 - **Case B — 缺签名 / 纯 bearer**：同一 body 只携带 `Authorization: Bearer` 或完全缺少 `Signature` / `Signature-Input`。
 - **Case C — transcript / source / content 混淆**：签名覆盖的 `source-service-id`、header `Source-Service-ID` 或 body `source_service_id` 三者任一不同；或 `Destination-Service-ID` 不等于实际接收服务；或 `Content-Digest` 与 exact body bytes 不一致；或 body 是语义等价但非 canonical 的 JSON wire；或使用 `sha256=:` alias、trailer-only `Content-Digest` / `Content-Encoding`。对非 canonical wire、alias、trailer 与 content-coding mutation，sender MUST 重算适用的 digest 并用有效 Applet service key 重新签名，使 receiver 必须由相应 profile 规则而非偶然 signature mismatch 拒绝。
-- **Case D — idempotency replay**：重复 Case A 的相同 headers/body/signature anchor；随后再次使用同一 `(operation_id, direction, Source-Service-ID, Destination-Service-ID, Idempotency-Key)`，但改变 body digest、`webhook_auth.key_ref` / `keyid`、`registration_epoch` 或 actor namespace。
+- **Case D — idempotency replay**：重复 Case A 的相同 headers/body，并从 verified inputs 重算相同 `delivery_authentication_record_digest`；随后再次使用同一 `(operation_id, direction, Source-Service-ID, Destination-Service-ID, Idempotency-Key)`，但改变 body digest、verification method / key digest、`registration_epoch` 或 actor namespace。caller 携带预算 record / digest 的请求必须 schema-invalid，不能覆盖 receiver 派生值。
 - **Case E — 无 active install / actor namespace 混淆**：`Source-Service-ID` 可验签但没有 active effective install，或 `events[]` 中 actor / `executed_by` 不属于该 Applet registration 的 service / bot / ghost actor namespace，或 `authorization_ref` 指向另一 Applet 的 grant。
 
 Expected：
 
-- **Case A**：MUST 接受或按事件级规则返回 partial outcome，并持久化 `source_signature_anchor`（绑定 operation、方向、source/destination、verification method、registration_epoch、`Idempotency-Key`、body digest、covered components、`created` / `expires`）与幂等 outcome。
+- **Case A**：MUST 接受或按事件级规则返回 partial outcome，并持久化 closed `delivery_authentication_record`（绑定 operation、方向、source/destination、signature label、verification method / key digest / algorithm、registration epoch、idempotency key、content digest、ordered covered components、`created` / `expires`）、按 `ak.applet.delivery-authentication-record.v1` 重算的 digest 与幂等 outcome。
 - **Case B**：MUST fail closed，HTTP 401，reason=`http_signature_required`；纯 bearer 不满足 transaction push 的 service-to-service 来源认证。
 - **Case C**：MUST 在处理任何 Event / 副作用前 fail closed，reason=`http_signature_invalid`；`Content-Digest` MUST 在 JSON 业务解析与验签前对 exact bytes 重算，header placement 与 wire canonical equality MUST 独立校验，source/destination service `did_core_id` mismatch 或 verification-method controller 投影不一致不得进入业务逻辑。parse-then-canonicalize、`sha256=:` alias、trailer-only digest 或 content coding 均不得通过。
-- **Case D**：完全相同的 replay MUST 返回原 outcome 或等价成功且不得重复副作用；同一幂等 identity 但 body digest 或 `source_signature_anchor` 不一致时 MUST fail closed，认证已通过时 reason=`duplicate_conflict`，认证未通过时使用相应认证失败 reason。
+- **Case D**：完全相同的 replay MUST 重算出相同 record digest，返回原 outcome 或等价成功且不得重复副作用；同一幂等 identity 但 body digest 或重算后的 `delivery_authentication_record_digest` 不一致时 MUST fail closed，认证已通过时 reason=`duplicate_conflict`，认证未通过时使用相应认证失败 reason。
 - **Case E**：无 active install MUST fail closed，reason=`applet_registration_unauthorized`；actor / namespace / grant 混淆 MUST fail closed（`applet_namespace_mismatch`、`capability_denied` 或 `applet_registration_unauthorized`），不得把来源 service 签名当成 native actor 授权。
 
 ### 19.2 Vector: Registration Epoch Transcript
@@ -6319,7 +6319,7 @@ Runner MUST 加载
 
 ## Account status publication carrier
 
-`ak.vector.account_status.authority_publication.v1` MUST 覆盖：Account Authority 先以当前 binding version 的 `authority_evidence` 调用 `ak.peer.account_status.read.authoring_basis`，只有 Source-Service-ID 等于 issuer、account/principal/PCR/current delegation 全部匹配且 actor/Seal frontier 可验证时返回 typed basis；返回 actor_id/realm_id 不一致、degraded governance、synthetic empty PCR、stale/unresolved Seal 或过期 evidence 均零披露失败，query 本身零写入。producer 必须由返回 actor frontier 构造 `actor_seq/prev_refs`，由验证后的单一 Seal head 构造 `seal_basis.leaves`，不得使用 opaque peer frontier root 或私有 DTO。随后 Event actor/proof、payload account/principal 与 Principal Control Realm 全部一致时进入 `pending_seal -> accepted` 并返回 frontier digest/barrier cursor；相同 Idempotency-Key + byte-identical body 在 pending/accepted 两阶段均不创建第二条 Event且返回最新 operation state；同 key 异 body `duplicate_conflict`。Issuer、account、principal、PCR、authority ref、binding version、proof digest、HTTP Source/Destination 或 trust domain 任一不匹配均零写入失败。Receipted fanout 必须保留原 Event 并携 receiver-signed `account_status_receipts[]` / CBA closure；receipt 必须证明本地 accepted frontier且不含 AuthorizationLease，generic `IngressReceipt` 必须 schema-invalid；目标 ack 前 outbox 保持 pending，超窗投影 `deactivation_federation_incomplete=true`，最终 ack 后清零 flag 而不改写 Event payload。Holder session、第三方服务与通用 `ak.peer.events.command.submit` 缺 account authority evidence 的尝试都不得成为可接受 carrier。
+`ak.vector.account_status.authority_publication.v1` MUST 覆盖：Account Authority 先以当前 binding version 的 `authority_evidence` 调用 `ak.peer.account_status.read.authoring_frontiers`，只有 Source-Service-ID 等于 issuer、account/principal/PCR/current delegation 全部匹配且 actor/Seal frontier 可验证时返回 typed frontiers；返回 actor_id/realm_id 不一致、degraded governance、synthetic empty PCR、stale/unresolved Seal 或过期 evidence 均零披露失败，query 本身零写入。producer 必须由返回 actor frontier 构造 `actor_seq/prev_refs`，由验证后的单一 Seal head 构造 `seal_basis.leaves`，不得使用 opaque peer frontier root 或私有 DTO。随后 Event actor/proof、payload account/principal 与 Principal Control Realm 全部一致时进入 `pending_seal -> accepted` 并返回 frontier digest/barrier cursor；相同 Idempotency-Key + byte-identical body 在 pending/accepted 两阶段均不创建第二条 Event且返回最新 operation state；同 key 异 body `duplicate_conflict`。Issuer、account、principal、PCR、authority ref、binding version、proof digest、HTTP Source/Destination 或 trust domain 任一不匹配均零写入失败。Receipted fanout 必须保留原 Event 并携 receiver-signed `account_status_receipts[]` / CBA closure；receipt 必须证明本地 accepted frontier且不含 AuthorizationLease，generic `IngressReceipt` 必须 schema-invalid；目标 ack 前 outbox 保持 pending，超窗投影 `deactivation_federation_incomplete=true`，最终 ack 后清零 flag 而不改写 Event payload。Holder session、第三方服务与通用 `ak.peer.events.command.submit` 缺 account authority evidence 的尝试都不得成为可接受 carrier。
 
 ## Personal blocklist revision and delivery semantics
 

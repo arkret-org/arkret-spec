@@ -903,7 +903,7 @@
     },
     "agent_key_revoke_payload": {
       "type": "object",
-      "description": "Payload for ak.agent.key.revoke. The or_set cell subject is (agent_id, key_id); future protocol proofs from this key fail closed once this event is covered by an accepted Seal. The authoring basis is the Control Move envelope seal_basis; the payload carries no frontier field.",
+      "description": "Payload for ak.agent.key.revoke. The or_set cell subject is (agent_id, key_id); future protocol proofs from this key fail closed once this event is covered by an accepted Seal. The authoring frontiers is the Control Move envelope seal_basis; the payload carries no frontier field.",
       "required": [
         "agent_id",
         "key_id",
@@ -1410,7 +1410,7 @@
           "$ref": "#/$defs/hash"
         },
         "webhook_auth": {
-          "description": "Transaction push HTTP signature policy copied from the Applet package. webhook_auth.key_ref is the Applet service DID URL used as the app/bridge->arkret inbound source signature anchor and is bound to this registration_epoch; node->Applet pushes verify the Arkret source service DID from Source-Service-ID instead.",
+          "description": "Transaction push HTTP signature policy copied from the Applet package. webhook_auth.key_ref is the Applet service DID URL used to verify the app/bridge->arkret inbound HTTP message signature and is bound to this registration_epoch; node->Applet pushes verify the Arkret source service DID from Source-Service-ID instead.",
           "additionalProperties": true,
           "kind": "object"
         },
@@ -3308,7 +3308,7 @@
       "description": "Holder-signed normal Contact acceptance fact. This is version 1 of the issuer-local directional lineage. It grants only the explicit Contact scopes and neither reads nor writes Consent.",
       "required": [
         "peer",
-        "basis_id",
+        "contact_round_id",
         "version",
         "request_event_ref",
         "request_acceptance_receipt_digest",
@@ -3318,7 +3318,7 @@
         "peer": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
-        "basis_id": {
+        "contact_round_id": {
           "$ref": "#/$defs/hash"
         },
         "version": {
@@ -3330,9 +3330,9 @@
         "request_acceptance_receipt_digest": {
           "$ref": "#/$defs/hash"
         },
-        "previous_terminal_basis_id": {
+        "previous_terminal_contact_round_id": {
           "$ref": "#/$defs/hash",
-          "description": "Required by semantic admission when the accepted request is a recontact. It MUST equal the same field in the referenced request fact and its source-signed acceptance receipt. It is absent for a root basis."
+          "description": "Required by semantic admission when the accepted request is a recontact. It MUST equal the same field in the referenced request fact and its source-signed acceptance receipt. It is absent for a root Contact round."
         },
         "granted_to_peer_scopes": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_scopes"
@@ -3342,7 +3342,7 @@
     },
     "contact_rejected_payload": {
       "type": "object",
-      "description": "Holder-signed terminal rejection of one exact accepted request. It establishes no Contact basis and has no Consent or basis-proof fields.",
+      "description": "Holder-signed terminal rejection of one exact accepted request. It establishes no Contact round and carries no Consent or Contact round evidence fields.",
       "required": [
         "peer",
         "request_event_ref",
@@ -3383,9 +3383,9 @@
           "$ref": "#/$defs/hash",
           "description": "Required digest of the exact private introduction_evidence carried by the request branch of ak.peer.contacts.command.submit. Raw evidence is not written into the contact fact log."
         },
-        "previous_terminal_basis_id": {
+        "previous_terminal_contact_round_id": {
           "$ref": "#/$defs/hash",
-          "description": "Requester-signed immediate predecessor link for recontact. It is required when this request follows a previously accepted terminal Contact basis and forbidden for a root request. It is not the issuer-local request-slot predecessor."
+          "description": "Requester-signed immediate predecessor link for recontact. It is required when this request follows a previously accepted terminal Contact round and forbidden for a root request. It is not the issuer-local request-slot predecessor."
         },
         "message": {
           "type": "string"
@@ -3401,7 +3401,7 @@
       "description": "Holder-signed terminal event for one issuer-local Contact lineage. The event kind itself supplies terminal semantics; the payload carries only the exact peer, basis and predecessor coordinates. It does not read, write or revoke Consent.",
       "required": [
         "peer",
-        "basis_id",
+        "contact_round_id",
         "version",
         "predecessor_event_ref"
       ],
@@ -3409,7 +3409,7 @@
         "peer": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
-        "basis_id": {
+        "contact_round_id": {
           "$ref": "#/$defs/hash"
         },
         "version": {
@@ -4093,7 +4093,7 @@
         "recovery_session_id",
         "previous_device_generation",
         "new_device_generation",
-        "pre_fence_basis",
+        "pre_fence_seal_frontier",
         "replacement_authorize_payload_digest"
       ],
       "properties": {
@@ -4132,7 +4132,7 @@
           "$ref": "#/$defs/hash",
           "description": "Required only when recovery_authority_kind=did_root; proves the optional factor enabled by the frozen PCR policy."
         },
-        "pre_fence_basis": {
+        "pre_fence_seal_frontier": {
           "oneOf": [
             {
               "type": "null"
@@ -4288,7 +4288,7 @@
     },
     "direct_conversation_bound_payload": {
       "type": "object",
-      "description": "Participant endorsement of the settled Direct Conversation coordinates and of the first exact-pair MLS generation. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact basis may author the founding unit. Written once and never retired, so it carries no binding_state, no supersedes ref and no permanent mls_group_id; participant authority always reads the current active MLS generation. binding_digest is a receiver-derived off-wire semantic digest over the closed normalized binding object defined by contact-and-direct-conversation.md section 8.3 and MUST NOT be added to this payload.",
+      "description": "Participant endorsement of the settled Direct Conversation coordinates and of the first exact-pair MLS generation. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact round may author the founding unit. Written once and never retired, so it carries no binding_state, no supersedes ref and no permanent mls_group_id; participant authority always reads the current active MLS generation. binding_digest is a receiver-derived off-wire semantic digest over the closed normalized binding object defined by contact-and-direct-conversation.md section 8.3 and MUST NOT be added to this payload.",
       "required": [
         "pair_key",
         "participants_unordered",
@@ -6028,7 +6028,7 @@
             "on_first_read",
             "on_last_read"
           ],
-          "description": "Expiry anchor trigger. on_first_read / on_last_read are driven by private read cursor or policy-allowed receipt inputs through anonymous aggregate trigger contributions; expiry metadata MUST NOT expose reader identity."
+          "description": "Expiry trigger. on_first_read / on_last_read are driven by private read cursor or policy-allowed receipt inputs through anonymous aggregate trigger contributions; expiry metadata MUST NOT expose reader identity."
         },
         "grace_ms": {
           "type": "integer",

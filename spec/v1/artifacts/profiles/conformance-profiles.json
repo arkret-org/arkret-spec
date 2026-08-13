@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-12.1",
-  "generated_at": "2026-08-12T14:55:00Z",
+  "version": "2026-08-13.3",
+  "generated_at": "2026-08-13T10:08:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2271,7 +2271,7 @@
         "ak.self.events.read.scan",
         "ak.self.snapshot.read.manifest_head",
         "ak.self.authz.read.check",
-        "ak.peer.account_status.read.authoring_basis",
+        "ak.peer.account_status.read.authoring_frontiers",
         "ak.peer.account_status.command.submit"
       ],
       "required_event_kinds": [
@@ -2700,7 +2700,7 @@
         "not_identity_registry_must": "Auth Server MUST NOT claim `ak.profile.identity_registry.v1`; any DID document / key-log surface it exposes MUST be declared on `compat_surfaces[]` as `delegated_resolver` rather than self-claimed canonical authority.",
         "not_principal_server_must": "Auth Server MUST NOT claim `ak.profile.principal_server.v1`; Realm event acceptance is the principal server role and is incompatible with auth-server-only deployments.",
         "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run.",
-        "account_status_publication_must": "An Auth Server acting as Account Authority MUST first obtain the PCR-bound issuer actor frontier and accepted Seal frontier through ak.peer.account_status.read.authoring_basis, then sign authority_evidence and publish every ak.account.status transition through ak.peer.account_status.command.submit to the bound Principal Server; it MUST NOT synthesize an empty basis, impersonate a holder session, or use a deployment-private route.",
+        "account_status_publication_must": "An Auth Server acting as Account Authority MUST first obtain the PCR-bound issuer actor frontier and accepted Seal frontier through ak.peer.account_status.read.authoring_frontiers, then sign authority_evidence and publish every ak.account.status transition through ak.peer.account_status.command.submit to the bound Principal Server; it MUST NOT synthesize an empty basis, impersonate a holder session, or use a deployment-private route.",
         "provisional_identity_abandonment_must": "An Auth Server that offers provisional-identity abandonment MUST expose it as the two-step issue_identity_abandonment_challenge + abandon_identity_creation pair and MUST NOT reach the same effect from login, session resume, lease expiry, fence takeover or garbage collection. Both operations are authorized by the account handoff grant alone, because a never-accepted PCR leaves the holder without a principal and therefore without any principal-bound ak.session.grant; the confirmation MUST present a fresh handoff and MUST NOT reuse the grant that obtained the challenge. The challenge is single-use, at most 300 seconds, held in shared durable state, and pins account_subject, holder cnf.jkt, the abandoned principal_id and did_version_id, the identity-creation lease id and fence, and the closed consequence disclosure; expiry and prior consumption remain distinct terminal states. Consuming the challenge, recording the orphan-anchor tombstone / audit reservation, suppressing the reserved_identity_creation checkpoint on every holder-readable surface and releasing the lease MUST commit in one transaction with zero writes on any failure, and replaying the same request_id MUST return the same terminal outcome without a second tombstone. A PCR accepted between issuance and confirmation MUST fail with identity_creation_already_accepted and MUST NOT abandon anything. Re-authentication strength, risk checks, cooldown length, orphan-anchor discovery annotation, handle and namespace release and retention are deployment governance and are not conformance criteria."
       }
     },
@@ -3017,7 +3017,7 @@
           "namespace",
           "service_id",
           "bot_actor_id",
-          "transaction_source_signature_anchor",
+          "transaction_delivery_authentication_record",
           "transaction_replay_binding"
         ],
         "unsupported_optional": "return unsupported_feature"
@@ -3025,8 +3025,8 @@
       "additional_requirements": {
         "transaction_push_per_delivery_signature_must": "ak.edge.applet.command.transaction MUST require a per-delivery RFC 9421 HTTP Message Signature in both node->Applet and app/bridge->arkret inbound directions; pure bearer-only transaction push MUST be rejected with http_signature_required.",
         "transaction_push_covered_components_must": "Signature-Input covered components MUST include @method, @target-uri, @authority, content-digest, source-service-id, destination-service-id and idempotency-key; created/expires MUST satisfy the federation.md section 3.2 replay window.",
-        "transaction_push_source_anchor_must": "Receivers MUST persist a source_signature_anchor audit value bound to operation_id, direction, source_service_id, destination_service_id, verification_method/keyid, registration_epoch or source key-state evidence, Idempotency-Key, Content-Digest, covered components, created and expires.",
-        "transaction_push_replay_binding_must": "The idempotency identity MUST include operation_id, direction, Source-Service-ID, Destination-Service-ID and Idempotency-Key; the cached record MUST bind canonical body digest and source_signature_anchor. A replay with a different body digest or anchor MUST fail closed.",
+        "transaction_push_delivery_authentication_record_must": "Receivers MUST derive and persist the closed delivery_authentication_record from verified inputs, including operation/direction, source/destination, signature label, verification method/key digest/algorithm, registration epoch, idempotency key, content digest, ordered covered components, created and expires. They MUST recompute delivery_authentication_record_digest with domain ak.applet.delivery-authentication-record.v1; neither value is caller supplied.",
+        "transaction_push_replay_binding_must": "The idempotency identity MUST include operation_id, direction, Source-Service-ID, Destination-Service-ID and Idempotency-Key; the cached record MUST bind canonical body digest, delivery_authentication_record and its receiver-recomputed digest. A replay with a different body digest or authentication-record digest MUST fail closed.",
         "transaction_push_inbound_registration_must": "For app/bridge->arkret inbound push, Source-Service-ID MUST match an active effective Applet install and Signature-Input keyid MUST equal the current registration webhook_auth.key_ref; missing install or key mismatch MUST fail closed with applet_registration_unauthorized or http_signature_invalid.",
         "transaction_push_actor_binding_must": "The source service signature authenticates only the Applet service. Each durable Event in the transaction MUST still verify event proofs, applet_id, authorization_ref, actor_id namespace and capability grants; namespace or actor-source confusion MUST fail closed."
       }
@@ -3383,7 +3383,7 @@
           "strand_level_context_identity",
           "sidecar_display_modes",
           "multi_track_native_sidecar_write_target",
-          "source_anchor_deterministic_merge",
+          "source_event_deterministic_merge",
           "private_event_echo_deduplication",
           "exchange_binding_closed_loop",
           "exchange_control_event_truth",

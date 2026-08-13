@@ -208,7 +208,7 @@ Control Move 是写 control plane cell 的 Event，通常 MUST 携带 `seal_basi
    - 1:1 Direct Conversation 分支必须恰好提交 `ak.realm.create → peer ak.member.state{join} → main ak.strand.create` 三条，不得携普通 Collaboration facet。固定 baseline 由 Direct Conversation reducer contract 机械投影。Strand 平时是携 `seal_ref + auth_context` 的 DataEvent；但该 exact unit 的 Genesis Seal 覆盖全部三条，无法引用一张尚不存在的 Seal，因此在且仅在该 unit 内免 basis。
 
    不在该列表内的 Control Move 一律要求 `seal_basis`。
-2. B 模型 [`ak.device.reanchor`](../identity/key-management.md) + replacement authorize 原子 unit。它不携带 `seal_basis`，而在 payload 的 `pre_fence_basis` 固定完整当前 accepted Seal frontier，并由 RecoveryTransaction 对 frontier digest 做 CAS。授权 fence 在完整 unit 验证/提交后立即生效；确定性治理写由首个新-generation Seal 覆盖。
+2. B 模型 [`ak.device.reanchor`](../identity/key-management.md) + replacement authorize 原子 unit。它不携带 `seal_basis`，而在 payload 的 `pre_fence_seal_frontier` 固定完整当前 accepted Seal frontier，并由 RecoveryTransaction 对 frontier digest 做 CAS。授权 fence 在完整 unit 验证/提交后立即生效；确定性治理写由首个新-generation Seal 覆盖。
 
 这两个例外不得推广到 batch 外、普通设备入册或其他 Control Move。机器执行闭包分别由 `ak.vector.identity.root_anchor_exclusivity.v1` 与 `ak.vector.identity.device_reanchor.v1` 覆盖。
 
@@ -255,7 +255,7 @@ verify_control_move(M, pre_state):
   7. PASS / FAIL。
 ```
 
-轻节点可以依赖被引用 Seal 自身 `control_event_set_root` 的 inclusion / non-membership proof 和治理 state inclusion proof 做局部验证；缺 proof 时 MUST fail closed，不得盲信未验证 root。`ak.device.reanchor.pre_fence_basis` 仍保留 roots，因为它们参与 recovery frontier CAS，不受本节 Event seal_basis 去重影响。
+轻节点可以依赖被引用 Seal 自身 `control_event_set_root` 的 inclusion / non-membership proof 和治理 state inclusion proof 做局部验证；缺 proof 时 MUST fail closed，不得盲信未验证 root。`ak.device.reanchor.pre_fence_seal_frontier` 仍保留 roots，因为它们参与 recovery frontier CAS，不受本节 Event seal_basis 去重影响。
 
 ## 6. Seal
 
@@ -411,7 +411,7 @@ Seal 被拒绝时，其 `delta[]` 内 Control Move 不因此有效。节点 MAY 
 
 accepted Seal 的 `covered_set`、`control_event_set_root`、`completeness_root` 与 `state_root` 是不可追溯改写的签名承诺。某个已覆盖 Control Move 后续因同 `event_id` 双变体或 actor over-fork 被检出时，receiver MUST quarantine 全部原始 sibling bytes，但保留已被 accepted Seal 覆盖的 digest 与确定性 reducer 输出作为该历史 Seal 输入。
 
-唯一 DID-root recovery 例外：合法 `ak.device.reanchor` 的 `pre_fence_basis` predecessor closure 内的历史 Seal/Event 完整保留；closure 外、仅由旧 device generation 签发的 Event/Seal 保留原始 bytes 但进入 `fork_quarantine`，不得进入当前 joined view。该例外改变的是旧 generation 对**当前** view 的贡献，不改写 closure 内任何 accepted Seal 承诺。首个新-generation Seal 必须以 basis leaves 为精确 predecessors，delta 覆盖 re-anchor unit；不满足不得成为 accepted Seal。
+唯一 DID-root recovery 例外：合法 `ak.device.reanchor` 的 `pre_fence_seal_frontier` predecessor closure 内的历史 Seal/Event 完整保留；closure 外、仅由旧 device generation 签发的 Event/Seal 保留原始 bytes 但进入 `fork_quarantine`，不得进入当前 joined view。该例外改变的是旧 generation 对**当前** view 的贡献，不改写 closure 内任何 accepted Seal 承诺。首个新-generation Seal 必须以 `pre_fence_seal_frontier` leaves 为精确 predecessors，delta 覆盖 re-anchor unit；不满足不得成为 accepted Seal。
 
 该状态下 receiver MUST 对受影响 `(actor_id, actor_seq)` 之后的 Control Move fail closed，直到有 fork-resolution capability 的主体按 federation §4.5 证据签发 recovery / fork-resolution compaction Seal。该 Seal MUST 显式列出冲突 sibling digest 集、选定 canonical digest 或“全部作废”的归一裁决、所依据 witness / operator authorization，并从 predecessor 已承诺状态写入后继归一结果；它不能声称旧 Seal 从未覆盖原 Move。notary 在签发普通 Seal 前 SHOULD 检查 `delta[]` 中每个 Move 的已知 sibling 桶和跨桶累计计数，已越界者 MUST NOT 纳入普通 Seal。
 

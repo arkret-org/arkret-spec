@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-12.3",
+  "version": "2026-08-13.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-12T14:55:00Z",
+  "generated_at": "2026-08-13T10:40:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -453,7 +453,7 @@
       "schema_id": "ak.schema.contact_operations.v1",
       "file": "schemas/contact-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for the Contact lifecycle: request, respond, reject, scope replacement, tombstone, the portable basis evidence bundle, acceptance receipts and the peer Contact carrier, plus the contact-list projection."
+      "description": "Closed request/response DTO bundle for the Contact lifecycle: request, respond, reject, scope replacement, tombstone, the portable Contact round evidence bundle, acceptance receipts and the peer Contact carrier, plus the contact-list projection."
     },
     {
       "schema_id": "ak.schema.direct_conversation_operations.v1",

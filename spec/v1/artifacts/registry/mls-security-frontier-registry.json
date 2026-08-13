@@ -1,5 +1,6 @@
 {
-  "version": "2026-08-02",
+  "version": "2026-08-13",
+  "generated_at": "2026-08-13T06:50:00Z",
   "source_of_truth": true,
   "profile_id": "ak.security_frontier.v1",
   "description": "Closed machine contract for the accepted state that changes current or historical MLS key access. Producers never choose frontier members. Verifiers project these inputs from one accepted Seal view and the RFC 9420 group state, then compare the resulting digest with the governance binding.",
@@ -126,7 +127,7 @@
   "mls_tree_rule": {
     "input": "The canonical current/pending RFC 9420 leaf set for the effective group, including leaf credential and referenced device/Agent key identity but excluding tree-shape-only metadata.",
     "digest": "mls_leaf_set_digest = sha256(JCS(canonical_leaf_entries)). Leaf entries are sorted by their canonical JCS bytes and duplicates are rejected.",
-    "commit_rule": "For a Commit, compute the next frontier against the post-Commit winning leaf set and the accepted control state selected by the Commit authoring basis. The governance binding is inside the same RFC 9420 transcript; the key-schedule cell containing that binding is never recursively included."
+    "commit_rule": "For a Commit, compute the next frontier against the post-Commit winning leaf set and the accepted control state selected by the Commit authoring frontiers. The governance binding is inside the same RFC 9420 transcript; the key-schedule cell containing that binding is never recursively included."
   },
   "always_excluded": [
     "ordinary capability grant/revoke state",

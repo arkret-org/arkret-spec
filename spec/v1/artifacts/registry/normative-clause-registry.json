@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-13.1",
+  "version": "2026-08-13.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-13T00:00:00Z",
+  "generated_at": "2026-08-13T09:30:00Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -197,8 +197,8 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/crypto-media/disappearing-messages.md#4-crypto-shredding",
-      "section_digest": "sha256:6fba7651ac99272421e9f5640fdc1fc96b0bd41d0dba0ce19b1ba5137be4d72b",
-      "requirement": "Read-trigger expiry anchors derive from anonymous aggregate contributions, converge under replay and reordering, and MUST NOT reveal reader identity or reader counts.",
+      "section_digest": "sha256:d78957383662cb2310b0e875d9815e5483f3a252e23ec5d00900ba564d1fd8f0",
+      "requirement": "Read-trigger expiry starts derive from anonymous aggregate contributions, converge under replay and reordering, and MUST NOT reveal reader identity or reader counts.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.disappearing.read_trigger_anonymous_aggregate.v1",
@@ -227,7 +227,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#5-control-move",
-      "section_digest": "sha256:6b8b63baf0af3f1a6e79f57cd6d48709e2841aca5c6a2829a9b10feedadf6128",
+      "section_digest": "sha256:05e908dd84399aed6a0baca2fec49c78e34d361f77f011ef8261efa6ff975cd0",
       "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal except in the two closed anchor-unit contexts; same-batch events MUST NOT advance their own authorization basis, and basis-free anchor Events remain Control Moves with Control Proposal Acks and pending-index obligations. Ordinary Collaboration bootstrap uses the ordered machine-registry facet closure with an explicit final creator membership and no implicit creator membership. The mutually exclusive Direct Conversation branch is exactly create, explicit peer membership, and one basis-free main ak.strand.create; its fixed baseline and founder membership are reducer projections. Batch admission MUST reject both no-basis shapes anywhere else.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -245,7 +245,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:fc2117edcb750f635f7499b33e8af361192234bac2e42db0ce83df03ca0f7589",
+      "section_digest": "sha256:2b2bf67b03144d021c6ac721f07f9ace99a0f31b5ee485d83593466d7cd713dd",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest.",
       "testability_grade": "vector",
       "evidence_refs": [

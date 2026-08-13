@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-13.1",
+  "version": "2026-08-13.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-13T00:00:00Z",
+  "generated_at": "2026-08-13T10:08:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -57,7 +57,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.account_data.contact_petname_anchor.v1",
+      "vector_id": "ak.vector.account_data.contact_petname_binding.v1",
       "status": "active",
       "domain": "account_data",
       "applies_to_fixtures": [
@@ -469,13 +469,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.applet.transaction_source_signature_anchor.v1",
+      "vector_id": "ak.vector.applet.transaction_delivery_authentication_record.v1",
       "status": "active",
       "domain": "applet",
       "applies_to_fixtures": [
         "final-conformance-closure-fixture.json"
       ],
-      "description": "Applet transaction push source signature anchor: per-delivery RFC 9421 HTTP Message Signature covering method/target/authority/content-digest/source-service-id/destination-service-id/idempotency-key, source_signature_anchor persisted into the idempotency/replay record, duplicate body/anchor conflicts fail closed, and source service authentication does not replace Event actor/applet/capability checks.",
+      "description": "Applet transaction push delivery authentication record: per-delivery RFC 9421 HTTP Message Signature covering method/target/authority/content-digest/source-service-id/destination-service-id/idempotency-key, delivery_authentication_record persisted into the idempotency/replay record, duplicate body or authentication-record conflicts fail closed, and source service authentication does not replace Event actor/applet/capability checks.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1670,7 +1670,7 @@
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "The ak.self.contact.read.list projection carries the closed next_prepare_input successor cursor: an accepted row MUST carry it and the five non-authorable contact_state values MUST NOT, its basis_id, version and predecessor_event_ref are copied verbatim into the scope_update and tombstone prepare phases, version is the next Event's version and predecessor_event_ref is the current lineage head rather than that head's predecessor, and a stale cursor is refused with contact_lineage_conflict or contact_scope_stale and MUST be re-read rather than guessed or retried unchanged.",
+      "description": "The ak.self.contact.read.list projection carries the closed next_prepare_input successor cursor: an accepted row MUST carry it and the five non-authorable contact_state values MUST NOT, its contact_round_id, version and predecessor_event_ref are copied verbatim into the scope_update and tombstone prepare phases, version is the next Event's version and predecessor_event_ref is the current lineage head rather than that head's predecessor, and a stale cursor is refused with contact_lineage_conflict or contact_scope_stale and MUST be re-read rather than guessed or retried unchanged.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
@@ -1881,7 +1881,7 @@
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "The creation_required resolver outcome carries next_founding_input with member names identical to the founding unit submission, exactly one founder_basis_evidence branch, no Event bytes or coordinates, temporarily_unavailable when the material cannot be assembled, and submission-side re-verification that never trusts the echoed copy.",
+      "description": "The creation_required resolver outcome carries next_founding_input with member names identical to the founding unit submission, exactly one founding_authority_evidence branch, no Event bytes or coordinates, temporarily_unavailable when the material cannot be assembled, and submission-side re-verification that never trusts the echoed copy.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
@@ -2286,7 +2286,7 @@
       "applies_to_profiles": [
         "ak.profile.disappearing.v1"
       ],
-      "description": "Read-trigger expiry anchors are derived from anonymous aggregate contributions and MUST NOT reveal reader identity or reader counts to other clients or services outside the aggregate boundary.",
+      "description": "Read-trigger expiry starts are derived from anonymous aggregate contributions and MUST NOT reveal reader identity or reader counts to other clients or services outside the aggregate boundary.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -2300,7 +2300,7 @@
       "applies_to_profiles": [
         "ak.profile.disappearing.v1"
       ],
-      "description": "Duplicate, stale, out-of-order, or cross-bound read-trigger contributions MUST NOT refresh anchors, double-count readers, or expire the wrong message.",
+      "description": "Duplicate, stale, out-of-order, or cross-bound read-trigger contributions MUST NOT refresh expiry starts, double-count readers, or expire the wrong message.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",

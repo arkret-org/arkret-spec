@@ -1,5 +1,6 @@
 {
-  "version": "2026-08-12.1",
+  "version": "2026-08-13.1",
+  "generated_at": "2026-08-13T06:50:00Z",
   "codes": [
     {
       "code": "bad_json",
@@ -2762,7 +2763,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "The re-anchor pre_fence_basis is null despite an accepted Seal, omits or adds frontier leaves, has unreconstructable roots, or lost the admission-time frontier compare-and-swap race. Dual-registered as a reason_code and a top-level service code (see codes[])."
+      "description": "The re-anchor pre_fence_seal_frontier is null despite an accepted Seal, omits or adds frontier leaves, has unreconstructable roots, or lost the admission-time frontier compare-and-swap race. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "did_proof_replay_window_exceeded",

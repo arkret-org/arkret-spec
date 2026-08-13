@@ -209,7 +209,7 @@
           "description": "Digest of the accepted identity-registry head snapshot."
         },
         "accepted_seal_frontier": {
-          "$ref": "./event-payload.schema.json#/$defs/device_reanchor_payload/properties/pre_fence_basis"
+          "$ref": "./event-payload.schema.json#/$defs/device_reanchor_payload/properties/pre_fence_seal_frontier"
         },
         "publication_authority_context": {
           "$ref": "#/$defs/publication_authority_context"

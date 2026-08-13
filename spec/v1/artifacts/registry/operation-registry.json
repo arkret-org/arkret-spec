@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-12.2",
+  "version": "2026-08-13.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-11T20:39:13Z",
+  "generated_at": "2026-08-13T10:08:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -126,7 +126,7 @@
       "operations": [
         "ak.peer.events.read.describe",
         "ak.peer.events.command.submit",
-        "ak.peer.account_status.read.authoring_basis",
+        "ak.peer.account_status.read.authoring_frontiers",
         "ak.peer.account_status.command.submit",
         "ak.peer.erasure_receipt.command.submit",
         "ak.peer.erasure_receipt.resource.get",
@@ -533,11 +533,31 @@
             "created_skew_seconds": 30,
             "max_signature_lifetime_seconds": 300
           },
-          "source_signature_anchor": {
-            "audit_field": "source_signature_anchor",
+          "delivery_authentication_record": {
+            "audit_field": "delivery_authentication_record",
+            "digest_field": "delivery_authentication_record_digest",
             "request_body_field": false,
-            "node_to_applet": "Source-Service-ID current service DID verification method; Destination-Service-ID MUST equal the Applet registration service_id.",
-            "applet_to_arkret_inbound": "Applet registration webhook_auth.key_ref; its canonical bare full_id MUST be validated by the registered method adapter and project to both Source-Service-ID and the active effective install service_id. Direct full-DID/core-id comparison and did_core_id fragment concatenation are forbidden."
+            "canonicalization": "RFC8785_JCS",
+            "digest_domain": "ak.applet.delivery-authentication-record.v1",
+            "closed_fields": [
+              "operation_id",
+              "direction",
+              "source_service_id",
+              "destination_service_id",
+              "signature_label",
+              "verification_method",
+              "verification_key_digest",
+              "signature_algorithm",
+              "registration_epoch",
+              "idempotency_key",
+              "content_digest",
+              "covered_components",
+              "created",
+              "expires"
+            ],
+            "node_to_applet": "Source-Service-ID current service DID verification method and key digest; Destination-Service-ID MUST equal the Applet registration service_id; registration_epoch is the effective destination Applet registration.",
+            "applet_to_arkret_inbound": "Applet registration webhook_auth.key_ref; its canonical bare full_id MUST be validated by the registered method adapter and project to both Source-Service-ID and the active effective install service_id. The effective registration_epoch and actual verification key digest are bound. Direct full-DID/core-id comparison and did_core_id fragment concatenation are forbidden.",
+            "equality": "Receivers recompute sha256(UTF8(digest_domain + newline) || RFC8785_JCS(record)); equal recomputed digests define replay equality. Caller-supplied records or digests are forbidden."
           },
           "idempotency_identity_fields": [
             "operation_id",
@@ -549,7 +569,8 @@
           "replay_cached_fields": [
             "Content-Digest",
             "canonical_body_digest",
-            "source_signature_anchor",
+            "delivery_authentication_record",
+            "delivery_authentication_record_digest",
             "accepted_outcome"
           ],
           "fail_closed_reasons": [
@@ -1559,15 +1580,15 @@
       }
     },
     {
-      "operation_id": "ak.peer.account_status.read.authoring_basis",
-      "http": "POST /_arkret/peer/account-status/authoring-basis",
-      "grpc": "PeerAccountStatus/AuthoringBasis",
-      "mq": "peer.account_status.query.authoring_basis",
+      "operation_id": "ak.peer.account_status.read.authoring_frontiers",
+      "http": "POST /_arkret/peer/account-status/authoring-frontiers",
+      "grpc": "PeerAccountStatus/AuthoringFrontiers",
+      "mq": "peer.account_status.query.authoring_frontiers",
       "notes": "Read-only service-authenticated Account Authority query for the exact issuer actor-chain frontier and Principal Control Realm Seal frontier needed to sign one ak.account.status Event. The receiver verifies the signed authority_evidence, current issuer delegation and account/principal/PCR binding before disclosure. The response binds RealmActorFrontierView.actor_id to issuer_service_id and both frontier realm_id values to principal_control_realm_id; it grants no authority, accepts no Event and never synthesizes an empty PCR.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_basis_outcome"
+      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_request_body",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_outcome"
     },
     {
       "operation_id": "ak.peer.contacts.command.submit",
@@ -1635,7 +1656,7 @@
       "http": "POST /_arkret/peer/events",
       "grpc": "PeerEvents/Submit",
       "mq": "peer.events.command.submit",
-      "notes": "Federation peer Event publication. Each EventFederationSubmission carries the original signed Event. Ordinary online publication omits AuthorizationLease and uses an empty ingress_receipts array; explicit delayed/offline publication carries the lease and at least one original lease-bound IngressReceipt. An ak.member.state compensation publication additionally carries the unchanged transport-only membership_compensation_evidence and the receiver applies the same exact admission/incarnation/action/executor/single-use evaluator as initial submission. Request-level CbaProofBundle values provide receiver-relative dependency closure. The receiver independently validates every Event, optional lease, receipt threshold, compensation evidence, bundle object and reducer result. Ordinary missing dependencies use HTTP 200 partial items with reason_code=dependency_missing and non-empty typed missing sets; registered atomic units use top-level HTTP 409 dependency_missing with EventsDependencyMissingProblem and zero writes. A received response terminates that Idempotency-Key; a post-backfill submit uses a fresh key. The caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ak.invite.claim remains decided by the destination Realm reducer. The request union additionally registers the discriminated direct_conversation_founding branch for the Direct Conversation founding exception of zh/sync/federation.md section 4.0.4: it carries exactly three ordered EventFederationSubmission items, the source DirectConversationFoundingAcceptanceReceipt and bounded dependencies, and it omits service_binding_ref because the Realm does not yet exist at the receiver. The receiver freshly verifies transport source authority over founder_id, cutover/fence continuity when the receipt came from a pre-migration service, destination binding to the local participant, body closure, recomputed founding_unit_digest and coordinates, and the full direct_conversation_genesis admission before admitting the unit at one atomic boundary. A missing Contact basis mirror or other bounded dependency is a retryable top-level HTTP 409 dependency_missing with zero writes, never a per-item partial and never a permanent rejection.",
+      "notes": "Federation peer Event publication. Each EventFederationSubmission carries the original signed Event. Ordinary online publication omits AuthorizationLease and uses an empty ingress_receipts array; explicit delayed/offline publication carries the lease and at least one original lease-bound IngressReceipt. An ak.member.state compensation publication additionally carries the unchanged transport-only membership_compensation_evidence and the receiver applies the same exact admission/incarnation/action/executor/single-use evaluator as initial submission. Request-level CbaProofBundle values provide receiver-relative dependency closure. The receiver independently validates every Event, optional lease, receipt threshold, compensation evidence, bundle object and reducer result. Ordinary missing dependencies use HTTP 200 partial items with reason_code=dependency_missing and non-empty typed missing sets; registered atomic units use top-level HTTP 409 dependency_missing with EventsDependencyMissingProblem and zero writes. A received response terminates that Idempotency-Key; a post-backfill submit uses a fresh key. The caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ak.invite.claim remains decided by the destination Realm reducer. The request union additionally registers the discriminated direct_conversation_founding branch for the Direct Conversation founding exception of zh/sync/federation.md section 4.0.4: it carries exactly three ordered EventFederationSubmission items, the source DirectConversationFoundingAcceptanceReceipt and bounded dependencies, and it omits service_binding_ref because the Realm does not yet exist at the receiver. The receiver freshly verifies transport source authority over founder_id, cutover/fence continuity when the receipt came from a pre-migration service, destination binding to the local participant, body closure, recomputed founding_unit_digest and coordinates, and the full direct_conversation_genesis admission before admitting the unit at one atomic boundary. A missing Contact round mirror or other bounded dependency is a retryable top-level HTTP 409 dependency_missing with zero writes, never a per-item partial and never a permanent rejection.",
       "body_class": "non_streaming_json",
       "max_items": 500,
       "success_shape_kind": "typed_response",
@@ -3083,7 +3104,7 @@
       "http": "POST /_arkret/self/contacts/tombstone",
       "grpc": "SelfContact/Tombstone",
       "mq": "self.contact.command.tombstone",
-      "notes": "Holder-signed issuer-local lineage terminal. It consumes the Contact basis and generation; it does not carry scope replacement and does not write or revoke Private Consent.",
+      "notes": "Holder-signed issuer-local lineage terminal. It consumes the Contact round and generation; it does not carry scope replacement and does not write or revoke Private Consent.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -3102,7 +3123,7 @@
       "http": "GET /_arkret/self/contacts",
       "grpc": "SelfContact/List",
       "mq": "self.contact.query.list",
-      "notes": "Holder contact projection from source-signed request/response receipts, issuer-local Contact lineages and current signed head leases. An accepted row also carries the closed next_prepare_input cursor whose basis_id, version and predecessor_event_ref are copied verbatim into the prepare phase of ak.self.contact.command.scope_update or ak.self.contact.command.tombstone; every other contact_state omits it, and the projected request/response/tombstone event refs are never authoritative lineage heads. A pending_incoming row likewise carries request_receipt, the complete signed request_acceptance_receipt copied verbatim into the prepare phase of ak.self.contact.command.respond or ak.self.contact.command.reject; it is signed by the peer's source service rather than by this server, so the client verifies it independently instead of trusting this server's retelling. Every other contact_state omits it, because pending_outgoing has no incoming request to answer and accepted, rejected, expired and tombstoned have a consumed admission slot or a terminal basis; a glare pair is never pending_incoming, so the glare ban on respond and reject needs no extra code. Private Consent and account-data notes are never Contact authority.",
+      "notes": "Holder contact projection from source-signed request/response receipts, issuer-local Contact lineages and current signed head leases. An accepted row also carries the closed next_prepare_input cursor whose contact_round_id, version and predecessor_event_ref are copied verbatim into the prepare phase of ak.self.contact.command.scope_update or ak.self.contact.command.tombstone; every other contact_state omits it, and the projected request/response/tombstone event refs are never authoritative lineage heads. A pending_incoming row likewise carries request_receipt, the complete signed request_acceptance_receipt copied verbatim into the prepare phase of ak.self.contact.command.respond or ak.self.contact.command.reject; it is signed by the peer's source service rather than by this server, so the client verifies it independently instead of trusting this server's retelling. Every other contact_state omits it, because pending_outgoing has no incoming request to answer and accepted, rejected, expired and tombstoned have a consumed admission slot or a terminal round; a glare pair is never pending_incoming, so the glare ban on respond and reject needs no extra code. Private Consent and account-data notes are never Contact authority.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list"
@@ -3173,7 +3194,7 @@
       "http": "POST /_arkret/self/direct-conversations/resolve",
       "grpc": "SelfDirectConversation/Resolve",
       "mq": "self.direct_conversation.query.resolve",
-      "notes": "Query-only resolver for the pair's single stable Direct Conversation. It never creates: a Direct Conversation Realm is created solely by the founder derived from the pair's root Contact basis (normal branch takes the responder, glare branch takes the requests[0] issuer) through the direct_conversation_genesis admission variant of ak.realm.create. Outcomes are evaluated in a fixed order and expose creation_required, creation_blocked, awaiting_founder, provisional, found, suspended or temporarily_unavailable. Whenever an accepted active-generation singleton exists the response carries active_mls_generation_ref and sha256(RFC8785_JCS(current accepted cell whole value)) as one pair; found always carries both, and a repairable suspended state never hides them. Waiting never grants create authority to the non-founder and there is no timeout fallback or takeover.",
+      "notes": "Query-only resolver for the pair's single stable Direct Conversation. It never creates: a Direct Conversation Realm is created solely by the founder derived from the pair's root Contact round (normal branch takes the responder, glare branch takes the requests[0] issuer) through the direct_conversation_genesis admission variant of ak.realm.create. Outcomes are evaluated in a fixed order and expose creation_required, creation_blocked, awaiting_founder, provisional, found, suspended or temporarily_unavailable. Whenever an accepted active-generation singleton exists the response carries active_mls_generation_ref and sha256(RFC8785_JCS(current accepted cell whole value)) as one pair; found always carries both, and a repairable suspended state never hides them. Waiting never grants create authority to the non-founder and there is no timeout fallback or takeover.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request",
@@ -3233,7 +3254,7 @@
       "http": "POST /_arkret/self/events",
       "grpc": "SelfEvents/Submit",
       "mq": "self.events.command.submit",
-      "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbaProofBundle values are independently verified publication evidence outside the Event digest. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state. The request union additionally registers the discriminated direct_conversation_founding branch, the only carrier for a Direct Conversation founding unit: the founder authors all three Events itself, realm_id and main_strand_id are retyped from the first and third Event IDs, and the service allocates no identifier and issues no draft. That branch requires exactly three ordered EventInitialSubmission items, closed XOR founder basis evidence and an idempotency_key, accepts zero or three Events inside one slot transaction, and returns DirectConversationFoundingAcceptanceOutcome with the source-signed receipt. Same key plus the same unit replays the byte-identical receipt without advancing accepted_at; same key plus a different unit is duplicate_conflict; a slot already closed by another unit for the same pair is slot_already_committed. All four outcomes write zero Events on failure.",
+      "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbaProofBundle values are independently verified publication evidence outside the Event digest. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state. The request union additionally registers the discriminated direct_conversation_founding branch, the only carrier for a Direct Conversation founding unit: the founder authors all three Events itself, realm_id and main_strand_id are retyped from the first and third Event IDs, and the service allocates no identifier and issues no draft. That branch requires exactly three ordered EventInitialSubmission items, closed XOR founding authority evidence and an idempotency_key, accepts zero or three Events inside one slot transaction, and returns DirectConversationFoundingAcceptanceOutcome with the source-signed receipt. Same key plus the same unit replays the byte-identical receipt without advancing accepted_at; same key plus a different unit is duplicate_conflict; a slot already closed by another unit for the same pair is slot_already_committed. All four outcomes write zero Events on failure.",
       "body_class": "non_streaming_json",
       "max_items": 1000,
       "success_shape_kind": "typed_response",

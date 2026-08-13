@@ -213,7 +213,7 @@
           "ak.gate.account.exchange.create_handoff",
           "ak.gate.account.read.onboarding",
           "ak.peer.account_status.command.submit",
-          "ak.peer.account_status.read.authoring_basis",
+          "ak.peer.account_status.read.authoring_frontiers",
           "ak.self.account.command.update_profile",
           "ak.self.account.read.viewer"
         ],

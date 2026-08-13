@@ -222,7 +222,7 @@
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
         "response_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",
         "next_prepare_input": {
-          "basis_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
+          "contact_round_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
           "version": 2,
           "predecessor_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA"
         },
@@ -251,7 +251,7 @@
           "kind": "human",
           "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
         },
-        "basis_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
+        "contact_round_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
         "version": 2,
         "predecessor_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA"
       }
@@ -269,7 +269,7 @@
           "kind": "human",
           "principal_id": "ak:did_core:webvh:z6mkfixturebobexample"
         },
-        "basis_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
+        "contact_round_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
         "version": 2,
         "predecessor_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",
         "granted_to_peer_scopes": [
@@ -321,7 +321,7 @@
         "response_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",
         "tombstone_event_ref": "ak:event:AYfTCWV0E89xVyBGDdUxp2r9d3MQJAcRVbZC9QZPVXYK",
         "next_prepare_input": {
-          "basis_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
+          "contact_round_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
           "version": 3,
           "predecessor_event_ref": "ak:event:AYfTCWV0E89xVyBGDdUxp2r9d3MQJAcRVbZC9QZPVXYK"
         },
@@ -369,7 +369,7 @@
           }
         },
         "next_prepare_input": {
-          "basis_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
+          "contact_round_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
           "version": 2,
           "predecessor_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ"
         },
@@ -484,7 +484,7 @@
         },
         "response_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",
         "next_prepare_input": {
-          "basis_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
+          "contact_round_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
           "version": 2,
           "predecessor_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA"
         },
@@ -595,8 +595,8 @@
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "authorization_core": {
             "kind": "human",
-            "current_contact_basis_id": "sha256:c81d66dd288ed62349579d189e5fc7a0d5dfb120f19137c1f92da2f30863eb0b",
-            "founder_basis_id": "sha256:c81d66dd288ed62349579d189e5fc7a0d5dfb120f19137c1f92da2f30863eb0b",
+            "current_contact_round_id": "sha256:55e2bdad8a06d2503f04e1d0cb5046a918f1002eab53e560ce399fe5aaf10c82",
+            "root_contact_round_id": "sha256:55e2bdad8a06d2503f04e1d0cb5046a918f1002eab53e560ce399fe5aaf10c82",
             "accepted_contact_evidence_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           },
           "slot_committed": true,
@@ -634,8 +634,8 @@
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "authorization_core": {
             "kind": "human",
-            "current_contact_basis_id": "sha256:c81d66dd288ed62349579d189e5fc7a0d5dfb120f19137c1f92da2f30863eb0b",
-            "founder_basis_id": "sha256:c81d66dd288ed62349579d189e5fc7a0d5dfb120f19137c1f92da2f30863eb0b",
+            "current_contact_round_id": "sha256:55e2bdad8a06d2503f04e1d0cb5046a918f1002eab53e560ce399fe5aaf10c82",
+            "root_contact_round_id": "sha256:55e2bdad8a06d2503f04e1d0cb5046a918f1002eab53e560ce399fe5aaf10c82",
             "accepted_contact_evidence_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           },
           "slot_committed": true,
@@ -651,8 +651,8 @@
       }
     },
     {
-      "name": "founder_basis_evidence_controller_agent_branch_valid",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectConversationFounderBasisEvidence",
+      "name": "founding_authority_evidence_controller_agent_branch_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectConversationFoundingAuthorityEvidence",
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
@@ -663,8 +663,8 @@
       }
     },
     {
-      "name": "founder_basis_evidence_rejects_mixed_branches",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectConversationFounderBasisEvidence",
+      "name": "founding_authority_evidence_rejects_mixed_branches",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectConversationFoundingAuthorityEvidence",
       "expect_valid": false,
       "first_expected_error": "contains:is not valid under any of the given schemas",
       "semantic_outcome": "reject",
@@ -674,7 +674,7 @@
         "agent_provision_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
         "agent_provision_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "controller_binding_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-        "root_basis_continuity_chain": []
+        "contact_round_continuity_chain": []
       }
     },
     {
@@ -726,7 +726,7 @@
           {},
           {}
         ],
-        "founder_basis_evidence": {
+        "founding_authority_evidence": {
           "kind": "controller_agent",
           "agent_provision_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
           "agent_provision_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -786,7 +786,7 @@
           {},
           {}
         ],
-        "founder_basis_evidence": {
+        "founding_authority_evidence": {
           "kind": "controller_agent",
           "agent_provision_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
           "agent_provision_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -851,7 +851,7 @@
           {}
         ],
         "source_acceptance_receipt": {},
-        "founder_basis_evidence": {
+        "founding_authority_evidence": {
           "kind": "controller_agent",
           "agent_provision_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
           "agent_provision_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -961,13 +961,13 @@
     {
       "name": "creation_required_carries_the_authoring_material",
       "vector_id": "ak.vector.direct_conversation.founding_authoring_material.v1",
-      "precondition": "the pair has an accepted Contact basis and no accepted Direct Conversation Realm; the caller is the founder and the current gates allow creation",
+      "precondition": "the pair has an accepted Contact round and no accepted Direct Conversation Realm; the caller is the founder and the current gates allow creation",
       "action": "resolve the pair through ak.self.direct_conversation.read.resolve",
       "semantic_outcome": "accept",
       "assertions": [
         "state is creation_required and next_founding_input is present",
-        "next_founding_input member names equal the DirectConversationFoundingUnitSubmission members byte for byte, so the caller copies founder_basis_evidence and source_service_binding across with no renaming map",
-        "exactly one founder_basis_evidence branch is returned for this pair, human for a peer Contact founding and controller_agent for an own-Agent founding",
+        "next_founding_input member names equal the DirectConversationFoundingUnitSubmission members byte for byte, so the caller copies founding_authority_evidence and source_service_binding across with no renaming map",
+        "exactly one founding_authority_evidence branch is returned for this pair, human for a peer Contact founding and controller_agent for an own-Agent founding",
         "the container carries no Event bytes, no coordinates, no idempotency_key and no receipt: the founder still authors and signs all three Events",
         "a service that cannot assemble or verify the material returns temporarily_unavailable instead of a creation_required outcome without the container",
         "the submission re-verifies the material against the service's own current state and never trusts the echoed copy"
@@ -1066,7 +1066,7 @@
     },
     {
       "name": "federation_founding_dependency_missing_is_atomic",
-      "precondition": "the Contact basis mirror has not reached the destination Principal Server",
+      "precondition": "the Contact round mirror has not reached the destination Principal Server",
       "action": "deliver the founding unit through the peer direct_conversation_founding branch",
       "semantic_outcome": "reject",
       "expected_reason_code": "dependency_missing",
@@ -1138,7 +1138,7 @@
     },
     {
       "name": "list_next_prepare_input_authors_scope_update_and_tombstone",
-      "precondition": "one accepted non-terminal Contact basis whose issuer-local lineage head is at version 1",
+      "precondition": "one accepted non-terminal Contact round whose issuer-local lineage head is at version 1",
       "action": "read ak.self.contact.read.list and copy next_prepare_input into the prepare phase of ak.self.contact.command.scope_update and of ak.self.contact.command.tombstone",
       "semantic_outcome": "accept",
       "assertions": [
@@ -1163,7 +1163,7 @@
     {
       "name": "glare_first_successor_uses_version_two",
       "vector_id": "ak.vector.contact.next_prepare_input.v1",
-      "precondition": "a glare-derived accepted basis whose issuer-local lineage has only that issuer's request head and no versioned accepted successor",
+      "precondition": "a glare-derived accepted Contact round whose issuer-local lineage has only that issuer's request head and no versioned accepted successor",
       "action": "read ak.self.contact.read.list and prepare the first scope_update or tombstone successor with next_prepare_input copied verbatim",
       "semantic_outcome": "accept",
       "assertions": [
@@ -1293,7 +1293,7 @@
       "action": "read ak.self.contact.read.list",
       "semantic_outcome": "accept",
       "assertions": [
-        "no row in these five states carries request_receipt, because pending_outgoing has no incoming request to answer and the other four have a consumed slot or a terminal basis",
+        "no row in these five states carries request_receipt, because pending_outgoing has no incoming request to answer and the other four have a consumed slot or a terminal round",
         "the omission alone expresses that respond and reject are not authorable now; no error code and no contact_state value is added for it",
         "a glare pair never presents a receipt-bearing row: an unconsumed outgoing request in the holder's own slot keeps the row pending_outgoing while glare evidence is still incomplete, and the mechanically derived basis projects accepted, so the row is never pending_incoming and respond and reject stay forbidden throughout"
       ]

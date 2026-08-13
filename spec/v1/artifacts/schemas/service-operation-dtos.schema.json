@@ -1194,33 +1194,33 @@
         }
       }
     },
-    "DirectConversationFounderBasisEvidence": {
+    "DirectConversationFoundingAuthorityEvidence": {
       "description": "Closed XOR authorization evidence for one Direct Conversation founding unit, matching the two registered ak.realm.create admission variants. The human branch feeds direct_conversation_genesis; the controller_agent branch feeds direct_conversation_agent_genesis. Carrying both, neither, or mixed branch fields rejects the whole unit.",
       "oneOf": [
         {
           "type": "object",
           "required": [
             "kind",
-            "basis_evidence_bundle",
-            "root_basis_continuity_chain"
+            "contact_round_evidence",
+            "contact_round_continuity_chain"
           ],
           "properties": {
             "kind": {
               "const": "human"
             },
-            "basis_evidence_bundle": {
-              "$ref": "./contact-operations.schema.json#/$defs/contact_basis_evidence_bundle",
-              "description": "Portable evidence for the pair's current Contact basis. The verifier re-derives founder from the root basis, never from this current basis."
+            "contact_round_evidence": {
+              "$ref": "./contact-operations.schema.json#/$defs/contact_round_evidence_bundle",
+              "description": "Portable evidence for the pair's current Contact round. The verifier re-derives founder from the root Contact round, never from the current round."
             },
-            "root_basis_continuity_chain": {
+            "contact_round_continuity_chain": {
               "type": "array",
               "minItems": 0,
               "maxItems": 64,
               "uniqueItems": true,
               "items": {
-                "$ref": "./contact-operations.schema.json#/$defs/contact_basis_evidence_bundle"
+                "$ref": "./contact-operations.schema.json#/$defs/contact_round_evidence_bundle"
               },
-              "description": "Ordered tombstone/recontact predecessors from the current basis back to the pair's unique root founder basis, each linked by previous_terminal_basis_id. An empty array means the current basis is itself the root. A break, a cycle, multiple roots or two directional proofs yielding different roots reject the unit."
+              "description": "Ordered tombstone/recontact predecessors from the current Contact round back to the pair's unique root Contact round, each linked by previous_terminal_contact_round_id. An empty array means the current round is itself the root. A break, a cycle, multiple roots or two directional proofs yielding different roots reject the unit."
             }
           },
           "additionalProperties": false
@@ -1294,7 +1294,7 @@
         "unit_kind",
         "events",
         "source_acceptance_receipt",
-        "founder_basis_evidence",
+        "founding_authority_evidence",
         "source_service_binding"
       ],
       "properties": {
@@ -1313,12 +1313,12 @@
         "source_acceptance_receipt": {
           "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt"
         },
-        "founder_basis_evidence": {
-          "$ref": "#/$defs/DirectConversationFounderBasisEvidence"
+        "founding_authority_evidence": {
+          "$ref": "#/$defs/DirectConversationFoundingAuthorityEvidence"
         },
         "source_service_binding": {
           "$ref": "./principal-service-binding.schema.json#/$defs/accepted_at_service_binding",
-          "description": "Portable accepted-at binding for source_acceptance_receipt. binding_digest MUST equal receipt.issuer_service_binding_digest, service_id MUST equal receipt.issuer_service_id and authenticated Source-Service-ID, principal_id MUST equal receipt.founder_id, and authority_instance MUST equal the Contact basis frozen instance. Another same-core PCR is rejected."
+          "description": "Portable accepted-at binding for source_acceptance_receipt. binding_digest MUST equal receipt.issuer_service_binding_digest, service_id MUST equal receipt.issuer_service_id and authenticated Source-Service-ID, principal_id MUST equal receipt.founder_id, and authority_instance MUST equal the instance frozen by the Contact round. Another same-core PCR is rejected."
         },
         "cba_proof_bundles": {
           "type": "array",
@@ -1346,7 +1346,7 @@
         "unit_kind",
         "idempotency_key",
         "events",
-        "founder_basis_evidence",
+        "founding_authority_evidence",
         "source_service_binding"
       ],
       "properties": {
@@ -1367,8 +1367,8 @@
           },
           "description": "Exactly three founder-signed Events in fixed wire order: ak.realm.create with an omitted realm_id and a realm_genesis scope_ref, the peer participant's ak.member.state{join}, then ak.strand.create with an omitted strand_id. Reordering, a fourth Event, a missing member join and a missing Strand each reject the whole unit."
         },
-        "founder_basis_evidence": {
-          "$ref": "#/$defs/DirectConversationFounderBasisEvidence"
+        "founding_authority_evidence": {
+          "$ref": "#/$defs/DirectConversationFoundingAuthorityEvidence"
         },
         "source_service_binding": {
           "$ref": "./principal-service-binding.schema.json#/$defs/accepted_at_service_binding",

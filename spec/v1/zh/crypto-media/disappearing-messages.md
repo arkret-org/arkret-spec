@@ -29,7 +29,7 @@ Expiry 是 projection / retention 语义，**不是 redaction**。到期不得�
 - `on_first_read`: 从任一 eligible reader 首次满足 read trigger 起算；实现必须避免把 reader identity 泄露给其他成员、发送者、push provider、搜索服务或无权观察者。
 - `on_last_read`: 从全部 eligible readers 满足 read trigger，或 Realm disappearing policy 定义的 read-trigger window 结束后起算。
 
-Expiry anchor 是 reducer / projection 从 accepted send seal 或 read-trigger aggregate 派生的只读投影值，发送方 payload MUST NOT 携带 `seal_hlc`、`anchor_hlc` 或等价字段；出现此类字段 MUST `schema_violation`。`grace_ms` 只延迟本地隐藏和 key drop，不延长 Realm policy 允许的最大生命周期。
+Expiry start 是 reducer / projection 从 accepted send seal 或 read-trigger aggregate 派生的只读投影值，字段名为 `expiry_start_hlc`。发送方 payload MUST NOT 携带 `seal_hlc`、`expiry_start_hlc` 或等价字段；出现此类字段 MUST `schema_violation`。`grace_ms` 只延迟本地隐藏和 key drop，不延长 Realm policy 允许的最大生命周期。
 
 ### 2.1 Read-trigger 输入
 
@@ -55,29 +55,29 @@ Sync / account aggregate service MAY 观察或持有执行该职责所必需的�
 | `position_hlc`、`observed_at` | 聚合服务 | 用于单调性和重放窗口判断；不得向其他成员披露。 |
 | `eligible_reader_count` 或 `delivery_set_digest` | 聚合服务 | 仅用于 `on_last_read` 完成判定；默认不得在客户端 projection 中显示。 |
 
-对客户端和发送者可见的唯一标准结果是 message projection 在到期后降级为 expiry stub，或在到期前继续显示原消息。实现 MAY 在 sync response 中携带 metadata-only expiry hint（例如 `source_event_id`、`trigger`、`anchor_hlc`、`expires_at`），但该 hint MUST NOT 包含 reader identity、reader count、未读 reader count 或 reader token。
+对客户端和发送者可见的唯一标准结果是 message projection 在到期后降级为 expiry stub，或在到期前继续显示原消息。实现 MAY 在 sync response 中携带 metadata-only expiry hint（例如 `source_event_id`、`trigger`、`expiry_start_hlc`、`expires_at`），但该 hint MUST NOT 包含 reader identity、reader count、未读 reader count 或 reader token。
 
-### 2.3 Anchor 计算
+### 2.3 Expiry start 计算
 
-`on_send` 的 anchor 是 accepted Event 的 canonical send seal HLC。
+`on_send` 的 `expiry_start_hlc` 是 accepted Event 的 canonical send seal HLC。
 
-`on_first_read` 的 anchor 是全部有效 read trigger contribution 的可收敛最小值。**canonical 选取规则（normative）**：每个 contribution 的候选值是其经验证的 `position_hlc`，且 MUST 满足 `position_hlc >= send_seal_hlc`；聚合状态以 `min(position_hlc)` 做 join。接收时本地铸造的 HLC、wall clock 和网络到达顺序 MUST NOT 进入 anchor。两个聚合服务即使以相反顺序观察同一组 contribution，也必须在合并集合后得到同一 anchor。晚到的更早有效 contribution MAY 只把 anchor 单调向更早移动；更晚值、重复投递或 replay 不得把 anchor 后移，已经生成的 expiry stub 或已经 shred 的 key 也不得复活。
+`on_first_read` 的 `expiry_start_hlc` 是全部有效 read trigger contribution 的可收敛最小值。**canonical 选取规则（normative）**：每个 contribution 的候选值是其经验证的 `position_hlc`，且 MUST 满足 `position_hlc >= send_seal_hlc`；聚合状态以 `min(position_hlc)` 做 join。接收时本地铸造的 HLC、wall clock 和网络到达顺序 MUST NOT 进入该值。两个聚合服务即使以相反顺序观察同一组 contribution，也必须在合并集合后得到相同的 `expiry_start_hlc`。晚到的更早有效 contribution MAY 只把它单调向更早移动；更晚值、重复投递或 replay 不得把它后移，已经生成的 expiry stub 或已经 shred 的 key 也不得复活。
 
-**单 reader 提前销毁取舍（normative disclosure）**：`on_first_read` 的共享 `min` 语义意味着任一 eligible reader 的首次有效 contribution 都会为所有副本启动同一个到期计时；该 reader 因而可以有意或无意让全员更早 crypto-shred。Realm policy / 加入 UI 在允许 `on_first_read` 前 MUST 明示该 griefing 边界。不能接受单 reader 触发全局销毁的 Realm MUST 禁用 `on_first_read`，改用 `on_last_read`；实现 MAY 另提供纯本地的 per-reader 隐藏计时，但该本地计时 MUST NOT 写入共享 anchor、不得要求其它 reader shred，也不得冒充 `ak.profile.disappearing.v1` 的共享到期结果。
+**单 reader 提前销毁取舍（normative disclosure）**：`on_first_read` 的共享 `min` 语义意味着任一 eligible reader 的首次有效 contribution 都会为所有副本启动同一个到期计时；该 reader 因而可以有意或无意让全员更早 crypto-shred。Realm policy / 加入 UI 在允许 `on_first_read` 前 MUST 明示该 griefing 边界。不能接受单 reader 触发全局销毁的 Realm MUST 禁用 `on_first_read`，改用 `on_last_read`；实现 MAY 另提供纯本地的 per-reader 隐藏计时，但该本地计时 MUST NOT 写入共享 `expiry_start_hlc`、不得要求其它 reader shred，也不得冒充 `ak.profile.disappearing.v1` 的共享到期结果。
 
-`on_last_read` 先按 `read_trigger_token` 对每个冻结 principal 的有效 contribution 取最小 `position_hlc`，再对这些 principal-level 最小值取最大值。该两级 `min`/`max` 只依赖可验证 contribution 集合，满足可交换、结合、幂等。若 read-trigger window 先结束，anchor MUST 等于 `send_seal_hlc + read_trigger_window_ms`，不得使用任一聚合服务的本地接受时刻。`read_trigger_window_ms` 由 effective `ak.realm.disappearing_policy` 给出；缺省时 MUST 使用 `max_ttl_ms` 作为上限窗口。`eligible_reader_set` 为空时，`on_first_read` 与 `on_last_read` MUST 退化为 `on_send` anchor，且不得暴露"无人可读"作为成员枚举信号。
+`on_last_read` 先按 `read_trigger_token` 对每个冻结 principal 的有效 contribution 取最小 `position_hlc`，再对这些 principal-level 最小值取最大值。该两级 `min`/`max` 只依赖可验证 contribution 集合，满足可交换、结合、幂等。若 read-trigger window 先结束，`expiry_start_hlc` MUST 等于 `send_seal_hlc + read_trigger_window_ms`，不得使用任一聚合服务的本地接受时刻。`read_trigger_window_ms` 由 effective `ak.realm.disappearing_policy` 给出；缺省时 MUST 使用 `max_ttl_ms` 作为上限窗口。`eligible_reader_set` 为空时，`on_first_read` 与 `on_last_read` MUST 退化为 `on_send` 的 `expiry_start_hlc`，且不得暴露"无人可读"作为成员枚举信号。
 
-`expired_at = min(anchor + ttl_ms + grace_ms, send_seal_hlc + max_ttl_ms)`；其中 `send_seal_hlc` 是该 message create 被 accepted 的 canonical send seal HLC，`max_ttl_ms` 来自同一 policy frontier 下的 effective `ak.realm.disappearing_policy`。该上限保证 `on_last_read` 的等待窗口和 `grace_ms` 都不会变成额外 plaintext lifetime：`ttl_ms + grace_ms` MUST 受 `max_ttl_ms` 约束。`expired_at` 只控制 projection、local cache 和 key shredding，不得进入 authorization、membership、history visibility 或 reducer acceptance 判定。副本尚未交换全部 contribution 时 MAY 暂时得到较晚 anchor；合并后 anchor/expired_at 只能保持或向更早移动，并最终收敛到相同 stub。
+`expired_at = min(expiry_start_hlc + ttl_ms + grace_ms, send_seal_hlc + max_ttl_ms)`；其中 `send_seal_hlc` 是该 message create 被 accepted 的 canonical send seal HLC，`max_ttl_ms` 来自同一 policy frontier 下的 effective `ak.realm.disappearing_policy`。该上限保证 `on_last_read` 的等待窗口和 `grace_ms` 都不会变成额外 plaintext lifetime：`ttl_ms + grace_ms` MUST 受 `max_ttl_ms` 约束。`expired_at` 只控制 projection、local cache 和 key shredding，不得进入 authorization、membership、history visibility 或 reducer acceptance 判定。副本尚未交换全部 contribution 时 MAY 暂时得到较晚的 `expiry_start_hlc`；合并后 `expiry_start_hlc` / `expired_at` 只能保持或向更早移动，并最终收敛到相同 stub。
 
 ### 2.4 幂等、重放与离线多设备
 
 Read trigger contribution MUST 是单调且幂等的：
 
-- 同一 `(message, principal)` 的重复 contribution 使用同一 `read_trigger_token` 去重；同 token 的状态以最小有效 `position_hlc` 收敛。逐字节重复投递返回 success / already_observed，不得增加计数；晚到的更早有效位置只允许按 §2.3 把 anchor 单调向更早移动。
+- 同一 `(message, principal)` 的重复 contribution 使用同一 `read_trigger_token` 去重；同 token 的状态以最小有效 `position_hlc` 收敛。逐字节重复投递返回 success / already_observed，不得增加计数；晚到的更早有效位置只允许按 §2.3 把 `expiry_start_hlc` 单调向更早移动。
 - 更晚的 receipt / cursor 不得覆盖同 token 已观察到的更早 read position；HLC 相等时按 read cursor 规范的 device tie-break 收敛，但仍只产生一个 principal-level contribution。
 - replayed contribution 若 token、message、scope、trigger 或 policy frontier 不匹配，MUST fail closed；不得因攻击者重放旧 receipt 让另一条消息提前过期。
-- `on_last_read` 按 principal 计数，不按设备计数。一个 principal 的任一授权设备满足 read trigger 即视为该 principal 已读；其它离线设备不得阻塞全局 anchor，但这些设备在重新上线时仍 MUST 应用已过期 stub 并删除本地 plaintext / key material。
-- 离线 principal、不可达 delivery binding、丢失的 to-device 消息或被移除成员不得无限期阻塞 `on_last_read`；read-trigger window 到达时 MUST 关闭等待并计算 anchor。
+- `on_last_read` 按 principal 计数，不按设备计数。一个 principal 的任一授权设备满足 read trigger 即视为该 principal 已读；其它离线设备不得阻塞共享 `expiry_start_hlc`，但这些设备在重新上线时仍 MUST 应用已过期 stub 并删除本地 plaintext / key material。
+- 离线 principal、不可达 delivery binding、丢失的 to-device 消息或被移除成员不得无限期阻塞 `on_last_read`；read-trigger window 到达时 MUST 关闭等待并计算 `expiry_start_hlc`。
 
 不支持 private read trigger contribution 的客户端或服务，MUST 对带 `trigger=on_first_read` / `on_last_read` 的消息 fail closed：可以显示不支持 / metadata-only stub，但不得把消息当作永久消息，也不得退化为公开 `ak.receipt.read` 泄露身份。
 
@@ -93,7 +93,7 @@ E2EE Realm 中，disappearing message SHOULD 使用 per-message temporary conten
 
 Saved items、pins、replies、search index、push snippet 和 blob preview MUST NOT 复活已过期 plaintext。任何派生内容若包含明文或可逆摘要，必须跟随最早的 message expiry 失效。
 
-每个设备在观察到本地或聚合 expiry anchor 后 MUST 排程删除 per-message content key、短 epoch exporter secret、解密 cache、plaintext render cache、附件 preview key 与 search / notification derived plaintext。重复收到同一 anchor MUST 幂等处理；收到更早且可由当前 policy frontier 与 contribution closure 验证的 anchor时 MUST 单调提前本地 expiry，收到更晚 anchor MUST 忽略。已经过期并 shred 的 key 不得因任何迟到 anchor 被恢复。
+每个设备在观察到本地或聚合 `expiry_start_hlc` 后 MUST 排程删除 per-message content key、短 epoch exporter secret、解密 cache、plaintext render cache、附件 preview key 与 search / notification derived plaintext。重复收到同一值 MUST 幂等处理；收到更早且可由当前 policy frontier 与 contribution closure 验证的值时 MUST 单调提前本地 expiry，收到更晚值 MUST 忽略。已经过期并 shred 的 key 不得因任何迟到值被恢复。
 
 到期后保留的 encrypted envelope、Event、Seal、batch receipt、message id、strand id、track name、expiry metadata 和最小审计引用仍可存在。它们是 append-only history 的一部分，但不得包含可解密正文或可逆摘要。
 
@@ -103,7 +103,7 @@ Late key recovery 也不得复活已过期 plaintext。该 expiry / retention gu
 
 `ak.realm.disappearing_policy` 写入 Realm policy cell。策略至少定义 enablement、最大 TTL、允许 trigger、默认 grace window 和是否允许 plaintext realms 使用该 profile。
 
-`ak.realm.disappearing_policy.read_trigger_window_ms` 是 `on_last_read` 等待 read contributions 的最大窗口；若省略，effective value MUST 等于 `max_ttl_ms`，且显式配置时 MUST 满足 `read_trigger_window_ms <= max_ttl_ms`。该窗口不是额外 plaintext lifetime：最终过期按 §2.3 的 `min(anchor + ttl_ms + grace_ms, send_seal_hlc + max_ttl_ms)` 计算，且 `ttl_ms + grace_ms` MUST 受 `max_ttl_ms` 约束。Realm 若允许 `on_first_read` 或 `on_last_read`，MUST 在加入 / 进入 scope 时向用户披露：客户端会发送 private read trigger contribution；该 contribution 不显示 reader identity，但发送者可能从最终过期时刻推断粗粒度读取时序，因此它不等同于公开 read receipt。
+`ak.realm.disappearing_policy.read_trigger_window_ms` 是 `on_last_read` 等待 read contributions 的最大窗口；若省略，effective value MUST 等于 `max_ttl_ms`，且显式配置时 MUST 满足 `read_trigger_window_ms <= max_ttl_ms`。该窗口不是额外 plaintext lifetime：最终过期按 §2.3 的 `min(expiry_start_hlc + ttl_ms + grace_ms, send_seal_hlc + max_ttl_ms)` 计算，且 `ttl_ms + grace_ms` MUST 受 `max_ttl_ms` 约束。Realm 若允许 `on_first_read` 或 `on_last_read`，MUST 在加入 / 进入 scope 时向用户披露：客户端会发送 private read trigger contribution；该 contribution 不显示 reader identity，但发送者可能从最终过期时刻推断粗粒度读取时序，因此它不等同于公开 read receipt。
 
 不支持 `ak.profile.disappearing.v1` 的实现 MUST fail closed：可以显示无法解密 / 不支持提示，但不得把带 expiry 的消息当作普通永久消息处理。
 
@@ -111,7 +111,7 @@ Late key recovery 也不得复活已过期 plaintext。该 expiry / retention gu
 
 实现声明 `ak.profile.disappearing.v1` 时 MUST 覆盖以下向量：
 
-- `ak.vector.disappearing.read_trigger_anonymous_aggregate.v1`：`on_first_read` / `on_last_read` 只能输出 aggregate expiry anchor / stub；发送者和其他成员不得观察 reader identity、reader count 或可跨消息关联 token。
-- `ak.vector.disappearing.read_trigger_idempotent_replay.v1`：重复 read cursor、重复 receipt、跨消息 replay 和乱序 delivery 不得刷新 anchor、重复计数或提前过期错误消息。
-- `ak.vector.disappearing.read_trigger_multi_aggregator_convergence.v1`：两个聚合服务以相反顺序观察同一 contribution 集合时，必须通过 per-token `min` 与 aggregate join 得到逐字节相同 anchor；晚到更早值只能提前 expiry，不能复活已 shred 内容。
+- `ak.vector.disappearing.read_trigger_anonymous_aggregate.v1`：`on_first_read` / `on_last_read` 只能输出 aggregate `expiry_start_hlc` / stub；发送者和其他成员不得观察 reader identity、reader count 或可跨消息关联 token。
+- `ak.vector.disappearing.read_trigger_idempotent_replay.v1`：重复 read cursor、重复 receipt、跨消息 replay 和乱序 delivery 不得刷新 `expiry_start_hlc`、重复计数或提前过期错误消息。
+- `ak.vector.disappearing.read_trigger_multi_aggregator_convergence.v1`：两个聚合服务以相反顺序观察同一 contribution 集合时，必须通过 per-token `min` 与 aggregate join 得到逐字节相同的 `expiry_start_hlc`；晚到更早值只能提前 expiry，不能复活已 shred 内容。
 - `ak.vector.disappearing.on_last_read_offline_window.v1`：离线 principal / 多设备场景按 principal-level contribution 和 `read_trigger_window_ms` 收敛；离线设备上线后必须看到 stub 并 shred key。

@@ -1045,7 +1045,7 @@
           ],
           "expected": {
             "result": "accept",
-            "authoring_basis": "genesis_then_same_transaction"
+            "authoring_sequence": "genesis_then_same_transaction"
           }
         },
         {

@@ -42,8 +42,9 @@
     "source_track_ref": {
       "$ref": "#/$defs/source_track_ref"
     },
-    "source_frontier_anchor": {
-      "$ref": "#/$defs/event_id"
+    "source_event_id": {
+      "$ref": "#/$defs/event_id",
+      "description": "Optional accepted Event id copied from the request context as the source Event for this exchange. This identifies one Event, not a frontier or trust anchor."
     },
     "source_hlc": {
       "$ref": "#/$defs/hlc"
