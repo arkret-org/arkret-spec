@@ -91,10 +91,11 @@ Self-management operation 的映射固定如下：
 
 - `ak.self.realm_policy_server.resource.replace`（`PUT
   /_arkret/self/realms/{realm_id}/policy-server`）在 `ak.policy.manage` admission 通过后，
-  MUST 构造 payload 等于已验证 request body 的 durable `ak.realm.policy_server` Control Move；
+  MUST 接受 `policy_server_event` 包装的、由已认证调用者签名的完整
+  `ak.realm.policy_server` EventInitialSubmission；其 Event payload 即 durable declaration；
 - `ak.self.realm_policy_server.resource.delete`（`DELETE` 同一路径）在同一 capability admission
-  通过后，MUST 构造 payload 精确为 `{"tombstone":true}` 的 durable
-  `ak.realm.policy_server` Control Move；
+  通过后，MUST 接受同一 `policy_server_event` 包装，且其中调用者签名 Event 的 payload
+  必须精确为 `{"tombstone":true}`；
 - direct cell 从未写入时，replace 写入初始 declaration，不要求 CAS precondition；direct cell
   已有任一 settled value（declaration 或 tombstone）时，replace MUST 按
   [`event-auth-state-resolution.md` §9.3.1](./event-auth-state-resolution.md) 携带命中该完整
@@ -104,7 +105,10 @@ Self-management operation 的映射固定如下：
 
 同一 frozen basis 上并发的 replace 与 delete 写入不同值，按 `cas_register` join 为 `⊥`；
 读取、Policy Server 调用与依赖该 cell 的写入 MUST fail closed，直到按 §9.5
-conflict-recovery Move 恢复，接收方不得按 HLC、到达顺序或本地管理员请求顺序选 winner。
+  conflict-recovery Move 恢复，接收方不得按 HLC、到达顺序或本地管理员请求顺序选 winner。
+  服务端 MUST 将调用者提交的 Event 原样送入普通 Event admission，不得 co-sign、重建、合成 Event
+  或以服务密钥替代调用者签名；Event 的 `actor_id`、`realm_id`、payload 与既有 direct cell 的
+  `head_eq` precondition 均必须在 admission 时校验。
 对已 settled tombstone 重复 DELETE 是幂等空成功：MUST NOT 追加不同 cell 值或改变
 `state_root`。从未有 direct declaration / tombstone 的 Realm 执行 DELETE 返回 `not_found`；
 继承得到的配置不算本 Realm direct declaration，DELETE 不得为“删除继承值”而修改祖先 cell。
