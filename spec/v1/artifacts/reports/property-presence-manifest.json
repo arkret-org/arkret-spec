@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9725,
+    "total_properties": 9748,
     "total_schema_documents": 158,
     "by_presence_class": {
-      "optional": 2845,
+      "optional": 2851,
       "optional_defaulted": 70,
-      "required": 6418,
+      "required": 6431,
       "required_nullable": 130,
-      "tristate": 262
+      "tristate": 266
     },
-    "tristate_occurrences": 262,
-    "tristate_audit_targets": 165,
+    "tristate_occurrences": 266,
+    "tristate_audit_targets": 168,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 156,
+      "absent_null_equivalent": 159,
       "condition_guarded": 8,
       "distinct": 1
     }
@@ -259,11 +259,15 @@
     "service-operation-dtos.schema.json/$defs/AgentMembershipCascadeSubmission/allOf/0/else/properties/agent_transitions",
     "service-operation-dtos.schema.json/$defs/AgentMembershipCascadeSubmission/allOf/0/then/properties/agent_transitions",
     "service-operation-dtos.schema.json/$defs/DeviceMessagesGetOutcome/allOf/0/if/properties/messages",
+    "service-operation-dtos.schema.json/$defs/EventDeliveryStatusOutcome/allOf/0/else/properties/pending_delivery_count",
+    "service-operation-dtos.schema.json/$defs/EventDeliveryStatusOutcome/allOf/0/else/properties/targets",
+    "service-operation-dtos.schema.json/$defs/EventDeliveryStatusOutcome/allOf/0/then/properties/targets",
     "service-operation-dtos.schema.json/$defs/EventFederationSubmission/allOf/0/else/properties/ingress_receipts",
     "service-operation-dtos.schema.json/$defs/EventFederationSubmission/allOf/0/then/properties/ingress_receipts",
     "service-operation-dtos.schema.json/$defs/EventsDependencyMissingProblem/anyOf/0/properties/missing_event_ids",
     "service-operation-dtos.schema.json/$defs/EventsDependencyMissingProblem/anyOf/1/properties/missing_event_digests",
     "service-operation-dtos.schema.json/$defs/EventsDependencyMissingProblem/anyOf/2/properties/missing_seal_refs",
+    "service-operation-dtos.schema.json/$defs/EventsSubmitOutcome/allOf/0/else/properties/pending_delivery_count",
     "service-operation-dtos.schema.json/$defs/ProjectionMorphRow/properties/created_at",
     "service-operation-dtos.schema.json/$defs/ProjectionMorphRow/properties/created_by",
     "service-operation-dtos.schema.json/$defs/ProjectionMorphRow/properties/state_changed_at",
@@ -1695,6 +1699,27 @@
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/EventDeliveryStatusOutcome",
+      "instance_path": "/pending_delivery_count",
+      "occurrences": [
+        "/$defs/EventDeliveryStatusOutcome/allOf/0/else/properties/pending_delivery_count"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/EventDeliveryStatusOutcome",
+      "instance_path": "/targets",
+      "occurrences": [
+        "/$defs/EventDeliveryStatusOutcome/allOf/0/else/properties/targets",
+        "/$defs/EventDeliveryStatusOutcome/allOf/0/then/properties/targets"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
       "shape": "/$defs/EventFederationSubmission",
       "instance_path": "/ingress_receipts",
       "occurrences": [
@@ -1730,6 +1755,16 @@
       "instance_path": "/missing_seal_refs",
       "occurrences": [
         "/$defs/EventsDependencyMissingProblem/anyOf/2/properties/missing_seal_refs"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/EventsSubmitOutcome",
+      "instance_path": "/pending_delivery_count",
+      "occurrences": [
+        "/$defs/EventsSubmitOutcome/allOf/0/else/properties/pending_delivery_count"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -12225,6 +12260,21 @@
         "/$defs/DirectoryWithdrawRequestBody/properties/governance_proof": "required",
         "/$defs/DirectoryWithdrawRequestBody/properties/reason": "optional",
         "/$defs/DirectoryWithdrawRequestBody/properties/resource_id": "required",
+        "/$defs/EventDeliveryStatusOutcome/allOf/0/else/properties/pending_delivery_count": "tristate",
+        "/$defs/EventDeliveryStatusOutcome/allOf/0/else/properties/targets": "tristate",
+        "/$defs/EventDeliveryStatusOutcome/allOf/0/else/properties/targets/contains/properties/status": "required",
+        "/$defs/EventDeliveryStatusOutcome/allOf/0/if/properties/delivery_state": "required",
+        "/$defs/EventDeliveryStatusOutcome/allOf/0/then/properties/pending_delivery_count": "optional",
+        "/$defs/EventDeliveryStatusOutcome/allOf/0/then/properties/targets": "tristate",
+        "/$defs/EventDeliveryStatusOutcome/allOf/0/then/properties/targets/items/properties/status": "optional",
+        "/$defs/EventDeliveryStatusOutcome/properties/delivery_state": "required",
+        "/$defs/EventDeliveryStatusOutcome/properties/event_id": "required",
+        "/$defs/EventDeliveryStatusOutcome/properties/pending_delivery_count": "required",
+        "/$defs/EventDeliveryStatusOutcome/properties/targets": "required",
+        "/$defs/EventDeliveryStatusRequestBody/properties/event_id": "required",
+        "/$defs/EventDeliveryTargetStatus/properties/service_id": "optional",
+        "/$defs/EventDeliveryTargetStatus/properties/status": "required",
+        "/$defs/EventDeliveryTargetStatus/properties/target_id": "required",
         "/$defs/EventFederationSubmission/allOf/0/else/properties/ingress_receipts": "tristate",
         "/$defs/EventFederationSubmission/allOf/0/then/properties/ingress_receipts": "tristate",
         "/$defs/EventFederationSubmission/properties/authorization_lease": "optional",
@@ -12294,13 +12344,21 @@
         "/$defs/EventsSubmitFederationBatchRequestBody/properties/cba_proof_bundles": "optional",
         "/$defs/EventsSubmitFederationBatchRequestBody/properties/events": "required",
         "/$defs/EventsSubmitFederationBatchRequestBody/properties/service_binding_ref": "required",
+        "/$defs/EventsSubmitOutcome/allOf/0/else/properties/pending_delivery_count": "tristate",
+        "/$defs/EventsSubmitOutcome/allOf/0/if/properties/delivery_state": "required",
+        "/$defs/EventsSubmitOutcome/allOf/0/then/properties/pending_delivery_count": "optional",
+        "/$defs/EventsSubmitOutcome/allOf/1/if/properties/status": "required",
+        "/$defs/EventsSubmitOutcome/allOf/1/then/properties/delivery_state": "optional",
+        "/$defs/EventsSubmitOutcome/allOf/1/then/properties/pending_delivery_count": "optional",
         "/$defs/EventsSubmitOutcome/properties/accepted": "required",
         "/$defs/EventsSubmitOutcome/properties/agent_membership_cascade": "optional",
         "/$defs/EventsSubmitOutcome/properties/control_proposal_acks": "optional",
         "/$defs/EventsSubmitOutcome/properties/cursor": "optional",
+        "/$defs/EventsSubmitOutcome/properties/delivery_state": "required",
         "/$defs/EventsSubmitOutcome/properties/duplicate": "optional",
         "/$defs/EventsSubmitOutcome/properties/ingress_receipts": "optional",
         "/$defs/EventsSubmitOutcome/properties/original_outcome": "optional",
+        "/$defs/EventsSubmitOutcome/properties/pending_delivery_count": "required",
         "/$defs/EventsSubmitOutcome/properties/quarantine": "optional",
         "/$defs/EventsSubmitOutcome/properties/realm_actor_frontiers": "optional",
         "/$defs/EventsSubmitOutcome/properties/realm_frontiers": "optional",

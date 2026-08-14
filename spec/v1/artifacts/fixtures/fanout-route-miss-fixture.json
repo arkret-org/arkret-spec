@@ -1,0 +1,113 @@
+{
+  "suite": "fanout_route_miss",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.fanout.route_miss.v1"
+  },
+  "version": "2026-08-15",
+  "covers_vectors": [
+    "ak.vector.fanout.route_miss.v1"
+  ],
+  "spec_anchor": "spec/v1/zh/sync/federation.md#41-推送模式-push",
+  "machine_contracts": [
+    "schemas/service-operation-dtos.schema.json",
+    "registry/operation-registry.json",
+    "registry/operations-error-mapping.json"
+  ],
+  "semantic_cases": [
+    {
+      "name": "missing_route_accepts_and_freezes_complete_target_set",
+      "given": "one locally authored Realm Event passes admission and one distinct authorized recipient service has no verified route",
+      "action": "commit the Event",
+      "expected": "accepted_pending",
+      "invariants": [
+        "canonical Event, complete distinct target set and all outbox intents commit in one transaction",
+        "the missing-route target is durable pending_route",
+        "submit returns delivery_state pending and pending_delivery_count 1",
+        "submit exposes no target_id or service_id",
+        "service_unavailable is not used to roll back the admitted Event"
+      ]
+    },
+    {
+      "name": "any_target_or_intent_write_failure_rolls_back_everything",
+      "given": "a local Event has two distinct authorized target services",
+      "action": "fault-inject failure while writing the second target or intent",
+      "expected": "zero_writes",
+      "invariants": [
+        "no canonical Event row remains",
+        "no partial target set or outbox intent remains",
+        "retry can commit the exact complete unit once"
+      ]
+    },
+    {
+      "name": "restart_preserves_pending_route_without_attempt_budget_expiry",
+      "given": "one pending_route intent whose frozen authority remains current",
+      "action": "exceed the operational alert threshold, evict caches and restart repeatedly",
+      "expected": "still_pending_route",
+      "invariants": [
+        "the same target_id and idempotency key remain durable",
+        "the implementation emits an operational alert",
+        "TTL, attempt count and dead-letter policy never terminate this Realm fanout obligation"
+      ]
+    },
+    {
+      "name": "route_recovery_delivers_idempotently",
+      "given": "a durable pending_route intent and unchanged exact frozen member delivery authority",
+      "action": "install a valid current service route and run the dispatcher",
+      "expected": "delivered",
+      "invariants": [
+        "the dispatcher rechecks authority before network send",
+        "the intent advances through pending_delivery to delivered",
+        "retries use the original idempotency key and create no second target",
+        "delivery status becomes complete with pending_delivery_count 0"
+      ]
+    },
+    {
+      "name": "authority_loss_cancels_before_send_and_rejoin_does_not_revive",
+      "given": "all frozen exact member or delivery-binding witnesses for a pending target have left, been banned or rebound",
+      "action": "make a route available, run the dispatcher, then join the same member or service again under a new Event frontier",
+      "expected": "cancelled_authority_lost",
+      "invariants": [
+        "no network request is sent after authority loss",
+        "the old intent becomes terminal cancelled_authority_lost",
+        "a new membership Event or delivery-binding frontier never revives the old intent",
+        "only later locally accepted Events may create new targets"
+      ]
+    },
+    {
+      "name": "one_shared_service_remains_authorized_while_any_frozen_witness_is_current",
+      "given": "two frozen joined members map to one distinct recipient service",
+      "action": "one member leaves while the other exact witness remains current",
+      "expected": "delivery_obligation_remains",
+      "invariants": [
+        "there is one target and one outbox intent for the service",
+        "authority is retained because at least one frozen witness still matches",
+        "cancellation occurs only after every frozen witness is invalid"
+      ]
+    },
+    {
+      "name": "authorized_status_read_is_complete_and_topology_redacted",
+      "given": "a caller can read the Event but can read only one of two contributing member delivery-bindings",
+      "action": "QUERY ak.self.events.read.delivery_status",
+      "expected": "full_opaque_target_set",
+      "invariants": [
+        "all targets are returned sorted by unique stable target_id",
+        "service_id is present only on targets backed by a delivery-binding visible to the caller",
+        "unknown and Event-invisible selectors both return not_found",
+        "the read performs no route resolution, retry or state transition"
+      ]
+    },
+    {
+      "name": "offline_target_does_not_block_later_realm_authorship",
+      "given": "one target remains pending_route for a long period while its authority remains current",
+      "action": "members author and admit additional Realm Events",
+      "expected": "each_event_accepted_with_independent_pending_intent",
+      "invariants": [
+        "the offline target cannot convert later valid submissions to service_unavailable",
+        "each Event freezes its own target authority generation",
+        "later successful targets deliver independently"
+      ]
+    }
+  ]
+}

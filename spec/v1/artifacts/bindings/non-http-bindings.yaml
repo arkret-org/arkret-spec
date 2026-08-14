@@ -193,6 +193,7 @@ grpc:
       Get: ak.self.control_proposal_decisions.read.get
     SelfEvents:
       Describe: ak.self.events.read.describe
+      DeliveryStatus: ak.self.events.read.delivery_status
       Frontier: ak.self.events.read.frontier
       MlsGovernanceProof: ak.self.events.read.mls_governance_proof
       Get: ak.self.events.resource.get
@@ -375,6 +376,7 @@ mq:
     self.authorization_leases.command.issue: ak.self.authorization_leases.command.issue
     self.events.command.submit: ak.self.events.command.submit
     self.events.command.submit_seal: ak.self.events.command.submit_seal
+    self.events.read.delivery_status: ak.self.events.read.delivery_status
     self.events.read.mls_governance_proof: ak.self.events.read.mls_governance_proof
     self.events.read.scan.resolve: ak.self.events.read.resolve
     self.events.read.scan: ak.self.events.read.scan

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-15.1",
+  "version": "2026-08-15.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-15T01:20:00Z",
+  "generated_at": "2026-08-15T02:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -10809,6 +10809,7 @@
           "ak.self.control_proposal_decisions.read.get",
           "ak.self.authorization_leases.command.issue",
           "ak.self.events.read.describe",
+          "ak.self.events.read.delivery_status",
           "ak.self.events.command.submit",
           "ak.self.events.command.submit_seal",
           "ak.self.events.resource.get",
@@ -14002,7 +14003,7 @@
         "http": "POST /_arkret/self/events",
         "grpc": "SelfEvents/Submit",
         "mq": "self.events.command.submit",
-        "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbaProofBundle values are independently verified publication evidence outside the Event digest. Before accepting a device-authored Event or appending principal_server_admission, the origin Principal Server reads the exact durable device revocation state in the same admission transaction; revocation_pending returns device_revocation_pending and zero Event/proof writes. Accepted ak.device.revoke is Ack-required and atomically writes its derived exact device/generation pending record. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state. The direct_conversation_founding branch remains its closed three-Event atomic unit. The agent_membership_cascade branch is the only controller-cascade carrier: atomic_self_leave accepts the controller terminal Event and the exact pre-state Agent leave set all-or-nothing; emergency_terminal accepts a third-party terminal Event and atomically freezes a durable exact-set cleanup intent without synthesizing Agent Events; emergency_cleanup accepts only the same initiator's complete signed Agent leave set and commits it atomically. Effective Agent membership is invalid immediately after the terminal transition, independent of cleanup completion. Exact replay returns the original byte-identical outcome, while the same cleanup intent with different canonical content is duplicate_conflict.",
+        "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbaProofBundle values are independently verified publication evidence outside the Event digest. Before accepting a device-authored Event or appending principal_server_admission, the origin Principal Server reads the exact durable device revocation state in the same admission transaction; revocation_pending returns device_revocation_pending and zero Event/proof writes. Accepted ak.device.revoke is Ack-required and atomically writes its derived exact device/generation pending record. For a locally authored Realm Event, canonical acceptance, the complete distinct recipient-service target set and every target outbox intent commit atomically. A missing route creates durable pending_route and never rejects the Event; each send rechecks the frozen exact member/delivery-binding authority, authority loss terminally cancels the old target, and submit exposes only delivery_state plus pending_delivery_count. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state. The direct_conversation_founding branch remains its closed three-Event atomic unit. The agent_membership_cascade branch is the only controller-cascade carrier: atomic_self_leave accepts the controller terminal Event and the exact pre-state Agent leave set all-or-nothing; emergency_terminal accepts a third-party terminal Event and atomically freezes a durable exact-set cleanup intent without synthesizing Agent Events; emergency_cleanup accepts only the same initiator's complete signed Agent leave set and commits it atomically. Effective Agent membership is invalid immediately after the terminal transition, independent of cleanup completion. Exact replay returns the original byte-identical outcome, while the same cleanup intent with different canonical content is duplicate_conflict.",
         "body_class": "non_streaming_json",
         "max_items": 1000,
         "success_shape_kind": "typed_response",
@@ -14046,6 +14047,17 @@
         "body_class": "non_streaming_json",
         "success_shape_kind": "service_describe",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody"
+      },
+      {
+        "operation_id": "ak.self.events.read.delivery_status",
+        "http": "QUERY /_arkret/self/events/delivery-status",
+        "grpc": "SelfEvents/DeliveryStatus",
+        "mq": "self.events.read.delivery_status",
+        "notes": "Return the complete durable frozen fanout target set for one caller-visible accepted Event. Unknown and invisible Events share not_found. Rows use stable opaque target_id and are sorted byte-wise; service_id is included only when the caller can currently read an exact contributing member delivery-binding. The query has no retry, route-resolution or delivery side effect.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome"
       },
       {
         "operation_id": "ak.self.events.read.frontier",
@@ -15005,8 +15017,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-15.1",
-    "generated_at": "2026-08-15T01:20:00Z"
+    "version": "2026-08-15.2",
+    "generated_at": "2026-08-15T02:00:00Z"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

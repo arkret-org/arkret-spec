@@ -1392,6 +1392,10 @@ components:
               type: object
         request_id:
           type: string
+    EventDeliveryStatusOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome
+    EventDeliveryStatusRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody
     EventFederationSubmission:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventFederationSubmission
     EventId:
@@ -4039,6 +4043,10 @@ paths:
         and returns `DirectConversationFoundingAcceptanceOutcome` with the
         source-signed receipt. The service allocates no identifier: `realm_id`
         and `main_strand_id` are retyped from the first and third Event IDs.
+        Local Realm acceptance atomically freezes the complete distinct remote
+        target set and outbox intents. A missing verified route creates durable
+        `pending_route`; it does not reject the Event. The response exposes only
+        aggregate `delivery_state` and `pending_delivery_count`.
       responses:
         '200':
           description: Event accepted (or duplicate / partial; see status field)
@@ -4121,6 +4129,37 @@ paths:
             application/x-ndjson:
               schema:
                 $ref: '#/components/schemas/EventsSubscribeFrame'
+  /_arkret/self/events/delivery-status:
+    query:
+      operationId: ak.self.events.read.delivery_status
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      summary: Read durable Realm fanout delivery state for one visible Event.
+      description: |
+        Returns the complete frozen target set using stable opaque target IDs.
+        Unknown and invisible Events share `not_found`. A row includes
+        `service_id` only when the caller can currently read an exact member
+        delivery-binding that contributed that target. This QUERY performs no
+        route resolution, retry, or delivery state transition.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventDeliveryStatusRequestBody'
+      responses:
+        '200':
+          description: Current durable fanout target state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventDeliveryStatusOutcome'
+        '404':
+          description: '`not_found` — Event is unknown or not visible to the caller.'
   /_arkret/self/events/describe:
     query:
       operationId: ak.self.events.read.describe

@@ -98,6 +98,12 @@
       "$ref": "#/$defs/EventView"
     },
     {
+      "$ref": "#/$defs/EventDeliveryStatusRequestBody"
+    },
+    {
+      "$ref": "#/$defs/EventDeliveryStatusOutcome"
+    },
+    {
       "$ref": "#/$defs/EventsFrontierState"
     },
     {
@@ -2575,12 +2581,157 @@
         }
       ]
     },
+    "EventDeliveryState": {
+      "type": "string",
+      "enum": [
+        "complete",
+        "pending"
+      ],
+      "description": "Aggregate Realm fanout state. complete means no target remains pending; pending means at least one durable target is pending_route or pending_delivery."
+    },
+    "EventDeliveryTargetState": {
+      "type": "string",
+      "enum": [
+        "pending_route",
+        "pending_delivery",
+        "delivered",
+        "cancelled_authority_lost"
+      ],
+      "description": "Closed lifecycle for one frozen distinct Realm fanout target. Authority loss is terminal and a later rejoin never revives the old target."
+    },
+    "EventDeliveryTargetStatus": {
+      "type": "object",
+      "description": "Authorized projection of one frozen Realm fanout target. target_id is opaque and stable. service_id is present only when the caller can currently read at least one exact member delivery-binding that contributed the target.",
+      "required": [
+        "target_id",
+        "status"
+      ],
+      "properties": {
+        "target_id": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{15,127}$",
+          "description": "Service-generated opaque target identifier. It MUST NOT encode the target service DID."
+        },
+        "status": {
+          "$ref": "#/$defs/EventDeliveryTargetState"
+        },
+        "service_id": {
+          "$ref": "#/$defs/DidCoreId"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventDeliveryStatusRequestBody": {
+      "type": "object",
+      "description": "Authenticated, non-enumerating request for the durable fanout state of one caller-visible accepted Event.",
+      "required": [
+        "event_id"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "#/$defs/EventId"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventDeliveryStatusOutcome": {
+      "type": "object",
+      "description": "Complete frozen target set for one visible Event. Rows are sorted byte-wise by unique opaque target_id; pending_delivery_count exactly equals rows in pending_route or pending_delivery.",
+      "required": [
+        "event_id",
+        "delivery_state",
+        "pending_delivery_count",
+        "targets"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "#/$defs/EventId"
+        },
+        "delivery_state": {
+          "$ref": "#/$defs/EventDeliveryState"
+        },
+        "pending_delivery_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "targets": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/EventDeliveryTargetStatus"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "delivery_state": {
+                "const": "complete"
+              }
+            },
+            "required": [
+              "delivery_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "pending_delivery_count": {
+                "const": 0
+              },
+              "targets": {
+                "items": {
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "delivered",
+                        "cancelled_authority_lost"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "pending_delivery_count": {
+                "minimum": 1
+              },
+              "targets": {
+                "contains": {
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "pending_route",
+                        "pending_delivery"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                },
+                "minContains": 1
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
     "EventsSubmitOutcome": {
       "type": "object",
       "description": "Result of ak.events.submit. Tracks per-event acceptance / duplication /\nrejection along with the post-write frontier and an optional barrier\ncursor for read-your-writes.\n",
       "required": [
         "status",
-        "accepted"
+        "accepted",
+        "delivery_state",
+        "pending_delivery_count"
       ],
       "properties": {
         "status": {
@@ -2598,6 +2749,16 @@
             "type": "string"
           },
           "description": "Event IDs that entered the accepted set for the first time. Idempotent re-submissions of identical bodies are sealed via duplicate[], not re-listed here."
+        },
+        "delivery_state": {
+          "$ref": "#/$defs/EventDeliveryState",
+          "description": "Current aggregate for fanout intents associated with accepted[] union duplicate[]. It never implies remote acceptance when status is accepted."
+        },
+        "pending_delivery_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 500000,
+          "description": "Exact number of associated distinct targets currently in pending_route or pending_delivery. Target identities and services are intentionally absent from submit responses."
         },
         "ingress_receipts": {
           "type": "array",
@@ -2664,6 +2825,56 @@
           "description": "Present only for the registered agent_membership_cascade request branch. Exact replay returns the original byte-identical outcome."
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "delivery_state": {
+                "const": "complete"
+              }
+            },
+            "required": [
+              "delivery_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "pending_delivery_count": {
+                "const": 0
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "pending_delivery_count": {
+                "minimum": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "historical_only"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "delivery_state": {
+                "const": "complete"
+              },
+              "pending_delivery_count": {
+                "const": 0
+              }
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "EventsSubmitRejectedRow": {

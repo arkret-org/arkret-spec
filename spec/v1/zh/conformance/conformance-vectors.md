@@ -6286,6 +6286,33 @@ Runner MUST 加载
     才可报告 cross-ack preannouncement complete 并按共同 cutover/grace 关闭旧入口；任一 ack 缺失、仅内存、
     digest 不一致或响应不确定时必须保留旧入口或其它已确认恢复面。
 
+## 36. Realm fanout route-miss closure vector
+
+`vector_id`: `ak.vector.fanout.route_miss.v1`
+
+Runner MUST 加载
+[`fanout-route-miss-fixture.json`](../../artifacts/fixtures/fanout-route-miss-fixture.json) 并执行
+`ak.suite.fanout.route_miss.v1`。测试至少使用两个 Principal Server 与一个含多个 joined member 的 Realm，
+覆盖缺 route、后补 verified route、进程重启、共享 service 的多 member witness、leave/ban/rebind、rejoin 与最终
+peer acceptance。仅对 schema 做枚举校验不构成通过：
+
+1. 本地 Event、按 service DID 去重后的完整 frozen target set 与所有 intents 必须同事务；第二个 target 写入
+   fault 时 Event、target 和 intent 全部不存在。
+2. route miss 的唯一 submit 结果是本地 accepted 且 `delivery_state=pending`；不得返回
+   `service_unavailable`，不得漏 target，也不得泄露 service topology。
+3. `pending_route` 与 `pending_delivery` 跨重启、cache eviction 和尝试阈值保留；阈值只触发 operator alert，
+   authority 仍有效时不得 dead-letter。
+4. route 恢复后必须先复校验 frozen exact member、membership Event ref、delivery-binding frontier 与 service。
+   至少一个 witness 仍成立才可按原 idempotency key 发送并推进 delivered。
+5. 全部 witness 失效时必须在网络发送前 terminal CAS 为 `cancelled_authority_lost`；后来相同 member/service 的
+   新 join/rebind 不能复活旧 intent。
+6. 长期离线 target 不阻塞同 Realm 后续合法 Event；每个 Event 冻结自己的 authority generation 和独立 intent。
+7. `ak.self.events.read.delivery_status` 对可见 Event 返回按 opaque target_id 排序的完整 target set；service_id
+   只在 caller 当前可读对应 member delivery-binding 时出现。unknown 与不可见 Event 统一 `not_found`，query
+   不得触发 route lookup、retry 或状态转换。
+8. submit/read 两个 outcome 的 `pending_delivery_count` 必须精确等于 pending_route 与 pending_delivery rows 数；
+   计数为零当且仅当 aggregate state 为 complete。
+
 ## Account status publication carrier
 
 `ak.vector.account_status.authority_publication.v1` MUST 覆盖：Account Authority 先以当前 binding version 的 `authority_evidence` 调用 `ak.peer.account_status.read.authoring_frontiers`，只有 Source-Service-ID 等于 issuer、account/principal/PCR/current delegation 全部匹配且 actor/Seal frontier 可验证时返回 typed frontiers；返回 actor_id/realm_id 不一致、degraded governance、synthetic empty PCR、stale/unresolved Seal 或过期 evidence 均零披露失败，query 本身零写入。producer 必须由返回 actor frontier 构造 `actor_seq/prev_refs`，由验证后的单一 Seal head 构造 `seal_basis.leaves`，不得使用 opaque peer frontier root 或私有 DTO。随后 Event actor/proof、payload account/principal 与 Principal Control Realm 全部一致时进入 `pending_seal -> accepted` 并返回 frontier digest/barrier cursor；相同 Idempotency-Key + byte-identical body 在 pending/accepted 两阶段均不创建第二条 Event且返回最新 operation state；同 key 异 body `duplicate_conflict`。Issuer、account、principal、PCR、authority ref、binding version、proof digest、HTTP Source/Destination 或 trust domain 任一不匹配均零写入失败。Receipted fanout 必须保留原 Event 并携 receiver-signed `account_status_receipts[]` / CBA closure；receipt 必须证明本地 accepted frontier且不含 AuthorizationLease，generic `IngressReceipt` 必须 schema-invalid；目标 ack 前 outbox 保持 pending，超窗投影 `deactivation_federation_incomplete=true`，最终 ack 后清零 flag 而不改写 Event payload。Holder session、第三方服务与通用 `ak.peer.events.command.submit` 缺 account authority evidence 的尝试都不得成为可接受 carrier。

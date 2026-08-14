@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-15.1",
+  "version": "2026-08-15.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-15T01:20:00Z",
+  "generated_at": "2026-08-15T02:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3029,11 +3029,15 @@
         "schema_kind": "object",
         "required": [
           "status",
-          "accepted"
+          "accepted",
+          "delivery_state",
+          "pending_delivery_count"
         ],
         "properties": [
           "status",
           "accepted",
+          "delivery_state",
+          "pending_delivery_count",
           "ingress_receipts",
           "control_proposal_acks",
           "duplicate",
@@ -7067,6 +7071,8 @@
         "properties": [
           "status",
           "accepted",
+          "delivery_state",
+          "pending_delivery_count",
           "ingress_receipts",
           "control_proposal_acks",
           "duplicate",
@@ -7088,11 +7094,15 @@
             "schema_kind": "object",
             "required": [
               "status",
-              "accepted"
+              "accepted",
+              "delivery_state",
+              "pending_delivery_count"
             ],
             "properties": [
               "status",
               "accepted",
+              "delivery_state",
+              "pending_delivery_count",
               "ingress_receipts",
               "control_proposal_acks",
               "duplicate",
@@ -7193,6 +7203,38 @@
         "properties": [
           "actor_id",
           "realm_id"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.events.read.delivery_status",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "event_id"
+        ],
+        "properties": [
+          "event_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome",
+        "schema_kind": "object",
+        "required": [
+          "event_id",
+          "delivery_state",
+          "pending_delivery_count",
+          "targets"
+        ],
+        "properties": [
+          "event_id",
+          "delivery_state",
+          "pending_delivery_count",
+          "targets"
         ],
         "closed": true
       }

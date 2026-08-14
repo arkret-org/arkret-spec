@@ -673,7 +673,8 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 | `ak.self.control_proposal_decisions.command.submit` | `decision: ProposalDecision` | 无 | `status: enum(accepted,duplicate)`; `proposal_digest`; `decision_digest`; `decision_kind`; `proposal_state` | request_schema_ref=schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_request_body; response_schema_ref=schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_outcome。receiver 先从 durable store 读取 accepted proposal 与首次 canonical Ack，再验证 exact Ack digest / authority quorum / deadline chain并原子持久化；caller 不得随请求创建/替换 Ack。signed_defer 只能得到 deferred，signed_reject 只能得到 rejected；device revoke 的 exact signed_reject 只清该 proposal pending record。 |
 | `ak.self.control_proposal_decisions.read.get` | `realm_id`; `proposal_digest` | 无 | `proposal_event_kind`; `proposal_authority_kind`; `proposal_state`; `control_proposal_ack?`; `defer_decisions[]?`; `terminal_reject?`; `fault_reason?`; `accepted_seal_id?` | request_schema_ref=schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_request_body; response_schema_ref=schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_outcome。authenticated、non-enumerating 的 durable decision 观察面；只投影 canonical Ack / verified decision / Seal，不可写入或清 pending。`control_proposal_ack` 分支始终携 Ack并可表达 defer/reject/overdue；窄化的 `ackless_event_proof` 分支只允许 pending/sealed，且禁止 Ack、decision 与 Ack-derived deadline fault。ak.device.revoke 固定为前者，即使 sealed 仍必须携 canonical Ack。 |
 | `ak.self.authorization_leases.command.issue` | `events: Event[1..500]` 或 `intents: AuthorizationLeaseIssueIntent[1..500]`，必须二选一 | `header.Idempotency-Key: string`；相同 key + canonical request 逐字节 replay，不同 request 为 `duplicate_conflict`。 | `authorization_leases: AuthorizationLease[1..500]` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequestBody；response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueOutcome。Event 执行与正式 submit 相同的只读 admission；non-Event intent 仅为已注册空 `target_event_kinds` action，并重算当前 basis/scope/risk/authority policy；均不产生持久 Event side effect。详见 [offline-publication.md](../authz/offline-publication.md) §2.2。 |
-| `ak.self.events.command.submit` | 单事件 body 是 `EventInitialSubmission {event, authorization_lease?, cba_proof_bundles[]?, control_proposal_ack?}`；批量 body 是 `{events: EventInitialSubmission[]}`；第三个分支是 `DirectConversationFoundingUnitSubmission`。Event 不含 reducer-managed accepted-output 字段，发布证据不进入 Event digest。 | 普通分支的 HTTP 幂等键只在 header，且没有 `expected_frontier`；founding 分支的 body `idempotency_key` 属于该分支合同。 | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `ingress_receipts: IngressReceipt[]?`; `control_proposal_acks: ControlProposalAck[]?`; `duplicate: id[]?`; `rejected: object[]?`; `quarantine: id[]?`; `realm_actor_frontiers: RealmActorFrontierView[]?`; `realm_frontiers: RealmSealFrontierView[]?`; `cursor: cursor?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/SelfEventsSubmitOutcome。复杂合同分别见 [admission 与持久化](#311-self-submit-admission-与持久化合同normative)、[founding unit 原子性](#312-direct-conversation-founding-unit-原子性normative)、[重复与 digest 冲突](#313-重复提交与-digest-preimage-冲突normative)、[actor-chain CAS](#314-ordinary-actor-chain-casnormative) 和 [`status` 判别](#315-self-submit-status-判别normative)。 |
+| `ak.self.events.command.submit` | 单事件 body 是 `EventInitialSubmission {event, authorization_lease?, cba_proof_bundles[]?, control_proposal_ack?}`；批量 body 是 `{events: EventInitialSubmission[]}`；第三个分支是 `DirectConversationFoundingUnitSubmission`。Event 不含 reducer-managed accepted-output 字段，发布证据不进入 Event digest。 | 普通分支的 HTTP 幂等键只在 header，且没有 `expected_frontier`；founding 分支的 body `idempotency_key` 属于该分支合同。 | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `delivery_state: enum(complete,pending)`; `pending_delivery_count: int`; `ingress_receipts: IngressReceipt[]?`; `control_proposal_acks: ControlProposalAck[]?`; `duplicate: id[]?`; `rejected: object[]?`; `quarantine: id[]?`; `realm_actor_frontiers: RealmActorFrontierView[]?`; `realm_frontiers: RealmSealFrontierView[]?`; `cursor: cursor?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/SelfEventsSubmitOutcome。复杂合同分别见 [admission 与持久化](#311-self-submit-admission-与持久化合同normative)、[founding unit 原子性](#312-direct-conversation-founding-unit-原子性normative)、[重复与 digest 冲突](#313-重复提交与-digest-preimage-冲突normative)、[actor-chain CAS](#314-ordinary-actor-chain-casnormative)、[`status` 判别](#315-self-submit-status-判别normative) 和 [fanout delivery](#317-realm-fanout-deliverynormative)。 |
+| `ak.self.events.read.delivery_status` | `event_id: id` | 无 | `event_id`; `delivery_state: enum(complete,pending)`; `pending_delivery_count: int`; `targets: EventDeliveryTargetStatus[]` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome。HTTP binding 是 `QUERY /_arkret/self/events/delivery-status`。只对 caller 可见的 accepted Event 返回；未知与不可见统一 `not_found`。targets 按 opaque target_id 排序并返回完整 frozen set；只有 caller 当前可读取形成该 target 的 member delivery-binding 时才携 service_id。 |
 | `ak.self.events.command.submit_seal` | body `Seal` | 无 | `seal_id: seal-id`; `accepted_event_digests: string[]`; `post_state_root: string` | request_schema_ref=schemas/seal.schema.json; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventSealSubmitOutcome。认证 session 只能对可见 Realm 提交 Seal，且 signer MUST 满足 predecessor `ak.component.notary.v1` authority；managed Agent PCR 可按 `key-management.md` §4.1 的闭合 delegation 由 controller 当前设备签署，service 不得代签。receiver MUST 重算全部 signed body、coverage、completeness 与 state。human principal-control Realm 的首个 Seal必须由 founding accepted device 签名并完整覆盖 genesis unit；managed Agent PCR 首个/后继 Seal分别完整覆盖 create 与 effectless MLS genesis。`accepted_event_digests` 按 byte-wise 升序去重返回，与 `Seal.delta` 相同，不表达 apply order。 |
 | `ak.self.events.resource.get` | `path.event_id: id` | `query.include_payload: boolean` | `event: object`; `visibility: object?`; `receipts: object[]?` | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventView。不可见时返回 `not_found`。 |
 | `ak.self.events.read.resolve` | 至少一个：`event_ids: id[]` 或 `event_digests: string[]` | `include_payload: boolean` | `events: object[]`; `seals: object[]`; `missing: id[]`; `unauthorized: id[]?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome。payload 可见性按 Realm policy / E2EE envelope 判断。`seals[]` 是**封闭派生集**：对每条返回的 Event，取其 `event_digest` 出现在 `delta[]` 中的那个 accepted Seal；按 Seal id canonical 升序去重；尚未被 Seal 覆盖的 Event 不贡献条目，服务端 MUST NOT 补一个后继 Seal 顶替。它不产生信任——[`../crypto-media/encryption-and-audit.md` §2.5.4](../crypto-media/encryption-and-audit.md) 的 anchor 判定仍由客户端自证完成。 |
@@ -975,6 +976,8 @@ POST /_arkret/self/events
 {
   "status": "accepted",
   "accepted": ["ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"],
+  "delivery_state": "pending",
+  "pending_delivery_count": 1,
   "realm_actor_frontiers": [{
     "kind": "realm_actor",
     "realm_id": "ak:realm:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
@@ -1050,6 +1053,44 @@ POST /_arkret/self/events
 - 普通批次缺依赖时，HTTP 响应 MUST 为 `200 status=partial`，对应项的 `reason_code` MUST 是 `dependency_missing`，且至少一个 typed missing set 非空。注册的原子 Realm founding unit 缺依赖时 MUST 零写入，并返回 HTTP 409 `dependency_missing`；标准 `ErrorEnvelope.error.details` MUST 是 `EventsDependencyMissingProblem`。
 - 收到任何响应后再次 submit MUST 使用新的 `Idempotency-Key`；只有未收到响应的逐字节 transport retry 才复用原 key。
 - `status=historical_only` 只允许出现在 idempotency cache 撤销后的重放路径，完整语义见 [`federation.md` §8.5.1](./federation.md)。
+
+#### 3.1.7 Realm fanout delivery（normative）
+
+首次接受本地 Actor Event 的 Principal Server 是实时 Realm fanout 的唯一编排方。它必须按
+[`federation.md` §4.1](./federation.md) 从同一个 accepted Realm view 冻结完整 distinct target set，并把
+canonical Event、完整 target set 与每个 target 的 outbox intent 放在同一 durable transaction 中；任一行写入失败时
+全部回滚。peer ingress 不创建第二轮实时 fanout，因此 peer submit 的 `delivery_state` 固定为 `complete`、
+`pending_delivery_count=0`。
+
+普通 self submit 的 `delivery_state` / `pending_delivery_count` 是请求中 `accepted[] ∪ duplicate[]` 对应
+fanout intents 的当前汇总，不是 target 列表：
+
+- `complete` 当且仅当 pending count 为 0；没有 remote target、全部 delivered，或剩余 target 已
+  `cancelled_authority_lost` 都属于 complete；
+- `pending` 当且仅当至少一个 target 为 `pending_route` 或 `pending_delivery`，计数必须精确等于这些 target 数；
+- route miss 不进入 `rejected[]`，也不把已经通过 admission 的 Event 改为 `partial` 或
+  `service_unavailable`；
+- `historical_only` 顶层结果不触发新 fanout，因此顶层固定 complete/0；其 `original_outcome` 保留最初结果；
+- submit outcome 不返回 `target_id` 或 `service_id`，`accepted` 仍只承诺本地 canonical acceptance。
+
+`QUERY /_arkret/self/events/delivery-status`（`ak.self.events.read.delivery_status`）接收
+`EventDeliveryStatusRequestBody {event_id}`，返回该 Event 的完整 frozen target set。服务必须先执行与
+`ak.self.events.resource.get` 相同的 Event 可见性检查；不存在与不可见统一 `not_found`，查询本身不推进重试、
+不解析新 route、也不改变 intent。每个 target row 的 `target_id` 是服务生成的 opaque stable identifier，
+不得编码 service DID；rows 按 target_id byte-wise 升序且 target_id 唯一。`service_id` 只在 caller 按当前
+membership、history visibility、E2EE/plaintext visibility 可读取至少一个产生该 target 的 exact member
+delivery-binding 时出现，否则省略。target 状态封闭为：
+
+- `pending_route`：frozen authority 仍有效，但没有 verified current route；
+- `pending_delivery`：authority 与 route 可用，尚未收到 peer 成功响应（包括 transport/semantic retry）；
+- `delivered`：peer 已成功接受；
+- `cancelled_authority_lost`：发送前复校验发现全部 frozen exact member/binding witness 已失效，永久终止；
+  后续 rejoin/rebind 不得复活旧 target。
+
+pending intent 必须跨重启恢复且在 authority 持续有效时无限期保留；尝试次数或运维阈值只能触发告警，不能
+dead-letter 或静默删除。每次发送前必须重新读取当前 accepted Realm view 并逐字比较 frozen member、membership
+Event ref、delivery-binding frontier 和 recipient service；先失去 authority 的 intent 必须在任何网络发送前
+CAS 为 `cancelled_authority_lost`。
 
 ### 3.2 批量获取 Event
 

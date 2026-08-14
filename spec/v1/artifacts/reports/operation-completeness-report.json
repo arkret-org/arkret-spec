@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-15.1",
+  "version": "2026-08-15.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-15T01:20:00Z",
+  "generated_at": "2026-08-15T02:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,18 +18,18 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 241,
+    "total_operations": 242,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "service_describe": 5,
       "streaming_frame_schema": 3,
-      "typed_schema": 231
+      "typed_schema": 232
     },
     "by_surface_class_and_completeness_class": {
       "core": {
         "service_describe": 3,
         "streaming_frame_schema": 2,
-        "typed_schema": 37
+        "typed_schema": 38
       },
       "deployment_local": {
         "typed_schema": 17
@@ -2429,6 +2429,17 @@
         "request": "../schemas/seal.schema.json",
         "response": "../schemas/service-operation-dtos.schema.json#/$defs/EventSealSubmitOutcome"
       },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.events.read.delivery_status",
+      "surface_class": "core",
+      "http": "QUERY /_arkret/self/events/delivery-status",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome",
+      "openapi_component_refs": {},
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },

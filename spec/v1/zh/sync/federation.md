@@ -266,7 +266,15 @@ Realm 在接收方 accepted 后，该 pair 的后续 Event 立即回落普通 fe
 
 对 Realm 共享 Event，发送方 MUST 从同一 accepted Realm view 取所有 `delivery_status="routable"` 且未撤销的 effective joined member `delivery_binding.recipient_service_id`，排除本机并按 service `did_core_id` 去重。多个成员由同一 remote service 托管时只创建一份 Event transaction。bot、service、notary、archive 或 search projection 若要持有 Realm Event，必须成为显式 joined member/service actor，并受 membership、capability、E2EE 与 plaintext visibility 约束；已知 peer、allowlist、mirror、resolver 或部署拓扑都不自动取得内容。
 
-面向单个成员的 to-device、push、KeyPackage、邀请或其它 direct rail 只使用该成员的 effective delivery binding，MUST NOT 扩张为 Realm fanout。发送方对目标集合中的每个 distinct service MUST 创建独立、持久的 outbox intent；本地 Event 的 accepted 状态与完整目标集合的 outbox intents MUST 在同一 durable transaction 中提交。任一必要目标缺少可验证 route 时，实现必须 fail closed：可以拒绝本地提交并返回标准 `service_unavailable` envelope（实现可另记本地 fanout-unavailable audit reason），或原子保存带精确目标 service id 的隔离/待路由 intent，但 MUST NOT 一边报告 Event 已完整接受、一边静默删掉该目标。
+面向单个成员的 to-device、push、KeyPackage、邀请或其它 direct rail 只使用该成员的 effective delivery binding，MUST NOT 扩张为 Realm fanout。发送方对目标集合中的每个 distinct service MUST 创建独立、持久的 outbox intent；本地 Event 的 accepted 状态、按 service DID 去重后的完整目标集合与全部 outbox intents MUST 在同一 durable transaction 中提交。任一写入失败时整个事务回滚。
+
+目标暂时缺少 verified route **不得**拒绝已经通过 admission 的本地 Event，也不得返回 `service_unavailable` 来撤销本地 acceptance。该目标必须以 `pending_route` 状态原子写入；已有 verified route 但尚未收到 peer 成功响应的目标写为 `pending_delivery`。两种 pending 状态都必须跨重启恢复、按同一 idempotency key 重试，并在超过部署运维阈值后告警；只要冻结的接收 authority 仍有效，就不得因 TTL、尝试次数、dead-letter 上限、cache eviction 或进程重启静默终止义务。
+
+每个 intent 必须冻结使该 distinct service 获得投递 authority 的 exact witness 集：至少包含 Realm、member `did_core_id`、current membership Event ref、current delivery-binding frontier 与 recipient service `did_core_id`。每次真正发送前，发送方必须在当前 accepted Realm view 中逐 witness 复校验同一 member 仍是 effective joined、routable，且 exact membership Event ref、delivery-binding frontier 与 recipient service 均未变化。至少一个冻结 witness 仍成立时目标仍有权接收；全部失效时 intent 原子进入 terminal `cancelled_authority_lost` 且绝不发送。之后相同 member 或 service 重新 join/rebind 会产生新的 Event/frontier，只能影响新 intent，MUST NOT 复活旧 intent。
+
+成功 peer 响应把 intent 置为 terminal `delivered`。`pending_route`、`pending_delivery`、`delivered`、`cancelled_authority_lost` 是 Realm Event fanout 的封闭 target 状态；其中前两者计入 pending，后两者不再欠投递。普通 self submit outcome 只返回汇总 `delivery_state=complete|pending` 与 `pending_delivery_count`，不得泄露 target service。`delivery_state=complete` 当且仅当计数为 0；存在任一 pending intent 时必须返回 `pending`。`accepted` 只表示本地 canonical acceptance，不表示所有 remote target 已交付。
+
+认证调用者通过 `ak.self.events.read.delivery_status` 读取自己可见 Event 的当前 target 状态。响应按 opaque `target_id` 排序并始终返回完整 frozen target set；只有调用者按当前 Realm membership/history/plaintext visibility 规则可读取产生该 target 的 member delivery-binding 时，对应 row 才可携带 `service_id`。未知 Event 与不可见 Event 使用同一 `not_found`，不得通过 target 数量或 service id 枚举隐藏成员拓扑。
 
 ```
 POST /_arkret/peer/events
