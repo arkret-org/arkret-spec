@@ -304,6 +304,23 @@ Rules:
 
 ## 7. 私有 Invite Delivery
 
+客户端在 `ak.invite.create` 被邀请方 Principal Server 接受后，必须把 raw
+`introduction_evidence` 交给邀请方 Principal Server 启动私有投递：
+
+```text
+POST /_arkret/self/invites/dispatch
+operation_id = ak.self.invites.command.dispatch
+```
+
+请求 body 复用 `ak.schema.invite_delivery_request.v1`。其中 `invite_event` MUST 已由当前 Principal
+Server 接受、MUST 由当前认证 session actor 签署，并且 MUST 与服务端保存的 canonical Event bytes
+逐字节相等；服务端 MUST NOT 代签、重新 author 或重建该 Event。这个 self operation 只接受 raw
+evidence 并启动投递，不把它写入 Realm history。目标 `recipient_service_id` 等于本机 service id
+时，服务端 MUST 直接执行本节下述同一套接收验证、receive policy 与 holder-private projection；目标
+为其它 Principal Server 时，服务端 MUST 把 exact canonical request body 交给下述 peer operation，
+并以 body 内 `idempotency_key` 绑定 durable retry / outbox。客户端在投递结果不确定时 MUST 用同一
+body 与同一 `idempotency_key` 重试，不得替换 evidence 或 Event。
+
 邀请方 Principal Server 使用：
 
 ```text
@@ -331,6 +348,7 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Principal Se
 - `ak.self.invite_locator.command.issue`
 - `ak.self.invite_locator.command.rotate`
 - `ak.self.invite_locator.command.revoke`
+- `ak.self.invites.command.dispatch`
 - `ak.open.invite_locator.read.resolve`
 - `ak.peer.invites.command.submit`
 

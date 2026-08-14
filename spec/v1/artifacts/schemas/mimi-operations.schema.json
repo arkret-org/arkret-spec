@@ -360,6 +360,10 @@
         },
         "sender_actor_id": {
           "$ref": "#/$defs/did_core_id"
+        },
+        "room_binding_event": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
+          "description": "Complete caller-authored and caller-signed ak.mimi.room_binding initial submission. It is required when the decoded update payload carries an ak.mimi.room_binding effect. The facade MUST bind its exact payload to the path room, target Realm and Strand, MLS group, and authenticated MIMI operation, then submit these exact bytes through ordinary Event admission. It MUST NOT synthesize, rebuild or co-sign the Event. Non-binding receipt-only updates omit this field."
         }
       },
       "additionalProperties": false

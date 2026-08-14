@@ -3162,6 +3162,43 @@
       }
     },
     {
+      "operation_id": "ak.self.invites.command.dispatch",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/invite-delivery-request.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "schema",
+          "invite_event",
+          "invite_address",
+          "introduction_evidence",
+          "idempotency_key"
+        ],
+        "properties": [
+          "schema",
+          "invite_event",
+          "invite_address",
+          "introduction_evidence",
+          "idempotency_key"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
+        "schema_kind": "object",
+        "required": [
+          "status"
+        ],
+        "properties": [
+          "status",
+          "disclosed_outcome",
+          "received_at",
+          "retry_after_ms"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.peer.keys.keypackages.command.claim",
       "success_shape_kind": "typed_response",
       "request": {
@@ -6418,6 +6455,7 @@
           "contact_round_id",
           "version",
           "predecessor_event_ref",
+          "block_peer",
           "reservation_handle",
           "signed_event",
           "control_proposal_ack"
@@ -6434,7 +6472,8 @@
               "peer",
               "contact_round_id",
               "version",
-              "predecessor_event_ref"
+              "predecessor_event_ref",
+              "block_peer"
             ],
             "properties": [
               "phase",
@@ -6443,7 +6482,8 @@
               "peer",
               "contact_round_id",
               "version",
-              "predecessor_event_ref"
+              "predecessor_event_ref",
+              "block_peer"
             ],
             "closed": true
           },

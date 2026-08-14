@@ -254,6 +254,14 @@ MIMI facade 至少定义以下 canonical operation：
 | `ak.open.mimi.command.notify` | `POST /_arkret/open/mimi/strands/{strand_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
 | `ak.open.mimi.command.submit_message` | `POST /_arkret/open/mimi/strands/{strand_id}/messages` | 提交 MIMI encrypted application message。 |
 | `ak.open.mimi.read.group_info` | `GET /_arkret/open/mimi/strands/{strand_id}/group-info` | 获取 MLS groupInfo / room projection。 |
+
+`update_room` 中普通 MIMI room/MLS update 是 receipt-only facade operation，不产生 Arkret
+Event。若 decoded update 携带 `ak.mimi.room_binding` effect，请求 MUST 同时携带完整的
+caller-authored、caller-signed `room_binding_event` (`EventInitialSubmission`)。facade MUST
+验证该 Event 的 exact payload 与 path room、目标 Realm/Strand、`mls_group_id` 及已认证的
+MIMI operation 一致，再将 exact bytes 送入 ordinary Event admission；MUST NOT 合成、
+重建、代签或 co-sign actor Event。binding effect 缺少该 Event 必须 fail closed；非 binding
+update MUST omit `room_binding_event`。
 | `ak.open.mimi.command.request_consent` | `POST /_arkret/open/mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
 | `ak.open.mimi.command.update_consent` | `POST /_arkret/open/mimi/consent/update` | 提交调用方已签名的 `ak.consent.grant` / `ak.consent.revoke` Event。 |
 | `ak.open.mimi.read.identifiers` | `POST /_arkret/open/mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |

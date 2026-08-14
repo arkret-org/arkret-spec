@@ -658,6 +658,18 @@
       ]
     },
     {
+      "operation_id": "ak.self.invites.command.dispatch",
+      "http_alias": "POST /_arkret/self/invites/dispatch",
+      "operation_specific": [
+        "failed_precondition",
+        "duplicate_conflict",
+        "source_refs_unverifiable",
+        "stale_peer",
+        "contact_scope_stale",
+        "contact_lineage_conflict"
+      ]
+    },
+    {
       "operation_id": "ak.peer.keys.keypackages.command.claim",
       "http_alias": "POST /_arkret/peer/keys/keypackages/claim",
       "operation_specific": [

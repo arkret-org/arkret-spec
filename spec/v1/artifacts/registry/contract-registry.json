@@ -12407,6 +12407,23 @@
         }
       },
       {
+        "operation_id": "ak.self.invites.command.dispatch",
+        "http": "POST /_arkret/self/invites/dispatch",
+        "grpc": "SelfInvites/Dispatch",
+        "mq": "self.invites.command.dispatch",
+        "notes": "Authenticated client dispatch of private invite evidence through the inviter Principal Server. The carried invite Event must already be accepted by this service, be authored by the current session actor, and match the stored canonical Event bytes exactly. Local delivery reuses the peer receive policy path; remote delivery enters the exact-body durable S2S outbox without re-authoring the Event.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "idempotency_key",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/invite-delivery-request.schema.json",
+        "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "delivers_existing_signed_event_without_committing_a_local_event"
+        }
+      },
+      {
         "operation_id": "ak.peer.keys.keypackages.command.claim",
         "http": "POST /_arkret/peer/keys/keypackages/claim",
         "grpc": "PeerKeys/KeyPackagesClaim",

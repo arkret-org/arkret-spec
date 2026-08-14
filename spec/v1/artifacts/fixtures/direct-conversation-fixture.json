@@ -253,7 +253,8 @@
         },
         "contact_round_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
         "version": 2,
-        "predecessor_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA"
+        "predecessor_event_ref": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",
+        "block_peer": false
       }
     },
     {

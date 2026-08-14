@@ -1679,7 +1679,8 @@
             "peer",
             "contact_round_id",
             "version",
-            "predecessor_event_ref"
+            "predecessor_event_ref",
+            "block_peer"
           ],
           "properties": {
             "phase": {
@@ -1703,6 +1704,10 @@
             },
             "predecessor_event_ref": {
               "$ref": "#/$defs/event_id"
+            },
+            "block_peer": {
+              "type": "boolean",
+              "description": "Holder-private commit side effect. true adds the peer to invite receive policy denied_subjects; false only tombstones the Contact lineage. This field is reservation-bound and is not copied into the public Contact Event payload."
             }
           },
           "additionalProperties": false

@@ -29,38 +29,40 @@ sidebar:
 {
   "kind": "ak.realm.media_service",
   "payload": {
-    "service_id": "ak:did_core:webvh:z7ECJ5c1A1o5Xr1AdPqPCBD7L",
-    "modes": [
-      "turn",
-      "sfu"
-    ],
-    "ice_config_endpoint": "https://media.example.com/_arkret/self/rtc/ice-config",
-    "foci": [
-      {
-        "focus_id": "fra-1",
-        "type": "livekit",
-        "region": "eu-fra",
-        "token_endpoint": "https://media.example.com/_arkret/self/rtc/token",
-        "connect_url": "wss://livekit-fra.example.com",
-        "capabilities": ["audio", "video", "screen", "e2ee_sframe"],
-        "health_endpoint": "https://media.example.com/_arkret/self/rtc/health/fra-1"
-      },
-      {
-        "focus_id": "us-east-1",
-        "type": "livekit",
-        "region": "us-east",
-        "token_endpoint": "https://media.example.com/_arkret/self/rtc/token",
-        "connect_url": "wss://livekit-use.example.com",
-        "capabilities": ["audio", "video", "screen", "e2ee_sframe"],
-        "cascade_group": "livekit-cloud-mesh-a"
-      }
-    ],
-    "default_call_mode": "sfu",
-    "allowed_call_modes": [
-      "p2p",
-      "sfu"
-    ],
-    "recording_supported": false
+    "value": {
+      "service_id": "ak:did_core:webvh:z7ECJ5c1A1o5Xr1AdPqPCBD7L",
+      "modes": [
+        "turn",
+        "sfu"
+      ],
+      "ice_config_endpoint": "https://media.example.com/_arkret/self/rtc/ice-config",
+      "foci": [
+        {
+          "focus_id": "fra-1",
+          "type": "livekit",
+          "region": "eu-fra",
+          "token_endpoint": "https://media.example.com/_arkret/self/rtc/token",
+          "connect_url": "wss://livekit-fra.example.com",
+          "capabilities": ["audio", "video", "screen", "e2ee_sframe"],
+          "health_endpoint": "https://media.example.com/_arkret/self/rtc/health/fra-1"
+        },
+        {
+          "focus_id": "us-east-1",
+          "type": "livekit",
+          "region": "us-east",
+          "token_endpoint": "https://media.example.com/_arkret/self/rtc/token",
+          "connect_url": "wss://livekit-use.example.com",
+          "capabilities": ["audio", "video", "screen", "e2ee_sframe"],
+          "cascade_group": "livekit-cloud-mesh-a"
+        }
+      ],
+      "default_call_mode": "sfu",
+      "allowed_call_modes": [
+        "p2p",
+        "sfu"
+      ],
+      "recording_supported": false
+    }
   }
 }
 ```
@@ -75,7 +77,7 @@ sidebar:
 - `foci[].health_endpoint`（optional）：客户端预检 endpoint，返回 `200` + `{"status":"ok","load":<0..1>}`。**只用于尚未 commit `session_focus` 前**排序本地 `foci_preferred`；一旦 `ak.component.call.focus.v1` 已存在 `session_focus`，connect 失败 MUST 暴露为 focus 不可用，不得静默切到另一 focus（`session_focus_no_split_brain`）。
 - `foci[].cascade_group`（optional）：声明属于同一 backend cluster 的 focus 集合；客户端可据此向用户披露"跨区域会议由 backend 内部级联"。协议层不规范 SFU-to-SFU cascading 协议；每个 backend 自行实现 mesh，正式 Arkret wire 只公开 `foci[].cascade_group` 与用户可见披露语义。
 
-`ak.realm.media_service` MUST 声明非空 `foci[]`。只提供单个 `sfu_endpoint` 或缺少 `foci[]` 的 payload MUST fail closed，返回 `schema_violation` 或 `failed_precondition`，原因码 `media_service_foci_required`；服务端不得在实时路径中自动补写、normalize 或推断 focus。
+`ak.realm.media_service` 是 `state_payload`，媒体描述符位于 `payload.value`；`payload.value.foci[]` MUST 非空。只提供单个 `sfu_endpoint`、把媒体描述符扁平放在 `payload` 下，或缺少 `payload.value.foci[]` MUST fail closed，返回 `schema_violation` 或 `failed_precondition`，原因码 `media_service_foci_required`；服务端不得在实时路径中自动补写、normalize 或推断 focus。
 
 修改该 state event 需要 `ak.realm.media_service` 或 `ak.policy.manage` capability。
 
