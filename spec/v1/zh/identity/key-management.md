@@ -1182,7 +1182,7 @@ recovery secret 疑似泄露时 MUST 按 §3.3 分流：有独立权威才允许
 Arkret v1 对设备、会话和恢复要求如下：
 
 - Device record JSON Schema 由 `../models/common-fields.md`（`id:device` 类型与 typed-id 规则）与 `../crypto-media/device-lifecycle.md` 共同固定。设备记录 MUST 绑定 principal `did_core_id`、device id、verification method、算法、创建时间、撤销状态和签名链；verification method 的 base `full_id` 必须经 adapter 投影回该 `did_core_id`。
-- `ak.device.authorize` 与 `ak.device.revoke` MUST 进入 schema registry，并按 event auth 规则验证。`ak.device.revoke` 的控制面位置由其 Control Move 信封 `seal_basis`（授权基准，签名覆盖）与覆盖它的 accepted Seal（生效切点）表达，payload 不携带 frontier 字段；撤销后设备不得产生新的有效 session grant、KeyPackage 或 to-device write。
+- `ak.device.authorize` 与 `ak.device.revoke` MUST 进入 schema registry，并按 event auth 规则验证。`ak.device.revoke` 的控制面位置由其 Control Move 信封 `seal_basis`（授权基准，签名覆盖）、首次原子持久化的 Ack + `ak.schema.device_revocation_state.v1` pending record，以及覆盖它的 accepted Seal（永久生效切点）表达，payload 不携带 frontier / generation 字段；pending 起设备不得取得新的 session grant、KeyPackage claim、to-device / Event write 或 Principal Server admission proof，只有 exact signed reject 可恢复，Seal 后永久撤销。
 - Session grant MUST 绑定 principal `did_core_id`、device id、service `did_core_id` / audience、scope、过期时间、proof 和 revocation reference；服务账户登录不得替代 DID 控制权。
 - Backup envelope test vector MUST 覆盖：加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定、服务端不可解密要求、`series_seq` 严格单调、`supersedes` / `supersedes_digest` 链完整、`mixed_secret_storage=true` 在 non-personal_node profile 下被拒绝、`mls_history` 域使用 `passphrase_kdf` 的 envelope 被拒绝、§7.8 服务端限速与跨 actor 拒绝。
 - MLS KeyPackage binding MUST 覆盖 principal `did_core_id`、device id、KeyPackage hash、签名 verification method、有效期和撤销检查；客户端 MUST 拒绝无法由当前 `full_id` / resolution evidence 验证到该 `did_core_id` 与 device trust chain 的 KeyPackage。

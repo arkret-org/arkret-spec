@@ -1,0 +1,190 @@
+{
+  "suite": "device_revocation_pending_state",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.device.revocation_pending_state.v1"
+  },
+  "version": "2026-08-14",
+  "covers_vectors": [
+    "ak.vector.device.revocation_pending_state.v1"
+  ],
+  "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#22-设备吊销",
+  "machine_contracts": [
+    "schemas/device-revocation-state.schema.json",
+    "schemas/control-proposal-decision.schema.json",
+    "schemas/account-operations.schema.json",
+    "registry/operation-registry.json",
+    "registry/error-code-registry.json"
+  ],
+  "semantic_cases": [
+    {
+      "name": "first_canonical_acceptance_enters_pending_atomically",
+      "given": "an ak.device.revoke passes schema, Event/proof, exact authority/device/current-generation, precondition, admission and canonical ControlProposalAck validation",
+      "action": "commit the first accepted proposal",
+      "expected": "revocation_pending",
+      "invariants": [
+        "accepted Event, canonical Ack, derived device/generation record and pending index commit atomically",
+        "record accepted_at and acceptance_seq are assigned by that atomic commit and accepted_at is not copied from an external Ack received_at",
+        "ak.device.revoke is never admitted through the Ack-less self-principal PCR exception",
+        "payload does not author target_device_authorize_event_id or target_device_generation_ref",
+        "no covering Seal or later decision is required to activate the pending gate"
+      ]
+    },
+    {
+      "name": "unauthorized_proposal_has_zero_private_read_or_write",
+      "given": "the caller lacks the frozen revoke authority",
+      "action": "submit a syntactically valid proposal naming an existing or nonexistent device",
+      "expected": "reject_indistinguishably",
+      "invariants": [
+        "authority is checked before device-private lookup",
+        "no Event, Ack, decision or pending record is written"
+      ]
+    },
+    {
+      "name": "pending_blocks_closed_action_set_on_every_profile",
+      "given": "one durable unresolved revocation_pending record",
+      "action": "attempt each registered blocked action class",
+      "expected": "all_actions_fail_closed",
+      "denied_actions": [
+        "session_grant_issue_or_refresh",
+        "keypackage_claim",
+        "to_device_write",
+        "event_write",
+        "principal_server_admission_proof_issue"
+      ],
+      "invariants": [
+        "base and E2EE/hardening profiles have identical results",
+        "all failed actions have zero domain writes",
+        "no new principal_server_admission proof is appended",
+        "local distinguishable operations use device_revocation_pending while KeyPackage anti-enumeration surfaces preserve opaque claim_failed"
+      ]
+    },
+    {
+      "name": "session_issuer_uses_origin_ps_linearization_receipt",
+      "given": "an Account Authority has a verified SessionGrantDeviceBinding and immutable prepared grant intent",
+      "action": "call ak.peer.device_revocations.command.check and commit the issuer record",
+      "expected": "allow_only_for_exact_pre_pending_intent",
+      "invariants": [
+        "origin independently derives and compares authorization Event and PCR generation",
+        "gate decision and revoke acceptance serialize on one durable order",
+        "issuer commits the exact intent plus receipt before the at-most-30-second expires_at",
+        "pending blocks every later issue/refresh intent and cache/private RPC cannot replace the receipt",
+        "a Principal Server accepting a protected self request checks its own durable gate locally in the request transaction rather than asking introspection to carry a reusable receipt"
+      ]
+    },
+    {
+      "name": "exact_replay_does_not_duplicate_or_extend_pending",
+      "given": "one accepted revoke Event and Ack",
+      "action": "replay byte-identical submission and restart the Principal Server",
+      "expected": "same_accepted_event_ack_and_pending_record",
+      "invariants": [
+        "no second pending record",
+        "no deadline extension",
+        "post-restart gate equals pre-restart gate without warm cache"
+      ]
+    },
+    {
+      "name": "multiple_distinct_proposals_are_independent",
+      "given": "two different accepted proposal digests target the same device and generation",
+      "action": "validly signed-reject only the first proposal",
+      "expected": "revocation_pending",
+      "invariants": [
+        "the first record becomes revocation_rejected",
+        "the second pending record remains and all five action classes stay blocked",
+        "account device summary returns all surviving pending records in canonical acceptance_seq then proposal_digest order"
+      ]
+    },
+    {
+      "name": "sealed_and_pending_records_remain_jointly_visible",
+      "given": "two accepted revoke proposals target the same device generation and a covering Seal terminally covers only the first",
+      "action": "read the account device summary and run a gate check",
+      "expected": "revoked_with_surviving_pending_record",
+      "invariants": [
+        "lifecycle status is revoked",
+        "revocation_states includes the sealed record and the other pending record",
+        "the gate decision is revoked and carries the covering Seal of the canonical smallest revoked record while the surviving pending record remains visible in account summary",
+        "one sealed record never hides or clears another proposal"
+      ]
+    },
+    {
+      "name": "gate_record_bound_is_closed_without_truncation",
+      "given": "128 distinct gate-relevant revoke records exist for one exact device generation",
+      "action": "submit a new distinct authorized revoke and then exact-replay an existing proposal",
+      "expected": "new_rejected_replay_stable",
+      "invariants": [
+        "the new distinct proposal returns limit_exceeded with zero Event Ack or pending writes",
+        "the exact replay returns its original byte-identical accepted facts and consumes no new slot",
+        "the account summary never truncates a gate-relevant record"
+      ]
+    },
+    {
+      "name": "gate_receipt_decision_shapes_and_proof_are_closed",
+      "given": "the origin evaluates allow pending revoked authority-mismatch and generation-mismatch branches",
+      "action": "validate each signed receipt and mutate forbidden branch fields or proof bindings",
+      "expected": "only_closed_exact_receipts_validate",
+      "invariants": [
+        "allow and mismatch carry neither blocker nor Seal",
+        "pending carries the lexicographically smallest pending blocker and no Seal while revoked carries the covering Seal of the smallest acceptance_seq then proposal_digest revoked record and no blocker",
+        "payload_digest equals sha256 JCS of the complete receipt with proof omitted",
+        "proof context is ak.device-revocation-gate-decision-proof-v1 and the method equals receipt method its controller projects to the exact principal server and proof created_at equals linearized_at"
+      ]
+    },
+    {
+      "name": "only_exact_signed_reject_clears_last_pending",
+      "given": "one unresolved pending revoke",
+      "action": "submit decisions with wrong proposal, Ack digest, authority set, device-generation lineage, then the exact valid signed_reject",
+      "expected": "only_exact_decision_clears",
+      "invariants": [
+        "wrong decisions change no state",
+        "exact decision is persisted through ak.self.control_proposal_decisions.command.submit",
+        "device returns to its independently verified lifecycle state",
+        "minimal recovery material retained during pending remains available"
+      ]
+    },
+    {
+      "name": "overdue_stays_blocked_and_alerts",
+      "given": "the decision deadline and absolute deadline pass without Seal or signed_reject",
+      "action": "rebuild governance health and attempt a blocked action",
+      "expected": "revocation_pending_overdue",
+      "invariants": [
+        "device_revocation_pending remains the action error",
+        "control_proposal_decision_overdue is retained as governance/recovery fault",
+        "timeout, admin flag and cache eviction do not clear the gate"
+      ]
+    },
+    {
+      "name": "reject_and_seal_terminal_race_is_serialized",
+      "given": "valid signed_reject and covering Seal race for the same proposal",
+      "action": "run once with reject terminal CAS first and once with Seal terminal CAS first",
+      "expected": "single_terminal_winner",
+      "invariants": [
+        "reject-first yields revocation_rejected and later Seal cannot revive the proposal",
+        "Seal-first yields revoked and later reject cannot clear it",
+        "late Seal remains acceptable only when no earlier terminal reject won"
+      ]
+    },
+    {
+      "name": "seal_makes_revocation_permanent_and_triggers_erasure",
+      "given": "an accepted Seal covers the pending proposal",
+      "action": "apply the Seal and restart",
+      "expected": "revoked",
+      "invariants": [
+        "covering_seal_id and sealed_at are durable truth",
+        "the revoked generation remains blocked after restart",
+        "client erases generation-specific session, KeyPackage and to-device material only now",
+        "a later signed_reject cannot restore it"
+      ]
+    },
+    {
+      "name": "historical_admission_is_not_retroactively_invalidated",
+      "given": "an Event lawfully received its origin admission proof before the pending linearization point",
+      "action": "verify it after pending and after covering Seal",
+      "expected": "accept_historical_event",
+      "invariants": [
+        "accepted_at remains the admission-time cut",
+        "offline verification does not query current PCR state"
+      ]
+    }
+  ]
+}

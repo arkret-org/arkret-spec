@@ -149,7 +149,8 @@
       "type": "object",
       "required": [
         "device_id",
-        "status"
+        "status",
+        "verification_state"
       ],
       "properties": {
         "device_id": {
@@ -162,9 +163,22 @@
           "type": "string",
           "enum": [
             "active",
+            "revocation_pending",
             "revoked",
-            "unknown"
-          ]
+            "expired",
+            "generation_fenced",
+            "conflicted"
+          ],
+          "description": "Lifecycle projection only, matching device-lifecycle.md section 14.1. revocation_pending is reducer-derived from durable accepted ak.device.revoke proposal state; trust/evidence quality is reported separately in verification_state."
+        },
+        "verification_state": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unresolved",
+            "stale"
+          ],
+          "description": "Trust verification of the device authorization evidence, separate from lifecycle status. A consumer MUST NOT interpret lifecycle status=active as usable authority unless verification_state=verified."
         },
         "authorized_event_ref": {
           "$ref": "#/$defs/event_id"
@@ -177,8 +191,93 @@
         },
         "revoked_at": {
           "$ref": "#/$defs/timestamp"
+        },
+        "revocation_states": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./device-revocation-state.schema.json#/$defs/device_revocation_gate_record"
+          },
+          "description": "All gate-relevant durable revoke records for the exact device/generation, sorted by (acceptance_seq, proposal_digest). At most 128 distinct unresolved proposals may be admitted; exact replay consumes no slot, signed_reject removes one pending slot, and an already revoked generation accepts no new proposal. Sealing one record makes lifecycle status revoked but MUST NOT hide other surviving pending records."
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "revocation_pending"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "revocation_states"
+            ],
+            "properties": {
+              "revocation_states": {
+                "items": {
+                  "$ref": "./device-revocation-state.schema.json#/$defs/device_revocation_pending_state"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "revoked"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "revocation_states"
+            ],
+            "properties": {
+              "revocation_states": {
+                "contains": {
+                  "$ref": "./device-revocation-state.schema.json#/$defs/device_revoked_state"
+                },
+                "minContains": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "active",
+                  "expired",
+                  "generation_fenced",
+                  "conflicted"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "revocation_states"
+              ]
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "device_summaries": {

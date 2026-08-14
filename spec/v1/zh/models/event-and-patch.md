@@ -543,7 +543,7 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 
 admission proof 使用独立 `context="ak.principal-server-admission-proof-v1"`。其 `verification_method` controller **MUST** 投影为 `event.principal_server_id`；`event_digest` 必须同时等于 producer proof 与重算 Event digest；其余三个 producer 字段必须逐字/逐对象绑定 origin 实际验证的 exact producer proof 与公钥。`accepted_at` 只进入 admission transcript，不进入 Event digest、Event ID 或 reducer。
 
-exact retry **MUST** 返回 byte-identical accepted Event。federation/backfill 只转发完整 Event，receiver 重算 Event、producer proof 与 admission proof 即可验证，**MUST NOT** 接收 signer-key evidence sidecar、回放 PCR genesis/完整 control history/Seal/range-completeness，也不得删除、替换或由 replica 重签 origin proof。设备进入 `revocation_pending` 后 origin **MUST NOT** 接受新 Event或追加 admission proof；此前合法产生的 proof 不因后来 revoke 而追溯失效。
+exact retry **MUST** 返回 byte-identical accepted Event。federation/backfill 只转发完整 Event，receiver 重算 Event、producer proof 与 admission proof 即可验证，**MUST NOT** 接收 signer-key evidence sidecar、回放 PCR genesis/完整 control history/Seal/range-completeness，也不得删除、替换或由 replica 重签 origin proof。origin Principal Server MUST 在追加 admission proof 的同一 serializable gate 中读取 exact `(actor_id, principal_server_id, device_id, current_device_generation_ref)` 的 durable `ak.schema.device_revocation_state.v1`；任一未终结 `revocation_pending` 或 `revoked` record 都拒绝新 Event且不得追加 proof，缓存只能加速。只有精确绑定 proposal/Ack/device/generation 的有效 `signed_reject` 能清除对应 pending record；overdue、restart、cache eviction 或管理员布尔值均不能。此前在 pending 线性化点之前合法产生的 proof 继续仅按其签名 `accepted_at` 验证，不因后来 revoke 而追溯失效。
 
 这把 Principal Server 明确纳入账号设备 authority 的信任边界：服务 DID 签名提供可验证归责，但不能密码学阻止恶意服务虚假准入。若未来要抵抗恶意 Principal Server，应另行设计 principal-root/device certificate transparency，且不得把 account-local PCR 状态重新暴露为跨服务身份选择器。
 

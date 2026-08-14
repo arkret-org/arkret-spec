@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.7",
+  "version": "2026-08-14.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T06:42:10Z",
+  "generated_at": "2026-08-14T10:32:27Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2917,6 +2917,44 @@
         ],
         "properties": [
           "package"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.device_revocations.command.check",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_request_body",
+        "schema_kind": "object",
+        "required": [
+          "principal_authority",
+          "device_id",
+          "target_device_authorize_event_id",
+          "target_device_generation_ref",
+          "action_class",
+          "intent_digest",
+          "requested_at"
+        ],
+        "properties": [
+          "principal_authority",
+          "device_id",
+          "target_device_authorize_event_id",
+          "target_device_generation_ref",
+          "action_class",
+          "intent_digest",
+          "requested_at"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_outcome",
+        "schema_kind": "object",
+        "required": [
+          "decision_receipt"
+        ],
+        "properties": [
+          "decision_receipt"
         ],
         "closed": true
       }
@@ -6561,6 +6599,81 @@
         ],
         "properties": [
           "authority_ack"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.control_proposal_decisions.command.submit",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_request_body",
+        "schema_kind": "object",
+        "required": [
+          "decision"
+        ],
+        "properties": [
+          "decision"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_outcome",
+        "schema_kind": "object",
+        "required": [
+          "status",
+          "proposal_digest",
+          "decision_digest",
+          "decision_kind",
+          "proposal_state"
+        ],
+        "properties": [
+          "status",
+          "proposal_digest",
+          "decision_digest",
+          "decision_kind",
+          "proposal_state"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.control_proposal_decisions.read.get",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_request_body",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "proposal_digest"
+        ],
+        "properties": [
+          "realm_id",
+          "proposal_digest"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_outcome",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "proposal_digest",
+          "proposal_event_kind",
+          "proposal_authority_kind",
+          "proposal_state"
+        ],
+        "properties": [
+          "realm_id",
+          "proposal_digest",
+          "proposal_event_kind",
+          "proposal_authority_kind",
+          "proposal_state",
+          "control_proposal_ack",
+          "defer_decisions",
+          "terminal_reject",
+          "fault_reason",
+          "accepted_seal_id"
         ],
         "closed": true
       }

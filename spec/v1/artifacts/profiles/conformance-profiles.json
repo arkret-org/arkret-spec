@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-14.3",
-  "generated_at": "2026-08-14T06:42:10Z",
+  "version": "2026-08-14.4",
+  "generated_at": "2026-08-14T10:32:27Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2269,7 +2269,10 @@
         "ak.self.snapshot.read.manifest_head",
         "ak.self.authz.read.check",
         "ak.peer.account_status.read.authoring_frontiers",
-        "ak.peer.account_status.command.submit"
+        "ak.peer.account_status.command.submit",
+        "ak.peer.device_revocations.command.check",
+        "ak.self.control_proposal_decisions.command.submit",
+        "ak.self.control_proposal_decisions.read.get"
       ],
       "required_event_kinds": [
         "ak.realm.create",
@@ -2283,6 +2286,7 @@
         "ak.invite.claim",
         "ak.invite.revoke",
         "ak.account.status",
+        "ak.device.revoke",
         "ak.capability.grant",
         "ak.capability.revoke"
       ],
@@ -2293,7 +2297,8 @@
         "ak.schema.snapshot.v1",
         "ak.schema.invite.v1",
         "ak.schema.capability.v1",
-        "ak.schema.grant_constraint.v1"
+        "ak.schema.grant_constraint.v1",
+        "ak.schema.device_revocation_state.v1"
       ],
       "required_fixtures": [
         "event-envelope-negative-fixture.json",
@@ -2301,7 +2306,11 @@
         "cba-lattice-fixture.json",
         "capability-fixture.json",
         "privacy-security-fixture.json",
-        "security-closure-fixture.json"
+        "security-closure-fixture.json",
+        "device-revocation-pending-fixture.json"
+      ],
+      "required_vectors": [
+        "ak.vector.device.revocation_pending_state.v1"
       ],
       "optional_extensions": [
         "ak.profile.federation_minimal.v1",

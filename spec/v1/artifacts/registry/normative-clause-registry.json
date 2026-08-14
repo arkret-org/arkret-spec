@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.5",
+  "version": "2026-08-14.6",
   "source_of_truth": true,
-  "generated_at": "2026-08-14T06:42:10Z",
+  "generated_at": "2026-08-14T10:32:27Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -429,7 +429,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:72d03e0b8b67d22af687bd733b504367aa75aaf529ce7c7f05e113dbe718a856",
+      "section_digest": "sha256:c69ee096e44731d1710db889bb74177440dfad3f32187b22e699297ba6e5c89b",
       "requirement": "Realm proposal configuration must leave a realizable decision schedule: decision window does not exceed the absolute deadline, equality is valid only when deferral is disabled, and invalid create/update writes reject without state change.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -451,7 +451,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:72d03e0b8b67d22af687bd733b504367aa75aaf529ce7c7f05e113dbe718a856",
+      "section_digest": "sha256:c69ee096e44731d1710db889bb74177440dfad3f32187b22e699297ba6e5c89b",
       "requirement": "An accepted ordinary-Realm or managed-Agent closed-anchor Control Move, its Control Proposal Ack and pending index are committed atomically; the covering Seal atomically applies lineage and cell effects and marks every covered pending digest sealed, rolling back if any digest is absent. The separately specified human self-principal PCR authority-authored path omits the Ack but not the pending index or covering-Seal obligation.",
       "testability_grade": "vector",
       "evidence_refs": [

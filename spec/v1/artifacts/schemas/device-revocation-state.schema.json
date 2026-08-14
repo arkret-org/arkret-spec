@@ -1,0 +1,522 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/device-revocation-state.schema.json",
+  "title": "Arkret Durable Device Revocation State",
+  "description": "Reducer-owned durable state for an accepted ak.device.revoke Control Move. A revoke is never an Ack-less self-principal PCR Move: accepted Event, canonical ControlProposalAck and this record are committed atomically. The record binds the exact principal authority, device authorization and generation observed at admission; producers cannot author those derived selectors. revocation_pending blocks the five registered action classes on every deployment until the exact proposal is either covered by an accepted Seal or terminated by a valid signed_reject under the same Ack authority contract.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/device_revocation_record"
+    },
+    {
+      "$ref": "#/$defs/device_revocation_gate_check_request_body"
+    },
+    {
+      "$ref": "#/$defs/device_revocation_gate_check_outcome"
+    }
+  ],
+  "$defs": {
+    "device_revocation_record": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/device_revocation_pending_state"
+        },
+        {
+          "$ref": "#/$defs/device_revocation_rejected_state"
+        },
+        {
+          "$ref": "#/$defs/device_revoked_state"
+        }
+      ]
+    },
+    "device_revocation_gate_record": {
+      "description": "Gate-relevant durable state for an exact device generation. Rejected records are audit history and are excluded; pending and revoked records remain visible together so sealing one proposal cannot hide another surviving pending proposal.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/device_revocation_pending_state"
+        },
+        {
+          "$ref": "#/$defs/device_revoked_state"
+        }
+      ]
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "timestamp": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "principal_authority_key": {
+      "title": "PrincipalAuthorityKey",
+      "description": "Atomic external account-authority selector.",
+      "type": "object",
+      "required": [
+        "principal_id",
+        "principal_server_id"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "principal_server_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_generation_ref": {
+      "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
+      "description": "Reducer-derived PCR-local monotonic current device-generation selector. A producer MUST NOT self-report it and it MUST NOT equal or be derived from a DID versionId."
+    },
+    "denied_actions": {
+      "type": "array",
+      "description": "Closed canonical action-class list blocked by revocation_pending on every deployment.",
+      "prefixItems": [
+        {
+          "const": "session_grant_issue_or_refresh"
+        },
+        {
+          "const": "keypackage_claim"
+        },
+        {
+          "const": "to_device_write"
+        },
+        {
+          "const": "event_write"
+        },
+        {
+          "const": "principal_server_admission_proof_issue"
+        }
+      ],
+      "minItems": 5,
+      "maxItems": 5,
+      "uniqueItems": true
+    },
+    "gate_action_class": {
+      "enum": [
+        "session_grant_issue",
+        "session_grant_refresh",
+        "keypackage_claim",
+        "to_device_write",
+        "event_write",
+        "principal_server_admission_proof_issue"
+      ]
+    },
+    "common_record": {
+      "type": "object",
+      "required": [
+        "schema",
+        "principal_authority",
+        "device_id",
+        "target_device_authorize_event_id",
+        "target_device_generation_ref",
+        "proposal_event_id",
+        "proposal_digest",
+        "accepted_at",
+        "acceptance_seq",
+        "control_proposal_ack"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.device_revocation_state.v1"
+        },
+        "principal_authority": {
+          "$ref": "#/$defs/principal_authority_key"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "target_device_authorize_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "Reducer-derived accepted ak.device.authorize Event targeted by this proposal."
+        },
+        "target_device_generation_ref": {
+          "$ref": "#/$defs/device_generation_ref"
+        },
+        "proposal_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "proposal_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Actual durable atomic-commit time assigned when the Event, canonical Ack, derived selectors and pending index commit. It is independent of, and MUST NOT be copied from, a pre-collected ControlProposalAck.received_at."
+        },
+        "acceptance_seq": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Monotonic sequence assigned by the origin Principal Server in the same atomic commit as accepted_at and the pending index."
+        },
+        "control_proposal_ack": {
+          "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
+          "description": "Mandatory canonical Ack committed with the accepted revoke. ak.device.revoke is excluded from the authority-authored Ack-less exception. Ack.received_at records Ack issuance and is not the pending record's accepted_at."
+        }
+      }
+    },
+    "device_revocation_pending_state": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/common_record"
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "decision_state",
+            "denied_actions"
+          ],
+          "properties": {
+            "status": {
+              "const": "revocation_pending"
+            },
+            "decision_state": {
+              "enum": [
+                "pending",
+                "deferred",
+                "overdue"
+              ]
+            },
+            "denied_actions": {
+              "$ref": "#/$defs/denied_actions"
+            },
+            "decisions": {
+              "type": "array",
+              "maxItems": 2,
+              "items": {
+                "$ref": "./control-proposal-decision.schema.json#/$defs/signed_defer"
+              }
+            },
+            "fault_reason": {
+              "const": "control_proposal_decision_overdue"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "decision_state": {
+                    "const": "overdue"
+                  }
+                },
+                "required": [
+                  "decision_state"
+                ]
+              },
+              "then": {
+                "required": [
+                  "fault_reason"
+                ]
+              },
+              "else": {
+                "not": {
+                  "required": [
+                    "fault_reason"
+                  ]
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "decision_state": {
+                    "const": "pending"
+                  }
+                },
+                "required": [
+                  "decision_state"
+                ]
+              },
+              "then": {
+                "not": {
+                  "required": [
+                    "decisions"
+                  ]
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "decision_state": {
+                    "const": "deferred"
+                  }
+                },
+                "required": [
+                  "decision_state"
+                ]
+              },
+              "then": {
+                "required": [
+                  "decisions"
+                ],
+                "properties": {
+                  "decisions": {
+                    "minItems": 1
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "device_revocation_rejected_state": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/common_record"
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "terminal_decision"
+          ],
+          "properties": {
+            "status": {
+              "const": "revocation_rejected"
+            },
+            "terminal_decision": {
+              "$ref": "./control-proposal-decision.schema.json#/$defs/signed_reject",
+              "description": "The only transition that clears this proposal's pending gate. Its proposal_digest and proposal_ack_digest MUST match this record, and its verified authority set MUST be the Ack authority set."
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "device_revoked_state": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/common_record"
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "covering_seal_id",
+            "sealed_at"
+          ],
+          "properties": {
+            "status": {
+              "const": "revoked"
+            },
+            "covering_seal_id": {
+              "$ref": "./seal.schema.json#/$defs/seal_ref"
+            },
+            "sealed_at": {
+              "$ref": "#/$defs/timestamp"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "device_revocation_gate_check_request_body": {
+      "type": "object",
+      "description": "Authenticated S2S request from an Account Authority or another registered issuer to the exact origin Principal Server. The issuer obtains target_device_authorize_event_id and target_device_generation_ref only from its previously verified SessionGrantDeviceBinding / equivalent accepted-device preimage; the origin independently derives the same selectors from its durable projection and rejects any mismatch before returning state. The intent digest identifies immutable prepared issuance or refresh bytes. A status read without this digest is not an issuance fence.",
+      "required": [
+        "principal_authority",
+        "device_id",
+        "target_device_authorize_event_id",
+        "target_device_generation_ref",
+        "action_class",
+        "intent_digest",
+        "requested_at"
+      ],
+      "properties": {
+        "principal_authority": {
+          "$ref": "#/$defs/principal_authority_key"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "target_device_authorize_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "target_device_generation_ref": {
+          "$ref": "#/$defs/device_generation_ref"
+        },
+        "action_class": {
+          "$ref": "#/$defs/gate_action_class"
+        },
+        "intent_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Digest of the complete immutable issue or refresh intent, including the exact grant id, jti, subject, device, audience, scope, holder binding, issued_at and expiry. Session-grant introspection is read-only issuer-ledger verification and never consumes this receipt."
+        },
+        "requested_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_revocation_gate_decision_receipt": {
+      "type": "object",
+      "description": "Origin-Principal-Server-signed durable linearization receipt. Under the same database lock/serializable transaction used to accept ak.device.revoke, the origin independently derives the current authorization/generation, compares the request, and atomically records (action_class,intent_digest) at linearization_seq before signing. Exact replay returns byte-identical output. An allow records that exact immutable issue/refresh intent as lawfully admitted before any later revocation_pending transition; a later pending transition blocks only intents linearized after it. The issuer MUST atomically commit the same immutable intent plus this receipt before expires_at and MUST NOT mint a new/different intent after pending. The receipt authorizes no different intent and cannot be refreshed or reused after expiry. A block can name pending/revoked without disclosing any other private device state.",
+      "required": [
+        "principal_authority",
+        "device_id",
+        "target_device_authorize_event_id",
+        "target_device_generation_ref",
+        "action_class",
+        "intent_digest",
+        "decision",
+        "linearization_seq",
+        "linearized_at",
+        "expires_at",
+        "verification_method",
+        "proof"
+      ],
+      "properties": {
+        "principal_authority": {
+          "$ref": "#/$defs/principal_authority_key"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "target_device_authorize_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "target_device_generation_ref": {
+          "$ref": "#/$defs/device_generation_ref"
+        },
+        "action_class": {
+          "$ref": "#/$defs/gate_action_class"
+        },
+        "intent_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "decision": {
+          "enum": [
+            "allow",
+            "revocation_pending",
+            "revoked",
+            "authority_mismatch",
+            "generation_mismatch"
+          ]
+        },
+        "linearization_seq": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Monotonic sequence from the origin Principal Server's durable device-revocation log."
+        },
+        "linearized_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Hard receipt-use deadline no later than 30 seconds after linearized_at. It is a freshness bound, not a cache TTL and not a revocation deadline."
+        },
+        "blocking_proposal_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "For revocation_pending, the lexicographically smallest proposal_digest among all surviving pending records for the exact device/generation at linearization_seq. This deterministic witness does not imply that no other pending record exists."
+        },
+        "covering_seal_id": {
+          "$ref": "./seal.schema.json#/$defs/seal_ref",
+          "description": "For revoked, the covering Seal of the revoked record with the smallest (acceptance_seq, proposal_digest) among all revoked records for the exact device/generation at linearization_seq."
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "description": "Origin Principal Server signature with context ak.device-revocation-gate-decision-proof-v1. payload_digest MUST equal sha256(JCS(the complete receipt with proof omitted)); proof.verification_method MUST equal receipt.verification_method; proof.created_at MUST equal linearized_at; and the verification-method controller projected to Core MUST equal principal_authority.principal_server_id."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "const": "revocation_pending"
+              }
+            },
+            "required": [
+              "decision"
+            ]
+          },
+          "then": {
+            "required": [
+              "blocking_proposal_digest"
+            ],
+            "not": {
+              "required": [
+                "covering_seal_id"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "const": "revoked"
+              }
+            },
+            "required": [
+              "decision"
+            ]
+          },
+          "then": {
+            "required": [
+              "covering_seal_id"
+            ],
+            "not": {
+              "required": [
+                "blocking_proposal_digest"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "enum": [
+                  "allow",
+                  "authority_mismatch",
+                  "generation_mismatch"
+                ]
+              }
+            },
+            "required": [
+              "decision"
+            ]
+          },
+          "then": {
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "blocking_proposal_digest"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "covering_seal_id"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "device_revocation_gate_check_outcome": {
+      "type": "object",
+      "required": [
+        "decision_receipt"
+      ],
+      "properties": {
+        "decision_receipt": {
+          "$ref": "#/$defs/device_revocation_gate_decision_receipt"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

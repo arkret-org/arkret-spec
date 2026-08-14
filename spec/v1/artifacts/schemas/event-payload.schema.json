@@ -4225,7 +4225,7 @@
     },
     "device_revoke_payload": {
       "type": "object",
-      "description": "Payload for ak.device.revoke. The revocation's control-plane authorization basis is the Control Move envelope seal_basis (covered by the canonical event bytes and proofs); its effective cutoff is the accepted Seal covering this Move. The payload carries no frontier field.",
+      "description": "Payload for ak.device.revoke. The revocation's control-plane authorization basis is the Control Move envelope seal_basis (covered by the canonical event bytes and proofs); its permanent cutoff is the accepted Seal covering this Move. First durable canonical acceptance atomically creates ak.schema.device_revocation_state.v1 revocation_pending for the exact reducer-derived current device authorization and generation. The payload carries no frontier or generation field, and producers cannot self-report derived pending selectors.",
       "required": [
         "principal_id",
         "device_id",

@@ -188,6 +188,9 @@ grpc:
       Issue: ak.self.authorization_leases.command.issue
     SelfControlProposalAcks:
       Issue: ak.self.control_proposal_acks.command.issue
+    SelfControlProposalDecisions:
+      Submit: ak.self.control_proposal_decisions.command.submit
+      Get: ak.self.control_proposal_decisions.read.get
     SelfEvents:
       Describe: ak.self.events.read.describe
       Frontier: ak.self.events.read.frontier
@@ -204,6 +207,8 @@ grpc:
       Query: ak.peer.events.read.scan
       Resolve: ak.peer.events.read.resolve
       Submit: ak.peer.events.command.submit
+    PeerDeviceRevocations:
+      Check: ak.peer.device_revocations.command.check
     PeerAccountStatus:
       AuthoringFrontiers: ak.peer.account_status.read.authoring_frontiers
       Submit: ak.peer.account_status.command.submit
@@ -361,6 +366,8 @@ mq:
     self.security_transaction.resource.get: ak.self.security_transaction.resource.get
     self.security_transaction.command.continue: ak.self.security_transaction.command.continue
     self.control_proposal_acks.command.issue: ak.self.control_proposal_acks.command.issue
+    self.control_proposal_decisions.command.submit: ak.self.control_proposal_decisions.command.submit
+    self.control_proposal_decisions.read.get: ak.self.control_proposal_decisions.read.get
     self.authorization_leases.command.issue: ak.self.authorization_leases.command.issue
     self.events.command.submit: ak.self.events.command.submit
     self.events.command.submit_seal: ak.self.events.command.submit_seal
@@ -371,6 +378,7 @@ mq:
     self.keys.backup_series.command.erase: ak.self.keys.backup_series.command.erase
     peer.events.read.scan.describe: ak.peer.events.read.describe
     peer.events.command.submit: ak.peer.events.command.submit
+    peer.device_revocations.command.check: ak.peer.device_revocations.command.check
     peer.events.read.scan.resolve: ak.peer.events.read.resolve
     peer.events.read.scan: ak.peer.events.read.scan
     peer.events.read.scan.frontier: ak.peer.events.read.frontier

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.4",
+  "version": "2026-08-14.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-14T07:30:00Z",
+  "generated_at": "2026-08-14T10:32:27Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1774,6 +1774,19 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.device.revocation_pending_state.v1",
+      "status": "active",
+      "domain": "device",
+      "applies_to_fixtures": [
+        "device-revocation-pending-fixture.json"
+      ],
+      "description": "Universal durable accepted-to-Seal revocation state: mandatory Ack and exact reducer-derived authority/device/generation binding, closed five-action pending gate, origin-PS session issuance fence, exact signed-reject release, multiple proposal isolation, overdue alerts, terminal reject/Seal races, restart reconstruction and non-retroactive historical admission.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/device-revocation-pending-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },

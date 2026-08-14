@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.3",
+  "version": "2026-08-14.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T06:42:10Z",
+  "generated_at": "2026-08-14T10:32:27Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -102,6 +102,8 @@
       "surface": "events_sync",
       "operations": [
         "ak.self.control_proposal_acks.command.issue",
+        "ak.self.control_proposal_decisions.command.submit",
+        "ak.self.control_proposal_decisions.read.get",
         "ak.self.authorization_leases.command.issue",
         "ak.self.events.read.describe",
         "ak.self.events.command.submit",
@@ -124,6 +126,7 @@
     {
       "surface": "peer_federation",
       "operations": [
+        "ak.peer.device_revocations.command.check",
         "ak.peer.events.read.describe",
         "ak.peer.events.command.submit",
         "ak.peer.account_status.read.authoring_frontiers",
@@ -888,7 +891,7 @@
       "operation_id": "ak.gate.account.command.introspect_session_grant",
       "http_only_variant": true,
       "http": "POST /_arkret/gate/account/session-grants/introspect",
-      "notes": "Server-to-server session-grant introspection (RFC 7662-style). The Principal Server validating a presented grant calls this with the grant id or grant_jwt (+ optional audience and optional S2S holder confirmation) and learns whether it is active, plus non-secret grant metadata. The Account Authority MUST read the same issuer ledger used by issue, refresh, revoke and cascade; lifecycle status distinguishes active, revoked, superseded and dynamically expired records rather than consulting a Principal Event/cell. The introspection response MUST include the grant's cnf_jkt (RFC 7638 thumbprint of the bound DPoP holder key) so the Principal Server can verify the per-request DPoP proof on /_arkret/self/* (api-conventions §3.3); clients do not send a separate introspection-proof header on self-path requests. session_public_key is also returned for RFC 9421 PoP verification. READ-ONLY: introspection MUST NOT consume/revoke the grant. Authenticated by the configured session_grant_introspection_bearer (server-local); not exposed over gRPC/MQ.",
+      "notes": "Server-to-server session-grant introspection (RFC 7662-style). The Principal Server validating a presented grant calls this with the grant id or grant_jwt (+ optional audience and optional S2S holder confirmation) and learns whether the issuer ledger considers it active, plus non-secret grant metadata. The Account Authority MUST read the same issuer ledger used by issue, refresh, revoke and cascade; lifecycle status distinguishes active, revoked, superseded and dynamically expired records rather than consulting a Principal Event/cell. Introspection does not call back to the origin Principal Server and carries no reusable revocation-gate receipt: before accepting each protected self request, that origin Principal Server checks its own exact device/generation pending/Seal state locally in the request transaction. The introspection response MUST include the grant's cnf_jkt (RFC 7638 thumbprint of the bound DPoP holder key) so the Principal Server can verify the per-request DPoP proof on /_arkret/self/* (api-conventions §3.3); clients do not send a separate introspection-proof header on self-path requests. session_public_key is also returned for RFC 9421 PoP verification. READ-ONLY: introspection MUST NOT consume/revoke the grant. Authenticated by the configured session_grant_introspection_bearer (server-local); not exposed over gRPC/MQ.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
@@ -997,7 +1000,7 @@
       "http": "POST /_arkret/gate/account/session-grants",
       "grpc": "GateAccount/IssueSessionGrant",
       "mq": "gate.account.command.issue_session_grant",
-      "notes": "Account Authority single-call issuer-ledger session-grant exchange. After validating account-to-principal binding, authentication proof, holder DPoP, audience and scope ceiling, the issuer uses the proof-specific stable request identity and canonical intent digest to atomically persist one immutable issuance record and signed JWT before responding. The grant ID and JWT jti are recomputed from that record under id_kind_registry.issuer_record_identity_contract; no Principal Event is authored. Exact replay revalidates holder/DPoP/target/digest and returns the byte-identical recorded outcome. Same request identity with different canonical intent is duplicate_conflict with zero writes. A replay whose outcome is expired or revoked/superseded returns the registered terminal error and never issues a replacement; an evicted replay record fails closed as indeterminate. The response is the client-visible SessionGrantOutcome and the client presents ak.session.grant directly to /_arkret/self/* with DPoP. For proof_kind=oidc_code_exchange, the Account Authority exchanges and validates the code. For proof_kind=pre_registration_handoff, the DPoP-bound handoff account MUST already be bound to principal_id. The Account Authority never derives a principal DID from OIDC and never obtains or uses a principal/root/device/notary Event-signing key.",
+      "notes": "Account Authority single-call issuer-ledger session-grant exchange. Before issuer commit, the Account Authority MUST obtain a fresh allow receipt from ak.peer.device_revocations.command.check for the exact verified device binding, generation and immutable grant intent; revocation_pending returns device_revocation_pending and no grant record/JWT. After validating account-to-principal binding, authentication proof, holder DPoP, audience and scope ceiling, the issuer uses the proof-specific stable request identity and canonical intent digest to atomically persist one immutable issuance record and signed JWT before responding. The grant ID and JWT jti are recomputed from that record under id_kind_registry.issuer_record_identity_contract; no Principal Event is authored. Exact replay revalidates holder/DPoP/target/digest and returns the byte-identical recorded outcome. Same request identity with different canonical intent is duplicate_conflict with zero writes. A replay whose outcome is expired or revoked/superseded returns the registered terminal error and never issues a replacement; an evicted replay record fails closed as indeterminate. The response is the client-visible SessionGrantOutcome and the client presents ak.session.grant directly to /_arkret/self/* with DPoP. For proof_kind=oidc_code_exchange, the Account Authority exchanges and validates the code. For proof_kind=pre_registration_handoff, the DPoP-bound handoff account MUST already be bound to principal_id. The Account Authority never derives a principal DID from OIDC and never obtains or uses a principal/root/device/notary Event-signing key.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",
@@ -1119,7 +1122,7 @@
       "operation_id": "ak.gate.account.command.refresh_session_grant",
       "http_only_variant": true,
       "http": "POST /_arkret/gate/account/session-grants/refresh",
-      "notes": "DPoP-bound issuer-ledger session-grant rotation. The stable request identity is (predecessor_grant_id, refresh_request_digest). Exact replay revalidates current holder/DPoP and returns the recorded successor outcome; conflicting canonical bytes are duplicate_conflict. One issuer transaction creates the active successor with a fresh issuance nonce, preserves the independently allocated session_id, and atomically marks the predecessor superseded with successor_session_grant_id. A replay whose recorded successor is expired or revoked/superseded returns the registered terminal error and never issues another successor. Account Authority-local op; no Principal Event is authored.",
+      "notes": "DPoP-bound issuer-ledger session-grant rotation. Before successor commit, the issuer MUST obtain a fresh exact-intent allow receipt from ak.peer.device_revocations.command.check; pending/revoked blocks refresh even when the predecessor grant and DPoP are otherwise valid. The stable request identity is (predecessor_grant_id, refresh_request_digest). Exact replay revalidates current holder/DPoP and returns the recorded successor outcome; conflicting canonical bytes are duplicate_conflict. One issuer transaction creates the active successor with a fresh issuance nonce, preserves the independently allocated session_id, and atomically marks the predecessor superseded with successor_session_grant_id. A replay whose recorded successor is expired or revoked/superseded returns the registered terminal error and never issues another successor. Account Authority-local op; no Principal Event is authored.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",
@@ -1645,6 +1648,24 @@
       "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_resource"
     },
     {
+      "operation_id": "ak.peer.device_revocations.command.check",
+      "http": "POST /_arkret/peer/device-revocations/check",
+      "grpc": "PeerDeviceRevocations/Check",
+      "mq": "peer.device_revocations.command.check",
+      "notes": "Authenticated Account-Authority-to-origin-Principal-Server revocation gate and issuance fence. The request binds the exact PrincipalAuthorityKey, device, reducer-derived authorization Event and generation, action class, and immutable issuer intent digest. The origin service authenticates the caller before any private device lookup, then atomically linearizes the request against its durable accepted revoke proposal/decision/Seal log and persists a signed decision receipt. A validated request always returns the typed 200 receipt (allow, revocation_pending, revoked, authority_mismatch or generation_mismatch); 409 gate errors belong to the blocked business operation. An allow receipt admits only those exact immutable bytes before any later revocation_pending transition; exact replay returns the byte-identical receipt. Receipt expiry is at most 30 seconds and is only a use-freshness bound; cache state is never authoritative. Session-grant issue/refresh MUST hold the matching fresh receipt. Introspection carries no reusable receipt; the origin Principal Server gates every protected self request locally in its request transaction.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "/intent_digest",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_request_body",
+      "response_schema_ref": "schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "origin_service_local_durable_revocation_gate_decision_ledger_only"
+      }
+    },
+    {
       "operation_id": "ak.peer.events.command.submit",
       "http": "POST /_arkret/peer/events",
       "grpc": "PeerEvents/Submit",
@@ -1744,7 +1765,7 @@
       "http": "POST /_arkret/peer/keys/keypackages/claim",
       "grpc": "PeerKeys/KeyPackagesClaim",
       "mq": "peer.keys.keypackages.command.claim",
-      "notes": "Atomic cross-Principal-Server KeyPackage claim. The destination Principal Server is the sole CAS authority. The authenticated source Principal Server first admits the participant request against its local account pair and current endpoint state; request and response carry no PCR/control-history or signer-evidence sidecar. Every claim binds the matching accepted authorization Event id, whose in-envelope Principal Server admission proof, the signed destination claim receipt, exact selectors and KeyPackage signature MUST all validate. Idempotency is scoped by (Source-Service-ID, claim_request_id) and the canonical request digest.",
+      "notes": "Atomic cross-Principal-Server KeyPackage claim. The destination Principal Server is the sole CAS authority. The authenticated source Principal Server first admits the participant request against its exact local account/device/generation durable state; revocation_pending fails before any remote call or inventory disclosure and is exposed only as the existing opaque claim_failed result. Request and response carry no PCR/control-history or signer-evidence sidecar. Every claim binds the matching accepted authorization Event id, whose in-envelope Principal Server admission proof, the signed destination claim receipt, exact selectors and KeyPackage signature MUST all validate. Idempotency is scoped by (Source-Service-ID, claim_request_id) and the canonical request digest.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -3157,6 +3178,35 @@
       }
     },
     {
+      "operation_id": "ak.self.control_proposal_decisions.command.submit",
+      "http": "POST /_arkret/self/control-proposal-decisions",
+      "grpc": "SelfControlProposalDecisions/Submit",
+      "mq": "self.control_proposal_decisions.command.submit",
+      "notes": "Authenticated submission of one complete signed_defer or signed_reject. The receiver loads the durable accepted proposal and its immutable canonical ControlProposalAck, recomputes proposal_ack_digest, verifies the exact Realm/proposal/authority-set/deadline/defer chain and quorum, then atomically persists the decision. Exact decision replay is byte-identical duplicate; conflicting terminal or post-Seal decisions fail closed. For ak.device.revoke, only a valid signed_reject for the exact proposal/Ack (therefore the exact reducer-derived device and generation) clears that proposal's revocation_pending record; it clears no other pending revoke for the device.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "/decision",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_request_body",
+      "response_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "durable_control_proposal_decision_log_only"
+      }
+    },
+    {
+      "operation_id": "ak.self.control_proposal_decisions.read.get",
+      "http": "POST /_arkret/self/control-proposal-decisions/query",
+      "grpc": "SelfControlProposalDecisions/Get",
+      "mq": "self.control_proposal_decisions.read.get",
+      "notes": "Authenticated exact proposal observation surface. Returns only the durable authority discriminator, canonical Ack when applicable, verified decision chain and covering Seal state for the requested Realm/proposal digest. control_proposal_ack permits the closed pending/deferred/overdue/rejected/sealed chain and always carries Ack; the narrow ackless_event_proof branch permits only pending/sealed and carries no Ack, decision or Ack-derived deadline fault. ak.device.revoke is always control_proposal_ack. The operation cannot mint an Ack, synthesize a reject or mutate pending state; unauthorized and unknown selectors are non-enumerating.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_request_body",
+      "response_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_outcome"
+    },
+    {
       "operation_id": "ak.self.device_messages.command.ack",
       "http": "POST /_arkret/self/device_messages/ack",
       "grpc": "SelfDeviceMessages/Ack",
@@ -3178,7 +3228,7 @@
       "http": "POST /_arkret/self/device_messages",
       "grpc": "SelfDeviceMessages/Send",
       "mq": "self.device_messages.command.send",
-      "notes": "Enqueues caller-supplied DeviceMessageEnvelope targets into recipient device queues. Each target carries a sender-assigned message_id copied unchanged into the stored envelope; the service deduplicates logical messages by (sender_principal_id, sender_device_id, message_id), returning the existing outcome for identical canonical target content and duplicate_conflict/message_id_conflict for different content. HTTP batch replay is additionally deduplicated by (sender, Idempotency-Key). Queue pruning is only via ak.self.device_messages.command.ack.",
+      "notes": "Enqueues caller-supplied DeviceMessageEnvelope targets into recipient device queues. The sender's exact durable device/generation state is checked in the queue transaction; revocation_pending returns device_revocation_pending and enqueues nothing. Each target carries a sender-assigned message_id copied unchanged into the stored envelope; the service deduplicates logical messages by (sender_principal_id, sender_device_id, message_id), returning the existing outcome for identical canonical target content and duplicate_conflict/message_id_conflict for different content. HTTP batch replay is additionally deduplicated by (sender, Idempotency-Key). Queue pruning is only via ak.self.device_messages.command.ack.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -3232,7 +3282,7 @@
       "http": "POST /_arkret/self/events",
       "grpc": "SelfEvents/Submit",
       "mq": "self.events.command.submit",
-      "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbaProofBundle values are independently verified publication evidence outside the Event digest. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state. The request union additionally registers the discriminated direct_conversation_founding branch, the only carrier for a Direct Conversation founding unit: the founder authors all three Events itself, realm_id and main_strand_id are retyped from the first and third Event IDs, and the service allocates no identifier and issues no draft. That branch requires exactly three ordered EventInitialSubmission items, closed XOR founding authority evidence and an idempotency_key, accepts zero or three Events inside one slot transaction, and returns DirectConversationFoundingAcceptanceOutcome with the source-signed receipt. Same key plus the same unit replays the byte-identical receipt without advancing accepted_at; same key plus a different unit is duplicate_conflict; a slot already closed by another unit for the same pair is slot_already_committed. All four outcomes write zero Events on failure.",
+      "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbaProofBundle values are independently verified publication evidence outside the Event digest. Before accepting a device-authored Event or appending principal_server_admission, the origin Principal Server reads the exact durable device revocation state in the same admission transaction; revocation_pending returns device_revocation_pending and zero Event/proof writes. Accepted ak.device.revoke is Ack-required and atomically writes its derived exact device/generation pending record. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state. The request union additionally registers the discriminated direct_conversation_founding branch, the only carrier for a Direct Conversation founding unit: the founder authors all three Events itself, realm_id and main_strand_id are retyped from the first and third Event IDs, and the service allocates no identifier and issues no draft. That branch requires exactly three ordered EventInitialSubmission items, closed XOR founding authority evidence and an idempotency_key, accepts zero or three Events inside one slot transaction, and returns DirectConversationFoundingAcceptanceOutcome with the source-signed receipt. Same key plus the same unit replays the byte-identical receipt without advancing accepted_at; same key plus a different unit is duplicate_conflict; a slot already closed by another unit for the same pair is slot_already_committed. All four outcomes write zero Events on failure.",
       "body_class": "non_streaming_json",
       "max_items": 1000,
       "success_shape_kind": "typed_response",
@@ -3550,7 +3600,7 @@
       "http": "POST /_arkret/self/keys/keypackages/claim",
       "grpc": "SelfKeys/KeyPackagesClaim",
       "mq": "self.keys.keypackages.command.claim",
-      "notes": "Requester-signed self KeyPackage claim. Exactly one holder_acceptance detached-JWS proof binds the complete proof-free request, authority service DID, requester and at-least-128-bit claim_nonce. The authority atomically commits KeyPackage CAS, (requester, claim_nonce, payload_digest) ledger and byte-identical terminal outcome; exact retries return that outcome and conflicting digest reuse fails before inventory lookup.",
+      "notes": "Requester-signed self KeyPackage claim. The requester device's exact durable generation is checked in the same CAS transaction; revocation_pending returns the existing opaque claim_failed outcome before inventory disclosure or claim writes. Exactly one holder_acceptance detached-JWS proof binds the complete proof-free request, authority service DID, requester and at-least-128-bit claim_nonce. The authority atomically commits KeyPackage CAS, (requester, claim_nonce, payload_digest) ledger and byte-identical terminal outcome; exact retries return that outcome and conflicting digest reuse fails before inventory lookup.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",

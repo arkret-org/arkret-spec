@@ -170,10 +170,6 @@
       ],
       "description": "Usable directory status of the (principal_id, device_id) pair at query time. active requires an accepted, non-revoked authorization, device_generation_status=active, and authorized_generation_ref=current_device_generation_ref. Servers omit usable key material for revoked, unverified, fenced, or conflicted devices."
     },
-    "did_version_id": {
-      "type": "string",
-      "pattern": "^[1-9][0-9]*-[^\\s]+$"
-    },
     "device_generation_state": {
       "type": "object",
       "description": "Reducer-managed identity-root generation fence for the principal device directory.",
@@ -183,7 +179,8 @@
       ],
       "properties": {
         "current_device_generation_ref": {
-          "$ref": "#/$defs/did_version_id"
+          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
+          "description": "PCR-local monotonic generation; it is not and MUST NOT be derived from a DID versionId."
         },
         "device_generation_status": {
           "type": "string",
@@ -236,8 +233,8 @@
           "description": "Accepted ak.device.authorize Event id anchoring the current device-set projection."
         },
         "authorized_generation_ref": {
-          "$ref": "#/$defs/did_version_id",
-          "description": "Reducer-managed DID generation that authorized this device. Producers cannot self-report it; it must equal current_device_generation_ref for the device to be usable."
+          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
+          "description": "Reducer-managed PCR-local monotonic generation that authorized this device. Producers cannot self-report it; it must equal current_device_generation_ref for the device to be usable and MUST NOT be represented as a DID versionId."
         }
       },
       "allOf": [
