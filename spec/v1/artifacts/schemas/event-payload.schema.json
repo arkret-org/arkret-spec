@@ -299,7 +299,7 @@
           "additionalProperties": true
         },
         "body_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "tombstone": {
           "const": true
@@ -432,7 +432,7 @@
           ]
         },
         "expected_state_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -478,10 +478,10 @@
           "$ref": "#/$defs/agent_action_target"
         },
         "approved_payload_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "draft_content_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "approval_nonce": {
           "$ref": "#/$defs/non_empty_string"
@@ -563,7 +563,7 @@
           "$ref": "#/$defs/agent_action_target"
         },
         "request_canonical_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -698,7 +698,7 @@
           "$ref": "#/$defs/agent_action_target"
         },
         "content_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -737,7 +737,7 @@
           "$ref": "#/$defs/object_ref"
         },
         "request_canonical_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "pairing_request_id": {
           "type": "string",
@@ -808,11 +808,11 @@
           "$ref": "#/$defs/verification_method"
         },
         "public_key_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "SHA-256 of the decoded 32-byte Ed25519 public key behind verification_method, computed with agent_signing_public_key_digest. Native Agent authorization always commits this raw-key digest; it is distinct from the private runtime-request PublicKey DTO digest."
         },
         "signing_key_binding_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "sha256 over the canonical agent-signing binding core containing schema, agent_id, agent_key_id, verification_method, public_key, public_key_digest, issued_at, optional expires_at, and controller_id, but excluding agent_key_authorize_event_id and controller_proof. The complete accepted Event ID and controller proof are appended only when materializing the public ak.schema.agent_signing_key_binding.v1 object. Including this Event's not-yet-derived identity would create an impossible digest fixed point. A service MUST recompute the core digest before appending the verified accepted Event identity and MUST NOT substitute another disclosure."
         },
         "accountable_principal_id": {
@@ -883,7 +883,7 @@
               "maxLength": 64
             },
             "attestation_digest": {
-              "$ref": "#/$defs/hash",
+              "$ref": "#/$defs/digest",
               "description": "Optional digest of verifiable attestation material when kind is not self_asserted."
             },
             "attestation_ref": {
@@ -1407,7 +1407,7 @@
           "uniqueItems": true
         },
         "registration_epoch": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "webhook_auth": {
           "description": "Transaction push HTTP signature policy copied from the Applet package. webhook_auth.key_ref is the Applet service DID URL used to verify the app/bridge->arkret inbound HTTP message signature and is bound to this registration_epoch; node->Applet pushes verify the Arkret source service DID from Source-Service-ID instead.",
@@ -1469,7 +1469,7 @@
           "$ref": "#/$defs/event_ref"
         },
         "paired_event_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "late_recovery_original_event_id": {
           "$ref": "#/$defs/event_ref",
@@ -1478,7 +1478,7 @@
         "cell_head_before": {
           "oneOf": [
             {
-              "$ref": "#/$defs/hash"
+              "$ref": "#/$defs/digest"
             },
             {
               "type": "null"
@@ -1488,7 +1488,7 @@
         "cell_head_after": {
           "oneOf": [
             {
-              "$ref": "#/$defs/hash"
+              "$ref": "#/$defs/digest"
             },
             {
               "type": "null"
@@ -1639,7 +1639,7 @@
           "additionalProperties": true
         },
         "activation_frontier_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Accepted Seal coverage digest at which this binding/policy became member-visible. Release requests MUST NOT cover messages or epochs before this coverage point."
         },
         "first_auditable_epoch": {
@@ -1684,7 +1684,7 @@
           "additionalProperties": false
         },
         "policy_version_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "not_before": {
           "$ref": "#/$defs/timestamp"
@@ -1824,7 +1824,7 @@
           "$ref": "#/$defs/event_ref"
         },
         "seal_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "recipient_audit_actor_id": {
           "$ref": "#/$defs/did_core_id"
@@ -1846,7 +1846,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "policy_version_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "eligibility_proof": {
           "type": "object",
@@ -1859,7 +1859,7 @@
           ],
           "properties": {
             "binding_activation_frontier_digest": {
-              "$ref": "#/$defs/hash"
+              "$ref": "#/$defs/digest"
             },
             "first_auditable_epoch": {
               "type": "integer",
@@ -1870,11 +1870,11 @@
               "description": "ak.mls.commit that covered the activation frontier and created first_auditable_epoch, when the release covers MLS epoch material."
             },
             "policy_snapshot_digest": {
-              "$ref": "#/$defs/hash",
+              "$ref": "#/$defs/digest",
               "description": "Digest of the binding/release window policy snapshot used when authorizing this release."
             },
             "target_eligibility_digest": {
-              "$ref": "#/$defs/hash",
+              "$ref": "#/$defs/digest",
               "description": "Digest of the deterministic per-target/per-epoch eligibility set proving no pre-activation material is included."
             }
           },
@@ -1886,7 +1886,7 @@
         "wrapped_material_digest": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/hash"
+            "$ref": "#/$defs/digest"
           },
           "minItems": 1,
           "uniqueItems": true
@@ -2140,7 +2140,7 @@
           "additionalProperties": true
         },
         "member_notice_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "release_refs": {
           "type": "array",
@@ -2153,10 +2153,10 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "policy_version_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "occurred_at": {
           "$ref": "#/$defs/timestamp"
@@ -2514,7 +2514,7 @@
               "description": "Typed recording outcome for a stopped, ready, or failed segment. It is written to the independent recording result cell and never embedded in the FSM transition op.",
               "properties": {
                 "content_digest": {
-                  "$ref": "#/$defs/hash"
+                  "$ref": "#/$defs/digest"
                 },
                 "duration_ms": {
                   "type": "integer",
@@ -2612,7 +2612,7 @@
               "description": "Typed transcription outcome for a stopped, ready, or failed segment. It is written to the independent transcript result cell and never embedded in the FSM transition op.",
               "properties": {
                 "content_digest": {
-                  "$ref": "#/$defs/hash"
+                  "$ref": "#/$defs/digest"
                 },
                 "media_type": {
                   "$ref": "#/$defs/non_empty_string"
@@ -3207,7 +3207,7 @@
           "$ref": "#/$defs/patch"
         },
         "expected_state_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -3225,14 +3225,14 @@
           "$ref": "./common-ids.schema.json#/$defs/circle_id"
         },
         "sub_seal_head_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "epoch": {
           "type": "integer",
           "minimum": 0
         },
         "covered_seals_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "committed_at": {
           "$ref": "#/$defs/timestamp"
@@ -3341,7 +3341,7 @@
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "contact_round_id": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "version": {
           "const": 1
@@ -3350,10 +3350,10 @@
           "$ref": "#/$defs/event_ref"
         },
         "request_acceptance_receipt_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "previous_terminal_contact_round_id": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Required by semantic admission when the accepted request is a recontact. It MUST equal the same field in the referenced request fact and its source-signed acceptance receipt. It is absent for a root Contact round."
         },
         "granted_to_peer_scopes": {
@@ -3378,7 +3378,7 @@
           "$ref": "#/$defs/event_ref"
         },
         "request_acceptance_receipt_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "reason": {
           "type": "string"
@@ -3402,11 +3402,11 @@
           "$ref": "./contact-operations.schema.json#/$defs/contact_scopes"
         },
         "introduction_evidence_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Required digest of the exact private introduction_evidence carried by the request branch of ak.peer.contacts.command.submit. Raw evidence is not written into the contact fact log."
         },
         "previous_terminal_contact_round_id": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Requester-signed immediate predecessor link for recontact. It is required when this request follows a previously accepted terminal Contact round and forbidden for a root request. It is not the issuer-local request-slot predecessor."
         },
         "message": {
@@ -3432,7 +3432,7 @@
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "contact_round_id": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "version": {
           "type": "integer",
@@ -3473,7 +3473,7 @@
           "$ref": "#/$defs/rank"
         },
         "expected_position_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -3516,7 +3516,7 @@
           }
         },
         "expected_order_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -4035,7 +4035,7 @@
           "uniqueItems": true
         },
         "device_list_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "stream_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -4154,7 +4154,7 @@
           "description": "Must be the immediate monotonic successor of previous_device_generation."
         },
         "did_root_evidence_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Required only when recovery_authority_kind=did_root; proves the optional factor enabled by the frozen PCR policy."
         },
         "pre_fence_seal_frontier": {
@@ -4180,10 +4180,10 @@
                   "uniqueItems": true
                 },
                 "control_event_set_root": {
-                  "$ref": "#/$defs/hash"
+                  "$ref": "#/$defs/digest"
                 },
                 "state_root": {
-                  "$ref": "#/$defs/hash"
+                  "$ref": "#/$defs/digest"
                 }
               },
               "additionalProperties": false
@@ -4191,7 +4191,7 @@
           ]
         },
         "replacement_authorize_payload_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "canonical_digest of the replacement ak.device.authorize payload object, using the Realm live digest suite."
         }
       },
@@ -4549,7 +4549,7 @@
       "type": "string",
       "pattern": "^ak:grant:[A-Za-z0-9_-]{44}$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -4770,7 +4770,7 @@
           "$ref": "#/$defs/history_visibility_value"
         },
         "restricted_policy_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Required when value=restricted. Digest of the effective ak.realm.history_sharing_policy value that defines restricted history visibility."
         },
         "reason": {
@@ -4900,7 +4900,7 @@
           "description": "Public durable target for private invite delivery. payload.invitee is the subject; this object carries only the recipient Principal Server service DID."
         },
         "introduction_evidence_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Digest of private invite delivery introduction_evidence. Raw locator tokens and receive-policy state MUST NOT appear in durable Realm events."
         },
         "expires_at": {
@@ -5528,7 +5528,7 @@
               "sync",
               "to_device",
               "push",
-              "key_packages"
+              "keypackages"
             ]
           },
           "uniqueItems": true,
@@ -5540,7 +5540,7 @@
           "description": "Signed first-hop ServiceResolutionRecord inline or by digest-bound reference. Senders validate it and MAY maintain an implementation-local TTL route cache; the cache is not protocol authority."
         },
         "did_document_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Canonical hash of invitee's DID Document at resolved_at. Required when binding_source = did_document_default."
         },
         "resolved_at": {
@@ -5694,7 +5694,7 @@
                 "$ref": "#/$defs/event_ref"
               },
               "payload_digest": {
-                "$ref": "#/$defs/hash",
+                "$ref": "#/$defs/digest",
                 "description": "sha256 over RFC 8785 JCS canonical JSON of the replaced event's full payload.identity_payload carrier wrapper ({member_identity: ...} or {encrypted_payload: ...}). Prevents replacing a different payload under a reused or confused event id."
               }
             },
@@ -5731,11 +5731,11 @@
           ]
         },
         "identity_payload_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "sha256 over RFC 8785 JCS canonical JSON of the exact identity_payload carrier object. It is a cache invalidation key, not a substitute for signature or MLS verification."
         },
         "expected_state_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Optional optimistic concurrency guard for the current effective set of this (realm_id, actor_id, segment). When present, it MUST equal the writer-observed effective-set digest before applying this event: sha256 over RFC 8785 JCS canonical JSON {realm_id, actor_id, segment, effective_events:[{event_id, segment, payload_digest}]}, with effective_events sorted by (segment,event_id). It is not the identity_payload_digest and not a roster member_display_state_digest."
         }
       },
@@ -6413,7 +6413,7 @@
           "description": "MIMI content profile, e.g. application/mimi-content."
         },
         "policy_root": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Digest of the Arkret policy component projection bound to this MIMI room binding."
         },
         "status": {
@@ -6478,7 +6478,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "diagnostic_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "failed_at": {
           "$ref": "#/$defs/timestamp"
@@ -6538,7 +6538,7 @@
           "$ref": "#/$defs/object_ref"
         },
         "commit_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "governance_binding": {
           "$ref": "#/$defs/mls_governance_binding"
@@ -6688,7 +6688,7 @@
           "minimum": 0
         },
         "security_frontier_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Canonical digest of the closed key-access frontier for this MLS scope: effective membership; only participant device/Agent keys referenced by current or pending MLS leaves; MLS group membership; and encryption/history policy that changes current or historical key access. Capability, ordinary metadata, moderation, routing, contact and consent-only facts are excluded unless their accepted effect actually removes an MLS leaf. Producers do not supply an arbitrary event list; every verifier rederives the digest from accepted Seal state."
         },
         "sidecar_binding": {
@@ -6845,7 +6845,7 @@
           "$ref": "#/$defs/keypackage_ref"
         },
         "keypackage_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Canonical hash of the MLS KeyPackage bytes identified by keypackage_ref."
         },
         "cipher_suites": {
@@ -6921,7 +6921,7 @@
           "$ref": "#/$defs/object_ref"
         },
         "proposal_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "target_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -7061,7 +7061,7 @@
           "$ref": "#/$defs/keypackage_ref"
         },
         "keypackage_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Canonical hash of the claimed MLS KeyPackage bytes. MUST equal the referenced ak.mls.keypackage.payload.keypackage_digest and claim_ref.keypackage_digest."
         },
         "claim_id": {
@@ -7106,10 +7106,10 @@
               "$ref": "#/$defs/keypackage_ref"
             },
             "keypackage_digest": {
-              "$ref": "#/$defs/hash"
+              "$ref": "#/$defs/digest"
             },
             "capabilities_digest": {
-              "$ref": "#/$defs/hash"
+              "$ref": "#/$defs/digest"
             },
             "device_authorize_event_id": {
               "$ref": "#/$defs/non_empty_string"
@@ -7188,7 +7188,7 @@
               "$ref": "#/$defs/keypackage_ref"
             },
             "keypackage_digest": {
-              "$ref": "#/$defs/hash"
+              "$ref": "#/$defs/digest"
             },
             "intended_realm_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -7218,7 +7218,7 @@
               "$ref": "#/$defs/non_empty_string"
             },
             "welcome_digest": {
-              "$ref": "#/$defs/hash"
+              "$ref": "#/$defs/digest"
             },
             "created_at": {
               "$ref": "#/$defs/timestamp"
@@ -7346,7 +7346,7 @@
           "description": "Actor or service DID issuing the sealed moderation decision. Reducers use it as part of the or_set add tag and appeal separation-of-duties check."
         },
         "request_canonical_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "JCS SHA-256 digest of the moderated request or event preview bound to the Policy Server decision. Part of the moderation_state or_set add tag."
         },
         "action": {
@@ -7696,7 +7696,7 @@
           ]
         },
         "expected_state_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -8417,7 +8417,7 @@
           "$ref": "#/$defs/patch"
         },
         "expected_state_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -8823,7 +8823,7 @@
           "pattern": "^ak:snapshot:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "snapshot_commitment": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -8912,11 +8912,11 @@
           "description": "Tagged scope of the key material. Realm-default history uses {kind:'realm', realm_id}; Circle history uses {kind:'circle', realm_id, circle_id}. Implementations MUST NOT infer key scope from strand_id or track."
         },
         "policy_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Hash of the effective Realm/Circle policy root that is the basis of this delivery decision. For ak.realm_key.share it is the root authorising the historical key delivery. For ak.realm_key.withheld it is the root the source actually evaluated when refusing delivery; it pins the refusal basis and does NOT assert that the share was ever authorised. The source MUST resolve a single effective root on the Event CBA/T0 basis and MUST NOT emit a durable withheld with a zero value, the receiver-current root or an implementation placeholder."
         },
         "membership_frontier_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Optional hash of the membership frontier evaluated for history visibility and recipient membership."
         },
         "from_epoch": {
@@ -8962,7 +8962,7 @@
           "$ref": "#/$defs/device_id"
         },
         "audit_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "recorded_at": {
           "$ref": "#/$defs/timestamp"
@@ -9097,7 +9097,7 @@
           "$ref": "#/$defs/object_ref"
         },
         "aad_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -9190,7 +9190,7 @@
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "commitment": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "counterpart_event_ref": {
           "$ref": "#/$defs/event_ref"
@@ -9199,7 +9199,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "edge_digest_commitment": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "evidence_refs": {
           "type": "array",
@@ -9312,7 +9312,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "realm_frontier_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Optional digest of the Realm control frontier the organization evaluated when issuing this statement."
         },
         "organization_policy_ref": {
@@ -9583,10 +9583,10 @@
         "preauth": {
           "type": "object",
           "required": [
-            "require_consent"
+            "consent_required"
           ],
           "properties": {
-            "require_consent": {
+            "consent_required": {
               "type": "boolean",
               "description": "When true, every invite into this Realm MUST pass the holder consent admission gate in identity/consent-model.md section 6.1 before the invite Control Move is submitted. It MUST NOT be read as permission for a cross-Realm CBA precondition."
             }
@@ -9904,7 +9904,7 @@
       ],
       "properties": {
         "expected_state_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Optional optimistic concurrency guard. When present it MUST equal the writer-observed digest of the frozen pre-state this patch was computed against; a mismatch MUST fail closed. Registered as the apply_patch projection's expected_prestate source in contract-registry.json."
         },
         "patch": {
@@ -9971,7 +9971,7 @@
           "maxItems": 128,
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/hash"
+            "$ref": "#/$defs/digest"
           },
           "description": "Non-empty schedule revision frontier the responder actually observed, as event_digest values sorted in ascending canonical UTF-8 byte order. MUST be a subset of the envelope causal_refs[], which caps it at the same 128 entries. A frontier larger than 128 MUST fail closed with schedule_frontier_too_large rather than being truncated."
         },
@@ -10204,7 +10204,7 @@
           "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
         },
         "participant_authority_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Digest of the exact Sidecar identity, controller, and the Realm-scoped desired Agent roster derived from accepted ownership, lifecycle, and Realm membership facts."
         },
         "control_frontier": {
@@ -10359,7 +10359,7 @@
           "$ref": "#/$defs/patch"
         },
         "expected_state_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -10527,7 +10527,7 @@
           "$ref": "#/$defs/patch"
         },
         "expected_state_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -10777,7 +10777,7 @@
           "type": "object"
         },
         "expected_state_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Optional optimistic concurrency guard. When present it MUST equal the writer-observed digest of the frozen pre-state this patch was computed against; a mismatch MUST fail closed. Registered as the apply_patch projection's expected_prestate source in contract-registry.json."
         },
         "object": {

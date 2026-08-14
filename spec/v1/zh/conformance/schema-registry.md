@@ -54,7 +54,7 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 
 ### 1.1.1 error code 命名空间例外（normative）
 
-`error-code-registry.json` 中的 `code` / `reason_code` 值有意使用裸名（例如 `bad_json`、`policy_violation`、`failed_precondition`），不加 `ak.` 前缀。错误码只在 service response、batch item 诊断和 reducer reason 上下文中解释，不与 event kind、operation id、schema id 或 capability action 共用命名空间。跨规范聚合错误时，调用方 SHOULD 用 registry 文件或 protocol 名称作为外层 namespace，而不是把 `ak.` 前缀补进 wire code。
+`error-code-registry.json` 中的 `code` / `reason_code` 值有意使用裸名（例如 `json_invalid`、`policy_violation`、`failed_precondition`），不加 `ak.` 前缀。错误码只在 service response、batch item 诊断和 reducer reason 上下文中解释，不与 event kind、operation id、schema id 或 capability action 共用命名空间。跨规范聚合错误时，调用方 SHOULD 用 registry 文件或 protocol 名称作为外层 namespace，而不是把 `ak.` 前缀补进 wire code。
 
 新增标准错误码必须继续登记在 `error-code-registry.json`，不得因为本例外而在其它 registry 里注册裸名 action / event / operation。
 

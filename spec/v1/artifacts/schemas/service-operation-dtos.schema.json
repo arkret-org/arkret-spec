@@ -185,7 +185,7 @@
       "$ref": "#/$defs/SessionGrantRefreshOutcome"
     },
     {
-      "$ref": "#/$defs/session_grant_replay_error_details"
+      "$ref": "#/$defs/SessionGrantReplayProblem"
     }
   ],
   "$defs": {
@@ -430,7 +430,7 @@
       },
       "additionalProperties": false
     },
-    "AuthorizationLeaseIssueRequest": {
+    "AuthorizationLeaseIssueRequestBody": {
       "type": "object",
       "description": "Exactly one non-empty target array: final signed Events for publication pre-admission, or typed non-Event operation intents. Mixed requests are forbidden.",
       "properties": {
@@ -1022,7 +1022,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 1024,
-          "description": "Acknowledgement token previously issued to the same (principal_id, device_id) via an account subscribe to_device batch or a device_messages get page. Acknowledgement is cumulative and monotonic: the server prunes all delivered messages up to and including the token's bound queue position. Unknown / expired / cross-bound tokens MUST be rejected with invalid_param (reason invalid_ack_token) without deleting anything. Naturally idempotent; no Idempotency-Key required."
+          "description": "Acknowledgement token previously issued to the same (principal_id, device_id) via an account subscribe to_device batch or a device_messages get page. Acknowledgement is cumulative and monotonic: the server prunes all delivered messages up to and including the token's bound queue position. Unknown / expired / cross-bound tokens MUST be rejected with param_invalid (reason invalid_ack_token) without deleting anything. Naturally idempotent; no Idempotency-Key required."
         }
       },
       "additionalProperties": false
@@ -1241,10 +1241,10 @@
               "$ref": "./principal-operations.schema.json#/$defs/event_id"
             },
             "agent_provision_digest": {
-              "$ref": "./principal-operations.schema.json#/$defs/hash"
+              "$ref": "./principal-operations.schema.json#/$defs/digest"
             },
             "controller_binding_digest": {
-              "$ref": "./principal-operations.schema.json#/$defs/hash"
+              "$ref": "./principal-operations.schema.json#/$defs/digest"
             }
           },
           "additionalProperties": false
@@ -1865,7 +1865,7 @@
           "maxItems": 1024,
           "uniqueItems": true,
           "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/hash"
+            "$ref": "./event-envelope.schema.json#/$defs/digest"
           }
         },
         "missing_seal_refs": {
@@ -2358,7 +2358,7 @@
         "rejected": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/EventsSubmitRejectedItem"
+            "$ref": "#/$defs/EventsSubmitRejectedRow"
           }
         },
         "quarantine": {
@@ -2393,7 +2393,7 @@
       },
       "additionalProperties": false
     },
-    "EventsSubmitRejectedItem": {
+    "EventsSubmitRejectedRow": {
       "type": "object",
       "description": "One rejected submission. When the reason is a missing CBA dependency the receiver reports the exact shortfall so the sender can extend one bundle instead of guessing; a bundle MAY be a bounded verifiable superset, so the receiver never asks for a byte-minimal bundle.",
       "required": [
@@ -2442,7 +2442,7 @@
           "maxItems": 1024,
           "uniqueItems": true,
           "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/hash"
+            "$ref": "./event-envelope.schema.json#/$defs/digest"
           },
           "description": "Exact control-plane Event digests the receiver still needs. Same shrinking obligation as missing_seal_refs."
         }
@@ -2517,7 +2517,7 @@
         }
       ]
     },
-    "EventsSubmitResponseBody": {
+    "SelfEventsSubmitOutcome": {
       "description": "Closed response union for ak.self.events.command.submit. Ordinary submissions return EventsSubmitOutcome; the direct_conversation_founding request branch returns DirectConversationFoundingAcceptanceOutcome, which carries the source-signed founding acceptance receipt.",
       "oneOf": [
         {
@@ -2719,7 +2719,7 @@
       },
       "additionalProperties": false
     },
-    "InitialSessionGrantRequest": {
+    "InitialSessionGrantIntent": {
       "type": "object",
       "description": "Initial Standard SessionGrant intent embedded in identity_creation registration. It reuses the DPoP holder key established by account handoff; Account Authority recomputes RFC 7638 thumbprint of session_public_key and requires equality with the handoff/control-proof dpop_jkt. It is not a separate authorization or credential.",
       "required": [
@@ -3437,7 +3437,7 @@
           "maxItems": 1024,
           "uniqueItems": true,
           "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/hash"
+            "$ref": "./event-envelope.schema.json#/$defs/digest"
           }
         },
         "missing_seal_refs": {
@@ -3476,7 +3476,7 @@
           "maxItems": 1024,
           "uniqueItems": true,
           "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/hash"
+            "$ref": "./event-envelope.schema.json#/$defs/digest"
           }
         },
         "seal_refs": {
@@ -5623,18 +5623,18 @@
         }
       }
     },
-    "session_grant_replay_error_details": {
+    "SessionGrantReplayProblem": {
       "description": "Closed union of the two replay error-detail shapes. The error envelope code selects the matching subtype in OpenAPI.",
       "anyOf": [
         {
-          "$ref": "#/$defs/session_grant_replay_expired_error_details"
+          "$ref": "#/$defs/SessionGrantReplayExpiredProblem"
         },
         {
-          "$ref": "#/$defs/session_grant_replay_terminal_error_details"
+          "$ref": "#/$defs/SessionGrantReplayTerminalProblem"
         }
       ]
     },
-    "session_grant_replay_expired_error_details": {
+    "SessionGrantReplayExpiredProblem": {
       "type": "object",
       "description": "Closed ErrorEnvelope.error.details for session_grant_replay_expired. The named issuer-ledger record remains authoritative and no replacement grant is created under the same request identity.",
       "required": [
@@ -5652,7 +5652,7 @@
       },
       "additionalProperties": false
     },
-    "session_grant_replay_terminal_error_details": {
+    "SessionGrantReplayTerminalProblem": {
       "type": "object",
       "description": "Closed ErrorEnvelope.error.details for session_grant_replay_terminal. The state is an exact durable issuer-ledger terminal state and no replacement grant is created under the same request identity.",
       "required": [

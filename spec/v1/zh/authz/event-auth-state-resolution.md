@@ -175,7 +175,7 @@ Control Move 生命周期，`fork_quarantine` 是分支处置；这些概念不�
 
 **`distance` 度量与窗口单位（normative）**：`revocation_freshness_window` 的权威字段是 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `revocation_freshness_window_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`）。`distance(seal_ref, R)` MUST 按**控制面 Seal DAG 上 notary 签署的提交时间差**度量：取撤销 Seal `R` 与 `seal_ref` 各自签名 transcript 内 notary 提交时间（沿 Seal DAG，`R` 是 `seal_ref` 后继，见 §6.3），求二者毫秒差。该度量只用进入 Seal 签名 transcript 的 notary 提交时间，**不**用 DataEvent 自报的 `created_at` 或本地接收时间——时间来自被签名的 Seal 拓扑，可验证、跨 receiver 确定复现。`distance > revocation_freshness_window_ms` 即超窗。
 
-该规则不判断事件真实签发时间，也不依赖本地接收时间。producer 在本地已知撤销 seal 后仍用旧 `seal_ref` 签 DataEvent，协议不把它单独定义为可证明 fault；但所有已观察到 `R` 且窗口超限的 receiver MUST 拒绝或隐藏这些事件（`stale_seal_ref`，§13）。
+该规则不判断事件真实签发时间，也不依赖本地接收时间。producer 在本地已知撤销 seal 后仍用旧 `seal_ref` 签 DataEvent，协议不把它单独定义为可证明 fault；但所有已观察到 `R` 且窗口超限的 receiver MUST 拒绝或隐藏这些事件（`seal_ref_stale`，§13）。
 
 **并发分支撤销（normative，`open_set`）**：撤销 Seal `R` 与 `seal_ref` 并发时，receiver MUST 按已 join 的控制面视图重判 capability；若已撤销或授权 cell 进入 `⊥`，依赖 Event fail closed。并发分支不计算 `distance`、不享受新鲜度宽限。轻客户端无法验证 multi-leaf union basis 时必须 hold pending 或 fail closed。撤销 leaf 迟到后，receiver MUST 把已失效 Event 从 data-cell reducer 输入集中移除，并按仍授权且依赖闭包完整的 accepted Event 集合确定性重算。
 
@@ -272,7 +272,7 @@ authority root cell（`ak.component.realm.authority_root.v1`）五条投影，�
 登记的 `ak.realm.create` registered write 全集，v1 不含任何 founding `ak.capability.grant`。MLS-backed scope 的 `ak.mls.genesis` 以该 accepted Genesis
 Seal 为 `seal_basis`；**首个覆盖该 Move 的后继 Seal** MUST 验证并物化 epoch-0 governance
 binding，在该 Seal 之前不得接受 MLS application DataEvent。先接受空 Seal 再补 founding
-authority（含 authority-root cell）仍一律 `invalid_genesis_seal`；epoch-0 binding 的这一后继时序不是 founding repair。
+authority（含 authority-root cell）仍一律 `genesis_seal_invalid`；epoch-0 binding 的这一后继时序不是 founding repair。
 
 Seal 的 wire schema 见 [`seal.schema.json`](../../artifacts/schemas/seal.schema.json)。
 
@@ -460,11 +460,11 @@ KeyView {
 
 每个 Realm 恰有一个 protocol-singleton cell `ak:cell:ak.component.realm.reducer_profile.v1:null`，value 是 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 中 active `ak.reducer.*` profile ID，lattice=`cas_register`、bottom=`reject`、plane=`control`。
 
-Genesis value 由 `ak.realm.create` 的注册 reducer projection 从 `payload.object.reducer_profile` 写入；后继值只能由 `ak.realm.upgrade` 写入同一 cell。Upgrade payload 只携带 `target_reducer_profile`，并且 Event 的 `preconditions[]` 必须包含 `{op:"head_eq", cell:"ak:cell:ak.component.realm.reducer_profile.v1:null", value:<source-profile>}`。Target 未注册时返回 `profile_unsupported`；registry 没有 source→target `upgrade_edges` 时返回 `failed_precondition`；cell 为 `⊥` 时按 §9.1.1 返回 `failed_bottom`、reason=`cell_in_bottom_state`。
+Genesis value 由 `ak.realm.create` 的注册 reducer projection 从 `payload.object.reducer_profile` 写入；后继值只能由 `ak.realm.upgrade` 写入同一 cell。Upgrade payload 只携带 `target_reducer_profile`，并且 Event 的 `preconditions[]` 必须包含 `{op:"head_eq", cell:"ak:cell:ak.component.realm.reducer_profile.v1:null", value:<source-profile>}`。Target 未注册时返回 `unsupported_profile`；registry 没有 source→target `upgrade_edges` 时返回 `failed_precondition`；cell 为 `⊥` 时按 §9.1.1 返回 `failed_bottom`、reason=`cell_in_bottom_state`。
 
 Profile view 必须逐 Event 求值：DataEvent 使用 `seal_ref` 认证的 joined control state；Control Move 使用 `seal_basis` 指定的 frozen predecessor `J(L)`。`ak.realm.upgrade` 自身由 source profile 解释；只有 governance basis 已包含该 accepted upgrade 的后继才由 target profile 解释。与 upgrade 并发且 basis 不含它的 Event 仍使用 source profile。实现不得读取本地 latest profile、软件默认值、接收顺序或 Event 自报字段。
 
-同一前驱上的并发互斥 upgrade 按 §9.3.1 的 `cas_register` join 进入 `⊥`；恢复只使用 §9.5 的 `ak.state.conflict_recovery`。不得为 profile 另设 epoch、frontier、CAS 或冲突算法。若 target row 与 edge 已知、upgrade 在 source profile 下有效，但本 build 未实现 target reducer，receiver 仍接受 upgrade 并把验证 frontier 推进到该 Event；target-profile 后继返回 `profile_unsupported` 且不得进入 accepted state。
+同一前驱上的并发互斥 upgrade 按 §9.3.1 的 `cas_register` join 进入 `⊥`；恢复只使用 §9.5 的 `ak.state.conflict_recovery`。不得为 profile 另设 epoch、frontier、CAS 或冲突算法。若 target row 与 edge 已知、upgrade 在 source profile 下有效，但本 build 未实现 target reducer，receiver 仍接受 upgrade 并把验证 frontier 推进到该 Event；target-profile 后继返回 `unsupported_profile` 且不得进入 accepted state。
 
 ## 7. 问责、审查与 transparency
 
@@ -481,9 +481,9 @@ Equivocation evidence 是普通 Control Move，event kind 为 **`ak.notary.fault
 - fork resolution 前，普通 joined governance view MUST NOT 纳入 quarantined Seal；
 - 仅 fork-resolution compaction Seal 或 genesis recovery path 可恢复推进。
 
-**以 quarantined Seal 作 `seal_ref` 锚点的 DataEvent（normative）**：当一条 DataEvent 的 `seal_ref` 指向已进入 `fork_quarantine` 的 Seal 时，receiver MUST NOT 用该 quarantined seal 的授权状态接受它进入 joined view，也 MUST NOT 直接按 `stale_seal_ref` 永久拒绝（quarantine 是控制面分叉、未必表示该 DataEvent 的授权基准非法）。receiver MUST 把它降级保持 **observed-only**（§13 `data_observed`，不参与 join、不投影为生效内容），并 hold pending 直到该 slot 的 fork resolution 产生胜出分支：
+**以 quarantined Seal 作 `seal_ref` 锚点的 DataEvent（normative）**：当一条 DataEvent 的 `seal_ref` 指向已进入 `fork_quarantine` 的 Seal 时，receiver MUST NOT 用该 quarantined seal 的授权状态接受它进入 joined view，也 MUST NOT 直接按 `seal_ref_stale` 永久拒绝（quarantine 是控制面分叉、未必表示该 DataEvent 的授权基准非法）。receiver MUST 把它降级保持 **observed-only**（§13 `data_observed`，不参与 join、不投影为生效内容），并 hold pending 直到该 slot 的 fork resolution 产生胜出分支：
   - 若 `seal_ref` 的 Seal 属**胜出分支**（resolution 后不再 quarantined），receiver MUST 用胜出分支下的授权状态按 §4.2 / §4.3 **重判**该 DataEvent，通过则正常接受；
-  - 若 `seal_ref` 的 Seal 属**落败分支**（resolution 后被弃），receiver MUST 按 `stale_seal_ref` 拒绝或隐藏该 DataEvent，producer 需以胜出分支的新 `seal_ref` 重新签发。
+  - 若 `seal_ref` 的 Seal 属**落败分支**（resolution 后被弃），receiver MUST 按 `seal_ref_stale` 拒绝或隐藏该 DataEvent，producer 需以胜出分支的新 `seal_ref` 重新签发。
 
   该处理与 §4.3 撤销新鲜度判定正交（前者针对控制面分叉，后者针对单链撤销），与 [`../sync/operations-sync.md`](../sync/operations-sync.md) 的 observed-only / backfill 保持语义（observed-only 的 DataEvent 不进 canonical join），不引入新状态。
 
@@ -866,7 +866,7 @@ E2EE message 不等待数据面 Seal；它等待普通 Event admission 成立，
 | `rejected_seal` | Seal 签名、slot、delta、root、batch 或 `state_root` 校验失败。 |
 | `seal_deferred_future_skew` | Seal 的 `sealed_at` 暂时超过本地时钟允许的 future skew；非终态，receiver MUST hold 并随时钟推进重判。 |
 | `fork_quarantine` | 控制面分叉已被证明，相关 Seal 不得进入普通 joined view。 |
-| `stale_seal_ref` | DataEvent 的 `seal_ref` 相对已知撤销 seal 超出 freshness window。 |
+| `seal_ref_stale` | DataEvent 的 `seal_ref` 相对已知撤销 seal 超出 freshness window。 |
 
 本表是 reducer 判定状态；其到服务 error code 的映射以 [`operations-error-mapping.json`](../../artifacts/registry/operations-error-mapping.json) 为准，实现 MUST NOT 引入未登记错误码。
 

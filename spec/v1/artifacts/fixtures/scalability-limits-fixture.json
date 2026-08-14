@@ -443,7 +443,7 @@
       },
       "expected": {
         "decision": "reject",
-        "error_code": "invalid_param",
+        "error_code": "param_invalid",
         "must_not_allocate_replay_cache_entry": true
       }
     },
@@ -1041,7 +1041,7 @@
                 65536,
                 65537
               ],
-              "over_error_code": "invalid_param"
+              "over_error_code": "param_invalid"
             },
             {
               "field": "resource_selector",
@@ -1123,7 +1123,7 @@
             {
               "chunk_index": "equal_to_manifest_chunk_count",
               "expected_bundle_digest": "matches_chunk_zero",
-              "expect": "invalid_param"
+              "expect": "param_invalid"
             }
           ]
         }

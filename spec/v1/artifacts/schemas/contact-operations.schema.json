@@ -217,7 +217,7 @@
               "$ref": "#/$defs/event_id"
             },
             "request_acceptance_receipt_digest": {
-              "$ref": "./principal-operations.schema.json#/$defs/hash"
+              "$ref": "./principal-operations.schema.json#/$defs/digest"
             }
           },
           "additionalProperties": false
@@ -255,7 +255,7 @@
                     "$ref": "#/$defs/event_id"
                   },
                   "request_acceptance_receipt_digest": {
-                    "$ref": "./principal-operations.schema.json#/$defs/hash"
+                    "$ref": "./principal-operations.schema.json#/$defs/digest"
                   }
                 },
                 "additionalProperties": false
@@ -279,10 +279,10 @@
       ],
       "properties": {
         "contact_round_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "previous_terminal_contact_round_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash",
+          "$ref": "./principal-operations.schema.json#/$defs/digest",
           "description": "Absent only for a root Contact round. On recontact it is copied from every signed request fact and request acceptance receipt in this bundle and points to the immediately preceding terminal round. The bundle field is derived convenience, never independent authority."
         },
         "contact_round": {
@@ -397,7 +397,7 @@
       ],
       "properties": {
         "contact_round_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "issuer": {
           "$ref": "#/$defs/did_core_id"
@@ -406,7 +406,7 @@
           "$ref": "#/$defs/event_id"
         },
         "head_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "terminal": {
           "type": "boolean",
@@ -540,7 +540,7 @@
       ],
       "properties": {
         "contact_round_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "issuer": {
           "$ref": "#/$defs/contact_peer"
@@ -750,7 +750,7 @@
       ],
       "properties": {
         "contact_round_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "version": {
           "type": "integer",
@@ -1202,7 +1202,7 @@
               "$ref": "#/$defs/contact_introduction_evidence"
             },
             "previous_terminal_contact_round_id": {
-              "$ref": "./principal-operations.schema.json#/$defs/hash",
+              "$ref": "./principal-operations.schema.json#/$defs/digest",
               "description": "Immediate previously accepted terminal Contact round for a recontact request. The Principal Server MUST require an exact local terminal-round match when present and MUST require it when a terminal predecessor exists."
             },
             "message": {
@@ -1324,7 +1324,7 @@
           "$ref": "./principal-operations.schema.json#/$defs/base64url"
         },
         "event_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         }
       },
       "additionalProperties": false,
@@ -1520,7 +1520,7 @@
           "$ref": "#/$defs/contact_peer"
         },
         "contact_round_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "version": {
           "type": "integer",
@@ -1563,7 +1563,7 @@
               "$ref": "#/$defs/contact_peer"
             },
             "contact_round_id": {
-              "$ref": "./principal-operations.schema.json#/$defs/hash"
+              "$ref": "./principal-operations.schema.json#/$defs/digest"
             },
             "version": {
               "type": "integer",
@@ -1696,7 +1696,7 @@
               "$ref": "#/$defs/contact_peer"
             },
             "contact_round_id": {
-              "$ref": "./principal-operations.schema.json#/$defs/hash"
+              "$ref": "./principal-operations.schema.json#/$defs/digest"
             },
             "version": {
               "type": "integer",
@@ -1828,7 +1828,7 @@
         "request_receipt_digests": {
           "type": "array",
           "items": {
-            "$ref": "./principal-operations.schema.json#/$defs/hash"
+            "$ref": "./principal-operations.schema.json#/$defs/digest"
           },
           "minItems": 2,
           "maxItems": 2,
@@ -1847,7 +1847,7 @@
           "minimum": 1
         },
         "unconsumed_slot_checkpoint": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "observed_at": {
           "$ref": "#/$defs/timestamp"
@@ -1870,14 +1870,14 @@
         "request_receipt",
         "response_event_ref",
         "response_digest",
-        "no_outgoing_slot_proof",
+        "outgoing_slot_absence_digest",
         "accepted_at",
         "issuer",
         "signature"
       ],
       "properties": {
         "contact_round_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "request_receipt": {
           "$ref": "#/$defs/request_acceptance_receipt"
@@ -1886,10 +1886,11 @@
           "$ref": "#/$defs/event_id"
         },
         "response_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
-        "no_outgoing_slot_proof": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+        "outgoing_slot_absence_digest": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest",
+          "description": "Digest binding the responder's local CAS-point slot state showing no outgoing request existed when the normal response was accepted (see identity/contact-and-direct-conversation.md section 4). Self-describing <alg>:<hex>. The canonical preimage for this digest is not yet stated in normative prose; see review/spec-open."
         },
         "accepted_at": {
           "$ref": "#/$defs/timestamp"
@@ -1910,7 +1911,7 @@
         },
         {
           "properties": {
-            "disposition": {
+            "outcome": {
               "type": "string",
               "enum": [
                 "accepted",
@@ -1919,7 +1920,7 @@
             }
           },
           "required": [
-            "disposition"
+            "outcome"
           ]
         }
       ],
@@ -1931,7 +1932,7 @@
         "domain",
         "request_kind",
         "request_digest",
-        "disposition",
+        "outcome",
         "recipient_service_id",
         "received_at",
         "issuer",
@@ -1949,9 +1950,9 @@
           ]
         },
         "request_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
-        "disposition": {
+        "outcome": {
           "type": "string",
           "enum": [
             "accepted",
@@ -1960,7 +1961,7 @@
           ]
         },
         "result_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash",
+          "$ref": "./principal-operations.schema.json#/$defs/digest",
           "description": "H('ak.peer-contact.control-result.v1',{request_digest,result_kind,glare_concurrency_attestation?,current_proof?}) over the exact closed successful result."
         },
         "recipient_service_id": {
@@ -1980,7 +1981,7 @@
         {
           "if": {
             "properties": {
-              "disposition": {
+              "outcome": {
                 "enum": [
                   "accepted",
                   "duplicate"
@@ -1988,7 +1989,7 @@
               }
             },
             "required": [
-              "disposition"
+              "outcome"
             ]
           },
           "then": {
@@ -2061,12 +2062,12 @@
             "properties": {
               "mirror_receipt": {
                 "properties": {
-                  "disposition": {
+                  "outcome": {
                     "const": "accepted"
                   }
                 },
                 "required": [
-                  "disposition"
+                  "outcome"
                 ]
               }
             },
@@ -2092,12 +2093,12 @@
             "properties": {
               "mirror_receipt": {
                 "properties": {
-                  "disposition": {
+                  "outcome": {
                     "const": "duplicate"
                   }
                 },
                 "required": [
-                  "disposition"
+                  "outcome"
                 ]
               }
             },
@@ -2123,12 +2124,12 @@
             "properties": {
               "mirror_receipt": {
                 "properties": {
-                  "disposition": {
+                  "outcome": {
                     "const": "deferred"
                   }
                 },
                 "required": [
-                  "disposition"
+                  "outcome"
                 ]
               }
             },
@@ -2196,7 +2197,7 @@
         "request_digest",
         "signed_event_ref",
         "signed_event_digest",
-        "disposition",
+        "outcome",
         "recipient_service_id",
         "received_at",
         "issuer",
@@ -2207,15 +2208,15 @@
           "const": "ak.peer-contact.mirror-receipt.v1"
         },
         "request_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "signed_event_ref": {
           "$ref": "#/$defs/event_id"
         },
         "signed_event_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
-        "disposition": {
+        "outcome": {
           "type": "string",
           "enum": [
             "accepted",
@@ -2268,13 +2269,13 @@
                     "request_kind": {
                       "const": "proof_refresh"
                     },
-                    "disposition": {
+                    "outcome": {
                       "const": "accepted"
                     }
                   },
                   "required": [
                     "request_kind",
-                    "disposition"
+                    "outcome"
                   ]
                 }
               ]
@@ -2310,13 +2311,13 @@
                     "request_kind": {
                       "const": "proof_refresh"
                     },
-                    "disposition": {
+                    "outcome": {
                       "const": "duplicate"
                     }
                   },
                   "required": [
                     "request_kind",
-                    "disposition"
+                    "outcome"
                   ]
                 }
               ]
@@ -2352,13 +2353,13 @@
                     "request_kind": {
                       "const": "glare_finalize"
                     },
-                    "disposition": {
+                    "outcome": {
                       "const": "accepted"
                     }
                   },
                   "required": [
                     "request_kind",
-                    "disposition"
+                    "outcome"
                   ]
                 }
               ]
@@ -2397,13 +2398,13 @@
                     "request_kind": {
                       "const": "glare_finalize"
                     },
-                    "disposition": {
+                    "outcome": {
                       "const": "duplicate"
                     }
                   },
                   "required": [
                     "request_kind",
-                    "disposition"
+                    "outcome"
                   ]
                 }
               ]
@@ -2445,13 +2446,13 @@
                     "request_kind": {
                       "const": "proof_refresh"
                     },
-                    "disposition": {
+                    "outcome": {
                       "const": "deferred"
                     }
                   },
                   "required": [
                     "request_kind",
-                    "disposition"
+                    "outcome"
                   ]
                 }
               ]
@@ -2491,13 +2492,13 @@
                     "request_kind": {
                       "const": "glare_finalize"
                     },
-                    "disposition": {
+                    "outcome": {
                       "const": "deferred"
                     }
                   },
                   "required": [
                     "request_kind",
-                    "disposition"
+                    "outcome"
                   ]
                 }
               ]
@@ -2789,7 +2790,7 @@
               "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
             },
             "contact_round_id": {
-              "$ref": "./principal-operations.schema.json#/$defs/hash"
+              "$ref": "./principal-operations.schema.json#/$defs/digest"
             },
             "contact_round": {
               "allOf": [
@@ -2849,7 +2850,7 @@
           "$ref": "#/$defs/event_id"
         },
         "reject_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "accepted_at": {
           "$ref": "#/$defs/timestamp"
@@ -2875,7 +2876,7 @@
           "$ref": "#/$defs/request_acceptance_receipt_core"
         },
         "receipt_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "signature": {
           "$ref": "./principal-operations.schema.json#/$defs/signature"
@@ -2907,20 +2908,20 @@
           "minimum": 1
         },
         "slot_predecessor": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "previous_terminal_contact_round_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash",
+          "$ref": "./principal-operations.schema.json#/$defs/digest",
           "description": "Present exactly when this accepted request starts a recontact after a prior accepted Contact round became terminal. It MUST equal the requester-signed ak.contact.requested payload field and is covered by receipt_digest/signature. It is distinct from slot_predecessor, which is the issuer-local request-slot CAS predecessor and can also follow a rejected proposal."
         },
         "request_event_ref": {
           "$ref": "#/$defs/event_id"
         },
         "request_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "source_checkpoint": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "accepted_at": {
           "$ref": "#/$defs/timestamp"

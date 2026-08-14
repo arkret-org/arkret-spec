@@ -103,7 +103,7 @@
           ]
         },
         "payload_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Hash of canonical input bytes: utf8('ak.identity-link-v1\\n') || canonical_json(identity-link object with proof.signature omitted). The signed object includes trust_domain."
         },
         "signature": {
@@ -136,7 +136,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     }

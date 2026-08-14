@@ -2984,7 +2984,7 @@
           ]
         },
         "preauth": {
-          "require_consent": true
+          "consent_required": true
         },
         "allowed_third_party_invite_verification_service_ids": [
           "ak:did_core:webvh:z6mkfixtureverificationexample"

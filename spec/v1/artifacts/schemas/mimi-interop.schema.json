@@ -26,7 +26,7 @@
       "type": "string",
       "pattern": "^mimi://[^\\s]+$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256:)?[A-Za-z0-9_+\\-/=:.]{32,}$"
     },
@@ -279,7 +279,7 @@
               ]
             },
             "policy_root": {
-              "$ref": "#/$defs/hash"
+              "$ref": "#/$defs/digest"
             },
             "status": {
               "type": "string",
@@ -353,7 +353,7 @@
           ]
         },
         "original_envelope_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "mapped_operation_id": {
           "type": "string"

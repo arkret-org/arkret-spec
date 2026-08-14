@@ -53,10 +53,10 @@
       ],
       "properties": {
         "lease_basis": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "event_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "qualified_ingress_id": {
           "$ref": "#/$defs/opaque_id"
@@ -94,7 +94,7 @@
       "type": "string",
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
     },
@@ -503,11 +503,11 @@
           "description": "Validated did:webvh inception versionId. It MUST match the same fields in identity_creation_control_proof and the accepted registry log."
         },
         "log_head_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "SHA-256 digest of the exact method-native DID inception log entry seen by the Account Authority and committed by the identity root proof."
         },
         "control_key_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "SHA-256 digest of the active inception update key committed by the identity root proof."
         },
         "idempotency_key": {
@@ -516,7 +516,7 @@
           "maxLength": 128
         },
         "registration_request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "registration_did_operation": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
@@ -1101,7 +1101,7 @@
           "$ref": "#/$defs/base64url"
         },
         "event_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false

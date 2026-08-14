@@ -490,7 +490,7 @@
           "seal_ref_distance_ms": 172800000,
           "expected": {
             "result": "reject_or_hide",
-            "reason": "stale_seal_ref"
+            "reason": "seal_ref_stale"
           }
         },
         {
@@ -875,7 +875,7 @@
           },
           "expected": {
             "data_event_result": "reject_or_hide",
-            "reason": "stale_seal_ref",
+            "reason": "seal_ref_stale",
             "freshness_window_applies": false
           }
         },
@@ -887,7 +887,7 @@
           },
           "expected": {
             "data_event_result": "fail_closed",
-            "reason": "stale_seal_ref",
+            "reason": "seal_ref_stale",
             "freshness_window_applies": false
           }
         },
@@ -939,7 +939,7 @@
               },
               "expected": {
                 "data_event_result": "reject_or_hide",
-                "reason": "stale_seal_ref",
+                "reason": "seal_ref_stale",
                 "data_cell_x_projection_retroactively_removed": true,
                 "dependent_event_result": "pending",
                 "dependent_event_reason": "dependency_missing",
@@ -953,7 +953,7 @@
           ],
           "expected": {
             "final_data_event_result": "reject_or_hide",
-            "final_reason": "stale_seal_ref",
+            "final_reason": "seal_ref_stale",
             "data_cell_x_projection_retroactively_removed": true,
             "dependent_event_final_result": "pending",
             "dependent_event_final_reason": "dependency_missing",

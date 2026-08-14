@@ -244,7 +244,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 | Constraint object 内嵌套层级 | 4 层 | approval / claim object 内部最多 4 层嵌套。|
 | Selector JSON canonical form 总 byte | 64 KiB | 即便所有单项上限均未触发，整个 JSON canonical form 序列化后的 byte 总长仍 MUST ≤ 64 KiB（与 [`../conformance/encoding.md §8.6`](../conformance/encoding.md) cursor opaque payload 上限一致）；超过即 `selector_too_complex`，防止以 256 × 1024 byte selector_term 合法堆叠为 DoS 面。|
 
-实现 MUST 在解析入口先验证 byte-size 与 token-count 上限，再做语法解析；不得让恶意输入进入 EBNF 递归下降。`selector_too_complex` error 必须独立于 `invalid_param`，以便审计层将疑似 DoS 攻击与普通格式错误区分。
+实现 MUST 在解析入口先验证 byte-size 与 token-count 上限，再做语法解析；不得让恶意输入进入 EBNF 递归下降。`selector_too_complex` error 必须独立于 `param_invalid`，以便审计层将疑似 DoS 攻击与普通格式错误区分。
 
 `additionalProperties` / 未注册字段不计入嵌套深度，但实现 MUST 把单个 grant 内未知字段总数限制为 ≤ 256（与 `selector_term` 上限一致）；超过即 `selector_too_complex`。此外，未知字段所占 byte **MUST** 同样计入上表的 64 KiB Selector JSON canonical form 总 byte 上限——实现 MUST NOT 因字段未注册就把它排除在 byte 预算之外，否则攻击者可用大量未知字段绕过 byte 上限放大攻击面。
 

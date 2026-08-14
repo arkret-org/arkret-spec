@@ -655,7 +655,7 @@ GET /_arkret/self/snapshot/head?realm_id=<id>
 
 ### 5.3 Event / Seal 状态与 Bottom 暴露
 
-Sync 响应 SHOULD 在每条 reducer-input Event 上携带其当前协议状态字段（`event_state`），取值与 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13 失败状态表一致：`data_local` / `data_observed` / `control_pending` / `control_sealed` / `failed_precondition` / `failed_plane` / `failed_bottom` / `rejected_seal` / `fork_quarantine` / `stale_seal_ref`。
+Sync 响应 SHOULD 在每条 reducer-input Event 上携带其当前协议状态字段（`event_state`），取值与 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13 失败状态表一致：`data_local` / `data_observed` / `control_pending` / `control_sealed` / `failed_precondition` / `failed_plane` / `failed_bottom` / `rejected_seal` / `fork_quarantine` / `seal_ref_stale`。
 
 State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回结构化 Bottom 诊断，schema 参见 [`schemas/bottom.schema.json`](../../artifacts/schemas/bottom.schema.json) 与 `ak.schema.bottom.v1`：
 
@@ -722,7 +722,7 @@ Arkret v1 不定义必需的远端索引或应用视图服务面。当前态查�
 - `view_id`、`projection` 与 `renderer`：非 raw projection SHOULD 使用核心原语 `collection` / `timeline` / `graph` / `document` / `composite`；例如看板展示使用 `projection="collection", renderer="board"`。
 - barrier `cursor`：可选。若实现支持读己之所写等待，则必须把等待条件绑定到本地已知的因果前沿，例如特定 `event_id` / event hash / Realm frontier。Wire 形态与 stream cursor 共享 `ak:cursor:<base64url>`，由内部 `purpose` 字段区分（见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 与 [`api-conventions.md` §7](./api-conventions.md)）。
 
-barrier cursor 在 Query / Projection 语义中是读己之所写 barrier，不是 Client Sync 的 stream cursor / `after=` resume token。实现 MAY 把它编码为 opaque token，但内部 MUST 绑定调用方、`realm_id`、目标 `event_id`、event hash、filter / query hash、服务 DID 和过期时间。Projection 服务收到该 cursor 时，应等待本地可验证 frontier 覆盖目标事件；若等待超时返回 `timeout`，若服务本地 frontier 明确落后返回 `stale_frontier`，若服务暂时无法追赶或不可用返回 `temporarily_unavailable`。Client Sync 仍必须只使用 [`client-sync.md`](./client-sync.md) 定义的 stream cursor 作为 `/_arkret/self/account/subscribe after=`。
+barrier cursor 在 Query / Projection 语义中是读己之所写 barrier，不是 Client Sync 的 stream cursor / `after=` resume token。实现 MAY 把它编码为 opaque token，但内部 MUST 绑定调用方、`realm_id`、目标 `event_id`、event hash、filter / query hash、服务 DID 和过期时间。Projection 服务收到该 cursor 时，应等待本地可验证 frontier 覆盖目标事件；若等待超时返回 `timeout`，若服务本地 frontier 明确落后返回 `frontier_stale`，若服务暂时无法追赶或不可用返回 `temporarily_unavailable`。Client Sync 仍必须只使用 [`client-sync.md`](./client-sync.md) 定义的 stream cursor 作为 `/_arkret/self/account/subscribe after=`。
 
 ### 6.2 Strand Discussion / Context Projection
 

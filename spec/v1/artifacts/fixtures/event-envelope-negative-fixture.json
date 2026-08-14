@@ -146,7 +146,7 @@
       },
       "expected": {
         "decision": "reject",
-        "error_code": "invalid_signature",
+        "error_code": "signature_invalid",
         "reason": "proof.event_digest does not match canonical Event bytes without proofs"
       }
     },

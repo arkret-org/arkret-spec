@@ -1,14 +1,14 @@
 {
-  "version": "2026-08-13.2",
+  "version": "2026-08-14.1",
   "codes": [
     {
-      "code": "bad_json",
+      "code": "json_invalid",
       "http_status": 400,
       "scope": "both",
       "description": "JSON body cannot be parsed."
     },
     {
-      "code": "bad_query",
+      "code": "query_invalid",
       "http_status": 400,
       "scope": "both",
       "description": "Query parameters cannot be parsed or violate endpoint rules."
@@ -92,13 +92,13 @@
       "description": "A profile requiring log-backed key transparency omitted its inclusion proof, consistency proof, log head, or required witness evidence."
     },
     {
-      "code": "missing_param",
+      "code": "param_missing",
       "http_status": 400,
       "scope": "both",
       "description": "A required parameter is missing."
     },
     {
-      "code": "invalid_param",
+      "code": "param_invalid",
       "http_status": 400,
       "scope": "both",
       "description": "A parameter value is syntactically or semantically invalid."
@@ -110,7 +110,7 @@
       "description": "A managed-Agent operation that must preserve controller authorship omitted the required controller-signed durable Event proof. The service MUST NOT synthesize, service-sign, or directly project the missing controller fact. The controller must author and submit the exact closed Event required by the operation. See zh/identity/key-management.md §3.6.1 Lifecycle."
     },
     {
-      "code": "invalid_response",
+      "code": "response_invalid",
       "http_status": 400,
       "scope": "service_call",
       "description": "A downstream service response was syntactically valid transport data but did not satisfy the expected protocol contract, including directory/projection/service-call schema mismatch or missing required pagination/error fields."
@@ -190,7 +190,7 @@
       "description": "A soft-logout refresh, OIDC callback, re-auth, or sensitive account transition requires a fresh DID-bound or authorized-device proof; a refresh token alone is insufficient."
     },
     {
-      "code": "invalid_signature",
+      "code": "signature_invalid",
       "http_status": 401,
       "scope": "both",
       "description": "A required signature or proof does not verify."
@@ -226,7 +226,7 @@
       "description": "A per-delivery HTTP Message Signature created/expires parameters fell outside the protocol freshness window (expires-created over 300s, created skew over +/-30s, or expires already past), including byte-identical replays after the bounded replay cache evicted the entry. Window judged per zh/sync/federation.md §3.2. See zh/extensions/applet-integration.md §7.3.1."
     },
     {
-      "code": "directory_not_authorized",
+      "code": "directory_unauthorized",
       "http_status": 403,
       "scope": "service_call",
       "description": "Directory ingest rejected an announce or withdraw because the signed resource payload does not authorize this Directory service DID."
@@ -238,7 +238,7 @@
       "description": "Directory ingest rejected the resource because it is outside the directory's advertised accept policy."
     },
     {
-      "code": "signature_invalid",
+      "code": "directory_governance_proof_signature_invalid",
       "http_status": 400,
       "scope": "service_call",
       "description": "Directory ingest rejected a resource governance proof because its detached signature is invalid or cannot be canonicalized."
@@ -310,7 +310,7 @@
       "description": "A Realm, organization, account, holder-disclosure, agent, or deployment policy explicitly denied the requested operation after syntactic validation and authentication succeeded. Use a narrower code when a more specific registry entry applies."
     },
     {
-      "code": "verifier_not_authorized",
+      "code": "verifier_unauthorized",
       "http_status": 403,
       "scope": "service_call",
       "description": "A presentation verifier could not prove authority to represent its claimed organization or relying party."
@@ -364,7 +364,7 @@
       "description": "A child Realm's read-receipt policy attempted to cross the parent's compliance floor (parent disclosure='required' → child 'optional' or 'disabled') without the parent explicitly setting receipt_compliance_opt_in.child_privacy_tightening_against_required=true. Reducer MUST reject the offending ak.realm.read_receipt_policy Move with this wire code. See zh/discovery/read-receipts.md §2.5."
     },
     {
-      "code": "signal_class_not_permitted",
+      "code": "signal_class_denied",
       "http_status": 403,
       "scope": "service_call",
       "description": "ak.self.signal.command.send rejected the envelope because the actor lacks the kind-specific broadcast capability or Realm policy disables that signal kind."
@@ -580,7 +580,7 @@
       "description": "An auditable E2EE decrypt receipt was invalidated by backfill, witness, or state verification."
     },
     {
-      "code": "unknown_did",
+      "code": "did_unknown",
       "http_status": 422,
       "scope": "both",
       "description": "A DID cannot be resolved or validated under the active resolver policy."
@@ -622,13 +622,13 @@
       "description": "A wait-for, long-poll, or upstream dependency timed out."
     },
     {
-      "code": "stale_frontier",
+      "code": "frontier_stale",
       "http_status": 409,
       "scope": "both",
       "description": "The service frontier is behind the causal frontier required by the request."
     },
     {
-      "code": "stale_peer",
+      "code": "peer_stale",
       "http_status": 409,
       "scope": "service_call",
       "description": "A federation high-assurance peer has missed proactive frontier probes or produced invalid/divergent frontier evidence and is quarantined for the affected Realm until fork resolution succeeds. See zh/sync/federation.md §4.5.3."
@@ -676,7 +676,7 @@
       "description": "Event submission rejected an actor chain sequence number that is duplicate, skipped without allowed repair evidence, or inconsistent with the actor frontier."
     },
     {
-      "code": "stale_seal_ref",
+      "code": "seal_ref_stale",
       "http_status": 409,
       "scope": "both",
       "description": "The supplied seal_ref, seal_basis, or frontier token is older than the freshness window required for this operation or policy tier."
@@ -964,7 +964,7 @@
       "description": "The configured Service Identity Provider is temporarily unreachable or unavailable. Callers may retry without changing the registration request."
     },
     {
-      "code": "service_registration_rejected",
+      "code": "service_registration_denied",
       "http_status": 400,
       "scope": "both",
       "description": "A service-registration request is well formed but its signed inception, service type, canonical public base, or control proof violates the Provider profile."
@@ -1030,7 +1030,7 @@
       "description": "proof_kind=governance_quorum but fewer than quorum_threshold distinct valid governance signatures were supplied, or two signatures resolve to the same verification method. JSON Schema cannot compare the array length against the declared threshold, so the receiver enforces it and fails closed rather than accepting a partial quorum."
     },
     {
-      "code": "organization_registration_scope_unsupported",
+      "code": "unsupported_organization_registration_scope",
       "http_status": 422,
       "scope": "endpoint",
       "description": "A requested delegated scope is outside the closed organization registration scope set, or this deployment does not offer it. The scope vocabulary is closed so that a deployment cannot mint administrative authority the organization never consented to."
@@ -1048,7 +1048,7 @@
       "description": "The organization binding is stale — the pinned version no longer reflects current control after a controller rotation, or the receipt has passed expires_at — and the attempted operation is on a high-risk path. Low-risk reads may still proceed; high-risk paths MUST fail closed until a successful refresh, so that one first-time proof cannot authorise the relationship indefinitely."
     },
     {
-      "code": "profile_unsupported",
+      "code": "unsupported_profile",
       "http_status": 422,
       "scope": "both",
       "description": "The selected operation, portable artifact, Realm genesis, or Realm reducer-profile control state requires a profile or feature the service does not implement. Reducer support is advertised in ServiceDescribe.supported_reducer_profiles; other capabilities use supported_features / supported_profiles. The server MUST fail closed and MUST NOT substitute a local default or permissive interpretation. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
@@ -1114,7 +1114,7 @@
       "description": "HPKE suite id on an application-layer sealed surface is not an active row of artifacts/registry/hpke-suite-registry.json (unknown, inactive, or reserved-but-not-activated). One of the three algorithm-agility fail-closed errors; dual-registered as a service code and a reason_code (see unsupported_digest_algorithm). Receivers MUST fail closed rather than infer suite parameters from the AEAD name. See zh/identity/key-management.md §7.5.2."
     },
     {
-      "code": "invalid_genesis_seal",
+      "code": "genesis_seal_invalid",
       "http_status": 422,
       "scope": "both",
       "description": "The first Seal of a Realm did not atomically cover and materialize the complete registered bootstrap unit, or it declared an empty covered set or an empty control_event_set_root. The five ak.realm.create writes are genesis intent, create log, founding notary, reducer profile and authority root; profile, policy and creator membership are explicit signed slots in the same unit. For MLS-backed scope, epoch-0 binding is instead required on the first successor Seal covering ak.mls.genesis, whose seal_basis is the accepted Genesis Seal. Omitted founding state is never repairable by later Seals. See zh/authz/cba-profiles.md section 3."
@@ -1202,7 +1202,7 @@
       "description": "A revoked effective Applet install attempted a future write, transaction push side effect, delegated action, widget token use, or E2EE join. Reducers and service-call handlers MUST fail closed after ak.self.applet.command.revoke / ak.capability.revoke has taken effect. See zh/extensions/applet-integration.md §4b."
     },
     {
-      "code": "invalid_avatar_blob_ref",
+      "code": "avatar_blob_ref_invalid",
       "http_status": 422,
       "scope": "endpoint",
       "applies_to": [
@@ -1431,7 +1431,7 @@
       "description": "The device is already authorized."
     },
     {
-      "code": "device_not_authorized",
+      "code": "device_unauthorized",
       "http_status": 403,
       "scope": "endpoint",
       "description": "The device is not authorized for the requested operation."
@@ -1461,7 +1461,7 @@
       "description": "A fresh device attempted an operation outside its permitted scope."
     },
     {
-      "code": "invalid_avatar_url",
+      "code": "avatar_url_invalid",
       "http_status": 400,
       "scope": "endpoint",
       "description": "The provided avatar URL is invalid."
@@ -1515,7 +1515,7 @@
       "description": "The recovery policy conflicts with the current state."
     },
     {
-      "code": "recovery_policy_device_not_authorized",
+      "code": "recovery_policy_device_unauthorized",
       "http_status": 409,
       "scope": "endpoint",
       "description": "The device is not authorized under the recovery policy."
@@ -1593,7 +1593,7 @@
       "description": "The recovery session is not in a pending state."
     },
     {
-      "code": "federation_actor_origin_rejected",
+      "code": "federation_actor_origin_denied",
       "http_status": 403,
       "scope": "service_call",
       "description": "The federated actor origin was rejected by inbound policy."
@@ -1671,7 +1671,7 @@
       "description": "MIMI reporter resolution is required before this action."
     },
     {
-      "code": "stale_peer_state_unavailable",
+      "code": "peer_state_stale_unavailable",
       "http_status": 503,
       "scope": "service_call",
       "description": "The peer's state is stale and temporarily unavailable."
@@ -3297,7 +3297,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "A to-device message ack carried an ack token that does not correspond to a delivered to-device cursor (unknown, malformed, or already-superseded). Carried under invalid_param. See zh/sync/client-sync.md §10.1 and zh/sync/service-http-binding.md device_messages/ack."
+      "description": "A to-device message ack carried an ack token that does not correspond to a delivered to-device cursor (unknown, malformed, or already-superseded). Carried under param_invalid. See zh/sync/client-sync.md §10.1 and zh/sync/service-http-binding.md device_messages/ack."
     },
     {
       "code": "invalid_appeal_fsm_transition",
@@ -3320,7 +3320,7 @@
         "client_sync",
         "encoding"
       ],
-      "description": "Cursor payload fails the §8.2 / §8.3 cursor syntax or schema before integrity verification. HTTP endpoints surface this as top-level `invalid_param` with reason_code `invalid_cursor`. Expiry uses `cursor_expired`; handle lookup or cross-binding failures use `cursor_integrity_invalid`; cross-service portability misses use `cursor_unrecognized`."
+      "description": "Cursor payload fails the §8.2 / §8.3 cursor syntax or schema before integrity verification. HTTP endpoints surface this as top-level `param_invalid` with reason_code `invalid_cursor`. Expiry uses `cursor_expired`; handle lookup or cross-binding failures use `cursor_integrity_invalid`; cross-service portability misses use `cursor_unrecognized`."
     },
     {
       "code": "invalid_encoding",
@@ -3330,7 +3330,7 @@
       "description": "Generic encoding violation (HLC format, UUIDv7 format, base64url alphabet, etc.) not otherwise classified."
     },
     {
-      "code": "invalid_genesis_seal",
+      "code": "genesis_seal_invalid",
       "applies_to": [
         "seal",
         "state_resolution"
@@ -4085,7 +4085,7 @@
       "description": "A shared Realm View Event attempted to persist visibility=private. Private Views are encrypted holder account data under ak.views.private.<view_id> and MUST NOT enter the shared reducer. Carried under schema_violation. See zh/models/views.md."
     },
     {
-      "code": "profile_unsupported",
+      "code": "unsupported_profile",
       "applies_to": [
         "push_notify_outcome"
       ],
@@ -4120,7 +4120,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A runtime key-pairing or session-grant proof (DID `assertionMethod` signature, agent_key_proof transcript, etc.) failed signature verification, transcript binding, or `proof_kind` check. Distinct from `invalid_signature` in that the wire shape was syntactically valid but the proof semantics did not bind to the expected principal / nonce / audience. See zh/identity/key-management.md §3.6 §4.5."
+      "description": "A runtime key-pairing or session-grant proof (DID `assertionMethod` signature, agent_key_proof transcript, etc.) failed signature verification, transcript binding, or `proof_kind` check. Distinct from `signature_invalid` in that the wire shape was syntactically valid but the proof semantics did not bind to the expected principal / nonce / audience. See zh/identity/key-management.md §3.6 §4.5."
     },
     {
       "code": "push_gateway_unreachable",
@@ -4781,7 +4781,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "Resource selector or constraint exceeds parser hard limits defined in resource-selector-grammar.md §3.3 (string length, resources[] length, token count, nesting depth, single-field length, required_claims item count, constraint nesting). Distinct from invalid_param so audit / abuse-detection can separate suspected parser-DoS attempts from ordinary format errors. Dual-registered as a reason_code and a top-level service code (see codes[])."
+      "description": "Resource selector or constraint exceeds parser hard limits defined in resource-selector-grammar.md §3.3 (string length, resources[] length, token count, nesting depth, single-field length, required_claims item count, constraint nesting). Distinct from param_invalid so audit / abuse-detection can separate suspected parser-DoS attempts from ordinary format errors. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "send_failed",
@@ -4837,7 +4837,7 @@
         "identity_resolution",
         "service_call"
       ],
-      "description": "A service did:webvh inception or rotation omitted the sole next-key commitment, supplied more than one update/next key, or failed to open the previous nextKeyHashes commitment. Providers and resolvers MUST fail closed as service_registration_rejected."
+      "description": "A service did:webvh inception or rotation omitted the sole next-key commitment, supplied more than one update/next key, or failed to open the previous nextKeyHashes commitment. Providers and resolvers MUST fail closed as service_registration_denied."
     },
     {
       "code": "session_focus_already_committed",
@@ -5365,5 +5365,54 @@
       ],
       "description": "Internal peer-response diagnosis for the 32-record, 256-KiB or caller-selected budget limit. It MUST NOT be serialized by the blinded peer resolve surface, which uses the universal size failure."
     }
-  ]
+  ],
+  "vocabulary": {
+    "description": "Closed naming vocabulary for protocol error codes. Word order and predicate choice are registry-governed so two codes cannot describe the same failure under different spellings.",
+    "word_order": {
+      "default": "<subject>_<state>",
+      "rationale": "Suffix order clusters codes by the thing that failed, which is what a consumer branches on and what prefix search needs.",
+      "registered_prefix_form": {
+        "form": "unsupported_<capability>",
+        "rationale": "The subject of an unsupported_* code is a capability CLASS this deployment does not implement, not a specific instance that failed, so the predicate leads."
+      },
+      "subjectless_generic_codes": [
+        "conflict",
+        "duplicate_conflict",
+        "internal_error",
+        "not_found",
+        "not_implemented",
+        "quarantine",
+        "rate_limited",
+        "temporarily_unavailable",
+        "timeout",
+        "too_large",
+        "unauthenticated",
+        "historical_only",
+        "method_not_allowed",
+        "overbroad_request",
+        "schema_violation",
+        "failed_precondition",
+        "failed_plane",
+        "failed_bottom"
+      ]
+    },
+    "predicates": {
+      "denied": "A policy, capability or admission gate evaluated and refused. Supersedes rejected and not_permitted.",
+      "unauthorized": "The caller lacks the required authorization credential or grant. Supersedes not_authorized.",
+      "invalid": "The subject was present but failed syntax, schema, binding or verification.",
+      "missing": "A required subject is absent.",
+      "unknown": "The subject is not recognised by the active registry or resolver.",
+      "stale": "The subject is older than the freshness window the operation requires.",
+      "exhausted": "A consumable resource was fully used up; retry after replenishment (HTTP 429).",
+      "exceeded": "A declared threshold or ceiling was crossed (HTTP 403 / 413).",
+      "unsupported": "This deployment does not implement the named capability class."
+    },
+    "forbidden_forms": {
+      "bad_*": "use <subject>_invalid",
+      "*_rejected": "use _denied",
+      "*_not_authorized": "use _unauthorized",
+      "*_not_permitted": "use _denied",
+      "invalid_* / missing_* / stale_* / unknown_*": "use the <subject>_<state> suffix form"
+    }
+  }
 }

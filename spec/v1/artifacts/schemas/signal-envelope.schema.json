@@ -114,7 +114,7 @@
           "pattern": "^[A-Za-z0-9_-]+$"
         },
         "aad_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -125,7 +125,7 @@
   },
   "additionalProperties": false,
   "$defs": {
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -149,7 +149,7 @@
           "description": "The DID URL bare DID component MUST project through its registered adapter to sender_actor_id and its fragment MUST equal sender_device_id; constructing it by appending to did_core_id is forbidden. This mapping is only the completeness condition of the directory lookup key and never stands in for device authorization: the verifier MUST resolve the authoritative verify key for (sender_actor_id, sender_device_id) from its own current accepted device directory, which is a state domain seal_ref does not select (zh/sync/signal.md section 1)."
         },
         "envelope_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "created_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

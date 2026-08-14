@@ -43,7 +43,7 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "request_digest": {
-      "$ref": "#/$defs/hash"
+      "$ref": "#/$defs/digest"
     },
     "binding": {
       "oneOf": [
@@ -66,7 +66,7 @@
       ]
     },
     "prepared_plan_digest": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Digest of canonical prepared_plan bytes. Implementations MUST recompute it and persist both bytes and typed value before the first side effect."
     },
     "state": {
@@ -399,7 +399,7 @@
           "$ref": "#/$defs/any_step"
         },
         "prepared_material_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "acceptor_id": {
           "type": "string",
@@ -409,7 +409,7 @@
           "$ref": "#/$defs/step_output_ref"
         },
         "output_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -487,7 +487,7 @@
           "$ref": "#/$defs/backup_id"
         },
         "ciphertext_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -591,13 +591,13 @@
           "$ref": "#/$defs/transaction_id"
         },
         "transaction_request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "prepared_plan_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "attestation_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "SHA-256 of JCS(artifact). The coordinator MUST recompute it from the received typed artifact bytes."
         },
         "artifact": {
@@ -684,10 +684,10 @@
       ],
       "properties": {
         "request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "prepared_plan_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "expected_next_step": {
           "$ref": "#/$defs/any_step"
@@ -789,7 +789,7 @@
       },
       "additionalProperties": false
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -825,7 +825,7 @@
           "pattern": "^[A-Za-z0-9_-]+$"
         },
         "entry_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -869,7 +869,7 @@
           "pattern": "^[A-Za-z0-9_-]+$"
         },
         "request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -912,7 +912,7 @@
           "pattern": "^[A-Za-z0-9_-]+$"
         },
         "request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -953,7 +953,7 @@
           "$ref": "#/$defs/pcr_policy_recovery_plan"
         },
         "prepared_plan_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -1096,10 +1096,10 @@
           "const": "pcr_policy"
         },
         "recovery_session_snapshot_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "proof_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "previous_model_generation_ref": {
           "$ref": "#/$defs/pcr_generation_ref"
@@ -1156,7 +1156,7 @@
           "$ref": "#/$defs/event_id"
         },
         "new_secret_commitment": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "backup_rotations": {
           "type": "array",
@@ -1169,11 +1169,11 @@
           "description": "Exactly secret_storage then mls_history in canonical backup_kind order."
         },
         "erase_confirmation_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "SHA-256 of the non-circular JCS projection {domain=ak.backup_series_erase_confirmation_preimage.v1, transaction_id, series=backup_rotations}."
         },
         "local_commit_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "SHA-256 of the non-circular JCS projection {domain=ak.security_rotation_local_commit_preimage.v1, transaction_id, new_secret_commitment, backup_rotations}."
         }
       },
@@ -1211,7 +1211,7 @@
           "$ref": "#/$defs/security_rotation_plan"
         },
         "prepared_plan_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -1235,13 +1235,13 @@
           "$ref": "#/$defs/transaction_id"
         },
         "transaction_request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "prepared_plan_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "local_commit_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -1266,7 +1266,7 @@
           "$ref": "#/$defs/prepared_event_unit"
         },
         "new_secret_commitment": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "backup_rotations": {
           "type": "array",
@@ -1279,11 +1279,11 @@
           "description": "Prepared material for the same canonical two backup_kind entries as binding.backup_rotations."
         },
         "erase_confirmation_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Must equal the binding's non-circular erase confirmation projection digest."
         },
         "local_commit_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Must equal the binding's non-circular local commit projection digest."
         }
       },

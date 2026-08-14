@@ -1447,9 +1447,9 @@ def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
             "sig": case.get("signature"),
         }
         if name == "upload_entry_signature":
-            entry = unsigned.get("key_package")
+            entry = unsigned.get("keypackage")
             if not isinstance(entry, dict):
-                lint.fail(fixture_path, f"{name}.unsigned_request.key_package must be an object")
+                lint.fail(fixture_path, f"{name}.unsigned_request.keypackage must be an object")
                 continue
             instance = copy.deepcopy(entry)
             instance["device_signature"] = signature_object

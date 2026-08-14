@@ -215,7 +215,7 @@
       "name": "unregistered_reason_code_is_invalid",
       "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_device_outcome",
       "expect_valid": false,
-      "first_expected_error": "$.reason_code: 'push_key_expired' is not one of ['push_target_unknown', 'push_payload_too_large', 'profile_unsupported', 'delivery_binding_stale', 'push_token_unknown', 'push_token_invalid', 'push_gateway_unreachable', 'rate_limited']",
+      "first_expected_error": "$.reason_code: 'push_key_expired' is not one of ['push_target_unknown', 'push_payload_too_large', 'unsupported_profile', 'delivery_binding_stale', 'push_token_unknown', 'push_token_invalid', 'push_gateway_unreachable', 'rate_limited']",
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "notes": "reason_code is a closed enum whose members are all registered in error-code-registry.json. A free-form string would let each gateway invent its own failure vocabulary.",

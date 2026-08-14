@@ -24,6 +24,9 @@ REGISTRY_PATH = (
     ARTIFACTS / "registry" / "request-material-supply-exemption-registry.json"
 ).resolve()
 AGENT_OPERATIONS_PATH = (ARTIFACTS / "schemas" / "agent-operations.schema.json").resolve()
+INVITE_DELIVERY_PATH = (
+    ARTIFACTS / "schemas" / "invite-delivery-request.schema.json"
+).resolve()
 
 DID_OPERATION_ROW = "ak.exemption.request_material_supply.root_submit_did_operation.v1"
 
@@ -112,6 +115,26 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
                 if "issue_recovery_completion_grant" in error
                 and "terminal_receipt" in error
             ],
+            errors,
+        )
+
+    def test_referenced_union_branches_retain_supply_requirements(self) -> None:
+        # introduction_evidence is a oneOf whose branches are all local $refs.
+        # An unsupplied required member added inside one referenced branch must
+        # make the union fail instead of collapsing it to one opaque
+        # evidence-shaped leaf.
+        def mutate(schema):
+            branch = schema["$defs"]["locator_ref_evidence"]
+            branch["required"].append("unregistered_attestation")
+            branch["properties"]["unregistered_attestation"] = {"type": "string"}
+
+        errors = self._run(json_mutations={INVITE_DELIVERY_PATH: mutate})
+        self.assertTrue(
+            any(
+                "ak.self.invites.command.dispatch" in error
+                and "introduction_evidence" in error
+                for error in errors
+            ),
             errors,
         )
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.1",
+  "version": "2026-08-14.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T00:30:00Z",
+  "generated_at": "2026-08-14T06:24:26Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -563,7 +563,7 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.keys.backup_series.erase",
+      "action": "ak.self.keys.backup_series.command.erase",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
@@ -1495,7 +1495,6 @@
         "ak.invite.create",
         "ak.invite.revoke",
         "ak.invite.third_party",
-        "ak.keys.backup_series.erase",
         "ak.message.create",
         "ak.message.mention.broadcast",
         "ak.message.redact",

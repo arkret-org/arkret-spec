@@ -24,7 +24,7 @@
     "did_full_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_full_id"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$",
       "description": "Typed lowercase-hex SHA-256 digest."
@@ -51,7 +51,7 @@
           "$ref": "#/$defs/method_token"
         },
         "document_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Digest of the resolver's verified normalized DID Document projection (did-usage-and-verification.md section 5.1); never the raw response bytes (those use the differently named raw_document_digest)."
         },
         "method_proofs": {
@@ -105,7 +105,7 @@
           "description": "Sorted by witness_did, UTF-8 byte order; duplicates rejected. These rows double as the evidence dependency coordinates for selective invalidation."
         },
         "witness_proofs_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false

@@ -1124,7 +1124,7 @@ def check_mls_governance_proof_bounds(lint: Lint) -> None:
         "/$defs/covered_event_digests_chunk/properties/items/maxItems": 8192,
         "/$defs/control_state_chunk/properties/items/maxItems": 1024,
         "/$defs/frontier_events_chunk/properties/items/maxItems": 32,
-        "/$defs/chunk_proof/maxItems": 10,
+        "/$defs/chunk_inclusion_proof/maxItems": 10,
     }
     for pointer, expected in expected_schema_values.items():
         actual = json_pointer_get(schema, pointer)
@@ -1137,7 +1137,7 @@ def check_mls_governance_proof_bounds(lint: Lint) -> None:
         "/properties/bundle_digest/$ref",
         "/$defs/proof_request/properties/expected_bundle_digest/$ref",
         "/$defs/chunk_manifest/properties/chunks_root/$ref",
-        "/$defs/chunk_proof/items/$ref",
+        "/$defs/chunk_inclusion_proof/items/$ref",
         "/$defs/seal_path_chunk/properties/chunk_digest/$ref",
         "/$defs/covered_event_digests_chunk/properties/chunk_digest/$ref",
         "/$defs/control_state_chunk/properties/chunk_digest/$ref",

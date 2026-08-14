@@ -42,7 +42,7 @@
     "handle": {
       "$ref": "string-profiles.schema.json#/$defs/canonical_handle"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },

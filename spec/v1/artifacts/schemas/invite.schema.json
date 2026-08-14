@@ -35,7 +35,7 @@
       "description": "Public durable target for private invite delivery. invitee is the subject; this object carries only the recipient Principal Server service DID."
     },
     "introduction_evidence_digest": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Digest of private invite delivery introduction_evidence. Raw locator tokens and receive-policy state MUST NOT appear in durable Realm events."
     },
     "third_party_id": {
@@ -107,7 +107,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },

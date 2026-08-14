@@ -457,7 +457,7 @@ Reducer 与所有读路径 MUST：
 - 对包含 `require_review` 决策的目标，按 review proposal 状态机展示，不允许默认渲染。
 - `ak.moderation.decision.lift` 解除决策时，受影响的 search / projection cache MUST 立即重算。
 
-**多 decision fold（normative）**：`ak.component.moderation_state.v1` 是 OR-Set，多个 active add 是正常值。对当前路径适用的 entries 必须按 [`content-moderation.md` §2.6](../governance/content-moderation.md#26-moderation-决策-must-sealed) 的封闭收紧序 `hard_deny > quarantine > require_review > none` 求 effective verdict；同级多 entry 幂等合并并保留全部审计来源。实现不得把普通多 entry 集合误判为 split，也不得用 HLC / 到达顺序选一个 issuer。active `require_review` add 同时是 pending-review 真相源，其 allow / quarantine / hard-deny 解除路径必须使用该节规定的原子 lift / replacement batch。
+**多 decision fold（normative）**：`ak.component.moderation_state.v1` 是 OR-Set，多个 active add 是正常值。对当前路径适用的 entries 必须按 [`content-moderation.md` §2.6](../governance/content-moderation.md#26-moderation-决策-must-sealed) 的封闭收紧序 `hard_deny > quarantine > require_review > none` 求 effective decision；同级多 entry 幂等合并并保留全部审计来源。实现不得把普通多 entry 集合误判为 split，也不得用 HLC / 到达顺序选一个 issuer。active `require_review` add 同时是 pending-review 真相源，其 allow / quarantine / hard-deny 解除路径必须使用该节规定的原子 lift / replacement batch。
 
 Policy Server fast path 与 sealed control decision 的关系：
 

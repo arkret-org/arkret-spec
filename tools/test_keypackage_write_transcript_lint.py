@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import base64
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -14,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from tools.artifact_lint import fixtures as lint_artifacts
+from tools.regenerate_keypackage_write_transcript_fixture import rebuild
 
 FIXTURE = ROOT / "spec" / "v1" / "artifacts" / "fixtures" / "keypackage-write-transcript-fixture.json"
 
@@ -122,6 +124,29 @@ class KeyPackageWriteTranscriptLintTest(unittest.TestCase):
 
         errors = self._lint_mutation(mutate)
         self.assertTrue(any("signature does not verify" in error for error in errors), errors)
+
+    def test_regenerator_updates_invalid_case_transcript_without_repairing_signature(self) -> None:
+        fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
+        case = copy.deepcopy(self._case(fixture, "revoke_with_reason"))
+        case["name"] = "intentionally_invalid_signature"
+        case["expect_invalid_signature"] = True
+        case["canonical_jcs"] = "stale"
+        case["signing_input_base64url"] = "c3RhbGU"
+        case["signature"] = "AA"
+        fixture["negative_cases"].append(case)
+
+        rebuilt, changed = rebuild(fixture)
+        rebuilt_case = rebuilt["negative_cases"][-1]
+        expected_canonical = lint_artifacts.canonical_json(case["unsigned_request"])
+        expected_input = (case["domain"] + expected_canonical).encode("utf-8")
+
+        self.assertIn(case["name"], changed)
+        self.assertEqual(rebuilt_case["canonical_jcs"], expected_canonical)
+        self.assertEqual(
+            rebuilt_case["signing_input_base64url"],
+            base64.urlsafe_b64encode(expected_input).rstrip(b"=").decode("ascii"),
+        )
+        self.assertEqual(rebuilt_case["signature"], "AA")
 
 
 if __name__ == "__main__":

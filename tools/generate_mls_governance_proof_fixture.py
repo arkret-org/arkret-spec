@@ -407,14 +407,14 @@ def build_fixture() -> dict[str, Any]:
             {
                 **digest_input,
                 "chunk_digest": wire_digest(CHUNK_DOMAIN + canonical_bytes(digest_input)),
-                "chunk_proof": [],
+                "chunk_inclusion_proof": [],
             }
         )
     chunks_root, proofs = four_leaf_root_and_proofs(
         [chunk["chunk_digest"] for chunk in chunks]
     )
     for chunk, proof in zip(chunks, proofs, strict=True):
-        chunk["chunk_proof"] = proof
+        chunk["chunk_inclusion_proof"] = proof
 
     total_item_bytes = sum(
         len(canonical_bytes(item))
@@ -483,7 +483,7 @@ def build_fixture() -> dict[str, Any]:
         mutation_case("self_reported_anchor_is_not_trust", "replace_anchor", "anchor_trust", "state_mismatch", parameters={"seal_id": unknown_seal}),
         mutation_case("broken_seal_path", "break_seal_path", "seal_path", "state_mismatch"),
         mutation_case("forked_seal_path", "fork_seal_path", "seal_path", "state_mismatch"),
-        mutation_case("wrong_notary_authority", "replace_notary_method", "seal_authority", "signature_invalid"),
+        mutation_case("wrong_notary_authority", "replace_notary_method", "seal_authority", "directory_governance_proof_signature_invalid"),
         mutation_case("missing_covered_digest", "remove_collection_item", "covered_set", "state_mismatch", parameters={"collection": "covered_event_digests", "index": 0}),
         mutation_case("extra_covered_digest", "append_collection_item", "covered_set", "state_mismatch", parameters={"collection": "covered_event_digests", "value": extra_digest}),
         mutation_case("duplicate_covered_digest", "duplicate_collection_item", "covered_set", "state_mismatch", parameters={"collection": "covered_event_digests", "index": 0}),
@@ -497,7 +497,7 @@ def build_fixture() -> dict[str, Any]:
         mutation_case("duplicate_frontier_event", "duplicate_collection_item", "membership_frontier", "state_mismatch", parameters={"collection": "frontier_events", "index": 0}),
         mutation_case("frontier_event_order", "reverse_collection", "membership_frontier", "state_mismatch", parameters={"collection": "frontier_events"}),
         mutation_case("frontier_cross_realm_scope", "replace_frontier_effective_scope", "membership_frontier", "state_mismatch", parameters={"realm_id": fixture_derived_id("realm", "foreign-governance-realm")}),
-        mutation_case("frontier_event_proof_invalid", "flip_frontier_signature_bit", "membership_frontier", "signature_invalid"),
+        mutation_case("frontier_event_proof_invalid", "flip_frontier_signature_bit", "membership_frontier", "directory_governance_proof_signature_invalid"),
         mutation_case("chunks_root_mismatch", "flip_chunks_root_bit", "chunk_commitment", "digest_mismatch", recommit="none"),
         mutation_case("missing_chunk", "remove_chunk", "chunk_sequence", "state_mismatch", parameters={"chunk_index": 2}, recommit="none"),
         mutation_case("duplicate_chunk", "duplicate_chunk", "chunk_sequence", "state_mismatch", parameters={"chunk_index": 1}, recommit="none"),
@@ -506,8 +506,8 @@ def build_fixture() -> dict[str, Any]:
         mutation_case("binding_group_mismatch", "replace_binding_group", "binding", "governance_binding_mismatch"),
         mutation_case("binding_previous_epoch_mismatch", "replace_binding_previous_epoch", "binding", "governance_binding_mismatch"),
         mutation_case("binding_next_epoch_mismatch", "replace_binding_next_epoch", "binding", "governance_binding_mismatch"),
-        mutation_case("binding_profile_mismatch", "replace_binding_profile", "binding", "profile_unsupported"),
-        mutation_case("binding_reducer_mismatch", "replace_binding_reducer", "binding", "profile_unsupported"),
+        mutation_case("binding_profile_mismatch", "replace_binding_profile", "binding", "unsupported_profile"),
+        mutation_case("binding_reducer_mismatch", "replace_binding_reducer", "binding", "unsupported_profile"),
         mutation_case("security_frontier_digest_mismatch", "replace_security_frontier_digest", "security_frontier", "governance_binding_mismatch"),
         mutation_case("unrelated_capability_does_not_change_frontier", "append_unrelated_capability", "security_frontier", "unexpected_frontier_change"),
         mutation_case("active_leaf_revoke_missing_from_frontier", "remove_active_leaf_revoke", "security_frontier", "governance_binding_mismatch"),
@@ -518,7 +518,7 @@ def build_fixture() -> dict[str, Any]:
         materializer_case("unreachable_anchor", "detach_anchor_from_ancestry", "mls_governance_anchor_unreachable"),
         materializer_case("missing_seal_material", "remove_accepted_seal", "frontier_unavailable"),
         materializer_case("forked_seal_source", "fork_accepted_seal", "state_mismatch"),
-        materializer_case("unauthorized_notary_source", "revoke_notary_before_sealed_at", "signature_invalid"),
+        materializer_case("unauthorized_notary_source", "revoke_notary_before_sealed_at", "directory_governance_proof_signature_invalid"),
         materializer_case("missing_covered_event_source", "remove_covered_event", "state_mismatch"),
         materializer_case("bottom_control_cell_source", "insert_bottom_diagnostic", "failed_bottom"),
         materializer_case("scope_visibility_denied", "deny_scope_visibility", "not_found"),

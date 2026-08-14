@@ -196,7 +196,7 @@ Principal Server sync surface 只执行本文件明确列出的内置 dispatch g
 
 **`is_direct_message` / `member_count` 的侧信道收口（normative）**：Principal Server sync surface 不得为匹配用户规则取得精确成员数或“是否双人私聊”投影。客户端只能使用自己在正常授权读取中已经获得的 roster / Direct Conversation binding；minimal-metadata Realm 若不向该客户端披露精确值，则该条件求值为 indeterminate 并继续检查下一条规则，不得触发 allow/notify。
 
-对 bucket 值求比较时，注册方 MUST 先把数值谓词映射为整数集合，并逐 bucket 检查：与 bucket 区间无交集则该 bucket 求值 `false`；bucket 全部落入谓词集合则求值 `true`；只部分相交属于不确定规则，MUST 在规则注册 / 更新时以 `invalid_param` 拒绝，不能按精确成员数补算。开放上界 bucket 同样按区间集合处理。因此 E2EE / 高隐私 Realm 的 `member_count` 阈值 MUST 对齐 bucket 边界；示例 `<= 5` 在默认 `1-10` grid 上非法，调用方应改用 `<= 10` 或 client-side 评估。
+对 bucket 值求比较时，注册方 MUST 先把数值谓词映射为整数集合，并逐 bucket 检查：与 bucket 区间无交集则该 bucket 求值 `false`；bucket 全部落入谓词集合则求值 `true`；只部分相交属于不确定规则，MUST 在规则注册 / 更新时以 `param_invalid` 拒绝，不能按精确成员数补算。开放上界 bucket 同样按区间集合处理。因此 E2EE / 高隐私 Realm 的 `member_count` 阈值 MUST 对齐 bucket 边界；示例 `<= 5` 在默认 `1-10` grid 上非法，调用方应改用 `<= 10` 或 client-side 评估。
 
 #### 4.3.1 `strand_track` 与 per-track 通知
 
@@ -518,7 +518,7 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 |---|---|---|
 | `push_target_unknown` | target（展开到全部 device） | terminal；停止对该 target 的 notify。 |
 | `push_payload_too_large` | target（展开到全部 device） | terminal；缩减 payload 后才可重试。 |
-| `profile_unsupported` | device | terminal；该设备未 opt-in 所请求的通知 profile，改用 blind 形态。 |
+| `unsupported_profile` | device | terminal；该设备未 opt-in 所请求的通知 profile，改用 blind 形态。 |
 | `delivery_binding_stale` | device | terminal；接收方 delivery-binding frontier 已推进，route 过期，需重新解析。 |
 | `push_token_unknown` | device | terminal；**SHOULD 移除该设备注册**。 |
 | `push_token_invalid` | device | terminal；**SHOULD 移除该设备注册**。 |

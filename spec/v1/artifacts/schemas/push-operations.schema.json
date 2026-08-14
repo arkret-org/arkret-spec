@@ -535,7 +535,7 @@
           "enum": [
             "push_target_unknown",
             "push_payload_too_large",
-            "profile_unsupported",
+            "unsupported_profile",
             "delivery_binding_stale",
             "push_token_unknown",
             "push_token_invalid",

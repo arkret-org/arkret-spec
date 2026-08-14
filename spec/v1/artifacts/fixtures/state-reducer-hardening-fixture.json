@@ -171,7 +171,7 @@
       "expected": {
         "positive_decision": "signature_valid",
         "negative_decision": "reject",
-        "negative_reason": "invalid_signature"
+        "negative_reason": "signature_invalid"
       }
     },
     {

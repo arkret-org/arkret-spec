@@ -31,7 +31,7 @@
       "$ref": "#/$defs/blob_ref"
     },
     "content_digest": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Digest of the stored blob bytes. For encrypted file transfer this is the ciphertext digest and MUST NOT be a plaintext file hash."
     },
     "blob_size_bytes": {
@@ -179,7 +179,7 @@
       "type": "string",
       "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -425,7 +425,7 @@
           "maximum": 1048576
         },
         "content_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "key_envelope": {
           "$ref": "#/$defs/key_envelope"
@@ -496,7 +496,7 @@
           "$ref": "#/$defs/base64url"
         },
         "aad_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false

@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-14.1",
-  "generated_at": "2026-08-14T00:30:00Z",
+  "version": "2026-08-14.2",
+  "generated_at": "2026-08-14T03:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2067,7 +2067,7 @@
         "required": [
           "e2ee_relaxed"
         ],
-        "unsupported_optional": "Servers that do not advertise ak.feature.e2ee_relaxed.v1 MUST reject Realm create / ak.realm.policy_bundle writes that set mls_send_pause=\"advisory\" (reason: profile_unsupported / mls_send_pause_advisory_requires_e2ee_relaxed_profile). They MUST NOT silently accept the advisory string without honoring the relaxed semantics."
+        "unsupported_optional": "Servers that do not advertise ak.feature.e2ee_relaxed.v1 MUST reject Realm create / ak.realm.policy_bundle writes that set mls_send_pause=\"advisory\" (reason: unsupported_profile / mls_send_pause_advisory_requires_e2ee_relaxed_profile). They MUST NOT silently accept the advisory string without honoring the relaxed semantics."
       },
       "downgrade_declaration_obligation": {
         "policy_declaration_required": "Realm create or ak.realm.policy_bundle MUST explicitly declare ak.profile.e2ee_relaxed.v1 before mls_send_pause=\"advisory\" is accepted. Out-of-band deployment config, UI-only labels, or a missing governance_binding GroupContext extension MUST NOT be treated as a valid downgrade declaration.",
@@ -2583,13 +2583,13 @@
           "frontier_probe_interval_seconds",
           "stale_peer_threshold"
         ],
-        "unsupported_optional": "reject claim of ak.profile.federation.high_assurance.v1 if proactive frontier exchange or stale_peer fail-state is not implemented"
+        "unsupported_optional": "reject claim of ak.profile.federation.high_assurance.v1 if proactive frontier exchange or peer_stale fail-state is not implemented"
       },
       "additional_requirements": {
         "frontier_probe_capability_must": "Peer MUST expose capability-gated frontier probe endpoint per federation.md §4.5.1.",
         "proactive_exchange_must": "Per federation-visible Realm, per authorized peer, frontier probe interval MUST be <= 3600 seconds.",
-        "fail_state_must": "Three consecutive probe failures (peer unreachable or signature failure) MUST mark the peer as 'stale_peer' for that Realm. Separately, an aggregate-commitment difference MUST first be reduced via per-actor challenge/backfill on the intersection of replicated actors, comparing each (realm_id, actor_id, actor_seq) as a canonical sibling SET of (event_id,event_digest,prev_frontier_digest), not as a single hash. Different event_id/hash siblings at one actor_seq are legal within the event-and-patch.md §2.6 limits and MUST converge by validated set union. A same-event_id/different-digest conflict, an over-limit sibling set, a profile-declared non-joinable sibling conflict, or inconsistent witness payloads for the same complete attestation scope MUST quarantine the affected increments on the FIRST confirmed occurrence and MUST NOT be folded into the three-consecutive-failure window. Raw frontier_root/heads/range-root differences across different scopes, and incomplete subsets of a legal sibling set, MUST NOT alone count as probe failure or witness_disagreement.",
-        "stale_peer_behavior_must": "While a peer is in 'stale_peer' state: MUST quarantine its push payloads for the affected evidence scope (no local frontier advancement from that scope); MUST surface state via operator alarm channel; MAY refuse to fanout new Events to that peer. Stale status MUST clear after the original evidence is resolved: the disputed event id/digest or over-fork/non-joinable sibling bucket has an authorized canonical resolution and the peer matches that canonical sibling set, or witnesses for the same complete attestation scope again sign one consistent payload. Scope-different peers MUST NOT be required to have globally identical heads."
+        "fail_state_must": "Three consecutive probe failures (peer unreachable or signature failure) MUST mark the peer as 'peer_stale' for that Realm. Separately, an aggregate-commitment difference MUST first be reduced via per-actor challenge/backfill on the intersection of replicated actors, comparing each (realm_id, actor_id, actor_seq) as a canonical sibling SET of (event_id,event_digest,prev_frontier_digest), not as a single hash. Different event_id/hash siblings at one actor_seq are legal within the event-and-patch.md §2.6 limits and MUST converge by validated set union. A same-event_id/different-digest conflict, an over-limit sibling set, a profile-declared non-joinable sibling conflict, or inconsistent witness payloads for the same complete attestation scope MUST quarantine the affected increments on the FIRST confirmed occurrence and MUST NOT be folded into the three-consecutive-failure window. Raw frontier_root/heads/range-root differences across different scopes, and incomplete subsets of a legal sibling set, MUST NOT alone count as probe failure or witness_disagreement.",
+        "stale_peer_behavior_must": "While a peer is in 'peer_stale' state: MUST quarantine its push payloads for the affected evidence scope (no local frontier advancement from that scope); MUST surface state via operator alarm channel; MAY refuse to fanout new Events to that peer. Stale status MUST clear after the original evidence is resolved: the disputed event id/digest or over-fork/non-joinable sibling bucket has an authorized canonical resolution and the peer matches that canonical sibling set, or witnesses for the same complete attestation scope again sign one consistent payload. Scope-different peers MUST NOT be required to have globally identical heads."
       }
     },
     "ak.profile.identity_registry.v1": {

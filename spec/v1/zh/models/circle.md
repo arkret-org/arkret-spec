@@ -124,9 +124,9 @@ Relation.effective_scope      : reducer-derived read projection，必须等于�
 
 当 DataEvent 的 `seal_ref` 基线内 Circle 仍为 `active`、但 receiver 已观察到其后的 lifecycle Seal 时，按 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3 的撤销新鲜度框架处理：
 
-- 若 `ak.circle.archive` 所在 Seal `S_archive` 是 `seal_ref` 的后继，`distance(seal_ref, S_archive)` MUST 使用被签名的 Seal 提交时间计算。距离不超过 `revocation_freshness_window_ms` 时，receiver MUST 接受并把该 Event 保留在 data-cell join 输入；超过窗口 MUST 拒绝或隐藏，reason=`stale_seal_ref`。不得把 receiver 当前看到的 `archived` 直接当成事件基线内的 `circle_not_active`，也不得为此自造未登记的响应字段。
-- `ak.circle.tombstone` 是不可逆终止。一旦 receiver 观察到其 Seal，任何更早 `seal_ref` 的 Circle-scoped DataEvent MUST 立即拒绝或隐藏，reason=`stale_seal_ref`，不享受新鲜度窗口。
-- `open_set` 下 archive / tombstone Seal 与 `seal_ref` 并发时，receiver MUST 按已验证 leaf 集的 joined control view 重判；joined lifecycle 不是 `active` 时立即 `stale_seal_ref`，不得计算 `distance` 或给予窗口。无法验证 multi-leaf joined view 的轻客户端 MUST hold pending 或 fail closed，不得 fanout。
+- 若 `ak.circle.archive` 所在 Seal `S_archive` 是 `seal_ref` 的后继，`distance(seal_ref, S_archive)` MUST 使用被签名的 Seal 提交时间计算。距离不超过 `revocation_freshness_window_ms` 时，receiver MUST 接受并把该 Event 保留在 data-cell join 输入；超过窗口 MUST 拒绝或隐藏，reason=`seal_ref_stale`。不得把 receiver 当前看到的 `archived` 直接当成事件基线内的 `circle_not_active`，也不得为此自造未登记的响应字段。
+- `ak.circle.tombstone` 是不可逆终止。一旦 receiver 观察到其 Seal，任何更早 `seal_ref` 的 Circle-scoped DataEvent MUST 立即拒绝或隐藏，reason=`seal_ref_stale`，不享受新鲜度窗口。
+- `open_set` 下 archive / tombstone Seal 与 `seal_ref` 并发时，receiver MUST 按已验证 leaf 集的 joined control view 重判；joined lifecycle 不是 `active` 时立即 `seal_ref_stale`，不得计算 `distance` 或给予窗口。无法验证 multi-leaf joined view 的轻客户端 MUST hold pending 或 fail closed，不得 fanout。
 - 后续 `ak.circle.restore` 只使**以包含 restore 的 active control view 为新基线**的写入恢复合法；它 MUST NOT 追溯恢复任何跨过 archive barrier 的旧 `seal_ref`。producer 在 restore 后继续写入 MUST 换用包含 restore 的新 Seal 基线。
 
 这些规则只统一 lifecycle gate 的基线与 stale 处置，不改变签名 `scope_ref`：一旦 DataEvent
@@ -343,7 +343,7 @@ Circle lifecycle 只有 `active` / `archived` / `tombstoned` 三态，对应 `ak
 | 父 Realm freeze | 所有非豁免新写入按 Realm §2.6.0 拒绝 `realm_frozen` | Circle-scoped 新写入同样按 `realm_frozen` 拒绝；Circle 本身不定义独立 freeze，也不得用 Circle capability 绕过父 Realm freeze |
 | 父 Realm archive | 按 Realm 默认隐藏 / 只读投影，可由 Realm restore 恢复 | Circle 与其对象遵循父 Realm archive 的默认隐藏 / 只读投影；不额外 tombstone、不改 membership / MLS eligibility，Realm restore 后恢复到 Circle 自身 lifecycle 决定的状态 |
 | Circle archive | 不受影响 | 事件 CBA 基线内已 archived 时，新写入 MUST fail closed(`failed_precondition`, `reason=circle_not_active`)，**含新建以该 archived Circle 为 `scope_circle_id` 的对象**；基线后才观察到 archive 时按 §6.1 的 freshness / joined-view 规则处置。既有对象保持历史可读/可审计投影，但不得继续追加 Message / Morph / structural Relation / position update，直到 `ak.circle.restore` 使 Circle 恢复 active |
-| Circle tombstone | 不受影响 | 事件基线内已 tombstoned 时对象写入 MUST `circle_not_active`；基线后观察到 tombstone 时立即 `stale_seal_ref`，不享受 freshness window。projection 显示 scope unavailable；`scope_circle_id` 不会被自动 rewrite |
+| Circle tombstone | 不受影响 | 事件基线内已 tombstoned 时对象写入 MUST `circle_not_active`；基线后观察到 tombstone 时立即 `seal_ref_stale`，不享受 freshness window。projection 显示 scope unavailable；`scope_circle_id` 不会被自动 rewrite |
 | 父 Realm 收紧 history visibility | 按新 visibility | Effective visibility 重新计算为更严格值；Circle 不得保持比父 Realm 更宽的历史披露 |
 | Circle history visibility 收紧 | 不受影响 | 投影、watch、message read/write 按新状态重新裁剪 |
 | `scope_circle_id` 改绑 | — | 默认拒；profile 允许时 audit-paired，新旧历史分段展示(见 §6.1) |
@@ -352,7 +352,7 @@ Circle lifecycle 只有 `active` / `archived` / `tombstoned` 三态，对应 `ak
 
 父 Realm terminal gate 的判定优先于 Circle 自身 lifecycle gate。因此父 Realm已
 tombstone / destroy 时，即使 Circle canonical state 仍为 `active`，receiver 也 MUST 返回
-`realm_terminal_state`，而不是 `circle_not_active` / `stale_seal_ref`；该优先级保证所有
+`realm_terminal_state`，而不是 `circle_not_active` / `seal_ref_stale`；该优先级保证所有
 实现对同一父 Realm terminal basis 产生相同错误形态。
 
 **`ak.circle.restore`（archived → active）后置条件（normative）**：archived 是可逆中间态，restore 的 membership / MLS 后置条件如下：

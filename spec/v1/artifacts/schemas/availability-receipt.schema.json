@@ -21,7 +21,7 @@
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
     "bytes_digest": {
-      "$ref": "#/$defs/hash"
+      "$ref": "#/$defs/digest"
     },
     "holder_id": {
       "$ref": "#/$defs/did_core_id"
@@ -38,7 +38,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -63,7 +63,7 @@
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "payload_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Hash of canonical AvailabilityReceipt bytes with signature omitted."
         },
         "created_at": {

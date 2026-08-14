@@ -23,6 +23,7 @@ from .core import (
     LEGACY_DID_METHOD_REGEX_RE,
     Lint,
     MARKDOWN_LINK_RE,
+    NAMING_DEBT_PATH,
     NAMING_RULES_PATH,
     NAMING_RULE_MARKER_RE,
     NON_NORMATIVE_KEYWORD_WAIVERS,
@@ -63,6 +64,28 @@ from .core import (
     split_ref,
     walk_json,
     yaml,
+)
+from .naming import (
+    DEFAULT_REJECTED_WRAPPER_WORDS,
+    FORBIDDEN_SYMBOLIC_LITERALS,
+    PASCAL_CASE_RE,
+    PREDICATES,
+    SNAKE_CASE_RE,
+    enumerate_schema_enums,
+    enumerate_schema_properties,
+    enumerate_schema_type_names,
+    naive_property_occurrences,
+    naive_property_population,
+    nc_artifact_001,
+    nc_bool_001,
+    nc_code_001,
+    nc_count_001,
+    nc_evidence_001,
+    nc_hash_001,
+    nc_set_001,
+    schema_shape_has_type,
+    stacked_wrapper_words,
+    unregistered_wrapper_word,
 )
 
 
@@ -120,6 +143,15 @@ def check_naming_predicates(lint: Lint) -> None:
                 lint.fail(
                     NAMING_RULES_PATH,
                     f"{row.get('rule_id')} external_literal exception lacks external_anchor",
+                )
+            # An exception whose anchor no longer resolves has stopped describing
+            # anything; it silently widens the rule instead of narrowing it.
+            anchor = exception.get("anchor")
+            if isinstance(anchor, str) and not (ROOT / anchor).exists():
+                lint.fail(
+                    NAMING_RULES_PATH,
+                    f"{row.get('rule_id')} exception `{exception.get('id')}` anchors a path "
+                    f"that no longer exists: {anchor}",
                 )
 
     dto_schema_path = ARTIFACTS / "schemas" / "service-operation-dtos.schema.json"
@@ -256,100 +288,329 @@ def check_naming_predicates(lint: Lint) -> None:
                 "audited_occurrence_count does not match the registered schema/registry key count",
             )
 
-    allowed_hash_fields = {
-        "transcript_hash",
-        "confirmed_transcript_hash",
-        "nextKeyHashes",
-        "current_key_hash",
-        "current_key_hashes",
-        "next_key_hash",
-        "previous_next_key_hashes",
-        "matches_previous_next_key_hashes",
-        "hashes",
-    }
-    forbidden_boolean_prefixes = ("allow_", "require_", "requires_", "deny_", "force_")
-    forbidden_set_prefixes = ("permitted_", "forbidden_", "blocked_", "banned_")
-    forbidden_symbolic_literals = {
-        "mls-rfc9420",
-        "mls-exporter-aead-v1",
-        "feldman-vss-sha256",
-        "pedersen-vss-sha256",
-        "share-hash-sha256",
-        "share-hash-blake3",
-        "arkret-native",
-        "moq-relay",
-    }
+    # ------------------------------------------------------------------
+    # Exact-path exception index. A naming exception is only meaningful for
+    # the schema location its external anchor actually covers; a name-only
+    # allowlist silently exports that grant to every other schema.
+    # ------------------------------------------------------------------
+    def index_exact_paths(source_path: Path, rows: Any, where: str) -> dict[tuple[str, str, str], dict]:
+        index: dict[tuple[str, str, str], dict] = {}
+        if not isinstance(rows, list):
+            if rows is not None:
+                lint.fail(source_path, f"{where} must be an array")
+            return index
+        for row in rows:
+            if not isinstance(row, dict):
+                lint.fail(source_path, f"{where} entries must be objects")
+                continue
+            file_name = row.get("file")
+            pointer = row.get("pointer")
+            name = row.get("name")
+            if not isinstance(file_name, str) or not isinstance(pointer, str) or not isinstance(name, str):
+                lint.fail(source_path, f"{where} entry needs string file/pointer/name")
+                continue
+            if not pointer.startswith("/"):
+                lint.fail(source_path, f"{where} pointer `{pointer}` must be an RFC 6901 pointer")
+                continue
+            key = (file_name, pointer, name)
+            if key in index:
+                lint.fail(source_path, f"{where} duplicates {file_name}#{pointer}")
+                continue
+            index[key] = row
+        return index
 
-    def visit_schema(path: Path, node: Any, where: str = "$") -> None:
-        if not isinstance(node, dict):
-            if isinstance(node, list):
-                for index, item in enumerate(node):
-                    visit_schema(path, item, f"{where}[{index}]")
+    rejected_wrapper_words = tuple(rules_data.get("rejected_wrapper_words", ()))
+    if not rejected_wrapper_words:
+        lint.fail(NAMING_RULES_PATH, "NC-TYPE-001 needs a registered rejected_wrapper_words list")
+    elif tuple(DEFAULT_REJECTED_WRAPPER_WORDS) != rejected_wrapper_words:
+        lint.fail(
+            NAMING_RULES_PATH,
+            "rejected_wrapper_words must match the predicate table used by the registered cases",
+        )
+
+    exact_exceptions: dict[str, dict[tuple[str, str, str], dict]] = {}
+    for row in rules:
+        if not isinstance(row, dict):
+            continue
+        rule_id = row.get("rule_id")
+        if not isinstance(rule_id, str):
+            continue
+        exact_exceptions[rule_id] = index_exact_paths(
+            NAMING_RULES_PATH, row.get("exact_path_exceptions", []), f"{rule_id}.exact_path_exceptions"
+        )
+
+    debt_data = load_json(lint, NAMING_DEBT_PATH)
+    debt_index: dict[str, dict[tuple[str, str, str], dict]] = {}
+    if isinstance(debt_data, dict):
+        if debt_data.get("source_of_truth") is not False:
+            lint.fail(NAMING_DEBT_PATH, "debt baseline is a transient ledger, not a truth source")
+        entries = debt_data.get("entries")
+        grouped: dict[str, list] = {}
+        if isinstance(entries, list):
+            for entry in entries:
+                if not isinstance(entry, dict):
+                    lint.fail(NAMING_DEBT_PATH, "entries must be objects")
+                    continue
+                rule_id = entry.get("rule_id")
+                if rule_id not in PREDICATES:
+                    lint.fail(NAMING_DEBT_PATH, f"unknown rule_id `{rule_id}`")
+                    continue
+                if entry.get("basis") == "external_literal" or entry.get("external_anchor"):
+                    lint.fail(
+                        NAMING_DEBT_PATH,
+                        f"{rule_id} debt must not claim an external anchor; register it as a "
+                        f"rule exception instead",
+                    )
+                if not entry.get("owner_batch") or not entry.get("reason"):
+                    lint.fail(NAMING_DEBT_PATH, f"{rule_id} debt needs owner_batch and reason")
+                grouped.setdefault(rule_id, []).append(entry)
+        elif entries is not None:
+            lint.fail(NAMING_DEBT_PATH, "entries must be an array")
+        for rule_id, rows_for_rule in grouped.items():
+            debt_index[rule_id] = index_exact_paths(
+                NAMING_DEBT_PATH, rows_for_rule, f"{rule_id} debt"
+            )
+
+    matched_exceptions: set[tuple[str, str, str, str]] = set()
+    matched_debt: set[tuple[str, str, str, str]] = set()
+
+    def adjudicate(path: Path, rule_id: str, file_name: str, pointer: str, name: str) -> None:
+        """Report a violation unless an exact-path exception or debt entry covers it."""
+
+        key = (file_name, pointer, name)
+        if key in exact_exceptions.get(rule_id, {}):
+            matched_exceptions.add((rule_id, *key))
             return
-        definitions = node.get("$defs")
-        if isinstance(definitions, dict) and path.name != "service-operation-dtos.schema.json":
-            for name in definitions:
-                if not re.fullmatch(r"[a-z][a-z0-9_]*", name):
-                    lint.fail(path, f"{where}.$defs key `{name}` must be snake_case")
-        properties = node.get("properties")
-        if isinstance(properties, dict):
-            for name, shape in properties.items():
-                property_where = f"{where}.properties.{name}"
-                is_boolean = isinstance(shape, dict) and shape.get("type") == "boolean"
-                if is_boolean and name.startswith(forbidden_boolean_prefixes):
-                    lint.fail(path, f"{property_where} violates NC-BOOL-001")
-                if (
-                    (name.endswith("_hash") or name.endswith("_hashes") or name in {"hash_profile", "hash_algorithm"})
-                    and name not in allowed_hash_fields
-                ):
-                    lint.fail(path, f"{property_where} violates NC-HASH-001")
-                if name.endswith(("_len", "_length", "_size")):
-                    lint.fail(path, f"{property_where} violates NC-COUNT-001")
-                if name in {"failure_code", "rejection_code"}:
-                    lint.fail(path, f"{property_where} violates NC-CODE-001")
-                if (
-                    isinstance(shape, dict)
-                    and shape.get("type") == "array"
-                    and name.startswith(forbidden_set_prefixes)
-                ):
-                    lint.fail(path, f"{property_where} violates NC-SET-001")
-                if name == "stage" and isinstance(shape, dict) and isinstance(shape.get("enum"), list):
-                    if set(shape["enum"]) != STAGE_VALUES:
-                        lint.fail(path, f"{property_where} reuses reserved stage outside the 8-value axis")
-                visit_schema(path, shape, property_where)
-        enum_values = node.get("enum")
-        if isinstance(enum_values, list):
-            for value in enum_values:
-                if value in forbidden_symbolic_literals:
-                    lint.fail(path, f"{where}.enum contains non-snake Arkret symbol `{value}`")
-        for key, value in node.items():
-            if key not in {"properties", "$defs", "enum"}:
-                visit_schema(path, value, f"{where}.{key}")
+        if key in debt_index.get(rule_id, {}):
+            matched_debt.add((rule_id, *key))
+            return
+        lint.fail(path, f"{pointer} violates {rule_id} (`{name}`)")
 
-    for schema_path in sorted((ARTIFACTS / "schemas").glob("*.json")):
-        schema_data = load_json(lint, schema_path)
-        if schema_data is not None:
-            visit_schema(schema_path, schema_data)
+    # ------------------------------------------------------------------
+    # Schema surface. One walker feeds both the checks and the coverage proof.
+    # ------------------------------------------------------------------
+    schema_paths = sorted((ARTIFACTS / "schemas").glob("*.json"))
+    schema_documents = {
+        schema_path.name: schema_data
+        for schema_path in schema_paths
+        if (schema_data := load_json(lint, schema_path)) is not None
+    }
+
+    def resolve_shape_ref(current_file: str, ref: str) -> tuple[str, Any] | None:
+        target, separator, fragment = ref.partition("#")
+        target_file = current_file if not target else Path(target).name
+        target_document = schema_documents.get(target_file)
+        if target_document is None:
+            return None
+        pointer = f"#{fragment}" if separator else ""
+        try:
+            return target_file, resolve_json_pointer(target_document, pointer)
+        except (KeyError, TypeError, ValueError):
+            return None
+
+    reached_names: set[str] = set()
+    reached_paths: set[tuple[str, str, str]] = set()
+    expected_names: set[str] = set()
+    expected_paths: set[tuple[str, str, str]] = set()
+
+    for schema_path in schema_paths:
+        schema_data = schema_documents.get(schema_path.name)
+        if schema_data is None:
+            continue
+        file_name = schema_path.name
+        expected_names |= naive_property_population(schema_data)
+        expected_paths |= {
+            (file_name, pointer, name)
+            for pointer, name in naive_property_occurrences(schema_data)
+        }
+        is_dto_mirror = file_name == "service-operation-dtos.schema.json"
+
+        for occurrence in enumerate_schema_properties(file_name, schema_data):
+            name = occurrence.name
+            pointer = occurrence.pointer
+            shape = occurrence.shape
+            reached_names.add(name)
+            reached_paths.add((file_name, pointer, name))
+
+            shape_is = shape if isinstance(shape, dict) else {}
+            if schema_shape_has_type(file_name, shape, "boolean", resolve_shape_ref) and nc_bool_001(
+                name
+            ):
+                adjudicate(schema_path, "NC-BOOL-001", file_name, pointer, name)
+            if nc_hash_001(name):
+                adjudicate(schema_path, "NC-HASH-001", file_name, pointer, name)
+            if nc_count_001(name):
+                adjudicate(schema_path, "NC-COUNT-001", file_name, pointer, name)
+            if nc_code_001(name):
+                adjudicate(schema_path, "NC-CODE-001", file_name, pointer, name)
+            if schema_shape_has_type(file_name, shape, "array", resolve_shape_ref) and nc_set_001(
+                name
+            ):
+                adjudicate(schema_path, "NC-SET-001", file_name, pointer, name)
+            if nc_evidence_001(name):
+                adjudicate(schema_path, "NC-EVIDENCE-001", file_name, pointer, name)
+            if name == "stage" and isinstance(shape_is.get("enum"), list):
+                if set(shape_is["enum"]) != STAGE_VALUES:
+                    lint.fail(schema_path, f"{pointer} reuses reserved stage outside the 8-value axis")
+
+        for type_name in enumerate_schema_type_names(file_name, schema_data):
+            if is_dto_mirror:
+                # The DTO file mirrors OpenAPI PascalCase components. It is exempt
+                # from snake_case, not from the wrapper-word and acronym rules.
+                violates = (
+                    not PASCAL_CASE_RE.fullmatch(type_name.name)
+                    or stacked_wrapper_words(type_name.name) is not None
+                    or unregistered_wrapper_word(type_name.name, rejected_wrapper_words) is not None
+                )
+            else:
+                violates = not SNAKE_CASE_RE.fullmatch(type_name.name)
+            if violates:
+                adjudicate(
+                    schema_path, "NC-TYPE-001", file_name, type_name.pointer, type_name.name
+                )
+            # NC-HASH-001 covers Arkret-owned type names as well as wire fields:
+            # the type carrying a self-describing digest must not be the one place
+            # the forbidden vocabulary survives.
+            if nc_hash_001(type_name.name):
+                adjudicate(
+                    schema_path, "NC-HASH-001", file_name, type_name.pointer, type_name.name
+                )
+
+        for enum_occurrence in enumerate_schema_enums(file_name, schema_data):
+            for value in enum_occurrence.values:
+                if isinstance(value, str) and value in FORBIDDEN_SYMBOLIC_LITERALS:
+                    lint.fail(
+                        schema_path,
+                        f"{enum_occurrence.pointer} contains non-snake Arkret symbol `{value}`",
+                    )
+
+    # Coverage proof. Both figures must be total: a walker that stops descending
+    # would otherwise shrink the enforced surface without failing anything.
+    missing_names = sorted(expected_names - reached_names)
+    if missing_names:
+        lint.fail(
+            NAMING_RULES_PATH,
+            f"naming walker missed {len(missing_names)} distinct property names, e.g. "
+            f"{missing_names[:5]}",
+        )
+    missing_paths = sorted(expected_paths - reached_paths)
+    unexpected_paths = sorted(reached_paths - expected_paths)
+    if missing_paths or unexpected_paths:
+        lint.fail(
+            NAMING_RULES_PATH,
+            "naming walker occurrence paths disagree with the independent walk: "
+            f"missing={missing_paths[:5]}, unexpected={unexpected_paths[:5]}",
+        )
 
     for artifact_path in raw_artifact_files():
-        if "_" in artifact_path.name:
+        if nc_artifact_001(artifact_path.name):
             lint.fail(artifact_path, "artifact filename violates NC-ARTIFACT-001 kebab-case rule")
 
     openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
     openapi_text = openapi_path.read_text(encoding="utf-8")
-    for match in re.finditer(r"^    ([A-Z][A-Za-z0-9]*Request):\s*$", openapi_text, re.MULTILINE):
-        lint.fail(openapi_path, f"schema component `{match.group(1)}` must use RequestBody")
+    openapi_components = load_yaml(lint, openapi_path)
+    component_schemas = {}
+    if isinstance(openapi_components, dict):
+        components_node = openapi_components.get("components")
+        if isinstance(components_node, dict) and isinstance(components_node.get("schemas"), dict):
+            component_schemas = components_node["schemas"]
+    for component in component_schemas:
+        if not isinstance(component, str):
+            continue
+        if (
+            stacked_wrapper_words(component) is not None
+            or unregistered_wrapper_word(component, rejected_wrapper_words) is not None
+        ):
+            adjudicate(
+                openapi_path,
+                "NC-TYPE-001",
+                openapi_path.name,
+                f"/components/schemas/{component}",
+                component,
+            )
 
-    negative_ids = {
-        row.get("rule_id")
-        for row in rules_data.get("negative_cases", [])
-        if isinstance(row, dict) and row.get("expected") == "reject"
-    }
-    required_negative_ids = {f"NC-{axis}-001" for axis in (
-        "BOOL", "COUNT", "ENUM", "TYPE", "CODE", "EVIDENCE", "ARTIFACT", "SET"
-    )}
-    if negative_ids != required_negative_ids:
-        lint.fail(NAMING_RULES_PATH, "R1-R8 negative cases must cover every predicate exactly")
+    # Staleness is judged only after every surface has been adjudicated, so an
+    # entry is reported stale because the violation is gone, not because its
+    # surface had not been visited yet.
+    stale_exceptions = [
+        f"{rule_id}:{key[0]}#{key[1]}"
+        for rule_id, rows_for_rule in exact_exceptions.items()
+        for key in rows_for_rule
+        if (rule_id, *key) not in matched_exceptions
+    ]
+    if stale_exceptions:
+        lint.fail(
+            NAMING_RULES_PATH,
+            f"exact-path naming exceptions no longer match a violation: {sorted(stale_exceptions)}",
+        )
+
+    stale_debt = [
+        f"{rule_id}:{key[0]}#{key[1]}"
+        for rule_id, rows_for_rule in debt_index.items()
+        for key in rows_for_rule
+        if (rule_id, *key) not in matched_debt
+    ]
+    if stale_debt:
+        lint.fail(
+            NAMING_DEBT_PATH,
+            f"debt entries no longer match a violation and must be deleted: {sorted(stale_debt)}",
+        )
+
+    # Registered cases are executed, not merely counted. A rule cannot claim
+    # coverage unless its predicate actually decides its own candidates.
+    case_rule_ids: set[str] = set()
+    for case_field, expected_reject in (("negative_cases", True), ("positive_cases", False)):
+        cases = rules_data.get(case_field, [])
+        if not isinstance(cases, list):
+            lint.fail(NAMING_RULES_PATH, f"{case_field} must be an array")
+            continue
+        for case in cases:
+            if not isinstance(case, dict):
+                lint.fail(NAMING_RULES_PATH, f"{case_field} entries must be objects")
+                continue
+            rule_id = case.get("rule_id")
+            candidate = case.get("candidate")
+            expected = case.get("expected")
+            predicate = PREDICATES.get(rule_id) if isinstance(rule_id, str) else None
+            if predicate is None:
+                lint.fail(NAMING_RULES_PATH, f"{case_field} references unknown rule `{rule_id}`")
+                continue
+            if not isinstance(candidate, str) or expected not in {"reject", "accept"}:
+                lint.fail(NAMING_RULES_PATH, f"{rule_id} {case_field} entry is malformed")
+                continue
+            if (expected == "reject") is not expected_reject:
+                lint.fail(
+                    NAMING_RULES_PATH,
+                    f"{rule_id} case `{candidate}` is filed under {case_field} but expects {expected}",
+                )
+                continue
+            if predicate(candidate) is not (expected == "reject"):
+                lint.fail(
+                    NAMING_RULES_PATH,
+                    f"{rule_id} predicate disagrees with registered case `{candidate}` "
+                    f"(expected {expected})",
+                )
+            case_rule_ids.add(rule_id)
+
+    required_case_ids = set(PREDICATES)
+    if case_rule_ids != required_case_ids:
+        lint.fail(
+            NAMING_RULES_PATH,
+            f"every predicate needs executed cases: missing="
+            f"{sorted(required_case_ids - case_rule_ids)}, "
+            f"unknown={sorted(case_rule_ids - required_case_ids)}",
+        )
+
+    for row in rules:
+        if not isinstance(row, dict):
+            continue
+        rule_id = row.get("rule_id")
+        enforcement = row.get("enforcement")
+        if enforcement not in {"predicate", "registry", "predicate+registry"}:
+            lint.fail(
+                NAMING_RULES_PATH,
+                f"{rule_id} must declare enforcement as predicate, registry or predicate+registry",
+            )
 
     def check_key(path: Path, where: str, key: str | None) -> None:
         if not key:
@@ -507,9 +768,9 @@ def check_keypackage_claim_proof_shape(lint: Lint) -> None:
     data = load_json(lint, path)
     if not isinstance(data, dict):
         return
-    claim = ((data.get("$defs") or {}).get("key_packages_claim_request_body") or {})
+    claim = ((data.get("$defs") or {}).get("keypackages_claim_request_body") or {})
     if not isinstance(claim, dict):
-        lint.fail(path, "$defs.key_packages_claim_request_body must exist")
+        lint.fail(path, "$defs.keypackages_claim_request_body must exist")
         return
     required = claim.get("required") or []
     properties = claim.get("properties") or {}
@@ -1569,4 +1830,3 @@ def check_account_notification_prose_schema_alignment(lint: Lint) -> None:
             prose_path,
             "legacy NotificationDelta.type is forbidden; use notification_kind",
         )
-

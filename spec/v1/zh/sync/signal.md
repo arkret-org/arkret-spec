@@ -214,7 +214,7 @@ sender、ingress、relay 和 receiver 都 MUST 验证：
    device directory 下解析并通过 A / B 模型信任链校验；
 4. `signal_class=moderation` 还具有对应 moderation action；
 5. E2EE profile、epoch/AAD binding、proof 与 TTL 有效。`expires_at` 已过期的 envelope 在
-   **任何**入口（含 local `POST /_arkret/self/signal`）MUST 被拒绝为 `invalid_param`，
+   **任何**入口（含 local `POST /_arkret/self/signal`）MUST 被拒绝为 `param_invalid`，
    不得接受后静默丢弃。
 
 不存在 plaintext branch。任何 MLS-backed scope 的 plaintext signal/legacy ephemeral 输入

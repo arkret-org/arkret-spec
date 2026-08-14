@@ -40,8 +40,8 @@
     "grant_id": {
       "$ref": "./common-ids.schema.json#/$defs/grant_id"
     },
-    "hash": {
-      "$ref": "./event-envelope.schema.json#/$defs/hash"
+    "digest": {
+      "$ref": "./event-envelope.schema.json#/$defs/digest"
     },
     "timestamp": {
       "$ref": "./event-envelope.schema.json#/$defs/timestamp"
@@ -235,19 +235,19 @@
           "$ref": "#/$defs/event_ref"
         },
         "policy_version_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "application_revision_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "private_body_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "submitted_at": {
           "$ref": "#/$defs/timestamp"
         },
         "application_receipt_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "proof": {
           "$ref": "#/$defs/proof"
@@ -282,7 +282,7 @@
           "$ref": "#/$defs/grant_id"
         },
         "frontier_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -310,10 +310,10 @@
           "$ref": "#/$defs/realm_id"
         },
         "application_ref": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "application_revision_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "reviewer_actor_id": {
           "$ref": "#/$defs/did_core_id"
@@ -345,7 +345,7 @@
         "evidence_refs": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/hash"
+            "$ref": "#/$defs/digest"
           },
           "maxItems": 64,
           "uniqueItems": true
@@ -357,7 +357,7 @@
           "$ref": "#/$defs/timestamp"
         },
         "review_receipt_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "proof": {
           "$ref": "#/$defs/proof"
@@ -419,7 +419,7 @@
           "$ref": "#/$defs/realm_id"
         },
         "application_ref": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "cancelled_by": {
           "$ref": "#/$defs/did_core_id"
@@ -433,7 +433,7 @@
           "maxLength": 1000
         },
         "cancel_receipt_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "proof": {
           "$ref": "#/$defs/proof"
@@ -476,10 +476,10 @@
           "$ref": "#/$defs/realm_id"
         },
         "application_ref": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "receipt_ref": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "status": {
           "$ref": "#/$defs/application_status"
@@ -500,7 +500,7 @@
       ],
       "properties": {
         "application_ref": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "realm_id": {
           "$ref": "#/$defs/realm_id"
@@ -509,10 +509,10 @@
           "$ref": "#/$defs/did_core_id"
         },
         "application_revision_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "policy_version_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "submitted_at": {
           "$ref": "#/$defs/timestamp"
@@ -527,7 +527,7 @@
           "const": true
         },
         "latest_review_ref": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -598,7 +598,7 @@
           "$ref": "#/$defs/timestamp"
         },
         "receipt_ref": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -615,7 +615,7 @@
           "$ref": "#/$defs/realm_id"
         },
         "application_ref": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "entries": {
           "type": "array",

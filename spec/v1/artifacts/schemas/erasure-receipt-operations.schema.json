@@ -21,7 +21,7 @@
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
     },
@@ -45,7 +45,7 @@
           "$ref": "./erasure-receipt.schema.json"
         },
         "receipt_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "retained_stub": {
           "$ref": "./erasure-verification-stub.schema.json"
@@ -90,7 +90,7 @@
           "$ref": "#/$defs/receipt_id"
         },
         "receipt_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "issuer_service_id": {
           "$ref": "#/$defs/did_core_id"

@@ -527,7 +527,7 @@
         {
           "name": "overturn_missing_lift",
           "appeal_state": "under_review",
-          "verdict": "overturn",
+          "decision": "overturn",
           "same_batch_lift_target_matches": false,
           "expected": {
             "decision": "reject",
@@ -539,7 +539,7 @@
         {
           "name": "overturn_with_lift",
           "appeal_state": "under_review",
-          "verdict": "overturn",
+          "decision": "overturn",
           "same_batch_lift_target_matches": true,
           "original_irreversible_effect": "redaction_tombstone",
           "expected": {
@@ -553,7 +553,7 @@
         {
           "name": "modify_ref_mismatch",
           "appeal_state": "under_review",
-          "verdict": "modify",
+          "decision": "modify",
           "same_batch_lift_target_matches": true,
           "modify_decision_ref_in_same_batch": false,
           "new_decision_target_matches_original": false,
@@ -566,7 +566,7 @@
         {
           "name": "modify_missing_original_lift",
           "appeal_state": "under_review",
-          "verdict": "modify",
+          "decision": "modify",
           "same_batch_lift_target_matches": false,
           "modify_decision_ref_in_same_batch": true,
           "new_decision_target_matches_original": true,
@@ -582,7 +582,7 @@
         {
           "name": "modify_with_lift_and_replacement",
           "appeal_state": "under_review",
-          "verdict": "modify",
+          "decision": "modify",
           "same_batch_lift_target_matches": true,
           "modify_decision_ref_in_same_batch": true,
           "new_decision_target_matches_original": true,

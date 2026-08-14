@@ -1,6 +1,6 @@
 {
   "version": "2026-08-03.10",
-  "generated_at": "2026-08-03T12:30:00Z",
+  "generated_at": "2026-08-03T12:40:00Z",
   "source_of_truth": true,
   "description": "Canonical Realm reducer profiles. A Realm selects exactly one profile through its reducer-profile singleton control cell.",
   "registry_rules": [

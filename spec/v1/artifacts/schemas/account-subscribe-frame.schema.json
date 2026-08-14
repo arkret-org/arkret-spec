@@ -486,7 +486,7 @@
                   "failed_bottom",
                   "rejected_seal",
                   "fork_quarantine",
-                  "stale_seal_ref"
+                  "seal_ref_stale"
                 ]
               },
               "event_state_reason_code": {

@@ -23,7 +23,7 @@
       "type": "string",
       "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -75,7 +75,7 @@
           "$ref": "#/$defs/blob_ref"
         },
         "content_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "size_bytes": {
           "type": "integer",
@@ -113,7 +113,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "content_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "media_type": {
           "$ref": "#/$defs/media_type"
@@ -151,7 +151,7 @@
           "$ref": "#/$defs/media_type"
         },
         "content_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "upload_receipt": {
           "$ref": "#/$defs/upload_receipt"

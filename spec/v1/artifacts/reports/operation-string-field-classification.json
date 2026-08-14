@@ -294,9 +294,9 @@
     },
     {
       "schema_file": "keypackage-operations.schema.json",
-      "shape": "key_packages_revoke_request_body",
+      "shape": "keypackages_revoke_request_body",
       "field": "reason",
-      "pointer": "#/$defs/key_packages_revoke_request_body/properties/reason",
+      "pointer": "#/$defs/keypackages_revoke_request_body/properties/reason",
       "classification": "bounded_free_text",
       "basis": "human-readable text with schema boundary"
     },
@@ -518,9 +518,9 @@
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "EventsSubmitRejectedItem",
+      "shape": "EventsSubmitRejectedRow",
       "field": "reason_code",
-      "pointer": "#/$defs/EventsSubmitRejectedItem/properties/reason_code",
+      "pointer": "#/$defs/EventsSubmitRejectedRow/properties/reason_code",
       "classification": "validated_open_reason_code",
       "basis": "^[a-z][a-z0-9_]{0,63}$"
     },

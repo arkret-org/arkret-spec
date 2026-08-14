@@ -71,7 +71,7 @@ Blob 上传、媒体下载和二进制 stream MAY 使用其他 content type，�
 
 所有在 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 标注 `body_class=non_streaming_json` 的 operation：
 
-- request 与 response 的 `Content-Encoding` **MUST be absent**。服务端 MUST 在读取或解压 body 之前以 HTTP 415、`error_code=unsupported_content_encoding` 拒绝携带该 header 的请求；MUST NOT 复用 `invalid_param`（它固定映射 400）。cache / proxy MUST 设置适当 `no-transform`，MUST NOT 在中途压缩 response。
+- request 与 response 的 `Content-Encoding` **MUST be absent**。服务端 MUST 在读取或解压 body 之前以 HTTP 415、`error_code=unsupported_content_encoding` 拒绝携带该 header 的请求；MUST NOT 复用 `param_invalid`（它固定映射 400）。cache / proxy MUST 设置适当 `no-transform`，MUST NOT 在中途压缩 response。
 - 三层大小边界（完整 canonical Event 1 MiB、canonical operation body 8 MiB、HTTP message content wire bytes 16 MiB）、二维 count+bytes batch/page 算法与统一 `payload_too_large` 语义的唯一真源是 [`../conformance/scalability-constraints.md` §2.1](../conformance/scalability-constraints.md)。
 - 请求处理 MUST 按 scalability-constraints §2.1.8 的顺序执行：header 边界 → 不需 body 的认证 → 拒绝 `Content-Encoding` → `Content-Length` 预检 → 边读边计 wire bytes → JSON parse → JCS 计数 → schema/operation 校验 → body-dependent proof/auth → handler。实现 MUST NOT 先完整缓存或解析 body 再判大小。
 - streaming binding（NDJSON / SSE、Blob upload/download、Range、media transport、federation streaming）不套用 8 / 16 MiB 整体 body 上限，各自按 scalability-constraints §2.1.7 定义 per-frame / per-chunk / pending 上限。
@@ -161,7 +161,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 规则：
 
 - 带有 `access_token`、`session_credential`、`api_key`、`auth`、`signature` 等 query 参数的受保护 endpoint 请求 MUST 被拒绝，除非对应 endpoint 明确把该字段定义为非认证业务参数。
-- 拒绝时 SHOULD 返回 `unauthenticated` 或 `invalid_param`，并且不得把 query 中的敏感值写入普通访问日志。
+- 拒绝时 SHOULD 返回 `unauthenticated` 或 `param_invalid`，并且不得把 query 中的敏感值写入普通访问日志。
 - `ak.self.blob.command.presign` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
 - 第三方邀请的 `#token=` fragment 是客户端 handoff，不是服务端认证入口。服务端不会收到 fragment；客户端读取后 MUST 通过 body / signed proof 提交 claim，并按 [`third-party-invites.md` §3.2](./third-party-invites.md) 清理 URL 与本地状态。
 - online principal locator 的 `#token=` fragment 同样只是客户端 handoff。`locator_token` MUST 通过 `POST /_arkret/open/invite-locators/resolve` JSON body 提交；不得出现在 URL path 或 query string。详见 [`invite-addressing.md`](./invite-addressing.md)。
@@ -359,10 +359,10 @@ DPoP 本身不覆盖 request body。`create_handoff` 的 body 完整性由上述
 实现使用要点（registry 之外的语义协议）：
 
 - 错误语义必须使用单一标准 code。若请求体过大使用 `payload_too_large` / 413；若配额策略拒绝使用 `quota_exceeded` / 403。
-- `stale_frontier` / 409 表示服务可用但本地因果前沿落后，客户端可等待或 backfill；服务故障、维护或无法追赶 frontier 时使用 `temporarily_unavailable` / 503 并 SHOULD 返回 `Retry-After`。
-- 格式错误的 cursor 使用 `invalid_param` / 400；格式正确但已过期的 cursor 使用 `cursor_expired` / 410。
+- `frontier_stale` / 409 表示服务可用但本地因果前沿落后，客户端可等待或 backfill；服务故障、维护或无法追赶 frontier 时使用 `temporarily_unavailable` / 503 并 SHOULD 返回 `Retry-After`。
+- 格式错误的 cursor 使用 `param_invalid` / 400；格式正确但已过期的 cursor 使用 `cursor_expired` / 410。
 - `unsupported_feature` 用于 `Event.requirements.features[]` 与 `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `ak.*` Event kind。二者不得互相替代。
-- `conflict` / 409 是抽象 base code；实现 SHOULD 返回 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中 `http_status=409` 的更精确 code。本文不维护并行穷尽清单；示例包括 `cas_conflict`、`causal_conflict`、`dependency_missing`、`duplicate_conflict`、`stale_frontier`、`state_mismatch`。
+- `conflict` / 409 是抽象 base code；实现 SHOULD 返回 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中 `http_status=409` 的更精确 code。本文不维护并行穷尽清单；示例包括 `cas_conflict`、`causal_conflict`、`dependency_missing`、`duplicate_conflict`、`frontier_stale`、`state_mismatch`。
 - 加密 envelope 相关 422 子 code（`aad_digest_mismatch` / `payload_digest_mismatch`）见 `crypto-media/encryption-and-audit.md` §2.3.4。
 
 CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字面 error code 字符串都登记在 registry 中，并 MUST 校验 `operations-error-mapping.json` 的 `rules.universal_codes` 与每个 `operations[].operation_specific[]` 不引用 registry 外的 code。
@@ -441,13 +441,13 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 绝对方向与请求时所用的参数（`before` / `after` / `order`）和 selector 无关；服务端 MUST 始终按上述含义填充。客户端因此**不**需要记录"上一次请求的 direction"才能正确解释响应 cursor。
 
-HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_arkret/self/account/subscribe` 的 `after=`、`ak.self.events.read.scan` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在本文 §8 定义的 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Arkret-Wait-For` header 或等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `invalid_param`。
+HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_arkret/self/account/subscribe` 的 `after=`、`ak.self.events.read.scan` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在本文 §8 定义的 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Arkret-Wait-For` header 或等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `param_invalid`。
 
 规则：
 
 - 客户端 MUST 把 cursor 当作不透明字符串，禁止解析以推断排序、权限或服务身份。
-- 任何接受 cursor 的接口 MUST 在 wire/schema 层先拒绝不满足注册 cursor 类型与词法约束的值并返回 `schema_violation`；对通过该层但令牌结构、完整性或请求绑定无效的 cursor 返回 `invalid_param`，对已过期 cursor 返回 `cursor_expired`。
-- 同一字符串 cursor 在不同 issuing 服务间不可移植；跨服务复用 MUST `invalid_param`。
+- 任何接受 cursor 的接口 MUST 在 wire/schema 层先拒绝不满足注册 cursor 类型与词法约束的值并返回 `schema_violation`；对通过该层但令牌结构、完整性或请求绑定无效的 cursor 返回 `param_invalid`，对已过期 cursor 返回 `cursor_expired`。
+- 同一字符串 cursor 在不同 issuing 服务间不可移植；跨服务复用 MUST `param_invalid`。
 - TTL 硬上限：barrier cursor 与 stream cursor 的 `expires_at - issued_at` 硬上限的**唯一 canonical 数值定义点**见 [`encoding.md` §8.3 规则 9](../conformance/encoding.md)；本节不重复字面毫秒数值。
 - 声明 `cursor_revoke_high_assurance` feature 的服务必须实现 [`client-sync.md` §12.2.1](./client-sync.md) 的 revocation set。已撤销但仍在 TTL 内的 cursor MUST 返回 `cursor_revoked`；完整性失败仍返回 `cursor_integrity_invalid`，不得泄露 revocation set。
 - 声明 `events_query_range_completeness` feature 的服务必须实现 [`service-http-binding.md` §3.3.5](./service-http-binding.md)：`ak.self.events.read.scan` 接受 `include_completeness=true` 并返回覆盖该页范围的 `ak.attestation.range_completeness` 引用。未声明该 feature 的服务 MUST 忽略 `include_completeness` 参数。
@@ -485,7 +485,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 
 **Cursor 方向参数** (`before` / `after`)：见 [`service-http-binding.md` §3.3](./service-http-binding.md) 与本文 §7.0。`before` / `after` 是绝对时间方向（朝更旧 / 朝更新），与响应 `prev_cursor` / `next_cursor` 形成一一对应；所有 v1 接口（包括 `ak.self.device_messages.read.list`）MUST 使用这两个方向名，不得引入 `from=` / `start_at=` 等同义别名。
 
-服务端 MAY 对 `limit` 设置上限。超过上限时 SHOULD 使用最大允许值或返回 `invalid_param`。
+服务端 MAY 对 `limit` 设置上限。超过上限时 SHOULD 使用最大允许值或返回 `param_invalid`。
 
 ## 8. 读己之所写
 
@@ -505,7 +505,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 X-Arkret-Wait-For: <cursor>
 ```
 
-如果服务在超时前到达该 cursor 描述的 causal frontier，则返回正常结果；否则 SHOULD 返回 `temporarily_unavailable` 或 `timeout`，并附带当前 frontier。stream cursor 不得用于 wait-for header；服务端遇到 `purpose=stream` 的 cursor 出现在 wait-for 上下文 MUST 返回 `invalid_param`。
+如果服务在超时前到达该 cursor 描述的 causal frontier，则返回正常结果；否则 SHOULD 返回 `temporarily_unavailable` 或 `timeout`，并附带当前 frontier。stream cursor 不得用于 wait-for header；服务端遇到 `purpose=stream` 的 cursor 出现在 wait-for 上下文 MUST 返回 `param_invalid`。
 
 **Wait-for canonical 与投影（normative）**：`X-Arkret-Wait-For` HTTP header 是 wait-for barrier 的 wire canonical 形态；[`../conformance/query-schema.md §2`](../conformance/query-schema.md) 嵌套形态 `consistency: { wait_for, timeout_ms }` 与 [`../../artifacts/openapi/arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) request body 扁平字段 `wait_for: string` 是同义投影，三者等价绑定到同一 RYW (read-your-writes) barrier 语义。服务端 MUST 接受任一形态并解析为相同 cursor；客户端 MAY 选择任一形态。当同一请求同时出现多种形态且取值不一致时，服务端 MUST 按下列优先级解析：(1) `X-Arkret-Wait-For` header；(2) request body `wait_for`；(3) `consistency.wait_for`。
 

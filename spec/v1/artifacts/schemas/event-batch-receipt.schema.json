@@ -48,7 +48,7 @@
           "$ref": "./event-envelope.schema.json#/$defs/event_ref"
         },
         "event_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash"
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
         },
         "hlc": {
           "type": "string",
@@ -64,7 +64,7 @@
       "items": {
         "oneOf": [
           {
-            "$ref": "./event-envelope.schema.json#/$defs/hash"
+            "$ref": "./event-envelope.schema.json#/$defs/digest"
           },
           {
             "$ref": "#/$defs/event_receipt_item"
@@ -222,7 +222,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "query_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash"
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
         }
       },
       "minProperties": 1,
@@ -266,11 +266,11 @@
           "description": "Accepted monotonic successor generation. It MUST equal the covered ak.device.reanchor payload new_device_generation and MUST be the immediate successor of previous_device_generation. It is a PCR-local ref and MUST NOT be derived from or rendered as a DID versionId."
         },
         "reanchor_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash",
+          "$ref": "./event-envelope.schema.json#/$defs/digest",
           "description": "MUST equal event_digest of the unique events[] item whose kind is ak.device.reanchor."
         },
         "replacement_authorize_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash",
+          "$ref": "./event-envelope.schema.json#/$defs/digest",
           "description": "MUST equal event_digest of the unique events[] item whose kind is ak.device.authorize."
         }
       },
@@ -311,33 +311,33 @@
           "description": "The exact did:webvh inception versionId pinned by the identity-root control proof and used to initialize current_device_generation_ref."
         },
         "log_head_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash",
+          "$ref": "./event-envelope.schema.json#/$defs/digest",
           "description": "The exact DID inception log head digest accepted for this PCR genesis."
         },
         "control_key_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash",
+          "$ref": "./event-envelope.schema.json#/$defs/digest",
           "description": "Digest of the inception identity-root update key pinned by the control proof."
         },
         "registration_evidence_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash",
+          "$ref": "./event-envelope.schema.json#/$defs/digest",
           "description": "SHA-256 digest of RFC 8785 JCS of the complete accepted registration_did_evidence relayed to the Principal Server."
         },
         "create_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash",
+          "$ref": "./event-envelope.schema.json#/$defs/digest",
           "description": "MUST equal event_digest of the unique events[] item whose kind is ak.realm.create."
         },
         "founding_authorize_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash",
+          "$ref": "./event-envelope.schema.json#/$defs/digest",
           "description": "MUST equal event_digest of the unique events[] item whose kind is ak.device.authorize."
         },
         "accepted_device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
         "device_key_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash"
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
         },
         "hpke_key_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash"
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -360,7 +360,7 @@
           "$ref": "./event-envelope.schema.json#/$defs/event_ref"
         },
         "event_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash"
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
         },
         "kind": {
           "type": "string",

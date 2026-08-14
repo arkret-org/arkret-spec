@@ -389,8 +389,8 @@ sovereign / regulated / multi-writer federation 部署 **MUST** 同时声明 `ak
 - 每个 federation-visible Realm 与每个授权 peer 的 frontier probe 间隔 ≤ 1 小时；
 - frontier probe 与 `frontier_root` 主动交换使用固定刷新 bucket、jitter 与 per-peer 限速，刷新节奏不得随 Realm 活动量变化；
 - 维护 per-peer / per-Realm frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；
-- 连续 3 次 probe 失败 MUST 触发 `stale_peer` 标记；该状态下 MUST 拒绝以该 peer 的 push payload 推进本地 frontier，MUST 通过 alarm 通道暴露，MAY 拒绝向该 peer fanout 新 Event；
-- fork resolution 成功后 MUST 解除 `stale_peer` 标记。
+- 连续 3 次 probe 失败 MUST 触发 `peer_stale` 标记；该状态下 MUST 拒绝以该 peer 的 push payload 推进本地 frontier，MUST 通过 alarm 通道暴露，MAY 拒绝向该 peer fanout 新 Event；
+- fork resolution 成功后 MUST 解除 `peer_stale` 标记。
 
 这里的 `federation_policy=closed` 只限制网络可达性与 peer allowlist，不把多个 witness 自动视为同一控制主体。high-assurance range completeness 若声明 `witness_independence=distinct_controlling_organization`，仍必须由至少 `witnessed_min_attestations` 个组织控制相互独立、且已在 `Realm.audit_policy.range_completeness_witnesses[]` allowlist 中的 witness 签署；它们可以位于同一封闭网络、联盟成员域或经批准的单向 evidence gateway。只有一个 controlling organization 的完全单组织部署无法满足该档独立性：它 MUST 把 completeness 保持为 unverified / degraded，或选择与实际保障一致的较低声明；不得把同组织内两个 service DID、两个 HSM key 或两个机房伪装成组织独立 witness。封闭部署因此是可满足的，但满足性来自组织控制独立，而非公网 federation。
 

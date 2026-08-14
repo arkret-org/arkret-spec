@@ -162,7 +162,7 @@
       ],
       "expected": {
         "cross_binding": "cursor_integrity_invalid",
-        "invalid": "invalid_param",
+        "invalid": "param_invalid",
         "unacked_drop_lost": true
       }
     },
@@ -554,7 +554,7 @@
         "cross_request_replay",
         "expired_challenge",
         "public_key_mutation",
-        "invalid_signature",
+        "signature_invalid",
         "verification_method_key_mismatch",
         "cross_path_proof_replay",
         "legacy_public_key_shape",

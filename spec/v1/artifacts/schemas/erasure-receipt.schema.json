@@ -61,7 +61,7 @@
       "uniqueItems": true
     },
     "retained_stub_digest": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Hash of the retained verification stub after erasure: hash(canonical_json(retained_stub)). The stub verifies typed-reference structure, redundant digest consistency, receipt/stub binding, and linkage to retained external proof, Seal, redaction-authorization, and legal-hold evidence. It does not independently verify erased canonical Event bytes."
     },
     "retained_stub": {
@@ -77,7 +77,7 @@
           "$ref": "#/$defs/policy_id"
         },
         {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       ]
     },
@@ -102,7 +102,7 @@
             "$ref": "./common-ids.schema.json#/$defs/did_url"
           },
           "payload_digest": {
-            "$ref": "#/$defs/hash"
+            "$ref": "#/$defs/digest"
           },
           "signature": {
             "type": "string",
@@ -185,7 +185,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },

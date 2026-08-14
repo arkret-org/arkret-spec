@@ -252,7 +252,7 @@
       "additionalProperties": false,
       "description": "Fixed-size commitment to the complete chunk sequence. Chunk order is all seal_path chunks, then covered_event_digests, control_state and frontier_events; within a collection start_index is contiguous and items retain canonical collection order. Empty collections emit no chunk."
     },
-    "chunk_proof": {
+    "chunk_inclusion_proof": {
       "type": "array",
       "maxItems": 10,
       "items": {
@@ -268,7 +268,7 @@
         "start_index",
         "items",
         "chunk_digest",
-        "chunk_proof"
+        "chunk_inclusion_proof"
       ],
       "properties": {
         "chunk_index": {
@@ -295,8 +295,8 @@
         "chunk_digest": {
           "$ref": "#/$defs/sha256_digest"
         },
-        "chunk_proof": {
-          "$ref": "#/$defs/chunk_proof"
+        "chunk_inclusion_proof": {
+          "$ref": "#/$defs/chunk_inclusion_proof"
         }
       },
       "additionalProperties": false
@@ -309,7 +309,7 @@
         "start_index",
         "items",
         "chunk_digest",
-        "chunk_proof"
+        "chunk_inclusion_proof"
       ],
       "properties": {
         "chunk_index": {
@@ -331,14 +331,14 @@
           "maxItems": 8192,
           "uniqueItems": true,
           "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/hash"
+            "$ref": "./event-envelope.schema.json#/$defs/digest"
           }
         },
         "chunk_digest": {
           "$ref": "#/$defs/sha256_digest"
         },
-        "chunk_proof": {
-          "$ref": "#/$defs/chunk_proof"
+        "chunk_inclusion_proof": {
+          "$ref": "#/$defs/chunk_inclusion_proof"
         }
       },
       "additionalProperties": false
@@ -351,7 +351,7 @@
         "start_index",
         "items",
         "chunk_digest",
-        "chunk_proof"
+        "chunk_inclusion_proof"
       ],
       "properties": {
         "chunk_index": {
@@ -378,8 +378,8 @@
         "chunk_digest": {
           "$ref": "#/$defs/sha256_digest"
         },
-        "chunk_proof": {
-          "$ref": "#/$defs/chunk_proof"
+        "chunk_inclusion_proof": {
+          "$ref": "#/$defs/chunk_inclusion_proof"
         }
       },
       "additionalProperties": false
@@ -392,7 +392,7 @@
         "start_index",
         "items",
         "chunk_digest",
-        "chunk_proof"
+        "chunk_inclusion_proof"
       ],
       "properties": {
         "chunk_index": {
@@ -419,8 +419,8 @@
         "chunk_digest": {
           "$ref": "#/$defs/sha256_digest"
         },
-        "chunk_proof": {
-          "$ref": "#/$defs/chunk_proof"
+        "chunk_inclusion_proof": {
+          "$ref": "#/$defs/chunk_inclusion_proof"
         }
       },
       "additionalProperties": false
@@ -440,7 +440,7 @@
           "$ref": "#/$defs/frontier_events_chunk"
         }
       ],
-      "description": "One bounded collection slice. chunk_digest = sha256(UTF-8('arkret-mls-governance-proof-chunk-v1\\n') || RFC 8785 canonical JSON bytes of {chunk_index, collection, start_index, items}); chunk_proof authenticates that digest under chunk_manifest.chunks_root."
+      "description": "One bounded collection slice. chunk_digest = sha256(UTF-8('arkret-mls-governance-proof-chunk-v1\\n') || RFC 8785 canonical JSON bytes of {chunk_index, collection, start_index, items}); chunk_inclusion_proof authenticates that digest under chunk_manifest.chunks_root."
     },
     "control_state_leaf": {
       "type": "object",

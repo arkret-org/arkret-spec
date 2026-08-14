@@ -82,7 +82,7 @@
       "description": "What is actually running inside the enclave / HSM / equivalent controlled output boundary. Verifiers compare this measurement to the measurement allowed by the active audit applet binding and release policy.",
       "properties": {
         "code_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Hash of the audit release service binary / image / policy bundle that the enclave loads. MUST be reproducible (signed by vendor build pipeline)."
         },
         "policy_version": {
@@ -244,7 +244,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },

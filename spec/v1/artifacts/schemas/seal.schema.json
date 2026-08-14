@@ -42,15 +42,15 @@
       "uniqueItems": true
     },
     "control_event_set_root": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Authenticated root over the recursive covered_set of this Seal. Default construction is RFC6962 Merkle root over canonical bytewise-sorted covered_set(S); inclusion uses Merkle audit path and non-membership uses sorted-neighbor proof. The root is not computed over delta[] alone."
     },
     "state_root": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Merkle root of control-plane cell state only."
     },
     "completeness_root": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Control-plane per-actor interval / chain-head completeness commitment. It does not prove absence of unknown actors."
     },
     "notary_seq": {
@@ -59,15 +59,15 @@
       "description": "Per-signer or committee slot sequence used for equivocation detection. Same signer and same realm_id MUST NOT sign two different canonical Seal bodies with the same notary_seq."
     },
     "data_view_root": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Optional observational root of KeyView records keyed by data cell id. It is not a DataEvent admission gate."
     },
     "data_event_set_root": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Optional observational root over DataEvent digests seen in this seal window. Missing DataEvents are not invalid."
     },
     "availability_root": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Optional root over AvailabilityReceipt records."
     },
     "coverage_scope": {
@@ -85,7 +85,7 @@
       "uniqueItems": true
     },
     "previous_state_root": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Hash-algorithm transition only: present iff this Seal is a Transition Seal under ak.profile.hash_transition.v1. It commits the governance view before the transition Move is applied, computed with previous_digest_algorithm. state_root commits the post-transition governance view with the new suite. See event-auth-state-resolution.md §9.3.2."
     },
     "previous_digest_algorithm": {
@@ -161,7 +161,7 @@
       "type": "string",
       "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -180,7 +180,7 @@
           "description": "DID URL of the signing key. Bare DID is not valid for signatures because verifiers need a stable verification method, not only a controller DID."
         },
         "payload_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Hash of seal_canonical_bytes for this non-Event Seal signature. Do not rename to event_digest: event_digest is reserved for Event Envelope proofs."
         },
         "created_at": {

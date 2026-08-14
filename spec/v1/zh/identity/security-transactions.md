@@ -164,7 +164,7 @@ terminal result，不能重新上传或重新 erase。
 `erase_old_material` 的唯一 wire operation 是
 `ak.self.keys.backup_series.command.erase`。request 必须携带 transaction/request/plan digest、
 预留 `erase_confirmation_digest`、两条完整 binding、high-risk
-`AuthorizationLease(action=ak.keys.backup_series.erase)` 与必要CBA bundle。服务端必须先验证：
+`AuthorizationLease(action=ak.self.keys.backup_series.command.erase)` 与必要CBA bundle。服务端必须先验证：
 
 1. transaction当前next step确为`erase_old_material`；
 2. 两个new series及其各自`ak.key_backup.active_series` Event均已accepted且仍是authoritative；

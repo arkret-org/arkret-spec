@@ -41,7 +41,7 @@
       "description": "Canonical closed accountability scope. The former singleton-array compatibility shape is not valid v1 wire."
     },
     "requested_scope_digest": {
-      "$ref": "#/$defs/hash"
+      "$ref": "#/$defs/digest"
     },
     "selector_visibility": {
       "type": "string",
@@ -88,7 +88,7 @@
   ],
   "additionalProperties": false,
   "$defs": {
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     }

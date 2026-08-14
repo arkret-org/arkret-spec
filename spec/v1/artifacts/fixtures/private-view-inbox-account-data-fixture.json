@@ -26,7 +26,7 @@
         "ak.notifications.inbox.ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6"
       ],
       "expected": {
-        "rejected_error": "invalid_param",
+        "rejected_error": "param_invalid",
         "bare_namespace_is_not_a_writable_key": true,
         "unregistered_key_fallback_unreachable": true
       }
@@ -83,7 +83,7 @@
         "rejected": [
           "plaintext_definition"
         ],
-        "rejected_error": "invalid_param",
+        "rejected_error": "param_invalid",
         "envelope_aad_binds": [
           "actor_id",
           "account_data_key"

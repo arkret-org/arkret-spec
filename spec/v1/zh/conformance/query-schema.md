@@ -60,7 +60,7 @@ updated: 2026-07-02
 }
 ```
 
-`filters[].op` 的合法取值是下方**封闭枚举**（normative）。`op` 的 canonical 真源是 `artifacts/schemas/query.schema.json`（`ak.schema.query.v1`），本表为人类可读视图；执行方 MUST 拒绝表外取值（`schema_violation` / `invalid_param`）。
+`filters[].op` 的合法取值是下方**封闭枚举**（normative）。`op` 的 canonical 真源是 `artifacts/schemas/query.schema.json`（`ak.schema.query.v1`），本表为人类可读视图；执行方 MUST 拒绝表外取值（`schema_violation` / `param_invalid`）。
 
 | `op`（normative enum） | 语义 |
 | --- | --- |

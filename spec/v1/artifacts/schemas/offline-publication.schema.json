@@ -117,11 +117,11 @@
               "maxItems": 500,
               "uniqueItems": true,
               "items": {
-                "$ref": "#/$defs/hash"
+                "$ref": "#/$defs/digest"
               }
             },
             "unit_digest": {
-              "$ref": "#/$defs/hash"
+              "$ref": "#/$defs/digest"
             }
           },
           "additionalProperties": false
@@ -132,7 +132,7 @@
     "ingress_receipt": {
       "$ref": "./principal-operations.schema.json#/$defs/causal_ingress_receipt"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -148,7 +148,7 @@
           "pattern": "^ak\\.authority_set\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v1$"
         },
         "authority_set_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false,

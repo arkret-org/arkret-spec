@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": 1,
+  "kind": "naming_debt_baseline",
+  "source_of_truth": false,
+  "generated_from": [
+    "tools/naming-convention-rules.json",
+    "spec/v1/artifacts"
+  ],
+  "generated_by": "tools/artifact_lint (check_naming_predicates)",
+  "description": "Transient ledger of naming-rule violations that the full-coverage walker surfaced but that batch 1 is not allowed to rename. Every entry is keyed by an exact (file, RFC 6901 pointer, name) triple and owned by a named follow-up batch. Entries are internal debt: they MUST NOT claim an external anchor, and the lint rejects new, ambiguous or stale rows. This file must be empty at closure.",
+  "closure_requirement": "entries must be empty before the naming convergence task is closed",
+  "entries": []
+}

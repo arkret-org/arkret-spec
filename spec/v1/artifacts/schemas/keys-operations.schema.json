@@ -67,7 +67,7 @@
       "type": "string",
       "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -336,7 +336,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "key_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "fallback": {
           "type": "boolean"
@@ -430,7 +430,7 @@
           ]
         },
         "supersedes_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "frontier_ref": {
           "type": "object",
@@ -457,7 +457,7 @@
           "$ref": "#/$defs/timestamp"
         },
         "ciphertext_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "encryption": {
           "type": "object",
@@ -611,7 +611,7 @@
           "$ref": "#/$defs/backup_id"
         },
         "ciphertext_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -783,13 +783,13 @@
           "$ref": "./security-transaction.schema.json#/$defs/transaction_id"
         },
         "transaction_request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "prepared_plan_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "erase_confirmation_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "series": {
           "type": "array",
@@ -886,10 +886,10 @@
           "$ref": "./security-transaction.schema.json#/$defs/transaction_id"
         },
         "transaction_request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "prepared_plan_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "series": {
           "type": "array",
@@ -916,7 +916,7 @@
           "$ref": "./security-transaction.schema.json#/$defs/transaction_id"
         },
         "request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "status": {
           "type": "string",

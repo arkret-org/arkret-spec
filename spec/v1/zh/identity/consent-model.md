@@ -262,7 +262,7 @@ Peer 发送 invite Control Move 时，invite service / facade 在把 Control Mov
    - **default profile**：invite MAY 进入 holder 的 quarantine inbox（"陌生人邀请"），由 holder 在 UI 上 review 后构造 grant Control Move 或丢弃。
 3. 若有匹配活跃 grant 且当前时间在 `[not_before, expires_at]`：facade / invite service 才可提交目标 Realm invite Control Move；该 Move 随后只按目标 Realm 自身的 schema、capability、CBA basis 与 Seal 规则 accepted。
 
-跨服务查询结果 MUST 由 holder PCR 的权威服务签名，或由 facade 在同一受信服务边界内直接从已验证 holder PCR view 求值；结果至少绑定 holder、requester、concrete scope、holder PCR frontier / Seal ref 与有效期。它是短期 admission evidence，不进入目标 Event canonical bytes，也不成为目标 Realm state root 的叶子。`ak.realm.policy_bundle` 的 `preauth.require_consent=true` 对该 Realm 的所有 invite 强制执行上述 admission gate；它 MUST NOT 被解释为允许跨 Realm CBA precondition。
+跨服务查询结果 MUST 由 holder PCR 的权威服务签名，或由 facade 在同一受信服务边界内直接从已验证 holder PCR view 求值；结果至少绑定 holder、requester、concrete scope、holder PCR frontier / Seal ref 与有效期。它是短期 admission evidence，不进入目标 Event canonical bytes，也不成为目标 Realm state root 的叶子。`ak.realm.policy_bundle` 的 `preauth.consent_required=true` 对该 Realm 的所有 invite 强制执行上述 admission gate；它 MUST NOT 被解释为允许跨 Realm CBA precondition。
 
 #### 6.1.1 Quarantine inbox（default profile no-consent invite 暂存）
 

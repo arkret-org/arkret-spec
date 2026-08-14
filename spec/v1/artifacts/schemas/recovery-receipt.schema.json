@@ -45,11 +45,11 @@
       "description": "RecoveryTransaction that reserved this receipt id. It MUST equal the transaction whose binding.terminal_receipt_id is this receipt_id, which is what lets a verifier holding only the receipt resolve the authorizing transaction; binding.terminal_receipt_id alone is one-way. See zh/identity/security-transactions.md section 2."
     },
     "transaction_request_digest": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Stable request_digest of the RecoveryTransaction. It is signed by the replacement device so the terminal attestation cannot be rebound to a different transaction plan even if an identifier is substituted."
     },
     "prepared_plan_digest": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Digest of the closed typed prepared_plan stored by the RecoveryTransaction. It MUST equal transaction.prepared_plan_digest and is signed to prevent substituting different prepared bytes under the same reserved ids."
     },
     "principal_id": {
@@ -131,7 +131,7 @@
           ]
         },
         "proof_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Canonical-JSON digest of the proof transcript used to satisfy the active recovery policy. Auditors recompute against the originating proof event to verify."
         },
         "quorum_participant_count": {
@@ -181,7 +181,7 @@
             "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "ciphertext_digest": {
-            "$ref": "#/$defs/hash"
+            "$ref": "#/$defs/digest"
           }
         },
         "additionalProperties": false
@@ -526,7 +526,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     }

@@ -320,7 +320,7 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 2. **写入 `ak.component.realm.create.v1` ordered log**：记录 accepted create 用于审计/backfill；同一 Realm 的不同 create 以 `realm_already_exists` 或 collision quarantine 拒绝，不由 lattice 选择 winner。
 3. **写入 `ak.component.notary.v1` singleton**：初值为 `payload.object.notary`；后继只能由 `ak.realm.notary` 承担。
 
-4. **写入 `ak.component.realm.reducer_profile.v1` singleton**：初值为 `payload.object.reducer_profile`；必须是本地支持的 active registry row，否则整个 unit 返回 `profile_unsupported`。后继只能由 `ak.realm.upgrade` 承担。
+4. **写入 `ak.component.realm.reducer_profile.v1` singleton**：初值为 `payload.object.reducer_profile`；必须是本地支持的 active registry row，否则整个 unit 返回 `unsupported_profile`。后继只能由 `ak.realm.upgrade` 承担。
 
 5. **写入 `ak.component.realm.authority_root.v1` cell**（`cas_register`，`bottom=reject`，`cell_subject=null`），值由注册 `value_projection` 从 signed envelope 与 create payload 确定性派生：
 

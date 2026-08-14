@@ -94,7 +94,7 @@
       "type": "string",
       "pattern": "^mimi://[^\\s]+$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -140,7 +140,7 @@
           "description": "DID URL of a verification method authorized by the issuer's current DID Document (extensions/mimi-interop.md section 5.1)."
         },
         "payload_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"
@@ -180,7 +180,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "payload_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "payload": {
           "$ref": "#/$defs/base64url"
@@ -208,20 +208,20 @@
       },
       "additionalProperties": false
     },
-    "key_package": {
+    "keypackage": {
       "type": "object",
       "required": [
         "device_id",
-        "mls_key_package"
+        "mls_keypackage"
       ],
       "properties": {
         "device_id": {
           "$ref": "#/$defs/device_id"
         },
-        "key_package_ref": {
+        "keypackage_ref": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "mls_key_package": {
+        "mls_keypackage": {
           "$ref": "#/$defs/base64url"
         }
       },
@@ -289,7 +289,7 @@
       "anyOf": [
         {
           "required": [
-            "key_packages"
+            "keypackages"
           ]
         },
         {
@@ -304,10 +304,10 @@
         }
       ],
       "properties": {
-        "key_packages": {
+        "keypackages": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/key_package"
+            "$ref": "#/$defs/keypackage"
           }
         },
         "group_info": {
@@ -356,7 +356,7 @@
           "minimum": 0
         },
         "confirmed_transcript_hash": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "sender_actor_id": {
           "$ref": "#/$defs/did_core_id"
@@ -463,7 +463,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "ciphertext_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "payload": {
           "$ref": "#/$defs/base64url"
@@ -788,7 +788,7 @@
           ]
         },
         "identifier_commitment": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -836,7 +836,7 @@
             ],
             "properties": {
               "identifier_commitment": {
-                "$ref": "#/$defs/hash"
+                "$ref": "#/$defs/digest"
               },
               "matched": {
                 "type": "boolean"
@@ -957,7 +957,7 @@
               "$ref": "#/$defs/non_empty_string"
             },
             "request_digest": {
-              "$ref": "#/$defs/hash"
+              "$ref": "#/$defs/digest"
             },
             "relay_provider": {
               "$ref": "#/$defs/did_core_id"

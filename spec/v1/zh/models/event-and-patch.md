@@ -554,7 +554,7 @@ exact retry **MUST** 返回 byte-identical accepted Event。federation/backfill 
 | `kind` | yes | `enum(detached_jws)` | 初版必须支持。 | 证明类型。 |
 | `alg` | yes | `string` | 初版默认 `Ed25519`。 | 签名算法。 |
 | `verification_method` | yes | `string` | DID URL。 | 公钥/设备方法。 |
-| `event_digest` | yes | `hash` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`。签名输入包含 `principal_server_id`、`scope_ref`、`payload`、basis 与其它 producer 字段，只排除 `proofs`、`unsigned`、`actor_kind`。 | producer-signed canonical Event digest。 |
+| `event_digest` | yes | `digest` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned_actor_kind_event_id)`。签名输入包含 `principal_server_id`、`scope_ref`、`payload`、basis 与其它 producer 字段，只排除 `proofs`、`unsigned`、`actor_kind`。 | producer-signed canonical Event digest。 |
 | `created_at` | yes | `timestamp` | MUST 使用 canonical RFC 3339 UTC 毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`（整秒也写 `.000Z`）；微秒/纳秒输入必须在生成 proof binding 与签名之前截断到毫秒，不得使用 `+00:00`。 | 签名时间。 |
 | `domain` | no | `string` | 同一 trust domain 内 SHOULD 设置；跨服务、跨 trust domain 或 federation profile 下 MUST 设置。 | 域绑定。 |
 | `audience` | no | `string` 或 `array<string>` | 同一 service audience 内 SHOULD 设置；跨域/服务调用、多受众调用或 federation profile 下 MUST 设置。 | 受众绑定。 |

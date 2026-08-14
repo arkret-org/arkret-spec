@@ -9,7 +9,7 @@
   "schema_validation_cases": [
     {
       "name": "self_keypackage_claim_closed_proof_valid",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
       "expect_valid": true,
       "instance": {
         "target_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
@@ -33,7 +33,7 @@
     },
     {
       "name": "self_keypackage_claim_rejects_missing_proof",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
       "expect_valid": false,
       "first_expected_error": "contains:holder_acceptance_proof",
       "instance": {
@@ -49,7 +49,7 @@
     },
     {
       "name": "self_keypackage_claim_rejects_plural_proofs_field",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
       "expect_valid": false,
       "first_expected_error": "contains:holder_acceptance_proof",
       "instance": {
@@ -85,7 +85,7 @@
     },
     {
       "name": "self_keypackage_claim_rejects_short_nonce",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
       "expect_valid": false,
       "first_expected_error": "contains:claim_nonce",
       "instance": {

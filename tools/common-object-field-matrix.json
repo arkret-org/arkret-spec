@@ -179,9 +179,9 @@
       "Capability Grant": "—",
       "Invite": "Y（流程状态轴，见附注）",
       "Read Cursor": "—",
-      "Notification": "Y（特例语义，见附注）",
+      "Notification": "Y（actor-private 处理轴，见附注）",
       "Actor Profile": "— (see `status`，mirrors account status)",
-      "Sidecar": "Y（特例轴，含 `suspended`，见附注）"
+      "Sidecar": "Y（reducer 派生轴，含 `suspended`，见附注）"
     },
     {
       "字段": "`state_changed_at`",

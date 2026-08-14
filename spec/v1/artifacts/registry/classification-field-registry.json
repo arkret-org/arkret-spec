@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-13.2",
+  "version": "2026-08-14.1",
   "source_of_truth": true,
   "description": "Machine authority for the kind/type/class/tier naming axes. Entries are exact-context permissions, never basename allowlists.",
   "axis_rules": {
@@ -549,6 +549,14 @@
       "distinct_from": [
         "completeness_class"
       ]
+    },
+    {
+      "semantic_axis": "signal_delivery_class",
+      "field": "signal_class",
+      "distinct_from": [
+        "signal_kind"
+      ],
+      "note": "signal_class is the closed authorization/delivery rail category (setup / moderation / session) gated by signal_class_denied. signal_kind is the WebRTC signaling message dispatcher. The shared literal `moderation` is a coincidence of wording, not a shared value space: neither axis may be derived from or substituted for the other."
     }
   ]
 }

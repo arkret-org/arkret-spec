@@ -576,7 +576,7 @@ cursor base64url 解码后对应 canonical JSON：
 - 客户端 MUST 把 cursor 当作不透明字符串保存和回传。即使 cursor 的内部结构是 `encoding.md` §8.2 规定的合法 stateful handle 形态，客户端 SDK / 应用层 MUST NOT 解析它的内部字段来构造请求。
 - 客户端 MUST NOT 依赖 base64url 解码后的 `h` handle、`x` 过期字段或其它内部字段构造下一页请求；这些字段只属于 issuing service。
 - 服务端 MAY 改变 cursor 内部编码或字段集合，只要同一 query/session 下 cursor 仍按 API contract 可用。
-- 服务端 MUST 在收到该 cursor 时，按 [`encoding.md`](./encoding.md) §8.3 校验 `v ∈ supported_versions`、`purpose`、`x`、core schema 形态和 `h` handle binding；语法失败返回顶层 `invalid_param`（reason `invalid_cursor`），过期返回 `cursor_expired`，handle lookup / binding 失败返回 `cursor_integrity_invalid`（见 `error-code-registry.json`）。
+- 服务端 MUST 在收到该 cursor 时，按 [`encoding.md`](./encoding.md) §8.3 校验 `v ∈ supported_versions`、`purpose`、`x`、core schema 形态和 `h` handle binding；语法失败返回顶层 `param_invalid`（reason `invalid_cursor`），过期返回 `cursor_expired`，handle lookup / binding 失败返回 `cursor_integrity_invalid`（见 `error-code-registry.json`）。
 
 失败条件：
 
@@ -736,7 +736,7 @@ fixture 同时固化以下向量（2026-07-03 起）：
 
 §1.11 固化 cursor 对客户端的不透明性；本向量固化签发服务侧的拒绝语义。fixture 的每个 case 是一条形似合法的 `ak:cursor:` token，conformant 签发服务在推进任何服务端状态之前 MUST 拒绝：超长 token、非法 base64url、畸形 JSON、重复键、非 NFC 字符串、内联 positions、未知字段、不支持的版本、过短 handle、非 canonical 时间戳、负 TTL、超 TTL 上限（stream / barrier 各一）、已过期。
 
-Expected：前 13 类 `reason_code = invalid_cursor`（顶层错误码 `invalid_param`），过期 case `reason_code = cursor_expired`；客户端侧行为仍按 §1.11——decode 失败时按不透明字符串处理，MUST NOT 因此中断协议。
+Expected：前 13 类 `reason_code = invalid_cursor`（顶层错误码 `param_invalid`），过期 case `reason_code = cursor_expired`；客户端侧行为仍按 §1.11——decode 失败时按不透明字符串处理，MUST NOT 因此中断协议。
 
 ### 1.17 Vector: Multibase did:key 编码
 
@@ -770,7 +770,7 @@ Expected：`expected_multibase` / `expected_principal_id_key` MUST byte-for-byte
 
 `ak.vector.scalability.mls_governance_proof_bounds.v1` 由 [`scalability-limits-fixture.json`](../../artifacts/fixtures/scalability-limits-fixture.json) 的生成式矩阵固化 [`scalability-constraints.md` §6](./scalability-constraints.md) 与 `mls-governance-proof-bundle.schema.json`。Runner MUST 对下列每个维度生成 `limit-1 / limit / limit+1`：4 MiB response bytes、256 MiB logical item bytes、1,024 chunks、四类 collection total（4,096 / 1,048,576 / 262,144 / 128）、四类 per-chunk item count（128 / 8,192 / 1,024 / 32）、10 个 inclusion-proof sibling，以及 request `chunk_index=1023`。`limit-1` 与 `limit` 必须通过该维度的边界检查；`limit+1` 必须在 materializer 或 verifier 对应边界以 `mls_governance_proof_bounds_exceeded` / `schema_violation` fail closed，且不得截断、返回 partial manifest、按声明 cardinality 预分配或把已接收前缀标为完整。
 
-同一 vector 还 MUST 覆盖 chunk acquisition 状态：chunk 0 只在缺少 `expected_bundle_digest` 时合法；chunk >0 必须携带 chunk 0 的 digest；`chunk_index == chunk_count` 返回 `invalid_param`；manifest 已不可用返回 `frontier_unavailable` 并要求从 0 重启。`chunk_index` / `expected_bundle_digest` 不得改变 `proof_request_digest`，但后续响应的 `bundle_digest`、`chunks_root` 或 identity 任一变化都必须拒绝，禁止跨 manifest 混块。
+同一 vector 还 MUST 覆盖 chunk acquisition 状态：chunk 0 只在缺少 `expected_bundle_digest` 时合法；chunk >0 必须携带 chunk 0 的 digest；`chunk_index == chunk_count` 返回 `param_invalid`；manifest 已不可用返回 `frontier_unavailable` 并要求从 0 重启。`chunk_index` / `expected_bundle_digest` 不得改变 `proof_request_digest`，但后续响应的 `bundle_digest`、`chunks_root` 或 identity 任一变化都必须拒绝，禁止跨 manifest 混块。
 
 ## 2. CBA · Lattice Vectors
 
@@ -1027,7 +1027,7 @@ ak.vector.cba_lattice.seal_canonical_no_self_reference.v1
 期望：
 
 - case 1 accept；case 2/3/4/5/6 reject。
-- 接收方 verifier 在 reject 时 MUST 返回 `digest_mismatch`（case 2/3/4）、`invalid_signature`（case 3 的签名路径）或 `schema_violation`（case 5/6），不得回退到"prose 形态化"判断。
+- 接收方 verifier 在 reject 时 MUST 返回 `digest_mismatch`（case 2/3/4）、`signature_invalid`（case 3 的签名路径）或 `schema_violation`（case 5/6），不得回退到"prose 形态化"判断。
 
 ### 2.9 Vector: state_root 增量重算等价于全量重算
 
@@ -1224,7 +1224,7 @@ ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1
 
 期望：
 
-- Case A：receiver MUST 拒绝或隐藏（`stale_seal_ref` / `failed_precondition`）。
+- Case A：receiver MUST 拒绝或隐藏（`seal_ref_stale` / `failed_precondition`）。
 - Case B：receiver MUST 接受并把 Event 保留在 data-cell join 输入；选择拒绝或从 reducer 输入排除该
   窗口内 Event 的实现不符合本向量。
 - Case C：receiver MUST `failed_precondition`，不得回退到"当前 DID 文档"判定。
@@ -1383,10 +1383,10 @@ ak.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1
 
 期望：
 
-- Case A：receiver MUST 按 joined control view 判定该 capability 已撤销，DataEvent MUST fail closed（`stale_seal_ref`）；并发分支不计算 `distance`，不享受新鲜度窗口。
+- Case A：receiver MUST 按 joined control view 判定该 capability 已撤销，DataEvent MUST fail closed（`seal_ref_stale`）；并发分支不计算 `distance`，不享受新鲜度窗口。
 - Case B：依赖该 cell 的 DataEvent 与 Control Move MUST fail closed（`cell_in_bottom_state` / `failed_bottom`）。
 - Case C：轻客户端 MUST hold pending 或 fail closed，MUST NOT 用单 leaf 授权结论接受该 DataEvent。
-- Case D：join `R` 后 `E` MUST `stale_seal_ref`，其 cell X write MUST 被追溯移除；`D` 与所有直接 / 间接依赖 `E` 的 accepted 后继 MUST 转为 `result=pending, reason=dependency_missing`，其 projected writes（含 cell Y）同步移除。最终 accepted set 与 projection MUST 等于从一开始就持有 `{S0,R}` 的 receiver，且与到达顺序无关。
+- Case D：join `R` 后 `E` MUST `seal_ref_stale`，其 cell X write MUST 被追溯移除；`D` 与所有直接 / 间接依赖 `E` 的 accepted 后继 MUST 转为 `result=pending, reason=dependency_missing`，其 projected writes（含 cell Y）同步移除。最终 accepted set 与 projection MUST 等于从一开始就持有 `{S0,R}` 的 receiver，且与到达顺序无关。
 
 失败条件：用 `seal_ref` 单分支接受并发撤销后的 DataEvent；把并发撤销套入后继距离窗口；轻客户端无法验证 joined view 时仍接受；只移除 `E` 而保留依赖 `E` 的 `D` / 后继 projected writes，导致先接受后撤销与先撤销后接收的 projection 不同。
 
@@ -1412,8 +1412,8 @@ ak.vector.circle.lifecycle_basis_and_archive_freshness.v1
 期望：
 
 - Case A：MUST `failed_precondition`，reason=`circle_not_active`；不得用 receiver 较新的 projection 改写结果。
-- Case B：窗口内 MUST 接受并进入 data-cell join 输入；超窗 MUST 拒绝或隐藏，reason=`stale_seal_ref`。后继 archive 不得被误报为基线内 `circle_not_active`。
-- Case C / D：MUST 立即拒绝或隐藏，reason=`stale_seal_ref`，`freshness_window_applies=false`；轻客户端无法验证 joined view 时只能 pending 或 fail closed。
+- Case B：窗口内 MUST 接受并进入 data-cell join 输入；超窗 MUST 拒绝或隐藏，reason=`seal_ref_stale`。后继 archive 不得被误报为基线内 `circle_not_active`。
+- Case C / D：MUST 立即拒绝或隐藏，reason=`seal_ref_stale`，`freshness_window_applies=false`；轻客户端无法验证 joined view 时只能 pending 或 fail closed。
 - Case E：restore MUST NOT 追溯恢复旧 `seal_ref`；producer 必须换用包含 restore 的新 active 基线。
 - Case F：admission 与 Seal 重验都只读取登记的 CBA 基线，不读取本地当前 projection。
 
@@ -2820,7 +2820,7 @@ Input — `ak.member.state{membership="join"}` Control Move payload：
     "recipient_service_kind": "principal_server",
     "binding_scope": "realm",
     "binding_source": "explicit",
-    "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
+    "delivery_modes": ["events", "sync", "to_device", "push", "keypackages"],
     "resolved_at": "2026-05-19T10:00:00Z",
     "service_acceptance_ref": "ak:event:AX8dnXKxevlgfFVveXrrOv2EsH17lfDMuGWDWryItfd6"
   },
@@ -2832,7 +2832,7 @@ Input — `ak.member.state{membership="join"}` Control Move payload：
 
 期望：
 - reducer 接受 join Control Move；写入成员 cell。
-- 此后任何向 Alice 投递的 Realm S event/sync/to_device/push/key_packages MUST 走 binding 中 `ak:did_core:webvh:z6mkfixturePrincipal` 对应的已验证 `service_resolution` route，**禁止**触发 DID Document service entry resolution。
+- 此后任何向 Alice 投递的 Realm S event/sync/to_device/push/keypackages MUST 走 binding 中 `ak:did_core:webvh:z6mkfixturePrincipal` 对应的已验证 `service_resolution` route，**禁止**触发 DID Document service entry resolution。
 
 ### 7.3 Vector: `did_document_default` Fallback 物化
 
@@ -2856,7 +2856,7 @@ Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `did_document_d
     "recipient_service_kind": "principal_server",
     "binding_scope": "realm",
     "binding_source": "did_document_default",
-    "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
+    "delivery_modes": ["events", "sync", "to_device", "push", "keypackages"],
     "resolved_at": "2026-05-19T10:00:00Z",
     "did_document_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
   }
@@ -2996,7 +2996,7 @@ Directory 返回 verified handle claim：
           "sync",
           "to_device",
           "push",
-          "key_packages"
+          "keypackages"
         ],
         "service_acceptance_ref": "ak:event:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
         "policy_event_ref": "ak:event:AYqLR5FWUtAxcyq2GwRsmHAf_zMFkYrFScSs4ouycARM"
@@ -3027,7 +3027,7 @@ Directory 返回 verified handle claim：
       "sync",
       "to_device",
       "push",
-      "key_packages"
+      "keypackages"
     ],
     "service_acceptance_ref": "ak:event:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
     "policy_event_ref": "ak:event:AYqLR5FWUtAxcyq2GwRsmHAf_zMFkYrFScSs4ouycARM"
@@ -3352,7 +3352,7 @@ Steps：
 
 Expected：
 
-- 第 1 步 MUST 返回 `signal_class_not_permitted`。
+- 第 1 步 MUST 返回 `signal_class_denied`。
 - 第 2 步 MUST 返回 `signal_ttl_out_of_range`。
 - 第 3 步 MUST 返回 `signal_rail_unavailable`，且不写 durable Event、不推进 actor_seq / Realm frontier。
 
@@ -3370,7 +3370,7 @@ Expected：
 
 - 每个响应 MUST 带 `has_more`；有后续页时 MUST 带合法 `ak:cursor:*`。
 - Cursor MUST 绑定调用者、selector 和 projection purpose，不得跨 service / Realm 复用。
-- 缺失分页闭包字段时上游 MUST 归类为 `invalid_response`。
+- 缺失分页闭包字段时上游 MUST 归类为 `response_invalid`。
 
 ### 10.3 Vector: KeyPackage Exhaustion And Claim Limits
 
@@ -3413,7 +3413,7 @@ Expected：
 Expected：
 
 - 每个变异都 MUST 在 CAS 前失败，目标 KeyPackage 状态不变；participant 与 service 两层授权不可互相替代。
-- 已通过外层 service authentication 的所有 participant / target / policy 业务失败对 peer caller 均为同一 `claim_failed` 外观；响应不得带 `available_count`、逐设备 `failures[]` 或 last-resort record。外层 service signature 变异必须在读取 target 前返回 target-independent `unauthenticated` / `invalid_signature`。
+- 已通过外层 service authentication 的所有 participant / target / policy 业务失败对 peer caller 均为同一 `claim_failed` 外观；响应不得带 `available_count`、逐设备 `failures[]` 或 last-resort record。外层 service signature 变异必须在读取 target 前返回 target-independent `unauthenticated` / `signature_invalid`。
 - Resolver draft 必须显式携带 `{request,transport_binding}`；participant signature 必须绑定 source/destination service 与双方 trust domain，客户端不得从本地配置猜测这些值。
 - Direct Conversation request 必须同时绑定 pair key、Realm、main Strand 与 MLS group，且不得启用 last-resort。
 
@@ -4982,12 +4982,12 @@ Expected：
 
 `vector_id`: `ak.vector.moderation.appeal_atomicity.v1`
 
-本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §5.5.2 的 reducer 强制约束：“`ak.moderation.appeal.decision` `verdict=overturn` MUST 与一条 `ak.moderation.decision.lift`（target 等于 `decision_ref`）在同一 ordered submit batch 或同一 control transaction 中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝”；“`verdict=modify` MUST 在同一 batch 同时 lift 原 decision 并新增 `modify_decision_ref` 指向的 replacement decision”。该向量同时固定 overturn 不复活不可逆 redaction tombstone / 已销毁 key 的边界。
+本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §5.5.2 的 reducer 强制约束：“`ak.moderation.appeal.decision` `decision=overturn` MUST 与一条 `ak.moderation.decision.lift`（target 等于 `decision_ref`）在同一 ordered submit batch 或同一 control transaction 中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝”；“`decision=modify` MUST 在同一 batch 同时 lift 原 decision 并新增 `modify_decision_ref` 指向的 replacement decision”。该向量同时固定 overturn 不复活不可逆 redaction tombstone / 已销毁 key 的边界。
 
 Steps（前置：appeal cell 已沿 §5.5.1 状态机 `submitted → under_review` 推进，reviewer ≠ 原 decision issuer）：
 
-- **Case A — overturn 缺 lift / 正常 overturn**：reviewer 提交 `verdict=overturn` 的 `ak.moderation.appeal.decision`，但同一 ordered submit batch / control transaction 中**不**含 target 等于 `decision_ref` 的 `ak.moderation.decision.lift`；随后在另一次提交中补齐同 batch 的 decision + lift 对。原 decision 已触发 redaction tombstone 的变体也包含在内。
-- **Case B — modify 原子替换失败**：reviewer 提交 `verdict=modify` 的 decision，但缺少原 decision lift，或 `modify_decision_ref` 指向的事件不在同一 batch，或同 batch新 `ak.moderation.decision` 的 `target_ref` 不等于原 target。
+- **Case A — overturn 缺 lift / 正常 overturn**：reviewer 提交 `decision=overturn` 的 `ak.moderation.appeal.decision`，但同一 ordered submit batch / control transaction 中**不**含 target 等于 `decision_ref` 的 `ak.moderation.decision.lift`；随后在另一次提交中补齐同 batch 的 decision + lift 对。原 decision 已触发 redaction tombstone 的变体也包含在内。
+- **Case B — modify 原子替换失败**：reviewer 提交 `decision=modify` 的 decision，但缺少原 decision lift，或 `modify_decision_ref` 指向的事件不在同一 batch，或同 batch新 `ak.moderation.decision` 的 `target_ref` 不等于原 target。
 - **Case C — modify 正路径**：同一 batch 含 appeal decision、指向原 `decision_ref` 的 lift、以及 `modify_decision_ref` 指向且 target 相同的新 moderation decision。
 
 Expected：
@@ -5001,7 +5001,7 @@ Expected：
 
 `vector_id`: `ak.vector.moderation.review_resolution_fold.v1`
 
-本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §2.6 与 [`policy-server.md`](../authz/policy-server.md) §7.1：active moderation decisions 是可 join 的 OR-Set，普通多 entry 必须按 `hard_deny > quarantine > require_review > none` 取最严格 effective verdict；active `require_review` add 是 pending-review 的 canonical carrier，解除必须原子 lift 全部适用 review gates，并在 allow 路径重新执行当前 authz。
+本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §2.6 与 [`policy-server.md`](../authz/policy-server.md) §7.1：active moderation decisions 是可 join 的 OR-Set，普通多 entry 必须按 `hard_deny > quarantine > require_review > none` 取最严格 effective decision；active `require_review` add 是 pending-review 的 canonical carrier，解除必须原子 lift 全部适用 review gates，并在 allow 路径重新执行当前 authz。
 
 Cases / Expected：
 
@@ -5103,7 +5103,7 @@ Steps：
 Expected：
 
 - **Case A**：ciphertext 返回且明文校验通过；`items[].secret_id` / `item_kind` 只作 keybag 内部路由，不得替代外层 envelope 的授权判断；明文 MUST 仅作本地瞬时材料，日志 / telemetry MUST NOT 记录 `secret_b64u`。
-- **Case B(a)**：MUST fail closed，错误码取 `recovery_evidence_unbound` / `backup_frontier_stale` / `series_chain_broken` / `invalid_signature` 中对应稳定码；服务端 MUST NOT 采信客户端自报的 policy / session metadata。
+- **Case B(a)**：MUST fail closed，错误码取 `recovery_evidence_unbound` / `backup_frontier_stale` / `series_chain_broken` / `signature_invalid` 中对应稳定码；服务端 MUST NOT 采信客户端自报的 policy / session metadata。
 - **Case B(b)**：MUST 拒绝；跨 actor 请求（envelope `actor_id` ≠ caller）MUST 返回 `forbidden` 且不得通过 metadata 暴露 envelope 是否存在。
 
 ### 15.6 Vector: KDF 下限不满足的新建 Envelope 拒绝
@@ -5168,7 +5168,7 @@ Steps：
 3. 将 settled profile 与 receiver 的 `supported_reducer_profiles[]` 比较。
 4. 对 `ak.realm.upgrade`，先由 source profile 验证 Event，再检查 target registry row 与 source→target edge。
 
-Expected：支持 `ak.reducer.core.v1` 时普通 Event 继续 admission；本地未实现 settled profile 时返回 `profile_unsupported`；target row 未注册时 upgrade 返回 `profile_unsupported`。任何实现不得用本地默认 profile、latest Realm state 或请求字段替代 Event 自身的 CBA basis。
+Expected：支持 `ak.reducer.core.v1` 时普通 Event 继续 admission；本地未实现 settled profile 时返回 `unsupported_profile`；target row 未注册时 upgrade 返回 `unsupported_profile`。任何实现不得用本地默认 profile、latest Realm state 或请求字段替代 Event 自身的 CBA basis。
 
 ## 16. Streaming Chunked AEAD Attachment Vectors
 
@@ -5499,7 +5499,7 @@ Expected：
 
 - `resolved_verification_method` 分支携带 `quorum_threshold`，或 `governance_quorum` 分支缺 `quorum_threshold` → `schema_violation`。discriminator 双向封闭，否则接收方无法判断"一个签名够用"还是"承诺两个只交了一个"；
 - receipt 缺 `expires_at` → `schema_violation`。无界 receipt 会让一次首验永久授权该组织关系，refresh 也就失去存在理由；
-- `requested_scopes` 含闭合集合外的值 → `organization_registration_scope_unsupported`；
+- `requested_scopes` 含闭合集合外的值 → `unsupported_organization_registration_scope`；
 - `handle_attestation` 缺 `subject` → `schema_violation`。subject 绑定阻止把为 A 组织签发的 attestation 拿去为 B 组织使用；
 - challenge 窗口超过 300 秒 → `organization_registration_challenge_invalid`（schema 无法比较两个时间戳，由接收方强制）；
 - `governance_quorum` 的 proof 数少于所声明 threshold → `organization_registration_quorum_not_met`；
@@ -5840,7 +5840,7 @@ Steps:
 Expected:
 
 - 两个正例 MUST 由 SDK 唯一 helper 生成逐字相同 bytes，并由 receiver helper 重建后验签通过。
-- 未选字段写 null、交叉 target、双 material、无 material、任一 covered 字段被篡改、或 signature key 与 accepted `sender_device_id` 不匹配，均 MUST `invalid_signature`。
+- 未选字段写 null、交叉 target、双 material、无 material、任一 covered 字段被篡改、或 signature key 与 accepted `sender_device_id` 不匹配，均 MUST `signature_invalid`。
 
 ## 24. Calendar / RSVP normative closure vectors
 
@@ -6189,7 +6189,7 @@ active 但当前 revoked / fenced / conflicted 的设备被拒；`verification_m
 current directory key 或 Tier-2 /
 service-attested 信任锚缺失被拒；设备 current active 但 sender 无 Realm `seal_ref` 下 scope
 资格或 `signal_class` action 被拒。另 MUST 断言 `expires_at` 已过期的 envelope 在 local
-ingress 被 `invalid_param` 拒绝。
+ingress 被 `param_invalid` 拒绝。
 
 ## 34. Active Event payload carrier closure
 

@@ -387,7 +387,7 @@
       ],
       "server_rules": [
         "MUST validate v, purpose, issued_at, expires_at, the full core cursor schema, and h handle binding before honouring cursor",
-        "syntax validation failure MUST return invalid_param with reason_code invalid_cursor; TTL failure MUST return cursor_expired; handle lookup or binding failure MUST return cursor_integrity_invalid"
+        "syntax validation failure MUST return param_invalid with reason_code invalid_cursor; TTL failure MUST return cursor_expired; handle lookup or binding failure MUST return cursor_integrity_invalid"
       ],
       "fail_conditions": [
         "client parses h/expiry and rebuilds a request",

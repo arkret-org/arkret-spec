@@ -28,6 +28,12 @@ jobs:
             echo "=== $test ==="
             python "$test"
           done
+      # The naming predicates are only as good as the surface they reach. This
+      # fails the build if the schema walker ever stops reaching a declared
+      # property, which is how the rules silently stopped applying before.
+      - name: Verify naming predicate coverage
+        run: python tools/naming_coverage.py --require-full
+
       - name: Run unified artifact pipeline
         run: python tools/artifact_pipeline.py check
 

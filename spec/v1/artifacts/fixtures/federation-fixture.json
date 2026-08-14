@@ -63,7 +63,7 @@
         "settled_reducer_profile": "ak.reducer.core.v1",
         "receiver_supported_reducer_profiles": []
       },
-      "expected": "profile_unsupported"
+      "expected": "unsupported_profile"
     },
     {
       "name": "upgrade_target_not_registered",
@@ -73,7 +73,7 @@
         "target_reducer_profile": "ak.reducer.future.v2",
         "profile_source": "seal_basis_frozen_predecessor"
       },
-      "expected": "profile_unsupported"
+      "expected": "unsupported_profile"
     },
     {
       "name": "online_event_omits_offline_publication_evidence",

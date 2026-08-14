@@ -40,7 +40,7 @@
       ],
       "properties": {
         "pair_key": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "realm_id": {
           "$ref": "./principal-operations.schema.json#/$defs/realm_id"
@@ -71,7 +71,7 @@
       ],
       "properties": {
         "pair_key": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "founder_id": {
           "$ref": "./principal-operations.schema.json#/$defs/did_core_id"
@@ -83,7 +83,7 @@
           "$ref": "./principal-operations.schema.json#/$defs/strand_id"
         },
         "founding_unit_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash"
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "authorization_core": {
           "oneOf": [
@@ -100,13 +100,13 @@
                   "const": "human"
                 },
                 "current_contact_round_id": {
-                  "$ref": "./principal-operations.schema.json#/$defs/hash"
+                  "$ref": "./principal-operations.schema.json#/$defs/digest"
                 },
                 "root_contact_round_id": {
-                  "$ref": "./principal-operations.schema.json#/$defs/hash"
+                  "$ref": "./principal-operations.schema.json#/$defs/digest"
                 },
                 "accepted_contact_evidence_digest": {
-                  "$ref": "./principal-operations.schema.json#/$defs/hash"
+                  "$ref": "./principal-operations.schema.json#/$defs/digest"
                 }
               },
               "additionalProperties": false
@@ -127,10 +127,10 @@
                   "$ref": "./principal-operations.schema.json#/$defs/event_id"
                 },
                 "agent_provision_digest": {
-                  "$ref": "./principal-operations.schema.json#/$defs/hash"
+                  "$ref": "./principal-operations.schema.json#/$defs/digest"
                 },
                 "controller_binding_digest": {
-                  "$ref": "./principal-operations.schema.json#/$defs/hash"
+                  "$ref": "./principal-operations.schema.json#/$defs/digest"
                 }
               },
               "additionalProperties": false
@@ -239,7 +239,7 @@
               "$ref": "./principal-operations.schema.json#/$defs/event_id"
             },
             "active_mls_generation_value_digest": {
-              "$ref": "./principal-operations.schema.json#/$defs/hash",
+              "$ref": "./principal-operations.schema.json#/$defs/digest",
               "description": "SHA-256 of RFC 8785 JCS for the complete currently accepted ak.component.direct_conversation.active_mls_generation.v1 cell value. The Event ref and whole-value digest are supplied or omitted as one pair."
             }
           },
@@ -272,7 +272,7 @@
               "$ref": "./principal-operations.schema.json#/$defs/event_id"
             },
             "active_mls_generation_value_digest": {
-              "$ref": "./principal-operations.schema.json#/$defs/hash",
+              "$ref": "./principal-operations.schema.json#/$defs/digest",
               "description": "SHA-256 of RFC 8785 JCS for the complete currently accepted active-generation cell value, not a hash of active_mls_generation_ref."
             },
             "send_blockers": {
@@ -310,7 +310,7 @@
               "$ref": "./principal-operations.schema.json#/$defs/event_id"
             },
             "active_mls_generation_value_digest": {
-              "$ref": "./principal-operations.schema.json#/$defs/hash",
+              "$ref": "./principal-operations.schema.json#/$defs/digest",
               "description": "Present with active_mls_generation_ref whenever an accepted active-generation cell exists, including the replacement-repair suspended state."
             }
           },
@@ -520,7 +520,7 @@
           "maxLength": 128
         },
         "request_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/hash",
+          "$ref": "./principal-operations.schema.json#/$defs/digest",
           "description": "SHA-256 of the exact canonical direct_conversation_repair_relay_request body."
         },
         "destination_service_id": {
@@ -543,7 +543,7 @@
                   "const": "human_principal"
                 },
                 "target_snapshot_digest": {
-                  "$ref": "./principal-operations.schema.json#/$defs/hash",
+                  "$ref": "./principal-operations.schema.json#/$defs/digest",
                   "description": "H('ak.member-repair-target-snapshot-human-v1', device-id-sorted [{recipient_device_id,message_id}])."
                 },
                 "enqueued_target_count": {
@@ -565,7 +565,7 @@
                   "const": "native_agent"
                 },
                 "target_snapshot_digest": {
-                  "$ref": "./principal-operations.schema.json#/$defs/hash",
+                  "$ref": "./principal-operations.schema.json#/$defs/digest",
                   "description": "H('ak.member-repair-target-snapshot-native-agent-v1', {recipient_agent_id,active_runtime_endpoint_ref,message_id}), where the endpoint is the one current accepted agent-key/session binding endpoint."
                 },
                 "enqueued_target_count": {
@@ -598,7 +598,7 @@
         "pair_materialization_conflict",
         "realm_terminal_fault",
         "notary_unavailable",
-        "profile_unsupported"
+        "unsupported_profile"
       ]
     }
   }

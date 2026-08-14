@@ -451,7 +451,7 @@
           "branch": "frontier_as_cursor",
           "call": "ak.self.events.read.scan",
           "after": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-          "reject_reason": "invalid_param: snapshot frontier event_id is not a cursor"
+          "reject_reason": "param_invalid: snapshot frontier event_id is not a cursor"
         }
       ]
     }

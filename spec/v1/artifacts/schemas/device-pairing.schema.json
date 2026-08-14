@@ -48,7 +48,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
     },
@@ -76,7 +76,7 @@
           "description": "Verification transaction id of the ak.key.verification.request that carried this pairing challenge."
         },
         "request_canonical_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
@@ -116,7 +116,7 @@
           ]
         },
         "transcript_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "sha256 over the canonical challenge transcript bytes. The verifier recomputes it from its own staged record and rejects a mismatch before checking the signature."
         },
         "signature": {
@@ -163,7 +163,7 @@
           "description": "This transcript exists only for accepted_device pairing. registration_anchor and pcr_recovery use their separate full possession objects, and a transcript from one binding kind MUST NOT be accepted for another."
         },
         "pairing_challenge_transcript_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "MUST equal device_pairing_challenge_proof.transcript_digest of this same pairing challenge. It is the single replay boundary of this attestation: path A commits through it to device_pairing_request_id, pairing_code, gate_audience, expires_at, server_nonce, client_nonce and new_device_pubkey_digest, and path B to transaction_id, request_canonical_digest, expires_at, gate_audience, pairing_code and new_device_pubkey_digest. A verifier MUST recompute the challenge transcript itself and reject a digest that does not match this pairing."
         },
         "device_signature": {

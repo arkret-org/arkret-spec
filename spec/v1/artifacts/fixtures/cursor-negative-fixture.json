@@ -5,7 +5,7 @@
   },
   "profile": "ak.vector_group.encoding.v1",
   "version": "2026-07-03",
-  "description": "Machine-readable negative cursor vectors mirrored from zh/conformance/conformance-vectors.md section 1.16. Complements the positive opaqueness vector ak.vector.encoding.cursor_opaque.core.v1: every case below is a schema-valid-looking ak:cursor: token that a conformant receiver MUST reject before advancing any server-side state. reason_code values are stable codes from error-code-registry.json (invalid_cursor is surfaced under top-level invalid_param).",
+  "description": "Machine-readable negative cursor vectors mirrored from zh/conformance/conformance-vectors.md section 1.16. Complements the positive opaqueness vector ak.vector.encoding.cursor_opaque.core.v1: every case below is a schema-valid-looking ak:cursor: token that a conformant receiver MUST reject before advancing any server-side state. reason_code values are stable codes from error-code-registry.json (invalid_cursor is surfaced under top-level param_invalid).",
   "vectors": [
     {
       "vector_id": "ak.vector.encoding.reject_invalid_cursor.core.v1",
@@ -127,7 +127,7 @@
       "fixture_freshness_note": "All timestamps are pinned so every case stays deterministically rejectable for the spec lifetime: expired cases use year-2020 values (always past), TTL-cap and negative-TTL cases use year-2099 x values (not expired before 2099) with a violation that is checked before any now-relative comparison could differ.",
       "rules": [
         "receivers MUST reject every case before advancing subscription position, barrier wait, or any other server-side state",
-        "syntax / schema / TTL-bound failures surface as top-level invalid_param with reason_code invalid_cursor; expiry uses cursor_expired; handle lookup or cross-binding failures (not covered here, they need server state) use cursor_integrity_invalid",
+        "syntax / schema / TTL-bound failures surface as top-level param_invalid with reason_code invalid_cursor; expiry uses cursor_expired; handle lookup or cross-binding failures (not covered here, they need server state) use cursor_integrity_invalid",
         "receivers MUST enforce the 4KB cap on the encoded token before spending base64 or JSON parsing work",
         "TTL bound checks MUST validate issued_at and expires_at well-formedness first, then issued_at <= expires_at, then issued_at not in the future beyond clock skew, then expires_at - issued_at against the per-purpose cap, so a corrupt issued_at cannot bypass the cap"
       ]

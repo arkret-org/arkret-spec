@@ -14,7 +14,7 @@
       "pattern": "^[A-Za-z0-9_-]+$",
       "minLength": 1
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
     },
@@ -41,7 +41,7 @@
           "$ref": "#/$defs/base64url"
         },
         "key_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false

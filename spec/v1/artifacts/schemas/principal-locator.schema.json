@@ -46,7 +46,7 @@
       "description": "Time after which the locator MUST NOT be used to initiate invite delivery."
     },
     "locator_ref_digest": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Digest of the private locator ref material. The raw locator token MUST NOT appear in durable Realm events."
     },
     "delivery_modes": {
@@ -99,7 +99,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -110,7 +110,7 @@
         "sync",
         "to_device",
         "push",
-        "key_packages"
+        "keypackages"
       ]
     },
     "principal_locator_proof": {

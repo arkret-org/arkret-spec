@@ -46,11 +46,11 @@
       "$ref": "#/$defs/blob_ref"
     },
     "content_digest": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Digest published by the Arkret blob pipeline for the stored recording object."
     },
     "ciphertext_digest": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Digest of encrypted recording bytes. This MUST match encryption.ciphertext_digest and the referenced encrypted blob metadata."
     },
     "size_bytes": {
@@ -116,7 +116,7 @@
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -208,7 +208,7 @@
           "additionalProperties": false
         },
         "ciphertext_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false

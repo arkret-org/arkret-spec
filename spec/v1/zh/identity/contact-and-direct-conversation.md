@@ -347,7 +347,7 @@ founding_receipt_transcript = H("ak.direct-conversation.founding-receipt.v1",
 transcript 与同一签名输入。
 
 carrier 是 `ak.self.events.command.submit` request union 中显式登记的 discriminated branch
-`DirectConversationFoundingUnitSubmission`（discriminator `unit_kind="direct_conversation_founding"`）：它精确要求恰好三条按 §6.1 顺序排列的 `EventInitialSubmission`、分支化 `founding_authority_evidence` 与 `idempotency_key`，并在 response union `EventsSubmitResponseBody` 中返回 `DirectConversationFoundingAcceptanceOutcome`。每条 Event 的 `principal_server_id` 必须等于接收服务，服务端只在完整本地准入后追加 admission proof。实现 **MUST NOT** 新增私有 endpoint、复用普通 batch 分支或让服务端代签 producer Event；`ak.self.direct_conversation.read.resolve` 继续 query-only，**MUST NOT** 承载 create。
+`DirectConversationFoundingUnitSubmission`（discriminator `unit_kind="direct_conversation_founding"`）：它精确要求恰好三条按 §6.1 顺序排列的 `EventInitialSubmission`、分支化 `founding_authority_evidence` 与 `idempotency_key`，并在 response union `SelfEventsSubmitOutcome` 中返回 `DirectConversationFoundingAcceptanceOutcome`。每条 Event 的 `principal_server_id` 必须等于接收服务，服务端只在完整本地准入后追加 admission proof。实现 **MUST NOT** 新增私有 endpoint、复用普通 batch 分支或让服务端代签 producer Event；`ak.self.direct_conversation.read.resolve` 继续 query-only，**MUST NOT** 承载 create。
 
 幂等与 crash/restart 语义 **MUST** 如下封闭：
 
@@ -734,7 +734,7 @@ Conformance **MUST** 覆盖：
 - 非 founder 提交 founding unit 在 self 与 peer 两条路径均拒绝；
 - caller-authored 派生：`realm_id`、`main_strand_id` 与 `founding_unit_digest` 由两个独立实现从同一 unit bytes 重算得到逐字节相同结果；请求另行携带坐标、服务端预分配 ID、reserved/materializing draft 与 coordinator 选举形态 **MUST** 被拒绝；
 - founder 多设备并发各自 author 出不同 unit 时，同一 Principal Server 的唯一 slot **MUST** 只接受先到的合法 unit，后到者返回 `slot_already_committed` 且零写入，两台设备随后从 resolver 得到同一组坐标；
-- founder 与 peer 位于同一 Principal Server 与位于两台 Principal Server 两种部署下，self 路径与 §5.6 peer 路径 **MUST** 得到相同 unit digest、相同 receipt 语义与相同 admission verdict；
+- founder 与 peer 位于同一 Principal Server 与位于两台 Principal Server 两种部署下，self 路径与 §5.6 peer 路径 **MUST** 得到相同 unit digest、相同 receipt 语义与相同 admission decision；
 - 幂等与崩溃恢复：同 `idempotency_key` 同 unit 的 exact retry 返回 byte-identical receipt 且 `accepted_at` 不变，同 key 不同 unit 返回 `duplicate_conflict`；unit 提交、receipt 落库、outbox 入队与响应丢失各崩溃点重放同一 signed bytes 均恢复同一结果，且不产生第二组 Event；
 - §5.6 branch 的 dependency 不足 **MUST** 是 top-level 409 `dependency_missing` 加零写入，**MUST NOT** 出现只接受一或两条 Event 的 partial；
 - basis 形态：unit 内 `ak.member.state{join}` 与 `ak.strand.create` 的 no-basis shape 被接受；同一 no-basis `ak.strand.create` 出现在 founding unit 之外（普通 Realm、同 Realm 的后续 Strand 或单条提交）**MUST** 被 admission 拒绝，而 unit 内改携 `seal_ref`/`auth_context`/`seal_basis` 也 **MUST** 被拒绝；

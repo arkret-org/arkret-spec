@@ -94,7 +94,7 @@ bootstrap requirement；epoch-0 binding 本身由首个覆盖 `ak.mls.genesis` �
 `reason="realm_authority_root_missing"`）。base policy（`ak.realm.policy_bundle`）与其它初始 facet 的必选/条件规则由 §2.5 的 bootstrap registry 唯一决定；实现不得把它们降级成 create 后可补写的普通 follow-up。
 
 缺少任一 founding required cell、使用空 `control_event_set_root`、或先接受空 Seal 再补
-authority（含 authority-root cell），均为 `invalid_genesis_seal`。MLS epoch-0 binding 不属于可在 `ak.mls.genesis`
+authority（含 authority-root cell），均为 `genesis_seal_invalid`。MLS epoch-0 binding 不属于可在 `ak.mls.genesis`
 之前物化的 founding cell；其后续 Seal 义务不得被解释为允许补写其它 founding authority。
 
 ## 4. Proposal 有界决议

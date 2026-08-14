@@ -337,10 +337,10 @@
           "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
         },
         "state_root": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash"
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
         },
         "leaf_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash"
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
         },
         "leaf_index": {
           "type": "integer",
@@ -354,7 +354,7 @@
           "type": "array",
           "maxItems": 64,
           "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/hash"
+            "$ref": "./event-envelope.schema.json#/$defs/digest"
           }
         }
       },

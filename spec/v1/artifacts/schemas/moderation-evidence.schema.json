@@ -42,10 +42,10 @@
           "description": "Base64url without padding."
         },
         "ciphertext_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "plaintext_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "reporter_signature": {
           "type": "string",
@@ -88,14 +88,14 @@
           "description": "Event ID of the encrypted Event whose receipt is proven; not the enclosing franking-proof Event ID."
         },
         "routing_metadata_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Digest of canonical Event routing metadata covered by the receiving service."
         },
         "ciphertext_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "aad_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "sender_claim": {
           "type": "object",
@@ -112,7 +112,7 @@
               "$ref": "./common-ids.schema.json#/$defs/device_id"
             },
             "mls_group_id_digest": {
-              "$ref": "#/$defs/hash",
+              "$ref": "#/$defs/digest",
               "description": "Digest of the MLS group id; raw group ids and plaintext epoch values are forbidden."
             }
           },
@@ -141,7 +141,7 @@
       },
       "additionalProperties": false
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },

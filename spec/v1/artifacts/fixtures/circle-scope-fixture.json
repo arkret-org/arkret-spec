@@ -233,7 +233,7 @@
       "revocation_freshness_window_ms": 60000,
       "expected": {
         "result": "reject_or_hide",
-        "reason": "stale_seal_ref"
+        "reason": "seal_ref_stale"
       }
     },
     {
@@ -247,7 +247,7 @@
       "joined_circle_state": "archived",
       "expected": {
         "result": "reject_or_hide",
-        "reason": "stale_seal_ref",
+        "reason": "seal_ref_stale",
         "freshness_window_applies": false
       }
     },
@@ -262,7 +262,7 @@
       "revocation_freshness_window_ms": 60000,
       "expected": {
         "result": "reject_or_hide",
-        "reason": "stale_seal_ref",
+        "reason": "seal_ref_stale",
         "freshness_window_applies": false
       }
     },
@@ -279,7 +279,7 @@
       "receiver_current_circle_state": "active",
       "expected": {
         "result": "reject_or_hide",
-        "reason": "stale_seal_ref",
+        "reason": "seal_ref_stale",
         "requires_new_basis_containing": "ak.circle.restore"
       }
     },

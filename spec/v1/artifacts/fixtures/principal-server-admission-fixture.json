@@ -26,7 +26,7 @@
       "given": "a producer proof validates the canonical Event",
       "action": "rewrite principal_server_id after signing",
       "expected": "reject",
-      "reason_code": "invalid_signature"
+      "reason_code": "signature_invalid"
     },
     {
       "name": "delegated_author_uses_executor_account",

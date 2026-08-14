@@ -250,10 +250,10 @@
       "semantic_outcome": "accept_base_reject_mutations",
       "expected_reason_code": "service_route_notice_basis_stale",
       "expected_reason_code_by_mutation": {
-        "not_before_before_issued_at": "invalid_param",
-        "cutover_before_not_before": "invalid_param",
-        "grace_equal_cutover": "invalid_param",
-        "expires_before_grace": "invalid_param",
+        "not_before_before_issued_at": "param_invalid",
+        "cutover_before_not_before": "param_invalid",
+        "grace_equal_cutover": "param_invalid",
+        "expires_before_grace": "param_invalid",
         "basis_sequence_stale": "service_route_notice_basis_stale",
         "basis_digest_mismatch": "service_route_notice_basis_stale"
       },

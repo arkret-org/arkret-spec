@@ -71,7 +71,7 @@
           ]
         },
         "payload_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "sha256 over RFC 8785 JCS canonical JSON of this MemberIdentity object with the top-level proof field excluded. The signature MUST cover the same canonical bytes."
         },
         "signature": {
@@ -89,7 +89,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     }

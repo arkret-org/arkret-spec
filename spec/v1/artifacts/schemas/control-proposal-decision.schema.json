@@ -33,7 +33,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "proposal_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "received_at": {
           "$ref": "#/$defs/timestamp"
@@ -48,7 +48,7 @@
           "const": 0
         },
         "authority_set_ref": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "authority_acks": {
           "type": "array",
@@ -79,7 +79,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "proposal_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "received_at": {
           "$ref": "#/$defs/timestamp"
@@ -91,7 +91,7 @@
           "$ref": "#/$defs/timestamp"
         },
         "authority_set_ref": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "signature": {
           "$ref": "#/$defs/proof"
@@ -125,10 +125,10 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "proposal_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "proposal_ack_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "decided_at": {
           "$ref": "#/$defs/timestamp"
@@ -151,7 +151,7 @@
           "pattern": "^[a-z][a-z0-9_]*$"
         },
         "authority_set_ref": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "proofs": {
           "type": "array",
@@ -274,7 +274,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -292,7 +292,7 @@
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "payload_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"

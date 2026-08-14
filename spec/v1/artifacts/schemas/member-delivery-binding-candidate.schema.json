@@ -71,7 +71,7 @@
               "sync",
               "to_device",
               "push",
-              "key_packages"
+              "keypackages"
             ]
           },
           "uniqueItems": true,

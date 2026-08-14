@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.3",
+  "version": "2026-08-14.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-14T07:20:00Z",
+  "generated_at": "2026-08-14T07:30:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2985,7 +2985,7 @@
       "applies_to_fixtures": [
         "federation-fixture.json"
       ],
-      "description": "Each Event selects its Realm reducer from the authenticated CBA governance basis; ordinary Events and federation service bindings carry no reducer identity, unsupported settled profiles fail with profile_unsupported, and an unregistered upgrade target fails closed.",
+      "description": "Each Event selects its Realm reducer from the authenticated CBA governance basis; ordinary Events and federation service bindings carry no reducer identity, unsupported settled profiles fail with unsupported_profile, and an unregistered upgrade target fails closed.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/federation-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

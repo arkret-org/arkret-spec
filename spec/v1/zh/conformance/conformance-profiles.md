@@ -71,7 +71,7 @@ Profile 不支持某个标准能力时的默认行为：
 - 写入接收方收到 active 标准 Event kind 时，若该 kind 不在本实现声明的 supported_event_kinds / profile 范围内，且该实现负责该 Realm 的 accepted history，MUST 返回 `unsupported_feature`、`unsupported_event_kind`、`schema_violation` 或 quarantine，不得把未知标准事件 accepted 后静默丢给 reducer。
 - 只读客户端或 projection 服务遇到未实现但已 accepted 的标准 Event kind，MAY 保留 raw event、显示 generic fallback 或把对应 projection 标记为 incomplete；不得声称已完整执行该 kind 的 reducer 语义。
 - 未知 Morph type、未知非 critical extension field 和未声明 renderer 可以保留并忽略，但不能影响授权、排序、状态机、redaction、E2EE、notification 或 state hash。
-- Event 的 `requirements.features[]`、`requirements.critical_extensions[]` 或 `requirements.schema[]` 出现不支持的标识时，接收方 MUST fail closed。Reducer profile 从该 Event 的 CBA governance basis 读取；本地未实现时返回 `profile_unsupported`。
+- Event 的 `requirements.features[]`、`requirements.critical_extensions[]` 或 `requirements.schema[]` 出现不支持的标识时，接收方 MUST fail closed。Reducer profile 从该 Event 的 CBA governance basis 读取；本地未实现时返回 `unsupported_profile`。
 - `rejected_event_kinds` 表示 profile 必须拒绝或不接收的 wire scope / kind。`optional_extensions` 表示可以不提供交互能力；它不授权实现静默接受依赖该 extension 的 critical Event。
 
 机器可读默认行为见 `artifacts/profiles/conformance-profiles.json.default_unsupported_behavior`。其中 `must_not_accept`、`must_fail_closed`、`allowed_results` 等字段用于 conformance lint / test，而不是自由文本提示。

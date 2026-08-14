@@ -70,9 +70,9 @@ Reducer profile 只出现在以下 canonical 位置：
 - `supported_profiles[]`：实现、部署或产品 conformance profile；
 - `supported_features[]`：可选功能。
 
-目标 Realm 的 active reducer profile 不在本地实现集合时，该 Realm 操作返回 `profile_unsupported`；其它 Realm 不受影响。缺少计算 profile cell 所需的 CBA 依赖返回 `dependency_missing`；cell 为 Bottom 返回 `failed_bottom`、reason=`cell_in_bottom_state`。
+目标 Realm 的 active reducer profile 不在本地实现集合时，该 Realm 操作返回 `unsupported_profile`；其它 Realm 不受影响。缺少计算 profile cell 所需的 CBA 依赖返回 `dependency_missing`；cell 为 Bottom 返回 `failed_bottom`、reason=`cell_in_bottom_state`。
 
-Reducer upgrade target 的词法形状不合法时返回 `schema_violation`；target 未注册时返回 `profile_unsupported`；registry 中不存在 source→target edge 时返回 `failed_precondition`。
+Reducer upgrade target 的词法形状不合法时返回 `schema_violation`；target 未注册时返回 `unsupported_profile`；registry 中不存在 source→target edge 时返回 `failed_precondition`。
 
 ## 5. Schema 与功能演进
 

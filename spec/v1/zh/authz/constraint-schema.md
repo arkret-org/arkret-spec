@@ -477,7 +477,7 @@ quota authority MUST 同时满足：
 
 本节的 **approval signature** 与 [`policy-server.md` §5](./policy-server.md) 的 **policy decision signature** 是两套独立的 replay 防护证据，各有独立的 nonce 命名空间与绑定字段，MUST NOT 互相替代或共享 nonce：approval signature 由 approver DID 签发、绑定 `(grant_id 或 proposal_id, nonce, ...)`，证明"某 approver 批准了该 Move"；policy decision signature 由 Policy Server 签发、绑定 `(request_id, request_canonical_digest, auth_state_digest, ...)`，证明"Policy Server 对该请求给出了某 decision"。一次授权可同时需要两者。
 
-无论是 §9.1 预审批还是 §9.2 提案模式，每个 approval signature 都是 reducer 在判定"目标 Move 是否被批准"时直接消费的密码学证据。为防止同一个 approver 的同一份签名被跨 grant、跨 proposal、跨 request body 重放，approval signature 的 canonical signing input **MUST** 绑定下列字段（缺一即 `invalid_signature`）：
+无论是 §9.1 预审批还是 §9.2 提案模式，每个 approval signature 都是 reducer 在判定"目标 Move 是否被批准"时直接消费的密码学证据。为防止同一个 approver 的同一份签名被跨 grant、跨 proposal、跨 request body 重放，approval signature 的 canonical signing input **MUST** 绑定下列字段（缺一即 `signature_invalid`）：
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |

@@ -269,7 +269,7 @@ applicant 直接提交：
       "recipient_service_kind": "principal_server",
       "binding_scope": "realm",
       "binding_source": "explicit",
-      "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
+      "delivery_modes": ["events", "sync", "to_device", "push", "keypackages"],
       "service_acceptance_ref": "ak:event:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6"
     },
     "gate_proofs": [
@@ -376,9 +376,9 @@ receipt 与 private body MUST 在同一 durable transaction 中写入；任一 s
 | `realm_id` | yes | `id:realm` | 申请目标 Realm。 |
 | `applicant_actor_id` | yes | `did` | 等于 envelope `actor_id`。 |
 | `knock_ref` | yes | `event_ref` | 引用 stage 1 的 `ak.member.state{knock}` event id。 |
-| `policy_version_digest` | yes | `hash` | 提交时 `realm.join_policy` cell value 的 canonical digest；reducer 校验 reviewer 决策时是否仍是同一 policy。 |
-| `private_body_digest` | yes | `hash` | 对本次 profile-private body 的 `sha256:JCS`；receipt 只绑定 digest，不复制正文。 |
-| `application_revision_digest` | yes | `hash` | 按 §7.3 固定前像计算，review 必须绑定同一 revision。 |
+| `policy_version_digest` | yes | `digest` | 提交时 `realm.join_policy` cell value 的 canonical digest；reducer 校验 reviewer 决策时是否仍是同一 policy。 |
+| `private_body_digest` | yes | `digest` | 对本次 profile-private body 的 `sha256:JCS`；receipt 只绑定 digest，不复制正文。 |
+| `application_revision_digest` | yes | `digest` | 按 §7.3 固定前像计算，review 必须绑定同一 revision。 |
 | `answers` | conditional | `array<Answer>` | 位于 `private_body{mode="server_protected"}`；任一 `application_form` gate 存在时必填，覆盖该 gate 所有 `required=true` 的 question_id。 |
 | `gate_proofs` | conditional | `array<GateProof>` | 位于 `private_body{mode="server_protected"}`；任一可自动解析 gate 存在时按需提供（与自动解析路径同形）。 |
 | `applicant_note` | no | `string` | 位于 private body，1..2000 chars 自由文本备注。 |
@@ -394,7 +394,7 @@ receipt 与 private body MUST 在同一 durable transaction 中写入；任一 s
 | --- | --- | --- | --- |
 | `realm_id` | yes | `id:realm` |  |
 | `application_ref` | yes | `receipt_digest` 或 profile-private `event_ref` | 指向 §7.2 的 signed application receipt；若实现 profile 已注册私有 application Event kind，MAY 指向该私有 Event id。不得引用未注册的裸名 `member.application`。 |
-| `decision` | yes | `enum(accept, reject, request_changes)` | review **结果**由本字段承载（accept / reject / request_changes），等价于本文件族 §5.5 appeal 的 `verdict` 角色。`request_changes` 允许 applicant 修订 answer 后重提，不计入 cooldown。 |
+| `decision` | yes | `enum(accept, reject, request_changes)` | review **结果**由本字段承载（accept / reject / request_changes），等价于本文件族 §5.5 appeal 的 `decision` 角色。`request_changes` 允许 applicant 修订 answer 后重提，不计入 cooldown。 |
 | `reason_code` | conditional | `string` | 稳定**拒绝 / 变更细分原因码**：`incomplete_answers` / `policy_violation` / `claim_invalid` / `challenge_failed` / `duplicate` / `ttl_expired`（reducer 自动超时拒绝，见 §12）/ `quorum_unreachable`（§3 N-of-M reviewer quorum 已不可达）/ `other`。`decision ∈ {reject, request_changes}` 时必填；`decision=accept` 时省略或取保留值 `ok`（`ok` 不承载独立语义，成功结果由 `decision=accept` 表达）。本字段遵循 [`../models/common-fields.md` §2](../models/common-fields.md)（受控枚举用 `_code` 后缀），仅承载拒绝 / 变更细分，不兼表成功裁决。 |
 | `reason_text` | no | `string` | 1..1000 chars 自由文本，对 applicant 可见。 |
 | `evidence_refs` | no | `event_ref[]` / `hash[]` | 评审依据的其它 event 或 signed receipt（如 `ak.audit.*` 风险记录）。 |

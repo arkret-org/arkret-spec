@@ -151,7 +151,7 @@
       "timeline": [
         "reject_plan_or_submission_mismatch"
       ],
-      "expected_status": "invalid_param",
+      "expected_status": "param_invalid",
       "expected_new_effect_count": 0
     }
   ]

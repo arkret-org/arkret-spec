@@ -2412,15 +2412,15 @@ def check_circle_lifecycle_basis_vector(lint: Lint) -> None:
     beyond_window = beyond.get("revocation_freshness_window_ms")
     if not isinstance(beyond_distance, int) or not isinstance(beyond_window, int) or beyond_distance <= beyond_window:
         lint.fail(path, "beyond-window Circle archive case must exceed its freshness window")
-    if beyond.get("expected") != {"result": "reject_or_hide", "reason": "stale_seal_ref"}:
-        lint.fail(path, "beyond-window Circle archive must reject or hide with stale_seal_ref")
+    if beyond.get("expected") != {"result": "reject_or_hide", "reason": "seal_ref_stale"}:
+        lint.fail(path, "beyond-window Circle archive must reject or hide with seal_ref_stale")
 
     concurrent = cases["open_set_concurrent_archive"]
     concurrent_expected = concurrent.get("expected", {})
     if concurrent.get("notary_profile") != "open_set" or concurrent.get("evaluation_basis") != "joined_control_view":
         lint.fail(path, "concurrent Circle archive must evaluate the open_set joined control view")
-    if not isinstance(concurrent_expected, dict) or concurrent_expected.get("reason") != "stale_seal_ref":
-        lint.fail(path, "concurrent Circle archive must fail closed with stale_seal_ref")
+    if not isinstance(concurrent_expected, dict) or concurrent_expected.get("reason") != "seal_ref_stale":
+        lint.fail(path, "concurrent Circle archive must fail closed with seal_ref_stale")
     if concurrent_expected.get("freshness_window_applies") is not False:
         lint.fail(path, "concurrent Circle archive must not receive a freshness window")
 
@@ -2430,7 +2430,7 @@ def check_circle_lifecycle_basis_vector(lint: Lint) -> None:
         lint.fail(path, "tombstone_is_immediate must use ak.circle.tombstone")
     if (
         not isinstance(tombstone_expected, dict)
-        or tombstone_expected.get("reason") != "stale_seal_ref"
+        or tombstone_expected.get("reason") != "seal_ref_stale"
         or tombstone_expected.get("freshness_window_applies") is not False
     ):
         lint.fail(path, "Circle tombstone must fail closed without a freshness window")
@@ -2439,7 +2439,7 @@ def check_circle_lifecycle_basis_vector(lint: Lint) -> None:
     restore_expected = restore.get("expected", {})
     if restore.get("seal_ref_position") != "before_archive":
         lint.fail(path, "restore barrier case must use a pre-archive seal_ref")
-    if not isinstance(restore_expected, dict) or restore_expected.get("reason") != "stale_seal_ref":
+    if not isinstance(restore_expected, dict) or restore_expected.get("reason") != "seal_ref_stale":
         lint.fail(path, "restore must not rehabilitate a pre-archive seal_ref")
     if restore_expected.get("requires_new_basis_containing") != "ak.circle.restore":
         lint.fail(path, "post-restore writes must require a basis containing ak.circle.restore")

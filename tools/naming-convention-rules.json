@@ -9,30 +9,42 @@
     {
       "rule_id": "NC-BOOL-001",
       "axis": "boolean_permission_obligation",
-      "applies_to": ["wire_property"],
+      "applies_to": [
+        "wire_property"
+      ],
       "predicate": "permission booleans end _allowed; obligation booleans end _required; reject allow_/require_/requires_/deny_/force_",
       "narrative_section": "R1",
       "exceptions": [
         {
           "id": "registration-evidence-presence-summary",
           "basis": "internal_semantics",
-          "reason": "The summary records presence without echoing secret material.",
-          "anchor": "spec/v1/artifacts/schemas/account-registration-evidence.schema.json"
+          "reason": "The account_registration_evidence_summary records presence without echoing secret material, so `*_present` is the registered form here.",
+          "anchor": "spec/v1/artifacts/schemas/account-operations.schema.json"
         }
-      ]
+      ],
+      "enforcement": "predicate",
+      "exact_path_exceptions": []
     },
     {
       "rule_id": "NC-COUNT-001",
       "axis": "count_and_length",
-      "applies_to": ["wire_property", "registry_semantic_field", "fixture_assertion_field"],
+      "applies_to": [
+        "wire_property",
+        "registry_semantic_field",
+        "fixture_assertion_field"
+      ],
       "predicate": "counts use _count, bytes use _bytes; reject _len, _length, and _size",
       "narrative_section": "R2",
-      "exceptions": []
+      "exceptions": [],
+      "enforcement": "predicate",
+      "exact_path_exceptions": []
     },
     {
       "rule_id": "NC-ENUM-001",
       "axis": "symbolic_enum_literal",
-      "applies_to": ["symbolic_enum_value"],
+      "applies_to": [
+        "symbolic_enum_value"
+      ],
       "predicate": "Arkret-owned symbolic enum literals use snake_case",
       "narrative_section": "R3",
       "exceptions": [
@@ -43,12 +55,19 @@
           "anchor": "spec/v1/artifacts/registry/classification-field-registry.json",
           "external_anchor": "The external specification or codepoint recorded by the owning suite registry"
         }
-      ]
+      ],
+      "enforcement": "predicate+registry",
+      "enforcement_scope": "The predicate decides snake_case for every literal it is handed; deciding which enums are Arkret-owned is registry work and is not yet complete, so only registered non-snake literals are currently swept.",
+      "exact_path_exceptions": []
     },
     {
       "rule_id": "NC-TYPE-001",
       "axis": "type_name",
-      "applies_to": ["json_schema_defs_key", "openapi_schema_component", "conceptual_type_name"],
+      "applies_to": [
+        "json_schema_defs_key",
+        "openapi_schema_component",
+        "conceptual_type_name"
+      ],
       "predicate": "$defs use snake_case; Arkret-owned PascalCase type names fold acronym segments as ordinary words; OpenAPI components use registered structural wrapper suffixes",
       "narrative_section": "R4",
       "exceptions": [
@@ -58,80 +77,299 @@
           "reason": "This schema mirrors OpenAPI PascalCase component names one-for-one.",
           "anchor": "spec/v1/artifacts/schemas/service-operation-dtos.schema.json"
         }
-      ]
+      ],
+      "enforcement": "predicate+registry",
+      "enforcement_scope": "The predicate decides acronym folding, stacked wrapper words and rejected wrapper roles; distinguishing a domain subject from a wrapper role is registry-driven via rejected_wrapper_words.",
+      "exact_path_exceptions": []
     },
     {
       "rule_id": "NC-CODE-001",
       "axis": "machine_reason_code",
-      "applies_to": ["wire_property"],
+      "applies_to": [
+        "wire_property"
+      ],
       "predicate": "machine reasons use reason_code or <domain>_reason_code; protocol errors use error_code",
       "narrative_section": "R5",
-      "exceptions": []
+      "exceptions": [],
+      "enforcement": "predicate",
+      "exact_path_exceptions": []
     },
     {
       "rule_id": "NC-EVIDENCE-001",
       "axis": "evidence_material_noun",
-      "applies_to": ["wire_property", "type_name"],
+      "applies_to": [
+        "wire_property",
+        "type_name"
+      ],
       "predicate": "evidence is reserved for a polymorphic container spanning at least two material families",
       "narrative_section": "R6",
-      "exceptions": []
+      "exceptions": [],
+      "enforcement": "predicate+registry",
+      "enforcement_scope": "The predicate rejects single-material `*_evidence` stems; per-occurrence adjudication stays in evidence-material-audit.json because it needs the material inventory.",
+      "exact_path_exceptions": []
     },
     {
       "rule_id": "NC-ARTIFACT-001",
       "axis": "artifact_filename_and_provenance",
-      "applies_to": ["artifact_filename", "artifact_provenance"],
+      "applies_to": [
+        "artifact_filename",
+        "artifact_provenance"
+      ],
       "predicate": "artifact filenames are kebab-case and category/provenance match actual data shape and generation flow",
       "narrative_section": "R7",
-      "exceptions": []
+      "exceptions": [],
+      "enforcement": "predicate",
+      "exact_path_exceptions": []
     },
     {
       "rule_id": "NC-SET-001",
       "axis": "set_prefix",
-      "applies_to": ["wire_property", "fixture_wire_specimen"],
+      "applies_to": [
+        "wire_property",
+        "fixture_wire_specimen"
+      ],
       "predicate": "allowlist/denylist arrays use allowed_/denied_; scope differences use role prefixes",
       "narrative_section": "R8",
-      "exceptions": []
+      "exceptions": [],
+      "enforcement": "predicate",
+      "exact_path_exceptions": []
     },
     {
       "rule_id": "NC-HASH-001",
       "axis": "hash_vocabulary",
-      "applies_to": ["wire_property"],
-      "predicate": "reject Arkret wire fields ending _hash/_hashes or using hash_profile/hash_algorithm",
+      "applies_to": [
+        "wire_property",
+        "json_schema_defs_key",
+        "conceptual_type_name"
+      ],
+      "predicate": "reject Arkret wire fields and Arkret-owned type names ending _hash/_hashes or using hash/hashes/hash_profile/hash_algorithm; the canonical self-describing digest type is named digest",
       "narrative_section": "existing-hash-rule",
       "exceptions": [
         {
-          "id": "rfc9420-transcript-hash",
+          "id": "matrix-key-verification-interop-literals",
           "basis": "external_literal",
-          "reason": "RFC 9420 GroupContext fields are projected without renaming.",
-          "anchor": "spec/v1/artifacts/schemas/mls-governance.schema.json",
-          "external_anchor": "RFC 9420 §8.2 GroupContext"
+          "reason": "The ak.key.verification.* to-device family mirrors the Matrix m.key.verification SAS payload field-for-field so verification transcripts stay byte-comparable with the external protocol.",
+          "anchor": "spec/v1/artifacts/schemas/device-message.schema.json",
+          "external_anchor": "Matrix Client-Server API m.key.verification.accept `hashes`"
         },
         {
-          "id": "did-webvh-key-hashes",
+          "id": "mimi-room-update-group-context-projection",
           "basis": "external_literal",
-          "reason": "did:webvh fields and their explicit normalized projections retain the external term.",
-          "anchor": "spec/v1/artifacts/schemas/did-webvh.schema.json",
-          "external_anchor": "did:webvh specification parameters and DID log entry fields"
+          "reason": "mimi_room_update_request_body projects RFC 9420 GroupContext verbatim; its siblings mls_group_id and epoch are GroupContext names as well, so renaming only the transcript field would break the projection.",
+          "anchor": "spec/v1/artifacts/schemas/mimi-operations.schema.json",
+          "external_anchor": "RFC 9420 section 8.2 GroupContext confirmed_transcript_hash"
+        }
+      ],
+      "enforcement": "predicate+registry",
+      "enforcement_scope": "The predicate decides the token; every retained occurrence must carry an exact-path exception or a debt entry.",
+      "exact_path_exceptions": [
+        {
+          "id": "matrix-key-verification-hashes",
+          "file": "device-message.schema.json",
+          "pointer": "/$defs/key_verification_content/properties/hashes",
+          "name": "hashes",
+          "basis": "external_literal",
+          "reason": "Matrix m.key.verification SAS interop field, retained verbatim.",
+          "external_anchor": "Matrix Client-Server API m.key.verification.accept `hashes`"
+        },
+        {
+          "id": "mimi-room-update-confirmed-transcript-hash",
+          "file": "mimi-operations.schema.json",
+          "pointer": "/$defs/mimi_room_update_request_body/properties/confirmed_transcript_hash",
+          "name": "confirmed_transcript_hash",
+          "basis": "external_literal",
+          "reason": "RFC 9420 GroupContext field projected verbatim into the MIMI interop surface.",
+          "external_anchor": "RFC 9420 section 8.2 GroupContext confirmed_transcript_hash"
         }
       ]
     },
     {
       "rule_id": "NC-CLASSIFICATION-001",
       "axis": "classification_suffix",
-      "applies_to": ["wire_property", "registry_semantic_field"],
+      "applies_to": [
+        "wire_property",
+        "registry_semantic_field"
+      ],
       "predicate": "delegate to classification-field-registry.json",
       "narrative_section": "four-axis-classification",
-      "exceptions": []
+      "exceptions": [],
+      "enforcement": "registry",
+      "enforcement_scope": "No token-level predicate exists; classification-field-registry.json is the only enforcement surface. The predicate only rejects double-axis suffixes.",
+      "exact_path_exceptions": []
     }
   ],
   "negative_cases": [
-    {"rule_id": "NC-BOOL-001", "candidate": "allow_export", "expected": "reject"},
-    {"rule_id": "NC-COUNT-001", "candidate": "output_len", "expected": "reject"},
-    {"rule_id": "NC-ENUM-001", "candidate": "arkret-native", "expected": "reject"},
-    {"rule_id": "NC-TYPE-001", "candidate": "RelationConflictCandidate", "expected": "reject"},
-    {"rule_id": "NC-CODE-001", "candidate": "failure_code", "expected": "reject"},
-    {"rule_id": "NC-EVIDENCE-001", "candidate": "single_signature_evidence", "expected": "reject"},
-    {"rule_id": "NC-ARTIFACT-001", "candidate": "bad_fixture.json", "expected": "reject"},
-    {"rule_id": "NC-SET-001", "candidate": "permitted_kinds", "expected": "reject"}
+    {
+      "rule_id": "NC-BOOL-001",
+      "candidate": "allow_export",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-BOOL-001",
+      "candidate": "requires_fresh_authentication",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-COUNT-001",
+      "candidate": "output_len",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-ENUM-001",
+      "candidate": "arkret-native",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-TYPE-001",
+      "candidate": "RelationConflictCandidate",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-TYPE-001",
+      "candidate": "InviteDeliveryRequestBodyBody",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-TYPE-001",
+      "candidate": "CBAProofBundle",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-CODE-001",
+      "candidate": "failure_code",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-EVIDENCE-001",
+      "candidate": "single_signature_evidence",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-ARTIFACT-001",
+      "candidate": "bad_fixture.json",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-SET-001",
+      "candidate": "permitted_kinds",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "candidate": "transcript_hash",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "candidate": "hash_algorithm",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-CLASSIFICATION-001",
+      "candidate": "morph_kind_type",
+      "expected": "reject"
+    }
+  ],
+  "rejected_wrapper_words": [
+    "Candidate",
+    "Item",
+    "ResponseBody",
+    "Response",
+    "Request",
+    "Wrapper",
+    "Info",
+    "Details"
+  ],
+  "positive_cases": [
+    {
+      "rule_id": "NC-BOOL-001",
+      "candidate": "consent_required",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-BOOL-001",
+      "candidate": "export_allowed",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-COUNT-001",
+      "candidate": "segment_count",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-COUNT-001",
+      "candidate": "size_bytes",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-ENUM-001",
+      "candidate": "or_set",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-TYPE-001",
+      "candidate": "CbaProofBundle",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-TYPE-001",
+      "candidate": "IdentityLogListOutcome",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-TYPE-001",
+      "candidate": "InviteDeliveryRequestBody",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-CODE-001",
+      "candidate": "reason_code",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-CODE-001",
+      "candidate": "outcome_reason_code",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-EVIDENCE-001",
+      "candidate": "agent_signer_evidence",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-ARTIFACT-001",
+      "candidate": "event-kind-registry.json",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-SET-001",
+      "candidate": "allowed_kinds",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-SET-001",
+      "candidate": "denied_kinds",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "candidate": "event_digest",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "candidate": "digest_algorithm",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-CLASSIFICATION-001",
+      "candidate": "morph_kind",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-CLASSIFICATION-001",
+      "candidate": "risk_tier",
+      "expected": "accept"
+    }
   ]
 }

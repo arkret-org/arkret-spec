@@ -37,7 +37,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | `blob_ref` | `string` | required | 内容地址，通常包含强 hash。 |
 | `schema` | `ak.schema.blob.v1` | required | Blob metadata schema discriminator。 |
 | `realm_id` | `id:realm` | conditional | Owning Realm。普通用户/组织上传 MUST 设置，用于授权、asset privacy policy enforcement、retention 与 GC。仅当 deployment policy 显式声明的全局/跨 Realm 服务 blob（例如 avatar 公共预览）才可省略。 |
-| `content_digest` | `hash` | required | 服务端计算的内容 digest，wire 形态为 `<algo>:<lowercase_hex>`。 |
+| `content_digest` | `digest` | required | 服务端计算的内容 digest，wire 形态为 `<algo>:<lowercase_hex>`。 |
 | `size_bytes` | `int` | required | 字节大小。 |
 | `media_type` | `string` | optional | 上传声明或服务端校正后的 MIME。缺省为 `application/octet-stream`。 |
 | `created_by` | `did` | required | 上传 Actor 或 service DID。 |
@@ -334,7 +334,7 @@ Range: bytes=<start>-<end>
 
 规则：
 
-- `X-Arkret-Wait-For` 接受 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 的 `purpose=barrier` cursor，用于避免客户端刚收到引用但 Blob 服务尚未完成授权物化。Blob 服务 SHOULD 等待本地授权 frontier 覆盖该 cursor 描述的 target event，超时返回 `stale_frontier` 或 `temporarily_unavailable`。
+- `X-Arkret-Wait-For` 接受 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 的 `purpose=barrier` cursor，用于避免客户端刚收到引用但 Blob 服务尚未完成授权物化。Blob 服务 SHOULD 等待本地授权 frontier 覆盖该 cursor 描述的 target event，超时返回 `frontier_stale` 或 `temporarily_unavailable`。
 - 下载授权 MUST 绑定 actor DID、device/session、Realm id、blob ref、purpose 和过期时间。服务端不得只凭 URL 随机串放行私有媒体。
 - 受保护下载 MUST NOT 接受 query string 中的 session credential 或长期 capability。浏览器客户端应通过 `Authorization` header、service worker 代理或 device-bound proof 获取媒体。
 - Blob 服务 MAY 返回短期 signed download URL 或 `307/308` redirect 到对象存储，但 redirect token MUST 短时效、单 blob、单 purpose、可撤销，并不得扩大可见性。
@@ -491,7 +491,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 `GET /_arkret/self/blob/get?blob_ref=X&presign=<envelope>` 处理时：
 
-1. **互斥检查**：`Authorization` header 与 `?presign=` 同时出现 MUST 拒绝 `invalid_param`，避免混合 auth 模式
+1. **互斥检查**：`Authorization` header 与 `?presign=` 同时出现 MUST 拒绝 `param_invalid`，避免混合 auth 模式
 2. **签名校验**：用 envelope 内 `issuer_service_id` 当前 verification method 验证签名
 3. **scheme 校验**：仅识别注册 scheme id（v1 = `ak.blob.presign.v1`）；未知 scheme MUST 拒绝
 4. **blob_ref 一致性**：envelope `blob_ref` 与 query `blob_ref` 必须完全相同

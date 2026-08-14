@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.1",
+  "version": "2026-08-14.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T00:30:00Z",
+  "generated_at": "2026-08-14T06:24:26Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -178,6 +178,7 @@
         "ak.self.contact.command.scope_update",
         "ak.self.contact.read.list",
         "ak.self.contact.command.tombstone",
+        "ak.self.invites.command.dispatch",
         "ak.self.invite_receive_policy.resource.get",
         "ak.self.invite_receive_policy.resource.replace",
         "ak.self.invite_locator.command.issue",
@@ -1102,7 +1103,7 @@
       "operation_id": "ak.gate.account.command.issue_recovery_completion_grant",
       "http_only_variant": true,
       "http": "POST /_arkret/gate/account/recovery-session-grants/issue",
-      "notes": "Issues the replacement device's first Standard grant after a PCR-policy RecoveryTransaction completes. The body carries the terminal device-attested receipt, coordinator attestation, PCR generation and InitialSessionGrantRequest; DID-root evidence is relevant only when that optional factor was enabled.",
+      "notes": "Issues the replacement device's first Standard grant after a PCR-policy RecoveryTransaction completes. The body carries the terminal device-attested receipt, coordinator attestation, PCR generation and InitialSessionGrantIntent; DID-root evidence is relevant only when that optional factor was enabled.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",
@@ -1752,8 +1753,8 @@
         "strategy": "query_operation",
         "operation_id": "ak.peer.keys.keypackages.read.claim"
       },
-      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_outcome",
+      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_request_body",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
@@ -1767,8 +1768,8 @@
       "notes": "Read-only recovery of the destination authority's durable peer-claim ledger after an uncertain command outcome. It requires the same authenticated source service and exact request_digest and returns only opaque claim state plus the original signed success outcome when one exists.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_outcome"
+      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_request_body",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_outcome"
     },
     {
       "operation_id": "ak.peer.mls.read.group_state_material",
@@ -2659,7 +2660,7 @@
       "idempotency_mechanism": "canonical_hash",
       "canonical_hash_input": "/events",
       "retry_safe": true,
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequest",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueOutcome",
       "durable_effect": {
         "kind": "none",
@@ -3160,7 +3161,7 @@
       "http": "POST /_arkret/self/device_messages/ack",
       "grpc": "SelfDeviceMessages/Ack",
       "mq": "self.device_messages.command.ack",
-      "notes": "Explicit, cumulative, monotonic to-device delivery acknowledgement (client-sync.md §10.1). Queue deletion happens only here; stream cursor advancement (account subscribe after=, device_messages after=) is read-only and MUST NOT prune the queue. Re-acking the same or an older token is a legal no-op. Unknown / expired / cross-bound tokens are rejected with invalid_param (reason invalid_ack_token) without deleting anything.",
+      "notes": "Explicit, cumulative, monotonic to-device delivery acknowledgement (client-sync.md §10.1). Queue deletion happens only here; stream cursor advancement (account subscribe after=, device_messages after=) is read-only and MUST NOT prune the queue. Re-acking the same or an older token is a legal no-op. Unknown / expired / cross-bound tokens are rejected with param_invalid (reason invalid_ack_token) without deleting anything.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",
@@ -3238,7 +3239,7 @@
       "idempotency_mechanism": "protocol_sequence",
       "retry_safe": true,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponseBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfEventsSubmitOutcome",
       "durable_effect": {
         "kind": "event_log",
         "event_kind_sources": [
@@ -3554,8 +3555,8 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
       "retry_safe": true,
-      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome",
+      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
@@ -3574,8 +3575,8 @@
         "strategy": "query_operation",
         "operation_id": "ak.self.keys.read.lookup"
       },
-      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_outcome",
+      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
@@ -3594,8 +3595,8 @@
         "strategy": "query_operation",
         "operation_id": "ak.self.keys.read.lookup"
       },
-      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_outcome",
+      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_revoke_request_body",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_revoke_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
@@ -3615,8 +3616,8 @@
         "operation_id": "ak.self.keys.keypackages.upload.create",
         "requires_fresh_request_identity": true
       },
-      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_outcome",
+      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_request_body",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_outcome",
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"

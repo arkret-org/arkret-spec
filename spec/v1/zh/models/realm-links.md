@@ -53,7 +53,7 @@ Payload 字段：
 | `link_kind` | yes | `string` | Link 语义，标准值见下表；profile MAY 注册额外值。 |
 | `status` | yes | `enum(active,rejected,tombstoned)` | 本侧声明的 link 状态。 |
 | `label` | no | `string` | 本地显示标签；不参与授权或确认语义。 |
-| `commitment` | no | `hash` | profile-specific 承诺值；需要双方确认、mirror、migration、confidential extension 或 attestation 的 profile MAY 要求它并定义 transcript。core `ak.realm.link` 不给该字段赋予通用授权语义。 |
+| `commitment` | no | `digest` | profile-specific 承诺值；需要双方确认、mirror、migration、confidential extension 或 attestation 的 profile MAY 要求它并定义 transcript。core `ak.realm.link` 不给该字段赋予通用授权语义。 |
 
 `status` MUST 出现在已签名的 `ak.realm.link` Event payload 中。操作 DTO 或 builder 若向调用方暴露 `status="active"` 默认值，MUST 在 Event canonicalization / signing 之前把该默认值 materialize 到 payload；reducer / receiver MUST 拒绝缺少 `status` 的持久 `ak.realm.link` Event。
 

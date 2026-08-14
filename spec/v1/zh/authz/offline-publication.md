@@ -195,8 +195,8 @@ Principal Server在不持有真实authority key时补签。
 
 只有显式延迟/离线流程的客户端通过 `ak.self.authorization_leases.command.issue`
 （`POST /_arkret/self/authorization-leases`）提交且只能二选一：
-`AuthorizationLeaseIssueRequest {events: Event[1..500]}` 或
-`AuthorizationLeaseIssueRequest {intents: AuthorizationLeaseIssueIntent[1..500]}`。Event 必须已完成最终签名；服务端
+`AuthorizationLeaseIssueRequestBody {events: Event[1..500]}` 或
+`AuthorizationLeaseIssueRequestBody {intents: AuthorizationLeaseIssueIntent[1..500]}`。Event 必须已完成最终签名；服务端
 MUST 对其执行与稍后正式提交相同的 actor/session、device generation、proof、registry、Realm
 policy、CBA、capability、frontier 与 closed-unit admission，但不得写 Event、推进 frontier 或
 承诺稍后一定接受。

@@ -31,7 +31,7 @@
           "pattern": "^[A-Za-z0-9_-]+$"
         },
         "digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -44,7 +44,7 @@
       "type": "string",
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -85,7 +85,7 @@
           "$ref": "#/$defs/transaction_id"
         },
         "transaction_request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "terminal_receipt": {
           "$ref": "./recovery-receipt.schema.json"
@@ -100,11 +100,11 @@
           "$ref": "#/$defs/pcr_generation_ref"
         },
         "initial_session": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/InitialSessionGrantRequest",
+          "$ref": "./service-operation-dtos.schema.json#/$defs/InitialSessionGrantIntent",
           "description": "The Standard grant to issue after recovery. device_id MUST equal the attested replacement device and the RFC 7638 thumbprint of session_public_key MUST equal the Bound AccountHandoff and HTTP DPoP key."
         },
         "canonical_request_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "SHA-256 of JCS(request object with only canonical_request_digest omitted). The Bound AccountHandoff authorization and RFC 9449 HTTP DPoP proof authenticate the account and holder outside this closed business body."
         }
       },
@@ -142,10 +142,10 @@
           "$ref": "#/$defs/transaction_id"
         },
         "transaction_request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "prepared_plan_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -160,7 +160,7 @@
           "$ref": "#/$defs/receipt_id"
         },
         "terminal_receipt_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "replacement_device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -169,7 +169,7 @@
           "$ref": "#/$defs/event_id"
         },
         "device_authorization_event_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "result_model_generation_ref": {
           "$ref": "#/$defs/pcr_generation_ref"

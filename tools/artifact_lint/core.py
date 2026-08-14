@@ -357,6 +357,8 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
 
 NAMING_RULES_PATH = TOOLS_ROOT / "naming-convention-rules.json"
 
+NAMING_DEBT_PATH = TOOLS_ROOT / "naming-debt-baseline.json"
+
 EVIDENCE_MATERIAL_AUDIT_PATH = TOOLS_ROOT / "evidence-material-audit.json"
 
 COMMON_OBJECT_FIELD_MATRIX_PATH = TOOLS_ROOT / "common-object-field-matrix.json"
@@ -841,7 +843,7 @@ _SUPPLY_DISPOSITIONS = frozenset({"external_form", "open_finding", "deferred_sup
 _SUPPLY_CLIENT_LOCAL_RE = re.compile(
     r"(^signature$|_signature$|^signed_|idempotency_key|request_id$|^nonce$|"
     r"client_|display_name|^name$|^slug$|^text$|^body$|^content$|^message$|"
-    r"^reason$|^label$|^title$|^description$|public_key|key_package|^keys$|"
+    r"^reason$|^label$|^title$|^description$|public_key|keypackage|^keys$|"
     r"^payload_bytes$|^ciphertext|plaintext|^password|^locale$|^timezone$|"
     r"^limit$|^cursor$|^page|^filter|^query$|^purpose$|^kind$|^mode$|^scope$|"
     r"_proof$|^proof$|proof_kind|proof_jwt|^code$|code_verifier|redirect_uri|"

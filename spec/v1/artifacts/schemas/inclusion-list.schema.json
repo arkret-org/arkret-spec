@@ -32,7 +32,7 @@
       "maxItems": 256,
       "uniqueItems": true,
       "items": {
-        "$ref": "#/$defs/hash"
+        "$ref": "#/$defs/digest"
       },
       "description": "Canonical ascending list of pending Control Move event digests that passed the issuer's local verification and hold a valid receipt."
     },
@@ -54,7 +54,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -79,7 +79,7 @@
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "payload_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Hash of canonical InclusionList bytes with signature omitted."
         },
         "created_at": {

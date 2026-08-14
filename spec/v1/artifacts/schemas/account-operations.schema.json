@@ -97,7 +97,7 @@
       "type": "string",
       "pattern": "^ak:[a-z][a-z0-9_]*:[A-Za-z0-9._:-]+$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -196,7 +196,7 @@
     "handle_claim_digests": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/hash"
+        "$ref": "#/$defs/digest"
       },
       "uniqueItems": true
     },
@@ -635,7 +635,7 @@
           "required": [
             "goal",
             "challenge",
-            "requires_fresh_authentication"
+            "fresh_authentication_required"
           ],
           "properties": {
             "goal": {
@@ -644,7 +644,7 @@
             "challenge": {
               "$ref": "#/$defs/identity_abandonment_challenge_outcome"
             },
-            "requires_fresh_authentication": {
+            "fresh_authentication_required": {
               "type": "boolean",
               "description": "Authoritative Account Authority decision. true means the current handoff is the challenge-issuing handoff and confirmation requires a new authentication; clients MUST NOT infer this by comparing locally persisted credentials."
             }
@@ -1015,7 +1015,7 @@
           "$ref": "./principal-operations.schema.json#/$defs/pcr_genesis_unit"
         },
         "initial_session": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/InitialSessionGrantRequest"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/InitialSessionGrantIntent"
         }
       },
       "additionalProperties": false
@@ -1147,7 +1147,7 @@
           "default": false
         },
         "code_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -1162,7 +1162,7 @@
         "token_digests": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/hash"
+            "$ref": "#/$defs/digest"
           },
           "uniqueItems": true
         }
@@ -1271,7 +1271,7 @@
           "$ref": "#/$defs/account_registration_audit_outcome"
         },
         "policy_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "evidence": {
           "$ref": "#/$defs/account_registration_evidence_summary"
@@ -1704,7 +1704,7 @@
           "$ref": "#/$defs/event_id"
         },
         "event_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "account_id": {
           "type": "string",
@@ -1721,7 +1721,7 @@
           "$ref": "#/$defs/did_core_id"
         },
         "account_status_frontier_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "accepted_at": {
           "$ref": "#/$defs/timestamp"
@@ -1861,7 +1861,7 @@
           "$ref": "#/$defs/event_id"
         },
         "account_status_frontier_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "barrier_cursor": {
           "$ref": "./cursor.schema.json"
@@ -1905,7 +1905,7 @@
           "$ref": "../schemas/applet-install-plan.schema.json#/$defs/effective_scope"
         },
         "registration_epoch": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"

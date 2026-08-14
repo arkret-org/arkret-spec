@@ -69,7 +69,7 @@
       "description": "backup_id of the immediate predecessor in the same series_id. MUST be absent for series_seq=0; MUST be present, non-null, and reference an existing predecessor for series_seq>0."
     },
     "supersedes_digest": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Required when supersedes is non-null. Hash of the canonical_json of the predecessor envelope (excluding auth_data.signature). Receivers MUST recompute and reject mismatches as `series_chain_broken`."
     },
     "frontier_ref": {
@@ -81,7 +81,7 @@
       ],
       "properties": {
         "frontier_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "seal_ref": {
           "type": "string",
@@ -1099,7 +1099,7 @@
       ],
       "properties": {
         "frontier_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "seal_ref": {
           "type": "string",
@@ -1145,7 +1145,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     }

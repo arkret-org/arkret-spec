@@ -41,13 +41,13 @@
       "$ref": "#/$defs/backup_series_id"
     },
     "ciphertext_digest": {
-      "$ref": "#/$defs/hash"
+      "$ref": "#/$defs/digest"
     },
     "proof_kind": {
       "$ref": "#/$defs/proof_kind"
     },
     "proof_digest": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Digest of the canonical recovery proof transcript that moved the session to verified."
     },
     "challenge": {
@@ -167,7 +167,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },

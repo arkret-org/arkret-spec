@@ -133,7 +133,7 @@
       "type": "string",
       "pattern": "^ak:message:[A-Za-z0-9_-]{44}$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -213,10 +213,10 @@
           "$ref": "#/$defs/timestamp"
         },
         "runtime_key_binding_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "transcript_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "signature": {
           "$ref": "#/$defs/base64url",
@@ -447,7 +447,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "grant_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -488,7 +488,7 @@
           "description": "Controller-private projection of the required immutable global Agent key/session ceiling captured at provision time, not a grant. Content actions are the maximum actions that later key scopes, Realm-scoped grants and sessions may allow; an omitted action cannot be added later. Participation is a separate action-time deny gate and cannot add authority. Provisioning never materializes content grants from this field. Operation/service resources constrain the service surface; explicit content resource selectors only further narrow later grants. Receiver authority comes from a valid agent-requested-scope-disclosure whose digest matches the accepted-at Agent DID commitment, not this service projection."
         },
         "requested_scope_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "sha256 digest of the domain-separated Agent requested_scope commitment fixed in the accepted Agent DID ArkretPrincipalControlRealm service entry; the public entry does not contain the complete scope."
         },
         "pairing_request_id": {
@@ -1028,7 +1028,7 @@
           "$ref": "#/$defs/did_url"
         },
         "authorized_public_key_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "SHA-256 of the decoded 32-byte Ed25519 public key, computed with agent_signing_public_key_digest. This is not the canonical runtime-request PublicKey DTO digest."
         },
         "authorized_signing_key_binding": {
@@ -1199,7 +1199,7 @@
           "$ref": "#/$defs/did_url"
         },
         "requested_scope_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Digest of the complete immutable requested_scope commitment in the Agent DID accepted create-locked bootstrap history (entry 1); only this digest, not the complete scope, is public. The client MUST recompute it from its submitted scope, returned agent_id and authenticated controller DID."
         },
         "pcr_recovery": {
@@ -1590,7 +1590,7 @@
           "$ref": "#/$defs/did_url"
         },
         "requested_scope_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Unchanged digest of the immutable requested_scope commitment in the Agent DID binding; the complete scope remains controller-private."
         },
         "pcr_recovery": {
@@ -2051,7 +2051,7 @@
       ],
       "properties": {
         "participant_authority_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "control_frontier": {
           "type": "array",

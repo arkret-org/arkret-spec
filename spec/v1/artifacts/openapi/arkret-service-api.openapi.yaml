@@ -389,7 +389,7 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_view
     AgentSignerEvidenceQueryOutcome:
       $ref: ../schemas/agent-signer-evidence-operations.schema.json#/$defs/query_outcome
-    AgentSignerEvidenceQueryRequestBodyBody:
+    AgentSignerEvidenceQueryRequestBody:
       $ref: ../schemas/agent-signer-evidence-operations.schema.json#/$defs/query_request
     AgentView:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_view
@@ -428,7 +428,7 @@ components:
     AuthorizationLeaseIssueOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueOutcome
     AuthorizationLeaseIssueRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequest
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequestBody
     AuthSessionLogoutOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome
     AuthSessionLogoutRequestBody:
@@ -1133,8 +1133,8 @@ components:
 
                 unknown values as forward-compatible failures and SHOULD log them.'
               enum:
-              - bad_json
-              - bad_query
+              - json_invalid
+              - query_invalid
               - schema_violation
               - historical_did_evidence_invalid
               - current_did_authority_unavailable
@@ -1148,8 +1148,8 @@ components:
               - agent_mls_leaf_binding_mismatch
               - duplicate_clause_claim
               - key_transparency_proof_missing
-              - missing_param
-              - invalid_param
+              - param_missing
+              - param_invalid
               - controller_signed_event_required
               - unauthenticated
               - auth_expired
@@ -1162,7 +1162,7 @@ components:
               - account_deactivated
               - account_erased
               - did_proof_required
-              - invalid_signature
+              - signature_invalid
               - http_signature_required
               - http_signature_invalid
               - signature_window_invalid
@@ -1205,14 +1205,14 @@ components:
               - seal_signer_unauthorized
               - seal_deferred_future_skew
               - audit_receipt_invalidated
-              - unknown_did
+              - did_unknown
               - quota_exceeded
               - limit_exceeded
               - rate_limited
               - psi_batch_unavailable
               - psi_quota_exhausted
               - timeout
-              - stale_frontier
+              - frontier_stale
               - authorized_grant_revoked
               - device_recovery_generation_mismatch
               - cursor_expired
@@ -1220,7 +1220,7 @@ components:
               - cursor_revoked
               - cursor_unrecognized
               - actor_seq_invalid
-              - stale_seal_ref
+              - seal_ref_stale
               - seal_ref_unknown
               - audience_unknown
               - blob_digest_mismatch
@@ -1266,7 +1266,7 @@ components:
               - temporarily_unavailable
               - service_unavailable
               - service_identity_unavailable
-              - service_registration_rejected
+              - service_registration_denied
               - service_identity_conflict
               - policy_combination_invalid
               - history_sharing_policy_missing
@@ -1276,10 +1276,10 @@ components:
               - organization_registration_challenge_invalid
               - organization_registration_control_proof_invalid
               - organization_registration_quorum_not_met
-              - organization_registration_scope_unsupported
+              - unsupported_organization_registration_scope
               - organization_registration_revoked
               - organization_registration_stale
-              - profile_unsupported
+              - unsupported_profile
               - unsupported_join_rule
               - failed_precondition
               - failed_plane
@@ -1290,7 +1290,7 @@ components:
               - unsupported_digest_algorithm
               - unsupported_signature_alg
               - unsupported_hpke_suite
-              - invalid_genesis_seal
+              - genesis_seal_invalid
               - seal_incomplete
               - franking_proof_unavailable
               - turn_credential_expired
@@ -1302,7 +1302,7 @@ components:
               - applet_install_plan_mismatch
               - applet_e2ee_join_unauthorized
               - applet_revoked
-              - invalid_avatar_blob_ref
+              - avatar_blob_ref_invalid
               - unsupported_profile_patch_path
               - session_grant_not_found
               - session_revoke_selector_conflict
@@ -1328,12 +1328,12 @@ components:
               - agent_provision_fanout_unavailable
               - cannot_pair_current_device
               - device_already_authorized
-              - device_not_authorized
+              - device_unauthorized
               - device_revoked
               - discovery_failed
               - first_backup_gate_unsatisfied
               - fresh_device_scope_violation
-              - invalid_avatar_url
+              - avatar_url_invalid
               - recovery_authorization_device_mismatch
               - recovery_authorization_principal_mismatch
               - recovery_authorization_session_mismatch
@@ -1342,7 +1342,7 @@ components:
               - recovery_list_update_device_mismatch
               - recovery_list_update_principal_mismatch
               - recovery_policy_conflict
-              - recovery_policy_device_not_authorized
+              - recovery_policy_device_unauthorized
               - recovery_policy_id_mismatch
               - recovery_policy_missing
               - recovery_policy_revoked
@@ -1404,8 +1404,6 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody
     EventsSubmitOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome
-    EventsSubmitResponseBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponseBody
     EventsSubscribeFrame:
       $ref: ../schemas/events-subscribe-frame.schema.json
     EventStateView:
@@ -1444,7 +1442,7 @@ components:
           - failed_bottom
           - rejected_seal
           - fork_quarantine
-          - stale_seal_ref
+          - seal_ref_stale
         bottom:
           $ref: '#/components/schemas/BottomDiagnostic'
       additionalProperties: false
@@ -1632,7 +1630,7 @@ components:
       additionalProperties: false
     InviteDeliveryOutcome:
       $ref: ../schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome
-    InviteDeliveryRequestBodyBody:
+    InviteDeliveryRequestBody:
       $ref: ../schemas/invite-delivery-request.schema.json
     InviteLocatorIssueOutcome:
       $ref: ../schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome
@@ -1648,7 +1646,7 @@ components:
       $ref: ../schemas/invite-receive-policy.schema.json
     JoinApplicationAuditOutcome:
       $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_audit_outcome
-    JoinApplicationCancelRequestBodyBody:
+    JoinApplicationCancelRequestBody:
       $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_cancel_request
     JoinApplicationGetOutcome:
       $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_get_outcome
@@ -1656,26 +1654,26 @@ components:
       $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_list_outcome
     JoinApplicationMutationOutcome:
       $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome
-    JoinApplicationReviewRequestBodyBody:
+    JoinApplicationReviewRequestBody:
       $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_review_request
-    JoinApplicationSubmitRequestBodyBody:
+    JoinApplicationSubmitRequestBody:
       $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_submit_request
     KeyPackagesClaimOutcome:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome
     KeyPackagesClaimRequestBody:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body
     KeyPackagesConsumeOutcome:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_outcome
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_outcome
     KeyPackagesConsumeRequestBody:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body
     KeyPackagesRevokeOutcome:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_outcome
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_revoke_outcome
     KeyPackagesRevokeRequestBody:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_request_body
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_revoke_request_body
     KeyPackagesUploadOutcome:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_outcome
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_outcome
     KeyPackagesUploadRequestBody:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_request_body
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_request_body
     KeysBackupsDeleteChallenge:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_delete_challenge
     KeysBackupsDeleteOutcome:
@@ -1746,7 +1744,7 @@ components:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body
     MlsGovernanceProofBundle:
       $ref: ../schemas/mls-governance-proof-bundle.schema.json
-    MlsGovernanceProofRequestBodyBody:
+    MlsGovernanceProofRequestBody:
       $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request
     MlsGroupStateMaterialOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome
@@ -1826,13 +1824,13 @@ components:
     PeerEventsResolveRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveRequestBody
     PeerKeyPackagesClaimOutcome:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_outcome
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_outcome
     PeerKeyPackagesClaimQueryOutcome:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_outcome
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_outcome
     PeerKeyPackagesClaimQueryRequestBody:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_request_body
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_request_body
     PeerKeyPackagesClaimRequestBody:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_request_body
     PolicyCheckOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome
     PolicyCheckRequestBody:
@@ -2320,6 +2318,8 @@ components:
       additionalProperties: false
     SearchRequestBody:
       $ref: ../schemas/query.schema.json#/$defs/search_request_body
+    SelfEventsSubmitOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SelfEventsSubmitOutcome
     ServiceDescribe:
       type: object
       description: |
@@ -2866,11 +2866,11 @@ components:
     SessionGrantRefreshRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody
     SessionGrantReplayExpiredProblem:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/session_grant_replay_expired_error_details
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantReplayExpiredProblem
     SessionGrantReplayProblem:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/session_grant_replay_error_details
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantReplayProblem
     SessionGrantReplayTerminalProblem:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/session_grant_replay_terminal_error_details
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantReplayTerminalProblem
     SessionGrantRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody
     SessionRevokeOutcome:
@@ -3336,7 +3336,7 @@ paths:
           Registered service_describe role to select. Required when one public
           binding exposes multiple co-located roles; the response describes
           exactly the selected role. Omission on a multi-role binding returns
-          missing_param; an illegal or unavailable role returns invalid_param.
+          param_missing; an illegal or unavailable role returns param_invalid.
         schema:
           $ref: '#/components/schemas/ServiceDescribe/properties/service_kind'
       responses:
@@ -3348,8 +3348,8 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
         '400':
           description: >-
-            missing_param when a shared multi-role binding requires
-            service_kind; invalid_param for an illegal or unavailable role.
+            param_missing when a shared multi-role binding requires
+            service_kind; param_invalid for an illegal or unavailable role.
         '404':
           $ref: '#/components/responses/NotFound'
         '405':
@@ -3954,7 +3954,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventsQueryOutcome'
         '400':
-          description: '`invalid_param` — unrecognized `order` value, malformed cursor, or invalid selector.'
+          description: '`param_invalid` — unrecognized `order` value, malformed cursor, or invalid selector.'
     post:
       operationId: ak.self.events.command.submit
       security:
@@ -3991,7 +3991,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsSubmitResponseBody'
+                $ref: '#/components/schemas/SelfEventsSubmitOutcome'
         '409':
           description: |
             `duplicate_conflict` — the same `idempotency_key` was reused with a
@@ -4179,7 +4179,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MlsGovernanceProofRequestBodyBody'
+              $ref: '#/components/schemas/MlsGovernanceProofRequestBody'
       responses:
         '200':
           description: One manifest-committed governance proof bundle chunk
@@ -4628,7 +4628,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InviteDeliveryRequestBodyBody'
+              $ref: '#/components/schemas/InviteDeliveryRequestBody'
       responses:
         '200':
           description: Generic invite delivery receive outcome.
@@ -4942,7 +4942,7 @@ paths:
                 $ref: '#/components/schemas/SignalSubmitOutcome'
         '400':
           description: |
-            `invalid_param` or `schema_violation` — malformed envelope, expired
+            `param_invalid` or `schema_violation` — malformed envelope, expired
             signal, or TTL/body above the hard ceiling.
         '403':
           description: |
@@ -5088,7 +5088,7 @@ paths:
       - in: header
         name: X-Arkret-Wait-For
         required: false
-        description: Barrier cursor (purpose=barrier) returned from a prior write. Server holds the first delta frame until the local frontier covers target.event_id, or emits an error frame (timeout / stale_frontier / temporarily_unavailable).
+        description: Barrier cursor (purpose=barrier) returned from a prior write. Server holds the first delta frame until the local frontier covers target.event_id, or emits an error frame (timeout / frontier_stale / temporarily_unavailable).
         schema:
           type: string
           pattern: '^ak:cursor:.+$'
@@ -5646,6 +5646,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InviteReceivePolicy'
+  /_arkret/self/invites/dispatch:
+    post:
+      operationId: ak.self.invites.command.dispatch
+      security:
+      - bearerAuth: []
+        dpopProof: []
+      summary: Dispatch an already accepted invite through the inviter Principal Server.
+      description: |
+        Accepts the exact invite delivery body from the authenticated inviter.
+        The invite Event must already be accepted by this Principal Server,
+        match its stored canonical bytes, and be authored by the session actor.
+        Remote delivery preserves the exact body in the durable peer outbox;
+        local delivery uses the same receive-policy path without re-authoring.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteDeliveryRequestBody'
+      responses:
+        '200':
+          description: Generic invite delivery outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteDeliveryOutcome'
   /_arkret/self/invite-locators:
     post:
       operationId: ak.self.invite_locator.command.issue
@@ -6443,7 +6469,7 @@ paths:
         authenticated (principal, device). Prunes delivered messages up to and
         including the token's queue position. Stream cursor advancement never
         deletes queued messages (client-sync.md §10.1). Unknown / expired /
-        cross-bound tokens return `invalid_param` (reason `invalid_ack_token`)
+        cross-bound tokens return `param_invalid` (reason `invalid_ack_token`)
         without deleting anything.
       requestBody:
         required: true
@@ -6541,7 +6567,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentSignerEvidenceQueryRequestBodyBody'
+              $ref: '#/components/schemas/AgentSignerEvidenceQueryRequestBody'
   /_arkret/self/keys/keypackages/upload:
     post:
       operationId: ak.self.keys.keypackages.upload.create
@@ -8512,7 +8538,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/JoinApplicationSubmitRequestBodyBody'
+              $ref: '#/components/schemas/JoinApplicationSubmitRequestBody'
       responses:
         '200':
           description: Application receipt durably accepted or replayed.
@@ -8605,7 +8631,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/JoinApplicationReviewRequestBodyBody'
+              $ref: '#/components/schemas/JoinApplicationReviewRequestBody'
       responses:
         '200':
           description: Review receipt durably accepted or replayed.
@@ -8643,7 +8669,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/JoinApplicationCancelRequestBodyBody'
+              $ref: '#/components/schemas/JoinApplicationCancelRequestBody'
       responses:
         '200':
           description: Cancellation receipt durably accepted or replayed.
@@ -9477,7 +9503,7 @@ paths:
         Uses the still-live Bound AccountHandoff and its HTTP DPoP key to issue
         one Standard grant bound to the accepted replacement device. The caller
         supplies the completed RecoveryTransaction receipt, coordinator
-        attestation and InitialSessionGrantRequest. No temporary recovery grant
+        attestation and InitialSessionGrantIntent. No temporary recovery grant
         is issued. An identical replay returns the stored issuance.
       requestBody:
         required: true

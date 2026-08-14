@@ -253,6 +253,56 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 
 新增动作 MUST 默认与 event kind 同名；只有上述四类之一的明确理由可以偏离，且必须在 `contract-registry.json` 内显式声明 `target_event_kinds` 与 `event_mapping_kind`。**新增偏离类别 MUST 在 RFC 中讨论后才能加表项；MUST NOT 通过 lint 例外或注释方式悄悄引入新桥**。
 
+#### 5.0.2 Action token 槽位语法（normative）
+
+偏离类别（上表）与 **action 字符串本身的槽位语法**是两套正交规则：前者管 action↔event 映射，后者管 token 怎么拼。本节定义后者。
+
+**A. 通用形态**：`ak.<entity>[.<sub_entity>].<verb>`，末段 MUST 是动词（`create` / `archive` / `set` / `advance` …）或已登记的 facet 名词槽（见 D）。
+
+**B. `ak.self.*` 形态**：`ak.self.<entity>[.<sub_entity>].<surface_class>.<verb>`。`<surface_class>` 是**封闭词表**，按调用面而非按领域选择：
+
+| surface_class | 含义 | 实例 |
+| --- | --- | --- |
+| `command` | 改变状态的 POST | `ak.self.agent.command.pause`、`ak.self.blob.command.presign` |
+| `resource` | 只读 GET / HEAD | `ak.self.blob.resource.get`、`ak.self.blob.resource.head` |
+| `read` | 查询 / 扫描 | `ak.self.events.read.scan`、`ak.self.account.read.describe` |
+| `stream` | 长连接订阅 | `ak.self.events.stream.subscribe`、`ak.self.account.stream.subscribe` |
+| `upload` | 分片上传会话 | `ak.self.blob.upload.create` |
+
+`<sub_entity>` 只能出现在 `<entity>` 与 `<surface_class>` 之间（`ak.self.agent.grant.command.attach`），MUST NOT 占据 `<surface_class>` 槽。末段 MUST 是动词：`ak.self.snapshot.read.manifest_head` 的末段是名词，属**已登记的历史例外**，新增 action MUST NOT 沿用该形态。
+
+**C. 限定词位置**：作用域限定词 MUST 作为**后缀**出现（`.own` / `.others`，见 §5 后缀约定）。`ak.member.compensate.leave` / `ak.member.compensate.remove` 把限定词放在动词之前，属**已登记的历史例外**——`compensate` 在此是补偿事务的语义前缀而非作用域限定词；新增作用域限定 MUST 用后缀形态。
+
+**D. 动宾分隔符**：同一动作的宾语 MUST 用点分层级表达（`ak.object.stage.set`），MUST NOT 用下划线把动宾粘成一段。`ak.object.read_content` / `read_history` / `read_metadata` 是**已登记的历史例外**（三者是 read 的三个封闭投影档位，不是 `read` 动作的三个宾语）；新增 action MUST NOT 沿用下划线动宾形态。
+
+**E. 聚合权限动词层级**：`owner` > `admin` > `manage` 是**严格层级**，不是同义词：
+
+| 动词 | 语义 | 实例 |
+| --- | --- | --- |
+| `owner` | 对象最高权，含转让与销毁等 admin 不可推导的能力 | `ak.realm.owner`（112 event kinds） |
+| `admin` | 治理面全权，不含所有权转移 | `ak.realm.admin`（26）、`ak.strand.admin` |
+| `manage` | 单一子域的聚合管理权 | `ak.policy.manage`（16）、`ak.circle.manage`（4）、`ak.circle.member.manage` |
+
+持有上位词 **MUST NOT** 在授权层自动等价于持有下位词（§5 的逐字命中规则照常适用）；层级只表达覆盖面的包含关系与风险排序。`ak.realm.owner` 的末段是名词而非动词，属 §5.0.2-A 的**已登记专名例外**。
+
+**F. 实体命名空间边界（normative）**：以下相邻命名空间是**有意区分**，MUST NOT 因名字相似而合并：
+
+| 命名空间 | 指称 | 不是 |
+| --- | --- | --- |
+| `ak.self.keys.*` / `ak.peer.keys.*` | HTTP 密钥材料**调用面**（镜像 `/self/keys/…`、`/peer/keys/…` 路径段，故用复数） | 不是某个对象族 |
+| `ak.key_backup.*` | Key Backup **对象族**（series、active series 等） | 不是调用面 |
+| `ak.realm_key.*` | Realm E2EE **密钥材料**的分发与审计 | 不是备份，也不是调用面 |
+| `ak.sidecar.*` | Sidecar **对象自身**的生命周期（id kind 为 `sidecar`，是顶层对象） | 不是 agent 的子资源 |
+| `ak.agent.sidecar.*` | agent 对其 sidecar 的**操作面**（publish / write / exchange control） | 不改变 sidecar 是顶层对象这一事实 |
+
+`ak.realm.discover` 是 `non_event_surface` 的**目录发现调用**（动词），与 event kind `ak.realm.discovery`
+（名词，写入 `ak.component.realm.discovery.v1`）不是同一事物：前者是读取面，后者是可发现性声明的状态写入。
+二者同时存在是有意的，MUST NOT 互相替代。
+
+`ak.state.conflict_recovery` 的首段 `state` 是 **reducer 冲突恢复域**，与字段轴 `state`（§5）无关；
+该命名易被误读，**建议改为 `ak.conflict.recovery`**，但改名跨 event-kind registry、reducer 契约与下游
+字符串分派，已记入 `review/spec-open` 待单独裁决，本批不改。
+
 #### 5.0.1 聚合 admin 覆盖集防权限蠕变（normative）
 
 聚合 admin 动作（`ak.realm.admin`、`ak.policy.manage` 等，见上表第一类）的 `target_event_kinds` 是一个随 registry 演进可能增长的集合。若允许它随 registry 静默膨胀，则一个早先签发、覆盖范围较窄的历史 grant 会因后续向某聚合 action 的 `target_event_kinds` 新增成员而**自动扩大**其实际授权面（权限蠕变 / authority creep）。为关闭该面，v1 固定：

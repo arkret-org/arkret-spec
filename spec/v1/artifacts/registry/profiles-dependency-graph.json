@@ -3,7 +3,7 @@
   "version": "2026-08-13.2",
   "kind": "profiles_dependency_graph",
   "source_role": "generated",
-  "generated_at": "2026-08-13T15:30:00Z",
+  "generated_at": "2026-08-13T15:40:00Z",
   "source_of_truth": false,
   "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
   "generated_by": "tools/lint_artifacts.py#check_profile_dependency_graph",

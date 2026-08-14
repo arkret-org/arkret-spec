@@ -53,7 +53,7 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
     },
@@ -154,7 +154,7 @@
           "description": "Complete service DID whose adapter projection MUST equal derived_registration.service_id."
         },
         "document_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "method_version": {
           "$ref": "#/$defs/did_method_version"
@@ -238,7 +238,7 @@
           "$ref": "#/$defs/did_url"
         },
         "public_key_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false

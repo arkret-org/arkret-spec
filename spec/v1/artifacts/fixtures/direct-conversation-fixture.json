@@ -954,7 +954,7 @@
       "action": "run self founding and the federation direct_conversation_founding branch",
       "semantic_outcome": "accept",
       "assertions": [
-        "both deployments produce the same unit digest, coordinates and admission verdict",
+        "both deployments produce the same unit digest, coordinates and admission decision",
         "the federation branch omits service_binding_ref and binds destination through service DID headers and the source receipt"
       ]
     },

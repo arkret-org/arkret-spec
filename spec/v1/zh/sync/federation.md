@@ -183,7 +183,7 @@ Fail-closed 条件：
 - active MLS generation 未覆盖最新 key-access security frontier，或把普通 capability/metadata Seal 错误吸收到该 frontier；
 - relaxed federation guard 中任一 SLA、窗口或 federation_policy 条件无法证明。
 
-上述失败 MUST 在接收方推进本地 Realm frontier 前处理：写入型 push 返回 reject/quarantine 或 `temporarily_unavailable`，pull/backfill 结果保持未验证，不得清除 `state_mismatch`，snapshot/frontier witness 也不得把该 MLS epoch 标为可用。错误对外仍遵守 §3.2 / §8.3 的最小披露原则；内部 audit reason 可以记录为 `profile_unsupported`、`mls_send_pause_advisory_requires_e2ee_relaxed_profile`、`conflicting_e2ee_profiles`、`e2ee_relaxed_federation_policy_unsupported`、`mls_governance_binding_stale` 或对应 binding mismatch 族。
+上述失败 MUST 在接收方推进本地 Realm frontier 前处理：写入型 push 返回 reject/quarantine 或 `temporarily_unavailable`，pull/backfill 结果保持未验证，不得清除 `state_mismatch`，snapshot/frontier witness 也不得把该 MLS epoch 标为可用。错误对外仍遵守 §3.2 / §8.3 的最小披露原则；内部 audit reason 可以记录为 `unsupported_profile`、`mls_send_pause_advisory_requires_e2ee_relaxed_profile`、`conflicting_e2ee_profiles`、`e2ee_relaxed_federation_policy_unsupported`、`mls_governance_binding_stale` 或对应 binding mismatch 族。
 
 ### 4.0.2 Principal-private peer 投递与 KeyPackage command 不是共享 Event 接收轨（normative）
 
@@ -305,7 +305,7 @@ Signature: sig1=:base64...:
 | `service_binding_ref.delivery_binding_diagnostics` | body | `object` | optional | 纯诊断字段。可携带 `basis: ["member_delivery_binding"]` 等本次投递的来源标签，便于排查；不得替代接收方独立校验。 |
 | `service_binding_ref.destination_service_kind` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
 
-Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 profile。接收方对每个 Event 独立读取其 CBA governance basis 中的 `ak.component.realm.reducer_profile.v1` cell：DataEvent 使用 `seal_ref` 认证的 joined control state，Control Move 使用 `seal_basis` 的 frozen predecessor `J(L)`。缺少求值依赖返回 `dependency_missing`；cell 为 Bottom 返回 `failed_bottom`；settled profile 本地未实现时返回 `profile_unsupported`。
+Reducer profile 不属于投递关系，因此 `service_binding_ref` 不携带 profile。接收方对每个 Event 独立读取其 CBA governance basis 中的 `ak.component.realm.reducer_profile.v1` cell：DataEvent 使用 `seal_ref` 认证的 joined control state，Control Move 使用 `seal_basis` 的 frozen predecessor `J(L)`。缺少求值依赖返回 `dependency_missing`；cell 为 Bottom 返回 `failed_bottom`；settled profile 本地未实现时返回 `unsupported_profile`。
 
 每个 federation Event 必须原样携带 origin `principal_server_admission` proof。接收方重算 canonical Event digest、exact producer proof digest、producer JWS 与 admission JWS，并要求 admission service 等于 `event.principal_server_id`；不得接收独立 device/PCR/Agent signer evidence sidecar，也不得由 receiver 或 relay 重签。
 
@@ -498,13 +498,13 @@ Probe 响应 payload：
 - 对每个 accepted push / backfill range，要求 `ak.attestation.range_completeness` 使用 `federation_witness_attested` quorum；只有单源证明时 MAY 暂存为 pending，但不得推进 high-assurance completeness frontier；
 - 维护 per-peer / per-Realm frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；
 - **失败分类与计数（normative，避免把 silent fork 延迟到第 3 次才暴露）**：probe 失败 MUST 按两类分别处理，二者不共用同一容忍计数窗口：
-  - **可达性 / 签名失败类**（peer 不可达、超时、HTTP 错误、签名验证失败、frontier payload schema 无效）：用**退避计数**，连续 3 次失败 **MUST** 把该 peer 在该 Realm 的状态标记为 `stale_peer`。这类失败可能是瞬态网络问题，给有界容忍窗口合理。
+  - **可达性 / 签名失败类**（peer 不可达、超时、HTTP 错误、签名验证失败、frontier payload schema 无效）：用**退避计数**，连续 3 次失败 **MUST** 把该 peer 在该 Realm 的状态标记为 `peer_stale`。这类失败可能是瞬态网络问题，给有界容忍窗口合理。
   - **已确认 fork-evidence 类**（按 §4.5.1，聚合承诺取值不同经 per-actor sibling-set challenge / backfill 归约后，确认同一 `event_id` 不同 digest、over-fork、领域特定不可 join sibling 冲突，或同一完整 attestation scope 的 witness payload 不一致）：**第 1 次**确认即 **MUST** quarantine 该 peer 在该 Realm 的受影响增量，并立即视为 fork suspect；它 **MUST NOT** 进入上面可达性 / 签名失败的 3 次容忍窗口。未归约的聚合承诺差异、scope 不同的聚合值，以及上限内合法 sibling 子集差异**不属本类**、不单独触发 quarantine。
-- `stale_peer` 状态期间：
+- `peer_stale` 状态期间：
   - **MUST** 拒绝以来自该 peer 的 push payload 在本地推进 Realm frontier（继续 quarantine，不让 silent fork 永久化），直到 fork resolution 或重新对齐；
   - **MUST** 通过 §8.6 威胁映射要求的 alarm 通道（operator dashboard / audit log / pager hook）暴露该状态；
   - **MAY** 拒绝向该 peer fanout 新 Event。
-- fork resolution 成功后 **MUST** 解除 `stale_peer` 标记。成功条件 MUST 对准最初的证据范围：同 `event_id` 双 digest 已由 fork-resolution 选定 canonical digest / 全部作废；over-fork 或领域特定冲突桶已由 authorized resolution 归一，且该 peer 对争议 `(realm_id, actor_id, actor_seq)` 的 canonical sibling 集与 resolution 一致；或同一完整 scope 的 quorum witness attestation 已重新形成一致 payload。由于合法 partial replication 下全局 `heads[]` 可永久不同，**MUST NOT** 要求 scope 不同 peer 的全部 heads 重合作为解除条件。
+- fork resolution 成功后 **MUST** 解除 `peer_stale` 标记。成功条件 MUST 对准最初的证据范围：同 `event_id` 双 digest 已由 fork-resolution 选定 canonical digest / 全部作废；over-fork 或领域特定冲突桶已由 authorized resolution 归一，且该 peer 对争议 `(realm_id, actor_id, actor_seq)` 的 canonical sibling 集与 resolution 一致；或同一完整 scope 的 quorum witness attestation 已重新形成一致 payload。由于合法 partial replication 下全局 `heads[]` 可永久不同，**MUST NOT** 要求 scope 不同 peer 的全部 heads 重合作为解除条件。
 
 启用 high-assurance profile 但实现未实现上述 fail-state 等同于不满足 profile 声明，**MUST NOT** 在 ServiceDescribe profile 声明中声明 `ak.profile.federation.high_assurance.v1`。
 
@@ -575,7 +575,7 @@ Profile 的 current principal resolution projection 只公开 `did_core_id -> fu
 | 拉取 actor 的 per-actor event chain（非 Realm 上下文） | `Profile / identity evidence -> authorized service binding -> ServiceResolutionRecord -> base_url` |
 | Bootstrap 一个 actor 刚发现时的服务发现 hint | 同上；hint 不授权，必须独立验证 binding 与 record |
 | join 时物化进 `delivery_binding` 的来源 | `join candidate / invite evidence -> signed service resolution carrier`；join 之后仍走 member binding |
-| 已加入 Realm 的成员的 events / account aggregate / to_device / push / key_packages 投递 | **MUST** 走 [`governance/member-delivery-binding.md` §5](../governance/member-delivery-binding.md) 的 member binding 路径；**MUST NOT** 从 actor `full_id` 猜测或回退 URL |
+| 已加入 Realm 的成员的 events / account aggregate / to_device / push / keypackages 投递 | **MUST** 走 [`governance/member-delivery-binding.md` §5](../governance/member-delivery-binding.md) 的 member binding 路径；**MUST NOT** 从 actor `full_id` 猜测或回退 URL |
 
 任何把 DID Document service entry 或 `full_id` method domain 当作 "Realm 投递 fallback" 的实现都违反 §4.1。一旦 binding 被 join Control Move sealed 并写入 control cell，后续投递只使用该 binding 中的 service `did_core_id` 与 resolution carrier；同-core record refresh 不需要 rebind，core 变更则必须显式 rebind。
 

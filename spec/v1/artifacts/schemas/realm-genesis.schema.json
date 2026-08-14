@@ -236,7 +236,7 @@
           "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$"
         },
         "device_key_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash"
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
         },
         "device_key_algorithm": {
           "const": "Ed25519"
@@ -249,7 +249,7 @@
           "minLength": 1
         },
         "hpke_key_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash"
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
         },
         "hpke_key_algorithm": {
           "const": "X25519"
@@ -264,7 +264,7 @@
           "uniqueItems": true
         },
         "founding_authorize_payload_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash",
+          "$ref": "./event-envelope.schema.json#/$defs/digest",
           "description": "Canonical digest of the proof-free founding ak.device.authorize payload. It MUST NOT be an Event id or envelope digest."
         }
       },

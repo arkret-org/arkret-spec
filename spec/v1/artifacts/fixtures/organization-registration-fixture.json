@@ -237,7 +237,7 @@
       "expect_valid": false,
       "first_expected_error": "contains:is not one of",
       "semantic_outcome": "reject",
-      "expected_reason_code": "organization_registration_scope_unsupported",
+      "expected_reason_code": "unsupported_organization_registration_scope",
       "notes": "The scope vocabulary is closed so a deployment cannot mint administrative authority the organization never consented to.",
       "instance": {
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",

@@ -108,6 +108,8 @@ grpc:
       List: ak.self.contact.read.list
       Tombstone: ak.self.contact.command.tombstone
       ScopeUpdate: ak.self.contact.command.scope_update
+    SelfInvites:
+      Dispatch: ak.self.invites.command.dispatch
     SelfCircle:
       Create: ak.self.circle.command.create
       List: ak.self.circle.read.list

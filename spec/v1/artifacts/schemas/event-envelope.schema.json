@@ -128,7 +128,7 @@
       "maxItems": 128,
       "uniqueItems": true,
       "items": {
-        "$ref": "#/$defs/hash"
+        "$ref": "#/$defs/digest"
       },
       "default": []
     },
@@ -4550,7 +4550,7 @@
       "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Canonical Event Envelope/proof timestamp. UTC Z form with exactly three millisecond digits; whole-second shorthand, finer fractions, and numeric offsets are forbidden."
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -4672,7 +4672,7 @@
           "additionalProperties": true
         },
         "material_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Optional digest of out-of-band extension material when parameters would be too large for the event envelope."
         },
         "evidence_ref": {
@@ -4858,12 +4858,12 @@
               ]
             },
             "leaf_digest": {
-              "$ref": "#/$defs/hash"
+              "$ref": "#/$defs/digest"
             },
             "audit_path": {
               "type": "array",
               "items": {
-                "$ref": "#/$defs/hash"
+                "$ref": "#/$defs/digest"
               }
             },
             "leaf_index": {
@@ -4904,7 +4904,7 @@
           "description": "DID URL of the signing key for this non-Event detached proof. Same pattern as $defs/event_proof.verification_method; semantics are decoupled from Event proof (see $defs/event_proof for the Event-only shape)."
         },
         "payload_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Generic non-Event detached-proof hash. This $defs/proof shape is reused by non-Event schemas; Event.properties.proofs references $defs/event_proof and MUST use event_digest instead."
         },
         "created_at": {
@@ -4964,10 +4964,10 @@
           "description": "Principal Server verification method whose controller projects to Event.principal_server_id."
         },
         "event_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "producer_proof_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "SHA-256 digest of the complete producer_event_proof object actually verified by the origin service."
         },
         "producer_verification_method": {
@@ -5012,7 +5012,7 @@
           "description": "DID URL of the Event-signing key. Generic verification extracts the canonical bare full_id base under the active method adapter, validates that method history/key, projects the base full_id to did_core_id, and compares the result byte-for-byte with executed_by when present or actor_id otherwise; a did_core_id is never concatenated into a DID URL. For principal device proofs the fragment MUST be the full device_id (`ak:device:<uuidv7>`), so receivers can resolve `(actor_id, device_id)` through the device directory. The sole exception is an Event whose selected admission variant is did_root_anchor: its closed verifier MUST instead require verification_method to equal an active controller-proof verification method from the one critical did_inception/did_recovery_anchor entry and verify the controller proof/update authority against that referenced did:webvh history; a root did:key controller is not rewritten to the principal actor_id. This exception cannot apply to any other Event."
         },
         "event_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "created_at": {
           "$ref": "#/$defs/canonical_event_timestamp"
@@ -5053,7 +5053,7 @@
       "description": "Closed Event proof union. Callers submit producer_event_proof only; the origin Principal Server may append one principal_server_admission proof after successful local admission.",
       "properties": {
         "event_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "oneOf": [

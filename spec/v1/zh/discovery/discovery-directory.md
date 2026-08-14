@@ -105,7 +105,7 @@ Realm discovery policy SHOULD 由 `ak.realm.discovery` state event 表达：
 | 模式 | 行为 |
 | --- | --- |
 | `exact` | 返回精确成员数；仅在 `discoverability ∈ {public, listed}` 时允许。 |
-| `bucketed` | 返回**封闭 bucket** 之一：`1-10` / `11-50` / `51-100` / `101-500` / `501-2000` / `2000+`。Directory 实现 MUST 使用本 bucket grid，不得自定义粒度（防止粒度差异成为枚举侧信道）。请求方收到不在此枚举的 bucket 字符串 MUST 视作 `invalid_response` 并丢弃。**边界振荡侧信道（normative）**：真实成员数在两个 bucket 边界附近抖动时，反复观察 bucket 翻转可被用来逼近精确成员数。因此 bucket 输出 MUST 带迟滞（hysteresis）**且** 最小驻留时间，且两个下界均为 MUST，不得用"声明极小窗口 / 零带宽"架空：bucket 一旦切换，MUST 在 policy 声明或本段默认的最小驻留窗口内保持稳定，不得在边界两侧逐次 query 即翻转。该最小驻留窗口 MUST ≥ max(当前 directory entry 的刷新 TTL，成员数 query 的可观察刷新间隔)；声明小于此下界的窗口 MUST 被视为不合规，未声明时采用该下界。迟滞带宽下界亦为 MUST：实现 MUST 仅在真实计数越过 bucket 边界、并持续超过该 policy 声明或本段默认的迟滞带宽后才切换输出 bucket。默认迟滞带宽 = max(2, ceil(相邻有限 bucket 跨度较小者 × 0.10))；policy MAY 声明更大的绝对值或比例，但不得低于该默认值。**开放上界 bucket(`2000+`)的迟滞参照(normative)**:`2000+` 无有限跨度，故其相邻边界(`501-2000` 与 `2000+` 之间)的迟滞带宽 MUST 取相邻有限 bucket `501-2000` 的跨度(1500)作为参照基数，按上述默认或 policy 值计算。无论哪种，该边界的迟滞带宽 MUST 为正且不得为 0。 |
+| `bucketed` | 返回**封闭 bucket** 之一：`1-10` / `11-50` / `51-100` / `101-500` / `501-2000` / `2000+`。Directory 实现 MUST 使用本 bucket grid，不得自定义粒度（防止粒度差异成为枚举侧信道）。请求方收到不在此枚举的 bucket 字符串 MUST 视作 `response_invalid` 并丢弃。**边界振荡侧信道（normative）**：真实成员数在两个 bucket 边界附近抖动时，反复观察 bucket 翻转可被用来逼近精确成员数。因此 bucket 输出 MUST 带迟滞（hysteresis）**且** 最小驻留时间，且两个下界均为 MUST，不得用"声明极小窗口 / 零带宽"架空：bucket 一旦切换，MUST 在 policy 声明或本段默认的最小驻留窗口内保持稳定，不得在边界两侧逐次 query 即翻转。该最小驻留窗口 MUST ≥ max(当前 directory entry 的刷新 TTL，成员数 query 的可观察刷新间隔)；声明小于此下界的窗口 MUST 被视为不合规，未声明时采用该下界。迟滞带宽下界亦为 MUST：实现 MUST 仅在真实计数越过 bucket 边界、并持续超过该 policy 声明或本段默认的迟滞带宽后才切换输出 bucket。默认迟滞带宽 = max(2, ceil(相邻有限 bucket 跨度较小者 × 0.10))；policy MAY 声明更大的绝对值或比例，但不得低于该默认值。**开放上界 bucket(`2000+`)的迟滞参照(normative)**:`2000+` 无有限跨度，故其相邻边界(`501-2000` 与 `2000+` 之间)的迟滞带宽 MUST 取相邻有限 bucket `501-2000` 的跨度(1500)作为参照基数，按上述默认或 policy 值计算。无论哪种，该边界的迟滞带宽 MUST 为正且不得为 0。 |
 | `omit` | 不返回成员数；任何隐含的 hint（如返回组员数组的 length）也 MUST 被裁剪。 |
 
 `restricted` / `unlisted` / `invite_only` / `secret` Realm 的 `member_count_mode` 默认 `omit`；显式声明 `bucketed` 时必须遵守上述 bucket grid 与迟滞约束。
@@ -137,7 +137,7 @@ Realm discovery policy SHOULD 由 `ak.realm.discovery` state event 表达：
 **`member_count_bucket` 属 §9.1 一致性字段，MUST 携带 effective mode（normative）**：`member_count_bucket` 是 union 字段（`bucketed` 下为枚举字符串、`exact` 下为整数），其语义依赖 effective `member_count_mode`。若仅凭值类型推断 mode，则跨 Directory 对账（§7.3 不变量 2 Pluralizable、§9.1 一致性字段）会因 mode 解析歧义而无法判定"两家 Directory 是否一致"。因此：
 
 - `member_count_bucket` 一旦在 preview / 结果中出现，即**属于 §9.1 normative 一致性字段**，纳入同一资源跨 Directory 的一致性比对（针对同一 `(resource_id, source_refs frontier, policy_revision)`）。
-- 携带 `member_count_bucket` 的 search / resolve 结果与 preview **MUST 同时携带 effective `member_count_mode`**（取值 `exact` / `bucketed` / `omit` 之一，`omit` 时不出现该字段），使请求方与对账方据带内 mode（而非带外推断或值类型猜测）确定解析路径并比对；缺失 effective mode 的结果 MUST 视作 `invalid_response` 并丢弃。
+- 携带 `member_count_bucket` 的 search / resolve 结果与 preview **MUST 同时携带 effective `member_count_mode`**（取值 `exact` / `bucketed` / `omit` 之一，`omit` 时不出现该字段），使请求方与对账方据带内 mode（而非带外推断或值类型猜测）确定解析路径并比对；缺失 effective mode 的结果 MUST 视作 `response_invalid` 并丢弃。
 - 跨 Directory 对账时，`member_count_bucket` 值与其 effective mode 必须一并比对；两家 Directory 对同一资源给出不同 mode 或不同 bucket 时 MUST 标记 `divergent=true`（§7.3 不变量 2）。
 
 `join_rule` 只控制加入流程。公开可发现的 Realm MAY 仍要求 invite、knock 或 restricted join。不可发现的 Realm MAY 对持有私有链接的成员保持 `join_rule=public`，但除非配套强反垃圾策略，否则不推荐。
@@ -496,7 +496,7 @@ ingest 是**双向 opt-in**，缺一不可：
 
 Directory 接受 ingest 的前置条件：
 
-- 资源签名声明中**未列出**本 Directory DID → MUST 拒绝并返回 `directory_not_authorized`。
+- 资源签名声明中**未列出**本 Directory DID → MUST 拒绝并返回 `directory_unauthorized`。
 - 资源不在 Directory `accept_policy` 范围内 → MUST 拒绝并返回 `accept_policy_denied`。
 - 资源端 governance key 在 ingest 时刻不在 DID document 当前 epoch → MUST 拒绝并返回 `governance_key_invalid`。
 
@@ -544,7 +544,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 | `next_revalidation_after` | `timestamp` | 下一次 re-announce 或 pull-refresh 的最早时间。 |
 | `warnings` | `string[]?` | 非阻塞警告，例如 `truncated_member_count`、`policy_revision_drift`。 |
 
-**典型错误码**：`directory_not_authorized`、`accept_policy_denied`、`invalid_signature`、`signature_stale`、`source_refs_unverifiable`、`governance_key_invalid`、`ttl_out_of_range`、`rate_limited`、`takedown_in_force`。
+**典型错误码**：`directory_unauthorized`、`accept_policy_denied`、`signature_invalid`、`signature_stale`、`source_refs_unverifiable`、`governance_key_invalid`、`ttl_out_of_range`、`rate_limited`、`takedown_in_force`。
 
 请求示例（非完整 schema）：
 
@@ -968,8 +968,8 @@ Directory-capable implementations MUST test：
 **Ingest 面**
 
 - `ak.vector.directory.announce_bidirectional_opt_in.v1`：announce accepted when directory DID listed in `directory_services` and signature valid。
-- `ak.vector.directory.announce_directory_not_authorized.v1`：announce rejected with `directory_not_authorized` when directory DID NOT listed。
-- `ak.vector.directory.announce_bad_signature.v1`：announce rejected with `invalid_signature` on a bad `discovery_event` proof。
+- `ak.vector.directory.announce_directory_not_authorized.v1`：announce rejected with `directory_unauthorized` when directory DID NOT listed。
+- `ak.vector.directory.announce_bad_signature.v1`：announce rejected with `signature_invalid` on a bad `discovery_event` proof。
 - `ak.vector.directory.announce_signature_stale.v1`：announce rejected with `signature_stale` when `as_of` skew > 5 min。
 - `ak.vector.directory.policy_revision_rollback.v1`：announce rejected with `policy_revision_rollback` when `as_of` earlier than indexed entry。
 - `ak.vector.directory.accept_policy_denied.v1`：announce rejected with `accept_policy_denied` when resource outside policy。

@@ -84,7 +84,7 @@
           "rail_available": true,
           "expected": {
             "decision": "reject",
-            "reason": "signal_class_not_permitted",
+            "reason": "signal_class_denied",
             "durable_event_written": false
           }
         },
@@ -175,7 +175,7 @@
           "next_cursor": "ak:cursor:projection-page-2",
           "expected": {
             "decision": "reject",
-            "reason": "invalid_response"
+            "reason": "response_invalid"
           }
         },
         {
@@ -185,7 +185,7 @@
           "next_cursor": "not-a-cursor",
           "expected": {
             "decision": "reject",
-            "reason": "invalid_response"
+            "reason": "response_invalid"
           }
         },
         {

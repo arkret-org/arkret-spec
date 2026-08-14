@@ -35,8 +35,8 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 单个 HTTP header value | 8 KiB（但专用 header 可更小） | 入口 MUST 在解析/复制到业务对象前拒绝超限值。`Idempotency-Key` 与 `X-Arkret-Request-Id` 的专用上限均为 128 ASCII chars；cursor / causal wait token header 的专用上限为 4 KiB。 |
 | HTTP header aggregate | 32 KiB | request line 之外全部 header name/value 的编码总量；超限 MUST 在认证、签名 transcript 构造和幂等缓存分配前以 `payload_too_large` 拒绝。反向代理可声明更小上限，但不得接受超过本上限的请求。 |
 | HTTP path + query | 8 KiB | 按接收的 UTF-8/percent-encoded octets 计；超限 MUST `payload_too_large`，不得先展开为无界对象。大型 selector 必须使用已注册的 POST query-body variant。 |
-| cursor base64url 解码后的 canonical payload | 64 KiB | 见 [encoding.md](./encoding.md) §8.6；超限 MUST `invalid_param`，不得在验证大小前构造无界 JSON 对象。header 形态仍同时受 4 KiB 专用 header 上限约束。 |
-| `Idempotency-Key` | 1..128 ASCII chars | canonical alphabet `[A-Za-z0-9._~-]`；空值、非 ASCII、超长或其它字符 MUST `invalid_param`，不得进入 replay cache key。 |
+| cursor base64url 解码后的 canonical payload | 64 KiB | 见 [encoding.md](./encoding.md) §8.6；超限 MUST `param_invalid`，不得在验证大小前构造无界 JSON 对象。header 形态仍同时受 4 KiB 专用 header 上限约束。 |
+| `Idempotency-Key` | 1..128 ASCII chars | canonical alphabet `[A-Za-z0-9._~-]`；空值、非 ASCII、超长或其它字符 MUST `param_invalid`，不得进入 replay cache key。 |
 | 单次 `/_arkret/self/events` 批量提交的 Event 数 | 1,000 | 超过时 MUST 拆分请求；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单个 federation transaction 的 Event 数 | 500 | 超过时 MUST 拆分 transaction；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单次 sync / backfill / projection page 返回项 | 1,000 | 执行方 MUST enforce；客户端不得假设更大 page 可用。 |
@@ -61,7 +61,7 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 手写 CBOR 声明长度自洽性 | 声明长度 ≤ 剩余输入 | CBOR string / byte string / array / map 头部声明的长度或项数 MUST ≤ 实际剩余输入可满足的量；违反时 decoder MUST 在按声明长度分配缓冲区之前 reject（`schema_violation`，`reason_code=cbor_bounds_invalid`）。indefinite-length 项（map `0xbf` / array `0x9f` / string `0x5f`、`0x7f`）违反 deterministic encoding（RFC 8949 §4.2），MUST reject（`schema_violation`，`reason_code=cbor_not_deterministic`），不得归一化后接受。负例见 [conformance-vectors.md](./conformance-vectors.md) §1.12.1。 |
 | 单 producer 每毫秒 HLC 生成事件数 | 65,536（HLC logical 4 hex 段上限） | HLC wire 形态为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，logical 段为 16-bit；同一 HLC producer（通常是一台 device / service process 的稳定 `node_id_hash` 序列）在同一 ms 内最多分配 65,536 个 logical 值（`0x0000`–`0xFFFF`，即 0..65535），第 65,537 个 event 触发 HLC logical 段饱和，producer MUST 等待至下一 ms 再生成或返回本地错误 `hlc_logical_overflow`，MUST NOT wrap 或复用相同 HLC。同一 actor 的多个独立 device producer 各维护自己的 HLC 序列，不能共享一个 actor 级 logical counter。HLC 仅作为时间线 advisory tie-breaker，不参与授权或状态收敛——饱和不影响协议正确性，只影响展示排序。[^hlc-throughput] [^hlc-logical-width] |
 | 单 producer 持续吞吐建议 | ≤ 100,000 events/min | Producer SHOULD 在生产侧自我限速，避免在突发情况下饱和自己的 HLC logical 段或下游 reducer。超过该建议持续吞吐时，工作负载 SHOULD 拆分为多个合法 device / actor producer，或考虑使用 batch event；不得伪造 producer identity 规避授权或限流。 |
-| Cursor TTL 硬上限 | `barrier` ≤ 3,600,000 ms（1 hour）；`stream` ≤ 604,800,000 ms（7 days） | 语义与验证算法的唯一权威定义见 [`encoding.md` §8.3 规则 9](./encoding.md)。issuer MUST 令 `expires_at - issued_at` 不超过对应 purpose 上限；receiver 对超限 cursor MUST `invalid_param`，对在合法窗口内自然过期的 cursor MUST `cursor_expired`。 |
+| Cursor TTL 硬上限 | `barrier` ≤ 3,600,000 ms（1 hour）；`stream` ≤ 604,800,000 ms（7 days） | 语义与验证算法的唯一权威定义见 [`encoding.md` §8.3 规则 9](./encoding.md)。issuer MUST 令 `expires_at - issued_at` 不超过对应 purpose 上限；receiver 对超限 cursor MUST `param_invalid`，对在合法窗口内自然过期的 cursor MUST `cursor_expired`。 |
 | 协议级 `hard_future_skew_ms`（硬 future drift 上限） | 300,000 ms（5 分钟） | 这是 v1 跨时间校验的单一硬上界：HLC 入站 freshness 超界时 MUST reject / quarantine；Seal `sealed_at` 超界时进入 `seal_deferred_future_skew` 非终态；授权 verification time、`approved_at`、quota / temporal constraint 超界时 MUST fail closed。复用同一常量不使 producer 可控 HLC 成为授权、Lattice winner、Control Move precondition 或 Seal finality 输入；这些路径各自使用 verifier 固定的本地时间和其领域文档定义的处理结果。见 [encoding.md](./encoding.md) §7.2、[event-auth-state-resolution.md](../authz/event-auth-state-resolution.md) §3.3 与 [constraint-schema.md](../authz/constraint-schema.md) §16–§17。 |
 | HLC `expected_future_skew_ms`（软 future drift 阈值） | 30,000 ms（30 秒） | 见 [encoding.md](./encoding.md) §7.2。超该阈值但未超 `hard_future_skew_ms` 时 receiver SHOULD soft-fail / quarantine。 |
 | HLC `state_event_expected_future_skew_ms`（state event 软阈值） | 默认按 `expected_future_skew_ms` | 见 [encoding.md](./encoding.md) §7.2。profile MAY 对 state event（capability / membership / policy / service binding / Realm upgrade / MLS commit 等）声明更严窗口；未声明时按 `expected_future_skew_ms` 处理。 |
@@ -136,7 +136,7 @@ Content-Encoding: MUST be absent
 
 不接受 `gzip` / `br` / `deflate` / `zstd` 或任何其它 coding。理由：否则必须再定义压缩 wire、解压后、canonical 三层限制；压缩比会形成 decompression bomb；producer proof / JCS 已要求确定字节语义；大量数据本就应走 stream / Blob。
 
-携带 `Content-Encoding` 的请求 MUST 在读取 / 解压 body 前以 **HTTP 415** 拒绝，error_code = `unsupported_content_encoding`。该 code MUST NOT 复用 `invalid_param`（后者在 error registry 固定映射 HTTP 400，复用会让同一 code 出现两个 status），也不是 `payload_too_large`（即使压缩体很小，编码本身也不属于该 binding）。response 同样 MUST NOT 使用 `Content-Encoding`；cache / proxy MUST 设置适当 `no-transform`。
+携带 `Content-Encoding` 的请求 MUST 在读取 / 解压 body 前以 **HTTP 415** 拒绝，error_code = `unsupported_content_encoding`。该 code MUST NOT 复用 `param_invalid`（后者在 error registry 固定映射 HTTP 400，复用会让同一 code 出现两个 status），也不是 `payload_too_large`（即使压缩体很小，编码本身也不属于该 binding）。response 同样 MUST NOT 使用 `Content-Encoding`；cache / proxy MUST 设置适当 `no-transform`。
 
 #### 2.1.5 二维 batch 与 pagination（normative）
 
@@ -207,7 +207,7 @@ JCS(body) bytes <= operation.max_canonical_body_bytes
 | per-operation 更低 byte 上限 | 413 | `payload_too_large` |
 | 数组 count 超 schema 上限但 bytes 未超 | 422 | `schema_violation` |
 | `Content-Encoding` present | 415 | `unsupported_content_encoding` |
-| JSON 无法解析 | 400 | `bad_json` |
+| JSON 无法解析 | 400 | `json_invalid` |
 | JSON 可解析但非 canonical、含 BOM / 重复 key 或违反 schema | 422 | `schema_violation`（按 [`encoding.md`](./encoding.md) 既有细分） |
 
 字节超限 MUST NOT 再允许 `payload_too_large` / `schema_violation` 二选一。即使 schema 的 `maxLength` / `maxItems` 也能提前发现，只要拒绝的规范原因是 byte budget，对外错误码就 MUST 稳定为 `payload_too_large`。错误体本身 MUST 是小型固定 shape，MUST NOT 回显 body、数组项或 canonicalized payload。
@@ -357,7 +357,7 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | 分块流式 AEAD 附件 `segment_bytes` 取值范围 | 1 KiB（1,024）– 8 MiB（8,388,608），默认 256 KiB（262,144） | 见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3。超出范围 MUST reject（`schema_violation`）；`segment_bytes` 越界或与 `segment_count`、`size_bytes` 不自洽时接收方 MUST fail closed。 |
 | 分块流式 AEAD 附件 `segment_count` 上限 | 1,048,576（2^20） | 见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3。`segment_index` 为 `u32`（硬上界 2^32），但 v1 wire 互操作上限为 2^20；超过时 MUST reject（`schema_violation`）。`segment_count` MUST 等于 `ceil(size_bytes_plaintext / segment_bytes)` 并与实际段数一致，否则接收方 MUST 拒绝（`segment_bounds_invalid` / `segment_sequence_invalid`）。声明字段越界 / 不自洽负例见 [conformance-vectors.md](./conformance-vectors.md) §16.5（`ak.vector.blob.stream_aead_bounds_rejected.v1`）。 |
 
-声明 `ak.self.events.read.mls_governance_proof` 的 Service Describe MUST 在 `limits.mls_governance_proof` 暴露上述固定 v1 bounds；该对象的 schema 使用 `const` 防止服务声称同一 operation 却采用不同互操作边界。Chunk 0 请求不得携带 `expected_bundle_digest`；取得 manifest 后，chunk 1..N-1 请求 MUST 携带 chunk 0 的 `bundle_digest`。若该 manifest 已不可用，server 返回 `frontier_unavailable`，caller 只能从 chunk 0 重新开始，不能把另一 manifest 的 chunk 混入。`chunk_index >= chunk_manifest.chunk_count` 使用 `invalid_param`。任何超总界响应、丢块后继续接受、服务器自报 total 替代最终 root 重算，或按本地更高上限绕过本表，均不符合 v1。
+声明 `ak.self.events.read.mls_governance_proof` 的 Service Describe MUST 在 `limits.mls_governance_proof` 暴露上述固定 v1 bounds；该对象的 schema 使用 `const` 防止服务声称同一 operation 却采用不同互操作边界。Chunk 0 请求不得携带 `expected_bundle_digest`；取得 manifest 后，chunk 1..N-1 请求 MUST 携带 chunk 0 的 `bundle_digest`。若该 manifest 已不可用，server 返回 `frontier_unavailable`，caller 只能从 chunk 0 重新开始，不能把另一 manifest 的 chunk 混入。`chunk_index >= chunk_manifest.chunk_count` 使用 `param_invalid`。任何超总界响应、丢块后继续接受、服务器自报 total 替代最终 root 重算，或按本地更高上限绕过本表，均不符合 v1。
 
 上述全部数值边界、chunk acquisition 条件及 `limit-1 / limit / limit+1` 生成矩阵由 `ak.vector.scalability.mls_governance_proof_bounds.v1` 固化；runner 归属与逐项期望见 [conformance-vectors.md](./conformance-vectors.md) §1.12.3。
 

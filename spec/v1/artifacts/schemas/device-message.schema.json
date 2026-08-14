@@ -346,7 +346,7 @@
       "type": "string",
       "pattern": "^ak:circle:[A-Za-z0-9_-]{44}$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -501,11 +501,11 @@
           "description": "Tagged scope of the requested key material. Realm-default history uses {kind:'realm', realm_id}; Circle history uses {kind:'circle', realm_id, circle_id}."
         },
         "policy_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Optional requester-observed policy digest hint. The key source MUST recompute the effective policy from accepted history before sharing."
         },
         "membership_frontier_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Optional requester-observed membership frontier hint. The key source MUST recompute recipient eligibility from accepted history before sharing."
         },
         "from_epoch": {
@@ -651,7 +651,7 @@
           "description": "The single KeyPackage the peer claims for the re-add, so exactly one KeyPackage is consumed and the peer never has to guess which of the requester's packages to use."
         },
         "observed_active_generation_value_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "SHA-256 of RFC 8785 JCS for the complete accepted ak.component.direct_conversation.active_mls_generation.v1 cell value the requester observed, copied byte for byte from active_mls_generation_value_digest returned by the resolver. It is never derived from or replaced by active_mls_generation_ref. A peer that sees a different current whole-value digest MUST drop the request instead of authoring a second replacement."
         },
         "rejoin_event_id": {

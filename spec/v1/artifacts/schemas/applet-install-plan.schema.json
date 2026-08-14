@@ -41,10 +41,10 @@
       ]
     },
     "package_digest": {
-      "$ref": "#/$defs/hash"
+      "$ref": "#/$defs/digest"
     },
     "registration_epoch": {
-      "$ref": "#/$defs/hash"
+      "$ref": "#/$defs/digest"
     },
     "effective_scope": {
       "$ref": "#/$defs/effective_scope"
@@ -100,7 +100,7 @@
       }
     },
     "plan_digest": {
-      "$ref": "#/$defs/hash"
+      "$ref": "#/$defs/digest"
     }
   },
   "additionalProperties": false,
@@ -120,7 +120,7 @@
       "type": "string",
       "pattern": "^ak:grant:[A-Za-z0-9_-]{44}$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
     },

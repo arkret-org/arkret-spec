@@ -618,7 +618,7 @@ Content-Type: application/json
 | `ok` | `boolean` | required | 确认是否被接受（含旧令牌 no-op 的情况）。 |
 | `pruned_count` | `int` | optional | 本次实际删除的消息数。 |
 
-确认语义（normative，完整定义见 [`client-sync.md` §10.1](../sync/client-sync.md)）：确认是累计且单调的——服务端删除令牌覆盖位置（含）之前的全部已投递消息；重复 ack 或 ack 旧令牌返回 `{ok: true}` 且不得回退确认位置（天然幂等，无需 `Idempotency-Key`）。unknown / 过期 / cross-binding 令牌 MUST 返回 `invalid_param`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。客户端 MUST 在该批次密钥材料 / verification transcript / secret **持久化落盘之后**才 ack；未 ack 的消息在重连时由服务端重新投递，客户端 MUST 先按 `(sender_principal_id, sender_device_id, message_id)` 查询 durable 去重记录：已成功持久化的消息不得再次执行副作用，但仍计入连续完成位点并允许累计 ack。kind-specific `transaction_id` / `request_id` 只用于业务 transcript 关联，不得替代 envelope 级去重键。
+确认语义（normative，完整定义见 [`client-sync.md` §10.1](../sync/client-sync.md)）：确认是累计且单调的——服务端删除令牌覆盖位置（含）之前的全部已投递消息；重复 ack 或 ack 旧令牌返回 `{ok: true}` 且不得回退确认位置（天然幂等，无需 `Idempotency-Key`）。unknown / 过期 / cross-binding 令牌 MUST 返回 `param_invalid`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。客户端 MUST 在该批次密钥材料 / verification transcript / secret **持久化落盘之后**才 ack；未 ack 的消息在重连时由服务端重新投递，客户端 MUST 先按 `(sender_principal_id, sender_device_id, message_id)` 查询 durable 去重记录：已成功持久化的消息不得再次执行副作用，但仍计入连续完成位点并允许累计 ack。kind-specific `transaction_id` / `request_id` 只用于业务 transcript 关联，不得替代 envelope 级去重键。
 
 ## 8. One-Time and Fallback Keys
 
@@ -656,7 +656,7 @@ POST /_arkret/self/keys/claim
 
 - `canonical_json` 为 RFC 8785 JCS（见 [`../conformance/encoding.md`](../conformance/encoding.md)）；缺省的 `one_time_keys` / `fallback_keys` MUST 规范化为空对象 `{}` 后参与签名，不得省略键，保证发送方与验签方对同一批次得到逐字节一致的输入。
 - 批次内每个 `key_record.signature` 仍按其各自语义独立链接到 PCR current accepted-device key；`device_signature` 额外对**整批**签名，防止服务端或中间人对批次做增删/重排。
-- `device_signature.kid` MUST 指向该设备身份 key；服务端 MUST 用该设备权威 `device_public_key`(§5.2)验签，失败 MUST 拒绝上传（`invalid_param`）。
+- `device_signature.kid` MUST 指向该设备身份 key；服务端 MUST 用该设备权威 `device_public_key`(§5.2)验签，失败 MUST 拒绝上传（`param_invalid`）。
 
 `POST /_arkret/self/keys/query` 请求字段：
 
@@ -709,7 +709,7 @@ POST /_arkret/peer/keys/keypackages/claims/query
 | --- | --- | --- | --- |
 | `principal_id` | `did` | required | KeyPackage 所属 principal。 |
 | `device_id` | `id:device` | required | KeyPackage 所属设备。 |
-| `key_packages` | `object[]` | required | MLS KeyPackage 与 metadata；每项 MUST 带 unique `keypackage_id` 和 `keypackage_ref`。 |
+| `keypackages` | `object[]` | required | MLS KeyPackage 与 metadata；每项 MUST 带 unique `keypackage_id` 和 `keypackage_ref`。 |
 | `device_signature` | `signature` | required | 当前设备签名，MUST 链接到 PCR current accepted-device 投影中的规范设备 method。 |
 
 ### 9.0 KeyPackage 写路径签名 transcript（normative）
@@ -720,7 +720,7 @@ POST /_arkret/peer/keys/keypackages/claims/query
 
 ```text
 UTF8("ak.self.keys.keypackages.upload.create\n")
-+ JCS(upload request 删除顶层 device_signature，并删除每个 key_packages[] entry 的 device_signature)
++ JCS(upload request 删除顶层 device_signature，并删除每个 keypackages[] entry 的 device_signature)
 
 UTF8("ak.self.keys.keypackages.command.consume\n")
 + JCS(consume request 删除 signature)
@@ -738,11 +738,11 @@ UTF8("ak.self.keys.keypackages.upload.create\n")
 + JCS({
      "principal_id": <request principal_id>,
      "device_id": <request device_id>,
-     "key_package": <该 entry 删除 device_signature>
+     "keypackage": <该 entry 删除 device_signature>
    })
 ```
 
-entry signature 不覆盖、替代或降级 batch signature。batch signature 无效时整个 request MUST 在任何 KeyPackage 状态写入前拒绝。batch 有效但 present entry signature 无效时，只能拒绝对应 entry；entry signature 缺省时，已验证的 batch authorization覆盖该 entry。接收方不得尝试 `ak.keypackage-upload-v1`、只覆盖 `{device_id,key_packages}` 的旧 transcript或任何实现私有 fallback。
+entry signature 不覆盖、替代或降级 batch signature。batch signature 无效时整个 request MUST 在任何 KeyPackage 状态写入前拒绝。batch 有效但 present entry signature 无效时，只能拒绝对应 entry；entry signature 缺省时，已验证的 batch authorization覆盖该 entry。接收方不得尝试 `ak.keypackage-upload-v1`、只覆盖 `{device_id,keypackages}` 的旧 transcript或任何实现私有 fallback。
 
 签名算法 v1 为 Ed25519；`signature.alg` MAY 使用注册别名 `Ed25519`，`signature.kid` MUST 指向同一 accepted signing key。普通 device 从 current accepted PCR device authorization projection 解析该 key；Native Agent 从 current accepted `ak.agent.key.authorize.verification_method` 解析该 key，并且该 key MUST 同时等于 MLS LeafNode signature key。三条 batch 签名与 present entry 签名都必须在解析或改变 KeyPackage 状态前验证。
 
@@ -803,7 +803,7 @@ verification method 的 DID controller MUST 等于 `requester`，并按 requeste
 | `claims` | `object[]` | required | 每个 claimed KeyPackage 的 `claim_id`、`keypackage_ref`、`keypackage_digest`、device binding、expiry、capabilities 和 `capabilities_digest = sha256(JCS(capabilities))`。 |
 | `failures` | `object[]` | optional | 不可领取设备与原因；不得泄露不可见用户或设备。 |
 
-`consume` request MUST validate `schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body`，并由 Welcome 接收方或授权发送方在 Welcome 成功处理且新的 MLS group state 已 durable 持久化后调用，绑定 `key_package_refs[]`、`signature`、可选 `claim_ids[]`、`welcome_ref`、`realm_id`、`strand_id`、`mls_group_id`、`epoch`，以及 closed consumer XOR：human device 仅携 `consumer_device_id`；Native Agent 仅携 `consumer_agent_id + consumer_agent_verification_method + consumer_agent_key_authorize_event_id`，不得伪装成 `ak:device`。嵌入的 `recipient_mls_durable_receipt` 使用同一 closed signer XOR，不携 signer-evidence sidecar。consume admission MUST 逐字绑定 consume signer、durable receipt、Welcome recipient、exact claim record、KeyPackage signer与 authorization Event。若持久化失败，runtime MUST NOT 调用 consume；若 consume响应丢失，必须以同一 signed typed request幂等重试。服务端 MUST 把与首次成功 consume 完全相同的重试作为成功返回，不得因 KeyPackage 已进入 `consumed` 而返回失败。对于 Direct Conversation，只有在 request 精确匹配该 `pair_key` 的唯一 immutable binding、accepted Welcome、claim、recipient principal、closed recipient signer、Realm、Strand、MLS group 与 epoch 后，服务端才可在 terminal KeyPackage row 已清理或不可用时把该重试视为幂等成功；任何字段不同仍 MUST fail closed。实现 SHOULD 保留足够的 terminal consume ledger，使幂等判断不依赖 inventory row 的生命周期。`revoke` request MUST validate `#/$defs/key_packages_revoke_request_body`，可由设备、principal controller 或 policy授权服务发起。
+`consume` request MUST validate `schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body`，并由 Welcome 接收方或授权发送方在 Welcome 成功处理且新的 MLS group state 已 durable 持久化后调用，绑定 `keypackage_refs[]`、`signature`、可选 `claim_ids[]`、`welcome_ref`、`realm_id`、`strand_id`、`mls_group_id`、`epoch`，以及 closed consumer XOR：human device 仅携 `consumer_device_id`；Native Agent 仅携 `consumer_agent_id + consumer_agent_verification_method + consumer_agent_key_authorize_event_id`，不得伪装成 `ak:device`。嵌入的 `recipient_mls_durable_receipt` 使用同一 closed signer XOR，不携 signer-evidence sidecar。consume admission MUST 逐字绑定 consume signer、durable receipt、Welcome recipient、exact claim record、KeyPackage signer与 authorization Event。若持久化失败，runtime MUST NOT 调用 consume；若 consume响应丢失，必须以同一 signed typed request幂等重试。服务端 MUST 把与首次成功 consume 完全相同的重试作为成功返回，不得因 KeyPackage 已进入 `consumed` 而返回失败。对于 Direct Conversation，只有在 request 精确匹配该 `pair_key` 的唯一 immutable binding、accepted Welcome、claim、recipient principal、closed recipient signer、Realm、Strand、MLS group 与 epoch 后，服务端才可在 terminal KeyPackage row 已清理或不可用时把该重试视为幂等成功；任何字段不同仍 MUST fail closed。实现 SHOULD 保留足够的 terminal consume ledger，使幂等判断不依赖 inventory row 的生命周期。`revoke` request MUST validate `#/$defs/keypackages_revoke_request_body`，可由设备、principal controller 或 policy授权服务发起。
 
 规则：
 
@@ -846,8 +846,8 @@ verification method 的 DID controller MUST 等于 `requester`，并按 requeste
 
 | operation | HTTP | request / response schema |
 | --- | --- | --- |
-| `ak.peer.keys.keypackages.command.claim` | `POST /_arkret/peer/keys/keypackages/claim` | `peer_key_packages_claim_request_body` / `peer_key_packages_claim_outcome` |
-| `ak.peer.keys.keypackages.read.claim` | `POST /_arkret/peer/keys/keypackages/claims/query` | `peer_key_packages_claim_query_request_body` / `peer_key_packages_claim_query_outcome` |
+| `ak.peer.keys.keypackages.command.claim` | `POST /_arkret/peer/keys/keypackages/claim` | `peer_keypackages_claim_request_body` / `peer_keypackages_claim_outcome` |
+| `ak.peer.keys.keypackages.read.claim` | `POST /_arkret/peer/keys/keypackages/claims/query` | `peer_keypackages_claim_query_request_body` / `peer_keypackages_claim_query_outcome` |
 
 目标 KeyPackage authority 是 `published → claimed` 的**唯一 CAS 权威**。来源服务只能请求领取并验证目标服务签发的 receipt；不得在本地镜像池上先行标记、推测成功，或用 `ak.peer.events.command.submit` 替代该原子操作。claim 成功只是生成 MLS Welcome 的必要前置条件，不创建 Realm、membership、Strand 或 binding；这些 durable facts 仍必须由其规范 Event 与原签名 proof 创建并经 peer Event / principal-fact 通道投递。
 
@@ -902,7 +902,7 @@ peer claim MUST 同时满足两层授权，任一层缺失或失效都 MUST fail
   对应 target 与 signer，selector、claim record、current portable signer evidence 及 KeyPackage signature
   逐字一致，状态为 current
   `published`、未消费、未撤销且 `last_resort=false`；不得忽略 exact ref 后按 device、capability 或库存顺序
-  另选。成功 outcome 必须恰有一条 claim 且其 `key_package_ref` 逐字等于 `target_keypackage_ref`；任一不匹配
+  另选。成功 outcome 必须恰有一条 claim 且其 `keypackage_ref` 逐字等于 `target_keypackage_ref`；任一不匹配
   以不透明 `claim_failed` 零写入；
 - `(Source-Service-ID, target_principal_id)` 的限速与 abuse policy 通过。
 
@@ -930,7 +930,7 @@ record；否则 single-use pool 耗尽即失败。
 
 通过 peer claim 生成的 `ak.mls.welcome` MUST 原样携带 `payload.peer_claim_receipt`。目标 Principal Server 在接受该 Welcome 前 MUST：验证 receipt 目标服务签名；以外层认证的 `Source-Service-ID` 精确匹配 `source_service_id`；查询 `(source_service_id, claim_request_id)` durable ledger 并逐字匹配 `request_digest` 与 stored outcome；验证 request 的 requester / target principal / intended Realm / MLS group / claim nonce 与 Event actor、recipient、Realm、Welcome group / `claim_envelope` 一致；验证 stored claim 与 Welcome 的 claim id、KeyPackage ref / digest、recipient device 一致。缺 receipt、ledger 未就绪或任一绑定不一致时均须 fail closed；ledger 尚未可见属于 retryable dependency，不得把未经认领的 Welcome 降级接受。Direct Conversation immutable binding accepted 前还 MUST 将 receipt.request 的 `pair_key` 与 `strand_id` 精确匹配该 pair 唯一 durable operation 已锁定的 binding payload。
 
-所有目标不存在、任一方 Contact head/scope 不满足、设备不可见、KeyPackage 耗尽、capability 不满足、policy denied、participant authorization 失效和限速失败，对**已通过外层服务认证**的 peer caller 必须收敛为同一 `claim_failed` 外观；不得返回 `available_count`、目标设备列表或逐设备 `failures[]`。外层 RFC 9421 signature / source service identity 无法通过时，接收方在读取 target 状态前返回通用 `unauthenticated` / `invalid_signature`；该响应必须只由 transport authentication 决定，对任意 `target_principal_id` 完全相同。
+所有目标不存在、任一方 Contact head/scope 不满足、设备不可见、KeyPackage 耗尽、capability 不满足、policy denied、participant authorization 失效和限速失败，对**已通过外层服务认证**的 peer caller 必须收敛为同一 `claim_failed` 外观；不得返回 `available_count`、目标设备列表或逐设备 `failures[]`。外层 RFC 9421 signature / source service identity 无法通过时，接收方在读取 target 状态前返回通用 `unauthenticated` / `signature_invalid`；该响应必须只由 transport authentication 决定，对任意 `target_principal_id` 完全相同。
 
 #### 9.2.4 Welcome、consume 与唯一 materializing operation
 

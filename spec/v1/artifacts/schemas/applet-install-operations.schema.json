@@ -49,7 +49,7 @@
       "type": "string",
       "pattern": "^ak:[a-z][a-z0-9_]*:[A-Za-z0-9._:-]+$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
     },
@@ -186,7 +186,7 @@
       ],
       "properties": {
         "plan_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "applet_package": {
           "$ref": "#/$defs/applet_package"
@@ -293,7 +293,7 @@
           ]
         },
         "registration_epoch": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "bot_actor_id": {
           "$ref": "#/$defs/did_core_id"
@@ -358,7 +358,7 @@
       ],
       "properties": {
         "revoke_plan_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "effective_scope": {
           "$ref": "#/$defs/effective_scope"
@@ -503,7 +503,7 @@
           "$ref": "#/$defs/effective_scope"
         },
         "registration_epoch": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "reason_code": {
           "$ref": "#/$defs/non_empty_string",
@@ -569,7 +569,7 @@
           "$ref": "#/$defs/grant_id"
         },
         "registration_epoch": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "reason_code": {
           "$ref": "#/$defs/non_empty_string",
@@ -615,7 +615,7 @@
       ],
       "properties": {
         "revoke_plan_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "revoke_plan": {
           "$ref": "#/$defs/applet_revoke_plan"
@@ -678,7 +678,7 @@
           "pattern": "^ak:operation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "revoke_plan_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "status": {
           "type": "string",

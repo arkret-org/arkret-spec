@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.1",
+  "version": "2026-08-14.6",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T00:30:00Z",
+  "generated_at": "2026-08-14T06:24:26Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2270,7 +2270,8 @@
           "update",
           "epoch",
           "confirmed_transcript_hash",
-          "sender_actor_id"
+          "sender_actor_id",
+          "room_binding_event"
         ],
         "closed": true
       },
@@ -2316,7 +2317,7 @@
         "schema_kind": "object",
         "required": [],
         "properties": [
-          "key_packages",
+          "keypackages",
           "group_info",
           "failures",
           "signature"
@@ -3202,7 +3203,7 @@
       "operation_id": "ak.peer.keys.keypackages.command.claim",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_request_body",
         "schema_kind": "object",
         "required": [
           "claim_request_id",
@@ -3241,7 +3242,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_outcome",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_outcome",
         "schema_kind": "object",
         "required": [
           "claim_request_id",
@@ -3260,7 +3261,7 @@
       "operation_id": "ak.peer.keys.keypackages.read.claim",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_request_body",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_request_body",
         "schema_kind": "object",
         "required": [
           "claim_request_id",
@@ -3273,7 +3274,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_outcome",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_outcome",
         "schema_kind": "object",
         "required": [
           "claim_request_id",
@@ -5353,14 +5354,14 @@
       "operation_id": "ak.self.authorization_leases.command.issue",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequest",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequestBody",
         "schema_kind": "oneOf",
         "required": [],
         "properties": [],
         "closed": false,
         "variants": [
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequest",
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequestBody",
             "schema_kind": null,
             "required": [
               "events"
@@ -5369,7 +5370,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequest",
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequestBody",
             "schema_kind": null,
             "required": [
               "intents"
@@ -6881,7 +6882,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponseBody",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfEventsSubmitOutcome",
         "schema_kind": "oneOf",
         "required": [
           "status"
@@ -7678,7 +7679,7 @@
       "operation_id": "ak.self.keys.keypackages.command.claim",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
         "schema_kind": "object",
         "required": [
           "target_principal_id",
@@ -7706,7 +7707,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
         "schema_kind": "object",
         "required": [
           "claims",
@@ -7725,14 +7726,14 @@
       "operation_id": "ak.self.keys.keypackages.command.consume",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body",
         "schema_kind": "oneOf",
         "required": [],
         "properties": [],
         "closed": false,
         "variants": [
           {
-            "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body",
+            "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body",
             "schema_kind": null,
             "required": [
               "consumer_device_id"
@@ -7741,7 +7742,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body",
+            "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body",
             "schema_kind": null,
             "required": [
               "consumer_agent_id",
@@ -7754,7 +7755,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_outcome",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_outcome",
         "schema_kind": "object",
         "required": [
           "consumed",
@@ -7772,17 +7773,17 @@
       "operation_id": "ak.self.keys.keypackages.command.revoke",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_request_body",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_revoke_request_body",
         "schema_kind": "object",
         "required": [
           "owner_account_id",
-          "key_package_refs",
+          "keypackage_refs",
           "device_id",
           "signature"
         ],
         "properties": [
           "owner_account_id",
-          "key_package_refs",
+          "keypackage_refs",
           "device_id",
           "signature",
           "reason"
@@ -7790,7 +7791,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_outcome",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_revoke_outcome",
         "schema_kind": "object",
         "required": [
           "revoked"
@@ -7806,18 +7807,18 @@
       "operation_id": "ak.self.keys.keypackages.upload.create",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_request_body",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_request_body",
         "schema_kind": "object",
         "required": [
           "principal_id",
           "device_id",
-          "key_packages",
+          "keypackages",
           "device_signature"
         ],
         "properties": [
           "principal_id",
           "device_id",
-          "key_packages",
+          "keypackages",
           "device_signature",
           "expires_at",
           "strand_id",
@@ -7826,7 +7827,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_outcome",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_outcome",
         "schema_kind": "object",
         "required": [
           "accepted"
@@ -7834,7 +7835,7 @@
         "properties": [
           "accepted",
           "rejected",
-          "key_package_refs",
+          "keypackage_refs",
           "available_count"
         ],
         "closed": true

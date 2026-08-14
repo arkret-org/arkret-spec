@@ -15,7 +15,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -99,7 +99,7 @@
           "$ref": "#/$defs/proof_kind"
         },
         "proof_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Digest of the canonical recovery proof transcript that satisfied this session."
         },
         "verification_method": {
@@ -224,7 +224,7 @@
           ]
         },
         "registry_head": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Digest of the accepted identity-registry head snapshot."
         },
         "accepted_seal_frontier": {
@@ -234,7 +234,7 @@
           "$ref": "#/$defs/publication_authority_context"
         },
         "publication_authority_context_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "SHA-256 of JCS(publication_authority_context). Recovery proof transcripts and RecoveryTransaction session snapshots bind this exact digest."
         },
         "challenge": {
@@ -407,7 +407,7 @@
           ]
         },
         "unlock_commitment": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Public binding hash over the session transcript and recovery_secret_ref. Possession is proven by signature; this commitment prevents proof-shell substitution."
         },
         "signature": {
@@ -560,7 +560,7 @@
                 "$ref": "#/$defs/did_core_id"
               },
               "transcript_digest": {
-                "$ref": "#/$defs/hash",
+                "$ref": "#/$defs/digest",
                 "description": "Digest of the holder's share release transcript bound to share_id, holder, recovery_session_id, requesting_device_id, audience, and issued_at. For threshold_recovery / recovery_unlock the requesting device may be a not-yet-authorized new device; holder validation binds proof-of-possession and the recovery session instead of requiring an existing device record."
               },
               "verification_method": {
@@ -688,7 +688,7 @@
           "description": "Accepted PCR generation fenced by this recovery. DID method versioning is orthogonal."
         },
         "publication_authority_context_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "challenge": {
           "$ref": "#/$defs/challenge"
@@ -757,7 +757,7 @@
           "description": "Accepted DID versionId that anchors the current device generation."
         },
         "publication_authority_context_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "challenge": {
           "$ref": "#/$defs/challenge"

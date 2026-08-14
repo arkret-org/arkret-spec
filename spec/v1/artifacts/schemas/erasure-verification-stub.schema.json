@@ -22,13 +22,13 @@
       "$ref": "#/$defs/scope"
     },
     "event_digest": {
-      "$ref": "#/$defs/hash",
+      "$ref": "#/$defs/digest",
       "description": "Optional redundant digest for an Event subject. Its suite and all 32 digest octets MUST exactly match the suite wire code and digest carried by subject.subject_ref. If omitted, the suite and digest are recovered from the Event ID. This field and the Event ID preserve consistency evidence; neither independently verifies erased canonical Event bytes."
     },
     "retained_digests": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/hash"
+        "$ref": "#/$defs/digest"
       },
       "uniqueItems": true
     },
@@ -39,10 +39,10 @@
           "$ref": "#/$defs/subject_ref"
         },
         "frontier_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "state_root": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -59,7 +59,7 @@
           "$ref": "#/$defs/policy_id"
         },
         {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       ]
     },
@@ -186,7 +186,7 @@
           "const": "account_private_state"
         },
         "subject_ref": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -237,7 +237,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },

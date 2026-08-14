@@ -238,9 +238,9 @@ Arkret v1 core conformance 要求如下：
   - Allowed: 已缓存对象的本地搜索 / 本地索引查询
   - Allowed: 已收到 snapshot / Seal 的 state_root 重算(用于本地一致性自检)
   - Out of scope: Event/Seal ingress、联邦 transaction、client sync、capability freshness、session、Snapshot witness 与账号操作继续验证各自 accepted authority；它们不得仅因 resolver degraded 被拒绝
-  - Forbidden: 解析任何新出现的 `did:webvh` DID(本地无 cache)——MUST 拒绝并返回 `unknown_did`,不允许 fallback 到 `did:web:<同 hosting>` live resolve
+  - Forbidden: 解析任何新出现的 `did:webvh` DID(本地无 cache)——MUST 拒绝并返回 `did_unknown`,不允许 fallback 到 `did:web:<同 hosting>` live resolve
 - fallback 期间禁止任何 live DID Document 解析、handle re-resolution、capability subject 重映射或基于网络响应的缓存索引重建。允许的"本地搜索"只能读取进入 degraded mode 之前已经由 verified DID evidence 建好的本地索引；实现不得在 outage 期间用新的 DNS / HTTPS / handle 结果重建索引或补全 subject。
-- **"已建好的本地索引"的可信来源约束（normative，防索引洗白）**：degraded mode 期间可被读取的"已建好的本地索引"MUST 由满足以下两条的 sealed evidence 派生，否则 degraded 期间 resolver MUST 拒绝消费该索引（返回 `webvh_cache_unavailable` / `unknown_did`，按低风险只读失败处理），不得把它当作可信解析结果：
+- **"已建好的本地索引"的可信来源约束（normative，防索引洗白）**：degraded mode 期间可被读取的"已建好的本地索引"MUST 由满足以下两条的 sealed evidence 派生，否则 degraded 期间 resolver MUST 拒绝消费该索引（返回 `webvh_cache_unavailable` / `did_unknown`，按低风险只读失败处理），不得把它当作可信解析结果：
   - **evidence age ≤ 7 天**：构建该索引条目所依据的 `did:webvh` DID Document / SCID / entry hash chain / controller proof evidence 的 `cached_evidence_age_ms ≤ 7d`，且 controller-proof 在构建时已验证通过（与本节 per-entry 7 天 cache age 上限一致；过旧或 controller-proof 未验证的 evidence 不得支撑索引）。
   - **携带 build-time evidence 引用**：每条索引条目 MUST 记录其 build-time evidence 引用（被解析 DID、entry hash chain head / `versionId`、evidence 构建时间、controller-proof 验证结果摘要）；缺少该引用的索引条目视为"来源不可追溯"，degraded 期间 MUST 被拒绝。这关闭"在 outage 前用未经 controller-proof 验证或来源不明的数据建一份本地索引，再在 degraded 期间把它当作 verified 结果读出"的索引洗白路径——degraded 模式只能消费可回溯到 sealed、age 合格、controller-proof 已验证 evidence 的索引，而不是任何"碰巧已落地的本地表"。
 - Resolver MUST 把 cache-only degraded 状态作为 service health / diagnostics 信号暴露给同 Realm peers（例如 `resolver_state=webvh_cache_only_degraded`、`cached_evidence_age_ms`、受影响 DID 集合摘要）。Peer 只在收到 operation/action registry 登记为 current-DID-dependent 的请求时据此 fail closed；普通 human PCR 写入不得读取该信号作为 authority gate。
@@ -393,7 +393,7 @@ threshold 不满足、同源 controlling organization 与 stale evidence。
 
 - **I-3 显式 first-provisioning 门仅适用于 B 类**："持久层无 service identity" 对自身就是 Provider 的部署可能是真正首次部署，也可能是数据灾难；没有外部权威能区分两者。因此 B 类生产部署仅在显式一次性 `first-provisioning` 信号存在时 MAY 创建新 DID。开发模式 MAY 自动 provision。B 类有可验证 bundle 时 MUST 恢复原 DID；无 bundle、无记录、无信号时 MUST fail closed。A 类不使用该信号：它先按 `ServiceRegistrationKey {service_kind, public_base}` 查询外部 Provider，mapping 存在则校验本地 control/signing key binding 后回填原 DID，明确 not-found 才提交 client-signed inception，传输失败时进入 waiting 且绝不 mint。
 
-- **I-4 强制 service pre-rotation**：service DID inception 与每次 rotation MUST 同时持有恰好一把 active update key 和一把本服务预生成的 next update key。`updateKeys` 与 `nextKeyHashes` 均恰含一项；`nextKeyHashes[0]` MUST 是 next update key Multikey 文本按 [`key-management.md` §5.0.1](./key-management.md) 相同的 sha2-256 multihash + Base58BTC 规则所得承诺。Provider / resolver 接受后继 entry 前 MUST 验证其 `updateKeys[0]` 命中前一 entry 的 `nextKeyHashes[0]`，并将被替换 key 标为 spent；缺少承诺、数量不为一或 commitment 不匹配 MUST fail closed 为 `service_registration_rejected` / reason=`service_prerotation_invalid`。Provider 不得生成、接收或托管 next private key。
+- **I-4 强制 service pre-rotation**：service DID inception 与每次 rotation MUST 同时持有恰好一把 active update key 和一把本服务预生成的 next update key。`updateKeys` 与 `nextKeyHashes` 均恰含一项；`nextKeyHashes[0]` MUST 是 next update key Multikey 文本按 [`key-management.md` §5.0.1](./key-management.md) 相同的 sha2-256 multihash + Base58BTC 规则所得承诺。Provider / resolver 接受后继 entry 前 MUST 验证其 `updateKeys[0]` 命中前一 entry 的 `nextKeyHashes[0]`，并将被替换 key 标为 spent；缺少承诺、数量不为一或 commitment 不匹配 MUST fail closed 为 `service_registration_denied` / reason=`service_prerotation_invalid`。Provider 不得生成、接收或托管 next private key。
 
 Service Identity Provider 的标准操作是：
 
@@ -418,7 +418,7 @@ Profile 分层（承接 §3.4 的 witness 要求，不新增语义）：
 - `personal_node` / `small_team`：自举产出的 `did:webvh` 若仅由宿主自身见证（self-witness），属 §3.4 的单 witness 降级——MUST 按 §3.4 对高风险写入的 witness 规则处理，并向用户暴露降级状态；MUST NOT 把 self-witness 宣称为具备外部见证的信任强度。
 - `organization` / `high_security_organization` / `sovereign_deployment`：自举产出的 service identity MUST 满足 §3.4 对应 profile 的 ≥2 distinct-org witness（及高保障 profile 的 log-backed witness）要求，MUST NOT 以宿主自见证作为高风险控制判断的唯一依据。
 
-> 错误是否进入 registry 取决于观察者。Provider/服务对调用方的 wire 响应使用 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中的 `service_identity_unavailable`、`service_identity_provider_unavailable`、`service_registration_rejected`、`service_identity_conflict`。
+> 错误是否进入 registry 取决于观察者。Provider/服务对调用方的 wire 响应使用 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中的 `service_identity_unavailable`、`service_identity_provider_unavailable`、`service_registration_denied`、`service_identity_conflict`。
 >
 > 本机启动监督器的 `service_identity_provider_ambiguous`、`service_identity_provider_not_configured`、`service_identity_key_mismatch`、`service_registration_restore_failed`、`service_identity_first_provisioning_required`、`service_identity_registration_key_drift` 是 operator-facing diagnostic，不是 wire code；其中 drift 继续服务，不能笼统描述为“启动失败”。
 

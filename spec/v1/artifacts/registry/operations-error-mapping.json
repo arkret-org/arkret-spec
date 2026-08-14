@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-14.3",
+  "version": "2026-08-14.5",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-14T00:50:00Z",
+  "generated_at": "2026-08-14T06:24:26Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
-    "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
+    "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
     "operation_specific": "operation_specific[] lists the error codes that are semantically tied to this operation's domain logic (event ingest, key claim, blob upload, push gateway, directory ingest, ...). An entry may name either a top-level code from error-code-registry.json `codes` or a sub-code from its `reason_codes` section (carried under a top-level code such as failed_precondition or schema_violation). Consumers discriminate by first matching the entry against the registry's top-level `codes` set; an entry not found there is a reason_code and matches the error reply's `reason_code` field rather than its top-level `code`. Receivers SHOULD recognize and surface these codes specifically.",
     "endpoint_aliases": "Each operation entry lists its canonical HTTP method+path alias for human navigation; alternative bindings (gRPC, MQ) inherit the same error code set.",
     "operation_coverage": "Every operation_id in artifacts/registry/operation-registry.json MUST appear exactly once in operations[]. An empty operation_specific[] means the operation has no domain-specific reply shape beyond the universal failure surface."
@@ -75,7 +75,7 @@
         "push_gateway_unreachable",
         "push_target_unknown",
         "push_payload_too_large",
-        "profile_unsupported",
+        "unsupported_profile",
         "delivery_binding_stale",
         "push_token_unknown",
         "push_token_invalid"
@@ -101,9 +101,9 @@
       "operation_id": "ak.find.directory.command.announce",
       "http_alias": "POST /_arkret/find/directory/announce",
       "operation_specific": [
-        "directory_not_authorized",
+        "directory_unauthorized",
         "accept_policy_denied",
-        "signature_invalid",
+        "directory_governance_proof_signature_invalid",
         "signature_stale",
         "source_refs_unverifiable",
         "governance_key_invalid",
@@ -117,20 +117,20 @@
       "http_alias": "POST /_arkret/find/directory/takedown/appeal",
       "operation_specific": [
         "not_found",
-        "directory_not_authorized",
-        "signature_invalid",
+        "directory_unauthorized",
+        "directory_governance_proof_signature_invalid",
         "signature_stale",
         "governance_key_invalid",
         "takedown_in_force"
       ],
-      "description": "Resource-side appeal against an operator takedown (discovery-directory.md §8.7). not_found covers an unknown takedown_id; directory_not_authorized / governance_key_invalid / signature_invalid / signature_stale cover an appellant whose governance key or authorized-advocate signature does not validate against the resource the takedown targets; takedown_in_force is returned while the takedown remains effective and the appeal has not been overturned. The Directory returns a signed decision receipt on success."
+      "description": "Resource-side appeal against an operator takedown (discovery-directory.md §8.7). not_found covers an unknown takedown_id; directory_unauthorized / governance_key_invalid / directory_governance_proof_signature_invalid / signature_stale cover an appellant whose governance key or authorized-advocate signature does not validate against the resource the takedown targets; takedown_in_force is returned while the takedown remains effective and the appeal has not been overturned. The Directory returns a signed decision receipt on success."
     },
     {
       "operation_id": "ak.find.directory.command.withdraw",
       "http_alias": "POST /_arkret/find/directory/withdraw",
       "operation_specific": [
-        "directory_not_authorized",
-        "signature_invalid",
+        "directory_unauthorized",
+        "directory_governance_proof_signature_invalid",
         "not_found"
       ]
     },
@@ -228,7 +228,7 @@
       "operation_id": "ak.gate.account.command.introspect_session_grant",
       "http_alias": "POST /_arkret/gate/account/session-grants/introspect",
       "operation_specific": [],
-      "description": "Server-to-server session-grant introspection (RFC 7662-style). Read-only validation: returns active/status/grant-metadata in a 200 body (including not_found / audience_mismatch as statuses, not error replies), so it has no operation-specific error codes beyond the universal failure surface (e.g. bad_json for a malformed id, the universal auth codes when the introspection bearer is missing)."
+      "description": "Server-to-server session-grant introspection (RFC 7662-style). Read-only validation: returns active/status/grant-metadata in a 200 body (including not_found / audience_mismatch as statuses, not error replies), so it has no operation-specific error codes beyond the universal failure surface (e.g. json_invalid for a malformed id, the universal auth codes when the introspection bearer is missing)."
     },
     {
       "operation_id": "ak.gate.account.command.issue_controller_gate_attestation",
@@ -550,9 +550,9 @@
         "failed_precondition",
         "account_status_transition_invalid",
         "erasure_pending_is_terminal",
-        "stale_peer"
+        "peer_stale"
       ],
-      "description": "Account Authority / delegated Principal Server account-status publication. invalid_signature and unauthorized remain universal authentication failures; failed_precondition covers authority-evidence/Event/PCR field mismatch or stale binding evidence, while the two account-status codes cover illegal lifecycle transitions. Same Idempotency-Key with another canonical body is duplicate_conflict."
+      "description": "Account Authority / delegated Principal Server account-status publication. signature_invalid and unauthorized remain universal authentication failures; failed_precondition covers authority-evidence/Event/PCR field mismatch or stale binding evidence, while the two account-status codes cover illegal lifecycle transitions. Same Idempotency-Key with another canonical body is duplicate_conflict."
     },
     {
       "operation_id": "ak.peer.account_status.read.authoring_frontiers",
@@ -560,7 +560,7 @@
       "operation_specific": [
         "failed_precondition",
         "frontier_unavailable",
-        "stale_peer"
+        "peer_stale"
       ],
       "description": "failed_precondition covers authority-evidence/account/principal/PCR/issuer binding mismatch; frontier_unavailable covers a missing or unverifiable accepted actor/Seal frontier."
     },
@@ -571,7 +571,7 @@
         "failed_precondition",
         "duplicate_conflict",
         "source_refs_unverifiable",
-        "stale_peer"
+        "peer_stale"
       ]
     },
     {
@@ -583,7 +583,7 @@
         "erasure_receipt_proof_invalid",
         "erasure_receipt_stub_binding_mismatch",
         "erasure_receipt_stub_digest_mismatch",
-        "stale_peer"
+        "peer_stale"
       ],
       "description": "Receipt package admission validates service/issuer authority, proofs, digest and retained-stub binding before acknowledgement or local deletion. Same idempotency key with another canonical body is duplicate_conflict."
     },
@@ -592,7 +592,7 @@
       "http_alias": "GET /_arkret/peer/erasure-receipts/{receipt_id}",
       "operation_specific": [
         "not_found",
-        "stale_peer"
+        "peer_stale"
       ],
       "description": "Unknown, unauthorized and hidden receipt identifiers are deliberately indistinguishable as not_found."
     },
@@ -606,10 +606,10 @@
         "expired_invite_token",
         "unsupported_join_rule",
         "actor_seq_invalid",
-        "stale_seal_ref",
+        "seal_ref_stale",
         "realm_frozen",
         "quarantine",
-        "stale_peer",
+        "peer_stale",
         "delivery_binding_stale",
         "delivery_binding_handed_over",
         "mls_generation_proposal_fanout_exceeded"
@@ -652,7 +652,7 @@
         "failed_precondition",
         "duplicate_conflict",
         "source_refs_unverifiable",
-        "stale_peer",
+        "peer_stale",
         "contact_scope_stale",
         "contact_lineage_conflict"
       ]
@@ -664,7 +664,7 @@
         "failed_precondition",
         "duplicate_conflict",
         "source_refs_unverifiable",
-        "stale_peer",
+        "peer_stale",
         "contact_scope_stale",
         "contact_lineage_conflict"
       ]
@@ -696,7 +696,7 @@
         "digest_mismatch",
         "state_mismatch",
         "limit_exceeded",
-        "stale_peer"
+        "peer_stale"
       ],
       "description": "dependency_missing covers an accepted genesis whose referenced object bytes are not currently available; digest_mismatch and state_mismatch reject ref/raw-byte or RFC 9420 GroupInfo/tree inconsistency; the operation never returns partial material."
     },
@@ -778,7 +778,7 @@
         "organization_registration_challenge_invalid",
         "organization_registration_control_proof_invalid",
         "organization_registration_quorum_not_met",
-        "organization_registration_scope_unsupported",
+        "unsupported_organization_registration_scope",
         "duplicate_conflict",
         "did_not_found"
       ],
@@ -789,7 +789,7 @@
       "http_alias": "POST /_arkret/root/identity/organization-registrations:prepare",
       "operation_specific": [
         "did_not_found",
-        "organization_registration_scope_unsupported"
+        "unsupported_organization_registration_scope"
       ],
       "description": "Issues a single-use control challenge for a resolvable external Organization DID. An unresolvable DID fails closed rather than yielding a challenge no proof could ever satisfy."
     },
@@ -892,7 +892,7 @@
       "http_alias": "POST /_arkret/root/identity/service-registrations:ensure",
       "operation_specific": [
         "service_identity_provider_unavailable",
-        "service_registration_rejected",
+        "service_registration_denied",
         "service_identity_conflict"
       ],
       "description": "The Provider verifies a client-signed WebVH inception and returns the stable mapping for the canonical registration key. Conflicting control roots or hosted-document declarations fail closed."
@@ -916,7 +916,7 @@
       "operation_id": "ak.self.account.command.update_profile",
       "http_alias": "POST /_arkret/self/account/profile",
       "operation_specific": [
-        "invalid_avatar_blob_ref",
+        "avatar_blob_ref_invalid",
         "unsupported_profile_patch_path",
         "failed_precondition",
         "frontier_unavailable",
@@ -1192,7 +1192,7 @@
       "operation_specific": [
         "duplicate_conflict",
         "failed_precondition",
-        "stale_seal_ref",
+        "seal_ref_stale",
         "seal_ref_unknown"
       ],
       "description": "Publication lease issuance performs the same read-only Event admission as submit. It can reject stale or unknown bases and conflicting idempotency replays, but it never commits an Event."
@@ -1427,7 +1427,7 @@
       "operation_specific": [
         "duplicate_conflict",
         "failed_precondition",
-        "stale_seal_ref",
+        "seal_ref_stale",
         "seal_ref_unknown",
         "quorum_unreachable"
       ],
@@ -1437,7 +1437,7 @@
       "operation_id": "ak.self.device_messages.command.ack",
       "http_alias": "POST /_arkret/self/device_messages/ack",
       "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface. Unknown / expired / cross-bound ack tokens map to invalid_param (reason invalid_ack_token) and MUST NOT delete any queued message."
+      "description": "No operation-specific error codes beyond the universal failure surface. Unknown / expired / cross-bound ack tokens map to param_invalid (reason invalid_ack_token) and MUST NOT delete any queued message."
     },
     {
       "operation_id": "ak.self.device_messages.command.send",
@@ -1491,7 +1491,7 @@
         "expired_invite_token",
         "unsupported_join_rule",
         "actor_seq_invalid",
-        "stale_seal_ref",
+        "seal_ref_stale",
         "seal_ref_unknown",
         "realm_frozen",
         "quarantine",
@@ -1533,10 +1533,10 @@
         "mls_governance_proof_bounds_exceeded",
         "frontier_unavailable",
         "state_mismatch",
-        "signature_invalid",
-        "profile_unsupported"
+        "directory_governance_proof_signature_invalid",
+        "unsupported_profile"
       ],
-      "description": "not_found preserves Realm/scope visibility; mls_governance_anchor_unreachable means no verified path exists from the exact caller-trusted anchor and permits retry only with another locally trusted anchor/service; mls_governance_proof_bounds_exceeded means the complete logical bundle exceeds a v1 count/byte/chunk bound and forbids partial output; frontier_unavailable covers temporarily missing accepted Seal material or an unavailable expected_bundle_digest and permits restarting at chunk 0; state_mismatch covers incomplete covered/control materialization; signature_invalid covers an unverifiable Seal/Event/chunk commitment; profile_unsupported rejects unsupported binding or reducer profiles."
+      "description": "not_found preserves Realm/scope visibility; mls_governance_anchor_unreachable means no verified path exists from the exact caller-trusted anchor and permits retry only with another locally trusted anchor/service; mls_governance_proof_bounds_exceeded means the complete logical bundle exceeds a v1 count/byte/chunk bound and forbids partial output; frontier_unavailable covers temporarily missing accepted Seal material or an unavailable expected_bundle_digest and permits restarting at chunk 0; state_mismatch covers incomplete covered/control materialization; directory_governance_proof_signature_invalid covers an unverifiable Seal/Event/chunk commitment; unsupported_profile rejects unsupported binding or reducer profiles."
     },
     {
       "operation_id": "ak.self.events.read.resolve",
@@ -1634,7 +1634,7 @@
         "recovery_evidence_unbound",
         "backup_frontier_stale",
         "series_chain_broken",
-        "invalid_signature"
+        "signature_invalid"
       ]
     },
     {
@@ -1962,7 +1962,7 @@
       "operation_id": "ak.self.signal.command.send",
       "http_alias": "POST /_arkret/self/signal",
       "operation_specific": [
-        "signal_class_not_permitted",
+        "signal_class_denied",
         "signal_ttl_out_of_range",
         "signal_rail_unavailable",
         "signal_plaintext_forbidden"

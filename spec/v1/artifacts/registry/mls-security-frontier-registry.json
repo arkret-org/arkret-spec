@@ -1,6 +1,6 @@
 {
   "version": "2026-08-13",
-  "generated_at": "2026-08-13T06:50:00Z",
+  "generated_at": "2026-08-13T07:00:00Z",
   "source_of_truth": true,
   "profile_id": "ak.security_frontier.v1",
   "description": "Closed machine contract for the accepted state that changes current or historical MLS key access. Producers never choose frontier members. Verifiers project these inputs from one accepted Seal view and the RFC 9420 group state, then compare the resulting digest with the governance binding.",

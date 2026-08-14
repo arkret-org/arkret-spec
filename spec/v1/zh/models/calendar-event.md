@@ -225,7 +225,7 @@ registry 为该 cell write 登记 `effect_projection = set(payload.entry)`：**�
 | | `stale_orphaned`（identity-affecting 修改后的旧 instance head） | 否 |
 | | `unresolved_basis`（任一 ref 不可解析、不可见、或不在目标 Strand 的 schedule revision DAG 上） | 否 |
 | response 轴（按 §8.2 分支取值后校验） | `resolved` | 是 |
-| | `invalid_response`（解密认证失败，或 plaintext 不满足 `rsvp_response`） | 否 |
+| | `response_invalid`（解密认证失败，或 plaintext 不满足 `rsvp_response`） | 否 |
 | | `encrypted_unresolved`（缺 key） | 否，且 MUST NOT 伪造 status |
 
 规则：

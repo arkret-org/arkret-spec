@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.1",
+  "version": "2026-08-14.4",
   "source_of_truth": true,
-  "generated_at": "2026-08-14T00:30:00Z",
+  "generated_at": "2026-08-14T03:10:00Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -98,7 +98,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#8-cursor",
-      "section_digest": "sha256:375fb16d90273ad075b005b6819d5243c97fd42bd4db9a6b8eb17c08abd35970",
+      "section_digest": "sha256:0774488c7167ef3cbc1f176bd44ef01c0d9b9ead8f3eb05941fd206a492c51f3",
       "requirement": "Cursors are opaque server-issued tokens bound to their query scope; clients MUST NOT parse or forge them and cross-scope replay MUST be rejected.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -124,7 +124,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#2-http-传输与编码",
-      "section_digest": "sha256:aca52cee693e782906b97d5ae8aa0858fab362cb33381dca6f0172d73ab65873",
+      "section_digest": "sha256:af2372444cf6452b98a85fa6a8fbb0406a8b6bfc8cc67f3d244a87ba89e4f0f2",
       "requirement": "Transport encoding bounds: Content-Encoding is forbidden on non-streaming JSON operations and every size limit MUST be enforced before the body is fully buffered or parsed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -161,7 +161,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:e8ecadf91a913e0eb517a2ec90f71d2ba7509f4f8581e33805b7ecf77348874a",
+      "section_digest": "sha256:9467a752c67e7f165f889a82c02db11a0212a80922484030537b13b510a81064",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -176,7 +176,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:d2ef1867af1cd374ba40cc79ae0e08096e96bacd21dc148d005538f6f4eadff6",
+      "section_digest": "sha256:bc895b8bae22190afaf7fa48f96c868b05a468792f0a474d89a47d0f2c791de1",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, every peer claim binds the accepted authorization Event id plus its in-envelope Principal Server admission proof and a destination-signed claim receipt without separate PCR/device/Agent signer-evidence sidecars, encryption floors MUST NOT be downgraded, an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling, every encrypted envelope MUST commit its exact scope_ref through the unconditional domain-separated aad.scope_digest and receivers MUST recompute it on decrypt, every MLS epoch MUST bind the independently re-derived security frontier for its accepted key-access state, and epoch-0 leaf indices MUST be recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -197,7 +197,7 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/discovery/discovery-directory.md#3-realm-discoverability",
-      "section_digest": "sha256:3104534466ebd242583ab2d5ab9c437b5ac8d4085ce2397366b87d57329e0881",
+      "section_digest": "sha256:1b35386bfdd3842e335fde93e39e9751066ccfb31b25e7fb28be8312662ff489",
       "requirement": "Directory resolution failures are indistinguishable: unauthorized, non-existent and policy-denied targets MUST NOT be separable by error code, field set or timing.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -230,7 +230,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:2b2bf67b03144d021c6ac721f07f9ace99a0f31b5ee485d83593466d7cd713dd",
+      "section_digest": "sha256:c1da98d1187f0d1652460f5e34a90b5f0f0d92d49812bb6ea771676c3074692c",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -339,7 +339,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/governance-objects.md#5-invite",
-      "section_digest": "sha256:1974ad7b3e826d14f167f7faf66ae77506cff3b604845f7af748f1ae3afd16fb",
+      "section_digest": "sha256:e4b7c1e5824d7279da881aaa4e05eda24f84e812735a50f009306e376d3596e2",
       "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the membership transition is atomic with the claim.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -378,7 +378,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/sync/client-sync.md#10-to-device-delivery",
-      "section_digest": "sha256:bf10b0675445a6e4e505ce80755884d2f1733b5fb16a9d6953aea90210abf01f",
+      "section_digest": "sha256:28501ec54a73fa6fbb9636212a97e067a15dbdc78fe850dfddce344e5ea14fb8",
       "requirement": "To-device delivery executes each durable handler effect exactly once: redelivery is deduplicated by sender-scoped message id and queue removal happens only on explicit ack.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -405,7 +405,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#43-seal_ref-验证与撤销",
-      "section_digest": "sha256:9726af87ed07fea428701668eca00d15c8c05c8fd40bc9e62c30c85aa639a92d",
+      "section_digest": "sha256:1015fe9474d692736201d47f78158b551f51777d08160592fd6bfe741d5a8725",
       "requirement": "A revoked authorization observed inside the configured freshness window remains deterministically accepted in reducer input; a receiver may retain separate local evidence state but MUST NOT reject it from the canonical join or invent an unregistered query-grade carrier.",
       "testability_grade": "vector",
       "evidence_refs": [

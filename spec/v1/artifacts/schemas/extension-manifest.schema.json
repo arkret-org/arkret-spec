@@ -44,7 +44,7 @@
       ]
     },
     "manifest_digest": {
-      "$ref": "#/$defs/hash"
+      "$ref": "#/$defs/digest"
     },
     "publisher_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -172,7 +172,7 @@
   },
   "additionalProperties": false,
   "$defs": {
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -189,7 +189,7 @@
           "description": "Versioned registry symbol for a dependency, payload schema, or conformance vector."
         },
         "digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "retrieval_url": {
           "type": "string",
@@ -213,7 +213,7 @@
           "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v1$"
         },
         "digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "lattice_profile_ref": {
           "type": "string",

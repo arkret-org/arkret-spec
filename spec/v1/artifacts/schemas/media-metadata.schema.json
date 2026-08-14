@@ -63,13 +63,13 @@
             "$ref": "#/$defs/blob_ref"
           },
           "source_ciphertext_digest": {
-            "$ref": "#/$defs/hash"
+            "$ref": "#/$defs/digest"
           },
           "thumbnail_blob_ref": {
             "$ref": "#/$defs/blob_ref"
           },
           "thumbnail_ciphertext_digest": {
-            "$ref": "#/$defs/hash"
+            "$ref": "#/$defs/digest"
           },
           "width": {
             "type": "integer",
@@ -141,7 +141,7 @@
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     }

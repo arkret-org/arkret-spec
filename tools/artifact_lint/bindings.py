@@ -1616,28 +1616,50 @@ def _supply_walk_demand(
             or ref_def in _SUPPLY_CALLER_SIGNED_SCHEMAS
             or ref_file in _SUPPLY_CALLER_SIGNED_SCHEMAS
         )
-        is_union = (
-            isinstance(resolved_sub, dict)
-            and isinstance(resolved_sub.get("oneOf"), list)
-            and bool(resolved_sub["oneOf"])
-            and all(
-                isinstance(branch, dict) and isinstance(branch.get("properties"), dict)
-                for branch in resolved_sub["oneOf"]
-            )
+        resolved_union_branches: list[tuple[str, dict[str, Any], frozenset]] = []
+        if isinstance(resolved_sub, dict):
+            for branch in resolved_sub.get("oneOf") or []:
+                branch_file = resolved_file
+                branch_node = branch
+                branch_visiting = visiting
+                if isinstance(branch_node, dict) and "$ref" in branch_node:
+                    resolved_branch = _supply_resolve_ref(
+                        schema_files, branch_file, branch_node["$ref"]
+                    )
+                    if resolved_branch is None:
+                        resolved_union_branches = []
+                        break
+                    branch_file, branch_def, branch_node = resolved_branch
+                    branch_key = (branch_file, branch_def)
+                    if branch_key in branch_visiting:
+                        resolved_union_branches = []
+                        break
+                    branch_visiting = branch_visiting | {branch_key}
+                if not (
+                    isinstance(branch_node, dict)
+                    and isinstance(branch_node.get("properties"), dict)
+                ):
+                    resolved_union_branches = []
+                    break
+                resolved_union_branches.append(
+                    (branch_file, branch_node, branch_visiting)
+                )
+        is_union = bool(resolved_union_branches) and len(resolved_union_branches) == len(
+            resolved_sub.get("oneOf") or []
         )
         if is_required and chain_required and is_union and not (covered or ref_supplied):
             # A required union is constructible when at least one branch is
             # fully constructible; evaluate branches independently and let the
             # container carry the demand if every branch fails.
             branches: list[list[dict[str, Any]]] = []
-            for branch in resolved_sub["oneOf"]:
+            for branch_file, branch_node, branch_visiting in resolved_union_branches:
                 branch_out: list[dict[str, Any]] = []
                 _supply_walk_demand(
                     schema_files,
-                    resolved_file,
-                    branch,
+                    branch_file,
+                    branch_node,
                     field_path,
-                    visiting,
+                    branch_visiting,
                     branch_out,
                     True,
                     supplied_defs,

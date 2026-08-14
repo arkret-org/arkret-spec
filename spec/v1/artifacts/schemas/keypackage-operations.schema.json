@@ -5,40 +5,40 @@
   "description": "Closed request and response DTOs for self and peer MLS KeyPackage upload, claim, claim-status query, consume, and revoke operations. Individual OpenAPI components reference the $defs entries in this bundle.",
   "oneOf": [
     {
-      "$ref": "#/$defs/key_packages_upload_request_body"
+      "$ref": "#/$defs/keypackages_upload_request_body"
     },
     {
-      "$ref": "#/$defs/key_packages_upload_outcome"
+      "$ref": "#/$defs/keypackages_upload_outcome"
     },
     {
-      "$ref": "#/$defs/key_packages_claim_request_body"
+      "$ref": "#/$defs/keypackages_claim_request_body"
     },
     {
-      "$ref": "#/$defs/key_packages_claim_outcome"
+      "$ref": "#/$defs/keypackages_claim_outcome"
     },
     {
-      "$ref": "#/$defs/peer_key_packages_claim_request_body"
+      "$ref": "#/$defs/peer_keypackages_claim_request_body"
     },
     {
-      "$ref": "#/$defs/peer_key_packages_claim_outcome"
+      "$ref": "#/$defs/peer_keypackages_claim_outcome"
     },
     {
-      "$ref": "#/$defs/peer_key_packages_claim_query_request_body"
+      "$ref": "#/$defs/peer_keypackages_claim_query_request_body"
     },
     {
-      "$ref": "#/$defs/peer_key_packages_claim_query_outcome"
+      "$ref": "#/$defs/peer_keypackages_claim_query_outcome"
     },
     {
-      "$ref": "#/$defs/key_packages_consume_request_body"
+      "$ref": "#/$defs/keypackages_consume_request_body"
     },
     {
-      "$ref": "#/$defs/key_packages_consume_outcome"
+      "$ref": "#/$defs/keypackages_consume_outcome"
     },
     {
-      "$ref": "#/$defs/key_packages_revoke_request_body"
+      "$ref": "#/$defs/keypackages_revoke_request_body"
     },
     {
-      "$ref": "#/$defs/key_packages_revoke_outcome"
+      "$ref": "#/$defs/keypackages_revoke_outcome"
     }
   ],
   "$defs": {
@@ -53,7 +53,7 @@
       "type": "string",
       "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
     },
@@ -171,7 +171,7 @@
         "keypackage_id",
         "keypackage_ref",
         "keypackage_digest",
-        "key_package",
+        "keypackage",
         "cipher_suites",
         "capabilities",
         "expires_at",
@@ -185,9 +185,9 @@
           "$ref": "#/$defs/object_ref"
         },
         "keypackage_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
-        "key_package": {
+        "keypackage": {
           "$ref": "#/$defs/base64url",
           "description": "Base64url encoding of the canonical MLS KeyPackage bytes."
         },
@@ -230,7 +230,7 @@
         "keypackage_ref",
         "keypackage_digest",
         "principal_id",
-        "key_package",
+        "keypackage",
         "capabilities",
         "capabilities_digest",
         "expires_at",
@@ -292,7 +292,7 @@
           "$ref": "#/$defs/object_ref"
         },
         "keypackage_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -308,14 +308,14 @@
           "$ref": "./common-ids.schema.json#/$defs/did_url",
           "description": "Native-Agent runtime method that signed the exact KeyPackage; MUST match agent_key_authorize_event_id and the KeyPackage signature byte for byte."
         },
-        "key_package": {
+        "keypackage": {
           "$ref": "#/$defs/base64url"
         },
         "capabilities": {
           "$ref": "#/$defs/string_list"
         },
         "capabilities_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "device_authorize_event_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -348,12 +348,12 @@
       "additionalProperties": false,
       "description": "Closed KeyPackage claim record. Human-device and Native-Agent branches bind their accepted authorization Event ids; the destination Principal Server claim receipt authenticates the record. No portable PCR, device, or Agent signer-evidence sidecar is accepted."
     },
-    "key_packages_upload_request_body": {
+    "keypackages_upload_request_body": {
       "type": "object",
       "required": [
         "principal_id",
         "device_id",
-        "key_packages",
+        "keypackages",
         "device_signature"
       ],
       "properties": {
@@ -363,7 +363,7 @@
         "device_id": {
           "$ref": "#/$defs/device_id"
         },
-        "key_packages": {
+        "keypackages": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/keypackage_upload_entry"
@@ -386,7 +386,7 @@
       },
       "additionalProperties": false
     },
-    "key_packages_upload_outcome": {
+    "keypackages_upload_outcome": {
       "type": "object",
       "required": [
         "accepted"
@@ -402,7 +402,7 @@
             "$ref": "#/$defs/failure"
           }
         },
-        "key_package_refs": {
+        "keypackage_refs": {
           "$ref": "#/$defs/keypackage_ref_array"
         },
         "available_count": {
@@ -412,7 +412,7 @@
       },
       "additionalProperties": false
     },
-    "key_packages_claim_request_body": {
+    "keypackages_claim_request_body": {
       "type": "object",
       "required": [
         "target_principal_id",
@@ -473,7 +473,7 @@
       },
       "additionalProperties": false
     },
-    "key_packages_claim_outcome": {
+    "keypackages_claim_outcome": {
       "type": "object",
       "required": [
         "claims",
@@ -526,10 +526,10 @@
           "maxLength": 128
         },
         "request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "claims_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "source_service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -538,7 +538,7 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "request": {
-          "$ref": "#/$defs/key_packages_claim_request_body"
+          "$ref": "#/$defs/keypackages_claim_request_body"
         },
         "claimed_at": {
           "$ref": "#/$defs/timestamp"
@@ -622,7 +622,7 @@
         }
       ]
     },
-    "peer_key_packages_claim_unsigned_request": {
+    "peer_keypackages_claim_unsigned_request": {
       "type": "object",
       "required": [
         "claim_request_id",
@@ -706,7 +706,7 @@
           "$ref": "#/$defs/strand_id"
         },
         "pair_key": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "last_resort_allowed": {
           "type": "boolean",
@@ -809,7 +809,7 @@
       "additionalProperties": false,
       "description": "Server-prepared immutable peer claim request fields before requester_authorization is attached. claim_request_id carries at least 128 bits of entropy and equals the Idempotency-Key value on the peer command."
     },
-    "peer_key_packages_claim_transport_binding": {
+    "peer_keypackages_claim_transport_binding": {
       "type": "object",
       "required": [
         "source_service_id",
@@ -833,7 +833,7 @@
       },
       "additionalProperties": false
     },
-    "peer_key_packages_claim_authorization_draft": {
+    "peer_keypackages_claim_authorization_draft": {
       "type": "object",
       "required": [
         "request",
@@ -841,16 +841,16 @@
       ],
       "properties": {
         "request": {
-          "$ref": "#/$defs/peer_key_packages_claim_unsigned_request"
+          "$ref": "#/$defs/peer_keypackages_claim_unsigned_request"
         },
         "transport_binding": {
-          "$ref": "#/$defs/peer_key_packages_claim_transport_binding"
+          "$ref": "#/$defs/peer_keypackages_claim_transport_binding"
         }
       },
       "additionalProperties": false,
       "description": "Complete server-reserved object shown to the participant before signing. The signature transcript binds both the immutable request fields and the explicit service/trust-domain transport destination; the client MUST NOT infer transport_binding from local configuration."
     },
-    "peer_key_packages_claim_request_body": {
+    "peer_keypackages_claim_request_body": {
       "type": "object",
       "required": [
         "claim_request_id",
@@ -932,7 +932,7 @@
           "$ref": "#/$defs/strand_id"
         },
         "pair_key": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "last_resort_allowed": {
           "type": "boolean",
@@ -1057,10 +1057,10 @@
           "maxLength": 128
         },
         "request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "claims_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "source_service_id": {
           "$ref": "#/$defs/did_core_id"
@@ -1069,7 +1069,7 @@
           "$ref": "#/$defs/did_core_id"
         },
         "request": {
-          "$ref": "#/$defs/peer_key_packages_claim_unsigned_request",
+          "$ref": "#/$defs/peer_keypackages_claim_unsigned_request",
           "description": "The exact participant-authorized unsigned request fields. Together with request_digest, this lets the destination bind a later Welcome and Direct Conversation binding to the durable claim without trusting source-service assertions."
         },
         "claimed_at": {
@@ -1107,7 +1107,7 @@
           "maxLength": 128
         },
         "request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "terminal_state": {
           "type": "string",
@@ -1117,7 +1117,7 @@
             "revoked"
           ]
         },
-        "key_package_refs": {
+        "keypackage_refs": {
           "$ref": "#/$defs/keypackage_ref_array"
         },
         "source_service_id": {
@@ -1148,13 +1148,13 @@
           "then": {
             "not": {
               "required": [
-                "key_package_refs"
+                "keypackage_refs"
               ]
             }
           },
           "else": {
             "required": [
-              "key_package_refs"
+              "keypackage_refs"
             ]
           }
         }
@@ -1162,7 +1162,7 @@
       "additionalProperties": false,
       "description": "The KeyPackage owner service signs an immutable terminal ledger fact. never_claimed is issued only after the request can no longer succeed; expired/revoked identify every formerly claimed ordinary KeyPackage. This is the portable cleanup authority for a failed Direct Conversation attempt."
     },
-    "peer_key_packages_claim_outcome": {
+    "peer_keypackages_claim_outcome": {
       "type": "object",
       "required": [
         "claim_request_id",
@@ -1189,7 +1189,7 @@
       "additionalProperties": false,
       "description": "Privacy-preserving peer success response. It intentionally omits inventory counts and per-device failure information."
     },
-    "peer_key_packages_claim_query_request_body": {
+    "peer_keypackages_claim_query_request_body": {
       "type": "object",
       "required": [
         "claim_request_id",
@@ -1202,12 +1202,12 @@
           "maxLength": 128
         },
         "request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
     },
-    "peer_key_packages_claim_query_outcome": {
+    "peer_keypackages_claim_query_outcome": {
       "type": "object",
       "required": [
         "claim_request_id",
@@ -1232,7 +1232,7 @@
           ]
         },
         "claim_outcome": {
-          "$ref": "#/$defs/peer_key_packages_claim_outcome"
+          "$ref": "#/$defs/peer_keypackages_claim_outcome"
         },
         "consume_receipt": {
           "$ref": "#/$defs/keypackage_consume_receipt"
@@ -1386,7 +1386,7 @@
       "required": [
         "domain",
         "claim_request_id",
-        "key_package_ref",
+        "keypackage_ref",
         "recipient_principal_id",
         "recipient_service_id",
         "realm_id",
@@ -1454,7 +1454,7 @@
           "minLength": 22,
           "maxLength": 128
         },
-        "key_package_ref": {
+        "keypackage_ref": {
           "$ref": "#/$defs/non_empty_string"
         },
         "recipient_principal_id": {
@@ -1489,7 +1489,7 @@
           "$ref": "#/$defs/object_ref"
         },
         "welcome_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "durable_at": {
           "$ref": "#/$defs/timestamp"
@@ -1510,7 +1510,7 @@
         "domain",
         "claim_request_id",
         "claim_ids",
-        "key_package_refs",
+        "keypackage_refs",
         "recipient_durable_receipt",
         "welcome_ref",
         "realm_id",
@@ -1537,7 +1537,7 @@
           "minItems": 1,
           "uniqueItems": true
         },
-        "key_package_refs": {
+        "keypackage_refs": {
           "$ref": "#/$defs/keypackage_ref_array"
         },
         "recipient_durable_receipt": {
@@ -1569,11 +1569,11 @@
       "additionalProperties": false,
       "description": "Owner Principal Server signed single-use CAS receipt. It embeds the exact device-or-Native-Agent-signed recipient_mls_durable_receipt so the authorized original peer claim source can recover and independently verify the complete durable proof through the consumed claim query. It is issued only after atomically transitioning every listed ordinary KeyPackage claim to consumed. Same exact consume replays this receipt; any coordinate, signer-branch or evidence mismatch conflicts."
     },
-    "key_packages_consume_request_body": {
+    "keypackages_consume_request_body": {
       "type": "object",
       "required": [
         "owner_account_id",
-        "key_package_refs",
+        "keypackage_refs",
         "claim_ids",
         "welcome_ref",
         "recipient_durable_receipt",
@@ -1621,7 +1621,7 @@
         "owner_account_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "key_package_refs": {
+        "keypackage_refs": {
           "$ref": "#/$defs/keypackage_ref_array"
         },
         "consumer_device_id": {
@@ -1671,7 +1671,7 @@
       },
       "additionalProperties": false
     },
-    "key_packages_consume_outcome": {
+    "keypackages_consume_outcome": {
       "type": "object",
       "required": [
         "consumed",
@@ -1693,11 +1693,11 @@
       },
       "additionalProperties": false
     },
-    "key_packages_revoke_request_body": {
+    "keypackages_revoke_request_body": {
       "type": "object",
       "required": [
         "owner_account_id",
-        "key_package_refs",
+        "keypackage_refs",
         "device_id",
         "signature"
       ],
@@ -1705,7 +1705,7 @@
         "owner_account_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "key_package_refs": {
+        "keypackage_refs": {
           "$ref": "#/$defs/keypackage_ref_array"
         },
         "device_id": {
@@ -1721,7 +1721,7 @@
       },
       "additionalProperties": false
     },
-    "key_packages_revoke_outcome": {
+    "keypackages_revoke_outcome": {
       "type": "object",
       "required": [
         "revoked"

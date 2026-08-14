@@ -374,7 +374,7 @@
             }
           ],
           "chunk_digest": "sha256:6d273a2602e3acd528cd59f03b9c0306500363dbb233abb34042257b8fe13c29",
-          "chunk_proof": [
+          "chunk_inclusion_proof": [
             "sha256:d6b028db2a67f159c2ddea434dbae6ebc2aa6e881d164e3c407e0def371615f7",
             "sha256:e3c3ff4e6a1e0a73a69f086d06d7a57cce6303e499c2c5fdea405fec0aecda7e"
           ]
@@ -422,7 +422,7 @@
             "sha256:d68c42b158ca0deb298beadade7846850301d375caae255bd845f5e00bc5bf9e"
           ],
           "chunk_digest": "sha256:f9fd441b94c6fbbf3c7366e92aee6979eb158d52db455650f4c431544d0aa317",
-          "chunk_proof": [
+          "chunk_inclusion_proof": [
             "sha256:cd0c30da5ffe2c6a9a979ac91c8ff763aa39ea162a0b2c8193f74ecfca752583",
             "sha256:e3c3ff4e6a1e0a73a69f086d06d7a57cce6303e499c2c5fdea405fec0aecda7e"
           ]
@@ -480,7 +480,7 @@
             }
           ],
           "chunk_digest": "sha256:7efe8e855164374c9b627e1953c2d9bd91c90ff0b6af68ee7aa6d561c21b0861",
-          "chunk_proof": [
+          "chunk_inclusion_proof": [
             "sha256:8c394f7bfdf9fe2608e81bc9c80cb6f7d4159b12e33031ec4a52dfd9ab6e9e76",
             "sha256:fa61b449dd71766c1c5557b7fe341a6a8f0621b10caa832df6237b5f6e147ac0"
           ]
@@ -590,7 +590,7 @@
             }
           ],
           "chunk_digest": "sha256:29f63a36070ddfc76044afe549fbf17a1a236221f57ab92527e31aa6e621f593",
-          "chunk_proof": [
+          "chunk_inclusion_proof": [
             "sha256:775609da523dabac10794763ef0ebf49a02e5d6aa3dca0b763395e358ebba016",
             "sha256:fa61b449dd71766c1c5557b7fe341a6a8f0621b10caa832df6237b5f6e147ac0"
           ]
@@ -749,7 +749,7 @@
       "expected": {
         "decision": "reject_epoch",
         "failure_stage": "seal_authority",
-        "reason_code": "signature_invalid",
+        "reason_code": "directory_governance_proof_signature_invalid",
         "verified_bundle_persisted": false,
         "epoch_advanced": false
       }
@@ -990,7 +990,7 @@
       "expected": {
         "decision": "reject_epoch",
         "failure_stage": "membership_frontier",
-        "reason_code": "signature_invalid",
+        "reason_code": "directory_governance_proof_signature_invalid",
         "verified_bundle_persisted": false,
         "epoch_advanced": false
       }
@@ -1132,7 +1132,7 @@
       "expected": {
         "decision": "reject_epoch",
         "failure_stage": "binding",
-        "reason_code": "profile_unsupported",
+        "reason_code": "unsupported_profile",
         "verified_bundle_persisted": false,
         "epoch_advanced": false
       }
@@ -1147,7 +1147,7 @@
       "expected": {
         "decision": "reject_epoch",
         "failure_stage": "binding",
-        "reason_code": "profile_unsupported",
+        "reason_code": "unsupported_profile",
         "verified_bundle_persisted": false,
         "epoch_advanced": false
       }
@@ -1274,7 +1274,7 @@
       },
       "expected": {
         "decision": "reject_request",
-        "error_code": "signature_invalid",
+        "error_code": "directory_governance_proof_signature_invalid",
         "response_count": 0,
         "partial_manifest_emitted": false
       }

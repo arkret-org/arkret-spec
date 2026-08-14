@@ -53,7 +53,7 @@
               "sync",
               "to_device",
               "push",
-              "key_packages"
+              "keypackages"
             ],
             "service_resolution": {
               "current_record_url": "https://principal.acme.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixtureprincipalacmeexample/resolution"
@@ -107,7 +107,7 @@
               "sync",
               "to_device",
               "push",
-              "key_packages"
+              "keypackages"
             ],
             "service_resolution": {
               "current_record_url": "https://personal.alice.example/_arkret/open/services/ak%3Adid_core%3Awebvh%3Az6mkfixturepersonalaliceexample/resolution"

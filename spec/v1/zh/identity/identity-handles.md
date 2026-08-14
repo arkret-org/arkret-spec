@@ -278,7 +278,7 @@ JCS（RFC 8785）按 issuer 提供顺序保留数组元素，不做重排。`sem
 | --- | --- | --- |
 | `handle_aliases` | 元素字符串 lexicographic ascending（UTF-8 byte order，与 JCS 字符串排序保持一致） | 顶层数组元素 |
 | `source_refs` | 元素 event_ref 字符串 lexicographic ascending（仅用于确定性 canonicalization，不表达签发时序） | 顶层数组元素 |
-| `member_delivery_binding.delivery_modes` | 元素枚举字符串 lexicographic ascending（例如 `events` < `key_packages` < `push` < `sync` < `to_device`） | 嵌套数组元素 |
+| `member_delivery_binding.delivery_modes` | 元素枚举字符串 lexicographic ascending（例如 `events` < `keypackages` < `push` < `sync` < `to_device`） | 嵌套数组元素 |
 
 **Order-is-semantic 数组**（保留 issuer 给定顺序，不重排）：
 
@@ -668,7 +668,7 @@ Handle 解析示例：
       "sync",
       "to_device",
       "push",
-      "key_packages"
+      "keypackages"
     ],
     "service_acceptance_ref": "ak:event:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
     "policy_event_ref": "ak:event:AYqLR5FWUtAxcyq2GwRsmHAf_zMFkYrFScSs4ouycARM"
@@ -1194,7 +1194,7 @@ Principal Server sync surface 与服务运营方 MUST NOT 获得原始 credentia
 
 | code | 含义 |
 | --- | --- |
-| `verifier_not_authorized` | Verifier 无法证明其代表 represented organization 的权限。 |
+| `verifier_unauthorized` | Verifier 无法证明其代表 represented organization 的权限。 |
 | `policy_denied` | Holder disclosure policy 拒绝该请求。 |
 | `consent_required` | 披露前需要用户显式同意。 |
 | `unsupported_proof_profile` | 双方无可接受的 proof profile。 |

@@ -193,7 +193,7 @@
           }
         },
         "vss_root_commitment": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Optional VSS root commitment binding all shares' polynomial commitments. SHOULD be present for Feldman / Pedersen schemes."
         },
         "reshare_policy": {
@@ -973,7 +973,7 @@
       },
       "additionalProperties": false
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -1095,7 +1095,7 @@
           "uniqueItems": true
         },
         "frontier_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "observed_at": {
           "$ref": "#/$defs/timestamp"

@@ -331,7 +331,7 @@ managed Agent 等产品/profile 分类。后者继续由签名 genesis schema/pr
 - `ak:cursor:<base64url>` 是 opaque token，不是 typed UUID object ID。
 - `ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`ak:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者 MUST NOT 混用。
 - `ak:seal:sha256:<digest>` 是内容寻址 Seal hash（active special form；见 `id-kind-registry.json`）。
-- `ak:cell:<component>:<subject>` 是 canonical cell tuple 引用（active special form；`component` MUST 是从 cell-component registry 取得并原样嵌入的完整 `ak.component.<facet-path>.v<n>` family 标识符，`subject` 是 cell 的 subject key）。subject 内来自 canonical URI / DID 的 percent-encoded octet MUST 保持 `%HH` 形态，不得因嵌入 cell tuple 再次编码或解码。因此标准实例形如 `ak:cell:ak.component.strand.position.v1:<subject>`；`ak:cell:component.*`、`ak:cell:<裸 family>`、任何非 `ak.component.*.v<n>` family、截断/非十六进制 percent escape 或任何未完整携带 `ak.component.*.v<n>` 的形态 MUST 拒绝。
+- `ak:cell:<component>:<subject>` 是 canonical cell tuple 引用（active special form；`component` MUST 是从 cell-component registry 取得并原样嵌入的完整 `ak.component.<family-path>.v<n>` family 标识符，`subject` 是 cell 的 subject key）。subject 内来自 canonical URI / DID 的 percent-encoded octet MUST 保持 `%HH` 形态，不得因嵌入 cell tuple 再次编码或解码。因此标准实例形如 `ak:cell:ak.component.strand.position.v1:<subject>`；`ak:cell:component.*`、`ak:cell:<裸 family>`、任何非 `ak.component.*.v<n>` family、截断/非十六进制 percent escape 或任何未完整携带 `ak.component.*.v<n>` 的形态 MUST 拒绝。
   - **Null subject（per-Realm / per-envelope 单例 cell，normative）**：registry 中 `cell_subject` 声明为 JSON `null` 的 cell family，其 canonical wire subject 段固定为字面 ASCII 四字符 `null`，即 `ak:cell:<component>:null`。选定字面 `null` 而非空串或省略末段，是因为 `ak:cell:<component>:` 的空末段无法与“末段被截断”区分，而截断形态本身必须拒绝。这类 cell 由 Event envelope 的 `realm_id` 定位（Realm-scoped 单例）；实现 MUST NOT 把 `realm_id`、Realm 角色分类（`collaboration` / `principal_control` / `managed_agent_principal_control` 等 [`../models/realm-and-space.md` §2.8.3](../models/realm-and-space.md) 的 prose 层术语）或任何 payload 派生值写进该 subject 段，也 MUST NOT 从 payload 重复字段派生第二个 cell key。任何偏离字面 `null` 的写法 MUST 拒绝（`schema_violation`）——subject 既进入 `state_root` leaf preimage、又是 leaf 的排序键（[`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md)），编码分歧会直接导致跨实现 `rejected_seal`。若某个 family 确实需要区分同一 Realm 内的多个实例，它 MUST 在 registry 中声明非 null 的 `cell_subject`，而不是把区分值塞进 null subject 段。
 - `ak:mls:<profile>:<profile_id>`、`ak:pseudonym:<scope_id>:<random>` 等 profile-scoped form 必须由对应 profile 注册和校验。
 - `ak:trust_domain:<scope>` 是部署 / 联邦信任域 ref，不是 typed UUID object ID；`<scope>` 的 profile 与匹配规则由 Realm / federation policy 声明。
@@ -712,7 +712,7 @@ Barrier cursor body 示例：
 |------|------|------|------|
 | `v` | string | 是 | cursor 版本，v1 固定 `"1"` |
 | `purpose` | enum(`stream`,`barrier`) | 是 | 用途鉴别 |
-| `t` | timestamp | 是 | 生成时间戳（RFC 3339 UTC,MUST 以 `Z` 结尾）。**canonical 精度固定为秒级、不带小数部分**（形如 `2099-12-30T23:59:59Z`，与 [`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json) 向量 `ak.vector.encoding.cursor_opaque.core.v1` 的 `t` 真源一致）：服务端生成 cursor 时 MUST NOT 写入毫秒小数（`.000Z` 等），以消除同一逻辑时刻产生两种 canonical 编码的二义；接收方对带毫秒小数的 `t` MUST reject `invalid_param`。 |
+| `t` | timestamp | 是 | 生成时间戳（RFC 3339 UTC,MUST 以 `Z` 结尾）。**canonical 精度固定为秒级、不带小数部分**（形如 `2099-12-30T23:59:59Z`，与 [`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json) 向量 `ak.vector.encoding.cursor_opaque.core.v1` 的 `t` 真源一致）：服务端生成 cursor 时 MUST NOT 写入毫秒小数（`.000Z` 等），以消除同一逻辑时刻产生两种 canonical 编码的二义；接收方对带毫秒小数的 `t` MUST reject `param_invalid`。 |
 | `x` | integer | 是 | 过期时间戳（Unix ms） |
 | `h` | string | 是 | 服务端 opaque handle（≥ 128 bit 熵），见 §8.3.1。stream positions 或 barrier target 均由 `h` 在服务端绑定表中解析，MUST NOT 内联进 cursor body。 |
 
@@ -739,14 +739,14 @@ Barrier cursor body 示例：
 1. 前缀以 `ak:cursor:` 开头。
 2. 其余部分是合法 base64url。
 3. 解码后是合法 JSON。
-4. 解码后 body MUST 通过 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)：`v` / `purpose` / `t` / `x` / `h` 必填，未知非私有字段、`_mac`、`_sig` 以及任何内联位置 / target 字段均 MUST reject `invalid_param`。
+4. 解码后 body MUST 通过 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)：`v` / `purpose` / `t` / `x` / `h` 必填，未知非私有字段、`_mac`、`_sig` 以及任何内联位置 / target 字段均 MUST reject `param_invalid`。
 5. 解码后 `v` 是支持的版本。
 6. 解码后 `purpose` 是 `stream` 或 `barrier`。
 7. 解码后 `x` 在未来（允许 5 分钟时钟偏差）。
-8. cursor 被消费的 binding context MUST 与 `purpose` 一致；binding context 的具体 wire 位置由对应 transport / API binding 定义。若 `purpose=barrier` 的 cursor 出现在 stream context，或 `purpose=stream` 的 cursor 出现在 barrier context，接收方 MUST 返回 `invalid_param`。
-9. **TTL 硬上限**：先校验 `t` 的 well-formedness——`t` MUST 是合法 RFC 3339 UTC 时间戳（§8.2 要求 `Z` 结尾且为秒级、不带小数部分），且 `t` 解析得到的 Unix ms MUST ≤ `x` 解析得到的 Unix ms；`t` 非法（不可解析、非 UTC / 非 `Z` 结尾 / 带毫秒小数等非 canonical 精度）或 `t_ms > x` 的 cursor MUST reject `invalid_param`（否则 `x - t_ms` 为负或解析异常，可令损坏 / 恶意 cursor 绕过下方 TTL 硬上限）。此外 `t` MUST NOT 位于未来：`t_ms` MUST ≤ 接收时刻的 Unix ms + 时钟偏差容忍（5 分钟，口径同规则 7）；超出 MUST reject `invalid_param`（否则 issuing 方可把 `t` 写成接近 `x` 的未来时间，令名义 TTL `x - t_ms` 通过下方硬上限校验，而实际剩余有效期 `x - now` 远超上限，绕过 TTL 硬上限）。随后以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `invalid_param`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
+8. cursor 被消费的 binding context MUST 与 `purpose` 一致；binding context 的具体 wire 位置由对应 transport / API binding 定义。若 `purpose=barrier` 的 cursor 出现在 stream context，或 `purpose=stream` 的 cursor 出现在 barrier context，接收方 MUST 返回 `param_invalid`。
+9. **TTL 硬上限**：先校验 `t` 的 well-formedness——`t` MUST 是合法 RFC 3339 UTC 时间戳（§8.2 要求 `Z` 结尾且为秒级、不带小数部分），且 `t` 解析得到的 Unix ms MUST ≤ `x` 解析得到的 Unix ms；`t` 非法（不可解析、非 UTC / 非 `Z` 结尾 / 带毫秒小数等非 canonical 精度）或 `t_ms > x` 的 cursor MUST reject `param_invalid`（否则 `x - t_ms` 为负或解析异常，可令损坏 / 恶意 cursor 绕过下方 TTL 硬上限）。此外 `t` MUST NOT 位于未来：`t_ms` MUST ≤ 接收时刻的 Unix ms + 时钟偏差容忍（5 分钟，口径同规则 7）；超出 MUST reject `param_invalid`（否则 issuing 方可把 `t` 写成接近 `x` 的未来时间，令名义 TTL `x - t_ms` 通过下方硬上限校验，而实际剩余有效期 `x - now` 远超上限，绕过 TTL 硬上限）。随后以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `param_invalid`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
 
-非法 cursor MUST reject，错误 `invalid_param`；已过期 cursor MUST reject，错误 `cursor_expired`；完整性校验失败（见 §8.3.1）MUST reject，错误 `cursor_integrity_invalid`。
+非法 cursor MUST reject，错误 `param_invalid`；已过期 cursor MUST reject，错误 `cursor_expired`；完整性校验失败（见 §8.3.1）MUST reject，错误 `cursor_integrity_invalid`。
 
 ### 8.3.1 完整性校验（normative）
 
@@ -786,10 +786,10 @@ Cursor 对客户端不透明，且 v1 core cursor 是 stateful handle。`h` 是 
 - 客户端 MUST NOT 解析 cursor 内容。
 - stream cursor 的 server-side handle binding MUST 支持至少 50 个 Realm 的位置。
 - **每 Realm 的 handle-bound frontier 长度 SHOULD ≤ 1000 个 event_id**：超出时 issuing 服务 SHOULD 用 `event_set_commitment.root` 或 snapshot pointer 折叠 frontier，再写入 handle binding。该上限避免大并发 actor Realm (≥ 1000 active actor 各自有 head event) 让 cursor authority metadata 无界增长。
-- **整个 cursor base64url 解码后 canonical bytes MUST ≤ 64 KiB**：超出时 issuing 服务 MUST 用 snapshot pointer / commitment hash 折叠，MUST NOT 直接产出超大 cursor；receiver 收到超大 cursor MUST `invalid_param`。
+- **整个 cursor base64url 解码后 canonical bytes MUST ≤ 64 KiB**：超出时 issuing 服务 MUST 用 snapshot pointer / commitment hash 折叠，MUST NOT 直接产出超大 cursor；receiver 收到超大 cursor MUST `param_invalid`。
 - 大型 Realm 在 frontier 折叠为 `event_set_commitment.root` 或 snapshot pointer 后，仍 MAY 通过显式 sync extension profile 提供 range-based set reconciliation 能力，用于按差异大小协调缺口；该能力不得改变 Seal finality、Event 因果语义或 cursor 不透明性，且未声明该 profile 的 v1 consumer MUST 继续按 snapshot / backfill 路径恢复。
 - 支持 stream cursor 与 barrier cursor 的过期时间；两者的 TTL 硬上限数值由 §8.3 规则 9 唯一定义，本节只引用不重复字面数值。
-- 拒绝非法 cursor 时 MUST 按 §8.3 与 [`conformance-vectors.md`](./conformance-vectors.md) §1.11 的错误码闭集返回：语法 / schema 失败返回顶层 `invalid_param`（reason `invalid_cursor`），过期返回 `cursor_expired`，handle lookup / binding 失败返回 `cursor_integrity_invalid`。
+- 拒绝非法 cursor 时 MUST 按 §8.3 与 [`conformance-vectors.md`](./conformance-vectors.md) §1.11 的错误码闭集返回：语法 / schema 失败返回顶层 `param_invalid`（reason `invalid_cursor`），过期返回 `cursor_expired`，handle lookup / binding 失败返回 `cursor_integrity_invalid`。
 
 ## 9. Rank
 

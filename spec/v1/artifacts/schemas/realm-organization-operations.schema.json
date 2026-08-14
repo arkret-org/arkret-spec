@@ -22,7 +22,7 @@
     "nullable_timestamp": {
       "$ref": "./time.schema.json#/$defs/nullable_timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -123,7 +123,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "realm_frontier_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "issuer_role": {
           "$ref": "#/$defs/issuer_role"

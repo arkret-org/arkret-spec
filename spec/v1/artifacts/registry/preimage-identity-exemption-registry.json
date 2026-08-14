@@ -1,7 +1,7 @@
 {
   "version": "2026-08-10",
   "source_of_truth": true,
-  "generated_at": "2026-08-10T00:00:00Z",
+  "generated_at": "2026-08-10T00:10:00Z",
   "description": "Closed named-exemption registry for zh/conformance/encoding.md 6.0.1. That section forbids any field inside the event_digest preimage from committing to an Event identity. Class A (the enclosing Event's own event_id/event_digest and their retype results) and class B (a not-yet-formed sibling of the same atomic unit or ordered submit batch) are unconditional: they have no fixed point and this registry MUST NOT carry a row for them. Only class C, a one-way forward declaration naming a later Event from another submission whose canonical bytes the author already froze locally, is registerable, and only with the compensating admission checks recorded here. Every active row MUST also appear in the 6.0.1 closed list table; the prose table and this registry are bound in both directions.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.preimage_identity\\.[a-z0-9_]+\\.v[0-9]+$",

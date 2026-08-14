@@ -247,7 +247,7 @@
       "type": "string",
       "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -269,7 +269,7 @@
           "uniqueItems": true
         },
         "event_set_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "max_hlc": {
           "$ref": "#/$defs/hlc"

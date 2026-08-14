@@ -140,7 +140,7 @@
           "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
         },
         "frontier_state_root": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "signing_key_binding": {
           "$ref": "./agent-signing-key-binding.schema.json"
@@ -383,7 +383,7 @@
           "minimum": 1
         },
         "binding_frontier_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -404,10 +404,10 @@
           "$ref": "./event-envelope.schema.json#/$defs/event_ref"
         },
         "status_event_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "status_frontier_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -495,7 +495,7 @@
           "$ref": "./event-envelope.schema.json#/$defs/event_ref"
         },
         "event_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -693,7 +693,7 @@
           "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
         },
         "state_root": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "seal": {
           "$ref": "./seal.schema.json"
@@ -706,7 +706,7 @@
           "$ref": "#/$defs/key_cell_value"
         },
         "leaf_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "leaf_index": {
           "type": "integer",
@@ -720,7 +720,7 @@
           "type": "array",
           "maxItems": 64,
           "items": {
-            "$ref": "#/$defs/hash"
+            "$ref": "#/$defs/digest"
           }
         }
       },
@@ -766,7 +766,7 @@
           "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
         },
         "state_root": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "seal": {
           "$ref": "./seal.schema.json"
@@ -779,7 +779,7 @@
           "$ref": "#/$defs/key_cell_value"
         },
         "leaf_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "leaf_index": {
           "type": "integer",
@@ -793,7 +793,7 @@
           "type": "array",
           "maxItems": 64,
           "items": {
-            "$ref": "#/$defs/hash"
+            "$ref": "#/$defs/digest"
           }
         }
       },
@@ -890,7 +890,7 @@
           "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
         },
         "state_root": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "seal": {
           "$ref": "./seal.schema.json"
@@ -908,7 +908,7 @@
           ]
         },
         "leaf_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "leaf_index": {
           "type": "integer",
@@ -922,7 +922,7 @@
           "type": "array",
           "maxItems": 64,
           "items": {
-            "$ref": "#/$defs/hash"
+            "$ref": "#/$defs/digest"
           }
         }
       },
@@ -1157,20 +1157,20 @@
           "minimum": 1
         },
         "tree_root": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "inclusion_proof": {
           "type": "array",
           "maxItems": 64,
           "items": {
-            "$ref": "#/$defs/hash"
+            "$ref": "#/$defs/digest"
           }
         },
         "consistency_proof": {
           "type": "array",
           "maxItems": 64,
           "items": {
-            "$ref": "#/$defs/hash"
+            "$ref": "#/$defs/digest"
           }
         },
         "witness_signatures": {
@@ -1189,7 +1189,7 @@
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^[a-z0-9_.-]+:[0-9a-f]{64}$"
     }

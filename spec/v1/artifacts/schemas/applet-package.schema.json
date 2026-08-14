@@ -113,10 +113,10 @@
       "$ref": "#/$defs/widget"
     },
     "package_digest": {
-      "$ref": "#/$defs/hash"
+      "$ref": "#/$defs/digest"
     },
     "registration_epoch": {
-      "$ref": "#/$defs/hash"
+      "$ref": "#/$defs/digest"
     },
     "expires_at": {
       "$ref": "#/$defs/timestamp"
@@ -141,7 +141,7 @@
       "type": "string",
       "pattern": "^ak\\.profile\\.[a-z0-9_.-]+\\.v1$"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
     },
@@ -237,7 +237,7 @@
           "$ref": "#/$defs/did_url"
         },
         "payload_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/digest"
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"

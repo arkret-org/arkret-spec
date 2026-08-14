@@ -36,13 +36,13 @@
       "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "control_event_set_root": {
-      "$ref": "#/$defs/hash"
+      "$ref": "#/$defs/digest"
     },
     "completeness_root": {
-      "$ref": "#/$defs/hash"
+      "$ref": "#/$defs/digest"
     },
     "state_root": {
-      "$ref": "#/$defs/hash"
+      "$ref": "#/$defs/digest"
     },
     "prev_entry_digest": {
       "type": [
@@ -93,7 +93,7 @@
           "minimum": 0
         },
         "head_entry_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Digest of the entry at to_index, binding the attested range head."
         },
         "auditor_id": {
@@ -140,7 +140,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "hash": {
+    "digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
@@ -165,7 +165,7 @@
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "payload_digest": {
-          "$ref": "#/$defs/hash",
+          "$ref": "#/$defs/digest",
           "description": "Hash of canonical entry / attestation bytes with the signature field omitted."
         },
         "created_at": {
