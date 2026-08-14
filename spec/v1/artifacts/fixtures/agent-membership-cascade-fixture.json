@@ -1,6 +1,6 @@
 {
   "suite": "agent_membership_cascade",
-  "fixture_kind": "semantic",
+  "fixture_kind": "schema_and_semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.agent.membership_cascade.v1"
@@ -15,6 +15,40 @@
     "schemas/event-payload.schema.json#/$defs/membership_payload",
     "schemas/service-operation-dtos.schema.json#/$defs/AgentMembershipCascadeSubmission",
     "registry/operation-registry.json"
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "agent_cleanup_membership_payload_accepts_cause_and_exact_controller_binding",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/membership_payload",
+      "expect_valid": true,
+      "instance": {
+        "actor_id": "ak:did_core:webvh:z6mkfixtureagentexample",
+        "membership": "leave",
+        "reason": "controller membership ended",
+        "membership_cause": "controller_membership_ended",
+        "agent_controller_binding": {
+          "controller_authority": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "principal_server_id": "ak:did_core:webvh:z6mkfixtureprincipalserverexample"
+          },
+          "controller_membership_generation_ref": "ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
+          "controller_terminal_event_ref": "ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe"
+        }
+      }
+    },
+    {
+      "name": "account_status_payload_rejects_membership_cascade_fields",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/account_status_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed",
+      "instance": {
+        "account_id": "account-fixture-1",
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "status": "active",
+        "effective_at": "2026-08-15T00:00:00.000Z",
+        "membership_cause": "controller_membership_ended"
+      }
+    }
   ],
   "semantic_cases": [
     {
