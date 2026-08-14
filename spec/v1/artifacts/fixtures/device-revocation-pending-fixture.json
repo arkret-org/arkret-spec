@@ -62,15 +62,52 @@
     },
     {
       "name": "session_issuer_uses_origin_ps_linearization_receipt",
-      "given": "an Account Authority has a verified SessionGrantDeviceBinding and immutable prepared grant intent",
+      "given": "an Account Authority has an immutable prepared grant intent for an exact account pair and device",
       "action": "call ak.peer.device_revocations.command.check and commit the issuer record",
       "expected": "allow_only_for_exact_pre_pending_intent",
       "invariants": [
-        "origin independently derives and compares authorization Event and PCR generation",
+        "origin derives the authorization Event and PCR generation from its own durable projection inside the gate transaction",
         "gate decision and revoke acceptance serialize on one durable order",
         "issuer commits the exact intent plus receipt before the at-most-30-second expires_at",
         "pending blocks every later issue/refresh intent and cache/private RPC cannot replace the receipt",
         "a Principal Server accepting a protected self request checks its own durable gate locally in the request transaction rather than asking introspection to carry a reusable receipt"
+      ]
+    },
+    {
+      "name": "first_human_issue_acquires_binding_from_the_allow_receipt",
+      "given": "an ordinary human completes OIDC code exchange or pre-registration handoff on a device that holds no session grant, so the Account Authority knows only the device id",
+      "action": "call the gate with action_class session_grant_issue and no expected binding, then issue",
+      "expected": "allow_carries_derived_binding_and_grant_uses_it_verbatim",
+      "invariants": [
+        "the request is schema-valid without expected_device_authorize_event_id or expected_device_generation_ref",
+        "the allow receipt carries the origin-derived target_device_authorize_event_id and target_device_generation_ref",
+        "grant claims and introspection device_binding equal the receipt values verbatim",
+        "a client-supplied authorization Event or generation cannot reach the gate request or the grant",
+        "no human grant is issued with an absent device_binding and the gate is never skipped for want of a binding"
+      ]
+    },
+    {
+      "name": "stale_expected_binding_fails_closed_without_disclosing_the_current_one",
+      "given": "a refresh or recovery-completion issuance whose verified durable binding names a generation the origin has already replaced",
+      "action": "call the gate with that expected binding",
+      "expected": "generation_mismatch_with_zero_issuer_writes",
+      "invariants": [
+        "the receipt decision is generation_mismatch and carries no target_device_authorize_event_id or target_device_generation_ref",
+        "the issuer cannot upgrade a refresh to the replaced generation and must run a fresh session_grant_issue",
+        "expected_device_authorize_event_id and expected_device_generation_ref are rejected unless both are present",
+        "every action class other than session_grant_issue is rejected when the expected binding is absent",
+        "recovery completion uses its verified terminal ledger evidence and never degrades to a client assertion"
+      ]
+    },
+    {
+      "name": "gate_caller_authorization_precedes_any_private_device_lookup",
+      "given": "an authenticated service that is not the Account Authority bound to the named pair, an account this origin does not host, an unknown device, and a device owned by another account",
+      "action": "run a gate check for each",
+      "expected": "indistinguishable_authority_mismatch",
+      "invariants": [
+        "caller authorization is checked before any device-private read",
+        "all four inputs return the same authority_mismatch shape with no derived binding, blocker or Seal",
+        "device existence and account residency are not observable through timing-independent response content"
       ]
     },
     {
@@ -124,6 +161,7 @@
       "action": "validate each signed receipt and mutate forbidden branch fields or proof bindings",
       "expected": "only_closed_exact_receipts_validate",
       "invariants": [
+        "only allow carries target_device_authorize_event_id and target_device_generation_ref and every other decision rejects their presence",
         "allow and mismatch carry neither blocker nor Seal",
         "pending carries the lexicographically smallest pending blocker and no Seal while revoked carries the covering Seal of the smallest acceptance_seq then proposal_digest revoked record and no blocker",
         "payload_digest equals sha256 JCS of the complete receipt with proof omitted",

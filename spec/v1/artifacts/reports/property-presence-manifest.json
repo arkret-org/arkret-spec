@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9671,
+    "total_properties": 9673,
     "total_schema_documents": 157,
     "by_presence_class": {
-      "optional": 2830,
+      "optional": 2834,
       "optional_defaulted": 70,
-      "required": 6385,
+      "required": 6383,
       "required_nullable": 129,
       "tristate": 257
     },
@@ -4979,16 +4979,18 @@
         "/$defs/common_record/properties/target_device_authorize_event_id": "required",
         "/$defs/common_record/properties/target_device_generation_ref": "required",
         "/$defs/device_revocation_gate_check_outcome/properties/decision_receipt": "required",
+        "/$defs/device_revocation_gate_check_request_body/allOf/0/if/properties/action_class": "required",
         "/$defs/device_revocation_gate_check_request_body/properties/action_class": "required",
         "/$defs/device_revocation_gate_check_request_body/properties/device_id": "required",
+        "/$defs/device_revocation_gate_check_request_body/properties/expected_device_authorize_event_id": "optional",
+        "/$defs/device_revocation_gate_check_request_body/properties/expected_device_generation_ref": "optional",
         "/$defs/device_revocation_gate_check_request_body/properties/intent_digest": "required",
         "/$defs/device_revocation_gate_check_request_body/properties/principal_authority": "required",
         "/$defs/device_revocation_gate_check_request_body/properties/requested_at": "required",
-        "/$defs/device_revocation_gate_check_request_body/properties/target_device_authorize_event_id": "required",
-        "/$defs/device_revocation_gate_check_request_body/properties/target_device_generation_ref": "required",
         "/$defs/device_revocation_gate_decision_receipt/allOf/0/if/properties/decision": "required",
         "/$defs/device_revocation_gate_decision_receipt/allOf/1/if/properties/decision": "required",
         "/$defs/device_revocation_gate_decision_receipt/allOf/2/if/properties/decision": "required",
+        "/$defs/device_revocation_gate_decision_receipt/allOf/3/if/properties/decision": "required",
         "/$defs/device_revocation_gate_decision_receipt/properties/action_class": "required",
         "/$defs/device_revocation_gate_decision_receipt/properties/blocking_proposal_digest": "optional",
         "/$defs/device_revocation_gate_decision_receipt/properties/covering_seal_id": "optional",
@@ -5000,8 +5002,8 @@
         "/$defs/device_revocation_gate_decision_receipt/properties/linearized_at": "required",
         "/$defs/device_revocation_gate_decision_receipt/properties/principal_authority": "required",
         "/$defs/device_revocation_gate_decision_receipt/properties/proof": "required",
-        "/$defs/device_revocation_gate_decision_receipt/properties/target_device_authorize_event_id": "required",
-        "/$defs/device_revocation_gate_decision_receipt/properties/target_device_generation_ref": "required",
+        "/$defs/device_revocation_gate_decision_receipt/properties/target_device_authorize_event_id": "optional",
+        "/$defs/device_revocation_gate_decision_receipt/properties/target_device_generation_ref": "optional",
         "/$defs/device_revocation_gate_decision_receipt/properties/verification_method": "required",
         "/$defs/device_revocation_pending_state/allOf/1/allOf/0/if/properties/decision_state": "required",
         "/$defs/device_revocation_pending_state/allOf/1/allOf/1/if/properties/decision_state": "required",
@@ -5021,8 +5023,12 @@
         "/$defs/principal_authority_key/properties/principal_server_id": "required"
       },
       "conditionally_required": [
+        "/$defs/device_revocation_gate_check_request_body/properties/expected_device_authorize_event_id",
+        "/$defs/device_revocation_gate_check_request_body/properties/expected_device_generation_ref",
         "/$defs/device_revocation_gate_decision_receipt/properties/blocking_proposal_digest",
         "/$defs/device_revocation_gate_decision_receipt/properties/covering_seal_id",
+        "/$defs/device_revocation_gate_decision_receipt/properties/target_device_authorize_event_id",
+        "/$defs/device_revocation_gate_decision_receipt/properties/target_device_generation_ref",
         "/$defs/device_revocation_pending_state/allOf/1/properties/decisions",
         "/$defs/device_revocation_pending_state/allOf/1/properties/fault_reason"
       ]

@@ -95,6 +95,17 @@ def check_error_code_closure(lint: Lint) -> None:
         # .md §9.1). It ends in _required and appears on sentences about what
         # the resolver returns, so it would otherwise trip the heuristic.
         "creation_required",
+        # Closed decision values of the device-revocation gate receipt
+        # (device-revocation-state.schema.json#/$defs/
+        # device_revocation_gate_decision_receipt.decision,
+        # device-lifecycle.md §2.2). A validated gate request always returns a
+        # typed 200 receipt carrying one of them, so they appear on sentences
+        # about what the gate returns; the corresponding endpoint error codes
+        # are device_revocation_pending / device_revoked on the blocked
+        # business operation. Both end in _mismatch and would otherwise trip
+        # the code-shape heuristic.
+        "authority_mismatch",
+        "generation_mismatch",
     }
 
     for path in markdown_files():

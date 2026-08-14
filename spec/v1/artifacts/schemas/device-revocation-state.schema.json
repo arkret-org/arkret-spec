@@ -315,12 +315,10 @@
     },
     "device_revocation_gate_check_request_body": {
       "type": "object",
-      "description": "Authenticated S2S request from an Account Authority or another registered issuer to the exact origin Principal Server. The issuer obtains target_device_authorize_event_id and target_device_generation_ref only from its previously verified SessionGrantDeviceBinding / equivalent accepted-device preimage; the origin independently derives the same selectors from its durable projection and rejects any mismatch before returning state. The intent digest identifies immutable prepared issuance or refresh bytes. A status read without this digest is not an issuance fence.",
+      "description": "Authenticated S2S request from an Account Authority or another registered issuer to the exact origin Principal Server. The request carries only selectors the issuer can itself verify; the exact authorization Event and PCR-local generation are derived by the origin from its own durable current device projection inside the gate transaction, under the same rule ak.device.revoke uses. expected_device_authorize_event_id and expected_device_generation_ref are the issuer's own previously verified durable binding, appear together or not at all, and MUST NOT be supplied by the client that called the issuer. They MAY be omitted only for action_class session_grant_issue, which is how a first ordinary human grant acquires its binding; every other action class MUST carry them. The intent digest identifies immutable prepared issuance or refresh bytes. A status read without this digest is not an issuance fence.",
       "required": [
         "principal_authority",
         "device_id",
-        "target_device_authorize_event_id",
-        "target_device_generation_ref",
         "action_class",
         "intent_digest",
         "requested_at"
@@ -332,10 +330,10 @@
         "device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
-        "target_device_authorize_event_id": {
+        "expected_device_authorize_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
-        "target_device_generation_ref": {
+        "expected_device_generation_ref": {
           "$ref": "#/$defs/device_generation_ref"
         },
         "action_class": {
@@ -349,16 +347,43 @@
           "$ref": "#/$defs/timestamp"
         }
       },
+      "dependentRequired": {
+        "expected_device_authorize_event_id": [
+          "expected_device_generation_ref"
+        ],
+        "expected_device_generation_ref": [
+          "expected_device_authorize_event_id"
+        ]
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action_class": {
+                "const": "session_grant_issue"
+              }
+            },
+            "required": [
+              "action_class"
+            ]
+          },
+          "then": true,
+          "else": {
+            "required": [
+              "expected_device_authorize_event_id",
+              "expected_device_generation_ref"
+            ]
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "device_revocation_gate_decision_receipt": {
       "type": "object",
-      "description": "Origin-Principal-Server-signed durable linearization receipt. Under the same database lock/serializable transaction used to accept ak.device.revoke, the origin independently derives the current authorization/generation, compares the request, and atomically records (action_class,intent_digest) at linearization_seq before signing. Exact replay returns byte-identical output. An allow records that exact immutable issue/refresh intent as lawfully admitted before any later revocation_pending transition; a later pending transition blocks only intents linearized after it. The issuer MUST atomically commit the same immutable intent plus this receipt before expires_at and MUST NOT mint a new/different intent after pending. The receipt authorizes no different intent and cannot be refreshed or reused after expiry. A block can name pending/revoked without disclosing any other private device state.",
+      "description": "Origin-Principal-Server-signed durable linearization receipt. Under the same database lock/serializable transaction used to accept ak.device.revoke, the origin derives the current authorization Event and generation from its own durable projection, compares them with any expected binding in the request, and atomically records (action_class,intent_digest) at linearization_seq before signing. Only an allow carries the derived target_device_authorize_event_id and target_device_generation_ref, and that pair is the sole source for the issued grant's device_binding; the issuer MUST copy it verbatim and MUST NOT accept a binding from client input. No other decision discloses the derived binding, so a generation_mismatch cannot be turned into a silent re-issue at the new generation. Exact replay returns byte-identical output. An allow records that exact immutable issue/refresh intent as lawfully admitted before any later revocation_pending transition; a later pending transition blocks only intents linearized after it. The issuer MUST atomically commit the same immutable intent plus this receipt before expires_at and MUST NOT mint a new/different intent after pending. The receipt authorizes no different intent and cannot be refreshed or reused after expiry. An unauthorized caller, an account this service does not host, an unknown device and a device outside the named account all return the same authority_mismatch. A block can name pending/revoked without disclosing any other private device state.",
       "required": [
         "principal_authority",
         "device_id",
-        "target_device_authorize_event_id",
-        "target_device_generation_ref",
         "action_class",
         "intent_digest",
         "decision",
@@ -376,10 +401,12 @@
           "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
         "target_device_authorize_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "Origin-derived current device authorization Event. Present only for allow."
         },
         "target_device_generation_ref": {
-          "$ref": "#/$defs/device_generation_ref"
+          "$ref": "#/$defs/device_generation_ref",
+          "description": "Origin-derived current device generation. Present only for allow."
         },
         "action_class": {
           "$ref": "#/$defs/gate_action_class"
@@ -425,6 +452,42 @@
         }
       },
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "const": "allow"
+              }
+            },
+            "required": [
+              "decision"
+            ]
+          },
+          "then": {
+            "required": [
+              "target_device_authorize_event_id",
+              "target_device_generation_ref"
+            ]
+          },
+          "else": {
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "target_device_authorize_event_id"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "target_device_generation_ref"
+                  ]
+                }
+              }
+            ]
+          }
+        },
         {
           "if": {
             "properties": {

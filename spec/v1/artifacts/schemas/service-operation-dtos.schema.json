@@ -4709,7 +4709,7 @@
     },
     "SessionGrantDeviceBinding": {
       "type": "object",
-      "description": "Authorization state committed into a standard device grant. Account Authorities populate this from accepted recovery completion evidence or the equivalent ordinary PCR accepted-device state; Principal Servers compare it with the current active device generation on admission.",
+      "description": "Authorization state committed into a standard device grant. An Account Authority MUST populate it verbatim from the allow receipt of ak.peer.device_revocations.command.check, which is the only source of the origin-derived authorization Event and generation; it MUST NOT be taken from client input, a local cache or a private lookup. Principal Servers compare it with the current active device generation on admission.",
       "required": [
         "device_id",
         "authorization_event_id",

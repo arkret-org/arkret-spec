@@ -4518,8 +4518,8 @@ paths:
         sourceTrustDomain: []
         destinationTrustDomain: []
         contentDigest: []
-      summary: Linearize an exact immutable device-bound action intent against origin revocation state.
-      description: The authenticated Account Authority supplies PCR-local integer generation selectors from a verified device binding. The origin Principal Server independently derives and compares them under the same serializable fence used for revoke acceptance and persists an exact-intent signed decision receipt. A validated request always returns HTTP 200 with a closed allow, revocation_pending, revoked, authority_mismatch or generation_mismatch receipt; 409 device_revocation_pending/device_revoked belongs only to the protected business operation. An allow receipt is valid for at most 30 seconds and only for the exact issue/refresh intent bytes; introspection carries no receipt.
+      summary: Derive the current device binding and linearize an exact immutable device-bound action intent against origin revocation state.
+      description: The authenticated Account Authority supplies only selectors it can verify itself. The origin Principal Server derives the current authorization Event and PCR-local integer generation from its own durable device projection under the same serializable fence used for revoke acceptance, compares them with any expected binding in the request, and persists an exact-intent signed decision receipt. A validated request always returns HTTP 200 with a closed allow, revocation_pending, revoked, authority_mismatch or generation_mismatch receipt; 409 device_revocation_pending/device_revoked belongs only to the protected business operation. Only allow carries the derived binding, which is the sole source for the issued grant device_binding. An allow receipt is valid for at most 30 seconds and only for the exact issue/refresh intent bytes; introspection carries no receipt.
       requestBody:
         required: true
         content:

@@ -3678,7 +3678,10 @@ Runner MUST 执行 `device-revocation-pending-fixture.json` 的全部 semantic c
 
 1. revoke 在 schema / proof / authority / exact current device+PCR generation / precondition / admission 与 mandatory canonical Ack 全部通过后，以单一事务持久化 accepted Event、Ack、derived record、pending index；无 Ack 零写入，不能套用 self-principal PCR Ack-less 例外。
 2. pending 时 base、E2EE 与 hardening profile 对 session issue/refresh、KeyPackage claim、to-device write、Event write、Principal Server admission-proof issuance 全部 fail closed 且零业务写；可区分本地主体操作使用 `device_revocation_pending`，KeyPackage anti-enumeration surface 保持 `claim_failed`，不得因 profile 改变 gate 结论。
-3. Account Authority 只可凭 `ak.peer.device_revocations.command.check` 的 fresh signed exact-intent receipt 铸造/刷新 grant；origin selector 独立派生、同一 durable order线性化、receipt 最长30秒且不能由 cache/private RPC替代。introspection 不承载可复用 receipt；origin Principal Server 对每个 protected self request 在本地事务读取 durable gate。
+3. Account Authority 只可凭 `ak.peer.device_revocations.command.check` 的 fresh signed exact-intent receipt 铸造/刷新 grant；origin 在同一事务从自身 durable projection 派生 selector、同一 durable order 线性化、receipt 最长30秒且不能由 cache/private RPC 替代。introspection 不承载可复用 receipt；origin Principal Server 对每个 protected self request 在本地事务读取 durable gate。
+3.1. 首次 human issue 不携 expected binding，`allow` receipt 的 derived `target_device_authorize_event_id` / `target_device_generation_ref` 逐字成为 grant claims 与 introspection 的 `device_binding`；客户端提交的 Event/generation 无法进入 gate 请求或 grant。
+3.2. expected binding 两字段必须同时出现或同时缺省，且只有 `session_grant_issue` 可缺省；与 derived 值不等时 decision 为 `generation_mismatch`，receipt 不回携 derived binding，refresh MUST NOT 因此升到新 generation。
+3.3. 无权 caller、非本服务账号、未知设备与他人设备统一返回同形 `authority_mismatch`，且 caller 授权校验先于任何 device-private 读取。
 4. restart、exact replay、同device/generation两个不同 proposal、只 reject 其中一个、错误 proposal/Ack/authority/device-generation decision、exact signed reject 清最后一项、overdue alert但不解封；达到128条 distinct gate record 后新 proposal `limit_exceeded` 零写入，exact replay仍成功。
 5. reject-first / Seal-first terminal CAS 两种竞态，以及未被 reject终结的 late valid Seal；任何执行次序只能产生一个 terminal winner。
 6. pending 只保留恢复所需最小客户端材料，Seal后才擦除 generation-specific material；pending前合法 admission proof 在pending/Seal后仍可离线验证。

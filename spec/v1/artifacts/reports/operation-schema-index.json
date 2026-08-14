@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.9",
+  "version": "2026-08-14.10",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T12:15:00Z",
+  "generated_at": "2026-08-14T12:40:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2921,8 +2921,6 @@
         "required": [
           "principal_authority",
           "device_id",
-          "target_device_authorize_event_id",
-          "target_device_generation_ref",
           "action_class",
           "intent_digest",
           "requested_at"
@@ -2930,8 +2928,8 @@
         "properties": [
           "principal_authority",
           "device_id",
-          "target_device_authorize_event_id",
-          "target_device_generation_ref",
+          "expected_device_authorize_event_id",
+          "expected_device_generation_ref",
           "action_class",
           "intent_digest",
           "requested_at"
