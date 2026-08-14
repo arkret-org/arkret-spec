@@ -715,7 +715,7 @@ Native personal agent 不要求拥有公开 handle。客户端 MAY 支持 contro
 
 任何支持跨 roster / Directory / bridge 的 selector resolve surface 都 MUST 复用 Directory 的反枚举姿态：只有当请求者已与该 agent 共享一个可见 scope、或 selector claim `visibility="public"` / 当前 `audience` 明确授权该 requester 与 `intent="mention"` 时，才可返回 agent DID 或 selector claim。未授权、slug 不存在、controller 不存在、agent 不可见、claim expired / revoked / ambiguous 等情况 MUST 使用不可区分的失败形态（例如统一 `not_found` / 空结果 / opaque denial），不得泄露"该 controller 是否拥有某 slug 的 agent"。
 
-结构化 mention 节点形态（与 [`identity/identity-handles.md` §3.8.1](../identity/identity-handles.md) normative shape 对齐）：
+结构化 mention 节点唯一的 wire 承载位置是所属 Content Block 的 `mentions[]` 数组（schema `$defs.mention_node`，见 [content-types.md](./content-types.md)）。节点形态（与 [`identity/identity-handles.md` §3.8.1](../identity/identity-handles.md) normative shape 对齐）：
 
 ```json
 {
@@ -773,7 +773,7 @@ Native personal agent selector 解析后的 mention 节点示例：
 
 #### 9.4.3 Audience mention (`@all`)
 
-v1 定义 audience mention 作为一等结构化 AST 节点；它不是把所有成员展开成多个普通 `mention` 节点，也不在共享 history 中持久化展开后的收件人列表。典型 UI token `@all` 映射为 `audience="effective_scope_members"`：
+v1 定义 audience mention 作为一等结构化 AST 节点，唯一的 wire 承载位置是所属 Content Block 的 `audience_mentions[]` 数组（schema `$defs.audience_mention_node`）；它不是把所有成员展开成多个普通 `mention` 节点，也不在共享 history 中持久化展开后的收件人列表。典型 UI token `@all` 映射为 `audience="effective_scope_members"`：
 
 ```json
 {

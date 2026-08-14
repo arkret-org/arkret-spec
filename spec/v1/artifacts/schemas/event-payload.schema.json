@@ -1430,6 +1430,37 @@
       },
       "additionalProperties": false
     },
+    "audience_mention_node": {
+      "type": "object",
+      "description": "Broadcast mention AST node carried in a Content Block `audience_mentions[]`. It is never expanded into `mention_node` entries in shared history; recipient expansion happens receiver-side under the ak.message.mention.broadcast, audience policy, max_recipients and quota gates in zh/models/strand-and-message.md §9.4.3-§9.4.4.",
+      "required": [
+        "kind",
+        "audience"
+      ],
+      "properties": {
+        "kind": {
+          "const": "audience_mention"
+        },
+        "audience": {
+          "type": "string",
+          "description": "Canonical audience selector. @here maps to strand_engaged and is never presence-filtered; presence-filtered audiences require a separate declared profile.",
+          "enum": [
+            "effective_scope_members",
+            "strand_participants",
+            "strand_watchers",
+            "strand_engaged",
+            "assigned_actors"
+          ]
+        },
+        "mention_text_original": {
+          "type": "string"
+        },
+        "resolved_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
     "audit_accessed_payload": {
       "type": "object",
       "description": "Strict payload for ak.audit.accessed. It records a specific access or paired privacy-sensitive write. Reducers MUST reject business events that require an audit pair unless this payload identifies the same writer, target, and object/cell in the same ordered submit batch, equivalent control transaction, or an accepted pre-read event with RYW receipt.",
@@ -3556,6 +3587,20 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/content_block"
+          }
+        },
+        "mentions": {
+          "type": "array",
+          "description": "Structured direct mention AST nodes for this Content Block. This is the only carrier of a direct mention: authorization, notification routing and audit attribution read mention_node.subject_id exclusively (zh/models/strand-and-message.md §9.4.1-§9.4.2).",
+          "items": {
+            "$ref": "#/$defs/mention_node"
+          }
+        },
+        "audience_mentions": {
+          "type": "array",
+          "description": "Structured broadcast mention AST nodes for this Content Block (zh/models/strand-and-message.md §9.4.3).",
+          "items": {
+            "$ref": "#/$defs/audience_mention_node"
           }
         },
         "attachments": {
@@ -5870,14 +5915,16 @@
           "type": "string"
         },
         "handle_at_time": {
-          "type": "string"
+          "$ref": "string-profiles.schema.json#/$defs/canonical_handle",
+          "description": "Canonical handle snapshot at compose time. Audit / debug / search metadata only; renderers MUST resolve the current primary handle from subject_id instead (zh/identity/identity-handles.md §3.8.1-§3.8.2)."
         },
         "controller_subject_id": {
           "$ref": "#/$defs/did_core_id",
           "description": "Audit metadata for @<controller-handle>/<agent_slug> inputs. MUST NOT replace subject_id for routing, authorization, or attribution."
         },
         "controller_handle_at_time": {
-          "type": "string"
+          "$ref": "string-profiles.schema.json#/$defs/canonical_handle",
+          "description": "Canonical controller handle snapshot from an agent selector input. Audit / debug / search metadata only."
         },
         "agent_slug_at_time": {
           "$ref": "#/$defs/agent_slug"

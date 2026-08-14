@@ -85,6 +85,8 @@ final 不同不构成 Content schema 错误。
 |------|------|------|------|
 | `kind` | string | MUST | 内容类型标识符 |
 | `body` | string | MUST | 纯文本 fallback |
+| `mentions` | array | MAY | 结构化 direct mention 节点数组（`$defs.mention_node`）；唯一的 mention wire 承载位置，语义见 [strand-and-message.md §9.4.1](./strand-and-message.md) |
+| `audience_mentions` | array | MAY | 结构化 audience mention 节点数组（`$defs.audience_mention_node`），语义见 [strand-and-message.md §9.4.3](./strand-and-message.md) |
 
 ## 4. 标准内容类型
 
@@ -97,7 +99,14 @@ final 不同不构成 Content schema 错误。
   "kind": "ak.content.text",
   "body": "@bob 请确认这个 item 的 legal 风险。",
   "format": "markdown",
-  "formatted_body": "<mention did=\"did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
+  "formatted_body": "<mention did=\"ak:did_core:webvh:zHuXvTbhiRsj2KEPE64TLhzG4\">@bob</mention> 请确认这个 item 的 legal 风险。",
+  "mentions": [
+    {
+      "kind": "mention",
+      "subject_id": "ak:did_core:webvh:zHuXvTbhiRsj2KEPE64TLhzG4",
+      "mention_text_original": "@bob"
+    }
+  ]
 }
 ```
 
