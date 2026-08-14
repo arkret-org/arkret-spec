@@ -353,6 +353,43 @@ verifier 仍 MUST 直接验证标准 `did-witness.json` proof、entry hash chain
 其负向用例逐条固定上述 fail-closed 矩阵，包括 alias 键、overlay 字段污染、
 threshold 不满足、同源 controlling organization 与 stale evidence。
 
+#### 3.4.4 `{SCID}` 占位符的替换范围（normative）
+
+§3.4 把 SCID 派生定为 v1 core MUST。SCID 派生的 pre-image 与 SCID 代入的**范围**同样是封闭的，
+实现之间不得各自解释。
+
+上游 DIF did:webvh v1.0 对此已有明确规定，本节与其一致并不另立方言：
+inception 的 preliminary log entry 生成 SCID 后，
+「把该 preliminary JSON object 当作字符串，对占位符 `{SCID}` 的**每一次出现**做字面文本替换」；
+verification 侧反向执行——「把 log entry 当作字符串，把从 DID 取出的 SCID 值文本替换回字面 `{SCID}`」。
+因此替换范围是**整条 log entry 的整棵 JSON 树**，而不是 skeleton 顶层的某几个字段。
+
+具体规则：
+
+- **构造（normative）**：SCID 代入 MUST 覆盖整条 entry 的每一次 `{SCID}` 出现，
+  包含任意深度的字符串值、数组元素、以及 JSON 成员名，且**包含 `state`（DID Document）内部**。
+  实现 MUST NOT 只替换 `versionId` 与 `parameters.scid` 等 skeleton 自有字段：
+  同一份输入在「只替换顶层」与「整树替换」两种实现下会产出**不同的 entry、不同的 entry hash
+  与不同的 `versionId`**，即两个同样自洽却互不可复现的 DID。
+- **派生 pre-image（normative）**：SCID = `base58btc(multihash(JCS(preliminary entry), sha2-256))`，
+  其中 preliminary entry 的 `versionId` 是裸 `{SCID}` 占位符（不是 `<seq>-{SCID}` 形态），
+  且不含 `proof`。
+- **残留占位符 MUST fail closed（normative）**：已发布的 log entry 中 MUST NOT 残留任何字面
+  `{SCID}`。producer MUST 在代入后自检；verifier 在 entry 中发现残留 `{SCID}` 时
+  MUST 拒绝并返回 `param_invalid`，MUST NOT 尝试「补替换」后再验证。
+  残留占位符正是「只替换顶层」实现的可观测指纹，因此它是判据而非风格问题。
+- **verification（normative）**：verifier MUST 从 DID 取出 SCID，去掉 `proof`，
+  把 entry 中该 SCID 值的每一次出现替换回 `{SCID}`，把 `versionId` 置为裸 `{SCID}`，
+  再重新计算并逐字节比对；不一致时 MUST `param_invalid`。
+- **holder 提供的 `state` 不是豁免区**：`state` 由 holder 提供并不使其免于替换。
+  把 `state` 排除在替换之外，等于允许 holder 在 SCID pre-image 里放入一段
+  「派生后仍保持原样」的内容，从而在同一 SCID 下取得与其他实现不同的已发布文档。
+
+§3.4.4 的可执行证据与 §3.4 同属 `ak.vector.identity.did_webvh_v1_adapter.v1`
+（见 [`did-webvh-v1-fixture.json`](../../artifacts/fixtures/did-webvh-v1-fixture.json)），
+其正例覆盖 `state` 内含字面 `{SCID}` 时的整树替换结果，
+负例覆盖只替换顶层字段而在 `state` 中残留 `{SCID}` 的 entry。
+
 ### 3.5 Interop Adapter Extension Profiles
 
 下列 method 在 v1 core 中**不要求**实现，作为可选 interop extension profile 提供：

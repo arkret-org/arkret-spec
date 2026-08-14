@@ -142,6 +142,107 @@
         "decision": "reject",
         "error_code": "failed_precondition"
       }
+    },
+    {
+      "name": "accept_scid_substituted_over_the_whole_entry",
+      "note": "identity-did.md 3.4.4: the literal {SCID} the holder placed inside state.alsoKnownAs is substituted exactly like the skeleton-owned members. Substituting only versionId and parameters.scid yields a different published entry and a different versionId from the same input.",
+      "input": {
+        "preliminary_entry": {
+          "versionId": "{SCID}",
+          "versionTime": "2026-07-15T00:00:00Z",
+          "parameters": {
+            "method": "did:webvh:1.0",
+            "scid": "{SCID}",
+            "updateKeys": [
+              "z6MktiAojPDKXTWTn2SUx2j649MeZ2xQSFaZWVz6Wy3Vyk5d"
+            ],
+            "nextKeyHashes": [
+              "Qmefp9gpz6r2u4zgqH6dzDsBjJa1CPcSqjSbvdZc6QKmbv"
+            ]
+          },
+          "state": {
+            "id": "did:webvh:{SCID}:alice.example",
+            "alsoKnownAs": [
+              "urn:ak:webvh-self-reference:{SCID}"
+            ]
+          }
+        },
+        "published_entry": {
+          "versionId": "1-QmbJu2JEt8oYyNPQ5AqXeEGZi6Vi7oR24DsqJ1GCuFaD9Q",
+          "versionTime": "2026-07-15T00:00:00Z",
+          "parameters": {
+            "method": "did:webvh:1.0",
+            "scid": "QmZL2kpCm1uJHkcg6jEKpx1oWAJvdxwSbuAbXHxCVtAi2C",
+            "updateKeys": [
+              "z6MktiAojPDKXTWTn2SUx2j649MeZ2xQSFaZWVz6Wy3Vyk5d"
+            ],
+            "nextKeyHashes": [
+              "Qmefp9gpz6r2u4zgqH6dzDsBjJa1CPcSqjSbvdZc6QKmbv"
+            ]
+          },
+          "state": {
+            "id": "did:webvh:QmZL2kpCm1uJHkcg6jEKpx1oWAJvdxwSbuAbXHxCVtAi2C:alice.example",
+            "alsoKnownAs": [
+              "urn:ak:webvh-self-reference:QmZL2kpCm1uJHkcg6jEKpx1oWAJvdxwSbuAbXHxCVtAi2C"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "decision": "accept",
+        "scid": "QmZL2kpCm1uJHkcg6jEKpx1oWAJvdxwSbuAbXHxCVtAi2C",
+        "version_id": "1-QmbJu2JEt8oYyNPQ5AqXeEGZi6Vi7oR24DsqJ1GCuFaD9Q"
+      }
+    },
+    {
+      "name": "reject_residual_scid_placeholder_in_published_entry",
+      "note": "The same preliminary entry substituted only over versionId, parameters.scid and state.id. Its own entry hash is self-consistent and re-deriving the SCID from it still succeeds, so the residual {SCID} is the only detector: identity-did.md 3.4.4 makes it a fail-closed rejection.",
+      "input": {
+        "preliminary_entry": {
+          "versionId": "{SCID}",
+          "versionTime": "2026-07-15T00:00:00Z",
+          "parameters": {
+            "method": "did:webvh:1.0",
+            "scid": "{SCID}",
+            "updateKeys": [
+              "z6MktiAojPDKXTWTn2SUx2j649MeZ2xQSFaZWVz6Wy3Vyk5d"
+            ],
+            "nextKeyHashes": [
+              "Qmefp9gpz6r2u4zgqH6dzDsBjJa1CPcSqjSbvdZc6QKmbv"
+            ]
+          },
+          "state": {
+            "id": "did:webvh:{SCID}:alice.example",
+            "alsoKnownAs": [
+              "urn:ak:webvh-self-reference:{SCID}"
+            ]
+          }
+        },
+        "published_entry": {
+          "versionId": "1-QmcLQFWBGJzDb3yvVEanEBiit18J4aiWCZSZ6xiX8cHhTa",
+          "versionTime": "2026-07-15T00:00:00Z",
+          "parameters": {
+            "method": "did:webvh:1.0",
+            "scid": "QmZL2kpCm1uJHkcg6jEKpx1oWAJvdxwSbuAbXHxCVtAi2C",
+            "updateKeys": [
+              "z6MktiAojPDKXTWTn2SUx2j649MeZ2xQSFaZWVz6Wy3Vyk5d"
+            ],
+            "nextKeyHashes": [
+              "Qmefp9gpz6r2u4zgqH6dzDsBjJa1CPcSqjSbvdZc6QKmbv"
+            ]
+          },
+          "state": {
+            "id": "did:webvh:QmZL2kpCm1uJHkcg6jEKpx1oWAJvdxwSbuAbXHxCVtAi2C:alice.example",
+            "alsoKnownAs": [
+              "urn:ak:webvh-self-reference:{SCID}"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "param_invalid"
+      }
     }
   ]
 }

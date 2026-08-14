@@ -110,7 +110,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json",
-      "sha256": "bef0370162fe2c90582a3047b4c7fbce20306ad9165e83c59897cd089abf6c5c"
+      "sha256": "e6b7830b2b686bad4b7ecd6e025991c16653258209b8ea8b213aa0190b9dfae7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-webvh-witness-fixture.json",
