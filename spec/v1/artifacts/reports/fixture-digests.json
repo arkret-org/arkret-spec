@@ -102,7 +102,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/device-revocation-pending-fixture.json",
-      "sha256": "64fcf2bc4eea5a82e3ee0edd58a14a5c2a23a6b193fbf066c8526d5c417e29e2"
+      "sha256": "b9434fd693ce224675de4aaf75625e2e32114e0f8b62537e437b67ed6d022786"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",

@@ -4814,7 +4814,7 @@
         },
         "device_binding": {
           "$ref": "#/$defs/SessionGrantDeviceBinding",
-          "description": "Exact verified device authorization preimage used for the origin-PS revocation gate. Required whenever device_id is present."
+          "description": "Exact origin-derived device authorization preimage taken from the revocation gate's allow receipt. Required for every human grant except the fresh-device restricted grant, whose device has no accepted authorization yet and whose scope is limited to ak.key.verification.* bootstrap."
         }
       },
       "allOf": [

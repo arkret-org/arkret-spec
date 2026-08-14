@@ -12,6 +12,7 @@
     "role",
     "operations",
     "join_methods",
+    "encryption_profile",
     "source",
     "seal_basis",
     "as_of",
@@ -78,6 +79,10 @@
       "minItems": 1,
       "description": "Join-side strands this candidate claims to support for this requester and Realm."
     },
+    "encryption_profile": {
+      "$ref": "./realm.schema.json#/properties/encryption_profile",
+      "description": "Effective encryption_profile of this Realm in the issuer's accepted projection at as_of. Principal-server candidates MUST include it so a pre-join client can apply the E2EE recovery-material gate (identity/key-management.md section 7.11) without reading membership-gated Realm history. The issuer MUST NOT substitute a default when the accepted projection is missing or unverifiable; it MUST omit the candidate instead."
+    },
     "priority": {
       "type": "integer",
       "minimum": 0,
@@ -123,7 +128,7 @@
         "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
       "minItems": 1,
-      "description": "Optional proof set binding realm_id, service_id, role, operations, join_methods, as_of, and expires_at. Required when the candidate is carried outside the signed invite or current joined-member delivery-binding evidence from which it was derived."
+      "description": "Optional proof set binding realm_id, service_id, role, operations, join_methods, encryption_profile, as_of, and expires_at. Required when the candidate is carried outside the signed invite or current joined-member delivery-binding evidence from which it was derived."
     }
   },
   "additionalProperties": false,

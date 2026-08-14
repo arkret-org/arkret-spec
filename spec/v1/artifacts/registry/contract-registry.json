@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.10",
+  "version": "2026-08-14.11",
   "source_of_truth": true,
-  "generated_at": "2026-08-14T12:40:00Z",
+  "generated_at": "2026-08-14T13:40:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -11699,7 +11699,7 @@
         "http": "POST /_arkret/gate/account/session-grants",
         "grpc": "GateAccount/IssueSessionGrant",
         "mq": "gate.account.command.issue_session_grant",
-        "notes": "Account Authority single-call issuer-ledger session-grant exchange. Before issuer commit, the Account Authority MUST obtain a fresh allow receipt from ak.peer.device_revocations.command.check for the exact device and immutable grant intent, and MUST copy that receipt's derived authorization Event and generation verbatim into the grant device_binding; a first ordinary human issuance sends no expected binding and acquires it from the receipt, while recovery completion and refresh MUST send their own verified durable binding and fail closed on generation_mismatch. The request carries device_id only, and a client-supplied authorization Event or generation MUST NOT be accepted. revocation_pending returns device_revocation_pending and no grant record/JWT. After validating account-to-principal binding, authentication proof, holder DPoP, audience and scope ceiling, the issuer uses the proof-specific stable request identity and canonical intent digest to atomically persist one immutable issuance record and signed JWT before responding. The grant ID and JWT jti are recomputed from that record under id_kind_registry.issuer_record_identity_contract; no Principal Event is authored. Exact replay revalidates holder/DPoP/target/digest and returns the byte-identical recorded outcome. Same request identity with different canonical intent is duplicate_conflict with zero writes. A replay whose outcome is expired or revoked/superseded returns the registered terminal error and never issues a replacement; an evicted replay record fails closed as indeterminate. The response is the client-visible SessionGrantOutcome and the client presents ak.session.grant directly to /_arkret/self/* with DPoP. For proof_kind=oidc_code_exchange, the Account Authority exchanges and validates the code. For proof_kind=pre_registration_handoff, the DPoP-bound handoff account MUST already be bound to principal_id. The Account Authority never derives a principal DID from OIDC and never obtains or uses a principal/root/device/notary Event-signing key.",
+        "notes": "Account Authority single-call issuer-ledger session-grant exchange. Before issuer commit, the Account Authority MUST obtain a fresh allow receipt from ak.peer.device_revocations.command.check for the exact device and immutable grant intent, and MUST copy that receipt's derived authorization Event and generation verbatim into the grant device_binding; a first ordinary human issuance sends no expected binding and acquires it from the receipt, while recovery completion and refresh MUST send their own verified durable binding and fail closed on generation_mismatch. The request carries device_id only, and a client-supplied authorization Event or generation MUST NOT be accepted. Human issuance always runs the gate and branches three ways: allow issues the bound grant, authority_mismatch means the device has no accepted authorization yet and MAY issue only the fresh-device restricted grant scoped to ak.key.verification.* bootstrap with no device_binding, and revocation_pending, revoked or generation_mismatch issue nothing and never degrade into that restricted grant. revocation_pending returns device_revocation_pending and no grant record/JWT. After validating account-to-principal binding, authentication proof, holder DPoP, audience and scope ceiling, the issuer uses the proof-specific stable request identity and canonical intent digest to atomically persist one immutable issuance record and signed JWT before responding. The grant ID and JWT jti are recomputed from that record under id_kind_registry.issuer_record_identity_contract; no Principal Event is authored. Exact replay revalidates holder/DPoP/target/digest and returns the byte-identical recorded outcome. Same request identity with different canonical intent is duplicate_conflict with zero writes. A replay whose outcome is expired or revoked/superseded returns the registered terminal error and never issues a replacement; an evicted replay record fails closed as indeterminate. The response is the client-visible SessionGrantOutcome and the client presents ak.session.grant directly to /_arkret/self/* with DPoP. For proof_kind=oidc_code_exchange, the Account Authority exchanges and validates the code. For proof_kind=pre_registration_handoff, the DPoP-bound handoff account MUST already be bound to principal_id. The Account Authority never derives a principal DID from OIDC and never obtains or uses a principal/root/device/notary Event-signing key.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -12456,7 +12456,7 @@
         "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
         "durable_effect": {
           "kind": "none",
-          "rationale": "delivers_existing_signed_event_without_committing_a_local_event"
+          "rationale": "persists_a_byte_identical_service_local_peer_relay_outbox_without_authoring_an_event"
         }
       },
       {
@@ -14993,8 +14993,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-14.6",
-    "generated_at": "2026-08-14T12:40:00Z"
+    "version": "2026-08-14.7",
+    "generated_at": "2026-08-14T13:40:00Z"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

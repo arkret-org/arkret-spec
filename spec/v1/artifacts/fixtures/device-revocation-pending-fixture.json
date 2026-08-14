@@ -83,7 +83,19 @@
         "the allow receipt carries the origin-derived target_device_authorize_event_id and target_device_generation_ref",
         "grant claims and introspection device_binding equal the receipt values verbatim",
         "a client-supplied authorization Event or generation cannot reach the gate request or the grant",
-        "no human grant is issued with an absent device_binding and the gate is never skipped for want of a binding"
+        "the gate is never skipped for want of a binding"
+      ]
+    },
+    {
+      "name": "fresh_device_bootstrap_is_the_only_grant_without_a_binding",
+      "given": "a device that ak.device.authorize has not accepted yet, and separately a device whose accepted authorization is pending or revoked",
+      "action": "run the gate for each and issue whatever it admits",
+      "expected": "restricted_only_for_the_unaccepted_device",
+      "invariants": [
+        "the unaccepted device produces authority_mismatch and MAY receive only a fresh-device restricted grant with no device_binding, scoped to ak.key.verification.* bootstrap",
+        "that restricted grant grants no ak.secret.*, key backup unlock, KeyPackage publish or Realm E2EE history read",
+        "revocation_pending, revoked and generation_mismatch yield no grant at all and never degrade into a fresh-device restricted grant",
+        "a revoked or replaced generation cannot regain bootstrap capability by being treated as a new device"
       ]
     },
     {

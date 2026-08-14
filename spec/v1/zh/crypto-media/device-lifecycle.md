@@ -189,7 +189,15 @@ origin Principal Server MUST 先认证 caller 并确认它是该 exact pair 已�
 
 allow 只承认在线性化点早于后续 pending 的那组 exact bytes；issuer 必须在 receipt 的 `expires_at`（最多 30 秒）前把同一 intent + receipt 原子提交，pending 后不得铸新 intent。缓存查询、私有 RPC 或“最近看起来 active”不能替代此 fence。session-grant introspection 仍只读取 issuer ledger，不携可在多请求间复用的 revocation receipt；origin Principal Server 接受每个 `/_arkret/self/*` 请求时 MUST 在该请求本地事务中按 exact device/generation读取自身 durable pending/Seal gate，从而避免 Principal Server → Account Authority → 同一 Principal Server 的回调与 pending 后 receipt reuse。
 
-四条 human session grant 来源固定如下：ordinary OIDC code exchange 与 pre-registration handoff 不携 expected binding，绑定完全由本次 allow receipt 提供；recovery completion MUST 以其已验证 terminal ledger 中的 authorization Event 与 result generation 作为 expected binding，mismatch 一律 fail closed，MUST NOT 降级为客户端断言；refresh MUST 以已签 JWT `device_binding` 作为 expected binding。Native Agent 分支不携 device binding，也不调用本 gate。任何分支都 MUST NOT 签发 `device_binding` 缺省的 human grant，也 MUST NOT 因绑定取得困难跳过本 gate。
+四条 human session grant 来源固定如下：ordinary OIDC code exchange 与 pre-registration handoff 不携 expected binding，绑定完全由本次 allow receipt 提供；recovery completion MUST 以其已验证 terminal ledger 中的 authorization Event 与 result generation 作为 expected binding，mismatch 一律 fail closed，MUST NOT 降级为客户端断言；refresh MUST 以已签 JWT `device_binding` 作为 expected binding。Native Agent 分支不携 device binding，也不调用本 gate。
+
+human issuance MUST 无条件先调用本 gate，再按 decision 分三路，不存在第四种结果：
+
+- `allow`：签发携 derived `device_binding` 的完整 grant。
+- `authority_mismatch`：该 device 在本账号下没有 accepted authorization，也就是 [`../identity/key-management.md` §6.2](../identity/key-management.md) 的 fresh-device 情形。issuer MAY 只签发 fresh-device restricted grant——它不携 `device_binding`，scope 收窄到向同 principal 已授权设备收发 `ak.key.verification.*` bootstrap，MUST NOT 允许 `ak.secret.*`、key backup unlock、KeyPackage 发布或 Realm E2EE history 读取（[`../sync/service-http-binding.md` §1](../sync/service-http-binding.md)）。这是**唯一**允许缺 `device_binding` 的 human grant 形态。
+- `revocation_pending` / `revoked` / `generation_mismatch`：零 issuer writes，既不签发完整 grant，也 MUST NOT 退化为 fresh-device restricted grant——被撤销或已换代的设备不得靠“当成新设备”重新拿到 bootstrap 能力。
+
+MUST NOT 因绑定取得困难跳过本 gate，也 MUST NOT 在 restricted 之外签发任何缺 `device_binding` 的 human grant。
 
 gate receipt 的 proof context 固定为 `ak.device-revocation-gate-decision-proof-v1`。`payload_digest = sha256(JCS(receipt_without_proof))`；`proof.verification_method` 必须逐字等于 receipt `verification_method`，其 controller 投影到 Core 后必须精确等于 `principal_authority.principal_server_id`；`proof.created_at` 必须等于 `linearized_at`。decision 分支封闭：只有 `allow` 携带 origin 派生的 `target_device_authorize_event_id` 与 `target_device_generation_ref`，其余四个 decision MUST NOT 携带二者；`allow` / authority mismatch / generation mismatch 不携 blocker 或 Seal；没有 revoked record 且存在多个 pending 时，pending 只携 lexicographically smallest `proposal_digest` 作为 blocker；存在任一 revoked record 时 decision 固定为 revoked，只携按 `(acceptance_seq, proposal_digest)` 最小 revoked record 的 covering Seal ref，不因另有 surviving pending record 改回 pending。
 
