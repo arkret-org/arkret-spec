@@ -5,6 +5,10 @@
       "sha256": "84720efd83a46af0b36be892f824e3db0efe7cc72947e3ca58610799bd4bf9bf"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/agent-membership-cascade-fixture.json",
+      "sha256": "69e627fdd9dc737e20194bc7e6a5cd09322946889955d7e99ed95eda1daed8ca"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/agent-mls-keypackage-authorization-fixture.json",
       "sha256": "823199ff050725040efc3c00c754aaff771b993fe296c33c5d1680c6180a1bdf"
     },

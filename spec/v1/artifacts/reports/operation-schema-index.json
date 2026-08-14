@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.11",
+  "version": "2026-08-15.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T13:40:00Z",
+  "generated_at": "2026-08-15T01:20:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2954,16 +2954,18 @@
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody",
         "schema_kind": "oneOf",
-        "required": [
-          "events"
-        ],
+        "required": [],
         "properties": [
           "service_binding_ref",
           "events",
           "cba_proof_bundles",
           "unit_kind",
           "source_acceptance_receipt",
-          "founding_authority_evidence"
+          "founding_authority_evidence",
+          "cascade_mode",
+          "controller_transition",
+          "agent_transitions",
+          "cleanup_intent_digest"
         ],
         "closed": true,
         "variants": [
@@ -2998,6 +3000,27 @@
               "cba_proof_bundles"
             ],
             "closed": true
+          },
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AgentMembershipCascadeFederationSubmission",
+            "schema_kind": "object",
+            "required": [
+              "unit_kind",
+              "cascade_mode",
+              "service_binding_ref",
+              "controller_transition",
+              "agent_transitions"
+            ],
+            "properties": [
+              "unit_kind",
+              "cascade_mode",
+              "service_binding_ref",
+              "controller_transition",
+              "agent_transitions",
+              "cleanup_intent_digest",
+              "cba_proof_bundles"
+            ],
+            "closed": true
           }
         ]
       },
@@ -3019,7 +3042,8 @@
           "realm_actor_frontiers",
           "realm_frontiers",
           "cursor",
-          "original_outcome"
+          "original_outcome",
+          "agent_membership_cascade"
         ],
         "closed": true
       }
@@ -6963,7 +6987,11 @@
           "events",
           "unit_kind",
           "idempotency_key",
-          "founding_authority_evidence"
+          "founding_authority_evidence",
+          "cascade_mode",
+          "controller_transition",
+          "agent_transitions",
+          "cleanup_intent_digest"
         ],
         "closed": true,
         "variants": [
@@ -7009,6 +7037,24 @@
               "cba_proof_bundles"
             ],
             "closed": true
+          },
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AgentMembershipCascadeSubmission",
+            "schema_kind": "object",
+            "required": [
+              "unit_kind",
+              "cascade_mode",
+              "controller_transition",
+              "agent_transitions"
+            ],
+            "properties": [
+              "unit_kind",
+              "cascade_mode",
+              "controller_transition",
+              "agent_transitions",
+              "cleanup_intent_digest"
+            ],
+            "closed": true
           }
         ]
       },
@@ -7030,6 +7076,7 @@
           "realm_frontiers",
           "cursor",
           "original_outcome",
+          "agent_membership_cascade",
           "unit_kind",
           "event_ids",
           "receipt"
@@ -7054,7 +7101,8 @@
               "realm_actor_frontiers",
               "realm_frontiers",
               "cursor",
-              "original_outcome"
+              "original_outcome",
+              "agent_membership_cascade"
             ],
             "closed": true
           },

@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9674,
-    "total_schema_documents": 157,
+    "total_properties": 9725,
+    "total_schema_documents": 158,
     "by_presence_class": {
-      "optional": 2834,
+      "optional": 2845,
       "optional_defaulted": 70,
-      "required": 6384,
-      "required_nullable": 129,
-      "tristate": 257
+      "required": 6418,
+      "required_nullable": 130,
+      "tristate": 262
     },
-    "tristate_occurrences": 257,
-    "tristate_audit_targets": 162,
+    "tristate_occurrences": 262,
+    "tristate_audit_targets": 165,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 153,
+      "absent_null_equivalent": 156,
       "condition_guarded": 8,
       "distinct": 1
     }
@@ -253,6 +253,11 @@
     "service-describe.schema.json/allOf/2/then/properties/limits",
     "service-describe.schema.json/allOf/3/then/properties/supported_profiles",
     "service-describe.schema.json/allOf/5/then/properties/auth_metadata",
+    "service-operation-dtos.schema.json/$defs/AgentMembershipCascadeFederationSubmission/allOf/0/else/properties/agent_transitions",
+    "service-operation-dtos.schema.json/$defs/AgentMembershipCascadeFederationSubmission/allOf/0/then/properties/agent_transitions",
+    "service-operation-dtos.schema.json/$defs/AgentMembershipCascadeOutcome/allOf/0/then/properties/agent_transition_event_ids",
+    "service-operation-dtos.schema.json/$defs/AgentMembershipCascadeSubmission/allOf/0/else/properties/agent_transitions",
+    "service-operation-dtos.schema.json/$defs/AgentMembershipCascadeSubmission/allOf/0/then/properties/agent_transitions",
     "service-operation-dtos.schema.json/$defs/DeviceMessagesGetOutcome/allOf/0/if/properties/messages",
     "service-operation-dtos.schema.json/$defs/EventFederationSubmission/allOf/0/else/properties/ingress_receipts",
     "service-operation-dtos.schema.json/$defs/EventFederationSubmission/allOf/0/then/properties/ingress_receipts",
@@ -1648,6 +1653,38 @@
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/AgentMembershipCascadeFederationSubmission",
+      "instance_path": "/agent_transitions",
+      "occurrences": [
+        "/$defs/AgentMembershipCascadeFederationSubmission/allOf/0/else/properties/agent_transitions",
+        "/$defs/AgentMembershipCascadeFederationSubmission/allOf/0/then/properties/agent_transitions"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/AgentMembershipCascadeOutcome",
+      "instance_path": "/agent_transition_event_ids",
+      "occurrences": [
+        "/$defs/AgentMembershipCascadeOutcome/allOf/0/then/properties/agent_transition_event_ids"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/AgentMembershipCascadeSubmission",
+      "instance_path": "/agent_transitions",
+      "occurrences": [
+        "/$defs/AgentMembershipCascadeSubmission/allOf/0/else/properties/agent_transitions",
+        "/$defs/AgentMembershipCascadeSubmission/allOf/0/then/properties/agent_transitions"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
       "shape": "/$defs/DeviceMessagesGetOutcome",
       "instance_path": "/messages",
       "occurrences": [
@@ -2588,6 +2625,37 @@
         "/properties/updated_at": "optional",
         "/properties/updated_by": "optional"
       }
+    },
+    "agent-membership-cascade.schema.json": {
+      "schema_ids": [
+        "ak.schema.agent_membership_cascade.v1"
+      ],
+      "properties": {
+        "/$defs/agent_cleanup_pending_record/allOf/0/if/properties/status": "required",
+        "/$defs/agent_cleanup_pending_record/properties/accepted_at": "required",
+        "/$defs/agent_cleanup_pending_record/properties/agent_transition_event_ids": "optional",
+        "/$defs/agent_cleanup_pending_record/properties/cleanup_due_at": "required",
+        "/$defs/agent_cleanup_pending_record/properties/cleanup_intent_digest": "required",
+        "/$defs/agent_cleanup_pending_record/properties/completed_at": "optional",
+        "/$defs/agent_cleanup_pending_record/properties/controller_authority": "required",
+        "/$defs/agent_cleanup_pending_record/properties/controller_membership_generation_ref": "required",
+        "/$defs/agent_cleanup_pending_record/properties/controller_terminal_event_digest": "required",
+        "/$defs/agent_cleanup_pending_record/properties/controller_terminal_event_id": "required",
+        "/$defs/agent_cleanup_pending_record/properties/expected_agent_ids": "required",
+        "/$defs/agent_cleanup_pending_record/properties/initiator_authority": "required",
+        "/$defs/agent_cleanup_pending_record/properties/realm_id": "required",
+        "/$defs/agent_cleanup_pending_record/properties/schema": "required",
+        "/$defs/agent_cleanup_pending_record/properties/status": "required",
+        "/$defs/agent_controller_membership_binding/properties/controller_authority": "required",
+        "/$defs/agent_controller_membership_binding/properties/controller_membership_generation_ref": "required",
+        "/$defs/agent_controller_membership_binding/properties/controller_terminal_event_ref": "optional",
+        "/$defs/principal_authority_key/properties/principal_id": "required",
+        "/$defs/principal_authority_key/properties/principal_server_id": "required"
+      },
+      "conditionally_required": [
+        "/$defs/agent_cleanup_pending_record/properties/agent_transition_event_ids",
+        "/$defs/agent_cleanup_pending_record/properties/completed_at"
+      ]
     },
     "agent-operations.schema.json": {
       "schema_ids": [
@@ -6184,8 +6252,10 @@
         "/$defs/account_data_set_payload/properties/updated_at": "optional",
         "/$defs/account_status_payload/properties/account_id": "required",
         "/$defs/account_status_payload/properties/admin_proof": "optional",
+        "/$defs/account_status_payload/properties/agent_controller_binding": "optional",
         "/$defs/account_status_payload/properties/effective_at": "required",
         "/$defs/account_status_payload/properties/expires_at": "tristate",
+        "/$defs/account_status_payload/properties/membership_cause": "optional",
         "/$defs/account_status_payload/properties/principal_id": "required",
         "/$defs/account_status_payload/properties/reason": "optional",
         "/$defs/account_status_payload/properties/reason_code": "optional",
@@ -6893,6 +6963,8 @@
         "/$defs/membership_payload/allOf/0/if/properties/membership": "required",
         "/$defs/membership_payload/allOf/1/if/properties/delivery_status": "required",
         "/$defs/membership_payload/allOf/1/if/properties/membership": "required",
+        "/$defs/membership_payload/allOf/2/then/properties/agent_controller_binding": "required_nullable",
+        "/$defs/membership_payload/allOf/2/then/properties/membership": "optional",
         "/$defs/membership_payload/properties/actor_id": "optional",
         "/$defs/membership_payload/properties/delivery_binding": "optional",
         "/$defs/membership_payload/properties/delivery_status": "optional",
@@ -11954,6 +12026,32 @@
         "/$defs/ActorAggregateFrontierView/properties/actor_id": "required",
         "/$defs/ActorAggregateFrontierView/properties/kind": "required",
         "/$defs/ActorAggregateFrontierView/properties/realms": "required",
+        "/$defs/AgentMembershipCascadeFederationSubmission/allOf/0/else/properties/agent_transitions": "tristate",
+        "/$defs/AgentMembershipCascadeFederationSubmission/allOf/0/if/properties/cascade_mode": "required",
+        "/$defs/AgentMembershipCascadeFederationSubmission/allOf/0/then/properties/agent_transitions": "tristate",
+        "/$defs/AgentMembershipCascadeFederationSubmission/allOf/1/if/properties/cascade_mode": "required",
+        "/$defs/AgentMembershipCascadeFederationSubmission/properties/agent_transitions": "required",
+        "/$defs/AgentMembershipCascadeFederationSubmission/properties/cascade_mode": "required",
+        "/$defs/AgentMembershipCascadeFederationSubmission/properties/cba_proof_bundles": "optional",
+        "/$defs/AgentMembershipCascadeFederationSubmission/properties/cleanup_intent_digest": "optional",
+        "/$defs/AgentMembershipCascadeFederationSubmission/properties/controller_transition": "required",
+        "/$defs/AgentMembershipCascadeFederationSubmission/properties/service_binding_ref": "required",
+        "/$defs/AgentMembershipCascadeFederationSubmission/properties/unit_kind": "required",
+        "/$defs/AgentMembershipCascadeOutcome/allOf/0/if/properties/status": "required",
+        "/$defs/AgentMembershipCascadeOutcome/allOf/0/then/properties/agent_transition_event_ids": "tristate",
+        "/$defs/AgentMembershipCascadeOutcome/properties/agent_transition_event_ids": "required",
+        "/$defs/AgentMembershipCascadeOutcome/properties/cleanup_intent_digest": "optional",
+        "/$defs/AgentMembershipCascadeOutcome/properties/controller_transition_event_id": "required",
+        "/$defs/AgentMembershipCascadeOutcome/properties/status": "required",
+        "/$defs/AgentMembershipCascadeSubmission/allOf/0/else/properties/agent_transitions": "tristate",
+        "/$defs/AgentMembershipCascadeSubmission/allOf/0/if/properties/cascade_mode": "required",
+        "/$defs/AgentMembershipCascadeSubmission/allOf/0/then/properties/agent_transitions": "tristate",
+        "/$defs/AgentMembershipCascadeSubmission/allOf/1/if/properties/cascade_mode": "required",
+        "/$defs/AgentMembershipCascadeSubmission/properties/agent_transitions": "required",
+        "/$defs/AgentMembershipCascadeSubmission/properties/cascade_mode": "required",
+        "/$defs/AgentMembershipCascadeSubmission/properties/cleanup_intent_digest": "optional",
+        "/$defs/AgentMembershipCascadeSubmission/properties/controller_transition": "required",
+        "/$defs/AgentMembershipCascadeSubmission/properties/unit_kind": "required",
         "/$defs/AuthSessionLogoutOutcome/properties/auth_session_logged_out": "required",
         "/$defs/AuthSessionLogoutOutcome/properties/grant_chain_terminated": "required",
         "/$defs/AuthSessionLogoutOutcome/properties/ok": "required",
@@ -12196,6 +12294,7 @@
         "/$defs/EventsSubmitFederationBatchRequestBody/properties/events": "required",
         "/$defs/EventsSubmitFederationBatchRequestBody/properties/service_binding_ref": "required",
         "/$defs/EventsSubmitOutcome/properties/accepted": "required",
+        "/$defs/EventsSubmitOutcome/properties/agent_membership_cascade": "optional",
         "/$defs/EventsSubmitOutcome/properties/control_proposal_acks": "optional",
         "/$defs/EventsSubmitOutcome/properties/cursor": "optional",
         "/$defs/EventsSubmitOutcome/properties/duplicate": "optional",
@@ -12661,6 +12760,9 @@
         "/$defs/SnapshotBootstrap/properties/verification_hints": "optional"
       },
       "conditionally_required": [
+        "/$defs/AgentMembershipCascadeFederationSubmission/properties/cleanup_intent_digest",
+        "/$defs/AgentMembershipCascadeOutcome/properties/cleanup_intent_digest",
+        "/$defs/AgentMembershipCascadeSubmission/properties/cleanup_intent_digest",
         "/$defs/AuthorizationLeaseIssueRequestBody/properties/events",
         "/$defs/AuthorizationLeaseIssueRequestBody/properties/intents",
         "/$defs/ControlGovernanceHealth/properties/pending_proposals/items/properties/fault_reason",

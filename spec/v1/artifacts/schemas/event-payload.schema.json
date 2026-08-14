@@ -345,7 +345,16 @@
           "description": "Machine-readable account status diagnostic. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes (for example deactivation_federation_incomplete)."
         },
         "reason": {
-          "type": "string"
+          "type": "string",
+          "maxLength": 256,
+          "description": "Bounded human-readable audit note. It never supplies membership authority or proves cascade provenance."
+        },
+        "membership_cause": {
+          "$ref": "./agent-membership-cascade.schema.json#/$defs/membership_lifecycle_cause"
+        },
+        "agent_controller_binding": {
+          "$ref": "./agent-membership-cascade.schema.json#/$defs/agent_controller_membership_binding",
+          "description": "Required by semantic admission for every Native Personal Agent join and every controller-membership-ended cleanup. Non-Agent membership MUST reject it."
         },
         "effective_at": {
           "$ref": "#/$defs/timestamp"
@@ -5882,6 +5891,28 @@
             "required": [
               "delivery_binding"
             ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "membership_cause"
+            ]
+          },
+          "then": {
+            "required": [
+              "agent_controller_binding"
+            ],
+            "properties": {
+              "membership": {
+                "const": "leave"
+              },
+              "agent_controller_binding": {
+                "required": [
+                  "controller_terminal_event_ref"
+                ]
+              }
+            }
           }
         }
       ]

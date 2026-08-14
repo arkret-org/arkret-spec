@@ -4142,6 +4142,18 @@ ineffective。客户端提交逐 key/grant revoke bundle、只清 UI cache、或
 `agent_projection` 增加 `runtime_state`、或 generic `key_state` 增加 `status` / `runtime_state` 的 schema case
 必须失败；pairing poll outcome 仍必须要求其 operation-local `runtime_state`，证明不是删除 diagnostic enum。
 
+#### 11.4.1 Vector: Controller Membership → Native Agent Cascade
+
+`vector_id`: `ak.vector.agent.membership_cascade.v1`
+
+runner MUST 执行 `agent-membership-cascade-fixture.json` 的全部 semantic cases，并至少构造以下真实签名路径：
+
+1. Agent join 绑定 controller exact `(principal_id, principal_server_id)` 与当前 controller join Event ID；controller leave/ban 或 rejoin 使旧 binding 立即 effective-invalid。
+2. self leave 的 `atomic_self_leave` 缺任一 Agent、增加额外 Agent、重复、换 Realm/pair/generation/signer 或把 leave 改成其它 membership 时，controller 和 Agent Events 全部零写入；完整集合一次性成功。
+3. 第三方 `emergency_terminal` 在 Agent cleanup 不可用时仍接受 terminal Event、durable 写 exact-set intent并返回 `terminal_applied_cleanup_pending`；Agent 从该 basis 起不能 author、取 capability、收 delivery、领 KeyPackage 或保留 MLS active membership。
+4. `emergency_cleanup` 只接受原 initiator 对同 intent 的完整签名集合；restart 后 exact replay 幂等，异内容冲突，overdue 不解封，服务端从不合成 Agent Event。
+5. 单独伪造 `membership_cause="controller_membership_ended"` 或自由文本 `reason` 不产生任何 cascade authority。
+
 ### 11.5 Vector: Act-on-behalf Attribution
 
 `vector_id`: `ak.vector.agent.act_on_behalf.v1`

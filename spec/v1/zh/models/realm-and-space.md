@@ -447,7 +447,9 @@ Realm 有两个终态 event，语义不同：
 
 共享表未列出的 transition MUST `failed_precondition`，reason=`invalid_membership_transition` 或更具体的 join / delivery-binding reason。`join -> invite`、`ban -> join`、`invite -> knock`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
 
-上表 `leave -> join` 另有一个封闭的 Native Personal Agent controller carve-out：当 writer 是 target agent 的已验证 controller、writer 自身在目标 Realm 为 active `join`、target agent lifecycle 为 `active`，且 accountability / Realm native-agent policy / Join Policy / MLS admission 全部通过时，controller MAY 直接写入 target agent 的 `join`。该写入不产生 invite，也不需要 agent runtime 接受。该 carve-out 不授予 writer 通用 `ak.realm.admin`，不得用于其他 principal。反向约束同样是强制的：controller 从 `join` 转为 `leave` / `ban` 时，其在该 Realm 内仍为 `join` 的 Native Personal Agents MUST 级联为 `leave`（reason=`controller_membership_ended`）；已为 `ban` 的 agent 保持 `ban`，不得被 cascade 降级。
+上表 `leave -> join` 另有一个封闭的 Native Personal Agent controller carve-out：当 writer 是 target agent 的已验证 controller、writer 自身在目标 Realm 为 active `join`、target agent lifecycle 为 `active`，且 accountability / Realm native-agent policy / Join Policy / MLS admission 全部通过时，controller MAY 直接写入 target agent 的 `join`。该写入不产生 invite，也不需要 agent runtime 接受；payload 的 `agent_controller_binding` MUST 钉住 controller exact authority pair 与建立当前 `join` 的 Event ID。该 carve-out 不授予 writer 通用 `ak.realm.admin`，不得用于其他 principal。
+
+controller terminal transition 不再隐式改写 Agent canonical member cell。effective Agent membership 从 accepted member/controller/provision facts确定性派生；controller 不再处于 binding 所指 generation 的 active `join` 时，Agent 在同一 control view 立即无效。canonical cleanup 只接受 [`actor.md` §3.3](./actor.md) 定义的签名 cascade unit：self leave 为 controller transition + exact Agent leave set 的原子 batch；第三方紧急 ban/remove 为 terminal Event + durable exact-set cleanup intent，后续 complete-set batch 一次性写入 Agent leave。已为 `ban` 的 Agent 保持 `ban`，不得被 cleanup 降级；controller rejoin 的新 Event ID 不复活旧 Agent binding。
 
 ### 2.8 Realm 角色分类（normative）
 

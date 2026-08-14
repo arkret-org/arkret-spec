@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.3",
+  "version": "2026-08-15.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T12:15:00Z",
+  "generated_at": "2026-08-15T01:20:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -52,6 +52,12 @@
       "file": "schemas/accountability-grant.schema.json",
       "status": "active",
       "description": "Issuer-signed accountability endorsement for Actor Profile accountable_principal_ids verification."
+    },
+    {
+      "schema_id": "ak.schema.agent_membership_cascade.v1",
+      "file": "schemas/agent-membership-cascade.schema.json",
+      "status": "active",
+      "description": "Closed Native Personal Agent controller-membership binding and durable exact-set emergency cleanup state."
     },
     {
       "schema_id": "ak.schema.agent_provision.v1",

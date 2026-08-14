@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 184,
+    "total_schemas": 185,
     "by_consumer": {
       "declared_wire": 43,
       "event_kind": 4,
       "inbound": 46,
       "outbound": 49,
-      "prose": 106,
+      "prose": 107,
       "prose_only": 2,
-      "schema_reference": 110,
-      "startup_compile": 184,
+      "schema_reference": 111,
+      "startup_compile": 185,
       "vectors": 116
     },
     "without_wire_consumer": 6,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 4,
-    "without_vector_coverage": 68,
+    "without_vector_coverage": 69,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -83,6 +83,7 @@
     "ak.schema.account_operations.v1",
     "ak.schema.accountability_grant.v1",
     "ak.schema.actor_profile_operations.v1",
+    "ak.schema.agent_membership_cascade.v1",
     "ak.schema.agent_operations.v1",
     "ak.schema.agent_pairing_bootstrap.v1",
     "ak.schema.applet.v1",
@@ -280,6 +281,23 @@
           "ak.self.actor_profile.read.resolve"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      }
+    },
+    {
+      "schema_id": "ak.schema.agent_membership_cascade.v1",
+      "file": "schemas/agent-membership-cascade.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.event_payload.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
     },
     {
@@ -996,6 +1014,7 @@
           "ak.schema.accountability_grant.v1",
           "ak.schema.actor_profile.v1",
           "ak.schema.actor_profile_operations.v1",
+          "ak.schema.agent_membership_cascade.v1",
           "ak.schema.agent_operations.v1",
           "ak.schema.agent_pairing_bootstrap.v1",
           "ak.schema.agent_provision.v1",
@@ -3215,6 +3234,7 @@
           "ak.schema.account_subscribe_frame.v1",
           "ak.schema.accountability_grant.v1",
           "ak.schema.actor_profile.v1",
+          "ak.schema.agent_membership_cascade.v1",
           "ak.schema.agent_operations.v1",
           "ak.schema.agent_pairing_bootstrap.v1",
           "ak.schema.agent_provision.v1",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.7",
+  "version": "2026-08-15.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T13:40:00Z",
+  "generated_at": "2026-08-15T01:20:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -1672,7 +1672,7 @@
       "http": "POST /_arkret/peer/events",
       "grpc": "PeerEvents/Submit",
       "mq": "peer.events.command.submit",
-      "notes": "Federation peer Event publication. Each EventFederationSubmission carries the original signed Event. Ordinary online publication omits AuthorizationLease and uses an empty ingress_receipts array; explicit delayed/offline publication carries the lease and at least one original lease-bound IngressReceipt. An ak.member.state compensation publication additionally carries the unchanged transport-only membership_compensation_evidence and the receiver applies the same exact admission/incarnation/action/executor/single-use evaluator as initial submission. Request-level CbaProofBundle values provide receiver-relative dependency closure. The receiver independently validates every Event, optional lease, receipt threshold, compensation evidence, bundle object and reducer result. Ordinary missing dependencies use HTTP 200 partial items with reason_code=dependency_missing and non-empty typed missing sets; registered atomic units use top-level HTTP 409 dependency_missing with EventsDependencyMissingProblem and zero writes. A received response terminates that Idempotency-Key; a post-backfill submit uses a fresh key. The caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ak.invite.claim remains decided by the destination Realm reducer. The request union additionally registers the discriminated direct_conversation_founding branch for the Direct Conversation founding exception of zh/sync/federation.md section 4.0.4: it carries exactly three ordered EventFederationSubmission items, the source DirectConversationFoundingAcceptanceReceipt and bounded dependencies, and it omits service_binding_ref because the Realm does not yet exist at the receiver. The receiver freshly verifies transport source authority over founder_id, cutover/fence continuity when the receipt came from a pre-migration service, destination binding to the local participant, body closure, recomputed founding_unit_digest and coordinates, and the full direct_conversation_genesis admission before admitting the unit at one atomic boundary. A missing Contact round mirror or other bounded dependency is a retryable top-level HTTP 409 dependency_missing with zero writes, never a per-item partial and never a permanent rejection.",
+      "notes": "Federation peer Event publication. Each EventFederationSubmission carries the original signed Event. Ordinary online publication omits AuthorizationLease and uses an empty ingress_receipts array; explicit delayed/offline publication carries the lease and at least one original lease-bound IngressReceipt. An ak.member.state compensation publication additionally carries the unchanged transport-only membership_compensation_evidence and the receiver applies the same exact admission/incarnation/action/executor/single-use evaluator as initial submission. Request-level CbaProofBundle values provide receiver-relative dependency closure. The receiver independently validates every Event, optional lease, receipt threshold, compensation evidence, bundle object and reducer result. Ordinary missing dependencies use HTTP 200 partial items with reason_code=dependency_missing and non-empty typed missing sets; registered atomic units use top-level HTTP 409 dependency_missing with EventsDependencyMissingProblem and zero writes. A received response terminates that Idempotency-Key; a post-backfill submit uses a fresh key. The caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ak.invite.claim remains decided by the destination Realm reducer. The request union additionally registers the discriminated direct_conversation_founding branch for the Direct Conversation founding exception of zh/sync/federation.md section 4.0.4: it carries exactly three ordered EventFederationSubmission items, the source DirectConversationFoundingAcceptanceReceipt and bounded dependencies, and it omits service_binding_ref because the Realm does not yet exist at the receiver. The receiver freshly verifies transport source authority over founder_id, cutover/fence continuity when the receipt came from a pre-migration service, destination binding to the local participant, body closure, recomputed founding_unit_digest and coordinates, and the full direct_conversation_genesis admission before admitting the unit at one atomic boundary. The agent_membership_cascade branch preserves the origin-signed controller terminal Event and Agent transitions and applies the same exact controller pair/generation, pre-state exact-set, signer and atomicity rules as self submission. A missing dependency for either registered unit is a retryable top-level HTTP 409 dependency_missing with zero writes, never a per-item partial and never a permanent rejection.",
       "body_class": "non_streaming_json",
       "max_items": 500,
       "success_shape_kind": "typed_response",
@@ -1682,7 +1682,11 @@
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome",
       "durable_effect": {
         "kind": "event_log",
-        "event_kind_source": "$request.events[*].event.kind"
+        "event_kind_sources": [
+          "$request.events[*].event.kind",
+          "$request.controller_transition.event.kind",
+          "$request.agent_transitions[*].event.kind"
+        ]
       }
     },
     {
@@ -3295,7 +3299,7 @@
       "http": "POST /_arkret/self/events",
       "grpc": "SelfEvents/Submit",
       "mq": "self.events.command.submit",
-      "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbaProofBundle values are independently verified publication evidence outside the Event digest. Before accepting a device-authored Event or appending principal_server_admission, the origin Principal Server reads the exact durable device revocation state in the same admission transaction; revocation_pending returns device_revocation_pending and zero Event/proof writes. Accepted ak.device.revoke is Ack-required and atomically writes its derived exact device/generation pending record. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state. The request union additionally registers the discriminated direct_conversation_founding branch, the only carrier for a Direct Conversation founding unit: the founder authors all three Events itself, realm_id and main_strand_id are retyped from the first and third Event IDs, and the service allocates no identifier and issues no draft. That branch requires exactly three ordered EventInitialSubmission items, closed XOR founding authority evidence and an idempotency_key, accepts zero or three Events inside one slot transaction, and returns DirectConversationFoundingAcceptanceOutcome with the source-signed receipt. Same key plus the same unit replays the byte-identical receipt without advancing accepted_at; same key plus a different unit is duplicate_conflict; a slot already closed by another unit for the same pair is slot_already_committed. All four outcomes write zero Events on failure.",
+      "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CbaProofBundle values are independently verified publication evidence outside the Event digest. Before accepting a device-authored Event or appending principal_server_admission, the origin Principal Server reads the exact durable device revocation state in the same admission transaction; revocation_pending returns device_revocation_pending and zero Event/proof writes. Accepted ak.device.revoke is Ack-required and atomically writes its derived exact device/generation pending record. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state. The direct_conversation_founding branch remains its closed three-Event atomic unit. The agent_membership_cascade branch is the only controller-cascade carrier: atomic_self_leave accepts the controller terminal Event and the exact pre-state Agent leave set all-or-nothing; emergency_terminal accepts a third-party terminal Event and atomically freezes a durable exact-set cleanup intent without synthesizing Agent Events; emergency_cleanup accepts only the same initiator's complete signed Agent leave set and commits it atomically. Effective Agent membership is invalid immediately after the terminal transition, independent of cleanup completion. Exact replay returns the original byte-identical outcome, while the same cleanup intent with different canonical content is duplicate_conflict.",
       "body_class": "non_streaming_json",
       "max_items": 1000,
       "success_shape_kind": "typed_response",
@@ -3307,7 +3311,9 @@
         "kind": "event_log",
         "event_kind_sources": [
           "$request.event.kind",
-          "$request.events[*].event.kind"
+          "$request.events[*].event.kind",
+          "$request.controller_transition.event.kind",
+          "$request.agent_transitions[*].event.kind"
         ]
       }
     },
