@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9617,
+    "total_properties": 9618,
     "total_schema_documents": 156,
     "by_presence_class": {
       "optional": 2819,
       "optional_defaulted": 69,
-      "required": 6343,
+      "required": 6344,
       "required_nullable": 129,
       "tristate": 257
     },
@@ -10527,6 +10527,7 @@
       "properties": {
         "/allOf/0/if/properties/source": "required",
         "/properties/as_of": "required",
+        "/properties/encryption_profile": "required",
         "/properties/endpoint": "optional",
         "/properties/expires_at": "required",
         "/properties/frontier_ref": "optional",

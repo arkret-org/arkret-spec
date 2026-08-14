@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-14.3",
+  "version": "2026-08-14.4",
   "codes": [
     {
       "code": "json_invalid",
@@ -3373,6 +3373,27 @@
         "auth_decision"
       ],
       "description": "An Invite state transition is rejected because the target Invite is already in a terminal flow state (`accepted` / `rejected` / `revoked` / `revoked_by_capability_loss` / `revoked_by_inviter_left` / `expired` / `invalidated_by_rate_limit`). Note the Invite `state` is the invite flow axis (not the generic object lifecycle axis); see zh/models/governance-objects.md §5.3."
+    },
+    {
+      "code": "invite_event_actor_mismatch",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Sub-reason for failed_precondition when ak.self.invites.command.dispatch carries an invite_event whose signing actor is not the authenticated session actor. The service MUST NOT co-sign or re-author the Event; see zh/sync/invite-addressing.md §7."
+    },
+    {
+      "code": "invite_event_bytes_mismatch",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Sub-reason for failed_precondition when the invite_event supplied to ak.self.invites.command.dispatch is not byte-for-byte equal to the canonical Event bytes this service already accepted. Clients MUST read the Event back through ak.self.events.read.resolve instead of re-authoring it; see zh/sync/invite-addressing.md §7."
+    },
+    {
+      "code": "invite_event_unaccepted",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Sub-reason for failed_precondition when ak.self.invites.command.dispatch references an invite_event this Principal Server has not accepted. Private delivery only starts from an already accepted durable ak.invite.create; see zh/sync/invite-addressing.md §7."
     },
     {
       "code": "invite_kind_requires_revoke",

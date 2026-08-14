@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.8",
+  "version": "2026-08-14.9",
   "source_of_truth": true,
-  "generated_at": "2026-08-14T10:32:27Z",
+  "generated_at": "2026-08-14T11:20:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -12448,7 +12448,7 @@
         "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
         "durable_effect": {
           "kind": "none",
-          "rationale": "delivers_existing_signed_event_without_committing_a_local_event"
+          "rationale": "persists_a_byte_identical_service_local_peer_relay_outbox_without_authoring_an_event"
         }
       },
       {
@@ -14963,8 +14963,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-14.4",
-    "generated_at": "2026-08-14T10:32:27Z"
+    "version": "2026-08-14.5",
+    "generated_at": "2026-08-14T11:20:00Z"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

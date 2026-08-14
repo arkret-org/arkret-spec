@@ -21,26 +21,26 @@
     },
     {
       "path": "spec/v1/artifacts/registry/authority-source-registry.json",
-      "version": "2026-08-14.8",
-      "generated_at": "2026-08-14T10:32:27Z",
+      "version": "2026-08-14.9",
+      "generated_at": "2026-08-14T11:20:00Z",
       "content_digest": "sha256:ff47b6802c2062c7ce8061c1e40bd8ae49331df16d9abfa449e71ecbd69d6a20"
     },
     {
       "path": "spec/v1/artifacts/registry/binding-kind-registry.json",
-      "version": "2026-08-14.8",
-      "generated_at": "2026-08-14T10:32:27Z",
+      "version": "2026-08-14.9",
+      "generated_at": "2026-08-14T11:20:00Z",
       "content_digest": "sha256:dfb055a9e4c061b8b6eba878f56b4c32b7ed27e6c3560f2342f3dc32844eeddf"
     },
     {
       "path": "spec/v1/artifacts/registry/calendar-timezone-registry.json",
-      "version": "2026-08-14.8",
-      "generated_at": "2026-08-14T10:32:27Z",
+      "version": "2026-08-14.9",
+      "generated_at": "2026-08-14T11:20:00Z",
       "content_digest": "sha256:f540c35cee7467fdb38a280b5d4baae5cf078d7c565228f860fa1d47b008e392"
     },
     {
       "path": "spec/v1/artifacts/registry/capability-action-registry.json",
-      "version": "2026-08-14.8",
-      "generated_at": "2026-08-14T10:32:27Z",
+      "version": "2026-08-14.9",
+      "generated_at": "2026-08-14T11:20:00Z",
       "content_digest": "sha256:fd8b7abb917818751cd160f581de299ef4db311f2d82a0cd0c0677b2557a0617"
     },
     {
@@ -51,9 +51,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-08-14.8",
-      "generated_at": "2026-08-14T10:32:27Z",
-      "content_digest": "sha256:96077c62d132b50ff4c205921c6045a963a4bcf022caad4edf84a2d173baa284"
+      "version": "2026-08-14.9",
+      "generated_at": "2026-08-14T11:20:00Z",
+      "content_digest": "sha256:78e7528959888f75680a4268a9f433f93e207f176fb5598e9dd3b7148e6f9028"
     },
     {
       "path": "spec/v1/artifacts/registry/did-freshness-profile-registry.json",
@@ -63,8 +63,8 @@
     },
     {
       "path": "spec/v1/artifacts/registry/did-method-adapter-registry.json",
-      "version": "2026-08-14.8",
-      "generated_at": "2026-08-14T10:32:27Z",
+      "version": "2026-08-14.9",
+      "generated_at": "2026-08-14T11:20:00Z",
       "content_digest": "sha256:0b8be64d9b19a73b2c2a708debc01a731af33e391ee9c2221d9bf0089f3e7b42"
     },
     {
@@ -75,14 +75,14 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-08-14.3",
+      "version": "2026-08-14.4",
       "generated_at": null,
-      "content_digest": "sha256:6ef1c4326a5dce44e032975143507b2690e56b368ef5e6a8a30054c64df83fa3"
+      "content_digest": "sha256:2b82b03380a85f9bc16ec581304bd1a2ca8a072ddf8f27f36a302f7f6bf2cb1f"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-08-14.8",
-      "generated_at": "2026-08-14T10:32:27Z",
+      "version": "2026-08-14.9",
+      "generated_at": "2026-08-14T11:20:00Z",
       "content_digest": "sha256:0aedc3bee7e77a334429623a60a9f713817dbf99801fa7783476d8a4abc1b8d9"
     },
     {
@@ -153,15 +153,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-08-14.4",
-      "generated_at": "2026-08-14T10:32:27Z",
-      "content_digest": "sha256:8815fde8a58728526322841b26458e164c9b52b459bf8897442e896fc9f96d3e"
+      "version": "2026-08-14.5",
+      "generated_at": "2026-08-14T11:20:00Z",
+      "content_digest": "sha256:bc33f65f51690ef66d8ce608464a6948b39e7214f0494e296c9266e75990c562"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-08-14.6",
-      "generated_at": "2026-08-14T10:32:27Z",
-      "content_digest": "sha256:6729b23c6cbb15d486070e78880ab3354c02e5d78c658b37ff22c1bde0034038"
+      "version": "2026-08-14.7",
+      "generated_at": "2026-08-14T11:20:00Z",
+      "content_digest": "sha256:de06545aedad78175d3bbed2a70494fd4d408134c2c441586e2183b422a207db"
     },
     {
       "path": "spec/v1/artifacts/registry/preimage-identity-exemption-registry.json",
@@ -243,8 +243,8 @@
     },
     {
       "path": "spec/v1/artifacts/registry/track-name-registry.json",
-      "version": "2026-08-14.8",
-      "generated_at": "2026-08-14T10:32:27Z",
+      "version": "2026-08-14.9",
+      "generated_at": "2026-08-14T11:20:00Z",
       "content_digest": "sha256:931cd839a81f5f04e6286b9f2980de2202b267cf1084dc28a9a449ffa52f14b9"
     },
     {

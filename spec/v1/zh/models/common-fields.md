@@ -399,7 +399,7 @@ Realm 与 Circle membership 共用本节唯一的状态图。`initial_state=leav
 | --- | --- | --- | --- | --- |
 | `leave` | `invite` | `ak.invite.create`（directed 分支，条件性 `member.state` projection） | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
 | `leave` | `knock` | `ak.member.state` | target actor，且 Join Rule / Join Policy 允许 | target actor，且 `join_rule=knock` |
-| `leave` | `join` | `ak.member.state`；`ak.realm.create`（creator 自身，见 [`realm-and-space.md` §2.5](realm-and-space.md)） | target actor 通过 public/restricted gate，或 `ak.realm.admin`；Native Personal Agent carve-out 见 Realm 文档 | target actor 仅当 `join_rule=public`，否则 `ak.circle.member.manage` |
+| `leave` | `join` | `ak.member.state`（Realm bootstrap 的 creator slot 同样走本 kind，见 [`realm-and-space.md` §2.7](realm-and-space.md)；`ak.realm.create` 自身不承载 membership 边） | target actor 通过 public/restricted gate，或 `ak.realm.admin`；Native Personal Agent carve-out 见 Realm 文档 | target actor 仅当 `join_rule=public`，否则 `ak.circle.member.manage` |
 | `invite` | `join` | `ak.invite.accept` | target actor 或 `ak.realm.admin` | target actor（`ak.circle.member.add`）或 `ak.circle.member.manage` |
 | `invite` | `leave` | `ak.invite.cancel` / `ak.invite.revoke`（条件性 `member.state` projection） | target actor、inviter 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
 | `knock` | `invite` | `ak.invite.create`（reviewer 批准后签发定向 invite） | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
