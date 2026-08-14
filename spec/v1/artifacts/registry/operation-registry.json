@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.3",
+  "version": "2026-08-14.4",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T06:42:10Z",
+  "generated_at": "2026-08-14T10:45:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -115,6 +115,7 @@
         "ak.self.account.read.describe",
         "ak.self.account.read.viewer",
         "ak.self.account.command.update_profile",
+        "ak.self.actor_profile.read.resolve",
         "ak.self.account.stream.subscribe",
         "ak.self.account.command.revoke_cursor",
         "ak.self.snapshot.read.manifest_head"
@@ -436,6 +437,7 @@
       "surface": "identity_resolution",
       "operations": [
         "ak.open.identity.read.resolution",
+        "ak.self.identity.read.resolution_audit",
         "ak.open.service.read.resolution"
       ],
       "surface_class": "extension"
@@ -1340,10 +1342,10 @@
       "http": "GET /_arkret/open/principals/{principal_id}/resolution",
       "grpc": "OpenIdentity/Resolution",
       "mq": "open.identity.query.resolution",
-      "notes": "Reads the owner-published current principal resolution evidence from the known Principal Server. history_depth bounds selective history disclosure; after_resolution_event_ref requests only the successor chain after a known ancestor and never exposes unrelated PCR control history. This is a second-hop evidence fetch, not a global resolver or authorization oracle. Sensitive consumers fetch fresh, validate PCR Event/Seal/cell evidence, independently run the registered DID method adapter, and require project(full_id)=principal_id; durable storage of arbitrary remote-principal bindings is not required.",
+      "notes": "Reads the current public principal resolution projection from the known Principal Server. The response carries only the account pair, the projection, bounded adapter method evidence and the Principal Server projection attestation; it MUST NOT carry principal_control_realm_id, PCR genesis Event, genesis receipt, resolution Events, accepted Seal or resolution cell proof. Account-internal audit and recovery material moved to ak.self.identity_resolution_audit.read.resolve, so this surface has no history selector. This is a second-hop projection fetch, not a global resolver or authorization oracle. Sensitive consumers fetch fresh, verify the attestation proof under the current principal_server_id method history, independently run the registered DID method adapter, and require project(full_id)=principal_id; durable storage of arbitrary remote-principal bindings is not required.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
-      "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_evidence"
+      "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/public_principal_resolution"
     },
     {
       "operation_id": "ak.open.service.read.resolution",
@@ -2530,6 +2532,17 @@
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_view"
     },
     {
+      "operation_id": "ak.self.actor_profile.read.resolve",
+      "http": "POST /_arkret/self/actor-profiles/query",
+      "grpc": "SelfActorProfile/Resolve",
+      "mq": "self.actor_profile.query.resolve",
+      "notes": "Only outward carrier for the PCR-resident ak.profile.create / ak.profile.update facts. A global profile Event lives in its owner's Principal Control Realm, so a co-member cannot reach it through a Realm-scoped read and MUST NOT reach it through a cross-principal actor selector on ak.self.events.read.scan. Authorization is current effective joined membership of body realm_id for both the caller and each returned actor; realm_id MUST NOT be a Principal Control Realm. Each row returns the exact signed profile Event and the accepted Seal covering that one event_digest, and never any other Event of that Realm. Unknown actor, actor without an accepted profile, non-member actor and unauthorized caller all report profile_unavailable so the operation cannot probe membership or account existence.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_request",
+      "response_schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome"
+    },
+    {
       "operation_id": "ak.self.agent_signer_evidence.read.resolve",
       "http": "POST /_arkret/self/agent-signer-evidence/query",
       "grpc": "SelfAgentSignerEvidence/Resolve",
@@ -3335,6 +3348,17 @@
       "notes": "Long-lived per-Realm / actor event stream with optional bounded catch-up replay. `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same caller/selector scope; early reconnects are rejected with rate_limited / Retry-After.",
       "body_class": "streaming_ndjson",
       "success_shape_kind": "event_stream"
+    },
+    {
+      "operation_id": "ak.self.identity.read.resolution_audit",
+      "http": "POST /_arkret/self/identity/resolution-audit/query",
+      "grpc": "SelfIdentity/ResolutionAudit",
+      "mq": "self.identity.query.resolution_audit",
+      "notes": "Authorized account-internal resolution audit and recovery evidence: PCR realm id, genesis Event and receipt, current and bounded predecessor resolution Events, accepted Seal and resolution cell proof. Authorization is a current holder session bound to principal_authority, an accepted recovery session for it, or an explicit recovery capability; a caller-declared intent is never authorization because any authenticated enumerator can assert one. Unknown account, wrong authority pair, unauthorized caller and unknown history cursor share one anti-enumeration outcome. history_depth is the closed range 0..256 with default 0 and MUST NOT be silently capped; after_resolution_event_ref stops the disclosed segment exclusively at a known ancestor in this account's lineage and requires history_depth >= 1. A truncated segment sets history_complete=false and returns next_audit_cursor; omitted history is unknown, never absent.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_request",
+      "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence"
     },
     {
       "operation_id": "ak.self.invite_locator.command.issue",

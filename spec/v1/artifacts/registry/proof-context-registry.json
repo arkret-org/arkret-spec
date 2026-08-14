@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-13.2",
+  "version": "2026-08-13.3",
   "source_of_truth": true,
   "description": "Canonical domain-separation contexts for Arkret detached proofs. Context is part of the canonical signing binding object and is not a wire field in the generic proof shape.",
   "registry_rules": [
@@ -540,6 +540,23 @@
       ],
       "defined_in": "zh/identity/identity-handles.md",
       "schema_ref": "schemas/principal-locator.schema.json"
+    },
+    {
+      "context": "ak.principal-resolution-projection-attestation-proof-v1",
+      "object_family": "principal_resolution_projection_attestation",
+      "binding_fields": [
+        "payload_digest",
+        "principal_id",
+        "principal_server_id",
+        "resolution_projection",
+        "method_history_evidence_digest",
+        "issued_at",
+        "expires_at",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/identity/identity-did.md",
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_projection_attestation"
     },
     {
       "context": "ak.principal-server-admission-proof-v1",

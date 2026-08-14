@@ -5,7 +5,10 @@
   "description": "Canonical did_core_id/full_id resolution state, owner-published evidence and service-route bootstrap contracts. A full_id is a standard bare DID and a did_core_id is the stable Arkret business identity projected by a registered DID method adapter.",
   "oneOf": [
     {
-      "$ref": "#/$defs/principal_resolution_evidence"
+      "$ref": "#/$defs/public_principal_resolution"
+    },
+    {
+      "$ref": "#/$defs/principal_resolution_audit_evidence"
     },
     {
       "$ref": "#/$defs/service_resolution_record"
@@ -360,9 +363,181 @@
       },
       "additionalProperties": false
     },
-    "principal_resolution_evidence": {
+    "principal_resolution_projection_attestation_core": {
       "type": "object",
-      "description": "Resolution evidence for one account selected by (principal_id, principal_server_id). PCR genesis, realm and Seal material may support account-local audit and recovery but MUST NOT be compared as external identity or required to validate an ordinary federated Event carrying a Principal Server admission proof.",
+      "description": "Principal Server assertion that resolution_projection is the current accepted value of this account's singleton resolution cell. It carries no PCR realm id, Event, receipt or Seal: the public consumer verifies the account pair, the projection and the bounded method history, not the account's internal control stream.",
+      "required": [
+        "principal_id",
+        "principal_server_id",
+        "resolution_projection",
+        "method_history_evidence_digest",
+        "issued_at",
+        "expires_at"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "principal_server_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "resolution_projection": {
+          "$ref": "#/$defs/resolution_projection"
+        },
+        "method_history_evidence_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "sha256 over RFC 8785 JCS of the exact method_history_evidence object carried in the same response. It binds the attestation to the bounded adapter evidence so neither half can be swapped."
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "MUST be strictly earlier than expires_at and MUST equal proof.created_at."
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Hard freshness bound. A consumer performing a security-sensitive action MUST refetch at or after this instant; a cache never extends it."
+        }
+      },
+      "additionalProperties": false
+    },
+    "principal_resolution_projection_attestation_proof_transcript": {
+      "type": "object",
+      "description": "RFC 8785 canonical detached-signature transcript. payload_digest is sha256 over RFC 8785 JCS of the complete attestation core. verification_method MUST resolve through the current verified method history of principal_server_id and MUST be an assertion-capable key; a mirror, relay or session key is never valid here.",
+      "required": [
+        "context",
+        "payload_digest",
+        "principal_id",
+        "principal_server_id",
+        "resolution_projection",
+        "method_history_evidence_digest",
+        "issued_at",
+        "expires_at",
+        "verification_method",
+        "created_at"
+      ],
+      "properties": {
+        "context": {
+          "const": "ak.principal-resolution-projection-attestation-proof-v1"
+        },
+        "payload_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "principal_server_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "resolution_projection": {
+          "$ref": "#/$defs/resolution_projection"
+        },
+        "method_history_evidence_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "created_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "principal_resolution_projection_attestation": {
+      "type": "object",
+      "description": "Complete Principal-Server-signed projection attestation. The detached proof signs the canonical transcript above; proof.created_at MUST equal attestation.issued_at.",
+      "required": [
+        "attestation",
+        "proof"
+      ],
+      "properties": {
+        "attestation": {
+          "$ref": "#/$defs/principal_resolution_projection_attestation_core"
+        },
+        "proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "public_principal_resolution": {
+      "type": "object",
+      "description": "Complete public resolution response for one account selected by (principal_id, principal_server_id). It is the only unauthenticated resolution surface and it MUST NOT carry principal_control_realm_id, PCR genesis Event, genesis receipt, resolution Events, accepted Seal or resolution cell proof; those are account-internal audit/recovery material served only by the authorized audit operation. A consumer verifies the service route for principal_server_id, then the attestation proof, then project(full_id)=principal_id and the bounded method history; a set of bare unproven fields is not a valid response.",
+      "required": [
+        "principal_id",
+        "principal_server_id",
+        "resolution_projection",
+        "method_history_evidence",
+        "projection_attestation"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "principal_server_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Principal Server for this account authority. Together with principal_id it is the complete public selector and the complete external identity; no PCR-derived value participates in principal equality."
+        },
+        "resolution_projection": {
+          "$ref": "#/$defs/resolution_projection",
+          "description": "Current accepted value of the singleton resolution cell. resolution_event_ref is an opaque head coordinate for staleness comparison; it is not a handle for fetching that Event through any public surface."
+        },
+        "method_history_evidence": {
+          "$ref": "#/$defs/method_history_evidence",
+          "description": "Bounded adapter-routed evidence for exactly the projected history position. It is required: without it the projection is an unverifiable server assertion."
+        },
+        "projection_attestation": {
+          "$ref": "#/$defs/principal_resolution_projection_attestation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "principal_resolution_audit_request": {
+      "type": "object",
+      "description": "Authorized request for account-internal resolution audit/recovery evidence. Authorization is a current holder session bound to principal_authority, an accepted recovery session for it, or an explicit recovery capability; caller-declared intent is never authorization. Unknown account, wrong authority pair, unauthorized caller and unknown history cursor are externally indistinguishable and share the anti-enumeration outcome.",
+      "required": [
+        "principal_authority"
+      ],
+      "properties": {
+        "principal_authority": {
+          "type": "object",
+          "required": [
+            "principal_id",
+            "principal_server_id"
+          ],
+          "properties": {
+            "principal_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            "principal_server_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+              "description": "MUST equal the serving Principal Server DID. A different value is an unknown account, not a referral."
+            }
+          },
+          "additionalProperties": false
+        },
+        "history_depth": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 256,
+          "default": 0,
+          "description": "Maximum number of post-genesis predecessor resolution Events to disclose, counted backwards from current_resolution_event. 0 discloses the current head only. A value outside the closed range is param_invalid; an implementation MUST NOT substitute a private cap."
+        },
+        "after_resolution_event_ref": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref",
+          "description": "Known ancestor already held by the caller. The disclosed segment stops exclusively at it, so only the unknown suffix is returned. It MUST be the genesis Event or an accepted ak.identity.resolution.update in this account's current lineage; a ref outside that lineage is param_invalid with reason resolution_history_ancestor_unknown. Supplying it with history_depth 0 is param_invalid, because depth 0 discloses no predecessor and the cursor could not apply."
+        }
+      },
+      "additionalProperties": false
+    },
+    "principal_resolution_audit_evidence": {
+      "type": "object",
+      "description": "Account-internal resolution audit and recovery evidence for one account selected by (principal_id, principal_server_id). It is served only by the authorized audit operation. PCR genesis, realm and Seal material support account-local audit and recovery; they MUST NOT be compared as external identity, MUST NOT be required to validate an ordinary federated Event carrying a Principal Server admission proof, and MUST NOT be republished on any unauthenticated surface.",
       "required": [
         "principal_id",
         "principal_server_id",
@@ -371,6 +546,7 @@
         "principal_genesis_event",
         "current_resolution_event",
         "predecessor_resolution_events",
+        "history_complete",
         "accepted_seal",
         "resolution_cell_proof"
       ],
@@ -399,10 +575,14 @@
         "predecessor_resolution_events": {
           "type": "array",
           "maxItems": 256,
-          "description": "Selected post-genesis resolution update Events preceding current_resolution_event, ordered from the current event's immediate predecessor toward older events and contiguous for the supplied range. The genesis Event is carried separately and MUST NOT be repeated here. If the selected range does not reach head 0, the oldest supplied Event's guarded predecessor projection is the next audit cursor; omitted history is unknown rather than absent.",
+          "description": "Post-genesis resolution update Events preceding current_resolution_event, ordered from the current event's immediate predecessor toward older events and contiguous with no gaps. The genesis Event is carried separately and MUST NOT be repeated here. The segment ends at whichever comes first: request history_depth items, the exclusive request after_resolution_event_ref ancestor, or head 0. A server MAY return a shorter contiguous segment than requested when a response bound applies, MUST NOT return more items than history_depth, and MUST NOT skip an intermediate Event.",
           "items": {
             "$ref": "#/$defs/resolution_update_event"
           }
+        },
+        "history_complete": {
+          "type": "boolean",
+          "description": "True exactly when the disclosed segment reaches its requested stop condition: head 0, or the exclusive after_resolution_event_ref ancestor. False means disclosure was truncated and next_audit_cursor is present. Omitted history is unknown rather than absent."
         },
         "accepted_seal": {
           "$ref": "./seal.schema.json"
@@ -410,11 +590,41 @@
         "resolution_cell_proof": {
           "$ref": "#/$defs/resolution_cell_proof"
         },
+        "next_audit_cursor": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref",
+          "description": "Present exactly when history_complete is false. It equals previous_resolution_event_ref of the oldest supplied Event, which is the next Event the caller has not seen. The caller continues the audit walk by requesting again with this ref already held; it never skips the omitted segment."
+        },
         "method_history_evidence": {
           "$ref": "#/$defs/method_history_evidence"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "history_complete": {
+                "const": false
+              }
+            },
+            "required": [
+              "history_complete"
+            ]
+          },
+          "then": {
+            "required": [
+              "next_audit_cursor"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "next_audit_cursor"
+              ]
+            }
+          }
+        }
+      ]
     },
     "service_resolution_record_core": {
       "type": "object",

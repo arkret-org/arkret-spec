@@ -18,6 +18,7 @@ from .core import (
 from .foundation import (
     check_event_id_suite_registry,
     check_id_form_wire_schema_alignment,
+    check_pcr_exposure_registry,
     check_proof_context_registry,
     check_protocol_layer_registry,
     check_registries,
@@ -212,6 +213,7 @@ def main(argv: list[str] | None = None) -> int:
             ("registry_manifest", lambda: check_registry_manifest(lint)),
             ("timestamp_profile", lambda: check_timestamp_profile_single_source(lint)),
             ("proof_contexts", lambda: check_proof_context_registry(lint)),
+            ("pcr_exposures", lambda: check_pcr_exposure_registry(lint)),
             ("event_id_suite_registry", lambda: check_event_id_suite_registry(lint)),
             ("retired_event_id_contract", lambda: check_retired_event_id_contract(lint)),
             ("registries", lambda: check_registries(lint)),

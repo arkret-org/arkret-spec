@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-14.3",
-  "generated_at": "2026-08-14T06:42:10Z",
+  "version": "2026-08-14.4",
+  "generated_at": "2026-08-14T10:45:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1431,7 +1431,7 @@
     },
     "ak.profile.principal_control_realm.v1": {
       "role": "admin",
-      "description": "Realm profile for a principal-scoped durable control stream. PCR genesis is one create-once atomic unit: identity-root-signed ak.realm.create plus founding-device-signed ak.device.authorize. After genesis, device state and recovery policy live in the PCR; the DID is only the identity-root key log and re-anchor fence.",
+      "description": "Realm profile for a principal-scoped durable control stream. PCR genesis is one create-once atomic unit: identity-root-signed ak.realm.create plus founding-device-signed ak.device.authorize. After genesis, identity resolution, device state and recovery policy live in the PCR; the DID is only the identity-root key log and re-anchor fence.",
       "required_endpoints": [
         "ak.self.events.command.submit",
         "ak.self.events.read.scan",
@@ -1444,6 +1444,7 @@
       ],
       "required_event_kinds": [
         "ak.realm.create",
+        "ak.identity.resolution.update",
         "ak.device.authorize",
         "ak.device.reanchor",
         "ak.device.revoke",
@@ -1501,6 +1502,7 @@
         "allowlist_only": true,
         "allowed_event_kinds": [
           "ak.realm.create",
+          "ak.identity.resolution.update",
           "ak.device.authorize",
           "ak.device.reanchor",
           "ak.device.revoke",
@@ -1523,6 +1525,7 @@
           "ak.contact.accepted",
           "ak.contact.rejected",
           "ak.contact.tombstone",
+          "ak.contact.scope.update",
           "ak.direct_conversation.bound",
           "ak.profile.create",
           "ak.profile.update",
@@ -1637,7 +1640,8 @@
         "Managed Agent PCR genesis created_by and notary MUST equal the Agent DID; a controller authoring under delegation MUST be recorded as executed_by and MUST NOT synthesize an Agent signature.",
         "A managed Agent PCR genesis carries no anchor ref: delegated_pcr_genesis is selected by payload.object.purpose alone, and admission MUST instead reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). No match means zero writes. The genesis MUST arrive in a submission separate from that provision, because a same-unit or same-batch pair is the unconstructible shape encoding.md 6.0.1 forbids. The managed Agent PCR and its controller PCR MUST be hosted by the same Principal Server, since the reverse look-up and the realm-id claim uniqueness are both local decisions.",
         "The effective ak.realm.history_sharing_policy of a PCR is history_sharing_policy_fixed_baseline.value, supplied by this profile. Producers MUST NOT declare history_sharing_policy on the Realm object and MUST NOT emit ak.realm.history_sharing_policy into a PCR; that kind is absent from realm_event_kind_policy.allowed_event_kinds and the write MUST be rejected with principal_control_event_kind_forbidden.",
-        "A PCR MUST NOT carry a Realm alias. ak.realm.alias is absent from realm_event_kind_policy.allowed_event_kinds, so a PCR is addressable only by realm_id; a human-readable alias on an identity-infrastructure control stream would publish the principal's control Realm under a guessable name."
+        "A PCR MUST NOT carry a Realm alias. ak.realm.alias is absent from realm_event_kind_policy.allowed_event_kinds, so a PCR is addressable only by realm_id; a human-readable alias on an identity-infrastructure control stream would publish the principal's control Realm under a guessable name.",
+        "realm_event_kind_policy.allowed_event_kinds is closed in both directions: every kind whose normative prose requires a PCR write MUST appear in it, and every listed kind MUST have such prose. ak.identity.resolution.update is the only post-genesis successor of the create-locked ak.component.identity.resolution.v1 cell, and ak.contact.scope.update is the only directional Contact scope fact; both commit in the holder PCR and both are listed. The pcr-exposure-registry.json event-kind set MUST equal this allowlist, so an admitted kind can never lack a declared outward-exposure decision."
       ]
     },
     "ak.profile.core_event_store.v1": {

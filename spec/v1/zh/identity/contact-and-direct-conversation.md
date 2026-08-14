@@ -120,7 +120,7 @@ current proof；少于两张只能形成非授权的partial/tentative query view
 不能授权 successor、Contact create/send 或 DM authority。
 
 `ak.peer.contacts.command.submit` 是唯一 peer carrier，其 closed XOR 分支分别机器限定原始 signed Event kind为
-`ak.contact.requested|accepted|rejected|scope.update|tombstoned`并携该分支exact acceptance receipt与允许的
+`ak.contact.requested|accepted|rejected|scope.update|tombstone`并携该分支exact acceptance receipt与允许的
 current proof。request分支还必须携closed typed private `introduction_evidence`，其registered digest算法结果必须
 逐字等于signed request payload的`introduction_evidence_digest`；该digest固定为
 `H("ak.contact.introduction-evidence.v1", exact_introduction_evidence)`。本文的 domain-separated digest 统一定义为：

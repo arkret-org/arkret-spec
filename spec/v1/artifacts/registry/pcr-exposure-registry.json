@@ -1,0 +1,479 @@
+{
+  "version": "2026-08-14.1",
+  "source_of_truth": true,
+  "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
+  "registry_rules": [
+    "The event_kind set MUST equal ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds exactly. A kind admitted for write with no exposure decision, and an exposure decision for a kind that cannot be written, both fail the gate.",
+    "exposures[] is a list, not a single value: one kind MAY leave the Realm through several independent paths, and each path carries its own authorization policy.",
+    "An empty exposures[] means PCR-private. The gate rejects a private kind whose literal kind string is reachable inside any outward carrier schema fragment registered here.",
+    "carrier declares what actually crosses the boundary: exact_event is the verbatim signed Event, derived_field is a projected value, receipt and seal are acceptance evidence over the Event, did_service_entry is a public DID Document service entry.",
+    "authorization_policy_id and anti_enumeration_policy_id MUST reference a policy registered below. public is an explicit policy value; a missing authorization_policy_id is never read as public.",
+    "surface=operation requires an operation_id registered in operation-registry.json and a direction of request or response. surface=did_document carries no operation_id because a DID Document is published outside the operation registry."
+  ],
+  "carrier_kinds": {
+    "exact_event": "The verbatim signed Event Envelope, byte-preserved by the carrier.",
+    "derived_field": "A value projected from the Event or from the cell it writes; not the Event itself.",
+    "receipt": "Signed acceptance evidence naming the Event.",
+    "seal": "An accepted Seal disclosed as coverage evidence for the named Event digest.",
+    "did_service_entry": "A service entry in a publicly resolvable DID Document."
+  },
+  "surface_kinds": {
+    "operation": "A registered service operation in operation-registry.json.",
+    "did_document": "A publicly resolvable DID Document, outside the operation registry."
+  },
+  "authorization_policies": [
+    {
+      "policy_id": "ak.pcr_exposure_policy.holder_or_recovery_authorized.v1",
+      "description": "Current holder session bound to the target account authority pair, an accepted recovery session for it, or an explicit recovery capability. A caller-declared intent is never authorization."
+    },
+    {
+      "policy_id": "ak.pcr_exposure_policy.shared_realm_membership.v1",
+      "description": "Caller and subject are both effective joined members of the request Collaboration Realm at evaluation time. That Realm MUST NOT be a Principal Control Realm."
+    },
+    {
+      "policy_id": "ak.pcr_exposure_policy.relationship_or_shared_context.v1",
+      "description": "A current authorization relationship between caller and subject: a shared Realm the caller is joined to, or a current call, session or Contact context."
+    },
+    {
+      "policy_id": "ak.pcr_exposure_policy.federation_peer_service_auth.v1",
+      "description": "Authenticated federation peer service with Source/Destination service DID and Content-Digest binding over the exact carrier bytes."
+    },
+    {
+      "policy_id": "ak.pcr_exposure_policy.account_authority_service_auth.v1",
+      "description": "Authenticated Account Authority or Principal Server service call carrying that operation's own authority evidence."
+    },
+    {
+      "policy_id": "ak.pcr_exposure_policy.public.v1",
+      "description": "Deliberately unauthenticated. Only a value the subject itself chose to publish may use this policy."
+    }
+  ],
+  "anti_enumeration_policies": [
+    {
+      "policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1",
+      "description": "Unknown subject, wrong authority pair and unauthorized caller share one not_found outcome."
+    },
+    {
+      "policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1",
+      "description": "Per-subject failure uses a single value, so absent, withheld and unauthorized are indistinguishable."
+    },
+    {
+      "policy_id": "ak.pcr_anti_enumeration.rate_limited_uniform_failure.v1",
+      "description": "Uniform failure shape plus a registered per-caller rate limit on the subject selector."
+    }
+  ],
+  "event_kinds": [
+    {
+      "event_kind": "ak.account.status",
+      "exposures": [
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.peer.account_status.command.submit",
+          "direction": "request",
+          "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_request_body",
+          "json_pointers": [
+            "/$defs/account_status_publication_request_body/properties/publication"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.account_authority_service_auth.v1"
+        },
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.peer.account_status.read.authoring_frontiers",
+          "direction": "response",
+          "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_authoring_frontiers_outcome",
+          "json_pointers": [
+            "/$defs/account_status_authoring_frontiers_outcome/properties/principal_control_realm_id"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.account_authority_service_auth.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.agent.key.authorize",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.agent.key.revoke",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.agent.provision",
+      "exposures": [
+        {
+          "carrier": "did_service_entry",
+          "surface": "did_document",
+          "schema_ref": "schemas/agent-provision.schema.json",
+          "json_pointers": [],
+          "authorization_policy_id": "ak.pcr_exposure_policy.public.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.agent.selector_claim",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.consent.grant",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.consent.revoke",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.contact.accepted",
+      "exposures": [
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.peer.contacts.command.submit",
+          "direction": "request",
+          "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+          "json_pointers": [
+            "/$defs/peer_contact_submit_request/oneOf/1/properties/signed_event"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.federation_peer_service_auth.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.contact.rejected",
+      "exposures": [
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.peer.contacts.command.submit",
+          "direction": "request",
+          "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+          "json_pointers": [
+            "/$defs/peer_contact_submit_request/oneOf/2/properties/signed_event"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.federation_peer_service_auth.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.contact.requested",
+      "exposures": [
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.peer.contacts.command.submit",
+          "direction": "request",
+          "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+          "json_pointers": [
+            "/$defs/peer_contact_submit_request/oneOf/0/properties/signed_event"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.federation_peer_service_auth.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.contact.scope.update",
+      "exposures": [
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.peer.contacts.command.submit",
+          "direction": "request",
+          "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+          "json_pointers": [
+            "/$defs/peer_contact_submit_request/oneOf/3/properties/signed_event"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.federation_peer_service_auth.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.contact.tombstone",
+      "exposures": [
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.peer.contacts.command.submit",
+          "direction": "request",
+          "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+          "json_pointers": [
+            "/$defs/peer_contact_submit_request/oneOf/4/properties/signed_event"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.federation_peer_service_auth.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.device.authorize",
+      "exposures": [
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.self.keys.read.lookup",
+          "direction": "response",
+          "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
+          "json_pointers": [
+            "/$defs/query_device_record/properties/device_authorize_event_id"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.relationship_or_shared_context.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.device.list_update",
+      "exposures": [
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.self.keys.read.lookup",
+          "direction": "response",
+          "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
+          "json_pointers": [
+            "/$defs/query_device_record/properties/device_signing_key"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.relationship_or_shared_context.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.device.reanchor",
+      "exposures": [
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.self.keys.read.lookup",
+          "direction": "response",
+          "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
+          "json_pointers": [
+            "/$defs/query_device_record/properties/authorized_generation_ref"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.relationship_or_shared_context.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.device.revoke",
+      "exposures": [
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.self.keys.read.lookup",
+          "direction": "response",
+          "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
+          "json_pointers": [
+            "/$defs/query_device_record/properties/device_status"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.relationship_or_shared_context.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.direct_conversation.bound",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.identity.accountability_grant",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.identity.resolution.update",
+      "exposures": [
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.identity.read.resolution_audit",
+          "direction": "response",
+          "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence",
+          "json_pointers": [
+            "/$defs/principal_resolution_audit_evidence/properties/current_resolution_event",
+            "/$defs/principal_resolution_audit_evidence/properties/predecessor_resolution_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.holder_or_recovery_authorized.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.key_backup.active_series",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.mls.commit",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.mls.commit_failed",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.mls.genesis",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.mls.keypackage",
+      "exposures": [
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.peer.keys.keypackages.command.claim",
+          "direction": "response",
+          "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_outcome",
+          "json_pointers": [
+            "/$defs/peer_keypackages_claim_outcome/properties/claims"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.federation_peer_service_auth.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.rate_limited_uniform_failure.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.mls.proposal",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.mls.welcome",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.policy.set",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.profile.create",
+      "exposures": [
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.actor_profile.read.resolve",
+          "direction": "response",
+          "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome",
+          "json_pointers": [
+            "/$defs/resolved_actor_profile/properties/profile_event",
+            "/$defs/resolved_actor_profile/properties/accepted_seal"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.shared_realm_membership.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.profile.update",
+      "exposures": [
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.actor_profile.read.resolve",
+          "direction": "response",
+          "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome",
+          "json_pointers": [
+            "/$defs/resolved_actor_profile/properties/profile_event",
+            "/$defs/resolved_actor_profile/properties/accepted_seal"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.shared_realm_membership.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.realm.create",
+      "exposures": [
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.identity.read.resolution_audit",
+          "direction": "response",
+          "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence",
+          "json_pointers": [
+            "/$defs/principal_resolution_audit_evidence/properties/principal_genesis_event"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.holder_or_recovery_authorized.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "receipt",
+          "surface": "operation",
+          "operation_id": "ak.self.identity.read.resolution_audit",
+          "direction": "response",
+          "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence",
+          "json_pointers": [
+            "/$defs/principal_resolution_audit_evidence/properties/principal_genesis_receipt"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.holder_or_recovery_authorized.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.self.identity.read.resolution_audit",
+          "direction": "response",
+          "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence",
+          "json_pointers": [
+            "/$defs/principal_resolution_audit_evidence/properties/principal_control_realm_id"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.holder_or_recovery_authorized.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "seal",
+          "surface": "operation",
+          "operation_id": "ak.self.identity.read.resolution_audit",
+          "direction": "response",
+          "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence",
+          "json_pointers": [
+            "/$defs/principal_resolution_audit_evidence/properties/accepted_seal"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.holder_or_recovery_authorized.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.peer.principal_genesis.command.submit",
+          "direction": "request",
+          "schema_ref": "schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_request",
+          "json_pointers": [
+            "/$defs/pcr_genesis_submit_request/properties/genesis_unit"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.account_authority_service_auth.v1"
+        },
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.peer.principal_genesis.command.submit",
+          "direction": "request",
+          "schema_ref": "schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_request",
+          "json_pointers": [
+            "/$defs/pcr_genesis_submit_request/properties/pcr_realm_id"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.account_authority_service_auth.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.realm_key.share",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.realm_key.share_audit",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.realm_key.withheld",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.self.agent.deactivate",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.self.agent.pause",
+      "exposures": []
+    },
+    {
+      "event_kind": "ak.self.agent.resume",
+      "exposures": []
+    }
+  ]
+}

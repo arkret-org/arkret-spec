@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.7",
+  "version": "2026-08-14.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T06:42:10Z",
+  "generated_at": "2026-08-14T10:45:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -60,8 +60,22 @@
       ],
       "projection_rule": "cell_value = payload.next + {resolution_event_ref:event.event_id, updated_at:event.created_at}"
     },
-    "public_evidence_evaluator": {
-      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_evidence",
+    "public_projection_evaluator": {
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/public_principal_resolution",
+      "checks": [
+        "the response carries none of principal_control_realm_id, principal_genesis_event, principal_genesis_receipt, current_resolution_event, predecessor_resolution_events, accepted_seal or resolution_cell_proof; any such member is a schema violation on this surface",
+        "projection_attestation.attestation.principal_id == principal_id and projection_attestation.attestation.principal_server_id == principal_server_id",
+        "projection_attestation.attestation.resolution_projection equals resolution_projection field for field",
+        "projection_attestation.attestation.method_history_evidence_digest == sha256 over RFC 8785 JCS of method_history_evidence",
+        "projection_attestation.proof signs the registered attestation transcript, proof.created_at == attestation.issued_at, and attestation.issued_at < attestation.expires_at",
+        "projection_attestation.proof.verification_method resolves to an assertion-capable key under the current verified method history of principal_server_id",
+        "project(resolution_projection.full_id) == principal_id",
+        "method_history_evidence boundary and currentness validate under the adapter selected by resolution_projection.full_id"
+      ],
+      "failure": "invalid_or_dependency_pending"
+    },
+    "resolution_audit_evidence_evaluator": {
+      "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence",
       "checks": [
         "principal_genesis_event.kind == ak.realm.create and principal_genesis_event is resolution head 0",
         "principal_genesis_event.actor_id == principal_id",
@@ -70,7 +84,8 @@
         "derive_identity_control_realm(principal_genesis_event) == principal_control_realm_id",
         "every post-genesis event is ak.identity.resolution.update with actor_id == principal_id and realm_id == principal_control_realm_id",
         "if current_resolution_event is principal_genesis_event then predecessor_resolution_events is empty; otherwise predecessor_resolution_events[0] is the current Event's guarded immediate predecessor when history_depth is nonzero",
-        "the supplied resolution events form a contiguous immediate-predecessor segment backward from current_resolution_event under the exact guarded whole-cell values; if the segment reaches head 0 it terminates at principal_genesis_event, otherwise the oldest guarded predecessor is the next audit cursor and omitted history is never treated as absent",
+        "the supplied resolution events form a contiguous immediate-predecessor segment backward from current_resolution_event under the exact guarded whole-cell values; the segment never exceeds request history_depth items and never skips an intermediate Event",
+        "history_complete is true exactly when the segment terminates at principal_genesis_event or at the exclusive request after_resolution_event_ref ancestor; otherwise history_complete is false, next_audit_cursor equals previous_resolution_event_ref of the oldest supplied Event, and omitted history is never treated as absent",
         "accepted_seal.realm_id == principal_control_realm_id and accepted_seal recursively covers both principal_genesis_event.event_digest and current_resolution_event.event_digest",
         "resolution_cell_proof.seal_id == accepted_seal.id and resolution_cell_proof.state_root == accepted_seal.state_root",
         "resolution_cell_proof.cell_value.resolution_event_ref == current_resolution_event.event_id",

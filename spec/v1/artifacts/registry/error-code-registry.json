@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-14.2",
+  "version": "2026-08-14.3",
   "codes": [
     {
       "code": "json_invalid",
@@ -926,6 +926,13 @@
       "http_status": 501,
       "scope": "both",
       "description": "The operation is registered but this deployment has not implemented the endpoint or binding."
+    },
+    {
+      "code": "profile_unavailable",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Per-actor outcome of ak.self.actor_profile.read.resolve. Unknown actor, actor without an accepted global profile, actor that is not an effective joined member of the request realm_id, and a caller not authorized for that actor MUST all report this single value, so the only outward carrier for PCR-resident ak.profile.create / ak.profile.update cannot be used to probe membership or account existence. See zh/discovery/profiles-presence.md §2.3."
     },
     {
       "code": "projection_incomplete",
@@ -4618,6 +4625,13 @@
         "service_call"
       ],
       "description": "Sub-reason for failed_precondition when a Realm moderation-policy override would relax an action forbidden by inherited organization policy without embedding a valid organization approval. See zh/sync/service-http-binding.md §2.3."
+    },
+    {
+      "code": "resolution_history_ancestor_unknown",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Sub-reason for param_invalid when ak.self.identity.read.resolution_audit receives an after_resolution_event_ref that is neither the genesis Event nor an accepted ak.identity.resolution.update in this account's current resolution lineage. The audit surface is already holder or recovery authorized, so a stale or foreign cursor is reported as an invalid parameter rather than folded into the anti-enumeration outcome. See zh/identity/identity-did.md §4.2."
     },
     {
       "code": "revocation_freshness_unknown",

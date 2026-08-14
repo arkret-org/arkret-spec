@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/actor-profile-operations.schema.json",
+  "title": "Arkret Actor Profile Operations",
+  "description": "Authorized, anti-enumeration projection of another principal's global Actor Profile. A global profile Event lives in its owner's Principal Control Realm, so a co-member cannot reach it through an ordinary Realm-scoped read and MUST NOT reach it through a cross-principal actor selector. This operation is the only outward carrier for that PCR-resident fact: it is gated on a current shared Realm, returns the exact signed profile Event with its covering Seal, and never discloses any other PCR Event.",
+  "$defs": {
+    "resolve_request": {
+      "type": "object",
+      "description": "Resolves current global Actor Profiles for actors the caller currently shares realm_id with. The caller MUST be an effective joined member of realm_id and every returned actor MUST also be one at evaluation time; realm_id is the authorization basis, not a display hint.",
+      "required": [
+        "realm_id",
+        "actor_ids"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Shared Collaboration Realm establishing the relationship. A Principal Control Realm MUST NOT be used here: PCR co-membership is the owner's own devices and would make this operation a self-read with an outward shape."
+        },
+        "actor_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "profile_event": {
+      "allOf": [
+        {
+          "$ref": "./event-envelope.schema.json"
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "ak.profile.create",
+                "ak.profile.update"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "The exact accepted profile Event that produced the returned projection. Its envelope realm_id is the owner's Principal Control Realm; disclosing this Event is the declared exposure for ak.profile.create and ak.profile.update and does not extend to any other kind in that Realm."
+    },
+    "resolved_actor_profile": {
+      "type": "object",
+      "description": "One actor's current global profile with the evidence needed to verify it independently. The consumer recomputes the projection from profile_event and checks that accepted_seal covers profile_event.event_digest; a bare actor_profile is a server assertion, not evidence.",
+      "required": [
+        "actor_id",
+        "actor_profile",
+        "profile_event",
+        "accepted_seal"
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "actor_profile": {
+          "$ref": "./actor-profile.schema.json"
+        },
+        "profile_event": {
+          "$ref": "#/$defs/profile_event"
+        },
+        "accepted_seal": {
+          "$ref": "./seal.schema.json",
+          "description": "Accepted Seal in the owner's Principal Control Realm covering profile_event.event_digest. It is disclosed only as coverage evidence for that exact Event and MUST NOT be used to enumerate the Realm's other sealed Events."
+        }
+      },
+      "additionalProperties": false
+    },
+    "resolve_failure": {
+      "type": "object",
+      "description": "Per-actor failure. The reason vocabulary is deliberately single-valued: unknown actor, actor without an accepted profile, actor that is not an effective joined member of realm_id, and a caller not authorized for that actor MUST all report profile_unavailable so the operation cannot be used to probe membership or account existence.",
+      "required": [
+        "actor_id",
+        "reason"
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "reason": {
+          "enum": [
+            "profile_unavailable"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "resolve_outcome": {
+      "type": "object",
+      "description": "Closed outcome. Every requested actor_id appears exactly once across profiles and failures, so a caller cannot distinguish an omitted actor from a withheld one.",
+      "required": [
+        "profiles"
+      ],
+      "properties": {
+        "profiles": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/resolved_actor_profile"
+          }
+        },
+        "failures": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/resolve_failure"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

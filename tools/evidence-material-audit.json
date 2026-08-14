@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 195,
+  "audited_occurrence_count": 198,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -166,6 +166,17 @@
     },
     {
       "file": "contact-operations.schema.json",
+      "key": "contact_introduction_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Closed first-contact evidence union for locator, shared-Realm membership, verified handle claim, same-service or explicit-address policy evaluation."
+    },
+    {
+      "file": "contact-operations.schema.json",
       "key": "contact_round_evidence_bundle",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -175,17 +186,6 @@
         "commitment"
       ],
       "reason": "Bundles the stable Contact round, signed acceptance receipts and refreshable current proofs."
-    },
-    {
-      "file": "contact-operations.schema.json",
-      "key": "contact_introduction_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Closed first-contact evidence union for locator, shared-Realm membership, verified handle claim, same-service or explicit-address policy evaluation."
     },
     {
       "file": "contact-operations.schema.json",
@@ -221,17 +221,17 @@
     },
     {
       "file": "contract-registry.json",
-      "key": "public_evidence_evaluator",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Names the public evaluator contract for adapter evidence; it does not carry an evidence instance."
-    },
-    {
-      "file": "contract-registry.json",
       "key": "required_evidence",
       "occurrences": 3,
       "disposition": "registry_contract",
       "reason": "Declares the required adapter evidence categories rather than carrying wire material."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "resolution_audit_evidence_evaluator",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Names the authorized account-internal resolution audit evaluator contract; it does not carry an evidence instance."
     },
     {
       "file": "did-binding-contracts.schema.json",
@@ -299,17 +299,17 @@
     },
     {
       "file": "did-method-adapter-registry.json",
-      "key": "public_evidence_evaluator",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Generated evaluator-contract metadata mirrored from the contract registry."
-    },
-    {
-      "file": "did-method-adapter-registry.json",
       "key": "required_evidence",
       "occurrences": 3,
       "disposition": "registry_contract",
       "reason": "Generated required-evidence category metadata mirrored from the contract registry."
+    },
+    {
+      "file": "did-method-adapter-registry.json",
+      "key": "resolution_audit_evidence_evaluator",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Generated evaluator-contract metadata mirrored from the contract registry."
     },
     {
       "file": "direct-conversation-operations.schema.json",
@@ -514,7 +514,7 @@
     {
       "file": "identity-resolution.schema.json",
       "key": "method_history_evidence",
-      "occurrences": 2,
+      "occurrences": 3,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
@@ -525,7 +525,14 @@
     },
     {
       "file": "identity-resolution.schema.json",
-      "key": "principal_resolution_evidence",
+      "key": "method_history_evidence_digest",
+      "occurrences": 2,
+      "disposition": "qualifier",
+      "reason": "Digest qualifier binding the public projection attestation to the exact bounded adapter evidence; it is a commitment over evidence, not an evidence instance."
+    },
+    {
+      "file": "identity-resolution.schema.json",
+      "key": "principal_resolution_audit_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
       "material_families": [

@@ -2521,3 +2521,190 @@ def check_timestamp_profile_single_source(lint: Lint) -> None:
         data = load_yaml(lint, path)
         if data is not None:
             walk(path, data)
+
+
+def check_pcr_exposure_registry(lint: Lint) -> None:
+    """Close the read direction of the Principal Control Realm.
+
+    realm_event_kind_policy.allowed_event_kinds says what may be written into a
+    PCR. Nothing said what may leave it, so every outward path was decided once,
+    in prose, in whichever document happened to need it. This gate makes the
+    outward decision a registered artifact and fails when the two directions
+    disagree.
+    """
+    path = ARTIFACTS / "registry" / "pcr-exposure-registry.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict) or data.get("source_of_truth") is not True:
+        lint.fail(path, "pcr exposure registry must be a source_of_truth object")
+        return
+
+    carrier_kinds = data.get("carrier_kinds")
+    surface_kinds = data.get("surface_kinds")
+    if not isinstance(carrier_kinds, dict) or not carrier_kinds:
+        lint.fail(path, "carrier_kinds must be a non-empty object")
+        return
+    if not isinstance(surface_kinds, dict) or not surface_kinds:
+        lint.fail(path, "surface_kinds must be a non-empty object")
+        return
+
+    def policy_ids(key: str) -> set[str]:
+        rows = data.get(key)
+        if not isinstance(rows, list) or not rows:
+            lint.fail(path, f"{key} must be a non-empty list")
+            return set()
+        out: set[str] = set()
+        for index, row in enumerate(rows):
+            if not isinstance(row, dict):
+                lint.fail(path, f"{key}[{index}] must be an object")
+                continue
+            policy_id = row.get("policy_id")
+            description = row.get("description")
+            if not isinstance(policy_id, str) or not policy_id:
+                lint.fail(path, f"{key}[{index}].policy_id must be a non-empty string")
+                continue
+            if policy_id in out:
+                lint.fail(path, f"duplicate policy {policy_id}")
+            if not isinstance(description, str) or not description.strip():
+                lint.fail(path, f"{key}[{index}] must explain the policy")
+            out.add(policy_id)
+        return out
+
+    authorization_policies = policy_ids("authorization_policies")
+    anti_enumeration_policies = policy_ids("anti_enumeration_policies")
+
+    profiles = load_json(lint, ARTIFACTS / "profiles" / "conformance-profiles.json")
+    allowlist = (
+        ((profiles or {}).get("profile_requirements") or {})
+        .get("ak.profile.principal_control_realm.v1", {})
+        .get("realm_event_kind_policy", {})
+        .get("allowed_event_kinds")
+    )
+    if not isinstance(allowlist, list) or not allowlist:
+        lint.fail(path, "PCR allowlist is unavailable; the exposure registry cannot be closed")
+        return
+
+    operations = load_json(lint, ARTIFACTS / "registry" / "operation-registry.json")
+    operation_ids = {
+        row.get("operation_id")
+        for row in ((operations or {}).get("operations") or [])
+        if isinstance(row, dict)
+    }
+
+    rows = data.get("event_kinds")
+    if not isinstance(rows, list) or not rows:
+        lint.fail(path, "event_kinds must be a non-empty list")
+        return
+
+    declared: list[str] = []
+    outward_fragments: list[tuple[str, Any]] = []
+    private_kinds: set[str] = set()
+
+    def resolve_pointer(document: Any, pointer: str) -> Any:
+        cursor = document
+        for raw_token in pointer.split("/")[1:]:
+            token = raw_token.replace("~1", "/").replace("~0", "~")
+            if isinstance(cursor, list):
+                cursor = cursor[int(token)]
+            else:
+                cursor = cursor[token]
+        return cursor
+
+    for index, row in enumerate(rows):
+        where = f"event_kinds[{index}]"
+        if not isinstance(row, dict):
+            lint.fail(path, f"{where} must be an object")
+            continue
+        event_kind = row.get("event_kind")
+        exposures = row.get("exposures")
+        if not isinstance(event_kind, str) or not event_kind:
+            lint.fail(path, f"{where}.event_kind must be a non-empty string")
+            continue
+        declared.append(event_kind)
+        if not isinstance(exposures, list):
+            lint.fail(path, f"{where}.exposures must be a list")
+            continue
+        if not exposures:
+            private_kinds.add(event_kind)
+            continue
+        for position, exposure in enumerate(exposures):
+            spot = f"{where}.exposures[{position}]"
+            if not isinstance(exposure, dict):
+                lint.fail(path, f"{spot} must be an object")
+                continue
+            carrier = exposure.get("carrier")
+            surface = exposure.get("surface")
+            schema_ref = exposure.get("schema_ref")
+            pointers = exposure.get("json_pointers")
+            authorization = exposure.get("authorization_policy_id")
+            anti_enumeration = exposure.get("anti_enumeration_policy_id")
+            if carrier not in carrier_kinds:
+                lint.fail(path, f"{spot}.carrier is not a registered carrier kind")
+            if surface not in surface_kinds:
+                lint.fail(path, f"{spot}.surface is not a registered surface kind")
+            if authorization not in authorization_policies:
+                lint.fail(path, f"{spot}.authorization_policy_id is not registered")
+            if anti_enumeration is not None and anti_enumeration not in anti_enumeration_policies:
+                lint.fail(path, f"{spot}.anti_enumeration_policy_id is not registered")
+            if surface == "operation":
+                if exposure.get("operation_id") not in operation_ids:
+                    lint.fail(path, f"{spot}.operation_id is not a registered operation")
+                if exposure.get("direction") not in {"request", "response"}:
+                    lint.fail(path, f"{spot}.direction must be request or response")
+            elif "operation_id" in exposure:
+                lint.fail(path, f"{spot} declares operation_id on a non-operation surface")
+            if not isinstance(schema_ref, str) or not schema_ref:
+                lint.fail(path, f"{spot}.schema_ref must be a non-empty string")
+                continue
+            file_ref, _, fragment = schema_ref.partition("#")
+            schema_path = ARTIFACTS / file_ref
+            if not schema_path.is_file():
+                lint.fail(path, f"{spot}.schema_ref does not resolve: {schema_ref}")
+                continue
+            document = load_json(lint, schema_path)
+            if document is None:
+                continue
+            if fragment:
+                try:
+                    outward_fragments.append((event_kind, resolve_pointer(document, fragment)))
+                except (KeyError, IndexError, ValueError):
+                    lint.fail(path, f"{spot}.schema_ref fragment does not resolve: {schema_ref}")
+                    continue
+            else:
+                outward_fragments.append((event_kind, document))
+            if not isinstance(pointers, list):
+                lint.fail(path, f"{spot}.json_pointers must be a list")
+                continue
+            for pointer in pointers:
+                if not isinstance(pointer, str) or not pointer.startswith("/"):
+                    lint.fail(path, f"{spot}.json_pointers entries must be JSON pointers")
+                    continue
+                try:
+                    resolve_pointer(document, pointer)
+                except (KeyError, IndexError, ValueError):
+                    lint.fail(
+                        path,
+                        f"{spot}.json_pointers does not resolve in {file_ref}: {pointer}",
+                    )
+
+    missing = sorted(set(allowlist) - set(declared))
+    extra = sorted(set(declared) - set(allowlist))
+    if missing:
+        lint.fail(path, f"PCR allowlist kinds without an exposure decision: {missing}")
+    if extra:
+        lint.fail(path, f"exposure decisions for kinds outside the PCR allowlist: {extra}")
+    duplicates = sorted({kind for kind in declared if declared.count(kind) > 1})
+    if duplicates:
+        lint.fail(path, f"duplicate event_kind rows: {duplicates}")
+
+    # A kind declared PCR-private must not be reachable through a fragment some
+    # other kind already opened. This is the check that catches a carrier quietly
+    # widened to a second kind.
+    for private in sorted(private_kinds):
+        for owner, fragment in outward_fragments:
+            if private in json.dumps(fragment, ensure_ascii=False):
+                lint.fail(
+                    path,
+                    f"PCR-private kind {private} is reachable inside the outward carrier "
+                    f"registered for {owner}",
+                )
+                break

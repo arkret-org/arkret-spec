@@ -273,6 +273,8 @@ grpc:
       KeyPackagesUpload: ak.self.keys.keypackages.upload.create
       Query: ak.self.keys.read.lookup
       Upload: ak.self.keys.upload.create
+    SelfActorProfile:
+      Resolve: ak.self.actor_profile.read.resolve
     SelfAgentSignerEvidence:
       Resolve: ak.self.agent_signer_evidence.read.resolve
     SelfMedia:
@@ -299,6 +301,8 @@ grpc:
       Status: ak.open.device_pairing.read.status
     OpenIdentity:
       Resolution: ak.open.identity.read.resolution
+    SelfIdentity:
+      ResolutionAudit: ak.self.identity.read.resolution_audit
     OpenService:
       Resolution: ak.open.service.read.resolution
     OpenInviteLocator:
@@ -504,6 +508,8 @@ mq:
     open.device_pairing.query.resolve: ak.open.device_pairing.read.resolve
     open.device_pairing.query.status: ak.open.device_pairing.read.status
     open.identity.query.resolution: ak.open.identity.read.resolution
+    self.identity.query.resolution_audit: ak.self.identity.read.resolution_audit
+    self.actor_profile.query.resolve: ak.self.actor_profile.read.resolve
     open.service.query.resolution: ak.open.service.read.resolution
     edge.push.command.notify: ak.edge.push.command.notify
     self.authz.query.check: ak.self.authz.read.check

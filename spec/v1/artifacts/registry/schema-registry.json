@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.1",
+  "version": "2026-08-14.2",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T00:30:00Z",
+  "generated_at": "2026-08-14T10:45:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -40,6 +40,12 @@
     {
       "schema_id": "ak.schema.actor_profile.v1",
       "file": "schemas/actor-profile.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.actor_profile_operations.v1",
+      "file": "schemas/actor-profile-operations.schema.json",
+      "status": "active",
+      "description": "Authorized shared-Realm projection of another principal's global Actor Profile. It is the only outward carrier for the PCR-resident ak.profile.create / ak.profile.update facts."
     },
     {
       "schema_id": "ak.schema.accountability_grant.v1",

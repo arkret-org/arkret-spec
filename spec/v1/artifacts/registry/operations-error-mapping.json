@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-14.5",
+  "version": "2026-08-14.6",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-14T06:24:26Z",
+  "generated_at": "2026-08-14T10:45:00Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -461,6 +461,14 @@
       "http_alias": "GET /_arkret/open/principals/{principal_id}/resolution",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. An unknown or non-public principal returns not_found; the response itself is evidence and never an authorization decision."
+    },
+    {
+      "operation_id": "ak.self.identity.read.resolution_audit",
+      "http_alias": "POST /_arkret/self/identity/resolution-audit/query",
+      "operation_specific": [
+        "param_invalid"
+      ],
+      "description": "param_invalid covers history_depth outside the closed range 0..256, after_resolution_event_ref supplied with history_depth 0, and reason resolution_history_ancestor_unknown when the cursor is not in this account's current resolution lineage. Unknown account, wrong authority pair and unauthorized caller share not_found so the surface cannot be used to enumerate accounts."
     },
     {
       "operation_id": "ak.open.service.read.resolution",
@@ -1127,6 +1135,12 @@
         "not_found"
       ],
       "description": "Nonexistent, foreign-controller, and unauthorized Sidecar identifiers return the same not_found envelope and timing bucket."
+    },
+    {
+      "operation_id": "ak.self.actor_profile.read.resolve",
+      "http_alias": "POST /_arkret/self/actor-profiles/query",
+      "operation_specific": [],
+      "description": "No operation-specific error codes. Per-actor outcomes are carried in the response failures array with the single value profile_unavailable; unknown actor, missing profile, non-member actor and unauthorized caller are indistinguishable. A caller that is not an effective joined member of realm_id receives not_found for the whole request."
     },
     {
       "operation_id": "ak.self.agent_signer_evidence.read.resolve",

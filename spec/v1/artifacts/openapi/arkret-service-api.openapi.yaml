@@ -6546,6 +6546,39 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/KeysClaimRequestBody'
+  /_arkret/self/actor-profiles/query:
+    post:
+      operationId: ak.self.actor_profile.read.resolve
+      security:
+      - bearerAuth: []
+      summary: Resolve shared-Realm actor profiles with their signed evidence.
+      description: |
+        Only outward carrier for the Principal-Control-Realm-resident
+        ak.profile.create and ak.profile.update facts. Authorization is current
+        effective joined membership of the request realm_id for both the caller
+        and each returned actor; realm_id MUST NOT be a Principal Control Realm.
+        Each row returns the exact signed profile Event and the accepted Seal
+        covering that one event_digest, never another Event of that Realm.
+        Unknown actor, actor without an accepted profile, non-member actor and
+        unauthorized caller all report profile_unavailable, so the operation
+        cannot probe membership or account existence.
+      responses:
+        '200':
+          description: Resolved actor profiles and per-actor failures.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/actor-profile-operations.schema.json#/$defs/resolve_request
   /_arkret/self/agent-signer-evidence/query:
     post:
       operationId: ak.self.agent_signer_evidence.read.resolve
@@ -6568,6 +6601,60 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentSignerEvidenceQueryRequestBody'
+  /_arkret/self/identity/resolution-audit/query:
+    post:
+      operationId: ak.self.identity.read.resolution_audit
+      security:
+      - bearerAuth: []
+      summary: Read authorized account-internal resolution audit evidence.
+      description: |
+        Returns the account's Principal Control Realm id, genesis Event and
+        receipt, current and bounded predecessor resolution Events, accepted Seal
+        and resolution cell proof. Authorization is a current holder session bound
+        to principal_authority, an accepted recovery session for it, or an explicit
+        recovery capability; a caller-declared intent is never authorization.
+        Unknown account, wrong authority pair, unauthorized caller and unknown
+        history cursor share one anti-enumeration outcome and are externally
+        indistinguishable. history_depth is the closed range 0..256 with default 0
+        and MUST NOT be silently capped; after_resolution_event_ref stops the
+        disclosed segment exclusively at a known ancestor of this account's lineage
+        and requires history_depth of at least 1. A truncated segment sets
+        history_complete false and returns next_audit_cursor.
+      responses:
+        '200':
+          description: Authorized principal resolution audit evidence.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: no-store, no-transform
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence
+        '400':
+          description: >-
+            param_invalid when history_depth is outside 0..256, when
+            after_resolution_event_ref accompanies history_depth 0, or with
+            reason resolution_history_ancestor_unknown when the supplied ancestor
+            is not in this account's current resolution lineage.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_request
   /_arkret/self/keys/keypackages/upload:
     post:
       operationId: ak.self.keys.keypackages.upload.create
@@ -6852,16 +6939,22 @@ paths:
       x-arkret-auth:
         public_metadata: true
         proof_in_body: false
-      summary: Read the owner-published current principal resolution evidence.
+      summary: Read the current public principal resolution projection.
       description: |
-        Returns the Principal Control Realm's current resolution cell, accepted
-        Seal proof, current resolution Event and an optionally bounded predecessor
-        chain. The response is discovery evidence, never an authorization result.
+        Returns the account's current resolution projection, bounded adapter
+        method history evidence and the Principal Server projection attestation.
+        It carries no Principal Control Realm id, genesis Event, genesis receipt,
+        resolution Event, accepted Seal or cell proof: that account-internal audit
+        and recovery material is served only by
+        ak.self.identity.read.resolution_audit under holder or recovery
+        authorization, so this surface has no history selector.
+        The response is discovery evidence, never an authorization result.
         A caller performing a sensitive operation MUST obtain a fresh response,
         verify the exact (principal_id, principal_server_id) account authority,
-        verify any returned account-local audit evidence, resolve the returned full_id with the registered
-        method adapter, and confirm project(full_id) equals principal_id. Callers
-        are not required to persist another principal's resolution binding.
+        verify the attestation proof under the current principal_server_id method
+        history, resolve the returned full_id with the registered method adapter,
+        and confirm project(full_id) equals principal_id. Callers are not required
+        to persist another principal's resolution binding.
       parameters:
       - name: principal_id
         in: path
@@ -6878,28 +6971,9 @@ paths:
         schema:
           type: string
           pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
-      - name: history_depth
-        in: query
-        required: false
-        description: Maximum number of predecessor resolution Events to disclose.
-        schema:
-          type: integer
-          minimum: 0
-          maximum: 256
-          default: 0
-      - name: after_resolution_event_ref
-        in: query
-        required: false
-        description: >-
-          Return only the resolution successor chain after this already-known
-          Event when it is an ancestor of the current cell; an unknown or
-          non-ancestor reference returns not_found without exposing other PCR history.
-        schema:
-          type: string
-          pattern: ^ak:event:[A-Za-z0-9_-]{44}$
       responses:
         '200':
-          description: Current principal resolution evidence.
+          description: Current public principal resolution projection.
           headers:
             Cache-Control:
               schema:
@@ -6908,7 +6982,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ../schemas/identity-resolution.schema.json#/$defs/principal_resolution_evidence
+                $ref: ../schemas/identity-resolution.schema.json#/$defs/public_principal_resolution
         '404':
           $ref: '#/components/responses/NotFound'
         '429':
