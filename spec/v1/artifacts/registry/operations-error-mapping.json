@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-14.8",
+  "version": "2026-08-14.9",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-14T13:40:00Z",
+  "generated_at": "2026-08-14T16:23:42Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -347,9 +347,11 @@
         "failed_precondition",
         "proof_invalid",
         "device_generation_fenced",
-        "device_reanchor_authorize_mismatch"
+        "device_reanchor_authorize_mismatch",
+        "device_revocation_pending",
+        "device_revoked"
       ],
-      "description": "Consumes the Bound AccountHandoff only after the transaction, terminal receipt and coordinator attestation match the current accepted replacement-device projection, then creates one DPoP-bound Standard grant. No temporary recovery grant exists."
+      "description": "Consumes the Bound AccountHandoff only after the transaction, terminal receipt and coordinator attestation match the current accepted replacement-device projection, then obtains a fresh exact-intent origin-PS revocation-gate allow before creating one DPoP-bound Standard grant. device_revocation_pending and device_revoked create no grant or issuer-ledger outcome. No temporary recovery grant exists."
     },
     {
       "operation_id": "ak.gate.account.command.refresh_session_grant",
@@ -385,9 +387,11 @@
         "initial_session_request_mismatch",
         "pcr_genesis_conflict",
         "pcr_genesis_unit_invalid",
-        "proof_invalid"
+        "proof_invalid",
+        "device_revocation_pending",
+        "device_revoked"
       ],
-      "description": "Account registration validates the frozen DID operation, root control transcript, exact PCR genesis unit and InitialSessionGrantRequest; relays the unit to the Principal Server; verifies the pcr_genesis_unit receipt; commits the one-account/one-principal binding; then issues the first Standard grant from the durable issuer ledger."
+      "description": "Account registration validates the frozen DID operation, root control transcript, exact PCR genesis unit and InitialSessionGrantRequest; relays the unit to the Principal Server; verifies the pcr_genesis_unit receipt; commits the one-account/one-principal binding; then obtains a fresh exact-intent origin-PS revocation-gate allow before issuing the first Standard grant from the durable issuer ledger. device_revocation_pending and device_revoked create no grant or issuer-ledger outcome."
     },
     {
       "operation_id": "ak.gate.account.command.revoke_session",

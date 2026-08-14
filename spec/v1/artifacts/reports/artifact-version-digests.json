@@ -159,9 +159,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-08-14.8",
-      "generated_at": "2026-08-14T13:40:00Z",
-      "content_digest": "sha256:59fd92626eae3e344b3dd2678865026637bd5660d30dff2b99c0652b0a34db76"
+      "version": "2026-08-14.9",
+      "generated_at": "2026-08-14T16:23:42Z",
+      "content_digest": "sha256:732d1c57778241f3440f8bdea52318ca4b2ee2fdd6648c5cde9733c765dbe301"
     },
     {
       "path": "spec/v1/artifacts/registry/pcr-exposure-registry.json",
