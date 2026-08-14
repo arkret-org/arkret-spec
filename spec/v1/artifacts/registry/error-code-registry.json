@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-14.3",
+  "version": "2026-08-14.4",
   "codes": [
     {
       "code": "json_invalid",
@@ -926,13 +926,6 @@
       "http_status": 501,
       "scope": "both",
       "description": "The operation is registered but this deployment has not implemented the endpoint or binding."
-    },
-    {
-      "code": "profile_unavailable",
-      "applies_to": [
-        "service_call"
-      ],
-      "description": "Per-actor outcome of ak.self.actor_profile.read.resolve. Unknown actor, actor without an accepted global profile, actor that is not an effective joined member of the request realm_id, and a caller not authorized for that actor MUST all report this single value, so the only outward carrier for PCR-resident ak.profile.create / ak.profile.update cannot be used to probe membership or account existence. See zh/discovery/profiles-presence.md §2.3."
     },
     {
       "code": "projection_incomplete",
@@ -4097,6 +4090,13 @@
         "push_notify_outcome"
       ],
       "description": "Per-device rejection reason in ak.edge.push.command.notify: the device has not opted in to the requested notification profile (for example a visible notification sent to a device without visible_notification_opt_in). Terminal; the caller falls back to the blind_wakeup form and MUST NOT resend the same shape. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+    },
+    {
+      "code": "profile_unavailable",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Per-actor outcome of ak.self.actor_profile.read.resolve. Unknown actor, actor without an accepted global profile, actor that is not an effective joined member of the request realm_id, and a caller not authorized for that actor MUST all report this single value, so the only outward carrier for PCR-resident ak.profile.create / ak.profile.update cannot be used to probe membership or account existence. See zh/discovery/profiles-presence.md §2.3."
     },
     {
       "code": "projection_incomplete",

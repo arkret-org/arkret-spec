@@ -185,6 +185,25 @@ def check_error_code_registry_uniqueness(lint: Lint) -> None:
                 )
             seen[code] = index
             rows_by_section[section][code] = row
+            # A top-level code is an HTTP-mapped protocol error; a reason code is
+            # a sub-reason carried inside one. Putting a row in the wrong section
+            # is invisible here but breaks every consumer that generates HTTP
+            # status mappings from codes[].
+            if section == "codes":
+                if not isinstance(row.get("http_status"), int) or isinstance(
+                    row.get("http_status"), bool
+                ):
+                    lint.fail(path, f"codes[{index}] {code!r} must declare an integer http_status")
+                if not isinstance(row.get("scope"), str) or not row.get("scope"):
+                    lint.fail(path, f"codes[{index}] {code!r} must declare a scope")
+            elif "http_status" in row:
+                lint.fail(
+                    path,
+                    f"reason_codes[{index}] {code!r} must not declare http_status; "
+                    "a sub-reason inherits the status of the code it qualifies",
+                )
+            if not isinstance(row.get("description"), str) or not row.get("description").strip():
+                lint.fail(path, f"{section}[{index}] {code!r} must carry a description")
 
     top_level_rows = rows_by_section.get("codes", {})
     reason_rows = rows_by_section.get("reason_codes", {})
