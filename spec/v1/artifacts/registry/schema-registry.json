@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.2",
+  "version": "2026-08-14.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T10:45:00Z",
+  "generated_at": "2026-08-14T12:15:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -469,6 +469,12 @@
     {
       "schema_id": "ak.schema.device_message.v1",
       "file": "schemas/device-message.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.device_revocation_state.v1",
+      "file": "schemas/device-revocation-state.schema.json",
+      "status": "active",
+      "description": "Reducer-owned durable state machine for accepted ak.device.revoke proposals: mandatory Ack, exact authority/device/generation binding, universal revocation_pending gates, exact signed-reject release, overdue fault retention and covering-Seal finality."
     },
     {
       "schema_id": "ak.schema.signal_envelope.v1",

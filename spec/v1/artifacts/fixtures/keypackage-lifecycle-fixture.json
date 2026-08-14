@@ -297,7 +297,7 @@
       "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
       "requester_verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
       "device_authorization_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
-      "model_generation_ref": "1-QmCotestPrincipalGeneration",
+      "model_generation_ref": 1,
       "proof_free_request": {
         "target_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
         "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
@@ -418,7 +418,7 @@
       "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
       "requester_verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
       "device_authorization_event_id": "ak:event:ARELvWOpF6BRrks3DlbQy-9XIE6aAQQumDQp7fA4ApeM",
-      "model_generation_ref": "1-QmCotestPrincipalGeneration",
+      "model_generation_ref": 1,
       "claim_nonce": "claim-nonce-01",
       "welcome_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "expected": {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.8",
+  "version": "2026-08-14.9",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T10:45:00Z",
+  "generated_at": "2026-08-14T12:15:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -4643,7 +4643,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Device revocation",
+      "payload": "Device revocation. Every accepted proposal atomically persists a canonical ControlProposalAck and ak.schema.device_revocation_state.v1 revocation_pending record for the exact reducer-derived authority/device/generation. It is not eligible for the Ack-less self-principal PCR exception.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_revoke_payload",
       "id_source": "not_an_object_id",
       "plane": "control",

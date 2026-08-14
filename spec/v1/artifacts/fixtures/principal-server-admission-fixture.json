@@ -54,12 +54,14 @@
       "expected": "reject"
     },
     {
-      "name": "pending_or_revoked_device_cannot_gain_new_admission",
-      "given": "the local device is revocation_pending, revoked or in the wrong generation",
+      "name": "pending_device_cannot_gain_new_admission",
+      "given": "the local device generation has at least one durable revocation_pending record",
       "action": "submit a new Event",
       "expected": "reject",
+      "reason_code": "device_revocation_pending",
       "invariants": [
-        "no principal_server_admission proof is appended"
+        "no principal_server_admission proof is appended",
+        "pending is reconstructed from the durable proposal/Ack/decision/Seal store rather than cache"
       ]
     },
     {

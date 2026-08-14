@@ -233,8 +233,8 @@
       "name": "reject_old_generation_event_after_fence",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
-        "device_authorized_generation_ref": "1-old",
-        "current_device_generation_ref": "2-new",
+        "device_authorized_generation_ref": 1,
+        "current_device_generation_ref": 2,
         "event_was_in_pre_fence_closure": false
       },
       "expected": {
@@ -611,8 +611,8 @@
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
         "object_kind": "seal",
-        "signer_authorized_generation_ref": "1-old",
-        "current_device_generation_ref": "2-new",
+        "signer_authorized_generation_ref": 1,
+        "current_device_generation_ref": 2,
         "seal_covers_only_pre_fence_closure": false
       },
       "expected": {

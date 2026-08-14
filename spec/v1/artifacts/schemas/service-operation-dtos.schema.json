@@ -893,6 +893,10 @@
               },
               "fault_reason": {
                 "const": "control_proposal_decision_overdue"
+              },
+              "device_revocation_state": {
+                "$ref": "./device-revocation-state.schema.json#/$defs/device_revocation_pending_state",
+                "description": "Present when this pending proposal is ak.device.revoke. It exposes the exact authority/device/generation binding and the universal action gate; it is reducer-derived and never copied from producer payload."
               }
             },
             "allOf": [
@@ -4720,16 +4724,8 @@
           "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
         },
         "model_generation_ref": {
-          "oneOf": [
-            {
-              "type": "integer",
-              "minimum": 1
-            },
-            {
-              "type": "string",
-              "pattern": "^[1-9][0-9]*-[^\\s]+$"
-            }
-          ]
+          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
+          "description": "PCR-local monotonic generation. It MUST NOT equal or be derived from a DID versionId."
         }
       },
       "additionalProperties": false
@@ -4815,8 +4811,26 @@
         "holder_binding": {
           "$ref": "./principal-operations.schema.json#/$defs/standard_holder_binding",
           "description": "Required closed human-device versus Agent-runtime holder binding for every standard grant."
+        },
+        "device_binding": {
+          "$ref": "#/$defs/SessionGrantDeviceBinding",
+          "description": "Exact verified device authorization preimage used for the origin-PS revocation gate. Required whenever device_id is present."
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "device_id"
+            ]
+          },
+          "then": {
+            "required": [
+              "device_binding"
+            ]
+          }
+        }
+      ]
     },
     "SessionGrantIntrospectOutcome": {
       "type": "object",
@@ -4858,7 +4872,26 @@
         "grant": {
           "$ref": "#/$defs/SessionGrantIntrospectGrant"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "active": {
+                "const": true
+              }
+            },
+            "required": [
+              "active"
+            ]
+          },
+          "then": {
+            "required": [
+              "grant"
+            ]
+          }
+        }
+      ]
     },
     "SessionGrantIntrospectRequestBody": {
       "type": "object",

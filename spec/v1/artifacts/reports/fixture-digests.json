@@ -101,6 +101,10 @@
       "sha256": "85256c0e74be3cb469848cf60a5bedc5136dbc783be467abdec6d1460a3a9549"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/device-revocation-pending-fixture.json",
+      "sha256": "af900f5a68a7eef2e0ffe378dac52f4a51508bacf3cbdffd83125c0d10f0ae10"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",
       "sha256": "ee67d9f467ee3d1c1bbcfb90b75f725bab30bf41202c4a2e5ade2e393968f1ee"
     },
@@ -166,7 +170,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json",
-      "sha256": "2f9cfa2ae889e68627ef58f775fa605009e89a8cf461bf5711c83b22e3dc941f"
+      "sha256": "4e1b370b69623cea5c0001705697bd0729542f62f8899067c9acfca238186182"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
@@ -182,7 +186,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "567a177bb83abbc5380d2dc95c5a7205b753d6c442ffee6ed5f1f66d2f72109f"
+      "sha256": "5c129e502a6db5f298f3ad9dcf45a68d398b9a615766d2b7679cb96e36da135a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
@@ -238,7 +242,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/principal-server-admission-fixture.json",
-      "sha256": "17ac29c94d5aadc81e75b256c87faf14c496dd1a01e9d1ea617b3a7af695e01e"
+      "sha256": "81631dc17fcc1475638c65537112e4d7ea84a2c1745a16a72fca55ab13053987"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",

@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-14.6",
+  "version": "2026-08-14.7",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-08-14T10:45:00Z",
+  "generated_at": "2026-08-14T12:15:00Z",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
@@ -228,7 +228,7 @@
       "operation_id": "ak.gate.account.command.introspect_session_grant",
       "http_alias": "POST /_arkret/gate/account/session-grants/introspect",
       "operation_specific": [],
-      "description": "Server-to-server session-grant introspection (RFC 7662-style). Read-only validation: returns active/status/grant-metadata in a 200 body (including not_found / audience_mismatch as statuses, not error replies), so it has no operation-specific error codes beyond the universal failure surface (e.g. json_invalid for a malformed id, the universal auth codes when the introspection bearer is missing)."
+      "description": "Server-to-server session-grant introspection is read-only and reports issuer-ledger state in a typed 200 outcome. It carries no reusable device-revocation receipt; the origin Principal Server gates each protected self request against its own durable device state in the local request transaction."
     },
     {
       "operation_id": "ak.gate.account.command.issue_controller_gate_attestation",
@@ -302,7 +302,9 @@
         "agent_deactivated",
         "agent_key_authorization_expired",
         "accountability_grant_missing",
-        "agent_requested_scope_commitment_invalid"
+        "agent_requested_scope_commitment_invalid",
+        "device_revocation_pending",
+        "device_revoked"
       ],
       "description": "Account Authority issuer-ledger session grant issuance. `principal_unknown` is returned when the required principal_id has no verified account binding; the authority must not derive or mint a DID as a fallback. Exact replay returns the byte-identical recorded live outcome after current holder/DPoP/target/digest revalidation; conflicting canonical intent is duplicate_conflict. A recorded expired outcome returns session_grant_replay_expired; revoked/superseded returns session_grant_replay_terminal; an evicted replay record returns session_grant_replay_indeterminate. None may issue a replacement under the same request identity. Proof-kind-specific validation failures remain proof_invalid or the registered Agent lifecycle/authority codes."
     },
@@ -362,7 +364,9 @@
         "session_grant_replay_indeterminate",
         "session_grant_not_found",
         "did_proof_required",
-        "proof_invalid"
+        "proof_invalid",
+        "device_revocation_pending",
+        "device_revoked"
       ],
       "description": "DPoP-bound issuer-ledger rotation keyed by predecessor_grant_id plus refresh_request_digest. Exact replay returns the recorded successor after current proof revalidation; a conflicting request is duplicate_conflict. One transaction creates the successor and supersedes the predecessor. A recorded successor that is expired or terminal returns the corresponding session_grant_replay_* code and never causes a second successor. The audience remains locked; logged-out or invalid holder/fresh-proof paths retain their existing errors."
     },
@@ -603,6 +607,15 @@
         "peer_stale"
       ],
       "description": "Unknown, unauthorized and hidden receipt identifiers are deliberately indistinguishable as not_found."
+    },
+    {
+      "operation_id": "ak.peer.device_revocations.command.check",
+      "http_alias": "POST /_arkret/peer/device-revocations/check",
+      "operation_specific": [
+        "failed_precondition",
+        "duplicate_conflict"
+      ],
+      "description": "Authenticated exact-intent origin-PS linearization. Unauthorized callers fail before private lookup. A validated request returns one signed typed 200 decision receipt, including pending/revoked/mismatch; conflicting intent identity is duplicate_conflict. The blocked business operation, not this gate query, emits device_revocation_pending/device_revoked."
     },
     {
       "operation_id": "ak.peer.events.command.submit",
@@ -1448,6 +1461,24 @@
       "description": "A current Control authority issues one immutable authority Ack after independently validating the proposal and authority basis."
     },
     {
+      "operation_id": "ak.self.control_proposal_decisions.command.submit",
+      "http_alias": "POST /_arkret/self/control-proposal-decisions",
+      "operation_specific": [
+        "duplicate_conflict",
+        "failed_precondition",
+        "quorum_unreachable"
+      ],
+      "description": "The receiver validates the signed decision against the immutable durable proposal/Ack/deadline chain. Conflicting terminal decisions or post-Seal decisions fail closed; exact replay is a typed duplicate success."
+    },
+    {
+      "operation_id": "ak.self.control_proposal_decisions.read.get",
+      "http_alias": "POST /_arkret/self/control-proposal-decisions/query",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Authenticated non-enumerating observation of one durable proposal/Ack/decision/Seal state."
+    },
+    {
       "operation_id": "ak.self.device_messages.command.ack",
       "http_alias": "POST /_arkret/self/device_messages/ack",
       "operation_specific": [],
@@ -1457,7 +1488,9 @@
       "operation_id": "ak.self.device_messages.command.send",
       "http_alias": "POST /_arkret/self/device_messages",
       "operation_specific": [
-        "duplicate_conflict"
+        "duplicate_conflict",
+        "device_revocation_pending",
+        "device_revoked"
       ],
       "description": "Reusing the same sender-scoped DeviceMessageEnvelope.message_id with different canonical target content returns duplicate_conflict (reason message_id_conflict) and enqueues neither variant."
     },
@@ -1509,7 +1542,9 @@
         "seal_ref_unknown",
         "realm_frozen",
         "quarantine",
-        "mls_generation_proposal_fanout_exceeded"
+        "mls_generation_proposal_fanout_exceeded",
+        "device_revocation_pending",
+        "device_revoked"
       ],
       "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes. ak.invite.claim-specific reducer reasons remain internal/audit-facing when exposed through non-enumerable invite claim flows. mls_generation_proposal_fanout_exceeded (409) refuses the seventeenth not-yet-active Direct Conversation activation candidate under one predecessor; it is a hard structural cap and not a rate limit, so it carries no retry window, it is never rate_limited (429), and it refuses only that candidate with zero writes while leaving the pair unquarantined."
     },

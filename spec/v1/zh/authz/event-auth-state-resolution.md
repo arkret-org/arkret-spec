@@ -493,9 +493,9 @@ Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名�
 
 除 [`cba-profiles.md` §4](./cba-profiles.md) 定义的 authority-authored human
 self-principal PCR Move 外，控制面 pending Control Move MUST 在 `proposal_intake_sla_ms` 内得到签名
-Control Proposal Ack（控制提案签收）或签名 rejection。该唯一例外已由 current accepted device 作为
+Control Proposal Ack（控制提案签收）或签名 rejection。该例外已由 current accepted device 作为
 exact Move 的 author/authority，不产生第二份 Ack 或 decision deadline，但仍必须进入 pending Control
-index，并且只有 accepted successor Seal 能使其生效。`proposal_intake_sla_ms` 的权威字段是
+index，并且只有 accepted successor Seal 能使其生效。**`ak.device.revoke` 明确不属于此 Ack-less 例外**：为使可验证 `signed_reject` 始终具有唯一 `proposal_ack_digest`，每个 accepted revoke 都 MUST 将 canonical Ack 与 accepted Event、derived exact device/generation record、pending index 原子持久化；无有效 Ack 时零写入。`proposal_intake_sla_ms` 的权威字段是
 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `proposal_intake_sla_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`，v1 wire hard `maximum 86400000`），与 `seal_compaction_max_interval_ms`（§6.2）同量级；其 wire 上限登记于 [`scalability-constraints.md`](../conformance/scalability-constraints.md) §4。SLA 计时以 notary 签署的提交时间为准（与 §4.3 `distance` 同源），不用本地接收时间。
 
 **Proposal 有界决议（normative）**：`proposal_intake_sla_ms` 只管「多久确认收到」。authority
@@ -594,6 +594,8 @@ verification_method,created_at})`；proof不得跨 Ack set、decision kind 或 d
 决议，**不是** proposal 被接受，也不提供 finality；只有第 1 项中的 accepted Seal 提供
 控制面 finality。该义务不得命名为“接受 SLA”，也不得声称 deadline 本身提供 finality。
 receiver 本地收到 Event、Ack、decision 或 Seal 的时间 MUST NOT 进入规范计算。
+
+签名 decision 的标准提交面是 `ak.self.control_proposal_decisions.command.submit`，标准观察面是 `ak.self.control_proposal_decisions.read.get`；机读 request/outcome 位于 [`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。submit receiver MUST 先从 durable store 读取 accepted proposal 与首次 canonical Ack，重算 `proposal_ack_digest`，再验证 exact Realm/proposal/authority set/deadline/defer chain/quorum 并原子写 decision；caller 不能随请求创建或替换 Ack。read 只投影 canonical Ack、verified decision chain 与 covering Seal，不能生成 decision 或清 pending。对 `ak.device.revoke`，`signed_reject` 通过 proposal Event 与 reducer-derived `ak.schema.device_revocation_state.v1` record 传递性绑定 exact device/generation；只清该 proposal，其他同目标 pending record仍保持 gate。decision/Seal 对同一 proposal 使用 terminal CAS：先 accepted 的合法 terminal 结果获胜，另一结果 fail closed；byte-identical replay 返回首次结果。
 
 **逾期是治理健康 fault，不改变密码学接受结果（normative）**：在当前
 `decision_due_at` 前没有上述三者，或到达 `absolute_due_at` / defer 上限后仍未 include /

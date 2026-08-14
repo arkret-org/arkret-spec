@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-14.4",
+  "version": "2026-08-14.5",
   "codes": [
     {
       "code": "json_invalid",
@@ -1441,6 +1441,12 @@
       "http_status": 409,
       "scope": "endpoint",
       "description": "The device has been revoked."
+    },
+    {
+      "code": "device_revocation_pending",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The exact device generation is blocked by one or more durable accepted ak.device.revoke proposals that have not been terminally signed-rejected or covered by an accepted Seal. Timeout and cache eviction do not clear this state."
     },
     {
       "code": "discovery_failed",

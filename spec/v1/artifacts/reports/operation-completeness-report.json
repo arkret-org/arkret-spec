@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.8",
+  "version": "2026-08-14.9",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T10:45:00Z",
+  "generated_at": "2026-08-14T12:15:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,18 +18,18 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 238,
+    "total_operations": 241,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "service_describe": 5,
       "streaming_frame_schema": 3,
-      "typed_schema": 228
+      "typed_schema": 231
     },
     "by_surface_class_and_completeness_class": {
       "core": {
         "service_describe": 3,
         "streaming_frame_schema": 2,
-        "typed_schema": 35
+        "typed_schema": 37
       },
       "deployment_local": {
         "typed_schema": 17
@@ -38,7 +38,7 @@
         "binary_or_redirect": 2,
         "service_describe": 1,
         "streaming_frame_schema": 1,
-        "typed_schema": 157
+        "typed_schema": 158
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -982,6 +982,20 @@
       "openapi_component_refs": {
         "request": "../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
         "response": "../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.device_revocations.command.check",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/device-revocations/check",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_request_body",
+      "response_schema_ref": "schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DeviceRevocationGateCheckRequestBody",
+        "response": "#/components/schemas/DeviceRevocationGateCheckOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2289,6 +2303,34 @@
       "openapi_component_refs": {
         "request": "../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_request",
         "response": "../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.control_proposal_decisions.command.submit",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/control-proposal-decisions",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_request_body",
+      "response_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ControlProposalDecisionSubmitRequestBody",
+        "response": "#/components/schemas/ControlProposalDecisionSubmitOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.control_proposal_decisions.read.get",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/control-proposal-decisions/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_request_body",
+      "response_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ControlProposalDecisionReadRequestBody",
+        "response": "#/components/schemas/ControlProposalDecisionReadOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

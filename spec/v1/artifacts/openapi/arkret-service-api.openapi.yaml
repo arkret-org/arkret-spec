@@ -927,6 +927,14 @@ components:
       $ref: ../schemas/agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_outcome
     ControllerAccountGateAttestationIssueRequestBody:
       $ref: ../schemas/agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_request
+    ControlProposalDecisionReadOutcome:
+      $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_outcome
+    ControlProposalDecisionReadRequestBody:
+      $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_request_body
+    ControlProposalDecisionSubmitOutcome:
+      $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_outcome
+    ControlProposalDecisionSubmitRequestBody:
+      $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_request_body
     Cursor:
       type: string
       pattern: ^ak:cursor:[A-Za-z0-9_-]+$
@@ -972,6 +980,12 @@ components:
       $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome
     DevicePairingStatusRequestBody:
       $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body
+    DeviceRevocationGateCheckOutcome:
+      $ref: ../schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_outcome
+    DeviceRevocationGateCheckRequestBody:
+      $ref: ../schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_request_body
+    DeviceRevocationState:
+      $ref: ../schemas/device-revocation-state.schema.json#/$defs/device_revocation_record
     DidBindingChallengeOutcome:
       $ref: ../schemas/account-operations.schema.json#/$defs/did_binding_challenge_outcome
     DidBindingChallengeRequestBody:
@@ -1330,6 +1344,7 @@ components:
               - device_already_authorized
               - device_unauthorized
               - device_revoked
+              - device_revocation_pending
               - discovery_failed
               - first_backup_gate_unsatisfied
               - fresh_device_scope_violation
@@ -3901,6 +3916,50 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_outcome
+  /_arkret/self/control-proposal-decisions:
+    post:
+      operationId: ak.self.control_proposal_decisions.command.submit
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ControlProposalDecisionSubmitRequestBody'
+      responses:
+        '200':
+          description: Signed proposal decision accepted or replayed byte-identically.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlProposalDecisionSubmitOutcome'
+  /_arkret/self/control-proposal-decisions/query:
+    post:
+      operationId: ak.self.control_proposal_decisions.read.get
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ControlProposalDecisionReadRequestBody'
+      responses:
+        '200':
+          description: Durable canonical Ack, decision chain and Seal state for the exact proposal.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlProposalDecisionReadOutcome'
   /_arkret/self/authorization-leases:
     post:
       operationId: ak.self.authorization_leases.command.issue
@@ -4449,6 +4508,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /_arkret/peer/device-revocations/check:
+    post:
+      operationId: ak.peer.device_revocations.command.check
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Linearize an exact immutable device-bound action intent against origin revocation state.
+      description: The authenticated Account Authority supplies PCR-local integer generation selectors from a verified device binding. The origin Principal Server independently derives and compares them under the same serializable fence used for revoke acceptance and persists an exact-intent signed decision receipt. A validated request always returns HTTP 200 with a closed allow, revocation_pending, revoked, authority_mismatch or generation_mismatch receipt; 409 device_revocation_pending/device_revoked belongs only to the protected business operation. An allow receipt is valid for at most 30 seconds and only for the exact issue/refresh intent bytes; introspection carries no receipt.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceRevocationGateCheckRequestBody'
+      responses:
+        '200':
+          description: Signed durable allow, revocation_pending, revoked, authority_mismatch or generation_mismatch decision receipt. A validated request always uses this typed 200 outcome; 409 gate errors belong to the blocked business operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceRevocationGateCheckOutcome'
   /_arkret/peer/events/describe:
     query:
       operationId: ak.peer.events.read.describe

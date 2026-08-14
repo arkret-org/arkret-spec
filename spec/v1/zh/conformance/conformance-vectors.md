@@ -3670,6 +3670,21 @@ Expected：
 - 第 3 步 Commit MUST reject，且 active MLS generation 不得推进；后续 E2EE DataEvent 继续被 security frontier gate 阻塞。
 - 第 4 步客户端 MUST fail closed，不得伪造 `seal_basis`；缺失或不一致 basis 的 Control Move 按 `ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1` 拒收。
 
+### 10.9.2 Vector: Device Revocation Pending State
+
+`vector_id`: `ak.vector.device.revocation_pending_state.v1`
+
+Runner MUST 执行 `device-revocation-pending-fixture.json` 的全部 semantic cases，并至少覆盖：
+
+1. revoke 在 schema / proof / authority / exact current device+PCR generation / precondition / admission 与 mandatory canonical Ack 全部通过后，以单一事务持久化 accepted Event、Ack、derived record、pending index；无 Ack 零写入，不能套用 self-principal PCR Ack-less 例外。
+2. pending 时 base、E2EE 与 hardening profile 对 session issue/refresh、KeyPackage claim、to-device write、Event write、Principal Server admission-proof issuance 全部 fail closed 且零业务写；可区分本地主体操作使用 `device_revocation_pending`，KeyPackage anti-enumeration surface 保持 `claim_failed`，不得因 profile 改变 gate 结论。
+3. Account Authority 只可凭 `ak.peer.device_revocations.command.check` 的 fresh signed exact-intent receipt 铸造/刷新 grant；origin selector 独立派生、同一 durable order线性化、receipt 最长30秒且不能由 cache/private RPC替代。introspection 不承载可复用 receipt；origin Principal Server 对每个 protected self request 在本地事务读取 durable gate。
+4. restart、exact replay、同device/generation两个不同 proposal、只 reject 其中一个、错误 proposal/Ack/authority/device-generation decision、exact signed reject 清最后一项、overdue alert但不解封；达到128条 distinct gate record 后新 proposal `limit_exceeded` 零写入，exact replay仍成功。
+5. reject-first / Seal-first terminal CAS 两种竞态，以及未被 reject终结的 late valid Seal；任何执行次序只能产生一个 terminal winner。
+6. pending 只保留恢复所需最小客户端材料，Seal后才擦除 generation-specific material；pending前合法 admission proof 在pending/Seal后仍可离线验证。
+
+Expected：gate 真相完全来自 durable proposal/Ack/decision/Seal store；任一实现若以 timeout、管理员布尔值、cache eviction、进程内状态或 profile 分支解封，均不合格。账户 device summary 必须把 lifecycle `status` 与 `verification_state` 分维，并返回全部 gate-relevant records（canonical `(acceptance_seq, proposal_digest)` 顺序）；一条 sealed 与另一条 pending 并存时 status=`revoked`，数组仍同时表达两者，不得只返回任意一条。
+
 ### 10.10 Vector: Push Wakeup Policy
 
 `vector_id`: `ak.vector.push.wakeup_policy.v1`
