@@ -1062,7 +1062,7 @@
     },
     {
       "name": "conflict_recovery_move",
-      "description": "A bottom=reject control cell recovers only through a sealed ak.state.conflict_recovery Control Move with recovery_capability and a pre-conflict state_witness. The recovered value is the signed payload.resolved_value, projected by the registered cell_ref + reset form; no other kind may declare that form.",
+      "description": "A bottom=reject control cell recovers only through a sealed ak.conflict.recovery Control Move with recovery_capability and a pre-conflict state_witness. The recovered value is the signed payload.resolved_value, projected by the registered cell_ref + reset form; no other kind may declare that form.",
       "cell": "ak:cell:ak.component.realm.policy.v1:null",
       "pre_conflict_value": {
         "policy_revision": 7
@@ -1072,7 +1072,7 @@
         "reason": "conflict"
       },
       "valid_recovery_move": {
-        "kind": "ak.state.conflict_recovery",
+        "kind": "ak.conflict.recovery",
         "payload": {
           "target_cell": "ak:cell:ak.component.realm.policy.v1:null",
           "resolved_value": {

@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-14.2",
-  "generated_at": "2026-08-14T03:00:00Z",
+  "version": "2026-08-14.3",
+  "generated_at": "2026-08-14T06:42:10Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1522,7 +1522,7 @@
           "ak.contact.requested",
           "ak.contact.accepted",
           "ak.contact.rejected",
-          "ak.contact.tombstoned",
+          "ak.contact.tombstone",
           "ak.direct_conversation.bound",
           "ak.profile.create",
           "ak.profile.update",

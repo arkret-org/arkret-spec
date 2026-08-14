@@ -198,7 +198,7 @@
         "query": "failed_bottom",
         "org_fallback_used": false,
         "arrival_order_selects_winner": false,
-        "recovery_kind": "ak.state.conflict_recovery"
+        "recovery_kind": "ak.conflict.recovery"
       }
     },
     {

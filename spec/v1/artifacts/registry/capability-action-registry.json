@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.6",
+  "version": "2026-08-14.7",
   "source_of_truth": false,
-  "generated_at": "2026-08-14T06:24:26Z",
+  "generated_at": "2026-08-14T06:42:10Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1371,6 +1371,7 @@
         "ak.circle.restore",
         "ak.circle.tombstone",
         "ak.circle.update",
+        "ak.conflict.recovery",
         "ak.container.move_item",
         "ak.container.rebalance",
         "ak.invite.cancel",
@@ -1446,7 +1447,6 @@
         "ak.space.restore",
         "ak.space.tombstone",
         "ak.space.update",
-        "ak.state.conflict_recovery",
         "ak.strand.archive",
         "ak.strand.create",
         "ak.strand.move",
@@ -1487,6 +1487,7 @@
         "ak.circle.member.add",
         "ak.circle.member.add.others",
         "ak.circle.member.manage",
+        "ak.conflict.recovery",
         "ak.container.move_item",
         "ak.container.rebalance",
         "ak.event.read",
@@ -1559,7 +1560,6 @@
         "ak.space.restore",
         "ak.space.tombstone",
         "ak.space.update",
-        "ak.state.conflict_recovery",
         "ak.strand.admin",
         "ak.strand.archive",
         "ak.strand.create",
@@ -2100,12 +2100,12 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.state.conflict_recovery",
+      "action": "ak.conflict.recovery",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.state.conflict_recovery"
+        "ak.conflict.recovery"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"

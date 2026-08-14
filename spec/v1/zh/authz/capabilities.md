@@ -299,9 +299,8 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 （名词，写入 `ak.component.realm.discovery.v1`）不是同一事物：前者是读取面，后者是可发现性声明的状态写入。
 二者同时存在是有意的，MUST NOT 互相替代。
 
-`ak.state.conflict_recovery` 的首段 `state` 是 **reducer 冲突恢复域**，与字段轴 `state`（§5）无关；
-该命名易被误读，**建议改为 `ak.conflict.recovery`**，但改名跨 event-kind registry、reducer 契约与下游
-字符串分派，已记入 `review/spec-open` 待单独裁决，本批不改。
+`ak.conflict.recovery` 的首段 `conflict` 是 **reducer 冲突恢复域**，与字段轴 `state`（§5）正交；
+该 action 与同名 event kind 一一映射，仅授权 §9.5 定义的 `⊥` 恢复路径，不得解释为一般状态覆盖权。
 
 #### 5.0.1 聚合 admin 覆盖集防权限蠕变（normative）
 

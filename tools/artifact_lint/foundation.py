@@ -317,7 +317,7 @@ def lint_field_path(lint: Lint, path: Path, ref: str, value: object) -> None:
 def lint_conflict_recovery_write(lint, event_path, write_ref, kind, write):
     """The single registered exception to literal cell addressing.
 
-    Enforces both directions: only `ak.state.conflict_recovery` may declare
+    Enforces both directions: only `ak.conflict.recovery` may declare
     `cell_ref` or a `reset` projection, and it MUST declare exactly that pair
     with no lattice, bottom, family, subject or condition -- a reset is not a
     join, and a conditional reset would make the recovery path itself depend on
@@ -2521,4 +2521,3 @@ def check_timestamp_profile_single_source(lint: Lint) -> None:
         data = load_yaml(lint, path)
         if data is not None:
             walk(path, data)
-

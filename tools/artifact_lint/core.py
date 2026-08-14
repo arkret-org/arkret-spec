@@ -414,7 +414,7 @@ FIELD_PATH_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)
 
 
 
-CONFLICT_RECOVERY_KIND = "ak.state.conflict_recovery"
+CONFLICT_RECOVERY_KIND = "ak.conflict.recovery"
 
 
 

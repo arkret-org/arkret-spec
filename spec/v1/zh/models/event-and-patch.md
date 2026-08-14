@@ -351,7 +351,7 @@ actor-private 只表示状态可见性与归属，不表示可以省略持久化
 
 **`reset` 与 `cell_ref`（normative，封闭于单一 kind）**：上述全部 projection 都写入一个由
 registry 字面 `cell_family` + `cell_subject` 静态确定的 cell。唯一例外是
-`ak.state.conflict_recovery`（[`../authz/event-auth-state-resolution.md` §9.5](../authz/event-auth-state-resolution.md)）：
+`ak.conflict.recovery`（[`../authz/event-auth-state-resolution.md` §9.5](../authz/event-auth-state-resolution.md)）：
 
 ```json
 {"cell_ref": {"kind": "cell_ref", "field": "payload.target_cell"},
@@ -370,7 +370,7 @@ registry 字面 `cell_family` + `cell_subject` 静态确定的 cell。唯一例�
   已 sealed 等）。cell 处于任何其它状态时该 write **MUST** 被拒绝。
 
 这一形态对其它 kind **封闭**：任何其它 kind 声明 `cell_ref` 或 `reset` 都是 registry 错误，
-而 `ak.state.conflict_recovery` 必须同时声明二者。静态可达性在此由 §9.5 的授权与见证条件
+而 `ak.conflict.recovery` 必须同时声明二者。静态可达性在此由 §9.5 的授权与见证条件
 承担——恢复的安全边界是"谁被授权、锚定在哪个冲突前状态"，而不是"这个 kind 能碰哪些 family"。
 
 `effect_projection` 与 `condition` 正交：先求值 `condition` 决定目标是否参与，仅对参与目标

@@ -5076,7 +5076,7 @@ Expected：
 
 Expected：不同 `set` value 的 `cas_register` join 为 `⊥`、`bottom=reject`；GET、Policy Server
 调用和依赖该 cell 的写入均 `failed_bottom`。实现不得按 HLC / 到达顺序选择 replacement 或
-tombstone，也不得在本级 `⊥` 时跳过到组织 fallback。仅 `ak.state.conflict_recovery` 可恢复。
+tombstone，也不得在本级 `⊥` 时跳过到组织 fallback。仅 `ak.conflict.recovery` 可恢复。
 
 ### 15.4.3 Vector: Realm Policy Server Tombstone 联邦回放与 Seal
 

@@ -99,7 +99,6 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
   | `ak.mls.commit_failed` | 外部结果通告：MLS commit 失败是 RFC 9420 处理结果，不是 Arkret reducer 动作。 |
   | `ak.contact.requested` / `.accepted` / `.rejected` | contact round 的三个终态通告；round 推进由 source service 的 slot CAS 承担，Event 只广播既成状态。 |
   | `ak.direct_conversation.bound` | founding unit 完成后的绑定事实通告。 |
-  | `ak.contact.tombstoned` | **待收敛**：与 §5.2 模板槽 `ak.<kind>.tombstone`（`ak.circle.tombstone` / `ak.space.tombstone` / `ak.relation.tombstone` / `ak.realm.tombstone` 全用原形）直接冲突，且同族 `ak.contact.scope.update` 用原形。它不属于上表的通告类别，应改名为 `ak.contact.tombstone`；改名跨 registry / reducer / 下游字符串分派，见 `review/spec-open`。 |
 
 - **Facet 值设置事件的命名形态（normative）**：写入单个 Realm 配置切面的 event kind 使用**裸名词形态** `ak.<scope>.<facet>`（如 `ak.realm.join_rule`、`ak.realm.history_visibility`、`ak.member.state`、`ak.call.state`），不追加 `.set`。`.set` 后缀**只保留**给两种情形：(a) 需要与同名 patch 路径区分（`ak.<kind>.stage.set` 对应 `stage` 字段，而 `ak.<kind>.update` 的 patch 路径 MUST NOT 触及 `stage`）；(b) 需要独立 capability 切分（`ak.strand.watch.set` / `ak.policy.set` / `ak.account_data.set` / `ak.rsvp.set`）。两种形态都是 canonical，选择依据 MUST 是上述判据而非作者偏好；新增 facet event 默认取裸名词形态。
 - Capability action 命名约定：

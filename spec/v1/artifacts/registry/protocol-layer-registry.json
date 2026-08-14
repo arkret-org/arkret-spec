@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-13.2",
+  "version": "2026-08-14.2",
   "source_of_truth": true,
   "description": "Exhaustive ownership of every active Arkret v1 Event.kind by Kernel, Collaboration Base, or Extension. Each kind appears exactly once. Layer ownership constrains conformance packaging and dependency direction; it does not change the Event Envelope wire shape.",
   "layer_rules": {
@@ -32,6 +32,7 @@
       "ak.circle.seal_commit",
       "ak.circle.tombstone",
       "ak.circle.update",
+      "ak.conflict.recovery",
       "ak.device.authorize",
       "ak.device.list_update",
       "ak.device.reanchor",
@@ -82,8 +83,7 @@
       "ak.realm_key.share_audit",
       "ak.realm_key.withheld",
       "ak.schema.define",
-      "ak.schema.update",
-      "ak.state.conflict_recovery"
+      "ak.schema.update"
     ],
     "collaboration_base": [
       "ak.container.move_item",
@@ -139,7 +139,7 @@
       "ak.contact.rejected",
       "ak.contact.requested",
       "ak.contact.scope.update",
-      "ak.contact.tombstoned",
+      "ak.contact.tombstone",
       "ak.device.push_route",
       "ak.direct_conversation.bound",
       "ak.direct_conversation.mls_generation.activate",

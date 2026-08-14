@@ -464,7 +464,7 @@ Genesis value 由 `ak.realm.create` 的注册 reducer projection 从 `payload.ob
 
 Profile view 必须逐 Event 求值：DataEvent 使用 `seal_ref` 认证的 joined control state；Control Move 使用 `seal_basis` 指定的 frozen predecessor `J(L)`。`ak.realm.upgrade` 自身由 source profile 解释；只有 governance basis 已包含该 accepted upgrade 的后继才由 target profile 解释。与 upgrade 并发且 basis 不含它的 Event 仍使用 source profile。实现不得读取本地 latest profile、软件默认值、接收顺序或 Event 自报字段。
 
-同一前驱上的并发互斥 upgrade 按 §9.3.1 的 `cas_register` join 进入 `⊥`；恢复只使用 §9.5 的 `ak.state.conflict_recovery`。不得为 profile 另设 epoch、frontier、CAS 或冲突算法。若 target row 与 edge 已知、upgrade 在 source profile 下有效，但本 build 未实现 target reducer，receiver 仍接受 upgrade 并把验证 frontier 推进到该 Event；target-profile 后继返回 `unsupported_profile` 且不得进入 accepted state。
+同一前驱上的并发互斥 upgrade 按 §9.3.1 的 `cas_register` join 进入 `⊥`；恢复只使用 §9.5 的 `ak.conflict.recovery`。不得为 profile 另设 epoch、frontier、CAS 或冲突算法。若 target row 与 edge 已知、upgrade 在 source profile 下有效，但本 build 未实现 target reducer，receiver 仍接受 upgrade 并把验证 frontier 推进到该 Event；target-profile 后继返回 `unsupported_profile` 且不得进入 accepted state。
 
 ## 7. 问责、审查与 transparency
 
@@ -806,13 +806,13 @@ Realm 的 `digest_algorithm` 只能通过控制面 suite-transition Control Move
 
 `bottom=reject` 的控制面 cell（典型 `cas_register` / `fsm`）join 到 `⊥`（§9.1.1）后是**死状态**：所有依赖它的 Control Move precondition、DataEvent 授权判定与读路径 fail closed（`failed_bottom`）。把该 cell 从 `⊥` 拉回单一合法值，唯一途径是本节定义的 **conflict-recovery Move**。`bottom=expose` cell 的 `⊥` 暴露多 heads、由后续普通 Move 收敛，**不**适用本节、也不需要 recovery capability。
 
-conflict-recovery Move 是一条 kind 为 `ak.state.conflict_recovery` 的 Control Move，
+conflict-recovery Move 是一条 kind 为 `ak.conflict.recovery` 的 Control Move，
 payload 为 `{target_cell, resolved_value, reason?}`。它在 registry 中登记为
 [`../models/event-and-patch.md` §2.4.2](../models/event-and-patch.md) 的 `cell_ref` +
 `reset` 形态：目标 cell 由签名 payload 的完整 `cell_id` 给出，
 写入值为 `resolved_value`。
 
-该恢复写入必须由已注册的 `ak.state.conflict_recovery` contract 唯一派生；
+该恢复写入必须由已注册的 `ak.conflict.recovery` contract 唯一派生；
 不得用 `refs[]` role、producer 自报 effects 或未注册 kind 替代。识别不只依赖
 kind 名：下列条件全部为 MUST，reducer 仅在 cell 处于 `⊥` 时接受它。
 

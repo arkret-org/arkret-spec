@@ -410,7 +410,7 @@
         },
         "terminal": {
           "type": "boolean",
-          "description": "Signed current-head classification. true means head_event_ref is an accepted ak.contact.tombstoned terminal head for this basis; false means the basis remains non-terminal. A historical predecessor in a recontact continuity chain requires true from both directional proofs."
+          "description": "Signed current-head classification. true means head_event_ref is an accepted ak.contact.tombstone terminal head for this basis; false means the basis remains non-terminal. A historical predecessor in a recontact continuity chain requires true from both directional proofs."
         },
         "accepted_frontier": {
           "type": "array",
@@ -983,7 +983,7 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.tombstoned"
+                      "const": "ak.contact.tombstone"
                     }
                   },
                   "required": [
@@ -1317,7 +1317,7 @@
             "ak.contact.accepted",
             "ak.contact.rejected",
             "ak.contact.scope.update",
-            "ak.contact.tombstoned"
+            "ak.contact.tombstone"
           ]
         },
         "unsigned_event_bytes": {
@@ -1742,7 +1742,7 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.tombstoned"
+                      "const": "ak.contact.tombstone"
                     }
                   },
                   "required": [
@@ -2721,7 +2721,7 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.tombstoned"
+                      "const": "ak.contact.tombstone"
                     }
                   },
                   "required": [

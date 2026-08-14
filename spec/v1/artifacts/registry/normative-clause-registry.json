@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-14.4",
+  "version": "2026-08-14.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-14T03:10:00Z",
+  "generated_at": "2026-08-14T06:42:10Z",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -230,7 +230,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:c1da98d1187f0d1652460f5e34a90b5f0f0d92d49812bb6ea771676c3074692c",
+      "section_digest": "sha256:455e7f7911bb3832f37f3a327c666b1b10a105b2c710f7c06dc9aa5b0cb6cc5a",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, Realm reducer selection comes from the authenticated singleton control cell, equivocating notaries are quarantined instead of silently merged, and a full-digest collision under a sealed Control Move is normalized by canonical bytes rather than by an ambiguous digest.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -276,7 +276,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#9-lattice-与冲突语义",
-      "section_digest": "sha256:0447a5a36af0f29f45ea33f66f3483f56c17cfef4e4ce42714342734f746ecf6",
+      "section_digest": "sha256:34bd347af39f999fdc837251c1b4ccddcc365aac77391bb406c00a48577985ed",
       "requirement": "Lattice joins are idempotent, commutative and associative per family; data-plane conflicts return structured bottom instead of electing a winner by arrival order or HLC.",
       "testability_grade": "vector",
       "evidence_refs": [

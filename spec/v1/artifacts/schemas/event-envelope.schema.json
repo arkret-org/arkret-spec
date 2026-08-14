@@ -649,7 +649,7 @@
               "ak.contact.rejected",
               "ak.contact.requested",
               "ak.contact.scope.update",
-              "ak.contact.tombstoned",
+              "ak.contact.tombstone",
               "ak.container.move_item",
               "ak.container.rebalance",
               "ak.device.authorize",
@@ -3517,7 +3517,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.contact.tombstoned"
+            "const": "ak.contact.tombstone"
           }
         },
         "required": [
@@ -4362,7 +4362,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.state.conflict_recovery"
+            "const": "ak.conflict.recovery"
           }
         },
         "required": [
