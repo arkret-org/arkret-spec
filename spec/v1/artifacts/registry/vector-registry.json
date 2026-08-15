@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-15.2",
+  "version": "2026-08-15.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-15T02:00:00Z",
+  "generated_at": "2026-08-15T03:42:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5696,6 +5696,19 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/sync-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.authz.reviewer_authority_pair.v1",
+      "status": "active",
+      "domain": "authz",
+      "applies_to_fixtures": [
+        "reviewer-authority-pair-fixture.json"
+      ],
+      "description": "Effective-grant queries select an exact principal authority pair; join review receipts bind grant, receipt and verification-method controller to that pair, while quorum eligibility is pair-verified and votes are deterministically deduplicated by reviewer actor DID.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/reviewer-authority-pair-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {

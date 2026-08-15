@@ -301,6 +301,10 @@
       "sha256": "df47e31e0956f4fd1d24aa6ab244162b7ef9f15cefccbd9ddb6b0932201b38a9"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/reviewer-authority-pair-fixture.json",
+      "sha256": "9820e417494b2876222c1073b8aa1dc3e3877d276ac251f09fb74c99380bb783"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
       "sha256": "816c94d437d2d2ffe0653c8cc9986abafb9d90f3af204fa0eed9dbfa4d7c79d7"
     },

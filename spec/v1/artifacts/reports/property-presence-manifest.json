@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9748,
+    "total_properties": 9749,
     "total_schema_documents": 158,
     "by_presence_class": {
       "optional": 2851,
       "optional_defaulted": 70,
-      "required": 6431,
+      "required": 6432,
       "required_nullable": 130,
       "tristate": 266
     },
@@ -8633,6 +8633,7 @@
         "/$defs/review_receipt/properties/reviewed_at": "required",
         "/$defs/review_receipt/properties/reviewer_actor_id": "required",
         "/$defs/review_receipt/properties/reviewer_capability_proof": "required",
+        "/$defs/review_receipt/properties/reviewer_principal_server_id": "required",
         "/$defs/reviewer_capability_proof/properties/frontier_digest": "required",
         "/$defs/reviewer_capability_proof/properties/grant_id": "required",
         "/$defs/reviewer_encryption_envelope/properties/ciphertext": "required",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-15.2",
+  "version": "2026-08-15.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-15T02:00:00Z",
+  "generated_at": "2026-08-15T03:42:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "v1",
@@ -13414,6 +13414,7 @@
         "http": "GET /_arkret/self/authz/effective-grants",
         "grpc": "SelfAuthz/GetEffectiveGrants",
         "mq": "self.authz.grants.query.effective",
+        "notes": "Query parameters are realm_id, subject, required subject_principal_server_id and optional at. subject plus subject_principal_server_id form the exact PrincipalAuthorityKey; no local-service, bearer-service, DID-document or delivery-binding fallback is allowed.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantList"
@@ -15017,8 +15018,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-08-15.2",
-    "generated_at": "2026-08-15T02:00:00Z"
+    "version": "2026-08-15.3",
+    "generated_at": "2026-08-15T03:42:00Z"
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

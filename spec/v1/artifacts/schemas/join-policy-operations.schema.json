@@ -289,13 +289,14 @@
     },
     "review_receipt": {
       "type": "object",
-      "description": "Reviewer-signed decision receipt. review_receipt_digest is sha256:JCS of this object with review_receipt_digest and proof omitted. proof signs the ak.join-application-review-receipt-proof-v1 transcript.",
+      "description": "Reviewer-signed decision receipt bound to the exact reviewer authority pair. review_receipt_digest is sha256:JCS of this object with review_receipt_digest and proof omitted. proof signs the ak.join-application-review-receipt-proof-v1 transcript including principal_server_id=reviewer_principal_server_id.",
       "required": [
         "candidate_kind",
         "realm_id",
         "application_ref",
         "application_revision_digest",
         "reviewer_actor_id",
+        "reviewer_principal_server_id",
         "decision",
         "reviewer_capability_proof",
         "reviewed_at",
@@ -316,6 +317,9 @@
           "$ref": "#/$defs/digest"
         },
         "reviewer_actor_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "reviewer_principal_server_id": {
           "$ref": "#/$defs/did_core_id"
         },
         "decision": {

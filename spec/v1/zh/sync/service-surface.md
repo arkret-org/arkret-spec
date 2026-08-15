@@ -904,7 +904,7 @@ MIMI Provider Facade 不属于 v1 core service surface。完整定义见 [`../ex
 至少建议提供：
 
 ```text
-GET /_arkret/self/authz/effective-grants?realm_id=<id>&subject=<did>
+GET /_arkret/self/authz/effective-grants?realm_id=<id>&subject=<did_core_id>&subject_principal_server_id=<did_core_id>&at=<timestamp?>
 ```
 
 ```text

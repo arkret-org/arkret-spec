@@ -6521,6 +6521,30 @@ paths:
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
+      parameters:
+      - name: realm_id
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/RealmId'
+      - name: subject
+        in: query
+        required: true
+        description: Principal did_core_id selected as one half of the exact authority pair.
+        schema:
+          $ref: '../schemas/common-ids.schema.json#/$defs/did_core_id'
+      - name: subject_principal_server_id
+        in: query
+        required: true
+        description: Principal Server did_core_id selected as the other half of the exact authority pair; no implicit fallback is allowed.
+        schema:
+          $ref: '../schemas/common-ids.schema.json#/$defs/did_core_id'
+      - name: at
+        in: query
+        required: false
+        description: Canonical timestamp at which effective grants are evaluated.
+        schema:
+          $ref: ../schemas/time.schema.json#/$defs/timestamp
       responses:
         '200':
           description: Effective grants
